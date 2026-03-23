@@ -1115,21 +1115,27 @@ protected:
 
     ExperimentalDesign ed;
 
+    // Validate QPX export is only used with consensusXML
+    if (!out_qpx.empty() && in_type != FileTypes::CONSENSUSXML)
+    {
+      if (out.empty() && peptide_out.empty())
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "QPX Parquet export (out_qpx) is only supported for consensusXML input, "
+          "and no other output was requested. Please provide consensusXML input or "
+          "specify 'out' or 'peptide_out'.");
+      }
+      OPENMS_LOG_WARN << "QPX Parquet export is only supported for consensusXML input. Skipping QPX export." << std::endl;
+    }
+
     // Process input based on file type
     if (in_type == FileTypes::FEATUREXML)
     {
-      if (!out_qpx.empty())
-      {
-        OPENMS_LOG_WARN << "QPX Parquet export is only supported for consensusXML input. Skipping QPX export." << std::endl;
-      }
       ed = processFeatureXMLInput_(in, design_file, quantifier);
     }
     else if (in_type == FileTypes::IDXML)
     {
-      if (!out_qpx.empty())
-      {
-        OPENMS_LOG_WARN << "QPX Parquet export is only supported for consensusXML input. Skipping QPX export." << std::endl;
-      }
       ed = processIdXMLInput_(in, design_file, quantifier);
     }
     else // consensusXML
