@@ -89,14 +89,23 @@ START_SECTION((smooth MS1 variant))
   int m = 7;
   std::vector<double> data = {0, 1, -2, 3, -4, 5, -6, 7, -8, 9, 10, 6, 3, 1, 0};
 
-  ModifiedSincSmoother smoother(true, degree, m); // MS1 variant
+  // Expected values from Java reference: new ModifiedSincSmoother(true, 6, 7)
+  std::vector<double> expected = {
+    9.8621205110963930e-04,  1.5814360451280190e-01,  1.0378944922019940e-02,
+   -9.3245732506647640e-02, -2.2469895253114215e-03,  3.1668080258012170e-01,
+   -6.6050772241400120e-02, -1.1369501098276590e+00,  2.1676680879777394e-01,
+    5.2472199849855430e+00,  9.0273654134685140e+00,  7.3725523213984620e+00,
+    3.1669629429298880e+00,  6.8997426114563800e-01, -1.1895183805986807e-01
+  };
+
+  ModifiedSincSmoother smoother(true, degree, m);
   std::vector<double> output = smoother.smooth(data);
 
-  double sum_input = std::accumulate(data.begin(), data.end(), 0.0);
-  double sum_output = std::accumulate(output.begin(), output.end(), 0.0);
-  TEST_REAL_SIMILAR(sum_input, sum_output)
-
   TEST_EQUAL(data.size(), output.size())
+  for (size_t i = 0; i < data.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(output[i], expected[i])
+  }
 }
 END_SECTION
 
@@ -179,69 +188,82 @@ END_SECTION
 
 START_SECTION((static int bandwidthToM(bool isMS1, int degree, double bandwidth)))
 {
-  // Test bandwidth conversion for MS2
-  TEST_EQUAL(ModifiedSincSmoother::bandwidthToM(false, 4, 0.1), 30)
-  TEST_EQUAL(ModifiedSincSmoother::bandwidthToM(false, 6, 0.1), 32)
-  
-  // Test bandwidth conversion for MS1
-  TEST_EQUAL(ModifiedSincSmoother::bandwidthToM(true, 4, 0.1), 10)
-  TEST_EQUAL(ModifiedSincSmoother::bandwidthToM(true, 6, 0.1), 12)
-  
-  // Test invalid bandwidth - should throw
+  // MS mode — values verified against Java reference
+  TEST_EQUAL(ModifiedSincSmoother::bandwidthToM(false, 4, 0.1), 16)
+  TEST_EQUAL(ModifiedSincSmoother::bandwidthToM(false, 4, 0.2), 8)
+  TEST_EQUAL(ModifiedSincSmoother::bandwidthToM(false, 6, 0.1), 21)
+  TEST_EQUAL(ModifiedSincSmoother::bandwidthToM(false, 6, 0.2), 10)
+
+  // MS1 mode
+  TEST_EQUAL(ModifiedSincSmoother::bandwidthToM(true, 4, 0.1), 12)
+  TEST_EQUAL(ModifiedSincSmoother::bandwidthToM(true, 4, 0.2), 5)
+  TEST_EQUAL(ModifiedSincSmoother::bandwidthToM(true, 6, 0.1), 17)
+  TEST_EQUAL(ModifiedSincSmoother::bandwidthToM(true, 6, 0.2), 8)
+
+  // Boundary exceptions
   TEST_EXCEPTION(Exception::InvalidParameter, ModifiedSincSmoother::bandwidthToM(false, 4, 0.0))
   TEST_EXCEPTION(Exception::InvalidParameter, ModifiedSincSmoother::bandwidthToM(false, 4, 0.5))
+  TEST_EXCEPTION(Exception::InvalidParameter, ModifiedSincSmoother::bandwidthToM(false, 4, -0.1))
 }
 END_SECTION
 
 START_SECTION((static int noiseGainToM(bool isMS1, int degree, double noiseGain)))
 {
-  // Test noise gain conversion
-  int m_ms2 = ModifiedSincSmoother::noiseGainToM(false, 4, 0.8);
-  int m_ms1 = ModifiedSincSmoother::noiseGainToM(true, 4, 0.8);
-  
-  TEST_EQUAL(m_ms2 > 0, true)
-  TEST_EQUAL(m_ms1 > 0, true)
-  TEST_EQUAL(m_ms2 != m_ms1, true) // Should be different for MS1 vs MS2
+  // Values verified against Java reference
+  TEST_EQUAL(ModifiedSincSmoother::noiseGainToM(false, 4, 0.5), 13)
+  TEST_EQUAL(ModifiedSincSmoother::noiseGainToM(false, 4, 0.8), 4)
+  TEST_EQUAL(ModifiedSincSmoother::noiseGainToM(false, 6, 0.5), 17)
+  TEST_EQUAL(ModifiedSincSmoother::noiseGainToM(true, 4, 0.5), 9)
+  TEST_EQUAL(ModifiedSincSmoother::noiseGainToM(true, 4, 0.8), 3)
+  TEST_EQUAL(ModifiedSincSmoother::noiseGainToM(true, 6, 0.5), 13)
+
+  // Invalid noise gain
+  TEST_EXCEPTION(Exception::InvalidParameter, ModifiedSincSmoother::noiseGainToM(false, 4, 0.0))
+  TEST_EXCEPTION(Exception::InvalidParameter, ModifiedSincSmoother::noiseGainToM(false, 4, -1.0))
 }
 END_SECTION
 
 START_SECTION((static double savitzkyGolayBandwidth(int degree, int m)))
 {
-  // Test Savitzky-Golay bandwidth calculation
-  double bw = ModifiedSincSmoother::savitzkyGolayBandwidth(4, 10);
-  TEST_EQUAL(bw > 0.0, true)
-  TEST_EQUAL(bw < 0.5, true)
-  
+  // Values verified against Java reference
+  TEST_REAL_SIMILAR(ModifiedSincSmoother::savitzkyGolayBandwidth(4, 10), 8.1765529486428860e-02)
+  TEST_REAL_SIMILAR(ModifiedSincSmoother::savitzkyGolayBandwidth(4, 20), 4.1456732856719296e-02)
+  TEST_REAL_SIMILAR(ModifiedSincSmoother::savitzkyGolayBandwidth(6, 10), 1.1351775630841529e-01)
+  TEST_REAL_SIMILAR(ModifiedSincSmoother::savitzkyGolayBandwidth(6, 20), 5.7047267374270800e-02)
+
   // Higher m should give smaller bandwidth
+  double bw1 = ModifiedSincSmoother::savitzkyGolayBandwidth(4, 10);
   double bw2 = ModifiedSincSmoother::savitzkyGolayBandwidth(4, 20);
-  TEST_EQUAL(bw2 < bw, true)
+  TEST_EQUAL(bw2 < bw1, true)
 }
 END_SECTION
 
 START_SECTION((void filter(MSSpectrum& spectrum)))
 {
   ModifiedSincSmoother smoother(false, 4, 5);
-  
-  // Create test spectrum
+
   MSSpectrum spectrum;
-  for (int i = 0; i < 10; ++i)
+  std::vector<double> intensities;
+  for (int i = 0; i < 15; ++i)
   {
     Peak1D peak;
     peak.setPosition(100.0 + i);
-    peak.setIntensity(i % 3 == 0 ? 1000.0 : 100.0); // Some peaks higher
+    peak.setIntensity(i % 3 == 0 ? 1000.0 : 100.0);
     spectrum.push_back(peak);
+    intensities.push_back(peak.getIntensity());
   }
-  
+
+  std::vector<double> reference = smoother.smooth(intensities);
+
   MSSpectrum original = spectrum;
   smoother.filter(spectrum);
-  
-  // Should preserve spectrum size and positions
+
   TEST_EQUAL(spectrum.size(), original.size())
-  
+
   for (size_t i = 0; i < spectrum.size(); ++i)
   {
-    TEST_REAL_SIMILAR(spectrum[i].getPosition()[0], original[i].getPosition()[0]) // Positions unchanged
-    TEST_EQUAL(spectrum[i].getIntensity() >= 0.0, true) // No negative intensities
+    TEST_REAL_SIMILAR(spectrum[i].getPosition()[0], original[i].getPosition()[0])
+    TEST_REAL_SIMILAR(spectrum[i].getIntensity(), std::max(0.0, reference[i]))
   }
 }
 END_SECTION
