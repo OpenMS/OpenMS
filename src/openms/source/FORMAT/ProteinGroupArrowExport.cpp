@@ -95,10 +95,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   auto gg_names_vb = std::make_shared<arrow::StringBuilder>();
   arrow::ListBuilder gg_names_builder(arrow::default_memory_pool(), gg_names_vb);
 
-  // -- intensities: list<struct{label: utf8, intensity: float32}> --
+  // -- intensities: list<struct{label: utf8 not null, intensity: float32 not null}> --
   auto intensity_struct_type = arrow::struct_({
-    arrow::field("label", arrow::utf8()),
-    arrow::field("intensity", arrow::float32())
+    arrow::field("label", arrow::utf8(), /*nullable=*/false),
+    arrow::field("intensity", arrow::float32(), /*nullable=*/false)
   });
   auto int_label_b = std::make_shared<arrow::StringBuilder>();
   auto int_value_b = std::make_shared<arrow::FloatBuilder>();
@@ -107,10 +107,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     std::vector<std::shared_ptr<arrow::ArrayBuilder>>{int_label_b, int_value_b});
   arrow::ListBuilder intensities_builder(arrow::default_memory_pool(), int_struct_b);
 
-  // -- additional_intensities: list<struct{label: utf8, intensities: list<struct{intensity_name: utf8, intensity_value: float32}>}> --
+  // -- additional_intensities: list<struct{label: utf8 not null, intensities: list<struct{intensity_name: utf8 not null, intensity_value: float32 not null}> not null}> --
   auto int_pair_type = arrow::struct_({
-    arrow::field("intensity_name", arrow::utf8()),
-    arrow::field("intensity_value", arrow::float32())
+    arrow::field("intensity_name", arrow::utf8(), /*nullable=*/false),
+    arrow::field("intensity_value", arrow::float32(), /*nullable=*/false)
   });
   auto ip_name_b = std::make_shared<arrow::StringBuilder>();
   auto ip_value_b = std::make_shared<arrow::FloatBuilder>();
@@ -120,8 +120,8 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   auto ip_list_b = std::make_shared<arrow::ListBuilder>(arrow::default_memory_pool(), ip_struct_b);
 
   auto add_int_struct_type = arrow::struct_({
-    arrow::field("label", arrow::utf8()),
-    arrow::field("intensities", arrow::list(int_pair_type))
+    arrow::field("label", arrow::utf8(), /*nullable=*/false),
+    arrow::field("intensities", arrow::list(int_pair_type), /*nullable=*/false)
   });
   auto ai_label_b = std::make_shared<arrow::StringBuilder>();
   auto ai_struct_b = std::make_shared<arrow::StructBuilder>(
@@ -129,10 +129,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     std::vector<std::shared_ptr<arrow::ArrayBuilder>>{ai_label_b, ip_list_b});
   arrow::ListBuilder additional_intensities_builder(arrow::default_memory_pool(), ai_struct_b);
 
-  // -- peptides: list<struct{protein_name: utf8, peptide_count: int32}> --
+  // -- peptides: list<struct{protein_name: utf8 not null, peptide_count: int32 not null}> --
   auto pep_struct_type = arrow::struct_({
-    arrow::field("protein_name", arrow::utf8()),
-    arrow::field("peptide_count", arrow::int32())
+    arrow::field("protein_name", arrow::utf8(), /*nullable=*/false),
+    arrow::field("peptide_count", arrow::int32(), /*nullable=*/false)
   });
   auto pep_name_b = std::make_shared<arrow::StringBuilder>();
   auto pep_count_b = std::make_shared<arrow::Int32Builder>();
@@ -141,10 +141,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     std::vector<std::shared_ptr<arrow::ArrayBuilder>>{pep_name_b, pep_count_b});
   arrow::ListBuilder peptides_builder(arrow::default_memory_pool(), pep_struct_b);
 
-  // -- peptide_counts: struct{unique_sequences: int32, total_sequences: int32} --
+  // -- peptide_counts: struct{unique_sequences: int32 not null, total_sequences: int32 not null} --
   auto pep_counts_type = arrow::struct_({
-    arrow::field("unique_sequences", arrow::int32()),
-    arrow::field("total_sequences", arrow::int32())
+    arrow::field("unique_sequences", arrow::int32(), /*nullable=*/false),
+    arrow::field("total_sequences", arrow::int32(), /*nullable=*/false)
   });
   auto pc_unique_b = std::make_shared<arrow::Int32Builder>();
   auto pc_total_b = std::make_shared<arrow::Int32Builder>();
@@ -152,10 +152,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     pep_counts_type, arrow::default_memory_pool(),
     std::vector<std::shared_ptr<arrow::ArrayBuilder>>{pc_unique_b, pc_total_b});
 
-  // -- feature_counts: struct{unique_features: int32, total_features: int32} --
+  // -- feature_counts: struct{unique_features: int32 not null, total_features: int32 not null} --
   auto feat_counts_type = arrow::struct_({
-    arrow::field("unique_features", arrow::int32()),
-    arrow::field("total_features", arrow::int32())
+    arrow::field("unique_features", arrow::int32(), /*nullable=*/false),
+    arrow::field("total_features", arrow::int32(), /*nullable=*/false)
   });
   auto fc_unique_b = std::make_shared<arrow::Int32Builder>();
   auto fc_total_b = std::make_shared<arrow::Int32Builder>();
@@ -163,10 +163,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     feat_counts_type, arrow::default_memory_pool(),
     std::vector<std::shared_ptr<arrow::ArrayBuilder>>{fc_unique_b, fc_total_b});
 
-  // -- additional_scores: list<struct{score_name: utf8, score_value: float64, higher_better: bool}> --
+  // -- additional_scores: list<struct{score_name: utf8 not null, score_value: float64 not null, higher_better: bool}> --
   auto as_struct_type = arrow::struct_({
-    arrow::field("score_name", arrow::utf8()),
-    arrow::field("score_value", arrow::float64()),
+    arrow::field("score_name", arrow::utf8(), /*nullable=*/false),
+    arrow::field("score_value", arrow::float64(), /*nullable=*/false),
     arrow::field("higher_better", arrow::boolean())
   });
   auto as_name_b = std::make_shared<arrow::StringBuilder>();
@@ -177,10 +177,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     std::vector<std::shared_ptr<arrow::ArrayBuilder>>{as_name_b, as_value_b, as_hb_b});
   arrow::ListBuilder additional_scores_builder(arrow::default_memory_pool(), as_struct_b);
 
-  // -- cv_params: list<struct{cv_name: utf8, cv_value: utf8}> --
+  // -- cv_params: list<struct{cv_name: utf8 not null, cv_value: utf8 not null}> --
   auto cv_struct_type = arrow::struct_({
-    arrow::field("cv_name", arrow::utf8()),
-    arrow::field("cv_value", arrow::utf8())
+    arrow::field("cv_name", arrow::utf8(), /*nullable=*/false),
+    arrow::field("cv_value", arrow::utf8(), /*nullable=*/false)
   });
   auto cv_name_b = std::make_shared<arrow::StringBuilder>();
   auto cv_value_b = std::make_shared<arrow::StringBuilder>();
@@ -307,7 +307,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     {
       (void)peptide_counts_builder.Append();
       (void)pc_unique_b->Append(distinct_peptides_for_run);
-      (void)pc_total_b->AppendNull();
+      (void)pc_total_b->Append(0);
     }
     else
     {
@@ -429,22 +429,22 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   status = cv_params_builder.Finish(&arr_cv_params);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinGroupArrowExport: cv_params Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
-  // Build schema matching QPX pg spec field order
+  // Build schema matching quantms pg spec field order
   auto schema = arrow::schema({
-    arrow::field("pg_accessions", arrow::list(arrow::utf8())),
+    arrow::field("pg_accessions", arrow::list(arrow::utf8()), /*nullable=*/false),
     arrow::field("pg_names", arrow::list(arrow::utf8())),
     arrow::field("gg_accessions", arrow::list(arrow::utf8())),
     arrow::field("gg_names", arrow::list(arrow::utf8())),
     arrow::field("gg_qvalue", arrow::float64()),
-    arrow::field("anchor_protein", arrow::utf8()),
-    arrow::field("run_file_name", arrow::utf8()),
+    arrow::field("anchor_protein", arrow::utf8(), /*nullable=*/false),
+    arrow::field("run_file_name", arrow::utf8(), /*nullable=*/false),
     arrow::field("global_qvalue", arrow::float64()),
     arrow::field("pg_qvalue", arrow::float64()),
     arrow::field("intensities", intensities_builder.type()),
     arrow::field("additional_intensities", additional_intensities_builder.type()),
-    arrow::field("is_decoy", arrow::boolean()),
+    arrow::field("is_decoy", arrow::boolean(), /*nullable=*/false),
     arrow::field("contaminant", arrow::boolean()),
-    arrow::field("peptides", peptides_builder.type()),
+    arrow::field("peptides", peptides_builder.type(), /*nullable=*/false),
     arrow::field("peptide_counts", pep_counts_type),
     arrow::field("feature_counts", feat_counts_type),
     arrow::field("sequence_coverage", arrow::float32()),

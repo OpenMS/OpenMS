@@ -94,42 +94,44 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportToArrow(...))
   // Verify number of rows (should equal number of peptide identifications, not hits)
   TEST_EQUAL(table->num_rows(), 3)
 
-  // Verify schema column names and count (25 columns in QPX schema)
+  // Verify schema column names and count (24 columns in QPXPSMSchema)
   auto schema = table->schema();
-  TEST_EQUAL(table->num_columns(), 25)
+  TEST_EQUAL(table->num_columns(), 24)
 
   TEST_EQUAL(schema->field(0)->name(), "sequence")
   TEST_EQUAL(schema->field(1)->name(), "peptidoform")
   TEST_EQUAL(schema->field(2)->name(), "modifications")
-  TEST_EQUAL(schema->field(3)->name(), "precursor_charge")
+  TEST_EQUAL(schema->field(3)->name(), "charge")
   TEST_EQUAL(schema->field(4)->name(), "posterior_error_probability")
   TEST_EQUAL(schema->field(5)->name(), "is_decoy")
   TEST_EQUAL(schema->field(6)->name(), "calculated_mz")
   TEST_EQUAL(schema->field(7)->name(), "observed_mz")
-  TEST_EQUAL(schema->field(8)->name(), "additional_scores")
-  TEST_EQUAL(schema->field(9)->name(), "protein_accessions")
+  TEST_EQUAL(schema->field(8)->name(), "mass_error_ppm")
+  TEST_EQUAL(schema->field(9)->name(), "additional_scores")
   TEST_EQUAL(schema->field(10)->name(), "predicted_rt")
-  TEST_EQUAL(schema->field(11)->name(), "reference_file_name")
+  TEST_EQUAL(schema->field(11)->name(), "run_file_name")
   TEST_EQUAL(schema->field(12)->name(), "cv_params")
   TEST_EQUAL(schema->field(13)->name(), "scan")
   TEST_EQUAL(schema->field(14)->name(), "rt")
   TEST_EQUAL(schema->field(15)->name(), "ion_mobility")
-  TEST_EQUAL(schema->field(16)->name(), "spectrum_reference")
-  TEST_EQUAL(schema->field(17)->name(), "score")
-  TEST_EQUAL(schema->field(18)->name(), "score_type")
-  TEST_EQUAL(schema->field(19)->name(), "higher_score_better")
-  TEST_EQUAL(schema->field(20)->name(), "rank")
-  TEST_EQUAL(schema->field(21)->name(), "peptide_identification_index")
-  TEST_EQUAL(schema->field(22)->name(), "psm_metavalues")
-  TEST_EQUAL(schema->field(23)->name(), "spectrum_metavalues")
-  TEST_EQUAL(schema->field(24)->name(), "run_identifier")
+  TEST_EQUAL(schema->field(16)->name(), "missed_cleavages")
+  TEST_EQUAL(schema->field(17)->name(), "protein_accessions")
+  TEST_EQUAL(schema->field(18)->name(), "cross_links")
+  TEST_EQUAL(schema->field(19)->name(), "mz_array")
+  TEST_EQUAL(schema->field(20)->name(), "intensity_array")
+  TEST_EQUAL(schema->field(21)->name(), "charge_array")
+  TEST_EQUAL(schema->field(22)->name(), "ion_type_array")
+  TEST_EQUAL(schema->field(23)->name(), "ion_mobility_array")
 
   // Verify data types for key columns
-  TEST_EQUAL(schema->field(4)->type()->id(), arrow::Type::DOUBLE) // PEP is float64
-  TEST_EQUAL(schema->field(6)->type()->id(), arrow::Type::DOUBLE) // calculated_mz is float64
-  TEST_EQUAL(schema->field(7)->type()->id(), arrow::Type::DOUBLE) // observed_mz is float64
-  TEST_EQUAL(schema->field(9)->type()->id(), arrow::Type::LIST)   // protein_accessions is list
-  TEST_EQUAL(schema->field(2)->type()->id(), arrow::Type::LIST)   // modifications is list
+  TEST_EQUAL(schema->field(3)->type()->id(), arrow::Type::INT16)   // charge is int16
+  TEST_EQUAL(schema->field(4)->type()->id(), arrow::Type::DOUBLE)  // PEP is float64
+  TEST_EQUAL(schema->field(6)->type()->id(), arrow::Type::FLOAT)   // calculated_mz is float32
+  TEST_EQUAL(schema->field(7)->type()->id(), arrow::Type::FLOAT)   // observed_mz is float32
+  TEST_EQUAL(schema->field(8)->type()->id(), arrow::Type::FLOAT)   // mass_error_ppm is float32
+  TEST_EQUAL(schema->field(13)->type()->id(), arrow::Type::LIST)   // scan is list<int32>
+  TEST_EQUAL(schema->field(17)->type()->id(), arrow::Type::LIST)   // protein_accessions is list
+  TEST_EQUAL(schema->field(2)->type()->id(), arrow::Type::LIST)    // modifications is list
 
   // Verify sequence values
   auto seq_col = table->GetColumnByName("sequence");
@@ -147,38 +149,24 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportToArrow(...))
   TEST_EQUAL(mod_pf.empty(), false)
   TEST_EQUAL(mod_pf.find('[') != std::string::npos, true) // ProForma bracket notation expected
 
-  // Verify is_decoy nullable behavior
+  // Verify is_decoy non-nullable behavior
   auto decoy_col = table->GetColumnByName("is_decoy");
   auto decoy_arr = std::static_pointer_cast<arrow::BooleanArray>(decoy_col->chunk(0));
   TEST_EQUAL(decoy_arr->Value(0), false) // target
   TEST_EQUAL(decoy_arr->Value(1), true) // decoy
   TEST_EQUAL(decoy_arr->Value(2), false) // target
 
-  // Verify rank is always present and 0-based
-  auto rank_col = table->GetColumnByName("rank");
-  auto rank_arr = std::static_pointer_cast<arrow::Int32Array>(rank_col->chunk(0));
-  TEST_EQUAL(rank_arr->Value(0), 0)
-  TEST_EQUAL(rank_arr->Value(1), 0)
-  TEST_EQUAL(rank_arr->Value(2), 0)
-
-  // Verify peptide_identification_index values
-  auto pid_col = table->GetColumnByName("peptide_identification_index");
-  auto pid_arr = std::static_pointer_cast<arrow::Int32Array>(pid_col->chunk(0));
-  TEST_EQUAL(pid_arr->Value(0), 0)
-  TEST_EQUAL(pid_arr->Value(1), 1)
-  TEST_EQUAL(pid_arr->Value(2), 2)
-
-  // Verify scan extraction from native ID
+  // Verify scan extraction from native ID (now list<int32>)
   auto scan_col = table->GetColumnByName("scan");
-  auto scan_arr = std::static_pointer_cast<arrow::Int32Array>(scan_col->chunk(0));
-  TEST_EQUAL(scan_arr->Value(0), 1000)
-  TEST_EQUAL(scan_arr->Value(1), 1001)
-  TEST_EQUAL(scan_arr->Value(2), 1002)
-
-  // Verify spectrum_reference stores full native ID
-  auto sr_col = table->GetColumnByName("spectrum_reference");
-  auto sr_arr = std::static_pointer_cast<arrow::StringArray>(sr_col->chunk(0));
-  TEST_EQUAL(sr_arr->GetString(0), "controllerType=0 controllerNumber=1 scan=1000")
+  auto scan_list = std::static_pointer_cast<arrow::ListArray>(scan_col->chunk(0));
+  // Each row should have a list with one scan number
+  auto scan_values = std::static_pointer_cast<arrow::Int32Array>(scan_list->values());
+  TEST_EQUAL(scan_list->value_length(0), 1)
+  TEST_EQUAL(scan_values->Value(scan_list->value_offset(0)), 1000)
+  TEST_EQUAL(scan_list->value_length(1), 1)
+  TEST_EQUAL(scan_values->Value(scan_list->value_offset(1)), 1001)
+  TEST_EQUAL(scan_list->value_length(2), 1)
+  TEST_EQUAL(scan_values->Value(scan_list->value_offset(2)), 1002)
 }
 END_SECTION
 
@@ -228,19 +216,19 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportToArrow(...) with expor
   // All 3 hits should be exported
   TEST_EQUAL(table->num_rows(), 3)
 
-  // Verify rank values are 0-based
-  auto rank_col = table->GetColumnByName("rank");
-  auto rank_arr = std::static_pointer_cast<arrow::Int32Array>(rank_col->chunk(0));
-  TEST_EQUAL(rank_arr->Value(0), 0)
-  TEST_EQUAL(rank_arr->Value(1), 1)
-  TEST_EQUAL(rank_arr->Value(2), 2)
+  // Verify charge column (int16)
+  auto charge_col = table->GetColumnByName("charge");
+  auto charge_arr = std::static_pointer_cast<arrow::Int16Array>(charge_col->chunk(0));
+  TEST_EQUAL(charge_arr->Value(0), 2)
+  TEST_EQUAL(charge_arr->Value(1), 3)
+  TEST_EQUAL(charge_arr->Value(2), 4)
 
-  // All rows should have the same peptide_identification_index (same parent identification)
-  auto pid_col = table->GetColumnByName("peptide_identification_index");
-  auto pid_arr = std::static_pointer_cast<arrow::Int32Array>(pid_col->chunk(0));
-  TEST_EQUAL(pid_arr->Value(0), 0)
-  TEST_EQUAL(pid_arr->Value(1), 0)
-  TEST_EQUAL(pid_arr->Value(2), 0)
+  // Verify sequence values
+  auto seq_col = table->GetColumnByName("sequence");
+  auto seq_arr = std::static_pointer_cast<arrow::StringArray>(seq_col->chunk(0));
+  TEST_EQUAL(seq_arr->GetString(0), "PEPTIDER")
+  TEST_EQUAL(seq_arr->GetString(1), "ALTERNATIVE")
+  TEST_EQUAL(seq_arr->GetString(2), "THIRDPSM")
 }
 END_SECTION
 
@@ -268,7 +256,6 @@ START_SECTION(static bool exportToParquet(...))
   hit.setScore(0.95);
   hit.setCharge(2);
   hit.setMetaValue("target_decoy", "target");
-  hit.setMetaValue("some_custom_value", 42);
 
   PeptideEvidence evidence;
   evidence.setProteinAccession("TEST_PROTEIN");
@@ -301,7 +288,7 @@ START_SECTION(static bool exportToParquet(...))
   TEST_EQUAL(read_status.ok(), true)
 
   TEST_EQUAL(table->num_rows(), 1)
-  TEST_EQUAL(table->num_columns(), 25)
+  TEST_EQUAL(table->num_columns(), 24)
 
   // Verify modifications column has structured data for modified peptide
   auto mod_col = table->GetColumnByName("modifications");
@@ -313,10 +300,10 @@ START_SECTION(static bool exportToParquet(...))
   TEST_NOT_EQUAL(pa_col, nullptr)
   TEST_EQUAL(pa_col->type()->id(), arrow::Type::LIST)
 
-  // Verify psm_metavalues contains the custom value
-  auto pmv_col = table->GetColumnByName("psm_metavalues");
-  TEST_NOT_EQUAL(pmv_col, nullptr)
-  TEST_EQUAL(pmv_col->type()->id(), arrow::Type::LIST)
+  // Verify mass_error_ppm column exists
+  auto mep_col = table->GetColumnByName("mass_error_ppm");
+  TEST_NOT_EQUAL(mep_col, nullptr)
+  TEST_EQUAL(mep_col->type()->id(), arrow::Type::FLOAT)
 
   // Verify QPX file metadata is present in schema key-value metadata
   auto metadata = table->schema()->metadata();
