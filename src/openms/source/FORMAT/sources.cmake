@@ -123,8 +123,9 @@ if (WITH_PARQUET)
   list(APPEND sources_list ArrowSchemaRegistry.cpp)
 endif()
 
-if (WITH_TIMSRUST)
+if (WITH_OPENTIMS)
   list(APPEND sources_list BrukerTimsFile.cpp)
+  list(APPEND sources_list OpenTimsCalibration.cpp)
 endif()
 
 ### add path to the filenames

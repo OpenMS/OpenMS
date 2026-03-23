@@ -274,48 +274,40 @@ find_package(CURL REQUIRED)
  endif()
 
 #------------------------------------------------------------------------------
-# timsrust_cpp_bridge (Bruker TimsTOF .d file reading)
-if (WITH_TIMSRUST)
+# opentims (Bruker TimsTOF .d file reading)
+if (WITH_OPENTIMS)
   include(FetchContent)
-  set(TIMSRUST_VERSION "0.1.0" CACHE STRING "timsrust_cpp_bridge version to fetch")
-
-  # Detect platform for archive selection
-  if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    if (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|ARM64")
-      set(_TIMSRUST_PLATFORM "linux-aarch64")
-    else()
-      set(_TIMSRUST_PLATFORM "linux-x86_64")
-    endif()
-  elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
-      set(_TIMSRUST_PLATFORM "macos-arm64")
-    else()
-      message(FATAL_ERROR "timsrust_cpp_bridge: no pre-built Intel macOS binaries available. "
-        "Build from source or use an Apple Silicon (arm64) Mac.")
-    endif()
-  elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    set(_TIMSRUST_PLATFORM "windows-x86_64")
-  else()
-    message(FATAL_ERROR "Unsupported platform for timsrust_cpp_bridge: ${CMAKE_SYSTEM_NAME}")
-  endif()
-
-  set(_TIMSRUST_URL "https://github.com/OpenMS/timsrust_cpp_bridge/releases/download/v${TIMSRUST_VERSION}/timsrust_cpp_bridge-v${TIMSRUST_VERSION}-${_TIMSRUST_PLATFORM}.tar.gz")
 
   FetchContent_Declare(
-    timsrust_cpp_bridge
-    URL ${_TIMSRUST_URL}
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    opentims
+    GIT_REPOSITORY https://github.com/michalsta/opentims.git
+    GIT_TAG 4054224f4bb0c15bae9a1f5b4a7595bd798f0648
   )
-  # Use Populate (not MakeAvailable) since the archive is pre-built with no CMakeLists.txt
-  FetchContent_GetProperties(timsrust_cpp_bridge)
-  if(NOT timsrust_cpp_bridge_POPULATED)
-    FetchContent_Populate(timsrust_cpp_bridge)
+  FetchContent_GetProperties(opentims)
+  if(NOT opentims_POPULATED)
+    FetchContent_Populate(opentims)
   endif()
 
-  # The extracted archive contains lib/cmake/ with config files
-  list(APPEND CMAKE_PREFIX_PATH "${timsrust_cpp_bridge_SOURCE_DIR}")
-  find_package(timsrust_cpp_bridge REQUIRED)
-  message(STATUS "Found timsrust_cpp_bridge: ${timsrust_cpp_bridge_SOURCE_DIR}")
+  set(_OPENTIMS_SRC "${opentims_SOURCE_DIR}/src/opentims++")
+
+  add_library(opentims_cpp STATIC
+    "${_OPENTIMS_SRC}/opentims.cpp"
+    "${_OPENTIMS_SRC}/tof2mz_converter.cpp"
+    "${_OPENTIMS_SRC}/scan2inv_ion_mobility_converter.cpp"
+    "${_OPENTIMS_SRC}/converters.cpp"
+    "${_OPENTIMS_SRC}/so_manager.cpp"
+    "${_OPENTIMS_SRC}/sqlite_helper.cpp"
+    "${_OPENTIMS_SRC}/thread_mgr.cpp"
+  )
+
+  target_include_directories(opentims_cpp PUBLIC "${_OPENTIMS_SRC}")
+  # Use OpenMS's own sqlite3 headers instead of opentims's bundled copy
+  target_include_directories(opentims_cpp PRIVATE "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
+  target_link_libraries(opentims_cpp PRIVATE sqlite3)
+  target_compile_features(opentims_cpp PRIVATE cxx_std_20)
+  target_compile_options(opentims_cpp PRIVATE -w)
+
+  message(STATUS "Built opentims_cpp from source: ${opentims_SOURCE_DIR}")
 endif()
 
 #------------------------------------------------------------------------------

@@ -98,8 +98,8 @@ if (WITH_PARQUET)
   endif()
 endif()
 
-if (WITH_TIMSRUST)
-  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES timsrust_cpp_bridge::timsrust_cpp_bridge)
+if (WITH_OPENTIMS)
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES opentims_cpp)
 endif()
 
 if (ENABLE_TDL)
@@ -172,8 +172,8 @@ endif()
 # Use std::filesystem instead of boost::filesystem in boost::process (avoids linking boost_filesystem)
 target_compile_definitions(OpenMS PRIVATE BOOST_PROCESS_USE_STD_FS)
 
-if (WITH_TIMSRUST)
-    target_compile_definitions(OpenMS PUBLIC WITH_TIMSRUST=1)
+if (WITH_OPENTIMS)
+    target_compile_definitions(OpenMS PUBLIC WITH_OPENTIMS=1)
 endif()
 
 ## Enable test-only hooks when class tests are being built.

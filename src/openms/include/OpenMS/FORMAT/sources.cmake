@@ -134,8 +134,9 @@ if (WITH_PARQUET)
   list(APPEND sources_list_h ConsensusMapArrowIO.h)
 endif()
 
-if (WITH_TIMSRUST)
+if (WITH_OPENTIMS)
   list(APPEND sources_list_h BrukerTimsFile.h)
+  list(APPEND sources_list_h OpenTimsCalibration.h)
 endif()
 
 ### add path to the filenames

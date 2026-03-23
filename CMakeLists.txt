@@ -58,8 +58,8 @@ option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." 
 option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_PARQUET "Build Parquet parts of OpenMS." ON)
-option(WITH_TIMSRUST "Build with Bruker TimsTOF .d file support via timsrust" ON)
-option(ENABLE_TIMSRUST_TESTS "Download Bruker test data for timsrust integration tests" OFF)
+option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
+option(ENABLE_OPENTIMS_TESTS "Download Bruker test data for opentims integration tests" OFF)
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." ON)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
 
@@ -73,28 +73,28 @@ else()
   option(MT_ENABLE_NESTED_OPENMP "Enable nested parallelism." ON)
 endif()
 
-if (ENABLE_TIMSRUST_TESTS AND WITH_TIMSRUST)
+if (ENABLE_OPENTIMS_TESTS AND WITH_OPENTIMS)
   include(FetchContent)
-  set(TIMSRUST_TESTDATA_URL "https://github.com/OpenMS/timsrust_cpp_bridge/releases/download/test-data-v1")
+  set(OPENTIMS_TESTDATA_URL "https://github.com/OpenMS/timsrust_cpp_bridge/releases/download/test-data-v1")
   FetchContent_Declare(
-    timsrust_testdata_dda
-    URL "${TIMSRUST_TESTDATA_URL}/DDA_HeLa_50ng_5_6min.d.zip"
+    opentims_testdata_dda
+    URL "${OPENTIMS_TESTDATA_URL}/DDA_HeLa_50ng_5_6min.d.zip"
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   )
   FetchContent_Declare(
-    timsrust_testdata_dia
-    URL "${TIMSRUST_TESTDATA_URL}/DIA_HeLa_50ng_5_6min.d.zip"
+    opentims_testdata_dia
+    URL "${OPENTIMS_TESTDATA_URL}/DIA_HeLa_50ng_5_6min.d.zip"
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   )
   FetchContent_Declare(
-    timsrust_testdata_fasta
-    URL "${TIMSRUST_TESTDATA_URL}/human_sp.fasta"
+    opentims_testdata_fasta
+    URL "${OPENTIMS_TESTDATA_URL}/human_sp.fasta"
     DOWNLOAD_NO_EXTRACT TRUE
   )
-  FetchContent_MakeAvailable(timsrust_testdata_dda timsrust_testdata_dia timsrust_testdata_fasta)
-  set(TIMSRUST_DDA_TEST_DATA "${timsrust_testdata_dda_SOURCE_DIR}" CACHE PATH "Path to DDA test .d directory")
-  set(TIMSRUST_DIA_TEST_DATA "${timsrust_testdata_dia_SOURCE_DIR}" CACHE PATH "Path to DIA test .d directory")
-  set(TIMSRUST_TEST_FASTA "${timsrust_testdata_fasta_SOURCE_DIR}/human_sp.fasta" CACHE PATH "Path to human Swiss-Prot FASTA for search tests")
+  FetchContent_MakeAvailable(opentims_testdata_dda opentims_testdata_dia opentims_testdata_fasta)
+  set(OPENTIMS_DDA_TEST_DATA "${opentims_testdata_dda_SOURCE_DIR}" CACHE PATH "Path to DDA test .d directory")
+  set(OPENTIMS_DIA_TEST_DATA "${opentims_testdata_dia_SOURCE_DIR}" CACHE PATH "Path to DIA test .d directory")
+  set(OPENTIMS_TEST_FASTA "${opentims_testdata_fasta_SOURCE_DIR}/human_sp.fasta" CACHE PATH "Path to human Swiss-Prot FASTA for search tests")
 endif()
 
 #------------------------------------------------------------------------------
