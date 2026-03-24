@@ -32,6 +32,111 @@
 namespace OpenMS
 {
 
+  // --------------------------------------------------------------------------
+  // TOF-domain spectrum processing (ported from timsrust)
+  //
+  // Pipeline: raw peaks → group_and_sum → smooth → centroid
+  // All processing in sparse TOF-index space (integers), before m/z conversion.
+  // --------------------------------------------------------------------------
+
+  /// Sort TOF indices and sum intensities at identical TOF bins.
+  /// Merges duplicate detections across scans/frames into single entries.
+  /// Input arrays are modified in-place; returns the new size.
+  static size_t groupAndSum(std::vector<uint32_t>& tofs, std::vector<uint64_t>& intensities)
+  {
+    if (tofs.empty()) return 0;
+    // Sort by TOF index (co-sort intensities)
+    std::vector<size_t> order(tofs.size());
+    std::iota(order.begin(), order.end(), size_t(0));
+    std::sort(order.begin(), order.end(),
+              [&tofs](size_t a, size_t b) { return tofs[a] < tofs[b]; });
+
+    std::vector<uint32_t> sorted_tofs(tofs.size());
+    std::vector<uint64_t> sorted_int(intensities.size());
+    for (size_t i = 0; i < order.size(); ++i)
+    {
+      sorted_tofs[i] = tofs[order[i]];
+      sorted_int[i] = intensities[order[i]];
+    }
+
+    // Merge consecutive entries with same TOF index
+    size_t write = 0;
+    for (size_t read = 0; read < sorted_tofs.size(); ++read)
+    {
+      if (write > 0 && sorted_tofs[read] == tofs[write - 1])
+      {
+        intensities[write - 1] += sorted_int[read];
+      }
+      else
+      {
+        tofs[write] = sorted_tofs[read];
+        intensities[write] = sorted_int[read];
+        ++write;
+      }
+    }
+    tofs.resize(write);
+    intensities.resize(write);
+    return write;
+  }
+
+  /// Sparse symmetric neighbor intensity sharing.
+  /// For each pair within `window` TOF units, add each other's original intensity.
+  /// Reads from original intensities, writes to output (no cascading).
+  static void smoothTofSpectrum(const std::vector<uint32_t>& tofs,
+                                std::vector<uint64_t>& intensities,
+                                uint32_t window)
+  {
+    if (window == 0 || tofs.size() <= 1) return;
+    std::vector<uint64_t> smoothed(intensities); // copy original
+    for (size_t i = 0; i < tofs.size(); ++i)
+    {
+      for (size_t j = i + 1; j < tofs.size(); ++j)
+      {
+        if (tofs[j] - tofs[i] <= window)
+        {
+          smoothed[i] += intensities[j];
+          smoothed[j] += intensities[i];
+        }
+        else
+        {
+          break; // sorted, no more neighbors
+        }
+      }
+    }
+    intensities = std::move(smoothed);
+  }
+
+  /// Sparse local maximum apex picking.
+  /// For each pair within `window` TOF units, suppress the lower-intensity one.
+  /// Returns a boolean mask (true = keep).
+  static std::vector<bool> findSparseLocalMaxima(const std::vector<uint32_t>& tofs,
+                                                  const std::vector<uint64_t>& intensities,
+                                                  uint32_t window)
+  {
+    std::vector<bool> keep(tofs.size(), true);
+    if (window == 0) return keep;
+    for (size_t i = 0; i < tofs.size(); ++i)
+    {
+      for (size_t j = i + 1; j < tofs.size(); ++j)
+      {
+        if (tofs[j] - tofs[i] <= window)
+        {
+          if (intensities[i] < intensities[j])
+            keep[i] = false;
+          else
+            keep[j] = false;
+        }
+        else
+        {
+          break;
+        }
+      }
+    }
+    return keep;
+  }
+
+  // --------------------------------------------------------------------------
+
   // IM-aware peak for centroiding. Adapted from Sage's ImsPeak.
   struct ImsPeak
   {
@@ -857,12 +962,16 @@ namespace OpenMS
     }
 
     // Build one MS2 spectrum per precursor
+    // TOF-domain smoothing and centroiding windows (matching timsrust defaults)
+    constexpr uint32_t SMOOTH_WINDOW = 1;
+    constexpr uint32_t CENTROID_WINDOW = 1;
+
     uint32_t precursor_idx = 0;
     for (const auto& [prec_id, entries] : precursor_groups)
     {
-      // Collect peaks from all frames for this precursor
-      std::vector<double> all_mz;
-      std::vector<double> all_intensity;
+      // Collect raw peaks (TOF space) from all frames for this precursor
+      std::vector<uint32_t> all_tofs;
+      std::vector<uint64_t> all_intensities;
       std::vector<double> all_im;
       double rt_sum = 0.0;
 
@@ -877,9 +986,89 @@ namespace OpenMS
         auto [p_begin, p_end] = fd.peakRangeForScans(entry->scan_begin, entry->scan_end);
         for (uint32_t p = p_begin; p < p_end; ++p)
         {
-          all_mz.push_back(fd.mzs[p]);
-          all_intensity.push_back(static_cast<double>(fd.intensities[p]));
+          all_tofs.push_back(fd.tofs[p]);
+          all_intensities.push_back(static_cast<uint64_t>(fd.intensities[p]));
           all_im.push_back(fd.inv_ion_mobilities[p]);
+        }
+      }
+
+      if (all_tofs.empty())
+      {
+        ++precursor_idx;
+        setProgress(ms1_frame_ids.size() + precursor_idx);
+        continue;
+      }
+
+      // --- TOF-domain processing pipeline (ported from timsrust) ---
+      // Step 1: group_and_sum — sort by TOF, merge duplicates
+      // We need to co-sort IM values with the TOF/intensity arrays.
+      // Build a sort order, apply it, then group.
+      {
+        std::vector<size_t> order(all_tofs.size());
+        std::iota(order.begin(), order.end(), size_t(0));
+        std::sort(order.begin(), order.end(),
+                  [&all_tofs](size_t a, size_t b) { return all_tofs[a] < all_tofs[b]; });
+
+        std::vector<uint32_t> sorted_tofs(all_tofs.size());
+        std::vector<uint64_t> sorted_int(all_intensities.size());
+        std::vector<double> sorted_im(all_im.size());
+        for (size_t i = 0; i < order.size(); ++i)
+        {
+          sorted_tofs[i] = all_tofs[order[i]];
+          sorted_int[i] = all_intensities[order[i]];
+          sorted_im[i] = all_im[order[i]];
+        }
+
+        // Merge consecutive entries with same TOF index (intensity-weighted IM merge)
+        size_t write = 0;
+        for (size_t read = 0; read < sorted_tofs.size(); ++read)
+        {
+          if (write > 0 && sorted_tofs[read] == all_tofs[write - 1])
+          {
+            // Weighted IM update: new_im = (old_im * old_int + new_im * new_int) / total_int
+            double total = static_cast<double>(all_intensities[write - 1] + sorted_int[read]);
+            if (total > 0)
+              all_im[write - 1] = (all_im[write - 1] * static_cast<double>(all_intensities[write - 1])
+                                   + sorted_im[read] * static_cast<double>(sorted_int[read])) / total;
+            all_intensities[write - 1] += sorted_int[read];
+          }
+          else
+          {
+            all_tofs[write] = sorted_tofs[read];
+            all_intensities[write] = sorted_int[read];
+            all_im[write] = sorted_im[read];
+            ++write;
+          }
+        }
+        all_tofs.resize(write);
+        all_intensities.resize(write);
+        all_im.resize(write);
+      }
+
+      // Step 2: smooth — symmetric neighbor intensity sharing in TOF space
+      smoothTofSpectrum(all_tofs, all_intensities, SMOOTH_WINDOW);
+
+      // Step 3: centroid — sparse local maximum apex picking in TOF space
+      std::vector<bool> keep = findSparseLocalMaxima(all_tofs, all_intensities, CENTROID_WINDOW);
+
+      // Apply centroid mask and convert TOF to m/z
+      std::vector<double> all_mz;
+      std::vector<double> all_intensity_d;
+      std::vector<double> kept_im;
+      all_mz.reserve(all_tofs.size());
+      all_intensity_d.reserve(all_tofs.size());
+      kept_im.reserve(all_tofs.size());
+
+      for (size_t i = 0; i < all_tofs.size(); ++i)
+      {
+        if (keep[i])
+        {
+          // Convert TOF to m/z using the registered converter
+          double mz = 0;
+          handle.tof2mz_converter->convert(0, &mz, &all_tofs[i], 1);
+          all_mz.push_back(mz);
+          all_intensity_d.push_back(static_cast<double>(all_intensities[i]));
+          kept_im.push_back(all_im[i]);
         }
       }
 
@@ -901,8 +1090,8 @@ namespace OpenMS
       double intensity_sum = 0.0;
       for (size_t i = 0; i < all_mz.size(); ++i)
       {
-        im_weighted_sum += all_im[i] * all_intensity[i];
-        intensity_sum += all_intensity[i];
+        im_weighted_sum += kept_im[i] * all_intensity_d[i];
+        intensity_sum += all_intensity_d[i];
       }
       double scalar_im = (intensity_sum > 0.0) ? (im_weighted_sum / intensity_sum) : 0.0;
 
@@ -923,7 +1112,7 @@ namespace OpenMS
       {
         Peak1D peak;
         peak.setMZ(all_mz[idx]);
-        peak.setIntensity(all_intensity[idx]);
+        peak.setIntensity(all_intensity_d[idx]);
         spec.push_back(peak);
       }
 
