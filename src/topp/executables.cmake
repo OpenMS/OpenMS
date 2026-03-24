@@ -41,7 +41,6 @@ FileInfo
 FileMerger
 FLASHDeconv
 FuzzyDiff
-GenericWrapper
 GNPSExport
 HighResPrecursorMassCorrector
 IDConflictResolver

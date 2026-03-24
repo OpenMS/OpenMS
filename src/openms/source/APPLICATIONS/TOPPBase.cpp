@@ -112,7 +112,7 @@ namespace OpenMS
     if (toolhandler_test_)
     {
       // check if tool is in official tools list
-      if (official_ && tool_name_ != "GenericWrapper" && !ToolHandler::getTOPPToolList().count(tool_name_))
+      if (official_ && !ToolHandler::getTOPPToolList().count(tool_name_))
       {
         throw Exception::InvalidValue(__FILE__,
                                       __LINE__,
@@ -2394,7 +2394,7 @@ namespace OpenMS
     }
     StringList type_list = ToolHandler::getTypes(tool_name_);
     if (type_list.empty())
-      type_list.push_back(""); // no type for most tools (except GenericWrapper)
+      type_list.push_back(""); // no type for most tools
 
     for (Size i = 0; i < type_list.size(); ++i)
     {
@@ -2453,9 +2453,7 @@ namespace OpenMS
     // .. they are empty/default at this point
     // We now fetch the (so-far unknown) subsection parameters (since they can be addressed on command line as well)
 
-    // special case of GenericWrapper: since we need the subSectionDefaults before pushing the cmd arguments in there
-    //                                 but the 'type' is empty currently,
-    //                                 we extract and set it beforehand
+    // extract '-type' from command line args upfront, since subsection defaults may depend on it
     StringList sl_args = StringList(argv, argv + argc);
     StringList::iterator it_type = std::find(sl_args.begin(), sl_args.end(), "-type");
     if (it_type != sl_args.end())
@@ -2483,7 +2481,7 @@ namespace OpenMS
       }
     }
     catch (BaseException& e)
-    { // this only happens for GenericWrapper, if 'type' is not given or invalid (then we do not have subsection params) -- enough to issue a warning
+    { // this only happens if 'type' is not given or invalid (then we do not have subsection params) -- enough to issue a warning
       writeLogWarn_(String("Warning: Unable to fetch subsection parameters! Addressing subsection parameters will not work for this tool (did you forget to specify '-type'?)."));
       writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ")!", 1);
     }

@@ -51,15 +51,12 @@ using namespace std;
 <table>
 <tr>
 <th ALIGN = "center"> pot. predecessor tools </td>
-<td VALIGN="middle" ROWSPAN=3> &rarr; FileConverter &rarr;</td>
+<td VALIGN="middle" ROWSPAN=2> &rarr; FileConverter &rarr;</td>
 <th ALIGN = "center"> pot. successor tools </td>
 </tr>
 <tr>
-<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_GenericWrapper (e.g. for calling external converters) </td>
-<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on the output format</td>
-</tr>
-<tr>
 <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any vendor software exporting supported formats (e.g. mzML) </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on the output format</td>
 </tr>
 </table>
 </CENTER>

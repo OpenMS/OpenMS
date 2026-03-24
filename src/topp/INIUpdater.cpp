@@ -153,10 +153,7 @@ protected:
       // set new tool name
       p.setValue(sec_inst + "tool_name", new_tool);
       // delete TOPPAS type
-      if (new_tool != "GenericWrapper")
-      {
-        p.setValue(sec_inst + "tool_type", "");
-      }
+      p.setValue(sec_inst + "tool_type", "");
 
       // get defaults of new tool by calling it
       QProcess pr;
