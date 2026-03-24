@@ -6,8 +6,8 @@
 #ifdef WITH_OPENTIMS
 
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
-#include <OpenMS/FORMAT/OpenTimsCalibration.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <opentims++/converters.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -15,9 +15,9 @@
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <opentims.h>
-#include <tof2mz_converter.h>
-#include <scan2inv_ion_mobility_converter.h>
+#include <opentims++/opentims.h>
+#include <opentims++/tof2mz_converter.h>
+#include <opentims++/scan2inv_ion_mobility_converter.h>
 #include <SQLiteCpp/SQLiteCpp.h>
 
 #include <memory>
@@ -405,8 +405,7 @@ namespace OpenMS
     // NOTE: setAsDefault writes to a global static in the opentims library.
     // This is NOT thread-safe — concurrent BrukerTimsFile::load() calls will race.
     // Currently safe because TOPP tools load files sequentially.
-    DefaultTof2MzConverterFactory::setAsDefault<OpenSourceTof2MzConverterFactory>();
-    DefaultScan2InvIonMobilityConverterFactory::setAsDefault<OpenSourceScan2ImConverterFactory>();
+    setup_opensource();
 
     try
     {
@@ -845,7 +844,7 @@ namespace OpenMS
                           << "new intercept=" << new_intercept << ", slope=" << new_slope << std::endl;
 
           // Update the converter
-          auto* converter = dynamic_cast<OpenSourceTof2MzConverter*>(handle.tof2mz_converter.get());
+          auto* converter = dynamic_cast< ::OpenSourceTof2MzConverter*>(handle.tof2mz_converter.get());
           if (converter)
           {
             converter->updateCalibration(new_intercept, new_slope);
