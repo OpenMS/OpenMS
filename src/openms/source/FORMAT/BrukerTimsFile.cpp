@@ -7,7 +7,6 @@
 
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
-#include <opentims++/converters.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -394,22 +393,20 @@ namespace OpenMS
   } // anonymous namespace
 
   // =====================================================================
-  // Helper: register opentims converter factories and open TimsDataHandle
+  // Helper: open TimsDataHandle with open-source converters
   // =====================================================================
   static std::unique_ptr<TimsDataHandle> openTimsDataHandle(const String& path)
   {
     std::string path_string = path;
 
-    // Register our open-source converter factories before constructing the handle.
-    // TimsDataHandle::init() calls produceDefaultConverterInstance which uses these.
-    // NOTE: setAsDefault writes to a global static in the opentims library.
-    // This is NOT thread-safe — concurrent BrukerTimsFile::load() calls will race.
-    // Currently safe because TOPP tools load files sequentially.
-    setup_opensource();
+    // Pass open-source converter factory singletons directly to the handle
+    // constructor instead of mutating the global default (which is not thread-safe).
+    auto& tof_factory = OpenSourceTof2MzConverterFactory::instance();
+    auto& im_factory = OpenSourceScan2ImConverterFactory::instance();
 
     try
     {
-      return std::make_unique<TimsDataHandle>(path_string);
+      return std::make_unique<TimsDataHandle>(path_string, NoPressureCompensation, &tof_factory, &im_factory);
     }
     catch (const std::exception& e)
     {
