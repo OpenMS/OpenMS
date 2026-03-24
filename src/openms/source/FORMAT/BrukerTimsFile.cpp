@@ -711,7 +711,16 @@ namespace OpenMS
       std::vector<uint32_t> intensities;
       std::vector<double> mzs;
       std::vector<double> inv_ion_mobilities;
+      std::vector<uint32_t> scan_offsets; // scan_offsets[s] = first peak index for scan s; size = num_scans + 1
       double rt = 0.0;
+
+      // Get peak index range [begin, end) for scans in [scan_begin, scan_end)
+      std::pair<uint32_t, uint32_t> peakRangeForScans(uint32_t scan_begin, uint32_t scan_end) const
+      {
+        if (scan_offsets.empty() || scan_begin >= scan_offsets.size() - 1) return {0, 0};
+        scan_end = std::min(scan_end, static_cast<uint32_t>(scan_offsets.size() - 1));
+        return {scan_offsets[scan_begin], scan_offsets[scan_end]};
+      }
     };
 
     // Determine which frames are needed
@@ -746,6 +755,25 @@ namespace OpenMS
         frame.save_to_buffs(nullptr, fd.scan_ids.data(), fd.tofs.data(),
                             fd.intensities.data(), fd.mzs.data(),
                             fd.inv_ion_mobilities.data(), nullptr);
+
+        // Build scan_offsets for O(1) scan-range lookups.
+        // Peaks are ordered by scan (opentims fills scan_ids monotonically).
+        fd.scan_offsets.resize(frame.num_scans + 1, frame.num_peaks);
+        uint32_t current_scan = 0;
+        fd.scan_offsets[0] = 0;
+        for (uint32_t p = 0; p < frame.num_peaks; ++p)
+        {
+          while (current_scan < fd.scan_ids[p])
+          {
+            ++current_scan;
+            fd.scan_offsets[current_scan] = p;
+          }
+        }
+        // Fill remaining scans that have no peaks
+        for (uint32_t s = current_scan + 1; s <= frame.num_scans; ++s)
+        {
+          fd.scan_offsets[s] = frame.num_peaks;
+        }
       }
 
       auto result = frame_cache.emplace(frame_id, std::move(fd));
@@ -768,22 +796,19 @@ namespace OpenMS
         const FrameData& fd = getFrameData(entry.frame_id);
         if (fd.mzs.empty()) continue;
 
-        // TODO: precompute per-scan peak buckets to avoid O(peaks * precursors) scanning
         // Find the highest-intensity peak in the scan range [scan_begin, scan_end)
+        auto [p_begin, p_end] = fd.peakRangeForScans(entry.scan_begin, entry.scan_end);
         double best_intensity = -1.0;
         uint32_t best_tof = 0;
         double best_mz = 0.0;
 
-        for (uint32_t p = 0; p < fd.scan_ids.size(); ++p)
+        for (uint32_t p = p_begin; p < p_end; ++p)
         {
-          if (fd.scan_ids[p] >= entry.scan_begin && fd.scan_ids[p] < entry.scan_end)
+          if (static_cast<double>(fd.intensities[p]) > best_intensity)
           {
-            if (static_cast<double>(fd.intensities[p]) > best_intensity)
-            {
-              best_intensity = static_cast<double>(fd.intensities[p]);
-              best_tof = fd.tofs[p];
-              best_mz = fd.mzs[p];
-            }
+            best_intensity = static_cast<double>(fd.intensities[p]);
+            best_tof = fd.tofs[p];
+            best_mz = fd.mzs[p];
           }
         }
 
@@ -854,15 +879,13 @@ namespace OpenMS
         const FrameData& fd = getFrameData(entry->frame_id);
         rt_sum += fd.rt;
 
-        // Extract peaks in the scan range [scan_begin, scan_end)
-        for (uint32_t p = 0; p < fd.scan_ids.size(); ++p)
+        // Extract peaks in the scan range [scan_begin, scan_end) via precomputed offsets
+        auto [p_begin, p_end] = fd.peakRangeForScans(entry->scan_begin, entry->scan_end);
+        for (uint32_t p = p_begin; p < p_end; ++p)
         {
-          if (fd.scan_ids[p] >= entry->scan_begin && fd.scan_ids[p] < entry->scan_end)
-          {
-            all_mz.push_back(fd.mzs[p]);
-            all_intensity.push_back(static_cast<double>(fd.intensities[p]));
-            all_im.push_back(fd.inv_ion_mobilities[p]);
-          }
+          all_mz.push_back(fd.mzs[p]);
+          all_intensity.push_back(static_cast<double>(fd.intensities[p]));
+          all_im.push_back(fd.inv_ion_mobilities[p]);
         }
       }
 
