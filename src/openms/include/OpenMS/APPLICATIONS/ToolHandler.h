@@ -52,7 +52,7 @@ namespace OpenMS
 public:
 
     /// Returns the list of official TOPP tools contained in the OpenMS/TOPP release.
-    static ToolListType getTOPPToolList(const bool includeGenericWrapper = false);
+    static ToolListType getTOPPToolList();
 
     /// get all types of a tool (empty if none)
     static StringList getTypes(const String& toolname);
@@ -68,12 +68,6 @@ public:
     static String getInternalToolsPath();
 
 private:
-
-    static Internal::ToolDescription getExternalTools_();
-    static StringList getExternalToolConfigFiles_();
-    static void loadExternalToolConfig_();
-    static Internal::ToolDescription tools_external_;
-    static bool tools_external_loaded_;
 
     static std::vector<Internal::ToolDescription> getInternalTools_();
     static StringList getInternalToolConfigFiles_();

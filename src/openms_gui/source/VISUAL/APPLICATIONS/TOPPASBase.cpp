@@ -321,7 +321,7 @@ namespace OpenMS
 
     //Param category_param = param_.copy("tool_categories:", true);
 
-    ToolListType tools_list = ToolHandler::getTOPPToolList(true);
+    ToolListType tools_list = ToolHandler::getTOPPToolList();
 
     // any tool without a category gets into "unassigned" bin
     for (ToolListType::iterator it = tools_list.begin(); it != tools_list.end(); ++it)

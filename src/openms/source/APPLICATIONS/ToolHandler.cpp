@@ -15,7 +15,7 @@
 
 namespace OpenMS
 {
-  ToolListType ToolHandler::getTOPPToolList(const bool includeGenericWrapper)
+  ToolListType ToolHandler::getTOPPToolList()
   {
     ToolListType tools_map;
     // Note: don't use special characters like slashes in category names (leads to subcategories in KNIME)
@@ -82,7 +82,6 @@ namespace OpenMS
     tools_map["FileMerger"] = Internal::ToolDescription("FileMerger", cat_file_filter_extract_merge);
     tools_map["FLASHDeconv"] = Internal::ToolDescription("FLASHDeconv", cat_topdown);
     tools_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", cat_dev);
-    // tools_map["GenericWrapper"] = ... (place any extra handling here)
     tools_map["GNPSExport"] = Internal::ToolDescription("GNPSExport", cat_file_converter);
     tools_map["HighResPrecursorMassCorrector"] = Internal::ToolDescription("HighResPrecursorMassCorrector", cat_calibration);
     tools_map["IDConflictResolver"] = Internal::ToolDescription("IDConflictResolver", cat_ID_proc);
@@ -224,28 +223,13 @@ namespace OpenMS
       }
     }
 
-    // EXTERNAL tools
-    // this operation is expensive, as we need to parse configuration files (*.ttd)
-    if (includeGenericWrapper)
-    {
-      tools_map["GenericWrapper"] = getExternalTools_();
-    }
-
     return tools_map;
   }
 
   StringList ToolHandler::getTypes(const String& toolname)
   {
     Internal::ToolDescription ret;
-    ToolListType tools;
-    if (toolname == "GenericWrapper")
-    {
-      tools = getTOPPToolList(true);
-    }
-    else
-    {
-      tools = getTOPPToolList();
-    }
+    ToolListType tools = getTOPPToolList();
     if (tools.find(toolname) != tools.end())
     {
       return tools[toolname].types;
@@ -273,42 +257,6 @@ namespace OpenMS
     return File::getOpenMSDataPath() + "/TOOLS/INTERNAL";
   }
 
-  Internal::ToolDescription ToolHandler::getExternalTools_()
-  {
-    if (!tools_external_loaded_)
-    {
-      loadExternalToolConfig_();
-      tools_external_loaded_ = true;
-    }
-
-    return tools_external_;
-  }
-
-  void ToolHandler::loadExternalToolConfig_()
-  {
-    StringList files = getExternalToolConfigFiles_();
-    for (size_t i = 0; i < files.size(); ++i)
-    {
-      ToolDescriptionFile tdf;
-      std::vector<Internal::ToolDescription> tools;
-      tdf.load(files[i], tools);
-      // add every tool from file to list
-      for (Size i_t = 0; i_t < tools.size(); ++i_t)
-      {
-        if (i == 0 && i_t == 0)
-          {
-            tools_external_ = tools[i_t]; // init
-          }
-        else
-          {
-            tools_external_.append(tools[i_t]); // append
-          }
-      }
-    }
-    tools_external_.name = "GenericWrapper";
-    tools_external_.category = "EXTERNAL";
-  }
-
   void ToolHandler::loadInternalToolConfig_()
   {
     StringList files = getInternalToolConfigFiles_();
@@ -321,36 +269,8 @@ namespace OpenMS
       for (Size i_t = 0; i_t < tools.size(); ++i_t)
       {
         tools_internal_.push_back(tools[i_t]);
-        tools_external_.category = "INTERNAL";
       }
     }
-  }
-
-  StringList ToolHandler::getExternalToolConfigFiles_()
-  {
-    StringList paths;
-    // *.ttd default path
-    paths.push_back(getExternalToolsPath());
-    // OS-specific path
-#ifdef OPENMS_WINDOWSPLATFORM
-    paths.push_back(getExternalToolsPath() + "/WINDOWS");
-#else
-    paths.push_back(getExternalToolsPath() + "/LINUX");
-#endif
-    // additional environment
-    if (getenv("OPENMS_TTD_PATH") != nullptr)
-    {
-      paths.push_back(String(getenv("OPENMS_TTD_PATH")));
-    }
-
-    StringList all_files;
-    for (const auto& p : paths)
-    {
-      StringList files;
-      File::fileList(p, "*.ttd", files, true);
-      all_files.insert(all_files.end(), files.begin(), files.end());
-    }
-    return all_files;
   }
 
   StringList ToolHandler::getInternalToolConfigFiles_()
@@ -382,7 +302,7 @@ namespace OpenMS
 
   String ToolHandler::getCategory(const String& toolname)
   {
-    ToolListType tools = getTOPPToolList(true);
+    ToolListType tools = getTOPPToolList();
     String s;
     if (tools.find(toolname) != tools.end())
     {
@@ -393,9 +313,7 @@ namespace OpenMS
   }
 
   // static
-  Internal::ToolDescription ToolHandler::tools_external_ = Internal::ToolDescription();
   std::vector<Internal::ToolDescription> ToolHandler::tools_internal_;
-  bool ToolHandler::tools_external_loaded_ = false;
   bool ToolHandler::tools_internal_loaded_ = false;
 
 } // namespace

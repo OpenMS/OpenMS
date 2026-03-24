@@ -70,9 +70,7 @@ endif()
 #------------------------------------------------------------------------------
 # TOPP
 set(TOPP_executables_INI ${TOPP_TOOLS})
-list(REMOVE_ITEM TOPP_executables_INI GenericWrapper) # GenericWrapper (has a -type flag)
 list(REMOVE_ITEM TOPP_executables_INI OpenMSInfo)
-add_test("TOPPWRITEINI_GenericWrapper" ${TOPP_BIN_PATH}/GenericWrapper -test -type RAWFileConvert -write_ini "${TESTS_TEMP_DIR}/GenericWrapper.tmp.ini")
 foreach (i ${TOPP_executables_INI})
   add_test("TOPPWRITEINI_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ini "${TESTS_TEMP_DIR}/${i}.tmp.ini")
   add_test("TOPPWRITEINI_${i}_SectionName" ${CMAKE_COMMAND} -test -DNAME=${i} -DFILE=${TESTS_TEMP_DIR}/${i}.tmp.ini -P "${DATA_DIR_TOPP}/check_ini.cmake")
@@ -86,7 +84,6 @@ endforeach(i)
 #------------------------------------------------------------------------------
 # TOPP
 set(TOPP_executables_CTD ${TOPP_TOOLS})
-list(REMOVE_ITEM TOPP_executables_CTD GenericWrapper)
 list(REMOVE_ITEM TOPP_executables_CTD OpenMSInfo)
 foreach (i ${TOPP_executables_CTD})
   add_test("TOPPWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ctd "${TESTS_TEMP_DIR}/")
