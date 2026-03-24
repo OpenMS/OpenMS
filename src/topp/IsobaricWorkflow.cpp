@@ -199,7 +199,7 @@ protected:
     setValidFormats_("out_mzTab", {"mzTab"});
 
 #ifdef WITH_PARQUET
-    registerOutputDir_("out_qpx", "<directory>", "", "Output directory for QPX Parquet files (features.parquet, psms.parquet, protein_groups.parquet)", false, false);
+    registerOutputDir_("out_qpx", "<directory>", "", "Output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet)", false, false);
 #endif
     registerFlag_("calculate_id_purity", "Calculate the purity of the precursor ion based on the MS1 spectrum. Only used for MS3, otherwise it is the same as the quant. precursor purity.");
     //registerIntOption_("max_parallel_files", "<num>", 1, "Maximum number of files to load in parallel.", false);
@@ -899,7 +899,7 @@ protected:
         OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
 
         // Feature-level export
-        if (!ConsensusMapArrowExport::exportToParquet(cmap, out_qpx + "/features.parquet"))
+        if (!ConsensusMapArrowExport::exportToParquet(cmap, out_qpx + "/quantms.feature.parquet"))
         {
           OPENMS_LOG_ERROR << "Failed to write features Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
@@ -919,14 +919,14 @@ protected:
           all_pepids.push_back(pepid);
         }
 
-        if (!QPXFile::exportToParquet(cmap.getProteinIdentifications(), all_pepids, out_qpx + "/psms.parquet"))
+        if (!QPXFile::exportToParquet(cmap.getProteinIdentifications(), all_pepids, out_qpx + "/quantms.psm.parquet"))
         {
           OPENMS_LOG_ERROR << "Failed to write PSM Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
         }
 
         // Protein group export
-        if (!ProteinGroupArrowExport::exportToParquet(cmap, out_qpx + "/protein_groups.parquet"))
+        if (!ProteinGroupArrowExport::exportToParquet(cmap, out_qpx + "/quantms.pg.parquet"))
         {
           OPENMS_LOG_ERROR << "Failed to write protein groups Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
