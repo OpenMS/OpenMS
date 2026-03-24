@@ -197,6 +197,10 @@ if (WITH_OPENTIMS)
     target_compile_definitions(OpenMS PUBLIC WITH_OPENTIMS=1)
 endif()
 
+# wnetalign: header-only Wasserstein network alignment (pylmcf, wnet, wnetalign)
+target_include_directories(OpenMS SYSTEM PRIVATE ${WNETALIGN_INCLUDE_DIRS})
+target_compile_definitions(OpenMS PRIVATE LEMON_ONLY_TEMPLATES)
+
 ## Enable test-only hooks when class tests are being built.
 if(ENABLE_CLASS_TESTING)
   target_compile_definitions(OpenMS PRIVATE OPENMS_ENABLE_TESTING_HOOKS=1)

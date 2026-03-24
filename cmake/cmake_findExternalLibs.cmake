@@ -289,6 +289,36 @@ if(ArrowDataset_FOUND)
 endif()
 
 #------------------------------------------------------------------------------
+# wnetalign (Wasserstein network spectral alignment)
+include(FetchContent)
+
+FetchContent_Declare(
+  pylmcf
+  GIT_REPOSITORY https://github.com/michalsta/pylmcf.git
+  GIT_TAG        v0.9.5
+)
+FetchContent_Declare(
+  wnet
+  GIT_REPOSITORY https://github.com/michalsta/wnet.git
+  GIT_TAG        v0.9.9
+)
+FetchContent_Declare(
+  wnetalign
+  GIT_REPOSITORY https://github.com/michalsta/wnetalign.git
+  GIT_TAG        v0.9.6
+)
+
+FetchContent_MakeAvailable(pylmcf wnet wnetalign)
+
+set(WNETALIGN_INCLUDE_DIRS
+  "${pylmcf_SOURCE_DIR}/src/pylmcf/cpp"
+  "${wnet_SOURCE_DIR}/src/wnet/cpp"
+  "${wnetalign_SOURCE_DIR}/src/wnetalign/cpp"
+)
+
+message(STATUS "wnetalign include dirs: ${WNETALIGN_INCLUDE_DIRS}")
+
+#------------------------------------------------------------------------------
 # Done finding contrib libraries
 #------------------------------------------------------------------------------
 
