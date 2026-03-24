@@ -7,7 +7,7 @@
 
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
-#include <opentims++/converters.h>
+#include <converters.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -15,9 +15,9 @@
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <opentims++/opentims.h>
-#include <opentims++/tof2mz_converter.h>
-#include <opentims++/scan2inv_ion_mobility_converter.h>
+#include <opentims.h>
+#include <tof2mz_converter.h>
+#include <scan2inv_ion_mobility_converter.h>
 #include <SQLiteCpp/SQLiteCpp.h>
 
 #include <memory>
