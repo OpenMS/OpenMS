@@ -7,7 +7,6 @@
 
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
-#include <converters.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -15,9 +14,9 @@
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <opentims.h>
-#include <tof2mz_converter.h>
-#include <scan2inv_ion_mobility_converter.h>
+#include <opentims++/opentims.h>
+#include <opentims++/tof2mz_converter.h>
+#include <opentims++/scan2inv_ion_mobility_converter.h>
 #include <SQLiteCpp/SQLiteCpp.h>
 
 #include <memory>
@@ -27,6 +26,7 @@
 #include <cmath>
 #include <limits>
 #include <map>
+#include <set>
 #include <unordered_map>
 
 namespace OpenMS
@@ -498,22 +498,20 @@ namespace OpenMS
   } // anonymous namespace
 
   // =====================================================================
-  // Helper: register opentims converter factories and open TimsDataHandle
+  // Helper: open TimsDataHandle with open-source converters
   // =====================================================================
   static std::unique_ptr<TimsDataHandle> openTimsDataHandle(const String& path)
   {
     std::string path_string = path;
 
-    // Register our open-source converter factories before constructing the handle.
-    // TimsDataHandle::init() calls produceDefaultConverterInstance which uses these.
-    // NOTE: setAsDefault writes to a global static in the opentims library.
-    // This is NOT thread-safe — concurrent BrukerTimsFile::load() calls will race.
-    // Currently safe because TOPP tools load files sequentially.
-    setup_opensource();
+    // Pass open-source converter factory singletons directly to the handle
+    // constructor instead of mutating the global default (which is not thread-safe).
+    auto& tof_factory = OpenSourceTof2MzConverterFactory::instance();
+    auto& im_factory = OpenSourceScan2ImConverterFactory::instance();
 
     try
     {
-      return std::make_unique<TimsDataHandle>(path_string);
+      return std::make_unique<TimsDataHandle>(path_string, NoPressureCompensation, &tof_factory, &im_factory);
     }
     catch (const std::exception& e)
     {
@@ -828,6 +826,13 @@ namespace OpenMS
         return {scan_offsets[scan_begin], scan_offsets[scan_end]};
       }
     };
+
+    // Determine which frames are needed
+    std::set<uint32_t> needed_frames;
+    for (const auto& entry : precursor_entries)
+    {
+      needed_frames.insert(entry.frame_id);
+    }
 
     // Extract data for needed frames (lazy, on demand per precursor group)
     // We cache extracted frame data to avoid re-extraction when multiple
