@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
 
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
@@ -19,6 +20,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
@@ -131,6 +133,11 @@ namespace OpenMS
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
 
+    defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Requires '-decoys' to be set.");
+    defaults_.setMinFloat("FDR:PSM", 0.0);
+    defaults_.setMaxFloat("FDR:PSM", 1.0);
+    defaults_.setSectionDescription("FDR", "False Discovery Rate control (requires decoys)");
+
     // Add parameters which are only used by FragmentIndex
     defaults_.setValue("peptide:min_mass", 100, "Minimal peptide mass for database");
     defaults_.setValue("peptide:max_mass", 9000, "Maximal peptide mass for database");
@@ -212,6 +219,7 @@ namespace OpenMS
 
     decoys_ = param_.getValue("decoys") == "true";
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
+    fdr_psm_ = param_.getValue("FDR:PSM");
 
     // Open search mode is automatically determined based on precursor tolerance in isOpenSearchMode_()
 
@@ -324,6 +332,13 @@ namespace OpenMS
         double mz = spec.getPrecursors()[0].getMZ();
         pi.setRT(spec.getRT());
         pi.setMZ(mz);
+
+        // Annotate ion mobility if spectrum has a single drift time (DDA-PASEF)
+        if (IMTypes::determineIMFormat(spec) == IMFormat::MULTIPLE_SPECTRA)
+        {
+          pi.setMetaValue(Constants::UserParam::IM, spec.getDriftTime());
+        }
+
         Size charge = spec.getPrecursors()[0].getCharge();
 
         // create full peptide hit structure from annotated hits
@@ -465,6 +480,20 @@ if (!pi.getHits().empty())
 
     search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
+
+    // Annotate IM unit on ProteinIdentification if all PeptideIdentifications have IM
+    if (!peptide_ids.empty())
+    {
+      bool all_have_im = std::all_of(
+        peptide_ids.begin(), peptide_ids.end(),
+        [](const PeptideIdentification& pid) { return pid.metaValueExists(Constants::UserParam::IM); });
+
+      if (all_have_im)
+      {
+        protein_ids[0].setMetaValue(Constants::UserParam::IM,
+          exp[0].getDriftTimeUnitAsString());
+      }
+    }
   }
 
   // =====================================================================
@@ -687,6 +716,21 @@ if (!pi.getHits().empty())
       }
     }
 
+    // PSM-level FDR filtering (requires decoys)
+    if (fdr_psm_ > 0.0 && decoys_)
+    {
+      FalseDiscoveryRate fdr;
+      fdr.apply(peptide_ids);
+      IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
+      IDFilter::removeDecoyHits(peptide_ids);
+      IDFilter::removeEmptyIdentifications(peptide_ids);
+      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+    }
+    else if (fdr_psm_ > 0.0 && !decoys_)
+    {
+      OPENMS_LOG_WARN << "FDR:PSM is set but decoys are disabled. Skipping FDR filtering." << endl;
+    }
+
     return ExitCodes::EXECUTION_OK;
   }
 
@@ -694,7 +738,7 @@ if (!pi.getHits().empty())
   // File-based search: thin I/O wrapper that delegates to in-memory search
   // =====================================================================
   PeptideSearchEngineFIAlgorithm::ExitCodes PeptideSearchEngineFIAlgorithm::search(
-      const String& in_mzML, const String& in_db,
+      const String& in_spectra, const String& in_db,
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
@@ -705,7 +749,7 @@ if (!pi.getHits().empty())
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_mzML, spectra, {FileTypes::MZML});
+    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
     spectra.sortSpectra(true);
 
     // load FASTA
@@ -722,7 +766,7 @@ if (!pi.getHits().empty())
 
     // patch file-specific metadata
     protein_ids[0].getSearchParameters().db = in_db;
-    protein_ids[0].setPrimaryMSRunPath({in_mzML}, spectra);
+    protein_ids[0].setPrimaryMSRunPath({in_spectra}, spectra);
 
     return ExitCodes::EXECUTION_OK;
   }
@@ -780,7 +824,7 @@ if (!pi.getHits().empty())
   // File-based searchWithModificationAnalysis: delegates to in-memory version
   // =====================================================================
   PeptideSearchEngineFIAlgorithm::SearchResult
-  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(const String& in_mzML,
+  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(const String& in_spectra,
                                                                   const String& in_db,
                                                                   const String& output_base_name) const
   {
@@ -791,7 +835,7 @@ if (!pi.getHits().empty())
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_mzML, spectra, {FileTypes::MZML});
+    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
     spectra.sortSpectra(true);
 
     // load FASTA
@@ -804,7 +848,7 @@ if (!pi.getHits().empty())
     if (result.exit_code == ExitCodes::EXECUTION_OK && !result.protein_ids.empty())
     {
       result.protein_ids[0].getSearchParameters().db = in_db;
-      result.protein_ids[0].setPrimaryMSRunPath({in_mzML}, spectra);
+      result.protein_ids[0].setPrimaryMSRunPath({in_spectra}, spectra);
     }
 
     return result;

@@ -151,6 +151,13 @@ if (WITH_PARQUET)
   endif()
 endif()
 
+if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)
+  target_compile_definitions(BrukerTimsFile_test PRIVATE
+    OPENTIMS_DDA_TEST_DATA="${OPENTIMS_DDA_TEST_DATA}"
+    OPENTIMS_DIA_TEST_DATA="${OPENTIMS_DIA_TEST_DATA}"
+    OPENTIMS_TEST_FASTA="${OPENTIMS_TEST_FASTA}")
+endif()
+
 #------------------------------------------------------------------------------
 # restore old compiler flags
 if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)

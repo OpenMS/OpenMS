@@ -58,6 +58,8 @@ option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." 
 option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_PARQUET "Build Parquet parts of OpenMS." ON)
+option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
+option(ENABLE_OPENTIMS_TESTS "Download Bruker test data for opentims integration tests" OFF)
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." ON)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
 
@@ -69,6 +71,30 @@ if(MSVC)
   option(MT_ENABLE_NESTED_OPENMP "Enable nested parallelism." OFF)
 else()
   option(MT_ENABLE_NESTED_OPENMP "Enable nested parallelism." ON)
+endif()
+
+if (ENABLE_OPENTIMS_TESTS AND WITH_OPENTIMS)
+  include(FetchContent)
+  set(OPENTIMS_TESTDATA_URL "https://github.com/OpenMS/timsrust_cpp_bridge/releases/download/test-data-v1")
+  FetchContent_Declare(
+    opentims_testdata_dda
+    URL "${OPENTIMS_TESTDATA_URL}/DDA_HeLa_50ng_5_6min.d.zip"
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
+  FetchContent_Declare(
+    opentims_testdata_dia
+    URL "${OPENTIMS_TESTDATA_URL}/DIA_HeLa_50ng_5_6min.d.zip"
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
+  FetchContent_Declare(
+    opentims_testdata_fasta
+    URL "${OPENTIMS_TESTDATA_URL}/human_sp.fasta"
+    DOWNLOAD_NO_EXTRACT TRUE
+  )
+  FetchContent_MakeAvailable(opentims_testdata_dda opentims_testdata_dia opentims_testdata_fasta)
+  set(OPENTIMS_DDA_TEST_DATA "${opentims_testdata_dda_SOURCE_DIR}" CACHE PATH "Path to DDA test .d directory")
+  set(OPENTIMS_DIA_TEST_DATA "${opentims_testdata_dia_SOURCE_DIR}" CACHE PATH "Path to DIA test .d directory")
+  set(OPENTIMS_TEST_FASTA "${opentims_testdata_fasta_SOURCE_DIR}/human_sp.fasta" CACHE PATH "Path to human Swiss-Prot FASTA for search tests")
 endif()
 
 #------------------------------------------------------------------------------

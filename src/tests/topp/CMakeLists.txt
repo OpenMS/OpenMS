@@ -2922,6 +2922,80 @@ add_test("TOPP_PeptideDataBaseSearchFI_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/Pep
 set_tests_properties("TOPP_PeptideDataBaseSearchFI_2_out" PROPERTIES DEPENDS
 "TOPP_PeptideDataBaseSearchFI_2")
 
+# Bruker .d input integration tests (DDA-PASEF with IM annotation)
+if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
+  # Create a symlink with .d suffix so FileHandler recognizes the format
+  set(OPENTIMS_DDA_SYMLINK "${CMAKE_BINARY_DIR}/test_data/DDA_HeLa.d")
+  file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/test_data")
+  file(CREATE_LINK "${OPENTIMS_DDA_TEST_DATA}" "${OPENTIMS_DDA_SYMLINK}" SYMBOLIC)
+
+  # Typical timsTOF Pro DDA-PASEF parameters: 20 ppm precursor, 20 ppm fragment,
+  # Trypsin/P, 2 missed cleavages, Carbamidomethyl (C) fixed,
+  # Oxidation (M) + Acetyl (Protein N-term) variable.
+  add_test("TOPP_SimpleSearchEngine_DDA" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
+    -in ${OPENTIMS_DDA_SYMLINK}
+    -database ${OPENTIMS_TEST_FASTA}
+    -out ${TESTS_TEMP_DIR}/SimpleSearchEngine_DDA_out.tmp.idXML
+    -Search:precursor:mass_tolerance 20
+    -Search:precursor:mass_tolerance_unit ppm
+    -Search:fragment:mass_tolerance 20
+    -Search:fragment:mass_tolerance_unit ppm
+    -Search:enzyme Trypsin/P
+    -Search:peptide:missed_cleavages 2
+    "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
+    -Search:decoys
+    -threads 4)
+
+  add_test("TOPP_PeptideDataBaseSearchFI_DDA" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
+    -in ${OPENTIMS_DDA_SYMLINK}
+    -database ${OPENTIMS_TEST_FASTA}
+    -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_out.tmp.idXML
+    -Search:precursor:mass_tolerance 20
+    -Search:precursor:mass_tolerance_unit ppm
+    -Search:fragment:mass_tolerance 20
+    -Search:fragment:mass_tolerance_unit ppm
+    -Search:enzyme Trypsin/P
+    -Search:peptide:missed_cleavages 2
+    "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
+    -Search:decoys
+    -threads 4)
+
+  # SageAdapter DDA test: generate decoys externally (SageAdapter sets generate_decoys=false),
+  # then search with Sage, then apply FDR filtering on hyperscore via FalseDiscoveryRate.
+  if (NOT (${SAGE_BINARY} STREQUAL "SAGE_BINARY-NOTFOUND"))
+    add_test("TOPP_DecoyDatabase_DDA" ${TOPP_BIN_PATH}/DecoyDatabase -test
+      -in ${OPENTIMS_TEST_FASTA}
+      -out ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
+      -decoy_string DECOY_
+      -decoy_string_position prefix)
+
+    add_test("TOPP_SageAdapter_DDA" ${TOPP_BIN_PATH}/SageAdapter -test
+      -in ${OPENTIMS_DDA_SYMLINK}
+      -database ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
+      -out ${TESTS_TEMP_DIR}/SageAdapter_DDA_out.tmp.idXML
+      -sage_executable "${SAGE_BINARY}"
+      -decoy_prefix DECOY_
+      -precursor_tol_left -20.0
+      -precursor_tol_right 20.0
+      -precursor_tol_unit ppm
+      -fragment_tol_left -20.0
+      -fragment_tol_right 20.0
+      -enzyme Trypsin/P
+      -missed_cleavages 2
+      "-variable_modifications" "Oxidation (M)" "Acetyl (Protein N-term)"
+      -chimera false
+      -predict_rt false
+      -deisotope false)
+    set_tests_properties("TOPP_SageAdapter_DDA" PROPERTIES DEPENDS "TOPP_DecoyDatabase_DDA")
+
+    add_test("TOPP_FalseDiscoveryRate_SageDDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+      -in ${TESTS_TEMP_DIR}/SageAdapter_DDA_out.tmp.idXML
+      -out ${TESTS_TEMP_DIR}/SageAdapter_DDA_fdr.tmp.idXML
+      -FDR:PSM 0.01
+      -protein false)
+    set_tests_properties("TOPP_FalseDiscoveryRate_SageDDA" PROPERTIES DEPENDS "TOPP_SageAdapter_DDA")
+  endif()
+endif()
 
 # FeatureFinderMetaboIdent:
 add_test("TOPP_FeatureFinderMetaboIdent_1" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_1_output.tmp.featureXML -extract:mz_window 5 -extract:rt_window 20 -detect:peak_width 3)

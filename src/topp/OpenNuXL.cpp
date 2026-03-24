@@ -4726,6 +4726,7 @@ static void scoreXLIons_(
       p.setValue("peptide:missed_cleavages", 2);
       p.setValue("precursor:isotopes", IntList{0, 1});
       p.setValue("decoys", generate_decoys ? "true" : "false");
+      p.setValue("FDR:PSM", 0.0); // disable built-in FDR — OpenNuXL handles FDR filtering separately
       p.setValue("enzyme", getStringOption_("peptide:enzyme"));
       p.setValue("annotate:PSM", 
         vector<string>{
