@@ -14,6 +14,7 @@ FeatureGroupingAlgorithmLabeled.h
 FeatureGroupingAlgorithmKD.h
 FeatureGroupingAlgorithmQT.h
 FeatureGroupingAlgorithmUnlabeled.h
+FeatureGroupingAlgorithmWNet.h
 FeatureMapping.h
 LabeledPairFinder.h
 MapAlignmentAlgorithmIdentification.h
