@@ -35,6 +35,7 @@ FeatureLinkerLabeled
 FeatureLinkerUnlabeled
 FeatureLinkerUnlabeledKD
 FeatureLinkerUnlabeledQT
+FeatureLinkerWNet
 FileConverter
 FileFilter
 FileInfo
