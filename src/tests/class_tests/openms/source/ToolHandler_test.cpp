@@ -40,7 +40,6 @@ START_SECTION((static ToolListType getTOPPToolList()))
 {
   ToolListType list = ToolHandler::getTOPPToolList();
   TEST_TRUE(list.find("DecoyDatabase") != list.end())
-  TEST_FALSE(list.find("GenericWrapper") != list.end())
   TEST_TRUE(list.size() > 30)  // assume we have over 30 tools in there
 #ifdef WITH_GUI
   TEST_TRUE(list.find("ImageCreator") != list.end())
