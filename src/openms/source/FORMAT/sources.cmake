@@ -103,7 +103,7 @@ TargetedDataFileLoader.cpp
 )
 
 if (WITH_HDF5)
-  list(APPEND sources_list HDF5Connector.cpp)  
+  list(APPEND sources_list HDF5Connector.cpp)
 endif()
 
 if (WITH_PARQUET)
@@ -125,7 +125,6 @@ endif()
 
 if (WITH_OPENTIMS)
   list(APPEND sources_list BrukerTimsFile.cpp)
-  list(APPEND sources_list OpenTimsCalibration.cpp)
 endif()
 
 ### add path to the filenames

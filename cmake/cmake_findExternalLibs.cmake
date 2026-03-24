@@ -294,6 +294,24 @@ if (WITH_OPENTIMS)
   # Provide OpenMS's sqlite3 headers and library to opentims
   target_include_directories(opentims_cpp PRIVATE "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
   target_link_libraries(opentims_cpp PRIVATE sqlite3)
+
+  # ZSTD: opentims uses ZSTD for TDF frame decompression.
+  # Prefer system/package-managed zstd; fall back to opentims's bundled decoder.
+  set(_OPENTIMS_SRC "${opentims_SOURCE_DIR}/src/opentims++")
+  find_package(zstd QUIET)
+  if(TARGET zstd::libzstd_shared)
+    target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_shared)
+    message(STATUS "opentims: using system zstd (shared)")
+  elseif(TARGET zstd::libzstd_static)
+    target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_static)
+    message(STATUS "opentims: using system zstd (static)")
+  else()
+    # Compile opentims's bundled ZSTD decompression-only amalgamation
+    target_sources(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd/zstddeclib.c")
+    target_include_directories(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd")
+    message(STATUS "opentims: using bundled zstd decoder (system zstd not found)")
+  endif()
+
   # Suppress warnings from third-party code
   target_compile_options(opentims_cpp PRIVATE $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>)
 
