@@ -292,23 +292,30 @@ endif()
 # wnetalign (Wasserstein network spectral alignment)
 include(FetchContent)
 
+# Header-only: use GIT_REPOSITORY for reproducible versioned fetch.
+# To override with local checkouts, set FETCHCONTENT_SOURCE_DIR_PYLMCF,
+# FETCHCONTENT_SOURCE_DIR_WNET, FETCHCONTENT_SOURCE_DIR_WNETALIGN.
 FetchContent_Declare(
   pylmcf
-  GIT_REPOSITORY https://github.com/michalsta/pylmcf.git
+  GIT_REPOSITORY git@github.com:michalsta/pylmcf.git
   GIT_TAG        v0.9.5
 )
 FetchContent_Declare(
   wnet
-  GIT_REPOSITORY https://github.com/michalsta/wnet.git
+  GIT_REPOSITORY git@github.com:michalsta/wnet.git
   GIT_TAG        v0.9.9
 )
 FetchContent_Declare(
   wnetalign
-  GIT_REPOSITORY https://github.com/michalsta/wnetalign.git
+  GIT_REPOSITORY git@github.com:michalsta/wnetalign.git
   GIT_TAG        v0.9.6
 )
 
-FetchContent_MakeAvailable(pylmcf wnet wnetalign)
+# Populate source dirs without running their CMakeLists.txt
+# (they build nanobind Python modules, not needed for C++ header-only usage).
+FetchContent_Populate(pylmcf)
+FetchContent_Populate(wnet)
+FetchContent_Populate(wnetalign)
 
 set(WNETALIGN_INCLUDE_DIRS
   "${pylmcf_SOURCE_DIR}/src/pylmcf/cpp"
