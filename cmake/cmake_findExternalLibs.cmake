@@ -362,6 +362,19 @@ public:
   endforeach()
   message(STATUS "Patched opentims converter headers: fix std::forward variadic expansion")
 
+  # Patch so_manager.h: replace direct <libloaderapi.h> / <errhandlingapi.h>
+  # includes with <windows.h> on MSVC. The sub-headers don't work standalone
+  # because winnt.h needs architecture defines set by <windows.h>.
+  file(READ "${_OPENTIMS_SRC}/so_manager.h" _so_manager_content)
+  string(REPLACE "#include <libloaderapi.h>\n#include <errhandlingapi.h>"
+                  "#include <windows.h>"
+                  _so_manager_content "${_so_manager_content}")
+  # Also handle case where they're on separate lines without \n in the string
+  string(REPLACE "#include <libloaderapi.h>" "#include <windows.h>" _so_manager_content "${_so_manager_content}")
+  string(REPLACE "#include <errhandlingapi.h>" "// included via windows.h above" _so_manager_content "${_so_manager_content}")
+  file(WRITE "${_OPENTIMS_SRC}/so_manager.h" "${_so_manager_content}")
+  message(STATUS "Patched so_manager.h: use <windows.h> instead of sub-headers")
+
   add_library(opentims_cpp STATIC
     "${_OPENTIMS_SRC}/opentims.cpp"
     "${_OPENTIMS_SRC}/tof2mz_converter.cpp"
