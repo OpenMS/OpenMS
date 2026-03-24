@@ -45,17 +45,30 @@ class OPENMS_DLLAPI QPXFile
 {
 public:
   /**
-    @brief Export PSM data to Apache Arrow Table
-
-    Exports peptide spectrum matches following the QPX PSM schema. Each
-    PeptideHit becomes one row with identification, score, and metadata.
-
-    @param[in] protein_identifications Vector of protein identifications
-    @param[in] peptide_identifications List of peptide identifications
-    @param[in] export_all_psms If true, export all hits per spectrum (default: false, only best hit)
-    @return Shared pointer to Arrow Table, or nullptr on error
-  */
+     * @brief Export PSMs to Arrow table using PSMSchema for lossless round-trips.
+     *
+     * Produces a table with PSMSchema columns (score, score_type, rank, etc.)
+     * suitable for FeatureMapArrowIO and ConsensusMapArrowIO round-trips.
+     * For QPX exchange format output, use exportPSMsToQPXArrow() instead.
+     */
   static std::shared_ptr<arrow::Table> exportToArrow(
+    const std::vector<ProteinIdentification>& protein_identifications,
+    const PeptideIdentificationList& peptide_identifications,
+    bool export_all_psms = false);
+
+  /**
+     * @brief Export PSMs to QPX Parquet eXchange format Arrow table (QPXPSMSchema).
+     *
+     * Unlike exportToArrow() which produces a PSMSchema table for lossless
+     * round-trips, this method produces a QPXPSMSchema table optimized for
+     * cross-tool exchange (quantms format).
+     *
+     * @param protein_identifications  Protein identifications (for file name lookup)
+     * @param peptide_identifications  Peptide identifications to export
+     * @param export_all_psms  If true, export all PSM hits; if false, only best hit per spectrum
+     * @return Arrow table with QPXPSMSchema columns, or nullptr on failure
+     */
+  static std::shared_ptr<arrow::Table> exportPSMsToQPXArrow(
     const std::vector<ProteinIdentification>& protein_identifications,
     const PeptideIdentificationList& peptide_identifications,
     bool export_all_psms = false);
