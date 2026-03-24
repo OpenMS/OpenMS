@@ -27,7 +27,6 @@
 #include <cmath>
 #include <limits>
 #include <map>
-#include <set>
 #include <unordered_map>
 
 namespace OpenMS
@@ -725,13 +724,6 @@ namespace OpenMS
         return {scan_offsets[scan_begin], scan_offsets[scan_end]};
       }
     };
-
-    // Determine which frames are needed
-    std::set<uint32_t> needed_frames;
-    for (const auto& entry : precursor_entries)
-    {
-      needed_frames.insert(entry.frame_id);
-    }
 
     // Extract data for needed frames (lazy, on demand per precursor group)
     // We cache extracted frame data to avoid re-extraction when multiple
