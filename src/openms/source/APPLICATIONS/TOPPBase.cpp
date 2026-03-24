@@ -2453,15 +2453,6 @@ namespace OpenMS
     // .. they are empty/default at this point
     // We now fetch the (so-far unknown) subsection parameters (since they can be addressed on command line as well)
 
-    // extract '-type' from command line args upfront, since subsection defaults may depend on it
-    StringList sl_args = StringList(argv, argv + argc);
-    StringList::iterator it_type = std::find(sl_args.begin(), sl_args.end(), "-type");
-    if (it_type != sl_args.end())
-    { // found it
-      ++it_type; // advance to next argument -- this should be the value of -type
-      if (it_type != sl_args.end()) param_.setValue("type", *it_type);
-    }
-
     // prepare map of parameters:
     typedef map<String, vector<ParameterInformation>::const_iterator> ParamMap;
     ParamMap param_map;
