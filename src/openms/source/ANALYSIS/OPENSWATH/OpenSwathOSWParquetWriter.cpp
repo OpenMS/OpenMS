@@ -312,8 +312,13 @@ namespace OpenMS
                                         bool enable_uis_scoring) const
   {
 #ifndef WITH_PARQUET
-    throw Exception::MissingFeature(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "OpenMS was built without Parquet support");
+    (void)output_path;
+    (void)assay_library;
+    (void)feature_map;
+    (void)run_id;
+    (void)input_filename;
+    (void)enable_uis_scoring;
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #else
     const UInt64 run_id_clean = Internal::SqliteHelper::clearSignBit(run_id);
     const bool output_is_dir = File::isDirectory(output_path);
