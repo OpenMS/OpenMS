@@ -1,6 +1,6 @@
 # Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 # SPDX-License-Identifier: BSD-3-Clause
-# 
+#
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche, Chris Bielow $
 # $Authors: Chris Bielow, Stephan Aiche $
@@ -192,7 +192,7 @@ find_package(CURL REQUIRED)
    # Arrow 23+ required for parquet file format compatibility
    find_package(Arrow 23 CONFIG REQUIRED)
    find_package(Parquet 23 CONFIG REQUIRED)
-   
+
    # Determine Arrow target based on ARROW_USE_STATIC preference
    if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
      set(OPENMS_ARROW_TARGET Arrow::arrow_static)
@@ -233,7 +233,7 @@ find_package(CURL REQUIRED)
       message(STATUS "Using Arrow Compute from Arrow target: ${OPENMS_ARROW_TARGET} (no separate compute target/library found)")
     endif()
   endif()
-   
+
    # Determine Parquet target based on ARROW_USE_STATIC preference
    if(ARROW_USE_STATIC AND TARGET Parquet::parquet_static)
      set(OPENMS_PARQUET_TARGET Parquet::parquet_static)
@@ -246,7 +246,7 @@ find_package(CURL REQUIRED)
    else()
      message(FATAL_ERROR "No suitable Parquet target found")
    endif()
-   
+
    message(STATUS "Using Arrow target: ${OPENMS_ARROW_TARGET}")
    message(STATUS "Using Arrow Compute target: ${OPENMS_ARROW_COMPUTE_TARGET}")
    message(STATUS "Using Parquet target: ${OPENMS_PARQUET_TARGET}")
@@ -283,124 +283,18 @@ if (WITH_OPENTIMS)
     GIT_REPOSITORY https://github.com/michalsta/opentims.git
     GIT_TAG 4054224f4bb0c15bae9a1f5b4a7595bd798f0648
   )
-  FetchContent_GetProperties(opentims)
-  if(NOT opentims_POPULATED)
-    FetchContent_Populate(opentims)
-  endif()
 
-  set(_OPENTIMS_SRC "${opentims_SOURCE_DIR}/src/opentims++")
+  # Build opentims as a C++ static library, not a Python module.
+  # Use OpenMS's own sqlite3 instead of opentims's runtime dlopen.
+  set(OPENTIMS_BUILD_PYTHON OFF CACHE BOOL "" FORCE)
+  set(OPENTIMS_BUILD_CPP_LIB ON CACHE BOOL "" FORCE)
+  set(OPENTIMS_LINK_SQLITE_STATICALLY ON CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(opentims)
 
-  # Patch opentims.h to expose tims_dir_path via a public getter.
-  # The upstream TimsDataHandle keeps this member private with friend-only access,
-  # but our open-source calibration converters need to read the .d directory path.
-  file(READ "${_OPENTIMS_SRC}/opentims.h" _opentims_h_content)
-  if(NOT _opentims_h_content MATCHES "get_tims_dir_path")
-    string(REPLACE
-      "size_t get_decomp_buffer_size() const { return decomp_buffer_size; };"
-      "size_t get_decomp_buffer_size() const { return decomp_buffer_size; };\n    const std::string& get_tims_dir_path() const { return tims_dir_path; };"
-      _opentims_h_content "${_opentims_h_content}")
-    file(WRITE "${_OPENTIMS_SRC}/opentims.h" "${_opentims_h_content}")
-    message(STATUS "Patched opentims.h: added get_tims_dir_path() accessor")
-  endif()
-
-  # Patch sqlite_helper.h to use direct sqlite3 calls instead of dlopen.
-  # opentims dynamically loads sqlite3 symbols at runtime, but we statically
-  # link OpenMS's sqlite3 library, so we redirect to direct function calls.
-  file(WRITE "${_OPENTIMS_SRC}/sqlite_helper.h" [=[
-#pragma once
-#include <sqlite3.h>
-#include <string>
-#include <stdexcept>
-
-// Patched by OpenMS: use direct sqlite3 calls instead of dlopen-based ot_sqlite.
-class ot_sqlite
-{
-public:
-    static int sqlite3_open_v2(const char* s, sqlite3** ptr, int flags, const char*) { return ::sqlite3_open_v2(s, ptr, flags, NULL); }
-    static int sqlite3_close(sqlite3* db) { return ::sqlite3_close(db); }
-    static int sqlite3_exec(sqlite3* db, const char* query, int (*callback)(void*,int,char**,char**), void* arg, char **err) { return ::sqlite3_exec(db, query, callback, arg, err); }
-    static void sqlite3_free(void* ptr) { ::sqlite3_free(ptr); }
-    static const char* sqlite3_errmsg(sqlite3* db) { return ::sqlite3_errmsg(db); }
-};
-
-class RAIISqlite
-{
-    sqlite3* db_conn;
-public:
-    RAIISqlite(const std::string& tims_tdf_path) : db_conn(nullptr)
-    {
-        if(ot_sqlite::sqlite3_open_v2(tims_tdf_path.c_str(), &db_conn, SQLITE_OPEN_READONLY, NULL))
-        {
-            std::string err(ot_sqlite::sqlite3_errmsg(db_conn));
-            if(db_conn) ot_sqlite::sqlite3_close(db_conn);
-            db_conn = nullptr;
-            throw std::runtime_error("ERROR opening database: " + tims_tdf_path + " SQLite error msg: " + err);
-        }
-    }
-    ~RAIISqlite()
-    {
-        if(db_conn != nullptr) ot_sqlite::sqlite3_close(db_conn);
-    }
-    void query(const std::string& sql, int (*callback)(void*,int,char**,char**), void* arg)
-    {
-        char* error = NULL;
-        if(ot_sqlite::sqlite3_exec(db_conn, sql.c_str(), callback, arg, &error) != SQLITE_OK)
-        {
-            std::string err_msg(std::string("ERROR performing SQL query. SQLite error msg: ") + error);
-            ot_sqlite::sqlite3_free(error);
-            throw std::runtime_error(err_msg);
-        }
-    }
-};
-]=])
-  message(STATUS "Patched sqlite_helper.h: use direct sqlite3 calls")
-
-  # Patch variadic template bug in setAsDefault(): std::forward<Args...>(args...)
-  # should be std::forward<Args>(args)... to work with zero arguments.
-  foreach(_converter_header "tof2mz_converter.h" "scan2inv_ion_mobility_converter.h")
-    file(READ "${_OPENTIMS_SRC}/${_converter_header}" _converter_content)
-    string(REPLACE
-      "std::forward<Args...>(args...)"
-      "std::forward<Args>(args)..."
-      _converter_content "${_converter_content}")
-    file(WRITE "${_OPENTIMS_SRC}/${_converter_header}" "${_converter_content}")
-  endforeach()
-  message(STATUS "Patched opentims converter headers: fix std::forward variadic expansion")
-
-  # Patch so_manager.h: replace direct <libloaderapi.h> / <errhandlingapi.h>
-  # includes with <windows.h> on MSVC. The sub-headers don't work standalone
-  # because winnt.h needs architecture defines set by <windows.h>.
-  file(READ "${_OPENTIMS_SRC}/so_manager.h" _so_manager_content)
-  string(REPLACE "#include <libloaderapi.h>\n#include <errhandlingapi.h>"
-                  "#include <windows.h>"
-                  _so_manager_content "${_so_manager_content}")
-  # Also handle case where they're on separate lines without \n in the string
-  string(REPLACE "#include <libloaderapi.h>" "#include <windows.h>" _so_manager_content "${_so_manager_content}")
-  string(REPLACE "#include <errhandlingapi.h>" "// included via windows.h above" _so_manager_content "${_so_manager_content}")
-  file(WRITE "${_OPENTIMS_SRC}/so_manager.h" "${_so_manager_content}")
-  message(STATUS "Patched so_manager.h: use <windows.h> instead of sub-headers")
-
-  add_library(opentims_cpp STATIC
-    "${_OPENTIMS_SRC}/opentims.cpp"
-    "${_OPENTIMS_SRC}/tof2mz_converter.cpp"
-    "${_OPENTIMS_SRC}/scan2inv_ion_mobility_converter.cpp"
-    "${_OPENTIMS_SRC}/converters.cpp"
-    "${_OPENTIMS_SRC}/so_manager.cpp"
-    "${_OPENTIMS_SRC}/thread_mgr.cpp"
-  )
-
-  target_include_directories(opentims_cpp PUBLIC "${_OPENTIMS_SRC}")
-  # Use OpenMS's own sqlite3 headers instead of opentims's bundled copy
+  # Provide OpenMS's sqlite3 headers and library to opentims
   target_include_directories(opentims_cpp PRIVATE "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
   target_link_libraries(opentims_cpp PRIVATE sqlite3)
-  target_compile_features(opentims_cpp PRIVATE cxx_std_20)
-  # Windows: opentims includes <libloaderapi.h> which needs WIN32_LEAN_AND_MEAN
-  # and proper architecture defines for winnt.h
-  if(MSVC)
-    target_compile_definitions(opentims_cpp PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
-  endif()
-  # -fPIC required because this static lib is linked into libOpenMS.so
-  set_target_properties(opentims_cpp PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  # Suppress warnings from third-party code
   target_compile_options(opentims_cpp PRIVATE $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>)
 
   message(STATUS "Built opentims_cpp from source: ${opentims_SOURCE_DIR}")
