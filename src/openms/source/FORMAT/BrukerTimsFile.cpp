@@ -402,6 +402,9 @@ namespace OpenMS
 
     // Register our open-source converter factories before constructing the handle.
     // TimsDataHandle::init() calls produceDefaultConverterInstance which uses these.
+    // NOTE: setAsDefault writes to a global static in the opentims library.
+    // This is NOT thread-safe — concurrent BrukerTimsFile::load() calls will race.
+    // Currently safe because TOPP tools load files sequentially.
     DefaultTof2MzConverterFactory::setAsDefault<OpenSourceTof2MzConverterFactory>();
     DefaultScan2InvIonMobilityConverterFactory::setAsDefault<OpenSourceScan2ImConverterFactory>();
 
@@ -1039,7 +1042,7 @@ namespace OpenMS
         spec.setRT(frame.time);
         spec.setMSLevel(2);
         spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-        spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(wi));
+        spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win.window_group));
 
         // Set isolation window
         Precursor prec;

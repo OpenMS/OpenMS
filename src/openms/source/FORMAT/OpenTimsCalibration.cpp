@@ -53,7 +53,8 @@ namespace OpenMS
   {
     for (uint32_t i = 0; i < size; ++i)
     {
-      tofs[i] = static_cast<uint32_t>((std::sqrt(mzs[i]) - intercept_) / slope_);
+      double val = (std::sqrt(mzs[i]) - intercept_) / slope_;
+      tofs[i] = val > 0.0 ? static_cast<uint32_t>(val + 0.5) : 0;
     }
   }
 
@@ -100,7 +101,8 @@ namespace OpenMS
   {
     for (uint32_t i = 0; i < size; ++i)
     {
-      scans[i] = static_cast<uint32_t>((inv_ion_mobilities[i] - intercept_) / slope_);
+      double val = (inv_ion_mobilities[i] - intercept_) / slope_;
+      scans[i] = val > 0.0 ? static_cast<uint32_t>(val + 0.5) : 0;
     }
   }
 
