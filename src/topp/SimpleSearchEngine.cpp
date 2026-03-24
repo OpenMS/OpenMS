@@ -76,7 +76,11 @@ class SimpleSearchEngine :
     void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "", "input file ");
+#ifdef WITH_OPENTIMS
       setValidFormats_("in", ListUtils::create<String>("mzML,d"));
+#else
+      setValidFormats_("in", ListUtils::create<String>("mzML"));
+#endif
 
       registerInputFile_("database", "<file>", "", "input file ");
       setValidFormats_("database", ListUtils::create<String>("fasta"));

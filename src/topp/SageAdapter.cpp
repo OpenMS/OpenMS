@@ -422,7 +422,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
+#ifdef WITH_OPENTIMS
     setValidFormats_("in", { "mzML", "d" } );
+#else
+    setValidFormats_("in", { "mzML" } );
+#endif
 
     registerOutputFile_("out", "<file>", "", "Single output file containing all search results.", true, false);
     setValidFormats_("out", { "idXML" } );
