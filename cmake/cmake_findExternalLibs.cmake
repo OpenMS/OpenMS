@@ -393,6 +393,22 @@ public:
   # Use OpenMS's own sqlite3 headers instead of opentims's bundled copy
   target_include_directories(opentims_cpp PRIVATE "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
   target_link_libraries(opentims_cpp PRIVATE sqlite3)
+
+  # ZSTD: opentims uses ZSTD for TDF frame decompression.
+  # Prefer system/package-managed zstd; fall back to opentims's bundled decoder.
+  find_package(zstd QUIET)
+  if(TARGET zstd::libzstd_shared)
+    target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_shared)
+    message(STATUS "opentims: using system zstd (shared)")
+  elseif(TARGET zstd::libzstd_static)
+    target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_static)
+    message(STATUS "opentims: using system zstd (static)")
+  else()
+    # Compile opentims's bundled ZSTD decompression-only amalgamation
+    target_sources(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd/zstddeclib.c")
+    target_include_directories(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd")
+    message(STATUS "opentims: using bundled zstd decoder (system zstd not found)")
+  endif()
   target_compile_features(opentims_cpp PRIVATE cxx_std_20)
   # Windows: opentims includes <libloaderapi.h> which needs WIN32_LEAN_AND_MEAN
   # and proper architecture defines for winnt.h
