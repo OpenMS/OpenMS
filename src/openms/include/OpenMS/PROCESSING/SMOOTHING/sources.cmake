@@ -8,6 +8,7 @@ GaussFilter.h
 GaussFilterAlgorithm.h
 LowessSmoothing.h
 SavitzkyGolayFilter.h
+ModifiedSincSmoother.h 
 )
 
 ### add path to the filenames

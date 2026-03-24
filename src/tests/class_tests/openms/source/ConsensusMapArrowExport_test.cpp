@@ -211,10 +211,9 @@ START_SECTION(exportToArrow - basic export)
   TEST_EQUAL(schema->GetFieldIndex("peptidoform") >= 0, true)
   TEST_EQUAL(schema->GetFieldIndex("observed_mz") >= 0, true)
   TEST_EQUAL(schema->GetFieldIndex("rt") >= 0, true)
-  TEST_EQUAL(schema->GetFieldIndex("precursor_charge") >= 0, true)
+  TEST_EQUAL(schema->GetFieldIndex("charge") >= 0, true)
   TEST_EQUAL(schema->GetFieldIndex("intensities") >= 0, true)
   TEST_EQUAL(schema->GetFieldIndex("pg_accessions") >= 0, true)
-  TEST_EQUAL(schema->GetFieldIndex("quality") >= 0, true)
 }
 END_SECTION
 
@@ -239,8 +238,8 @@ START_SECTION(exportToArrow - column types)
   auto mz_field = schema->GetFieldByName("observed_mz");
   TEST_EQUAL(mz_field->type()->id(), arrow::Type::FLOAT)
 
-  auto charge_field = schema->GetFieldByName("precursor_charge");
-  TEST_EQUAL(charge_field->type()->id(), arrow::Type::INT32)
+  auto charge_field = schema->GetFieldByName("charge");
+  TEST_EQUAL(charge_field->type()->id(), arrow::Type::INT16)
 
   // Check list columns
   auto intensities_field = schema->GetFieldByName("intensities");

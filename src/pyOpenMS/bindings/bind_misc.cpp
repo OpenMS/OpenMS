@@ -172,6 +172,7 @@
 #include <OpenMS/PROCESSING/SCALING/RankScaler.h>
 #include <OpenMS/PROCESSING/SCALING/SqrtScaler.h>
 #include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
+#include <OpenMS/PROCESSING/SMOOTHING/ModifiedSincSmoother.h>
 #include <OpenMS/PROCESSING/SMOOTHING/LowessSmoothing.h>
 #include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
@@ -2504,6 +2505,39 @@ ProgressLogger
         .def("filterExperiment", [](OpenMS::GaussFilter& self, OpenMS::MSExperiment& map) { return self.filterExperiment(map); }, "map"_a, "Smoothes an MSExperiment containing profile data")
         ;
     def_DefaultParamHandler<OpenMS::GaussFilter>(gaussfilter_class);
+
+    // -----------------------------------------------------------------------
+    // ModifiedSincSmoother
+    // -----------------------------------------------------------------------
+    auto modifiedsincsmoother_class = nb::class_<OpenMS::ModifiedSincSmoother, OpenMS::ProgressLogger>(m, "ModifiedSincSmoother",
+        R"doc(
+Modified sinc smoother for profile data.
+Two variants: MS (better stopband, larger kernel) and MS1 (smaller kernel).
+Based on Schmid, Rath & Diebold, ACS Meas. Sci. Au 2022.
+DefaultParamHandler
+ProgressLogger
+)doc")
+        .def(nb::init<>())
+        .def(nb::init<bool, int, int>(), "isMS1"_a, "degree"_a, "m"_a,
+            "Create smoother. isMS1: true for MS1 variant (smaller kernel), false for MS variant.")
+        .def("filter", [](OpenMS::ModifiedSincSmoother& self, OpenMS::MSSpectrum& spectrum) {
+            return self.filter(spectrum); }, "spectrum"_a, "Smooth an MSSpectrum in-place")
+        .def("filter", [](OpenMS::ModifiedSincSmoother& self, OpenMS::MSChromatogram& chromatogram) {
+            return self.filter(chromatogram); }, "chromatogram"_a, "Smooth an MSChromatogram in-place")
+        .def("filter", [](OpenMS::ModifiedSincSmoother& self, OpenMS::Mobilogram& mobilogram) {
+            return self.filter(mobilogram); }, "mobilogram"_a, "Smooth a Mobilogram in-place")
+        .def("filterExperiment", [](OpenMS::ModifiedSincSmoother& self, OpenMS::MSExperiment& map) {
+            return self.filterExperiment(map); }, "map"_a, "Smooth all spectra and chromatograms in a PeakMap")
+        .def("smooth", [](OpenMS::ModifiedSincSmoother& self, const std::vector<double>& data) {
+            return self.smooth(data); }, "data"_a, "Smooth a vector of intensity values, returns smoothed vector")
+        .def_static("bandwidthToM", &OpenMS::ModifiedSincSmoother::bandwidthToM,
+            "isMS1"_a, "degree"_a, "bandwidth"_a, "Convert frequency bandwidth to kernel half-width m")
+        .def_static("noiseGainToM", &OpenMS::ModifiedSincSmoother::noiseGainToM,
+            "isMS1"_a, "degree"_a, "noiseGain"_a, "Convert noise gain to kernel half-width m")
+        .def_static("savitzkyGolayBandwidth", &OpenMS::ModifiedSincSmoother::savitzkyGolayBandwidth,
+            "degree"_a, "m"_a, "Compute equivalent Savitzky-Golay bandwidth")
+        ;
+    def_DefaultParamHandler<OpenMS::ModifiedSincSmoother>(modifiedsincsmoother_class);
 
     // -----------------------------------------------------------------------
     // InternalCalibration

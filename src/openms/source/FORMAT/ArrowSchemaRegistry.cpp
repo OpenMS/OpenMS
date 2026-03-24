@@ -398,72 +398,180 @@ namespace OpenMS
     });
   }
 
-  // -- ConsensusFeatureExportSchema --
+  // -- QPXPSMSchema (quantms Parquet eXchange format, PSM table) --
 
-  std::shared_ptr<arrow::DataType> ConsensusFeatureExportSchema::modificationsType()
+  std::shared_ptr<arrow::DataType> QPXPSMSchema::modificationsType()
   {
-    return PSMSchema::modificationsType();
-  }
-
-  std::shared_ptr<arrow::DataType> ConsensusFeatureExportSchema::additionalScoresType()
-  {
-    return PSMSchema::additionalScoresType();
-  }
-
-  std::shared_ptr<arrow::DataType> ConsensusFeatureExportSchema::intensitiesType()
-  {
+    auto scores_struct = arrow::struct_({
+      arrow::field("score_name", arrow::utf8(), /*nullable=*/false),
+      arrow::field("score_value", arrow::float64(), /*nullable=*/false),
+      arrow::field("higher_better", arrow::boolean())
+    });
+    auto position_struct = arrow::struct_({
+      arrow::field("position", arrow::int32(), /*nullable=*/false),
+      arrow::field("amino_acid", arrow::utf8()),
+      arrow::field("scores", arrow::list(scores_struct))
+    });
     return arrow::list(arrow::struct_({
-      arrow::field("sample_accession", arrow::utf8()),
-      arrow::field("channel", arrow::utf8()),
-      arrow::field("intensity", arrow::float32())
+      arrow::field("name", arrow::utf8(), /*nullable=*/false),
+      arrow::field("accession", arrow::utf8()),
+      arrow::field("positions", arrow::list(position_struct), /*nullable=*/false)
     }));
   }
 
-  std::shared_ptr<arrow::DataType> ConsensusFeatureExportSchema::metavaluesType()
+  std::shared_ptr<arrow::DataType> QPXPSMSchema::additionalScoresType()
   {
     return arrow::list(arrow::struct_({
-      arrow::field("name", arrow::utf8()),
-      arrow::field("value", arrow::utf8()),
-      arrow::field("value_type", arrow::utf8())
+      arrow::field("score_name", arrow::utf8(), /*nullable=*/false),
+      arrow::field("score_value", arrow::float64(), /*nullable=*/false),
+      arrow::field("higher_better", arrow::boolean())
     }));
   }
 
-  std::shared_ptr<arrow::Schema> ConsensusFeatureExportSchema::schema()
+  std::shared_ptr<arrow::DataType> QPXPSMSchema::cvParamsType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("cv_name", arrow::utf8(), /*nullable=*/false),
+      arrow::field("cv_value", arrow::utf8(), /*nullable=*/false)
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> QPXPSMSchema::crossLinksType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("xl_type", arrow::utf8(), /*nullable=*/false),
+      arrow::field("partner_sequence", arrow::utf8()),
+      arrow::field("partner_peptidoform", arrow::utf8()),
+      arrow::field("donor_position", arrow::int32(), /*nullable=*/false),
+      arrow::field("acceptor_position", arrow::int32()),
+      arrow::field("linker_name", arrow::utf8(), /*nullable=*/false),
+      arrow::field("linker_accession", arrow::utf8()),
+      arrow::field("linker_mass", arrow::float64(), /*nullable=*/false)
+    }));
+  }
+
+  std::shared_ptr<arrow::Schema> QPXPSMSchema::schema()
   {
     return arrow::schema({
-      arrow::field(SEQUENCE, arrow::utf8()),
-      arrow::field(PEPTIDOFORM, arrow::utf8()),
+      arrow::field(SEQUENCE, arrow::utf8(), /*nullable=*/false),
+      arrow::field(PEPTIDOFORM, arrow::utf8(), /*nullable=*/false),
       arrow::field(MODIFICATIONS, modificationsType()),
-      arrow::field(PRECURSOR_CHARGE, arrow::int32()),
-      arrow::field(CALCULATED_MZ, arrow::float32()),
-      arrow::field(OBSERVED_MZ, arrow::float32()),
-      arrow::field(RT, arrow::float32()),
+      arrow::field(CHARGE, arrow::int16(), /*nullable=*/false),
       arrow::field(POSTERIOR_ERROR_PROBABILITY, arrow::float64()),
-      arrow::field(IS_DECOY, arrow::int32()),
+      arrow::field(IS_DECOY, arrow::boolean(), /*nullable=*/false),
+      arrow::field(CALCULATED_MZ, arrow::float32(), /*nullable=*/false),
+      arrow::field(OBSERVED_MZ, arrow::float32(), /*nullable=*/false),
+      arrow::field(MASS_ERROR_PPM, arrow::float32()),
       arrow::field(ADDITIONAL_SCORES, additionalScoresType()),
       arrow::field(PREDICTED_RT, arrow::float32()),
-      arrow::field(REFERENCE_FILE_NAME, arrow::utf8()),
-      arrow::field(CV_PARAMS, arrow::utf8()),
-      arrow::field(SCAN, arrow::utf8()),
+      arrow::field(RUN_FILE_NAME, arrow::utf8(), /*nullable=*/false),
+      arrow::field(CV_PARAMS, cvParamsType()),
+      arrow::field(SCAN, arrow::list(arrow::int32()), /*nullable=*/false),
+      arrow::field(RT, arrow::float32()),
       arrow::field(ION_MOBILITY, arrow::float32()),
-      arrow::field(START_ION_MOBILITY, arrow::float32()),
-      arrow::field(STOP_ION_MOBILITY, arrow::float32()),
+      arrow::field(MISSED_CLEAVAGES, arrow::int16()),
+      arrow::field(PROTEIN_ACCESSIONS, arrow::list(arrow::utf8())),
+      arrow::field(CROSS_LINKS, crossLinksType()),
+      arrow::field(MZ_ARRAY, arrow::list(arrow::float32())),
+      arrow::field(INTENSITY_ARRAY, arrow::list(arrow::float32())),
+      arrow::field(CHARGE_ARRAY, arrow::list(arrow::int32())),
+      arrow::field(ION_TYPE_ARRAY, arrow::list(arrow::utf8())),
+      arrow::field(ION_MOBILITY_ARRAY, arrow::list(arrow::float32())),
+    });
+  }
+
+  // -- QPXFeatureSchema (quantms Parquet eXchange format) --
+  // Shared types delegate to QPXPSMSchema to avoid duplication
+
+  std::shared_ptr<arrow::DataType> QPXFeatureSchema::modificationsType()
+  {
+    return QPXPSMSchema::modificationsType();
+  }
+
+  std::shared_ptr<arrow::DataType> QPXFeatureSchema::additionalScoresType()
+  {
+    return QPXPSMSchema::additionalScoresType();
+  }
+
+  std::shared_ptr<arrow::DataType> QPXFeatureSchema::cvParamsType()
+  {
+    return QPXPSMSchema::cvParamsType();
+  }
+
+  std::shared_ptr<arrow::DataType> QPXFeatureSchema::intensitiesType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("label", arrow::utf8(), /*nullable=*/false),
+      arrow::field("intensity", arrow::float32(), /*nullable=*/false)
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> QPXFeatureSchema::additionalIntensitiesType()
+  {
+    auto intensity_entry = arrow::struct_({
+      arrow::field("intensity_name", arrow::utf8(), /*nullable=*/false),
+      arrow::field("intensity_value", arrow::float32(), /*nullable=*/false)
+    });
+    return arrow::list(arrow::struct_({
+      arrow::field("label", arrow::utf8(), /*nullable=*/false),
+      arrow::field("intensities", arrow::list(intensity_entry), /*nullable=*/false)
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> QPXFeatureSchema::pgAccessionsType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("accession", arrow::utf8(), /*nullable=*/false),
+      arrow::field("start", arrow::int32()),
+      arrow::field("end", arrow::int32()),
+      arrow::field("pre", arrow::utf8()),
+      arrow::field("post", arrow::utf8())
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> QPXFeatureSchema::pgPositionsType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("protein_accession", arrow::utf8(), /*nullable=*/false),
+      arrow::field("start", arrow::int32(), /*nullable=*/false),
+      arrow::field("end", arrow::int32(), /*nullable=*/false)
+    }));
+  }
+
+  std::shared_ptr<arrow::Schema> QPXFeatureSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(SEQUENCE, arrow::utf8(), /*nullable=*/false),
+      arrow::field(PEPTIDOFORM, arrow::utf8(), /*nullable=*/false),
+      arrow::field(MODIFICATIONS, modificationsType()),
+      arrow::field(CHARGE, arrow::int16(), /*nullable=*/false),
+      arrow::field(POSTERIOR_ERROR_PROBABILITY, arrow::float64()),
+      arrow::field(IS_DECOY, arrow::boolean(), /*nullable=*/false),
+      arrow::field(CALCULATED_MZ, arrow::float32(), /*nullable=*/false),
+      arrow::field(OBSERVED_MZ, arrow::float32(), /*nullable=*/false),
+      arrow::field(MASS_ERROR_PPM, arrow::float32()),
+      arrow::field(ADDITIONAL_SCORES, additionalScoresType()),
+      arrow::field(PREDICTED_RT, arrow::float32()),
+      arrow::field(RUN_FILE_NAME, arrow::utf8(), /*nullable=*/false),
+      arrow::field(CV_PARAMS, cvParamsType()),
+      arrow::field(SCAN, arrow::list(arrow::int32()), /*nullable=*/false),
+      arrow::field(RT, arrow::float32()),
+      arrow::field(ION_MOBILITY, arrow::float32()),
+      arrow::field(MISSED_CLEAVAGES, arrow::int16()),
       arrow::field(INTENSITIES, intensitiesType()),
-      arrow::field(ADDITIONAL_INTENSITIES, arrow::utf8()),
-      arrow::field(PG_ACCESSIONS, arrow::list(arrow::utf8())),
-      arrow::field(ANCHOR_PROTEIN, arrow::utf8()),
-      arrow::field(UNIQUE, arrow::int32()),
+      arrow::field(ADDITIONAL_INTENSITIES, additionalIntensitiesType()),
+      arrow::field(PG_ACCESSIONS, pgAccessionsType()),
+      arrow::field(ANCHOR_PROTEIN, arrow::utf8(), /*nullable=*/false),
+      arrow::field(UNIQUE, arrow::boolean()),
       arrow::field(PG_GLOBAL_QVALUE, arrow::float64()),
+      arrow::field(PG_POSITIONS, pgPositionsType()),
+      arrow::field(ION_MOBILITY_START, arrow::float32()),
+      arrow::field(ION_MOBILITY_STOP, arrow::float32()),
       arrow::field(GG_ACCESSIONS, arrow::list(arrow::utf8())),
       arrow::field(GG_NAMES, arrow::list(arrow::utf8())),
-      arrow::field(SCAN_REFERENCE_FILE_NAME, arrow::utf8()),
+      arrow::field(ID_RUN_FILE_NAME, arrow::utf8()),
       arrow::field(RT_START, arrow::float32()),
       arrow::field(RT_STOP, arrow::float32()),
-      arrow::field(QUALITY, arrow::float32()),
-      arrow::field(SCORE, arrow::float64()),
-      arrow::field(SCORE_TYPE, arrow::utf8()),
-      arrow::field(SPECTRUM_REFERENCE, arrow::utf8()),
-      arrow::field(FEATURE_METAVALUES, metavaluesType()),
     });
   }
 
