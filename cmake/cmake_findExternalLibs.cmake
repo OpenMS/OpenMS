@@ -276,6 +276,8 @@ find_package(CURL REQUIRED)
 #------------------------------------------------------------------------------
 # opentims (Bruker TimsTOF .d file reading)
 if (WITH_OPENTIMS)
+  # Enable C language for bundled ZSTD fallback (zstddeclib.c)
+  enable_language(C)
   include(FetchContent)
 
   FetchContent_Declare(
