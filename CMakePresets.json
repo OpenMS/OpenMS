@@ -13,34 +13,7 @@
 			},
 			"cacheVariables": {
 				"CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-				"CMAKE_COLOR_DIAGNOSTICS": "ON",
-				"CMAKE_POLICY_VERSION_MINIMUM": "3.5",
-				"CMAKE_TOOLCHAIN_FILE": "vcpkg/scripts/buildsystems/vcpkg.cmake",
-				"VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkg/triplets"
-			}
-		},
-		{
-			"name": "ci",
-			"hidden": true,
-			"inherits":"base",
-			"generator": "Ninja",
-			"architecture": {
-				"value": "x64",
-				"strategy": "external"
-			},
-			"cacheVariables": {
-				"CMAKE_BUILD_TYPE": "Release",
-				"CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
-				"CMAKE_COMPILE_WARNING_AS_ERROR": "ON",
-				"OPENMS_DISABLE_VCPKG": "OFF",
-				"CMAKE_POLICY_VERSION_MINIMUM": "3.5",
-				"ENABLE_UPDATE_CHECK": "OFF",
-				"WITH_GUI": "OFF"
-			},
-			"condition": {
-				"type": "equals",
-				"lhs": "$env{CI}",
-				"rhs": "true"
+				"CMAKE_COLOR_DIAGNOSTICS": "ON"
 			}
 		},
 		{
@@ -58,20 +31,9 @@
 			}
 		},
 		{
-			"name": "linux-ci",
-			"displayName": "Linux CI",
-			"description": "Builds for Linux for CI purposes",
-			"inherits": "ci",
-			"cacheVariables": {
-				"VCPKG_HOST_TRIPLET": "linux64-release",
-				"VCPKG_TARGET_TRIPLET": "linux64-release",
-				"WITH_GUI": "OFF"
-
-			}
-		},
-		{
 			"name": "remaining work",
-			"description": "Additional presets for linux such as release"
+			"description": "Additional presets for linux such as release",
+			"hidden": true
 		}
 	],
 	"buildPresets": [
@@ -95,12 +57,6 @@
 				"lhs": "$env{CI}",
 				"rhs": "true"
 			}
-		},
-		{
-			"name": "linux-ci",
-			"displayName": "Linux CI build",
-			"configurePreset": "linux-ci",
-			"inherits": "ci"
 		}
 	],
 	"testPresets": [
@@ -165,58 +121,6 @@
 			}
 		},
 		{
-			"name": "ci",
-			"hidden": true,
-			"configuration": "Release",
-			"output": {
-				"shortProgress": true,
-				"outputOnFailure": true
-			},
-			"filter": {
-				"include": {
-					"label": "unit"
-				}
-			},
-			"condition": {
-				"type": "equals",
-				"lhs": "$env{CI}",
-				"rhs": "true"
-			}
-		},
-		{
-			"name": "ci-benchmark",
-			"hidden": true,
-			"configuration": "Release",
-			"output": {
-				"verbosity": "verbose",
-				"outputOnFailure": true
-			},
-			"filter": {
-				"include": {
-					"label": "benchmark"
-				}
-			}
-		},
-		{
-			"name": "ci-integration",
-			"hidden": true,
-			"configuration": "Release",
-			"output": {
-				"shortProgress": true,
-				"outputOnFailure": true
-			},
-			"filter": {
-				"exclude": {
-					"label": "(benchmark|integration-debug)"
-				}
-			},
-			"condition": {
-				"type": "equals",
-				"lhs": "$env{CI}",
-				"rhs": "true"
-			}
-		},
-		{
 			"name": "linux-test",
 			"displayName": "Unit Tests",
 			"configurePreset": "linux",
@@ -239,18 +143,6 @@
 			"displayName": "Integration Tests (Debug)",
 			"configurePreset": "linux",
 			"inherits": "integration-debug"
-		},
-		{
-			"name": "linux-ci",
-			"displayName": "Linux CI Tests",
-			"configurePreset": "linux-ci",
-			"inherits": "ci-integration"
-		},
-		{
-			"name": "linux-ci-benchmark",
-			"displayName": "Linux CI Benchmarks",
-			"configurePreset": "linux-ci",
-			"inherits": "ci-benchmark"
 		}
 	]
 }
