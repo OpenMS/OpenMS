@@ -31,7 +31,7 @@ START_TEST(QPXFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION(static std::shared_ptr<arrow::Table> exportToArrow(...))
+START_SECTION(static std::shared_ptr<arrow::Table> exportPSMsToQPXArrow(...))
 {
   // Create test data
   vector<ProteinIdentification> protein_ids;
@@ -88,7 +88,7 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportToArrow(...))
   }
 
   // Export to Arrow table (default: best hit only)
-  auto table = QPXFile::exportToArrow(protein_ids, peptide_ids);
+  auto table = QPXFile::exportPSMsToQPXArrow(protein_ids, peptide_ids);
   TEST_NOT_EQUAL(table, nullptr)
 
   // Verify number of rows (should equal number of peptide identifications, not hits)
@@ -170,7 +170,7 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportToArrow(...))
 }
 END_SECTION
 
-START_SECTION(static std::shared_ptr<arrow::Table> exportToArrow(...) with export_all_psms)
+START_SECTION(static std::shared_ptr<arrow::Table> exportPSMsToQPXArrow(...) with export_all_psms)
 {
   // Create test data with multiple hits per peptide identification
   vector<ProteinIdentification> protein_ids;
@@ -210,7 +210,7 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportToArrow(...) with expor
   peptide_ids.push_back(peptide_id);
 
   // Export with all PSMs
-  auto table = QPXFile::exportToArrow(protein_ids, peptide_ids, true);
+  auto table = QPXFile::exportPSMsToQPXArrow(protein_ids, peptide_ids, true);
   TEST_NOT_EQUAL(table, nullptr)
 
   // All 3 hits should be exported
@@ -358,7 +358,7 @@ START_SECTION(Test modifications structured output)
   peptide_id.setHits(vector<PeptideHit>{hit});
   peptide_ids.push_back(peptide_id);
 
-  auto table = QPXFile::exportToArrow(protein_ids, peptide_ids);
+  auto table = QPXFile::exportPSMsToQPXArrow(protein_ids, peptide_ids);
   TEST_NOT_EQUAL(table, nullptr)
 
   // Verify modifications column is a list of structs (not null)
@@ -381,7 +381,7 @@ START_SECTION(Test modifications structured output)
   peptide_id2.setHits(vector<PeptideHit>{hit2});
   peptide_ids2.push_back(peptide_id2);
 
-  auto table2 = QPXFile::exportToArrow(protein_ids, peptide_ids2);
+  auto table2 = QPXFile::exportPSMsToQPXArrow(protein_ids, peptide_ids2);
   auto mod_col2 = table2->GetColumnByName("modifications");
   auto mod_list2 = std::static_pointer_cast<arrow::ListArray>(mod_col2->chunk(0));
   TEST_EQUAL(mod_list2->value_length(0), 0) // empty list for unmodified
