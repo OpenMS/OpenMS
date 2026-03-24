@@ -281,7 +281,7 @@ if (WITH_OPENTIMS)
   FetchContent_Declare(
     opentims
     GIT_REPOSITORY https://github.com/michalsta/opentims.git
-    GIT_TAG 4054224f4bb0c15bae9a1f5b4a7595bd798f0648
+    GIT_TAG 02ad97dcbade72a097584a67c8df0f6159294dda
   )
 
   # Build opentims as a C++ static library, not a Python module.
