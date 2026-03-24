@@ -716,17 +716,21 @@ if (!pi.getHits().empty())
       }
     }
 
-    // PSM-level FDR filtering (requires decoys)
-    if (fdr_psm_ > 0.0 && decoys_)
+    // PSM-level FDR: always compute q-values when decoys are present,
+    // only filter if threshold is set (FDR:PSM > 0)
+    if (decoys_)
     {
       FalseDiscoveryRate fdr;
       fdr.apply(peptide_ids);
-      IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
-      IDFilter::removeDecoyHits(peptide_ids);
-      IDFilter::removeEmptyIdentifications(peptide_ids);
-      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+      if (fdr_psm_ > 0.0)
+      {
+        IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
+        IDFilter::removeDecoyHits(peptide_ids);
+        IDFilter::removeEmptyIdentifications(peptide_ids);
+        IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+      }
     }
-    else if (fdr_psm_ > 0.0 && !decoys_)
+    else if (fdr_psm_ > 0.0)
     {
       OPENMS_LOG_WARN << "FDR:PSM is set but decoys are disabled. Skipping FDR filtering." << endl;
     }
@@ -765,8 +769,11 @@ if (!pi.getHits().empty())
     }
 
     // patch file-specific metadata
-    protein_ids[0].getSearchParameters().db = in_db;
-    protein_ids[0].setPrimaryMSRunPath({in_spectra}, spectra);
+    if (!protein_ids.empty())
+    {
+      protein_ids[0].getSearchParameters().db = in_db;
+      protein_ids[0].setPrimaryMSRunPath({in_spectra}, spectra);
+    }
 
     return ExitCodes::EXECUTION_OK;
   }
