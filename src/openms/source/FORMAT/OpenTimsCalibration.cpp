@@ -135,9 +135,9 @@ namespace OpenMS
       else if (key == "AcquisitionSoftware") is_otof = (val == "Bruker otofControl");
     }
 
-    if (mz_min <= 0 || mz_max <= 0 || tof_max == 0)
+    if (mz_min <= 0 || mz_max <= mz_min || tof_max == 0)
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        tdf_path, "OpenSourceTof2MzConverterFactory: missing calibration metadata (MzAcqRangeLower/MzAcqRangeUpper/DigitizerNumSamples)");
+        tdf_path, "OpenSourceTof2MzConverterFactory: invalid calibration metadata (need 0 < MzAcqRangeLower < MzAcqRangeUpper, DigitizerNumSamples > 0)");
 
     return std::make_unique<OpenSourceTof2MzConverter>(mz_min, mz_max, tof_max, is_otof);
   }
@@ -167,9 +167,9 @@ namespace OpenMS
       scan_max = static_cast<uint32_t>(scan_query.getColumn(0).getInt());
     }
 
-    if (im_min <= 0 || im_max <= 0 || scan_max == 0)
+    if (im_min <= 0 || im_max <= im_min || scan_max == 0)
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        tdf_path, "OpenSourceScan2ImConverterFactory: missing calibration metadata (OneOverK0AcqRangeLower/OneOverK0AcqRangeUpper/NumScans)");
+        tdf_path, "OpenSourceScan2ImConverterFactory: invalid calibration metadata (need 0 < OneOverK0AcqRangeLower < OneOverK0AcqRangeUpper, NumScans > 0)");
 
     return std::make_unique<OpenSourceScan2ImConverter>(im_min, im_max, scan_max);
   }

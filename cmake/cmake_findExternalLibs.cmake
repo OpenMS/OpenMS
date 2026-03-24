@@ -330,7 +330,12 @@ public:
     RAIISqlite(const std::string& tims_tdf_path) : db_conn(nullptr)
     {
         if(ot_sqlite::sqlite3_open_v2(tims_tdf_path.c_str(), &db_conn, SQLITE_OPEN_READONLY, NULL))
-            throw std::runtime_error(std::string("ERROR opening database: " + tims_tdf_path + " SQLite error msg: ") + ot_sqlite::sqlite3_errmsg(db_conn));
+        {
+            std::string err(ot_sqlite::sqlite3_errmsg(db_conn));
+            if(db_conn) ot_sqlite::sqlite3_close(db_conn);
+            db_conn = nullptr;
+            throw std::runtime_error("ERROR opening database: " + tims_tdf_path + " SQLite error msg: " + err);
+        }
     }
     ~RAIISqlite()
     {
