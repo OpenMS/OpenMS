@@ -142,8 +142,8 @@ NB_MODULE(_pyopenms_kernel, m) {
     // -----------------------------------------------------------------------
     nb::enum_<OpenMS::IMFormat>(m, "IMFormat", "Ion mobility data format in an experiment")
         .value("NONE", OpenMS::IMFormat::NONE)
-        .value("CONCATENATED", OpenMS::IMFormat::CONCATENATED)
-        .value("MULTIPLE_SPECTRA", OpenMS::IMFormat::MULTIPLE_SPECTRA)
+        .value("IM_PEAK", OpenMS::IMFormat::IM_PEAK)
+        .value("IM_SPECTRUM", OpenMS::IMFormat::IM_SPECTRUM)
         .value("MIXED", OpenMS::IMFormat::MIXED)
         .value("CENTROIDED", OpenMS::IMFormat::CENTROIDED)
         .value("UNKNOWN", OpenMS::IMFormat::UNKNOWN)

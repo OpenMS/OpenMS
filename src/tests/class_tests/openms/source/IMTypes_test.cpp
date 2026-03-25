@@ -108,14 +108,14 @@ START_SECTION(static IMFormat determineIMFormat(const MSExperiment& exp))
     MSExperiment exp;
     exp.addSpectrum(MSSpectrum());
     exp.addSpectrum(IMwithDrift);
-    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::MULTIPLE_SPECTRA, true)
+    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::IM_SPECTRUM, true)
   }
 
   {
     MSExperiment exp;
     exp.addSpectrum(MSSpectrum());
     exp.addSpectrum(IMwithFDA);
-    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::CONCATENATED, true)
+    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::IM_PEAK, true)
   }
 
   {
@@ -142,15 +142,15 @@ START_SECTION(static IMFormat determineIMFormat(const MSSpectrum& spec))
    TEST_EQUAL(IMTypes::determineIMFormat(MSSpectrum()) == IMFormat::NONE, true)
    
    // single IM value for whole spec
-   TEST_EQUAL(IMTypes::determineIMFormat(IMwithDrift) == IMFormat::MULTIPLE_SPECTRA, true)
+   TEST_EQUAL(IMTypes::determineIMFormat(IMwithDrift) == IMFormat::IM_SPECTRUM, true)
 
    // convert to IM-Frame with float meta-data array
-   TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA) == IMFormat::CONCATENATED, true)
+   TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA) == IMFormat::IM_PEAK, true)
 
    // set both ... is valid (typically concatenated + some average value)
    auto IMwithFDA2 = IMwithFDA;
    IMwithFDA2.setDriftTime(123.4);
-   TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA2) == IMFormat::CONCATENATED, true)
+   TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA2) == IMFormat::IM_PEAK, true)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

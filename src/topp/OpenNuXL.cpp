@@ -4547,7 +4547,7 @@ static void scoreXLIons_(
   {
     IMFormat IM_format = IMTypes::determineIMFormat(spectra);  
     DriftTimeUnit IM_unit = DriftTimeUnit::NONE;
-    if (IM_format == IMFormat::MULTIPLE_SPECTRA)
+    if (IM_format == IMFormat::IM_SPECTRUM)
     {
       OPENMS_LOG_INFO << "Ion Mobility annotated at the spectrum level." << std::endl;
 
@@ -4568,9 +4568,9 @@ static void scoreXLIons_(
     {
       OPENMS_LOG_INFO << "No Ion Mobility annotated at the spectrum level." << std::endl;
     }
-    else if (IM_format == IMFormat::CONCATENATED)
+    else if (IM_format == IMFormat::IM_PEAK)
     {
-      OPENMS_LOG_INFO << "Concatenated Ion Mobility not supported. IM values need to be annotated at the spectrum level." << std::endl;
+      OPENMS_LOG_INFO << "Per-peak Ion Mobility not supported. IM values need to be annotated at the spectrum level." << std::endl;
     }
     else if (IM_format == IMFormat::MIXED)
     {

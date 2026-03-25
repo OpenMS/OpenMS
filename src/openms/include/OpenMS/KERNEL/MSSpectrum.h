@@ -636,7 +636,7 @@ public:
      * @brief Rasterizes an ion mobility frame into a 2D intensity matrix (IM vs m/z).
      *
      * This method creates a 2D heatmap/image representation of an IM frame by binning peak
-     * intensities into a regular grid of pixels. It is designed for spectra in CONCATENATED
+     * intensities into a regular grid of pixels. It is designed for spectra in IM_PEAK
      * format where each peak has an associated ion mobility value stored in a float data array.
      *
      * The output matrix has dimensions [mz_bins x im_bins] where:
