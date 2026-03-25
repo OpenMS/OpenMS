@@ -55,11 +55,9 @@
 
 #include <OpenMS/ML/SVM/SimpleSVM.h>
 
-#ifdef WITH_PARQUET
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
 #include <OpenMS/FORMAT/QPXFile.h>
-#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -172,9 +170,7 @@ protected:
     registerOutputFile_("out_cxml", "<file>", "", "output consensusXML file", false, false);
     setValidFormats_("out_cxml", ListUtils::create<String>("consensusXML"));
 
-#ifdef WITH_PARQUET
     registerOutputDir_("out_qpx", "<directory>", "", "Output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet)", false, false);
-#endif
 
     registerDoubleOption_("proteinFDR", "<threshold>", 0.05, "Protein FDR threshold (0.05=5%).", false);
     setMinFloat_("proteinFDR", 0.0);
@@ -1714,7 +1710,6 @@ protected:
 
     consensus.resolveUniqueIdConflicts(); // TODO: find out if this is still needed
 
-#ifdef WITH_PARQUET
     {
       String out_qpx = getOutputDirOption("out_qpx");
       if (!out_qpx.empty())
@@ -1756,7 +1751,6 @@ protected:
         }
       }
     }
-#endif
 
     if (!getStringOption_("out_cxml").empty())
     {

@@ -297,15 +297,10 @@ namespace OpenMS
       }
       else if (out_chrom_type == FileTypes::CHROMPARQUET)
       {
-#ifndef WITH_PARQUET
-        (void)source_file; // to suppress unused variable warning
-        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#else
         auto * chromConsumer = new MSChromatogramParquetConsumer(out_chrom, run_id, source_file, transition_exp);
         Size expected_chromatograms = transition_exp.transitions.size();
         chromConsumer->setExpectedSize(0, expected_chromatograms);
         *chromatogramConsumer = chromConsumer;
-#endif
       }
       else
       {
@@ -353,15 +348,10 @@ namespace OpenMS
       const FileTypes::Type out_mob_type = FileHandler::getType(out_mobilogram);
       if (out_mob_type == FileTypes::MOBILPARQUET)
       {
-#ifndef WITH_PARQUET
-        (void)source_file;
-        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#else
         mobilogramConsumer = std::make_unique<MobilogramParquetConsumer>(out_mobilogram, run_id, source_file, transition_exp);
         // estimate expected mobilograms from transitions
         Size expected = transition_exp.transitions.size();
         mobilogramConsumer->setExpectedSize(expected);
-#endif
       }
       else
       {
@@ -407,13 +397,9 @@ namespace OpenMS
     }
     else if (tr_type == FileTypes::OSWPQ)
     {
-#ifdef WITH_PARQUET
       progresslogger.startProgress(0, 1, "Load Parquet library");
       TransitionParquetFile().convertParquetToTargetedExperiment(tr_file, transition_exp);
       progresslogger.endProgress();
-#else
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
     }
     else
     {

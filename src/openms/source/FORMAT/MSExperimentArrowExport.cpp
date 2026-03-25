@@ -8,8 +8,6 @@
 
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
@@ -1322,5 +1320,3 @@ bool MSExperimentArrowExport::exportChromatogramsToParquet(
 
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

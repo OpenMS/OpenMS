@@ -211,7 +211,7 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(PeptideIdentificationList
       Size index = lookup.findByNativeID(native_id);
       const MSSpectrum& spec =  exp.getSpectra()[index];
       // Check if desired IM format is present
-	  if (IMTypes::determineIMFormat(spec) == IMFormat::MULTIPLE_SPECTRA)
+	  if (IMTypes::determineIMFormat(spec) == IMFormat::IM_SPECTRUM)
 	  {
         pep.setMetaValue(Constants::UserParam::IM, spec.getDriftTime());
 	  }

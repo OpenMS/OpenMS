@@ -22,10 +22,8 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#ifdef WITH_PARQUET
 #include <arrow/api.h>
 #include <arrow/type.h>
-#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -180,8 +178,6 @@ START_TEST(ConsensusMapArrowExport, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-
-#ifdef WITH_PARQUET
 
 START_SECTION(exportToArrow - empty consensus map)
 {
@@ -372,16 +368,5 @@ START_SECTION(exportToParquet - no compression)
   TEST_EQUAL(File::exists(filename), true)
 }
 END_SECTION
-
-#else // WITH_PARQUET not defined
-
-START_SECTION(WITH_PARQUET disabled - skipping tests)
-{
-  // Tests are skipped when WITH_PARQUET is not enabled
-  TEST_EQUAL(true, true)
-}
-END_SECTION
-
-#endif // WITH_PARQUET
 
 END_TEST

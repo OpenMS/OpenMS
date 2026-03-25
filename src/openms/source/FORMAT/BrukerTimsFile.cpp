@@ -750,7 +750,7 @@ namespace OpenMS
   }
 
   // =====================================================================
-  // loadDDA_: MS1 frames (CONCATENATED) + MS2 spectra (scalar IM)
+  // loadDDA_: MS1 frames (IM_PEAK) + MS2 spectra (scalar IM)
   // =====================================================================
   void BrukerTimsFile::loadDDA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config)
   {

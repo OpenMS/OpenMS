@@ -886,7 +886,7 @@ void Biosaur2Algorithm::centroidPASEFData_(MSExperiment& exp, double mz_step, do
     // Determine ion-mobility format and use the concatenated IM array if available,
     // mirroring the logic in processFAIMSGroup_ and IMTypes::determineIMFormat().
     const IMFormat im_format = IMTypes::determineIMFormat(spectrum);
-    if (im_format != IMFormat::CONCATENATED)
+    if (im_format != IMFormat::IM_PEAK)
     {
       // Either no IM data or only per-spectrum drift time; leave spectrum unchanged.
       return;
@@ -1342,7 +1342,7 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
   // Use the standardized IM format/helper logic: only build per-peak IM bins
   // when we have concatenated ion-mobility data.
   const IMFormat im_format = IMTypes::determineIMFormat(spectrum);
-  const bool use_im_current = use_im_global && (im_format == IMFormat::CONCATENATED);
+  const bool use_im_current = use_im_global && (im_format == IMFormat::IM_PEAK);
 
   const MSSpectrum::FloatDataArray* im_array_ptr = nullptr;
   if (use_im_current)
@@ -1433,7 +1433,7 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
 
     double ion_mobility = -1.0;
     const IMFormat im_format_local = IMTypes::determineIMFormat(spectrum);
-    if (im_format_local == IMFormat::CONCATENATED)
+    if (im_format_local == IMFormat::IM_PEAK)
     {
       auto [im_index_local, im_unit_local] = spectrum.getIMData(); // may throw
       const auto& fda_local = spectrum.getFloatDataArrays();

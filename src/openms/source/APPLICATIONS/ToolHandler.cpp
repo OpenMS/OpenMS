@@ -157,10 +157,8 @@ namespace OpenMS
     tools_map["ProteinQuantifier"] = Internal::ToolDescription("ProteinQuantifier", cat_quant);
     tools_map["ProteomicsLFQ"] = Internal::ToolDescription("ProteomicsLFQ", cat_quant);
     tools_map["PSMFeatureExtractor"] = Internal::ToolDescription("PSMFeatureExtractor", cat_ID_proc);
-#ifdef WITH_PARQUET
     tools_map["QPXConverter"] = Internal::ToolDescription("QPXConverter", cat_file_converter);
     tools_map["ParquetConverter"] = Internal::ToolDescription("ParquetConverter", cat_file_converter);
-#endif
     tools_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", cat_QC);
     tools_map["QCEmbedder"] = Internal::ToolDescription("QCEmbedder", cat_QC);
     tools_map["QCExporter"] = Internal::ToolDescription("QCExporter", cat_QC);

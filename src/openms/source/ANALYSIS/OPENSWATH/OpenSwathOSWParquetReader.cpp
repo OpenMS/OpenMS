@@ -14,9 +14,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#ifdef WITH_PARQUET
 #include <arrow/api.h>
-#endif
 
 #include <fstream>
 #include <unordered_map>
@@ -30,7 +28,6 @@ OpenSwathOSWParquetReader::OpenSwathOSWParquetReader(const String& oswpq_dir)
 
 void OpenSwathOSWParquetReader::load(const String& oswpq_dir)
 {
-#ifdef WITH_PARQUET
   rows_.clear();
   // remember the provided path for later fetch calls
   oswpq_dir_ = oswpq_dir;
@@ -141,15 +138,10 @@ void OpenSwathOSWParquetReader::load(const String& oswpq_dir)
       rows_.push_back(std::move(out));
     }
   }
-#else
-  (void)oswpq_dir;
-  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
 }
 
 OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReader::fetchPeakGroupFeatures(const String& oswpq_dir, const String& level, const String& main_score) const
 {
-#ifdef WITH_PARQUET
   PeakGroupFeatureScoresResult result;
   std::unique_ptr<File::TempDir> temp_dir;
   // Use RandomAccessFile-backed reads when possible; fall back to extracting
@@ -406,15 +398,10 @@ OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReade
   }
 
   return result;
-#else
-  (void)level; (void)main_score; (void)oswpq_dir;
-  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
 }
 
 OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::fetchTransitionFeatures(const String& oswpq_dir) const
 {
-#ifdef WITH_PARQUET
   TransitionFeaturesResult result;
   std::unique_ptr<File::TempDir> temp_dir;
   // Use RandomAccessFile-backed reads when possible; fall back to extraction when not.
@@ -662,15 +649,10 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
   for (auto &col : result.transition_var_values) permute(col);
 
   return result;
-#else
-  (void)oswpq_dir;
-  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
 }
 
 OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscoredData(const String& oswpq_dir) const
 {
-#ifdef WITH_PARQUET
   UnscoredResult result;
   std::unique_ptr<File::TempDir> temp_dir;
   // Use RandomAccessFile-backed reads when possible; fall back to extraction when not.
@@ -862,10 +844,6 @@ OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscor
   }
 
   return result;
-#else
-  (void)oswpq_dir;
-  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
 }
 
 

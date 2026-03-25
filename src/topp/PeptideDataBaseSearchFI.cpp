@@ -23,9 +23,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_PeptideDataBaseSearchFI PeptideDataBaseSearchFI
+@page TOPP_PeptideDataBaseSearchFI PeptideDataBaseSearchFI
 
-    @brief Identifies peptides in MS/MS spectra.
+@brief Identifies peptides in MS/MS spectra.
 
 <CENTER>
     <table>

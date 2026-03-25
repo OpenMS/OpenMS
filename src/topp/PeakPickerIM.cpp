@@ -195,10 +195,10 @@ protected:
                        << "Re-picking already centroided data is not supported." << std::endl;
       return ILLEGAL_PARAMETERS;
     }
-    if (im_format == IMFormat::MULTIPLE_SPECTRA)
+    if (im_format == IMFormat::IM_SPECTRUM)
     {
-      OPENMS_LOG_ERROR << "Error: Input file contains ion mobility data in MULTIPLE_SPECTRA format "
-                       << "(one spectrum per IM frame). PeakPickerIM expects raw (concatenated) IM data "
+      OPENMS_LOG_ERROR << "Error: Input file contains ion mobility data in IM_SPECTRUM format "
+                       << "(one spectrum per IM frame). PeakPickerIM expects raw (per-peak) IM data "
                        << "where each spectrum contains an ion mobility float data array. "
                        << "This format is not supported." << std::endl;
       return ILLEGAL_PARAMETERS;
@@ -206,7 +206,7 @@ protected:
     if (im_format == IMFormat::MIXED)
     {
       OPENMS_LOG_ERROR << "Error: Input file contains mixed ion mobility formats "
-                       << "(both CONCATENATED and MULTIPLE_SPECTRA). PeakPickerIM expects raw (concatenated) IM data "
+                       << "(both IM_PEAK and IM_SPECTRUM). PeakPickerIM expects raw (per-peak) IM data "
                        << "where each spectrum contains an ion mobility float data array. "
                        << "Mixed formats are not supported." << std::endl;
       return ILLEGAL_PARAMETERS;

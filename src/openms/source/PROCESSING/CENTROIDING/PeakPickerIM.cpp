@@ -745,7 +745,7 @@ namespace OpenMS
                 throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                     "IMFormat set to UNKNOWN after determineIMFormat. This should never happen.",
                     String(NamesOfIMFormat[(size_t)format]));
-            case IMFormat::CONCATENATED:
+            case IMFormat::IM_PEAK:
                 OPENMS_LOG_DEBUG << "Processing concatenated IM data.\n";
                 return true; // continue processing
             default:
@@ -765,7 +765,7 @@ namespace OpenMS
       }
       
       
-      // Spectrum is in CONCATENATED IM format. Now sort by m/z to prepare for m/z peak picking
+      // Spectrum is in IM_PEAK IM format. Now sort by m/z to prepare for m/z peak picking
       spectrum.sortByPosition();
 
       // ************************************************* PART I *****************************************************

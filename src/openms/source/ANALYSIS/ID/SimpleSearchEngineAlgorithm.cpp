@@ -288,7 +288,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         pi.setMZ(mz);
 
         // Annotate ion mobility if spectrum has a single drift time (DDA-PASEF)
-        if (IMTypes::determineIMFormat(spec) == IMFormat::MULTIPLE_SPECTRA)
+        if (IMTypes::determineIMFormat(spec) == IMFormat::IM_SPECTRUM)
         {
           pi.setMetaValue(Constants::UserParam::IM, spec.getDriftTime());
         }

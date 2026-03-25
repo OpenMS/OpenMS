@@ -15,8 +15,6 @@
 
 #include <OpenMS/config.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
@@ -1354,10 +1352,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 
 END_TEST
-
-#else // WITH_PARQUET
-
-START_TEST(ProteinIdentificationArrowIO, "$Id$")
-END_TEST
-
-#endif // WITH_PARQUET

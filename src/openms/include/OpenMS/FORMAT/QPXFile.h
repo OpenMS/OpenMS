@@ -10,8 +10,6 @@
 
 #include <OpenMS/config.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -92,5 +90,3 @@ public:
 };
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

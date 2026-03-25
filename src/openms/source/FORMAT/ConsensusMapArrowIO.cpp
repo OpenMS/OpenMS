@@ -8,8 +8,6 @@
 
 #include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -1726,5 +1724,3 @@ bool ConsensusMapArrowIO::importFromParquet(
 }
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

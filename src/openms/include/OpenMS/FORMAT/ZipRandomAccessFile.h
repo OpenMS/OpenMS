@@ -8,14 +8,11 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
-#ifdef WITH_PARQUET
 #include <arrow/io/api.h>
-#endif
 
 namespace OpenMS
 {
 
-#ifdef WITH_PARQUET
 /**
   @brief Factory to obtain an Arrow RandomAccessFile for a named entry inside
   a zip archive (or a direct file when the archive path is a directory).
@@ -34,11 +31,5 @@ struct OPENMS_DLLAPI ZipRandomAccessFile
                                                                          const String& entry_name,
                                                                          std::unique_ptr<File::TempDir>& temp_dir);
 };
-#else
-struct ZipRandomAccessFile
-{
-  static void Open(const String&, const String&, std::unique_ptr<File::TempDir>&) {}
-};
-#endif
 
 } // namespace OpenMS

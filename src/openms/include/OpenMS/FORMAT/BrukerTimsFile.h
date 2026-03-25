@@ -21,7 +21,7 @@ namespace OpenMS
    * @brief Reader for Bruker TimsTOF .d directories via opentims.
    *
    * Supports DDA-PASEF, DIA-PASEF, and raw frame-level 4D access.
-   * Ion mobility data is stored in VSSC (1/K0) units using CONCATENATED format
+   * Ion mobility data is stored in VSSC (1/K0) units using IM_PEAK format
    * for MS1 and DIA MS2, and scalar drift times for DDA MS2.
    *
    * In FRAME export mode, raw TOF indices and intensities are returned without
@@ -35,7 +35,7 @@ namespace OpenMS
    *   per-frame MS2 spectra split by SWATH isolation window with per-peak IM.
    * - **SPECTRUM**: forces the DDA (per-precursor) path regardless of
    *   acquisition type.
-   * - **FRAME**: returns raw 4D frames as CONCATENATED spectra (per-peak IM
+   * - **FRAME**: returns raw 4D frames as IM_PEAK spectra (per-peak IM
    *   in FloatDataArray) for both MS1 and MS2, without precursor grouping or
    *   SWATH splitting. MS2 frame-level access may not be available for all
    *   acquisition types.
@@ -69,10 +69,10 @@ namespace OpenMS
     void transform(const String& path, Interfaces::IMSDataConsumer* consumer, const Config& config);
 
   private:
-    /// Load DDA-PASEF data: MS1 frames (CONCATENATED) + MS2 spectra (scalar IM)
+    /// Load DDA-PASEF data: MS1 frames (IM_PEAK) + MS2 spectra (scalar IM)
     void loadDDA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config);
 
-    /// Load DIA-PASEF data: MS1 frames (CONCATENATED) + MS2 frames split by SWATH window
+    /// Load DIA-PASEF data: MS1 frames (IM_PEAK) + MS2 frames split by SWATH window
     void loadDIA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config);
 
     /// Load raw frames without precursor grouping or SWATH splitting
