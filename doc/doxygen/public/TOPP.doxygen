@@ -29,6 +29,7 @@
   - @subpage TOPP_MSstatsConverter - Convert to MSstats input file format.
   - @subpage TOPP_MzTabExporter - Exports various XML formats to an mzTab file.
 /// @cond WITH_PARQUET
+  - @subpage TOPP_ParquetConverter - Converts between XML and Parquet formats for feature and consensus maps.
   - @subpage TOPP_QPXConverter - Converts IdXML files to parquet format following QPX PSM specification.
 /// @endcond
   - @subpage TOPP_TargetedFileConverter - Converts targeted files (such as tsv or TraML files).
