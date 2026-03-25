@@ -87,11 +87,9 @@ START_SECTION((virtual void group(const std::vector<FeatureMap>& maps, Consensus
 
   for (auto& m : maps) m.updateRanges();
 
-  Param p = algo.getParameters();
-  p.setValue("max_distance", 900.0);
-  p.setValue("trash_cost", 900.0);
-  p.setValue("distance_metric", "LINF");
-  algo.setParameters(p);
+  // default params: max_distance=100, trash_cost=100, LINF
+  // auto mz_scale ≈ 800/400 = 2, so close features (mz diff 0.1*2=0.2, rt diff 1)
+  // are well within threshold; distant feature (mz=900, rt=900) is unmatched
 
   ConsensusMap result;
   algo.group(maps, result);

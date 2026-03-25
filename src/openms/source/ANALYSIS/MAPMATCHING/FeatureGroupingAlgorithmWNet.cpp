@@ -24,13 +24,20 @@ namespace OpenMS
   {
     setName("FeatureGroupingAlgorithmWNet");
 
-    defaults_.setValue("distance_metric", "LINF", "Distance metric for comparing feature positions");
+    defaults_.setValue("distance_metric", "LINF", "Distance metric for comparing feature positions (after m/z scaling)");
     defaults_.setValidStrings("distance_metric", {"L1", "L2", "LINF"});
 
-    defaults_.setValue("max_distance", 800.0, "Maximum distance between features to consider a match");
+    defaults_.setValue("max_distance", 100.0,
+      "Maximum distance between features to consider a match. "
+      "After auto m/z scaling, both dimensions are in RT-like units (seconds), "
+      "so this threshold is effectively in seconds. "
+      "Comparable to distance_RT:max_difference in other linkers.");
     defaults_.setMinFloat("max_distance", 0.0);
 
-    defaults_.setValue("trash_cost", 800.0, "Cost of leaving a feature unmatched (higher = prefer matching over leaving unmatched)");
+    defaults_.setValue("trash_cost", 100.0,
+      "Cost of leaving a feature unmatched. When equal to max_distance, "
+      "a match at the maximum allowed distance is as expensive as no match. "
+      "Increase to prefer matching over leaving features unmatched.");
     defaults_.setMinFloat("trash_cost", 0.0);
 
     defaults_.setValue("mz_scale_factor", 0.0,
@@ -40,7 +47,8 @@ namespace OpenMS
     defaults_.setMinFloat("mz_scale_factor", 0.0);
 
     defaults_.setValue("normalize_intensities", "true",
-      "Normalize feature intensities per map before alignment");
+      "Normalize feature intensities per map before alignment so that "
+      "total intensity is equal across maps.");
     defaults_.setValidStrings("normalize_intensities", {"true", "false"});
 
     defaultsToParam_();
