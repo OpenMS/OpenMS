@@ -16,6 +16,7 @@ FeatureGroupingAlgorithmQT.cpp
 FeatureGroupingAlgorithmUnlabeled.cpp
 FeatureGroupingAlgorithmWNet.cpp
 FeatureMapping.cpp
+WNetMatcher.cpp
 LabeledPairFinder.cpp
 MapAlignmentAlgorithmIdentification.cpp
 MapAlignmentAlgorithmKD.cpp

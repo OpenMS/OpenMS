@@ -1,0 +1,77 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Michal Startek $
+// $Authors: Michal Startek $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/ANALYSIS/MAPMATCHING/WNetMatcher.h>
+
+#include <wnetalign/aligner.hpp>
+#include <wnetalign/spectrum.hpp>
+
+using namespace std;
+
+namespace OpenMS
+{
+
+  WNetMatcher::DistanceMetric WNetMatcher::metricFromString(const string& s)
+  {
+    if (s == "L1") return DistanceMetric::L1;
+    if (s == "L2") return DistanceMetric::L2;
+    return DistanceMetric::LINF;
+  }
+
+  namespace
+  {
+    ::DistanceMetric toWNetMetric(WNetMatcher::DistanceMetric m)
+    {
+      switch (m)
+      {
+        case WNetMatcher::DistanceMetric::L1: return ::DistanceMetric::L1;
+        case WNetMatcher::DistanceMetric::L2: return ::DistanceMetric::L2;
+        case WNetMatcher::DistanceMetric::LINF: return ::DistanceMetric::LINF;
+      }
+      return ::DistanceMetric::LINF;
+    }
+  } // anonymous namespace
+
+  WNetMatcher::MatchResult WNetMatcher::match(
+    const vector<array<double, 2>>& positions_a,
+    const vector<double>& intensities_a,
+    const vector<array<double, 2>>& positions_b,
+    const vector<double>& intensities_b,
+    DistanceMetric metric,
+    double max_distance,
+    double trash_cost)
+  {
+    MatchResult result;
+    result.cost = 0.0;
+
+    if (positions_a.empty() || positions_b.empty())
+    {
+      return result;
+    }
+
+    Spectrum<2> spec_a(positions_a, intensities_a);
+    Spectrum<2> spec_b(positions_b, intensities_b);
+
+    vector<Spectrum<2>*> theoretical = {&spec_b};
+    WNetAligner<2> aligner(spec_a, theoretical, toWNetMetric(metric), max_distance, trash_cost);
+    aligner.set_point({1.0});
+
+    auto [emp_ids, theo_ids] = aligner.consensus_for_target(0);
+
+    result.cost = aligner.total_cost();
+    result.matched_pairs.reserve(emp_ids.size());
+    for (size_t i = 0; i < emp_ids.size(); ++i)
+    {
+      result.matched_pairs.emplace_back(
+        static_cast<Size>(emp_ids[i]),
+        static_cast<Size>(theo_ids[i]));
+    }
+    return result;
+  }
+
+} // namespace OpenMS

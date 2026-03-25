@@ -16,6 +16,7 @@ FeatureGroupingAlgorithmQT.h
 FeatureGroupingAlgorithmUnlabeled.h
 FeatureGroupingAlgorithmWNet.h
 FeatureMapping.h
+WNetMatcher.h
 LabeledPairFinder.h
 MapAlignmentAlgorithmIdentification.h
 MapAlignmentAlgorithmKD.h
