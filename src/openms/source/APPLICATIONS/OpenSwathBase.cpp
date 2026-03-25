@@ -355,6 +355,8 @@ namespace OpenMS
       {
 #ifndef WITH_PARQUET
         (void)source_file;
+        (void)transition_exp;
+        (void)run_id;
         throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #else
         mobilogramConsumer = std::make_unique<MobilogramParquetConsumer>(out_mobilogram, run_id, source_file, transition_exp);
