@@ -6,8 +6,6 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <arrow/api.h>
 #include <sstream>
@@ -886,5 +884,3 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

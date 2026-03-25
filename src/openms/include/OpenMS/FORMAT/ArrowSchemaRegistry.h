@@ -8,8 +8,6 @@
 
 #pragma once
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/OpenMSConfig.h>
 #include <memory>
 #include <string>
@@ -599,5 +597,3 @@ namespace OpenMS
   };
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

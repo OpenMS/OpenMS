@@ -71,7 +71,7 @@ else:
 
 
 # Patch pyarrow to handle filesystem registration conflicts with OpenMS Arrow C++.
-# When OpenMS is built with WITH_PARQUET, both pyarrow and C++ Arrow try to register
+# Both pyarrow and C++ Arrow try to register
 # filesystem factories for the 'file' scheme, causing ArrowKeyError.
 # This patch caches LocalFileSystem instances created before C++ loads and reuses them.
 # See: https://github.com/apache/arrow/issues/44696#issuecomment-3532192904

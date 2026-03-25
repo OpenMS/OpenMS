@@ -14,15 +14,12 @@
 #include <iostream>
 #include <cmath>
 
-#ifdef WITH_PARQUET
 #include <arrow/api.h>
 #include <arrow/io/api.h>
 #include <parquet/arrow/writer.h>
-#endif
 
 using namespace OpenMS;
 
-#ifdef WITH_PARQUET
 namespace
 {
   template <typename BuilderT, typename ValueT>
@@ -54,7 +51,6 @@ namespace
     return parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024);
   }
 }
-#endif
 
 START_TEST(OpenSwathOSWParquetReader, "$Id$")
 
@@ -69,7 +65,6 @@ END_SECTION
 
 START_SECTION(void load(const String& oswpq_dir))
 {
-#ifdef WITH_PARQUET
   // Create a minimal .oswpq directory with library, runs and features
   File::TempDir tmp_dir;
   const String base_dir = tmp_dir.getPath() + "/test.oswpq";
@@ -310,9 +305,6 @@ START_SECTION(void load(const String& oswpq_dir))
 
   // Basic consistency: at least one of the result tables should contain more than one row
   TEST_EQUAL((pf.feature_id.size() > 1) || (tf.feature_id.size() > 1) || (uf.id.size() > 1), true)
-#else
-  NOT_TESTABLE
-#endif
 }
 END_SECTION
 

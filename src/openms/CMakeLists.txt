@@ -85,17 +85,15 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   eol-bspline
   )
 
-if (WITH_PARQUET)
-  # Parquet support requires Arrow core + compute (filter expressions) + Parquet.
-  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES
-       ${OPENMS_ARROW_TARGET}
-       ${OPENMS_ARROW_COMPUTE_TARGET}
-       ${OPENMS_PARQUET_TARGET})
-  if (OPENMS_ARROW_DATASET_TARGET)
-    list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ${OPENMS_ARROW_DATASET_TARGET})
-    # Dataset pushdown needs libxml2 when Arrow Dataset is linked statically.
-    list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES LibXml2::LibXml2)
-  endif()
+# Parquet support requires Arrow core + compute (filter expressions) + Parquet.
+list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES
+     ${OPENMS_ARROW_TARGET}
+     ${OPENMS_ARROW_COMPUTE_TARGET}
+     ${OPENMS_PARQUET_TARGET})
+if (OPENMS_ARROW_DATASET_TARGET)
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ${OPENMS_ARROW_DATASET_TARGET})
+  # Dataset pushdown needs libxml2 when Arrow Dataset is linked statically.
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES LibXml2::LibXml2)
 endif()
 
 if (WITH_OPENTIMS)
@@ -149,7 +147,7 @@ endif()
 # NOTE: We intentionally do NOT hide libarrow.a or libparquet.a symbols because
 # the OpenMS public API exposes arrow::Table etc., and downstream consumers
 # (including test executables) need to resolve those symbols from libOpenMS.so.
-if(WITH_PARQUET AND ARROW_USE_STATIC AND NOT MSVC AND NOT APPLE)
+if(ARROW_USE_STATIC AND NOT MSVC AND NOT APPLE)
   target_link_options(OpenMS PRIVATE "LINKER:--exclude-libs,libarrow_bundled_dependencies.a")
 endif()
 
@@ -162,11 +160,6 @@ endif()
 
 if (ENABLE_TDL)
     target_compile_definitions(OpenMS PUBLIC ENABLE_TDL)
-endif()
-
-# propagate Parquet support to the code (used to gate tools in ToolHandler, etc.)
-if (WITH_PARQUET)
-    target_compile_definitions(OpenMS PUBLIC WITH_PARQUET=1)
 endif()
 
 # Use std::filesystem instead of boost::filesystem in boost::process (avoids linking boost_filesystem)

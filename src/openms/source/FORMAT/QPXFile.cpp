@@ -8,8 +8,6 @@
 
 #include <OpenMS/FORMAT/QPXFile.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
@@ -1348,5 +1346,3 @@ bool QPXFile::exportToParquet(
 }
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

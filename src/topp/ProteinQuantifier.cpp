@@ -28,11 +28,9 @@
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <cmath>
 
-#ifdef WITH_PARQUET
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
-#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -353,9 +351,7 @@ protected:
     registerOutputFile_("mztab", "<file>", "", "Output file (mzTab)", false);
     setValidFormats_("mztab", ListUtils::create<String>("mzTab"));
 
-#ifdef WITH_PARQUET
     registerOutputDir_("out_qpx", "<directory>", "", "Output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet). Only supported for consensusXML input.", false, false);
-#endif
 
     // algorithm parameters:
     addEmptyLine_();
@@ -988,7 +984,6 @@ protected:
         report_subfeatures);
     }
 
-#ifdef WITH_PARQUET
     if (!out_qpx.empty())
     {
       OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
@@ -1039,7 +1034,6 @@ protected:
         OPENMS_LOG_ERROR << "Failed to write protein groups Parquet file" << std::endl;
       }
     }
-#endif
 
     return ed;
   }
@@ -1053,11 +1047,7 @@ protected:
     String design_file = getStringOption_("design");
     bool greedy_group_resolution = getStringOption_("greedy_group_resolution") == "true";
 
-#ifdef WITH_PARQUET
     String out_qpx = getOutputDirOption("out_qpx");
-#else
-    String out_qpx;
-#endif
 
     if (out.empty() && peptide_out.empty() && out_qpx.empty())
     {

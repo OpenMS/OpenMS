@@ -298,48 +298,35 @@ else()
   _pyopenms_module_props(_pyopenms)
 
   # --------------------------------------------------------------------------
-  # Arrow zero-copy export (only when OpenMS was built with Parquet/Arrow)
+  # Arrow zero-copy export
   # --------------------------------------------------------------------------
-  get_target_property(_OPENMS_DEFS ${OPENMS_TARGET} INTERFACE_COMPILE_DEFINITIONS)
-  set(_HAS_PARQUET FALSE)
-  if(_OPENMS_DEFS)
-    foreach(_def ${_OPENMS_DEFS})
-      if(_def MATCHES "^WITH_PARQUET")
-        set(_HAS_PARQUET TRUE)
-      endif()
-    endforeach()
-  endif()
-  # Fall back: check if WITH_PARQUET was set in the OpenMS build cache
-  if(NOT _HAS_PARQUET AND WITH_PARQUET)
-    set(_HAS_PARQUET TRUE)
-  endif()
-  if(_HAS_PARQUET)
-    # In standalone builds, OPENMS_ARROW_TARGET is not exported by OpenMSConfig.cmake.
-    # Find Arrow ourselves so we can link the C++ bridge functions (ExportSchema, etc.).
-    if(NOT OPENMS_ARROW_TARGET)
-      find_package(Arrow QUIET)
-      if(Arrow_FOUND)
-        if(TARGET Arrow::arrow_static)
-          set(OPENMS_ARROW_TARGET Arrow::arrow_static)
-        elseif(TARGET Arrow::arrow_shared)
-          set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
-        endif()
-      endif()
+  # In standalone builds, OPENMS_ARROW_TARGET is not exported by OpenMSConfig.cmake.
+  # Find Arrow ourselves so we can link the C++ bridge functions (ExportSchema, etc.).
+  if(NOT OPENMS_ARROW_TARGET)
+    find_package(Arrow 23 CONFIG REQUIRED)
+    if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
+      set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+    elseif(NOT ARROW_USE_STATIC AND TARGET Arrow::arrow_shared)
+      set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+    elseif(TARGET Arrow::arrow_static)
+      set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+    elseif(TARGET Arrow::arrow_shared)
+      set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+    else()
+      message(FATAL_ERROR "No suitable Arrow target found for _arrow_zerocopy")
     endif()
-
-    message(STATUS "pyOpenMS: Building _arrow_zerocopy module (WITH_PARQUET detected)")
-    nanobind_add_module(_arrow_zerocopy
-      NB_DOMAIN pyopenms
-      NOMINSIZE
-      ${CMAKE_CURRENT_SOURCE_DIR}/bindings/arrow_zerocopy.cpp
-    )
-    _pyopenms_module_props(_arrow_zerocopy)
-    # arrow_zerocopy.cpp uses Arrow C++ API (ExportSchema, ImportRecordBatch, etc.)
-    # for zero-copy Table conversion between C++ and PyArrow.
-    target_link_libraries(_arrow_zerocopy PRIVATE ${OPENMS_ARROW_TARGET})
-  else()
-    message(STATUS "pyOpenMS: Skipping _arrow_zerocopy module (WITH_PARQUET not found)")
   endif()
+
+  message(STATUS "pyOpenMS: Building _arrow_zerocopy module")
+  nanobind_add_module(_arrow_zerocopy
+    NB_DOMAIN pyopenms
+    NOMINSIZE
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/arrow_zerocopy.cpp
+  )
+  _pyopenms_module_props(_arrow_zerocopy)
+  # arrow_zerocopy.cpp uses Arrow C++ API (ExportSchema, ImportRecordBatch, etc.)
+  # for zero-copy Table conversion between C++ and PyArrow.
+  target_link_libraries(_arrow_zerocopy PRIVATE ${OPENMS_ARROW_TARGET})
 
   # --------------------------------------------------------------------------
   # Aggregate compile target
@@ -349,9 +336,7 @@ else()
   foreach(domain ${PYOPENMS_DOMAINS})
     add_dependencies(pyopenms_compile "_pyopenms_${domain}")
   endforeach()
-  if(_HAS_PARQUET)
-    add_dependencies(pyopenms_compile _arrow_zerocopy)
-  endif()
+  add_dependencies(pyopenms_compile _arrow_zerocopy)
 
   # --------------------------------------------------------------------------
   # Copy Python package files to build directory
@@ -386,11 +371,6 @@ else()
   # Stub generation
   # --------------------------------------------------------------------------
   if(PYOPENMS_GENERATE_STUBS)
-    set(_STUB_DEPS _pyopenms)
-    foreach(domain ${PYOPENMS_DOMAINS})
-      list(APPEND _STUB_DEPS "_pyopenms_${domain}")
-    endforeach()
-
     add_custom_target(pyopenms_stubs
       COMMAND ${Python_EXECUTABLE} -m nanobind.stubgen
               -m pyopenms
@@ -402,7 +382,7 @@ else()
       COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/fix_stubs.py
               ${PYOPENMS_BUILD_DIR}/pyopenms
       WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
-      DEPENDS ${_STUB_DEPS}
+      DEPENDS pyopenms_compile
       COMMENT "Generating .pyi stub files for pyopenms"
     )
   endif()
@@ -581,5 +561,5 @@ message(STATUS "  Prebuilt:          ${PYOPENMS_USE_PREBUILT}")
 message(STATUS "  No dependencies:   ${NO_DEPENDENCIES}")
 message(STATUS "  Wheel repair:      ${PYOPENMS_PREPARE_WHEEL_REPAIR}")
 message(STATUS "  Generate stubs:    ${PYOPENMS_GENERATE_STUBS}")
-message(STATUS "  Parquet/Arrow:     ${_HAS_PARQUET}")
+message(STATUS "  Parquet/Arrow:     ON")
 message(STATUS "")

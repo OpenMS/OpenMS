@@ -22,7 +22,6 @@ START_TEST(MobilogramParquetConsumer, "$Id$")
 
 START_SECTION(MobilogramParquetConsumer_basic)
 {
-#ifdef WITH_PARQUET
   // create a small mobilogram
   Mobilogram m;
   m.setRT(123.45);
@@ -40,16 +39,11 @@ START_SECTION(MobilogramParquetConsumer_basic)
   }
 
   TEST_EQUAL(File::exists(out), true)
-#else
-  OpenSwath::LightTargetedExperiment light_exp;
-  TEST_EXCEPTION(Exception::NotImplemented, MobilogramParquetConsumer("dummy.xim", 1, "x", light_exp))
-#endif
 }
 END_SECTION
 
 START_SECTION(MobilogramParquetConsumer_const_mobilogram_not_modified)
 {
-#ifdef WITH_PARQUET
   // consumeMobilogram takes const Mobilogram& — verify the input is unchanged afterwards
   Mobilogram m;
   m.setRT(1.0);
@@ -69,13 +63,11 @@ START_SECTION(MobilogramParquetConsumer_const_mobilogram_not_modified)
   TEST_EQUAL(m.size(), initial_size)
   TEST_REAL_SIMILAR(m[0].getMobility(), 0.5)
   TEST_REAL_SIMILAR(m[1].getMobility(), 1.5)
-#endif
 }
 END_SECTION
 
 START_SECTION(MobilogramParquetConsumer_round_trip_file_written)
 {
-#ifdef WITH_PARQUET
   // Write several mobilograms and verify the output file is non-empty.
   // Decoded value verification is covered by XIMParquetFile_test.cpp.
   Mobilogram m;
@@ -97,13 +89,11 @@ START_SECTION(MobilogramParquetConsumer_round_trip_file_written)
   TEST_EQUAL(File::exists(out), true)
   // File must contain actual parquet data (not just an empty shell)
   TEST_EQUAL(File::fileSize(out) > 0, true)
-#endif
 }
 END_SECTION
 
 START_SECTION(MobilogramParquetConsumer_empty_mobilograms)
 {
-#ifdef WITH_PARQUET
   OpenSwath::LightTargetedExperiment light_exp;
 
   String tmp;
@@ -115,13 +105,11 @@ START_SECTION(MobilogramParquetConsumer_empty_mobilograms)
   }
 
   TEST_EQUAL(File::exists(out), true)
-#endif
 }
 END_SECTION
 
 START_SECTION(MobilogramParquetConsumer_destructor_flushes)
 {
-#ifdef WITH_PARQUET
   // Destructor should flush pending data even without explicit finalize()
   Mobilogram m;
   m.push_back(MobilityPeak1D(1.0, 100.0));
@@ -139,7 +127,6 @@ START_SECTION(MobilogramParquetConsumer_destructor_flushes)
   // File was flushed by destructor
   TEST_EQUAL(File::exists(out), true)
   TEST_EQUAL(File::fileSize(out) > 0, true)
-#endif
 }
 END_SECTION
 

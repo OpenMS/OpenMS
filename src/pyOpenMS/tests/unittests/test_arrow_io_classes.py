@@ -18,9 +18,9 @@ import pyarrow.parquet as pq
 
 import pyopenms as oms
 
-# Skip if the Arrow IO classes were not built (WITH_PARQUET=OFF)
+# Skip if the Arrow IO classes were not built
 if not hasattr(oms, "FeatureMapArrowIO"):
-    pytest.skip("Arrow IO classes not available (OpenMS built without WITH_PARQUET)",
+    pytest.skip("Arrow IO classes not available",
                 allow_module_level=True)
 
 # Import zero-copy functions

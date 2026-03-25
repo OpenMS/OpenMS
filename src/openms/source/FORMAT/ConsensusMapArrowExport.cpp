@@ -8,8 +8,6 @@
 
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
@@ -945,5 +943,3 @@ bool ConsensusMapArrowExport::exportToParquet(
 }
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

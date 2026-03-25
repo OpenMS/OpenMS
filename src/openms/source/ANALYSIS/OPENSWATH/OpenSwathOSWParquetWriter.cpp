@@ -28,13 +28,11 @@
 
 #include <filesystem>
 
-#ifdef WITH_PARQUET
 #ifdef signals
 #undef signals
 #endif
 #include <arrow/api.h>
 #include <parquet/file_reader.h>
-#endif
 
 namespace OpenMS
 {
@@ -42,7 +40,6 @@ namespace OpenMS
   {
     using OpenMS::Size;
 
-#ifdef WITH_PARQUET
     void appendOptionalFloat_(arrow::DoubleBuilder& builder, bool has_value, double value, const char* column)
     {
       if (!has_value || !std::isfinite(value))
@@ -301,7 +298,6 @@ namespace OpenMS
       }
     }
 
-#endif // WITH_PARQUET
   } // namespace
 
   void OpenSwathOSWParquetWriter::write(const String& output_path,
@@ -311,15 +307,6 @@ namespace OpenMS
                                         const String& input_filename,
                                         bool enable_uis_scoring) const
   {
-#ifndef WITH_PARQUET
-    (void)output_path;
-    (void)assay_library;
-    (void)feature_map;
-    (void)run_id;
-    (void)input_filename;
-    (void)enable_uis_scoring;
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#else
     const UInt64 run_id_clean = Internal::SqliteHelper::clearSignBit(run_id);
     const bool output_is_dir = File::isDirectory(output_path);
     std::unique_ptr<File::TempDir> temp_dir;
@@ -1340,7 +1327,6 @@ namespace OpenMS
       }
       ZipArchiveFile::writeSidecarIndex(output_zip_abs);
     }
-#endif
   }
 
 void OpenSwathOSWParquetWriter::setPreserveExisting(bool preserve)

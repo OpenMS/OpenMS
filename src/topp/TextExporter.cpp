@@ -1664,10 +1664,6 @@ protected:
       }
       else if (in_type == FileTypes::CHROMPARQUET)
       {
-#ifndef WITH_PARQUET
-        writeLogError_("Error: OpenMS was built without Parquet support.");
-        return INCOMPATIBLE_INPUT_DATA;
-#else
         String mode = getStringOption_("xic:mode");
         const bool explode = (mode == "explode");
 
@@ -1780,7 +1776,6 @@ protected:
         }
 
         outstr.close();
-#endif
       }
 
       return EXECUTION_OK;
