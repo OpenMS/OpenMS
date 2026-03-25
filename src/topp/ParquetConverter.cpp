@@ -25,7 +25,6 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-/// @cond WITH_PARQUET
 @page TOPP_ParquetConverter ParquetConverter
 
 @brief Converts between XML and Parquet formats for feature and consensus maps.
@@ -58,7 +57,6 @@ automatically from the input:
 @verbinclude TOPP_ParquetConverter.cli
 <B>INI file documentation of this tool:</B>
 @htmlinclude TOPP_ParquetConverter.html
-/// @endcond
 */
 
 // We do not want this class to show up in the docu:

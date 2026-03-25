@@ -10,11 +10,11 @@ import numpy as np
 
 pa = pytest.importorskip("pyarrow")
 
-# Skip entire module if _arrow_zerocopy wasn't built (no WITH_PARQUET)
+# Skip entire module if _arrow_zerocopy wasn't built
 try:
     from pyopenms._arrow_zerocopy import spectra_to_arrow, chromatograms_to_arrow
 except ImportError:
-    pytest.skip("_arrow_zerocopy not available (OpenMS built without WITH_PARQUET)",
+    pytest.skip("_arrow_zerocopy not available",
                 allow_module_level=True)
 
 from pyopenms import MSExperiment, MSSpectrum, MSChromatogram, Precursor

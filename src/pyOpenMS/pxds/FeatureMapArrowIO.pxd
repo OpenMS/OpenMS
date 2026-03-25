@@ -8,7 +8,7 @@ from FeatureMap cimport *
 from MSExperimentArrowExport cimport *
 from libcpp cimport bool
 
-# OpenMS FeatureMapArrowIO declarations (only available when WITH_PARQUET is enabled)
+# OpenMS FeatureMapArrowIO declarations
 cdef extern from "<OpenMS/FORMAT/FeatureMapArrowIO.h>" namespace "OpenMS":
 
     cdef cppclass FeatureMapArrowIO:

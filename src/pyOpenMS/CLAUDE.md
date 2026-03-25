@@ -150,7 +150,7 @@ Each class has a section comment (`// --- ClassName ---`) for navigation.
 `_pyopenms_featurefinder`, `_pyopenms_format`, `_pyopenms_processing`,
 `_pyopenms_datastructures`, `_pyopenms_ml`, `_pyopenms_misc`
 
-Plus `_pyopenms` (main entry) and `_arrow_zerocopy` (when WITH_PARQUET=ON).
+Plus `_pyopenms` (main entry) and `_arrow_zerocopy`.
 
 All modules use `NB_DOMAIN "pyopenms"` to share type information.
 

@@ -27,7 +27,7 @@ def _xim_path():
 def _get_xim():
     import pyopenms as poms
 
-    # Check if XIMParquetFile class exists (may be excluded when WITH_PARQUET=False)
+    # Check if XIMParquetFile class exists
     if not hasattr(poms, "XIMParquetFile"):
         pytest.skip("pyopenms built without parquet support")
 

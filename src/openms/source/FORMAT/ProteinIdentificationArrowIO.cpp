@@ -8,8 +8,6 @@
 
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
@@ -1811,5 +1809,3 @@ bool ProteinIdentificationArrowIO::importFromParquet(
 
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

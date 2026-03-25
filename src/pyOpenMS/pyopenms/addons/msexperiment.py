@@ -154,7 +154,7 @@ def to_arrow(self, data='spectra', format='long', columns=None,
     if not ms_levels:
         ms_levels = self.getMSLevels() if self.getNrSpectra() > 0 else []
 
-    # Try zero-copy C++ path first (available when built with WITH_PARQUET)
+    # Try zero-copy C++ path first (requires Arrow/Parquet)
     try:
         from pyopenms._arrow_zerocopy import spectra_to_arrow, chromatograms_to_arrow
         _use_zerocopy = True
@@ -162,7 +162,7 @@ def to_arrow(self, data='spectra', format='long', columns=None,
         _use_zerocopy = False
         warnings.warn(
             "pyopenms._arrow_zerocopy not available — falling back to slow Python "
-            "Arrow export. Rebuild with -DWITH_PARQUET=ON for 4-14x faster export.",
+            "Arrow export. This module requires Arrow/Parquet for 4-14x faster export.",
             stacklevel=2,
         )
 

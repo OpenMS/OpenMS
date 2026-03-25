@@ -1,8 +1,6 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <arrow/api.h>
 using namespace OpenMS;
@@ -2476,10 +2474,3 @@ START_SECTION(validate - Subset mode - timestamp unit compatibility)
 END_SECTION
 
 END_TEST
-
-#else // WITH_PARQUET
-
-START_TEST(ArrowSchemaRegistry, "$Id$")
-END_TEST
-
-#endif

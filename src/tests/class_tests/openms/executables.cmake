@@ -291,18 +291,16 @@ if(WITH_HDF5)
   list(APPEND format_executables_list HDF5_test)
 endif()
 
-if(WITH_PARQUET)
-  list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test QPXFile_test
-    MSChromatogramParquetConsumer_test
-    MobilogramParquetConsumer_test
-    XICParquetFile_test
-    XIMParquetFile_test
-    OpenSwathOSWParquetRoundTrip_test
-    ProteinIdentificationArrowIO_test
-    FeatureMapArrowIO_test
-    ConsensusMapArrowIO_test
-    ArrowSchemaRegistry_test)
-endif()
+list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test QPXFile_test
+  MSChromatogramParquetConsumer_test
+  MobilogramParquetConsumer_test
+  XICParquetFile_test
+  XIMParquetFile_test
+  OpenSwathOSWParquetRoundTrip_test
+  ProteinIdentificationArrowIO_test
+  FeatureMapArrowIO_test
+  ConsensusMapArrowIO_test
+  ArrowSchemaRegistry_test)
 
 set(math_executables_list
   BasicStatistics_test
@@ -679,7 +677,7 @@ if(NOT DISABLE_OPENSWATH)
   )
 endif(NOT DISABLE_OPENSWATH)
 
-if(NOT DISABLE_OPENSWATH AND WITH_PARQUET)
+if(NOT DISABLE_OPENSWATH)
   list(APPEND swath_executables_list TransitionParquetFile_test)
   list(APPEND swath_executables_list OpenSwathOSWParquetReader_test)
   list(APPEND swath_executables_list OpenSwathOSWParquetWriter_test)

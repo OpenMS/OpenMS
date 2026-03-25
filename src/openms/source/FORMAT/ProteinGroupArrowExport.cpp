@@ -8,8 +8,6 @@
 
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -575,5 +573,3 @@ bool ProteinGroupArrowExport::exportToParquet(
 }
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

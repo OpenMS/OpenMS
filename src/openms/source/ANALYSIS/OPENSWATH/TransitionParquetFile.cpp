@@ -23,9 +23,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <fstream>
-#ifdef WITH_PARQUET
 #include <arrow/api.h>
-#endif
 
 #include <unordered_map>
 #include <unordered_set>
@@ -37,7 +35,6 @@
 namespace
 {
   using OpenMS::Size;
-#ifdef WITH_PARQUET
 
   std::string joinProteinAccessions_(const std::vector<std::string>& accessions)
   {
@@ -198,7 +195,6 @@ namespace
       OPENMS_LOG_DEBUG << "Could not parse modifications from sequence: " << sequence << '\n';
     }
   }
-#endif // WITH_PARQUET
 } // namespace
 
 namespace OpenMS
@@ -206,7 +202,6 @@ namespace OpenMS
   void TransitionParquetFile::convertParquetToTargetedExperiment(
     const String& oswpq_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const
   {
-#ifdef WITH_PARQUET
     // Reset the output container to avoid appending to a caller-owned
     // object that may contain stale data from previous calls. The caller
     // expects this function to populate `targeted_exp` from the parquet
@@ -392,17 +387,11 @@ namespace OpenMS
 
       targeted_exp.transitions.push_back(std::move(transition));
     }
-#else
-    (void)oswpq_dir;
-    (void)targeted_exp;
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
   }
 
   void TransitionParquetFile::convertLightTargetedExperimentToParquet(
     const String& oswpq_path, const OpenSwath::LightTargetedExperiment& targeted_exp) const
   {
-#ifdef WITH_PARQUET
     const bool output_is_dir = File::isDirectory(oswpq_path);
     std::unique_ptr<File::TempDir> temp_dir;
     String base_dir = oswpq_path;
@@ -729,10 +718,5 @@ namespace OpenMS
       std::filesystem::rename(std::filesystem::u8path(std::string(staging_zip)),
                               std::filesystem::u8path(std::string(output_zip_abs)));
     }
-#else
-    (void)oswpq_path;
-    (void)targeted_exp;
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
   }
 } // namespace OpenMS

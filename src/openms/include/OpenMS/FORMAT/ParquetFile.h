@@ -13,12 +13,10 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#ifdef WITH_PARQUET
 #include <arrow/api.h>
 #include <arrow/io/file.h>
 #include <parquet/arrow/writer.h>
 #include <parquet/arrow/reader.h>
-#endif
 
 #include <memory>
 #include <string>
@@ -49,8 +47,6 @@ namespace OpenMS
   class OPENMS_DLLAPI ParquetFile
   {
   public:
-#ifdef WITH_PARQUET
-
     /** @name Arrow builder helpers
     */
     //@{
@@ -269,13 +265,10 @@ namespace OpenMS
 
     //@}
 
-#endif // WITH_PARQUET
 
   private:
-#ifdef WITH_PARQUET
     /// Internal helper to throw a consistent error from finishArray
     static void throw_finish_error_(const std::string& name, const std::string& error);
-#endif
   };
 
 } // namespace OpenMS

@@ -10,9 +10,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
-#ifdef WITH_PARQUET
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
-#endif
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -94,16 +92,12 @@ protected:
     registerInputFile_("in", "<file>", "", "Input file");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false);
     StringList formats = {"tsv", "mrm", "pqp", "TraML"};
-#ifdef WITH_PARQUET
     formats.push_back("oswpq");
-#endif
     setValidFormats_("in", formats);
     setValidStrings_("in_type", formats);
 
     formats = {"tsv", "pqp", "TraML"};
-#ifdef WITH_PARQUET
     formats.push_back("oswpq");
-#endif
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\n", false);
@@ -264,14 +258,10 @@ protected:
     // Use memory-efficient Light path for TSV/PQP → TSV/PQP workflows.
     // This includes IPF (identifying transitions) which is now supported via uisTransitionsLight().
     bool use_light_path = (in_type == FileTypes::TSV || in_type == FileTypes::MRM || in_type == FileTypes::PQP
-#ifdef WITH_PARQUET
                        || in_type == FileTypes::OSWPQ
-#endif
                        )
                        && (out_type == FileTypes::TSV || out_type == FileTypes::PQP
-#ifdef WITH_PARQUET
                        || out_type == FileTypes::OSWPQ
-#endif
                        );
 
     if (use_light_path)
@@ -296,13 +286,11 @@ protected:
         pqp_reader.setParameters(reader_parameters);
         pqp_reader.convertPQPToTargetedExperiment(in.c_str(), light_exp);
       }
-#ifdef WITH_PARQUET
       else if (in_type == FileTypes::OSWPQ)
       {
         TransitionParquetFile parquet_reader;
         parquet_reader.convertParquetToTargetedExperiment(in, light_exp);
       }
-#endif
 
       MRMAssay assays;
       assays.setLogType(ProgressLogger::CMD);
@@ -358,13 +346,11 @@ protected:
         pqp_writer.setLogType(log_type_);
         pqp_writer.convertLightTargetedExperimentToPQP(out.c_str(), light_exp);
       }
-#ifdef WITH_PARQUET
       else if (out_type == FileTypes::OSWPQ)
       {
         TransitionParquetFile parquet_writer;
         parquet_writer.convertLightTargetedExperimentToParquet(out, light_exp);
       }
-#endif
     }
     else
     {
@@ -457,7 +443,6 @@ protected:
       {
         FileHandler().storeTransitions(out, targeted_exp, {FileTypes::TRAML});
       }
-#ifdef WITH_PARQUET
       else if (out_type == FileTypes::OSWPQ)
       {
         OpenSwath::LightTargetedExperiment light_exp;
@@ -465,7 +450,6 @@ protected:
         TransitionParquetFile parquet_writer;
         parquet_writer.convertLightTargetedExperimentToParquet(out, light_exp);
       }
-#endif
     }
 
     return EXECUTION_OK;
