@@ -212,6 +212,15 @@ else()
   message(FATAL_ERROR "No suitable Arrow target found")
 endif()
 
+# Static Arrow may depend on Boost::filesystem without propagating it.
+# Find and expose the component so OpenMS can link it.
+if(OPENMS_ARROW_TARGET MATCHES "static")
+  find_package(Boost QUIET COMPONENTS filesystem)
+  if(TARGET Boost::filesystem)
+    message(STATUS "Found Boost::filesystem (needed by static Arrow)")
+  endif()
+endif()
+
 # Determine Arrow Compute target (may be bundled into Arrow::arrow_* on some distros).
 # We need compute kernels (e.g., "equal") for filter expression binding.
 if(ARROW_USE_STATIC AND TARGET Arrow::arrow_compute_static)
