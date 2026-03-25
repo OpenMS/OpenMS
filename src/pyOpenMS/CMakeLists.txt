@@ -371,11 +371,6 @@ else()
   # Stub generation
   # --------------------------------------------------------------------------
   if(PYOPENMS_GENERATE_STUBS)
-    set(_STUB_DEPS _pyopenms)
-    foreach(domain ${PYOPENMS_DOMAINS})
-      list(APPEND _STUB_DEPS "_pyopenms_${domain}")
-    endforeach()
-
     add_custom_target(pyopenms_stubs
       COMMAND ${Python_EXECUTABLE} -m nanobind.stubgen
               -m pyopenms
@@ -387,7 +382,7 @@ else()
       COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/fix_stubs.py
               ${PYOPENMS_BUILD_DIR}/pyopenms
       WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
-      DEPENDS ${_STUB_DEPS}
+      DEPENDS pyopenms_compile
       COMMENT "Generating .pyi stub files for pyopenms"
     )
   endif()

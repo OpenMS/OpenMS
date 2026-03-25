@@ -27,16 +27,10 @@ def _xic_path():
 def _get_xic():
     import pyopenms as poms
 
-    # Check if XICParquetFile class exists
-    if not hasattr(poms, 'XICParquetFile'):
-        pytest.skip("pyopenms built without parquet support")
+    assert hasattr(poms, 'XICParquetFile'), \
+        "XICParquetFile missing from pyopenms — Arrow/Parquet bindings are required"
 
-    try:
-        return poms.XICParquetFile(_xic_path())
-    except RuntimeError as e:
-        if "Parquet support" in str(e):
-            pytest.skip("pyopenms built without parquet support")
-        raise
+    return poms.XICParquetFile(_xic_path())
 
 
 def test_xic_df_columns():

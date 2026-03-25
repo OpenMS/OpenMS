@@ -79,40 +79,40 @@ if (WITH_HDF5)
 endif()
 
 target_link_libraries(Arrow_test
-${OPENMS_ARROW_TARGET}
-${OPENMS_PARQUET_TARGET}
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
 )
 target_link_libraries(MSExperimentArrowExport_test
-${OPENMS_ARROW_TARGET}
-${OPENMS_PARQUET_TARGET}
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
 )
 target_link_libraries(ConsensusMapArrowExport_test
-${OPENMS_ARROW_TARGET}
-${OPENMS_PARQUET_TARGET}
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
 )
 target_link_libraries(QPXFile_test
-${OPENMS_ARROW_TARGET}
-${OPENMS_PARQUET_TARGET}
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
 )
 target_link_libraries(ProteinIdentificationArrowIO_test
-${OPENMS_ARROW_TARGET}
-${OPENMS_PARQUET_TARGET}
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
 )
 target_link_libraries(FeatureMapArrowIO_test
-${OPENMS_ARROW_TARGET}
-${OPENMS_PARQUET_TARGET}
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
 )
 target_link_libraries(ConsensusMapArrowIO_test
-${OPENMS_ARROW_TARGET}
-${OPENMS_PARQUET_TARGET}
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
 )
 target_link_libraries(Libzip_test
-${OPENMS_ARROW_TARGET}
-${OPENMS_PARQUET_TARGET}
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
 )
 target_link_libraries(ZipRandomAccessFile_test
-${OPENMS_ARROW_TARGET}
-${OPENMS_PARQUET_TARGET}
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
 )
 
 if (TARGET TransitionParquetFile_test)

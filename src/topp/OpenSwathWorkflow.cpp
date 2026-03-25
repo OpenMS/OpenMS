@@ -983,13 +983,17 @@ protected:
       parquet_zip_output = out_features.hasSuffix(".oswpq");
       if (parquet_zip_output)
       {
-        parquet_temp_dir = std::make_unique<File::TempDir>();
-        parquet_dir = parquet_temp_dir->getPath() + "/oswpq_output";
-        // Pre-create the directory so that OpenSwathOSWParquetWriter::write()
-        // detects it as an existing directory (File::isDirectory() returns true)
-        // and persists all run data there instead of redirecting to its own
-        // internal temp dir (which is destroyed after each call).
-        File::makeDir(parquet_dir);
+        if (getFlag_("append_oswpq") && File::exists(out_features))
+        {
+          // Extract existing archive so prior run data is preserved when appending.
+          parquet_dir = ZipArchiveFile::unzipDirectory(out_features, parquet_temp_dir);
+        }
+        else
+        {
+          parquet_temp_dir = std::make_unique<File::TempDir>();
+          parquet_dir = parquet_temp_dir->getPath() + "/oswpq_output";
+          File::makeDir(parquet_dir);
+        }
       }
     }
 
@@ -1269,10 +1273,14 @@ protected:
     String out_chrom_current = out_chrom;
     if (!out_chrom.empty() && run_groups.size() > 1)
     {
-      // For multi-run, use basename prefix to make unique filenames
-      String base_name = out_chrom.substr(0, out_chrom.find_last_of('.'));
-      String extension = out_chrom.substr(out_chrom.find_last_of('.'));
-      out_chrom_current = file_basename + "_" + base_name + extension;
+      // Preserve parent directory when creating per-run filenames.
+      // Split path and filename first, then prepend the run prefix to the filename only.
+      String parent = File::path(out_chrom);
+      String filename = File::basename(out_chrom);
+      String stem = filename.substr(0, filename.find_last_of('.'));
+      String extension = filename.substr(filename.find_last_of('.'));
+      String fname_with_prefix = file_basename + "_" + stem + extension;
+      out_chrom_current = (parent == "." ? fname_with_prefix : parent + "/" + fname_with_prefix);
     }
     prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, cur_run, current_run_files[0]);
 
