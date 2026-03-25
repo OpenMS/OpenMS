@@ -125,6 +125,7 @@ endif()
 
 if (WITH_OPENTIMS)
   list(APPEND sources_list BrukerTimsFile.cpp)
+  list(APPEND sources_list RationalScan2ImConverter.cpp)
 endif()
 
 ### add path to the filenames
