@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <cstdint>
+#include <string>
 
 class TimsDataHandle;
 
@@ -54,6 +55,21 @@ namespace OpenMS
 
       enum ExportMode { AUTO, SPECTRUM, FRAME };
       ExportMode export_mode = AUTO;       ///< AUTO detects DDA vs DIA; SPECTRUM forces per-precursor; FRAME returns raw 4D frames
+
+      /// Strategy for converting TIMS scan indices to 1/K0 values.
+      /// AUTO (default): tries Bruker SDK → rational (TimsCalibration table) → linear.
+      enum class TimsCalibrationStrategy { AUTO, BRUKER_SDK, RATIONAL, LINEAR };
+      TimsCalibrationStrategy tims_calibration_strategy = TimsCalibrationStrategy::AUTO;
+
+      /// Pressure compensation strategy (only effective with BRUKER_SDK calibration).
+      /// Corrects for ambient gas pressure drift during acquisition.
+      /// Ignored when using RATIONAL or LINEAR strategies; a warning is logged.
+      enum class PressureCompensation { NONE, GLOBAL, PER_FRAME };
+      PressureCompensation pressure_compensation = PressureCompensation::NONE;
+
+      /// Path to Bruker SDK library (timsdata.dll / libtimsdata.so).
+      /// Empty string (default): discover from OPENMS_BRUKER_SDK_PATH env var.
+      std::string bruker_sdk_path;
     };
 
     /// Load entire .d directory into MSExperiment

@@ -146,6 +146,10 @@ if (TARGET ArrowSchemaRegistry_test)
   )
 endif()
 
+if (TARGET BrukerTimsFile_test AND WITH_OPENTIMS)
+  target_link_libraries(BrukerTimsFile_test opentims_cpp sqlite3)
+endif()
+
 if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)
   target_compile_definitions(BrukerTimsFile_test PRIVATE
     OPENTIMS_DDA_TEST_DATA="${OPENTIMS_DDA_TEST_DATA}"

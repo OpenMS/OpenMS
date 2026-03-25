@@ -10,11 +10,13 @@
 #include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
+#include <OpenMS/FORMAT/RationalScan2ImConverter.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 
 using namespace OpenMS;
@@ -39,6 +41,169 @@ START_SECTION([FileHandler] BRUKER_TDF detection)
 
   // Test: non-.d suffixes are not BRUKER_TDF
   TEST_NOT_EQUAL(FileHandler::getTypeByFileName("sample.mzML"), FileTypes::BRUKER_TDF);
+}
+END_SECTION
+
+START_SECTION(RationalScan2ImConverter forward conversion)
+{
+  // Coefficients from opentims test data (ModelType=2)
+  using Coeff = RationalScan2ImConverter::Coefficients;
+  Coeff c{1.0, 917.0, 213.5998, 75.81729, 33.0, 1.0, -0.009065829, 135.4364, 13.32608, 1663.341};
+
+  std::unordered_map<uint32_t, Coeff> calibrations;
+  calibrations[1] = c;
+  std::vector<uint32_t> frame_to_cal = {0, 1}; // index 0 unused, frame 1 -> cal 1
+
+  RationalScan2ImConverter converter(std::move(calibrations), std::move(frame_to_cal));
+
+  // Worked example from spec (precise values):
+  // V = 213.5998 + ((75.81729 - 213.5998) / 917.0) * (500 - 33 - 1) = 143.5816
+  // 1/K0 = 1 / (-0.009065829 + 135.4364 / 143.5816) = 1.070429
+  double scan_val = 500.0;
+  double result = 0.0;
+  converter.convert(1, &result, &scan_val, 1);
+  TEST_REAL_SIMILAR(result, 1.070429);
+
+  // Test with uint32_t scan input
+  uint32_t scan_int = 500;
+  double result2 = 0.0;
+  converter.convert(1, &result2, &scan_int, 1);
+  TEST_REAL_SIMILAR(result2, 1.070429);
+
+  // Test multiple scans at once
+  double scans[] = {0.0, 250.0, 500.0, 916.0};
+  double results[4] = {};
+  converter.convert(1, results, scans, 4);
+  // scan=0: V = 213.5998 + slope*(0-34) = 218.7084
+  //         1/K0 = 1/(-0.009066 + 135.4364/218.7084) = 1.63883
+  TEST_REAL_SIMILAR(results[0], 1.63883);
+  // All should be positive
+  for (int i = 0; i < 4; ++i)
+  {
+    TEST_EQUAL(results[i] > 0.0, true);
+  }
+  // Increasing scan -> decreasing 1/K0 (higher scan = lower mobility)
+  for (int i = 1; i < 4; ++i)
+  {
+    TEST_EQUAL(results[i] < results[i-1], true);
+  }
+}
+END_SECTION
+
+START_SECTION(RationalScan2ImConverter round-trip via inverse_convert)
+{
+  using Coeff = RationalScan2ImConverter::Coefficients;
+  Coeff c{1.0, 917.0, 213.5998, 75.81729, 33.0, 1.0, -0.009065829, 135.4364, 13.32608, 1663.341};
+
+  std::unordered_map<uint32_t, Coeff> calibrations;
+  calibrations[1] = c;
+  std::vector<uint32_t> frame_to_cal = {0, 1};
+
+  RationalScan2ImConverter converter(std::move(calibrations), std::move(frame_to_cal));
+
+  // Forward: scan 500 -> 1/K0
+  double scan_val = 500.0;
+  double inv_k0 = 0.0;
+  converter.convert(1, &inv_k0, &scan_val, 1);
+
+  // Inverse: 1/K0 -> scan (should round-trip to 500)
+  uint32_t scan_back = 0;
+  converter.inverse_convert(1, &scan_back, &inv_k0, 1);
+  TEST_EQUAL(scan_back, 500);
+
+  // Test a range of scans for round-trip
+  for (uint32_t s = 10; s < 900; s += 50)
+  {
+    double sv = static_cast<double>(s);
+    double ik0 = 0.0;
+    converter.convert(1, &ik0, &sv, 1);
+    uint32_t back = 0;
+    converter.inverse_convert(1, &back, &ik0, 1);
+    // Allow +/- 1 for rounding
+    TEST_EQUAL(back >= s - 1 && back <= s + 1, true);
+  }
+}
+END_SECTION
+
+START_SECTION(RationalScan2ImConverter per-frame calibration)
+{
+  using Coeff = RationalScan2ImConverter::Coefficients;
+  // Two different calibration segments
+  Coeff c1{1.0, 917.0, 213.5998, 75.81729, 33.0, 1.0, -0.009065829, 135.4364, 13.32608, 1663.341};
+  Coeff c2{1.0, 917.0, 220.0, 80.0, 33.0, 1.0, -0.01, 140.0, 13.0, 1660.0};
+
+  std::unordered_map<uint32_t, Coeff> calibrations;
+  calibrations[1] = c1;
+  calibrations[2] = c2;
+  // frame 1 uses cal 1, frame 2 uses cal 2
+  std::vector<uint32_t> frame_to_cal = {0, 1, 2};
+
+  RationalScan2ImConverter converter(std::move(calibrations), std::move(frame_to_cal));
+
+  double scan_val = 500.0;
+  double result_f1 = 0.0, result_f2 = 0.0;
+  converter.convert(1, &result_f1, &scan_val, 1);
+  converter.convert(2, &result_f2, &scan_val, 1);
+
+  // Different calibrations should produce different results
+  TEST_NOT_EQUAL(result_f1, result_f2);
+  // Both should be positive
+  TEST_EQUAL(result_f1 > 0.0, true);
+  TEST_EQUAL(result_f2 > 0.0, true);
+}
+END_SECTION
+
+START_SECTION(RationalScan2ImConverter description)
+{
+  using Coeff = RationalScan2ImConverter::Coefficients;
+  Coeff c{1.0, 917.0, 213.5998, 75.81729, 33.0, 1.0, -0.009065829, 135.4364, 13.32608, 1663.341};
+
+  std::unordered_map<uint32_t, Coeff> cals;
+  cals[1] = c;
+  std::vector<uint32_t> ftc = {0, 1};
+
+  RationalScan2ImConverter converter(std::move(cals), std::move(ftc));
+  std::string desc = converter.description();
+  TEST_EQUAL(desc.find("RationalScan2ImConverter") != std::string::npos, true);
+  TEST_EQUAL(desc.find("1") != std::string::npos, true); // 1 calibration segment
+}
+END_SECTION
+
+START_SECTION(RationalScan2ImConverter singularity edge cases)
+{
+  using Coeff = RationalScan2ImConverter::Coefficients;
+
+  // Normal coefficients as baseline
+  Coeff c{1.0, 917.0, 213.5998, 75.81729, 33.0, 1.0, -0.009065829, 135.4364, 13.32608, 1663.341};
+
+  // Edge case: c3 == c2 (zero slope in scan-to-voltage mapping)
+  // Should not crash — singularity guard produces a finite value
+  Coeff c_zero_slope = c;
+  c_zero_slope.c3 = c_zero_slope.c2; // c3 == c2
+
+  std::unordered_map<uint32_t, Coeff> cals;
+  cals[1] = c_zero_slope;
+  std::vector<uint32_t> ftc = {0, 1};
+  RationalScan2ImConverter conv(std::move(cals), std::move(ftc));
+
+  double scan_val = 500.0;
+  double result = 0.0;
+  conv.convert(1, &result, &scan_val, 1);
+  TEST_EQUAL(std::isfinite(result), true);
+
+  // Edge case: scan that makes V approach 0
+  Coeff c_v_zero = c;
+  c_v_zero.c2 = 0.0;
+  c_v_zero.c3 = 0.0;
+
+  std::unordered_map<uint32_t, Coeff> cals2;
+  cals2[1] = c_v_zero;
+  std::vector<uint32_t> ftc2 = {0, 1};
+  RationalScan2ImConverter conv2(std::move(cals2), std::move(ftc2));
+
+  double result2 = 0.0;
+  conv2.convert(1, &result2, &scan_val, 1);
+  TEST_EQUAL(std::isfinite(result2), true);
 }
 END_SECTION
 
