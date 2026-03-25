@@ -70,6 +70,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   BZip2::BZip2
   Boost::boost
   Boost::date_time
+  Boost::filesystem
   Boost::iostreams
   Boost::regex
   Eigen3::Eigen
@@ -90,10 +91,6 @@ list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES
      ${OPENMS_ARROW_TARGET}
      ${OPENMS_ARROW_COMPUTE_TARGET}
      ${OPENMS_PARQUET_TARGET})
-# Static Arrow may need Boost::filesystem (not propagated by Arrow's CMake config)
-if(TARGET Boost::filesystem)
-  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES Boost::filesystem)
-endif()
 if (OPENMS_ARROW_DATASET_TARGET)
   list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ${OPENMS_ARROW_DATASET_TARGET})
   # Dataset pushdown needs libxml2 when Arrow Dataset is linked statically.

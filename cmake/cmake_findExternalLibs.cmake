@@ -23,7 +23,7 @@ find_package(XercesC REQUIRED)
 
 #------------------------------------------------------------------------------
 # BOOST
-set(OpenMS_BOOST_COMPONENTS date_time regex CACHE INTERNAL "Boost components for core lib")
+set(OpenMS_BOOST_COMPONENTS date_time filesystem regex CACHE INTERNAL "Boost components for core lib")
 find_boost(iostreams ${OpenMS_BOOST_COMPONENTS})
 
 if(Boost_FOUND)
@@ -210,15 +210,6 @@ elseif(TARGET Arrow::arrow_shared)
   set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
 else()
   message(FATAL_ERROR "No suitable Arrow target found")
-endif()
-
-# Static Arrow may depend on Boost::filesystem without propagating it.
-# Find and expose the component so OpenMS can link it.
-if(OPENMS_ARROW_TARGET MATCHES "static")
-  find_package(Boost QUIET COMPONENTS filesystem)
-  if(TARGET Boost::filesystem)
-    message(STATUS "Found Boost::filesystem (needed by static Arrow)")
-  endif()
 endif()
 
 # Determine Arrow Compute target (may be bundled into Arrow::arrow_* on some distros).
