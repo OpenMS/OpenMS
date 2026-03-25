@@ -45,6 +45,7 @@ sudo apt-get -qq install -y \
   libboost-random-dev \
   libboost-regex-dev \
   libboost-iostreams-dev \
+  libboost-filesystem-dev \
   libboost-date-time-dev \
   libboost-math-dev \
   libxerces-c-dev \
