@@ -943,12 +943,12 @@ namespace OpenMS
         {
           if (idx == current) { ms1_scans->addSeparator(); }
           ms1_scans->addAction(QString("RT: ") + QString::number(exp[idx].getRT()),
-                               [=, this]() { emit showSpectrumAsNew1D(idx); });
+                               [idx, this]() { emit showSpectrumAsNew1D(idx); });
           if (idx == current) { ms1_scans->addSeparator(); }
 
           if (idx == current) { ms1_meta->addSeparator(); }
           ms1_meta->addAction(QString("RT: ") + QString::number(exp[idx].getRT()),
-                                [=, this]() { showMetaData(true, idx); });
+                                [idx, this]() { showMetaData(true, idx); });
           if (idx == current) { ms1_meta->addSeparator(); }
         }
         // add surrounding fragment scans
@@ -957,7 +957,8 @@ namespace OpenMS
         // - Next we look within the whole visible area
         QMenu* msn_scans = new QMenu("fragment scan in 1D");
         QMenu* msn_meta = new QMenu("fragment scan meta data");
-        bool item_added = collectFragmentScansInArea_(check_area, msn_scans, msn_meta);
+        double center_rt = e_units.getMinRT();
+        bool item_added = collectFragmentScansInArea_(check_area, center_rt, msn_scans, msn_meta);
         if (!item_added)
         {
           // Now simply go for the 5 closest points in RT and check whether there
@@ -968,11 +969,11 @@ namespace OpenMS
           const auto& exp = lp->getPeakData()->getMSExperiment();
           const auto& specs = exp.getSpectra();
           check_area.RangeRT::operator=(RangeRT(specs[indices.back()].getRT(), specs[indices.front()].getRT()));
-          item_added = collectFragmentScansInArea_(check_area, msn_scans, msn_meta);
+          item_added = collectFragmentScansInArea_(check_area, center_rt, msn_scans, msn_meta);
 
           if (! item_added)
           { // OK, now lets search the whole visible area (may be large!)
-            item_added = collectFragmentScansInArea_(visible_area_.getAreaUnit(), msn_scans, msn_meta);
+            item_added = collectFragmentScansInArea_(visible_area_.getAreaUnit(), center_rt, msn_scans, msn_meta);
           }
         }
 
@@ -989,7 +990,7 @@ namespace OpenMS
           context_menu->addAction(
             ("Switch to ion mobility view (MSLevel: " + String(it_closest_MS->getMSLevel()) + ";RT: " + String(it_closest_MS->getRT(), false) + ")")
               .c_str(),
-            [=, this]() { emit showCurrentPeaksAsIonMobility(*it_closest_MS); });
+            [it_closest_MS, this]() { emit showCurrentPeaksAsIonMobility(*it_closest_MS); });
         }
       } // end of hasRT
 
@@ -1533,30 +1534,73 @@ namespace OpenMS
     resetZoom(true);
   }
 
-    bool Plot2DCanvas::collectFragmentScansInArea_(const RangeType& range, QMenu* msn_scans, QMenu* msn_meta)
+    bool Plot2DCanvas::collectFragmentScansInArea_(const RangeType& range, double center_rt, QMenu* msn_scans, QMenu* msn_meta, int max_count)
     {
       auto& layer = dynamic_cast<LayerDataPeak&>(getCurrentLayer());
-      bool item_added = false;
+
       const MSExperiment& peak_data = layer.getPeakData()->getMSExperiment();
-      const auto last_RT = peak_data.RTEnd(range.getMaxRT());
 
-      for (auto it = peak_data.RTBegin(range.getMinRT());
-                                         it != last_RT; ++it)
+      // Find the scan closest to center_rt
+      auto center_it = peak_data.getClosestSpectrumInRT(center_rt);
+      if (center_it == peak_data.end())
       {
-        if (it->getPrecursors().empty()) continue;
-
-        double mz = it->getPrecursors()[0].getMZ();
-        if (it->getMSLevel() > 1 && range.containsMZ(mz))
-        {
-          msn_scans->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz),
-                               [=, this]() { emit showSpectrumAsNew1D(it - peak_data.begin()); });
-          msn_meta->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz),
-                              [=, this]() { showMetaData(true, it - peak_data.begin()); });
-
-          item_added = true;
-        }
+        return false; // No spectra available
       }
-      return item_added;
+
+      // Bidirectional enumeration: expand left and right from center_rt
+      auto it_left = center_it;   // left includes center
+      auto it_right = center_it + 1;
+
+      std::vector<size_t> indices; // store indices of scans to add to menu after enumeration
+
+      // Lambda to add a scan if it meets the criteria
+      auto addMS2ScanIfValid = [&](const MSSpectrum& spectrum) -> void {
+        if (spectrum.getPrecursors().empty()) return;
+        double mz = spectrum.getPrecursors()[0].getMZ();
+        if (spectrum.getMSLevel() <= 1 || ! range.containsMZ(mz)) return;
+
+        int index = std::distance(&peak_data[0], &spectrum);
+        indices.push_back(index);
+        return;
+      };
+
+      while (indices.size() < max_count || max_count == 0)
+      {
+        // Check left
+        if (it_left != peak_data.end()) {
+          if (it_left->getRT() >= range.getMinRT()) { addMS2ScanIfValid(*it_left); }
+          if (it_left != peak_data.begin()) --it_left;
+          else it_left = peak_data.end(); // to prevent underflow and signal end of left side
+        }
+          
+        if (max_count > 0 && indices.size() >= max_count) break;
+        
+        // Check right
+        if (it_right != peak_data.end())
+        {
+          if (it_right->getRT() <= range.getMaxRT()) addMS2ScanIfValid(*it_right);
+          ++it_right;
+        }
+
+        // no more data to look at
+        if (it_left == peak_data.end() && it_right == peak_data.end()) break;
+      }
+
+      // sort by RT (=index)
+      std::sort(indices.begin(), indices.end());
+
+      // build menu from indices
+      for (const auto index : indices)
+      {
+        const MSSpectrum& spectrum = peak_data[index];
+        double mz = spectrum.getPrecursors()[0].getMZ();
+        msn_scans->addAction(QString("RT: ") + QString::number(spectrum.getRT()) + " mz: " + QString::number(mz),
+                              [index, this]() { emit showSpectrumAsNew1D(index); });
+        msn_meta->addAction(QString("RT: ") + QString::number(spectrum.getRT()) + " mz: " + QString::number(mz),
+                            [index, this]() { showMetaData(true, index); });
+      }
+
+      return !indices.empty();
     }
 
 } //namespace OpenMS
