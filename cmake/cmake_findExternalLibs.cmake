@@ -192,6 +192,13 @@ find_package(CURL REQUIRED)
 find_package(Arrow 23 CONFIG REQUIRED)
 find_package(Parquet 23 CONFIG REQUIRED)
 
+# Arrow's CMake config may import nlohmann_json as a transitive dependency.
+# If so, force the vendored extern to use the already-imported target instead
+# of trying to add_library() a second target with the same name.
+if(TARGET nlohmann_json::nlohmann_json)
+  set(USE_EXTERNAL_JSON ON CACHE BOOL "Use an external nlohmann::json library" FORCE)
+endif()
+
 # Determine Arrow target based on ARROW_USE_STATIC preference
 if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
   set(OPENMS_ARROW_TARGET Arrow::arrow_static)

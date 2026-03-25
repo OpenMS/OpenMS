@@ -38,10 +38,8 @@ endif()
 ##
 option(USE_EXTERNAL_JSON "Use an external nlohmann::json library" OFF)
 message(STATUS "Option USE_EXTERNAL_JSON: ${USE_EXTERNAL_JSON}")
-if(USE_EXTERNAL_JSON OR TARGET nlohmann_json::nlohmann_json)
-    if(NOT TARGET nlohmann_json::nlohmann_json)
-        find_package(nlohmann_json REQUIRED GLOBAL)  ## global propagates the target up to the parent project
-    endif()
+if(USE_EXTERNAL_JSON)
+    find_package(nlohmann_json REQUIRED GLOBAL)  ## global propagates the target up to the parent project
     message(STATUS "External 'NLohmann::json' at: '${nlohmann_json_DIR}'")
     target_compile_definitions(nlohmann_json::nlohmann_json INTERFACE JSON_USE_IMPLICIT_CONVERSIONS=0)
 else()
