@@ -943,12 +943,12 @@ namespace OpenMS
         {
           if (idx == current) { ms1_scans->addSeparator(); }
           ms1_scans->addAction(QString("RT: ") + QString::number(exp[idx].getRT()),
-                               [=, this]() { emit showSpectrumAsNew1D(idx); });
+                               [idx, this]() { emit showSpectrumAsNew1D(idx); });
           if (idx == current) { ms1_scans->addSeparator(); }
 
           if (idx == current) { ms1_meta->addSeparator(); }
           ms1_meta->addAction(QString("RT: ") + QString::number(exp[idx].getRT()),
-                                [=, this]() { showMetaData(true, idx); });
+                                [idx, this]() { showMetaData(true, idx); });
           if (idx == current) { ms1_meta->addSeparator(); }
         }
         // add surrounding fragment scans
@@ -989,7 +989,7 @@ namespace OpenMS
           context_menu->addAction(
             ("Switch to ion mobility view (MSLevel: " + String(it_closest_MS->getMSLevel()) + ";RT: " + String(it_closest_MS->getRT(), false) + ")")
               .c_str(),
-            [=, this]() { emit showCurrentPeaksAsIonMobility(*it_closest_MS); });
+            [it_closest_MS, this]() { emit showCurrentPeaksAsIonMobility(*it_closest_MS); });
         }
       } // end of hasRT
 
