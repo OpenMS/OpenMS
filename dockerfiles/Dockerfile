@@ -41,6 +41,7 @@ RUN apt-get update \
     coinor-libcoinmp-dev \
     libeigen3-dev \
     libboost-date-time1.74-dev \
+    libboost-filesystem1.74-dev \
     libboost-iostreams1.74-dev \
     libboost-regex1.74-dev \
     libboost-math1.74-dev \
@@ -173,6 +174,7 @@ RUN apt-get update \
     libxerces-c3.2 \
     coinor-libcoinmp1v5 \
     libboost-date-time1.74-dev  \
+    libboost-filesystem1.74-dev \
     libboost-iostreams1.74-dev \
     libboost-regex1.74-dev \
     libboost-math1.74-dev \
