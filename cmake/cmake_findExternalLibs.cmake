@@ -297,25 +297,34 @@ include(FetchContent)
 # FETCHCONTENT_SOURCE_DIR_WNET, FETCHCONTENT_SOURCE_DIR_WNETALIGN.
 FetchContent_Declare(
   pylmcf
-  GIT_REPOSITORY git@github.com:michalsta/pylmcf.git
+  GIT_REPOSITORY https://github.com/michalsta/pylmcf.git
   GIT_TAG        v0.9.5
 )
 FetchContent_Declare(
   wnet
-  GIT_REPOSITORY git@github.com:michalsta/wnet.git
+  GIT_REPOSITORY https://github.com/michalsta/wnet.git
   GIT_TAG        v0.9.9
 )
 FetchContent_Declare(
   wnetalign
-  GIT_REPOSITORY git@github.com:michalsta/wnetalign.git
+  GIT_REPOSITORY https://github.com/michalsta/wnetalign.git
   GIT_TAG        v0.9.6
 )
 
 # Populate source dirs without running their CMakeLists.txt
 # (they build nanobind Python modules, not needed for C++ header-only usage).
-FetchContent_Populate(pylmcf)
-FetchContent_Populate(wnet)
-FetchContent_Populate(wnetalign)
+FetchContent_GetProperties(pylmcf)
+if(NOT pylmcf_POPULATED)
+  FetchContent_Populate(pylmcf)
+endif()
+FetchContent_GetProperties(wnet)
+if(NOT wnet_POPULATED)
+  FetchContent_Populate(wnet)
+endif()
+FetchContent_GetProperties(wnetalign)
+if(NOT wnetalign_POPULATED)
+  FetchContent_Populate(wnetalign)
+endif()
 
 set(WNETALIGN_INCLUDE_DIRS
   "${pylmcf_SOURCE_DIR}/src/pylmcf/cpp"

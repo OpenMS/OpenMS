@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
+// $Maintainer: Michal Startek $
 // $Authors: Michal Startek $
 // --------------------------------------------------------------------------
 
@@ -56,8 +57,8 @@ namespace OpenMS
     void group(const std::vector<ConsensusMap>& maps, ConsensusMap& out) override;
 
   private:
-    FeatureGroupingAlgorithmWNet(const FeatureGroupingAlgorithmWNet&);
-    FeatureGroupingAlgorithmWNet& operator=(const FeatureGroupingAlgorithmWNet&);
+    FeatureGroupingAlgorithmWNet(const FeatureGroupingAlgorithmWNet&) = delete;
+    FeatureGroupingAlgorithmWNet& operator=(const FeatureGroupingAlgorithmWNet&) = delete;
 
     template <typename MapType>
     void group_(const std::vector<MapType>& maps, ConsensusMap& out);

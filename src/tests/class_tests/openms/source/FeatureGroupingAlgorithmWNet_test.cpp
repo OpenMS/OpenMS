@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
+// $Maintainer: Michal Startek $
 // $Authors: Michal Startek $
 // --------------------------------------------------------------------------
 
@@ -94,8 +95,8 @@ START_SECTION((virtual void group(const std::vector<FeatureMap>& maps, Consensus
   ConsensusMap result;
   algo.group(maps, result);
 
-  // We should get at least 2 consensus features (the two close pairs)
-  TEST_TRUE(result.size() >= 2)
+  // We should get exactly 2 consensus features (the two close pairs)
+  TEST_EQUAL(result.size(), 2)
 
   // Each consensus feature should have exactly 2 handles (one from each map)
   for (Size i = 0; i < result.size(); ++i)

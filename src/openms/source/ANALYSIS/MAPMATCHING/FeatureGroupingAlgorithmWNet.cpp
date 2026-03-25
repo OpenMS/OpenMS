@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
+// $Maintainer: Michal Startek $
 // $Authors: Michal Startek $
 // --------------------------------------------------------------------------
 
@@ -183,11 +184,12 @@ namespace OpenMS
       group_maps[idx].insert(feat_map[idx]);
     }
 
-    function<Size(Size)> find = [&](Size x) -> Size
+    // Path-halving find (avoids std::function overhead)
+    auto find = [&parent](Size x) -> Size
     {
       while (parent[x] != x)
       {
-        parent[x] = parent[parent[x]]; // path compression
+        parent[x] = parent[parent[x]]; // path halving
         x = parent[x];
       }
       return x;
