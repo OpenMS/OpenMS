@@ -12,6 +12,7 @@
 #include <wnetalign/spectrum.hpp>
 
 #include <numeric>
+#include <set>
 
 using namespace std;
 
@@ -153,10 +154,26 @@ namespace OpenMS
       total_features += maps[i].size();
     }
 
+    // map_index for each flat feature index
+    vector<Size> feat_map(total_features);
+    for (Size i = 0; i < n; ++i)
+    {
+      for (Size fi = 0; fi < maps[i].size(); ++fi)
+      {
+        feat_map[feature_offsets[i] + fi] = i;
+      }
+    }
+
     // Union-Find data structure
     vector<Size> parent(total_features);
     iota(parent.begin(), parent.end(), Size(0));
-    vector<Size> rank(total_features, 0);
+    vector<Size> uf_rank(total_features, 0);
+    // track which map indices are present in each group (keyed by root)
+    vector<set<Size>> group_maps(total_features);
+    for (Size idx = 0; idx < total_features; ++idx)
+    {
+      group_maps[idx].insert(feat_map[idx]);
+    }
 
     function<Size(Size)> find = [&](Size x) -> Size
     {
@@ -168,14 +185,30 @@ namespace OpenMS
       return x;
     };
 
-    auto unite = [&](Size a, Size b)
+    // Unite two features, but only if it won't create a group
+    // with multiple features from the same map.
+    auto unite = [&](Size a, Size b) -> bool
     {
       a = find(a);
       b = find(b);
-      if (a == b) return;
-      if (rank[a] < rank[b]) swap(a, b);
+      if (a == b) return true; // already in same group
+
+      // check for map conflicts
+      for (Size m : group_maps[b])
+      {
+        if (group_maps[a].count(m))
+        {
+          return false; // would create duplicate map entry
+        }
+      }
+
+      // merge smaller into larger (by rank)
+      if (uf_rank[a] < uf_rank[b]) swap(a, b);
       parent[b] = a;
-      if (rank[a] == rank[b]) ++rank[a];
+      if (uf_rank[a] == uf_rank[b]) ++uf_rank[a];
+      group_maps[a].insert(group_maps[b].begin(), group_maps[b].end());
+      group_maps[b].clear();
+      return true;
     };
 
     // Pairwise alignment
@@ -194,15 +227,20 @@ namespace OpenMS
 
         auto [emp_ids, theo_ids] = aligner.consensus_for_target(0);
 
+        Size accepted = 0;
         for (size_t k = 0; k < emp_ids.size(); ++k)
         {
           Size flat_i = feature_offsets[i] + static_cast<Size>(emp_ids[k]);
           Size flat_j = feature_offsets[j] + static_cast<Size>(theo_ids[k]);
-          unite(flat_i, flat_j);
+          if (unite(flat_i, flat_j))
+          {
+            ++accepted;
+          }
         }
 
         OPENMS_LOG_INFO << "FeatureGroupingAlgorithmWNet: maps " << i << " vs " << j
-                        << ": " << emp_ids.size() << " pairs matched (cost = "
+                        << ": " << emp_ids.size() << " pairs matched, "
+                        << accepted << " accepted (cost = "
                         << aligner.total_cost() << ")" << endl;
       }
     }
