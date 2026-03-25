@@ -37,6 +37,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmWNet.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
@@ -793,6 +794,25 @@ FeatureGroupingAlgorithm
         .def("group", [](OpenMS::FeatureGroupingAlgorithmQT& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
         .def("group", [](OpenMS::FeatureGroupingAlgorithmQT& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
         .def("transferSubelements", [](const OpenMS::FeatureGroupingAlgorithmQT& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.transferSubelements(maps, out); }, "maps"_a, "out"_a, "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
+        ;
+
+    // -----------------------------------------------------------------------
+    // FeatureGroupingAlgorithmWNet
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::FeatureGroupingAlgorithmWNet, OpenMS::FeatureGroupingAlgorithm>(m, "FeatureGroupingAlgorithmWNet",
+        R"doc(
+A feature grouping algorithm using Wasserstein optimal transport.
+
+Groups corresponding features across multiple maps by solving a minimum-cost
+network flow problem on their (m/z, RT) positions. Produces globally optimal
+1-to-1 feature matchings.
+
+FeatureGroupingAlgorithm
+)doc")
+        .def(nb::init<>())
+        .def("group", [](OpenMS::FeatureGroupingAlgorithmWNet& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
+        .def("group", [](OpenMS::FeatureGroupingAlgorithmWNet& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
+        .def("transferSubelements", [](const OpenMS::FeatureGroupingAlgorithmWNet& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.transferSubelements(maps, out); }, "maps"_a, "out"_a, "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
         ;
 
     // -----------------------------------------------------------------------
