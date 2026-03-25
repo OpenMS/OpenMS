@@ -12,6 +12,7 @@
 #include <wnetalign/aligner.hpp>
 #include <wnetalign/spectrum.hpp>
 
+#include <cmath>
 #include <numeric>
 #include <set>
 
@@ -41,10 +42,16 @@ namespace OpenMS
       "Increase to prefer matching over leaving features unmatched.");
     defaults_.setMinFloat("trash_cost", 0.0);
 
+    defaults_.setValue("mz_unit", "Da",
+      "Unit for m/z distance. 'Da' uses raw m/z values; 'ppm' log-transforms "
+      "the m/z axis so that equal distances correspond to equal ppm differences.");
+    defaults_.setValidStrings("mz_unit", {"Da", "ppm"});
+
     defaults_.setValue("mz_scale_factor", 0.0,
-      "Scale factor applied to m/z values before distance computation. "
-      "If 0 (default), auto-computed as max_RT_range / max_MZ_range to bring "
-      "both dimensions to comparable numeric scale.");
+      "Scale factor applied to (possibly log-transformed) m/z values before "
+      "distance computation. If 0 (default), auto-computed as "
+      "max_RT_range / max_MZ_range to bring both dimensions to comparable "
+      "numeric scale.");
     defaults_.setMinFloat("mz_scale_factor", 0.0);
 
     defaults_.setValue("normalize_intensities", "true",
@@ -59,9 +66,18 @@ namespace OpenMS
 
   namespace
   {
+    /// Transform m/z value: identity for Da, log for ppm.
+    /// In ppm mode, a multiplicative shift becomes additive in log-space:
+    /// log(mz * factor) = log(mz) + log(factor), so the distance is
+    /// independent of the absolute m/z value.
+    inline double transformMz(double mz, bool use_ppm)
+    {
+      return use_ppm ? log(mz) : mz;
+    }
+
     /// Convert a map (FeatureMap or ConsensusMap) to a Spectrum<2> with (scaled_mz, RT) positions.
     template <typename MapType>
-    Spectrum<2> mapToSpectrum(const MapType& map, double mz_scale)
+    Spectrum<2> mapToSpectrum(const MapType& map, double mz_scale, bool use_ppm)
     {
       vector<array<double, 2>> positions;
       vector<double> intensities;
@@ -69,15 +85,16 @@ namespace OpenMS
       intensities.reserve(map.size());
       for (const auto& f : map)
       {
-        positions.push_back({f.getMZ() * mz_scale, f.getRT()});
+        positions.push_back({transformMz(f.getMZ(), use_ppm) * mz_scale, f.getRT()});
         intensities.push_back(f.getIntensity());
       }
       return Spectrum<2>(positions, intensities);
     }
 
     /// Compute mz_scale as max_RT_range / max_MZ_range across all maps.
+    /// When use_ppm is true, m/z values are log-transformed before computing the range.
     template <typename MapType>
-    double computeMzScale(const vector<MapType>& maps)
+    double computeMzScale(const vector<MapType>& maps, bool use_ppm)
     {
       double mz_min = numeric_limits<double>::max();
       double mz_max = numeric_limits<double>::lowest();
@@ -87,8 +104,9 @@ namespace OpenMS
       {
         for (const auto& f : map)
         {
-          mz_min = min(mz_min, f.getMZ());
-          mz_max = max(mz_max, f.getMZ());
+          double mz_val = transformMz(f.getMZ(), use_ppm);
+          mz_min = min(mz_min, mz_val);
+          mz_max = max(mz_max, mz_val);
           rt_min = min(rt_min, f.getRT());
           rt_max = max(rt_max, f.getRT());
         }
@@ -97,11 +115,11 @@ namespace OpenMS
       double rt_range = rt_max - rt_min;
       if (mz_range <= 0)
       {
-        return 1.0; // all features at same m/z
+        return 1.0;
       }
       if (rt_range <= 0)
       {
-        return 1.0; // all features at same RT
+        return 1.0;
       }
       return rt_range / mz_range;
     }
@@ -131,12 +149,14 @@ namespace OpenMS
     double trash_cost = param_.getValue("trash_cost");
     double mz_scale = param_.getValue("mz_scale_factor");
     bool normalize = param_.getValue("normalize_intensities").toString() == "true";
+    bool use_ppm = param_.getValue("mz_unit").toString() == "ppm";
 
     if (mz_scale <= 0)
     {
-      mz_scale = computeMzScale(maps);
+      mz_scale = computeMzScale(maps, use_ppm);
     }
-    OPENMS_LOG_INFO << "FeatureGroupingAlgorithmWNet: using mz_scale_factor = " << mz_scale << endl;
+    OPENMS_LOG_INFO << "FeatureGroupingAlgorithmWNet: mz_unit = " << (use_ppm ? "ppm" : "Da")
+                    << ", mz_scale_factor = " << mz_scale << endl;
 
     // convert all maps to Spectrum<2>
     Size n = maps.size();
@@ -144,7 +164,7 @@ namespace OpenMS
     spectra.reserve(n);
     for (Size i = 0; i < n; ++i)
     {
-      auto spec = mapToSpectrum(maps[i], mz_scale);
+      auto spec = mapToSpectrum(maps[i], mz_scale, use_ppm);
       if (normalize && spec.size() > 0)
       {
         spec = spec.normalized();
