@@ -64,7 +64,7 @@ START_SECTION(DDA loading integration test)
   TEST_EQUAL(has_ms1, true);
   TEST_EQUAL(has_ms2, true);
 
-  // Check MS1 spectra have IM data in CONCATENATED format
+  // Check MS1 spectra have IM data in IM_PEAK format
   for (const auto& spec : exp)
   {
     if (spec.getMSLevel() == 1 && !spec.empty())
@@ -141,7 +141,7 @@ START_SECTION(DDA frame-level loading test)
 
   TEST_NOT_EQUAL(exp.size(), 0);
 
-  // All spectra should have CONCATENATED IM data (even MS2 in frame mode)
+  // All spectra should have IM_PEAK IM data (even MS2 in frame mode)
   for (const auto& spec : exp)
   {
     if (!spec.empty())
@@ -261,7 +261,7 @@ START_SECTION(DDA search engine IM annotation integration test)
     if (spec.getMSLevel() == 2)
     {
       ++ms2_count;
-      if (IMTypes::determineIMFormat(spec) == IMFormat::MULTIPLE_SPECTRA)
+      if (IMTypes::determineIMFormat(spec) == IMFormat::IM_SPECTRUM)
       {
         ++ms2_with_im;
       }
@@ -331,7 +331,7 @@ START_SECTION(DIA loading integration test)
 
   TEST_NOT_EQUAL(exp.size(), 0);
 
-  // Check MS2 spectra have per-peak IM (CONCATENATED) and isolation windows
+  // Check MS2 spectra have per-peak IM (IM_PEAK) and isolation windows
   for (const auto& spec : exp)
   {
     if (spec.getMSLevel() == 2 && !spec.empty())

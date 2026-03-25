@@ -694,7 +694,7 @@ namespace OpenMS
     double IM_window = param_.getValue("extract:IM_window");
     IMFormat im_format = IMTypes::determineIMFormat(ms_data_);
     bool has_IM = false;
-    if (im_format == IMFormat::CONCATENATED)
+    if (im_format == IMFormat::IM_PEAK)
     {
       has_IM = true;
       // Check IM unit and warn if CCS data with small window

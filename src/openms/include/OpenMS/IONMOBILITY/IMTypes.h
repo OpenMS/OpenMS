@@ -48,10 +48,10 @@ namespace OpenMS
   enum class IMFormat
   {
     NONE,            ///< no ion mobility
-    CONCATENATED,    ///< ion mobility frame is stacked in a single spectrum (i.e. has an IM float data array)
-    MULTIPLE_SPECTRA,///< ion mobility is recorded as multiple spectra per frame (i.e. has one IM annotation per spectrum)
-    MIXED,           ///< an MSExperiment contains both CONCATENATED and MULTIPLE_SPECTRA
-    CENTROIDED,      ///< ion mobility of peaks after centroiding in IM dimension. Ion mobility is annotated in a single float data array (i.e., each peak might have a different IM value in the data array); identical to CONCATENATED in terms of data layout.
+    IM_PEAK,         ///< full TIMS frame / per-scan IM-resolved data: ion mobility is annotated per peak in a float data array
+    IM_SPECTRUM,     ///< conventional spectrum with one precursor IM value (i.e. has one IM annotation per spectrum via getDriftTime())
+    MIXED,           ///< an MSExperiment contains both IM_PEAK and IM_SPECTRUM
+    CENTROIDED,      ///< ion mobility of peaks after centroiding in IM dimension. Ion mobility is annotated in a single float data array (i.e., each peak might have a different IM value in the data array); identical to IM_PEAK in terms of data layout.
     UNKNOWN,         ///< ion mobility format not yet determined. 
     SIZE_OF_IMFORMAT
   };
@@ -72,7 +72,7 @@ namespace OpenMS
     inline static constexpr double DRIFTTIME_NOT_SET = -1.0;
 
     /// Checks the all spectra for their type (see overload)
-    /// and returns the common type (or IMFormat::MIXED if both CONCATENATED and MULTIPLE_SPECTRA are present)
+    /// and returns the common type (or IMFormat::MIXED if both IM_PEAK and IM_SPECTRUM are present)
     /// If @p exp is empty or contains no IM spectra at all, IMFormat::NONE is returned
     /// @throws Exception::InvalidValue if IM values are annotated as single drift time and float array for any single spectrum
     static IMFormat determineIMFormat(const MSExperiment& exp);
@@ -81,7 +81,7 @@ namespace OpenMS
         @brief Checks for existence of a single driftTime (using spec.getDriftTime()) or an ion-mobility float data array (using spec.hasIMData()) 
         
         If neither is found, IMFormat::NONE is returned.
-        If a single drift time (== IMFormat::MULTIPLE_SPECTRA) is found, but no unit, a warning is issued.
+        If a single drift time (== IMFormat::IM_SPECTRUM) is found, but no unit, a warning is issued.
 
         @throws Exception::InvalidValue if IM values are annotated as single drift time and float array in the given spectrum
     */

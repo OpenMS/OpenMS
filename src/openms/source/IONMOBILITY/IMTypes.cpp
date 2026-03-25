@@ -16,7 +16,7 @@ namespace OpenMS
 {
 
   const std::string NamesOfDriftTimeUnit[] = {"<NONE>", "ms", "1/K0", "FAIMS_CV", "CCS"};
-  const std::string NamesOfIMFormat[] = {"none", "concatenated", "multiple_spectra", "mixed", "centroided", "unknown"};
+  const std::string NamesOfIMFormat[] = {"none", "im_peak", "im_spectrum", "mixed", "centroided", "unknown"};
 
 
  DriftTimeUnit toDriftTimeUnit(const std::string& dtu_string)
@@ -78,8 +78,8 @@ namespace OpenMS
     if (occs.size() == 1) 
     {
       auto format = *occs.begin();
-      if (format != IMFormat::CONCATENATED
-          && format != IMFormat::MULTIPLE_SPECTRA
+      if (format != IMFormat::IM_PEAK
+          && format != IMFormat::IM_SPECTRUM
           && format != IMFormat::CENTROIDED)
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "subfunction returned invalid value(s)", "Number of different values: " + String(occs.size()));
@@ -112,7 +112,7 @@ namespace OpenMS
       {
         OPENMS_LOG_DEBUG << "both drift time and IM data array found in spectrum " << spec.getNativeID() << "\n. Support for both is experimental." << std::endl;
       }
-      return IMFormat::CONCATENATED;
+      return IMFormat::IM_PEAK;
     }
     else if (has_drift_time)
     {
@@ -120,7 +120,7 @@ namespace OpenMS
       {
         OPENMS_LOG_WARN << "Warning: no drift time unit set for spectrum " << spec.getNativeID() << "\n";
       }
-      return IMFormat::MULTIPLE_SPECTRA;
+      return IMFormat::IM_SPECTRUM;
     }
     return IMFormat::NONE;
   }

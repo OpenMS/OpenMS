@@ -410,7 +410,7 @@ Usage:
         R"doc(Rasterize an ion mobility frame into a 2D intensity matrix (IM vs m/z).
 
 Creates a 2D heatmap representation by binning peak intensities into a regular grid.
-Designed for spectra in CONCATENATED format where each peak has an associated ion mobility value.
+Designed for spectra in IM_PEAK format where each peak has an associated ion mobility value.
 
 Parameters
 ----------
