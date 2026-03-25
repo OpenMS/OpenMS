@@ -26,33 +26,33 @@ namespace OpenMS
   {
     setName("FeatureGroupingAlgorithmWNet");
 
-    defaults_.setValue("distance_metric", "LINF", "Distance metric for comparing feature positions (after m/z scaling)");
+    defaults_.setValue("distance_metric", "LINF", "Distance metric for comparing feature positions");
     defaults_.setValidStrings("distance_metric", {"L1", "L2", "LINF"});
+    defaults_.addTag("distance_metric", "advanced");
 
-    defaults_.setValue("max_distance", 100.0,
-      "Maximum distance between features to consider a match. "
-      "After auto m/z scaling, both dimensions are in RT-like units (seconds), "
-      "so this threshold is effectively in seconds. "
-      "Comparable to distance_RT:max_difference in other linkers.");
-    defaults_.setMinFloat("max_distance", 0.0);
+    defaults_.setValue("max_rt_shift", 100.0,
+      "Maximum allowed RT difference (in seconds) for matching features.");
+    defaults_.setMinFloat("max_rt_shift", 0.0);
 
-    defaults_.setValue("trash_cost", 100.0,
-      "Cost of leaving a feature unmatched. When equal to max_distance, "
-      "a match at the maximum allowed distance is as expensive as no match. "
-      "Increase to prefer matching over leaving features unmatched.");
-    defaults_.setMinFloat("trash_cost", 0.0);
-
-    defaults_.setValue("mz_unit", "Da",
-      "Unit for m/z distance. 'Da' uses raw m/z values; 'ppm' log-transforms "
-      "the m/z axis so that equal distances correspond to equal ppm differences.");
+    defaults_.setValue("mz_unit", "ppm",
+      "Unit for the m/z tolerance. 'Da' uses max_mz_shift_da; "
+      "'ppm' uses max_mz_shift_ppm and log-transforms the m/z axis.");
     defaults_.setValidStrings("mz_unit", {"Da", "ppm"});
 
-    defaults_.setValue("mz_scale_factor", 0.0,
-      "Scale factor applied to (possibly log-transformed) m/z values before "
-      "distance computation. If 0 (default), auto-computed as "
-      "max_RT_range / max_MZ_range to bring both dimensions to comparable "
-      "numeric scale.");
-    defaults_.setMinFloat("mz_scale_factor", 0.0);
+    defaults_.setValue("max_mz_shift_da", 0.3,
+      "Maximum allowed m/z difference in Daltons. Used when mz_unit is 'Da'.");
+    defaults_.setMinFloat("max_mz_shift_da", 0.0);
+
+    defaults_.setValue("max_mz_shift_ppm", 10.0,
+      "Maximum allowed m/z difference in ppm. Used when mz_unit is 'ppm'.");
+    defaults_.setMinFloat("max_mz_shift_ppm", 0.0);
+
+    defaults_.setValue("trash_cost", 0.0,
+      "Cost of leaving a feature unmatched (in seconds). At the default of 0 "
+      "this equals max_rt_shift, meaning a match at the boundary costs the same "
+      "as no match. Increase to prefer matching over leaving features unmatched.");
+    defaults_.setMinFloat("trash_cost", 0.0);
+    defaults_.addTag("trash_cost", "advanced");
 
     defaults_.setValue("normalize_intensities", "true",
       "Normalize feature intensities per map before alignment so that "
@@ -91,39 +91,6 @@ namespace OpenMS
       return Spectrum<2>(positions, intensities);
     }
 
-    /// Compute mz_scale as max_RT_range / max_MZ_range across all maps.
-    /// When use_ppm is true, m/z values are log-transformed before computing the range.
-    template <typename MapType>
-    double computeMzScale(const vector<MapType>& maps, bool use_ppm)
-    {
-      double mz_min = numeric_limits<double>::max();
-      double mz_max = numeric_limits<double>::lowest();
-      double rt_min = numeric_limits<double>::max();
-      double rt_max = numeric_limits<double>::lowest();
-      for (const auto& map : maps)
-      {
-        for (const auto& f : map)
-        {
-          double mz_val = transformMz(f.getMZ(), use_ppm);
-          mz_min = min(mz_min, mz_val);
-          mz_max = max(mz_max, mz_val);
-          rt_min = min(rt_min, f.getRT());
-          rt_max = max(rt_max, f.getRT());
-        }
-      }
-      double mz_range = mz_max - mz_min;
-      double rt_range = rt_max - rt_min;
-      if (mz_range <= 0)
-      {
-        return 1.0;
-      }
-      if (rt_range <= 0)
-      {
-        return 1.0;
-      }
-      return rt_range / mz_range;
-    }
-
     DistanceMetric parseDistanceMetric(const string& s)
     {
       if (s == "L1") return DistanceMetric::L1;
@@ -145,18 +112,38 @@ namespace OpenMS
 
     // read parameters
     DistanceMetric metric = parseDistanceMetric(param_.getValue("distance_metric").toString());
-    double max_distance = param_.getValue("max_distance");
+    double max_rt_shift = param_.getValue("max_rt_shift");
     double trash_cost = param_.getValue("trash_cost");
-    double mz_scale = param_.getValue("mz_scale_factor");
     bool normalize = param_.getValue("normalize_intensities").toString() == "true";
     bool use_ppm = param_.getValue("mz_unit").toString() == "ppm";
 
-    if (mz_scale <= 0)
+    if (trash_cost <= 0)
     {
-      mz_scale = computeMzScale(maps, use_ppm);
+      trash_cost = max_rt_shift;
     }
-    OPENMS_LOG_INFO << "FeatureGroupingAlgorithmWNet: mz_unit = " << (use_ppm ? "ppm" : "Da")
-                    << ", mz_scale_factor = " << mz_scale << endl;
+
+    // Compute mz_scale so that the m/z tolerance maps to max_rt_shift in the
+    // scaled space. After scaling, both dimensions are in seconds and
+    // max_distance = max_rt_shift.
+    double mz_shift_native;
+    double max_mz_shift;
+    if (use_ppm)
+    {
+      max_mz_shift = param_.getValue("max_mz_shift_ppm");
+      mz_shift_native = log(1.0 + max_mz_shift * 1e-6);
+    }
+    else
+    {
+      max_mz_shift = param_.getValue("max_mz_shift_da");
+      mz_shift_native = max_mz_shift;
+    }
+    double mz_scale = (mz_shift_native > 0) ? max_rt_shift / mz_shift_native : 1.0;
+    double max_distance = max_rt_shift;
+
+    OPENMS_LOG_INFO << "FeatureGroupingAlgorithmWNet: max_mz_shift = " << max_mz_shift
+                    << (use_ppm ? " ppm" : " Da")
+                    << ", max_rt_shift = " << max_rt_shift << " s"
+                    << ", mz_scale = " << mz_scale << endl;
 
     // convert all maps to Spectrum<2>
     Size n = maps.size();

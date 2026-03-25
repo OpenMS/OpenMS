@@ -88,9 +88,12 @@ START_SECTION((virtual void group(const std::vector<FeatureMap>& maps, Consensus
 
   for (auto& m : maps) m.updateRanges();
 
-  // default params: max_distance=100, trash_cost=100, LINF
-  // auto mz_scale ≈ 800/400 = 2, so close features (mz diff 0.1*2=0.2, rt diff 1)
-  // are well within threshold; distant feature (mz=900, rt=900) is unmatched
+  // Use Da mode: mz diff 0.1 Da is within 0.3 Da threshold,
+  // rt diff 1 s is within 100 s threshold.
+  // Distant feature (mz=900, rt=900) exceeds both thresholds.
+  Param p = algo.getParameters();
+  p.setValue("mz_unit", "Da");
+  algo.setParameters(p);
 
   ConsensusMap result;
   algo.group(maps, result);
