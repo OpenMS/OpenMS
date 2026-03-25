@@ -296,7 +296,6 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   MobilogramParquetConsumer_test
   XICParquetFile_test
   XIMParquetFile_test
-  OpenSwathOSWParquetRoundTrip_test
   ProteinIdentificationArrowIO_test
   FeatureMapArrowIO_test
   ConsensusMapArrowIO_test
@@ -681,6 +680,7 @@ if(NOT DISABLE_OPENSWATH)
   list(APPEND swath_executables_list TransitionParquetFile_test)
   list(APPEND swath_executables_list OpenSwathOSWParquetReader_test)
   list(APPEND swath_executables_list OpenSwathOSWParquetWriter_test)
+  list(APPEND format_executables_list OpenSwathOSWParquetRoundTrip_test)
 endif()
 
 set(Boost_dependent_tests
