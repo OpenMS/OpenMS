@@ -17,6 +17,7 @@
 #include <opentims++/opentims.h>
 #include <opentims++/tof2mz_converter.h>
 #include <opentims++/scan2inv_ion_mobility_converter.h>
+#include <OpenMS/FORMAT/RationalScan2ImConverter.h>
 #include <SQLiteCpp/SQLiteCpp.h>
 
 #include <memory>
@@ -24,6 +25,7 @@
 #include <numeric>
 #include <vector>
 #include <cmath>
+#include <cstdlib>
 #include <limits>
 #include <map>
 #include <set>
@@ -497,27 +499,119 @@ namespace OpenMS
 
   } // anonymous namespace
 
+  // Map OpenMS PressureCompensation enum to opentims pressure_compensation_strategy
+  static pressure_compensation_strategy mapPressureCompensation(
+    BrukerTimsFile::Config::PressureCompensation pc)
+  {
+    switch (pc)
+    {
+      case BrukerTimsFile::Config::PressureCompensation::GLOBAL:
+        return AnalyisGlobalPressureCompensation;
+      case BrukerTimsFile::Config::PressureCompensation::PER_FRAME:
+        return PerFramePressureCompensationWithMissingReference;
+      default:
+        return NoPressureCompensation;
+    }
+  }
+
   // =====================================================================
-  // Helper: open TimsDataHandle with open-source converters
+  // Helper: open TimsDataHandle with tiered calibration strategy
   // =====================================================================
-  static std::unique_ptr<TimsDataHandle> openTimsDataHandle(const String& path)
+  using Config = BrukerTimsFile::Config;
+
+  static std::unique_ptr<TimsDataHandle> openTimsDataHandle(
+    const String& path, const Config& config = Config())
   {
     std::string path_string = path;
 
-    // Pass open-source converter factory singletons directly to the handle
-    // constructor instead of mutating the global default (which is not thread-safe).
+    // 1. Always create handle with linear converters (safe baseline)
     auto& tof_factory = OpenSourceTof2MzConverterFactory::instance();
     auto& im_factory = OpenSourceScan2ImConverterFactory::instance();
 
+    std::unique_ptr<TimsDataHandle> handle;
     try
     {
-      return std::make_unique<TimsDataHandle>(path_string, NoPressureCompensation, &tof_factory, &im_factory);
+      handle = std::make_unique<TimsDataHandle>(
+        path_string, NoPressureCompensation, &tof_factory, &im_factory);
     }
     catch (const std::exception& e)
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         path + " (opentims: " + String(e.what()) + ")");
     }
+
+    using Strategy = Config::TimsCalibrationStrategy;
+    auto strategy = config.tims_calibration_strategy;
+
+    // Warn if pressure compensation requested without SDK strategy
+    if (config.pressure_compensation != Config::PressureCompensation::NONE
+        && strategy != Strategy::BRUKER_SDK
+        && strategy != Strategy::AUTO)
+    {
+      OPENMS_LOG_WARN << "Pressure compensation requires BRUKER_SDK strategy, ignoring"
+                      << std::endl;
+    }
+
+    // 2. Try Bruker SDK (AUTO or BRUKER_SDK)
+    if (strategy == Strategy::AUTO || strategy == Strategy::BRUKER_SDK)
+    {
+      std::string sdk_path = config.bruker_sdk_path;
+      if (sdk_path.empty())
+      {
+        const char* env = std::getenv("OPENMS_BRUKER_SDK_PATH");
+        if (env) sdk_path = env;
+      }
+
+      if (!sdk_path.empty())
+      {
+        try
+        {
+          auto pcs = mapPressureCompensation(config.pressure_compensation);
+          handle->scan2inv_ion_mobility_converter =
+            BrukerScan2InvIonMobilityConverterFactory::instance(sdk_path)
+              .produce(*handle, pcs);
+          OPENMS_LOG_INFO << "TIMS calibration: Bruker SDK"
+                          << (pcs != NoPressureCompensation ? " (pressure_comp=on)" : "")
+                          << std::endl;
+          return handle;
+        }
+        catch (const std::exception& e)
+        {
+          if (strategy == Strategy::BRUKER_SDK)
+          {
+            throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              String("Bruker SDK failed: ") + e.what());
+          }
+          OPENMS_LOG_DEBUG << "Bruker SDK not available (" << e.what()
+                          << "), trying rational" << std::endl;
+        }
+      }
+      else if (strategy == Strategy::BRUKER_SDK)
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Bruker SDK path not set (use OPENMS_BRUKER_SDK_PATH or Config::bruker_sdk_path)");
+      }
+    }
+
+    // 3. Try rational model from TimsCalibration table (AUTO or RATIONAL)
+    if (strategy == Strategy::AUTO || strategy == Strategy::RATIONAL)
+    {
+      auto converter = tryCreateRationalConverter(path_string);
+      if (converter)
+      {
+        handle->scan2inv_ion_mobility_converter = std::move(converter);
+        return handle;
+      }
+      else if (strategy == Strategy::RATIONAL)
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "TimsCalibration table not found or unsupported in " + path);
+      }
+    }
+
+    // 4. Linear fallback (already set from step 1)
+    OPENMS_LOG_INFO << "TIMS calibration: linear (GlobalMetadata)" << std::endl;
+    return handle;
   }
 
   // =====================================================================
@@ -641,7 +735,7 @@ namespace OpenMS
   void BrukerTimsFile::load(const String& path, MSExperiment& exp, const Config& config)
   {
     exp.clear(true);
-    auto handle = openTimsDataHandle(path);
+    auto handle = openTimsDataHandle(path, config);
 
     String tdf_path = path + "/analysis.tdf";
     bool is_dia = isDIA_(tdf_path);
@@ -687,7 +781,7 @@ namespace OpenMS
 
   void BrukerTimsFile::transform(const String& path, Interfaces::IMSDataConsumer* consumer, const Config& config)
   {
-    auto handle = openTimsDataHandle(path);
+    auto handle = openTimsDataHandle(path, config);
 
     String tdf_path = path + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
