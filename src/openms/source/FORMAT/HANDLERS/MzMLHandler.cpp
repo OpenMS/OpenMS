@@ -1517,7 +1517,7 @@ namespace OpenMS::Internal
         }
         else if (accession == "MS:1003441") //ion mobility centroid frame
         {
-          spec_.setIMFormat(IMFormat::CENTROIDED);
+          spec_.setIMPeakType(IMPeakType::IM_CENTROIDED);
         }
         // spectrum attribute
         else if (accession == "MS:1000511") //ms level
@@ -5092,7 +5092,7 @@ namespace OpenMS::Internal
       }
 
       //ion mobility frame representation
-      if (spec.getIMFormat() == IMFormat::CENTROIDED)
+      if (spec.getIMPeakType() == IMPeakType::IM_CENTROIDED)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1003441\" name=\"ion mobility centroid frame\" />\n";
       }
