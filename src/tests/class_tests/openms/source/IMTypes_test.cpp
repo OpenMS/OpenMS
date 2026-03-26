@@ -165,6 +165,17 @@ START_SECTION(static IMFormat determineIMFormat(const MSSpectrum& spec))
    TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA2) == IMFormat::IM_PEAK, true)
 END_SECTION
 
+START_SECTION(determineIMFormat returns IM_PEAK for centroided IM data)
+{
+  MSSpectrum s;
+  MSSpectrum::FloatDataArray fda;
+  fda.setName("Ion Mobility");
+  s.getFloatDataArrays().push_back(fda);
+  s.setIMPeakType(IMPeakType::IM_CENTROIDED);
+  TEST_EQUAL(IMTypes::determineIMFormat(s), IMFormat::IM_PEAK)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
