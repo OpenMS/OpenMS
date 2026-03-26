@@ -1185,7 +1185,7 @@ chromatograms to be consumed and need to be informed about this
         .def(nb::init<const OpenMS::IMTypes &>())
         .def("__copy__", [](const OpenMS::IMTypes& self) { return OpenMS::IMTypes(self); })
         .def("__deepcopy__", [](const OpenMS::IMTypes& self, nb::dict) { return OpenMS::IMTypes(self); }, "memo"_a)
-        .def_static("determineIMFormat", [](const OpenMS::MSExperiment& exp) { return OpenMS::IMTypes::determineIMFormat(exp); }, "exp"_a)
+        .def_static("determineIMFormat", [](const OpenMS::MSExperiment& exp, int ms_level) { return OpenMS::IMTypes::determineIMFormat(exp, ms_level); }, "exp"_a, "ms_level"_a)
         .def_static("determineIMFormat", [](const OpenMS::MSSpectrum& spec) { return OpenMS::IMTypes::determineIMFormat(spec); }, "spec"_a)
 
         .def_static("toDriftTimeUnit", [](const OpenMS::String& dtu_string) {
@@ -5082,7 +5082,7 @@ XMLFile
     // -----------------------------------------------------------------------
     // __static_* module-level wrappers for IMTypes
     // -----------------------------------------------------------------------
-    m.def("__static_IMTypes_determineIMFormat", [](const OpenMS::MSExperiment& exp) -> OpenMS::IMFormat { return OpenMS::IMTypes::determineIMFormat(exp); }, "exp"_a);
+    m.def("__static_IMTypes_determineIMFormat", [](const OpenMS::MSExperiment& exp, int ms_level) -> OpenMS::IMFormat { return OpenMS::IMTypes::determineIMFormat(exp, ms_level); }, "exp"_a, "ms_level"_a);
     m.def("__static_IMTypes_toDriftTimeUnit", [](const OpenMS::String& dtu_string) -> OpenMS::DriftTimeUnit { return OpenMS::toDriftTimeUnit(dtu_string); }, "dtu_string"_a);
     m.def("__static_IMTypes_driftTimeUnitToString", [](OpenMS::DriftTimeUnit value) -> OpenMS::String { return OpenMS::driftTimeUnitToString(value); }, "value"_a);
     m.def("__static_IMTypes_toIMFormat", [](const OpenMS::String& im_format) -> OpenMS::IMFormat { return OpenMS::toIMFormat(im_format); }, "im_format"_a);

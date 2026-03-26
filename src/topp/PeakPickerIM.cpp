@@ -196,14 +196,6 @@ protected:
                        << "This format is not supported." << std::endl;
       return ILLEGAL_PARAMETERS;
     }
-    if (im_format == IMFormat::MIXED)
-    {
-      OPENMS_LOG_ERROR << "Error: Input file contains mixed ion mobility formats "
-                       << "(both IM_PEAK and IM_SPECTRUM). PeakPickerIM expects raw (per-peak) IM data "
-                       << "where each spectrum contains an ion mobility float data array. "
-                       << "Mixed formats are not supported." << std::endl;
-      return ILLEGAL_PARAMETERS;
-    }
     if (im_format == IMFormat::NONE)
     {
       OPENMS_LOG_WARN << "Warning: Input file does not contain ion mobility data. "
@@ -244,8 +236,8 @@ protected:
       MzMLFile mzml;
       mzml.load(input_file, exp);
 
-      // Check if input contains no IM data (warning)
-      IMFormat im_format = IMTypes::determineIMFormat(exp);
+      // Check MS1 spectra for IM format (PeakPickerIM works on per-peak IM data in MS1 frames)
+      IMFormat im_format = IMTypes::determineIMFormat(exp, 1);
       if (im_format == IMFormat::NONE)
       {
         OPENMS_LOG_WARN << "Warning: Input file does not contain ion mobility data. "

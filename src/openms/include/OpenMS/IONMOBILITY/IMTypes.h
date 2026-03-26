@@ -41,16 +41,13 @@ namespace OpenMS
   OPENMS_DLLAPI const std::string& driftTimeUnitToString(const DriftTimeUnit value);
 
   /// Different ways to represent ion mobility data in a spectrum
-  /// Note: 
-  /// 1. MIXED is only used for MSExperiment, not for MSSpectrum
-  /// 2. UNKNOWN should be used if the format is not yet determined. 
+  /// Note: UNKNOWN should be used if the format is not yet determined.
   /// FileHandler or e.g. IM peak picker should ideally set the format a known value.
   enum class IMFormat
   {
     NONE,            ///< no ion mobility
     IM_PEAK,         ///< full TIMS frame / per-scan IM-resolved data: ion mobility is annotated per peak in a float data array
     IM_SPECTRUM,     ///< conventional spectrum with one precursor IM value (i.e. has one IM annotation per spectrum via getDriftTime())
-    MIXED,           ///< an MSExperiment contains both IM_PEAK and IM_SPECTRUM
     UNKNOWN,         ///< ion mobility format not yet determined.
     SIZE_OF_IMFORMAT
   };
@@ -95,11 +92,10 @@ namespace OpenMS
     /// If drift time for a spectrum is unavailable (i.e. not an IM spectrum), it will have this value
     inline static constexpr double DRIFTTIME_NOT_SET = -1.0;
 
-    /// Checks the all spectra for their type (see overload)
-    /// and returns the common type (or IMFormat::MIXED if both IM_PEAK and IM_SPECTRUM are present)
-    /// If @p exp is empty or contains no IM spectra at all, IMFormat::NONE is returned
-    /// @throws Exception::InvalidValue if IM values are annotated as single drift time and float array for any single spectrum
-    static IMFormat determineIMFormat(const MSExperiment& exp);
+    /// Checks only spectra of the given MS level for their IM format and returns the common type.
+    /// If no spectra of @p ms_level exist or none have IM data, IMFormat::NONE is returned.
+    /// @throws Exception::InvalidValue if spectra of the given MS level have different IM formats
+    static IMFormat determineIMFormat(const MSExperiment& exp, int ms_level);
 
     /** 
         @brief Checks for existence of a single driftTime (using spec.getDriftTime()) or an ion-mobility float data array (using spec.hasIMData()) 

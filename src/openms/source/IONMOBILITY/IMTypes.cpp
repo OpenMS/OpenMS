@@ -16,7 +16,7 @@ namespace OpenMS
 {
 
   const std::string NamesOfDriftTimeUnit[] = {"<NONE>", "ms", "1/K0", "FAIMS_CV", "CCS"};
-  const std::string NamesOfIMFormat[] = {"none", "im_peak", "im_spectrum", "mixed", "unknown"};
+  const std::string NamesOfIMFormat[] = {"none", "im_peak", "im_spectrum", "unknown"};
 
 
  DriftTimeUnit toDriftTimeUnit(const std::string& dtu_string)
@@ -82,21 +82,22 @@ namespace OpenMS
     return NamesOfIMPeakType[(int)im_peak_type];
   }
 
-  IMFormat IMTypes::determineIMFormat(const MSExperiment& exp)
+  IMFormat IMTypes::determineIMFormat(const MSExperiment& exp, int ms_level)
   {
     std::set<IMFormat> occs;
     for (const auto& spec : exp.getSpectra())
     {
+      if (spec.getMSLevel() != ms_level) continue;
       occs.insert(determineIMFormat(spec));
     }
-    occs.erase(IMFormat::NONE); // ignore NONE (i.e. normal spectra)
+    occs.erase(IMFormat::NONE);
 
     if (occs.empty())
     {
       return IMFormat::NONE;
-    }    
+    }
 
-    if (occs.size() == 1) 
+    if (occs.size() == 1)
     {
       auto format = *occs.begin();
       if (format != IMFormat::IM_PEAK && format != IMFormat::IM_SPECTRUM)
@@ -105,10 +106,12 @@ namespace OpenMS
       }
       return format;
     }
-    else    
+    else
     {
-      return IMFormat::MIXED;
-    }    
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "MSExperiment contains MS" + String(ms_level) + " spectra with different IM formats. "
+        "Handle per-spectrum.", "Number of different formats: " + String(occs.size()));
+    }
   }
 
   IMFormat IMTypes::determineIMFormat(const MSSpectrum& spec)
