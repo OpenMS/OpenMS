@@ -32,7 +32,7 @@ jobs:
             const association = '${{ steps.contributor.outputs.association }}';
             const username = '${{ steps.contributor.outputs.username }}';
             const eventName = context.eventName;
-            const issueNumber = eventName === 'pull_request'
+            const issueNumber = eventName === 'pull_request_target'
               ? context.payload.pull_request.number
               : context.issue.number;
             
@@ -50,7 +50,7 @@ jobs:
               });
 
               // 2. Post Comment
-              const type = eventName === 'pull_request' ? 'PR' : 'issue';
+              const type = eventName === 'pull_request_target' ? 'PR' : 'issue';
               const body = `Welcome @${username} and thank you for your contribution to OpenMS! To help us better understand our userbase and contributors, we would appreciate if you could complete the survey at the link below. Completing this survey will help us get to your ${type} sooner. Thank you for your participation!\n\n[Survey](https://tally.so/r/pbV6Qq)`;
 
               await github.rest.issues.createComment({
