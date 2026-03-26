@@ -97,11 +97,17 @@ public:
     /// @param[in] im_type
     void setIMFormat(const IMFormat& im_type);
 
-    /// @brief returns the IMFormat of the spectrum if set. Otherwise UNKNOWN (default). 
-    /// 
+    /// @brief returns the IMFormat of the spectrum if set. Otherwise UNKNOWN (default).
+    ///
     /// Note: If UNKNOWN, use IMFormat::determineIMFormat to determine the IMFormat based on the data.
     /// @return IMFormat of the spectrum
     IMFormat getIMFormat() const;
+
+    /// Set the IM peak type (profile vs centroided in the IM dimension)
+    void setIMPeakType(IMPeakType im_peak_type);
+
+    /// Get the IM peak type
+    IMPeakType getIMPeakType() const;
 
     /// returns the native identifier for the spectrum, used by the acquisition software.
     const String & getNativeID() const;
@@ -161,6 +167,7 @@ protected:
 
     SpectrumType type_ = SpectrumType::UNKNOWN;
     IMFormat im_type_ = IMFormat::UNKNOWN;
+    IMPeakType im_peak_type_ = IMPeakType::UNKNOWN;
     String native_id_;
     String comment_;
     InstrumentSettings instrument_settings_;

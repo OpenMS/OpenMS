@@ -90,6 +90,16 @@ namespace OpenMS
   {
     return im_type_;
   }
+
+  void SpectrumSettings::setIMPeakType(IMPeakType im_peak_type)
+  {
+    im_peak_type_ = im_peak_type;
+  }
+
+  IMPeakType SpectrumSettings::getIMPeakType() const
+  {
+    return im_peak_type_;
+  }
   
   const String & SpectrumSettings::getComment() const
   {

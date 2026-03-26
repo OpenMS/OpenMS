@@ -51,7 +51,7 @@ namespace OpenMS
     IM_PEAK,         ///< full TIMS frame / per-scan IM-resolved data: ion mobility is annotated per peak in a float data array
     IM_SPECTRUM,     ///< conventional spectrum with one precursor IM value (i.e. has one IM annotation per spectrum via getDriftTime())
     MIXED,           ///< an MSExperiment contains both IM_PEAK and IM_SPECTRUM
-    CENTROIDED,      ///< ion mobility of peaks after centroiding in IM dimension. Ion mobility is annotated in a single float data array (i.e., each peak might have a different IM value in the data array); identical to IM_PEAK in terms of data layout.
+    CENTROIDED,      ///< @deprecated Use IMPeakType::IM_CENTROIDED instead. Will be removed.
     UNKNOWN,         ///< ion mobility format not yet determined. 
     SIZE_OF_IMFORMAT
   };
@@ -64,6 +64,25 @@ namespace OpenMS
   /// convert an IMFormat enum to String
   /// @throws Exception::InvalidValue if @p value is SIZE_OF_IMFORMAT
   OPENMS_DLLAPI const std::string& imFormatToString(const IMFormat value);
+
+  /// Processing state of ion mobility data in the IM dimension.
+  /// Analogous to SpectrumSettings::SpectrumType for the m/z dimension.
+  enum class IMPeakType
+  {
+    IM_PROFILE,        ///< raw/unprocessed IM data (e.g. full TIMS frame before IM centroiding)
+    IM_CENTROIDED,     ///< IM data after centroiding in the IM dimension
+    UNKNOWN,           ///< IM peak type not yet determined
+    SIZE_OF_IMPEAKTYPE
+  };
+
+  /// Names of IMPeakType entries
+  OPENMS_DLLAPI extern const std::string NamesOfIMPeakType[(size_t) IMPeakType::SIZE_OF_IMPEAKTYPE];
+
+  /// Convert string to IMPeakType
+  OPENMS_DLLAPI IMPeakType toIMPeakType(const std::string& im_peak_type);
+
+  /// Convert IMPeakType to string
+  OPENMS_DLLAPI const std::string& imPeakTypeToString(IMPeakType im_peak_type);
 
   class OPENMS_DLLAPI IMTypes
   {

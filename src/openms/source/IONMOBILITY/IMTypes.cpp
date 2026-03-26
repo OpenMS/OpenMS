@@ -61,6 +61,27 @@ namespace OpenMS
     return NamesOfIMFormat[(size_t)value];
   }
 
+  const std::string NamesOfIMPeakType[] = {"im_profile", "im_centroided", "unknown"};
+
+  IMPeakType toIMPeakType(const std::string& im_peak_type)
+  {
+    auto idx = std::find(NamesOfIMPeakType, NamesOfIMPeakType + (int)IMPeakType::SIZE_OF_IMPEAKTYPE, im_peak_type);
+    if (idx == NamesOfIMPeakType + (int)IMPeakType::SIZE_OF_IMPEAKTYPE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid IMPeakType", im_peak_type);
+    }
+    return (IMPeakType)std::distance(NamesOfIMPeakType, idx);
+  }
+
+  const std::string& imPeakTypeToString(IMPeakType im_peak_type)
+  {
+    if ((size_t)im_peak_type >= (size_t)IMPeakType::SIZE_OF_IMPEAKTYPE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid IMPeakType index", std::to_string((int)im_peak_type));
+    }
+    return NamesOfIMPeakType[(int)im_peak_type];
+  }
+
   IMFormat IMTypes::determineIMFormat(const MSExperiment& exp)
   {
     std::set<IMFormat> occs;
