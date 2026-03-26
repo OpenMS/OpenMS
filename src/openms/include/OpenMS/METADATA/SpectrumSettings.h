@@ -103,10 +103,12 @@ public:
     /// @return IMFormat of the spectrum
     IMFormat getIMFormat() const;
 
-    /// Set the IM peak type (profile vs centroided in the IM dimension)
+    /// @brief sets the IM peak type (profile vs centroided in the IM dimension)
+    /// @param[in] im_peak_type the IM processing state to set
     void setIMPeakType(IMPeakType im_peak_type);
 
-    /// Get the IM peak type
+    /// @brief returns the IM peak type of the spectrum if set. Otherwise UNKNOWN (default).
+    /// @return IMPeakType of the spectrum
     IMPeakType getIMPeakType() const;
 
     /// returns the native identifier for the spectrum, used by the acquisition software.

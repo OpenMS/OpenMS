@@ -77,10 +77,16 @@ namespace OpenMS
   /// Names of IMPeakType entries
   OPENMS_DLLAPI extern const std::string NamesOfIMPeakType[(size_t) IMPeakType::SIZE_OF_IMPEAKTYPE];
 
-  /// Convert string to IMPeakType
+  /// @brief converts a string to IMPeakType
+  /// @param[in] im_peak_type string representation (e.g. "im_profile", "im_centroided", "unknown")
+  /// @return the corresponding IMPeakType enum value
+  /// @throws Exception::InvalidValue if the string does not match any known IMPeakType
   OPENMS_DLLAPI IMPeakType toIMPeakType(const std::string& im_peak_type);
 
-  /// Convert IMPeakType to string
+  /// @brief converts an IMPeakType to a string
+  /// @param[in] im_peak_type the enum value to convert
+  /// @return reference to the string representation
+  /// @throws Exception::InvalidValue if the enum value is out of range
   OPENMS_DLLAPI const std::string& imPeakTypeToString(IMPeakType im_peak_type);
 
   class OPENMS_DLLAPI IMTypes
