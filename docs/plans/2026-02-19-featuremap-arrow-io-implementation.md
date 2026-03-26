@@ -663,42 +663,28 @@ git commit -m "test: add full Parquet directory round-trip test for FeatureMapAr
 
 ---
 
-### Task 13: Add pyOpenMS binding declaration
+### Task 13: Add pyOpenMS nanobind binding
 
 **Files:**
-- Create: `src/pyOpenMS/pxds/FeatureMapArrowIO.pxd`
+- Modify: `src/pyOpenMS/bindings/bind_format.cpp`
 
-**Step 1: Write the .pxd file**
+**Step 1: Add nanobind binding**
 
-Follow the pattern from `src/pyOpenMS/pxds/ProteinIdentificationArrowIO.pxd`:
+Add the binding to `bind_format.cpp` following the existing patterns (see `src/pyOpenMS/CLAUDE.md` for wrapping instructions):
 
-```cython
-from Types cimport *
-from libcpp cimport bool
-from libcpp.string cimport string as libcpp_string
-from libcpp.vector cimport vector as libcpp_vector
-from FeatureMap cimport *
-from MSExperimentArrowExport cimport *
+```cpp
+#include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 
-cdef extern from "<OpenMS/FORMAT/FeatureMapArrowIO.h>" namespace "OpenMS":
-
-    cdef cppclass FeatureMapArrowIO:
-        # wrap-doc:
-        #  Import and export FeatureMap data to/from Apache Arrow format.
-        #  Stores data as a directory of Parquet files.
-
-        # No constructor needed - all methods are static
-
-        bool exportToParquet(
-            FeatureMap feature_map,
-            String directory,
-            ParquetWriteConfig config
-        ) except + nogil # wrap-static # wrap-doc:Export FeatureMap to directory of Parquet files
-
-        bool importFromParquet(
-            String directory,
-            FeatureMap& feature_map
-        ) except + nogil # wrap-static # wrap-doc:Import FeatureMap from directory of Parquet files
+// Inside NB_MODULE:
+nb::class_<OpenMS::FeatureMapArrowIO>(m, "FeatureMapArrowIO",
+    "Import and export FeatureMap data to/from Apache Arrow Parquet format.")
+    .def_static("exportToParquet", &OpenMS::FeatureMapArrowIO::exportToParquet,
+        "feature_map"_a, "directory"_a, "config"_a,
+        "Export FeatureMap to directory of Parquet files")
+    .def_static("importFromParquet", &OpenMS::FeatureMapArrowIO::importFromParquet,
+        "directory"_a, "feature_map"_a,
+        "Import FeatureMap from directory of Parquet files")
+    ;
 ```
 
 Note: Only expose the high-level `exportToParquet`/`importFromParquet` to Python (not the Arrow Table methods, since Arrow C Data Interface is handled separately).
@@ -706,13 +692,12 @@ Note: Only expose the high-level `exportToParquet`/`importFromParquet` to Python
 **Step 2: Build pyOpenMS to verify**
 
 Run: `cmake --build OpenMS-build --target pyopenms -j$(nproc) 2>&1 | tail -10`
-Expected: Build succeeds (or at least the .pxd is syntactically valid)
 
 **Step 3: Commit**
 
 ```bash
-git add src/pyOpenMS/pxds/FeatureMapArrowIO.pxd
-git commit -m "feat: add pyOpenMS binding declaration for FeatureMapArrowIO"
+git add src/pyOpenMS/bindings/bind_format.cpp
+git commit -m "feat: add pyOpenMS nanobind binding for FeatureMapArrowIO"
 ```
 
 ---
