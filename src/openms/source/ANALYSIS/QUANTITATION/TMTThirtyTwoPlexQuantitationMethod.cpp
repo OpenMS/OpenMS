@@ -136,18 +136,15 @@ namespace OpenMS{
         defaults_.setValidStrings("reference_channel", TMTThirtyTwoPlexQuantitationMethod::channel_names_);
 
         // Identity matrix (no isotope correction). Calibrated correction values are
-        // not yet available for TMT 32-plex. Users should supply their own values from
-        // the Thermo certificate for their specific lot via the correction_matrix parameter.
+        // not yet available for TMT 32-plex. The correction_matrix parameter is ignored;
+        // getIsotopeCorrectionMatrix() always returns an identity matrix regardless of user input.
         //
         // Each row has 14 NA entries → all off-diagonal contributions are 0, diagonal is 1.0.
         const std::string identity_row = "NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA";
         defaults_.setValue("correction_matrix",
                            std::vector<std::string>(32, identity_row),
-                           "Correction matrix for isotope distributions in percent from the Thermo data sheet (see documentation); "
-                           "Please provide 32 entries (rows), separated by comma, where each entry contains 14 values in the following format: "
-                           "<-C13-H2>/<-2C13>/<-N15-H2>/<-C13-N15>/<-H2>/<-C13>/<-N15>/<+N15>/<+C13>/<+H2>/<+N15+C13>/<+N15+H2>/<+2C13>/<+C13+H2> "
-                           "e.g. one row may look like this: 'NA/NA/NA/NA  /  0.82/NA/NA  /  0.30/8.71/0.33  /  0.00/0.00/0.26/0.00'. "
-                           "You may use whitespaces at your leisure to ease reading.");
+                           "Ignored for TMT 32-plex (identity matrix is always used). "
+                           "Isotope correction is not yet supported for this method.");
         defaultsToParam_();
     }
 
@@ -215,7 +212,10 @@ Size TMTThirtyTwoPlexQuantitationMethod::getNumberOfChannels() const
 
 Matrix<double> TMTThirtyTwoPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
 {
-    StringList iso_correction = ListUtils::toStringList<std::string>(getParameters().getValue("correction_matrix"));
+    // Always return identity matrix — isotope correction is not yet validated for TMT 32-plex.
+    // User-supplied correction_matrix parameter is ignored.
+    const std::string identity_row = "NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA";
+    StringList iso_correction(32, identity_row);
     return stringListToIsotopeCorrectionMatrix_(iso_correction);
 }
 
