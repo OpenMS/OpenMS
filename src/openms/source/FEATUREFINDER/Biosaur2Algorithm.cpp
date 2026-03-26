@@ -1247,6 +1247,14 @@ void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
     StopWatch stage_timer;
     stage_timer.start();
     centroidPASEFData_(group_exp, mz_step, original_paseftol);
+    // Mark spectra as IM-centroided so the skip logic is self-consistent
+    for (auto& spec : group_exp)
+    {
+      if (IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK)
+      {
+        spec.setIMPeakType(IMPeakType::IM_CENTROIDED);
+      }
+    }
     stage_timer.stop();
     OPENMS_LOG_INFO << "PASEF centroiding for group (FAIMS CV=" << faims_cv
                     << ") took " << stage_timer.toString() << endl;
