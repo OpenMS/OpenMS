@@ -256,6 +256,34 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
   }
   done_ccs_check:
 
+  // Log IM peak type if IM data is present.
+  for (const auto& group_pair : groups)
+  {
+    const MSExperiment& group_exp = group_pair.second;
+    bool any_im_array = false;
+    for (const auto& spec : group_exp)
+    {
+      if (IMTypes::determineIMFormat(spec) != IMFormat::NONE)
+      {
+        any_im_array = true;
+        break;
+      }
+    }
+    if (any_im_array)
+    {
+      for (const auto& spec : group_exp)
+      {
+        IMPeakType pt = spec.getIMPeakType();
+        if (pt != IMPeakType::UNKNOWN)
+        {
+          OPENMS_LOG_INFO << "IM peak type: " << imPeakTypeToString(pt) << endl;
+          break;
+        }
+      }
+      break; // Only need to report once
+    }
+  }
+
   // Parallelize processing across FAIMS groups. Each group is handled
   // independently using its own local hills/features containers.
   #pragma omp parallel for schedule(dynamic)
@@ -1182,9 +1210,27 @@ void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
     mz_step = htol_ * 1e-6 * max_mz_value;
   }
 
+  // Only IM_CENTROIDED skips centroiding. UNKNOWN and IM_PROFILE proceed normally.
+  bool im_already_centroided = false;
+  for (const auto& spec : group_exp)
+  {
+    if (spec.getIMPeakType() == IMPeakType::IM_CENTROIDED)
+    {
+      im_already_centroided = true;
+      break;
+    }
+  }
+
+  if (im_already_centroided)
+  {
+    OPENMS_LOG_INFO << "IM data is already centroided (IMPeakType::IM_CENTROIDED). "
+                    << "Skipping internal PASEF/TIMS centroiding for group (FAIMS CV="
+                    << faims_cv << ")." << endl;
+  }
+
   // Decide whether to use IM-based centroiding and gating for this group.
   const bool use_im_group = (any_im_array && !any_missing_im && original_paseftol > 0.0);
-  if (use_im_group && mz_step > 0.0)
+  if (use_im_group && mz_step > 0.0 && !im_already_centroided)
   {
     OPENMS_LOG_INFO << "Applying PASEF/TIMS centroiding for group (FAIMS CV="
                     << faims_cv << ") with paseftol=" << original_paseftol << endl;
