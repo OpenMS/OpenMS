@@ -1285,6 +1285,12 @@ namespace OpenMS::Internal
           }
           */
 
+          // If the spectrum has IM data but no centroid annotation was set, default to profile
+          if (spec_.containsIMData() && spec_.getIMPeakType() == IMPeakType::UNKNOWN)
+          {
+            spec_.setIMPeakType(IMPeakType::IM_PROFILE);
+          }
+
           // Move current data to (temporary) spectral data object
           SpectrumData tmp;
           tmp.spectrum = std::move(spec_);
