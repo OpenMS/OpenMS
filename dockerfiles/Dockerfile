@@ -55,6 +55,8 @@ RUN apt-get update \
   && apt-get update && apt-get install -y --no-install-recommends wget \
   && wget https://repo1.maven.org/maven2/org/apache/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \
   && apt-get install -y --no-install-recommends ./apache-arrow-apt-source-latest-noble.deb \
+  # Pin Arrow/Parquet to v23 so build-time dev libs match the runtime SONAME (libarrow2300/libparquet2300)
+  && printf 'Package: libarrow* libparquet*\nPin: version 23.*\nPin-Priority: 999\n' > /etc/apt/preferences.d/arrow \
   && apt-get update && apt-get install -y --no-install-recommends --no-install-suggests libparquet-dev \
   && rm apache-arrow-apt-source-latest-noble.deb
 
