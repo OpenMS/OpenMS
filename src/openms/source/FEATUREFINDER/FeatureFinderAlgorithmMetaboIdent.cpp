@@ -336,6 +336,18 @@ namespace OpenMS
     // Check if data has ion mobility information
     IMFormat im_format = IMTypes::determineIMFormat(ms_data_);
     bool has_IM = (im_format == IMFormat::IM_PEAK || im_format == IMFormat::IM_SPECTRUM);
+    if (has_IM)
+    {
+      for (const auto& spec : ms_data_)
+      {
+        IMPeakType pt = spec.getIMPeakType();
+        if (pt != IMPeakType::UNKNOWN)
+        {
+          OPENMS_LOG_INFO << "IM peak type: " << imPeakTypeToString(pt) << endl;
+          break;
+        }
+      }
+    }
     if (has_IM && im_window_ > 0.0)
     {
       OPENMS_LOG_INFO << "Ion mobility data detected. Using IM window: " << im_window_ << endl;
