@@ -972,6 +972,7 @@ namespace OpenMS
       centroided_frame.setName(spectrum.getName());
       centroided_frame.setRT(spectrum.getRT());
       removeAllFloatDataArraysExcept(centroided_frame, Constants::UserParam::ION_MOBILITY_CENTROID);
+      centroided_frame.setIMFormat(IMFormat::IM_PEAK);
       centroided_frame.setIMPeakType(IMPeakType::IM_CENTROIDED);
       spectrum = std::move(centroided_frame);
       
@@ -1222,6 +1223,7 @@ namespace OpenMS
       spectrum.updateRanges();
       // ensure the output IM array is updated
       spectrum.getFloatDataArrays()[im_data_index].setName(Constants::UserParam::ION_MOBILITY_CENTROID);
+      spectrum.setIMFormat(IMFormat::IM_PEAK);
       spectrum.setIMPeakType(IMPeakType::IM_CENTROIDED);
       removeAllFloatDataArraysExcept(spectrum, Constants::UserParam::ION_MOBILITY_CENTROID);
     } // End of pickIMCluster function
@@ -1317,6 +1319,7 @@ namespace OpenMS
       input.updateRanges();
       // ensure the output im name is updated
       input.getFloatDataArrays()[im_data_index].setName(Constants::UserParam::ION_MOBILITY_CENTROID);
+      input.setIMFormat(IMFormat::IM_PEAK);
       input.setIMPeakType(IMPeakType::IM_CENTROIDED);
       removeAllFloatDataArraysExcept(input, Constants::UserParam::ION_MOBILITY_CENTROID);
     }

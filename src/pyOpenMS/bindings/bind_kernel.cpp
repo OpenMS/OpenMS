@@ -162,9 +162,7 @@ NB_MODULE(_pyopenms_kernel, m) {
                "IM data after centroiding in the IM dimension")
         .value("UNKNOWN", OpenMS::IMPeakType::UNKNOWN,
                "IM peak type not yet determined")
-        .value("SIZE_OF_IMPEAKTYPE", OpenMS::IMPeakType::SIZE_OF_IMPEAKTYPE)
-
-        .export_values();
+        .value("SIZE_OF_IMPEAKTYPE", OpenMS::IMPeakType::SIZE_OF_IMPEAKTYPE);
 
     // -----------------------------------------------------------------------
     // AnnotationStatistics

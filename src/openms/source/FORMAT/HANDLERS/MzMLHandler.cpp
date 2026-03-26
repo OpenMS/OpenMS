@@ -165,6 +165,18 @@ namespace OpenMS::Internal
         }
       }
 
+      // Now that binary data arrays have been decoded and materialized into
+      // each spectrum's float data arrays, we can reliably check containsIMData().
+      // Default any IM spectrum with UNKNOWN peak type to IM_PROFILE.
+      for (Size i = 0; i < spectrum_data_.size(); i++)
+      {
+        auto& spec = spectrum_data_[i].spectrum;
+        if (spec.containsIMData() && spec.getIMPeakType() == IMPeakType::UNKNOWN)
+        {
+          spec.setIMPeakType(IMPeakType::IM_PROFILE);
+        }
+      }
+
       // Append all spectra to experiment / consumer
       for (Size i = 0; i < spectrum_data_.size(); i++)
       {
@@ -1284,12 +1296,6 @@ namespace OpenMS::Internal
           else                         spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MSNSPECTRUM);
           }
           */
-
-          // If the spectrum has IM data but no centroid annotation was set, default to profile
-          if (spec_.containsIMData() && spec_.getIMPeakType() == IMPeakType::UNKNOWN)
-          {
-            spec_.setIMPeakType(IMPeakType::IM_PROFILE);
-          }
 
           // Move current data to (temporary) spectral data object
           SpectrumData tmp;

@@ -1210,15 +1210,25 @@ void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
     mz_step = htol_ * 1e-6 * max_mz_value;
   }
 
-  // Only IM_CENTROIDED skips centroiding. UNKNOWN and IM_PROFILE proceed normally.
-  bool im_already_centroided = false;
+  // Only skip centroiding if ALL spectra with IM data are already centroided.
+  // UNKNOWN and IM_PROFILE are treated as raw data needing centroiding.
+  bool im_already_centroided = true; // assume true, falsify if any is not centroided
+  bool found_im_spectrum = false;
   for (const auto& spec : group_exp)
   {
-    if (spec.getIMPeakType() == IMPeakType::IM_CENTROIDED)
+    if (IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK)
     {
-      im_already_centroided = true;
-      break;
+      found_im_spectrum = true;
+      if (spec.getIMPeakType() != IMPeakType::IM_CENTROIDED)
+      {
+        im_already_centroided = false;
+        break;
+      }
     }
+  }
+  if (!found_im_spectrum)
+  {
+    im_already_centroided = false;
   }
 
   if (im_already_centroided)
