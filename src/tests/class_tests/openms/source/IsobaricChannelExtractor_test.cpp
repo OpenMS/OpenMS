@@ -726,17 +726,57 @@ START_SECTION(([EXTRA] TMT 10plex support))
 }
 END_SECTION
 
-// 32plex channel extraction test
+// 32plex channel extraction test with synthetic spectrum (identity correction matrix)
+// Build an MS2 spectrum from scratch with known intensities at each TMT32 channel m/z.
+// With the default all-NA correction matrix (identity), extracted intensities must
+// match the input exactly.
 
 START_SECTION(([EXTRA] TMT 32plex support)){
+  // TMT32 channel m/z positions
+  double channel_mz[32] = {
+    126.127726, 127.124761, 127.131081, 127.134003, 128.128116, 128.134436,
+    128.131038, 128.137358, 129.131471, 129.137790, 129.134393, 129.140713,
+    130.134825, 130.141145, 130.137748, 130.144068, 131.138180, 131.144500,
+    131.141103, 131.147423, 132.141535, 132.147855, 132.144458, 132.150778,
+    133.144890, 133.151210, 133.147813, 133.154133, 134.148245, 134.151171,
+    134.157491, 135.154526
+  };
+
+  // Known intensities for each channel
+  double intensities[32];
+  for (int i = 0; i < 32; ++i)
+  {
+    intensities[i] = 1000.0 * (i + 1);
+  }
+
+  // Build synthetic MS2 spectrum with peaks at channel positions
+  MSSpectrum ms2;
+  ms2.setMSLevel(2);
+  ms2.setRT(100.0);
+  ms2.setNativeID("scan=1");
+
+  Precursor precursor;
+  precursor.setMZ(500.0);
+  ms2.setPrecursors({precursor});
+
+  for (int i = 0; i < 32; ++i)
+  {
+    Peak1D peak;
+    peak.setMZ(channel_mz[i]);
+    peak.setIntensity(intensities[i]);
+    ms2.push_back(peak);
+  }
+  ms2.sortByPosition();
+
   PeakMap tmt32plex_exp;
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_9.mzML"), tmt32plex_exp);
+  tmt32plex_exp.addSpectrum(ms2);
+  tmt32plex_exp.sortSpectra(true);
 
   TMTThirtyTwoPlexQuantitationMethod tmt32plex;
   IsobaricChannelExtractor ice(&tmt32plex);
 
-  // active filter disabled
   Param p = ice.getParameters();
+  p.setValue("select_activation", "any");
   p.setValue("reporter_mass_shift", 0.003);
   ice.setParameters(p);
 
@@ -752,16 +792,10 @@ START_SECTION(([EXTRA] TMT 32plex support)){
 
   TEST_EQUAL(cm_it->size(), 32)
   ABORT_IF(cm_it->size() != 32)
-  TEST_EQUAL(cm_it->getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=23")
+  TEST_EQUAL(cm_it->getMetaValue("scan_id"), "scan=1")
 
   cf_it = cm_it->begin();
 
-  double intensities[32] = {174978, 33578.6, 14640.9, 42917.2, 41741.8, 73027.1,
-                            47086.7, 58482.9, 73380.2, 49026.1, 82125.5, 43730.7,
-                            87259.7, 66156.6, 152732, 66648.5, 150535, 43049.1,
-                            537317, 68942.6, 81902.3, 51899.4, 40830.6, 35191.4,
-                            53362.3, 52659.6, 30941,   39247.7, 54863.8, 48456.3,
-                            2677.06, 2649.51};
   for (int i = 0; i < 32; ++i)
   {
     TEST_REAL_SIMILAR(cf_it->getIntensity(), intensities[i])

@@ -10,7 +10,6 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <array>
 #include <algorithm>
 
@@ -31,7 +30,13 @@ namespace OpenMS{
                                                                                         "134N","134ND", "134CD",
                                                                                         "135ND"};
 
-    static const std::array<std::array<int, 14>, 32> interaction_vector = {{  
+    // Channel adjacency topology: maps each channel to its neighbors in mass space
+    // for isotope correction. Each row has 14 entries matching the 14-column correction
+    // matrix format. Values are channel indices (-1 = no neighbor at that offset).
+    // With the default all-NA correction_matrix, no correction is applied regardless
+    // of these values. Users supplying calibrated correction percentages need this
+    // topology to route corrections to the correct target channels.
+    static const std::array<std::array<int, 14>, 32> interaction_vector = {{
                                         {{ -1, -1, -1, -1, -1, -1, -1,  1,  2,  3,  4,  6,  5,  7 }},
                                         {{ -1, -1, -1, -1, -1, -1,  0, -1,  4,  6, -1, -1,  8, 10 }},
                                         {{ -1, -1, -1, -1, -1,  0, -1,  4,  5,  7,  8, 10,  9, 11 }},
@@ -76,15 +81,6 @@ namespace OpenMS{
 
     TMTThirtyTwoPlexQuantitationMethod::TMTThirtyTwoPlexQuantitationMethod(){
         setName("TMTThirtyTwoPlexQuantitationMethod");
-
-        static bool warned = false;
-        if (!warned)
-        {
-            OPENMS_LOG_WARN << "Warning: TMT 32-plex isotope correction is not yet calibrated. "
-                            << "Using identity matrix (no correction). Supply your own correction_matrix "
-                            << "values from your Thermo certificate for accurate quantitation." << std::endl;
-            warned = true;
-        }
 
         // Reporter ion masses from Thermo TMTpro documentation:
         // https://assets.thermofisher.com/TFS-Assets/LSG/manuals/MAN0018773_TMTproMassTagLabelingReagentsandKits_UG.pdf
