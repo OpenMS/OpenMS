@@ -15,6 +15,7 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -721,6 +722,51 @@ START_SECTION(([EXTRA] TMT 10plex support))
   ++cf_it;
   TEST_REAL_SIMILAR(cf_it->getIntensity(), 30866.5)
   ++cf_it;
+  ABORT_IF(cf_it != cm_it->end())
+}
+END_SECTION
+
+// 32plex channel extraction test
+
+START_SECTION(([EXTRA] TMT 32plex support)){
+  PeakMap tmt32plex_exp;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_9.mzML"), tmt32plex_exp);
+
+  TMTThirtyTwoPlexQuantitationMethod tmt32plex;
+  IsobaricChannelExtractor ice(&tmt32plex);
+
+  // active filter disabled
+  Param p = ice.getParameters();
+  p.setValue("reporter_mass_shift", 0.003);
+  ice.setParameters(p);
+
+  // channel extraction
+  ConsensusMap cm_out;
+  ice.extractChannels(tmt32plex_exp, cm_out);
+
+  TEST_EQUAL(cm_out.size(), 1)
+  ABORT_IF(cm_out.size() != 1)
+
+  ConsensusMap::iterator cm_it = cm_out.begin();
+  ConsensusFeature::iterator cf_it;
+
+  TEST_EQUAL(cm_it->size(), 32)
+  ABORT_IF(cm_it->size() != 32)
+  TEST_EQUAL(cm_it->getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=23")
+
+  cf_it = cm_it->begin();
+
+  double intensities[32] = {174978, 33578.6, 14640.9, 42917.2, 41741.8, 73027.1,
+                            47086.7, 58482.9, 73380.2, 49026.1, 82125.5, 43730.7,
+                            87259.7, 66156.6, 152732, 66648.5, 150535, 43049.1,
+                            537317, 68942.6, 81902.3, 51899.4, 40830.6, 35191.4,
+                            53362.3, 52659.6, 30941,   39247.7, 54863.8, 48456.3,
+                            2677.06, 2649.51};
+  for (int i = 0; i < 32; ++i)
+  {
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), intensities[i])
+    ++cf_it;
+  }
   ABORT_IF(cf_it != cm_it->end())
 }
 END_SECTION

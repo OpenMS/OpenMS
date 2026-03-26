@@ -94,6 +94,16 @@ namespace OpenMS
     */
     inline const double C13C12_MASSDIFF_U = 1.0033548378; // u
 
+    /** ^14N to ^15N mass difference.
+        In units (\f$0.997034894\f$u)
+    */
+    inline const double N15N14_MASSDIFF_U = 0.997034894015; // u
+
+    /** ^1H (Hydrogen) to ^2H (Deuterium) mass difference
+        In units (\f$1.006276745946\f$u)     
+    */
+    inline const double H2H1_MASSDIFF_U = 1.006276745946; //u
+
     /** Average mass difference between consecutive isotopes for proteins of mass 55kDa. Referred to the values used in TopPIC.
         In units (\f$1.002371\f$u)
     */
