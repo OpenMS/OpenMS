@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $, Julianus Pfeuffer $
+// $Maintainer: Chris Bielow, Julianus Pfeuffer $
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 

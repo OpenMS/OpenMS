@@ -155,7 +155,7 @@ namespace OpenMS{
                            "Correction matrix for isotope distributions in percent from the Thermo data sheet (see documentation); "
                            "Please provide 35 entries (rows), separated by comma, where each entry contains 14 values in the following format: "
                            "<-C13-H2>/<-2C13>/<-N15-H2>/<-C13-N15>/<-H2>/<-C13>/<-N15>/<+N15>/<+C13>/<+H2>/<+N15+C13>/<+N15+H2>/<+2C13>/<+C13+H2> "
-                           "e.g. one row may look like this: 'NA/NA/NA/NA /0.82/NA/NA/ /0.30/8.71/0.33 /0.00/0.00/0.26/0.00'. "
+                           "e.g. one row may look like this: 'NA/NA/NA/NA  /  0.82/NA/NA  /  0.30/8.71/0.33  /  0.00/0.00/0.26/0.00'. "
                            "You may use whitespaces at your leisure to ease reading.");
         defaultsToParam_();
     }
