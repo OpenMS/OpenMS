@@ -20,7 +20,7 @@ General:
   - macOS Intel builds discontinued; macOS deployment target raised to macOS 14
   - Ubuntu CI runners updated to 24.04
   - macOS code signing and notarization integrated directly into CI (#8486, #8494, #8527)
-  - Parquet support enabled across all platforms (#8370, #8422)
+  - Parquet support enabled across all platforms; Arrow/Parquet is now a required dependency and the WITH_PARQUET CMake option has been removed (#8370, #8422, #8991)
   - Modernized TransformationDescription to use std::unique_ptr for memory safety
   - Fix undefined behavior in ProteinIdentification get*DataArrayByName by throwing ElementNotFound when the name is missing
   - Removed leftover traces of removed doc_internal target (#2256)
@@ -220,6 +220,7 @@ OpenMS Library:
     - ArrowSchemaRegistry: centralizes all Arrow/Parquet schema definitions with strict (write) and subset (read) validation modes (#8970)
     - ModifiedSincSmoother: new class for profile data smoothing using Modified Sinc interpolation with configurable degree, window size, and passband correction coefficients (#8217)
     - BrukerTimsFile: experimental reader for Bruker TimsTOF .d directory format (BRUKER_TDF file type); supports DDA-PASEF, DIA-PASEF, and raw frame-level 4D access; requires CMake option WITH_TIMSRUST=ON (#8975)
+    - BrukerTimsFile: tiered scan→1/K0 calibration with three fallback levels: Bruker SDK → rational function from TimsCalibration table (open-source) → linear; RationalScan2ImConverter added for the rational function model (#8999)
   Changes:
     - BREAKING: Matrix<T> no longer inherits from Eigen; uses std::vector<T> for storage (#8511)
     - BREAKING: Eigen moved from PUBLIC to PRIVATE linking - downstream users no longer need Eigen headers (#8511)
@@ -249,6 +250,7 @@ OpenMS Library:
     - Use unordered_map in PrecursorPurity, PeptideProteinResolution, and PeptideIndexing for faster lookups (#8806, #8763)
     - OpenSwath scoring speedups: cap XCorr maxdelay, vectorize DIAScoring, hoist loop-invariant computations, pass SwathMap by const& (#8787, #8785)
     - BREAKING: ChromatogramPeak::IntensityType changed from double to float for consistency with Peak1D (#8857)
+    - BREAKING: IMFormat enum values renamed for clarity: CONCATENATED → IM_PEAK, MULTIPLE_SPECTRA → IM_SPECTRUM (#8993)
     - AccurateMassSearchEngine: Performance improvement when use_feature_adducts is set and a specific adduct is observed; only that adduct is evaluated instead of the full list (fixes #5867) (#8635)
     - BREAKING: Transitive Qt and other includes trimmed from core KERNEL and METADATA headers (ConsensusMap.h, FeatureMap.h, ProteinIdentification.h, SpectrumSettings.h, ExperimentalSettings.h); downstream code relying on these transitive includes must now include headers directly (#8946)
 
@@ -276,6 +278,7 @@ Fixes:
   - Fix OpenSwathWorkflow run_id type mismatch between FEATURE table RUN_ID (INTEGER) and RUN table ID (BLOB) in OSW-Sqlite output (#8869)
   - Fix IDMapper duplicate spectrum reference insertion when the same spectrum is mapped multiple times (#8905)
   - Fix segfault in FeatureLinkerUnlabeledKD with charge_merging=Any when all candidate features have a non-matching charge, causing best_index to remain unset (#8944)
+  - Fix TOPPView performance regression when right-clicking in large mzML files (#8997)
 
 Documentation:
   - Comprehensive documentation for Targeted Quantitation algorithms (#8588)
@@ -308,6 +311,7 @@ Build System:
   - Correctly locate a locally installed nanobind in CMake (#8874)
   - Fix pyOpenMS MSVC compile-time error caused by nanobind __forceinline expansion in heavily templated code (#8933)
   - Fix Windows CI Release builds: removed erroneous /Od /Ob0 flag override that caused all Windows CI Release binaries to be unoptimized since 2021; builds now use CMake defaults (/O2 /Ob2) (#8961)
+  - Arrow/Parquet made a required dependency; WITH_PARQUET CMake option removed (#8991)
   - Qt6::Core removed from libOpenMS PUBLIC CMake link dependencies; downstream CMake targets must now explicitly link Qt6::Core if needed (#8965)
 
 
