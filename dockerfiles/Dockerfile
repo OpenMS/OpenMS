@@ -161,6 +161,7 @@ ARG INSTALL_DIR
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends --no-install-suggests \
+    ca-certificates \
     wget \
     qt6-base-dev \
     libqt6opengl6 \
