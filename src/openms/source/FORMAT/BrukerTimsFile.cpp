@@ -655,6 +655,7 @@ namespace OpenMS
     }
     IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
     spec.getFloatDataArrays().push_back(std::move(im_array));
+    spec.setIMPeakType(IMPeakType::IM_PROFILE);
   }
 
   // =====================================================================
@@ -704,6 +705,7 @@ namespace OpenMS
     im_array.assign(cent_im.begin(), cent_im.end());
     IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
     spec.getFloatDataArrays().push_back(std::move(im_array));
+    spec.setIMPeakType(IMPeakType::IM_CENTROIDED);
   }
 
   // =====================================================================
@@ -1349,6 +1351,7 @@ namespace OpenMS
         if (!spec.empty())
         {
           spec.getFloatDataArrays().push_back(std::move(im_array));
+          spec.setIMPeakType(IMPeakType::IM_PROFILE);
           exp.addSpectrum(std::move(spec));
         }
       }

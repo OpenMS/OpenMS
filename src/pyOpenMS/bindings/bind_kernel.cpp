@@ -145,11 +145,24 @@ NB_MODULE(_pyopenms_kernel, m) {
         .value("IM_PEAK", OpenMS::IMFormat::IM_PEAK)
         .value("IM_SPECTRUM", OpenMS::IMFormat::IM_SPECTRUM)
         .value("MIXED", OpenMS::IMFormat::MIXED)
-        .value("CENTROIDED", OpenMS::IMFormat::CENTROIDED)
         .value("UNKNOWN", OpenMS::IMFormat::UNKNOWN)
         .value("SIZE_OF_IMFORMAT", OpenMS::IMFormat::SIZE_OF_IMFORMAT)
 
         .export_values();
+
+    // IMPeakType enum
+    // -----------------------------------------------------------------------
+    // IMPeakType
+    // -----------------------------------------------------------------------
+    nb::enum_<OpenMS::IMPeakType>(m, "IMPeakType",
+        "Processing state of ion mobility data (profile vs centroided in IM dimension)")
+        .value("IM_PROFILE", OpenMS::IMPeakType::IM_PROFILE,
+               "Raw/unprocessed IM data (e.g. full TIMS frame)")
+        .value("IM_CENTROIDED", OpenMS::IMPeakType::IM_CENTROIDED,
+               "IM data after centroiding in the IM dimension")
+        .value("UNKNOWN", OpenMS::IMPeakType::UNKNOWN,
+               "IM peak type not yet determined")
+        .value("SIZE_OF_IMPEAKTYPE", OpenMS::IMPeakType::SIZE_OF_IMPEAKTYPE);
 
     // -----------------------------------------------------------------------
     // AnnotationStatistics

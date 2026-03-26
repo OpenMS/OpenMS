@@ -1203,6 +1203,14 @@ chromatograms to be consumed and need to be informed about this
         .def_static("imFormatToString", [](OpenMS::IMFormat value) {
             return OpenMS::imFormatToString(value);
         }, "value"_a, "Convert IMFormat to string")
+
+        .def_static("toIMPeakType", [](const OpenMS::String& im_peak_type) {
+            return OpenMS::toIMPeakType(im_peak_type);
+        }, "im_peak_type"_a, "Convert string to IMPeakType")
+
+        .def_static("imPeakTypeToString", [](OpenMS::IMPeakType value) {
+            return OpenMS::imPeakTypeToString(value);
+        }, "value"_a, "Convert IMPeakType to string")
         ;
 
     // -----------------------------------------------------------------------
@@ -5078,5 +5086,7 @@ XMLFile
     m.def("__static_IMTypes_toDriftTimeUnit", [](const OpenMS::String& dtu_string) -> OpenMS::DriftTimeUnit { return OpenMS::toDriftTimeUnit(dtu_string); }, "dtu_string"_a);
     m.def("__static_IMTypes_driftTimeUnitToString", [](OpenMS::DriftTimeUnit value) -> OpenMS::String { return OpenMS::driftTimeUnitToString(value); }, "value"_a);
     m.def("__static_IMTypes_toIMFormat", [](const OpenMS::String& im_format) -> OpenMS::IMFormat { return OpenMS::toIMFormat(im_format); }, "im_format"_a);
+    m.def("__static_IMTypes_toIMPeakType", [](const OpenMS::String& im_peak_type) -> OpenMS::IMPeakType { return OpenMS::toIMPeakType(im_peak_type); }, "im_peak_type"_a);
+    m.def("__static_IMTypes_imPeakTypeToString", [](OpenMS::IMPeakType value) -> OpenMS::String { return OpenMS::imPeakTypeToString(value); }, "value"_a);
 
 }

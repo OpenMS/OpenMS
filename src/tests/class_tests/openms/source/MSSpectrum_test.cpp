@@ -1400,6 +1400,23 @@ START_SECTION(void setIMFormat(IMFormat imf))
 }
 END_SECTION
 
+START_SECTION(IMPeakType getIMPeakType() const)
+{
+  MSSpectrum s;
+  TEST_EQUAL(s.getIMPeakType(), IMPeakType::UNKNOWN)
+}
+END_SECTION
+
+START_SECTION(void setIMPeakType(IMPeakType))
+{
+  MSSpectrum s;
+  s.setIMPeakType(IMPeakType::IM_CENTROIDED);
+  TEST_EQUAL(s.getIMPeakType(), IMPeakType::IM_CENTROIDED)
+  s.setIMPeakType(IMPeakType::IM_PROFILE);
+  TEST_EQUAL(s.getIMPeakType(), IMPeakType::IM_PROFILE)
+}
+END_SECTION
+
 START_SECTION(void clear(bool clear_meta_data))
 {
   MSSpectrum edit;

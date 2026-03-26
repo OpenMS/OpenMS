@@ -697,6 +697,15 @@ namespace OpenMS
     if (im_format == IMFormat::IM_PEAK)
     {
       has_IM = true;
+      for (const auto& spec : ms_data_)
+      {
+        IMPeakType pt = spec.getIMPeakType();
+        if (pt != IMPeakType::UNKNOWN)
+        {
+          OPENMS_LOG_INFO << "IM peak type: " << imPeakTypeToString(pt) << endl;
+          break;
+        }
+      }
       // Check IM unit and warn if CCS data with small window
       if (IM_window > 0.0)
       {

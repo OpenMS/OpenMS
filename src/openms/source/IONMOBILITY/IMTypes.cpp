@@ -16,7 +16,7 @@ namespace OpenMS
 {
 
   const std::string NamesOfDriftTimeUnit[] = {"<NONE>", "ms", "1/K0", "FAIMS_CV", "CCS"};
-  const std::string NamesOfIMFormat[] = {"none", "im_peak", "im_spectrum", "mixed", "centroided", "unknown"};
+  const std::string NamesOfIMFormat[] = {"none", "im_peak", "im_spectrum", "mixed", "unknown"};
 
 
  DriftTimeUnit toDriftTimeUnit(const std::string& dtu_string)
@@ -61,6 +61,27 @@ namespace OpenMS
     return NamesOfIMFormat[(size_t)value];
   }
 
+  const std::string NamesOfIMPeakType[] = {"im_profile", "im_centroided", "unknown"};
+
+  IMPeakType toIMPeakType(const std::string& im_peak_type)
+  {
+    auto idx = std::find(NamesOfIMPeakType, NamesOfIMPeakType + (int)IMPeakType::SIZE_OF_IMPEAKTYPE, im_peak_type);
+    if (idx == NamesOfIMPeakType + (int)IMPeakType::SIZE_OF_IMPEAKTYPE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid IMPeakType", im_peak_type);
+    }
+    return (IMPeakType)std::distance(NamesOfIMPeakType, idx);
+  }
+
+  const std::string& imPeakTypeToString(IMPeakType im_peak_type)
+  {
+    if ((size_t)im_peak_type >= (size_t)IMPeakType::SIZE_OF_IMPEAKTYPE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid IMPeakType index", std::to_string((int)im_peak_type));
+    }
+    return NamesOfIMPeakType[(int)im_peak_type];
+  }
+
   IMFormat IMTypes::determineIMFormat(const MSExperiment& exp)
   {
     std::set<IMFormat> occs;
@@ -78,9 +99,7 @@ namespace OpenMS
     if (occs.size() == 1) 
     {
       auto format = *occs.begin();
-      if (format != IMFormat::IM_PEAK
-          && format != IMFormat::IM_SPECTRUM
-          && format != IMFormat::CENTROIDED)
+      if (format != IMFormat::IM_PEAK && format != IMFormat::IM_SPECTRUM)
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "subfunction returned invalid value(s)", "Number of different values: " + String(occs.size()));
       }
@@ -98,7 +117,6 @@ namespace OpenMS
     IMFormat current_format = spec.getIMFormat();
     if (current_format != IMFormat::UNKNOWN)
     {
-     // note: if we picked the spectrum already, the IMType should be already correctly set to CENTROIDED
       return current_format;
     }
     

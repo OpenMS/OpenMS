@@ -76,6 +76,18 @@ START_SECTION(const String& imFormatToString(const IMFormat value))
 
 END_SECTION
 
+START_SECTION(IMPeakType string conversions)
+{
+  TEST_EQUAL(toIMPeakType("im_profile"), IMPeakType::IM_PROFILE)
+  TEST_EQUAL(toIMPeakType("im_centroided"), IMPeakType::IM_CENTROIDED)
+  TEST_EQUAL(toIMPeakType("unknown"), IMPeakType::UNKNOWN)
+  TEST_EQUAL(imPeakTypeToString(IMPeakType::IM_PROFILE), "im_profile")
+  TEST_EQUAL(imPeakTypeToString(IMPeakType::IM_CENTROIDED), "im_centroided")
+  TEST_EQUAL(imPeakTypeToString(IMPeakType::UNKNOWN), "unknown")
+  TEST_EXCEPTION(Exception::InvalidValue, toIMPeakType("garbage"))
+}
+END_SECTION
+
 
 // single IM value for whole spec
 const MSSpectrum IMwithDrift = [&]() { 
@@ -151,6 +163,17 @@ START_SECTION(static IMFormat determineIMFormat(const MSSpectrum& spec))
    auto IMwithFDA2 = IMwithFDA;
    IMwithFDA2.setDriftTime(123.4);
    TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA2) == IMFormat::IM_PEAK, true)
+END_SECTION
+
+START_SECTION(determineIMFormat returns IM_PEAK for centroided IM data)
+{
+  MSSpectrum s;
+  MSSpectrum::FloatDataArray fda;
+  fda.setName("Ion Mobility");
+  s.getFloatDataArrays().push_back(fda);
+  s.setIMPeakType(IMPeakType::IM_CENTROIDED);
+  TEST_EQUAL(IMTypes::determineIMFormat(s), IMFormat::IM_PEAK)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
