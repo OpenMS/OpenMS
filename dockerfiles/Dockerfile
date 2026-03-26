@@ -11,7 +11,7 @@ ARG MAKEFLAGS="-j${NUM_BUILD_CORES}"
 
 
 ### OpenMS base ###
-FROM ubuntu:22.04 AS base
+FROM ubuntu:24.04 AS base
 ARG OPENMS_VERSION_TAG
 ARG CMAKE_VERSION=3.28.1
 ARG TARGETARCH
@@ -40,23 +40,23 @@ RUN apt-get update \
     libhdf5-dev\
     coinor-libcoinmp-dev \
     libeigen3-dev \
-    libboost-date-time1.74-dev \
-    libboost-iostreams1.74-dev \
-    libboost-regex1.74-dev \
-    libboost-math1.74-dev \
-    libboost-random1.74-dev \
+    libboost-date-time-dev \
+    libboost-iostreams-dev \
+    libboost-regex-dev \
+    libboost-math-dev \
+    libboost-random-dev \
     qt6-base-dev \
     libglx-dev \
     libgl1-mesa-dev \
     libqt6opengl6-dev \
-    libqt6svg6-dev \   
+    libqt6svg6-dev \
   && rm -rf /var/lib/apt/lists/* \
   && update-ca-certificates \
   && apt-get update && apt-get install -y --no-install-recommends wget \
-  && wget https://repo1.maven.org/maven2/org/apache/arrow/ubuntu/apache-arrow-apt-source-latest-jammy.deb \
-  && apt-get install -y --no-install-recommends ./apache-arrow-apt-source-latest-jammy.deb \
+  && wget https://repo1.maven.org/maven2/org/apache/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \
+  && apt-get install -y --no-install-recommends ./apache-arrow-apt-source-latest-noble.deb \
   && apt-get update && apt-get install -y --no-install-recommends --no-install-suggests libparquet-dev \
-  && rm apache-arrow-apt-source-latest-jammy.deb
+  && rm apache-arrow-apt-source-latest-noble.deb
 
 # installing cmake
 WORKDIR /tmp
@@ -79,7 +79,7 @@ EOF
 # The main reason we're pulling this in is to make sure that the metadata
 # below is consistently formatted for releases irrespective of the base image
 LABEL version="${OPENMS_VERSION_TAG}"
-LABEL software.version="${OPENMS_VERSION_TAG}-Ubuntu22.04"
+LABEL software.version="${OPENMS_VERSION_TAG}-Ubuntu24.04"
 LABEL org.opencontainers.image.source https://github.com/OpenMS/OpenMS
 
 
@@ -156,11 +156,12 @@ RUN make install/strip
 
 
 ### OpenMS library ###
-FROM ubuntu:22.04 AS library
+FROM ubuntu:24.04 AS library
 ARG INSTALL_DIR
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends --no-install-suggests \
+    wget \
     qt6-base-dev \
     libqt6opengl6 \
     libsvm3 \
@@ -172,11 +173,18 @@ RUN apt-get update \
     libqt6svg6 \
     libxerces-c3.2 \
     coinor-libcoinmp1v5 \
-    libboost-date-time1.74-dev  \
-    libboost-iostreams1.74-dev \
-    libboost-regex1.74-dev \
-    libboost-math1.74-dev \
-    libboost-random1.74-dev \
+    libboost-date-time1.83.0 \
+    libboost-iostreams1.83.0 \
+    libboost-regex1.83.0 \
+    libboost-math1.83.0 \
+    libboost-random1.83.0 \
+  && wget https://repo1.maven.org/maven2/org/apache/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \
+  && apt-get install -y --no-install-recommends ./apache-arrow-apt-source-latest-noble.deb \
+  && apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
+    libarrow2300 \
+    libparquet2300 \
+  && rm apache-arrow-apt-source-latest-noble.deb \
+  && apt-get purge -y wget && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build ${INSTALL_DIR}/lib ${INSTALL_DIR}/lib
