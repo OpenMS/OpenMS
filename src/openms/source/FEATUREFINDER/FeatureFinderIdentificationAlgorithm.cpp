@@ -692,7 +692,7 @@ namespace OpenMS
 
     // Check IM format
     double IM_window = param_.getValue("extract:IM_window");
-    IMFormat im_format = IMTypes::determineIMFormat(ms_data_);
+    IMFormat im_format = IMTypes::determineIMFormat(ms_data_, 1);
     bool has_IM = false;
     if (im_format == IMFormat::IM_PEAK)
     {

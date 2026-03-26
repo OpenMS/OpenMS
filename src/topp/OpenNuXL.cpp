@@ -4545,7 +4545,7 @@ static void scoreXLIons_(
 
   std::tuple<IMFormat, DriftTimeUnit> getMS2IMType(const MSExperiment& spectra)
   {
-    IMFormat IM_format = IMTypes::determineIMFormat(spectra);  
+    IMFormat IM_format = IMTypes::determineIMFormat(spectra, 2);
     DriftTimeUnit IM_unit = DriftTimeUnit::NONE;
     if (IM_format == IMFormat::IM_SPECTRUM)
     {
@@ -4571,10 +4571,6 @@ static void scoreXLIons_(
     else if (IM_format == IMFormat::IM_PEAK)
     {
       OPENMS_LOG_INFO << "Per-peak Ion Mobility not supported. IM values need to be annotated at the spectrum level." << std::endl;
-    }
-    else if (IM_format == IMFormat::MIXED)
-    {
-      OPENMS_LOG_INFO << "Mixed Ion Mobility not supported. IM values need to be annotated at the spectrum level." << std::endl;
     }
     return make_tuple(IM_format, IM_unit);
   }

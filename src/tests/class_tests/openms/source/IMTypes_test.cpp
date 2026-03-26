@@ -105,47 +105,68 @@ const MSSpectrum IMwithFDA = [&]() {
   return single[0];
 }();
 
-START_SECTION(static IMFormat determineIMFormat(const MSExperiment& exp))
+START_SECTION(static IMFormat determineIMFormat(const MSExperiment& exp, int ms_level))
 
-  TEST_EQUAL(IMTypes::determineIMFormat(MSExperiment()) == IMFormat::NONE, true)
+  // empty experiment
+  TEST_EQUAL(IMTypes::determineIMFormat(MSExperiment(), 1) == IMFormat::NONE, true)
 
   {
     MSExperiment exp;
+    exp.addSpectrum(MSSpectrum()); // default MS level = 1
     exp.addSpectrum(MSSpectrum());
-    exp.addSpectrum(MSSpectrum());
-    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::NONE, true)
-  }
-  
-  {
-    MSExperiment exp;
-    exp.addSpectrum(MSSpectrum());
-    exp.addSpectrum(IMwithDrift);
-    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::IM_SPECTRUM, true)
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 1) == IMFormat::NONE, true)
   }
 
   {
+    auto ms1_drift = IMwithDrift;
+    ms1_drift.setMSLevel(1);
     MSExperiment exp;
     exp.addSpectrum(MSSpectrum());
-    exp.addSpectrum(IMwithFDA);
-    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::IM_PEAK, true)
+    exp.addSpectrum(ms1_drift);
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 1) == IMFormat::IM_SPECTRUM, true)
   }
 
   {
+    auto ms1_peak = IMwithFDA;
+    ms1_peak.setMSLevel(1);
     MSExperiment exp;
-    exp.addSpectrum(IMwithDrift);
-    exp.addSpectrum(IMwithFDA);
-    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::MIXED, true)
+    exp.addSpectrum(MSSpectrum());
+    exp.addSpectrum(ms1_peak);
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 1) == IMFormat::IM_PEAK, true)
   }
 
   {
-    // set both ... is valid (typically concatenated + some average value)
-    auto IMwithFDA2 = IMwithFDA;
-    IMwithFDA2.setDriftTime(123.4);
+    // MS1 = IM_PEAK, MS2 = IM_SPECTRUM — per-level queries work independently
+    auto ms1_peak = IMwithFDA;
+    ms1_peak.setMSLevel(1);
+    auto ms2_drift = IMwithDrift;
+    ms2_drift.setMSLevel(2);
     MSExperiment exp;
-    exp.addSpectrum(IMwithDrift);
-    exp.addSpectrum(IMwithFDA);
-    exp.addSpectrum(IMwithFDA2);
-    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::MIXED, true)
+    exp.addSpectrum(ms1_peak);
+    exp.addSpectrum(ms2_drift);
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 1) == IMFormat::IM_PEAK, true)
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 2) == IMFormat::IM_SPECTRUM, true)
+  }
+
+  {
+    // no spectra of requested level
+    MSExperiment exp;
+    auto ms1 = IMwithDrift;
+    ms1.setMSLevel(1);
+    exp.addSpectrum(ms1);
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 2) == IMFormat::NONE, true)
+  }
+
+  {
+    // mixed formats within same MS level throws
+    auto ms1_drift = IMwithDrift;
+    ms1_drift.setMSLevel(1);
+    auto ms1_peak = IMwithFDA;
+    ms1_peak.setMSLevel(1);
+    MSExperiment exp;
+    exp.addSpectrum(ms1_drift);
+    exp.addSpectrum(ms1_peak);
+    TEST_EXCEPTION(Exception::InvalidValue, IMTypes::determineIMFormat(exp, 1))
   }
 
 END_SECTION

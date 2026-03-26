@@ -79,10 +79,6 @@ namespace OpenMS
 
   void SpectrumSettings::setIMFormat(const IMFormat& im_type)
   {
-    if (im_type == IMFormat::MIXED)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Single spectrum can't have MIXED ion mobility format.", "SIZE_OF_IMFORMAT");
-    }
     im_type_ = im_type;
   }
   

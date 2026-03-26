@@ -334,7 +334,7 @@ namespace OpenMS
     // run feature detection
     //-------------------------------------------------------------
     // Check if data has ion mobility information
-    IMFormat im_format = IMTypes::determineIMFormat(ms_data_);
+    IMFormat im_format = IMTypes::determineIMFormat(ms_data_, 1);
     bool has_IM = (im_format == IMFormat::IM_PEAK || im_format == IMFormat::IM_SPECTRUM);
     if (has_IM)
     {
