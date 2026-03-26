@@ -51,8 +51,7 @@ namespace OpenMS
     IM_PEAK,         ///< full TIMS frame / per-scan IM-resolved data: ion mobility is annotated per peak in a float data array
     IM_SPECTRUM,     ///< conventional spectrum with one precursor IM value (i.e. has one IM annotation per spectrum via getDriftTime())
     MIXED,           ///< an MSExperiment contains both IM_PEAK and IM_SPECTRUM
-    CENTROIDED,      ///< @deprecated Use IMPeakType::IM_CENTROIDED instead. Will be removed.
-    UNKNOWN,         ///< ion mobility format not yet determined. 
+    UNKNOWN,         ///< ion mobility format not yet determined.
     SIZE_OF_IMFORMAT
   };
   /// Names of IMFormat

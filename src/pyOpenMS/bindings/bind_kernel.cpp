@@ -145,7 +145,6 @@ NB_MODULE(_pyopenms_kernel, m) {
         .value("IM_PEAK", OpenMS::IMFormat::IM_PEAK)
         .value("IM_SPECTRUM", OpenMS::IMFormat::IM_SPECTRUM)
         .value("MIXED", OpenMS::IMFormat::MIXED)
-        .value("CENTROIDED", OpenMS::IMFormat::CENTROIDED)
         .value("UNKNOWN", OpenMS::IMFormat::UNKNOWN)
         .value("SIZE_OF_IMFORMAT", OpenMS::IMFormat::SIZE_OF_IMFORMAT)
 
