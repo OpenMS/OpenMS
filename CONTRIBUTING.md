@@ -35,7 +35,7 @@ Before you open the pull request, make sure you
  - adhere to [our coding conventions](https://github.com/OpenMS/OpenMS/wiki/Coding-conventions)
  - have [unit tests and functional tests](https://github.com/OpenMS/OpenMS/wiki/Write-tests) - see also [this example](https://github.com/OpenMS/OpenMS/blob/develop/src/tests/class_tests/openms/source/MSNumpressCoder_test.cpp)
  - Have [proper documentation](https://github.com/OpenMS/OpenMS/wiki/Coding-conventions#doxygen) - see also [this example](https://github.com/OpenMS/OpenMS/blob/develop/src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h) 
- - have [Python bindings](https://pyopenms.readthedocs.io/en/latest/wrap_classes.html) — nanobind binding files are in `src/pyOpenMS/bindings/`; see `src/pyOpenMS/CLAUDE.md` for wrapping instructions
+ - have Python bindings — nanobind binding files are in `src/pyOpenMS/bindings/`; see `src/pyOpenMS/CLAUDE.md` for wrapping instructions
  
 A core developer will review your changes to the main development branch (develop) and approve them (or ask for modifications). You may indicate the prefered reviewer(s) by adding links to them in a comment section (e.g., @cbielow @hendrikweisser @hroest @jpfeuffer @timosachsenberg)
 
