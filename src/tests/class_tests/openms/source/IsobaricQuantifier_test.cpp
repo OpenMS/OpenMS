@@ -16,6 +16,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
 
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 
 using namespace OpenMS;
