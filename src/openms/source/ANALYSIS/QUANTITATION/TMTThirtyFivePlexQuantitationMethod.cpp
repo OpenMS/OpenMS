@@ -1,8 +1,8 @@
 // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
-// // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $, Julianus Pfeuffer $
+// --------------------------------------------------------------------------
+// $Maintainer: Chris Bielow, Julianus Pfeuffer $
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -68,7 +68,7 @@ namespace OpenMS{
                                         {{ 24, 26, 25, 27, 28, 30, 31, -1, -1, -1, -1, -1, -1, -1 }},
                                         {{ 25, 27, -1, -1, 29, 31, -1, -1, -1, -1, -1, -1, -1, -1 }}
                                     }};
-    std::array<double, 35> o_mass35 = {
+    static const std::array<double, 35> o_mass35 = {
         126.127726, 127.124761, 127.131081, 127.134003, 128.128116,
         128.134436, 128.131038, 128.137358, 129.131471, 129.137790,
         129.134393, 129.140713, 130.134825, 130.141145, 130.137748,
@@ -81,9 +81,14 @@ namespace OpenMS{
     TMTThirtyFivePlexQuantitationMethod::TMTThirtyFivePlexQuantitationMethod(){
         setName("TMTThirtyFivePlexQuantitationMethod");
 
-        OPENMS_LOG_WARN << "Warning: TMT 35-plex isotope correction is not yet calibrated. "
-                        << "Using identity matrix (no correction). Supply your own correction_matrix "
-                        << "values from your Thermo certificate for accurate quantitation." << std::endl;
+        static bool warned = false;
+        if (!warned)
+        {
+            OPENMS_LOG_WARN << "Warning: TMT 35-plex isotope correction is not yet calibrated. "
+                            << "Using identity matrix (no correction). Supply your own correction_matrix "
+                            << "values from your Thermo certificate for accurate quantitation." << std::endl;
+            warned = true;
+        }
 
         // Reporter ion masses from Thermo TMTpro documentation:
         // https://assets.thermofisher.com/TFS-Assets/LSG/manuals/MAN0018773_TMTproMassTagLabelingReagentsandKits_UG.pdf
