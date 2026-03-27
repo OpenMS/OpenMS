@@ -292,31 +292,43 @@ namespace OpenMS
     OPENMS_LOG_INFO << "Loading Bruker TDF file " << file << '\n';
     startProgress(0, 1, "Loading Bruker TDF file " + file);
 
-    // Load full MSExperiment via BrukerTimsFile (DIA auto-detected)
+    // Read SWATH window definitions from SQL metadata (no peak data loaded)
+    auto swath_windows = BrukerTimsFile::getSwathWindows(file);
+
+    // Build known_window_boundaries from SQL metadata directly
+    std::vector<OpenSwath::SwathMap> known_window_boundaries;
+    for (const auto& w : swath_windows)
+    {
+      OpenSwath::SwathMap boundary;
+      boundary.lower = w.mz_center - w.mz_width / 2.0;
+      boundary.upper = w.mz_center + w.mz_width / 2.0;
+      boundary.center = w.mz_center;
+      boundary.imLower = w.im_lower;
+      boundary.imUpper = w.im_upper;
+      boundary.ms1 = false;
+      known_window_boundaries.push_back(boundary);
+    }
+
+    OPENMS_LOG_INFO << "Bruker TDF: " << known_window_boundaries.size()
+                    << " SWATH windows (from SQL metadata)" << std::endl;
+
+    // Stream spectra frame-by-frame into the consumer (constant memory).
+    // The consumer partitions spectra into per-window MSExperiment objects.
+    RegularSwathFileConsumer consumer(known_window_boundaries);
+
     BrukerTimsFile bruker_reader;
     bruker_reader.setLogType(this->getLogType());
-    std::shared_ptr<PeakMap> experiment(new PeakMap);
-    bruker_reader.load(file, *experiment);
-    exp_meta = experiment; // preserve experimental settings for downstream
+    bruker_reader.transform(file, &consumer);
 
-    // Discover unique SWATH windows from spectrum metadata
-    std::vector<int> swath_counter;
-    int nr_ms1_spectra = 0;
-    std::vector<OpenSwath::SwathMap> known_window_boundaries;
-    countScansInSwath_(experiment->getSpectra(), swath_counter,
-                       nr_ms1_spectra, known_window_boundaries);
-
-    OPENMS_LOG_INFO << "Bruker TDF: " << swath_counter.size()
-                    << " SWATH windows and " << nr_ms1_spectra
-                    << " MS1 spectra" << std::endl;
-
-    // Partition spectra into per-window MSExperiment objects via RegularSwathFileConsumer
-    RegularSwathFileConsumer consumer(known_window_boundaries);
-    consumer.setExperimentalSettings(*exp_meta);
-    for (auto& spec : experiment->getSpectra())
-    {
-      consumer.consumeSpectrum(spec);
-    }
+    // Populate experimental settings for downstream consumers
+    exp_meta = std::make_shared<ExperimentalSettings>();
+    SourceFile sf;
+    sf.setNameOfFile(File::basename(file));
+    sf.setPathToFile(File::path(file));
+    sf.setFileType("Bruker TDF");
+    sf.setNativeIDType("scan number only nativeID format");
+    sf.setNativeIDTypeAccession("MS:1000776");
+    exp_meta->getSourceFiles().push_back(sf);
 
     std::vector<OpenSwath::SwathMap> swath_maps;
     consumer.retrieveSwathMaps(swath_maps);

@@ -727,6 +727,39 @@ namespace OpenMS
   }
 
   // =====================================================================
+  // getSwathWindows: read SWATH window definitions without loading peak data
+  // =====================================================================
+  std::vector<BrukerTimsFile::SwathWindow> BrukerTimsFile::getSwathWindows(const String& path, const Config& config)
+  {
+    std::vector<SwathWindow> result;
+
+    String tdf_path = path + "/analysis.tdf";
+    try
+    {
+      SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
+      if (!isDIA(db)) return result;
+
+      // We need an IM converter to translate scan bounds to 1/K0.
+      // Open the handle just for calibration — no peak data is read.
+      auto handle = openTimsDataHandle(path, config);
+      std::vector<DIAWindow> windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
+
+      result.reserve(windows.size());
+      for (const auto& w : windows)
+      {
+        result.push_back({w.window_group, w.mz_center, w.mz_width, w.im_lower, w.im_upper});
+      }
+    }
+    catch (const SQLite::Exception& e)
+    {
+      OPENMS_LOG_WARN << "Warning: could not read SWATH windows from " << tdf_path
+                      << ": " << e.what() << std::endl;
+    }
+
+    return result;
+  }
+
+  // =====================================================================
   // load() overloads
   // =====================================================================
   void BrukerTimsFile::load(const String& path, MSExperiment& exp)
@@ -826,22 +859,29 @@ namespace OpenMS
     settings.getSourceFiles().push_back(sf);
     consumer->setExperimentalSettings(settings);
 
-    // NOTE: This loads into a temporary experiment then feeds to consumer.
-    // Not truly constant-memory -- a future optimization should iterate
-    // frame-by-frame and call consumer->consumeSpectrum() inline.
-    OPENMS_LOG_INFO << "BrukerTimsFile::transform(): loading full dataset (streaming optimization pending)" << std::endl;
-    MSExperiment exp;
-    if (mode == Config::FRAME)
-      loadFrames_(*handle, exp, config);
-    else if (is_dia && mode != Config::SPECTRUM)
-      loadDIA_(*handle, exp, config);
-    else
-      loadDDA_(*handle, exp, config);
-
-    exp.sortSpectra(true);
-    for (auto& spec : exp)
+    if (is_dia && mode != Config::SPECTRUM && mode != Config::FRAME)
     {
-      consumer->consumeSpectrum(spec);
+      // DIA: stream frame-by-frame directly to consumer (constant memory).
+      // Frames are iterated in ID order which is acquisition (RT) order,
+      // so no global sort is needed.
+      streamDIA_(*handle, consumer, config);
+    }
+    else
+    {
+      // DDA and FRAME modes: load into temporary experiment, then feed to consumer.
+      // DDA cannot easily stream due to optional OLS m/z recalibration which
+      // needs precursor data across multiple frames before re-extracting.
+      MSExperiment exp;
+      if (mode == Config::FRAME)
+        loadFrames_(*handle, exp, config);
+      else
+        loadDDA_(*handle, exp, config);
+
+      exp.sortSpectra(true);
+      for (auto& spec : exp)
+      {
+        consumer->consumeSpectrum(spec);
+      }
     }
   }
 
@@ -1360,6 +1400,120 @@ namespace OpenMS
           spec.setIMPeakType(IMPeakType::IM_PROFILE);
           exp.addSpectrum(std::move(spec));
         }
+      }
+    }
+    endProgress();
+  }
+
+  // =====================================================================
+  // streamDIA_: constant-memory DIA streaming directly to consumer
+  // =====================================================================
+  void BrukerTimsFile::streamDIA_(TimsDataHandle& handle, Interfaces::IMSDataConsumer* consumer, const Config& config)
+  {
+    String tdf_path = handle.get_tims_dir_path() + "/analysis.tdf";
+    SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
+
+    // Read SWATH windows (small SQL query, typically ~20 rows)
+    std::vector<DIAWindow> windows = readDIAWindows(db, *handle.scan2inv_ion_mobility_converter);
+    if (windows.empty())
+    {
+      OPENMS_LOG_WARN << "Warning: DIA dataset detected but no SWATH windows found" << std::endl;
+      return;
+    }
+
+    bool do_centroid = isCentroidingEnabled(config);
+    FrameCentroider centroider;  // reusable buffer across frames
+
+    // Count total frames for progress
+    size_t total_frames = 0;
+    for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
+    {
+      if (handle.has_frame(fid)) ++total_frames;
+    }
+
+    startProgress(0, total_frames, "Streaming DIA-PASEF data");
+    size_t frame_idx = 0;
+
+    // Single pass over all frames in ID order (= RT order).
+    // MS1 and MS2 are interleaved as they occur in the acquisition,
+    // which is the natural RT-sorted order.
+    for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
+    {
+      if (!handle.has_frame(fid)) continue;
+      TimsFrame& frame = handle.get_frame(fid);
+      setProgress(frame_idx++);
+
+      if (frame.msms_type == 0)
+      {
+        // --- MS1: build spectrum and emit immediately ---
+        MSSpectrum spec;
+        if (do_centroid)
+        {
+          centroidMS1Frame(frame, spec, config, centroider);
+        }
+        else
+        {
+          frameToSpectrum(frame, spec, 1);
+        }
+        consumer->consumeSpectrum(spec);
+        // spec destroyed here -> memory freed
+      }
+      else
+      {
+        // --- MS2: extract frame data, split by window, emit each ---
+        if (frame.num_peaks == 0) continue;
+
+        std::vector<uint32_t> scan_ids(frame.num_peaks);
+        std::vector<uint32_t> intensities(frame.num_peaks);
+        std::vector<double> mzs(frame.num_peaks);
+        std::vector<double> inv_ion_mobilities(frame.num_peaks);
+
+        frame.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
+                            mzs.data(), inv_ion_mobilities.data(), nullptr);
+
+        for (const DIAWindow& win : windows)
+        {
+          MSSpectrum spec;
+          spec.setRT(frame.time);
+          spec.setMSLevel(2);
+          spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+          spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win.window_group));
+
+          // Set isolation window
+          Precursor prec;
+          prec.setMZ(win.mz_center);
+          prec.setIsolationWindowLowerOffset(win.mz_width / 2.0);
+          prec.setIsolationWindowUpperOffset(win.mz_width / 2.0);
+          spec.setPrecursors({prec});
+
+          // Set ion mobility window bounds for PASEF window grouping
+          spec.setMetaValue("ion mobility lower limit", win.im_lower);
+          spec.setMetaValue("ion mobility upper limit", win.im_upper);
+
+          DataArrays::FloatDataArray im_array;
+          IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+
+          for (uint32_t p = 0; p < frame.num_peaks; ++p)
+          {
+            if (inv_ion_mobilities[p] >= win.im_lower && inv_ion_mobilities[p] <= win.im_upper)
+            {
+              Peak1D peak;
+              peak.setMZ(mzs[p]);
+              peak.setIntensity(static_cast<double>(intensities[p]));
+              spec.push_back(peak);
+              im_array.push_back(static_cast<float>(inv_ion_mobilities[p]));
+            }
+          }
+
+          if (!spec.empty())
+          {
+            spec.getFloatDataArrays().push_back(std::move(im_array));
+            spec.setIMPeakType(IMPeakType::IM_PROFILE);
+            consumer->consumeSpectrum(spec);
+            // spec destroyed here -> memory freed
+          }
+        }
+        // frame buffers destroyed here -> memory freed
       }
     }
     endProgress();

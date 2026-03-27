@@ -78,11 +78,25 @@ namespace OpenMS
     void load(const String& path, MSExperiment& exp, const Config& config);
 
     /// Feed spectra from a .d directory to a consumer.
-    /// @note Currently loads the full dataset into memory before streaming to the consumer.
-    ///       A future optimization should iterate frame-by-frame for true constant-memory operation.
+    /// For DIA data, this streams frame-by-frame with constant memory usage.
+    /// For DDA/FRAME modes, the full dataset is loaded before streaming to the consumer.
     void transform(const String& path, Interfaces::IMSDataConsumer* consumer);
     /// @overload with explicit configuration
     void transform(const String& path, Interfaces::IMSDataConsumer* consumer, const Config& config);
+
+    /// SWATH window descriptor read from the TDF SQL metadata.
+    struct SwathWindow
+    {
+      int window_group;
+      double mz_center;
+      double mz_width;
+      double im_lower;  ///< 1/K0 lower bound
+      double im_upper;  ///< 1/K0 upper bound
+    };
+
+    /// Read SWATH window definitions from a .d directory without loading peak data.
+    /// Returns an empty vector for non-DIA datasets.
+    static std::vector<SwathWindow> getSwathWindows(const String& path, const Config& config = Config());
 
   private:
     /// Load DDA-PASEF data: MS1 frames (IM_PEAK) + MS2 spectra (scalar IM)
@@ -90,6 +104,9 @@ namespace OpenMS
 
     /// Load DIA-PASEF data: MS1 frames (IM_PEAK) + MS2 frames split by SWATH window
     void loadDIA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config);
+
+    /// Stream DIA-PASEF data frame-by-frame directly to consumer (constant memory)
+    void streamDIA_(TimsDataHandle& handle, Interfaces::IMSDataConsumer* consumer, const Config& config);
 
     /// Load raw frames without precursor grouping or SWATH splitting
     void loadFrames_(TimsDataHandle& handle, MSExperiment& exp, const Config& config);
