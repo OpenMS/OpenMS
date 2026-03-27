@@ -25,6 +25,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
+#include <OpenMS/config.h>
 #include <filesystem>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -231,7 +232,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,sqMass"));
+    StringList in_formats = {"mzML", "mzXML", "sqMass"};
+#ifdef WITH_OPENTIMS
+    in_formats.push_back("d");
+#endif
+    setValidFormats_("in", in_formats);
 
     registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','pqp','oswpq')");
     StringList tr_formats = {"traML", "tsv", "pqp"};
