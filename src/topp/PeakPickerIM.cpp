@@ -105,7 +105,7 @@ protected:
     registerTOPPSubsection_("bruker", "Options for reading Bruker TimsTOF .d files (requires WITH_OPENTIMS)");
     registerStringOption_("bruker:export_mode", "<mode>", "frame", "Export mode: 'auto' detects DDA/DIA acquisition type, "
       "'spectrum' forces per-precursor MS2 spectra (DDA-style), 'frame' returns raw 4D frames without signal processing.", false, true);
-    setValidStrings_("bruker:export_mode", {"auto", "spectrum", "frame"});
+    setValidStrings_("bruker:export_mode", {"auto", "frame"});
     registerDoubleOption_("bruker:calibration_tolerance", "<float>", 0.0, "m/z recalibration tolerance (0 = library default)", false, true);
     setMinFloat_("bruker:calibration_tolerance", 0.0);
     registerStringOption_("bruker:calibrate", "<toggle>", "false", "Enable m/z recalibration (may fail on some datasets)", false, true);
@@ -279,6 +279,12 @@ protected:
 #ifdef WITH_OPENTIMS
     if (in_type == FileTypes::BRUKER_TDF)
     {
+      if (process_opt == "lowmemory")
+      {
+        OPENMS_LOG_WARN << "Warning: 'lowmemory' processing is not yet supported for Bruker .d files. "
+                        << "Data will be loaded fully into memory." << std::endl;
+      }
+
       auto bruker_config = getBrukerConfig_();
       BrukerTimsFile tims_file;
       tims_file.setLogType(log_type_);
@@ -309,6 +315,13 @@ protected:
                         << "No peak picking will be performed." << std::endl;
         MzMLFile().store(output_file, exp);
         return EXECUTION_OK;
+      }
+      if (im_format == IMFormat::IM_SPECTRUM)
+      {
+        OPENMS_LOG_ERROR << "Error: Input data has single drift time per spectrum (IM_SPECTRUM format). "
+                         << "PeakPickerIM requires per-peak IM arrays (IM_PEAK format). "
+                         << "Try using bruker:export_mode=frame." << std::endl;
+        return ILLEGAL_PARAMETERS;
       }
 
 #pragma omp parallel for
