@@ -82,7 +82,13 @@ public:
     std::vector<OpenSwath::SwathMap> loadSqMass(const String& file, std::shared_ptr<ExperimentalSettings>& /* exp_meta */);
 
 #ifdef WITH_OPENTIMS
-    /// Loads a Swath run from a Bruker .d (TDF) directory
+    /**
+      @brief Loads a Swath run from a Bruker .d (TDF) directory
+
+      @param[in] file Path to a Bruker .d (TDF) directory
+      @param[in,out] exp_meta Will be filled with ExperimentalSettings metadata
+      @return Vector of SwathMap structures representing the loaded Swath maps
+    */
     std::vector<OpenSwath::SwathMap> loadBrukerTdf(const String& file,
                                                     std::shared_ptr<ExperimentalSettings>& exp_meta);
 #endif
@@ -104,4 +110,3 @@ protected:
 
   };
 }
-

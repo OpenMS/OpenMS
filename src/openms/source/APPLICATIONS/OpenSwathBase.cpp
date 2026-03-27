@@ -142,8 +142,13 @@ namespace OpenMS
 #endif
         else
         {
+#ifdef WITH_OPENTIMS
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                            "Input file needs to have ending mzML, mzXML, sqMass, or .d (Bruker TDF)");
+#else
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           "Input file needs to have ending mzML, mzXML, or sqMass");
+#endif
         }
       }
     }
@@ -180,8 +185,13 @@ namespace OpenMS
 #endif
       else
       {
+#ifdef WITH_OPENTIMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Input file needs to have ending mzML, mzXML, sqMass, or .d (Bruker TDF)");
+#else
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Input file needs to have ending mzML, mzXML, or sqMass");
+#endif
       }
     }
   }
