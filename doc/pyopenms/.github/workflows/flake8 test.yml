@@ -1,0 +1,23 @@
+
+name: Linting flake8
+
+on: [pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.10' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+
+    - uses: usama2490/lintly-flake8-github-action@v1.1
+      with:
+        # The GitHub API token to create reviews with
+        token: ${{ secrets.GITHUB_TOKEN }}
+        # Fail if "new" violations detected or "any", default "new"
+        failIf: new
+        # Additional arguments to pass to flake8, default "." (current directory)
+        args: "--extend-ignore=E121,E123 --max-line-length=120 ."
