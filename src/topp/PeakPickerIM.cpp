@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -15,6 +16,10 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
+
+#ifdef WITH_OPENTIMS
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -26,7 +31,7 @@ using namespace std;
 /**
 @page TOPP_PeakPickerIM PeakPickerIM
 
-@brief A tool for peak detection in the ion mobility dimension for mzML files.
+@brief A tool for peak detection in the ion mobility dimension for mzML and Bruker .d files.
 
 <center>
 <table>
@@ -43,8 +48,9 @@ using namespace std;
 </center>
 
 This tool applies peak picking in the ion mobility dimension to raw LC-IMS-MS data.
-The input mzML file should contain ion mobility data in concatenated format
-(where each spectrum contains an ion mobility float data array).
+The input file can be an mzML file containing ion mobility data in concatenated format
+(where each spectrum contains an ion mobility float data array) or a Bruker TimsTOF .d
+directory (requires OpenMS built with WITH_OPENTIMS).
 
 Three peak picking methods are available:
 - @b mobilogram: Picks peaks along the ion mobility dimension using a peak picker.
@@ -67,14 +73,18 @@ class TOPPPeakPickerIM : public TOPPBase
 {
 public:
   TOPPPeakPickerIM() :
-      TOPPBase("PeakPickerIM", "Applies PeakPickerIM to an mzML file", false)
+      TOPPBase("PeakPickerIM", "Applies PeakPickerIM to an mzML or Bruker .d file", false)
   {}
 
 protected:
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<file>", "", "Input mzML file");
-    setValidFormats_("in", { "mzML" });
+    registerInputFile_("in", "<file>", "", "Input file (mzML or Bruker .d)");
+    setValidFormats_("in", { "mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+    });
 
     registerOutputFile_("out", "<file>", "", "Output mzML file");
     setValidFormats_("out", { "mzML" });
@@ -90,6 +100,17 @@ protected:
 
     addEmptyLine_();
     registerSubsection_("algorithm", "Algorithm parameters for PeakPickerIM (organized into pickIMTraces, pickIMCluster, pickIMElutionProfiles).");
+
+#ifdef WITH_OPENTIMS
+    registerTOPPSubsection_("bruker", "Options for reading Bruker TimsTOF .d files (requires WITH_OPENTIMS)");
+    registerStringOption_("bruker:export_mode", "<mode>", "frame", "Export mode: 'auto' detects DDA/DIA acquisition type, "
+      "'spectrum' forces per-precursor MS2 spectra (DDA-style), 'frame' returns raw 4D frames without signal processing.", false, true);
+    setValidStrings_("bruker:export_mode", {"auto", "spectrum", "frame"});
+    registerDoubleOption_("bruker:calibration_tolerance", "<float>", 0.0, "m/z recalibration tolerance (0 = library default)", false, true);
+    setMinFloat_("bruker:calibration_tolerance", 0.0);
+    registerStringOption_("bruker:calibrate", "<toggle>", "false", "Enable m/z recalibration (may fail on some datasets)", false, true);
+    setValidStrings_("bruker:calibrate", {"true", "false"});
+#endif
   }
 
   Param getSubsectionDefaults_(const String& section) const override
@@ -106,6 +127,20 @@ protected:
     }
     return Param();
   }
+
+#ifdef WITH_OPENTIMS
+  BrukerTimsFile::Config getBrukerConfig_()
+  {
+    BrukerTimsFile::Config c;
+    c.calibration_tolerance = getDoubleOption_("bruker:calibration_tolerance");
+    c.calibrate = (getStringOption_("bruker:calibrate") == "true");
+    String mode = getStringOption_("bruker:export_mode");
+    if (mode == "spectrum") c.export_mode = BrukerTimsFile::Config::SPECTRUM;
+    else if (mode == "frame") c.export_mode = BrukerTimsFile::Config::FRAME;
+    else c.export_mode = BrukerTimsFile::Config::AUTO;
+    return c;
+  }
+#endif
 
   // -------------------- Low-memory consumer --------------------
   class Consumer : public MSDataWritingConsumer
@@ -225,6 +260,55 @@ protected:
 
     PeakPickerIM picker;
     picker.setParameters(algo);
+
+    // Detect input file type
+    FileTypes::Type in_type = FileHandler::getType(input_file);
+
+#ifdef WITH_OPENTIMS
+    if (in_type == FileTypes::BRUKER_TDF)
+    {
+      // Load .d file using BrukerTimsFile (FRAME mode by default for raw per-peak IM data)
+      auto bruker_config = getBrukerConfig_();
+      BrukerTimsFile tims_file;
+      tims_file.setLogType(log_type_);
+
+      PeakMap exp;
+      tims_file.load(input_file, exp, bruker_config);
+
+      // Check MS1 spectra for IM format
+      IMFormat im_format = IMTypes::determineIMFormat(exp, 1);
+      if (im_format == IMFormat::NONE)
+      {
+        OPENMS_LOG_WARN << "Warning: Input file does not contain ion mobility data. "
+                        << "No peak picking will be performed." << std::endl;
+        MzMLFile().store(output_file, exp);
+        return EXECUTION_OK;
+      }
+
+#pragma omp parallel for
+      for (SignedSize i = 0; i < static_cast<SignedSize>(exp.size()); ++i)
+      {
+        MSSpectrum& spectrum = exp[static_cast<Size>(i)];
+
+        if (method == "mobilogram")
+        {
+          picker.pickIMTraces(spectrum);
+        }
+        else if (method == "cluster")
+        {
+          picker.pickIMCluster(spectrum);
+        }
+        else if (method == "traces")
+        {
+          picker.pickIMElutionProfiles(spectrum);
+        }
+      }
+
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::PEAK_PICKING));
+      MzMLFile().store(output_file, exp);
+      return EXECUTION_OK;
+    }
+#endif
 
     if (process_opt == "lowmemory")
     {
