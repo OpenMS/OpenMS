@@ -1,0 +1,27 @@
+% use the following Configuration to patch all defined styles (not commands!)
+\NewConfigure{defmenukey}[1]{%
+  % define \Configure{menukey<stylename>} - it will be used to insert \Picture+ ... \EndPicture
+  \NewConfigure{menukey#1}{2}
+  % insert hooks into style's pre and post macros
+  \expandafter\pend:def\csname tw@style@#1@pre\endcsname{\csname a:menukey#1\endcsname}%
+  \expandafter\append:def\csname tw@style@#1@post\endcsname{\csname b:menukey#1\endcsname}%
+  % use pictures by default for the style configuration
+  \Configure{menukey#1}{\Picture*{}}{\EndPicture}
+}
+
+\Configure{defmenukey}{menus}
+\Configure{defmenukey}{paths}
+\Configure{defmenukey}{roundedkeys}
+\Configure{defmenukey}{roundedmenus}
+\Configure{defmenukey}{angularmenus}
+\Configure{defmenukey}{typewriterkeys}
+\Configure{defmenukey}{hyphenatepaths}
+\Configure{defmenukey}{pathswithfolder}
+\Configure{defmenukey}{shadowedangularkeys}
+\Configure{defmenukey}{pathswithblackfolder}
+\Configure{defmenukey}{hyphenatepathswithfolder}
+\Configure{defmenukey}{hyphenatepathswithblackfolder}
+
+\Hinput{menukeys}
+\endinput
+
