@@ -109,19 +109,19 @@ class TestIMTypesStringInput(unittest.TestCase):
 
     def test_toIMFormat_with_str(self):
         """Test toIMFormat accepts str."""
-        fmt = pyopenms.IMTypes.toIMFormat("concatenated")
-        self.assertEqual(fmt, pyopenms.IMFormat.CONCATENATED)
+        fmt = pyopenms.IMTypes.toIMFormat("im_peak")
+        self.assertEqual(fmt, pyopenms.IMFormat.IM_PEAK)
 
     def test_toIMFormat_with_bytes(self):
         """Test toIMFormat still accepts bytes (backward compatible)."""
-        fmt = pyopenms.IMTypes.toIMFormat(b"concatenated")
-        self.assertEqual(fmt, pyopenms.IMFormat.CONCATENATED)
+        fmt = pyopenms.IMTypes.toIMFormat(b"im_peak")
+        self.assertEqual(fmt, pyopenms.IMFormat.IM_PEAK)
 
     def test_imFormatToString_returns_str(self):
         """Test IMTypes.imFormatToString returns str."""
-        result = pyopenms.IMTypes.imFormatToString(pyopenms.IMFormat.CONCATENATED)
+        result = pyopenms.IMTypes.imFormatToString(pyopenms.IMFormat.IM_PEAK)
         self.assertIsInstance(result, str)
-        self.assertEqual(result, "concatenated")
+        self.assertEqual(result, "im_peak")
 
 
 class TestRibonucleotideDBStringInput(unittest.TestCase):

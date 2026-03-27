@@ -22,7 +22,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <QtCore/QDir>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <boost/math/special_functions/fpclassify.hpp> // isnan
 
@@ -230,8 +230,7 @@ namespace OpenMS
     //clean up / create folders for debug information
     if (debug_)
     {
-      QDir dir(".");
-      dir.mkpath("debug/features");
+      File::makeDir("debug/features");
       log_.open("debug/log.txt");
     }
 

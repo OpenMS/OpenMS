@@ -158,8 +158,8 @@ namespace OpenMS
       {
         t = (float)it.getRT();
         rt.push_back(t);
-        mz.push_back(std::vector<float>());
-        intensity.push_back(std::vector<float>());
+        mz.emplace_back();
+        intensity.emplace_back();
       }
       mz.back().push_back((float)it->getMZ());
       intensity.back().push_back(it->getIntensity());
@@ -187,9 +187,9 @@ namespace OpenMS
         t = (float)it.getRT();
         rt.push_back(t);
         std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
-        mz.push_back(std::vector<float>());
-        intensity.push_back(std::vector<float>());
-        ion_mobility.push_back(std::vector<float>());
+        mz.emplace_back();
+        intensity.emplace_back();
+        ion_mobility.emplace_back();
       }
 
       if (unit != DriftTimeUnit::NONE)
@@ -1322,7 +1322,7 @@ namespace OpenMS
 
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt)
   {
-    spectra_.emplace_back(SpectrumType());
+    spectra_.emplace_back();
     SpectrumType* spectrum = &(spectra_.back());
     spectrum->setRT(rt);
     spectrum->setMSLevel(1);
@@ -1343,7 +1343,7 @@ namespace OpenMS
     spectrum->getFloatDataArrays().reserve(metadata_names.size());
     for (StringList::const_iterator itm = metadata_names.begin(); itm != metadata_names.end(); ++itm)
     {
-      spectrum->getFloatDataArrays().push_back(MSSpectrum::FloatDataArray());
+      spectrum->getFloatDataArrays().emplace_back();
       spectrum->getFloatDataArrays().back().setName(*itm);
     }
     return spectrum;

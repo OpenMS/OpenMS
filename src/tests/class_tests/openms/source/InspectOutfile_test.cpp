@@ -11,6 +11,7 @@
 
 #include <OpenMS/FORMAT/InspectOutfile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 using namespace OpenMS;
 using namespace std;

@@ -17,6 +17,7 @@
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QCoreApplication>
 #include <QDir>
@@ -116,7 +117,7 @@ namespace OpenMS
     // Temporary file path and arguments
     String path = File::getTemporaryFile();
     String working_dir = path.prefix(path.find_last_of('/'));
-    QStringList args{"-write_ini", path.toQString()};
+    std::vector<String> args{"-write_ini", path};
     Param tool_param;
     String executable;
     // Return empty param if tool executable cannot be found
@@ -150,7 +151,7 @@ namespace OpenMS
     ExternalProcess proc(lam_out, lam_err);
     // Write tool ini to temporary file
     ++running_processes;
-    auto return_state = proc.run(executable.toQString(), args, working_dir.toQString(), true, ExternalProcess::IO_MODE::NO_IO);
+    auto return_state = proc.run(executable, args, working_dir, true, ExternalProcess::IO_MODE::NO_IO);
     --running_processes;
 
     // Return empty param if writing the ini file failed
@@ -215,7 +216,7 @@ namespace OpenMS
     {
       if (create)
       {
-        QDir path = QDir(plugin_path.toQString());
+        QDir path = QDir(toQString(plugin_path));
         QString dir = path.dirName();
         path.cdUp();
 

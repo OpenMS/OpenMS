@@ -70,9 +70,7 @@ endif()
 #------------------------------------------------------------------------------
 # TOPP
 set(TOPP_executables_INI ${TOPP_TOOLS})
-list(REMOVE_ITEM TOPP_executables_INI GenericWrapper) # GenericWrapper (has a -type flag)
 list(REMOVE_ITEM TOPP_executables_INI OpenMSInfo)
-add_test("TOPPWRITEINI_GenericWrapper" ${TOPP_BIN_PATH}/GenericWrapper -test -type RAWFileConvert -write_ini "${TESTS_TEMP_DIR}/GenericWrapper.tmp.ini")
 foreach (i ${TOPP_executables_INI})
   add_test("TOPPWRITEINI_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ini "${TESTS_TEMP_DIR}/${i}.tmp.ini")
   add_test("TOPPWRITEINI_${i}_SectionName" ${CMAKE_COMMAND} -test -DNAME=${i} -DFILE=${TESTS_TEMP_DIR}/${i}.tmp.ini -P "${DATA_DIR_TOPP}/check_ini.cmake")
@@ -86,7 +84,6 @@ endforeach(i)
 #------------------------------------------------------------------------------
 # TOPP
 set(TOPP_executables_CTD ${TOPP_TOOLS})
-list(REMOVE_ITEM TOPP_executables_CTD GenericWrapper)
 list(REMOVE_ITEM TOPP_executables_CTD OpenMSInfo)
 foreach (i ${TOPP_executables_CTD})
   add_test("TOPPWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ctd "${TESTS_TEMP_DIR}/")
@@ -1488,8 +1485,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_TargetedFileConverter_light_path_out1" ${DIFF} -sort -in1 TargetedFileConverter_light_path.tmp.tsv -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_light_path_output.tsv)
   set_tests_properties("TOPP_TargetedFileConverter_light_path_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_light_path")
 
-# Parquet library support (requires WITH_PARQUET and external zip/unzip)
-if (WITH_PARQUET)
+# Parquet library support (external zip/unzip)
   add_test("TOPP_TargetedFileConverter_parquet_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv -out ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.oswpq -out_type oswpq)
   add_test("TOPP_TargetedFileConverter_parquet_roundtrip" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.oswpq -in_type oswpq -out ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.tsv -out_type tsv)
   set_tests_properties("TOPP_TargetedFileConverter_parquet_roundtrip" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_parquet_prepare")
@@ -1510,7 +1506,6 @@ if (WITH_PARQUET)
   add_test("TOPP_OpenSwathDecoyGenerator_parquet_out1" ${DIFF} -sort -in1 ${TESTS_TEMP_DIR}/OpenSwathDecoyGenerator_parquet_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_parquet_output.tsv)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_parquet_to_tsv" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_parquet")
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_parquet_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_parquet_to_tsv")
-endif()
 
   # protein group conversion test PQP
   add_test("TOPP_TargetedFileConverter_test_12_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_12_input.TraML -out ${TESTS_TEMP_DIR}/TargetedFileConverter_12_output.tmp.pqp -out_type pqp)
@@ -1697,14 +1692,12 @@ endif()
   set_tests_properties("TOPP_OpenSwathWorkflow_1_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1")
   set_tests_properties("TOPP_OpenSwathWorkflow_1_out3" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1")
 
-  if(WITH_PARQUET)
-    add_test("TOPP_OpenSwathWorkflow_1_xic" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.chrom.tmp.xic -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.xic.tmp.featureXML -out_qc ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.xic.tmp.json
+  add_test("TOPP_OpenSwathWorkflow_1_xic" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.chrom.tmp.xic -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.xic.tmp.featureXML -out_qc ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.xic.tmp.json
     -enable_ms1 "false" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" ${OLD_OSW_PARAM} )
-    add_test("TOPP_OpenSwathWorkflow_1_xic_text" ${TOPP_BIN_PATH}/TextExporter -test -in ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.chrom.tmp.xic -out ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.chrom.tmp.xic.tsv -out_type tsv -xic:mode summary)
-    add_test("TOPP_OpenSwathWorkflow_1_xic_text_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.chrom.tmp.xic.tsv -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_output.xic.tsv)
-    set_tests_properties("TOPP_OpenSwathWorkflow_1_xic_text" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1_xic")
-    set_tests_properties("TOPP_OpenSwathWorkflow_1_xic_text_out" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1_xic_text")
-  endif()
+  add_test("TOPP_OpenSwathWorkflow_1_xic_text" ${TOPP_BIN_PATH}/TextExporter -test -in ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.chrom.tmp.xic -out ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.chrom.tmp.xic.tsv -out_type tsv -xic:mode summary)
+  add_test("TOPP_OpenSwathWorkflow_1_xic_text_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1.chrom.tmp.xic.tsv -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_output.xic.tsv)
+  set_tests_properties("TOPP_OpenSwathWorkflow_1_xic_text" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1_xic")
+  set_tests_properties("TOPP_OpenSwathWorkflow_1_xic_text_out" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1_xic_text")
 
   add_test("TOPP_OpenSwathWorkflow_2" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_2_input.mzXML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_2_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_2_input.trafoXML -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_2.chrom.tmp.mzML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_2.tmp.featureXML
   -enable_ms1 "false" -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" ${OLD_OSW_PARAM} )
@@ -2260,6 +2253,10 @@ set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_6_out1" PROPERTIES DEPENDS "
 add_test("TOPP_FeatureLinkerUnlabeledKD_7" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input3.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML -out ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeledKD_7_output.tmp.consensusXML -algorithm:link:charge_merging Any -algorithm:link:adduct_merging Identical)
  add_test("TOPP_FeatureLinkerUnlabeledKD_7_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeledKD_7_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_7_output.consensusXML )
 set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_7_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_7")
+# regression test for #8927: charge_merging=Any with different non-zero charges must not segfault
+add_test("TOPP_FeatureLinkerUnlabeledKD_8" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_charge_any_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_charge_any_input2.featureXML -out ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeledKD_8_output.tmp.consensusXML -algorithm:link:charge_merging Any)
+add_test("TOPP_FeatureLinkerUnlabeledKD_8_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeledKD_8_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_8_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_8_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_8")
 
 
 add_test("TOPP_FeatureLinkerUnlabeledQT_IsotopeShift"
@@ -2934,6 +2931,80 @@ add_test("TOPP_PeptideDataBaseSearchFI_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/Pep
 set_tests_properties("TOPP_PeptideDataBaseSearchFI_2_out" PROPERTIES DEPENDS
 "TOPP_PeptideDataBaseSearchFI_2")
 
+# Bruker .d input integration tests (DDA-PASEF with IM annotation)
+if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
+  # Create a symlink with .d suffix so FileHandler recognizes the format
+  set(OPENTIMS_DDA_SYMLINK "${CMAKE_BINARY_DIR}/test_data/DDA_HeLa.d")
+  file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/test_data")
+  file(CREATE_LINK "${OPENTIMS_DDA_TEST_DATA}" "${OPENTIMS_DDA_SYMLINK}" SYMBOLIC)
+
+  # Typical timsTOF Pro DDA-PASEF parameters: 20 ppm precursor, 20 ppm fragment,
+  # Trypsin/P, 2 missed cleavages, Carbamidomethyl (C) fixed,
+  # Oxidation (M) + Acetyl (Protein N-term) variable.
+  add_test("TOPP_SimpleSearchEngine_DDA" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
+    -in ${OPENTIMS_DDA_SYMLINK}
+    -database ${OPENTIMS_TEST_FASTA}
+    -out ${TESTS_TEMP_DIR}/SimpleSearchEngine_DDA_out.tmp.idXML
+    -Search:precursor:mass_tolerance 20
+    -Search:precursor:mass_tolerance_unit ppm
+    -Search:fragment:mass_tolerance 20
+    -Search:fragment:mass_tolerance_unit ppm
+    -Search:enzyme Trypsin/P
+    -Search:peptide:missed_cleavages 2
+    "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
+    -Search:decoys
+    -threads 4)
+
+  add_test("TOPP_PeptideDataBaseSearchFI_DDA" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
+    -in ${OPENTIMS_DDA_SYMLINK}
+    -database ${OPENTIMS_TEST_FASTA}
+    -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_out.tmp.idXML
+    -Search:precursor:mass_tolerance 20
+    -Search:precursor:mass_tolerance_unit ppm
+    -Search:fragment:mass_tolerance 20
+    -Search:fragment:mass_tolerance_unit ppm
+    -Search:enzyme Trypsin/P
+    -Search:peptide:missed_cleavages 2
+    "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
+    -Search:decoys
+    -threads 4)
+
+  # SageAdapter DDA test: generate decoys externally (SageAdapter sets generate_decoys=false),
+  # then search with Sage, then apply FDR filtering on hyperscore via FalseDiscoveryRate.
+  if (NOT (${SAGE_BINARY} STREQUAL "SAGE_BINARY-NOTFOUND"))
+    add_test("TOPP_DecoyDatabase_DDA" ${TOPP_BIN_PATH}/DecoyDatabase -test
+      -in ${OPENTIMS_TEST_FASTA}
+      -out ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
+      -decoy_string DECOY_
+      -decoy_string_position prefix)
+
+    add_test("TOPP_SageAdapter_DDA" ${TOPP_BIN_PATH}/SageAdapter -test
+      -in ${OPENTIMS_DDA_SYMLINK}
+      -database ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
+      -out ${TESTS_TEMP_DIR}/SageAdapter_DDA_out.tmp.idXML
+      -sage_executable "${SAGE_BINARY}"
+      -decoy_prefix DECOY_
+      -precursor_tol_left -20.0
+      -precursor_tol_right 20.0
+      -precursor_tol_unit ppm
+      -fragment_tol_left -20.0
+      -fragment_tol_right 20.0
+      -enzyme Trypsin/P
+      -missed_cleavages 2
+      "-variable_modifications" "Oxidation (M)" "Acetyl (Protein N-term)"
+      -chimera false
+      -predict_rt false
+      -deisotope false)
+    set_tests_properties("TOPP_SageAdapter_DDA" PROPERTIES DEPENDS "TOPP_DecoyDatabase_DDA")
+
+    add_test("TOPP_FalseDiscoveryRate_SageDDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+      -in ${TESTS_TEMP_DIR}/SageAdapter_DDA_out.tmp.idXML
+      -out ${TESTS_TEMP_DIR}/SageAdapter_DDA_fdr.tmp.idXML
+      -FDR:PSM 0.01
+      -protein false)
+    set_tests_properties("TOPP_FalseDiscoveryRate_SageDDA" PROPERTIES DEPENDS "TOPP_SageAdapter_DDA")
+  endif()
+endif()
 
 # FeatureFinderMetaboIdent:
 add_test("TOPP_FeatureFinderMetaboIdent_1" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_1_output.tmp.featureXML -extract:mz_window 5 -extract:rt_window 20 -detect:peak_width 3)
@@ -2998,6 +3069,41 @@ add_test("TOPP_ProteomicsLFQ_1_subset_out_3" ${DIFF} -whitelist "software" "loca
 set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1_subset")
 add_test("TOPP_ProteomicsLFQ_1_subset_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_subset.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_subset_out.tsv )
 set_tests_properties("TOPP_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1_subset")
+
+# QPX Parquet export test (reuses subset test input data)
+  add_test("TOPP_ProteomicsLFQ_qpx" ${TOPP_BIN_PATH}/ProteomicsLFQ
+           -in
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+           -ids
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+           -design
+           ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+           -Alignment:align_algorithm:max_rt_shift 0
+           -fasta
+           ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+           -targeted_only true
+           -mass_recalibration false
+           -out ${TESTS_TEMP_DIR}/BSA_qpx.tmp.mzTab
+           -out_qpx ${TESTS_TEMP_DIR}/BSA_qpx_dir
+           -threads 1
+           -proteinFDR 0.3
+           -test
+           )
+  # Verify all three QPX files were created (sha256sum fails if file is missing)
+  add_test(NAME "TOPP_ProteomicsLFQ_qpx_features" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.feature.parquet)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_features" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
+  add_test(NAME "TOPP_ProteomicsLFQ_qpx_psms" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.psm.parquet)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_psms" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
+  add_test(NAME "TOPP_ProteomicsLFQ_qpx_pg" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.pg.parquet)
+  set_tests_properties("TOPP_ProteomicsLFQ_qpx_pg" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
 
 # Test ProteomicsLFQ bypass with -in_feat (Multi-file)
 add_test("TOPP_ProteomicsLFQ_in_feat" ${TOPP_BIN_PATH}/ProteomicsLFQ -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML -in_feat ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_1.featureXML ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_2.featureXML -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta -out ${TESTS_TEMP_DIR}/BSA_in_feat_multi.tmp.mzTab -threads 1 -proteinFDR 0.3 -test)

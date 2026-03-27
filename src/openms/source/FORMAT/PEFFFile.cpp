@@ -1451,7 +1451,7 @@ namespace OpenMS
     // If no headers found, create a default one
     if (headers_.empty())
     {
-      headers_.push_back(PEFFDatabaseMetadata());
+      headers_.emplace_back();
     }
 
     // Validate required header keys (spec section 3.3.1)

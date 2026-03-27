@@ -9,7 +9,7 @@
 #include <OpenMS/VISUAL/TreeView.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/Qt5Port.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QHeaderView>
@@ -73,7 +73,7 @@ namespace OpenMS
     }
     if (!hset.empty())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + String(hset.values().join(", ")));
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + fromQString(hset.values().join(", ")));
     }
   }
 

@@ -14,9 +14,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#ifdef WITH_PARQUET
 #include <arrow/api.h>
-#endif
 
 #include <fstream>
 #include <unordered_map>
@@ -30,7 +28,6 @@ OpenSwathOSWParquetReader::OpenSwathOSWParquetReader(const String& oswpq_dir)
 
 void OpenSwathOSWParquetReader::load(const String& oswpq_dir)
 {
-#ifdef WITH_PARQUET
   rows_.clear();
   // remember the provided path for later fetch calls
   oswpq_dir_ = oswpq_dir;
@@ -44,7 +41,7 @@ void OpenSwathOSWParquetReader::load(const String& oswpq_dir)
     auto ra_res = ZipRandomAccessFile::Open(oswpq_dir, entry, temp_dir);
     if (ra_res.ok())
     {
-      auto raf = ra_res.ValueOrDie();
+      const auto& raf = ra_res.ValueOrDie();
       return ParquetFile::readTable(std::static_pointer_cast<arrow::io::RandomAccessFile>(raf));
     }
     // Fallback: extract to temp file and read
@@ -141,15 +138,10 @@ void OpenSwathOSWParquetReader::load(const String& oswpq_dir)
       rows_.push_back(std::move(out));
     }
   }
-#else
-  (void)oswpq_dir;
-  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
 }
 
 OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReader::fetchPeakGroupFeatures(const String& oswpq_dir, const String& level, const String& main_score) const
 {
-#ifdef WITH_PARQUET
   PeakGroupFeatureScoresResult result;
   std::unique_ptr<File::TempDir> temp_dir;
   // Use RandomAccessFile-backed reads when possible; fall back to extracting
@@ -159,7 +151,7 @@ OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReade
     auto ra_res = ZipRandomAccessFile::Open(oswpq_dir, entry, temp_dir);
     if (ra_res.ok())
     {
-      auto raf = ra_res.ValueOrDie();
+      const auto& raf = ra_res.ValueOrDie();
       return ParquetFile::readTable(std::static_pointer_cast<arrow::io::RandomAccessFile>(raf));
     }
     const String path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, entry, temp_dir);
@@ -367,11 +359,11 @@ OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReade
   result.group_id = std::move(group_id_v);
 
   result.ms2_columns.reserve(all_ms2_cols.size());
-  for (const auto &s : all_ms2_cols) result.ms2_columns.emplace_back(String(s));
+  for (const auto &s : all_ms2_cols) result.ms2_columns.emplace_back(s);
   result.ms2_values = std::move(ms2_values);
 
   result.ms1_columns.reserve(all_ms1_cols.size());
-  for (const auto &s : all_ms1_cols) result.ms1_columns.emplace_back(String(s));
+  for (const auto &s : all_ms1_cols) result.ms1_columns.emplace_back(s);
   result.ms1_values = std::move(ms1_values);
 
   // If a main_score was requested, place it first among ms2 columns/values
@@ -406,15 +398,10 @@ OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReade
   }
 
   return result;
-#else
-  (void)level; (void)main_score; (void)oswpq_dir;
-  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
 }
 
 OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::fetchTransitionFeatures(const String& oswpq_dir) const
 {
-#ifdef WITH_PARQUET
   TransitionFeaturesResult result;
   std::unique_ptr<File::TempDir> temp_dir;
   // Use RandomAccessFile-backed reads when possible; fall back to extraction when not.
@@ -423,7 +410,7 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
     auto ra_res = ZipRandomAccessFile::Open(oswpq_dir, entry, temp_dir);
     if (ra_res.ok())
     {
-      auto raf = ra_res.ValueOrDie();
+      const auto& raf = ra_res.ValueOrDie();
       return ParquetFile::readTable(std::static_pointer_cast<arrow::io::RandomAccessFile>(raf));
     }
     const String path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, entry, temp_dir);
@@ -490,7 +477,7 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
 
   std::sort(all_var_cols.begin(), all_var_cols.end());
   result.transition_var_columns.reserve(all_var_cols.size());
-  for (const auto &s : all_var_cols) result.transition_var_columns.emplace_back(String(s));
+  for (const auto &s : all_var_cols) result.transition_var_columns.emplace_back(s);
   result.transition_var_values.assign(all_var_cols.size(), std::vector<double>());
 
   // Second pass: populate vectors
@@ -662,15 +649,10 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
   for (auto &col : result.transition_var_values) permute(col);
 
   return result;
-#else
-  (void)oswpq_dir;
-  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
 }
 
 OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscoredData(const String& oswpq_dir) const
 {
-#ifdef WITH_PARQUET
   UnscoredResult result;
   std::unique_ptr<File::TempDir> temp_dir;
   // Use RandomAccessFile-backed reads when possible; fall back to extraction when not.
@@ -679,7 +661,7 @@ OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscor
     auto ra_res = ZipRandomAccessFile::Open(oswpq_dir, entry, temp_dir);
     if (ra_res.ok())
     {
-      auto raf = ra_res.ValueOrDie();
+      const auto& raf = ra_res.ValueOrDie();
       return ParquetFile::readTable(std::static_pointer_cast<arrow::io::RandomAccessFile>(raf));
     }
     const String path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, entry, temp_dir);
@@ -781,10 +763,10 @@ OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscor
 
   // Prepare ms score storage
   result.ms2_columns.reserve(all_ms2_cols.size());
-  for (const auto &s : all_ms2_cols) result.ms2_columns.emplace_back(String(s));
+  for (const auto &s : all_ms2_cols) result.ms2_columns.emplace_back(s);
   result.ms2_values.assign(all_ms2_cols.size(), std::vector<double>());
   result.ms1_columns.reserve(all_ms1_cols.size());
-  for (const auto &s : all_ms1_cols) result.ms1_columns.emplace_back(String(s));
+  for (const auto &s : all_ms1_cols) result.ms1_columns.emplace_back(s);
   result.ms1_values.assign(all_ms1_cols.size(), std::vector<double>());
 
   // Second pass: populate rows
@@ -862,10 +844,6 @@ OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscor
   }
 
   return result;
-#else
-  (void)oswpq_dir;
-  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
 }
 
 

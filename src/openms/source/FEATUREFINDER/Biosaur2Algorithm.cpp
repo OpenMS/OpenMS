@@ -256,6 +256,34 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
   }
   done_ccs_check:
 
+  // Log IM peak type if IM data is present.
+  for (const auto& group_pair : groups)
+  {
+    const MSExperiment& group_exp = group_pair.second;
+    bool any_im_array = false;
+    for (const auto& spec : group_exp)
+    {
+      if (IMTypes::determineIMFormat(spec) != IMFormat::NONE)
+      {
+        any_im_array = true;
+        break;
+      }
+    }
+    if (any_im_array)
+    {
+      for (const auto& spec : group_exp)
+      {
+        IMPeakType pt = spec.getIMPeakType();
+        if (pt != IMPeakType::UNKNOWN)
+        {
+          OPENMS_LOG_INFO << "IM peak type: " << imPeakTypeToString(pt) << endl;
+          break;
+        }
+      }
+      break; // Only need to report once
+    }
+  }
+
   // Parallelize processing across FAIMS groups. Each group is handled
   // independently using its own local hills/features containers.
   #pragma omp parallel for schedule(dynamic)
@@ -886,7 +914,7 @@ void Biosaur2Algorithm::centroidPASEFData_(MSExperiment& exp, double mz_step, do
     // Determine ion-mobility format and use the concatenated IM array if available,
     // mirroring the logic in processFAIMSGroup_ and IMTypes::determineIMFormat().
     const IMFormat im_format = IMTypes::determineIMFormat(spectrum);
-    if (im_format != IMFormat::CONCATENATED)
+    if (im_format != IMFormat::IM_PEAK)
     {
       // Either no IM data or only per-spectrum drift time; leave spectrum unchanged.
       return;
@@ -1182,15 +1210,51 @@ void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
     mz_step = htol_ * 1e-6 * max_mz_value;
   }
 
+  // Only skip centroiding if ALL spectra with IM data are already centroided.
+  // UNKNOWN and IM_PROFILE are treated as raw data needing centroiding.
+  bool im_already_centroided = true; // assume true, falsify if any is not centroided
+  bool found_im_spectrum = false;
+  for (const auto& spec : group_exp)
+  {
+    if (IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK)
+    {
+      found_im_spectrum = true;
+      if (spec.getIMPeakType() != IMPeakType::IM_CENTROIDED)
+      {
+        im_already_centroided = false;
+        break;
+      }
+    }
+  }
+  if (!found_im_spectrum)
+  {
+    im_already_centroided = false;
+  }
+
+  if (im_already_centroided)
+  {
+    OPENMS_LOG_INFO << "IM data is already centroided (IMPeakType::IM_CENTROIDED). "
+                    << "Skipping internal PASEF/TIMS centroiding for group (FAIMS CV="
+                    << faims_cv << ")." << endl;
+  }
+
   // Decide whether to use IM-based centroiding and gating for this group.
   const bool use_im_group = (any_im_array && !any_missing_im && original_paseftol > 0.0);
-  if (use_im_group && mz_step > 0.0)
+  if (use_im_group && mz_step > 0.0 && !im_already_centroided)
   {
     OPENMS_LOG_INFO << "Applying PASEF/TIMS centroiding for group (FAIMS CV="
                     << faims_cv << ") with paseftol=" << original_paseftol << endl;
     StopWatch stage_timer;
     stage_timer.start();
     centroidPASEFData_(group_exp, mz_step, original_paseftol);
+    // Mark spectra as IM-centroided so the skip logic is self-consistent
+    for (auto& spec : group_exp)
+    {
+      if (IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK)
+      {
+        spec.setIMPeakType(IMPeakType::IM_CENTROIDED);
+      }
+    }
     stage_timer.stop();
     OPENMS_LOG_INFO << "PASEF centroiding for group (FAIMS CV=" << faims_cv
                     << ") took " << stage_timer.toString() << endl;
@@ -1342,7 +1406,7 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
   // Use the standardized IM format/helper logic: only build per-peak IM bins
   // when we have concatenated ion-mobility data.
   const IMFormat im_format = IMTypes::determineIMFormat(spectrum);
-  const bool use_im_current = use_im_global && (im_format == IMFormat::CONCATENATED);
+  const bool use_im_current = use_im_global && (im_format == IMFormat::IM_PEAK);
 
   const MSSpectrum::FloatDataArray* im_array_ptr = nullptr;
   if (use_im_current)
@@ -1433,7 +1497,7 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
 
     double ion_mobility = -1.0;
     const IMFormat im_format_local = IMTypes::determineIMFormat(spectrum);
-    if (im_format_local == IMFormat::CONCATENATED)
+    if (im_format_local == IMFormat::IM_PEAK)
     {
       auto [im_index_local, im_unit_local] = spectrum.getIMData(); // may throw
       const auto& fda_local = spectrum.getFloatDataArrays();

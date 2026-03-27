@@ -13,6 +13,7 @@
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 
 // QT includes
@@ -66,7 +67,7 @@ namespace OpenMS
     connect(ui_->merge_combo_, SIGNAL(activated(int)), ui_->merge_, SLOT(click()));
 
     //set title
-    setWindowTitle((String("Open data options for ") + data_name).toQString());
+    setWindowTitle(toQString((String("Open data options for ") + data_name)));
   }
 
   TOPPViewOpenDialog::~TOPPViewOpenDialog()
@@ -158,7 +159,7 @@ namespace OpenMS
       UInt i = 0;
       for (const auto& it : layers)
       {
-        ui_->merge_combo_->insertItem(i++, it.second.toQString(), (int)(it.first));
+        ui_->merge_combo_->insertItem(i++, toQString(it.second), (int)(it.first));
       }
     }
     else

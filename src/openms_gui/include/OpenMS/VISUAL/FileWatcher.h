@@ -15,6 +15,7 @@
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <map>
 
 //Qt
@@ -59,13 +60,13 @@ public:
     ///Adds a file to the watcher
     inline void addFile(const String & path)
     {
-      QFileSystemWatcher::addPath(path.toQString());
+      QFileSystemWatcher::addPath(toQString(path));
     }
 
     ///removes a file from the watcher
     inline void removeFile(const String & path)
     {
-      QFileSystemWatcher::removePath(path.toQString());
+      QFileSystemWatcher::removePath(toQString(path));
     }
 
 signals:

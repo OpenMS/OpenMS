@@ -38,7 +38,7 @@ namespace OpenMS
     // process content
     for (; it != input.end(); ++it)
     {
-      String line = *it;
+      const String& line = *it;
 
       //split lines: File,  First Scan,  Last Scan,  Num of Scans,  Charge,  Monoisotopic Mass,  Base Isotope Peak,  Best Intensity,  Summed Intensity,  First RTime,  Last RTime,  Best RTime,  Best Correlation,  Modifications
       std::vector<String> parts;

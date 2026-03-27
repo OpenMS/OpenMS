@@ -214,7 +214,7 @@ namespace OpenMS
     linear_params.setValue("outlierMethod", linear_outlier_detection_);
 
     // Configure calibration parameters - let SwathMapMassCorrection use its own m/z and IM parameters
-    Param calibration_params_configured = calibration_param;
+    const Param& calibration_params_configured = calibration_param;
 
     TransformationDescription im_trafo;
     // Call the member implementation (moved into CalibrationWorkflow)
@@ -316,7 +316,7 @@ namespace OpenMS
     nl_params.setValue("outlierMethod", nonlinear_outlier_detection_); // Use nonlinear-specific outlier method
     
     // Configure calibration parameters - let SwathMapMassCorrection use its own m/z and IM parameters
-    Param calibration_params_configured = calibration_param;
+    const Param& calibration_params_configured = calibration_param;
     
     TransformationDescription im_trafo;
     TransformationDescription nonlinear_trafo = this->doDataNormalization_(

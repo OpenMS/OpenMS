@@ -41,7 +41,6 @@ FileInfo
 FileMerger
 FLASHDeconv
 FuzzyDiff
-GenericWrapper
 GNPSExport
 HighResPrecursorMassCorrector
 IDConflictResolver
@@ -153,12 +152,11 @@ if(NOT DISABLE_OPENSWATH)
   )
 endif(NOT DISABLE_OPENSWATH)
 
-if(WITH_PARQUET)
-  set(TOPP_executables
-    ${TOPP_executables}
-    QPXConverter
-  )
-endif(WITH_PARQUET)
+set(TOPP_executables
+  ${TOPP_executables}
+  QPXConverter
+  ParquetConverter
+)
 
 ## all targets requiring OpenMS_GUI
 set(TOPP_executables_with_GUIlib

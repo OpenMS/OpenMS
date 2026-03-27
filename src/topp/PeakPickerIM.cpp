@@ -188,27 +188,12 @@ protected:
     }
 
     // Step 2: Validate format
-    if (im_format == IMFormat::CENTROIDED)
+    if (im_format == IMFormat::IM_SPECTRUM)
     {
-      OPENMS_LOG_ERROR << "Error: Input file contains ion mobility data that is already centroided. "
-                       << "PeakPickerIM expects raw (concatenated) IM data. "
-                       << "Re-picking already centroided data is not supported." << std::endl;
-      return ILLEGAL_PARAMETERS;
-    }
-    if (im_format == IMFormat::MULTIPLE_SPECTRA)
-    {
-      OPENMS_LOG_ERROR << "Error: Input file contains ion mobility data in MULTIPLE_SPECTRA format "
-                       << "(one spectrum per IM frame). PeakPickerIM expects raw (concatenated) IM data "
+      OPENMS_LOG_ERROR << "Error: Input file contains ion mobility data in IM_SPECTRUM format "
+                       << "(one spectrum per IM frame). PeakPickerIM expects raw (per-peak) IM data "
                        << "where each spectrum contains an ion mobility float data array. "
                        << "This format is not supported." << std::endl;
-      return ILLEGAL_PARAMETERS;
-    }
-    if (im_format == IMFormat::MIXED)
-    {
-      OPENMS_LOG_ERROR << "Error: Input file contains mixed ion mobility formats "
-                       << "(both CONCATENATED and MULTIPLE_SPECTRA). PeakPickerIM expects raw (concatenated) IM data "
-                       << "where each spectrum contains an ion mobility float data array. "
-                       << "Mixed formats are not supported." << std::endl;
       return ILLEGAL_PARAMETERS;
     }
     if (im_format == IMFormat::NONE)
@@ -251,15 +236,8 @@ protected:
       MzMLFile mzml;
       mzml.load(input_file, exp);
 
-      // Check if input contains centroided IM data (error) or no IM data (warning)
-      IMFormat im_format = IMTypes::determineIMFormat(exp);
-      if (im_format == IMFormat::CENTROIDED)
-      {
-        OPENMS_LOG_ERROR << "Error: Input file contains ion mobility data that is already centroided. "
-                         << "PeakPickerIM expects raw (concatenated) IM data. "
-                         << "Re-picking already centroided data is not supported." << std::endl;
-        return ILLEGAL_PARAMETERS;
-      }
+      // Check MS1 spectra for IM format (PeakPickerIM works on per-peak IM data in MS1 frames)
+      IMFormat im_format = IMTypes::determineIMFormat(exp, 1);
       if (im_format == IMFormat::NONE)
       {
         OPENMS_LOG_WARN << "Warning: Input file does not contain ion mobility data. "

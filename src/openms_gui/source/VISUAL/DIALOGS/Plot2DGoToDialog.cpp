@@ -12,6 +12,7 @@
 
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QtWidgets/QLineEdit>
 
@@ -94,7 +95,7 @@ namespace OpenMS
 
   String Plot2DGoToDialog::getFeatureNumber() const
   {
-    return ui_->feature_number_->text();
+    return fromQString(ui_->feature_number_->text());
   }
 
   bool Plot2DGoToDialog::showRange() const

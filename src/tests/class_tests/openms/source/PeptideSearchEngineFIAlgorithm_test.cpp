@@ -24,6 +24,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <random>
 #include <set>
@@ -693,6 +694,91 @@ START_SECTION(([EXTRA] Closed search baseline))
   TEST_TRUE(pep_ids.size() > 0)
   TEST_EQUAL(prot_ids.size(), 1)
   TEST_EQUAL(prot_ids[0].getSearchEngine(), "PeptideDataBaseSearchFI")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Ion mobility annotation))
+{
+  // Create a small protein database
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+                    "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+  };
+
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg_param.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_param);
+
+  // Generate spectra with drift times set (simulating DDA-PASEF)
+  vector<string> test_seqs = {"VLGFHQR", "EGFVRTHQPSANLDIK"};
+  vector<double> test_ims = {0.85, 1.12}; // 1/K0 values
+
+  PeakMap spectra;
+  double rt = 100.0;
+  for (Size i = 0; i < test_seqs.size(); ++i)
+  {
+    AASequence seq = AASequence::fromString(test_seqs[i]);
+    int charge = 2;
+    MSSpectrum spec;
+    tsg.getSpectrum(spec, seq, 1, 1);
+    spec.sortByPosition();
+    spec.setMSLevel(2);
+    spec.setRT(rt);
+    rt += 1.0;
+
+    // Set ion mobility (simulates BrukerTimsFile DDA-PASEF loading)
+    spec.setDriftTime(test_ims[i]);
+    spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+
+    Precursor prec;
+    prec.setMZ(seq.getMZ(charge));
+    prec.setCharge(charge);
+    spec.setPrecursors({prec});
+    spec.setNativeID("spectrum=" + String(spectra.size()));
+
+    spectra.addSpectrum(std::move(spec));
+  }
+
+  PeptideSearchEngineFIAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance", 10.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", vector<string>{});
+  p.setValue("modifications:variable", vector<string>{});
+  p.setValue("decoys", "false");
+  p.setValue("peptide:min_size", 7);
+  p.setValue("peptide:max_size", 40);
+  p.setValue("peptide:missed_cleavages", 1);
+  algo.setParameters(p);
+
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
+
+  TEST_EQUAL(ec == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(prot_ids.size(), 1)
+  TEST_EQUAL(pep_ids.size(), 2) // one PSM per input spectrum
+
+  // Verify IM annotation on every PeptideIdentification — both values must appear
+  bool has_085 = false, has_112 = false;
+  for (const auto& pid : pep_ids)
+  {
+    TEST_EQUAL(pid.metaValueExists(Constants::UserParam::IM), true)
+    double im_val = pid.getMetaValue(Constants::UserParam::IM);
+    TEST_TRUE(im_val > 0.0)
+    if (fabs(im_val - 0.85) < 1e-6) has_085 = true;
+    if (fabs(im_val - 1.12) < 1e-6) has_112 = true;
+  }
+  TEST_TRUE(has_085) // first spectrum's IM (0.85) found
+  TEST_TRUE(has_112) // second spectrum's IM (1.12) found
+
+  // Verify IM unit on ProteinIdentification
+  TEST_EQUAL(prot_ids[0].metaValueExists(Constants::UserParam::IM), true)
+  TEST_STRING_EQUAL(String(prot_ids[0].getMetaValue(Constants::UserParam::IM)), "1/K0")
 }
 END_SECTION
 

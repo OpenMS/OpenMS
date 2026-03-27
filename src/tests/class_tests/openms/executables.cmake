@@ -171,6 +171,7 @@ set(kernel_executables_list
 set(format_executables_list
   AbsoluteQuantitationStandardsFile_test
   Base64_test
+  BrukerTimsFile_test
   MSNumpressCoder_test
   Bzip2Ifstream_test
   Bzip2InputStream_test
@@ -290,17 +291,15 @@ if(WITH_HDF5)
   list(APPEND format_executables_list HDF5_test)
 endif()
 
-if(WITH_PARQUET)
-  list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test QPXFile_test
-    MSChromatogramParquetConsumer_test
-    MobilogramParquetConsumer_test
-    XICParquetFile_test
-    XIMParquetFile_test
-    OpenSwathOSWParquetRoundTrip_test
-    ProteinIdentificationArrowIO_test
-    FeatureMapArrowIO_test
-    ConsensusMapArrowIO_test)
-endif()
+list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test QPXFile_test
+  MSChromatogramParquetConsumer_test
+  MobilogramParquetConsumer_test
+  XICParquetFile_test
+  XIMParquetFile_test
+  ProteinIdentificationArrowIO_test
+  FeatureMapArrowIO_test
+  ConsensusMapArrowIO_test
+  ArrowSchemaRegistry_test)
 
 set(math_executables_list
   BasicStatistics_test
@@ -351,6 +350,7 @@ set(filtering_executables_list
   LowessSmoothing_test
   MassTraceDetection_test
   MorphologicalFilter_test
+  ModifiedSincSmoother_test
   MultiplexClustering_test
   MultiplexDeltaMasses_test
   MultiplexDeltaMassesGenerator_test
@@ -516,6 +516,8 @@ set(analysis_executables_list
   TMTElevenPlexQuantitationMethod_test
   TMTSixteenPlexQuantitationMethod_test
   TMTEighteenPlexQuantitationMethod_test
+  TMTThirtyTwoPlexQuantitationMethod_test
+  TMTThirtyFivePlexQuantitationMethod_test
   KDTreeFeatureMaps_test
   KDTreeFeatureNode_test
   LabeledPairFinder_test
@@ -676,10 +678,11 @@ if(NOT DISABLE_OPENSWATH)
   )
 endif(NOT DISABLE_OPENSWATH)
 
-if(NOT DISABLE_OPENSWATH AND WITH_PARQUET)
+if(NOT DISABLE_OPENSWATH)
   list(APPEND swath_executables_list TransitionParquetFile_test)
   list(APPEND swath_executables_list OpenSwathOSWParquetReader_test)
   list(APPEND swath_executables_list OpenSwathOSWParquetWriter_test)
+  list(APPEND format_executables_list OpenSwathOSWParquetRoundTrip_test)
 endif()
 
 set(Boost_dependent_tests

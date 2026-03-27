@@ -11,6 +11,8 @@
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/Painter1DBase.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
@@ -22,6 +24,7 @@
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
 #include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 
 #include <QPainter>
@@ -33,7 +36,7 @@ namespace OpenMS
 {
   void Painter1DBase::drawAnnotations_(const LayerData1DBase* layer, QPainter& painter, Plot1DCanvas* canvas) const
   {
-    const QColor col {QColor(String(layer->param.getValue("annotation_color").toString()).toQString())};
+    const QColor col {QColor(toQString(String(layer->param.getValue("annotation_color").toString())))};
     // 0: default pen; 1: selected pen
     const QPen pen[2] = {col, col.lighter()};
 
@@ -62,12 +65,12 @@ namespace OpenMS
     const auto& spectrum = layer_->getCurrentSpectrum();
 
     // get default peak color
-    QPen pen(QColor(String(layer_->param.getValue("peak_color").toString()).toQString()), 1);
+    QPen pen(QColor(toQString(String(layer_->param.getValue("peak_color").toString()))), 1);
     pen.setStyle(canvas->peak_penstyle_[layer_index]);
     painter->setPen(pen);
 
     // draw dashed elongations for pairs of peaks annotated with a distance
-    const QColor color = String(canvas->param_.getValue("highlighted_peak_color").toString()).toQString();
+    const QColor color = toQString(String(canvas->param_.getValue("highlighted_peak_color").toString()));
     for (auto& it : layer_->getCurrentAnnotations())
     {
       const auto distance_item = dynamic_cast<Annotation1DDistanceItem*>(it);
@@ -222,7 +225,7 @@ namespace OpenMS
       auto mz(spec[i].getMZ());
       auto intensity(spec[i].getIntensity());
 
-      QString label = String::number(mz, 4).toQString();
+      QString label = toQString(String::number(mz, 4));
 
       if (!spec.getIntegerDataArrays().empty() && spec.getIntegerDataArrays()[0].size() == spec.size())
       {
@@ -261,7 +264,7 @@ namespace OpenMS
     const auto& data = layer_->getCurrentChrom();
 
     // get default peak color
-    QPen pen(QColor(String(layer_->param.getValue("peak_color").toString()).toQString()), 1);
+    QPen pen(QColor(toQString(String(layer_->param.getValue("peak_color").toString()))), 1);
     pen.setStyle(canvas->peak_penstyle_[layer_index]);
     painter->setPen(pen);
 
@@ -361,7 +364,7 @@ namespace OpenMS
     const auto& data = layer_->getCurrentMobilogram();
 
     // get default peak color
-    QPen pen(QColor(String(layer_->param.getValue("peak_color").toString()).toQString()), 1);
+    QPen pen(QColor(toQString(String(layer_->param.getValue("peak_color").toString()))), 1);
     pen.setStyle(canvas->peak_penstyle_[layer_index]);
     painter->setPen(pen);
 

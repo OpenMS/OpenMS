@@ -10,6 +10,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QtWidgets/QToolBar>
 #include <QtCore/QString>
@@ -61,7 +62,7 @@ namespace OpenMS
   {
     if (filename.empty())
     {
-      filename_ = QFileDialog::getOpenFileName(this, tr("Open ini file"), current_path_.toQString(), tr("ini files (*.ini);; all files (*.*)"));
+      filename_ = QFileDialog::getOpenFileName(this, tr("Open ini file"), toQString(current_path_), tr("ini files (*.ini);; all files (*.*)"));
     }
     else
     {
@@ -111,7 +112,7 @@ namespace OpenMS
 
   bool INIFileEditorWindow::saveFileAs()
   {
-    filename_ = QFileDialog::getSaveFileName(this, tr("Save ini file"), current_path_.toQString(), tr("ini files (*.ini)"));
+    filename_ = QFileDialog::getSaveFileName(this, tr("Save ini file"), toQString(current_path_), tr("ini files (*.ini)"));
     if (!filename_.isEmpty())
     {
       if (!filename_.endsWith(".ini"))
@@ -163,15 +164,15 @@ namespace OpenMS
     //update window title
     if (update)
     {
-      setWindowTitle((File::basename(filename_) + " * - INIFileEditor").toQString());
+      setWindowTitle(toQString((File::basename(fromQString(filename_)) + " * - INIFileEditor")));
     }
     else
     {
-      setWindowTitle((File::basename(filename_) + " - INIFileEditor").toQString());
+      setWindowTitle(toQString((File::basename(fromQString(filename_)) + " - INIFileEditor")));
     }
 
     //update last path as well
-    current_path_ = File::path(filename_);
+    current_path_ = File::path(fromQString(filename_));
   }
 
 }

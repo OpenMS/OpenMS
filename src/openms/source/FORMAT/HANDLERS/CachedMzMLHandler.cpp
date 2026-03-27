@@ -412,7 +412,7 @@ namespace OpenMS::Internal
 
     for (Size j = 2; j < data.size(); j++)
     {
-      spectrum.getFloatDataArrays().push_back(MSSpectrum::FloatDataArray());
+      spectrum.getFloatDataArrays().emplace_back();
       spectrum.getFloatDataArrays().back().reserve(data[j]->data.size());
       spectrum.getFloatDataArrays().back().setName(data[j]->description);
       for (const auto& k : data[j]->data) spectrum.getFloatDataArrays().back().push_back(k);

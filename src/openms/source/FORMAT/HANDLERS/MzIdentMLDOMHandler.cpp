@@ -842,7 +842,7 @@ namespace OpenMS::Internal
           SpectrumIdentification temp_struct = {spectra_data_ref, searchDatabase_ref, spectrumIdentificationProtocol_ref, spectrumIdentificationList_ref};
           si_map_.insert(make_pair(id, temp_struct));
 
-          pro_id_->push_back(ProteinIdentification());
+          pro_id_->emplace_back();
           ProteinIdentification::SearchParameters sp;
           sp.db = db_map_[searchDatabase_ref].location;
           sp.db_version = db_map_[searchDatabase_ref].version;
@@ -1836,7 +1836,7 @@ namespace OpenMS::Internal
       for (Size pep = 0; pep < unique_peptides.size(); ++pep)
       {
 
-        String peptide_ref = unique_peptides[pep];
+        const String& peptide_ref = unique_peptides[pep];
 
         // Debug output
 //        cout << "peptides: ";

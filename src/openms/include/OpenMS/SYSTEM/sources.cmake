@@ -24,6 +24,7 @@ File.h
 JavaInfo.h
 Network.h
 NetworkGetRequest.h
+PathUtils.h
 PythonInfo.h
 RWrapper.h
 SIMDe.h

@@ -10,6 +10,7 @@
 #include <OpenMS/FORMAT/OMSFileStore.h> // for "raiseDBError_"
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
 #include <nlohmann/json.hpp> // for JSON export
@@ -75,7 +76,7 @@ namespace OpenMS::Internal
   //   // this assumes that the "CVTerm" table exists!
   //   SQLite::Statement query(db_);
   //
-  //   QString sql_select = "SELECT * FROM CVTerm WHERE id = " + QString(id);
+  //   String sql_select = "SELECT * FROM CVTerm WHERE id = " + String(id);
   //   if (!query.exec(sql_select) || !query.executeStep())
   //   {
   //     raiseDBError_(model.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,

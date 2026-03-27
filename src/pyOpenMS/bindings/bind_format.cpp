@@ -45,9 +45,7 @@
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/PEFFFile.h>
 #include <OpenMS/FORMAT/ParamCTDFile.h>
-#ifdef WITH_PARQUET
 #include <OpenMS/FORMAT/ParquetFilter.h>
-#endif
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
@@ -59,7 +57,6 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
 #include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>
-#ifdef WITH_PARQUET
 #include <OpenMS/FORMAT/XICParquetFile.h>
 #include <OpenMS/FORMAT/XIMParquetFile.h>
 #include <OpenMS/FORMAT/QPXFile.h>
@@ -67,7 +64,6 @@
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 #include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
-#endif
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -1339,7 +1335,6 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .def("store", [](const OpenMS::ParamCTDFile& self, const OpenMS::String& filename, const OpenMS::Param& param, const OpenMS::ToolInfo& tool_info) { return self.store(filename, param, tool_info); }, "filename"_a, "param"_a, "tool_info"_a)
         ;
 
-#ifdef WITH_PARQUET
     // -----------------------------------------------------------------------
     // ParquetFilter
     // -----------------------------------------------------------------------
@@ -1394,7 +1389,6 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .def("in_", [](OpenMS::ParquetFilterBuilder& self, const OpenMS::String& column, const std::vector<OpenMS::Int64>& values) -> OpenMS::ParquetFilterBuilder & { return self.in(column, values); }, "column"_a, "values"_a, nb::rv_policy::reference_internal)
         .def("in_", [](OpenMS::ParquetFilterBuilder& self, const OpenMS::String& column, const std::vector<OpenMS::String>& values) -> OpenMS::ParquetFilterBuilder & { return self.in(column, values); }, "column"_a, "values"_a, nb::rv_policy::reference_internal)
         ;
-#endif // WITH_PARQUET
 
     // -----------------------------------------------------------------------
     // PeakFileOptions
@@ -1848,7 +1842,6 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def_rw("citations_", &OpenMS::ToolInfo::citations_)
         ;
 
-#ifdef WITH_PARQUET
     // -----------------------------------------------------------------------
     // XICParquetFile
     // -----------------------------------------------------------------------
@@ -2380,8 +2373,6 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         }, "filename"_a, "protein_identifications"_a,
             "Import protein groups from Parquet file into existing ProteinIdentifications. Returns updated list")
         ;
-
-#endif // WITH_PARQUET
 
     // -----------------------------------------------------------------------
     // ControlledVocabulary

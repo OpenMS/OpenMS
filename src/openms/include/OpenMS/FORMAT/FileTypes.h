@@ -94,6 +94,7 @@ namespace OpenMS
       BZ2,                ///< any BZ2 compressed file
       GZ,                 ///< any Gzipped file
       PARQUET,            ///< Apache Parquet file format (.parquet, .pqt)
+      BRUKER_TDF,         ///< Bruker TimsTOF .d directory (TDF format)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

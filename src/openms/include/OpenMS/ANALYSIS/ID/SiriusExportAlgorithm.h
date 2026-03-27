@@ -12,8 +12,6 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtCore/QStringList>
-
 namespace OpenMS
 {
   class OPENMS_DLLAPI SiriusExportAlgorithm : public DefaultParamHandler

@@ -6,35 +6,13 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h"
-
 #include "OpenMS/OPENSWATHALGO/ALGO/Scoring.h"
 #include <cmath>
 #include <numeric>
 
-#ifdef USE_BOOST_UNIT_TEST
-
-// include boost unit test framework
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE MyTest
-#include <boost/test/unit_test.hpp>
-// macros for boost
-#define EPS_05 boost::test_tools::fraction_tolerance(1.e-5)
-#define TEST_REAL_SIMILAR(val1, val2) \
-  BOOST_CHECK ( boost::test_tools::check_is_close(val1, val2, EPS_05 ));
-#define TEST_EQUAL(val1, val2) BOOST_CHECK_EQUAL(val1, val2);
-#define END_SECTION
-#define START_TEST(var1, var2)
-#define END_TEST
-
-#else
-
 #include <algorithm>
 #include <OpenMS/CONCEPT/ClassTest.h>
-#define BOOST_AUTO_TEST_CASE START_SECTION
 using namespace OpenMS;
-
-#endif
 
 using namespace std;
 using namespace OpenSwath;
@@ -122,7 +100,7 @@ START_TEST(Scoring, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-BOOST_AUTO_TEST_CASE(double_NormalizedManhattanDist_test)
+START_SECTION(double_NormalizedManhattanDist_test)
 {
   // Numpy 
   // arr1 = [ 0,1,3,5,2,0 ];
@@ -140,7 +118,7 @@ BOOST_AUTO_TEST_CASE(double_NormalizedManhattanDist_test)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(double_RootMeanSquareDeviation_test)
+START_SECTION(double_RootMeanSquareDeviation_test)
 {
   // Numpy 
   // arr1 = [ 0,1,3,5,2,0 ];
@@ -157,7 +135,7 @@ BOOST_AUTO_TEST_CASE(double_RootMeanSquareDeviation_test)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(double_SpectralAngle_test)
+START_SECTION(double_SpectralAngle_test)
 {
 /*
   # example python code of two reference implementations
@@ -279,7 +257,7 @@ BOOST_AUTO_TEST_CASE(double_SpectralAngle_test)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(void_normalize_sum_test)
+START_SECTION(void_normalize_sum_test)
 // void normalize_sum(double x[], unsigned int n)
 {
   // arr1 = [ 0,1,3,5,2,0 ];
@@ -299,7 +277,7 @@ BOOST_AUTO_TEST_CASE(void_normalize_sum_test)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(standardize_data_test)
+START_SECTION(standardize_data_test)
 //START_SECTION((void MRMFeatureScoring::standardize_data(std::vector<double>& data)))
 {
   // Numpy 
@@ -332,7 +310,7 @@ BOOST_AUTO_TEST_CASE(standardize_data_test)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_calculateCrossCorrelation)
+START_SECTION(test_calculateCrossCorrelation)
 //START_SECTION((MRMFeatureScoring::XCorrArrayType MRMFeatureScoring::calculateCrossCorrelation(std::vector<double>& data1, std::vector<double>& data2, int maxdelay, int lag)))
 {
 
@@ -371,7 +349,7 @@ BOOST_AUTO_TEST_CASE(test_calculateCrossCorrelation)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_MRMFeatureScoring_normalizedCrossCorrelation)
+START_SECTION(test_MRMFeatureScoring_normalizedCrossCorrelation)
 //START_SECTION((MRMFeatureScoring::XCorrArrayType MRMFeatureScoring::normalizedCrossCorrelation(std::vector<double>& data1, std::vector<double>& data2, int maxdelay, int lag)))
 {
 
@@ -403,7 +381,7 @@ BOOST_AUTO_TEST_CASE(test_MRMFeatureScoring_normalizedCrossCorrelation)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_MRMFeatureScoring_calcxcorr_legacy_mquest_)
+START_SECTION(test_MRMFeatureScoring_calcxcorr_legacy_mquest_)
 //START_SECTION((MRMFeatureScoring::XCorrArrayType MRMFeatureScoring::calcxcorr(std::vector<double>& data1, std::vector<double>& data2, bool normalize)))
 {
 
@@ -429,7 +407,7 @@ BOOST_AUTO_TEST_CASE(test_MRMFeatureScoring_calcxcorr_legacy_mquest_)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_calculateCrossCorrelation_equivalence)
+START_SECTION(test_calculateCrossCorrelation_equivalence)
 //START_SECTION(Eigen vs manual-loop reference for calculateCrossCorrelation)
 {
   // Verify that the Eigen-based calculateCrossCorrelation produces numerically
@@ -490,7 +468,7 @@ BOOST_AUTO_TEST_CASE(test_calculateCrossCorrelation_equivalence)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_calcxcorr_legacy_equivalence)
+START_SECTION(test_calcxcorr_legacy_equivalence)
 //START_SECTION(Eigen vs manual-loop reference for calcxcorr_legacy_mquest_)
 {
   // Verify that Eigen-based calcxcorr_legacy_mquest_ matches the old
@@ -549,7 +527,7 @@ BOOST_AUTO_TEST_CASE(test_calcxcorr_legacy_equivalence)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_xcorr_mathematical_properties)
+START_SECTION(test_xcorr_mathematical_properties)
 //START_SECTION(Cross-correlation mathematical properties)
 {
   // Property 1: Autocorrelation maximum is at lag 0
@@ -614,7 +592,7 @@ BOOST_AUTO_TEST_CASE(test_xcorr_mathematical_properties)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_xcorr_edge_cases)
+START_SECTION(test_xcorr_edge_cases)
 //START_SECTION(Cross-correlation edge cases)
 {
   // Edge case 1: All zeros — normalized should return all zeros (not NaN/inf)
@@ -670,7 +648,7 @@ BOOST_AUTO_TEST_CASE(test_xcorr_edge_cases)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_legacy_vs_normalized_consistency)
+START_SECTION(test_legacy_vs_normalized_consistency)
 //START_SECTION(calcxcorr_legacy_mquest_ agrees with normalizedCrossCorrelation)
 {
   // The deprecated calcxcorr_legacy_mquest_(normalize=true) should produce
@@ -698,7 +676,7 @@ BOOST_AUTO_TEST_CASE(test_legacy_vs_normalized_consistency)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_computeAndAppendRank)
+START_SECTION(test_computeAndAppendRank)
 {
 /*
 * Requires Octave with installed MIToolbox
@@ -741,7 +719,7 @@ y = [5.97543668746948 4.2749171257019 3.3301842212677 4.08597040176392 5.5030703
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_rankedMutualInformation)
+START_SECTION(test_rankedMutualInformation)
 {
 /*
 * Requires Octave with installed MIToolbox

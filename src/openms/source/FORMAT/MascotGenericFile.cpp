@@ -16,8 +16,9 @@
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 
-#include <QtCore/QFileInfo>
+#include <filesystem>
 
 #include <iomanip>     // setw
 #include <regex>
@@ -422,8 +423,8 @@ namespace OpenMS
     }
 
     static const std::regex non_alnum("[^a-zA-Z0-9]");
-    QFileInfo fileinfo(filename.c_str());
-    String filtered_filename = std::regex_replace(fileinfo.completeBaseName().toStdString(), non_alnum, "");
+    auto fileinfo = to_path(filename);
+    String filtered_filename = std::regex_replace(fileinfo.stem().string(), non_alnum, "");
 
 
     String native_id_type_accession;

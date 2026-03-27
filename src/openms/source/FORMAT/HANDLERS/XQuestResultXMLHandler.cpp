@@ -101,7 +101,7 @@ namespace OpenMS::Internal
         // for single digit days, there are two spaces and the day is in the 4th string instead of the 3rd
         // that also moves the time and year one slot further
         UInt correction = 0;
-        String day_string = xquest_datetime_string_split[2];
+        const String& day_string = xquest_datetime_string_split[2];
         if (day_string.empty())
         {
           correction = 1;
@@ -136,7 +136,7 @@ namespace OpenMS::Internal
            prot_list_it != prot_list.end(); ++prot_list_it)
       {
         PeptideEvidence pep_ev;
-        String accession = *prot_list_it;
+        const String& accession = *prot_list_it;
 
         if (this->accessions_.find(accession) == this->accessions_.end())
         {

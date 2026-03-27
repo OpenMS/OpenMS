@@ -91,7 +91,6 @@
 #include <OpenMS/KERNEL/BinnedSpectrum.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtCore/QStringList>
 
 #include <map>
 #include <algorithm>
@@ -4158,40 +4157,29 @@ static void scoreXLIons_(
     writeLogInfo_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
     String net_executable = getStringOption_("NET_executable");
     TOPPBase::ExitCodes exit_code;
-    QStringList arguments;
+    std::vector<String> arguments;
     String out = in + ".mzML";
     // check if this file exists and not empty so we can skip further conversions
     if (!File::empty(out)) { return out; }
-#ifdef OPENMS_WINDOWSPLATFORM      
+#ifdef OPENMS_WINDOWSPLATFORM
     if (net_executable.empty())
     { // default on Windows: if no mono executable is set use the "native" .NET one
-      arguments << String("-i=" + in).toQString()
-                << String("--output_file=" + out).toQString()
-                << String("-f=2").toQString() // indexedMzML
-                << String("-e").toQString(); // ignore instrument errors
-      if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
-      exit_code = runExternalProcess_(getStringOption_("ThermoRaw_executable").toQString(), arguments);
+      arguments = {"-i=" + in, "--output_file=" + out, "-f=2", "-e"};
+      if (no_peak_picking)  { arguments.push_back("--noPeakPicking"); }
+      exit_code = runExternalProcess_(getStringOption_("ThermoRaw_executable"), arguments);
     }
     else
     { // use e.g., mono
-      arguments << getStringOption_("ThermoRaw_executable").toQString()
-                << String("-i=" + in).toQString()
-                << String("--output_file=" + out).toQString()
-                << String("-f=2").toQString()
-                << String("-e").toQString();
-      if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
-      exit_code = runExternalProcess_(net_executable.toQString(), arguments);       
-    }      
+      arguments = {getStringOption_("ThermoRaw_executable"), "-i=" + in, "--output_file=" + out, "-f=2", "-e"};
+      if (no_peak_picking)  { arguments.push_back("--noPeakPicking"); }
+      exit_code = runExternalProcess_(net_executable, arguments);
+    }
 #else
     // default on Mac, Linux: use mono
     net_executable = net_executable.empty() ? "mono" : net_executable;
-    arguments << getStringOption_("ThermoRaw_executable").toQString()
-              << String("-i=" + in).toQString()
-              << String("--output_file=" + out).toQString()
-              << String("-f=2").toQString()
-              << String("-e").toQString();
-    if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
-    exit_code = runExternalProcess_(net_executable.toQString(), arguments);       
+    arguments = {getStringOption_("ThermoRaw_executable"), "-i=" + in, "--output_file=" + out, "-f=2", "-e"};
+    if (no_peak_picking)  { arguments.push_back("--noPeakPicking"); }
+    exit_code = runExternalProcess_(net_executable, arguments);
 #endif
     if (exit_code != ExitCodes::EXECUTION_OK)
     {
@@ -4557,9 +4545,9 @@ static void scoreXLIons_(
 
   std::tuple<IMFormat, DriftTimeUnit> getMS2IMType(const MSExperiment& spectra)
   {
-    IMFormat IM_format = IMTypes::determineIMFormat(spectra);  
+    IMFormat IM_format = IMTypes::determineIMFormat(spectra, 2);
     DriftTimeUnit IM_unit = DriftTimeUnit::NONE;
-    if (IM_format == IMFormat::MULTIPLE_SPECTRA)
+    if (IM_format == IMFormat::IM_SPECTRUM)
     {
       OPENMS_LOG_INFO << "Ion Mobility annotated at the spectrum level." << std::endl;
 
@@ -4580,13 +4568,9 @@ static void scoreXLIons_(
     {
       OPENMS_LOG_INFO << "No Ion Mobility annotated at the spectrum level." << std::endl;
     }
-    else if (IM_format == IMFormat::CONCATENATED)
+    else if (IM_format == IMFormat::IM_PEAK)
     {
-      OPENMS_LOG_INFO << "Concatenated Ion Mobility not supported. IM values need to be annotated at the spectrum level." << std::endl;
-    }
-    else if (IM_format == IMFormat::MIXED)
-    {
-      OPENMS_LOG_INFO << "Mixed Ion Mobility not supported. IM values need to be annotated at the spectrum level." << std::endl;
+      OPENMS_LOG_INFO << "Per-peak Ion Mobility not supported. IM values need to be annotated at the spectrum level." << std::endl;
     }
     return make_tuple(IM_format, IM_unit);
   }
@@ -4738,6 +4722,7 @@ static void scoreXLIons_(
       p.setValue("peptide:missed_cleavages", 2);
       p.setValue("precursor:isotopes", IntList{0, 1});
       p.setValue("decoys", generate_decoys ? "true" : "false");
+      p.setValue("FDR:PSM", 0.0); // disable built-in FDR — OpenNuXL handles FDR filtering separately
       p.setValue("enzyme", getStringOption_("peptide:enzyme"));
       p.setValue("annotate:PSM", 
         vector<string>{
@@ -4788,23 +4773,19 @@ static void scoreXLIons_(
           String weights_out = out_idxml;
           weights_out.substitute(".idXML", "_sse_perc.weights");
 
-          QStringList process_params;
-          process_params << "-in" << perc_in.toQString()
-                       << "-out" << perc_out.toQString()
-                       << "-percolator_executable" << percolator_executable.toQString()
-                       << "-train_best_positive" 
-                       << "-score_type" << "q-value"
-                       << "-post_processing_tdc"
-                       << "-weights" << weights_out.toQString()
-//                       << "-nested_xval_bins" << "3"
-                       ;
+          std::vector<String> process_params = {"-in", perc_in, "-out", perc_out,
+                       "-percolator_executable", percolator_executable,
+                       "-train_best_positive",
+                       "-score_type", "q-value",
+                       "-post_processing_tdc",
+                       "-weights", weights_out};
 
           if (getStringOption_("peptide:enzyme") == "Lys-C")
           {
-            process_params << "-enzyme" << "lys-c";
+            process_params.push_back("-enzyme"); process_params.push_back("lys-c");
           }
-                       
-          TOPPBase::ExitCodes exit_code = runExternalProcess_(QString("PercolatorAdapter"), process_params);
+
+          TOPPBase::ExitCodes exit_code = runExternalProcess_(String("PercolatorAdapter"), process_params);
 
           if (exit_code != EXECUTION_OK) 
           { 
@@ -6411,26 +6392,22 @@ static void scoreXLIons_(
         String pin = out_idxml;
         pin.substitute(".idXML", ".tsv");
 
-        QStringList process_params;
-        process_params << "-in" << out_idxml.toQString()
-                       << "-out" << perc_out.toQString()
-                       << "-percolator_executable" << percolator_executable.toQString()
-                       << "-train_best_positive" 
-                       << "-score_type" << "svm"
-                       << "-unitnorm"
-                       << "-post_processing_tdc"
-//                       << "-nested_xval_bins" << "3"
-                       << "-weights" << weights_out.toQString()
-                       << "-out_pin" << pin.toQString();
+        std::vector<String> process_params = {"-in", out_idxml, "-out", perc_out,
+                       "-percolator_executable", percolator_executable,
+                       "-train_best_positive",
+                       "-score_type", "svm",
+                       "-unitnorm",
+                       "-post_processing_tdc",
+                       "-weights", weights_out,
+                       "-out_pin", pin};
 
         if (getStringOption_("peptide:enzyme") == "Lys-C")
         {
-          process_params << "-enzyme" << "lys-c";
+          process_params.push_back("-enzyme"); process_params.push_back("lys-c");
         }
-//        process_params << "-out_pout_target" << "merged_target.tab" << "-out_pout_decoy" << "merged_decoy.tab";
 
         OPENMS_LOG_INFO << "Running percolator." << endl;
-        TOPPBase::ExitCodes exit_code = runExternalProcess_(QString("PercolatorAdapter"), process_params);
+        TOPPBase::ExitCodes exit_code = runExternalProcess_(String("PercolatorAdapter"), process_params);
         OPENMS_LOG_INFO << "done." << endl;
 
         if (exit_code != EXECUTION_OK) 

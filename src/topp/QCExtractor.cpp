@@ -109,7 +109,7 @@ protected:
     //------------------------------------------------------------
     if (!target_file.empty())
     {
-      target_run = QFileInfo(QString::fromStdString(target_file)).baseName();
+      target_run = QFileInfo(QString::fromStdString(target_file)).baseName().toStdString();
     }
 
     QcMLFile qcmlfile;

@@ -14,8 +14,6 @@
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <QStringList>
-
 using namespace OpenMS;
 
 START_TEST(XQuestResultXMLFile, "$Id$")

@@ -37,7 +37,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
     };
 
     /// @brief search spectra against database
-    ExitCodes search(const String& in_mzML, 
+    ExitCodes search(const String& in_spectra,
       const String& in_db, 
       std::vector<ProteinIdentification>& prot_ids,
       PeptideIdentificationList& pep_ids) const;
@@ -112,6 +112,8 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
     String enzyme_;
 
     bool decoys_;
+
+    double fdr_psm_;
 
     StringList annotate_psm_;
 

@@ -692,11 +692,20 @@ namespace OpenMS
 
     // Check IM format
     double IM_window = param_.getValue("extract:IM_window");
-    IMFormat im_format = IMTypes::determineIMFormat(ms_data_);
+    IMFormat im_format = IMTypes::determineIMFormat(ms_data_, 1);
     bool has_IM = false;
-    if (im_format == IMFormat::CONCATENATED)
+    if (im_format == IMFormat::IM_PEAK)
     {
       has_IM = true;
+      for (const auto& spec : ms_data_)
+      {
+        IMPeakType pt = spec.getIMPeakType();
+        if (pt != IMPeakType::UNKNOWN)
+        {
+          OPENMS_LOG_INFO << "IM peak type: " << imPeakTypeToString(pt) << endl;
+          break;
+        }
+      }
       // Check IM unit and warn if CCS data with small window
       if (IM_window > 0.0)
       {

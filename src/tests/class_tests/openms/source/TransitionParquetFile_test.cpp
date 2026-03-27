@@ -15,11 +15,9 @@
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#ifdef WITH_PARQUET
 #include <arrow/api.h>
 #include <arrow/io/api.h>
 #include <parquet/arrow/writer.h>
-#endif
 
 #include <map>
 #include <vector>
@@ -27,7 +25,6 @@
 using namespace OpenMS;
 using namespace std;
 
-#ifdef WITH_PARQUET
 namespace
 {
   template <typename BuilderT, typename ValueT>
@@ -70,7 +67,6 @@ namespace
     return std::string(joined);
   }
 }
-#endif
 
 START_TEST(TransitionParquetFile, "$Id$")
 
@@ -92,7 +88,6 @@ END_SECTION
 
 START_SECTION(void convertParquetToTargetedExperiment(const String& oswpq_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const)
 {
-#ifdef WITH_PARQUET
   const String input_file = OPENMS_GET_TEST_DATA_PATH("MRMAssay_detectingTransistionCompound_input.TraML");
   TraMLFile traml;
   TargetedExperiment targeted_exp;
@@ -296,15 +291,11 @@ START_SECTION(void convertParquetToTargetedExperiment(const String& oswpq_dir, O
   {
     TEST_EQUAL(compound_refs.find(transition.peptide_ref) != compound_refs.end(), true)
   }
-#else
-  NOT_TESTABLE
-#endif
 }
 END_SECTION
 
 START_SECTION(void convertLightTargetedExperimentToParquet(const String& oswpq_path, const OpenSwath::LightTargetedExperiment& targeted_exp) const)
 {
-#ifdef WITH_PARQUET
   // --- Build a reference LightTargetedExperiment from a TraML file ---
   const String input_file = OPENMS_GET_TEST_DATA_PATH("MRMAssay_detectingTransistionCompound_input.TraML");
   TraMLFile traml;
@@ -364,9 +355,6 @@ START_SECTION(void convertLightTargetedExperimentToParquet(const String& oswpq_p
       TEST_REAL_SIMILAR(tr.product_mz, it->second)
     }
   }
-#else
-  NOT_TESTABLE
-#endif
 }
 END_SECTION
 

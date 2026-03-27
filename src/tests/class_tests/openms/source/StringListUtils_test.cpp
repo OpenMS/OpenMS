@@ -11,7 +11,6 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <QStringList>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
@@ -22,21 +21,6 @@ using namespace std;
 START_TEST(StringList, "$Id$")
 
 /////////////////////////////////////////////////////////////
-
-START_SECTION((static StringList fromQStringList(const QStringList &rhs)))
-{
-  QStringList q_str_list;
-  q_str_list << "First Element" << "Second Element" << "Third Element";
-
-  StringList str_list = StringListUtils::fromQStringList(q_str_list);
-  TEST_EQUAL((int)str_list.size(), q_str_list.size())
-  ABORT_IF((int)str_list.size() != q_str_list.size())
-  for(Size i = 0 ; i < str_list.size() ; ++i)
-  {
-    TEST_EQUAL(str_list[i], String(q_str_list[(int)i]))
-  }
-}
-END_SECTION
 
 
 START_SECTION((static void toUpper(StringList &sl)))
