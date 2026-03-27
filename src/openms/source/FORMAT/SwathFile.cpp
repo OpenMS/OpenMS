@@ -289,7 +289,7 @@ namespace OpenMS
     const String& file,
     std::shared_ptr<ExperimentalSettings>& exp_meta)
   {
-    LOG_INFO << "Loading Bruker TDF file " << file << '\n';
+    OPENMS_LOG_INFO << "Loading Bruker TDF file " << file << '\n';
     startProgress(0, 1, "Loading Bruker TDF file " + file);
 
     // Load full MSExperiment via BrukerTimsFile (DIA auto-detected)
