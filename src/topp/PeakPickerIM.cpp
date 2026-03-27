@@ -110,6 +110,16 @@ protected:
     setMinFloat_("bruker:calibration_tolerance", 0.0);
     registerStringOption_("bruker:calibrate", "<toggle>", "false", "Enable m/z recalibration (may fail on some datasets)", false, true);
     setValidStrings_("bruker:calibrate", {"true", "false"});
+    registerDoubleOption_("bruker:ms1_centroid_mz_ppm", "<float>", 0.0,
+      "MS1 frame IM-centroiding m/z tolerance in ppm. Collapses the ion mobility dimension "
+      "by aggregating neighboring peaks directly on the raw gridded data (Sage algorithm, Lazear 2023). "
+      "Both this and ms1_centroid_im_pct must be > 0 to enable. Suggested value: 5.0. "
+      "When enabled, this replaces the PeakPickerIM algorithm for MS1 frames.", false, true);
+    setMinFloat_("bruker:ms1_centroid_mz_ppm", 0.0);
+    registerDoubleOption_("bruker:ms1_centroid_im_pct", "<float>", 0.0,
+      "MS1 frame IM-centroiding ion mobility tolerance in percent. Both this and ms1_centroid_mz_ppm "
+      "must be > 0 to enable. Suggested value: 3.0.", false, true);
+    setMinFloat_("bruker:ms1_centroid_im_pct", 0.0);
 #endif
   }
 
@@ -138,6 +148,8 @@ protected:
     if (mode == "spectrum") c.export_mode = BrukerTimsFile::Config::SPECTRUM;
     else if (mode == "frame") c.export_mode = BrukerTimsFile::Config::FRAME;
     else c.export_mode = BrukerTimsFile::Config::AUTO;
+    c.ms1_centroid_mz_ppm = static_cast<float>(getDoubleOption_("bruker:ms1_centroid_mz_ppm"));
+    c.ms1_centroid_im_pct = static_cast<float>(getDoubleOption_("bruker:ms1_centroid_im_pct"));
     return c;
   }
 #endif
@@ -267,13 +279,27 @@ protected:
 #ifdef WITH_OPENTIMS
     if (in_type == FileTypes::BRUKER_TDF)
     {
-      // Load .d file using BrukerTimsFile (FRAME mode by default for raw per-peak IM data)
       auto bruker_config = getBrukerConfig_();
       BrukerTimsFile tims_file;
       tims_file.setLogType(log_type_);
 
       PeakMap exp;
       tims_file.load(input_file, exp, bruker_config);
+
+      // If built-in IM centroiding was enabled, BrukerTimsFile already produced
+      // IM_CENTROIDED spectra — skip PeakPickerIM and write directly.
+      bool builtin_centroiding = (bruker_config.ms1_centroid_mz_ppm > 0.0f
+                                  && bruker_config.ms1_centroid_im_pct > 0.0f);
+      if (builtin_centroiding)
+      {
+        OPENMS_LOG_INFO << "Built-in Bruker IM centroiding was applied during .d loading "
+                        << "(ms1_centroid_mz_ppm=" << bruker_config.ms1_centroid_mz_ppm
+                        << ", ms1_centroid_im_pct=" << bruker_config.ms1_centroid_im_pct
+                        << "). Skipping PeakPickerIM algorithm." << std::endl;
+        addDataProcessing_(exp, getProcessingInfo_(DataProcessing::PEAK_PICKING));
+        MzMLFile().store(output_file, exp);
+        return EXECUTION_OK;
+      }
 
       // Check MS1 spectra for IM format
       IMFormat im_format = IMTypes::determineIMFormat(exp, 1);
