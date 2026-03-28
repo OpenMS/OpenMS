@@ -1240,7 +1240,7 @@ protected:
         }
       } // <--- END OF ELSE BLOCK
 
-      unordered_set<String> keep_meta = {"OffsetPeptide"};
+      unordered_set<String> keep_meta = {"OffsetPeptide", "IM_median", "IM_min", "IM_max"};
       for (auto & f : fm)
       {
         std::vector<String> keys;
