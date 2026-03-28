@@ -2991,10 +2991,16 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
       -protein false)
     set_tests_properties("TOPP_FalseDiscoveryRate_SageDDA" PROPERTIES DEPENDS "TOPP_SageAdapter_DDA")
 
+    # Compute PEP from Sage hyperscores (ProteomicsLFQ requires PEP as main score)
+    add_test("TOPP_IDPosteriorErrorProbability_SageDDA" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test
+      -in ${TESTS_TEMP_DIR}/SageAdapter_DDA_out.tmp.idXML
+      -out ${TESTS_TEMP_DIR}/SageAdapter_DDA_pep.tmp.idXML)
+    set_tests_properties("TOPP_IDPosteriorErrorProbability_SageDDA" PROPERTIES DEPENDS "TOPP_SageAdapter_DDA")
+
     # ProteomicsLFQ with Bruker .d input (DDA-PASEF, smoke test — verifies .d path completes)
     add_test("TOPP_ProteomicsLFQ_DDA_PASEF" ${TOPP_BIN_PATH}/ProteomicsLFQ -test
       -in ${OPENTIMS_DDA_SYMLINK}
-      -ids ${TESTS_TEMP_DIR}/SageAdapter_DDA_fdr.tmp.idXML
+      -ids ${TESTS_TEMP_DIR}/SageAdapter_DDA_pep.tmp.idXML
       -fasta ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
       -targeted_only true
       -mass_recalibration false
@@ -3002,7 +3008,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
       -out_cxml ${TESTS_TEMP_DIR}/ProteomicsLFQ_DDA_PASEF.tmp.consensusXML
       -proteinFDR 1.0
       -threads 1)
-    set_tests_properties("TOPP_ProteomicsLFQ_DDA_PASEF" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_SageDDA")
+    set_tests_properties("TOPP_ProteomicsLFQ_DDA_PASEF" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_SageDDA")
   endif()
 endif()
 
