@@ -17,9 +17,21 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <algorithm>
 #include <cmath>
 #include <unordered_map>
 
+namespace
+{
+  /// Lightweight descriptor for a (window, batch) work item in the flat work queue.
+  struct WorkItem
+  {
+    OpenMS::SignedSize window_idx;
+    OpenMS::SignedSize batch_idx;
+    int batch_size;
+    OpenMS::Size n_compounds;  ///< total compounds in this window (used for sorting)
+  };
+}
 
 // OpenSwathWorkflow
 namespace OpenMS
@@ -88,8 +100,6 @@ namespace OpenMS
     trafo_inverse.invert();
 
     OPENMS_LOG_INFO << "Will analyze " << transition_exp.transitions.size() << " transitions in total." << std::endl;
-    int progress = 0;
-    this->startProgress(0, swath_maps.size(), "Extracting and scoring transitions");
 
     // (i) Obtain precursor chromatograms (MS1) if precursor extraction is enabled
     ChromExtractParams ms1_cp(cp_ms1);
@@ -206,33 +216,25 @@ namespace OpenMS
     };
 
     // (iv) Perform extraction and scoring of fragment ion chromatograms (MS2)
-    // We set dynamic scheduling such that the maps are worked on in the order
-    // in which they were given to the program / acquired. This gives much
-    // better load balancing than static allocation.
-#ifdef _OPENMP
-#ifdef MT_ENABLE_NESTED_OPENMP
-    int total_nr_threads = omp_get_max_threads(); // store total number of threads we are allowed to use
-    if (threads_outer_loop_ > -1)
-    {
-  OPENMS_LOG_INFO << "Setting up nested loop with " << std::min(threads_outer_loop_, omp_get_max_threads()) << " threads out of "<< omp_get_max_threads() << std::endl;
-      omp_set_nested(1);
-      omp_set_dynamic(0);
-      omp_set_num_threads(std::min(threads_outer_loop_, omp_get_max_threads()) ); // use at most threads_outer_loop_ threads here
-    }
-    else
-    {
-  OPENMS_LOG_INFO << "Use non-nested loop with " << total_nr_threads << " threads." << std::endl;
-    }
-#endif
-#pragma omp parallel for schedule(dynamic,1)
-#endif
+    //
+    // We use a flat work queue: pre-compute all (window, batch) pairs, sort
+    // them by descending compound count, then process with a single
+    // omp parallel for with dynamic scheduling. This replaces the previous
+    // nested loop (outer over windows, inner over batches) and gives much
+    // better load balancing, especially for diaPASEF where compound counts
+    // per window can vary by 40x+.
+
+    // --- Phase A: sequential pre-computation ---
+
+    // A1: Select transitions per window
+    std::vector<OpenSwath::LightTargetedExperiment> per_window_transitions(swath_maps.size());
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
     {
       if (!swath_maps[i].ms1) // skip MS1
       {
 
         // Step 1: select which transitions to extract (proceed in batches)
-        OpenSwath::LightTargetedExperiment transition_exp_used_all;
+        OpenSwath::LightTargetedExperiment& transition_exp_used_all = per_window_transitions[i];
         if (!(prm_ || pasef_))
         {
           // Step 1.1: select transitions matching the window
@@ -274,144 +276,168 @@ namespace OpenMS
             }
           }
         }
+      }
+    }
 
-        if (!transition_exp_used_all.getTransitions().empty()) // skip if no transitions found
-        {
+    // A2: Build flat work queue of (window, batch) pairs
+    std::vector<WorkItem> work_items;
+    for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+    {
+      if (swath_maps[i].ms1) continue;
+      const auto& trans = per_window_transitions[i];
+      if (trans.getTransitions().empty()) continue;
 
-          OpenSwath::SpectrumAccessPtr current_swath_map = swath_maps[i].sptr;
-          if (load_into_memory)
-          {
-            // This creates an InMemory object that keeps all data in memory
-            current_swath_map = std::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*current_swath_map) );
-          }
+      int batch_size;
+      if (batchSize <= 0 || batchSize >= (int)trans.getCompounds().size())
+      {
+        batch_size = trans.getCompounds().size();
+      }
+      else
+      {
+        batch_size = batchSize;
+      }
 
-          int batch_size;
-          if (batchSize <= 0 || batchSize >= (int)transition_exp_used_all.getCompounds().size())
-          {
-            batch_size = transition_exp_used_all.getCompounds().size();
-          }
-          else
-          {
-            batch_size = batchSize;
-          }
+      const Size n_compounds = trans.getCompounds().size();
+      SignedSize nr_batches = (batch_size > 0)
+          ? static_cast<SignedSize>((n_compounds + batch_size - 1) / batch_size)
+          : 0;
 
-          const Size n_compounds = transition_exp_used_all.getCompounds().size();
-          SignedSize nr_batches = 0;
-          if (batch_size > 0)
-          {
-            nr_batches = static_cast<SignedSize>((n_compounds + batch_size - 1) / batch_size);
-          }
+      for (SignedSize j = 0; j < nr_batches; ++j)
+      {
+        work_items.push_back({i, j, batch_size, n_compounds});
+      }
+    }
 
+    // A3: Sort by descending compound count for better load balancing with
+    // dynamic scheduling. Only sort when multi-threaded. single-threaded must
+    // preserve window/batch order to produce deterministic output.
 #ifdef _OPENMP
-#ifdef MT_ENABLE_NESTED_OPENMP
-          // If we have a multiple of threads_outer_loop_ here, then use nested
-          // parallelization here. E.g. if we use 8 threads for the outer loop,
-          // but we have a total of 24 cores available, each of the 8 threads
-          // will then create a team of 3 threads to work on the batches
-          // individually.
-          //
-          // We should avoid oversubscribing the CPUs, therefore we use integer division.
-          // -- see https://docs.oracle.com/cd/E19059-01/stud.10/819-0501/2_nested.html
-          int outer_thread_nr = omp_get_thread_num();
-          omp_set_num_threads(std::max(1, total_nr_threads / threads_outer_loop_) );
+    if (omp_get_max_threads() > 1)
+    {
+      std::sort(work_items.begin(), work_items.end(),
+          [](const WorkItem& a, const WorkItem& b) { return a.n_compounds > b.n_compounds; });
+    }
+#endif
+
+    // A4: Prepare per-window spectrum access with lazy init + ref counting.
+    // When load_into_memory is set, InMemory copies are created on first
+    // access (thread-safe via critical section) and released when all batches
+    // for that window are done. This keeps memory proportional to the number
+    // of concurrently active windows (~thread count), not total windows.
+    std::vector<OpenSwath::SpectrumAccessPtr> per_window_sptr(swath_maps.size());
+    std::vector<int> window_refcounts(swath_maps.size(), 0);
+    for (const auto& wi : work_items)
+    {
+      window_refcounts[wi.window_idx]++;
+    }
+
+    int progress = 0;
+    this->startProgress(0, work_items.size(), "Extracting and scoring transitions");
+
+    // --- Phase B: flat parallel loop over all work items ---
+#ifdef _OPENMP
+    OPENMS_LOG_INFO << "Processing " << work_items.size() << " work items with " << omp_get_max_threads() << " threads." << std::endl;
 #pragma omp parallel for schedule(dynamic, 1)
 #endif
-#endif
-          for (SignedSize pep_idx = 0; pep_idx < nr_batches; ++pep_idx)
+    for (SignedSize k = 0; k < boost::numeric_cast<SignedSize>(work_items.size()); ++k)
+    {
+      const WorkItem& wi = work_items[k];
+      const OpenSwath::LightTargetedExperiment& transition_exp_used_all = per_window_transitions[wi.window_idx];
+
+      // Obtain thread-safe spectrum access for this work item.
+      // When load_into_memory is set, lazily create one InMemory copy per
+      // window (serialized to avoid concurrent file reads on the same sptr).
+      // When not set, lightClone creates a new independent file handle.
+      OpenSwath::SpectrumAccessPtr current_swath_map;
+      if (load_into_memory)
+      {
+        #pragma omp critical (window_cache_init)
+        {
+          if (!per_window_sptr[wi.window_idx])
           {
-            OpenSwath::SpectrumAccessPtr current_swath_map_inner = current_swath_map;
+            per_window_sptr[wi.window_idx] = std::make_shared<SpectrumAccessOpenMSInMemory>(*swath_maps[wi.window_idx].sptr);
+          }
+        }
+        current_swath_map = per_window_sptr[wi.window_idx]->lightClone();
+      }
+      else
+      {
+        current_swath_map = swath_maps[wi.window_idx].sptr->lightClone();
+      }
 
 #ifdef _OPENMP
-#ifdef MT_ENABLE_NESTED_OPENMP
-            // To ensure multi-threading safe access to the individual spectra, we
-            // need to use a light clone of the spectrum access (if multiple threads
-            // share a single filestream and call seek on it, chaos will ensue).
-            if (total_nr_threads / threads_outer_loop_ > 1)
-            {
-              current_swath_map_inner = current_swath_map->lightClone();
-            }
-#endif
 #pragma omp critical (osw_write_stdout)
 #endif
-            {
-              OPENMS_LOG_INFO << "Thread " <<
+      {
+        OPENMS_LOG_INFO << "Thread " <<
 #ifdef _OPENMP
-#ifdef MT_ENABLE_NESTED_OPENMP
-              outer_thread_nr << "_" << omp_get_thread_num() << " " <<
+            omp_get_thread_num() <<
 #else
-              omp_get_thread_num() << "_0 " <<
+            "0" <<
 #endif
-#else
-              "0" <<
-#endif
-              "will analyze " << transition_exp_used_all.getCompounds().size() <<  " compounds and "
-              << transition_exp_used_all.getTransitions().size() <<  " transitions "
-              "from SWATH " << i << " (batch " << pep_idx << " out of " << nr_batches << ")" << std::endl;
-            }
+            " will analyze " << transition_exp_used_all.getCompounds().size() << " compounds and "
+            << transition_exp_used_all.getTransitions().size() << " transitions "
+            "from SWATH " << wi.window_idx << " (batch " << wi.batch_idx << ")" << std::endl;
+      }
 
-            // Create the new, batch-size transition experiment
-            OpenSwath::LightTargetedExperiment transition_exp_used;
-            selectCompoundsForBatch_(transition_exp_used_all, transition_exp_used, batch_size, pep_idx);
+      // Select compounds for this batch
+      OpenSwath::LightTargetedExperiment transition_exp_used;
+      selectCompoundsForBatch_(transition_exp_used_all, transition_exp_used, wi.batch_size, wi.batch_idx);
 
-            // Extract MS1 chromatograms for this batch
-            std::vector< MSChromatogram > ms1_chromatograms;
-            if (ms1_map_ != nullptr)
-            {
-              OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
-              MS1Extraction_(threadsafe_ms1, swath_maps, ms1_chromatograms, ms1_cp,
-                  transition_exp_used, trafo_inverse, ms1_only, ms1_isotopes);
-            }
+      // Extract MS1 chromatograms for this batch
+      std::vector< MSChromatogram > ms1_chromatograms;
+      if (ms1_map_ != nullptr)
+      {
+        OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
+        MS1Extraction_(threadsafe_ms1, swath_maps, ms1_chromatograms, ms1_cp,
+            transition_exp_used, trafo_inverse, ms1_only, ms1_isotopes);
+      }
 
-            // Step 2.1: extract these transitions
-            ChromatogramExtractor extractor;
-            std::vector< OpenSwath::ChromatogramPtr > chrom_list;
-            std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
+      // Step 2.1: extract these transitions
+      ChromatogramExtractor extractor;
+      std::vector< OpenSwath::ChromatogramPtr > chrom_list;
+      std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
 
-            // Step 2.2: prepare the extraction coordinates and extract chromatograms
-            // chrom_list contains one entry for each fragment ion (transition) in transition_exp_used
-            prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, trafo_inverse, cp);
-            extractor.extractChromatograms(current_swath_map_inner, chrom_list, coordinates, cp.mz_extraction_window,
-                cp.ppm, cp.im_extraction_window, cp.extraction_function);
+      // Step 2.2: prepare the extraction coordinates and extract chromatograms
+      prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, trafo_inverse, cp);
+      extractor.extractChromatograms(current_swath_map, chrom_list, coordinates, cp.mz_extraction_window,
+          cp.ppm, cp.im_extraction_window, cp.extraction_function);
 
-            // Step 2.3: convert chromatograms back to OpenMS::MSChromatogram and write to output
-            PeakMap chrom_exp;
-            extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,  SpectrumSettings(),
-                                          chrom_exp.getChromatograms(), false, cp.im_extraction_window);
+      // Step 2.3: convert chromatograms back to OpenMS::MSChromatogram and write to output
+      PeakMap chrom_exp;
+      extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used, SpectrumSettings(),
+                                    chrom_exp.getChromatograms(), false, cp.im_extraction_window);
 
+      // Step 3: score these extracted transitions
+      FeatureMap featureFile;
+      std::vector< OpenSwath::SwathMap > tmp = {swath_maps[wi.window_idx]};
+      tmp.back().sptr = current_swath_map;
+      scoreAllChromatograms_(chrom_exp.getChromatograms(), ms1_chromatograms, tmp, transition_exp_used,
+          feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false, mobilogram_consumer);
 
-            // Step 3: score these extracted transitions
-            FeatureMap featureFile;
-            std::vector< OpenSwath::SwathMap > tmp = {swath_maps[i]};
-            tmp.back().sptr = current_swath_map_inner;
-            scoreAllChromatograms_(chrom_exp.getChromatograms(), ms1_chromatograms, tmp, transition_exp_used,
-              feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false, mobilogram_consumer);
+      // Step 4: write all chromatograms and features out into an output object / file
+      // (critical section since we only have one output file and one output map)
+      #pragma omp critical (osw_write_out)
+      {
+        writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
+      }
 
-            // Step 4: write all chromatograms and features out into an output object / file
-            // (this needs to be done in a critical section since we only have one
-            // output file and one output map).
-            #pragma omp critical (osw_write_out)
-            {
-              writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
-            }
+      // Release InMemory copy when all batches for this window are done
+      if (load_into_memory)
+      {
+        #pragma omp critical (window_cache_init)
+        {
+          if (--window_refcounts[wi.window_idx] == 0)
+          {
+            per_window_sptr[wi.window_idx].reset();
           }
-
-        } // continue 2 (no continue due to OpenMP)
-      } // continue 1 (no continue due to OpenMP)
+        }
+      }
 
       #pragma omp critical (progress)
       this->setProgress(++progress);
-
     }
     this->endProgress();
-
-#ifdef _OPENMP
-#ifdef MT_ENABLE_NESTED_OPENMP
-    if (threads_outer_loop_ > -1)
-    {
-      omp_set_num_threads(total_nr_threads); // set number of available threads back to initial value
-    }
-#endif
-#endif
   }
 
   void OpenSwathWorkflow::writeOutFeaturesAndChroms_(
