@@ -74,7 +74,7 @@ using namespace std;
 ProteomicsLFQ performs label-free quantification of peptides and proteins. @n
 
 Input: @n
-  - Spectra in mzML format
+  - Spectra in mzML format or Bruker .d directories (TimsTOF PASEF)
   - Identifications in idXML or mzIdentML format with posterior error probabilities
    as score type.
    To generate those we suggest to run:
@@ -102,6 +102,17 @@ The data is split by CV and processed separately for each voltage group during f
 Features representing the same analyte detected at different CV values are merged automatically.
 The merged features are then aligned and linked across runs based on RT and m/z.
 No special preparation of the input mzML file is required.
+
+@b Bruker .d (TimsTOF PASEF): @n
+Bruker .d directories containing DDA-PASEF data are supported directly.
+When .d input is detected, the tool automatically:
+  - Skips centroiding (PeakPickerHiRes) to preserve per-peak ion mobility data
+  - Skips precursor mass correction (not IM-aware)
+  - Forces Biosaur2Algorithm for seed generation (FeatureFinderMultiplex does not support IM_PEAK)
+  - Estimates chromatographic FWHM from Biosaur2 feature extents
+Identification files should be generated with SageAdapter, which annotates
+ion mobility values in the idXML output. FeatureFinderIdentificationAlgorithm
+uses these IM annotations for targeted 2D chromatogram extraction (m/z + IM windowing).
 
 Normalization: @n
   - For feature-intensity-based quantification with multiple runs, ProteomicsLFQ automatically applies median normalization
