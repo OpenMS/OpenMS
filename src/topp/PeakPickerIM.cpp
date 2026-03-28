@@ -104,7 +104,7 @@ protected:
 #ifdef WITH_OPENTIMS
     registerTOPPSubsection_("bruker", "Options for reading Bruker TimsTOF .d files (requires WITH_OPENTIMS)");
     registerStringOption_("bruker:export_mode", "<mode>", "frame", "Export mode: 'auto' detects DDA/DIA acquisition type, "
-      "'spectrum' forces per-precursor MS2 spectra (DDA-style), 'frame' returns raw 4D frames without signal processing.", false, true);
+      "'frame' returns raw 4D frames without signal processing.", false, true);
     setValidStrings_("bruker:export_mode", {"auto", "frame"});
     registerDoubleOption_("bruker:calibration_tolerance", "<float>", 0.0, "m/z recalibration tolerance (0 = library default)", false, true);
     setMinFloat_("bruker:calibration_tolerance", 0.0);
@@ -145,8 +145,7 @@ protected:
     c.calibration_tolerance = getDoubleOption_("bruker:calibration_tolerance");
     c.calibrate = (getStringOption_("bruker:calibrate") == "true");
     String mode = getStringOption_("bruker:export_mode");
-    if (mode == "spectrum") c.export_mode = BrukerTimsFile::Config::SPECTRUM;
-    else if (mode == "frame") c.export_mode = BrukerTimsFile::Config::FRAME;
+    if (mode == "frame") c.export_mode = BrukerTimsFile::Config::FRAME;
     else c.export_mode = BrukerTimsFile::Config::AUTO;
     c.ms1_centroid_mz_ppm = static_cast<float>(getDoubleOption_("bruker:ms1_centroid_mz_ppm"));
     c.ms1_centroid_im_pct = static_cast<float>(getDoubleOption_("bruker:ms1_centroid_im_pct"));
@@ -184,7 +183,7 @@ protected:
     String method_;
   };
 
-  // -------------------- Format detection consumer (reads first spectrum only) --------------------
+  // -------------------- Format detection consumer (reads first MS1 spectrum only) --------------------
   class FormatDetector : public Interfaces::IMSDataConsumer
   {
   public:
@@ -195,8 +194,9 @@ protected:
 
     void consumeSpectrum(SpectrumType& s) override
     {
+      if (s.getMSLevel() != 1) return; // Only check MS1 spectra (consistent with in-memory path)
       detected_format = IMTypes::determineIMFormat(s);
-      throw FirstSpectrumRead(); // Abort after reading first spectrum
+      throw FirstSpectrumRead(); // Abort after first MS1 spectrum
     }
     void consumeChromatogram(ChromatogramType&) override {}
     void setExperimentalSettings(const ExperimentalSettings&) override {}
@@ -226,7 +226,7 @@ protected:
       try
       {
         mzml.transform(input_file, &detector);
-        // If we reach here, file has no spectra - format stays NONE
+        // If we reach here, file has no MS1 spectra - format stays NONE
       }
       catch (const FormatDetector::FirstSpectrumRead&)
       {
@@ -237,10 +237,8 @@ protected:
     // Step 2: Validate format
     if (im_format == IMFormat::IM_SPECTRUM)
     {
-      OPENMS_LOG_ERROR << "Error: Input file contains ion mobility data in IM_SPECTRUM format "
-                       << "(one spectrum per IM frame). PeakPickerIM expects raw (per-peak) IM data "
-                       << "where each spectrum contains an ion mobility float data array. "
-                       << "This format is not supported." << std::endl;
+      OPENMS_LOG_ERROR << "Error: Input data has single drift time per spectrum (IM_SPECTRUM format). "
+                       << "PeakPickerIM requires per-peak IM arrays (IM_PEAK format)." << std::endl;
       return ILLEGAL_PARAMETERS;
     }
     if (im_format == IMFormat::NONE)
@@ -324,24 +322,24 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
 
+      std::exception_ptr first_error = nullptr;
 #pragma omp parallel for
       for (SignedSize i = 0; i < static_cast<SignedSize>(exp.size()); ++i)
       {
-        MSSpectrum& spectrum = exp[static_cast<Size>(i)];
-
-        if (method == "mobilogram")
+        try
         {
-          picker.pickIMTraces(spectrum);
+          MSSpectrum& spectrum = exp[static_cast<Size>(i)];
+          if (method == "mobilogram")       picker.pickIMTraces(spectrum);
+          else if (method == "cluster")     picker.pickIMCluster(spectrum);
+          else if (method == "traces")      picker.pickIMElutionProfiles(spectrum);
         }
-        else if (method == "cluster")
+        catch (...)
         {
-          picker.pickIMCluster(spectrum);
-        }
-        else if (method == "traces")
-        {
-          picker.pickIMElutionProfiles(spectrum);
+#pragma omp critical
+          { if (!first_error) first_error = std::current_exception(); }
         }
       }
+      if (first_error) std::rethrow_exception(first_error);
 
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::PEAK_PICKING));
       MzMLFile().store(output_file, exp);
@@ -368,25 +366,31 @@ protected:
         mzml.store(output_file, exp);
         return EXECUTION_OK;
       }
+      if (im_format == IMFormat::IM_SPECTRUM)
+      {
+        OPENMS_LOG_ERROR << "Error: Input data has single drift time per spectrum (IM_SPECTRUM format). "
+                         << "PeakPickerIM requires per-peak IM arrays (IM_PEAK format)." << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
 
+      std::exception_ptr first_error = nullptr;
 #pragma omp parallel for
       for (SignedSize i = 0; i < static_cast<SignedSize>(exp.size()); ++i)
       {
-        MSSpectrum& spectrum = exp[static_cast<Size>(i)];
-
-        if (method == "mobilogram")
+        try
         {
-          picker.pickIMTraces(spectrum);
+          MSSpectrum& spectrum = exp[static_cast<Size>(i)];
+          if (method == "mobilogram")       picker.pickIMTraces(spectrum);
+          else if (method == "cluster")     picker.pickIMCluster(spectrum);
+          else if (method == "traces")      picker.pickIMElutionProfiles(spectrum);
         }
-        else if (method == "cluster")
+        catch (...)
         {
-          picker.pickIMCluster(spectrum);
-        }
-        else if (method == "traces")
-        {
-          picker.pickIMElutionProfiles(spectrum);
+#pragma omp critical
+          { if (!first_error) first_error = std::current_exception(); }
         }
       }
+      if (first_error) std::rethrow_exception(first_error);
 
       // Annotate processing info (same as low-memory path)
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::PEAK_PICKING));
