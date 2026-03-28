@@ -2997,7 +2997,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
       -out ${TESTS_TEMP_DIR}/SageAdapter_DDA_pep.tmp.idXML)
     set_tests_properties("TOPP_IDPosteriorErrorProbability_SageDDA" PROPERTIES DEPENDS "TOPP_SageAdapter_DDA")
 
-    # ProteomicsLFQ with Bruker .d input (DDA-PASEF, smoke test — verifies .d path completes)
+    # ProteomicsLFQ with Bruker .d input (DDA-PASEF, targeted only — fast smoke test)
     add_test("TOPP_ProteomicsLFQ_DDA_PASEF" ${TOPP_BIN_PATH}/ProteomicsLFQ -test
       -in ${OPENTIMS_DDA_SYMLINK}
       -ids ${TESTS_TEMP_DIR}/SageAdapter_DDA_pep.tmp.idXML
@@ -3009,6 +3009,22 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
       -proteinFDR 1.0
       -threads 1)
     set_tests_properties("TOPP_ProteomicsLFQ_DDA_PASEF" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_SageDDA")
+
+    # ProteomicsLFQ with Bruker .d input + Biosaur2 seeding (exercises full .d path with FWHM estimation)
+    add_test("TOPP_ProteomicsLFQ_DDA_PASEF_biosaur2" ${TOPP_BIN_PATH}/ProteomicsLFQ -test
+      -in ${OPENTIMS_DDA_SYMLINK}
+      -ids ${TESTS_TEMP_DIR}/SageAdapter_DDA_pep.tmp.idXML
+      -fasta ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
+      -targeted_only false
+      -mass_recalibration false
+      -Seeding:algorithm biosaur2
+      -out ${TESTS_TEMP_DIR}/ProteomicsLFQ_DDA_PASEF_bio.tmp.mzTab
+      -out_cxml ${TESTS_TEMP_DIR}/ProteomicsLFQ_DDA_PASEF_bio.tmp.consensusXML
+      -proteinFDR 1.0
+      -threads 4)
+    set_tests_properties("TOPP_ProteomicsLFQ_DDA_PASEF_biosaur2" PROPERTIES
+      DEPENDS "TOPP_IDPosteriorErrorProbability_SageDDA"
+      TIMEOUT 3600)
   endif()
 endif()
 

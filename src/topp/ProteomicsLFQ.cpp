@@ -1031,19 +1031,23 @@ protected:
           Param bio_param = getParam_().copy("Seeding:Biosaur2:", true);
           bio.setParameters(bio_param);
           bio.setMSData(ms_centroided); // copy — run() destructively consumes internal data
-          std::vector<Biosaur2Algorithm::Hill> hills;
-          std::vector<Biosaur2Algorithm::PeptideFeature> peptide_features;
-          bio.run(seeds, hills, peptide_features);
+
+          bio.run(seeds);
           OPENMS_LOG_INFO << "Biosaur2 produced " << seeds.size() << " seed features.\n";
 
-          // For .d/IM_PEAK: estimate FWHM from Biosaur2 PeptideFeatures
+          // For .d/IM_PEAK: estimate FWHM from Biosaur2 feature convex hulls
+          // Use FWHM ≈ 0.59 * (rt_end - rt_start), the Gaussian correction from base width to half-max width
           if (is_im_peak_data)
           {
             std::vector<double> fwhm_values;
-            fwhm_values.reserve(peptide_features.size());
-            for (const auto& pf : peptide_features)
+            fwhm_values.reserve(seeds.size());
+            for (const auto& f : seeds)
             {
-              double fwhm = pf.rt_end - pf.rt_start;
+              const auto& hulls = f.getConvexHulls();
+              if (hulls.empty()) continue;
+              const auto& bb = hulls[0].getBoundingBox();
+              double base_width = bb.maxX() - bb.minX(); // full RT extent
+              double fwhm = base_width * 0.59;           // Gaussian: FWHM ≈ 2.35σ, base ≈ 4σ → ratio ≈ 0.59
               if (fwhm > 0.0) { fwhm_values.push_back(fwhm); }
             }
             if (fwhm_values.size() >= 10)
