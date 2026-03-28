@@ -53,7 +53,9 @@
 #include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/FEATUREFINDER/Biosaur2Algorithm.h>
+#ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
+#endif
 #include <OpenMS/ML/SVM/SimpleSVM.h>
 
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
@@ -156,7 +158,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file list>", StringList(), "Input files");
-    setValidFormats_("in", ListUtils::create<String>("mzML,d"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"
+#ifdef WITH_OPENTIMS
+      ",d"
+#endif
+    ));
     registerInputFileList_("in_feat", "<files>", StringList(), "Optional input featureXML files containing pre-computed features. Bypasses internal feature finding. Must match the number of '-in' files.", false, false);
     setValidFormats_("in_feat", ListUtils::create<String>("featureXML"));
     registerInputFileList_("ids", "<file list>", StringList(),
@@ -336,6 +342,7 @@ protected:
   {
     const FileTypes::Type file_type = FileHandler::getType(mz_file);
 
+#ifdef WITH_OPENTIMS
     if (file_type == FileTypes::BRUKER_TDF)
     {
       // .d path: load with built-in IM centroiding (Sage algorithm, Lazear 2023)
@@ -383,6 +390,7 @@ protected:
       return EXECUTION_OK;
     }
     else
+#endif
     {
       // mzML path: existing centroid + precursor correction
       is_im_peak_data = false;
