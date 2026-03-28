@@ -316,6 +316,50 @@ protected:
     registerFullParam_(combined);
   }
 
+  ExitCodes loadAndPreprocess_(const String& mz_file, MSExperiment& ms_out, bool& is_im_peak_data)
+  {
+    const FileTypes::Type file_type = FileHandler::getType(mz_file);
+
+    if (file_type == FileTypes::BRUKER_TDF)
+    {
+      // .d path: load with IM float arrays preserved
+      FileHandler().loadExperiment(mz_file, ms_out, {FileTypes::BRUKER_TDF}, log_type_);
+      ms_out.updateRanges();
+
+      if (ms_out.empty())
+      {
+        OPENMS_LOG_WARN << "The given file does not contain any spectra.";
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+
+      // Remove MS2 peak data and sort (same housekeeping as mzML path)
+      for (auto& spec : ms_out)
+      {
+        if (spec.getMSLevel() == 2)
+        {
+          spec.clear(false);
+        }
+        if (!spec.isSorted())
+        {
+          spec.sortByPosition();
+        }
+      }
+
+      // No PeakPickerHiRes — Bruker TOF data is centroid-like; IM arrays must be preserved
+      // No PrecursorCorrection — findHighestInWindow() is IM-unaware
+      // No clearMetaDataArrays — IM per-peak float arrays must survive
+      is_im_peak_data = true;
+      OPENMS_LOG_INFO << "Loaded Bruker .d file with IM_PEAK data. Skipping centroiding and precursor correction.\n";
+      return EXECUTION_OK;
+    }
+    else
+    {
+      // mzML path: existing centroid + precursor correction
+      is_im_peak_data = false;
+      return centroidAndCorrectPrecursors_(mz_file, ms_out);
+    }
+  }
+
   ExitCodes centroidAndCorrectPrecursors_(const String & mz_file, MSExperiment & ms_centroided)
   {
     Param pp_param = getParam_().copy("Centroiding:", true);
@@ -899,6 +943,7 @@ protected:
       }
 
       MSExperiment ms_centroided;
+      bool is_im_peak_data = false;
       const bool mass_recalibration = (getStringOption_("mass_recalibration") == "true");
 
       if (!in_feat_list.empty() && mass_recalibration)
@@ -911,7 +956,7 @@ protected:
 
       if (requires_ms_data)
       {
-        ExitCodes e = centroidAndCorrectPrecursors_(mz_file, ms_centroided);
+        ExitCodes e = loadAndPreprocess_(mz_file, ms_centroided, is_im_peak_data);
         if (e != EXECUTION_OK) { return e; }
 
         SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, ms_centroided);
