@@ -1157,6 +1157,19 @@ protected:
         ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
         ffi_param.setValue("debug", debug_level_); // pass down debug level
 
+        // For IM_PROFILE data (.d): widen IM extraction window to capture full IM peak profile.
+        // Raw Bruker TIMS profiles spread 0.05-0.15 1/K0; the default 0.06 (±0.03) clips tails,
+        // losing 20-67% of intensity. Use 0.20 (±0.10) to capture >90% of IM peak area.
+        if (is_im_peak_data)
+        {
+          const double im_window_user = ffi_param.getValue("extract:IM_window");
+          if (im_window_user <= 0.06) // only override if user didn't explicitly set a wider window
+          {
+            ffi_param.setValue("extract:IM_window", 0.20);
+            OPENMS_LOG_INFO << "Widened IM extraction window to 0.20 for IM_PROFILE data (default 0.06 too narrow for raw TIMS profiles).\n";
+          }
+        }
+
         double feature_with_id_min_score = getDoubleOption_("feature_with_id_min_score");
         double feature_without_id_min_score = getDoubleOption_("feature_without_id_min_score");
         const bool filter_by_quant_scores = (feature_with_id_min_score > 0.0) && (targeted_only ||(feature_without_id_min_score > 0.0));
