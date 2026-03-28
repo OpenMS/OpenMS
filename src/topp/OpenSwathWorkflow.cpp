@@ -315,6 +315,7 @@ protected:
     setValidStrings_("readOptions", ListUtils::create<String>("normal,cache,cacheWorkingInMemory,workingInMemory"));
 
     registerStringOption_("tempDirectory", "<tmp>", File::getTempDirectory(), "Temporary directory to store cached files for example", false, true);
+    registerFlag_("keep_cached_files", "If set, do not remove cached files created in tempDirectory (disable automated cleanup)", false);
 
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
     setValidStrings_("extraction_function", ListUtils::create<String>("tophat,bartlett"));
@@ -632,6 +633,7 @@ protected:
     bool disable_im_windowing   = std::find(disable_features.begin(), disable_features.end(), "no_IM_windowing")   != disable_features.end();
 
     String readoptions = getStringOption_("readOptions");
+    bool keep_cached_files = getFlag_("keep_cached_files");
 
     // make sure tmp is a directory with proper separator at the end (downstream methods simply do path + filename)
     // (do not use QDir::separator(), since its platform specific (/ or \) while absolutePath() will always use '/')
@@ -1022,6 +1024,29 @@ protected:
       ChromExtractParams cp_irt_current = cp_irt;
       Param feature_finder_param_run = feature_finder_param;
       ///////////////////////////////////
+      // Per-run temporary cache directory (created only when using cache readOptions)
+      String per_run_tmp = tmp_dir;
+      bool created_run_tmp = false;
+      if (readoptions == "cache")
+      {
+        per_run_tmp = tmp_dir + "OpenSwathCache_" + File::getUniqueName() + "/";
+        if (!File::isDirectory(per_run_tmp))
+        {
+          if (!File::makeDir(per_run_tmp))
+          {
+            OPENMS_LOG_WARN << "Could not create per-run cache directory: " << per_run_tmp << std::endl;
+          }
+          else
+          {
+            created_run_tmp = true;
+          }
+        }
+        else
+        {
+          created_run_tmp = true;
+        }
+      }
+
       // Load the SWATH files (if split data, otherwise load single experiment mzML)
       ///////////////////////////////////
       std::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
@@ -1037,9 +1062,9 @@ protected:
         MSDataTransformingConsumer qc_consumer; // apply some transformation
         qc_consumer.setSpectraProcessingFunc(qc.getSpectraProcessingFunc());
         qc_consumer.setExperimentalSettingsFunc(qc.getExpSettingsFunc());
-        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, tmp_dir, readoptions,
-                            swath_windows_file, min_upper_edge_dist, force,
-                            sort_swath_maps, prm, &qc_consumer))
+        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, per_run_tmp, readoptions,
+                swath_windows_file, min_upper_edge_dist, force,
+                sort_swath_maps, prm, &qc_consumer))
         {
           OPENMS_LOG_ERROR << "Failed to load SWATH files for Run " << (run_index + 1)
                            << ": " << ListUtils::concatenate(single_file_list, ", ") << std::endl
@@ -1052,9 +1077,9 @@ protected:
       }
       else
       {
-        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, tmp_dir, readoptions,
-                            swath_windows_file, min_upper_edge_dist, force,
-                            sort_swath_maps, prm))
+        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, per_run_tmp, readoptions,
+                swath_windows_file, min_upper_edge_dist, force,
+                sort_swath_maps, prm))
         {
           OPENMS_LOG_ERROR << "Failed to load SWATH files for Run " << (run_index + 1)
                            << ": " << ListUtils::concatenate(single_file_list, ", ") << std::endl
@@ -1353,6 +1378,23 @@ protected:
     }
 
     OPENMS_LOG_INFO << std::endl;
+
+    // Cleanup per-run cache directory unless user requested to keep cached files
+    if (created_run_tmp && !keep_cached_files)
+    {
+      if (File::exists(per_run_tmp))
+      {
+        if (!File::removeDirRecursively(per_run_tmp))
+        {
+          OPENMS_LOG_WARN << "Failed to remove temporary cache directory: " << per_run_tmp << std::endl;
+        }
+        else
+        {
+          OPENMS_LOG_INFO << "Removed temporary cache directory: " << per_run_tmp << std::endl;
+        }
+      }
+    }
+
     ++run_index;
     } // end for each run
 
@@ -1361,7 +1403,7 @@ protected:
       // Stream files into the zip archive instead of unzipping/rezipping the
       // whole directory. This uses ZipArchiveFile::addOrReplaceFromFile which
       // streams from disk and avoids loading large parquet blobs into memory.
-      const std::filesystem::path dirpath = std::filesystem::u8path(std::string(parquet_dir));
+      const std::filesystem::path dirpath = std::filesystem::path(std::string(parquet_dir));
       const String output_zip_abs = File::absolutePath(out_features);
       if (File::exists(output_zip_abs))
       {
