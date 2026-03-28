@@ -111,6 +111,9 @@ When .d input is detected, the tool automatically:
 Identification files should be generated with SageAdapter, which annotates
 ion mobility values in the idXML output. FeatureFinderIdentificationAlgorithm
 uses these IM annotations for targeted 2D chromatogram extraction (m/z + IM windowing).
+For timsTOF data, the default Biosaur2 parameters are very permissive (inherited from
+Orbitrap-oriented defaults). Recommended tuning for faster runtime and fewer noise seeds:
+  -Seeding:Biosaur2:mini 500 -Seeding:Biosaur2:minlh 3 -Seeding:Biosaur2:pasefminlh 2
 
 Normalization: @n
   - For feature-intensity-based quantification with multiple runs, ProteomicsLFQ automatically applies median normalization
