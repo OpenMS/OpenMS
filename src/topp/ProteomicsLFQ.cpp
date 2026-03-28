@@ -52,6 +52,8 @@
 #include <OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/FEATUREFINDER/Biosaur2Algorithm.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <OpenMS/ML/SVM/SimpleSVM.h>
 
@@ -138,7 +140,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file list>", StringList(), "Input files");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML,d"));
     registerInputFileList_("in_feat", "<files>", StringList(), "Optional input featureXML files containing pre-computed features. Bypasses internal feature finding. Must match the number of '-in' files.", false, false);
     setValidFormats_("in_feat", ListUtils::create<String>("featureXML"));
     registerInputFileList_("ids", "<file list>", StringList(),
@@ -237,6 +239,12 @@ protected:
     registerDoubleOption_("Seeding:intThreshold", "<threshold>", 1e4, "Peak intensity threshold applied in seed detection.", false, true);
     registerStringOption_("Seeding:charge", "<minChg:maxChg>", "2:5", "Charge range considered for untargeted feature seeds.", false, true); //TODO infer from IDs?
     registerDoubleOption_("Seeding:traceRTTolerance", "<tolerance(sec)>", 3.0, "Combines all spectra in the tolerance window to stabilize identification of isotope patterns. Controls sensitivity (low value) vs. specificity (high value) of feature seeds.", false, true); //TODO infer from average MS1 cycle time?
+    registerStringOption_("Seeding:algorithm", "<choice>", "multiplex",
+      "Algorithm for untargeted seed feature detection.\n"
+      "multiplex: FeatureFinderMultiplexAlgorithm (default, current behavior).\n"
+      "biosaur2: Biosaur2Algorithm (handles IM_PEAK/PASEF data natively).",
+      false, false);
+    setValidStrings_("Seeding:algorithm", {"multiplex", "biosaur2"});
 
     /// TODO: think about export of quality control files (qcML?)
 
@@ -290,6 +298,12 @@ protected:
     pq_defaults.setValue("top:include_all", "true");
     pq_defaults.addTag("top:include_all", "advanced");
 
+    Param bio_defaults = Biosaur2Algorithm().getDefaults();
+    for (auto it = bio_defaults.begin(); it != bio_defaults.end(); ++it)
+    {
+      bio_defaults.addTag(it.getName(), "advanced");
+    }
+
     // combine parameters of the individual algorithms
     Param combined;
     combined.insert("Centroiding:", pp_defaults);
@@ -297,6 +311,7 @@ protected:
     combined.insert("Alignment:", ma_defaults);
     combined.insert("Linking:", fl_defaults);
     combined.insert("ProteinQuantification:", pq_defaults);
+    combined.insert("Seeding:Biosaur2:", bio_defaults);
 
     registerFullParam_(combined);
   }
