@@ -173,25 +173,34 @@ All steps after feature detection are unaffected:
 
 Tested on a HeLa 50ng DDA-PASEF dataset with SageAdapter-generated idXML (PEP scores via IDPosteriorErrorProbability).
 
-| Metric | Sage v0.15.0-beta.1 (built-in LFQ) | ProteomicsLFQ (default params) | ProteomicsLFQ (tuned for timsTOF) |
-|---|---|---|---|
-| **Runtime** | 38s | 57 min | **65s** |
-| **Peptides at 1% FDR** | 3,240 | 2,918 | 2,918 |
-| **Proteins at 1% FDR** | 1,050 | ~965 | ~965 |
-| **Peptides quantified (LFQ)** | 2,679 | 2,820 | **2,876** |
-| **Biosaur2 seed features** | — | 714,805 | **2,457** |
-| **Consensus features** | — | 91,480 | **4,142** |
-| **Model fit success rate** | — | 35% | **90%** |
-| **Median FWHM** | — | 0.94s | **3.13s** |
-| **Peak memory** | ~2 GB | 29 GB | **11 GB** |
+| Metric | Sage v0.15.0-beta.1 (built-in LFQ) | ProteomicsLFQ (tuned for timsTOF) |
+|---|---|---|
+| **Runtime** | 38s | **75s** |
+| **Peptides at 1% FDR** | 3,240 | 2,918 |
+| **Proteins at 1% FDR** | 1,050 | ~965 |
+| **Peptides quantified (LFQ)** | 2,679 | **2,809** |
+| **Biosaur2 seed features** | — | 34,669 |
+| **Consensus features** | — | 9,883 |
+| **Model fit success rate** | — | **80%** |
+| **Median FWHM** | — | 2.81s |
+| **Peak memory** | ~2 GB | **1.3 GB** |
+| **Spearman r (vs Sage LFQ)** | — | **0.62** |
+| **Pearson r log2 (vs Sage LFQ)** | — | **0.64** |
 
-Recommended timsTOF tuning: `-Seeding:Biosaur2:mini 500 -Seeding:Biosaur2:minlh 3 -Seeding:Biosaur2:pasefminlh 2`
+MS1 data is IM-centroided during loading using BrukerTimsFile's built-in Sage algorithm
+(`ms1_centroid_mz_ppm=5.0, ms1_centroid_im_pct=3.0`), collapsing ~245k raw peaks/frame into ~10k
+centroided peaks with summed intensity. This matches Sage v0.15's internal approach.
 
-The default Biosaur2 parameters are inherited from the Orbitrap-oriented Python biosaur2 reference
-and are very permissive for timsTOF IM_PEAK data (`mini=1` retains noise, `minlh=2` keeps 2-frame
-transient hills, `pasefminlh=1` allows single-point PASEF clusters). With the recommended tuning,
-the pipeline achieves comparable speed to Sage's built-in LFQ while quantifying 7% more peptides
-(2,876 vs 2,679).
+Recommended Biosaur2 tuning: `-Seeding:Biosaur2:mini 500 -Seeding:Biosaur2:minlh 3 -Seeding:Biosaur2:pasefminlh 2`
+
+Without tuning, default Biosaur2 parameters produce 108k seed features with 49% model fit success.
+The recommended tuning reduces seeds to 34k with 80% model fit success and quantifies more peptides
+(2,809 vs 2,785).
+
+The remaining ~8x intensity offset (median log2 ratio = -2.93) between Sage and ProteomicsLFQ
+reflects different quantification methods: Sage integrates isotope-weighted area across RT bins,
+while FFId reports tophat-summed XIC intensity. Rank correlation (Spearman 0.62) is reasonable
+for cross-tool comparison on a 5-minute gradient.
 
 Notes:
 - Sage v0.14.6 (shipped with OpenMS) cannot do LFQ on .d files — MS1 reading from .d was added in v0.15.0-beta.1.

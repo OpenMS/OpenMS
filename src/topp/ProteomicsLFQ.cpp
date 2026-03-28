@@ -112,12 +112,12 @@ When .d input is detected, the tool automatically:
 Identification files should be generated with SageAdapter, which annotates
 ion mobility values in the idXML output. FeatureFinderIdentificationAlgorithm
 uses these IM annotations for targeted 2D chromatogram extraction (m/z + IM windowing).
-For timsTOF data, the default Biosaur2 parameters are very permissive (inherited from
-Orbitrap-oriented defaults) and produce excessive noise seeds (e.g. 714k features from a
-HeLa 50ng 5-min gradient). Recommended tuning for timsTOF:
+MS1 frames are IM-centroided during loading using BrukerTimsFile's built-in Sage algorithm,
+collapsing ~245k raw peaks/frame into ~10k centroided peaks with summed intensity.
+Recommended Biosaur2 tuning for timsTOF:
   -Seeding:Biosaur2:mini 500 -Seeding:Biosaur2:minlh 3 -Seeding:Biosaur2:pasefminlh 2
-With these settings on the same data: 2,457 seeds (vs 714k default), 90% model fit success
-(vs 35%), 98.6% peptides quantified, 65 seconds runtime (vs 57 minutes), 11 GB memory (vs 29 GB).
+With these settings on HeLa 50ng 5-min gradient: 34k seeds, 80% model fit success, 2,809
+peptides quantified (Spearman r=0.62 vs Sage LFQ), 75s runtime, 1.3 GB memory.
 
 Normalization: @n
   - For feature-intensity-based quantification with multiple runs, ProteomicsLFQ automatically applies median normalization
