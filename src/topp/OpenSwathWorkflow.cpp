@@ -71,6 +71,57 @@ using namespace OpenMS;
 #include <QDir>
 #include <unordered_map>
 
+
+namespace
+{
+  struct PerRunCacheCleaner
+  {
+    PerRunCacheCleaner(const String& dir,
+                      std::vector<OpenSwath::SwathMap>& swath_maps,
+                      std::vector<String>& swath_map_sources,
+                      std::shared_ptr<ExperimentalSettings>& exp_meta,
+                      bool created,
+                      bool keep) noexcept :
+      dir_(dir), swath_maps_(swath_maps), swath_map_sources_(swath_map_sources), exp_meta_(exp_meta), created_(created), keep_(keep)
+    {}
+
+    ~PerRunCacheCleaner()
+    {
+      if (created_ && !keep_)
+      {
+        // Release run-local readers/owners so file handles drop
+        swath_maps_.clear();
+        swath_map_sources_.clear();
+        exp_meta_.reset();
+
+        if (!dir_.empty() && File::exists(dir_))
+        {
+          if (!File::removeDirRecursively(dir_))
+          {
+            OPENMS_LOG_WARN << "Failed to remove temporary cache directory: " << dir_ << std::endl;
+          }
+          else
+          {
+            OPENMS_LOG_INFO << "Removed temporary cache directory: " << dir_ << std::endl;
+          }
+        }
+      }
+    }
+
+    PerRunCacheCleaner(const PerRunCacheCleaner&) = delete;
+    PerRunCacheCleaner& operator=(const PerRunCacheCleaner&) = delete;
+
+  private:
+    String dir_;
+    std::vector<OpenSwath::SwathMap>& swath_maps_;
+    std::vector<String>& swath_map_sources_;
+    std::shared_ptr<ExperimentalSettings>& exp_meta_;
+    bool created_;
+    bool keep_;
+  };
+
+} 
+
 //-------------------------------------------------------------
 //Doxygen docu
 //-------------------------------------------------------------
@@ -1052,6 +1103,11 @@ protected:
       std::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
       std::vector< OpenSwath::SwathMap > swath_maps;
       std::vector<String> swath_map_sources;
+
+      // Scope-safe per-run cache cleaner: instantiate after run-local objects
+      // exist so the guard can release them and remove the per-run directory
+      // on all exit paths. Uses the file-local PerRunCacheCleaner type.
+      PerRunCacheCleaner per_run_cache_guard(per_run_tmp, swath_maps, swath_map_sources, exp_meta, created_run_tmp, keep_cached_files);
 
       StringList single_file_list = current_run_files;
 
