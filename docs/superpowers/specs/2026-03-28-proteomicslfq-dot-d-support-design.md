@@ -169,10 +169,31 @@ All steps after feature detection are unaffected:
 - New smoke test with `Seeding:algorithm = "biosaur2"` on existing mzML test data to verify the biosaur2 seeding path completes.
 - If .d test data is available: end-to-end test with `.d` input + Sage idXML containing IM annotations.
 
+## Validation Results (DDA_HeLa_50ng, 5-6 min gradient)
+
+Tested on a HeLa 50ng DDA-PASEF dataset with SageAdapter-generated idXML (PEP scores via IDPosteriorErrorProbability).
+
+| Metric | Sage v0.15.0-beta.1 (built-in LFQ) | ProteomicsLFQ (.d, targeted_only=false) |
+|---|---|---|
+| **Runtime** | 38s | 57 min |
+| **Peptides at 1% FDR** | 3,240 | 2,918 |
+| **Proteins at 1% FDR** | 1,050 | ~965 |
+| **Peptides quantified (LFQ)** | 2,679 | 2,820 |
+| **Biosaur2 seed features** | — | 714,805 |
+| **Consensus features** | — | 91,480 |
+| **Median FWHM** | — | 0.94s (from Biosaur2 convex hulls) |
+| **Peak memory** | ~2 GB | 29 GB |
+
+Notes:
+- Sage v0.14.6 (shipped with OpenMS) cannot do LFQ on .d files — MS1 reading from .d was added in v0.15.0-beta.1.
+- ProteomicsLFQ quantifies 5% more peptides than Sage's built-in LFQ (2,820 vs 2,679), validating the pipeline.
+- The higher runtime and memory reflect Biosaur2's full 2D centroiding of 140M raw TIMS peaks and FFId's targeted chromatogram extraction.
+- OpenSwath `getDriftTimeArray()` required a fix to recognize BrukerTimsFile's IM array naming convention (`"raw inverse reduced ion mobility array"`, CV MS:1003008).
+
 ## Known Limitations
 
 - **Feature grouping ignores IM:** `FeatureGroupingAlgorithmQT` matches on RT x m/z only. Could mis-group isobaric species with different mobilities in complex samples. This is a pre-existing limitation, not introduced by this change.
 - **Map alignment ignores IM:** RT-only alignment. Same as current FAIMS workflow.
 - **PrecursorCorrection skipped for .d:** Precursor m/z may be slightly off for some spectra. Sage's own precursor handling mitigates this.
-- **FWHM from Biosaur2 features is approximate:** Uses `PeptideFeature::rt_end - rt_start` rather than Gaussian fitting on mass traces. Sufficient for setting FFId's `detect:peak_width` parameter.
+- **FWHM from Biosaur2 features is approximate:** Uses convex hull RT extent with Gaussian correction factor (0.59) rather than half-max crossing interpolation on raw intensity profiles (which would require keeping 3.88M hills in memory). Sufficient for setting FFId's `detect:peak_width` parameter.
 - **IDMapper not used:** IM dimension not considered during ID-to-feature mapping. FFId handles this internally via targeted extraction.
