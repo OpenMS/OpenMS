@@ -53,8 +53,6 @@
 #include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/FEATUREFINDER/Biosaur2Algorithm.h>
-#include <OpenMS/IONMOBILITY/IMTypes.h>
-
 #include <OpenMS/ML/SVM/SimpleSVM.h>
 
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
@@ -343,18 +341,25 @@ protected:
         return INCOMPATIBLE_INPUT_DATA;
       }
 
-      // Remove MS2 peak data and sort (same housekeeping as mzML path)
-      for (auto& spec : ms_out)
+      // Remove MS2 spectra entirely and filter MS1 spectra without IM data.
+      // MS2 peak data is not needed (IDs come from external search engine).
+      // MS1 spectra without IM arrays cause ChromatogramExtractorAlgorithm to throw
+      // during IM-windowed extraction.
+      auto& spectra = ms_out.getSpectra();
+      for (auto& spec : spectra)
       {
-        if (spec.getMSLevel() == 2)
-        {
-          spec.clear(false);
-        }
         if (!spec.isSorted())
         {
           spec.sortByPosition();
         }
       }
+      spectra.erase(
+        std::remove_if(spectra.begin(), spectra.end(),
+          [](const MSSpectrum& spec)
+          {
+            return spec.getMSLevel() != 1 || !spec.containsIMData();
+          }),
+        spectra.end());
 
       // No PeakPickerHiRes — Bruker TOF data is centroid-like; IM arrays must be preserved
       // No PrecursorCorrection — findHighestInWindow() is IM-unaware
@@ -989,6 +994,13 @@ protected:
           OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << "\n";
         }
         // For .d/IM_PEAK: FWHM is estimated from Biosaur2 features below (after seed generation)
+      }
+
+      // For .d/IM_PEAK + targeted_only: no Biosaur2 seeds to estimate FWHM from, use default
+      if (is_im_peak_data && median_fwhm == 0.0)
+      {
+        median_fwhm = 30.0;
+        OPENMS_LOG_INFO << "Using default FWHM of " << median_fwhm << " s for .d input (no seed-based estimate available).\n";
       }
 
       StringList id_msfile_ref;
