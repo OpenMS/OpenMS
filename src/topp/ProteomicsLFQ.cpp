@@ -961,14 +961,23 @@ protected:
 
         SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, ms_centroided);
 
-        if (mass_recalibration)
+        if (is_im_peak_data && mass_recalibration)
+        {
+          OPENMS_LOG_WARN << "Warning: mass_recalibration is not supported for .d input. Disabling.\n";
+        }
+
+        if (mass_recalibration && !is_im_peak_data)
         {
           String debug_output_basename = (debug_level_ > 666) ? id_file_abs_path : "";
           DDAWorkflowCommons::recalibrateMS1(ms_centroided, peptide_ids, debug_output_basename);
         }
 
-        median_fwhm = DDAWorkflowCommons::estimateMedianChromatographicFWHM(ms_centroided);
-        OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << "\n";
+        if (!is_im_peak_data)
+        {
+          median_fwhm = DDAWorkflowCommons::estimateMedianChromatographicFWHM(ms_centroided);
+          OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << "\n";
+        }
+        // For .d/IM_PEAK: FWHM is estimated from Biosaur2 features below (after seed generation)
       }
 
       StringList id_msfile_ref;
@@ -982,7 +991,56 @@ protected:
 
       if (!targeted_only && in_feat_list.empty())
       {
-        DDAWorkflowCommons::calculateSeeds(ms_centroided, getDoubleOption_("Seeding:intThreshold"), seeds, median_fwhm, 2, 5);
+        String seeding_algorithm = getStringOption_("Seeding:algorithm");
+
+        // Force biosaur2 for IM_PEAK data (Multiplex cannot handle it)
+        if (is_im_peak_data && seeding_algorithm != "biosaur2")
+        {
+          OPENMS_LOG_WARN << "Warning: IM_PEAK data detected. Forcing Seeding:algorithm to 'biosaur2' "
+                          << "(FeatureFinderMultiplex does not support IM_PEAK format).\n";
+          seeding_algorithm = "biosaur2";
+        }
+
+        if (seeding_algorithm == "biosaur2")
+        {
+          OPENMS_LOG_INFO << "Using Biosaur2Algorithm for seed detection.\n";
+          Biosaur2Algorithm bio;
+          Param bio_param = getParam_().copy("Seeding:Biosaur2:", true);
+          bio.setParameters(bio_param);
+          bio.setMSData(ms_centroided); // copy — run() destructively consumes internal data
+          std::vector<Biosaur2Algorithm::Hill> hills;
+          std::vector<Biosaur2Algorithm::PeptideFeature> peptide_features;
+          bio.run(seeds, hills, peptide_features);
+          OPENMS_LOG_INFO << "Biosaur2 produced " << seeds.size() << " seed features.\n";
+
+          // For .d/IM_PEAK: estimate FWHM from Biosaur2 PeptideFeatures
+          if (is_im_peak_data)
+          {
+            std::vector<double> fwhm_values;
+            fwhm_values.reserve(peptide_features.size());
+            for (const auto& pf : peptide_features)
+            {
+              double fwhm = pf.rt_end - pf.rt_start;
+              if (fwhm > 0.0) { fwhm_values.push_back(fwhm); }
+            }
+            if (fwhm_values.size() >= 10)
+            {
+              median_fwhm = Math::median(fwhm_values.begin(), fwhm_values.end());
+            }
+            else
+            {
+              median_fwhm = 30.0; // fallback
+              OPENMS_LOG_WARN << "Warning: Too few Biosaur2 features (" << fwhm_values.size()
+                              << ") to estimate FWHM. Using default: " << median_fwhm << " seconds.\n";
+            }
+            OPENMS_LOG_INFO << "Median chromatographic FWHM (from Biosaur2): " << median_fwhm << "\n";
+          }
+        }
+        else
+        {
+          DDAWorkflowCommons::calculateSeeds(ms_centroided, getDoubleOption_("Seeding:intThreshold"), seeds, median_fwhm, 2, 5);
+        }
+
         if (debug_level_ > 666)
         {
           FileHandler().storeFeatures("debug_seeds_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", seeds, {FileTypes::FEATUREXML}, log_type_);
