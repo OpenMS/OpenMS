@@ -3010,7 +3010,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
       -threads 1)
     set_tests_properties("TOPP_ProteomicsLFQ_DDA_PASEF" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_SageDDA")
 
-    # ProteomicsLFQ with Bruker .d input + Biosaur2 seeding (exercises full .d path with FWHM estimation)
+    # ProteomicsLFQ with Bruker .d input + Biosaur2 seeding with recommended timsTOF tuning
     add_test("TOPP_ProteomicsLFQ_DDA_PASEF_biosaur2" ${TOPP_BIN_PATH}/ProteomicsLFQ -test
       -in ${OPENTIMS_DDA_SYMLINK}
       -ids ${TESTS_TEMP_DIR}/SageAdapter_DDA_pep.tmp.idXML
@@ -3018,13 +3018,16 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
       -targeted_only false
       -mass_recalibration false
       -Seeding:algorithm biosaur2
+      -Seeding:Biosaur2:mini 500
+      -Seeding:Biosaur2:minlh 3
+      -Seeding:Biosaur2:pasefminlh 2
       -out ${TESTS_TEMP_DIR}/ProteomicsLFQ_DDA_PASEF_bio.tmp.mzTab
       -out_cxml ${TESTS_TEMP_DIR}/ProteomicsLFQ_DDA_PASEF_bio.tmp.consensusXML
       -proteinFDR 1.0
       -threads 4)
     set_tests_properties("TOPP_ProteomicsLFQ_DDA_PASEF_biosaur2" PROPERTIES
       DEPENDS "TOPP_IDPosteriorErrorProbability_SageDDA"
-      TIMEOUT 3600)
+      TIMEOUT 300)
   endif()
 endif()
 

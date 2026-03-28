@@ -173,21 +173,28 @@ All steps after feature detection are unaffected:
 
 Tested on a HeLa 50ng DDA-PASEF dataset with SageAdapter-generated idXML (PEP scores via IDPosteriorErrorProbability).
 
-| Metric | Sage v0.15.0-beta.1 (built-in LFQ) | ProteomicsLFQ (.d, targeted_only=false) |
-|---|---|---|
-| **Runtime** | 38s | 57 min |
-| **Peptides at 1% FDR** | 3,240 | 2,918 |
-| **Proteins at 1% FDR** | 1,050 | ~965 |
-| **Peptides quantified (LFQ)** | 2,679 | 2,820 |
-| **Biosaur2 seed features** | — | 714,805 |
-| **Consensus features** | — | 91,480 |
-| **Median FWHM** | — | 0.94s (from Biosaur2 convex hulls) |
-| **Peak memory** | ~2 GB | 29 GB |
+| Metric | Sage v0.15.0-beta.1 (built-in LFQ) | ProteomicsLFQ (default params) | ProteomicsLFQ (tuned for timsTOF) |
+|---|---|---|---|
+| **Runtime** | 38s | 57 min | **65s** |
+| **Peptides at 1% FDR** | 3,240 | 2,918 | 2,918 |
+| **Proteins at 1% FDR** | 1,050 | ~965 | ~965 |
+| **Peptides quantified (LFQ)** | 2,679 | 2,820 | **2,876** |
+| **Biosaur2 seed features** | — | 714,805 | **2,457** |
+| **Consensus features** | — | 91,480 | **4,142** |
+| **Model fit success rate** | — | 35% | **90%** |
+| **Median FWHM** | — | 0.94s | **3.13s** |
+| **Peak memory** | ~2 GB | 29 GB | **11 GB** |
+
+Recommended timsTOF tuning: `-Seeding:Biosaur2:mini 500 -Seeding:Biosaur2:minlh 3 -Seeding:Biosaur2:pasefminlh 2`
+
+The default Biosaur2 parameters are inherited from the Orbitrap-oriented Python biosaur2 reference
+and are very permissive for timsTOF IM_PEAK data (`mini=1` retains noise, `minlh=2` keeps 2-frame
+transient hills, `pasefminlh=1` allows single-point PASEF clusters). With the recommended tuning,
+the pipeline achieves comparable speed to Sage's built-in LFQ while quantifying 7% more peptides
+(2,876 vs 2,679).
 
 Notes:
 - Sage v0.14.6 (shipped with OpenMS) cannot do LFQ on .d files — MS1 reading from .d was added in v0.15.0-beta.1.
-- ProteomicsLFQ quantifies 5% more peptides than Sage's built-in LFQ (2,820 vs 2,679), validating the pipeline.
-- The higher runtime and memory reflect Biosaur2's full 2D centroiding of 140M raw TIMS peaks and FFId's targeted chromatogram extraction.
 - OpenSwath `getDriftTimeArray()` required a fix to recognize BrukerTimsFile's IM array naming convention (`"raw inverse reduced ion mobility array"`, CV MS:1003008).
 
 ## Known Limitations
