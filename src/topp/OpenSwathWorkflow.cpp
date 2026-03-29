@@ -1080,21 +1080,35 @@ protected:
       bool created_run_tmp = false;
       if (readoptions == "cache")
       {
-        per_run_tmp = tmp_dir + "OpenSwathCache_" + File::getUniqueName() + "/";
-        if (!File::isDirectory(per_run_tmp))
+        const int max_attempts = 10;
+        for (int attempt = 0; attempt < max_attempts && !created_run_tmp; ++attempt)
         {
-          if (!File::makeDir(per_run_tmp))
+          per_run_tmp = tmp_dir + "OpenSwathCache_" + File::getUniqueName() + "/";
+          // If the path already exists, treat this as a failed allocation and retry with a new name
+          if (File::isDirectory(per_run_tmp))
           {
-            OPENMS_LOG_WARN << "Could not create per-run cache directory: " << per_run_tmp << std::endl;
+            // retry with a fresh unique name
+            continue;
+          }
+
+          // Try to create the directory. Only consider allocation successful when makeDir() returns true.
+          if (File::makeDir(per_run_tmp))
+          {
+            created_run_tmp = true;
+            break;
           }
           else
           {
-            created_run_tmp = true;
+            OPENMS_LOG_WARN << "Could not create per-run cache directory (attempt " << (attempt+1) << "): " << per_run_tmp << std::endl;
+            // retry with a fresh name
+            continue;
           }
         }
-        else
+
+        if (!created_run_tmp)
         {
-          created_run_tmp = true;
+          writeLogError_(String("Error: Unable to allocate per-run cache directory under: ") + tmp_dir);
+          return CANNOT_WRITE_OUTPUT_FILE;
         }
       }
 
