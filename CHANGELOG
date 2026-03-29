@@ -160,6 +160,10 @@ TOPP tools:
     PeakPickerHiRes:
       - New parameter to allow peak cores with no leading flank peaks (#8649)
       - Warns when given IM_PEAK format (per-peak ion mobility) data; partial support via intensity-weighted mean IM per picked peak (#9018)
+    PeakPickerIM:
+      - Direct Bruker TimsTOF .d directory input: files can now be passed directly without prior mzML conversion; requires WITH_TIMSRUST=ON (#9022)
+      - Built-in Sage IM centroiding via new bruker:ms1_centroid_mz_ppm and bruker:ms1_centroid_im_pct parameters; when both are set, centroiding is performed on raw gridded TOF data and the subsequent IM picking step is skipped (#9022)
+      - Rejects IM_SPECTRUM format input with a clear error message (#9022)
     Resampler, FeatureFinderCentroided:
       - Now error out with INCOMPATIBLE_INPUT_DATA when given IM_PEAK format (per-peak ion mobility) data that cannot be processed (#9018)
     FileMerger:
