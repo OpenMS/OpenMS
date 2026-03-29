@@ -116,9 +116,8 @@ ion mobility values in the idXML output. FeatureFinderIdentificationAlgorithm
 uses these IM annotations for targeted 2D chromatogram extraction (m/z + IM windowing).
 MS1 frames are IM-centroided during loading using BrukerTimsFile's built-in Sage algorithm,
 collapsing ~245k raw peaks/frame into ~10k centroided peaks with summed intensity.
-Recommended Biosaur2 tuning for timsTOF:
-  -Seeding:Biosaur2:mini 500 -Seeding:Biosaur2:minlh 3 -Seeding:Biosaur2:pasefminlh 2
-With these settings on HeLa 50ng 5-min gradient: 34k seeds, 80% model fit success, 2,809
+Biosaur2 defaults are tuned for ProteomicsLFQ (mini=500, minlh=3, pasefminlh=2).
+On HeLa 50ng 5-min timsTOF gradient: 34k seeds, 80% model fit success, 2,809
 peptides quantified (Spearman r=0.62 vs Sage LFQ), 75s runtime, 1.3 GB memory.
 
 Normalization: @n
@@ -321,6 +320,9 @@ protected:
     pq_defaults.addTag("top:include_all", "advanced");
 
     Param bio_defaults = Biosaur2Algorithm().getDefaults();
+    bio_defaults.setValue("mini", 500.0);   // filter low-intensity noise peaks (default 1.0 too permissive)
+    bio_defaults.setValue("minlh", 3);      // require hills spanning >= 3 scans (default 2 keeps transient noise)
+    bio_defaults.setValue("pasefminlh", 2); // require >= 2 raw points per PASEF cluster (default 1)
     for (auto it = bio_defaults.begin(); it != bio_defaults.end(); ++it)
     {
       bio_defaults.addTag(it.getName(), "advanced");
