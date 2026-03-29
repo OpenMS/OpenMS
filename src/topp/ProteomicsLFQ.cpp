@@ -342,10 +342,8 @@ protected:
 
   ExitCodes loadAndPreprocess_(const String& mz_file, MSExperiment& ms_out, bool& is_im_peak_data)
   {
-    const FileTypes::Type file_type = FileHandler::getType(mz_file);
-
 #ifdef WITH_OPENTIMS
-    if (file_type == FileTypes::BRUKER_TDF)
+    if (FileHandler::getType(mz_file) == FileTypes::BRUKER_TDF)
     {
       // .d path: load with built-in IM centroiding (Sage algorithm, Lazear 2023)
       // This collapses raw IM profiles into single centroided peaks with summed intensity,
