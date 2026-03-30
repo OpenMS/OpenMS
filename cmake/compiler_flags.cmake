@@ -85,12 +85,12 @@ function(openms_add_compiler_flags target_name)
   
   # C++23 <stdfloat> workaround for ARM: std::float16_t/float32_t/float64_t
   # conflict with ARM NEON typedefs of the same name when 'using namespace std;'
-  # is active. Suppress the stdfloat feature macros so <stdfloat> types are not
-  # defined. OpenMS does not use C++23 extended floating-point types.
+  # is active. Suppress only the three macros that conflict with NEON typedefs.
+  # Do NOT suppress __STDCPP_FLOAT128_T__ or __STDCPP_BFLOAT16_T__ as those
+  # have no NEON conflict and are needed by Boost.Math.
   if(NOT MSVC AND CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
     target_compile_options(${target_name} PUBLIC
       -U__STDCPP_FLOAT16_T__ -U__STDCPP_FLOAT32_T__ -U__STDCPP_FLOAT64_T__
-      -U__STDCPP_FLOAT128_T__ -U__STDCPP_BFLOAT16_T__
     )
   endif()
 
