@@ -75,7 +75,7 @@ jobs:
 
           - os: ubuntu-24.04
             compiler: clang++
-            compiler_ver: 17
+            compiler_ver: 18
     outputs:
       version_number: ${{ steps.create_changelog.outputs.version_number }}
 

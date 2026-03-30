@@ -89,7 +89,7 @@ namespace OpenMS
     if (!mod_)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "No modification defined", nullptr);
+                                    "No modification defined", "");
     }
     return *mod_;
   }
