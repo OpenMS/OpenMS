@@ -15,7 +15,6 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
-//~ #include <QIODevice>
 #include <iostream>
 #include <fstream>
 #include <vector>

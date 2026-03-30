@@ -15,7 +15,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
-//~ #include <QIODevice>
 #include <fstream>
 #include <vector>
 #include <map>

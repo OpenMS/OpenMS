@@ -19,7 +19,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/Base64.h>
 
-//~ #include <QIODevice>
 #include <iostream>
 #include <fstream>
 #include <sstream>
