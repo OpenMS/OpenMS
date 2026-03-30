@@ -477,6 +477,11 @@ static ExternalProcess::RETURNSTATE runRScript(
 
   auto state = proc.run(r_executable, args, "", false, error_msg, ExternalProcess::IO_MODE::READ_ONLY, env);
 
+  // Surface startup diagnostics from ExternalProcess alongside captured output
+  if (!error_msg.empty())
+  {
+    merged_output += error_msg;
+  }
   if (captured_output)
   {
     *captured_output = merged_output;
