@@ -68,7 +68,6 @@ using namespace OpenMS;
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 
-#include <QDir>
 #include <unordered_map>
 
 //-------------------------------------------------------------
@@ -634,8 +633,8 @@ protected:
     String readoptions = getStringOption_("readOptions");
 
     // make sure tmp is a directory with proper separator at the end (downstream methods simply do path + filename)
-    // (do not use QDir::separator(), since its platform specific (/ or \) while absolutePath() will always use '/')
-    String tmp_dir = String(QDir(getStringOption_("tempDirectory").c_str()).absolutePath().toStdString()).ensureLastChar('/');
+    // File::absolutePath() always uses '/' separators
+    String tmp_dir = File::absolutePath(getStringOption_("tempDirectory")).ensureLastChar('/');
 
     ///////////////////////////////////
     // Parameter validation
