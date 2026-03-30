@@ -163,6 +163,33 @@ START_SECTION((static String extension(const String &file)))
   TEST_EQUAL(File::extension(".mzML"), ".mzML");
 END_SECTION
 
+START_SECTION((static StringList listDirectories(const String &dir)))
+  // create temp structure with subdirectories
+  File::TempDir tdir;
+  String base = tdir.getPath();
+  File::makeDir(base + "/subA");
+  File::makeDir(base + "/subB");
+  // also create a file (should NOT appear in results)
+  {
+    std::ofstream f(std::string(base + "/afile.txt"));
+    f << "test";
+  }
+
+  StringList dirs = File::listDirectories(base);
+  TEST_EQUAL(dirs.size(), 2);
+  // results are sorted
+  TEST_TRUE(dirs[0].hasSuffix("subA"));
+  TEST_TRUE(dirs[1].hasSuffix("subB"));
+
+  // non-existent directory returns empty list
+  StringList empty = File::listDirectories("/nonexistent_path_xyz");
+  TEST_EQUAL(empty.size(), 0);
+
+  // empty string returns empty list (not a directory)
+  StringList from_empty = File::listDirectories("");
+  // just verify it doesn't crash - result depends on cwd
+END_SECTION
+
 START_SECTION((static bool fileList(const String &dir, const String &file_pattern, StringList &output, bool full_path=false)))
   StringList vec;
   TEST_EQUAL(File::fileList(OPENMS_GET_TEST_DATA_PATH(""), "*.bliblaluff", vec), false);

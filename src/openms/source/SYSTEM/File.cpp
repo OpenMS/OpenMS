@@ -348,6 +348,24 @@ namespace OpenMS
     return base.substr(stem.size()); // everything after the stem, including leading '.'
   }
 
+  StringList File::listDirectories(const String& dir)
+  {
+    StringList result;
+    auto dir_path = to_path(dir);
+    std::error_code ec;
+    if (!fs::is_directory(dir_path, ec)) return result;
+
+    for (const auto& entry : fs::directory_iterator(dir_path, ec))
+    {
+      if (entry.is_directory())
+      {
+        result.push_back(entry.path().generic_string());
+      }
+    }
+    std::sort(result.begin(), result.end());
+    return result;
+  }
+
   String File::path(const String& file)
   {
     size_t pos = file.find_last_of("\\/");

@@ -150,6 +150,11 @@ public:
     /// Returns empty string if there is no extension: "/path/file" returns "".
     static String extension(const String& file);
 
+    /// Returns a sorted list of subdirectory paths (non-recursive) in the given directory.
+    /// Returns full absolute-style paths using '/' separators.
+    /// If the path does not exist or is not a directory, returns an empty list (no throw).
+    static StringList listDirectories(const String& dir);
+
     /// Returns the path of the file (without the file name and without path separator).
     /// If just a filename is given without any path, then "." is returned.
     /// No checking is done on the filesystem, i.e. '/path/some_entity' will return '/path', irrespective of 'some_entity' is a file or a directory.
