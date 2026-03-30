@@ -12,7 +12,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/QcMLFile.h>
 
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
@@ -104,7 +103,7 @@ protected:
     //------------------------------------------------------------
     if (!target_file.empty())
     {
-      target_run = FileHandler::stripExtension(File::basename(target_file));
+      target_run = File::stemName(target_file);
     }
 
     //~ !getFlag_("tables")

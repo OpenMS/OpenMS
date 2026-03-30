@@ -16,7 +16,6 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/Base64.h>
 
 #include <iostream>
@@ -132,7 +131,7 @@ protected:
     //------------------------------------------------------------
     if (!target_file.empty())
     {
-      target_run = FileHandler::stripExtension(File::basename(target_file));
+      target_run = File::stemName(target_file);
     }
 
     QcMLFile qcmlfile;

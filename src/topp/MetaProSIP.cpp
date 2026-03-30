@@ -39,8 +39,6 @@
 
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 
-#include <filesystem>
-
 #include <algorithm>
 #include <iostream>
 #include <iomanip>
@@ -3033,7 +3031,7 @@ protected:
       // trying to create qc_output_directory if not present
       if (!File::exists(qc_output_directory))
       {
-        std::filesystem::create_directories(std::string(qc_output_directory));
+        File::makeDir(qc_output_directory);
       }
       // check if R and dependencies are installed
       StringList package_names;
@@ -3241,7 +3239,7 @@ protected:
     vector<MapRateToScoreType> normalized_weight_maps;
     vector<MapRateToScoreType> correlation_maps;
 
-    String file_suffix = "_" + FileHandler::stripExtension(File::basename(in_mzml)) + "_" + String::random(4);
+    String file_suffix = "_" + File::stemName(in_mzml) + "_" + String::random(4);
 
     vector<SIPPeptide> sip_peptides;
 

@@ -10,7 +10,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <filesystem>
 #include <iomanip>
 #include <sstream>
 
@@ -96,7 +95,7 @@ protected:
       }
 
       // use float here to avoid too many decimals in output below:
-      float total_size = static_cast<float>(std::filesystem::file_size(std::string(in)));
+      float total_size = static_cast<float>(File::fileSize(in));
       String unit = getStringOption_("unit");
       if (unit == "KB")
         total_size /= 1024;

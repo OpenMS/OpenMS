@@ -95,7 +95,7 @@ protected:
     // File::absolutePath() always uses '/' separators
     String tmp_dir = File::absolutePath(getStringOption_("outputDirectory")).ensureLastChar('/');
 
-    String tmp = tmp_dir + FileHandler::stripExtension(File::basename(file_in));
+    String tmp = tmp_dir + File::stemName(file_in);
 
     String out_qc = getStringOption_("out_qc");
 
