@@ -43,13 +43,9 @@ macro(find_boost)
     "1.81.1" "1.81.0" "1.81"
     "1.80.1" "1.80.0" "1.80"
     "1.79.1" "1.79.0" "1.79"
-    "1.78.1" "1.78.0" "1.78"
-    "1.77.1" "1.77.0" "1.77"
-    "1.76.1" "1.76.0" "1.76"
-    "1.75.1" "1.75.0" "1.75"
-    "1.74.1" "1.74.0" "1.74")
+    "1.78.1" "1.78.0" "1.78")
 
-  find_package(Boost 1.74.0 COMPONENTS ${ARGN} REQUIRED CONFIG)
+  find_package(Boost 1.78.0 COMPONENTS ${ARGN} REQUIRED CONFIG)
 
 endmacro(find_boost)
 
