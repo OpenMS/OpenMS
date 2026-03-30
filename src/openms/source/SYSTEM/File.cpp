@@ -355,13 +355,14 @@ namespace OpenMS
     std::error_code ec;
     if (!fs::is_directory(dir_path, ec)) return result;
 
-    for (const auto& entry : fs::directory_iterator(dir_path, ec))
+    for (fs::directory_iterator it(dir_path, ec), end; !ec && it != end; it.increment(ec))
     {
-      if (entry.is_directory())
+      if (it->is_directory(ec))
       {
-        result.push_back(entry.path().generic_string());
+        result.push_back(fs::absolute(it->path(), ec).generic_string());
       }
     }
+    if (ec) return {};
     std::sort(result.begin(), result.end());
     return result;
   }
