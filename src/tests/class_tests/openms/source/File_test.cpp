@@ -142,6 +142,27 @@ START_SECTION((static String stemName(const String &file)))
   TEST_EQUAL(File::stemName(".mzML"), "");
 END_SECTION
 
+START_SECTION((static String extension(const String &file)))
+  // known extension
+  TEST_EQUAL(File::extension("/path/to/sample.mzML"), ".mzML");
+  // compound extension
+  TEST_EQUAL(File::extension("/path/to/sample.mzML.gz"), ".mzML.gz");
+  // unknown extension
+  TEST_EQUAL(File::extension("/path/to/file.txt"), ".txt");
+  // no extension
+  TEST_EQUAL(File::extension("/path/to/file"), "");
+  // filename only
+  TEST_EQUAL(File::extension("experiment.featureXML"), ".featureXML");
+  // empty string
+  TEST_EQUAL(File::extension(""), "");
+  // dotted directory, no extension on file
+  TEST_EQUAL(File::extension("/home.with.dot/filename"), "");
+  // Windows path
+  TEST_EQUAL(File::extension("c:\\data\\sample.idXML"), ".idXML");
+  // extension-only name
+  TEST_EQUAL(File::extension(".mzML"), ".mzML");
+END_SECTION
+
 START_SECTION((static bool fileList(const String &dir, const String &file_pattern, StringList &output, bool full_path=false)))
   StringList vec;
   TEST_EQUAL(File::fileList(OPENMS_GET_TEST_DATA_PATH(""), "*.bliblaluff", vec), false);

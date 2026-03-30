@@ -144,6 +144,12 @@ public:
     /// Directories with dots in the path are handled correctly: "/my.dir/file" returns "file".
     static String stemName(const String& file);
 
+    /// Returns the file extension including the leading dot.
+    /// Recognizes compound OpenMS extensions like ".mzML.gz".
+    /// E.g., "/path/sample.mzML.gz" returns ".mzML.gz", "/path/file.txt" returns ".txt".
+    /// Returns empty string if there is no extension: "/path/file" returns "".
+    static String extension(const String& file);
+
     /// Returns the path of the file (without the file name and without path separator).
     /// If just a filename is given without any path, then "." is returned.
     /// No checking is done on the filesystem, i.e. '/path/some_entity' will return '/path', irrespective of 'some_entity' is a file or a directory.
