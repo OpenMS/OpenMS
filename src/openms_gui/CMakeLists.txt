@@ -90,6 +90,21 @@ foreach(i ${GUI_executables})
   target_link_libraries(${i} OpenMS_GUI)
 endforeach(i)
 
+# GUI TOPP tools also need direct OpenMS link for TOPPBase etc.
+foreach(i ExecutePipeline ImageCreator INIUpdater)
+  target_link_libraries(${i} OpenMS)
+endforeach()
+
+# Add GUI-based TOPP tools to the TOPP_TOOLS list for CWL/INI generation
+set(GUI_TOPP_TOOLS ExecutePipeline ImageCreator INIUpdater)
+set(TOPP_TOOLS ${TOPP_TOOLS} ${GUI_TOPP_TOOLS}
+    CACHE INTERNAL "OpenMS' TOPP tools" FORCE)
+
+# Make the TOPP collection target depend on GUI TOPP tools
+if(TARGET TOPP)
+  add_dependencies(TOPP ${GUI_TOPP_TOOLS})
+endif()
+
   ## install platform plugins. On Mac this is handled for every GUI app inside its app bundle.
   if(WIN32)
       install(IMPORTED_RUNTIME_ARTIFACTS "Qt6::QWindowsIntegrationPlugin"
