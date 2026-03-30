@@ -13,6 +13,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <filesystem>
 
 using std::map;
@@ -135,14 +136,14 @@ protected:
       {
         String s_ident_run_idx = split_ident_runs ? '_' + String(rfi.ident_run_idx) : "";
         String s_file_origin_idx = '_' + String(rfi.file_origin_idx);
-        out_fname = std::filesystem::path(std::string(file_name)).stem().string() + s_ident_run_idx + s_file_origin_idx + ".idXML";
+        out_fname = to_path(file_name).stem().string() + s_ident_run_idx + s_file_origin_idx + ".idXML";
       }
       else
       {
-        out_fname = std::filesystem::path(std::string(rfi.out_basename)).stem().string() + ".idXML";
+        out_fname = to_path(rfi.out_basename).stem().string() + ".idXML";
       }
 
-      String out = (std::filesystem::path(std::string(output_directory)) / std::string(out_fname)).make_preferred().string();
+      String out = (to_path(output_directory) / to_path(out_fname)).make_preferred().string();
       OPENMS_LOG_INFO << "Storing file: '" << out << "'." << std::endl;
 
       FileHandler().storeIdentifications(out, rfc.prot_idents, rfc.pep_idents, {FileTypes::IDXML});
