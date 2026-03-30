@@ -117,7 +117,30 @@ START_SECTION((static String basename(const String &file)))
   TEST_EQUAL(File::basename("/source/config/bla/bluff.h"), "bluff.h");
   TEST_EQUAL(File::basename("filename_only.h"), "filename_only.h");
   TEST_EQUAL(File::basename("/path/only/"), "");
-  END_SECTION
+END_SECTION
+
+START_SECTION((static String stemName(const String &file)))
+  // basic: strips known extension from full path
+  TEST_EQUAL(File::stemName("/path/to/sample.mzML"), "sample");
+  // compound extension: .mzML.gz is a known compound extension
+  TEST_EQUAL(File::stemName("/path/to/sample.mzML.gz"), "sample");
+  // unknown extension: strips last dot segment
+  TEST_EQUAL(File::stemName("/path/to/file.txt"), "file");
+  // unknown compound: only strips known part
+  TEST_EQUAL(File::stemName("/path/to/file.txt.tgz"), "file.txt");
+  // no extension
+  TEST_EQUAL(File::stemName("/path/to/file"), "file");
+  // filename only (no path)
+  TEST_EQUAL(File::stemName("experiment.featureXML"), "experiment");
+  // empty string
+  TEST_EQUAL(File::stemName(""), "");
+  // dotted directory, no extension on file
+  TEST_EQUAL(File::stemName("/home.with.dot/filename"), "filename");
+  // Windows path
+  TEST_EQUAL(File::stemName("c:\\data\\sample.idXML"), "sample");
+  // extension-only name
+  TEST_EQUAL(File::stemName(".mzML"), "");
+END_SECTION
 
 START_SECTION((static bool fileList(const String &dir, const String &file_pattern, StringList &output, bool full_path=false)))
   StringList vec;

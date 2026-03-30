@@ -332,6 +332,11 @@ namespace OpenMS
     return file.substr(file.find_last_of("\\/") + 1);
   }
 
+  String File::stemName(const String& file)
+  {
+    return FileHandler::stripExtension(basename(file));
+  }
+
   String File::path(const String& file)
   {
     size_t pos = file.find_last_of("\\/");
