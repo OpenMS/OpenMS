@@ -164,9 +164,8 @@ protected:
       {
         std::ostringstream oss;
         oss << f.rdbuf();
-        std::string raw = oss.str();
-        std::vector<unsigned char> data(raw.begin(), raw.end());
-        Base64::encode(data, Base64::BYTEORDER_LITTLEENDIAN, plot_b64, false);
+        std::vector<String> raw_vec = {String(oss.str())};
+        Base64::encodeStrings(raw_vec, plot_b64, false, false);
       }
     }
 
