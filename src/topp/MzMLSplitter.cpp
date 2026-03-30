@@ -10,7 +10,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QFile>
+#include <filesystem>
 #include <iomanip>
 #include <sstream>
 
@@ -95,9 +95,8 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
 
-      QFile mzml_file(QString::fromStdString(in));
       // use float here to avoid too many decimals in output below:
-      float total_size = mzml_file.size();
+      float total_size = static_cast<float>(std::filesystem::file_size(in));
       String unit = getStringOption_("unit");
       if (unit == "KB")
         total_size /= 1024;
