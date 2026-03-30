@@ -12,10 +12,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/QcMLFile.h>
 
-#include <QByteArray>
-#include <QFile>
-#include <QString>
-#include <QFileInfo>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/SYSTEM/File.h>
 
 //~ #include <QIODevice>
 #include <fstream>
@@ -107,7 +105,7 @@ protected:
     //------------------------------------------------------------
     if (!target_file.empty())
     {
-      target_run = QFileInfo(QString::fromStdString(target_file)).baseName().toStdString();
+      target_run = FileHandler::stripExtension(File::basename(target_file));
     }
 
     //~ !getFlag_("tables")
