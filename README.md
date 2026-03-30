@@ -1,3 +1,5 @@
+<!-- Minor documentation improvement -->
+
 OpenMS
 =======
 
