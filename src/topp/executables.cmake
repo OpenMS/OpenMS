@@ -116,6 +116,7 @@ QCImporter
 QCMerger
 QCShrinker
 QualityControl
+Resampler
 RNADigestor
 RNAMassCalculator
 RNPxlXICFilter
@@ -161,7 +162,6 @@ set(TOPP_executables
 ## all targets requiring OpenMS_GUI
 set(TOPP_executables_with_GUIlib
 ExecutePipeline
-Resampler
 # util category
 ImageCreator
 INIUpdater
