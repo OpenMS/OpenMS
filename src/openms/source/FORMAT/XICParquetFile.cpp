@@ -15,12 +15,10 @@
 #include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#ifdef WITH_PARQUET
 #include <arrow/api.h>
 #include <arrow/compute/api.h>
 #include <arrow/io/api.h>
 #include <parquet/arrow/reader.h>
-#endif
 #ifdef WITH_ARROW_DATASET
 #include <arrow/dataset/api.h>
 #include <arrow/filesystem/api.h>
@@ -37,7 +35,6 @@ namespace OpenMS
 {
   namespace
   {
-#ifdef WITH_PARQUET
     /// Read a single parquet file into an Arrow table.
     std::shared_ptr<arrow::Table> readParquetTable_(const String& filename)
     {
@@ -47,7 +44,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Failed to open parquet file", filename);
       }
-      std::shared_ptr<arrow::io::ReadableFile> infile = *infile_result;
+      const std::shared_ptr<arrow::io::ReadableFile>& infile = *infile_result;
 
       auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
       if (!reader_result.ok())
@@ -84,7 +81,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Failed to open parquet file", filename);
       }
-      std::shared_ptr<arrow::io::ReadableFile> infile = *infile_result;
+      const std::shared_ptr<arrow::io::ReadableFile>& infile = *infile_result;
 
       auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
       if (!reader_result.ok())
@@ -136,7 +133,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Failed to open parquet file", filename);
       }
-      std::shared_ptr<arrow::io::ReadableFile> infile = *infile_result;
+      const std::shared_ptr<arrow::io::ReadableFile>& infile = *infile_result;
 
       auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
       if (!reader_result.ok())
@@ -463,7 +460,7 @@ namespace OpenMS
             tokens.push_back(current);
             current.clear();
           }
-          tokens.emplace_back(String(c));
+          tokens.emplace_back(c);
           continue;
         }
 
@@ -1136,7 +1133,7 @@ namespace OpenMS
       paths.reserve(filenames.size());
       for (const auto& filename : filenames)
       {
-        paths.emplace_back(std::string(filename));
+        paths.emplace_back(filename);
       }
       auto factory_result = arrow::dataset::FileSystemDatasetFactory::Make(
         filesystem, paths, format, options);
@@ -1234,7 +1231,7 @@ namespace OpenMS
                         << bound_result.status().ToString() << '\n';
         return applyManualFilter_(table, pruned, filter_context);
       }
-      arrow::compute::Expression bound_expr = *bound_result;
+      const arrow::compute::Expression& bound_expr = *bound_result;
 
       arrow::TableBatchReader reader(*table);
       std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
@@ -1291,7 +1288,6 @@ namespace OpenMS
       }
       return *combined;
     }
-#endif
   } // namespace
 
   XICParquetFile::XICParquetFile(const String& filename)
@@ -1348,19 +1344,6 @@ namespace OpenMS
                                          Int64 run_id,
                                          const String& filter) const
   {
-#ifndef WITH_PARQUET
-    (void)output;
-    (void)extra_filter;
-    (void)precursor_id;
-    (void)transition_id;
-    (void)modified_sequence;
-    (void)precursor_charge;
-    (void)product_charge;
-    (void)ms_level;
-    (void)run_id;
-    (void)filter;
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#else
     output.clear();
 
     std::shared_ptr<arrow::Table> table;
@@ -1510,15 +1493,10 @@ namespace OpenMS
 
       output.push_back(std::move(chrom));
     }
-#endif
   }
 
   void XICParquetFile::getRuns(std::vector<XICRunInfo>& output) const
   {
-#ifndef WITH_PARQUET
-    (void)output;
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#else
     output.clear();
 
     const std::vector<String> columns = {"RUN_ID", "SOURCE_FILE"};
@@ -1549,7 +1527,6 @@ namespace OpenMS
         output.push_back(std::move(info));
       }
     }
-#endif
   }
 
   void XICParquetFile::getChromatograms(std::vector<XICChromatogram>& output,
@@ -1583,12 +1560,6 @@ namespace OpenMS
                                    const std::vector<String>& columns,
                                    bool nest_transitions) const
   {
-#ifndef WITH_PARQUET
-    (void)output;
-    (void)columns;
-    (void)nest_transitions;
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#else
     output.clear();
 
     const std::vector<String> default_columns = {
@@ -1930,15 +1901,10 @@ namespace OpenMS
         }
       }
     }
-#endif
   }
 
   void XICParquetFile::getColumns(std::vector<String>& output) const
   {
-#ifndef WITH_PARQUET
-    (void)output;
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#else
     output.clear();
     std::shared_ptr<arrow::Schema> schema = readParquetSchemaAllFiles_(filenames_);
     output.reserve(schema->num_fields());
@@ -1946,6 +1912,5 @@ namespace OpenMS
     {
       output.emplace_back(field->name());
     }
-#endif
   }
 } // namespace OpenMS

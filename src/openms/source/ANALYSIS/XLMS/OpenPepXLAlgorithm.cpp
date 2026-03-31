@@ -854,9 +854,9 @@ using namespace OpenMS;
             auto num_iso_peaks_array_it = getDataArrayByName(all_peaks.getIntegerDataArrays(), "iso_peak_count");
             DataArrays::IntegerDataArray num_iso_peaks_array = *num_iso_peaks_array_it;
             auto num_iso_peaks_array_linear_it = getDataArrayByName(linear_peaks.getIntegerDataArrays(), "iso_peak_count");
-            DataArrays::IntegerDataArray num_iso_peaks_array_linear = *num_iso_peaks_array_linear_it;
+            const DataArrays::IntegerDataArray& num_iso_peaks_array_linear = *num_iso_peaks_array_linear_it;
             auto num_iso_peaks_array_xlinks_it = getDataArrayByName(xlink_peaks.getIntegerDataArrays(), "iso_peak_count");
-            DataArrays::IntegerDataArray num_iso_peaks_array_xlinks = *num_iso_peaks_array_xlinks_it;
+            const DataArrays::IntegerDataArray& num_iso_peaks_array_xlinks = *num_iso_peaks_array_xlinks_it;
 
             csm.num_iso_peaks_mean = Math::mean(num_iso_peaks_array.begin(), num_iso_peaks_array.end());
 

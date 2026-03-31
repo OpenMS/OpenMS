@@ -132,8 +132,7 @@ jobs:
                 -DPYOPENMS=OFF \
                 -DWITH_GUI=OFF \
                 -DENABLE_TUTORIALS=OFF \
-                -DENABLE_DOCS=OFF \
-                -DWITH_PARQUET=ON
+                -DENABLE_DOCS=OFF
               ninja OpenMS OpenSwathAlgo
               cmake --install . --component library --strip
               cmake --install . --component OpenMS_headers
@@ -212,8 +211,7 @@ jobs:
                 -DPYOPENMS=OFF \
                 -DWITH_GUI=OFF \
                 -DENABLE_TUTORIALS=OFF \
-                -DENABLE_DOCS=OFF \
-                -DWITH_PARQUET=ON
+                -DENABLE_DOCS=OFF
               ninja OpenMS OpenSwathAlgo
               cmake --install . --component library --strip
               cmake --install . --component OpenMS_headers
@@ -281,8 +279,7 @@ jobs:
             -DWITH_GUI=OFF \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF \
-            -DMT_ENABLE_OPENMP=ON \
-            -DWITH_PARQUET=ON
+            -DMT_ENABLE_OPENMP=ON
           ninja OpenMS OpenSwathAlgo
           cmake --install . --component library --strip
           cmake --install . --component OpenMS_headers
@@ -387,8 +384,7 @@ jobs:
             -DPYOPENMS=OFF \
             -DWITH_GUI=OFF \
             -DENABLE_TUTORIALS=OFF \
-            -DENABLE_DOCS=OFF \
-            -DWITH_PARQUET=ON
+            -DENABLE_DOCS=OFF
           cmake --build . --target OpenMS OpenSwathAlgo
           cmake --install . --component library --strip
           cmake --install . --component OpenMS_headers

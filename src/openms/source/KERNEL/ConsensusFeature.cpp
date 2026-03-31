@@ -63,9 +63,11 @@ namespace OpenMS
 
   void ConsensusFeature::insert(FeatureHandle&& handle)
   {
+    auto map_index = handle.getMapIndex();
+    auto unique_id = handle.getUniqueId();
     if (!(handles_.insert(std::move(handle)).second))
     {
-      String key = String("map") + handle.getMapIndex() + "/feature" + handle.getUniqueId();
+      String key = String("map") + map_index + "/feature" + unique_id;
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The set already contained an element with this key.", key);
     }
   }

@@ -12,6 +12,7 @@
 #include <OpenMS/VISUAL/DIALOGS/HistogramDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/LayerStatisticsDialog.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QCloseEvent>
 #include <QtCore/QMimeData>
@@ -264,7 +265,7 @@ namespace OpenMS
       const LayerDataBase& layer = canvas()->getLayer(l);
       if (layer.modified)
       {
-        QMessageBox::StandardButton result = QMessageBox::question(this, "Save?", (String("Do you want to save your changes to layer '") + layer.getName() +  "'?").toQString(), QMessageBox::Ok | QMessageBox::Discard);
+        QMessageBox::StandardButton result = QMessageBox::question(this, "Save?", toQString(String("Do you want to save your changes to layer '") + layer.getName() +  "'?"), QMessageBox::Ok | QMessageBox::Discard);
         if (result == QMessageBox::Ok)
         {
           canvas()->activateLayer(l);

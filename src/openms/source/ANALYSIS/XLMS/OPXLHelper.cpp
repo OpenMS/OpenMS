@@ -10,6 +10,7 @@
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
@@ -380,7 +381,7 @@ namespace OpenMS
 #pragma omp parallel for schedule(guided)
     for (int i = 0; i < static_cast<int>(candidates.size()); ++i)
     {
-      OPXLDataStructs::XLPrecursor candidate = candidates[i];
+      const OPXLDataStructs::XLPrecursor& candidate = candidates[i];
       vector <SignedSize> link_pos_first;
       vector <SignedSize> link_pos_second;
       const AASequence* peptide_first = &(peptide_masses[candidate.alpha_index].peptide_seq);
@@ -1281,7 +1282,7 @@ namespace OpenMS
       }
     }
 
-    for (String index : spectrum_indices)
+    for (const String& index : spectrum_indices)
     {
       for (PeptideIdentification& id : peptide_ids)
       {

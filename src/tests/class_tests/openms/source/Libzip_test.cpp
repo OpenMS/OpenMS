@@ -12,7 +12,6 @@
 // libzip header
 #include <zip.h>
 
-#ifdef WITH_PARQUET
 #include <arrow/api.h>
 #include <arrow/io/api.h>
 #include <arrow/io/interfaces.h>
@@ -21,14 +20,12 @@
 #include <arrow/buffer.h>
 #include <parquet/arrow/reader.h>
 #include <parquet/arrow/writer.h>
-#endif
 
 #include <cstring>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
-#ifdef WITH_PARQUET
 /// An arrow::io::RandomAccessFile backed by a STORE entry inside a ZIP archive.
 /// Uses libzip's zip_fseek / zip_fread / zip_ftell for true random access
 /// on uncompressed entries (internally mapped to fseek on the physical file).
@@ -153,7 +150,6 @@ static std::shared_ptr<ZipEntryRandomAccessFile> open_zip_entry_for_arrow(
 
   return std::make_shared<ZipEntryRandomAccessFile>(archive, entry, static_cast<int64_t>(st.size));
 }
-#endif // WITH_PARQUET
 
 using namespace OpenMS;
 
@@ -376,7 +372,6 @@ START_SECTION(verify_entries_are_uncompressed)
 }
 END_SECTION
 
-#ifdef WITH_PARQUET
 START_SECTION(parquet_roundtrip_through_zip_archive)
 {
   // End-to-end test: write two Parquet tables to a ZIP archive (uncompressed),
@@ -501,7 +496,6 @@ START_SECTION(parquet_roundtrip_through_zip_archive)
   }
 }
 END_SECTION
-#endif // WITH_PARQUET
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

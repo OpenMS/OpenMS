@@ -9,7 +9,7 @@ from MSExperimentArrowExport cimport *
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp cimport bool
 
-# OpenMS ProteinIdentificationArrowIO declarations (only available when WITH_PARQUET is enabled)
+# OpenMS ProteinIdentificationArrowIO declarations
 cdef extern from "<OpenMS/FORMAT/ProteinIdentificationArrowIO.h>" namespace "OpenMS":
 
     cdef cppclass ProteinIdentificationArrowIO:

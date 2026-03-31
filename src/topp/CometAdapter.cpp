@@ -35,7 +35,6 @@
 #include <fstream>
 #include <iomanip>
 
-#include <QStringList>
 #include <QRegularExpression>
 
 using namespace OpenMS;
@@ -298,7 +297,7 @@ protected:
 
     // comet_version is something like "# comet_version 2017.01 rev. 1"
     QRegularExpression comet_version_regex("(\\d{4})\\.(\\d*)rev");
-    if (auto match = comet_version_regex.match(comet_version.toQString().remove(' ')); match.hasMatch())
+    if (auto match = comet_version_regex.match(QString::fromStdString(comet_version).remove(' ')); match.hasMatch())
     {
       const int comet_year = match.captured(1).toInt();
       if (comet_version.hasSubstring("2024.01 rev. 0"))
@@ -608,7 +607,7 @@ protected:
 
     writeDebug_("Comet is writing the default parameter file...", 1);
     
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.getPath().toQString());
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(comet_executable, {"-p"}, tmp_dir.getPath());
     if (exit_code != EXECUTION_OK)
     {
       return exit_code; // will do the right thing, since it's correctly mapping TOPPBase exit codes
@@ -685,14 +684,13 @@ protected:
     //-------------------------------------------------------------
     String paramP = "-P" + tmp_file;
     String paramN = "-N" + FileHandler::stripExtension(FileHandler::stripExtension(tmp_pepxml));
-    QStringList arguments;
-    arguments << paramP.toQString() << paramN.toQString() << input_file_with_index.toQString();
+    std::vector<String> arguments = {paramP, paramN, input_file_with_index};
 
     //-------------------------------------------------------------
     // run comet
     //-------------------------------------------------------------
     // Comet execution with the executable and the arguments StringList
-    exit_code = runExternalProcess_(comet_executable.toQString(), arguments);
+    exit_code = runExternalProcess_(comet_executable, arguments);
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;

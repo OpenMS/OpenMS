@@ -789,7 +789,7 @@ namespace OpenMS
         match.setMetaValue("mz_error_Da", mass_error_Da);
 
         // add adduct to the ObservationMatch
-        String adduct = r.getFoundAdduct(); // M+Na;1+
+        const String& adduct = r.getFoundAdduct(); // M+Na;1+
         if (!adduct.empty() && adduct != "null")
         {
           AdductInfo ainfo = AdductInfo::parseAdductString(adduct);
@@ -950,7 +950,7 @@ namespace OpenMS
         {
           MzTabSmallMoleculeSectionRow mztab_row_record;
           // set the identifier field
-          String hid_temp = matching_ids[id_idx];
+          const String& hid_temp = matching_ids[id_idx];
           bool db_hit = (hid_temp != "null");
           if (db_hit)
           {

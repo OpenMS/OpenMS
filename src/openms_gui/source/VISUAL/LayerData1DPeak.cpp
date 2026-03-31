@@ -9,6 +9,7 @@
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/Painter1DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
@@ -254,7 +255,7 @@ namespace OpenMS
 
         if (fabs(tmp_a.mz - pa->getPeakPosition().getMZ()) < 1e-6)
         {
-          if (String(pa->getText()).hasPrefix(tmp_a.annotation))
+          if (fromQString(pa->getText()).hasPrefix(tmp_a.annotation))
           {
             to_remove.push_back(tmp_a);
           }

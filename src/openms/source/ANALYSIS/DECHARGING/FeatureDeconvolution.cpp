@@ -681,13 +681,13 @@ namespace OpenMS
       if (!dirty)
       {
         scores_clean_edge.push_back(String(feature_relation[i].getEdgeScore()));
-        scores_clean_edge_idx.push_back(String(i));
+        scores_clean_edge_idx.emplace_back(i);
         ef_clean_edge += ef;
       }
       else
       {
         scores_dirty_edge.push_back(String(feature_relation[i].getEdgeScore()));
-        scores_dirty_edge_idx.push_back(String(i));
+        scores_dirty_edge_idx.emplace_back(i);
         ef_dirty_edge += ef;
       }
 
@@ -873,11 +873,11 @@ namespace OpenMS
           }
         }
 
-        scores_e_active_idx.push_back(String(i));
+        scores_e_active_idx.emplace_back(i);
       }
       else // inactive edges
       {
-        scores_e_inactive_idx.push_back(String(i));
+        scores_e_inactive_idx.emplace_back(i);
 
         // DEBUG
 #ifdef DC_DEVEL

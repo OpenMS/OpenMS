@@ -97,6 +97,8 @@ START_SECTION((static Type nameToType(const String& name)))
   TEST_EQUAL(FileTypes::TXT, FileTypes::nameToType("txt"));
   TEST_EQUAL(FileTypes::PARQUET, FileTypes::nameToType("parquet"));
   TEST_EQUAL(FileTypes::PARQUET, FileTypes::nameToType("pqt")); // Test alternate extension
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::BRUKER_TDF), "d");
+  TEST_EQUAL(FileTypes::BRUKER_TDF, FileTypes::nameToType("d"));
 
   TEST_EQUAL(FileTypes::UNKNOWN, FileTypes::nameToType("somethingunknown"));
 }
@@ -133,7 +135,7 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
     std::vector<FileTypes::FileProperties> f;
     f.push_back(FileTypes::FileProperties::READABLE);
     FileTypeList g = FileTypeList::typesWithProperties(f);
-    TEST_EQUAL(g.getTypes().size(), 42);
+    TEST_EQUAL(g.getTypes().size(), 43);
     // Test that empty filter returns the full list
     TEST_EQUAL(FileTypeList::typesWithProperties({}).size(), 66);
     // Test that the full list is equal to the list of known file types

@@ -8,11 +8,10 @@
 
 #include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/DataProcessing.h>
@@ -717,7 +716,7 @@ namespace // anonymous
       OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to open file: " << filename << std::endl;
       return false;
     }
-    auto outfile = *result;
+    const auto& outfile = *result;
 
     auto builder = parquet::WriterProperties::Builder();
 
@@ -781,7 +780,7 @@ namespace // anonymous
       OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to open file: " << filename << std::endl;
       return nullptr;
     }
-    auto infile = *infile_result;
+    const auto& infile = *infile_result;
 
     auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
     if (!reader_result.ok())
@@ -1127,23 +1126,24 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowIO::exportFeaturesToArrow(
 
   #undef FINISH_OR_RETURN
 
-  auto schema = arrow::schema({
-    arrow::field("unique_id", arrow::int64()),
-    arrow::field("rt", arrow::float64()),
-    arrow::field("mz", arrow::float64()),
-    arrow::field("intensity", arrow::float32()),
-    arrow::field("charge", arrow::int32()),
-    arrow::field("quality", arrow::float32()),
-    arrow::field("width", arrow::float32()),
-    arrow::field("handles", arrow::list(handle_struct_type)),
-    arrow::field("metavalues", arrow::list(mv_struct_type))
-  });
+  // Build schema from registry
+  auto schema = ConsensusFeatureSchema::schema();
 
-  return arrow::Table::Make(schema, {
+  auto table = arrow::Table::Make(schema, {
     arr_unique_id, arr_rt, arr_mz, arr_intensity,
     arr_charge, arr_quality, arr_width,
     arr_handles, arr_metavalues
   });
+
+  // Validate table against registry schema
+  auto validation = ArrowSchemaValidation::validate(table, ConsensusFeatureSchema::schema());
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << "\n";
+    return nullptr;
+  }
+
+  return table;
 }
 
 std::shared_ptr<arrow::Table> ConsensusMapArrowIO::exportPSMsToArrow(
@@ -1314,7 +1314,7 @@ bool ConsensusMapArrowIO::importFeaturesFromArrow(
     OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to combine chunks" << std::endl;
     return false;
   }
-  auto tbl = *combined_result;
+  const auto& tbl = *combined_result;
 
   int64_t num_rows = tbl->num_rows();
   if (num_rows == 0)
@@ -1322,15 +1322,23 @@ bool ConsensusMapArrowIO::importFeaturesFromArrow(
     return true;
   }
 
-  auto col_unique_id = getColumn_(tbl, "unique_id");
-  auto col_rt = getColumn_(tbl, "rt");
-  auto col_mz = getColumn_(tbl, "mz");
-  auto col_intensity = getColumn_(tbl, "intensity");
-  auto col_charge = getColumn_(tbl, "charge");
-  auto col_quality = getColumn_(tbl, "quality");
-  auto col_width = getColumn_(tbl, "width", /*required=*/false);
-  auto col_handles = getColumn_(tbl, "handles", /*required=*/false);
-  auto col_metavalues = getColumn_(tbl, "metavalues", /*required=*/false);
+  // Validate table schema against registry (subset mode — file may have extra columns)
+  auto validation = ArrowSchemaValidation::validate(tbl, ConsensusFeatureSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << "\n";
+    return false;
+  }
+
+  auto col_unique_id = getColumn_(tbl, ConsensusFeatureSchema::UNIQUE_ID);
+  auto col_rt = getColumn_(tbl, ConsensusFeatureSchema::RT);
+  auto col_mz = getColumn_(tbl, ConsensusFeatureSchema::MZ);
+  auto col_intensity = getColumn_(tbl, ConsensusFeatureSchema::INTENSITY);
+  auto col_charge = getColumn_(tbl, ConsensusFeatureSchema::CHARGE);
+  auto col_quality = getColumn_(tbl, ConsensusFeatureSchema::QUALITY);
+  auto col_width = getColumn_(tbl, ConsensusFeatureSchema::WIDTH, /*required=*/false);
+  auto col_handles = getColumn_(tbl, ConsensusFeatureSchema::HANDLES, /*required=*/false);
+  auto col_metavalues = getColumn_(tbl, ConsensusFeatureSchema::METAVALUES, /*required=*/false);
 
   if (!col_unique_id || !col_rt || !col_mz || !col_intensity || !col_charge || !col_quality)
   {
@@ -1382,8 +1390,15 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
     OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to combine chunks in importPSMsFromArrow" << std::endl;
     return false;
   }
-  auto tbl = *combined_result;
+  const auto& tbl = *combined_result;
   int64_t num_rows = tbl->num_rows();
+
+  auto psm_validation = ArrowSchemaValidation::validate(tbl, PSMSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!psm_validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Incompatible PSM schema: " << psm_validation.toString() << "\n";
+    return false;
+  }
 
   // Build consensus feature lookup: unique_id -> ConsensusFeature*
   std::unordered_map<int64_t, ConsensusFeature*> feature_lookup;
@@ -1394,27 +1409,27 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
 
   // Read columns
   auto col_feature_id = getColumn_(tbl, "consensus_feature_unique_id");
-  auto col_p_id = getColumn_(tbl, "peptide_identification_index");
-  auto col_peptidoform = getColumn_(tbl, "peptidoform", /*required=*/false);
-  auto col_sequence = getColumn_(tbl, "sequence", /*required=*/false);
-  auto col_charge = getColumn_(tbl, "precursor_charge");
-  auto col_score = getColumn_(tbl, "score");
-  auto col_score_type = getColumn_(tbl, "score_type");
-  auto col_rank = getColumn_(tbl, "rank", /*required=*/false);
-  auto col_rt = getColumn_(tbl, "rt", /*required=*/false);
-  auto col_mz = getColumn_(tbl, "observed_mz", /*required=*/false);
-  auto col_spec_ref = getColumn_(tbl, "spectrum_reference", /*required=*/false);
-  auto col_run_id = getColumn_(tbl, "run_identifier", /*required=*/false);
-  auto col_is_decoy = getColumn_(tbl, "is_decoy", /*required=*/false);
-  auto col_protein_accs = getColumn_(tbl, "protein_accessions", /*required=*/false);
-  auto col_additional_scores = getColumn_(tbl, "additional_scores", /*required=*/false);
-  auto col_psm_metavalues = getColumn_(tbl, "psm_metavalues", /*required=*/false);
-  auto col_spectrum_metavalues = getColumn_(tbl, "spectrum_metavalues", /*required=*/false);
-  auto col_predicted_rt = getColumn_(tbl, "predicted_rt", /*required=*/false);
-  auto col_ion_mobility = getColumn_(tbl, "ion_mobility", /*required=*/false);
-  auto col_hsb = getColumn_(tbl, "higher_score_better", /*required=*/false);
-  auto col_scan = getColumn_(tbl, "scan", /*required=*/false);
-  auto col_ref_file = getColumn_(tbl, "reference_file_name", /*required=*/false);
+  auto col_p_id = getColumn_(tbl, PSMSchema::PEPTIDE_IDENTIFICATION_INDEX);
+  auto col_peptidoform = getColumn_(tbl, PSMSchema::PEPTIDOFORM, /*required=*/false);
+  auto col_sequence = getColumn_(tbl, PSMSchema::SEQUENCE, /*required=*/false);
+  auto col_charge = getColumn_(tbl, PSMSchema::PRECURSOR_CHARGE);
+  auto col_score = getColumn_(tbl, PSMSchema::SCORE);
+  auto col_score_type = getColumn_(tbl, PSMSchema::SCORE_TYPE);
+  auto col_rank = getColumn_(tbl, PSMSchema::RANK, /*required=*/false);
+  auto col_rt = getColumn_(tbl, PSMSchema::RT, /*required=*/false);
+  auto col_mz = getColumn_(tbl, PSMSchema::OBSERVED_MZ, /*required=*/false);
+  auto col_spec_ref = getColumn_(tbl, PSMSchema::SPECTRUM_REFERENCE, /*required=*/false);
+  auto col_run_id = getColumn_(tbl, PSMSchema::RUN_IDENTIFIER, /*required=*/false);
+  auto col_is_decoy = getColumn_(tbl, PSMSchema::IS_DECOY, /*required=*/false);
+  auto col_protein_accs = getColumn_(tbl, PSMSchema::PROTEIN_ACCESSIONS, /*required=*/false);
+  auto col_additional_scores = getColumn_(tbl, PSMSchema::ADDITIONAL_SCORES, /*required=*/false);
+  auto col_psm_metavalues = getColumn_(tbl, PSMSchema::PSM_METAVALUES, /*required=*/false);
+  auto col_spectrum_metavalues = getColumn_(tbl, PSMSchema::SPECTRUM_METAVALUES, /*required=*/false);
+  auto col_predicted_rt = getColumn_(tbl, PSMSchema::PREDICTED_RT, /*required=*/false);
+  auto col_ion_mobility = getColumn_(tbl, PSMSchema::ION_MOBILITY, /*required=*/false);
+  auto col_hsb = getColumn_(tbl, PSMSchema::HIGHER_SCORE_BETTER, /*required=*/false);
+  auto col_scan = getColumn_(tbl, PSMSchema::SCAN, /*required=*/false);
+  auto col_ref_file = getColumn_(tbl, PSMSchema::REFERENCE_FILE_NAME, /*required=*/false);
 
   if (!col_feature_id || !col_p_id || !col_charge || !col_score || !col_score_type)
   {
@@ -1709,5 +1724,3 @@ bool ConsensusMapArrowIO::importFromParquet(
 }
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

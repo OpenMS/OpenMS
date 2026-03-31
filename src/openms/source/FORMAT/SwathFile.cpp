@@ -24,6 +24,12 @@
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#ifdef WITH_OPENTIMS
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
+#endif
+
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+
 #include <memory> // for make_shared
 
 namespace OpenMS
@@ -278,6 +284,48 @@ namespace OpenMS
   }
 
 
+#ifdef WITH_OPENTIMS
+  std::vector<OpenSwath::SwathMap> SwathFile::loadBrukerTdf(
+    const String& file,
+    std::shared_ptr<ExperimentalSettings>& exp_meta)
+  {
+    OPENMS_LOG_INFO << "Loading Bruker TDF file " << file << '\n';
+    startProgress(0, 1, "Loading Bruker TDF file " + file);
+
+    // Load full MSExperiment via BrukerTimsFile (DIA auto-detected)
+    BrukerTimsFile bruker_reader;
+    bruker_reader.setLogType(this->getLogType());
+    std::shared_ptr<PeakMap> experiment(new PeakMap);
+    bruker_reader.load(file, *experiment);
+    exp_meta = experiment; // preserve experimental settings for downstream
+
+    // Discover unique SWATH windows from spectrum metadata
+    std::vector<int> swath_counter;
+    int nr_ms1_spectra = 0;
+    std::vector<OpenSwath::SwathMap> known_window_boundaries;
+    countScansInSwath_(experiment->getSpectra(), swath_counter,
+                       nr_ms1_spectra, known_window_boundaries);
+
+    OPENMS_LOG_INFO << "Bruker TDF: " << swath_counter.size()
+                    << " SWATH windows and " << nr_ms1_spectra
+                    << " MS1 spectra" << std::endl;
+
+    // Partition spectra into per-window MSExperiment objects via RegularSwathFileConsumer
+    RegularSwathFileConsumer consumer(known_window_boundaries);
+    consumer.setExperimentalSettings(*exp_meta);
+    for (auto& spec : experiment->getSpectra())
+    {
+      consumer.consumeSpectrum(spec);
+    }
+
+    std::vector<OpenSwath::SwathMap> swath_maps;
+    consumer.retrieveSwathMaps(swath_maps);
+
+    endProgress();
+    return swath_maps;
+  }
+#endif
+
   /// Cache a file to disk
   OpenSwath::SpectrumAccessPtr SwathFile::doCacheFile_(const String& in, const String& tmp, const String& tmp_fname,
     const std::shared_ptr<PeakMap >& experiment_metadata)
@@ -329,7 +377,7 @@ namespace OpenMS
             throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "Found SWATH scan (MS level 2 scan) without a precursor. Cannot determine SWATH window.");
           }
-          const std::vector<Precursor> prec = s.getPrecursors();
+          const std::vector<Precursor>& prec = s.getPrecursors();
 
           // set ion mobility if exists, otherwise will take default value of -1
           double imLower, imUpper;

@@ -51,6 +51,10 @@
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
 
+#ifdef WITH_OPENTIMS
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
+#endif
+
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
@@ -160,10 +164,37 @@ namespace OpenMS
 
   FileTypes::Type FileHandler::getType(const String& filename)
   {
-    FileTypes::Type type = getTypeByFileName(filename);
+    // Strip trailing directory separators (important for directory-based formats
+    // like .d where shell tab-completion appends '/')
+    String normalized = filename;
+    while (normalized.hasSuffix("/") || normalized.hasSuffix("\\"))
+    {
+      normalized = normalized.prefix(normalized.size() - 1);
+    }
+
+    FileTypes::Type type = getTypeByFileName(normalized);
+
+    // Directory-based formats: validate marker files before returning.
+    // Must happen before getTypeByContent() which would fail on directories.
+#ifdef WITH_OPENTIMS
+    if (type == FileTypes::BRUKER_TDF)
+    {
+      if (File::exists(normalized + "/analysis.tdf") || File::exists(normalized + "/analysis.tdf_bin"))
+      {
+        return FileTypes::BRUKER_TDF;
+      }
+      return FileTypes::UNKNOWN; // .d suffix but not a TDF directory
+    }
+#else
+    if (type == FileTypes::BRUKER_TDF)
+    {
+      return FileTypes::UNKNOWN; // .d format requires WITH_OPENTIMS
+    }
+#endif
+
     if (type == FileTypes::UNKNOWN)
     {
-      type = getTypeByContent(filename);
+      type = getTypeByContent(normalized);
     }
     return type;
   }
@@ -871,13 +902,31 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::MSP: 
+      case FileTypes::MSP:
       {
         MSPGenericFile().load(filename, exp);
       }
       break;
 
-      default: 
+#ifdef WITH_OPENTIMS
+      case FileTypes::BRUKER_TDF:
+      {
+        BrukerTimsFile f;
+        f.setLogType(log);
+        f.load(filename, exp);
+        // Apply MS level filtering (BrukerTimsFile loads all levels)
+        if (options_.hasMSLevels())
+        {
+          exp.getSpectra().erase(
+            std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+              [this](const MSSpectrum& s) { return !options_.containsMSLevel(s.getMSLevel()); }),
+            exp.getSpectra().end());
+        }
+      }
+      break;
+#endif
+
+      default:
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading experiments");
       }
@@ -898,8 +947,12 @@ namespace OpenMS
         src_file = exp.getSourceFiles()[0];
       }
 
-      src_file.setNameOfFile(File::basename(filename));
-      String path_to_file = File::path(File::absolutePath(filename)); // convert to absolute path and strip file name
+      // Normalize directory paths: strip trailing slashes for basename and URI
+      String normalized_name = filename;
+      while (normalized_name.hasSuffix("/") || normalized_name.hasSuffix("\\"))
+        normalized_name = normalized_name.prefix(normalized_name.size() - 1);
+      src_file.setNameOfFile(File::basename(normalized_name));
+      String path_to_file = File::path(File::absolutePath(normalized_name)); // convert to absolute path and strip file name
 
       // make sure we end up with at most 3 forward slashes
       String uri = path_to_file.hasPrefix("/") ? String("file://") + path_to_file : String("file:///") + path_to_file;
@@ -908,7 +961,7 @@ namespace OpenMS
       // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
       src_file.setFileType(FileTypes::typeToMZML(type));
 
-      if (compute_hash)
+      if (compute_hash && type != FileTypes::BRUKER_TDF)
       {
         src_file.setChecksum(computeFileHash(filename), SourceFile::ChecksumType::SHA1);
       }

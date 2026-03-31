@@ -1239,13 +1239,13 @@ namespace OpenMS::Internal
           annotation_map[pep.charge][lt] = std::vector<StringList> (3);
           if (is_ppxl)
           {
-            annotation_map[pep.charge][lt].push_back(StringList());  // alpha|beta
-            annotation_map[pep.charge][lt].push_back(StringList());  // ci|xi
+            annotation_map[pep.charge][lt].emplace_back();  // alpha|beta
+            annotation_map[pep.charge][lt].emplace_back();  // ci|xi
           }
         }
         annotation_map[pep.charge][lt][0].push_back(ionseries_index);
-        annotation_map[pep.charge][lt][1].push_back(String(pep.mz));
-        annotation_map[pep.charge][lt][2].push_back(String(pep.intensity));
+        annotation_map[pep.charge][lt][1].emplace_back(pep.mz);
+        annotation_map[pep.charge][lt][2].emplace_back(pep.intensity);
         if (is_ppxl)
         {
           String ab = ListUtils::contains<String>(extra ,String("alpha")) ? String("alpha"):String("beta");

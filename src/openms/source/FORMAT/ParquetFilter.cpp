@@ -65,7 +65,7 @@ namespace OpenMS
     str_values.reserve(values.size());
     for (const auto& v : values)
     {
-      str_values.emplace_back(String(v));
+      str_values.emplace_back(v);
     }
     return addCondition_(column, "IN", ColumnType::INT, str_values);
   }

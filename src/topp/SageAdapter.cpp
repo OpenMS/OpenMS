@@ -30,7 +30,6 @@
 #include <fstream>
 #include <regex>
 
-#include <QStringList>
 #include <chrono>
 #include <map>
 #include <vector>
@@ -410,16 +409,20 @@ protected:
       std::regex version_regex("Version ([0-9]+)\\.([0-9]+)\\.([0-9]+)");
 
       std::sregex_iterator it(multi_line_input.begin(), multi_line_input.end(), version_regex);
-      std::smatch match = *it;
-      std::cout << "Found Sage version string: " << match.str() << std::endl;      
-          
+      std::sregex_iterator end;
+      if (it == end)
+      {
+        throw std::runtime_error("Could not parse Sage version from output: " + multi_line_input.substr(0, 200));
+      }
+      std::cout << "Found Sage version string: " << it->str() << std::endl;
+
       return make_tuple(it->str(1), it->str(2), it->str(3)); // major, minor, patch
   }
 
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", { "mzML" } );
+    setValidFormats_("in", { "mzML", "d" } );
 
     registerOutputFile_("out", "<file>", "", "Single output file containing all search results.", true, false);
     setValidFormats_("out", { "idXML" } );
@@ -540,13 +543,22 @@ protected:
     String sage_executable = getStringOption_("sage_executable");
     std::cout << sage_executable << " sage executable" << std::endl; 
     String proc_stdout, proc_stderr;
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(sage_executable.toQString(), QStringList() << "--help", proc_stdout, proc_stderr, "");
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(sage_executable, {"--help"}, proc_stdout, proc_stderr, "");
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;
     }
 
-    auto major_minor_patch = getVersionNumber_(proc_stdout);
+    std::tuple<std::string, std::string, std::string> major_minor_patch;
+    try
+    {
+      major_minor_patch = getVersionNumber_(proc_stdout);
+    }
+    catch (const std::runtime_error& e)
+    {
+      OPENMS_LOG_ERROR << "Could not determine Sage version: " << e.what() << "\nSage output was:\n" << proc_stdout << std::endl;
+      return EXTERNAL_PROGRAM_NOTFOUND;
+    }
     String sage_version = std::get<0>(major_minor_patch) + "." + std::get<1>(major_minor_patch) + "." + std::get<2>(major_minor_patch);
     
     //-------------------------------------------------------------
@@ -582,44 +594,41 @@ protected:
 
     String annotation_check;    
 
-    QStringList arguments;
+    std::vector<String> arguments;
 
   if ( (getStringOption_("annotate_matches").compare("true")) == 0)
   {
-    arguments << config_file.toQString() 
-              << "-f" << fasta_file.toQString() 
-              << "-o" << output_folder.toQString() 
-              << "--annotate-matches"
-              << "--write-pin"; 
+    arguments.insert(arguments.end(), {config_file, "-f", fasta_file, "-o", output_folder, "--annotate-matches", "--write-pin"});
   }
   else
   {
-    arguments << config_file.toQString() 
-              << "-f" << fasta_file.toQString() 
-              << "-o" << output_folder.toQString() 
-              << "--write-pin"; 
+    arguments.insert(arguments.end(), {config_file, "-f", fasta_file, "-o", output_folder, "--write-pin"});
   }
 
-    if (batch >= 1) arguments << "--batch-size" << String(batch).toQString();
-    
-    for (auto s : input_files) arguments << s.toQString();
+    if (batch >= 1) { arguments.push_back("--batch-size"); arguments.push_back(String(batch)); }
 
-    OPENMS_LOG_INFO << "Sage command line: " << sage_executable << " " << arguments.join(' ').toStdString() << std::endl;
-    
-    //std::chrono lines for testing/writing purposes only! 
+    for (const auto& s : input_files) arguments.push_back(s);
+
+    {
+      String args_str;
+      for (const auto& a : arguments) { args_str += " " + a; }
+      OPENMS_LOG_INFO << "Sage command line: " << sage_executable << args_str << std::endl;
+    }
+
+    //std::chrono lines for testing/writing purposes only!
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    
+
     // Set RAYON_NUM_THREADS environment variable to control Sage's thread usage
     // Only set if threads > 0; if threads == 0, let Rayon auto-detect (use all CPUs)
-    std::map<QString, QString> sage_env;
+    std::map<String, String> sage_env;
     if (threads > 0)
     {
-      sage_env["RAYON_NUM_THREADS"] = String(threads).toQString();
+      sage_env["RAYON_NUM_THREADS"] = String(threads);
     }
-    
+
     // Sage execution with the executable and the arguments StringList
-    exit_code = runExternalProcess_(sage_executable.toQString(), arguments, "", sage_env);
+    exit_code = runExternalProcess_(sage_executable, arguments, "", sage_env);
     
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     #ifdef CHRONOSET
@@ -738,37 +747,45 @@ protected:
     // if "reindex" parameter is set to true: will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
-    map<String,unordered_map<int,String>> file2specnr2nativeid;
-    for (const auto& mzml : input_files)
-    {
-      // TODO stream mzml?
-      MzMLFile m;
-      MSExperiment exp;
-      auto opts = m.getOptions();
-      opts.setMSLevels({2,3});
-      opts.setFillData(false);
-      //opts.setMetadataOnly(true);
-      m.setOptions(opts);
-      m.load(mzml, exp);
-      String nIDType = "";
-      if (!exp.getSourceFiles().empty())
-      {
-        // TODO we could also guess the regex from the first nativeID if it is not stored here
-        //  but I refuse to link to Boost::regex just for this
-        //  Someone has to rework the API first!
-        nIDType = exp.getSourceFiles()[0].getNativeIDTypeAccession();
-      }
+    // Check if any input is a Bruker .d folder (not mzML) — skip mzML-specific post-processing
+    bool has_non_mzml_input = std::any_of(input_files.begin(), input_files.end(),
+      [](const String& f) { return !f.hasSuffix(".mzML"); });
 
-      for (const auto& spec : exp)
+    // Build native ID lookup from mzML files (not applicable for .d input)
+    map<String,unordered_map<int,String>> file2specnr2nativeid;
+    if (!has_non_mzml_input)
+    {
+      for (const auto& mzml : input_files)
       {
-        const String& nID = spec.getNativeID();
-        int nr = SpectrumLookup::extractScanNumber(nID, nIDType);
-        if (nr >= 0)
+        // TODO stream mzml?
+        MzMLFile m;
+        MSExperiment exp;
+        auto opts = m.getOptions();
+        opts.setMSLevels({2,3});
+        opts.setFillData(false);
+        //opts.setMetadataOnly(true);
+        m.setOptions(opts);
+        m.load(mzml, exp);
+        String nIDType = "";
+        if (!exp.getSourceFiles().empty())
         {
-          auto [it, inserted] = file2specnr2nativeid.emplace(File::basename(mzml), unordered_map<int,String>({{nr,nID}}));
-          if (!inserted)
+          // TODO we could also guess the regex from the first nativeID if it is not stored here
+          //  but I refuse to link to Boost::regex just for this
+          //  Someone has to rework the API first!
+          nIDType = exp.getSourceFiles()[0].getNativeIDTypeAccession();
+        }
+
+        for (const auto& spec : exp)
+        {
+          const String& nID = spec.getNativeID();
+          int nr = SpectrumLookup::extractScanNumber(nID, nIDType);
+          if (nr >= 0)
           {
-            it->second.emplace(nr,nID);
+            auto [it, inserted] = file2specnr2nativeid.emplace(File::basename(mzml), unordered_map<int,String>({{nr,nID}}));
+            if (!inserted)
+            {
+              it->second.emplace(nr,nID);
+            }
           }
         }
       }
@@ -805,63 +822,66 @@ protected:
       }
     }
 
-    // Annotate FAIMS compensation voltage if present in any input file
-    // Pre-group peptide indices by file for efficient lookup (avoids O(files * peptides))
-    std::map<Size, std::vector<Size>> file_to_peptide_indices;
-    for (Size i = 0; i < peptide_identifications.size(); ++i)
+    // Annotate FAIMS compensation voltage if present in any mzML input file
+    if (!has_non_mzml_input)
     {
-      const auto& pep = peptide_identifications[i];
-      if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+      // Pre-group peptide indices by file for efficient lookup (avoids O(files * peptides))
+      std::map<Size, std::vector<Size>> file_to_peptide_indices;
+      for (Size i = 0; i < peptide_identifications.size(); ++i)
       {
-        file_to_peptide_indices[pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)].push_back(i);
-      }
-    }
-
-    for (const auto& mzml : input_files)
-    {
-      // Find file index for this mzML
-      Size file_idx = 0;
-      for (const auto& [idx, fname] : idxToFile)
-      {
-        if (File::basename(fname) == File::basename(mzml))
+        const auto& pep = peptide_identifications[i];
+        if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
         {
-          file_idx = idx;
-          break;
+          file_to_peptide_indices[pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)].push_back(i);
         }
       }
 
-      // Skip if no peptides for this file
-      auto it = file_to_peptide_indices.find(file_idx);
-      if (it == file_to_peptide_indices.end() || it->second.empty())
+      for (const auto& mzml : input_files)
       {
-        continue;
-      }
-
-      // Load mzML metadata (no peak data needed)
-      MzMLFile m;
-      MSExperiment exp_full;
-      auto opts = m.getOptions();
-      opts.setFillData(false);
-      m.setOptions(opts);
-      m.load(mzml, exp_full);
-
-      // Collect peptide IDs for this file
-      PeptideIdentificationList file_peptides;
-      file_peptides.reserve(it->second.size());
-      for (Size idx : it->second)
-      {
-        file_peptides.push_back(peptide_identifications[idx]);
-      }
-
-      // Annotate FAIMS and copy back
-      SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(file_peptides, exp_full);
-      for (Size i = 0; i < file_peptides.size(); ++i)
-      {
-        if (file_peptides[i].metaValueExists(Constants::UserParam::FAIMS_CV))
+        // Find file index for this mzML
+        Size file_idx = 0;
+        for (const auto& [idx, fname] : idxToFile)
         {
-          peptide_identifications[it->second[i]].setMetaValue(
-            Constants::UserParam::FAIMS_CV,
-            file_peptides[i].getMetaValue(Constants::UserParam::FAIMS_CV));
+          if (File::basename(fname) == File::basename(mzml))
+          {
+            file_idx = idx;
+            break;
+          }
+        }
+
+        // Skip if no peptides for this file
+        auto it = file_to_peptide_indices.find(file_idx);
+        if (it == file_to_peptide_indices.end() || it->second.empty())
+        {
+          continue;
+        }
+
+        // Load mzML metadata (no peak data needed)
+        MzMLFile m;
+        MSExperiment exp_full;
+        auto opts = m.getOptions();
+        opts.setFillData(false);
+        m.setOptions(opts);
+        m.load(mzml, exp_full);
+
+        // Collect peptide IDs for this file
+        PeptideIdentificationList file_peptides;
+        file_peptides.reserve(it->second.size());
+        for (Size idx : it->second)
+        {
+          file_peptides.push_back(peptide_identifications[idx]);
+        }
+
+        // Annotate FAIMS and copy back
+        SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(file_peptides, exp_full);
+        for (Size i = 0; i < file_peptides.size(); ++i)
+        {
+          if (file_peptides[i].metaValueExists(Constants::UserParam::FAIMS_CV))
+          {
+            peptide_identifications[it->second[i]].setMetaValue(
+              Constants::UserParam::FAIMS_CV,
+              file_peptides[i].getMetaValue(Constants::UserParam::FAIMS_CV));
+          }
         }
       }
     }

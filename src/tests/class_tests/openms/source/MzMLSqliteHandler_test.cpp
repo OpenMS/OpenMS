@@ -16,7 +16,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <QFile>
+#include <filesystem>
 
 using namespace OpenMS;
 using namespace OpenMS::Internal;
@@ -317,8 +317,7 @@ START_SECTION(void readChromatograms(std::vector<MSChromatogram> & exp, const st
     NEW_TMP_FILE(tmp_filename);
 
     // delete file if present
-    QFile file (String(tmp_filename).toQString());
-    file.remove();
+    std::filesystem::remove(tmp_filename);
 
     auto chroms = exp_orig.getChromatograms();
     chroms.push_back(exp_orig.getChromatograms()[0]);
@@ -442,8 +441,7 @@ START_SECTION(void writeExperiment(const MSExperiment & exp))
   NEW_TMP_FILE(tmp_filename);
 
   // delete file if present
-  QFile file (String(tmp_filename).toQString());
-  file.remove();
+  std::filesystem::remove(tmp_filename);
 
   {
     MzMLSqliteHandler handler(tmp_filename, 12345);
@@ -515,8 +513,7 @@ START_SECTION(void writeSpectra(const std::vector<MSSpectrum>& spectra))
   NEW_TMP_FILE(tmp_filename);
 
   // delete file if present
-  QFile file (String(tmp_filename).toQString());
-  file.remove();
+  std::filesystem::remove(tmp_filename);
 
   {
     MzMLSqliteHandler handler(tmp_filename, 12345);
@@ -564,8 +561,7 @@ START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms)
   NEW_TMP_FILE(tmp_filename);
 
   // delete file if present
-  QFile file (String(tmp_filename).toQString());
-  file.remove();
+  std::filesystem::remove(tmp_filename);
 
   {
     MzMLSqliteHandler handler(tmp_filename, 12345);
@@ -603,7 +599,7 @@ START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms)
   // now test with numpress (accuracy is lower)
   TOLERANCE_RELATIVE(1+2e-4)
   // delete file if present
-  file.remove();
+  std::filesystem::remove(tmp_filename);
   {
     MzMLSqliteHandler handler(tmp_filename, 12345);
     handler.setConfig(true, true, 0.0001);

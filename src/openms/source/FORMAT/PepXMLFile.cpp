@@ -551,7 +551,7 @@ namespace OpenMS
       }
       for (const PeptideHit& hit : pep.getHits())
       {
-        PeptideHit h = hit;
+        const PeptideHit& h = hit;
         const AASequence& seq = h.getSequence();
         double precursor_neutral_mass = seq.getMonoWeight();
 
@@ -632,7 +632,7 @@ namespace OpenMS
         f << ">\n";
         f << "\t<search_result>" << "\n";
 
-        vector<PeptideEvidence> pes = h.getPeptideEvidences();
+        const vector<PeptideEvidence>& pes = h.getPeptideEvidences();
 
         // select first one if multiple are present as "leader"
         PeptideEvidence pe;

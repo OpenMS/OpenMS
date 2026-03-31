@@ -165,6 +165,18 @@ namespace OpenMS::Internal
         }
       }
 
+      // Now that binary data arrays have been decoded and materialized into
+      // each spectrum's float data arrays, we can reliably check containsIMData().
+      // Default any IM spectrum with UNKNOWN peak type to IM_PROFILE.
+      for (Size i = 0; i < spectrum_data_.size(); i++)
+      {
+        auto& spec = spectrum_data_[i].spectrum;
+        if (spec.containsIMData() && spec.getIMPeakType() == IMPeakType::UNKNOWN)
+        {
+          spec.setIMPeakType(IMPeakType::IM_PROFILE);
+        }
+      }
+
       // Append all spectra to experiment / consumer
       for (Size i = 0; i < spectrum_data_.size(); i++)
       {
@@ -1517,7 +1529,7 @@ namespace OpenMS::Internal
         }
         else if (accession == "MS:1003441") //ion mobility centroid frame
         {
-          spec_.setIMFormat(IMFormat::CENTROIDED);
+          spec_.setIMPeakType(IMPeakType::IM_CENTROIDED);
         }
         // spectrum attribute
         else if (accession == "MS:1000511") //ms level
@@ -5092,7 +5104,7 @@ namespace OpenMS::Internal
       }
 
       //ion mobility frame representation
-      if (spec.getIMFormat() == IMFormat::CENTROIDED)
+      if (spec.getIMPeakType() == IMPeakType::IM_CENTROIDED)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1003441\" name=\"ion mobility centroid frame\" />\n";
       }

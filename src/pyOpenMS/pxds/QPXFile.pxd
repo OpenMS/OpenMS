@@ -10,7 +10,7 @@ from MSExperimentArrowExport cimport *
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp cimport bool
 
-# OpenMS QPXFile declarations (only available when WITH_PARQUET is enabled)
+# OpenMS QPXFile declarations
 cdef extern from "<OpenMS/FORMAT/QPXFile.h>" namespace "OpenMS":
 
     cdef cppclass QPXFile:

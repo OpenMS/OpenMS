@@ -29,7 +29,7 @@
 #include <iomanip>
 #include <fstream>
 
-#include <QtCore/QFileInfo>
+#include <filesystem>
 
 namespace OpenMS::Internal::ClassTest
 {
@@ -364,8 +364,8 @@ namespace OpenMS::Internal::ClassTest
       std::string
       createTmpFileName(const std::string& file, int line, const std::string& extension)
       {
-        QFileInfo fi(file.c_str());
-        std::string filename = (String(fi.baseName())) + '_' + String(line) + ".tmp" + extension;
+        std::filesystem::path fp(file);
+        std::string filename = (String(fp.stem().string())) + '_' + String(line) + ".tmp" + extension;
         TEST::tmp_file_list.push_back(filename);
         TEST::initialNewline();
         stdcout << "    creating new temporary filename '"

@@ -14,7 +14,7 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QDir>
+#include <filesystem>
 
 ///////////////////////////
 
@@ -46,8 +46,7 @@ END_SECTION
 
 START_SECTION(FIAMSScheduler)
 {
-  QDir d;
-  String tmp_dir = d.currentPath().toStdString()  + "/"; // write output to current directory
+  String tmp_dir = std::filesystem::current_path().generic_string()  + "/"; // write output to current directory
   FIAMSScheduler fia_scheduler(
       String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input/params_test.csv")),
       String(OPENMS_GET_TEST_DATA_PATH("")),

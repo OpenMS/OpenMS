@@ -22,10 +22,8 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#ifdef WITH_PARQUET
 #include <arrow/api.h>
 #include <arrow/type.h>
-#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -181,8 +179,6 @@ START_TEST(ConsensusMapArrowExport, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-#ifdef WITH_PARQUET
-
 START_SECTION(exportToArrow - empty consensus map)
 {
   ConsensusMap cmap = createEmptyConsensusMap();
@@ -211,10 +207,9 @@ START_SECTION(exportToArrow - basic export)
   TEST_EQUAL(schema->GetFieldIndex("peptidoform") >= 0, true)
   TEST_EQUAL(schema->GetFieldIndex("observed_mz") >= 0, true)
   TEST_EQUAL(schema->GetFieldIndex("rt") >= 0, true)
-  TEST_EQUAL(schema->GetFieldIndex("precursor_charge") >= 0, true)
+  TEST_EQUAL(schema->GetFieldIndex("charge") >= 0, true)
   TEST_EQUAL(schema->GetFieldIndex("intensities") >= 0, true)
   TEST_EQUAL(schema->GetFieldIndex("pg_accessions") >= 0, true)
-  TEST_EQUAL(schema->GetFieldIndex("quality") >= 0, true)
 }
 END_SECTION
 
@@ -239,8 +234,8 @@ START_SECTION(exportToArrow - column types)
   auto mz_field = schema->GetFieldByName("observed_mz");
   TEST_EQUAL(mz_field->type()->id(), arrow::Type::FLOAT)
 
-  auto charge_field = schema->GetFieldByName("precursor_charge");
-  TEST_EQUAL(charge_field->type()->id(), arrow::Type::INT32)
+  auto charge_field = schema->GetFieldByName("charge");
+  TEST_EQUAL(charge_field->type()->id(), arrow::Type::INT16)
 
   // Check list columns
   auto intensities_field = schema->GetFieldByName("intensities");
@@ -373,16 +368,5 @@ START_SECTION(exportToParquet - no compression)
   TEST_EQUAL(File::exists(filename), true)
 }
 END_SECTION
-
-#else // WITH_PARQUET not defined
-
-START_SECTION(WITH_PARQUET disabled - skipping tests)
-{
-  // Tests are skipped when WITH_PARQUET is not enabled
-  TEST_EQUAL(true, true)
-}
-END_SECTION
-
-#endif // WITH_PARQUET
 
 END_TEST

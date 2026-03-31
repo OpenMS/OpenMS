@@ -58,6 +58,8 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyFivePlexQuantitationMethod.h>
 #include <OpenMS/ML/SVM/SimpleSVM.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
@@ -383,6 +385,8 @@ int main(int argc, char** argv)
   DOCME(TMTTenPlexQuantitationMethod);
   DOCME(TMTSixteenPlexQuantitationMethod);
   DOCME(TMTEighteenPlexQuantitationMethod);
+  DOCME(TMTThirtyTwoPlexQuantitationMethod);
+  DOCME(TMTThirtyFivePlexQuantitationMethod);
   DOCME(ItraqEightPlexQuantitationMethod);
   DOCME(ItraqFourPlexQuantitationMethod);
   DOCME(LabeledPairFinder);

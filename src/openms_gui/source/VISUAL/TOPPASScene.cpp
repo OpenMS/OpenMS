@@ -34,6 +34,7 @@
 
 #include <map>
 #include <OpenMS/VISUAL/TOPPASOutputFolderVertex.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 namespace OpenMS
 {
@@ -56,7 +57,7 @@ namespace OpenMS
     file_name_(),
     tmp_path_(tmp_path),
     gui_(gui),
-    out_dir_(File::getUserDirectory().toQString()),
+    out_dir_(toQString(File::getUserDirectory())),
     changed_(false),
     running_(false),
     error_occured_(false),
@@ -248,7 +249,7 @@ namespace OpenMS
           //ss << "test test";
           my_log << " ---------------------------------- " << std::endl; // this will cause a flush... removing this line might cause loss(!) of log content!
           my_log.flush(); // bug! this sometimes does not cause the content to be flushed to the stringstream; the cache seems to be inactive as well. also std::endl does not help
-          emit messageReady(String(ss.str()).toQString());
+          emit messageReady(toQString(String(ss.str())));
           //std::cerr << ss.str();
         }
         remove_edge = true;
@@ -640,7 +641,7 @@ namespace OpenMS
     save_param.setValue("info:version", VersionInfo::getVersion());
     save_param.setValue("info:num_vertices", vertices_.size());
     save_param.setValue("info:num_edges", edges_.size());
-    save_param.setValue("info:description", String("<![CDATA[") + String(this->description_text_) + String("]]>"));
+    save_param.setValue("info:description", String("<![CDATA[") + fromQString(this->description_text_) + String("]]>"));
 
     // lambda function to store common parameters of all vertices
     auto save_common_params =
@@ -662,7 +663,7 @@ namespace OpenMS
       if (auto* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv); iflv)
       {
         // store file names relative to toppas file
-        QDir save_dir(File::path(file).toQString());
+        QDir save_dir(toQString(File::path(file)));
         const QStringList& files_qt = iflv->getFileNames();
         std::vector<std::string> files;
         for (const QString &file_qt : files_qt)
@@ -850,10 +851,10 @@ namespace OpenMS
     }
     if (load_param.exists("info:description"))
     {
-      String text = String(load_param.getValue("info:description").toString()).toQString();
+      String text = String(load_param.getValue("info:description").toString());
       text.substitute("<![CDATA[", "");
       text.substitute("]]>", "");
-      description_text_ = text.trim().toQString();
+      description_text_ = toQString(text.trim());
     }
 
     String current_type, current_id;
@@ -880,10 +881,10 @@ namespace OpenMS
 
           for (StringList::const_iterator str_it = file_names.begin(); str_it != file_names.end(); ++str_it)
           {
-            QString f = str_it->toQString();
+            QString f = toQString(*str_it);
             if (QDir::isRelativePath(f)) // prepend path of toppas file to relative path of the input files
             {
-              f = File::path(file).toQString() + "/" + f;
+              f = toQString(File::path(file)) + "/" + f;
             }
             file_names_qt.push_back(QDir::cleanPath(f));
           }
@@ -896,7 +897,7 @@ namespace OpenMS
           // custom output folder
           if (vertices_param.exists(current_id + ":output_folder_name"))
           {
-            oflv->setOutputFolderName(String(vertices_param.getValue(current_id + ":output_folder_name").toString()).toQString());
+            oflv->setOutputFolderName(toQString(String(vertices_param.getValue(current_id + ":output_folder_name").toString())));
           }
           
           connectOutputVertexSignals(oflv); // todo
@@ -909,7 +910,7 @@ namespace OpenMS
           // custom output folder
           if (vertices_param.exists(current_id + ":output_folder_name"))
           {
-            ofv->setOutputFolderName(String(vertices_param.getValue(current_id + ":output_folder_name").toString()).toQString());
+            ofv->setOutputFolderName(toQString(String(vertices_param.getValue(current_id + ":output_folder_name").toString())));
           }
 
           connectOutputVertexSignals(ofv);
@@ -1061,7 +1062,7 @@ namespace OpenMS
               }
             }
             if (src_index == -1)
-              logTOPPOutput(String("Could not find output parameter called '" + source_out_param + "'. Check edge!").toQString());
+              logTOPPOutput(toQString(String("Could not find output parameter called '" + source_out_param + "'. Check edge!")));
           }
 
           tv_src = qobject_cast<TOPPASToolVertex*>(tv_2);
@@ -1078,7 +1079,7 @@ namespace OpenMS
               }
             }
             if (tgt_index == -1)
-              logTOPPOutput(String("Could not find input parameter called '" + target_in_param + "'. Check edge!").toQString());
+              logTOPPOutput(toQString(String("Could not find input parameter called '" + target_in_param + "'. Check edge!")));
           }
 
           edge->setSourceOutParam(src_index);
@@ -1088,7 +1089,7 @@ namespace OpenMS
     }
     if (pre_1_9_toppas) // just indices stored - no way we can check
     {
-      logTOPPOutput(String("Your TOPPAS file was build with an old version of TOPPAS and is susceptible to errors when used with new versions of OpenMS. Check every edge for correct input/output parameter names and store the workflow using the current version of TOPPAS (e.g using the \"Save as ...\" functionality) to make the workflow more robust to changes in future versions of TOPP tools!").toQString());
+      logTOPPOutput(toQString(String("Your TOPPAS file was build with an old version of TOPPAS and is susceptible to errors when used with new versions of OpenMS. Check every edge for correct input/output parameter names and store the workflow using the current version of TOPPAS (e.g using the \"Save as ...\" functionality) to make the workflow more robust to changes in future versions of TOPP tools!")));
     }
 
 /*
@@ -1310,7 +1311,7 @@ namespace OpenMS
     QFile logfile(out_dir_ + QDir::separator() + "TOPPAS.log");
     if (!logfile.open(QIODevice::Append | QIODevice::Text))
     {
-      std::cerr << "Could not write to logfile '" << String(logfile.fileName()) << "'" << std::endl;
+      std::cerr << "Could not write to logfile '" << fromQString(logfile.fileName()) << "'" << std::endl;
       return;
     }
 
@@ -1326,7 +1327,7 @@ namespace OpenMS
     {
       //return;
     }
-    String text = String(out);
+    String text = fromQString(out);
 
     if (!gui_)
     {
@@ -1334,7 +1335,7 @@ namespace OpenMS
     }
     emit messageReady(out); // let TOPPAS know about it
 
-    writeToLogFile_(text.toQString());
+    writeToLogFile_(toQString(text));
   }
 
   void TOPPASScene::logToolStarted()
@@ -1355,7 +1356,7 @@ namespace OpenMS
         std::cout << '\n' << text << std::endl;
       }
 
-      writeToLogFile_(text.toQString());
+      writeToLogFile_(toQString(text));
     }
   }
 
@@ -1377,7 +1378,7 @@ namespace OpenMS
         std::cout << '\n' << text << std::endl;
       }
 
-      writeToLogFile_(text.toQString());
+      writeToLogFile_(toQString(text));
     }
   }
 
@@ -1399,7 +1400,7 @@ namespace OpenMS
         std::cout << '\n' << text << std::endl;
       }
 
-      writeToLogFile_(text.toQString());
+      writeToLogFile_(toQString(text));
     }
   }
 
@@ -1421,7 +1422,7 @@ namespace OpenMS
         std::cout << '\n' << text << std::endl;
       }
 
-      writeToLogFile_(text.toQString());
+      writeToLogFile_(toQString(text));
     }
   }
 
@@ -1434,7 +1435,7 @@ namespace OpenMS
       std::cout << std::endl << text << std::endl;
     }
 
-    writeToLogFile_(text.toQString());
+    writeToLogFile_(toQString(text));
   }
 
   void TOPPASScene::topoSort(bool resort_all)
@@ -1589,7 +1590,7 @@ namespace OpenMS
     // Save changes
     if (gui_ && changed_)
     {
-      QString name = file_name_.empty() ? "Untitled" : File::basename(file_name_).toQString();
+      QString name = file_name_.empty() ? "Untitled" : toQString(File::basename(file_name_));
       QMessageBox::StandardButton ret;
       ret = QMessageBox::warning(views().first(), "Save changes?", "'" + name + "' has been modified.\n\nDo you want to save your changes?", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
       if (ret == QMessageBox::Save)

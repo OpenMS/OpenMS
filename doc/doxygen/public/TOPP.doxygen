@@ -28,9 +28,8 @@
   - @subpage TOPP_IDFileConverter - Converts between different identification file formats.
   - @subpage TOPP_MSstatsConverter - Convert to MSstats input file format.
   - @subpage TOPP_MzTabExporter - Exports various XML formats to an mzTab file.
-/// @cond WITH_PARQUET
+  - @subpage TOPP_ParquetConverter - Converts between XML and Parquet formats for feature and consensus maps.
   - @subpage TOPP_QPXConverter - Converts IdXML files to parquet format following QPX PSM specification.
-/// @endcond
   - @subpage TOPP_TargetedFileConverter - Converts targeted files (such as tsv or TraML files).
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
   - @subpage TOPP_TriqlerConverter - Convert to Triqler input file format.
@@ -200,7 +199,6 @@
   - @subpage TOPP_ClusterMassTraces - Cluster mass traces occurring in the same map together.
   - @subpage TOPP_DeMeanderize - Orders the spectra of MALDI spotting plates correctly.
   - @subpage TOPP_ExecutePipeline - Executes workflows created by TOPPAS.
-  - @subpage TOPP_GenericWrapper - Allows the generic wrapping of external tools.
   - @subpage TOPP_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).
   - @subpage TOPP_INIUpdater - Updates INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have change
   - @subpage TOPP_MassCalculator - Calculates masses and mass-to-charge ratios of peptide sequences.

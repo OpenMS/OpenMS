@@ -15,6 +15,7 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -721,6 +722,85 @@ START_SECTION(([EXTRA] TMT 10plex support))
   ++cf_it;
   TEST_REAL_SIMILAR(cf_it->getIntensity(), 30866.5)
   ++cf_it;
+  ABORT_IF(cf_it != cm_it->end())
+}
+END_SECTION
+
+// 32plex channel extraction test with synthetic spectrum (identity correction matrix)
+// Build an MS2 spectrum from scratch with known intensities at each TMT32 channel m/z.
+// With the default all-NA correction matrix (identity), extracted intensities must
+// match the input exactly.
+
+START_SECTION(([EXTRA] TMT 32plex support)){
+  // TMT32 channel m/z positions
+  double channel_mz[32] = {
+    126.127726, 127.124761, 127.131081, 127.134003, 128.128116, 128.134436,
+    128.131038, 128.137358, 129.131471, 129.137790, 129.134393, 129.140713,
+    130.134825, 130.141145, 130.137748, 130.144068, 131.138180, 131.144500,
+    131.141103, 131.147423, 132.141535, 132.147855, 132.144458, 132.150778,
+    133.144890, 133.151210, 133.147813, 133.154133, 134.148245, 134.151171,
+    134.157491, 135.154526
+  };
+
+  // Known intensities for each channel
+  double intensities[32];
+  for (int i = 0; i < 32; ++i)
+  {
+    intensities[i] = 1000.0 * (i + 1);
+  }
+
+  // Build synthetic MS2 spectrum with peaks at channel positions
+  MSSpectrum ms2;
+  ms2.setMSLevel(2);
+  ms2.setRT(100.0);
+  ms2.setNativeID("scan=1");
+
+  Precursor precursor;
+  precursor.setMZ(500.0);
+  ms2.setPrecursors({precursor});
+
+  for (int i = 0; i < 32; ++i)
+  {
+    Peak1D peak;
+    peak.setMZ(channel_mz[i]);
+    peak.setIntensity(intensities[i]);
+    ms2.push_back(peak);
+  }
+  ms2.sortByPosition();
+
+  PeakMap tmt32plex_exp;
+  tmt32plex_exp.addSpectrum(ms2);
+  tmt32plex_exp.sortSpectra(true);
+
+  TMTThirtyTwoPlexQuantitationMethod tmt32plex;
+  IsobaricChannelExtractor ice(&tmt32plex);
+
+  Param p = ice.getParameters();
+  p.setValue("select_activation", "any");
+  p.setValue("reporter_mass_shift", 0.003);
+  ice.setParameters(p);
+
+  // channel extraction
+  ConsensusMap cm_out;
+  ice.extractChannels(tmt32plex_exp, cm_out);
+
+  TEST_EQUAL(cm_out.size(), 1)
+  ABORT_IF(cm_out.size() != 1)
+
+  ConsensusMap::iterator cm_it = cm_out.begin();
+  ConsensusFeature::iterator cf_it;
+
+  TEST_EQUAL(cm_it->size(), 32)
+  ABORT_IF(cm_it->size() != 32)
+  TEST_EQUAL(cm_it->getMetaValue("scan_id"), "scan=1")
+
+  cf_it = cm_it->begin();
+
+  for (int i = 0; i < 32; ++i)
+  {
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), intensities[i])
+    ++cf_it;
+  }
   ABORT_IF(cf_it != cm_it->end())
 }
 END_SECTION

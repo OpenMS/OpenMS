@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -15,6 +16,10 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
+
+#ifdef WITH_OPENTIMS
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -26,7 +31,7 @@ using namespace std;
 /**
 @page TOPP_PeakPickerIM PeakPickerIM
 
-@brief A tool for peak detection in the ion mobility dimension for mzML files.
+@brief A tool for peak detection in the ion mobility dimension for mzML and Bruker .d files.
 
 <center>
 <table>
@@ -43,8 +48,9 @@ using namespace std;
 </center>
 
 This tool applies peak picking in the ion mobility dimension to raw LC-IMS-MS data.
-The input mzML file should contain ion mobility data in concatenated format
-(where each spectrum contains an ion mobility float data array).
+The input file can be an mzML file containing ion mobility data in concatenated format
+(where each spectrum contains an ion mobility float data array) or a Bruker TimsTOF .d
+directory (requires OpenMS built with WITH_OPENTIMS).
 
 Three peak picking methods are available:
 - @b mobilogram: Picks peaks along the ion mobility dimension using a peak picker.
@@ -67,14 +73,18 @@ class TOPPPeakPickerIM : public TOPPBase
 {
 public:
   TOPPPeakPickerIM() :
-      TOPPBase("PeakPickerIM", "Applies PeakPickerIM to an mzML file", false)
+      TOPPBase("PeakPickerIM", "Applies PeakPickerIM to an mzML or Bruker .d file", false)
   {}
 
 protected:
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<file>", "", "Input mzML file");
-    setValidFormats_("in", { "mzML" });
+    registerInputFile_("in", "<file>", "", "Input file (mzML or Bruker .d)");
+    setValidFormats_("in", { "mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+    });
 
     registerOutputFile_("out", "<file>", "", "Output mzML file");
     setValidFormats_("out", { "mzML" });
@@ -90,6 +100,27 @@ protected:
 
     addEmptyLine_();
     registerSubsection_("algorithm", "Algorithm parameters for PeakPickerIM (organized into pickIMTraces, pickIMCluster, pickIMElutionProfiles).");
+
+#ifdef WITH_OPENTIMS
+    registerTOPPSubsection_("bruker", "Options for reading Bruker TimsTOF .d files (requires WITH_OPENTIMS)");
+    registerStringOption_("bruker:export_mode", "<mode>", "frame", "Export mode: 'auto' detects DDA/DIA acquisition type, "
+      "'frame' returns raw 4D frames without signal processing.", false, true);
+    setValidStrings_("bruker:export_mode", {"auto", "frame"});
+    registerDoubleOption_("bruker:calibration_tolerance", "<float>", 0.0, "m/z recalibration tolerance (0 = library default)", false, true);
+    setMinFloat_("bruker:calibration_tolerance", 0.0);
+    registerStringOption_("bruker:calibrate", "<toggle>", "false", "Enable m/z recalibration (may fail on some datasets)", false, true);
+    setValidStrings_("bruker:calibrate", {"true", "false"});
+    registerDoubleOption_("bruker:ms1_centroid_mz_ppm", "<float>", 0.0,
+      "MS1 frame IM-centroiding m/z tolerance in ppm. Collapses the ion mobility dimension "
+      "by aggregating neighboring peaks directly on the raw gridded data (Sage algorithm, Lazear 2023). "
+      "Both this and ms1_centroid_im_pct must be > 0 to enable. Suggested value: 5.0. "
+      "When enabled, this replaces the PeakPickerIM algorithm for MS1 frames.", false, true);
+    setMinFloat_("bruker:ms1_centroid_mz_ppm", 0.0);
+    registerDoubleOption_("bruker:ms1_centroid_im_pct", "<float>", 0.0,
+      "MS1 frame IM-centroiding ion mobility tolerance in percent. Both this and ms1_centroid_mz_ppm "
+      "must be > 0 to enable. Suggested value: 3.0.", false, true);
+    setMinFloat_("bruker:ms1_centroid_im_pct", 0.0);
+#endif
   }
 
   Param getSubsectionDefaults_(const String& section) const override
@@ -106,6 +137,21 @@ protected:
     }
     return Param();
   }
+
+#ifdef WITH_OPENTIMS
+  BrukerTimsFile::Config getBrukerConfig_()
+  {
+    BrukerTimsFile::Config c;
+    c.calibration_tolerance = getDoubleOption_("bruker:calibration_tolerance");
+    c.calibrate = (getStringOption_("bruker:calibrate") == "true");
+    String mode = getStringOption_("bruker:export_mode");
+    if (mode == "frame") c.export_mode = BrukerTimsFile::Config::FRAME;
+    else c.export_mode = BrukerTimsFile::Config::AUTO;
+    c.ms1_centroid_mz_ppm = static_cast<float>(getDoubleOption_("bruker:ms1_centroid_mz_ppm"));
+    c.ms1_centroid_im_pct = static_cast<float>(getDoubleOption_("bruker:ms1_centroid_im_pct"));
+    return c;
+  }
+#endif
 
   // -------------------- Low-memory consumer --------------------
   class Consumer : public MSDataWritingConsumer
@@ -137,7 +183,7 @@ protected:
     String method_;
   };
 
-  // -------------------- Format detection consumer (reads first spectrum only) --------------------
+  // -------------------- Format detection consumer (reads first MS1 spectrum only) --------------------
   class FormatDetector : public Interfaces::IMSDataConsumer
   {
   public:
@@ -148,8 +194,9 @@ protected:
 
     void consumeSpectrum(SpectrumType& s) override
     {
+      if (s.getMSLevel() != 1) return; // Only check MS1 spectra (consistent with in-memory path)
       detected_format = IMTypes::determineIMFormat(s);
-      throw FirstSpectrumRead(); // Abort after reading first spectrum
+      throw FirstSpectrumRead(); // Abort after first MS1 spectrum
     }
     void consumeChromatogram(ChromatogramType&) override {}
     void setExperimentalSettings(const ExperimentalSettings&) override {}
@@ -179,7 +226,7 @@ protected:
       try
       {
         mzml.transform(input_file, &detector);
-        // If we reach here, file has no spectra - format stays NONE
+        // If we reach here, file has no MS1 spectra - format stays NONE
       }
       catch (const FormatDetector::FirstSpectrumRead&)
       {
@@ -188,27 +235,10 @@ protected:
     }
 
     // Step 2: Validate format
-    if (im_format == IMFormat::CENTROIDED)
+    if (im_format == IMFormat::IM_SPECTRUM)
     {
-      OPENMS_LOG_ERROR << "Error: Input file contains ion mobility data that is already centroided. "
-                       << "PeakPickerIM expects raw (concatenated) IM data. "
-                       << "Re-picking already centroided data is not supported." << std::endl;
-      return ILLEGAL_PARAMETERS;
-    }
-    if (im_format == IMFormat::MULTIPLE_SPECTRA)
-    {
-      OPENMS_LOG_ERROR << "Error: Input file contains ion mobility data in MULTIPLE_SPECTRA format "
-                       << "(one spectrum per IM frame). PeakPickerIM expects raw (concatenated) IM data "
-                       << "where each spectrum contains an ion mobility float data array. "
-                       << "This format is not supported." << std::endl;
-      return ILLEGAL_PARAMETERS;
-    }
-    if (im_format == IMFormat::MIXED)
-    {
-      OPENMS_LOG_ERROR << "Error: Input file contains mixed ion mobility formats "
-                       << "(both CONCATENATED and MULTIPLE_SPECTRA). PeakPickerIM expects raw (concatenated) IM data "
-                       << "where each spectrum contains an ion mobility float data array. "
-                       << "Mixed formats are not supported." << std::endl;
+      OPENMS_LOG_ERROR << "Error: Input data has single drift time per spectrum (IM_SPECTRUM format). "
+                       << "PeakPickerIM requires per-peak IM arrays (IM_PEAK format)." << std::endl;
       return ILLEGAL_PARAMETERS;
     }
     if (im_format == IMFormat::NONE)
@@ -241,6 +271,82 @@ protected:
     PeakPickerIM picker;
     picker.setParameters(algo);
 
+    // Detect input file type
+    FileTypes::Type in_type = FileHandler::getType(input_file);
+
+#ifdef WITH_OPENTIMS
+    if (in_type == FileTypes::BRUKER_TDF)
+    {
+      if (process_opt == "lowmemory")
+      {
+        OPENMS_LOG_WARN << "Warning: 'lowmemory' processing is not yet supported for Bruker .d files. "
+                        << "Data will be loaded fully into memory." << std::endl;
+      }
+
+      auto bruker_config = getBrukerConfig_();
+      BrukerTimsFile tims_file;
+      tims_file.setLogType(log_type_);
+
+      PeakMap exp;
+      tims_file.load(input_file, exp, bruker_config);
+
+      // If built-in IM centroiding was enabled, BrukerTimsFile already produced
+      // IM_CENTROIDED spectra — skip PeakPickerIM and write directly.
+      bool builtin_centroiding = (bruker_config.ms1_centroid_mz_ppm > 0.0f
+                                  && bruker_config.ms1_centroid_im_pct > 0.0f);
+      if (builtin_centroiding)
+      {
+        OPENMS_LOG_INFO << "Built-in Bruker IM centroiding was applied during .d loading "
+                        << "(ms1_centroid_mz_ppm=" << bruker_config.ms1_centroid_mz_ppm
+                        << ", ms1_centroid_im_pct=" << bruker_config.ms1_centroid_im_pct
+                        << "). Skipping PeakPickerIM algorithm." << std::endl;
+        addDataProcessing_(exp, getProcessingInfo_(DataProcessing::PEAK_PICKING));
+        MzMLFile().store(output_file, exp);
+        return EXECUTION_OK;
+      }
+
+      // Check MS1 spectra for IM format
+      IMFormat im_format = IMTypes::determineIMFormat(exp, 1);
+      if (im_format == IMFormat::NONE)
+      {
+        OPENMS_LOG_WARN << "Warning: Input file does not contain ion mobility data. "
+                        << "No peak picking will be performed." << std::endl;
+        MzMLFile().store(output_file, exp);
+        return EXECUTION_OK;
+      }
+      if (im_format == IMFormat::IM_SPECTRUM)
+      {
+        OPENMS_LOG_ERROR << "Error: Input data has single drift time per spectrum (IM_SPECTRUM format). "
+                         << "PeakPickerIM requires per-peak IM arrays (IM_PEAK format). "
+                         << "Try using bruker:export_mode=frame." << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
+
+      std::exception_ptr first_error = nullptr;
+#pragma omp parallel for
+      for (SignedSize i = 0; i < static_cast<SignedSize>(exp.size()); ++i)
+      {
+        try
+        {
+          MSSpectrum& spectrum = exp[static_cast<Size>(i)];
+          if (method == "mobilogram")       picker.pickIMTraces(spectrum);
+          else if (method == "cluster")     picker.pickIMCluster(spectrum);
+          else if (method == "traces")      picker.pickIMElutionProfiles(spectrum);
+        }
+        catch (...)
+        {
+#pragma omp critical
+          { if (!first_error) first_error = std::current_exception(); }
+        }
+      }
+      if (first_error) std::rethrow_exception(first_error);
+
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::PEAK_PICKING));
+      MzMLFile().store(output_file, exp);
+      return EXECUTION_OK;
+    }
+#endif
+
     if (process_opt == "lowmemory")
     {
       return doLowMemAlgorithm(method, picker, input_file, output_file);
@@ -251,15 +357,8 @@ protected:
       MzMLFile mzml;
       mzml.load(input_file, exp);
 
-      // Check if input contains centroided IM data (error) or no IM data (warning)
-      IMFormat im_format = IMTypes::determineIMFormat(exp);
-      if (im_format == IMFormat::CENTROIDED)
-      {
-        OPENMS_LOG_ERROR << "Error: Input file contains ion mobility data that is already centroided. "
-                         << "PeakPickerIM expects raw (concatenated) IM data. "
-                         << "Re-picking already centroided data is not supported." << std::endl;
-        return ILLEGAL_PARAMETERS;
-      }
+      // Check MS1 spectra for IM format (PeakPickerIM works on per-peak IM data in MS1 frames)
+      IMFormat im_format = IMTypes::determineIMFormat(exp, 1);
       if (im_format == IMFormat::NONE)
       {
         OPENMS_LOG_WARN << "Warning: Input file does not contain ion mobility data. "
@@ -267,25 +366,31 @@ protected:
         mzml.store(output_file, exp);
         return EXECUTION_OK;
       }
+      if (im_format == IMFormat::IM_SPECTRUM)
+      {
+        OPENMS_LOG_ERROR << "Error: Input data has single drift time per spectrum (IM_SPECTRUM format). "
+                         << "PeakPickerIM requires per-peak IM arrays (IM_PEAK format)." << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
 
+      std::exception_ptr first_error = nullptr;
 #pragma omp parallel for
       for (SignedSize i = 0; i < static_cast<SignedSize>(exp.size()); ++i)
       {
-        MSSpectrum& spectrum = exp[static_cast<Size>(i)];
-
-        if (method == "mobilogram")
+        try
         {
-          picker.pickIMTraces(spectrum);
+          MSSpectrum& spectrum = exp[static_cast<Size>(i)];
+          if (method == "mobilogram")       picker.pickIMTraces(spectrum);
+          else if (method == "cluster")     picker.pickIMCluster(spectrum);
+          else if (method == "traces")      picker.pickIMElutionProfiles(spectrum);
         }
-        else if (method == "cluster")
+        catch (...)
         {
-          picker.pickIMCluster(spectrum);
-        }
-        else if (method == "traces")
-        {
-          picker.pickIMElutionProfiles(spectrum);
+#pragma omp critical
+          { if (!first_error) first_error = std::current_exception(); }
         }
       }
+      if (first_error) std::rethrow_exception(first_error);
 
       // Annotate processing info (same as low-memory path)
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::PEAK_PICKING));

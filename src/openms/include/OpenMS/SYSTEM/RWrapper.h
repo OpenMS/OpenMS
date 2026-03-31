@@ -9,15 +9,12 @@
 #pragma once
 
 #include <OpenMS/config.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <QtCore/QString>
-
-#include <QtCore/qcontainerfwd.h> // for QStringList
+#include <vector>
 
 namespace OpenMS
 {
-
-  class String;
 
   /**
       @brief R-Wrapper Class.
@@ -31,10 +28,10 @@ namespace OpenMS
   {
 public:
 
- 
+
     /**
       @brief Look for an R script in the share/OpenMS/SCRIPT folder
-      
+
       The script filename can be an absolute filename (in which case the filename is returned unchanged),
       or a relative filename or just a filename. In the latter cases, the script will be searched
       in the OpenMS 'SCRIPTS' path (share/OpenMS/SCRIPTS) and the full filename will be returned.
@@ -55,7 +52,7 @@ public:
       @param[in] verbose Print failure information?
       @return Success status
     */
-    static bool findR(const QString& executable = QString("Rscript"), bool verbose = true);
+    static bool findR(const String& executable = "Rscript", bool verbose = true);
 
 
     /**
@@ -65,7 +62,7 @@ public:
          1) [optional] 'Rscript' executable is searched (see findR() -- set @p find_R to true)
          2) The script_file is searched in 'OpenMS/share/SCRIPTS' (see findScript()).
          3) The script is run as $ Rscript &lt;path/to/script&gt; &lt;arg1&gt; &lt;arg2&gt; ...
-      
+
       If any of the above steps fail, an error message is printed and false is returned.
 
       The 'cmd_args' are passed via commandline and should be read by the R script using R' commandArgs() function.
@@ -78,7 +75,7 @@ public:
       @param[in] verbose Print status information; also passed internally to findR() and findScript().
       @return Success status
     */
-    static bool runScript(const String& script_file, const QStringList& cmd_args, const QString& executable = QString("Rscript"), bool find_R = false, bool verbose = true);
+    static bool runScript(const String& script_file, const std::vector<String>& cmd_args, const String& executable = "Rscript", bool find_R = false, bool verbose = true);
 
   };
 

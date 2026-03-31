@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
@@ -210,6 +211,21 @@ protected:
     //-------------------------------------------------------------
     PeakMap ms_exp_raw;
     FileHandler().loadExperiment(in, ms_exp_raw, {FileTypes::MZML}, log_type_);
+
+    // Warn about per-peak ion mobility data (PeakPickerHiRes picks m/z only)
+    for (const auto& spec : ms_exp_raw)
+    {
+      IMFormat im_format = IMTypes::determineIMFormat(spec);
+      if (im_format == IMFormat::IM_PEAK)
+      {
+        OPENMS_LOG_WARN << "Warning: Input contains per-peak ion mobility data (IM_PEAK, "
+                        << imPeakTypeToString(spec.getIMPeakType())
+                        << "). PeakPickerHiRes picks in m/z only and reports intensity-weighted "
+                        << "mean ion mobility. This produces incorrect results on unbinned data. "
+                        << "Consider IonMobilityBinning or PeakPickerIM first." << std::endl;
+        break; // warn once
+      }
+    }
 
     if (ms_exp_raw.empty() && ms_exp_raw.getChromatograms().empty())
     {

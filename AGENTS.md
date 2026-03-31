@@ -68,9 +68,12 @@ OpenMS/
 - Style checks: `ENABLE_STYLE_TESTING=ON` runs cpplint at `src/tests/coding/cpplint.py`.
 
 **Required dependencies:**
-- XercesC, Boost (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR or GLPK, ZLIB, BZip2, libcurl, Qt6 (6.1.0+)
+- XercesC, Boost 1.78+ (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR or GLPK, ZLIB, BZip2, libcurl
+- Qt6 (6.1.0+) — required for TOPP tools and GUI (`openms_gui`); optional for core library (`libOpenMS`) and pyOpenMS builds
 
-**Optional:** HDF5 (`-DWITH_HDF5=ON`), Apache Arrow/Parquet (`-DWITH_PARQUET=ON`)
+**Optional:** HDF5 (`-DWITH_HDF5=ON`)
+
+**Always enabled:** Apache Arrow/Parquet (required dependency since 3.6)
 
 ## Platform-Specific Build Gotchas
 
