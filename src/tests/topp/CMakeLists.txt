@@ -2018,15 +2018,13 @@ set_tests_properties("TOPP_ProteinInference_3_out1" PROPERTIES DEPENDS "TOPP_Pro
 
 #------------------------------------------------------------------------------
 # Resampler tests
-if(WITH_GUI)
-  add_test("TOPP_Resampler_1" ${TOPP_BIN_PATH}/Resampler -test -in ${DATA_DIR_TOPP}/Resampler_1_input.mzML -out ${TESTS_TEMP_DIR}/Resampler.mzML -sampling_rate 0.3)
-  add_test("TOPP_Resampler_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 ${TESTS_TEMP_DIR}/Resampler.mzML -in2 ${DATA_DIR_TOPP}/Resampler_1_output.mzML )
-  set_tests_properties("TOPP_Resampler_1_out1" PROPERTIES DEPENDS "TOPP_Resampler_1")
+add_test("TOPP_Resampler_1" ${TOPP_BIN_PATH}/Resampler -test -in ${DATA_DIR_TOPP}/Resampler_1_input.mzML -out ${TESTS_TEMP_DIR}/Resampler.mzML -sampling_rate 0.3)
+add_test("TOPP_Resampler_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 ${TESTS_TEMP_DIR}/Resampler.mzML -in2 ${DATA_DIR_TOPP}/Resampler_1_output.mzML )
+set_tests_properties("TOPP_Resampler_1_out1" PROPERTIES DEPENDS "TOPP_Resampler_1")
 
-  add_test("TOPP_Resampler_2" ${TOPP_BIN_PATH}/Resampler -test -in ${DATA_DIR_TOPP}/Resampler_1_input.mzML -out ${TESTS_TEMP_DIR}/Resampler2_ppm.mzML -ppm -sampling_rate 2000 -min_int_cutoff 3900)
-  add_test("TOPP_Resampler_2_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 ${TESTS_TEMP_DIR}/Resampler2_ppm.mzML -in2 ${DATA_DIR_TOPP}/Resampler_2_output.mzML )
-  set_tests_properties("TOPP_Resampler_2_out1" PROPERTIES DEPENDS "TOPP_Resampler_2")
-endif()
+add_test("TOPP_Resampler_2" ${TOPP_BIN_PATH}/Resampler -test -in ${DATA_DIR_TOPP}/Resampler_1_input.mzML -out ${TESTS_TEMP_DIR}/Resampler2_ppm.mzML -ppm -sampling_rate 2000 -min_int_cutoff 3900)
+add_test("TOPP_Resampler_2_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 ${TESTS_TEMP_DIR}/Resampler2_ppm.mzML -in2 ${DATA_DIR_TOPP}/Resampler_2_output.mzML )
+set_tests_properties("TOPP_Resampler_2_out1" PROPERTIES DEPENDS "TOPP_Resampler_2")
 
 #------------------------------------------------------------------------------
 # OpenNuXL
