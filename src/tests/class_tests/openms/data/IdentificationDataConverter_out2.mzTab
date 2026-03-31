@@ -7,6 +7,6 @@ NUH	accession	description	taxid	species	database	database_version	search_engine	
 NUC	test	null	null	null	null	null	null	null	null	0.0	AUCGAUCG
 
 OLH	sequence	accession	unique	search_engine	modifications	retention_time	retention_time_window	pre	post	start	end
-OLI	AUCG	test	1	null	null	null	null	null	null	1	4
-OLI	AUCG	test	1	null	null	null	null	null	null	5	8
+OLI	AUCG	test	0	null	null	null	null	null	null	1	4
+OLI	AUCG	test	0	null	null	null	null	null	null	5	8
 

@@ -165,6 +165,17 @@ namespace OpenMS
       output.push_back(row);
     }
 
+    template <typename ParentMatches>
+    static Size countParentMatches_(const ParentMatches& parent_matches)
+    {
+      Size total = 0;
+      for (const auto& match_pair : parent_matches)
+      {
+        total += match_pair.second.size();
+      }
+      return total;
+    }
+
     /// Export an identified sequence (peptide or oligonucleotide, but not small molecule/compound) to mzTab
     template <typename MzTabSectionRow, typename IdentSeq>
     static void exportPeptideOrOligoToMzTab_(
@@ -184,8 +195,8 @@ namespace OpenMS
       }
       else // generate entries (with duplicated data) for every accession
       {
-        // in mzTab, "unique" means "peptide is unique for this protein"
-        row.unique.set(identified.parent_matches.size() == 1);
+        // in mzTab, "unique" means "peptide/oligonucleotide has exactly one parent mapping"
+        row.unique.set(countParentMatches_(identified.parent_matches) == 1);
         for (const auto& match_pair : identified.parent_matches)
         {
           row.accession.set(match_pair.first->accession);

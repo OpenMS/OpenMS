@@ -33,13 +33,19 @@ namespace OpenMS
       Int chrom_end{0};
       String mod;
       Int chebi_id{0};
-      Int score{0};
+      double score{0.0};
       Int coverage{1};
+      String unique_mapping{"0"};
+      String frag_start;
+      String frag_end;
 
       bool operator<(const BedRow& rhs) const
       {
-        return std::tie(chrom, chrom_start, chrom_end, mod, score, coverage) <
-               std::tie(rhs.chrom, rhs.chrom_start, rhs.chrom_end, rhs.mod, rhs.score, rhs.coverage);
+        return std::tie(chrom, chrom_start, chrom_end, mod, score, coverage,
+                        unique_mapping, frag_start, frag_end) <
+               std::tie(rhs.chrom, rhs.chrom_start, rhs.chrom_end, rhs.mod,
+                        rhs.score, rhs.coverage, rhs.unique_mapping,
+                        rhs.frag_start, rhs.frag_end);
       }
     };
 
@@ -155,9 +161,9 @@ namespace OpenMS
       return mapping;
     }
 
-    Int getRoundedScore_(const IdentificationData::ObservationMatch& match,
-                         const IdentificationData::ScoreTypeRef& score_ref,
-                         const IdentificationData::ScoreTypes& all_score_types)
+    double getScore_(const IdentificationData::ObservationMatch& match,
+                     const IdentificationData::ScoreTypeRef& score_ref,
+                     const IdentificationData::ScoreTypes& all_score_types)
     {
       double score = 0.0;
       bool found = false;
@@ -172,9 +178,9 @@ namespace OpenMS
       }
       if (!found || !std::isfinite(score))
       {
-        return 0;
+        return 0.0;
       }
-      return Int(std::lround(score));
+      return score;
     }
 
     Int getCoverage_(const IdentificationData::ObservationRef& observation_ref)
@@ -199,6 +205,41 @@ namespace OpenMS
       }
       Int cov = Int(std::lround(intensity));
       return std::max<Int>(1, cov);
+    }
+
+    template <typename ParentMatches>
+    Size countParentMatches_(const ParentMatches& parent_matches)
+    {
+      Size total = 0;
+      for (const auto& match_pair : parent_matches)
+      {
+        total += match_pair.second.size();
+      }
+      return total;
+    }
+
+    template <typename ParentMatchRange>
+    String joinFragmentPositions_(const ParentMatchRange& matches,
+                                  const bool use_start)
+    {
+      String result;
+      bool first = true;
+      for (const auto& match : matches)
+      {
+        if (!match.hasValidPositions())
+        {
+          continue;
+        }
+
+        const Size pos = use_start ? match.start_pos : match.end_pos;
+        if (!first)
+        {
+          result += ",";
+        }
+        result += String(pos + 1);
+        first = false;
+      }
+      return result;
     }
   }
 
@@ -228,12 +269,16 @@ namespace OpenMS
         continue;
       }
 
-      const Int score = getRoundedScore_(match, hyperscore_ref, score_types);
+      const double score = getScore_(match, hyperscore_ref, score_types);
       const Int coverage = getCoverage_(match.observation_ref);
+      const bool unique_mapping = (countParentMatches_(oligo.parent_matches) == 1);
 
       for (const auto& parent_pair : oligo.parent_matches)
       {
         const String& chrom = parent_pair.first->accession;
+        const String all_frag_starts = joinFragmentPositions_(parent_pair.second, true);
+        const String all_frag_ends = joinFragmentPositions_(parent_pair.second, false);
+
         for (const auto& parent_match : parent_pair.second)
         {
           if (!parent_match.hasValidPositions())
@@ -255,6 +300,9 @@ namespace OpenMS
             row.mod = ribo->getCode();
             row.score = score;
             row.coverage = coverage;
+            row.unique_mapping = unique_mapping ? "1" : "0";
+            row.frag_start = unique_mapping ? all_frag_starts : String(parent_match.start_pos + 1);
+            row.frag_end = unique_mapping ? all_frag_ends : String(parent_match.end_pos + 1);
 
             auto pos = chebi_mapping.find(row.mod);
             if (pos != chebi_mapping.end())
@@ -326,7 +374,7 @@ namespace OpenMS
     out << "#bioinformatics_workflow=NA\n";
     out << "#experiment=NA\n";
     out << "#external_source=NA\n";
-    out << "#chrom chromStart chromEnd name score strand thickStart thickEnd itemRgb coverage frequency\n";
+    out << "#chrom chromStart chromEnd name score strand thickStart thickEnd itemRgb coverage frequency unique_mapping frag_start frag_end\n";
 
     for (const auto& row : rows)
     {
@@ -340,7 +388,10 @@ namespace OpenMS
           << row.chrom_end << '\t'
           << "0,0,0" << '\t'
           << row.coverage << '\t'
-          << 100 << '\n';
+          << 100 << '\t'
+          << row.unique_mapping << '\t'
+          << row.frag_start << '\t'
+          << row.frag_end << '\n';
     }
   }
 }
