@@ -754,12 +754,12 @@ namespace OpenMS
       String sfile = fromQString(file);
       if (File::isDirectory(sfile)) continue; // skip output directories
 
-      String new_prefix = FileHandler::stripExtension(file);
-      FileTypes::Type ft_by_content = FileHandler::getTypeByContent(file);
+      String new_prefix = FileHandler::stripExtension(sfile);
+      FileTypes::Type ft_by_content = FileHandler::getTypeByContent(sfile);
       // if content-based detection fails, fall back to the extension already in the filename
-      if (ft_by_content == FileTypes::UNKNOWN) ft_by_content = FileHandler::getTypeByFileName(file);
+      if (ft_by_content == FileTypes::UNKNOWN) ft_by_content = FileHandler::getTypeByFileName(sfile);
       String new_suffix = FileTypes::typeToName(ft_by_content); // this might replace bla.fasta with bla.FASTA ... which is the same file on Windows
-      if (file.endsWith(new_suffix.toQString(), Qt::CaseInsensitive)) // --> use the native suffix (to avoid deleting the source file when renaming)
+      if (file.endsWith(toQString(new_suffix), Qt::CaseInsensitive)) // --> use the native suffix (to avoid deleting the source file when renaming)
       {
         new_suffix = sfile.suffix(new_suffix.size());
       }
