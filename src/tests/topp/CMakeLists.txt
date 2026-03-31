@@ -2990,6 +2990,41 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
       -FDR:PSM 0.01
       -protein false)
     set_tests_properties("TOPP_FalseDiscoveryRate_SageDDA" PROPERTIES DEPENDS "TOPP_SageAdapter_DDA")
+
+    # Compute PEP from Sage hyperscores (ProteomicsLFQ requires PEP as main score)
+    add_test("TOPP_IDPosteriorErrorProbability_SageDDA" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test
+      -in ${TESTS_TEMP_DIR}/SageAdapter_DDA_out.tmp.idXML
+      -out ${TESTS_TEMP_DIR}/SageAdapter_DDA_pep.tmp.idXML)
+    set_tests_properties("TOPP_IDPosteriorErrorProbability_SageDDA" PROPERTIES DEPENDS "TOPP_SageAdapter_DDA")
+
+    # ProteomicsLFQ with Bruker .d input (DDA-PASEF, targeted only — fast smoke test)
+    add_test("TOPP_ProteomicsLFQ_DDA_PASEF" ${TOPP_BIN_PATH}/ProteomicsLFQ -test
+      -in ${OPENTIMS_DDA_SYMLINK}
+      -ids ${TESTS_TEMP_DIR}/SageAdapter_DDA_pep.tmp.idXML
+      -fasta ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
+      -targeted_only true
+      -mass_recalibration false
+      -out ${TESTS_TEMP_DIR}/ProteomicsLFQ_DDA_PASEF.tmp.mzTab
+      -out_cxml ${TESTS_TEMP_DIR}/ProteomicsLFQ_DDA_PASEF.tmp.consensusXML
+      -proteinFDR 1.0
+      -threads 1)
+    set_tests_properties("TOPP_ProteomicsLFQ_DDA_PASEF" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_SageDDA")
+
+    # ProteomicsLFQ with Bruker .d input + Biosaur2 seeding (uses tuned defaults: mini=500, minlh=3)
+    add_test("TOPP_ProteomicsLFQ_DDA_PASEF_biosaur2" ${TOPP_BIN_PATH}/ProteomicsLFQ -test
+      -in ${OPENTIMS_DDA_SYMLINK}
+      -ids ${TESTS_TEMP_DIR}/SageAdapter_DDA_pep.tmp.idXML
+      -fasta ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
+      -targeted_only false
+      -mass_recalibration false
+      -Seeding:algorithm biosaur2
+      -out ${TESTS_TEMP_DIR}/ProteomicsLFQ_DDA_PASEF_bio.tmp.mzTab
+      -out_cxml ${TESTS_TEMP_DIR}/ProteomicsLFQ_DDA_PASEF_bio.tmp.consensusXML
+      -proteinFDR 1.0
+      -threads 4)
+    set_tests_properties("TOPP_ProteomicsLFQ_DDA_PASEF_biosaur2" PROPERTIES
+      DEPENDS "TOPP_IDPosteriorErrorProbability_SageDDA"
+      TIMEOUT 300)
   endif()
 endif()
 
@@ -3417,6 +3452,28 @@ add_test("TOPP_ProteomicsLFQ_9_out_3" ${DIFF} -whitelist "software" "location" "
 set_tests_properties("TOPP_ProteomicsLFQ_9_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9")
 add_test("TOPP_ProteomicsLFQ_9_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.tsv )
 set_tests_properties("TOPP_ProteomicsLFQ_9_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9")
+
+# biosaur2 seeding algorithm smoke test (mzML input, verifies pipeline completes)
+add_test("TOPP_ProteomicsLFQ_biosaur2_seeds" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         -Alignment:align_algorithm:max_rt_shift 0
+         -Linking:min_nr_diffs_per_bin 10
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only false
+         -mass_recalibration false
+         -Seeding:algorithm biosaur2
+         -out_cxml ${TESTS_TEMP_DIR}/BSA_biosaur2_seeds.tmp.consensusXML
+         -out ${TESTS_TEMP_DIR}/BSA_biosaur2_seeds.tmp.mzTab
+         -threads 1
+         -proteinFDR 0.8
+         -test
+         )
 
 
 #------------------------------------------------------------------------------
