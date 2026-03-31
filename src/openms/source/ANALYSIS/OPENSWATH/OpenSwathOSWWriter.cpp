@@ -11,6 +11,7 @@
 #include <OpenMS/FORMAT/SqliteConnector.h>
 
 #include <sqlite3.h>
+#include <cmath>
 
 namespace OpenMS
 {
@@ -217,14 +218,18 @@ namespace OpenMS
 
   String OpenSwathOSWWriter::getScore(const Feature& feature, const std::string& score_name) const
   {
-    String score = "NULL";
-    if (!feature.getMetaValue(score_name).isEmpty())
-    {
-      score = feature.getMetaValue(score_name).toString();
-    }
-    if (score.toLower() == "nan") score = "NULL";
-    if (score.toLower() == "-nan") score = "NULL";
+    const DataValue& dv = feature.getMetaValue(score_name);
+    if (dv.isEmpty()) return "NULL";
 
+    if (dv.valueType() == DataValue::DOUBLE_VALUE)
+    {
+      double val = static_cast<double>(dv);
+      if (std::isnan(val)) return "NULL";
+      return String(val);
+    }
+
+    String score = dv.toString();
+    if (score == "nan" || score == "-nan" || score == "NaN" || score == "-NaN") return "NULL";
     return score;
   }
 
@@ -232,26 +237,26 @@ namespace OpenMS
   {
     std::vector<String> separated_scores;
 
-    if (!feature.getMetaValue(score_name).isEmpty())
+    const DataValue& dv = feature.getMetaValue(score_name);
+    if (!dv.isEmpty())
     {
-      if (feature.getMetaValue(score_name).valueType() == DataValue::STRING_LIST)
+      if (dv.valueType() == DataValue::STRING_LIST)
       {
-        separated_scores = feature.getMetaValue(score_name).toStringList();
+        separated_scores = dv.toStringList();
       }
-      else if (feature.getMetaValue(score_name).valueType() == DataValue::INT_LIST)
+      else if (dv.valueType() == DataValue::INT_LIST)
       {
-        std::vector<int> int_separated_scores = feature.getMetaValue(score_name).toIntList();
+        std::vector<int> int_separated_scores = dv.toIntList();
         std::transform(int_separated_scores.begin(), int_separated_scores.end(), std::back_inserter(separated_scores), [](const int& num) { return String(num); });
-
       }
-      else if (feature.getMetaValue(score_name).valueType() == DataValue::DOUBLE_LIST)
+      else if (dv.valueType() == DataValue::DOUBLE_LIST)
       {
-        std::vector<double> double_separated_scores = feature.getMetaValue(score_name).toDoubleList();
+        std::vector<double> double_separated_scores = dv.toDoubleList();
         std::transform(double_separated_scores.begin(), double_separated_scores.end(), std::back_inserter(separated_scores), [](const double& num) { return String(num); });
       }
       else
       {
-        separated_scores.push_back(feature.getMetaValue(score_name).toString());
+        separated_scores.push_back(dv.toString());
       }
     }
 
