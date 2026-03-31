@@ -327,6 +327,7 @@ Build System:
   - Fix Windows CI Release builds: removed erroneous /Od /Ob0 flag override that caused all Windows CI Release binaries to be unoptimized since 2021; builds now use CMake defaults (/O2 /Ob2) (#8961)
   - Arrow/Parquet made a required dependency; WITH_PARQUET CMake option removed (#8991)
   - Qt6::Core removed from libOpenMS PUBLIC CMake link dependencies; downstream CMake targets must now explicitly link Qt6::Core if needed (#8965)
+  - Minimum Boost version bumped to 1.78; fixes boost::filesystem link errors when boost::process uses BOOST_PROCESS_USE_STD_FS (#9042)
 
 
 ------------------------------------------------------------------------------------------
