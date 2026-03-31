@@ -9,9 +9,18 @@ build:
   tools:
     python: "3.13"
   jobs:
+    post_checkout:
+      # Reasons to cancel the documentation build (exit 183).
+      #
+      # Only build docs on the `develop` branch, or one of the release
+      # branches.
+      - |
+        if echo "$READTHEDOCS_GIT_IDENTIFIER" | grep -qvE "^(develop|release)\b"; then
+          exit 183;
+        fi
     post_install:
       - python docs/install_pyopenms.py
-    
+
 python:
   install:
     - requirements: docs/requirements.txt

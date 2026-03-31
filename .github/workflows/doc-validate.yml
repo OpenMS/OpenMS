@@ -1,0 +1,78 @@
+name: Documentation Validation
+
+on:
+  pull_request:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  build-sphinx:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: |
+          pip install -r doc/openms/requirements.txt
+          pip install -r doc/pyopenms/docs/requirements.txt
+          pip install blacken-docs
+          python doc/pyopenms/docs/install_pyopenms.py
+
+      - name: Run sphinx build
+        run: |
+          (cd doc/openms && make html)
+          (cd doc/pyopenms/docs && make html)
+
+      # Why are we using some rando's GitHub action?
+      - uses: usama2490/lintly-flake8-github-action@v1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          failIf: new
+          args: "--extend-ignore=E121,E123 --max-line-length=120 ."
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v46
+        with:
+          dir_names_max_depth: 0
+          files: |
+            doc/**/docs/source/*.rst
+            doc/**/docs/source/**/*.rst
+            !doc/**/docs/source/**/_templates
+
+      - name: Running blacken
+        run: |
+          blacken-docs -E -l 80 ${{ steps.changed-files.outputs.all_changed_files }} > blacken.log | true
+          cat blacken.log
+          if grep -q "parse error" "blacken.log"; then
+             exit 1
+          fi
+
+      - name: Run action-suggester (only works on lines that were changed in this PR)
+        uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: blacken-docs
+
+      - name: Display diff and fail if there was anything changed by blacken-docs
+        run: |
+          git diff --diff-algorithm histogram --exit-code -- doc/
+
+      # Not running because there are a *lot* of broken links.
+      #
+      # - name: Restore lychee (linkcheck) cache
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: .lycheecache
+      #     key: cache-lychee-${{ github.sha }}
+      #     restore-keys: cache-lychee-
+      #
+      # link check of html
+      # - name: Run lychee
+      #   uses: lycheeverse/lychee-action@v2.0.2
+      #   with:
+      #     fail: true
+      #     args: --cache --max-cache-age 1d --timeout 40 --retry-wait-time 3 .

@@ -4,13 +4,20 @@ version: 2
 sphinx:
   configuration: docs/conf.py
 
-# Explicitly set the version of Python and its requirements
-version: 2
-
 build:
   os: ubuntu-20.04
   tools:
     python: "3.11"
+  jobs:
+    post_checkout:
+      # Reasons to cancel the documentation build (exit 183).
+      #
+      # Only build docs on the `develop` branch, or one of the release
+      # branches.
+      - |
+        if echo "$READTHEDOCS_GIT_IDENTIFIER" | grep -qvE "^(develop|release)\b"; then
+          exit 183;
+        fi
 
 python:
   install:
