@@ -160,8 +160,8 @@ protected:
     registerOutputFile_("lfq_out", "<file>", "", "Output file: targets for label-free quantification using FeatureFinderMetaboIdent ('id' input)", false);
     setValidFormats_("lfq_out", vector<String>(1, "tsv"));
 
-    registerOutputFile_("bedrmod_out", "<file>", "", "Output file: bedRMod v2 (BED-style RNA modification track)", false);
-    setValidFormats_("bedrmod_out", {"bed"});
+    registerOutputFile_("bedrmod_out", "<file>", "", "Output file: bedRMod v2 RNA modification track", false);
+    setValidFormats_("bedrmod_out", {"bedrmod"});
 
     registerInputFile_("bedrmod_chebi_mapping", "<file>", "", "Optional CSV mapping file for bedRMod export ('mod'/'name' and 'chebi_id'/'chebi id' columns)", false, true);
     setValidFormats_("bedrmod_chebi_mapping", {"csv"});

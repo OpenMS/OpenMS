@@ -43,7 +43,7 @@ START_SECTION((static String typeToName(Type type)))
   TEST_EQUAL(FileTypes::typeToName(FileTypes::TXT), "txt");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::CSV), "csv");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::MZTAB), "mzTab");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::BEDRMOD), "bed");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::BEDRMOD), "bedrmod");
 
   // try them all, just to make sure they are all there
   for (int i = 0; i < (int)FileTypes::SIZE_OF_TYPE; ++i)
@@ -84,6 +84,7 @@ START_SECTION((static Type nameToType(const String& name)))
   TEST_EQUAL(FileTypes::OMSSAXML, FileTypes::nameToType("omssaXML"));
   TEST_EQUAL(FileTypes::PNG, FileTypes::nameToType("png"));
   TEST_EQUAL(FileTypes::XMASS, FileTypes::nameToType("fid"));
+  TEST_EQUAL(FileTypes::BEDRMOD, FileTypes::nameToType("bedrmod"));
   TEST_EQUAL(FileTypes::BEDRMOD, FileTypes::nameToType("bed"));
   TEST_EQUAL(FileTypes::TSV, FileTypes::nameToType("tsv"));
   TEST_EQUAL(FileTypes::PEPLIST, FileTypes::nameToType("peplist"));

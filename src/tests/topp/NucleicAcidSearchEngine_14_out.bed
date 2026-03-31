@@ -10,5 +10,5 @@
 #bioinformatics_workflow=NA
 #experiment=NA
 #external_source=NA
-#chrom chromStart chromEnd name score strand thickStart thickEnd itemRgb coverage frequency
-dme-let-7-5p-methyl	20	21	0	201	+	20	21	0,0,0	394060576	100
+#chrom chromStart chromEnd name score strand thickStart thickEnd itemRgb coverage frequency unique_mapping frag_start frag_end
+dme-let-7-5p-methyl	20	21	0	201.134726834601935	+	20	21	0,0,0	394060576	100	1	1	21
