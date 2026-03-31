@@ -671,6 +671,12 @@ namespace OpenMS
       return FileTypes::PSMS;
     }
 
+    // bedRMod file format
+    if (first_line.hasSubstring("fileformat=bedRMod"))
+    {
+      return FileTypes::BEDRMOD;
+    }
+
     // EDTA file
     // hard to tell... so we don't even try...
 

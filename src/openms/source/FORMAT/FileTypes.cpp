@@ -71,7 +71,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::XMASS, "fid", "XMass analysis file", {PROP::PROVIDES_EXPERIMENT, PROP::PROVIDES_SPECTRUM, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::TSV, "tsv", "tab-separated file", {PROP::PROVIDES_FEATURES, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::MZTAB, "mzTab", "mzTab file", {}), //TODO add filehandler support for MZTAB
-    TypeNameBinding(FileTypes::BEDRMOD, "bed", "bedRMod file", {}), //TODO add filehandler support for BEDRMOD
+    TypeNameBinding(FileTypes::BEDRMOD, "bedrmod", "bedRMod file", {}), //TODO add filehandler support for BEDRMOD
     TypeNameBinding(FileTypes::PEPLIST, "peplist", "SpecArray file", {PROP::PROVIDES_FEATURES, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::HARDKLOER, "hardkloer", "hardkloer file", {}),
     TypeNameBinding(FileTypes::KROENIK, "kroenik", "kroenik file", {PROP::PROVIDES_FEATURES, PROP::READABLE, PROP::WRITEABLE}),
@@ -227,6 +227,12 @@ namespace OpenMS
     if (name_upper == "PQT")
     {
       return FileTypes::PARQUET;
+    }
+
+    // Backwards-compatible alias for bedRMod
+    if (name_upper == "BED")
+    {
+      return FileTypes::BEDRMOD;
     }
 
     for (const auto& t_info : type_with_annotation__)
