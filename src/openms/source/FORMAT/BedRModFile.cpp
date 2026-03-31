@@ -253,6 +253,9 @@ namespace OpenMS
 
     std::vector<BedRow> rows;
     std::set<String> missing_mods;
+    std::map<std::pair<String, Int>, std::set<Size>> obs_per_position;
+    std::map<std::tuple<String, Int, String>, std::set<Size>> obs_per_mod_at_position;
+    Size obs_id = 0;
 
     for (const IdentificationData::ObservationMatch& match : id_data.getObservationMatches())
     {
@@ -285,6 +288,13 @@ namespace OpenMS
           {
             continue;
           }
+          const Size current_obs_id = obs_id++;
+
+          for (Size pos = parent_match.start_pos; pos <= parent_match.end_pos; ++pos)
+          {
+            obs_per_position[{chrom, Int(pos)}].insert(current_obs_id);
+          }
+
           for (Size i = 0; i < sequence.size(); ++i)
           {
             const auto* ribo = sequence[i];
@@ -303,6 +313,8 @@ namespace OpenMS
             row.unique_mapping = unique_mapping ? "1" : "0";
             row.frag_start = unique_mapping ? all_frag_starts : String(parent_match.start_pos + 1);
             row.frag_end = unique_mapping ? all_frag_ends : String(parent_match.end_pos + 1);
+
+            obs_per_mod_at_position[{row.chrom, row.chrom_start, row.mod}].insert(current_obs_id);
 
             auto pos = chebi_mapping.find(row.mod);
             if (pos != chebi_mapping.end())
@@ -378,6 +390,25 @@ namespace OpenMS
 
     for (const auto& row : rows)
     {
+      // Calculate frequency: count of this modification / total observations at this position
+      Int frequency = 0;
+      auto pos_key = std::make_pair(row.chrom, row.chrom_start);
+      Size total = 0;
+      if (auto pos_it = obs_per_position.find(pos_key); pos_it != obs_per_position.end())
+      {
+        total = pos_it->second.size();
+      }
+      if (total > 0)
+      {
+        auto mod_key = std::make_tuple(row.chrom, row.chrom_start, row.mod);
+        Size mod_count = 0;
+        if (auto mod_it = obs_per_mod_at_position.find(mod_key); mod_it != obs_per_mod_at_position.end())
+        {
+          mod_count = mod_it->second.size();
+        }
+        frequency = Int(std::round(100.0 * mod_count / total));
+      }
+
       out << row.chrom << '\t'
           << row.chrom_start << '\t'
           << row.chrom_end << '\t'
@@ -388,7 +419,7 @@ namespace OpenMS
           << row.chrom_end << '\t'
           << "0,0,0" << '\t'
           << row.coverage << '\t'
-          << 100 << '\t'
+          << frequency << '\t'
           << row.unique_mapping << '\t'
           << row.frag_start << '\t'
           << row.frag_end << '\n';
