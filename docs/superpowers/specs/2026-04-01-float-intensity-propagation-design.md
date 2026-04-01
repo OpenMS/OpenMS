@@ -56,6 +56,7 @@ TSV/OSW output.
 | `NonNegativeLeastSquaresSolver` | Fortran-derived NNLS solver requires `double*`; channel arrays are small (~10 elements), savings negligible |
 | `CrawdadWrapper::SetChromatogram()` | External optional dependency; convert at call site |
 | `OpenSwath_Scores` scalar fields (~42 doubles) | Computed score results, not intensity storage arrays; no memory benefit from changing scalars |
+| `DataValue::DOUBLE_LIST` | `MRMFeature.cpp` stores `OpenSwath_Ind_Scores` vectors as `DataValue` meta values typed `DOUBLE_LIST`. Convert `vector<float>` to `DoubleList` at the `MRMFeature` boundary. OSW writers read these via `Feature::getMetaValue()` as `DOUBLE_LIST` — no writer changes needed |
 
 ## PR Structure
 
@@ -66,7 +67,7 @@ Five PRs merged in sequence, ordered by risk tier.
 Template the scoring and stats helper functions in `openswathalgo` to accept both `float`
 and `double`. This is the foundation PR that unblocks PR 2.
 
-**Scoring.h / Scoring.cpp** -- 9 functions to template on scalar type `T`:
+**Scoring.h / Scoring.cpp** -- 11 functions to template on scalar type `T`:
 
 | Function | Notes |
 |----------|-------|
@@ -79,6 +80,8 @@ and `double`. This is the foundation PR that unblocks PR 2.
 | `NormalizedManhattanDist(vector<T>&, vector<T>&)` | Currently non-templated overload |
 | `RootMeanSquareDeviation(const vector<T>&, const vector<T>&)` | Currently non-templated overload |
 | `SpectralAngle(const vector<T>&, const vector<T>&)` | No Eigen dependency |
+| `computeAndAppendRank(const vector<T>&, vector<unsigned int>&)` | Used by MI scoring in MRMScoring and MRMTransitionGroupPicker |
+| `computeRankVector(const vector<T>&, vector<unsigned int>&)` | Called by computeAndAppendRank |
 
 Return type stays `XCorrArrayType` (`vector<pair<int, double>>`) -- correlation coefficients
 remain double precision.
@@ -106,11 +109,11 @@ returns `float`.
 
 | File | Change |
 |------|--------|
-| `PROCESSING/RESAMPLING/LinearResampler.h:106` | Remove `static_cast<double>(getIntensity())` |
+| `PROCESSING/RESAMPLING/LinearResampler.h:106-111` | Remove four `static_cast<double>(getIntensity())` calls in the resampling block |
 | `ANALYSIS/OPENSWATH/MRMScoring.cpp:556` | Remove `static_cast<double>(getIntensity())` |
 | `ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h:491` | `const double` -> `const auto` / `IntensityType` |
 | `QUANTITATION/IsotopeLabelingMDVs.cpp:204` | Remove `(double)(it->getIntensity())` C-style cast |
-| `FORMAT/QcMLFile.cpp:1274` | `double sum` -> `float` / `IntensityType` |
+| `FORMAT/QcMLFile.cpp:1275` | `double sum` -> `float` / `IntensityType` |
 | `PROCESSING/SMOOTHING/GaussFilter.cpp:62` | Remove `static_cast<double>` (prepares for PR 2) |
 
 **Testing**: All existing unit tests pass unchanged.
@@ -125,7 +128,7 @@ appropriate) in scoring, peak picking, and signal processing.
 | `ANALYSIS/OPENSWATH/MRMScoring.cpp:53-111` | `vector<vector<double>>` intensity matrices -> `vector<vector<float>>` |
 | `ANALYSIS/OPENSWATH/OpenSwathScores.h:190-231` | `OpenSwath_Ind_Scores`: ~31 `vector<double>` fields -> `vector<float>` |
 | `ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.cpp:457-458` | Per-transition score vectors -> `vector<float>` |
-| `ANALYSIS/OPENSWATH/OpenSwathScoring.cpp:454-487` | Intensity arrays feeding into MRMScoring -> `vector<float>` |
+| `ANALYSIS/OPENSWATH/OpenSwathScoring.cpp:109,364,519` | Intensity arrays feeding into MRMScoring -> `vector<float>` |
 | `ANALYSIS/OPENSWATH/PeakPickerChromatogram.cpp:216` | `vector<double> intensity` -> `vector<float>` |
 | `ANALYSIS/OPENSWATH/IonMobilityScoring.cpp:116-135` | `extractIntensities()` return/output -> `vector<float>` |
 | `ANALYSIS/OPENSWATH/DIAHelper.h:63` | `integrated_windows_intensity` parameter -> `vector<float>` (m/z and IM stay double) |
@@ -137,8 +140,13 @@ chromatogram and Crawdad is optional (`#ifdef WITH_CRAWDAD`).
 
 **Cascading changes**: Functions calling these (e.g., `MRMFeatureFinderScoring` calling
 `MRMScoring`, `OpenSwathScoring` populating `OpenSwath_Ind_Scores`) need signature alignment.
-The `OpenSwathOSWWriter` and `OpenSwathOSWParquetWriter` read `Ind_Scores` fields via
-`getSeparateScore()` -- these need to accept `vector<float>`.
+Header files with changed function signatures must also be updated (see file list below).
+
+**DataValue boundary**: `MRMFeature.cpp` stores `OpenSwath_Ind_Scores` vectors as `DataValue`
+meta values typed `DOUBLE_LIST`. Add explicit `vector<float>` -> `DoubleList` conversion in
+`MRMFeature.cpp` at the storage boundary. The OSW writers (`OpenSwathOSWWriter`,
+`OpenSwathOSWParquetWriter`) read these via `Feature::getMetaValue()` as `DOUBLE_LIST` and
+need no changes themselves.
 
 **Testing**: OpenSWATH tests, GaussFilter tests, PeakPicker tests. May need minor tolerance
 adjustments if reference values were computed at double precision.
@@ -195,15 +203,20 @@ float precision.
 - `src/openms/source/PROCESSING/SMOOTHING/GaussFilter.cpp`
 
 ### PR 2 (algorithm internals)
+- `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h`
 - `src/openms/source/ANALYSIS/OPENSWATH/MRMScoring.cpp`
 - `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h`
-- `src/openms/source/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.cpp`
+- `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h`
 - `src/openms/source/ANALYSIS/OPENSWATH/OpenSwathScoring.cpp`
+- `src/openms/source/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.cpp`
+- `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h`
 - `src/openms/source/ANALYSIS/OPENSWATH/PeakPickerChromatogram.cpp`
+- `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/IonMobilityScoring.h`
 - `src/openms/source/ANALYSIS/OPENSWATH/IonMobilityScoring.cpp`
 - `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h`
 - `src/openms/source/ANALYSIS/OPENSWATH/DIAHelper.cpp`
 - `src/openms/source/ANALYSIS/OPENSWATH/DIAPrescoring.cpp`
+- `src/openms/source/KERNEL/MRMFeature.cpp`
 - `src/openms/source/PROCESSING/SMOOTHING/GaussFilter.cpp`
 
 ### PR 3 (quantitation and metadata)
@@ -227,7 +240,7 @@ float precision.
 |------|------------|
 | Float accumulation precision loss in large chromatograms | Monitor test results; add pairwise summation as targeted fix if needed |
 | Test reference value mismatches | Expected for values computed at double precision; update tolerances where the float result is equally correct |
-| OpenSwath_Ind_Scores field type change breaks downstream consumers | Trace all readers (OSWWriter, OSWParquetWriter, pyprophet); update in same PR |
+| OpenSwath_Ind_Scores field type change breaks downstream consumers | Convert `vector<float>` to `DoubleList` at `MRMFeature.cpp` boundary; OSW writers read via `DataValue` and need no changes |
 | Eigen float path performance differs from double | Benchmark cross-correlation on representative data in PR 0 |
 | CachedMzMLHandler read/write asymmetry during rollout | Old files (double on disk) must still read correctly; test with existing cached files |
 
@@ -238,4 +251,7 @@ float precision.
 - Templating the NNLS solver
 - Templating CrawdadWrapper
 - Changing `OpenSwath_Scores` scalar fields (42 doubles -- computed results, not arrays)
+- Mobilogram/XIM analogous paths (`PeakPickerMobilogram.h`, `MobilogramParquetConsumer.cpp`, `XIMParquetFile.h`, `PeakPickerIM.cpp`) -- similar patterns exist but are deferred to a follow-up
+- Additional intensity-double sites in `ConfidenceScoring.cpp`, `ModifiedSincSmoother.cpp`, `OpenSwathOSWParquetReader.h` -- deferred to follow-up
+- `normalized_library_intensity` parameter in `MRMScoring.h`, `OpenSwathScoring.h`, `DIAScoring.h` -- deferred
 - pyOpenMS binding changes (float IntensityType is already handled by PR #8857)
