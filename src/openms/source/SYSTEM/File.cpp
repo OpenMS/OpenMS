@@ -58,6 +58,20 @@ namespace OpenMS
     fs::create_directories(to_path(temp_dir_));
   };
 
+  File::TempDir::TempDir(const String& base_dir, bool keep_dir)
+    : keep_dir_(keep_dir)
+  {
+    // Create a unique subdirectory under the provided base_dir
+    temp_dir_ = base_dir;
+    if (!temp_dir_.empty() && !temp_dir_.hasSuffix("/"))
+    {
+      temp_dir_ += "/";
+    }
+    temp_dir_ += "OpenMSTempDir_" + File::getUniqueName() + "/";
+    OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
+    fs::create_directories(to_path(temp_dir_));
+  };
+
   File::TempDir::~TempDir()
   {
     if (keep_dir_)
