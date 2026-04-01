@@ -268,8 +268,7 @@ bool generate(const ToolListType& tools, const String& prefix, const String& bin
     //////
     // get the INI file and convert it into HTML
     //////
-    if (it->first != "GenericWrapper" && // does not support -write_ini without a type
-        it->first != "TOPPView" && // do not support -write_ini
+    if (it->first != "TOPPView" && // do not support -write_ini
         it->first != "TOPPAS")
     {
       String tmp_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_" + it->first + ".ini";
@@ -320,7 +319,7 @@ int main(int argc, char** argv)
   }
 
   //TOPP tools
-  ToolListType topp_tools = ToolHandler::getTOPPToolList(true); // include GenericWrapper (can be called with --help without error, even though it has a type)
+  ToolListType topp_tools = ToolHandler::getTOPPToolList();
   topp_tools["TOPPView"] = Internal::ToolDescription(); // these two need to be excluded from writing an INI file later!
   topp_tools["TOPPAS"] = Internal::ToolDescription();
 

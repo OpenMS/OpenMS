@@ -14,7 +14,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#ifdef WITH_PARQUET
 #include <parquet/file_reader.h>
 #include <filesystem>
 #include <fstream>
@@ -24,12 +23,9 @@
 #include <zip.h>
 #define OPENMS_HAVE_LIBZIP 1
 #endif
-#endif
 
 namespace OpenMS
 {
-
-#ifdef WITH_PARQUET
 
   // ---- Arrow builder helpers ------------------------------------------------
 
@@ -387,12 +383,9 @@ namespace OpenMS
                                   "Unsupported list column type", "");
   }
 
-#endif // WITH_PARQUET
-
   // ---- Parquet archive utilities --------------------------------------------
 
 
-#ifdef WITH_PARQUET
   std::string ParquetFile::jsonEscape(const String& input)
   {
     std::string out;
@@ -431,6 +424,5 @@ namespace OpenMS
     std::unique_ptr<parquet::ParquetFileReader> reader = parquet::ParquetFileReader::OpenFile(std::string(filename), false);
     return reader->metadata()->num_rows();
   }
-#endif
 
 } // namespace OpenMS

@@ -18,11 +18,9 @@
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/FORMAT/ZipRandomAccessFile.h>
 
-#ifdef WITH_PARQUET
 #include <arrow/api.h>
 #include <arrow/io/api.h>
 #include <parquet/arrow/writer.h>
-#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -31,7 +29,6 @@ START_TEST(OpenSwathOSWParquetRoundTrip, "$Id$")
 
 START_SECTION(void round-trip write/read .oswpq archive using RAF path)
 {
-#ifdef WITH_PARQUET
   // Build a reference LightTargetedExperiment from a TraML file
   const String input_file = OPENMS_GET_TEST_DATA_PATH("MRMAssay_detectingTransistionCompound_input.TraML");
   TraMLFile traml;
@@ -77,9 +74,6 @@ START_SECTION(void round-trip write/read .oswpq archive using RAF path)
 
   TEST_EQUAL(roundtrip_exp.compounds.size(), light_exp.compounds.size())
   TEST_EQUAL(roundtrip_exp.transitions.size(), light_exp.transitions.size())
-#else
-  NOT_TESTABLE
-#endif
 }
 END_SECTION
 

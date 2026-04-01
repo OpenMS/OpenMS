@@ -290,7 +290,7 @@ protected:
      for (size_t i = 0; i < spectra_files.size(); i++)
      {
         String spectra_file = spectra_files[i];
-        std::filesystem::path actual_path = temp_dir_path / (static_cast<std::string>(FileHandler::stripExtension(File::basename(spectra_file))) + "." + static_cast<std::string>(outputFormat));
+        std::filesystem::path actual_path = temp_dir_path / (static_cast<std::string>(File::stemName(spectra_file)) + "." + static_cast<std::string>(outputFormat));
 
         if (!std::filesystem::exists(actual_path))
         {

@@ -10,8 +10,6 @@
 
 #include <OpenMS/config.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
@@ -137,5 +135,3 @@ public:
 };
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

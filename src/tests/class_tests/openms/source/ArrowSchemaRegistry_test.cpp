@@ -1,8 +1,6 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <arrow/api.h>
 using namespace OpenMS;
@@ -923,207 +921,355 @@ START_SECTION(PSMSchema validation with table)
 }
 END_SECTION
 
-// ========== ConsensusFeatureExportSchema ==========
+// ========== QPXPSMSchema ==========
 
-START_SECTION(ConsensusFeatureExportSchema::schema() returns non-null with 33 fields)
+START_SECTION(QPXPSMSchema::schema() returns non-null with 24 fields)
 {
-  auto s = ConsensusFeatureExportSchema::schema();
+  auto s = QPXPSMSchema::schema();
   TEST_NOT_EQUAL(s, nullptr)
-  TEST_EQUAL(s->num_fields(), 33)
+  TEST_EQUAL(s->num_fields(), 24)
 }
 END_SECTION
 
-START_SECTION(ConsensusFeatureExportSchema column name constants)
+START_SECTION(QPXPSMSchema column name constants)
 {
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::SEQUENCE, "sequence")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::PEPTIDOFORM, "peptidoform")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::MODIFICATIONS, "modifications")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::PRECURSOR_CHARGE, "precursor_charge")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::CALCULATED_MZ, "calculated_mz")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::OBSERVED_MZ, "observed_mz")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::RT, "rt")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::POSTERIOR_ERROR_PROBABILITY, "posterior_error_probability")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::IS_DECOY, "is_decoy")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::ADDITIONAL_SCORES, "additional_scores")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::PREDICTED_RT, "predicted_rt")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::REFERENCE_FILE_NAME, "reference_file_name")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::CV_PARAMS, "cv_params")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::SCAN, "scan")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::ION_MOBILITY, "ion_mobility")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::START_ION_MOBILITY, "start_ion_mobility")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::STOP_ION_MOBILITY, "stop_ion_mobility")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::INTENSITIES, "intensities")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::ADDITIONAL_INTENSITIES, "additional_intensities")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::PG_ACCESSIONS, "pg_accessions")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::ANCHOR_PROTEIN, "anchor_protein")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::UNIQUE, "unique")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::PG_GLOBAL_QVALUE, "pg_global_qvalue")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::GG_ACCESSIONS, "gg_accessions")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::GG_NAMES, "gg_names")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::SCAN_REFERENCE_FILE_NAME, "scan_reference_file_name")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::RT_START, "rt_start")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::RT_STOP, "rt_stop")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::QUALITY, "quality")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::SCORE, "score")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::SCORE_TYPE, "score_type")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::SPECTRUM_REFERENCE, "spectrum_reference")
-  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::FEATURE_METAVALUES, "feature_metavalues")
+  TEST_STRING_EQUAL(QPXPSMSchema::SEQUENCE, "sequence")
+  TEST_STRING_EQUAL(QPXPSMSchema::PEPTIDOFORM, "peptidoform")
+  TEST_STRING_EQUAL(QPXPSMSchema::MODIFICATIONS, "modifications")
+  TEST_STRING_EQUAL(QPXPSMSchema::CHARGE, "charge")
+  TEST_STRING_EQUAL(QPXPSMSchema::POSTERIOR_ERROR_PROBABILITY, "posterior_error_probability")
+  TEST_STRING_EQUAL(QPXPSMSchema::IS_DECOY, "is_decoy")
+  TEST_STRING_EQUAL(QPXPSMSchema::CALCULATED_MZ, "calculated_mz")
+  TEST_STRING_EQUAL(QPXPSMSchema::OBSERVED_MZ, "observed_mz")
+  TEST_STRING_EQUAL(QPXPSMSchema::MASS_ERROR_PPM, "mass_error_ppm")
+  TEST_STRING_EQUAL(QPXPSMSchema::ADDITIONAL_SCORES, "additional_scores")
+  TEST_STRING_EQUAL(QPXPSMSchema::PREDICTED_RT, "predicted_rt")
+  TEST_STRING_EQUAL(QPXPSMSchema::RUN_FILE_NAME, "run_file_name")
+  TEST_STRING_EQUAL(QPXPSMSchema::CV_PARAMS, "cv_params")
+  TEST_STRING_EQUAL(QPXPSMSchema::SCAN, "scan")
+  TEST_STRING_EQUAL(QPXPSMSchema::RT, "rt")
+  TEST_STRING_EQUAL(QPXPSMSchema::ION_MOBILITY, "ion_mobility")
+  TEST_STRING_EQUAL(QPXPSMSchema::MISSED_CLEAVAGES, "missed_cleavages")
+  TEST_STRING_EQUAL(QPXPSMSchema::PROTEIN_ACCESSIONS, "protein_accessions")
+  TEST_STRING_EQUAL(QPXPSMSchema::CROSS_LINKS, "cross_links")
+  TEST_STRING_EQUAL(QPXPSMSchema::MZ_ARRAY, "mz_array")
+  TEST_STRING_EQUAL(QPXPSMSchema::INTENSITY_ARRAY, "intensity_array")
+  TEST_STRING_EQUAL(QPXPSMSchema::CHARGE_ARRAY, "charge_array")
+  TEST_STRING_EQUAL(QPXPSMSchema::ION_TYPE_ARRAY, "ion_type_array")
+  TEST_STRING_EQUAL(QPXPSMSchema::ION_MOBILITY_ARRAY, "ion_mobility_array")
 }
 END_SECTION
 
-START_SECTION(ConsensusFeatureExportSchema field types and nullability)
+START_SECTION(QPXPSMSchema field types and nullability)
 {
-  auto s = ConsensusFeatureExportSchema::schema();
-  // sequence: utf8, nullable (default)
+  auto s = QPXPSMSchema::schema();
+  // sequence: utf8, not null
   TEST_EQUAL(s->field(0)->name(), "sequence")
   TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::STRING)
-  TEST_EQUAL(s->field(0)->nullable(), true)
-  // peptidoform: utf8, nullable (default)
+  TEST_EQUAL(s->field(0)->nullable(), false)
+  // peptidoform: utf8, not null
   TEST_EQUAL(s->field(1)->name(), "peptidoform")
   TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::STRING)
-  TEST_EQUAL(s->field(1)->nullable(), true)
-  // modifications: list<struct>, nullable (default)
+  TEST_EQUAL(s->field(1)->nullable(), false)
+  // modifications: list<struct>, nullable
   TEST_EQUAL(s->field(2)->name(), "modifications")
   TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::LIST)
   TEST_EQUAL(s->field(2)->nullable(), true)
-  TEST_EQUAL(s->field(2)->type()->Equals(ConsensusFeatureExportSchema::modificationsType()), true)
-  // precursor_charge: int32, nullable (default)
-  TEST_EQUAL(s->field(3)->name(), "precursor_charge")
-  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::INT32)
-  TEST_EQUAL(s->field(3)->nullable(), true)
-  // calculated_mz: float32, nullable (default)
-  TEST_EQUAL(s->field(4)->name(), "calculated_mz")
-  TEST_EQUAL(s->field(4)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(2)->type()->Equals(QPXPSMSchema::modificationsType()), true)
+  // charge: int16, not null
+  TEST_EQUAL(s->field(3)->name(), "charge")
+  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::INT16)
+  TEST_EQUAL(s->field(3)->nullable(), false)
+  // posterior_error_probability: float64, nullable
+  TEST_EQUAL(s->field(4)->name(), "posterior_error_probability")
+  TEST_EQUAL(s->field(4)->type()->id(), arrow::Type::DOUBLE)
   TEST_EQUAL(s->field(4)->nullable(), true)
-  // observed_mz: float32, nullable (default)
-  TEST_EQUAL(s->field(5)->name(), "observed_mz")
-  TEST_EQUAL(s->field(5)->type()->id(), arrow::Type::FLOAT)
-  TEST_EQUAL(s->field(5)->nullable(), true)
-  // rt: float32, nullable (default)
-  TEST_EQUAL(s->field(6)->name(), "rt")
+  // is_decoy: bool, not null
+  TEST_EQUAL(s->field(5)->name(), "is_decoy")
+  TEST_EQUAL(s->field(5)->type()->id(), arrow::Type::BOOL)
+  TEST_EQUAL(s->field(5)->nullable(), false)
+  // calculated_mz: float32, not null
+  TEST_EQUAL(s->field(6)->name(), "calculated_mz")
   TEST_EQUAL(s->field(6)->type()->id(), arrow::Type::FLOAT)
-  TEST_EQUAL(s->field(6)->nullable(), true)
-  // posterior_error_probability: float64, nullable (default)
-  TEST_EQUAL(s->field(7)->name(), "posterior_error_probability")
-  TEST_EQUAL(s->field(7)->type()->id(), arrow::Type::DOUBLE)
-  TEST_EQUAL(s->field(7)->nullable(), true)
-  // is_decoy: int32, nullable (default)
-  TEST_EQUAL(s->field(8)->name(), "is_decoy")
-  TEST_EQUAL(s->field(8)->type()->id(), arrow::Type::INT32)
+  TEST_EQUAL(s->field(6)->nullable(), false)
+  // observed_mz: float32, not null
+  TEST_EQUAL(s->field(7)->name(), "observed_mz")
+  TEST_EQUAL(s->field(7)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(7)->nullable(), false)
+  // mass_error_ppm: float32, nullable
+  TEST_EQUAL(s->field(8)->name(), "mass_error_ppm")
+  TEST_EQUAL(s->field(8)->type()->id(), arrow::Type::FLOAT)
   TEST_EQUAL(s->field(8)->nullable(), true)
-  // additional_scores: list<struct>, nullable (default)
+  // additional_scores: list<struct>, nullable
   TEST_EQUAL(s->field(9)->name(), "additional_scores")
   TEST_EQUAL(s->field(9)->type()->id(), arrow::Type::LIST)
   TEST_EQUAL(s->field(9)->nullable(), true)
-  TEST_EQUAL(s->field(9)->type()->Equals(ConsensusFeatureExportSchema::additionalScoresType()), true)
-  // predicted_rt: float32, nullable (default)
+  TEST_EQUAL(s->field(9)->type()->Equals(QPXPSMSchema::additionalScoresType()), true)
+  // predicted_rt: float32, nullable
   TEST_EQUAL(s->field(10)->name(), "predicted_rt")
   TEST_EQUAL(s->field(10)->type()->id(), arrow::Type::FLOAT)
   TEST_EQUAL(s->field(10)->nullable(), true)
-  // reference_file_name: utf8, nullable (default)
-  TEST_EQUAL(s->field(11)->name(), "reference_file_name")
+  // run_file_name: utf8, not null
+  TEST_EQUAL(s->field(11)->name(), "run_file_name")
   TEST_EQUAL(s->field(11)->type()->id(), arrow::Type::STRING)
-  TEST_EQUAL(s->field(11)->nullable(), true)
-  // cv_params: utf8, nullable (default)
+  TEST_EQUAL(s->field(11)->nullable(), false)
+  // cv_params: list<struct>, nullable
   TEST_EQUAL(s->field(12)->name(), "cv_params")
-  TEST_EQUAL(s->field(12)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(12)->type()->id(), arrow::Type::LIST)
   TEST_EQUAL(s->field(12)->nullable(), true)
-  // scan: utf8, nullable (default)
+  TEST_EQUAL(s->field(12)->type()->Equals(QPXPSMSchema::cvParamsType()), true)
+  // scan: list<int32>, not null
   TEST_EQUAL(s->field(13)->name(), "scan")
-  TEST_EQUAL(s->field(13)->type()->id(), arrow::Type::STRING)
-  TEST_EQUAL(s->field(13)->nullable(), true)
-  // ion_mobility: float32, nullable (default)
-  TEST_EQUAL(s->field(14)->name(), "ion_mobility")
+  TEST_EQUAL(s->field(13)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(13)->nullable(), false)
+  TEST_EQUAL(std::static_pointer_cast<arrow::ListType>(s->field(13)->type())->value_type()->id(), arrow::Type::INT32)
+  // rt: float32, nullable
+  TEST_EQUAL(s->field(14)->name(), "rt")
   TEST_EQUAL(s->field(14)->type()->id(), arrow::Type::FLOAT)
   TEST_EQUAL(s->field(14)->nullable(), true)
-  // start_ion_mobility: float32, nullable (default)
-  TEST_EQUAL(s->field(15)->name(), "start_ion_mobility")
+  // ion_mobility: float32, nullable
+  TEST_EQUAL(s->field(15)->name(), "ion_mobility")
   TEST_EQUAL(s->field(15)->type()->id(), arrow::Type::FLOAT)
   TEST_EQUAL(s->field(15)->nullable(), true)
-  // stop_ion_mobility: float32, nullable (default)
-  TEST_EQUAL(s->field(16)->name(), "stop_ion_mobility")
-  TEST_EQUAL(s->field(16)->type()->id(), arrow::Type::FLOAT)
+  // missed_cleavages: int16, nullable
+  TEST_EQUAL(s->field(16)->name(), "missed_cleavages")
+  TEST_EQUAL(s->field(16)->type()->id(), arrow::Type::INT16)
   TEST_EQUAL(s->field(16)->nullable(), true)
-  // intensities: list<struct>, nullable (default)
+  // protein_accessions: list<utf8>, nullable
+  TEST_EQUAL(s->field(17)->name(), "protein_accessions")
+  TEST_EQUAL(s->field(17)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(17)->nullable(), true)
+  // cross_links: list<struct>, nullable
+  TEST_EQUAL(s->field(18)->name(), "cross_links")
+  TEST_EQUAL(s->field(18)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(18)->nullable(), true)
+  TEST_EQUAL(s->field(18)->type()->Equals(QPXPSMSchema::crossLinksType()), true)
+  // mz_array: list<float>, nullable
+  TEST_EQUAL(s->field(19)->name(), "mz_array")
+  TEST_EQUAL(s->field(19)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(19)->nullable(), true)
+  // intensity_array: list<float>, nullable
+  TEST_EQUAL(s->field(20)->name(), "intensity_array")
+  TEST_EQUAL(s->field(20)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(20)->nullable(), true)
+  // charge_array: list<int32>, nullable
+  TEST_EQUAL(s->field(21)->name(), "charge_array")
+  TEST_EQUAL(s->field(21)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(21)->nullable(), true)
+  // ion_type_array: list<string>, nullable
+  TEST_EQUAL(s->field(22)->name(), "ion_type_array")
+  TEST_EQUAL(s->field(22)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(22)->nullable(), true)
+  // ion_mobility_array: list<float>, nullable
+  TEST_EQUAL(s->field(23)->name(), "ion_mobility_array")
+  TEST_EQUAL(s->field(23)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(23)->nullable(), true)
+}
+END_SECTION
+
+START_SECTION(QPXPSMSchema validation with table)
+{
+  auto s = QPXPSMSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
+// ========== QPXFeatureSchema ==========
+
+START_SECTION(QPXFeatureSchema::schema() returns non-null with 31 fields)
+{
+  auto s = QPXFeatureSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 31)
+}
+END_SECTION
+
+START_SECTION(QPXFeatureSchema column name constants)
+{
+  TEST_STRING_EQUAL(QPXFeatureSchema::SEQUENCE, "sequence")
+  TEST_STRING_EQUAL(QPXFeatureSchema::PEPTIDOFORM, "peptidoform")
+  TEST_STRING_EQUAL(QPXFeatureSchema::MODIFICATIONS, "modifications")
+  TEST_STRING_EQUAL(QPXFeatureSchema::CHARGE, "charge")
+  TEST_STRING_EQUAL(QPXFeatureSchema::POSTERIOR_ERROR_PROBABILITY, "posterior_error_probability")
+  TEST_STRING_EQUAL(QPXFeatureSchema::IS_DECOY, "is_decoy")
+  TEST_STRING_EQUAL(QPXFeatureSchema::CALCULATED_MZ, "calculated_mz")
+  TEST_STRING_EQUAL(QPXFeatureSchema::OBSERVED_MZ, "observed_mz")
+  TEST_STRING_EQUAL(QPXFeatureSchema::MASS_ERROR_PPM, "mass_error_ppm")
+  TEST_STRING_EQUAL(QPXFeatureSchema::ADDITIONAL_SCORES, "additional_scores")
+  TEST_STRING_EQUAL(QPXFeatureSchema::PREDICTED_RT, "predicted_rt")
+  TEST_STRING_EQUAL(QPXFeatureSchema::RUN_FILE_NAME, "run_file_name")
+  TEST_STRING_EQUAL(QPXFeatureSchema::CV_PARAMS, "cv_params")
+  TEST_STRING_EQUAL(QPXFeatureSchema::SCAN, "scan")
+  TEST_STRING_EQUAL(QPXFeatureSchema::RT, "rt")
+  TEST_STRING_EQUAL(QPXFeatureSchema::ION_MOBILITY, "ion_mobility")
+  TEST_STRING_EQUAL(QPXFeatureSchema::MISSED_CLEAVAGES, "missed_cleavages")
+  TEST_STRING_EQUAL(QPXFeatureSchema::INTENSITIES, "intensities")
+  TEST_STRING_EQUAL(QPXFeatureSchema::ADDITIONAL_INTENSITIES, "additional_intensities")
+  TEST_STRING_EQUAL(QPXFeatureSchema::PG_ACCESSIONS, "pg_accessions")
+  TEST_STRING_EQUAL(QPXFeatureSchema::ANCHOR_PROTEIN, "anchor_protein")
+  TEST_STRING_EQUAL(QPXFeatureSchema::UNIQUE, "unique")
+  TEST_STRING_EQUAL(QPXFeatureSchema::PG_GLOBAL_QVALUE, "pg_global_qvalue")
+  TEST_STRING_EQUAL(QPXFeatureSchema::PG_POSITIONS, "pg_positions")
+  TEST_STRING_EQUAL(QPXFeatureSchema::ION_MOBILITY_START, "ion_mobility_start")
+  TEST_STRING_EQUAL(QPXFeatureSchema::ION_MOBILITY_STOP, "ion_mobility_stop")
+  TEST_STRING_EQUAL(QPXFeatureSchema::GG_ACCESSIONS, "gg_accessions")
+  TEST_STRING_EQUAL(QPXFeatureSchema::GG_NAMES, "gg_names")
+  TEST_STRING_EQUAL(QPXFeatureSchema::ID_RUN_FILE_NAME, "id_run_file_name")
+  TEST_STRING_EQUAL(QPXFeatureSchema::RT_START, "rt_start")
+  TEST_STRING_EQUAL(QPXFeatureSchema::RT_STOP, "rt_stop")
+}
+END_SECTION
+
+START_SECTION(QPXFeatureSchema field types and nullability)
+{
+  auto s = QPXFeatureSchema::schema();
+  // sequence: utf8, not null
+  TEST_EQUAL(s->field(0)->name(), "sequence")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(0)->nullable(), false)
+  // peptidoform: utf8, not null
+  TEST_EQUAL(s->field(1)->name(), "peptidoform")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(1)->nullable(), false)
+  // modifications: list<struct>, nullable
+  TEST_EQUAL(s->field(2)->name(), "modifications")
+  TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(2)->nullable(), true)
+  TEST_EQUAL(s->field(2)->type()->Equals(QPXFeatureSchema::modificationsType()), true)
+  // charge: int16, not null
+  TEST_EQUAL(s->field(3)->name(), "charge")
+  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::INT16)
+  TEST_EQUAL(s->field(3)->nullable(), false)
+  // posterior_error_probability: float64, nullable
+  TEST_EQUAL(s->field(4)->name(), "posterior_error_probability")
+  TEST_EQUAL(s->field(4)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(4)->nullable(), true)
+  // is_decoy: bool, not null
+  TEST_EQUAL(s->field(5)->name(), "is_decoy")
+  TEST_EQUAL(s->field(5)->type()->id(), arrow::Type::BOOL)
+  TEST_EQUAL(s->field(5)->nullable(), false)
+  // calculated_mz: float32, not null
+  TEST_EQUAL(s->field(6)->name(), "calculated_mz")
+  TEST_EQUAL(s->field(6)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(6)->nullable(), false)
+  // observed_mz: float32, not null
+  TEST_EQUAL(s->field(7)->name(), "observed_mz")
+  TEST_EQUAL(s->field(7)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(7)->nullable(), false)
+  // mass_error_ppm: float32, nullable
+  TEST_EQUAL(s->field(8)->name(), "mass_error_ppm")
+  TEST_EQUAL(s->field(8)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(8)->nullable(), true)
+  // additional_scores: list<struct>, nullable
+  TEST_EQUAL(s->field(9)->name(), "additional_scores")
+  TEST_EQUAL(s->field(9)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(9)->nullable(), true)
+  TEST_EQUAL(s->field(9)->type()->Equals(QPXFeatureSchema::additionalScoresType()), true)
+  // predicted_rt: float32, nullable
+  TEST_EQUAL(s->field(10)->name(), "predicted_rt")
+  TEST_EQUAL(s->field(10)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(10)->nullable(), true)
+  // run_file_name: utf8, not null
+  TEST_EQUAL(s->field(11)->name(), "run_file_name")
+  TEST_EQUAL(s->field(11)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(11)->nullable(), false)
+  // cv_params: list<struct>, nullable
+  TEST_EQUAL(s->field(12)->name(), "cv_params")
+  TEST_EQUAL(s->field(12)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(12)->nullable(), true)
+  TEST_EQUAL(s->field(12)->type()->Equals(QPXFeatureSchema::cvParamsType()), true)
+  // scan: list<int32>, not null
+  TEST_EQUAL(s->field(13)->name(), "scan")
+  TEST_EQUAL(s->field(13)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(13)->nullable(), false)
+  TEST_EQUAL(std::static_pointer_cast<arrow::ListType>(s->field(13)->type())->value_type()->id(), arrow::Type::INT32)
+  // rt: float32, nullable
+  TEST_EQUAL(s->field(14)->name(), "rt")
+  TEST_EQUAL(s->field(14)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(14)->nullable(), true)
+  // ion_mobility: float32, nullable
+  TEST_EQUAL(s->field(15)->name(), "ion_mobility")
+  TEST_EQUAL(s->field(15)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(15)->nullable(), true)
+  // missed_cleavages: int16, nullable
+  TEST_EQUAL(s->field(16)->name(), "missed_cleavages")
+  TEST_EQUAL(s->field(16)->type()->id(), arrow::Type::INT16)
+  TEST_EQUAL(s->field(16)->nullable(), true)
+  // intensities: list<struct>, nullable
   TEST_EQUAL(s->field(17)->name(), "intensities")
   TEST_EQUAL(s->field(17)->type()->id(), arrow::Type::LIST)
   TEST_EQUAL(s->field(17)->nullable(), true)
-  TEST_EQUAL(s->field(17)->type()->Equals(ConsensusFeatureExportSchema::intensitiesType()), true)
-  // additional_intensities: utf8, nullable (default)
+  TEST_EQUAL(s->field(17)->type()->Equals(QPXFeatureSchema::intensitiesType()), true)
+  // additional_intensities: list<struct>, nullable
   TEST_EQUAL(s->field(18)->name(), "additional_intensities")
-  TEST_EQUAL(s->field(18)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(18)->type()->id(), arrow::Type::LIST)
   TEST_EQUAL(s->field(18)->nullable(), true)
-  // pg_accessions: list<utf8>, nullable (default)
+  TEST_EQUAL(s->field(18)->type()->Equals(QPXFeatureSchema::additionalIntensitiesType()), true)
+  // pg_accessions: list<struct>, nullable
   TEST_EQUAL(s->field(19)->name(), "pg_accessions")
   TEST_EQUAL(s->field(19)->type()->id(), arrow::Type::LIST)
   TEST_EQUAL(s->field(19)->nullable(), true)
-  // anchor_protein: utf8, nullable (default)
+  TEST_EQUAL(s->field(19)->type()->Equals(QPXFeatureSchema::pgAccessionsType()), true)
+  // anchor_protein: utf8, not null
   TEST_EQUAL(s->field(20)->name(), "anchor_protein")
   TEST_EQUAL(s->field(20)->type()->id(), arrow::Type::STRING)
-  TEST_EQUAL(s->field(20)->nullable(), true)
-  // unique: int32, nullable (default)
+  TEST_EQUAL(s->field(20)->nullable(), false)
+  // unique: bool, nullable
   TEST_EQUAL(s->field(21)->name(), "unique")
-  TEST_EQUAL(s->field(21)->type()->id(), arrow::Type::INT32)
+  TEST_EQUAL(s->field(21)->type()->id(), arrow::Type::BOOL)
   TEST_EQUAL(s->field(21)->nullable(), true)
-  // pg_global_qvalue: float64, nullable (default)
+  // pg_global_qvalue: float64, nullable
   TEST_EQUAL(s->field(22)->name(), "pg_global_qvalue")
   TEST_EQUAL(s->field(22)->type()->id(), arrow::Type::DOUBLE)
   TEST_EQUAL(s->field(22)->nullable(), true)
-  // gg_accessions: list<utf8>, nullable (default)
-  TEST_EQUAL(s->field(23)->name(), "gg_accessions")
+  // pg_positions: list<struct>, nullable
+  TEST_EQUAL(s->field(23)->name(), "pg_positions")
   TEST_EQUAL(s->field(23)->type()->id(), arrow::Type::LIST)
   TEST_EQUAL(s->field(23)->nullable(), true)
-  // gg_names: list<utf8>, nullable (default)
-  TEST_EQUAL(s->field(24)->name(), "gg_names")
-  TEST_EQUAL(s->field(24)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(23)->type()->Equals(QPXFeatureSchema::pgPositionsType()), true)
+  // ion_mobility_start: float32, nullable
+  TEST_EQUAL(s->field(24)->name(), "ion_mobility_start")
+  TEST_EQUAL(s->field(24)->type()->id(), arrow::Type::FLOAT)
   TEST_EQUAL(s->field(24)->nullable(), true)
-  // scan_reference_file_name: utf8, nullable (default)
-  TEST_EQUAL(s->field(25)->name(), "scan_reference_file_name")
-  TEST_EQUAL(s->field(25)->type()->id(), arrow::Type::STRING)
+  // ion_mobility_stop: float32, nullable
+  TEST_EQUAL(s->field(25)->name(), "ion_mobility_stop")
+  TEST_EQUAL(s->field(25)->type()->id(), arrow::Type::FLOAT)
   TEST_EQUAL(s->field(25)->nullable(), true)
-  // rt_start: float32, nullable (default)
-  TEST_EQUAL(s->field(26)->name(), "rt_start")
-  TEST_EQUAL(s->field(26)->type()->id(), arrow::Type::FLOAT)
+  // gg_accessions: list<utf8>, nullable
+  TEST_EQUAL(s->field(26)->name(), "gg_accessions")
+  TEST_EQUAL(s->field(26)->type()->id(), arrow::Type::LIST)
   TEST_EQUAL(s->field(26)->nullable(), true)
-  // rt_stop: float32, nullable (default)
-  TEST_EQUAL(s->field(27)->name(), "rt_stop")
-  TEST_EQUAL(s->field(27)->type()->id(), arrow::Type::FLOAT)
+  // gg_names: list<utf8>, nullable
+  TEST_EQUAL(s->field(27)->name(), "gg_names")
+  TEST_EQUAL(s->field(27)->type()->id(), arrow::Type::LIST)
   TEST_EQUAL(s->field(27)->nullable(), true)
-  // quality: float32, nullable (default)
-  TEST_EQUAL(s->field(28)->name(), "quality")
-  TEST_EQUAL(s->field(28)->type()->id(), arrow::Type::FLOAT)
+  // id_run_file_name: utf8, nullable
+  TEST_EQUAL(s->field(28)->name(), "id_run_file_name")
+  TEST_EQUAL(s->field(28)->type()->id(), arrow::Type::STRING)
   TEST_EQUAL(s->field(28)->nullable(), true)
-  // score: float64, nullable (default)
-  TEST_EQUAL(s->field(29)->name(), "score")
-  TEST_EQUAL(s->field(29)->type()->id(), arrow::Type::DOUBLE)
+  // rt_start: float32, nullable
+  TEST_EQUAL(s->field(29)->name(), "rt_start")
+  TEST_EQUAL(s->field(29)->type()->id(), arrow::Type::FLOAT)
   TEST_EQUAL(s->field(29)->nullable(), true)
-  // score_type: utf8, nullable (default)
-  TEST_EQUAL(s->field(30)->name(), "score_type")
-  TEST_EQUAL(s->field(30)->type()->id(), arrow::Type::STRING)
+  // rt_stop: float32, nullable
+  TEST_EQUAL(s->field(30)->name(), "rt_stop")
+  TEST_EQUAL(s->field(30)->type()->id(), arrow::Type::FLOAT)
   TEST_EQUAL(s->field(30)->nullable(), true)
-  // spectrum_reference: utf8, nullable (default)
-  TEST_EQUAL(s->field(31)->name(), "spectrum_reference")
-  TEST_EQUAL(s->field(31)->type()->id(), arrow::Type::STRING)
-  TEST_EQUAL(s->field(31)->nullable(), true)
-  // feature_metavalues: list<struct>, nullable (default)
-  TEST_EQUAL(s->field(32)->name(), "feature_metavalues")
-  TEST_EQUAL(s->field(32)->type()->id(), arrow::Type::LIST)
-  TEST_EQUAL(s->field(32)->nullable(), true)
-  TEST_EQUAL(s->field(32)->type()->Equals(ConsensusFeatureExportSchema::metavaluesType()), true)
 }
 END_SECTION
 
-START_SECTION(ConsensusFeatureExportSchema nested types match PSMSchema)
+START_SECTION(QPXFeatureSchema validation with table)
 {
-  // modificationsType and additionalScoresType should be the same as PSMSchema's
-  TEST_EQUAL(ConsensusFeatureExportSchema::modificationsType()->Equals(PSMSchema::modificationsType()), true)
-  TEST_EQUAL(ConsensusFeatureExportSchema::additionalScoresType()->Equals(PSMSchema::additionalScoresType()), true)
-}
-END_SECTION
-
-START_SECTION(ConsensusFeatureExportSchema validation with table)
-{
-  auto s = ConsensusFeatureExportSchema::schema();
+  auto s = QPXFeatureSchema::schema();
   std::vector<std::shared_ptr<arrow::Array>> columns;
   for (int i = 0; i < s->num_fields(); ++i)
   {
@@ -2328,10 +2474,3 @@ START_SECTION(validate - Subset mode - timestamp unit compatibility)
 END_SECTION
 
 END_TEST
-
-#else // WITH_PARQUET
-
-START_TEST(ArrowSchemaRegistry, "$Id$")
-END_TEST
-
-#endif

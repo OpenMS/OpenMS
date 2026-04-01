@@ -172,6 +172,7 @@
 #include <OpenMS/PROCESSING/SCALING/RankScaler.h>
 #include <OpenMS/PROCESSING/SCALING/SqrtScaler.h>
 #include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
+#include <OpenMS/PROCESSING/SMOOTHING/ModifiedSincSmoother.h>
 #include <OpenMS/PROCESSING/SMOOTHING/LowessSmoothing.h>
 #include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
@@ -1184,7 +1185,7 @@ chromatograms to be consumed and need to be informed about this
         .def(nb::init<const OpenMS::IMTypes &>())
         .def("__copy__", [](const OpenMS::IMTypes& self) { return OpenMS::IMTypes(self); })
         .def("__deepcopy__", [](const OpenMS::IMTypes& self, nb::dict) { return OpenMS::IMTypes(self); }, "memo"_a)
-        .def_static("determineIMFormat", [](const OpenMS::MSExperiment& exp) { return OpenMS::IMTypes::determineIMFormat(exp); }, "exp"_a)
+        .def_static("determineIMFormat", [](const OpenMS::MSExperiment& exp, int ms_level) { return OpenMS::IMTypes::determineIMFormat(exp, ms_level); }, "exp"_a, "ms_level"_a)
         .def_static("determineIMFormat", [](const OpenMS::MSSpectrum& spec) { return OpenMS::IMTypes::determineIMFormat(spec); }, "spec"_a)
 
         .def_static("toDriftTimeUnit", [](const OpenMS::String& dtu_string) {
@@ -1202,6 +1203,14 @@ chromatograms to be consumed and need to be informed about this
         .def_static("imFormatToString", [](OpenMS::IMFormat value) {
             return OpenMS::imFormatToString(value);
         }, "value"_a, "Convert IMFormat to string")
+
+        .def_static("toIMPeakType", [](const OpenMS::String& im_peak_type) {
+            return OpenMS::toIMPeakType(im_peak_type);
+        }, "im_peak_type"_a, "Convert string to IMPeakType")
+
+        .def_static("imPeakTypeToString", [](OpenMS::IMPeakType value) {
+            return OpenMS::imPeakTypeToString(value);
+        }, "value"_a, "Convert IMPeakType to string")
         ;
 
     // -----------------------------------------------------------------------
@@ -2504,6 +2513,39 @@ ProgressLogger
         .def("filterExperiment", [](OpenMS::GaussFilter& self, OpenMS::MSExperiment& map) { return self.filterExperiment(map); }, "map"_a, "Smoothes an MSExperiment containing profile data")
         ;
     def_DefaultParamHandler<OpenMS::GaussFilter>(gaussfilter_class);
+
+    // -----------------------------------------------------------------------
+    // ModifiedSincSmoother
+    // -----------------------------------------------------------------------
+    auto modifiedsincsmoother_class = nb::class_<OpenMS::ModifiedSincSmoother, OpenMS::ProgressLogger>(m, "ModifiedSincSmoother",
+        R"doc(
+Modified sinc smoother for profile data.
+Two variants: MS (better stopband, larger kernel) and MS1 (smaller kernel).
+Based on Schmid, Rath & Diebold, ACS Meas. Sci. Au 2022.
+DefaultParamHandler
+ProgressLogger
+)doc")
+        .def(nb::init<>())
+        .def(nb::init<bool, int, int>(), "isMS1"_a, "degree"_a, "m"_a,
+            "Create smoother. isMS1: true for MS1 variant (smaller kernel), false for MS variant.")
+        .def("filter", [](OpenMS::ModifiedSincSmoother& self, OpenMS::MSSpectrum& spectrum) {
+            return self.filter(spectrum); }, "spectrum"_a, "Smooth an MSSpectrum in-place")
+        .def("filter", [](OpenMS::ModifiedSincSmoother& self, OpenMS::MSChromatogram& chromatogram) {
+            return self.filter(chromatogram); }, "chromatogram"_a, "Smooth an MSChromatogram in-place")
+        .def("filter", [](OpenMS::ModifiedSincSmoother& self, OpenMS::Mobilogram& mobilogram) {
+            return self.filter(mobilogram); }, "mobilogram"_a, "Smooth a Mobilogram in-place")
+        .def("filterExperiment", [](OpenMS::ModifiedSincSmoother& self, OpenMS::MSExperiment& map) {
+            return self.filterExperiment(map); }, "map"_a, "Smooth all spectra and chromatograms in a PeakMap")
+        .def("smooth", [](OpenMS::ModifiedSincSmoother& self, const std::vector<double>& data) {
+            return self.smooth(data); }, "data"_a, "Smooth a vector of intensity values, returns smoothed vector")
+        .def_static("bandwidthToM", &OpenMS::ModifiedSincSmoother::bandwidthToM,
+            "isMS1"_a, "degree"_a, "bandwidth"_a, "Convert frequency bandwidth to kernel half-width m")
+        .def_static("noiseGainToM", &OpenMS::ModifiedSincSmoother::noiseGainToM,
+            "isMS1"_a, "degree"_a, "noiseGain"_a, "Convert noise gain to kernel half-width m")
+        .def_static("savitzkyGolayBandwidth", &OpenMS::ModifiedSincSmoother::savitzkyGolayBandwidth,
+            "degree"_a, "m"_a, "Compute equivalent Savitzky-Golay bandwidth")
+        ;
+    def_DefaultParamHandler<OpenMS::ModifiedSincSmoother>(modifiedsincsmoother_class);
 
     // -----------------------------------------------------------------------
     // InternalCalibration
@@ -5040,9 +5082,11 @@ XMLFile
     // -----------------------------------------------------------------------
     // __static_* module-level wrappers for IMTypes
     // -----------------------------------------------------------------------
-    m.def("__static_IMTypes_determineIMFormat", [](const OpenMS::MSExperiment& exp) -> OpenMS::IMFormat { return OpenMS::IMTypes::determineIMFormat(exp); }, "exp"_a);
+    m.def("__static_IMTypes_determineIMFormat", [](const OpenMS::MSExperiment& exp, int ms_level) -> OpenMS::IMFormat { return OpenMS::IMTypes::determineIMFormat(exp, ms_level); }, "exp"_a, "ms_level"_a);
     m.def("__static_IMTypes_toDriftTimeUnit", [](const OpenMS::String& dtu_string) -> OpenMS::DriftTimeUnit { return OpenMS::toDriftTimeUnit(dtu_string); }, "dtu_string"_a);
     m.def("__static_IMTypes_driftTimeUnitToString", [](OpenMS::DriftTimeUnit value) -> OpenMS::String { return OpenMS::driftTimeUnitToString(value); }, "value"_a);
     m.def("__static_IMTypes_toIMFormat", [](const OpenMS::String& im_format) -> OpenMS::IMFormat { return OpenMS::toIMFormat(im_format); }, "im_format"_a);
+    m.def("__static_IMTypes_toIMPeakType", [](const OpenMS::String& im_peak_type) -> OpenMS::IMPeakType { return OpenMS::toIMPeakType(im_peak_type); }, "im_peak_type"_a);
+    m.def("__static_IMTypes_imPeakTypeToString", [](OpenMS::IMPeakType value) -> OpenMS::String { return OpenMS::imPeakTypeToString(value); }, "value"_a);
 
 }

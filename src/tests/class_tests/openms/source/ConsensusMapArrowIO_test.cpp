@@ -15,8 +15,6 @@
 
 #include <OpenMS/config.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
@@ -894,7 +892,5 @@ START_SECTION(exportToParquet / importFromParquet - metadata round-trip (Documen
   TEST_REAL_SIMILAR(double(out_dp2.getMetaValue("max_rt_shift")), 300.5)
 }
 END_SECTION
-
-#endif // WITH_PARQUET
 
 END_TEST

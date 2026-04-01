@@ -1,6 +1,6 @@
 # Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 # SPDX-License-Identifier: BSD-3-Clause
-# 
+#
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche, Chris Bielow $
 # $Authors: Chris Bielow, Stephan Aiche $
@@ -187,91 +187,143 @@ endif()
 find_package(CURL REQUIRED)
 
 #------------------------------------------------------------------------------
- # Apache Arrow and Parquet
- if (WITH_PARQUET)
-   # Arrow 23+ required for parquet file format compatibility
-   find_package(Arrow 23 CONFIG REQUIRED)
-   find_package(Parquet 23 CONFIG REQUIRED)
-   
-   # Determine Arrow target based on ARROW_USE_STATIC preference
-   if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
-     set(OPENMS_ARROW_TARGET Arrow::arrow_static)
-   elseif(NOT ARROW_USE_STATIC AND TARGET Arrow::arrow_shared)
-     set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
-   elseif(TARGET Arrow::arrow_static)
-     set(OPENMS_ARROW_TARGET Arrow::arrow_static)
-   elseif(TARGET Arrow::arrow_shared)
-     set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
-   else()
-     message(FATAL_ERROR "No suitable Arrow target found")
-   endif()
+# Apache Arrow and Parquet (required dependency)
+# Arrow 23+ required for parquet file format compatibility
+find_package(Arrow 23 CONFIG REQUIRED)
+find_package(Parquet 23 CONFIG REQUIRED)
 
-   # Determine Arrow Compute target (may be bundled into Arrow::arrow_* on some distros).
-   # We need compute kernels (e.g., "equal") for filter expression binding.
-   if(ARROW_USE_STATIC AND TARGET Arrow::arrow_compute_static)
-     set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_static)
-   elseif(NOT ARROW_USE_STATIC AND TARGET Arrow::arrow_compute_shared)
-     set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_shared)
-   elseif(TARGET Arrow::arrow_compute_static)
-     set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_static)
-   elseif(TARGET Arrow::arrow_compute_shared)
-     set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_shared)
-   else()
-     # Fallback: compute might be a plain library without a CMake target.
-     # Use platform-neutral search with optional hints.
-     find_library(OPENMS_ARROW_COMPUTE_LIB
-       NAMES arrow_compute
-       HINTS ${CMAKE_PREFIX_PATH} ${ARROW_HOME}
-       PATH_SUFFIXES lib lib64
-     )
-    if(OPENMS_ARROW_COMPUTE_LIB)
-      set(OPENMS_ARROW_COMPUTE_TARGET ${OPENMS_ARROW_COMPUTE_LIB})
-      message(STATUS "Using Arrow Compute library from find_library: ${OPENMS_ARROW_COMPUTE_LIB}")
-    else()
-      # Last resort: compute is part of the main Arrow target.
-      set(OPENMS_ARROW_COMPUTE_TARGET ${OPENMS_ARROW_TARGET})
-      message(STATUS "Using Arrow Compute from Arrow target: ${OPENMS_ARROW_TARGET} (no separate compute target/library found)")
-    endif()
+# Arrow's CMake config may import nlohmann_json as a transitive dependency.
+# If so, force the vendored extern to use the already-imported target instead
+# of trying to add_library() a second target with the same name.
+if(TARGET nlohmann_json::nlohmann_json)
+  set(USE_EXTERNAL_JSON ON CACHE BOOL "Use an external nlohmann::json library" FORCE)
+endif()
+
+# Determine Arrow target based on ARROW_USE_STATIC preference
+if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
+  set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+elseif(NOT ARROW_USE_STATIC AND TARGET Arrow::arrow_shared)
+  set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+elseif(TARGET Arrow::arrow_static)
+  set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+elseif(TARGET Arrow::arrow_shared)
+  set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+else()
+  message(FATAL_ERROR "No suitable Arrow target found")
+endif()
+
+# Determine Arrow Compute target (may be bundled into Arrow::arrow_* on some distros).
+# We need compute kernels (e.g., "equal") for filter expression binding.
+if(ARROW_USE_STATIC AND TARGET Arrow::arrow_compute_static)
+  set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_static)
+elseif(NOT ARROW_USE_STATIC AND TARGET Arrow::arrow_compute_shared)
+  set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_shared)
+elseif(TARGET Arrow::arrow_compute_static)
+  set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_static)
+elseif(TARGET Arrow::arrow_compute_shared)
+  set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_shared)
+else()
+  # Fallback: compute might be a plain library without a CMake target.
+  # Use platform-neutral search with optional hints.
+  find_library(OPENMS_ARROW_COMPUTE_LIB
+    NAMES arrow_compute
+    HINTS ${CMAKE_PREFIX_PATH} ${ARROW_HOME}
+    PATH_SUFFIXES lib lib64
+  )
+  if(OPENMS_ARROW_COMPUTE_LIB)
+    set(OPENMS_ARROW_COMPUTE_TARGET ${OPENMS_ARROW_COMPUTE_LIB})
+    message(STATUS "Using Arrow Compute library from find_library: ${OPENMS_ARROW_COMPUTE_LIB}")
+  else()
+    # Last resort: compute is part of the main Arrow target.
+    set(OPENMS_ARROW_COMPUTE_TARGET ${OPENMS_ARROW_TARGET})
+    message(STATUS "Using Arrow Compute from Arrow target: ${OPENMS_ARROW_TARGET} (no separate compute target/library found)")
   endif()
-   
-   # Determine Parquet target based on ARROW_USE_STATIC preference
-   if(ARROW_USE_STATIC AND TARGET Parquet::parquet_static)
-     set(OPENMS_PARQUET_TARGET Parquet::parquet_static)
-   elseif(NOT ARROW_USE_STATIC AND TARGET Parquet::parquet_shared)
-     set(OPENMS_PARQUET_TARGET Parquet::parquet_shared)
-   elseif(TARGET Parquet::parquet_static)
-     set(OPENMS_PARQUET_TARGET Parquet::parquet_static)
-   elseif(TARGET Parquet::parquet_shared)
-     set(OPENMS_PARQUET_TARGET Parquet::parquet_shared)
-   else()
-     message(FATAL_ERROR "No suitable Parquet target found")
-   endif()
-   
-   message(STATUS "Using Arrow target: ${OPENMS_ARROW_TARGET}")
-   message(STATUS "Using Arrow Compute target: ${OPENMS_ARROW_COMPUTE_TARGET}")
-   message(STATUS "Using Parquet target: ${OPENMS_PARQUET_TARGET}")
+endif()
 
-   # Optional Arrow Dataset (for predicate pushdown)
-   find_package(ArrowDataset CONFIG QUIET)
-   if(ArrowDataset_FOUND)
-     if(ARROW_USE_STATIC AND TARGET ArrowDataset::arrow_dataset_static)
-       set(OPENMS_ARROW_DATASET_TARGET ArrowDataset::arrow_dataset_static)
-     elseif(NOT ARROW_USE_STATIC AND TARGET ArrowDataset::arrow_dataset_shared)
-       set(OPENMS_ARROW_DATASET_TARGET ArrowDataset::arrow_dataset_shared)
-     elseif(TARGET ArrowDataset::arrow_dataset_static)
-       set(OPENMS_ARROW_DATASET_TARGET ArrowDataset::arrow_dataset_static)
-     elseif(TARGET ArrowDataset::arrow_dataset_shared)
-       set(OPENMS_ARROW_DATASET_TARGET ArrowDataset::arrow_dataset_shared)
-     endif()
+# Determine Parquet target based on ARROW_USE_STATIC preference
+if(ARROW_USE_STATIC AND TARGET Parquet::parquet_static)
+  set(OPENMS_PARQUET_TARGET Parquet::parquet_static)
+elseif(NOT ARROW_USE_STATIC AND TARGET Parquet::parquet_shared)
+  set(OPENMS_PARQUET_TARGET Parquet::parquet_shared)
+elseif(TARGET Parquet::parquet_static)
+  set(OPENMS_PARQUET_TARGET Parquet::parquet_static)
+elseif(TARGET Parquet::parquet_shared)
+  set(OPENMS_PARQUET_TARGET Parquet::parquet_shared)
+else()
+  message(FATAL_ERROR "No suitable Parquet target found")
+endif()
 
-   if(OPENMS_ARROW_DATASET_TARGET)
-     message(STATUS "Using Arrow Dataset target: ${OPENMS_ARROW_DATASET_TARGET}")
-     # Arrow Dataset (static) may pull in libxml2 symbols; link explicitly.
-     # This avoids missing xmlBufferFree at runtime when dataset pushdown is enabled.
-     find_package(LibXml2 REQUIRED)
-   endif()
- endif()
- endif()
+message(STATUS "Using Arrow target: ${OPENMS_ARROW_TARGET}")
+message(STATUS "Using Arrow Compute target: ${OPENMS_ARROW_COMPUTE_TARGET}")
+message(STATUS "Using Parquet target: ${OPENMS_PARQUET_TARGET}")
+
+# Optional Arrow Dataset (for predicate pushdown)
+find_package(ArrowDataset CONFIG QUIET)
+if(ArrowDataset_FOUND)
+  if(ARROW_USE_STATIC AND TARGET ArrowDataset::arrow_dataset_static)
+    set(OPENMS_ARROW_DATASET_TARGET ArrowDataset::arrow_dataset_static)
+  elseif(NOT ARROW_USE_STATIC AND TARGET ArrowDataset::arrow_dataset_shared)
+    set(OPENMS_ARROW_DATASET_TARGET ArrowDataset::arrow_dataset_shared)
+  elseif(TARGET ArrowDataset::arrow_dataset_static)
+    set(OPENMS_ARROW_DATASET_TARGET ArrowDataset::arrow_dataset_static)
+  elseif(TARGET ArrowDataset::arrow_dataset_shared)
+    set(OPENMS_ARROW_DATASET_TARGET ArrowDataset::arrow_dataset_shared)
+  endif()
+
+  if(OPENMS_ARROW_DATASET_TARGET)
+    message(STATUS "Using Arrow Dataset target: ${OPENMS_ARROW_DATASET_TARGET}")
+    # Arrow Dataset (static) may pull in libxml2 symbols; link explicitly.
+    # This avoids missing xmlBufferFree at runtime when dataset pushdown is enabled.
+    find_package(LibXml2 REQUIRED)
+  endif()
+endif()
+
+#------------------------------------------------------------------------------
+# opentims (Bruker TimsTOF .d file reading)
+if (WITH_OPENTIMS)
+  # Enable C language for bundled ZSTD fallback (zstddeclib.c)
+  enable_language(C)
+  include(FetchContent)
+
+  FetchContent_Declare(
+    opentims
+    GIT_REPOSITORY https://github.com/michalsta/opentims.git
+    GIT_TAG v1.2.0b1
+  )
+
+  # Build opentims as a C++ static library, not a Python module.
+  # Use OpenMS's own sqlite3 instead of opentims's runtime dlopen.
+  set(OPENTIMS_BUILD_PYTHON OFF CACHE BOOL "" FORCE)
+  set(OPENTIMS_BUILD_CPP_LIB ON CACHE BOOL "" FORCE)
+  set(OPENTIMS_LINK_SQLITE_STATICALLY ON CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(opentims)
+
+  # Provide OpenMS's sqlite3 headers and library to opentims
+  target_include_directories(opentims_cpp PRIVATE "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
+  target_link_libraries(opentims_cpp PRIVATE sqlite3)
+
+  # ZSTD: opentims uses ZSTD for TDF frame decompression.
+  # Prefer system/package-managed zstd; fall back to opentims's bundled decoder.
+  set(_OPENTIMS_SRC "${opentims_SOURCE_DIR}/src/opentims++")
+  find_package(zstd QUIET)
+  if(TARGET zstd::libzstd_shared)
+    target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_shared)
+    message(STATUS "opentims: using system zstd (shared)")
+  elseif(TARGET zstd::libzstd_static)
+    target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_static)
+    message(STATUS "opentims: using system zstd (static)")
+  else()
+    # Compile opentims's bundled ZSTD decompression-only amalgamation
+    target_sources(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd/zstddeclib.c")
+    target_include_directories(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd")
+    message(STATUS "opentims: using bundled zstd decoder (system zstd not found)")
+  endif()
+
+  # Suppress warnings from third-party code
+  target_compile_options(opentims_cpp PRIVATE $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>)
+
+  message(STATUS "Built opentims_cpp from source: ${opentims_SOURCE_DIR}")
+endif()
 
 #------------------------------------------------------------------------------
 # Done finding contrib libraries
@@ -283,22 +335,6 @@ if(NOT MSVC AND NOT APPLE)
 endif()
 
 #------------------------------------------------------------------------------
-# QT
-#------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "6.1.0")
-
-# Qt6::Core is needed by TOPP tools and GUI, but NOT by libOpenMS itself.
-# When building without GUI (e.g., pyOpenMS wheels), Qt is optional.
-find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS Core QUIET)
-
-IF (Qt6Core_FOUND)
-  message(STATUS "Found Qt ${Qt6Core_VERSION}")
-ELSE()
-  message(STATUS "Qt6Core not found — TOPP tools and GUI will not be available")
-ENDIF()
-
-
-#------------------------------------------------------------------------------
 # PTHREAD
 #------------------------------------------------------------------------------
 # Prefer the -pthread compiler flag to be consistent with SQLiteCpp and avoid
@@ -308,7 +344,20 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
 
 
+#------------------------------------------------------------------------------
+# QT (only needed for GUI)
+#------------------------------------------------------------------------------
+SET(QT_MIN_VERSION "6.1.0")
+
 if (WITH_GUI)
+  find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS Core QUIET)
+
+  IF (Qt6Core_FOUND)
+    message(STATUS "Found Qt ${Qt6Core_VERSION}")
+  ELSE()
+    message(FATAL_ERROR "Qt6Core not found — required when WITH_GUI=ON. Use -DWITH_GUI=OFF to build without GUI.")
+  ENDIF()
+
   # --------------------------------------------------------------------------
   # Find additional Qt libs
   #---------------------------------------------------------------------------

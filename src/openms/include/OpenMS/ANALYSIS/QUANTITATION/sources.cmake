@@ -23,6 +23,8 @@ TMTElevenPlexQuantitationMethod.h
 TMTSixteenPlexQuantitationMethod.h
 TMTSixPlexQuantitationMethod.h
 TMTTenPlexQuantitationMethod.h
+TMTThirtyTwoPlexQuantitationMethod.h
+TMTThirtyFivePlexQuantitationMethod.h
 AbsoluteQuantitation.h
 AbsoluteQuantitationMethod.h
 )

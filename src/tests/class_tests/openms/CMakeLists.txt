@@ -78,77 +78,83 @@ if (WITH_HDF5)
   target_link_libraries(HDF5_test HDF5::HDF5)
 endif()
 
-if (WITH_PARQUET)
-  target_link_libraries(Arrow_test
+target_link_libraries(Arrow_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
-  )
-  target_link_libraries(MSExperimentArrowExport_test
+)
+target_link_libraries(MSExperimentArrowExport_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
-  )
-  target_link_libraries(ConsensusMapArrowExport_test
+)
+target_link_libraries(ConsensusMapArrowExport_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
-  )
-  target_link_libraries(QPXFile_test
+)
+target_link_libraries(QPXFile_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
-  )
-  target_link_libraries(ProteinIdentificationArrowIO_test
+)
+target_link_libraries(ProteinIdentificationArrowIO_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
-  )
-  target_link_libraries(FeatureMapArrowIO_test
+)
+target_link_libraries(FeatureMapArrowIO_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
-  )
-  target_link_libraries(ConsensusMapArrowIO_test
+)
+target_link_libraries(ConsensusMapArrowIO_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
-  )
-  target_link_libraries(Libzip_test
+)
+target_link_libraries(Libzip_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
-  )
-  target_compile_definitions(Libzip_test PRIVATE WITH_PARQUET)
-  target_link_libraries(ZipRandomAccessFile_test
+)
+target_link_libraries(ZipRandomAccessFile_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
-  )
-  target_compile_definitions(ZipRandomAccessFile_test PRIVATE WITH_PARQUET)
+)
 
-  if (TARGET TransitionParquetFile_test)
-    target_link_libraries(TransitionParquetFile_test
-      ${OPENMS_ARROW_TARGET}
-      ${OPENMS_PARQUET_TARGET}
-    )
-  endif()
-  if (TARGET OpenSwathOSWParquetReader_test)
-    target_link_libraries(OpenSwathOSWParquetReader_test
-      ${OPENMS_ARROW_TARGET}
-      ${OPENMS_PARQUET_TARGET}
-    )
-  endif()
-  if (TARGET OpenSwathOSWParquetWriter_test)
-    target_link_libraries(OpenSwathOSWParquetWriter_test
-      ${OPENMS_ARROW_TARGET}
-      ${OPENMS_PARQUET_TARGET}
-    )
-    target_compile_definitions(OpenSwathOSWParquetWriter_test PRIVATE WITH_PARQUET)
-  endif()
-  if (TARGET OpenSwathOSWParquetRoundTrip_test)
-    target_link_libraries(OpenSwathOSWParquetRoundTrip_test
-      ${OPENMS_ARROW_TARGET}
-      ${OPENMS_PARQUET_TARGET}
-    )
-  endif()
-  if (TARGET ArrowSchemaRegistry_test)
-    target_link_libraries(ArrowSchemaRegistry_test
-      ${OPENMS_ARROW_TARGET}
-      ${OPENMS_PARQUET_TARGET}
-    )
-  endif()
+if (TARGET TransitionParquetFile_test)
+  target_link_libraries(TransitionParquetFile_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
+if (TARGET OpenSwathOSWParquetReader_test)
+  target_link_libraries(OpenSwathOSWParquetReader_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
+if (TARGET OpenSwathOSWParquetWriter_test)
+  target_link_libraries(OpenSwathOSWParquetWriter_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
+if (TARGET OpenSwathOSWParquetRoundTrip_test)
+  target_link_libraries(OpenSwathOSWParquetRoundTrip_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
+if (TARGET ArrowSchemaRegistry_test)
+  target_link_libraries(ArrowSchemaRegistry_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
+
+if (TARGET BrukerTimsFile_test AND WITH_OPENTIMS)
+  target_link_libraries(BrukerTimsFile_test opentims_cpp sqlite3)
+endif()
+
+if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)
+  target_compile_definitions(BrukerTimsFile_test PRIVATE
+    OPENTIMS_DDA_TEST_DATA="${OPENTIMS_DDA_TEST_DATA}"
+    OPENTIMS_DIA_TEST_DATA="${OPENTIMS_DIA_TEST_DATA}"
+    OPENTIMS_TEST_FASTA="${OPENTIMS_TEST_FASTA}")
 endif()
 
 #------------------------------------------------------------------------------

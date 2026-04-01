@@ -15,8 +15,6 @@
 
 #include <OpenMS/config.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
@@ -1095,10 +1093,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 
 END_TEST
-
-#else // WITH_PARQUET
-
-START_TEST(FeatureMapArrowIO, "$Id$")
-END_TEST
-
-#endif // WITH_PARQUET

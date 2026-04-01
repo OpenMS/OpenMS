@@ -422,7 +422,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", { "mzML" } );
+    setValidFormats_("in", { "mzML", "d" } );
 
     registerOutputFile_("out", "<file>", "", "Single output file containing all search results.", true, false);
     setValidFormats_("out", { "idXML" } );
@@ -747,37 +747,45 @@ protected:
     // if "reindex" parameter is set to true: will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
-    map<String,unordered_map<int,String>> file2specnr2nativeid;
-    for (const auto& mzml : input_files)
-    {
-      // TODO stream mzml?
-      MzMLFile m;
-      MSExperiment exp;
-      auto opts = m.getOptions();
-      opts.setMSLevels({2,3});
-      opts.setFillData(false);
-      //opts.setMetadataOnly(true);
-      m.setOptions(opts);
-      m.load(mzml, exp);
-      String nIDType = "";
-      if (!exp.getSourceFiles().empty())
-      {
-        // TODO we could also guess the regex from the first nativeID if it is not stored here
-        //  but I refuse to link to Boost::regex just for this
-        //  Someone has to rework the API first!
-        nIDType = exp.getSourceFiles()[0].getNativeIDTypeAccession();
-      }
+    // Check if any input is a Bruker .d folder (not mzML) — skip mzML-specific post-processing
+    bool has_non_mzml_input = std::any_of(input_files.begin(), input_files.end(),
+      [](const String& f) { return !f.hasSuffix(".mzML"); });
 
-      for (const auto& spec : exp)
+    // Build native ID lookup from mzML files (not applicable for .d input)
+    map<String,unordered_map<int,String>> file2specnr2nativeid;
+    if (!has_non_mzml_input)
+    {
+      for (const auto& mzml : input_files)
       {
-        const String& nID = spec.getNativeID();
-        int nr = SpectrumLookup::extractScanNumber(nID, nIDType);
-        if (nr >= 0)
+        // TODO stream mzml?
+        MzMLFile m;
+        MSExperiment exp;
+        auto opts = m.getOptions();
+        opts.setMSLevels({2,3});
+        opts.setFillData(false);
+        //opts.setMetadataOnly(true);
+        m.setOptions(opts);
+        m.load(mzml, exp);
+        String nIDType = "";
+        if (!exp.getSourceFiles().empty())
         {
-          auto [it, inserted] = file2specnr2nativeid.emplace(File::basename(mzml), unordered_map<int,String>({{nr,nID}}));
-          if (!inserted)
+          // TODO we could also guess the regex from the first nativeID if it is not stored here
+          //  but I refuse to link to Boost::regex just for this
+          //  Someone has to rework the API first!
+          nIDType = exp.getSourceFiles()[0].getNativeIDTypeAccession();
+        }
+
+        for (const auto& spec : exp)
+        {
+          const String& nID = spec.getNativeID();
+          int nr = SpectrumLookup::extractScanNumber(nID, nIDType);
+          if (nr >= 0)
           {
-            it->second.emplace(nr,nID);
+            auto [it, inserted] = file2specnr2nativeid.emplace(File::basename(mzml), unordered_map<int,String>({{nr,nID}}));
+            if (!inserted)
+            {
+              it->second.emplace(nr,nID);
+            }
           }
         }
       }
@@ -814,63 +822,66 @@ protected:
       }
     }
 
-    // Annotate FAIMS compensation voltage if present in any input file
-    // Pre-group peptide indices by file for efficient lookup (avoids O(files * peptides))
-    std::map<Size, std::vector<Size>> file_to_peptide_indices;
-    for (Size i = 0; i < peptide_identifications.size(); ++i)
+    // Annotate FAIMS compensation voltage if present in any mzML input file
+    if (!has_non_mzml_input)
     {
-      const auto& pep = peptide_identifications[i];
-      if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+      // Pre-group peptide indices by file for efficient lookup (avoids O(files * peptides))
+      std::map<Size, std::vector<Size>> file_to_peptide_indices;
+      for (Size i = 0; i < peptide_identifications.size(); ++i)
       {
-        file_to_peptide_indices[pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)].push_back(i);
-      }
-    }
-
-    for (const auto& mzml : input_files)
-    {
-      // Find file index for this mzML
-      Size file_idx = 0;
-      for (const auto& [idx, fname] : idxToFile)
-      {
-        if (File::basename(fname) == File::basename(mzml))
+        const auto& pep = peptide_identifications[i];
+        if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
         {
-          file_idx = idx;
-          break;
+          file_to_peptide_indices[pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)].push_back(i);
         }
       }
 
-      // Skip if no peptides for this file
-      auto it = file_to_peptide_indices.find(file_idx);
-      if (it == file_to_peptide_indices.end() || it->second.empty())
+      for (const auto& mzml : input_files)
       {
-        continue;
-      }
-
-      // Load mzML metadata (no peak data needed)
-      MzMLFile m;
-      MSExperiment exp_full;
-      auto opts = m.getOptions();
-      opts.setFillData(false);
-      m.setOptions(opts);
-      m.load(mzml, exp_full);
-
-      // Collect peptide IDs for this file
-      PeptideIdentificationList file_peptides;
-      file_peptides.reserve(it->second.size());
-      for (Size idx : it->second)
-      {
-        file_peptides.push_back(peptide_identifications[idx]);
-      }
-
-      // Annotate FAIMS and copy back
-      SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(file_peptides, exp_full);
-      for (Size i = 0; i < file_peptides.size(); ++i)
-      {
-        if (file_peptides[i].metaValueExists(Constants::UserParam::FAIMS_CV))
+        // Find file index for this mzML
+        Size file_idx = 0;
+        for (const auto& [idx, fname] : idxToFile)
         {
-          peptide_identifications[it->second[i]].setMetaValue(
-            Constants::UserParam::FAIMS_CV,
-            file_peptides[i].getMetaValue(Constants::UserParam::FAIMS_CV));
+          if (File::basename(fname) == File::basename(mzml))
+          {
+            file_idx = idx;
+            break;
+          }
+        }
+
+        // Skip if no peptides for this file
+        auto it = file_to_peptide_indices.find(file_idx);
+        if (it == file_to_peptide_indices.end() || it->second.empty())
+        {
+          continue;
+        }
+
+        // Load mzML metadata (no peak data needed)
+        MzMLFile m;
+        MSExperiment exp_full;
+        auto opts = m.getOptions();
+        opts.setFillData(false);
+        m.setOptions(opts);
+        m.load(mzml, exp_full);
+
+        // Collect peptide IDs for this file
+        PeptideIdentificationList file_peptides;
+        file_peptides.reserve(it->second.size());
+        for (Size idx : it->second)
+        {
+          file_peptides.push_back(peptide_identifications[idx]);
+        }
+
+        // Annotate FAIMS and copy back
+        SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(file_peptides, exp_full);
+        for (Size i = 0; i < file_peptides.size(); ++i)
+        {
+          if (file_peptides[i].metaValueExists(Constants::UserParam::FAIMS_CV))
+          {
+            peptide_identifications[it->second[i]].setMetaValue(
+              Constants::UserParam::FAIMS_CV,
+              file_peptides[i].getMetaValue(Constants::UserParam::FAIMS_CV));
+          }
         }
       }
     }

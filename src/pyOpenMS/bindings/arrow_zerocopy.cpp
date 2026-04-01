@@ -157,8 +157,7 @@ static std::shared_ptr<arrow::Table> pyarrow_to_table(nb::object pa_table) {
 NB_MODULE(_arrow_zerocopy, m) {
     m.doc() = "Zero-copy Arrow export from OpenMS MSExperiment.\n\n"
               "This module provides zero-copy export of MS data to Apache Arrow format "
-              "using the Arrow C Data Interface. It is only available when OpenMS is "
-              "built with WITH_PARQUET=ON.\n\n"
+              "using the Arrow C Data Interface.\n\n"
               ".. warning::\n"
               "    **EXPERIMENTAL API**: This module is experimental and may change.";
 

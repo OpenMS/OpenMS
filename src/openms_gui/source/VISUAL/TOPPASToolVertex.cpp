@@ -508,7 +508,7 @@ namespace OpenMS
     // get *all* input|output file parameters (regardless if edge exists)
     QVector<IOInfo> in_params = getInputParameters(), out_params = getOutputParameters();
 
-    bool ini_round_dependent = false; // indicates if we need a new INI file for each round (usually GenericWrapper issue)
+    bool ini_round_dependent = false; // indicates if we need a new INI file for each round
 
     // maximum number of filenames per TOPP parameter file-list to put on the commandline
     // If more filenames are needed, e.g. for MapAligner's -in/-out etc., they are put in the .INI file
@@ -542,7 +542,7 @@ namespace OpenMS
         const QStringList& file_list = ite->second.filenames.get();
 
         bool store_to_ini = false;
-        // check for GenericWrapper input/output files and put them in INI file:
+        // check for ETool: input/output files and put them in INI file:
         // OR if there are a lot of input files (which might exceed the 8k length limit of cmd.exe on Windows)
         if (param_name.hasPrefix("ETool:") || file_list.size() > MAX_FILES_CMDLINE)
         {
@@ -585,7 +585,7 @@ namespace OpenMS
         
         const QStringList& output_files = output_files_[round][param_index].filenames.get();
         
-        // check for GenericWrapper input/output files and put them in INI file:
+        // check for ETool: input/output files and put them in INI file:
         // OR if there are a lot of input files (which might exceed the 8k length limit of cmd.exe on Windows)
         if (param_name.hasPrefix("ETool:") || output_files.size() > MAX_FILES_CMDLINE)
         {
@@ -615,7 +615,7 @@ namespace OpenMS
         }
       }
 
-      // each iteration might have different params (input/output items which are registered in subsections (GenericWrapper stuff))
+      // each iteration might have different params (input/output items which are registered in subsections)
       QString ini_file_iteration;
       if (ini_round_dependent)
       {
@@ -1190,7 +1190,7 @@ namespace OpenMS
   String TOPPASToolVertex::getOutputDir() const
   {
     TOPPASScene* ts = getScene_();
-    String workflow_dir = FileHandler::stripExtension(File::basename(ts->getSaveFileName()));
+    String workflow_dir = File::stemName(ts->getSaveFileName());
     if (workflow_dir.empty())
     {
       workflow_dir = "Untitled_workflow";

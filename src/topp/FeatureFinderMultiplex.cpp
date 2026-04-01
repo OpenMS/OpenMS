@@ -255,6 +255,20 @@ public:
     OPENMS_LOG_DEBUG << "Loading input..." << endl;
     file.loadExperiment(in_, exp, {FileTypes::MZML}, log_type_);
 
+    // Check for unsupported per-peak ion mobility data
+    for (const auto& spec : exp)
+    {
+      IMFormat im_format = IMTypes::determineIMFormat(spec);
+      if (im_format == IMFormat::IM_PEAK)
+      {
+        OPENMS_LOG_ERROR << "Error: Input contains per-peak ion mobility data (IM_PEAK, "
+                         << imPeakTypeToString(spec.getIMPeakType())
+                         << ") which is not supported by FeatureFinderMultiplex. "
+                         << "Preprocess with IonMobilityBinning or PeakPickerIM first." << std::endl;
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+    }
+
     // Prepare algorithm parameters
     Param params = getParam_();
     params.remove("in");

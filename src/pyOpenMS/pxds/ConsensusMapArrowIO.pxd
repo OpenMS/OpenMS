@@ -8,7 +8,7 @@ from ConsensusMap cimport *
 from MSExperimentArrowExport cimport *
 from libcpp cimport bool
 
-# OpenMS ConsensusMapArrowIO declarations (only available when WITH_PARQUET is enabled)
+# OpenMS ConsensusMapArrowIO declarations
 cdef extern from "<OpenMS/FORMAT/ConsensusMapArrowIO.h>" namespace "OpenMS":
 
     cdef cppclass ConsensusMapArrowIO:

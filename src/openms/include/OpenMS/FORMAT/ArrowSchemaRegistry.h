@@ -8,8 +8,6 @@
 
 #pragma once
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/OpenMSConfig.h>
 #include <memory>
 #include <string>
@@ -201,47 +199,102 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
-  /// @brief Schema for consensus feature export table with flattened PSM and quantification data
-  struct OPENMS_DLLAPI ConsensusFeatureExportSchema
+  /// @brief Schema for QPX PSM export (quantms Parquet eXchange format, PSM table)
+  ///
+  /// Defines column names, nested Arrow types, and the complete schema for
+  /// peptide-spectrum match data in the QPX format. Used by QPXFile for export.
+  struct OPENMS_DLLAPI QPXPSMSchema
   {
     static constexpr const char* SEQUENCE = "sequence";
     static constexpr const char* PEPTIDOFORM = "peptidoform";
     static constexpr const char* MODIFICATIONS = "modifications";
-    static constexpr const char* PRECURSOR_CHARGE = "precursor_charge";
-    static constexpr const char* CALCULATED_MZ = "calculated_mz";
-    static constexpr const char* OBSERVED_MZ = "observed_mz";
-    static constexpr const char* RT = "rt";
+    static constexpr const char* CHARGE = "charge";
     static constexpr const char* POSTERIOR_ERROR_PROBABILITY = "posterior_error_probability";
     static constexpr const char* IS_DECOY = "is_decoy";
+    static constexpr const char* CALCULATED_MZ = "calculated_mz";
+    static constexpr const char* OBSERVED_MZ = "observed_mz";
+    static constexpr const char* MASS_ERROR_PPM = "mass_error_ppm";
     static constexpr const char* ADDITIONAL_SCORES = "additional_scores";
     static constexpr const char* PREDICTED_RT = "predicted_rt";
-    static constexpr const char* REFERENCE_FILE_NAME = "reference_file_name";
+    static constexpr const char* RUN_FILE_NAME = "run_file_name";
     static constexpr const char* CV_PARAMS = "cv_params";
     static constexpr const char* SCAN = "scan";
+    static constexpr const char* RT = "rt";
     static constexpr const char* ION_MOBILITY = "ion_mobility";
-    static constexpr const char* START_ION_MOBILITY = "start_ion_mobility";
-    static constexpr const char* STOP_ION_MOBILITY = "stop_ion_mobility";
+    static constexpr const char* MISSED_CLEAVAGES = "missed_cleavages";
+    static constexpr const char* PROTEIN_ACCESSIONS = "protein_accessions";
+    static constexpr const char* CROSS_LINKS = "cross_links";
+    static constexpr const char* MZ_ARRAY = "mz_array";
+    static constexpr const char* INTENSITY_ARRAY = "intensity_array";
+    static constexpr const char* CHARGE_ARRAY = "charge_array";
+    static constexpr const char* ION_TYPE_ARRAY = "ion_type_array";
+    static constexpr const char* ION_MOBILITY_ARRAY = "ion_mobility_array";
+
+    /// @brief Arrow type for modifications: list<struct{name, accession, positions: list<struct{position, amino_acid, scores}>}>
+    static std::shared_ptr<arrow::DataType> modificationsType();
+    /// @brief Arrow type for additional scores: list<struct{score_name, score_value, higher_better}>
+    static std::shared_ptr<arrow::DataType> additionalScoresType();
+    /// @brief Arrow type for CV params: list<struct{cv_name, cv_value}>
+    static std::shared_ptr<arrow::DataType> cvParamsType();
+    /// @brief Arrow type for cross-links: list<struct{xl_type, partner_sequence, ...}>
+    static std::shared_ptr<arrow::DataType> crossLinksType();
+    /// @brief Complete Arrow schema for QPX PSM table (24 fields)
+    static std::shared_ptr<arrow::Schema> schema();
+  };
+
+  /// @brief Schema for QPX feature view (quantms Parquet eXchange format)
+  ///
+  /// Defines column names, nested Arrow types, and the complete schema for
+  /// consensus feature data in the QPX format. Used by ConsensusMapArrowExport.
+  struct OPENMS_DLLAPI QPXFeatureSchema
+  {
+    static constexpr const char* SEQUENCE = "sequence";
+    static constexpr const char* PEPTIDOFORM = "peptidoform";
+    static constexpr const char* MODIFICATIONS = "modifications";
+    static constexpr const char* CHARGE = "charge";
+    static constexpr const char* POSTERIOR_ERROR_PROBABILITY = "posterior_error_probability";
+    static constexpr const char* IS_DECOY = "is_decoy";
+    static constexpr const char* CALCULATED_MZ = "calculated_mz";
+    static constexpr const char* OBSERVED_MZ = "observed_mz";
+    static constexpr const char* MASS_ERROR_PPM = "mass_error_ppm";
+    static constexpr const char* ADDITIONAL_SCORES = "additional_scores";
+    static constexpr const char* PREDICTED_RT = "predicted_rt";
+    static constexpr const char* RUN_FILE_NAME = "run_file_name";
+    static constexpr const char* CV_PARAMS = "cv_params";
+    static constexpr const char* SCAN = "scan";
+    static constexpr const char* RT = "rt";
+    static constexpr const char* ION_MOBILITY = "ion_mobility";
+    static constexpr const char* MISSED_CLEAVAGES = "missed_cleavages";
     static constexpr const char* INTENSITIES = "intensities";
     static constexpr const char* ADDITIONAL_INTENSITIES = "additional_intensities";
     static constexpr const char* PG_ACCESSIONS = "pg_accessions";
     static constexpr const char* ANCHOR_PROTEIN = "anchor_protein";
     static constexpr const char* UNIQUE = "unique";
     static constexpr const char* PG_GLOBAL_QVALUE = "pg_global_qvalue";
+    static constexpr const char* PG_POSITIONS = "pg_positions";
+    static constexpr const char* ION_MOBILITY_START = "ion_mobility_start";
+    static constexpr const char* ION_MOBILITY_STOP = "ion_mobility_stop";
     static constexpr const char* GG_ACCESSIONS = "gg_accessions";
     static constexpr const char* GG_NAMES = "gg_names";
-    static constexpr const char* SCAN_REFERENCE_FILE_NAME = "scan_reference_file_name";
+    static constexpr const char* ID_RUN_FILE_NAME = "id_run_file_name";
     static constexpr const char* RT_START = "rt_start";
     static constexpr const char* RT_STOP = "rt_stop";
-    static constexpr const char* QUALITY = "quality";
-    static constexpr const char* SCORE = "score";
-    static constexpr const char* SCORE_TYPE = "score_type";
-    static constexpr const char* SPECTRUM_REFERENCE = "spectrum_reference";
-    static constexpr const char* FEATURE_METAVALUES = "feature_metavalues";
 
+    /// @brief Arrow type for modifications (delegates to QPXPSMSchema::modificationsType)
     static std::shared_ptr<arrow::DataType> modificationsType();
+    /// @brief Arrow type for additional scores (delegates to QPXPSMSchema::additionalScoresType)
     static std::shared_ptr<arrow::DataType> additionalScoresType();
+    /// @brief Arrow type for CV params (delegates to QPXPSMSchema::cvParamsType)
+    static std::shared_ptr<arrow::DataType> cvParamsType();
+    /// @brief Arrow type for intensities: list<struct{label, intensity}>
     static std::shared_ptr<arrow::DataType> intensitiesType();
-    static std::shared_ptr<arrow::DataType> metavaluesType();
+    /// @brief Arrow type for additional intensities: list<struct{label, intensities: list<struct{...}>}>
+    static std::shared_ptr<arrow::DataType> additionalIntensitiesType();
+    /// @brief Arrow type for protein group accessions: list<struct{accession, start, end, pre, post}>
+    static std::shared_ptr<arrow::DataType> pgAccessionsType();
+    /// @brief Arrow type for protein group positions: list<struct{protein_accession, start, end}>
+    static std::shared_ptr<arrow::DataType> pgPositionsType();
+    /// @brief Complete Arrow schema for QPX feature table (31 fields)
     static std::shared_ptr<arrow::Schema> schema();
   };
 
@@ -544,5 +597,3 @@ namespace OpenMS
   };
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET
