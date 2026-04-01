@@ -14,7 +14,6 @@
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/SYSTEM/File.h>
 
-//~ #include <QIODevice>
 #include <iostream>
 #include <fstream>
 #include <vector>
