@@ -22,7 +22,7 @@ if (ADDRESS_SANITIZER)
     endif()
 endif()
 
-find_package (yaml-cpp 0.8.0 QUIET)
+find_package (yaml-cpp 0.9.0 QUIET)
 if (NOT yaml-cpp_FOUND)
     if (NOT ${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY)
         message (STATUS "Fetching yaml-cpp")
