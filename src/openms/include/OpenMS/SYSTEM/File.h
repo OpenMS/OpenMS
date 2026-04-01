@@ -35,9 +35,16 @@ public:
     {
     public:
       
-      /// Construct temporary folder
+      /// Construct temporary folder under system temp directory
       /// If keep_dir is set to true, the folder will not be deleted on destruction of the object.
       TempDir(bool keep_dir = false);
+
+      /// Construct temporary folder under a custom base directory
+      /// Creates a unique subdirectory with a generated name under base_dir.
+      /// If keep_dir is set to true, the folder will not be deleted on destruction of the object.
+      /// @param base_dir The base directory under which to create the temp folder (e.g., user-specified temp path)
+      /// @param keep_dir If true, the folder will not be deleted on destruction
+      TempDir(const String& base_dir, bool keep_dir = false);
 
       /// Destroy temporary folder (can be prohibited in Constructor)
       ~TempDir();
