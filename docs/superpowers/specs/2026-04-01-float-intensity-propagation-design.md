@@ -66,6 +66,8 @@ TSV/OSW output.
 | `PeakIntegrator` hull points | `PeakIntegrator.h` materializes convex hull points as `DPosition<2>` (double). Stays double — these feed into `FeatureOpenMS::getIntensity()` which handles conversion |
 | `OpenSwath_Scores` scalar fields (~42 doubles) | Computed score results, not intensity storage arrays; no memory benefit from changing scalars |
 | `DataValue::DOUBLE_LIST` | `MRMFeature.cpp` stores `OpenSwath_Ind_Scores` vectors as `DataValue` meta values typed `DOUBLE_LIST`. Convert `vector<float>` to `DoubleList` at the `MRMFeature` boundary. OSW writers read these via `Feature::getMetaValue()` as `DOUBLE_LIST` — no writer changes needed |
+| `ITransitionGroup::getLibraryIntensities(vector<double>&)` | Virtual interface in `openswathalgo`. After PR 3 changes `ReactionMonitoringTransition::library_intensity_` to float, this becomes a float->double widening boundary. Stays double — deferred with `normalized_library_intensity` |
+| `LightTransition::library_intensity` (`double`) | In `openswathalgo` `TransitionExperiment.h:108`. Stays double — deferred with library intensity changes |
 
 ## PR Structure
 
@@ -88,7 +90,7 @@ and `double`. This is the foundation PR that unblocks PR 2.
 | `normalize_sum(vector<T>&)` | Simple arithmetic |
 | `NormalizedManhattanDist(vector<T>&, vector<T>&)` | Currently non-templated overload |
 | `RootMeanSquareDeviation(const vector<T>&, const vector<T>&)` | Currently non-templated overload |
-| `SpectralAngle(const vector<T>&, const vector<T>&)` | No Eigen dependency |
+| `SpectralAngle(const vector<T>&, const vector<T>&)` | Uses `Eigen::Map` internally despite being arithmetic |
 | `computeAndAppendRank(const vector<T>&, vector<unsigned int>&)` | Called by computeRankVector; used by MI scoring |
 | `computeRankVector(const vector<vector<T>>&, vector<vector<unsigned int>>&)` | Calls computeAndAppendRank; used in MRMScoring and MRMTransitionGroupPicker |
 
@@ -114,10 +116,17 @@ Files: `ITransition.h` (interface), `MRMFeatureAccessOpenMS.h/.cpp` (FeatureOpen
 | `dotprodScoring(vector<T>, vector<T>)` | Dot product scoring |
 | `manhattanScoring(vector<T>, vector<T>)` | Manhattan scoring |
 
+**Additional explicit instantiations needed**: `dotprodScoring<float>` calls `norm()` and
+`manhattanScoring<float>` calls `manhattanDist()` — both are already templated but only have
+`double` iterator instantiations. Add `float` iterator instantiations for `norm` and
+`manhattanDist` in `StatsHelpers.cpp`. Also template the internal `detail::normalize_sum_impl`
+helper in `Scoring.cpp` (called by `normalize_sum` and `NormalizedManhattanDist`).
+
 **Implementation approach**: Template on scalar type `T`, use `Eigen::Matrix<T, Dynamic, 1>`
 internally. Add explicit template instantiations for `float` and `double` in the `.cpp` files.
 This matches the existing pattern -- `StatsHelpers.cpp` already does explicit instantiation
-for `dotProd<float>`, `dotProd<double>`.
+for `dotProd<float>`, `dotProd<double>`. Note: `calculateCrossCorrelation` has raw
+`const double* __restrict` pointers that must become `const T*`.
 
 **PR scope note**: PR 0 combines openswathalgo templating with the `IFeature` float overload.
 Both are foundation work that PR 2 depends on, and neither is large enough to warrant a
@@ -140,9 +149,8 @@ returns `float`.
 |------|--------|
 | `PROCESSING/RESAMPLING/LinearResampler.h:106-111` | Remove four `static_cast<double>(getIntensity())` calls in the resampling block |
 | `ANALYSIS/OPENSWATH/MRMScoring.cpp:556` | Remove `static_cast<double>(getIntensity())` |
-| `ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h:491` | `const double` -> `const auto` / `IntensityType` |
+| `ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h:491,640` | Remove `static_cast<double>(getIntensity())` at both fragment and precursor blocks. Keep type as `double` (implicit promotion) to avoid changing arithmetic precision in `(left + right) / 2` |
 | `QUANTITATION/IsotopeLabelingMDVs.cpp:204` | Remove `(double)(it->getIntensity())` C-style cast |
-| `FORMAT/QcMLFile.cpp:1275` | `double sum` -> `float` / `IntensityType` |
 | `PROCESSING/SMOOTHING/GaussFilter.cpp:62` | Remove `static_cast<double>` (prepares for PR 2) |
 
 **Testing**: All existing unit tests pass unchanged.
@@ -156,8 +164,9 @@ appropriate) in scoring, peak picking, and signal processing.
 |------|--------|
 | `ANALYSIS/OPENSWATH/MRMScoring.cpp:53-111` | `vector<vector<double>>` intensity matrices -> `vector<vector<float>>`. Both `fillIntensityFromFeature` and `fillIntensityFromPrecursorFeature` must change (identical structure, both call `IFeature::getIntensity`). Public methods `initializeXCorrMatrix(const vector<vector<double>>&)` and `initializeXCorrPrecursorContrastMatrix(...)` need float overloads or templating. |
 | `ANALYSIS/OPENSWATH/OpenSwathScores.h:190-231` | `OpenSwath_Ind_Scores`: change only intensity-derived fields to `vector<float>` (see field audit below). Coordinate/score fields stay `double`. |
-| `ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.cpp:457-458` | Per-transition score vectors -> `vector<float>` |
-| `ANALYSIS/OPENSWATH/OpenSwathScoring.cpp:109,364,519` | Intensity arrays feeding into MRMScoring -> `vector<float>` |
+| `ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.cpp:390-398` | Per-transition intensity assignments to `idscores.ind_area_intensity` etc. — these 3 fields become `vector<float>` |
+| `ANALYSIS/OPENSWATH/MRMScoring.cpp:543-544` | `experimental_intensity` vector in `calcLibraryScore()` -> `vector<float>` (populated from `getIntensity()`) |
+| `ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h:811-831` | `vector<double> int_here` and `all_ints` intensity vectors feeding into Scoring functions -> `vector<float>` |
 | `ANALYSIS/OPENSWATH/PeakPickerChromatogram.cpp:216` | `vector<double> intensity` -> `vector<float>` |
 | `ANALYSIS/OPENSWATH/IonMobilityScoring.cpp:116-135` | `extractIntensities()` return/output -> `vector<float>` |
 | `ANALYSIS/OPENSWATH/DIAHelper.h:63` | `integrated_windows_intensity` parameter -> `vector<float>` (m/z and IM stay double) |
@@ -172,7 +181,10 @@ chromatogram and Crawdad is optional (`#ifdef WITH_CRAWDAD`).
 
 - `DIAHelper::integrateWindows` changes `vector<double>&` to `vector<float>&` for intensity
   output -> `DIAPrescoring.cpp` must change `intExp` to `vector<float>` -> `intExp` is passed
-  to `OpenSwath::normalize(intExp, ...)` which is templated in PR 0 -> no additional changes.
+  to `OpenSwath::normalize(intExp, ...)` (templated in PR 0) and
+  `OpenSwath::manhattanDist(intExp.cbegin(), ..., intTheor.cbegin())`. If `intTheor` stays
+  `vector<double>`, this creates a mixed-type iterator instantiation that needs explicit
+  instantiation in `StatsHelpers.cpp`, or `intTheor` must also become `vector<float>`.
 - `IonMobilityScoring::extractIntensities()` returns `vector<float>` -> passed to
   `MRMScoring::initializeXCorrMatrix(const vector<vector<float>>&)` -> needs float overload
   in `MRMScoring.h`.
@@ -202,13 +214,13 @@ need no changes themselves.
 
 | Category | Fields | Type |
 |----------|--------|------|
-| **Intensity** (change to `float`) | `ind_area_intensity`, `ind_total_area_intensity`, `ind_apex_intensity`, `ind_log_intensity`, `ind_intensity_score`, `ind_intensity_ratio` | `vector<float>` |
-| **Scores/coefficients** (stay `double`) | `ind_xcorr_coelution_score`, `ind_xcorr_shape_score`, `ind_log_sn_score`, `ind_isotope_correlation`, `ind_isotope_overlap`, `ind_massdev_score`, `ind_mi_score`, `ind_mi_ratio`, `ind_total_mi`, `ind_im_delta_score`, `ind_im_contrast_*`, `ind_im_sum_contrast_*`, `ind_im_log_intensity` (log-transformed score, not raw intensity) | `vector<double>` |
+| **Intensity** (change to `float`) | `ind_area_intensity`, `ind_total_area_intensity`, `ind_apex_intensity` | `vector<float>` |
+| **Scores/coefficients** (stay `double`) | `ind_xcorr_coelution_score`, `ind_xcorr_shape_score`, `ind_log_sn_score`, `ind_isotope_correlation`, `ind_isotope_overlap`, `ind_massdev_score`, `ind_mi_score`, `ind_mi_ratio`, `ind_total_mi`, `ind_im_delta_score`, `ind_im_contrast_*`, `ind_im_sum_contrast_*`, `ind_intensity_score` (ratio: area/total_xic), `ind_intensity_ratio` (ratio of ratios), `ind_log_intensity` (log-transformed), `ind_im_log_intensity` (log-transformed) | `vector<double>` |
 | **Coordinates/positions** (stay `double`) | `ind_apex_position`, `ind_start_position_at_5..50`, `ind_end_position_at_5..50`, `ind_im_drift`, `ind_im_drift_left`, `ind_im_drift_right`, `ind_im_delta` | `vector<double>` |
-| **Shape metrics** (stay `double`) | `ind_tailing_factor`, `ind_asymmetry_factor`, `ind_slope_of_baseline`, `ind_baseline_delta_2_height`, `ind_fwhm` | `vector<double>` |
+| **Shape metrics** (stay `double`) | `ind_tailing_factor`, `ind_asymmetry_factor`, `ind_slope_of_baseline`, `ind_baseline_delta_2_height`, `ind_fwhm`, `ind_total_width`, `ind_points_across_baseline`, `ind_points_across_half_height` | `vector<double>` |
 
-Only 6 of ~40 fields are genuine intensity values. The rest are computed scores, RT/IM
-coordinates, log-transformed values, or shape metrics that remain `double` per the type policy.
+Only 3 of 40 fields are genuine raw intensity values. The rest are computed scores, ratios,
+log-transforms, RT/IM coordinates, or shape metrics that remain `double` per the type policy.
 
 **`normalized_library_intensity` handling:** This parameter in `OpenSwathScoring` and
 `MRMScoring` stays `vector<double>` (deferred). The templated scoring functions will be
@@ -220,7 +232,8 @@ at the respective call sites.
 | File | Change |
 |------|--------|
 | `ANALYSIS/QUANTITATION/IsobaricChannelExtractor.cpp:688` | `extractSingleSpec()` return type -> `vector<float>` |
-| `ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.cpp:29-68` | Buffer vectors -> `vector<float>`; convert to `double` at NNLS solver call boundary only |
+| `ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.cpp:29-68` | Internal buffers (`b`, `m_b`, `x`, `m_x`) feed LU decomposition and NNLS directly with ~10-element arrays — keep as `double` internally. Only change `getIntensities_()` return type if needed; otherwise no changes to this file |
+| `src/topp/IsobaricWorkflow.cpp:630` | Main caller of `extractSingleSpec()` — stores result as `vector<double>` for NNLS. Must convert `vector<float>` return to `vector<double>` before NNLS call (non-const ref param) |
 | `ANALYSIS/MRM/ReactionMonitoringTransition.h:292` | `double library_intensity_` -> `Peak1D::IntensityType` |
 | `ANALYSIS/TARGETED/MetaboTargetedAssay.h:33` | `double precursor_int` -> `Peak1D::IntensityType` |
 
@@ -240,7 +253,7 @@ Change in-memory buffer types during file I/O. Wire format stays `double` on dis
 | `FORMAT/DATAACCESS/MSChromatogramParquetConsumer.cpp:419-430` | Keep `intensity_data` as `vector<double>` — the `encodeNP(vector<float>)` overload allocates a temporary `vector<double>` internally, so switching to float would add overhead vs the current `encodeNPRaw()` path. No change needed here. |
 | `FORMAT/XICParquetFile.h:91-92` | `vector<double> intensity` -> `vector<float>` in output struct |
 | `FORMAT/XICParquetFile.cpp:330-351` | Decode as double from disk, narrow to float for output |
-| `FORMAT/HANDLERS/CachedMzMLHandler.h:52-54` | `DatumSingleton` stays `double` (wire format type); convert to float after read, widen to double before write |
+| `FORMAT/HANDLERS/CachedMzMLHandler.h:52-54` | No change needed — code already narrows double->float on read via `setIntensity()` and widens float->double on write via `getIntensity()`. The wire format stays `double`. |
 
 **MSNumpressCoder**: The `encodeNP(vector<float>)` overload allocates a temporary
 `vector<double>` internally, making it strictly slower than the current `encodeNPRaw()`
@@ -268,15 +281,13 @@ float precision.
 - `src/openms/source/ANALYSIS/OPENSWATH/MRMScoring.cpp`
 - `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h`
 - `src/openms/source/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.cpp`
-- `src/openms/source/FORMAT/QcMLFile.cpp`
 - `src/openms/source/PROCESSING/SMOOTHING/GaussFilter.cpp`
 
 ### PR 2 (algorithm internals)
 - `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h`
 - `src/openms/source/ANALYSIS/OPENSWATH/MRMScoring.cpp`
+- `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h` (intensity vectors at lines 811-831)
 - `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h`
-- `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h`
-- `src/openms/source/ANALYSIS/OPENSWATH/OpenSwathScoring.cpp`
 - `src/openms/source/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.cpp`
 - `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h`
 - `src/openms/source/ANALYSIS/OPENSWATH/PeakPickerChromatogram.cpp`
@@ -286,12 +297,13 @@ float precision.
 - `src/openms/source/ANALYSIS/OPENSWATH/DIAHelper.cpp`
 - `src/openms/source/ANALYSIS/OPENSWATH/DIAPrescoring.cpp`
 - `src/openms/source/KERNEL/MRMFeature.cpp`
+- `src/openms/include/OpenMS/PROCESSING/SMOOTHING/GaussFilterAlgorithm.h` (narrowing cast in `filter()` template)
 - `src/openms/source/PROCESSING/SMOOTHING/GaussFilter.cpp`
 
 ### PR 3 (quantitation and metadata)
 - `src/openms/source/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.cpp`
 - `src/openms/include/OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h`
-- `src/openms/source/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.cpp`
+- `src/topp/IsobaricWorkflow.cpp` (caller of extractSingleSpec — convert float return to double for NNLS)
 - `src/openms/include/OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h`
 - `src/openms/source/ANALYSIS/MRM/ReactionMonitoringTransition.cpp`
 - `src/openms/include/OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h`
@@ -299,8 +311,6 @@ float precision.
 ### PR 4 (I/O in-memory buffers)
 - `src/openms/include/OpenMS/FORMAT/XICParquetFile.h`
 - `src/openms/source/FORMAT/XICParquetFile.cpp`
-- `src/openms/include/OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h`
-- `src/openms/source/FORMAT/HANDLERS/CachedMzMLHandler.cpp`
 
 ## Risks and Mitigations
 
@@ -312,7 +322,11 @@ float precision.
 | Eigen float path performance differs from double | Benchmark cross-correlation on representative data in PR 0 |
 | CachedMzMLHandler read/write asymmetry during rollout | Old files (double on disk) must still read correctly; test with existing cached files |
 | New double->float conversion at `IFeature::getIntensity()` boundary | Default impl converts from double; `FeatureOpenMS` override can extract float directly from hull points to avoid copy. Benchmark to confirm no regression |
-| `GaussFilterAlgorithm::integrate_()` double->float narrowing | Add explicit `static_cast<float>` at assignment to suppress compiler warnings |
+| `GaussFilterAlgorithm::integrate_()` double->float narrowing | Add explicit `static_cast<float>` at assignment in `GaussFilterAlgorithm.h:133` to suppress compiler warnings |
+| `IonMobilityScoring` mixed-type vectors | `ms1_int_values` stays `vector<double>` while `aligned_int_vec` becomes `vector<float>`. `initializeXCorrPrecursorContrastMatrix` needs overloads accepting mixed types, or `ms1_int_values` also changes to float |
+| `DIAPrescoring.cpp:180` mixed-type iterator linker error | `manhattanDist(float_iter, float_iter, double_iter)` has no explicit instantiation. Either add mixed-type instantiation in StatsHelpers.cpp, or change `intTheor` to `vector<float>` |
+| TraML/TSV round-trip precision for `library_intensity` | `String(float)` uses 6-digit precision vs `String(double)` 15 digits. TraML/TSV output will differ at ~7th digit. Acceptable for library intensity values but should be verified in tests |
+| pyOpenMS silent precision reduction | PR 3: `getLibraryIntensity()` and `precursor_int` return float to Python. PR 4: XIC intensity values at float precision. No compilation break — behavioral only |
 
 ## Conversion Map
 
@@ -335,7 +349,7 @@ MSChromatogram [float intensity]
                       -> XCorrArrayType [double]     [stays double — correlation coefficients]
                         -> OpenSwath_Scores [double]   [stays double — scalar results]
 
-OpenSwath_Ind_Scores (6 float fields, ~34 double fields)
+OpenSwath_Ind_Scores (3 float fields, 37 double fields)
   -> MRMFeature::IDScoresAsMetaValue()
     -> DataValue::DOUBLE_LIST            [stays double — conversion at boundary]
       -> OSW writers                       [unchanged]
@@ -359,5 +373,11 @@ Conversions removed:
 - Changing `OpenSwath_Scores` scalar fields (42 doubles -- computed results, not arrays)
 - Mobilogram/XIM analogous paths (`PeakPickerMobilogram.h`, `MobilogramParquetConsumer.cpp`, `XIMParquetFile.h`, `PeakPickerIM.cpp`) -- similar patterns exist but are deferred to a follow-up
 - Additional intensity-double sites in `ConfidenceScoring.cpp`, `ModifiedSincSmoother.cpp`, `OpenSwathOSWParquetReader.h` -- deferred to follow-up
-- `normalized_library_intensity` parameter in `MRMScoring.h`, `OpenSwathScoring.h`, `DIAScoring.h` -- deferred
-- pyOpenMS binding changes (float IntensityType is already handled by PR #8857)
+- **Library intensity fields**: `normalized_library_intensity` in `MRMScoring.h`, `OpenSwathScoring.h`, `DIAScoring.h`; `LightTransition::library_intensity` in `TransitionExperiment.h:108`; `TSVTransition::library_intensity` in `TransitionTSVFile.h:137`; library vectors in `MRMAssay.cpp:925,1102,1480`
+- **BinaryDataArray boundary scalars**: `DIAHelper::integrateWindow` scalar `double& intensity`, `IonMobilityScoring::computeIonMobilogram` scalar `double& intensity`, `ChromatogramExtractorAlgorithm::extractChromatograms` scalar `double& integrated_intensity`
+- **Spectrum processing (non-OpenSWATH)**: `SpectraMerger.h`, `Deisotoper.cpp`, `PeakPickerHiRes.cpp`, `PeakPickerIterative.h`, `SplineInterpolatedPeaks.h/cpp`
+- **I/O format boundaries**: `BrukerTimsFile.cpp` intensity vectors
+- **Reader-side structs**: `OpenSwathOSWParquetReader.h:86-88` (`area_intensity`, `total_area_intensity`, `apex_intensity` vectors)
+- **QcMLFile.cpp:1275**: `double sum = getIntensity()` — cannot change to float because `String(float)` uses different precision formatting than `String(double)`, causing output format change
+- **CachedMzMLHandler**: Already handles float/double conversion correctly at read/write boundaries. No changes needed.
+- pyOpenMS binding compilation unaffected (float IntensityType handled by PR #8857). PR 3 and PR 4 silently reduce precision for `getLibraryIntensity()`, `precursor_int`, and XIC intensity values returned to Python — behavioral only, no compilation break
