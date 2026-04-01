@@ -63,8 +63,18 @@ namespace OpenMS
   {
 
 protected:
+	  /// Comparator for Element pointers that uses atomic number for deterministic ordering
+	  struct ElementPtrComparator_
+	  {
+	    bool operator()(const Element* a, const Element* b) const
+	    {
+	      // Compare by atomic number for deterministic, platform-independent ordering
+	      return a->getAtomicNumber() < b->getAtomicNumber();
+	    }
+	  };
+
 	  /// Internal typedef for the used map type
-	  typedef std::map<const Element*, SignedSize> MapType_;
+	  typedef std::map<const Element*, SignedSize, ElementPtrComparator_> MapType_;
 
 public:
     /** @name Typedefs

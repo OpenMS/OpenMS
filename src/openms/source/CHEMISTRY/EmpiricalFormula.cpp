@@ -669,37 +669,8 @@ namespace OpenMS
       return charge_ < rhs.charge_;
     }
     
-    // Deterministic comparison: compare elements by atomic number, not pointer address
-    auto it1 = formula_.begin();
-    auto it2 = rhs.formula_.begin();
-    while (it1 != formula_.end() && it2 != rhs.formula_.end())
-    {
-      const Element* e1 = it1->first;
-      const Element* e2 = it2->first;
-      
-      // Fast path: same element pointer
-      if (e1 != e2)
-      {
-        // Compare by atomic number for deterministic ordering
-        unsigned int atom_num1 = e1->getAtomicNumber();
-        unsigned int atom_num2 = e2->getAtomicNumber();
-        if (atom_num1 != atom_num2)
-        {
-          return atom_num1 < atom_num2;
-        }
-      }
-      
-      // Same element (or same atomic number), compare counts
-      if (it1->second != it2->second)
-      {
-        return it1->second < it2->second;
-      }
-      ++it1;
-      ++it2;
-    }
-    
-    // All elements matched
-    return false;
+    // Map comparison is now deterministic due to ElementPtrComparator_ in the map definition
+    return formula_ < rhs.formula_;
   }
 
   EmpiricalFormula EmpiricalFormula::hydrogen(int n_atoms)
