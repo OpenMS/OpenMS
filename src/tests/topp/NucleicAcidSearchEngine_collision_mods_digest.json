@@ -51,14 +51,14 @@
         },
         {
             "charge": 3,
-            "formula": "K2Na1",
+            "formula": "K1Na2",
             "id": 8,
             "mol_multiplier": 1,
             "name": "NaK2:+++"
         },
         {
             "charge": 3,
-            "formula": "K1Na2",
+            "formula": "K2Na1",
             "id": 9,
             "mol_multiplier": 1,
             "name": "Na2K:+++"
