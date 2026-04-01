@@ -346,6 +346,41 @@ namespace OpenMS
     return file.substr(file.find_last_of("\\/") + 1);
   }
 
+  String File::stemName(const String& file)
+  {
+    return FileHandler::stripExtension(basename(file));
+  }
+
+  String File::extension(const String& file)
+  {
+    String base = basename(file);
+    String stem = FileHandler::stripExtension(base);
+    if (stem.size() >= base.size())
+    {
+      return ""; // no extension (stripExtension returned the same or longer string)
+    }
+    return base.substr(stem.size()); // everything after the stem, including leading '.'
+  }
+
+  StringList File::listDirectories(const String& dir)
+  {
+    StringList result;
+    auto dir_path = to_path(dir);
+    std::error_code ec;
+    if (!fs::is_directory(dir_path, ec)) return result;
+
+    for (fs::directory_iterator it(dir_path, ec), end; !ec && it != end; it.increment(ec))
+    {
+      if (it->is_directory(ec))
+      {
+        result.push_back(fs::absolute(it->path(), ec).generic_string());
+      }
+    }
+    if (ec) return {};
+    std::sort(result.begin(), result.end());
+    return result;
+  }
+
   String File::path(const String& file)
   {
     size_t pos = file.find_last_of("\\/");

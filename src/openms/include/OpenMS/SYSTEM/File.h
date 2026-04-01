@@ -144,6 +144,23 @@ public:
     /// However, '/path/some_entity/' will return ''.
     static String basename(const String& file);
 
+    /// Returns the basename of the file without any known file extension.
+    /// Delegates to FileHandler::stripExtension(File::basename(file)).
+    /// E.g., "/path/sample.mzML.gz" returns "sample", "/path/data.featureXML" returns "data".
+    /// Unknown extensions are stripped at the last dot: "/path/file.txt" returns "file".
+    /// Directories with dots in the path are handled correctly: "/my.dir/file" returns "file".
+    static String stemName(const String& file);
+
+    /// Returns the file extension including the leading dot.
+    /// Recognizes compound OpenMS extensions like ".mzML.gz".
+    /// E.g., "/path/sample.mzML.gz" returns ".mzML.gz", "/path/file.txt" returns ".txt".
+    /// Returns empty string if there is no extension: "/path/file" returns "".
+    static String extension(const String& file);
+
+    /// Returns a sorted list of subdirectory absolute paths (non-recursive) in the given directory.
+    /// Uses '/' separators. Returns an empty list on any error or if the path is not a directory (no throw).
+    static StringList listDirectories(const String& dir);
+
     /// Returns the path of the file (without the file name and without path separator).
     /// If just a filename is given without any path, then "." is returned.
     /// No checking is done on the filesystem, i.e. '/path/some_entity' will return '/path', irrespective of 'some_entity' is a file or a directory.

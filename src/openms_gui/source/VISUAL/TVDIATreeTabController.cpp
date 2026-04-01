@@ -11,7 +11,6 @@
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
@@ -72,7 +71,7 @@ namespace OpenMS
     // add data and return if something went wrong
     if (!w->canvas()->addChromLayer(ml.full_chrom_exp_sptr, ml.ondisc_sptr, ml.annot_sptr,
                                     chrom_index, ml.filename, 
-                                    FileHandler::stripExtension(File::basename(ml.filename)),
+                                    File::stemName(ml.filename),
                                     String("[") + transition_id + "]"))
     {
       return false;

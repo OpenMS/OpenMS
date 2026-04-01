@@ -40,7 +40,8 @@ Pick `bindings/bind_<domain>.cpp` based on the C++ header path:
 | `FEATUREFINDER/` | `bind_featurefinder.cpp` |
 | `DATASTRUCTURES/`, `MATH/`, `CONCEPT/` | `bind_datastructures.cpp` |
 | `ML/` | `bind_ml.cpp` |
-| Everything else | `bind_misc.cpp` |
+| `IONMOBILITY/` enums (`DriftTimeUnit`, `IMFormat`, `IMPeakType`) | `bind_kernel.cpp` |
+| Everything else (incl. `IONMOBILITY/IMTypes`) | `bind_misc.cpp` |
 
 ### 2. Add the `#include` and class binding
 
