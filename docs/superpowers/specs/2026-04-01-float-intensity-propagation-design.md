@@ -119,6 +119,11 @@ internally. Add explicit template instantiations for `float` and `double` in the
 This matches the existing pattern -- `StatsHelpers.cpp` already does explicit instantiation
 for `dotProd<float>`, `dotProd<double>`.
 
+**PR scope note**: PR 0 combines openswathalgo templating with the `IFeature` float overload.
+Both are foundation work that PR 2 depends on, and neither is large enough to warrant a
+separate CI cycle. If review complexity becomes an issue, these can be split into PR 0a
+(template scoring/stats functions) and PR 0b (IFeature float overload + MockObjects).
+
 **Testing**: Existing openswathalgo unit tests must pass for both float and double
 instantiations. Add float-specific test cases to:
 
@@ -149,7 +154,7 @@ appropriate) in scoring, peak picking, and signal processing.
 
 | File | Change |
 |------|--------|
-| `ANALYSIS/OPENSWATH/MRMScoring.cpp:53-111` | `vector<vector<double>>` intensity matrices -> `vector<vector<float>>` |
+| `ANALYSIS/OPENSWATH/MRMScoring.cpp:53-111` | `vector<vector<double>>` intensity matrices -> `vector<vector<float>>`. Both `fillIntensityFromFeature` and `fillIntensityFromPrecursorFeature` must change (identical structure, both call `IFeature::getIntensity`). Public methods `initializeXCorrMatrix(const vector<vector<double>>&)` and `initializeXCorrPrecursorContrastMatrix(...)` need float overloads or templating. |
 | `ANALYSIS/OPENSWATH/OpenSwathScores.h:190-231` | `OpenSwath_Ind_Scores`: change only intensity-derived fields to `vector<float>` (see field audit below). Coordinate/score fields stay `double`. |
 | `ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.cpp:457-458` | Per-transition score vectors -> `vector<float>` |
 | `ANALYSIS/OPENSWATH/OpenSwathScoring.cpp:109,364,519` | Intensity arrays feeding into MRMScoring -> `vector<float>` |
@@ -163,9 +168,21 @@ appropriate) in scoring, peak picking, and signal processing.
 at the `CrawdadWrapper::SetChromatogram()` call site only. This is a one-time cost per
 chromatogram and Crawdad is optional (`#ifdef WITH_CRAWDAD`).
 
-**Cascading changes**: Functions calling these (e.g., `MRMFeatureFinderScoring` calling
-`MRMScoring`, `OpenSwathScoring` populating `OpenSwath_Ind_Scores`) need signature alignment.
-Header files with changed function signatures must also be updated (see file list below).
+**Cascading changes** (concrete dependency chains):
+
+- `DIAHelper::integrateWindows` changes `vector<double>&` to `vector<float>&` for intensity
+  output -> `DIAPrescoring.cpp` must change `intExp` to `vector<float>` -> `intExp` is passed
+  to `OpenSwath::normalize(intExp, ...)` which is templated in PR 0 -> no additional changes.
+- `IonMobilityScoring::extractIntensities()` returns `vector<float>` -> passed to
+  `MRMScoring::initializeXCorrMatrix(const vector<vector<float>>&)` -> needs float overload
+  in `MRMScoring.h`.
+- `MRMScoring::fillIntensityFromFeature/fillIntensityFromPrecursorFeature` call
+  `IFeature::getIntensity(vector<float>&)` (added in PR 0) -> populate `vector<vector<float>>`
+  -> passed to `Scoring::standardize_data<float>` and `normalizedCrossCorrelationPost<float>`
+  (both templated in PR 0).
+- `OpenSwath_Ind_Scores` float fields -> stored via `MRMFeature::IDScoresAsMetaValue()` as
+  `DoubleList` (conversion at boundary) -> OSW writers unchanged.
+- Header files with changed function signatures must also be updated (see file list below).
 
 **DataValue boundary**: `MRMFeature.cpp` stores `OpenSwath_Ind_Scores` vectors as `DataValue`
 meta values typed `DOUBLE_LIST`. Add explicit `vector<float>` -> `DoubleList` conversion in
@@ -185,13 +202,13 @@ need no changes themselves.
 
 | Category | Fields | Type |
 |----------|--------|------|
-| **Intensity** (change to `float`) | `ind_area_intensity`, `ind_total_area_intensity`, `ind_apex_intensity`, `ind_log_intensity`, `ind_intensity_score`, `ind_intensity_ratio`, `ind_im_log_intensity` | `vector<float>` |
-| **Scores/coefficients** (stay `double`) | `ind_xcorr_coelution_score`, `ind_xcorr_shape_score`, `ind_log_sn_score`, `ind_isotope_correlation`, `ind_isotope_overlap`, `ind_massdev_score`, `ind_mi_score`, `ind_mi_ratio`, `ind_total_mi`, `ind_im_delta_score`, `ind_im_contrast_*`, `ind_im_sum_contrast_*` | `vector<double>` |
+| **Intensity** (change to `float`) | `ind_area_intensity`, `ind_total_area_intensity`, `ind_apex_intensity`, `ind_log_intensity`, `ind_intensity_score`, `ind_intensity_ratio` | `vector<float>` |
+| **Scores/coefficients** (stay `double`) | `ind_xcorr_coelution_score`, `ind_xcorr_shape_score`, `ind_log_sn_score`, `ind_isotope_correlation`, `ind_isotope_overlap`, `ind_massdev_score`, `ind_mi_score`, `ind_mi_ratio`, `ind_total_mi`, `ind_im_delta_score`, `ind_im_contrast_*`, `ind_im_sum_contrast_*`, `ind_im_log_intensity` (log-transformed score, not raw intensity) | `vector<double>` |
 | **Coordinates/positions** (stay `double`) | `ind_apex_position`, `ind_start_position_at_5..50`, `ind_end_position_at_5..50`, `ind_im_drift`, `ind_im_drift_left`, `ind_im_drift_right`, `ind_im_delta` | `vector<double>` |
 | **Shape metrics** (stay `double`) | `ind_tailing_factor`, `ind_asymmetry_factor`, `ind_slope_of_baseline`, `ind_baseline_delta_2_height`, `ind_fwhm` | `vector<double>` |
 
-Only ~7 of ~40 fields are genuine intensity values. The rest are computed scores, RT/IM
-coordinates, or shape metrics that should remain `double` per the type policy.
+Only 6 of ~40 fields are genuine intensity values. The rest are computed scores, RT/IM
+coordinates, log-transformed values, or shape metrics that remain `double` per the type policy.
 
 **`normalized_library_intensity` handling:** This parameter in `OpenSwathScoring` and
 `MRMScoring` stays `vector<double>` (deferred). The templated scoring functions will be
@@ -300,27 +317,28 @@ float precision.
 ## Conversion Map
 
 Data flow through the main OpenSWATH chromatogram scoring path, showing where float/double
-boundaries exist after this work:
+boundaries exist after this work. Angle brackets indicate the scalar precision used
+internally, not C++ template parameters (these are concrete classes, not templates):
 
 ```
-MSChromatogram<float>
-  -> BinaryDataArray<double>         [stays double — interface boundary]
-    -> DataAccessHelper               [double -> float conversion]
-      -> MSChromatogram<float>
-        -> GaussFilter<float>          [PR 2: was double, now float internally]
-          -> MSChromatogram<float>
-            -> PeakIntegrator          [stays double — hull points]
+MSChromatogram [float intensity]
+  -> BinaryDataArray [double]          [stays double — interface boundary]
+    -> DataAccessHelper                  [double -> float conversion]
+      -> MSChromatogram [float]
+        -> GaussFilter [float buffers]   [PR 2: was double, now float internally]
+          -> MSChromatogram [float]
+            -> PeakIntegrator              [stays double — hull points]
               -> FeatureOpenMS
                 -> getIntensity(vector<float>&)  [PR 0: new float overload]
-                  -> MRMScoring<float>             [PR 2: was double]
+                  -> MRMScoring [float matrices]   [PR 2: was double]
                     -> Scoring::normalizedCrossCorrelationPost<float>  [PR 0: templated]
-                      -> XCorrArrayType<double>    [stays double — correlation coefficients]
-                        -> OpenSwath_Scores<double>  [stays double — scalar results]
+                      -> XCorrArrayType [double]     [stays double — correlation coefficients]
+                        -> OpenSwath_Scores [double]   [stays double — scalar results]
 
-OpenSwath_Ind_Scores (7 float fields, ~33 double fields)
+OpenSwath_Ind_Scores (6 float fields, ~34 double fields)
   -> MRMFeature::IDScoresAsMetaValue()
-    -> DataValue::DOUBLE_LIST          [stays double — conversion at boundary]
-      -> OSW writers                     [unchanged]
+    -> DataValue::DOUBLE_LIST            [stays double — conversion at boundary]
+      -> OSW writers                       [unchanged]
 ```
 
 New conversions introduced by this work:
