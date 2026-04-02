@@ -304,8 +304,13 @@ if (WITH_OPENTIMS)
 
   # ZSTD: opentims uses ZSTD for TDF frame decompression.
   # Prefer system/package-managed zstd; fall back to opentims's bundled decoder.
+  # On MSVC, always use the bundled decoder to avoid picking up MSYS2/MinGW
+  # zstd packages whose include paths introduce conflicting C runtime headers
+  # (e.g. corecrt.h vs vcruntime.h, see #9057).
   set(_OPENTIMS_SRC "${opentims_SOURCE_DIR}/src/opentims++")
-  find_package(zstd QUIET)
+  if(NOT MSVC)
+    find_package(zstd QUIET)
+  endif()
   if(TARGET zstd::libzstd_shared)
     target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_shared)
     message(STATUS "opentims: using system zstd (shared)")
