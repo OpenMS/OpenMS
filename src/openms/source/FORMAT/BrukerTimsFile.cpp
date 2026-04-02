@@ -1332,6 +1332,12 @@ namespace OpenMS
         prec.setIsolationWindowUpperOffset(win.mz_width / 2.0);
         spec.setPrecursors({prec});
 
+        // Set ion mobility window bounds for PASEF window grouping
+        // (required by SwathFile/OpenSwath pipeline to distinguish windows
+        // sharing the same m/z range but differing in IM)
+        spec.setMetaValue("ion mobility lower limit", win.im_lower);
+        spec.setMetaValue("ion mobility upper limit", win.im_upper);
+
         DataArrays::FloatDataArray im_array;
         IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
 

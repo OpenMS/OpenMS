@@ -163,6 +163,7 @@ if (ENABLE_TDL)
 endif()
 
 # Use std::filesystem instead of boost::filesystem in boost::process (avoids linking boost_filesystem)
+# Requires Boost >= 1.78 (where BOOST_PROCESS_USE_STD_FS was introduced)
 target_compile_definitions(OpenMS PRIVATE BOOST_PROCESS_USE_STD_FS)
 
 if (WITH_OPENTIMS)
