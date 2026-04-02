@@ -199,7 +199,6 @@ namespace OpenMS
       "ExecutePipeline",
       "ImageCreator",
       "INIUpdater",
-      "Resampler",
     };
     for (const auto& tool : GUI_tools) {
       tools_map.erase(tool);
