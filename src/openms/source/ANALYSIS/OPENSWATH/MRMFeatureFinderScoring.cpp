@@ -7,11 +7,16 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
+double sn_min_threshold_ = 1.0;  // configurable via param
+defaults_.setValue("sn_min_threshold", 1.0,
+  "Minimum S/N ratio for a feature to proceed to full scoring. "
+  "Candidates below this threshold skip expensive cross-correlation scores.");
 
 // data access
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
+
 
 // peak picking & noise estimation
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>
@@ -665,6 +670,13 @@ namespace OpenMS
         else
         {
           scores.log_sn_score = std::log(scores.sn_ratio);
+        }
+
+  
+        if (su_.use_sn_score_ && scores.sn_ratio < sn_min_threshold_)
+        {
+          delete imrmfeature;
+          continue;  
         }
         if (su_.use_sn_score_)
         {
