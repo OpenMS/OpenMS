@@ -437,7 +437,7 @@ namespace OpenMS
     return os;
   }
 
-  Int EmpiricalFormula::parseFormula_(std::map<const Element*, SignedSize>& ef, const String& input_formula) const
+  Int EmpiricalFormula::parseFormula_(MapType_& ef, const String& input_formula) const
   {
     Int charge{0};
     String formula(input_formula);

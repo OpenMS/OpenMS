@@ -63,13 +63,18 @@ namespace OpenMS
   {
 
 protected:
-	  /// Comparator for Element pointers that uses atomic number for deterministic ordering
+	  /// Comparator for Element pointers that uses atomic number and mono weight for deterministic ordering
 	  struct ElementPtrComparator_
 	  {
 	    bool operator()(const Element* a, const Element* b) const
 	    {
-	      // Compare by atomic number for deterministic, platform-independent ordering
-	      return a->getAtomicNumber() < b->getAtomicNumber();
+	      // Compare by atomic number first for grouping elements
+	      if (a->getAtomicNumber() != b->getAtomicNumber())
+	      {
+	        return a->getAtomicNumber() < b->getAtomicNumber();
+	      }
+	      // Same atomic number - compare by mono weight to distinguish isotopes (e.g., C-12 vs C-13)
+	      return a->getMonoWeight() < b->getMonoWeight();
 	    }
 	  };
 
@@ -318,7 +323,7 @@ protected:
 
     Int charge_;
 
-    Int parseFormula_(std::map<const Element*, SignedSize>& ef, const String& formula) const;
+    Int parseFormula_(MapType_& ef, const String& formula) const;
 
   };
 
