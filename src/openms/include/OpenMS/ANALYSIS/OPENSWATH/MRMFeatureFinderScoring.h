@@ -292,6 +292,7 @@ private:
     double merge_spectra_by_peak_width_fraction_;
     double uis_threshold_sn_;
     double uis_threshold_peak_area_;
+    double sn_min_threshold_; ///< Minimum S/N ratio for tiered early-exit scoring (see #8959)
 
     double sn_win_len_;
     unsigned int sn_bin_count_;
@@ -311,4 +312,3 @@ private:
 }
 
 #undef run_identifier
-
