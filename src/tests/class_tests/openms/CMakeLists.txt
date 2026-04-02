@@ -78,10 +78,10 @@ if (WITH_HDF5)
   target_link_libraries(HDF5_test HDF5::HDF5)
 endif()
 
-target_link_libraries(Arrow_test
-  ${OPENMS_ARROW_TARGET}
-  ${OPENMS_PARQUET_TARGET}
-)
+#target_link_libraries(Arrow_test
+  #${OPENMS_ARROW_TARGET}
+  #${OPENMS_PARQUET_TARGET}
+#)
 target_link_libraries(MSExperimentArrowExport_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
