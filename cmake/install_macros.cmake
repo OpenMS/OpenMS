@@ -53,12 +53,45 @@ macro(install_headers header_list component)
 endmacro()
 
 #------------------------------------------------------------------------------
+# Installs the given library target into the specified component.
+# @param lib_target_name The target name of the library to install
+# @param component The CMake install component (e.g. library, GUILibrary)
+macro(install_library_to_component lib_target_name component)
+    install(TARGETS ${lib_target_name}
+      RUNTIME_DEPENDENCY_SET OPENMS_DEPS
+      EXPORT ${OPENMS_EXPORT_SET}
+      LIBRARY DESTINATION ${INSTALL_LIB_DIR} COMPONENT ${component}
+      ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT ${component}
+      RUNTIME DESTINATION ${INSTALL_LIB_DIR} COMPONENT ${component}
+      )
+endmacro()
+
+#------------------------------------------------------------------------------
+# Installs the given library. Delegates to install_library_to_component with
+# component "library".
+# @param lib_target_name The target name of the library to install
+macro(install_library lib_target_name)
+    install_library_to_component(${lib_target_name} library)
+endmacro()
+
+#------------------------------------------------------------------------------
 # Installs the tool tool_target_name
 # @param tool_target_name The target name of the tool that should be installed
 macro(install_tool tool_target_name)
     install(TARGETS ${tool_target_name} RUNTIME_DEPENDENCY_SET OPENMS_DEPS
       RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT Applications
       BUNDLE DESTINATION ${INSTALL_BIN_DIR} COMPONENT Applications
+      )
+endmacro()
+
+#------------------------------------------------------------------------------
+# Installs a GUI tool (TOPPView, TOPPAS, etc.) into the GUIApplications component.
+# This allows GUI tools to be packaged separately from command-line TOPP tools.
+# @param tool_target_name The target name of the GUI tool that should be installed
+macro(install_gui_tool tool_target_name)
+    install(TARGETS ${tool_target_name} RUNTIME_DEPENDENCY_SET OPENMS_DEPS
+      RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT GUIApplications
+      BUNDLE DESTINATION ${INSTALL_BIN_DIR} COMPONENT GUIApplications
       )
 endmacro()
 

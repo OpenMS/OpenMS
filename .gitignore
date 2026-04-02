@@ -50,6 +50,11 @@ moc_*.cxx*
 **/.mypy_cache
 **/__pycache__/
 **/.py-build-cmake_cache
+**/.pixi
+recipe/output/
+
+# Generated conda packages
+**/*.conda
 
 qrc_resources.cxx
 resources.qrc.depends
@@ -270,3 +275,4 @@ github_token*
 # Claude/AI tokens
 .claude_token
 .anthropic_key
+plans/

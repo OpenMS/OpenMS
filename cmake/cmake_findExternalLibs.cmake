@@ -224,11 +224,13 @@ elseif(TARGET Arrow::arrow_compute_shared)
   set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_shared)
 else()
   # Fallback: compute might be a plain library without a CMake target.
-  # Use platform-neutral search with optional hints.
+  # Restrict the search to configured prefixes to avoid leaking in unrelated
+  # system installations (e.g. Homebrew) during packaged builds.
   find_library(OPENMS_ARROW_COMPUTE_LIB
     NAMES arrow_compute
     HINTS ${CMAKE_PREFIX_PATH} ${ARROW_HOME}
     PATH_SUFFIXES lib lib64
+    NO_DEFAULT_PATH
   )
   if(OPENMS_ARROW_COMPUTE_LIB)
     set(OPENMS_ARROW_COMPUTE_TARGET ${OPENMS_ARROW_COMPUTE_LIB})
@@ -258,7 +260,10 @@ message(STATUS "Using Arrow Compute target: ${OPENMS_ARROW_COMPUTE_TARGET}")
 message(STATUS "Using Parquet target: ${OPENMS_PARQUET_TARGET}")
 
 # Optional Arrow Dataset (for predicate pushdown)
-find_package(ArrowDataset CONFIG QUIET)
+find_package(ArrowDataset CONFIG QUIET
+  PATHS ${CMAKE_PREFIX_PATH} ${ARROW_HOME}
+  NO_DEFAULT_PATH
+)
 if(ArrowDataset_FOUND)
   if(ARROW_USE_STATIC AND TARGET ArrowDataset::arrow_dataset_static)
     set(OPENMS_ARROW_DATASET_TARGET ArrowDataset::arrow_dataset_static)

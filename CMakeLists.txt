@@ -118,11 +118,14 @@ set(OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VER
 message(STATUS "Building OpenMS ${OPENMS_PACKAGE_VERSION}")
 #------------------------------------------------------------------------------
 # retrieve detailed information on the working copy (git)
-include(GetGitRevisionDescription)
 option(GIT_TRACKING "Embedding of Git version control information into the OpenMS library (and OpenMSInfo tool). Note that if activated, every branch-switch or commit will trigger re-generation of the build system (MakeFiles, VS Solutions etc)." ON)
-if (GIT_TRACKING)
+include(GetGitRevisionDescription OPTIONAL RESULT_VARIABLE OPENMS_GIT_REVISION_MODULE)
+if (GIT_TRACKING AND COMMAND git_short_info)
   ## will configure an include file
   git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE)
+elseif(GIT_TRACKING)
+  message(STATUS "  [Git revision tracking disabled: GetGitRevisionDescription module unavailable]")
+  set(GIT_TRACKING OFF)
 endif()
 
 if(NOT GIT_TRACKING)

@@ -10,8 +10,9 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <charconv>
 #include <cmath>
+#include <iomanip>
+#include <sstream>
 
 using namespace std;
 
@@ -35,13 +36,10 @@ namespace OpenMS
       if (std::isinf(value))
         return value < 0 ? "-inf" : "inf";
 
-      char buf[512]; // large enough for any fixed-format double (DBL_MAX ~ 309 digits + precision)
-      auto [ptr, ec] = std::to_chars(buf, buf + sizeof(buf), value, std::chars_format::fixed, precision);
-      if (ec != std::errc{})
-        return std::to_string(value); // fallback (should not happen with 512-byte buffer)
-      *ptr = '\0';
-
-      std::string result(buf);
+      std::ostringstream stream;
+      stream.imbue(std::locale::classic());
+      stream << std::fixed << std::setprecision(precision) << value;
+      std::string result = stream.str();
 
       // Locate decimal point
       auto dot_pos = result.find('.');

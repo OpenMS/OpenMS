@@ -103,7 +103,7 @@ function(openms_add_library)
   #------------------------------------------------------------------------------
   # parse arguments to function
   set(options )
-  set(oneValueArgs TARGET_NAME DLL_EXPORT_PATH)
+  set(oneValueArgs TARGET_NAME DLL_EXPORT_PATH INSTALL_COMPONENT)
   set(multiValueArgs INTERNAL_INCLUDES PRIVATE_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES PRIVATE_LINK_LIBRARIES)
   ## make above arguments available as variables, e.g. ${openms_add_library_PRIVATE_LINK_LIBRARIES}
   cmake_parse_arguments(openms_add_library "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
@@ -210,7 +210,10 @@ function(openms_add_library)
 
   #------------------------------------------------------------------------------
   # we also want to install the library
-  install_library(${openms_add_library_TARGET_NAME})
+  if(NOT openms_add_library_INSTALL_COMPONENT)
+    set(openms_add_library_INSTALL_COMPONENT library)
+  endif()
+  install_library_to_component(${openms_add_library_TARGET_NAME} ${openms_add_library_INSTALL_COMPONENT})
   install_headers("${openms_add_library_HEADER_FILES};${PROJECT_BINARY_DIR}/${_CONFIG_H}" ${openms_add_library_TARGET_NAME})
 
   #------------------------------------------------------------------------------

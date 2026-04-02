@@ -30,7 +30,8 @@ openms_add_library(TARGET_NAME OpenMS_GUI
                    INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
-                   DLL_EXPORT_PATH "OpenMS/VISUAL/")
+                   DLL_EXPORT_PATH "OpenMS/VISUAL/"
+                   INSTALL_COMPONENT GUILibrary)
 
 # --------------------------------------------------------------------------
 # additional linker flags required by openms_gui
@@ -73,7 +74,7 @@ foreach(i ${GUI_executables})
   if (MSVC AND EXISTS ${resource_file})
     message(STATUS "Setting resource file ${resource_file} for ${i}")
     add_executable(${i} ${GUI_DIR}/${i}.cpp ${resource_file})
-    install_tool(${i})
+    install_gui_tool(${i})
   elseif (APPLE AND EXISTS ${resource_dir})
     add_mac_app_bundle(${i})
   else()
@@ -83,7 +84,7 @@ foreach(i ${GUI_executables})
       message(STATUS "No icon file (${i}.icns) found in ${resource_dir}. Will not build ${i} as app bundle.")
     endif()
     add_executable(${i} ${GUI_DIR}/${i}.cpp)
-    install_tool(${i})
+    install_gui_tool(${i})
   endif()
 
   ## append visual lib as dependency for GUI tools

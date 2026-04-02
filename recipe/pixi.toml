@@ -1,0 +1,32 @@
+# This is the conda-packaging sub-package manifest.
+# It uses pixi-build-rattler-build to produce multi-output conda packages:
+#   libopenms      — shared library, headers, share data, CMake config
+#   openms         — TOPP command-line tools
+#   openms-gui     — GUI applications (TOPPView, TOPPAS, etc.)
+#   openms-thirdparty — thirdparty tool meta-package (Linux-only)
+#
+# Usage (from OpenMS workspace root):
+#   cd recipe && pixi build
+# Or from a workspace manifest that lists this path as a dependency.
+#
+[workspace]
+name = "openms-recipe"
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64", "win-64"]
+preview = ["pixi-build"]
+
+[package]
+name = "openms-meta"
+version = "3.4.1"
+
+[package.build]
+
+[package.build.backend]
+name = "pixi-build-rattler-build"
+version = "*"
+channels = ["https://prefix.dev/conda-forge"]
+
+[package.build.config]
+# Required for the cache: feature (shared cmake build across outputs)
+experimental = true
+# recipe.yaml is auto-discovered in this same directory
