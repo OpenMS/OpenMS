@@ -98,11 +98,10 @@ protected:
                     "If set, IsotopeLabelType is 'H', else 'L'");
 
       // Whether to remove shared peptides
-      registerFlag_(param_remove_shared_peptides,
-                    "If set, shared peptides (mapping to multiple indistinguishable protein groups) "
-                    "will be removed. By default, shared peptides are removed for backward compatibility. "
-                    "Unset this flag to keep shared peptides in the output.",
-                    true); // advanced parameter
+      registerStringOption_(param_remove_shared_peptides, "<true/false>", "true",
+                    "If true, shared peptides (mapping to multiple indistinguishable protein groups) "
+                    "will be removed. Set to false to keep shared peptides in the output.", false, true);
+      setValidStrings_(param_remove_shared_peptides, ListUtils::create<String>("true,false"));
 
       // Specifies how peptide ions eluding at different retention times should be resolved
       registerStringOption_(param_retention_time_summarization_method,
@@ -151,7 +150,7 @@ protected:
         String condition = getStringOption_(param_msstats_condition);
         String mixture = getStringOption_(param_msstats_mixture);
         String retention_time_summarization_method = getStringOption_(param_retention_time_summarization_method);
-        bool remove_shared_peptides = getFlag_(param_remove_shared_peptides);
+        bool remove_shared_peptides = (getStringOption_(param_remove_shared_peptides) == "true");
 
         MSstatsFile msStatsFile;
 
