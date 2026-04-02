@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/BedRModFile.h>
 
+#include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/TextFile.h>
@@ -31,7 +32,7 @@ namespace OpenMS
       String chrom;
       Int chrom_start{0};
       Int chrom_end{0};
-      String mod;
+      const Ribonucleotide* ribonucleotide{nullptr};
       Int chebi_id{0};
       double score{0.0};
       Int coverage{1};
@@ -41,9 +42,12 @@ namespace OpenMS
 
       bool operator<(const BedRow& rhs) const
       {
-        return std::tie(chrom, chrom_start, chrom_end, mod, score, coverage,
+        // Compare using ribonucleotide code for consistency
+        String mod_code = ribonucleotide ? ribonucleotide->getCode() : String("");
+        String rhs_mod_code = rhs.ribonucleotide ? rhs.ribonucleotide->getCode() : String("");
+        return std::tie(chrom, chrom_start, chrom_end, mod_code, score, coverage,
                         unique_mapping, frag_start, frag_end) <
-               std::tie(rhs.chrom, rhs.chrom_start, rhs.chrom_end, rhs.mod,
+               std::tie(rhs.chrom, rhs.chrom_start, rhs.chrom_end, rhs_mod_code,
                         rhs.score, rhs.coverage, rhs.unique_mapping,
                         rhs.frag_start, rhs.frag_end);
       }
@@ -54,21 +58,6 @@ namespace OpenMS
       value = value.trim().toLower();
       value.substitute(" ", "_");
       return value;
-    }
-
-    String inferBase_(const String& mod)
-    {
-      if (mod.empty())
-      {
-        return "N";
-      }
-      const char last = mod.back();
-      if ((last == 'A') || (last == 'C') || (last == 'G') || (last == 'U') ||
-          (last == 'I') || (last == 'Y'))
-      {
-        return String(last);
-      }
-      return "N";
     }
 
     bool toInt_(const String& value, Int& result)
@@ -307,16 +296,17 @@ namespace OpenMS
             row.chrom = chrom;
             row.chrom_start = Int(parent_match.start_pos + i);
             row.chrom_end = row.chrom_start + 1;
-            row.mod = ribo->getCode();
+            row.ribonucleotide = ribo;
             row.score = score;
             row.coverage = coverage;
             row.unique_mapping = unique_mapping ? "1" : "0";
             row.frag_start = unique_mapping ? all_frag_starts : String(parent_match.start_pos + 1);
             row.frag_end = unique_mapping ? all_frag_ends : String(parent_match.end_pos + 1);
 
-            obs_per_mod_at_position[{row.chrom, row.chrom_start, row.mod}].insert(current_obs_id);
+            const String mod_code = ribo->getCode();
+            obs_per_mod_at_position[{row.chrom, row.chrom_start, mod_code}].insert(current_obs_id);
 
-            auto pos = chebi_mapping.find(row.mod);
+            auto pos = chebi_mapping.find(mod_code);
             if (pos != chebi_mapping.end())
             {
               row.chebi_id = pos->second;
@@ -324,7 +314,7 @@ namespace OpenMS
             else
             {
               row.chebi_id = 0;
-              missing_mods.insert(row.mod);
+              missing_mods.insert(mod_code);
             }
 
             if (row.chrom_end > row.chrom_start)
@@ -355,7 +345,13 @@ namespace OpenMS
     std::set<String> seen_mod_names;
     for (const auto& row : rows)
     {
-      String mod_name = String(row.chebi_id) + ":" + row.mod + ":" + inferBase_(row.mod);
+      if (!row.ribonucleotide)
+      {
+        continue;  // Skip rows with null ribonucleotide
+      }
+      // Use actual origin from ribonucleotide instead of inferring from mod code
+      const String base_origin = String(row.ribonucleotide->getOrigin());
+      String mod_name = String(row.chebi_id) + ":" + row.ribonucleotide->getCode() + ":" + base_origin;
       if (seen_mod_names.insert(mod_name).second)
       {
         modification_names.push_back(mod_name);
@@ -390,6 +386,11 @@ namespace OpenMS
 
     for (const auto& row : rows)
     {
+      if (!row.ribonucleotide)
+      {
+        continue;  // Skip rows with null ribonucleotide
+      }
+      
       // Calculate frequency: count of this modification / total observations at this position
       Int frequency = 0;
       auto pos_key = std::make_pair(row.chrom, row.chrom_start);
@@ -400,7 +401,7 @@ namespace OpenMS
       }
       if (total > 0)
       {
-        auto mod_key = std::make_tuple(row.chrom, row.chrom_start, row.mod);
+        auto mod_key = std::make_tuple(row.chrom, row.chrom_start, row.ribonucleotide->getCode());
         Size mod_count = 0;
         if (auto mod_it = obs_per_mod_at_position.find(mod_key); mod_it != obs_per_mod_at_position.end())
         {
