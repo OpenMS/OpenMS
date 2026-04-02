@@ -291,9 +291,7 @@ if(WITH_HDF5)
   list(APPEND format_executables_list HDF5_test)
 endif()
 
-list(APPEND format_executables_list 
-#Arrow_test 
-MSExperimentArrowExport_test ConsensusMapArrowExport_test QPXFile_test
+list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test QPXFile_test
   MSChromatogramParquetConsumer_test
   MobilogramParquetConsumer_test
   XICParquetFile_test
