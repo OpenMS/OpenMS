@@ -1,7 +1,7 @@
 #fileformat=bedRModv2
 #organism=9606
 #modification_type=RNA
-#modification_names=0:Um:N
+#modification_names=0:Um:U
 #assembly=GRCh38
 #annotation_source=gtrnadb
 #annotation_version=2.0
