@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmWNet.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <wnetalign/aligner.hpp>
@@ -59,6 +60,16 @@ namespace OpenMS
       "total intensity is equal across maps.");
     defaults_.setValidStrings("normalize_intensities", {"true", "false"});
 
+    defaults_.setValue("decharge_mz", "false",
+      "Convert observed m/z values to their singly-charged (z=1) equivalent before "
+      "alignment. Features with charge z>1 are projected to [M+H]+ m/z, making "
+      "features of the same compound but different charge states directly comparable. "
+      "If a feature carries a 'dc_charge_adduct_mass' MetaValue (set by "
+      "MetaboliteFeatureDeconvolution), the stored adduct mass is used; otherwise "
+      "pure H+ adducts are assumed. Features with unknown charge (z=0) are left "
+      "unchanged.");
+    defaults_.setValidStrings("decharge_mz", {"true", "false"});
+
     defaultsToParam_();
   }
 
@@ -75,9 +86,32 @@ namespace OpenMS
       return use_ppm ? log(mz) : mz;
     }
 
+    /// Convert observed m/z (at charge z) to the equivalent singly-charged [M+H]+ m/z.
+    /// If the feature carries a dc_charge_adduct_mass MetaValue (from
+    /// MetaboliteFeatureDeconvolution), that adduct mass is used to compute the neutral
+    /// mass; otherwise pure H+ adducts are assumed.
+    /// Features with charge 0 (unknown) or charge 1 are returned unchanged.
+    template <typename FeatureType>
+    double dechargeMz(const FeatureType& f)
+    {
+      const int z = f.getCharge();
+      if (z <= 1) return f.getMZ();
+      const double mz = f.getMZ();
+      double neutral_mass;
+      if (f.metaValueExists("dc_charge_adduct_mass"))
+      {
+        neutral_mass = mz * z - (double)f.getMetaValue("dc_charge_adduct_mass");
+      }
+      else
+      {
+        neutral_mass = mz * z - z * Constants::PROTON_MASS_U;
+      }
+      return neutral_mass + Constants::PROTON_MASS_U;
+    }
+
     /// Convert a map (FeatureMap or ConsensusMap) to a Spectrum<2> with (scaled_mz, RT) positions.
     template <typename MapType>
-    Spectrum<2> mapToSpectrum(const MapType& map, double mz_scale, bool use_ppm)
+    Spectrum<2> mapToSpectrum(const MapType& map, double mz_scale, bool use_ppm, bool decharge)
     {
       vector<array<double, 2>> positions;
       vector<double> intensities;
@@ -85,7 +119,8 @@ namespace OpenMS
       intensities.reserve(map.size());
       for (const auto& f : map)
       {
-        positions.push_back({transformMz(f.getMZ(), use_ppm) * mz_scale, f.getRT()});
+        double mz = decharge ? dechargeMz(f) : f.getMZ();
+        positions.push_back({transformMz(mz, use_ppm) * mz_scale, f.getRT()});
         intensities.push_back(f.getIntensity());
       }
       return Spectrum<2>(positions, intensities);
@@ -116,6 +151,7 @@ namespace OpenMS
     double trash_cost = param_.getValue("trash_cost");
     bool normalize = param_.getValue("normalize_intensities").toString() == "true";
     bool use_ppm = param_.getValue("mz_unit").toString() == "ppm";
+    bool decharge = param_.getValue("decharge_mz").toString() == "true";
 
     if (trash_cost <= 0)
     {
@@ -151,7 +187,7 @@ namespace OpenMS
     spectra.reserve(n);
     for (Size i = 0; i < n; ++i)
     {
-      auto spec = mapToSpectrum(maps[i], mz_scale, use_ppm);
+      auto spec = mapToSpectrum(maps[i], mz_scale, use_ppm, decharge);
       if (normalize && spec.size() > 0)
       {
         spec = spec.normalized();
