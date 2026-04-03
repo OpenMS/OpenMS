@@ -223,132 +223,120 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS1 spectra found in input experiment!", "");
   }
 
-  // Build FAIMS-aware processing groups (one per CV or a single non-FAIMS group).
-  std::vector<std::pair<double, MSExperiment>> groups =
-    IMDataConverter::splitByFAIMSCV(std::move(ms_data_));
-
-  const Size n_groups = groups.size();
-  vector<vector<Hill>> hills_per_group(n_groups);
-  vector<vector<PeptideFeature>> features_per_group(n_groups);
-  vector<FeatureMap> fmap_per_group(n_groups);
-
   const double original_paseftol = paseftol_;
 
-  // Check IM unit and warn if CCS data with small tolerance (single-threaded, before parallel loop)
-  for (const auto& group_pair : groups)
+  // Check IM unit and warn if CCS data with small tolerance
+  for (const auto& spec : ms_data_)
   {
-    const MSExperiment& group_exp = group_pair.second;
-    for (const auto& spec : group_exp)
+    if (spec.containsIMData())
     {
-      if (spec.containsIMData())
+      const auto [im_data_index, im_unit] = spec.getIMData();
+      if (im_unit == DriftTimeUnit::CCS && original_paseftol < 1.0)
       {
-        const auto [im_data_index, im_unit] = spec.getIMData();
-        if (im_unit == DriftTimeUnit::CCS && original_paseftol < 1.0)
-        {
-          OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but "
-                          << "paseftol = " << original_paseftol
-                          << " appears to be set for 1/K0 data. "
-                          << "For CCS data, consider using larger values (e.g., 5-20)." << '\n';
-        }
-        goto done_ccs_check; // Found IM data, no need to check further
+        OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but "
+                        << "paseftol = " << original_paseftol
+                        << " appears to be set for 1/K0 data. "
+                        << "For CCS data, consider using larger values (e.g., 5-20)." << '\n';
       }
+      break;
     }
   }
-  done_ccs_check:
 
   // Log IM peak type if IM data is present.
-  for (const auto& group_pair : groups)
+  for (const auto& spec : ms_data_)
   {
-    const MSExperiment& group_exp = group_pair.second;
-    bool any_im_array = false;
-    for (const auto& spec : group_exp)
+    if (IMTypes::determineIMFormat(spec) != IMFormat::NONE)
     {
-      if (IMTypes::determineIMFormat(spec) != IMFormat::NONE)
+      for (const auto& s : ms_data_)
       {
-        any_im_array = true;
-        break;
-      }
-    }
-    if (any_im_array)
-    {
-      for (const auto& spec : group_exp)
-      {
-        IMPeakType pt = spec.getIMPeakType();
+        IMPeakType pt = s.getIMPeakType();
         if (pt != IMPeakType::UNKNOWN)
         {
           OPENMS_LOG_INFO << "IM peak type: " << imPeakTypeToString(pt) << endl;
           break;
         }
       }
-      break; // Only need to report once
+      break;
     }
   }
 
-  // Parallelize processing across FAIMS groups. Each group is handled
-  // independently using its own local hills/features containers.
-  #pragma omp parallel for schedule(dynamic)
-  for (int i = 0; i < static_cast<int>(n_groups); ++i)
+  // Check for FAIMS compensation voltages to decide processing strategy.
+  // Non-FAIMS path processes ms_data_ in-place (no move/copy), so it remains
+  // available to the caller after run() completes.
+  std::set<double> faims_cvs = FAIMSHelper::getCompensationVoltages(ms_data_);
+
+  if (faims_cvs.empty())
   {
-    auto& group_pair = groups[static_cast<Size>(i)];
-    double cv = group_pair.first;
-    MSExperiment& group_exp = group_pair.second;
+    // Non-FAIMS: process ms_data_ directly without moving it
+    OPENMS_LOG_INFO << "Not FAIMS compensation voltages found in the data. Processing in-place." << endl;
 
-    vector<Hill> local_hills;
-    vector<PeptideFeature> local_features;
+    processFAIMSGroup_(std::numeric_limits<double>::quiet_NaN(), ms_data_, original_paseftol, hills, peptide_features);
 
-    processFAIMSGroup_(cv, group_exp, original_paseftol, local_hills, local_features);
-
-    FeatureMap local_map;
-    if (!local_hills.empty() && !local_features.empty())
+    if (!hills.empty() && !peptide_features.empty())
     {
-      local_map = convertToFeatureMap_(local_features, local_hills);
+      feature_map = convertToFeatureMap_(peptide_features, hills);
+    }
+  }
+  else
+  {
+    // FAIMS: split by CV (moves ms_data_), process groups in parallel, merge
+    std::vector<std::pair<double, MSExperiment>> groups =
+      IMDataConverter::splitByFAIMSCV(std::move(ms_data_));
+
+    const Size n_groups = groups.size();
+    vector<vector<Hill>> hills_per_group(n_groups);
+    vector<vector<PeptideFeature>> features_per_group(n_groups);
+    vector<FeatureMap> fmap_per_group(n_groups);
+
+    #pragma omp parallel for schedule(dynamic)
+    for (int i = 0; i < static_cast<int>(n_groups); ++i)
+    {
+      auto& group_pair = groups[static_cast<Size>(i)];
+      double cv = group_pair.first;
+      MSExperiment& group_exp = group_pair.second;
+
+      vector<Hill> local_hills;
+      vector<PeptideFeature> local_features;
+
+      processFAIMSGroup_(cv, group_exp, original_paseftol, local_hills, local_features);
+
+      FeatureMap local_map;
+      if (!local_hills.empty() && !local_features.empty())
+      {
+        local_map = convertToFeatureMap_(local_features, local_hills);
+      }
+
+      hills_per_group[static_cast<Size>(i)] = std::move(local_hills);
+      features_per_group[static_cast<Size>(i)] = std::move(local_features);
+      fmap_per_group[static_cast<Size>(i)] = std::move(local_map);
     }
 
-    hills_per_group[static_cast<Size>(i)] = std::move(local_hills);
-    features_per_group[static_cast<Size>(i)] = std::move(local_features);
-    fmap_per_group[static_cast<Size>(i)] = std::move(local_map);
+    for (Size i = 0; i < n_groups; ++i)
+    {
+      hills.insert(hills.end(), hills_per_group[i].begin(), hills_per_group[i].end());
+      peptide_features.insert(peptide_features.end(), features_per_group[i].begin(), features_per_group[i].end());
+      FeatureMap& gm = fmap_per_group[i];
+      if (!gm.empty())
+      {
+        feature_map.insert(feature_map.end(), gm.begin(), gm.end());
+      }
+    }
+
+    // Optionally merge features representing the same analyte at different FAIMS CV values
+    if (faims_merge_features_)
+    {
+      Size before_merge = feature_map.size();
+      FeatureOverlapFilter::mergeFAIMSFeatures(feature_map, 5.0, 0.05);
+      if (feature_map.size() < before_merge)
+      {
+        OPENMS_LOG_INFO << "FAIMS feature merge: " << before_merge << " -> " << feature_map.size()
+                        << " features (merged " << (before_merge - feature_map.size()) << ")" << endl;
+      }
+    }
   }
 
   // Restore original paseftol_ value for subsequent calls.
   paseftol_ = original_paseftol;
-
-  vector<Hill> all_hills;
-  vector<PeptideFeature> all_features;
-  FeatureMap combined_feature_map;
-
-  for (Size i = 0; i < n_groups; ++i)
-  {
-    all_hills.insert(all_hills.end(),
-                     hills_per_group[i].begin(), hills_per_group[i].end());
-    all_features.insert(all_features.end(),
-                        features_per_group[i].begin(), features_per_group[i].end());
-
-    FeatureMap& gm = fmap_per_group[i];
-    if (!gm.empty())
-    {
-      combined_feature_map.insert(combined_feature_map.end(), gm.begin(), gm.end());
-    }
-  }
-
-  // Check if we have FAIMS data (multiple CV groups)
-  const bool has_faims = n_groups > 1 || !std::isnan(groups[0].first);
-  
-  // Optionally merge features representing the same analyte at different FAIMS CV values
-  if (has_faims && faims_merge_features_)
-  {
-    Size before_merge = combined_feature_map.size();
-    FeatureOverlapFilter::mergeFAIMSFeatures(combined_feature_map, 5.0, 0.05);
-    if (combined_feature_map.size() < before_merge)
-    {
-      OPENMS_LOG_INFO << "FAIMS feature merge: " << before_merge << " -> " << combined_feature_map.size()
-                      << " features (merged " << (before_merge - combined_feature_map.size()) << ")" << endl;
-    }
-  }
-
-  hills = std::move(all_hills);
-  peptide_features = std::move(all_features);
-
-  feature_map = std::move(combined_feature_map);
   feature_map.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
   feature_map.ensureUniqueId();
   feature_map.getProteinIdentifications().resize(1);

@@ -129,10 +129,26 @@ namespace OpenMS
             swath_map_sources.push_back(f);
           }
         }
+#ifdef WITH_OPENTIMS
+        else if (in_file_type == FileTypes::BRUKER_TDF)
+        {
+          auto maps = swath_file.loadBrukerTdf(f, exp_meta);
+          for (auto & m : maps)
+          {
+            swath_maps.push_back(m);
+            swath_map_sources.push_back(f);
+          }
+        }
+#endif
         else
         {
+#ifdef WITH_OPENTIMS
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                           "Input file needs to have ending mzML or mzXML");
+                                           "Input file needs to have ending mzML, mzXML, sqMass, or .d (Bruker TDF)");
+#else
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           "Input file needs to have ending mzML, mzXML, or sqMass");
+#endif
         }
       }
     }
@@ -159,10 +175,23 @@ namespace OpenMS
         swath_map_sources.clear();
         for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
       }
+#ifdef WITH_OPENTIMS
+      else if (in_file_type == FileTypes::BRUKER_TDF)
+      {
+        swath_maps = swath_file.loadBrukerTdf(file_list[0], exp_meta);
+        swath_map_sources.clear();
+        for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
+      }
+#endif
       else
       {
+#ifdef WITH_OPENTIMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Input file needs to have ending mzML or mzXML");
+                                         "Input file needs to have ending mzML, mzXML, sqMass, or .d (Bruker TDF)");
+#else
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Input file needs to have ending mzML, mzXML, or sqMass");
+#endif
       }
     }
   }

@@ -389,7 +389,7 @@ namespace OpenMS
     // The mz-File (if given)
     if (!mz_file.empty())
     {
-      base_name = FileHandler::stripExtension(File::basename(mz_file));
+      base_name = File::stemName(mz_file);
       raw_data = FileTypes::typeToName(FileHandler::getTypeByFileName(mz_file));
 
       PeakMap experiment;
@@ -399,7 +399,7 @@ namespace OpenMS
     }
     else
     {
-      base_name = FileHandler::stripExtension(File::basename(filename));
+      base_name = File::stemName(filename);
       raw_data = "mzML";
     }
     // mz_name is input from IDFileConverter for 'base_name' attribute, only necessary if different from 'mz_file'.
