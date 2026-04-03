@@ -211,6 +211,11 @@ LABEL software="OpenMS (tools)"
 FROM tools AS tools-thirdparty
 ARG THIRDPARTY_DIR
 
+# Ensure a writable home directory for config files (e.g., UpdateCheck .ver files).
+# Without this, $HOME may resolve to / in CI environments, causing tools to crash
+# when trying to create $HOME/.config/OpenMS.
+ENV HOME=/tmp
+
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends --no-install-suggests \
     ## thirdparty dependencies
