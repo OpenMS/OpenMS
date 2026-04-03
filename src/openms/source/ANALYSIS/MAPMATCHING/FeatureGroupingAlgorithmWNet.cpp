@@ -275,13 +275,6 @@ namespace OpenMS
 
     for (const auto& [root, members] : groups)
     {
-      // Only create consensus features for groups with features from >1 map
-      // (singleton = unmatched feature)
-      if (members.size() < 2)
-      {
-        continue;
-      }
-
       ConsensusFeature cf;
       for (const auto& [map_idx, feat_idx] : members)
       {
