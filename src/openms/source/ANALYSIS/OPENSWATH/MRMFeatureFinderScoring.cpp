@@ -21,6 +21,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
 
 #include <boost/range/adaptor/map.hpp>
@@ -99,7 +100,7 @@ namespace OpenMS
     std::vector<String> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     defaults_.setValue("enzyme", "Trypsin", "Enzyme used for counting missed cleavages in peptide sequences");
-    defaults_.setValidStrings("enzyme", all_enzymes);
+    defaults_.setValidStrings("enzyme", ListUtils::create<std::string>(all_enzymes));
 
     defaults_.insert("TransitionGroupPicker:", MRMTransitionGroupPicker().getDefaults());
 
