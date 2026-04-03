@@ -340,22 +340,6 @@ if(NOT MSVC AND NOT APPLE)
 endif()
 
 #------------------------------------------------------------------------------
-# QT
-#------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "6.1.0")
-
-# Qt6::Core is needed by TOPP tools and GUI, but NOT by libOpenMS itself.
-# When building without GUI (e.g., pyOpenMS wheels), Qt is optional.
-find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS Core QUIET)
-
-IF (Qt6Core_FOUND)
-  message(STATUS "Found Qt ${Qt6Core_VERSION}")
-ELSE()
-  message(STATUS "Qt6Core not found — TOPP tools and GUI will not be available")
-ENDIF()
-
-
-#------------------------------------------------------------------------------
 # PTHREAD
 #------------------------------------------------------------------------------
 # Prefer the -pthread compiler flag to be consistent with SQLiteCpp and avoid
@@ -365,7 +349,20 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
 
 
+#------------------------------------------------------------------------------
+# QT (only needed for GUI)
+#------------------------------------------------------------------------------
+SET(QT_MIN_VERSION "6.1.0")
+
 if (WITH_GUI)
+  find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS Core QUIET)
+
+  IF (Qt6Core_FOUND)
+    message(STATUS "Found Qt ${Qt6Core_VERSION}")
+  ELSE()
+    message(FATAL_ERROR "Qt6Core not found — required when WITH_GUI=ON. Use -DWITH_GUI=OFF to build without GUI.")
+  ENDIF()
+
   # --------------------------------------------------------------------------
   # Find additional Qt libs
   #---------------------------------------------------------------------------
