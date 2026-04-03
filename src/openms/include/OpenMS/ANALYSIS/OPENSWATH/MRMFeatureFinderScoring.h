@@ -282,6 +282,7 @@ private:
     bool use_ms1_ion_mobility_;
     bool apply_im_peak_picking_;
     String scoring_model_;
+    String enzyme_;
 
     // scoring parameters
     double rt_normalization_factor_;
