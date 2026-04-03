@@ -308,7 +308,7 @@ FetchContent_Declare(
 FetchContent_Declare(
   wnetalign
   GIT_REPOSITORY https://github.com/michalsta/wnetalign.git
-  GIT_TAG        v0.9.7
+  GIT_TAG        963c1cf
 )
 
 # Populate source dirs without running their CMakeLists.txt
