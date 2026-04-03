@@ -214,7 +214,9 @@ ARG THIRDPARTY_DIR
 # Ensure a writable home directory for config files (e.g., UpdateCheck .ver files).
 # Without this, $HOME may resolve to / in CI environments, causing tools to crash
 # when trying to create $HOME/.config/OpenMS.
-ENV HOME=/tmp
+# Following the pattern used by quantms-rescoring (HOME=/app with writable dir).
+RUN mkdir -p /home/openms && chmod -R 755 /home/openms
+ENV HOME=/home/openms
 
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends --no-install-suggests \
