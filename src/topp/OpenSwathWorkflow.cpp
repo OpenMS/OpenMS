@@ -87,7 +87,7 @@ http://openswath.org/ for additional documentation.
 It executes the following steps in order, which is implemented in @ref OpenMS::OpenSwathWorkflow "OpenSwathWorkflow":
 
 <ul>
-  <li>Reading of input SRM/MRM/PRM/DIA(PASEF) mzML files</li>
+  <li>Reading of input SRM/MRM/PRM/DIA(PASEF) mzML files or Bruker .d (TDF) directories (requires WITH_OPENTIMS)</li>
   <li>Computing the retention time transformation, mass-to-charge and ion mobility correction using calibrant peptides</li>
   <li>Reading of the transition list</li>
   <li>Extracting the specified transitions</li>
@@ -120,6 +120,14 @@ instrument exports individual window files.
 Since files can be large, it is recommended to avoid loading whole datasets
 into memory; use the `-readOptions` (for example `cacheWorkingInMemory`) to
 cache or reduce data in advance.
+
+<h4>Bruker .d (diaPASEF, requires WITH_OPENTIMS)</h4>
+Bruker TimsTOF .d directories containing DIA-PASEF data can be passed directly
+without prior mzML conversion when OpenMS is built with the WITH_OPENTIMS option.
+The tool automatically discovers SWATH windows from the TDF metadata and
+partitions spectra accordingly. Ion mobility lower/upper limits are attached as
+spectrum meta values so that PASEF windows sharing the same m/z range but
+differing in ion mobility are correctly distinguished.
 
 <h4>PRM</h4>
 PRM (parallel reaction monitoring) is a targeted MS2 acquisition mode. PRM
