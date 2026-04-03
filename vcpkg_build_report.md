@@ -38,7 +38,7 @@
 
 When using a relative path:
 
-```
+```bash
 -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake
 ```
 
@@ -57,17 +57,17 @@ CMake may fail to load the vcpkg toolchain in certain environments (e.g., Visual
 
 * Output shows:
 
-  ```
+  ```text
   -- Running vcpkg install
   ```
 * `CMakeCache.txt` contains:
 
-  ```
+  ```text
   CMAKE_TOOLCHAIN_FILE:FILEPATH=...
   ```
 * Dependencies resolved from:
 
-  ```
+  ```text
   vcpkg_installed/x64-windows
   ```
 
@@ -75,7 +75,7 @@ CMake may fail to load the vcpkg toolchain in certain environments (e.g., Visual
 
 Use absolute path:
 
-```
+```powershell
 -DCMAKE_TOOLCHAIN_FILE="C:\absolute\path\to\vcpkg\scripts\buildsystems\vcpkg.cmake"
 ```
 
