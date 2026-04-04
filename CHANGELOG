@@ -29,6 +29,7 @@ General:
   - BREAKING: QProcess/QObject replaced with boost::process in ExternalProcess, PythonInfo, JavaInfo, and RWrapper; ExternalProcess no longer inherits from QObject; ExternalProcess::run(), TOPPBase::runExternalProcess_(), RWrapper::findR()/runScript(), and ExternalProcessMBox::run() now use String/vector<String> instead of QString/QStringList (#8939)
   - BREAKING: Qt string interop removed from core String and DataValue API; String(const QString&), String::toQString(), DataValue(const QString&), DataValue::toQString(), and StringListUtils::fromQStringList() removed; Qt5Port.h deleted (#8940)
   - BREAKING: Qt6::Core removed from libOpenMS PUBLIC CMake link dependencies; downstream CMake projects must now link Qt6::Core directly if needed (#8965)
+  - Fix: UpdateCheck no longer crashes TOPP tools when $HOME is not writable (e.g., in container environments where $HOME=/); the update check is skipped gracefully (#9075, fixes #9074)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -67,6 +68,10 @@ TOPP tools:
     MetaProSIP:
       - Added detailed documentation of CSV output column formats (#4400)
         Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
+    MSstatsConverter:
+      - Added -remove_shared_peptides parameter (default true) to explicitly control whether shared peptides
+        (mapping to multiple indistinguishable protein groups) are removed from MSstats output; previously
+        this filtering was silent and hardcoded; a warning is now emitted reporting how many hits were dropped (#9068)
     OpenSwathWorkflow:
       - Added cache file auto cleanup (#9029)
 
