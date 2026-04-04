@@ -11,17 +11,16 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 
 #include <exception>
 #include <limits>
 #include <memory>
-#ifdef WITH_PARQUET
 #include <arrow/api.h>
 #include <arrow/io/api.h>
 #include <parquet/arrow/writer.h>
-#endif
 
 #include <unordered_map>
 #include <unordered_set>
@@ -31,7 +30,6 @@ namespace OpenMS
 {
   namespace
   {
-#ifdef WITH_PARQUET
     void appendOrThrow_(const arrow::Status& status, const char* column)
     {
       if (!status.ok())
@@ -172,7 +170,6 @@ namespace OpenMS
       }
       return "";
     }
-#endif
   } // namespace
 
   class MSChromatogramParquetConsumerImpl
@@ -186,38 +183,13 @@ namespace OpenMS
       run_id_(run_id),
       source_file_(source_file)
     {
-#ifndef WITH_PARQUET
-      (void)transition_exp;
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#else
       buildTransitionMaps_(transition_exp);
       // Build the invariant schema once; reuse on every flushBuffers_() call.
-      schema_ = arrow::schema({
-        arrow::field("RUN_ID", arrow::int64()),
-        arrow::field("SOURCE_FILE", arrow::utf8()),
-        arrow::field("MS_LEVEL", arrow::int64()),
-        arrow::field("PRECURSOR_ID", arrow::int64()),
-        arrow::field("TRANSITION_ID", arrow::int64()),
-        arrow::field("MODIFIED_SEQUENCE", arrow::utf8()),
-        arrow::field("PRECURSOR_CHARGE", arrow::int64()),
-        arrow::field("PRODUCT_CHARGE", arrow::int64()),
-        arrow::field("DETECTING_TRANSITION", arrow::int64()),
-        arrow::field("PRECURSOR_DECOY", arrow::int64()),
-        arrow::field("PRODUCT_DECOY", arrow::int64()),
-        arrow::field("TRANSITION_ORDINAL", arrow::int64()),
-        arrow::field("TRANSITION_TYPE", arrow::utf8()),
-        arrow::field("ANNOTATION", arrow::utf8()),
-        arrow::field("RT_DATA", arrow::binary()),
-        arrow::field("INTENSITY_DATA", arrow::binary()),
-        arrow::field("RT_COMPRESSION", arrow::int64()),
-        arrow::field("INTENSITY_COMPRESSION", arrow::int64())
-      });
-#endif
+      schema_ = XICSchema::schema();
     }
 
     ~MSChromatogramParquetConsumerImpl()
     {
-#ifdef WITH_PARQUET
       try
       {
         finalize();
@@ -237,7 +209,6 @@ namespace OpenMS
         OPENMS_LOG_ERROR << "Failed to write chromatogram parquet file '" << filename_
                          << "': unknown exception.\n";
       }
-#endif
     }
 
     void consumeSpectrum(MSChromatogramParquetConsumer::SpectrumType& s)
@@ -247,9 +218,6 @@ namespace OpenMS
 
     void consumeChromatogram(MSChromatogramParquetConsumer::ChromatogramType& c)
     {
-#ifndef WITH_PARQUET
-      (void)c;
-#else
       const String native_id = c.getNativeID();
       const bool is_precursor = native_id.hasSubstring("_Precursor_i");
       const int64_t ms_level = is_precursor ? 1 : 2;
@@ -313,12 +281,10 @@ namespace OpenMS
 
       encodeChromatogram_(c);
       c.clear(false);
-#endif
     }
 
     void setExpectedSize(Size, Size expectedChromatograms)
     {
-#ifdef WITH_PARQUET
       if (expectedChromatograms > 0)
       {
         reserveOrThrow_(run_id_builder_.Reserve(expectedChromatograms), "RUN_ID");
@@ -340,7 +306,6 @@ namespace OpenMS
         reserveOrThrow_(rt_compression_builder_.Reserve(expectedChromatograms), "RT_COMPRESSION");
         reserveOrThrow_(intensity_compression_builder_.Reserve(expectedChromatograms), "INTENSITY_COMPRESSION");
       }
-#endif
     }
 
     void setExperimentalSettings(const ExperimentalSettings&)
@@ -349,13 +314,11 @@ namespace OpenMS
 
     void finalize()
     {
-#ifdef WITH_PARQUET
       if (wrote_)
       {
         return;
       }
       write_();
-#endif
     }
 
   private:
@@ -363,7 +326,6 @@ namespace OpenMS
     UInt64 run_id_{0};
     String source_file_;
     bool wrote_{false};
-#ifdef WITH_PARQUET
     void buildTransitionMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)
     {
       // Build lookup tables for precursor- and transition-level metadata.
@@ -539,7 +501,6 @@ namespace OpenMS
       // Close writer and outfile so Parquet metadata is written.
       // Null out each pointer immediately after closing so a subsequent call
       // from the destructor (if the first call threw) cannot double-close.
-#ifdef WITH_PARQUET
       if (parquet_writer_)
       {
         auto s = parquet_writer_->Close();
@@ -563,13 +524,11 @@ namespace OpenMS
                                         "Failed to close parquet outfile", s2.ToString());
         }
       }
-#endif
       return;
     }
 
     void flushBuffers_()
     {
-#ifdef WITH_PARQUET
       // If there is nothing to flush, we usually return early.
       // However, if no outfile/writer has been created yet (i.e. no
       // flush has ever happened) we still want to create an empty
@@ -646,6 +605,14 @@ namespace OpenMS
         arr_rt_data, arr_int_data, arr_rt_comp, arr_int_comp
       });
 
+      // Validate table against registry schema
+      auto validation = ArrowSchemaValidation::validate(table, XICSchema::schema());
+      if (!validation.valid)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "XIC table schema validation failed: " + validation.toString(), "");
+      }
+
       // Open output file on first flush and prepare writer properties.
       if (!outfile_)
       {
@@ -686,8 +653,6 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Failed to write chromatogram parquet table", status.ToString());
       }
-
-#endif
     }
 
     std::unordered_map<String, CompoundInfo> compound_info_;
@@ -729,7 +694,6 @@ namespace OpenMS
     std::shared_ptr<parquet::WriterProperties> props_;
     std::unique_ptr<parquet::arrow::FileWriter> parquet_writer_;
     std::shared_ptr<arrow::Schema> schema_;
-#endif
   };
 
   MSChromatogramParquetConsumer::MSChromatogramParquetConsumer(const String& filename,

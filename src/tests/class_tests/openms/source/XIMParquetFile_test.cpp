@@ -23,7 +23,6 @@ START_TEST(XIMParquetFile, "$Id$")
 
 START_SECTION(void load(std::vector<XIMMobilogram>& output) const)
 {
-#ifdef WITH_PARQUET
   XIMParquetFile xim(OPENMS_GET_TEST_DATA_PATH("XIMParquetFile_23_input.xim"));
   std::vector<XIMMobilogram> mobilograms;
   xim.load(mobilograms);
@@ -36,13 +35,11 @@ START_SECTION(void load(std::vector<XIMMobilogram>& output) const)
   {
     TEST_EQUAL(m.mobility.size(), m.intensity.size())
   }
-#endif
 }
 END_SECTION
 
 START_SECTION(void getMobilograms(std::vector<XIMMobilogram>&, Int64, Int64, const String&, Int64, Int64, Int64, Int64, const String&, Int64, double, const String&) const)
 {
-#ifdef WITH_PARQUET
   XIMParquetFile xim(OPENMS_GET_TEST_DATA_PATH("XIMParquetFile_23_input.xim"));
 
   std::vector<XIMMobilogram> all;
@@ -73,13 +70,11 @@ START_SECTION(void getMobilograms(std::vector<XIMMobilogram>&, Int64, Int64, con
   std::vector<XIMMobilogram> invalid_filter;
   TEST_EXCEPTION(Exception::InvalidValue,
                  xim.getMobilograms(invalid_filter, -1, -1, "", -1, -1, -1, -1, "", -1, -1.0, "feature_id=="))
-#endif
 }
 END_SECTION
 
 START_SECTION(void getMobilograms_multi_file)
 {
-#ifdef WITH_PARQUET
   const String file = OPENMS_GET_TEST_DATA_PATH("XIMParquetFile_23_input.xim");
   XIMParquetFile xim_single(file);
   std::vector<XIMMobilogram> mobilograms_single;
@@ -93,33 +88,27 @@ START_SECTION(void getMobilograms_multi_file)
   std::vector<XIMMobilogram> mobilograms_multi;
   xim_multi.getMobilograms(mobilograms_multi);
   TEST_EQUAL(mobilograms_multi.size(), 2 * mobilograms_single.size())
-#endif
 }
 END_SECTION
 
 START_SECTION(void getRuns(std::vector<XIMRunInfo>& output) const)
 {
-#ifdef WITH_PARQUET
   XIMParquetFile xim(OPENMS_GET_TEST_DATA_PATH("XIMParquetFile_23_input.xim"));
   std::vector<XIMRunInfo> runs;
   xim.getRuns(runs);
   TEST_EQUAL(runs.empty(), false)
   TEST_NOT_EQUAL(runs[0].run_id, 0)
-#endif
 }
 END_SECTION
 
 START_SECTION(void load_invalid_path)
 {
-#ifdef WITH_PARQUET
   TEST_EXCEPTION(Exception::FileNotFound, XIMParquetFile("no_such_file.xim"))
-#endif
 }
 END_SECTION
 
 START_SECTION(void getColumns(std::vector<String>&) const)
 {
-#ifdef WITH_PARQUET
   XIMParquetFile xim(OPENMS_GET_TEST_DATA_PATH("XIMParquetFile_23_input.xim"));
   std::vector<String> columns;
   xim.getColumns(columns);
@@ -138,13 +127,11 @@ START_SECTION(void getColumns(std::vector<String>&) const)
   TEST_EQUAL(has_run_id, true)
   TEST_EQUAL(has_mobility, true)
   TEST_EQUAL(has_intensity, true)
-#endif
 }
 END_SECTION
 
 START_SECTION(void getAnalytes(std::vector<XIMAnalyte>&, const std::vector<String>&, bool) const)
 {
-#ifdef WITH_PARQUET
   XIMParquetFile xim(OPENMS_GET_TEST_DATA_PATH("XIMParquetFile_23_input.xim"));
 
   // Default: all analytes with nested transitions
@@ -165,7 +152,6 @@ START_SECTION(void getAnalytes(std::vector<XIMAnalyte>&, const std::vector<Strin
   // Passing a non-analyte column (e.g. a signal column) must throw
   std::vector<XIMAnalyte> bad;
   TEST_EXCEPTION(Exception::InvalidValue, xim.getAnalytes(bad, {"RUN_ID"}, false))
-#endif
 }
 END_SECTION
 

@@ -214,7 +214,7 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
     nb::class_<OpenMS::CoarseIsotopePatternGenerator>(m, "CoarseIsotopePatternGenerator", "OpenMS class CoarseIsotopePatternGenerator")
         .def(nb::init<size_t, bool>())
         .def("setMaxIsotope", [](OpenMS::CoarseIsotopePatternGenerator& self, const size_t& max_isotope) { return self.setMaxIsotope(max_isotope); }, "max_isotope"_a, "Sets the maximal isotope with 'max_isotope'")
-        .def("setRoundMasses", [](OpenMS::CoarseIsotopePatternGenerator& self, bool round_masses) { return self.setRoundMasses(round_masses); }, "round_masses"_a, "Sets the round_masses_ flag to round masses to integer values (true) or return accurate masses (false)")
+        .def("setRoundMasses", [](OpenMS::CoarseIsotopePatternGenerator& self, bool round_masses) { return self.setRoundMasses(round_masses); }, "round_masses"_a, "Sets the round_masses flag to round masses to integer values (true) or return accurate masses (false)")
         .def("getMaxIsotope", [](const OpenMS::CoarseIsotopePatternGenerator& self) { return self.getMaxIsotope(); }, "Returns the currently set maximum isotope")
         .def("getRoundMasses", [](const OpenMS::CoarseIsotopePatternGenerator& self) { return self.getRoundMasses(); }, "Returns the current value of the flag to round masses to integer values (true) or return accurate masses (false)")
         .def("run", [](const OpenMS::CoarseIsotopePatternGenerator& self, const OpenMS::EmpiricalFormula& ef) { return self.run(ef); }, "ef"_a)

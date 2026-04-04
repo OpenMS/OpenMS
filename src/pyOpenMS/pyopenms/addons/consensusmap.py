@@ -441,7 +441,7 @@ def to_feature_df(self, **kwargs):
 
     Parameters
     ----------
-    **kwargs
+    ``**kwargs``
         Passed to to_feature_arrow().
 
     Returns
@@ -463,7 +463,7 @@ def to_feature_parquet(self, filename, compression='snappy', **kwargs):
         Output file path.
     compression : str
         Compression codec (default: 'snappy').
-    **kwargs
+    ``**kwargs``
         Passed to to_feature_arrow().
     """
     try:
@@ -489,7 +489,7 @@ def to_feature_qpx(self, qpx_version="1.0", creator="pyopenms", software_provide
         Creator identifier.
     software_provider : str
         Software provider name.
-    **kwargs
+    ``**kwargs``
         Passed to to_feature_arrow().
 
     Returns

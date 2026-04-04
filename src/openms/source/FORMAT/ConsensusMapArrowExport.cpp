@@ -8,8 +8,7 @@
 
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 
-#ifdef WITH_PARQUET
-
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/Scores.h>
@@ -54,57 +53,73 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
 {
   // -- Simple column builders --
   arrow::StringBuilder sequence_builder, peptidoform_builder, anchor_protein_builder;
-  arrow::StringBuilder reference_file_builder, scan_builder, score_type_builder;
-  arrow::StringBuilder spectrum_reference_builder, scan_ref_file_builder;
-  arrow::StringBuilder cv_params_builder, additional_intensities_builder;
-  arrow::Int32Builder precursor_charge_builder, is_decoy_builder, unique_builder;
+  arrow::StringBuilder run_file_name_builder, id_run_file_name_builder;
+  arrow::Int16Builder charge_builder, missed_cleavages_builder;
+  arrow::BooleanBuilder is_decoy_builder, unique_builder;
   arrow::FloatBuilder calculated_mz_builder, observed_mz_builder, rt_builder;
-  arrow::FloatBuilder quality_builder, rt_start_builder, rt_stop_builder;
+  arrow::FloatBuilder mass_error_ppm_builder;
+  arrow::FloatBuilder rt_start_builder, rt_stop_builder;
   arrow::FloatBuilder ion_mobility_builder, predicted_rt_builder;
-  arrow::FloatBuilder start_ion_mobility_builder, stop_ion_mobility_builder;
-  arrow::DoubleBuilder pep_builder, score_builder, pg_qvalue_builder;
+  arrow::FloatBuilder im_start_builder, im_stop_builder;
+  arrow::DoubleBuilder pep_builder, pg_qvalue_builder;
 
-  // -- List<utf8> builders for pg_accessions, gg_accessions, gg_names --
-  auto pg_acc_vb = std::make_shared<arrow::StringBuilder>();
-  arrow::ListBuilder pg_accessions_builder(arrow::default_memory_pool(), pg_acc_vb);
-
+  // -- List<utf8> builders for gg_accessions, gg_names --
   auto gg_acc_vb = std::make_shared<arrow::StringBuilder>();
   arrow::ListBuilder gg_accessions_builder(arrow::default_memory_pool(), gg_acc_vb);
 
   auto gg_names_vb = std::make_shared<arrow::StringBuilder>();
   arrow::ListBuilder gg_names_builder(arrow::default_memory_pool(), gg_names_vb);
 
-  // -- Modifications list<struct{name, accession, positions: list<struct{position, scores}>}> --
-  auto pos_position_b = std::make_shared<arrow::StringBuilder>();
-  auto pos_scores_b = std::make_shared<arrow::DoubleBuilder>();
+  // -- scan: list<int32> --
+  auto scan_val_b = std::make_shared<arrow::Int32Builder>();
+  arrow::ListBuilder scan_builder(arrow::default_memory_pool(), scan_val_b);
+
+  // -- Modifications: list<struct{name, accession, positions: list<struct{position: int32, amino_acid, scores: list<struct>}>}> --
+  // scores within position
+  auto mod_score_name_b = std::make_shared<arrow::StringBuilder>();
+  auto mod_score_value_b = std::make_shared<arrow::DoubleBuilder>();
+  auto mod_score_hb_b = std::make_shared<arrow::BooleanBuilder>();
+  auto mod_score_struct_type = arrow::struct_({
+    arrow::field("score_name", arrow::utf8(), /*nullable=*/false),
+    arrow::field("score_value", arrow::float64(), /*nullable=*/false),
+    arrow::field("higher_better", arrow::boolean())
+  });
+  auto mod_score_struct_b = std::make_shared<arrow::StructBuilder>(
+    mod_score_struct_type, arrow::default_memory_pool(),
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{mod_score_name_b, mod_score_value_b, mod_score_hb_b});
+  auto mod_scores_list_b = std::make_shared<arrow::ListBuilder>(arrow::default_memory_pool(), mod_score_struct_b);
+
+  auto pos_position_b = std::make_shared<arrow::Int32Builder>();
+  auto pos_amino_acid_b = std::make_shared<arrow::StringBuilder>();
   auto position_struct_type = arrow::struct_({
-    arrow::field("position", arrow::utf8()),
-    arrow::field("scores", arrow::float64())
+    arrow::field("position", arrow::int32(), /*nullable=*/false),
+    arrow::field("amino_acid", arrow::utf8()),
+    arrow::field("scores", arrow::list(mod_score_struct_type))
   });
   auto position_struct_b = std::make_shared<arrow::StructBuilder>(
     position_struct_type, arrow::default_memory_pool(),
-    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{pos_position_b, pos_scores_b});
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{pos_position_b, pos_amino_acid_b, mod_scores_list_b});
   auto positions_list_b = std::make_shared<arrow::ListBuilder>(arrow::default_memory_pool(), position_struct_b);
 
   auto mod_name_b = std::make_shared<arrow::StringBuilder>();
   auto mod_acc_b = std::make_shared<arrow::StringBuilder>();
   auto modification_struct_type = arrow::struct_({
-    arrow::field("name", arrow::utf8()),
+    arrow::field("name", arrow::utf8(), /*nullable=*/false),
     arrow::field("accession", arrow::utf8()),
-    arrow::field("positions", arrow::list(position_struct_type))
+    arrow::field("positions", arrow::list(position_struct_type), /*nullable=*/false)
   });
   auto modification_struct_b = std::make_shared<arrow::StructBuilder>(
     modification_struct_type, arrow::default_memory_pool(),
     std::vector<std::shared_ptr<arrow::ArrayBuilder>>{mod_name_b, mod_acc_b, positions_list_b});
   arrow::ListBuilder modifications_builder(arrow::default_memory_pool(), modification_struct_b);
 
-  // -- additional_scores list<struct{score_name, score_value, higher_better}> --
+  // -- additional_scores: list<struct{score_name, score_value, higher_better}> --
   auto as_name_b = std::make_shared<arrow::StringBuilder>();
   auto as_value_b = std::make_shared<arrow::DoubleBuilder>();
   auto as_hb_b = std::make_shared<arrow::BooleanBuilder>();
   auto as_struct_type = arrow::struct_({
-    arrow::field("score_name", arrow::utf8()),
-    arrow::field("score_value", arrow::float64()),
+    arrow::field("score_name", arrow::utf8(), /*nullable=*/false),
+    arrow::field("score_value", arrow::float64(), /*nullable=*/false),
     arrow::field("higher_better", arrow::boolean())
   });
   auto as_struct_b = std::make_shared<arrow::StructBuilder>(
@@ -112,95 +127,114 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     std::vector<std::shared_ptr<arrow::ArrayBuilder>>{as_name_b, as_value_b, as_hb_b});
   arrow::ListBuilder additional_scores_builder(arrow::default_memory_pool(), as_struct_b);
 
-  // -- Intensity list<struct{sample_accession, channel, intensity}> --
-  auto intensity_struct_type = arrow::struct_({
-    arrow::field("sample_accession", arrow::utf8()),
-    arrow::field("channel", arrow::utf8()),
-    arrow::field("intensity", arrow::float32())
+  // -- cv_params: list<struct{cv_name, cv_value}> --
+  auto cv_name_b = std::make_shared<arrow::StringBuilder>();
+  auto cv_value_b = std::make_shared<arrow::StringBuilder>();
+  auto cv_struct_type = arrow::struct_({
+    arrow::field("cv_name", arrow::utf8(), /*nullable=*/false),
+    arrow::field("cv_value", arrow::utf8(), /*nullable=*/false)
   });
-  auto intensity_sa_b = std::make_shared<arrow::StringBuilder>();
-  auto intensity_ch_b = std::make_shared<arrow::StringBuilder>();
+  auto cv_struct_b = std::make_shared<arrow::StructBuilder>(
+    cv_struct_type, arrow::default_memory_pool(),
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{cv_name_b, cv_value_b});
+  arrow::ListBuilder cv_params_builder(arrow::default_memory_pool(), cv_struct_b);
+
+  // -- intensities: list<struct{label, intensity}> --
+  auto intensity_label_b = std::make_shared<arrow::StringBuilder>();
   auto intensity_val_b = std::make_shared<arrow::FloatBuilder>();
+  auto intensity_struct_type = arrow::struct_({
+    arrow::field("label", arrow::utf8(), /*nullable=*/false),
+    arrow::field("intensity", arrow::float32(), /*nullable=*/false)
+  });
   auto intensity_struct_b = std::make_shared<arrow::StructBuilder>(
     intensity_struct_type, arrow::default_memory_pool(),
-    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{intensity_sa_b, intensity_ch_b, intensity_val_b});
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{intensity_label_b, intensity_val_b});
   arrow::ListBuilder intensities_builder(arrow::default_memory_pool(), intensity_struct_b);
 
-  // -- feature_metavalues list<struct{name, value, value_type}> --
-  auto fmv_name_b = std::make_shared<arrow::StringBuilder>();
-  auto fmv_value_b = std::make_shared<arrow::StringBuilder>();
-  auto fmv_type_b = std::make_shared<arrow::StringBuilder>();
-  auto fmv_struct_type = arrow::struct_({
-    arrow::field("name", arrow::utf8()),
-    arrow::field("value", arrow::utf8()),
-    arrow::field("value_type", arrow::utf8())
+  // -- additional_intensities: list<struct{label, intensities: list<struct{intensity_name, intensity_value}>}> --
+  auto ai_iname_b = std::make_shared<arrow::StringBuilder>();
+  auto ai_ival_b = std::make_shared<arrow::FloatBuilder>();
+  auto ai_entry_type = arrow::struct_({
+    arrow::field("intensity_name", arrow::utf8(), /*nullable=*/false),
+    arrow::field("intensity_value", arrow::float32(), /*nullable=*/false)
   });
-  auto fmv_struct_b = std::make_shared<arrow::StructBuilder>(
-    fmv_struct_type, arrow::default_memory_pool(),
-    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{fmv_name_b, fmv_value_b, fmv_type_b});
-  arrow::ListBuilder feature_metavalues_builder(arrow::default_memory_pool(), fmv_struct_b);
+  auto ai_entry_b = std::make_shared<arrow::StructBuilder>(
+    ai_entry_type, arrow::default_memory_pool(),
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{ai_iname_b, ai_ival_b});
+  auto ai_list_b = std::make_shared<arrow::ListBuilder>(arrow::default_memory_pool(), ai_entry_b);
+  auto ai_label_b = std::make_shared<arrow::StringBuilder>();
+  auto ai_outer_type = arrow::struct_({
+    arrow::field("label", arrow::utf8(), /*nullable=*/false),
+    arrow::field("intensities", arrow::list(ai_entry_type), /*nullable=*/false)
+  });
+  auto ai_outer_b = std::make_shared<arrow::StructBuilder>(
+    ai_outer_type, arrow::default_memory_pool(),
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{ai_label_b, ai_list_b});
+  arrow::ListBuilder additional_intensities_builder(arrow::default_memory_pool(), ai_outer_b);
 
-  // Reserve capacity for all builders to avoid repeated allocations
-  // This is where most memory allocation occurs - failures here indicate OOM
+  // -- pg_accessions: list<struct{accession, start, end, pre, post}> --
+  auto pga_acc_b = std::make_shared<arrow::StringBuilder>();
+  auto pga_start_b = std::make_shared<arrow::Int32Builder>();
+  auto pga_end_b = std::make_shared<arrow::Int32Builder>();
+  auto pga_pre_b = std::make_shared<arrow::StringBuilder>();
+  auto pga_post_b = std::make_shared<arrow::StringBuilder>();
+  auto pga_struct_type = arrow::struct_({
+    arrow::field("accession", arrow::utf8(), /*nullable=*/false),
+    arrow::field("start", arrow::int32()),
+    arrow::field("end", arrow::int32()),
+    arrow::field("pre", arrow::utf8()),
+    arrow::field("post", arrow::utf8())
+  });
+  auto pga_struct_b = std::make_shared<arrow::StructBuilder>(
+    pga_struct_type, arrow::default_memory_pool(),
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{pga_acc_b, pga_start_b, pga_end_b, pga_pre_b, pga_post_b});
+  arrow::ListBuilder pg_accessions_builder(arrow::default_memory_pool(), pga_struct_b);
+
+  // -- pg_positions: list<struct{protein_accession, start, end}> --
+  auto pgp_acc_b = std::make_shared<arrow::StringBuilder>();
+  auto pgp_start_b = std::make_shared<arrow::Int32Builder>();
+  auto pgp_end_b = std::make_shared<arrow::Int32Builder>();
+  auto pgp_struct_type = arrow::struct_({
+    arrow::field("protein_accession", arrow::utf8(), /*nullable=*/false),
+    arrow::field("start", arrow::int32(), /*nullable=*/false),
+    arrow::field("end", arrow::int32(), /*nullable=*/false)
+  });
+  auto pgp_struct_b = std::make_shared<arrow::StructBuilder>(
+    pgp_struct_type, arrow::default_memory_pool(),
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{pgp_acc_b, pgp_start_b, pgp_end_b});
+  arrow::ListBuilder pg_positions_builder(arrow::default_memory_pool(), pgp_struct_b);
+
   arrow::Status status;
   const Size num_features = cmap.size();
 
-  // Reserve for simple column builders (one value per feature)
-  status = sequence_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: sequence_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = peptidoform_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: peptidoform_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = anchor_protein_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: anchor_protein_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = reference_file_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: reference_file_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = scan_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: scan_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = score_type_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: score_type_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = spectrum_reference_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: spectrum_reference_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = scan_ref_file_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: scan_ref_file_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = cv_params_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: cv_params_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = additional_intensities_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: additional_intensities_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  // Reserve capacity for simple column builders
+  #define RESERVE_OR_FAIL(builder) \
+    status = builder.Reserve(num_features); \
+    if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: " #builder " Reserve failed: " << status.ToString() << std::endl; return nullptr; }
 
-  status = precursor_charge_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: precursor_charge_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = is_decoy_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: is_decoy_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = unique_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: unique_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  RESERVE_OR_FAIL(sequence_builder)
+  RESERVE_OR_FAIL(peptidoform_builder)
+  RESERVE_OR_FAIL(anchor_protein_builder)
+  RESERVE_OR_FAIL(run_file_name_builder)
+  RESERVE_OR_FAIL(id_run_file_name_builder)
+  RESERVE_OR_FAIL(charge_builder)
+  RESERVE_OR_FAIL(missed_cleavages_builder)
+  RESERVE_OR_FAIL(is_decoy_builder)
+  RESERVE_OR_FAIL(unique_builder)
+  RESERVE_OR_FAIL(calculated_mz_builder)
+  RESERVE_OR_FAIL(observed_mz_builder)
+  RESERVE_OR_FAIL(mass_error_ppm_builder)
+  RESERVE_OR_FAIL(rt_builder)
+  RESERVE_OR_FAIL(rt_start_builder)
+  RESERVE_OR_FAIL(rt_stop_builder)
+  RESERVE_OR_FAIL(ion_mobility_builder)
+  RESERVE_OR_FAIL(predicted_rt_builder)
+  RESERVE_OR_FAIL(im_start_builder)
+  RESERVE_OR_FAIL(im_stop_builder)
+  RESERVE_OR_FAIL(pep_builder)
+  RESERVE_OR_FAIL(pg_qvalue_builder)
 
-  status = calculated_mz_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: calculated_mz_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = observed_mz_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: observed_mz_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = rt_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: rt_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = quality_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: quality_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = rt_start_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: rt_start_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = rt_stop_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: rt_stop_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = ion_mobility_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: ion_mobility_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = predicted_rt_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: predicted_rt_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = start_ion_mobility_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: start_ion_mobility_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = stop_ion_mobility_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: stop_ion_mobility_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-
-  status = pep_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: pep_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = score_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: score_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = pg_qvalue_builder.Reserve(num_features);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: pg_qvalue_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  #undef RESERVE_OR_FAIL
 
   // Build column header lookup
   const auto& column_headers = cmap.getColumnHeaders();
@@ -245,10 +279,6 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     }
   }
 
-  // Metavalue keys excluded from feature_metavalues (they have dedicated columns)
-  static const std::unordered_set<std::string> excluded_feature_mvs = {
-    "rt_start", "rt_stop", "start_ion_mobility", "stop_ion_mobility"
-  };
   // Metavalue keys excluded from additional_scores on PeptideHit
   static const std::unordered_set<std::string> excluded_hit_mvs = {
     "target_decoy", "predicted_RT", "predicted_rt"
@@ -274,11 +304,23 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
       int charge = cf.getCharge();
       if (charge > 0)
       {
-        (void)calculated_mz_builder.Append(static_cast<float>(seq.getMZ(charge)));
+        float calc_mz = static_cast<float>(seq.getMZ(charge));
+        (void)calculated_mz_builder.Append(calc_mz);
+        float obs_mz = static_cast<float>(cf.getMZ());
+        // mass_error_ppm = (observed - calculated) / calculated * 1e6
+        if (calc_mz > 0)
+        {
+          (void)mass_error_ppm_builder.Append((obs_mz - calc_mz) / calc_mz * 1e6f);
+        }
+        else
+        {
+          (void)mass_error_ppm_builder.AppendNull();
+        }
       }
       else
       {
-        (void)calculated_mz_builder.AppendNull();
+        (void)calculated_mz_builder.Append(static_cast<float>(cf.getMZ()));
+        (void)mass_error_ppm_builder.AppendNull();
       }
 
       // === modifications ===
@@ -286,7 +328,8 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
       if (seq.isModified())
       {
         // Collect modifications keyed by name to group positions
-        std::map<std::string, std::pair<std::string, std::vector<std::string>>> mod_map; // name -> (accession, [position_strings])
+        // name -> (accession, [(1-based-position, amino_acid_char)])
+        std::map<std::string, std::pair<std::string, std::vector<std::pair<int, std::string>>>> mod_map;
 
         // N-terminal
         if (seq.hasNTerminalModification())
@@ -299,7 +342,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
             acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
           }
           mod_map[name] = {acc_str, {}};
-          mod_map[name].second.push_back("N-term.0");
+          mod_map[name].second.push_back({0, ""});
         }
 
         // Residue modifications
@@ -315,12 +358,11 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
             {
               acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
             }
-            std::string pos_str = std::string(residue.getOneLetterCode()) + "." + std::to_string(pos + 1);
             if (mod_map.find(name) == mod_map.end())
             {
               mod_map[name] = {acc_str, {}};
             }
-            mod_map[name].second.push_back(pos_str);
+            mod_map[name].second.push_back({static_cast<int>(pos + 1), std::string(residue.getOneLetterCode())});
           }
         }
 
@@ -334,12 +376,11 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
           {
             acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
           }
-          std::string pos_str = "C-term." + std::to_string(seq.size() + 1);
           if (mod_map.find(name) == mod_map.end())
           {
             mod_map[name] = {acc_str, {}};
           }
-          mod_map[name].second.push_back(pos_str);
+          mod_map[name].second.push_back({static_cast<int>(seq.size() + 1), ""});
         }
 
         // Write modification structs
@@ -356,11 +397,19 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
             (void)mod_acc_b->Append(acc_positions.first);
           }
           (void)positions_list_b->Append();
-          for (const auto& pos_str : acc_positions.second)
+          for (const auto& [pos_idx, aa] : acc_positions.second)
           {
             (void)position_struct_b->Append();
-            (void)pos_position_b->Append(pos_str);
-            (void)pos_scores_b->AppendNull();
+            (void)pos_position_b->Append(pos_idx);
+            if (aa.empty())
+            {
+              (void)pos_amino_acid_b->AppendNull();
+            }
+            else
+            {
+              (void)pos_amino_acid_b->Append(aa);
+            }
+            (void)mod_scores_list_b->Append(); // empty scores list
           }
         }
       }
@@ -368,17 +417,17 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     }
     else
     {
-      (void)sequence_builder.AppendNull();
-      (void)peptidoform_builder.AppendNull();
-      (void)calculated_mz_builder.AppendNull();
+      (void)sequence_builder.Append("");
+      (void)peptidoform_builder.Append("");
+      (void)calculated_mz_builder.Append(static_cast<float>(cf.getMZ()));
+      (void)mass_error_ppm_builder.AppendNull();
       // empty modifications list
       (void)modifications_builder.Append();
     }
 
-    (void)precursor_charge_builder.Append(cf.getCharge());
+    (void)charge_builder.Append(static_cast<int16_t>(cf.getCharge()));
     (void)observed_mz_builder.Append(static_cast<float>(cf.getMZ()));
     (void)rt_builder.Append(static_cast<float>(cf.getRT()));
-    (void)quality_builder.Append(static_cast<float>(cf.getQuality()));
 
     // === PEP ===
     if (has_id)
@@ -413,11 +462,11 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     if (best_hit && best_hit->metaValueExists("target_decoy"))
     {
       std::string td = best_hit->getMetaValue("target_decoy").toString();
-      (void)is_decoy_builder.Append(td.substr(0, 5) == "decoy" ? 1 : 0);
+      (void)is_decoy_builder.Append(td.substr(0, 5) == "decoy");
     }
     else
     {
-      (void)is_decoy_builder.AppendNull();
+      (void)is_decoy_builder.Append(false);
     }
 
     // === additional_scores from best hit ===
@@ -463,39 +512,52 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
       (void)predicted_rt_builder.AppendNull();
     }
 
-    // === scan / spectrum_reference ===
-    std::string spec_ref;
-    if (!pep_ids.empty() && pep_ids[0].metaValueExists("spectrum_reference"))
+    // === run_file_name ===
+    // Derive from the first FeatureHandle's map index -> column header filename
     {
-      spec_ref = pep_ids[0].getMetaValue("spectrum_reference").toString();
-    }
-    // Use null for missing values (not empty string) to align with Python and semantic correctness
-    if (spec_ref.empty())
-    {
-      (void)spectrum_reference_builder.AppendNull();
-    }
-    else
-    {
-      (void)spectrum_reference_builder.Append(spec_ref);
+      bool found_run = false;
+      for (const auto& fh : cf.getFeatures())
+      {
+        auto it = column_headers.find(fh.getMapIndex());
+        if (it != column_headers.end())
+        {
+          (void)run_file_name_builder.Append(it->second.filename);
+          found_run = true;
+          break;
+        }
+      }
+      if (!found_run)
+      {
+        (void)run_file_name_builder.Append("");
+      }
     }
 
-    // Extract scan number from native ID
-    if (!spec_ref.empty())
+    // === scan (list<int32>) ===
     {
-      Int scan_num = extractScan(spec_ref);
-      if (scan_num >= 0)
+      std::string spec_ref;
+      if (!pep_ids.empty())
       {
-        (void)scan_builder.Append(std::to_string(scan_num));
+        // Prefer the dedicated member, fall back to metavalue
+        spec_ref = pep_ids[0].getSpectrumReference();
+        if (spec_ref.empty() && pep_ids[0].metaValueExists("spectrum_reference"))
+        {
+          spec_ref = pep_ids[0].getMetaValue("spectrum_reference").toString();
+        }
       }
-      else
+
+      (void)scan_builder.Append();
+      if (!spec_ref.empty())
       {
-        (void)scan_builder.AppendNull();
+        Int scan_num = extractScan(spec_ref);
+        if (scan_num >= 0)
+        {
+          (void)scan_val_b->Append(scan_num);
+        }
       }
     }
-    else
-    {
-      (void)scan_builder.AppendNull();
-    }
+
+    // === cv_params (empty list for now) ===
+    (void)cv_params_builder.AppendNull();
 
     // === ion_mobility, start/stop ===
     if (!pep_ids.empty() && pep_ids[0].metaValueExists("ion_mobility"))
@@ -513,79 +575,119 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
 
     if (cf.metaValueExists("start_ion_mobility"))
     {
-      (void)start_ion_mobility_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue("start_ion_mobility"))));
+      (void)im_start_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue("start_ion_mobility"))));
     }
     else
     {
-      (void)start_ion_mobility_builder.AppendNull();
+      (void)im_start_builder.AppendNull();
     }
 
     if (cf.metaValueExists("stop_ion_mobility"))
     {
-      (void)stop_ion_mobility_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue("stop_ion_mobility"))));
+      (void)im_stop_builder.Append(static_cast<float>(static_cast<double>(cf.getMetaValue("stop_ion_mobility"))));
     }
     else
     {
-      (void)stop_ion_mobility_builder.AppendNull();
+      (void)im_stop_builder.AppendNull();
     }
 
-    // === reference_file_name, cv_params, additional_intensities (reserved) ===
-    // Use null for columns that don't have meaningful values in C++ export
-    // (reference_file_name is a parameter in Python API but not in C++)
-    (void)reference_file_builder.AppendNull();
-    (void)scan_ref_file_builder.AppendNull();
-    (void)cv_params_builder.AppendNull();
+    // === missed_cleavages ===
+    if (best_hit && best_hit->metaValueExists("missed_cleavages"))
+    {
+      (void)missed_cleavages_builder.Append(static_cast<int16_t>(static_cast<int>(best_hit->getMetaValue("missed_cleavages"))));
+    }
+    else
+    {
+      (void)missed_cleavages_builder.AppendNull();
+    }
+
+    // === additional_intensities (empty list for now) ===
     (void)additional_intensities_builder.AppendNull();
 
-    // === Score / score_type ===
-    if (best_hit)
-    {
-      (void)score_builder.Append(best_hit->getScore());
-      (void)score_type_builder.Append(pep_ids[0].getScoreType());
-    }
-    else
-    {
-      (void)score_builder.AppendNull();
-      (void)score_type_builder.AppendNull();
-    }
+    // === id_run_file_name ===
+    (void)id_run_file_name_builder.AppendNull();
 
-    // === Protein accessions ===
-    // Collect unique protein accessions, preserving order (first occurrence for anchor)
+    // === Protein accessions (now list<struct>) ===
+    // Collect ALL peptide evidences (including repeated accessions with different positions)
+    // and separately track unique accessions for anchor_protein/unique
     std::vector<std::string> protein_accs;
     std::unordered_set<std::string> seen_accs;
+    struct EvidenceInfo { std::string acc; int start; int end; char pre; char post; };
+    std::vector<EvidenceInfo> evidences;
     if (best_hit)
     {
       for (const auto& ev : best_hit->getPeptideEvidences())
       {
         const std::string& acc = ev.getProteinAccession();
-        if (seen_accs.insert(acc).second) // only add if not already seen
+        // Track unique accessions for anchor_protein / unique
+        if (seen_accs.insert(acc).second)
         {
           protein_accs.push_back(acc);
         }
+        // Emit every evidence (including repeated accessions at different positions)
+        EvidenceInfo ei;
+        ei.acc = acc;
+        ei.start = ev.getStart();
+        ei.end = ev.getEnd();
+        ei.pre = ev.getAABefore();
+        ei.post = ev.getAAAfter();
+        evidences.push_back(ei);
       }
     }
 
     (void)pg_accessions_builder.Append();
-    for (const auto& acc : protein_accs)
+    for (const auto& ei : evidences)
     {
-      (void)pg_acc_vb->Append(acc);
+      (void)pga_struct_b->Append();
+      (void)pga_acc_b->Append(ei.acc);
+      if (ei.start != PeptideEvidence::UNKNOWN_POSITION)
+      {
+        (void)pga_start_b->Append(ei.start);
+      }
+      else
+      {
+        (void)pga_start_b->AppendNull();
+      }
+      if (ei.end != PeptideEvidence::UNKNOWN_POSITION)
+      {
+        (void)pga_end_b->Append(ei.end);
+      }
+      else
+      {
+        (void)pga_end_b->AppendNull();
+      }
+      if (ei.pre != PeptideEvidence::UNKNOWN_AA && ei.pre != 0)
+      {
+        (void)pga_pre_b->Append(std::string(1, ei.pre));
+      }
+      else
+      {
+        (void)pga_pre_b->AppendNull();
+      }
+      if (ei.post != PeptideEvidence::UNKNOWN_AA && ei.post != 0)
+      {
+        (void)pga_post_b->Append(std::string(1, ei.post));
+      }
+      else
+      {
+        (void)pga_post_b->AppendNull();
+      }
     }
 
-    // anchor_protein: null if no proteins
+    // anchor_protein
     if (protein_accs.empty())
     {
-      (void)anchor_protein_builder.AppendNull();
+      (void)anchor_protein_builder.Append("");
     }
     else
     {
       (void)anchor_protein_builder.Append(protein_accs[0]);
     }
 
-    // unique: 1 if exactly one unique protein accession, 0 otherwise
-    (void)unique_builder.Append(protein_accs.size() == 1 ? 1 : 0);
+    // unique: true if exactly one unique protein accession
+    (void)unique_builder.Append(protein_accs.size() == 1);
 
     // === pg_global_qvalue ===
-    // Use minimum q-value across all protein accessions (not first match which is order-dependent)
     double min_qval = std::numeric_limits<double>::max();
     bool found_qval = false;
     for (const auto& acc : protein_accs)
@@ -608,6 +710,9 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     {
       (void)pg_qvalue_builder.AppendNull();
     }
+
+    // === pg_positions (empty for now — no positional data available at consensus level) ===
+    (void)pg_positions_builder.AppendNull();
 
     // === gg_accessions / gg_names ===
     std::unordered_set<std::string> seen_gg_acc, seen_gg_nam;
@@ -666,7 +771,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
       (void)rt_stop_builder.AppendNull();
     }
 
-    // === intensities ===
+    // === intensities: list<struct{label, intensity}> ===
     (void)intensities_builder.Append();
     for (const auto& fh : cf.getFeatures())
     {
@@ -674,168 +779,89 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
       if (it != column_headers.end())
       {
         (void)intensity_struct_b->Append();
-        (void)intensity_sa_b->Append(it->second.filename);
-        (void)intensity_ch_b->Append(it->second.label);
+        (void)intensity_label_b->Append(it->second.filename);
         (void)intensity_val_b->Append(static_cast<float>(fh.getIntensity()));
-      }
-    }
-
-    // === feature_metavalues ===
-    (void)feature_metavalues_builder.Append();
-    {
-      std::vector<String> cf_keys;
-      cf.getKeys(cf_keys);
-      for (const auto& key : cf_keys)
-      {
-        if (excluded_feature_mvs.count(key)) continue;
-        const DataValue& val = cf.getMetaValue(key);
-        (void)fmv_struct_b->Append();
-        (void)fmv_name_b->Append(key);
-        (void)fmv_value_b->Append(val.toString());
-
-        switch (val.valueType())
-        {
-          case DataValue::INT_VALUE: (void)fmv_type_b->Append("int"); break;
-          case DataValue::DOUBLE_VALUE: (void)fmv_type_b->Append("float"); break;
-          case DataValue::STRING_VALUE: (void)fmv_type_b->Append("str"); break;
-          default: (void)fmv_type_b->Append("str"); break;
-        }
       }
     }
   } // end feature loop
 
   // Finalize all arrays
+  #define FINISH_OR_FAIL(builder, arr) \
+    status = builder.Finish(&arr); \
+    if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: " #builder " Finish failed: " << status.ToString() << std::endl; return nullptr; }
+
   std::shared_ptr<arrow::Array> arr_sequence, arr_peptidoform, arr_modifications;
-  std::shared_ptr<arrow::Array> arr_charge, arr_calc_mz, arr_obs_mz, arr_rt;
-  std::shared_ptr<arrow::Array> arr_pep, arr_is_decoy, arr_additional_scores;
-  std::shared_ptr<arrow::Array> arr_predicted_rt, arr_ref_file, arr_cv_params;
-  std::shared_ptr<arrow::Array> arr_scan, arr_ion_mobility;
-  std::shared_ptr<arrow::Array> arr_start_im, arr_stop_im;
+  std::shared_ptr<arrow::Array> arr_charge, arr_pep, arr_is_decoy;
+  std::shared_ptr<arrow::Array> arr_calc_mz, arr_obs_mz, arr_mass_error_ppm;
+  std::shared_ptr<arrow::Array> arr_additional_scores, arr_predicted_rt;
+  std::shared_ptr<arrow::Array> arr_run_file, arr_cv_params, arr_scan;
+  std::shared_ptr<arrow::Array> arr_rt, arr_ion_mobility, arr_missed_cleavages;
   std::shared_ptr<arrow::Array> arr_intensities, arr_additional_intensities;
   std::shared_ptr<arrow::Array> arr_pg_acc, arr_anchor, arr_unique, arr_pg_qval;
+  std::shared_ptr<arrow::Array> arr_pg_positions;
+  std::shared_ptr<arrow::Array> arr_im_start, arr_im_stop;
   std::shared_ptr<arrow::Array> arr_gg_acc, arr_gg_names;
-  std::shared_ptr<arrow::Array> arr_scan_ref_file, arr_rt_start, arr_rt_stop;
-  std::shared_ptr<arrow::Array> arr_quality, arr_score, arr_score_type;
-  std::shared_ptr<arrow::Array> arr_spectrum_ref, arr_feature_mvs;
+  std::shared_ptr<arrow::Array> arr_id_run_file;
+  std::shared_ptr<arrow::Array> arr_rt_start, arr_rt_stop;
 
-  status = sequence_builder.Finish(&arr_sequence);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: sequence_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = peptidoform_builder.Finish(&arr_peptidoform);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: peptidoform_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = modifications_builder.Finish(&arr_modifications);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: modifications_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = precursor_charge_builder.Finish(&arr_charge);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: precursor_charge_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = calculated_mz_builder.Finish(&arr_calc_mz);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: calculated_mz_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = observed_mz_builder.Finish(&arr_obs_mz);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: observed_mz_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = rt_builder.Finish(&arr_rt);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: rt_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = pep_builder.Finish(&arr_pep);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: pep_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = is_decoy_builder.Finish(&arr_is_decoy);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: is_decoy_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = additional_scores_builder.Finish(&arr_additional_scores);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: additional_scores_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = predicted_rt_builder.Finish(&arr_predicted_rt);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: predicted_rt_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = reference_file_builder.Finish(&arr_ref_file);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: reference_file_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = cv_params_builder.Finish(&arr_cv_params);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: cv_params_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = scan_builder.Finish(&arr_scan);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: scan_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = ion_mobility_builder.Finish(&arr_ion_mobility);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: ion_mobility_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = start_ion_mobility_builder.Finish(&arr_start_im);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: start_ion_mobility_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = stop_ion_mobility_builder.Finish(&arr_stop_im);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: stop_ion_mobility_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = intensities_builder.Finish(&arr_intensities);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: intensities_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = additional_intensities_builder.Finish(&arr_additional_intensities);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: additional_intensities_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = pg_accessions_builder.Finish(&arr_pg_acc);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: pg_accessions_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = anchor_protein_builder.Finish(&arr_anchor);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: anchor_protein_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = unique_builder.Finish(&arr_unique);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: unique_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = pg_qvalue_builder.Finish(&arr_pg_qval);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: pg_qvalue_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = gg_accessions_builder.Finish(&arr_gg_acc);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: gg_accessions_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = gg_names_builder.Finish(&arr_gg_names);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: gg_names_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = scan_ref_file_builder.Finish(&arr_scan_ref_file);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: scan_ref_file_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = rt_start_builder.Finish(&arr_rt_start);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: rt_start_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = rt_stop_builder.Finish(&arr_rt_stop);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: rt_stop_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = quality_builder.Finish(&arr_quality);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: quality_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = score_builder.Finish(&arr_score);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: score_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = score_type_builder.Finish(&arr_score_type);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: score_type_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = spectrum_reference_builder.Finish(&arr_spectrum_ref);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: spectrum_reference_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = feature_metavalues_builder.Finish(&arr_feature_mvs);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: feature_metavalues_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  FINISH_OR_FAIL(sequence_builder, arr_sequence)
+  FINISH_OR_FAIL(peptidoform_builder, arr_peptidoform)
+  FINISH_OR_FAIL(modifications_builder, arr_modifications)
+  FINISH_OR_FAIL(charge_builder, arr_charge)
+  FINISH_OR_FAIL(pep_builder, arr_pep)
+  FINISH_OR_FAIL(is_decoy_builder, arr_is_decoy)
+  FINISH_OR_FAIL(calculated_mz_builder, arr_calc_mz)
+  FINISH_OR_FAIL(observed_mz_builder, arr_obs_mz)
+  FINISH_OR_FAIL(mass_error_ppm_builder, arr_mass_error_ppm)
+  FINISH_OR_FAIL(additional_scores_builder, arr_additional_scores)
+  FINISH_OR_FAIL(predicted_rt_builder, arr_predicted_rt)
+  FINISH_OR_FAIL(run_file_name_builder, arr_run_file)
+  FINISH_OR_FAIL(cv_params_builder, arr_cv_params)
+  FINISH_OR_FAIL(scan_builder, arr_scan)
+  FINISH_OR_FAIL(rt_builder, arr_rt)
+  FINISH_OR_FAIL(ion_mobility_builder, arr_ion_mobility)
+  FINISH_OR_FAIL(missed_cleavages_builder, arr_missed_cleavages)
+  FINISH_OR_FAIL(intensities_builder, arr_intensities)
+  FINISH_OR_FAIL(additional_intensities_builder, arr_additional_intensities)
+  FINISH_OR_FAIL(pg_accessions_builder, arr_pg_acc)
+  FINISH_OR_FAIL(anchor_protein_builder, arr_anchor)
+  FINISH_OR_FAIL(unique_builder, arr_unique)
+  FINISH_OR_FAIL(pg_qvalue_builder, arr_pg_qval)
+  FINISH_OR_FAIL(pg_positions_builder, arr_pg_positions)
+  FINISH_OR_FAIL(im_start_builder, arr_im_start)
+  FINISH_OR_FAIL(im_stop_builder, arr_im_stop)
+  FINISH_OR_FAIL(gg_accessions_builder, arr_gg_acc)
+  FINISH_OR_FAIL(gg_names_builder, arr_gg_names)
+  FINISH_OR_FAIL(id_run_file_name_builder, arr_id_run_file)
+  FINISH_OR_FAIL(rt_start_builder, arr_rt_start)
+  FINISH_OR_FAIL(rt_stop_builder, arr_rt_stop)
 
-  // Build schema matching the Python to_feature_arrow() column order
-  auto schema = arrow::schema({
-    arrow::field("sequence", arrow::utf8()),
-    arrow::field("peptidoform", arrow::utf8()),
-    arrow::field("modifications", modifications_builder.type()),
-    arrow::field("precursor_charge", arrow::int32()),
-    arrow::field("calculated_mz", arrow::float32()),
-    arrow::field("observed_mz", arrow::float32()),
-    arrow::field("rt", arrow::float32()),
-    arrow::field("posterior_error_probability", arrow::float64()),
-    arrow::field("is_decoy", arrow::int32()),
-    arrow::field("additional_scores", additional_scores_builder.type()),
-    arrow::field("predicted_rt", arrow::float32()),
-    arrow::field("reference_file_name", arrow::utf8()),
-    arrow::field("cv_params", arrow::utf8()),
-    arrow::field("scan", arrow::utf8()),
-    arrow::field("ion_mobility", arrow::float32()),
-    arrow::field("start_ion_mobility", arrow::float32()),
-    arrow::field("stop_ion_mobility", arrow::float32()),
-    arrow::field("intensities", intensities_builder.type()),
-    arrow::field("additional_intensities", arrow::utf8()),
-    arrow::field("pg_accessions", arrow::list(arrow::utf8())),
-    arrow::field("anchor_protein", arrow::utf8()),
-    arrow::field("unique", arrow::int32()),
-    arrow::field("pg_global_qvalue", arrow::float64()),
-    arrow::field("gg_accessions", arrow::list(arrow::utf8())),
-    arrow::field("gg_names", arrow::list(arrow::utf8())),
-    arrow::field("scan_reference_file_name", arrow::utf8()),
-    arrow::field("rt_start", arrow::float32()),
-    arrow::field("rt_stop", arrow::float32()),
-    // OpenMS-specific columns
-    arrow::field("quality", arrow::float32()),
-    arrow::field("score", arrow::float64()),
-    arrow::field("score_type", arrow::utf8()),
-    arrow::field("spectrum_reference", arrow::utf8()),
-    arrow::field("feature_metavalues", feature_metavalues_builder.type()),
-  });
+  #undef FINISH_OR_FAIL
+
+  // Build schema from registry (QPX format)
+  auto schema = QPXFeatureSchema::schema();
 
   auto table = arrow::Table::Make(schema, {
     arr_sequence, arr_peptidoform, arr_modifications,
-    arr_charge, arr_calc_mz, arr_obs_mz, arr_rt,
-    arr_pep, arr_is_decoy, arr_additional_scores,
-    arr_predicted_rt, arr_ref_file, arr_cv_params,
-    arr_scan, arr_ion_mobility, arr_start_im, arr_stop_im,
+    arr_charge, arr_pep, arr_is_decoy,
+    arr_calc_mz, arr_obs_mz, arr_mass_error_ppm,
+    arr_additional_scores, arr_predicted_rt,
+    arr_run_file, arr_cv_params, arr_scan,
+    arr_rt, arr_ion_mobility, arr_missed_cleavages,
     arr_intensities, arr_additional_intensities,
     arr_pg_acc, arr_anchor, arr_unique, arr_pg_qval,
-    arr_gg_acc, arr_gg_names, arr_scan_ref_file,
+    arr_pg_positions, arr_im_start, arr_im_stop,
+    arr_gg_acc, arr_gg_names, arr_id_run_file,
     arr_rt_start, arr_rt_stop,
-    arr_quality, arr_score, arr_score_type, arr_spectrum_ref,
-    arr_feature_mvs
   });
+
+  // Validate table against registry schema (strict — write path must match exactly)
+  auto validation = ArrowSchemaValidation::validate(table, QPXFeatureSchema::schema());
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Schema validation failed: " << validation.toString() << "\n";
+    return nullptr;
+  }
 
   return table;
 }
@@ -917,5 +943,3 @@ bool ConsensusMapArrowExport::exportToParquet(
 }
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

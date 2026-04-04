@@ -466,7 +466,6 @@ jobs:
           ENABLE_CWL: "${{ steps.set-vars.outputs.pkg_type != 'none' && 'ON' || 'OFF' }}"
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
-          WITH_PARQUET: "ON"
           SIGNING_IDENTITY: "-"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"

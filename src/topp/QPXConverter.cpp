@@ -23,7 +23,6 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-/// @cond WITH_PARQUET
 @page TOPP_QPXConverter QPXConverter
 
 @brief Converts IdXML files to parquet format following QPX PSM specification.
@@ -55,7 +54,6 @@ protein accessions as list, and metavalue columns.
 @verbinclude TOPP_QPXConverter.cli
 <B>INI file documentation of this tool:</B>
 @htmlinclude TOPP_QPXConverter.html
-/// @endcond
 */
 
 // We do not want this class to show up in the docu:

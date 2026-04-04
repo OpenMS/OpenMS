@@ -11,7 +11,6 @@
 #include <vector>
 #include <arrow/buffer.h>
 
-#ifdef WITH_PARQUET
 #if __has_include(<zip.h>)
 #include <zip.h>
 #define OPENMS_HAVE_LIBZIP 1
@@ -170,5 +169,3 @@ arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> ZipRandomAccessFile:
 }
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

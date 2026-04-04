@@ -15,6 +15,7 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 
 #include <limits>
@@ -22,8 +23,6 @@
 #include <iomanip>
 #include <random>
 #include <vector>
-
-#include <QtCore/QString>
 
 using namespace OpenMS;
 using namespace std;
@@ -47,18 +46,6 @@ END_SECTION
 
 START_SECTION(([EXTRA] ~String()))
   delete s_ptr;
-END_SECTION
-
-START_SECTION((String(const QString &s)))
-  QString qs("bla");
-  String s(qs);
-  TEST_EQUAL(s=="bla",true)
-END_SECTION
-
-START_SECTION((QString toQString() const))
-  QString qs("bla");
-  String s("bla");
-  TEST_EQUAL(s.toQString()==qs,true)
 END_SECTION
 
 START_SECTION((String(const char* s, SizeType length)))

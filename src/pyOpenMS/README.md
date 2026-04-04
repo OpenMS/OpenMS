@@ -194,7 +194,7 @@ repair-wheel-command = ["delvewheel repair -w {dest_dir} {wheel}"]
 - **nanobind domain state:** nanobind uses global state for type/enum registration across modules.
   Never reimport pyopenms by clearing `sys.modules` — this causes "refusing to add duplicate key"
   aborts. Tests must use the module loaded at collection time.
-- **Arrow/Parquet in standalone builds:** `WITH_PARQUET=ON` requires Arrow to be discoverable
+- **Arrow/Parquet in standalone builds:** Arrow must be discoverable
   independently since `OPENMS_ARROW_TARGET` is not exported in `OpenMSConfig.cmake`. The pyOpenMS
   CMakeLists.txt handles this with its own `find_package(Arrow)` fallback.
 
@@ -232,7 +232,7 @@ The build process compiles hand-maintained nanobind C++ binding files:
 - **Output:** Domain-based shared modules: `_pyopenms.*.so` (Linux), `.dylib` (macOS), `.pyd` (Windows)
   - 13 domain modules: `_pyopenms_kernel`, `_pyopenms_chemistry`, `_pyopenms_analysis`, etc.
   - 1 main module: `_pyopenms`
-  - 1 optional Arrow module: `_arrow_zerocopy` (when `WITH_PARQUET=ON`)
+  - 1 Arrow module: `_arrow_zerocopy`
 - **What happens:** nanobind C++ code is compiled and linked against OpenMS, OpenSwathAlgo, and Python. All modules share types via `NB_DOMAIN "pyopenms"`.
 
 ### Step 2: Addon Injection (at import time)

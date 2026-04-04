@@ -9,7 +9,7 @@
 #include <OpenMS/VISUAL/MISC/FilterableList.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/Qt5Port.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <ui_FilterableList.h>
@@ -61,7 +61,7 @@ namespace OpenMS
       {
         if (!blacklist_.contains(bl))
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value '" + String(bl) + "' cannot be taken from blacklist. Does not belong to set!", bl.toStdString());
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value '" + fromQString(bl) + "' cannot be taken from blacklist. Does not belong to set!", bl.toStdString());
         }
       }
       // remove all items from blacklist

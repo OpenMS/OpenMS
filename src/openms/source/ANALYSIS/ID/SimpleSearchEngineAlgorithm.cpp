@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
@@ -17,6 +18,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
@@ -123,6 +125,11 @@ namespace OpenMS
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
 
+    defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Requires '-decoys' to be set.");
+    defaults_.setMinFloat("FDR:PSM", 0.0);
+    defaults_.setMaxFloat("FDR:PSM", 1.0);
+    defaults_.setSectionDescription("FDR", "False Discovery Rate control (requires decoys)");
+
     defaultsToParam_();
   }
 
@@ -169,6 +176,7 @@ namespace OpenMS
 
     decoys_ = param_.getValue("decoys") == "true";
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
+    fdr_psm_ = param_.getValue("FDR:PSM");
   }
 
   // static
@@ -278,6 +286,13 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         double mz = spec.getPrecursors()[0].getMZ();
         pi.setRT(spec.getRT());
         pi.setMZ(mz);
+
+        // Annotate ion mobility if spectrum has a single drift time (DDA-PASEF)
+        if (IMTypes::determineIMFormat(spec) == IMFormat::IM_SPECTRUM)
+        {
+          pi.setMetaValue(Constants::UserParam::IM, spec.getDriftTime());
+        }
+
         Size charge = spec.getPrecursors()[0].getCharge();
 
         // create full peptide hit structure from annotated hits
@@ -399,6 +414,20 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
+
+    // Annotate IM unit on ProteinIdentification if all PeptideIdentifications have IM
+    if (!peptide_ids.empty())
+    {
+      bool all_have_im = std::all_of(
+        peptide_ids.begin(), peptide_ids.end(),
+        [](const PeptideIdentification& pid) { return pid.metaValueExists(Constants::UserParam::IM); });
+
+      if (all_have_im)
+      {
+        protein_ids[0].setMetaValue(Constants::UserParam::IM,
+          exp[0].getDriftTimeUnitAsString());
+      }
+    }
   }
 
 
@@ -443,7 +472,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     return multimap_mass_2_scan_index;
   }
 
-  SimpleSearchEngineAlgorithm::ExitCodes SimpleSearchEngineAlgorithm::search(const String& in_mzML, const String& in_db, vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) const
+  SimpleSearchEngineAlgorithm::ExitCodes SimpleSearchEngineAlgorithm::search(const String& in_spectra, const String& in_db, vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) const
   {
     boost::regex peptide_motif_regex(peptide_motif_);
 
@@ -462,7 +491,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_mzML, spectra, {FileTypes::MZML});
+    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
     spectra.sortSpectra(true);
 
     startProgress(0, 1, "Filtering spectra...");
@@ -692,7 +721,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     endProgress();
 
     // add meta data on spectra file
-    protein_ids[0].setPrimaryMSRunPath({in_mzML}, spectra);
+    protein_ids[0].setPrimaryMSRunPath({in_spectra}, spectra);
 
     // reindex peptides to proteins
     PeptideIndexing indexer;
@@ -721,11 +750,26 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       {
         return ExitCodes::UNKNOWN_ERROR;
       }
-    } 
+    }
+
+    // PSM-level FDR filtering (requires decoys)
+    if (fdr_psm_ > 0.0 && decoys_)
+    {
+      FalseDiscoveryRate fdr;
+      fdr.apply(peptide_ids);
+      IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
+      IDFilter::removeDecoyHits(peptide_ids);
+      IDFilter::removeEmptyIdentifications(peptide_ids);
+      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+    }
+    else if (fdr_psm_ > 0.0 && !decoys_)
+    {
+      OPENMS_LOG_WARN << "FDR:PSM is set but decoys are disabled. Skipping FDR filtering." << endl;
+    }
 
 #ifdef _OPENMP
     // free locks
-    for (size_t i = 0; i != annotated_hits_lock.size(); i++) 
+    for (size_t i = 0; i != annotated_hits_lock.size(); i++)
     {
       omp_destroy_lock(&(annotated_hits_lock[i]));
     }

@@ -27,16 +27,10 @@ def _xim_path():
 def _get_xim():
     import pyopenms as poms
 
-    # Check if XIMParquetFile class exists (may be excluded when WITH_PARQUET=False)
-    if not hasattr(poms, "XIMParquetFile"):
-        pytest.skip("pyopenms built without parquet support")
+    assert hasattr(poms, 'XIMParquetFile'), \
+        "XIMParquetFile missing from pyopenms — Arrow/Parquet bindings are required"
 
-    try:
-        return poms.XIMParquetFile(_xim_path())
-    except RuntimeError as e:
-        if "Parquet support" in str(e):
-            pytest.skip("pyopenms built without parquet support")
-        raise
+    return poms.XIMParquetFile(_xim_path())
 
 
 def test_xim_df_columns():

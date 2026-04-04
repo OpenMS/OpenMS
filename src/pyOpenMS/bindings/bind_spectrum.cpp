@@ -147,6 +147,8 @@ Usage:
         .def("setType", [](OpenMS::MSSpectrum& self, OpenMS::SpectrumSettings::SpectrumType type) { return self.setType(type); }, "type"_a, "Sets the spectrum type")
         .def("setIMFormat", [](OpenMS::MSSpectrum& self, const OpenMS::IMFormat& im_type) { return self.setIMFormat(im_type); }, "im_type"_a, "Sets the ion mobility format")
         .def("getIMFormat", [](const OpenMS::MSSpectrum& self) { return self.getIMFormat(); }, "Returns the ion mobility format")
+        .def("setIMPeakType", [](OpenMS::MSSpectrum& self, OpenMS::IMPeakType pt) { self.setIMPeakType(pt); }, "pt"_a, "Sets the IM peak type (profile/centroided)")
+        .def("getIMPeakType", [](const OpenMS::MSSpectrum& self) { return self.getIMPeakType(); }, "Returns the IM peak type")
         .def("getNativeID", [](const OpenMS::MSSpectrum& self) { return self.getNativeID(); }, "Returns the native identifier for the spectrum, used by the acquisition software")
         .def("setNativeID", [](OpenMS::MSSpectrum& self, const OpenMS::String& native_id) { return self.setNativeID(native_id); }, "native_id"_a, "Sets the native identifier for the spectrum, used by the acquisition software")
         .def("getComment", [](const OpenMS::MSSpectrum& self) { return self.getComment(); }, "Returns the free-text comment")
@@ -410,7 +412,7 @@ Usage:
         R"doc(Rasterize an ion mobility frame into a 2D intensity matrix (IM vs m/z).
 
 Creates a 2D heatmap representation by binning peak intensities into a regular grid.
-Designed for spectra in CONCATENATED format where each peak has an associated ion mobility value.
+Designed for spectra in IM_PEAK format where each peak has an associated ion mobility value.
 
 Parameters
 ----------

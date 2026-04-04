@@ -12,6 +12,7 @@
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/TreeView.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QLineEdit>
@@ -276,7 +277,7 @@ namespace OpenMS
       {
         const Precursor& current_pc = current_precursors[0];
         precursor_mz = current_pc.getMZ();
-        item->setText(ClmnPeak::DISSOCIATION, ListUtils::concatenate(current_pc.getActivationMethodsAsString(), ",").toQString());
+        item->setText(ClmnPeak::DISSOCIATION, toQString(ListUtils::concatenate(current_pc.getActivationMethodsAsString(), ",")));
       }
       item->setData(ClmnPeak::PRECURSOR_MZ, Qt::DisplayRole, precursor_mz);
     }
@@ -511,11 +512,11 @@ namespace OpenMS
         QString description;
         if (pc.metaValueExists("peptide_sequence"))
         {
-          description = String(pc.getMetaValue("peptide_sequence")).toQString();
+          description = toQString(String(pc.getMetaValue("peptide_sequence")));
         }
         else if (pc.metaValueExists("description"))
         {
-          description = String(pc.getMetaValue("description")).toQString();
+          description = toQString(String(pc.getMetaValue("description")));
         }
         toplevel_item->setText(ClmnChrom::DESCRIPTION, description);
         toplevel_item->setData(ClmnChrom::CHARGE, Qt::DisplayRole, pc.getCharge());
@@ -538,7 +539,7 @@ namespace OpenMS
           QString chrom_description = "ion";
           if (pc.metaValueExists("description"))
           {
-            chrom_description = String(pc.getMetaValue("description")).toQString();
+            chrom_description = toQString(String(pc.getMetaValue("description")));
           }
 
           sub_item->setText(ClmnChrom::TYPE, "Transition");

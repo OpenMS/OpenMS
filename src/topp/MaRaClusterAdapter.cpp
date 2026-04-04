@@ -25,7 +25,6 @@
 #include <set>
 #include <map>
 
-#include <QtCore/QProcess>
 #include <boost/algorithm/clamp.hpp>
 #include <typeinfo>
 
@@ -366,7 +365,7 @@ protected:
     //if specified keep original output in designated directory
     if (!maracluster_output_directory.empty())
     {
-      bool copy_status = File::copyDirRecursively(tmp_dir.getPath().toQString(), maracluster_output_directory.toQString());
+      bool copy_status = File::copyDirRecursively(tmp_dir.getPath(), maracluster_output_directory);
 
       if (copy_status)
       { 

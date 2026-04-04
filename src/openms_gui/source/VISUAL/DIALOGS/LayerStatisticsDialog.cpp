@@ -12,6 +12,7 @@
 
 #include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QtWidgets/QPushButton>
 
@@ -52,7 +53,7 @@ namespace OpenMS
     }
     else
     {
-      qobject_cast<PlotWidget*>(lsd->parent())->showMetaDistribution(String(text), hist);
+      qobject_cast<PlotWidget*>(lsd->parent())->showMetaDistribution(fromQString(text), hist);
     }
   }
 

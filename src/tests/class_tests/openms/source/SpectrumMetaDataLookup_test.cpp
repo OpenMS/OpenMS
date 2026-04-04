@@ -199,7 +199,7 @@ START_SECTION((bool addMissingIMToPeptideIDs(PeptideIdentificationList& peptides
   MSExperiment exp_empty;
   TEST_EQUAL(SpectrumMetaDataLookup::addMissingIMToPeptideIDs(peptides, exp_empty), false);
 
-  // Test 2: MSExperiment with no IM format (not MULTIPLE_SPECTRA)
+  // Test 2: MSExperiment with no IM format (not IM_SPECTRUM)
   MSExperiment exp_no_im;
   MSSpectrum spectrum_no_im;
   spectrum_no_im.setNativeID("index=0");

@@ -13,8 +13,7 @@
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
-#include <QtCore/QString>
-
+#include <cstdio>
 #include <iostream>
 
 using namespace std;
@@ -57,7 +56,9 @@ public:
       }
       else
       {
-        cout << '\r' << string(2 * current_recursion_depth, ' ') << QString::number(float(value - begin_) / float(end_ - begin_) * 100.0, 'f', 2).toStdString()  << " %               ";
+        char pct_buf[16];
+        std::snprintf(pct_buf, sizeof(pct_buf), "%.2f", static_cast<float>(value - begin_) / static_cast<float>(end_ - begin_) * 100.0f);
+        cout << '\r' << string(2 * current_recursion_depth, ' ') << pct_buf << " %               ";
         cout << flush;
       }
     }
