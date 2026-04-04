@@ -82,7 +82,7 @@ namespace OpenMS
     defaults_.setValue("merge_spectra_by_peak_width_fraction", 0.15, "If spectra are to be added based on the peak width of peak, construct number of spectra to be added based on N percent of number of points of peak width.", {"advanced"});
     defaults_.setMinFloat("merge_spectra_by_peak_width_fraction", 0.0001);
     defaults_.setMaxFloat("merge_spectra_by_peak_width_fraction", 1.0);
-    defaults_.setValue("sn_min_threshold", 1.0, "Minimum S/N ratio for a feature to proceed to full scoring. "
+    defaults_.setValue("sn_min_threshold", 0.0, "Minimum S/N ratio for a feature to proceed to full scoring. "
       "Candidates below this threshold skip all expensive cross-correlation and DIA scores. "
       "Default of 1.0 preserves existing behaviour. Increase for large in silico libraries to skip noise candidates.", {"advanced"});
     defaults_.setMinFloat("sn_min_threshold", 0.0);
