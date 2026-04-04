@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -16,7 +15,6 @@
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/DataArrays.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -29,6 +27,7 @@ namespace OpenMS
 {
   class MSExperiment;
   class PeptideIdentification;
+  class PeptideIdentificationList;
   class PeptideEvidence;
   class ConsensusMap;
 

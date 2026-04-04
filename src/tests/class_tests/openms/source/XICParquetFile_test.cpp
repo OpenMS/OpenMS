@@ -23,7 +23,6 @@ START_TEST(XICParquetFile, "$Id$")
 
 START_SECTION(void load(std::vector<XICChromatogram>& output) const)
 {
-#ifdef WITH_PARQUET
   XICParquetFile xic(OPENMS_GET_TEST_DATA_PATH("XICParquetFile_1_input.xic"));
   std::vector<XICChromatogram> chroms;
   xic.load(chroms);
@@ -36,17 +35,11 @@ START_SECTION(void load(std::vector<XICChromatogram>& output) const)
   {
     TEST_EQUAL(c.rt.size(), c.intensity.size())
   }
-#else
-  XICParquetFile xic("dummy.xic");
-  std::vector<XICChromatogram> chroms;
-  TEST_EXCEPTION(Exception::NotImplemented, xic.load(chroms))
-#endif
 }
 END_SECTION
 
 START_SECTION(void getChromatograms(std::vector<XICChromatogram>&, Int64, Int64, const String&, Int64, Int64, Int64, Int64, const String&) const)
 {
-#ifdef WITH_PARQUET
   XICParquetFile xic(OPENMS_GET_TEST_DATA_PATH("XICParquetFile_1_input.xic"));
   std::vector<XICChromatogram> chroms_all;
   xic.getChromatograms(chroms_all);
@@ -80,13 +73,11 @@ START_SECTION(void getChromatograms(std::vector<XICChromatogram>&, Int64, Int64,
   std::vector<XICChromatogram> chroms_invalid_in;
   TEST_EXCEPTION(Exception::InvalidValue,
                  xic.getChromatograms(chroms_invalid_in, -1, -1, "", -1, -1, -1, -1, "precursor_id IN []"))
-#endif
 }
 END_SECTION
 
 START_SECTION(void getChromatograms_multi_file)
 {
-#ifdef WITH_PARQUET
   std::vector<String> files;
   files.emplace_back(OPENMS_GET_TEST_DATA_PATH("XICParquetFile_1_input.xic"));
   files.emplace_back(OPENMS_GET_TEST_DATA_PATH("XICParquetFile_2_input.xic"));
@@ -95,25 +86,21 @@ START_SECTION(void getChromatograms_multi_file)
   std::vector<XICChromatogram> chroms_multi;
   xic_multi.getChromatograms(chroms_multi);
   TEST_EQUAL(chroms_multi.size(), 36)
-#endif
 }
 END_SECTION
 
 START_SECTION(void getRuns(std::vector<XICRunInfo>& output) const)
 {
-#ifdef WITH_PARQUET
   XICParquetFile xic(OPENMS_GET_TEST_DATA_PATH("XICParquetFile_1_input.xic"));
   std::vector<XICRunInfo> runs;
   xic.getRuns(runs);
   TEST_EQUAL(runs.size(), 1)
   TEST_NOT_EQUAL(runs[0].run_id, 0)
-#endif
 }
 END_SECTION
 
 START_SECTION(void getAnalytes(std::vector<XICAnalyte>& output, bool) const)
 {
-#ifdef WITH_PARQUET
   XICParquetFile xic(OPENMS_GET_TEST_DATA_PATH("XICParquetFile_1_input.xic"));
 
   std::vector<XICAnalyte> analytes_exploded;
@@ -131,15 +118,12 @@ START_SECTION(void getAnalytes(std::vector<XICAnalyte>& output, bool) const)
     transition_count += a.transition_ids.size();
   }
   TEST_EQUAL(transition_count, analytes_exploded.size())
-#endif
 }
 END_SECTION
 
 START_SECTION(void load_invalid_path)
 {
-#ifdef WITH_PARQUET
   TEST_EXCEPTION(Exception::FileNotFound, XICParquetFile("no_such_file.xic"))
-#endif
 }
 END_SECTION
 

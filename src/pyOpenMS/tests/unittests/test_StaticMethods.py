@@ -260,9 +260,9 @@ class TestIMTypesStaticMethods(unittest.TestCase):
 
     def test_toIMFormat(self):
         """Test IMTypes.toIMFormat static method."""
-        fmt = pyopenms.IMTypes.toIMFormat("concatenated")
+        fmt = pyopenms.IMTypes.toIMFormat("im_peak")
         # IMFormat enum is at module level, not nested under IMTypes
-        self.assertEqual(fmt, pyopenms.IMFormat.CONCATENATED)
+        self.assertEqual(fmt, pyopenms.IMFormat.IM_PEAK)
 
 
 class TestTransformationModelStaticMethods(unittest.TestCase):

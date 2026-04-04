@@ -11,15 +11,14 @@
 #include <OpenMS/FORMAT/ToolDescriptionFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QStringList>
-#include <QtCore/QDir>
+#include <algorithm>
 
 namespace OpenMS
 {
-  ToolListType ToolHandler::getTOPPToolList(const bool includeGenericWrapper)
+  ToolListType ToolHandler::getTOPPToolList()
   {
     ToolListType tools_map;
-    // Note: don't use special characters like slashes in category names (leads to subcategories in KNIME) 
+    // Note: don't use special characters like slashes in category names (leads to subcategories in KNIME)
     const auto cat_calibration = "Mass Correction and Calibration";
     const auto cat_centroiding = "Spectrum processing: Centroiding";
     const auto cat_crosslinking = "Cross-Linking";
@@ -83,7 +82,6 @@ namespace OpenMS
     tools_map["FileMerger"] = Internal::ToolDescription("FileMerger", cat_file_filter_extract_merge);
     tools_map["FLASHDeconv"] = Internal::ToolDescription("FLASHDeconv", cat_topdown);
     tools_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", cat_dev);
-    // tools_map["GenericWrapper"] = ... (place any extra handling here)
     tools_map["GNPSExport"] = Internal::ToolDescription("GNPSExport", cat_file_converter);
     tools_map["HighResPrecursorMassCorrector"] = Internal::ToolDescription("HighResPrecursorMassCorrector", cat_calibration);
     tools_map["IDConflictResolver"] = Internal::ToolDescription("IDConflictResolver", cat_ID_proc);
@@ -159,9 +157,8 @@ namespace OpenMS
     tools_map["ProteinQuantifier"] = Internal::ToolDescription("ProteinQuantifier", cat_quant);
     tools_map["ProteomicsLFQ"] = Internal::ToolDescription("ProteomicsLFQ", cat_quant);
     tools_map["PSMFeatureExtractor"] = Internal::ToolDescription("PSMFeatureExtractor", cat_ID_proc);
-#ifdef WITH_PARQUET
     tools_map["QPXConverter"] = Internal::ToolDescription("QPXConverter", cat_file_converter);
-#endif
+    tools_map["ParquetConverter"] = Internal::ToolDescription("ParquetConverter", cat_file_converter);
     tools_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", cat_QC);
     tools_map["QCEmbedder"] = Internal::ToolDescription("QCEmbedder", cat_QC);
     tools_map["QCExporter"] = Internal::ToolDescription("QCExporter", cat_QC);
@@ -193,7 +190,7 @@ namespace OpenMS
     tools_map["TriqlerConverter"] = Internal::ToolDescription("TriqlerConverter", cat_file_converter);
     tools_map["XFDR"] = Internal::ToolDescription("XFDR", cat_crosslinking);
     tools_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", cat_dev);
-    
+
     // STOP! insert your tool in alphabetical order for easier maintenance (tools requiring the GUI lib should be added below **in addition**)
 
     // ATTENTION: tools requiring the GUI lib
@@ -202,7 +199,6 @@ namespace OpenMS
       "ExecutePipeline",
       "ImageCreator",
       "INIUpdater",
-      "Resampler",
     };
     for (const auto& tool : GUI_tools) {
       tools_map.erase(tool);
@@ -224,28 +220,13 @@ namespace OpenMS
       }
     }
 
-    // EXTERNAL tools
-    // this operation is expensive, as we need to parse configuration files (*.ttd)
-    if (includeGenericWrapper)
-    {
-      tools_map["GenericWrapper"] = getExternalTools_();
-    }
-
     return tools_map;
   }
 
   StringList ToolHandler::getTypes(const String& toolname)
   {
     Internal::ToolDescription ret;
-    ToolListType tools;
-    if (toolname == "GenericWrapper")
-    {
-      tools = getTOPPToolList(true);
-    }
-    else
-    {
-      tools = getTOPPToolList();
-    }
+    ToolListType tools = getTOPPToolList();
     if (tools.find(toolname) != tools.end())
     {
       return tools[toolname].types;
@@ -273,126 +254,52 @@ namespace OpenMS
     return File::getOpenMSDataPath() + "/TOOLS/INTERNAL";
   }
 
-  Internal::ToolDescription ToolHandler::getExternalTools_()
-  {
-    if (!tools_external_loaded_)
-    {
-      loadExternalToolConfig_();
-      tools_external_loaded_ = true;
-    }
-
-    return tools_external_;
-  }
-
-  void ToolHandler::loadExternalToolConfig_()
-  {
-    QStringList files = getExternalToolConfigFiles_();
-    for (int i = 0; i < files.size(); ++i)
-    {
-      ToolDescriptionFile tdf;
-      std::vector<Internal::ToolDescription> tools;
-      tdf.load(String(files[i]), tools);
-      // add every tool from file to list
-      for (Size i_t = 0; i_t < tools.size(); ++i_t)
-      {
-        if (i == 0 && i_t == 0)
-          {
-            tools_external_ = tools[i_t]; // init
-          }
-        else
-          {
-            tools_external_.append(tools[i_t]); // append
-          }
-      }
-    }
-    tools_external_.name = "GenericWrapper";
-    tools_external_.category = "EXTERNAL";
-  }
-
   void ToolHandler::loadInternalToolConfig_()
   {
-    QStringList files = getInternalToolConfigFiles_();
-    for (int i = 0; i < files.size(); ++i)
+    StringList files = getInternalToolConfigFiles_();
+    for (size_t i = 0; i < files.size(); ++i)
     {
       ToolDescriptionFile tdf;
       std::vector<Internal::ToolDescription> tools;
-      tdf.load(String(files[i]), tools);
+      tdf.load(files[i], tools);
       // add every tool from file to list
       for (Size i_t = 0; i_t < tools.size(); ++i_t)
       {
         tools_internal_.push_back(tools[i_t]);
-        tools_external_.category = "INTERNAL";
       }
     }
   }
 
-  QStringList ToolHandler::getExternalToolConfigFiles_()
+  StringList ToolHandler::getInternalToolConfigFiles_()
   {
-
-    QStringList paths;
+    StringList paths;
     // *.ttd default path
-    paths << getExternalToolsPath().toQString();
+    paths.push_back(getInternalToolsPath());
     // OS-specific path
 #ifdef OPENMS_WINDOWSPLATFORM
-    paths << (getExternalToolsPath() + "/WINDOWS").toQString();
+    paths.push_back(getInternalToolsPath() + "/WINDOWS");
 #else
-    paths << (getExternalToolsPath() + "/LINUX").toQString();
-#endif
-    // additional environment
-    if (getenv("OPENMS_TTD_PATH") != nullptr)
-    {
-      paths << String(getenv("OPENMS_TTD_PATH")).toQString();
-    }
-
-    QStringList all_files;
-    for (int p = 0; p < paths.size(); ++p)
-    {
-      QDir dir(paths[p], "*.ttd");
-      QStringList files = dir.entryList();
-      for (int i = 0; i < files.size(); ++i)
-      {
-        files[i] = dir.absolutePath() + QDir::separator() + files[i];
-      }
-      all_files << files;
-    }
-    //StringList list = ListUtils::create<String>(getExternalToolsPath() + "/" + "msconvert.ttd");
-    return all_files;
-  }
-
-  QStringList ToolHandler::getInternalToolConfigFiles_()
-  {
-    QStringList paths;
-    // *.ttd default path
-    paths << getInternalToolsPath().toQString();
-    // OS-specific path
-#ifdef OPENMS_WINDOWSPLATFORM
-    paths << (getInternalToolsPath() + "/WINDOWS").toQString();
-#else
-    paths << (getInternalToolsPath() + "/LINUX").toQString();
+    paths.push_back(getInternalToolsPath() + "/LINUX");
 #endif
     // additional environment
     if (getenv("OPENMS_TTD_INTERNAL_PATH") != nullptr)
     {
-      paths << String(getenv("OPENMS_TTD_INTERNAL_PATH")).toQString();
+      paths.push_back(String(getenv("OPENMS_TTD_INTERNAL_PATH")));
     }
 
-    QStringList all_files;
-    for (int p = 0; p < paths.size(); ++p)
+    StringList all_files;
+    for (const auto& p : paths)
     {
-      QDir dir(paths[p], "*.ttd");
-      QStringList files = dir.entryList();
-      for (int i = 0; i < files.size(); ++i)
-      {
-        files[i] = dir.absolutePath() + QDir::separator() + files[i];
-      }
-      all_files << files;
+      StringList files;
+      File::fileList(p, "*.ttd", files, true);
+      all_files.insert(all_files.end(), files.begin(), files.end());
     }
     return all_files;
   }
 
   String ToolHandler::getCategory(const String& toolname)
   {
-    ToolListType tools = getTOPPToolList(true);
+    ToolListType tools = getTOPPToolList();
     String s;
     if (tools.find(toolname) != tools.end())
     {
@@ -403,9 +310,7 @@ namespace OpenMS
   }
 
   // static
-  Internal::ToolDescription ToolHandler::tools_external_ = Internal::ToolDescription();
   std::vector<Internal::ToolDescription> ToolHandler::tools_internal_;
-  bool ToolHandler::tools_external_loaded_ = false;
   bool ToolHandler::tools_internal_loaded_ = false;
 
 } // namespace

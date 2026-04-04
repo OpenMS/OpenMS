@@ -10,12 +10,10 @@
 #include <OpenMS/FORMAT/OMSFileStore.h> // for "raiseDBError_"
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
-#include <QtCore/QString>
-// JSON export:
-#include <QtCore/QJsonDocument>
-#include <QtCore/QJsonObject>
+#include <nlohmann/json.hpp> // for JSON export
 
 #include <SQLiteCpp/Database.h>
 
@@ -28,7 +26,7 @@ using ID = OpenMS::IdentificationData;
 namespace OpenMS::Internal
 {
   // initialize lookup table:
-  map<QString, QString> OMSFileLoad::export_order_by_ = {
+  map<String, String> OMSFileLoad::export_order_by_ = {
     {"version", ""},
     {"ID_IdentifiedCompound", "molecule_id"},
     {"ID_ParentMatch", "molecule_id, parent_id, start_pos, end_pos"},
@@ -78,7 +76,7 @@ namespace OpenMS::Internal
   //   // this assumes that the "CVTerm" table exists!
   //   SQLite::Statement query(db_);
   //
-  //   QString sql_select = "SELECT * FROM CVTerm WHERE id = " + QString(id);
+  //   String sql_select = "SELECT * FROM CVTerm WHERE id = " + String(id);
   //   if (!query.exec(sql_select) || !query.executeStep())
   //   {
   //     raiseDBError_(model.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -206,13 +204,13 @@ namespace OpenMS::Internal
     if (!db_->tableExists(table_name)) return false;
 
     String sql_select =
-    "SELECT * FROM " + table_name.toQString() + " AS MI " \
+    "SELECT * FROM " + table_name + " AS MI " \
     "WHERE MI.parent_id = :id";
 
     if (version_number_ < 4)
     {
       sql_select =
-      "SELECT * FROM " + table_name.toQString() + " AS MI " \
+      "SELECT * FROM " + table_name + " AS MI " \
       "JOIN DataValue AS DV ON MI.data_value_id = DV.id "   \
       "WHERE MI.parent_id = :id";
     }
@@ -228,7 +226,7 @@ namespace OpenMS::Internal
     if (!db_->tableExists(table_name)) return false;
 
     //
-    String sql_select = "SELECT * FROM " + table_name.toQString() +
+    String sql_select = "SELECT * FROM " + table_name +
       " WHERE parent_id = :id ORDER BY processing_step_order ASC";
     query = SQLite::Statement(*db_, sql_select);
     return true;
@@ -1101,21 +1099,23 @@ namespace OpenMS::Internal
   }
 
 
-  QJsonArray OMSFileLoad::exportTableToJSON_(const QString& table, const QString& order_by)
+  // file-local helper (was private method, moved here to avoid nlohmann include in header)
+  static nlohmann::json exportTableToJSON_(SQLite::Database& db, const String& table, const String& order_by)
   {
+    using json = nlohmann::json;
     // code based on: https://stackoverflow.com/a/18067555
     String sql = "SELECT * FROM " + table;
-    if (!order_by.isEmpty())
+    if (!order_by.empty())
     {
       sql += " ORDER BY " + order_by;
     }
 
-    SQLite::Statement query(*db_, sql);
+    SQLite::Statement query(db, sql);
 
-    QJsonArray array;
+    json array = json::array();
     while (query.executeStep())
     {
-      QJsonObject record;
+      json record = json::object();
       for (int i = 0; i < query.getColumnCount(); ++i)
       {
         // @TODO: this will repeat field names for every row -
@@ -1125,11 +1125,11 @@ namespace OpenMS::Internal
         // thus, we could use query.getColumnDeclaredType(i), but it would incur conversion
         switch (query.getColumn(i).getType())
         {
-          case SQLITE_INTEGER: record.insert(query.getColumnName(i), qint64(query.getColumn(i).getInt64())); break;
-          case SQLITE_FLOAT: record.insert(query.getColumnName(i), query.getColumn(i).getDouble()); break;
-          case SQLITE_BLOB: record.insert(query.getColumnName(i), query.getColumn(i).getText()); break;
-          case SQLITE_NULL: record.insert(query.getColumnName(i), ""); break;
-          case SQLITE3_TEXT: record.insert(query.getColumnName(i), query.getColumn(i).getText()); break;
+          case SQLITE_INTEGER: record[query.getColumnName(i)] = query.getColumn(i).getInt64(); break;
+          case SQLITE_FLOAT: record[query.getColumnName(i)] = query.getColumn(i).getDouble(); break;
+          case SQLITE_BLOB: record[query.getColumnName(i)] = query.getColumn(i).getText(); break;
+          case SQLITE_NULL: record[query.getColumnName(i)] = ""; break;
+          case SQLITE3_TEXT: record[query.getColumnName(i)] = query.getColumn(i).getText(); break;
           default:
             throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
@@ -1142,15 +1142,16 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::exportToJSON(ostream& output)
   {
+    using json = nlohmann::json;
     // @TODO: this constructs the whole JSON file in memory - write directly to stream instead?
     // (more code, but would use less memory)
-    QJsonObject json_data;
+    json json_data = json::object();
     // get names of all tables (except SQLite-internal ones) in the database:
     SQLite::Statement query(*db_, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
     while (query.executeStep())
     {
       String table = query.getColumn("name").getString();
-      QString order_by = "id"; // row order for most tables
+      String order_by = "id"; // row order for most tables
       // special cases regarding ordering, e.g. tables without "id" column:
       if (table.hasSuffix("_MetaInfo"))
       {
@@ -1160,15 +1161,13 @@ namespace OpenMS::Internal
       {
         order_by = "parent_id, processing_step_order, score_type_id";
       }
-      else if (auto pos = export_order_by_.find(table.toQString()); pos != export_order_by_.end())
+      else if (auto pos = export_order_by_.find(table); pos != export_order_by_.end())
       {
         order_by = pos->second;
       }
-      json_data.insert(table.toQString(), exportTableToJSON_(table.toQString(), order_by));
+      json_data[table] = exportTableToJSON_(*db_, table, order_by);
     }
 
-    QJsonDocument json_doc;
-    json_doc.setObject(json_data);
-    output << json_doc.toJson().toStdString();
+    output << json_data.dump(4) << '\n';
   }
 }

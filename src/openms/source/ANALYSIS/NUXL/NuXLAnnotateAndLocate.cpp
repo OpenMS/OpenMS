@@ -53,7 +53,7 @@ namespace OpenMS
         total_loss_spectrum.getStringDataArrays()[0].push_back(ion_name);
         total_loss_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX].push_back(charge);      
         double mono_pos = fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge) - M_star_pc_loss; // precursor peak
-        total_loss_spectrum.emplace_back(mono_pos / (double)charge, 1.0);
+        total_loss_spectrum.emplace_back(mono_pos / (double)charge, 1.0f);
       }
     }
     // add special immonium ions

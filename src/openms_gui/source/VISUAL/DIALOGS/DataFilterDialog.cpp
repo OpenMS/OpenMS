@@ -8,6 +8,7 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <ui_DataFilterDialog.h>
 
 //Qt includes
@@ -37,7 +38,7 @@ namespace OpenMS
     ui_->op_->setCurrentIndex((UInt)filter.op);
     if (filter.field == DataFilters::META_DATA)
     {
-      ui_->meta_name_field_->setText(filter.meta_name.toQString());
+      ui_->meta_name_field_->setText(toQString(filter.meta_name));
       // if the value stored in filter is numerical, get value from filter.value (a double)
       if (filter.value_is_numerical)
       {
@@ -45,7 +46,7 @@ namespace OpenMS
       }
       else       // get value from filter.value_string (a String)
       {
-        ui_->value_->setText(filter.value_string.toQString());
+        ui_->value_->setText(toQString(filter.value_string));
       }
       ui_->meta_name_field_->setEnabled(true);
       ui_->meta_name_label_->setEnabled(true);
@@ -178,10 +179,10 @@ namespace OpenMS
     else if (field == "Meta data")
     {
       filter_.field = DataFilters::META_DATA;
-      filter_.meta_name = meta_name_field;
+      filter_.meta_name = fromQString(meta_name_field);
       if (not_numerical)       // entered value is not numerical, store it in value_string (as String)
       {
-        filter_.value_string = String(value);
+        filter_.value_string = fromQString(value);
         filter_.value_is_numerical = false;
       }
       else       // value is numerical, store it in value (as double)

@@ -8,9 +8,10 @@
 
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <QtCore/QDir>
+#include <filesystem>
 #include <array>
 #include <unordered_set>
 
@@ -37,7 +38,7 @@ namespace OpenMS
     // build index_ map that maps the identifiers in prot_ids to indices 0,1,...
     for (const auto& prot_id : prot_ids)
     {
-      String id_run_id = prot_id.getIdentifier();
+      const String& id_run_id = prot_id.getIdentifier();
       if (this->index_map.find(id_run_id) != this->index_map.end())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IdentificationRun IDs are not unique!", id_run_id);
@@ -74,7 +75,7 @@ namespace OpenMS
               : pep_id.getMetaValue("file_origin").toString();
 
           // Extract the basename, used for output files when --numeric_filenames is not set
-          this->out_basename = QFileInfo(this->origin_fullname.toQString()).completeBaseName().toStdString();
+          this->out_basename = to_path(this->origin_fullname).stem().string();
 
           // Drop the identification run identifier if we're not splitting by identification runs
           if (!split_ident_runs)

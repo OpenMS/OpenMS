@@ -47,7 +47,7 @@ namespace OpenMS
     data_ = rhs.data_;
     model_type_ = "none";
     model_ = nullptr; // initialize this before the "delete" call in "fitModel"!
-    Param params = rhs.getModelParameters();
+    const Param& params = rhs.getModelParameters();
     fitModel(rhs.model_type_, params);
   }
 
@@ -59,7 +59,7 @@ namespace OpenMS
 
     data_ = rhs.data_;
     model_type_ = "none";
-    Param params = rhs.getModelParameters();
+    const Param& params = rhs.getModelParameters();
     fitModel(rhs.model_type_, params);
 
     return *this;

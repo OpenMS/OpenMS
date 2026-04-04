@@ -125,9 +125,6 @@ namespace OpenMS
       /// Copy assignment
       ToolDescription& operator=(const ToolDescription& rhs) = default;
 
-      void addExternalType(const String& type, const ToolExternalDetails& details);
-
-      void append(const ToolDescription& other);
     };
   } // namespace Internal
 } // namespace OPENMS

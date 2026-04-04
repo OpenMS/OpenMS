@@ -68,9 +68,12 @@ OpenMS/
 - Style checks: `ENABLE_STYLE_TESTING=ON` runs cpplint at `src/tests/coding/cpplint.py`.
 
 **Required dependencies:**
-- XercesC, Boost (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR or GLPK, ZLIB, BZip2, libcurl, Qt6 (6.1.0+)
+- XercesC, Boost 1.78+ (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR or GLPK, ZLIB, BZip2, libcurl
+- Qt6 (6.1.0+) — required for GUI (`openms_gui`); optional for TOPP tools, core library (`libOpenMS`), and pyOpenMS builds
 
-**Optional:** HDF5 (`-DWITH_HDF5=ON`), Apache Arrow/Parquet (`-DWITH_PARQUET=ON`)
+**Optional:** HDF5 (`-DWITH_HDF5=ON`)
+
+**Always enabled:** Apache Arrow/Parquet (required dependency since 3.6)
 
 ## Platform-Specific Build Gotchas
 
@@ -380,7 +383,7 @@ void MyClass::process(const MSSpectrum& spectrum)
 - Keep addons minimal; avoid redundant aliases.
 - Performance-critical methods should be C++ lambdas in the binding files rather than Python addons.
 - All domain modules use `NB_DOMAIN "pyopenms"` for cross-module type sharing.
-- See `src/pyOpenMS/README_WRAPPING_NEW_CLASSES` for the full wrapping guide.
+- See `src/pyOpenMS/README_WRAPPING_NEW_CLASSES.md` for the full wrapping guide.
 - Build and test:
   ```bash
   cmake --build OpenMS-build --target pyopenms -j$(nproc)
@@ -482,10 +485,10 @@ File format | `FileHandler::NamesOfTypes[]`, schemas, tests
 ## pyOpenMS Wrapping
 
 **Key files:**
-- Nanobind bindings: `src/pyOpenMS/bindings/bind_<domain>.cpp` (10 domain files)
+- Nanobind bindings: `src/pyOpenMS/bindings/bind_<domain>.cpp` (13 domain files)
 - Type casters: `src/pyOpenMS/bindings/type_casters/`
 - Python addons: `src/pyOpenMS/pyopenms/addons/`
-- Wrapping guide: `src/pyOpenMS/README_WRAPPING_NEW_CLASSES`
+- Wrapping guide: `src/pyOpenMS/README_WRAPPING_NEW_CLASSES.md`
 
 **Common patterns:**
 ```python
@@ -527,7 +530,7 @@ cmake --build OpenMS-build --target test_style
 - `README.md` - Project overview
 - `CONTRIBUTING.md` - Contribution guidelines
 - `src/pyOpenMS/README.md` - pyOpenMS development
-- `src/pyOpenMS/README_WRAPPING_NEW_CLASSES` - Wrapping guide
+- `src/pyOpenMS/README_WRAPPING_NEW_CLASSES.md` - Wrapping guide
 
 **Online resources:**
 - [OpenMS Documentation](https://openms.readthedocs.io/en/latest)

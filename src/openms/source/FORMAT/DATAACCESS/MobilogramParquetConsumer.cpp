@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -21,17 +22,14 @@
 #include <unordered_set>
 #include <vector>
 
-#ifdef WITH_PARQUET
 #include <arrow/api.h>
 #include <arrow/io/api.h>
 #include <parquet/arrow/writer.h>
-#endif
 
 namespace OpenMS
 {
   namespace
   {
-#ifdef WITH_PARQUET
     void appendOrThrow_(const arrow::Status& status, const char* column)
     {
       if (!status.ok())
@@ -175,7 +173,6 @@ namespace OpenMS
       }
       return annotation;
     }
-#endif
   } // namespace
 
   class MobilogramParquetConsumerImpl
@@ -187,18 +184,11 @@ namespace OpenMS
                                   const OpenSwath::LightTargetedExperiment& transition_exp) :
       filename_(filename), run_id_(run_id & ~(1ULL << 63)), source_file_(source_file)
     {
-#ifndef WITH_PARQUET
-      (void)transition_exp;
-      (void)source_file_;
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#else
       buildTransitionMaps_(transition_exp);
-#endif
     }
 
     ~MobilogramParquetConsumerImpl()
     {
-#ifdef WITH_PARQUET
       try
       {
         finalize();
@@ -208,7 +198,6 @@ namespace OpenMS
         OPENMS_LOG_ERROR << "Failed to write mobilogram parquet file '" << filename_
                          << "': " << e.what() << "\n";
       }
-#endif
     }
 
     void consumeMobilogram(const Mobilogram& m,
@@ -219,15 +208,6 @@ namespace OpenMS
                            double feature_rt,
                            Int64 feature_id)
     {
-#ifndef WITH_PARQUET
-      (void)m;
-      (void)mobilogram_type;
-      (void)ms_level;
-      (void)transition_id;
-      (void)transition_native_id;
-      (void)feature_rt;
-      (void)feature_id;
-#else
       // Do expensive encoding outside the writer mutex to avoid serializing
       // the hot Numpress+zlib work when multiple threads share this consumer.
       EncodedMobilogram encoded = encodeMobilogram_(m);
@@ -298,12 +278,10 @@ namespace OpenMS
           flushChunk_();
         }
       }
-#endif
     }
 
     void setExpectedSize(Size expectedMobilograms)
     {
-#ifdef WITH_PARQUET
       if (expectedMobilograms > 0)
       {
         reserveOrThrow_(run_id_builder_.Reserve(expectedMobilograms), "RUN_ID");
@@ -328,12 +306,10 @@ namespace OpenMS
         reserveOrThrow_(mobility_compression_builder_.Reserve(expectedMobilograms), "MOBILITY_COMPRESSION");
         reserveOrThrow_(intensity_compression_builder_.Reserve(expectedMobilograms), "INTENSITY_COMPRESSION");
       }
-#endif
     }
 
     void finalize()
     {
-#ifdef WITH_PARQUET
       std::lock_guard<std::mutex> lock(write_mutex_);
       if (wrote_) return;
 
@@ -374,7 +350,6 @@ namespace OpenMS
         outfile_.reset();
       }
       wrote_ = true;
-#endif
     }
 
   private:
@@ -383,8 +358,6 @@ namespace OpenMS
     String source_file_;
     bool wrote_{false};
     std::mutex write_mutex_;
-
-#ifdef WITH_PARQUET
     struct EncodedMobilogram
     {
       String mobility_encoded;
@@ -490,29 +463,7 @@ namespace OpenMS
 
     std::shared_ptr<arrow::Schema> buildSchema_() const
     {
-      return arrow::schema({
-        arrow::field("RUN_ID", arrow::int64()),
-        arrow::field("SOURCE_FILE", arrow::utf8()),
-        arrow::field("MS_LEVEL", arrow::int64()),
-        arrow::field("MOBILOGRAM_TYPE", arrow::utf8()),
-        arrow::field("PRECURSOR_ID", arrow::int64()),
-        arrow::field("TRANSITION_ID", arrow::int64()),
-        arrow::field("FEATURE_ID", arrow::int64()),
-        arrow::field("FEATURE_RT", arrow::float64()),
-        arrow::field("MODIFIED_SEQUENCE", arrow::utf8()),
-        arrow::field("PRECURSOR_CHARGE", arrow::int64()),
-        arrow::field("PRODUCT_CHARGE", arrow::int64()),
-        arrow::field("DETECTING_TRANSITION", arrow::int64()),
-        arrow::field("PRECURSOR_DECOY", arrow::int64()),
-        arrow::field("PRODUCT_DECOY", arrow::int64()),
-        arrow::field("TRANSITION_ORDINAL", arrow::int64()),
-        arrow::field("TRANSITION_TYPE", arrow::utf8()),
-        arrow::field("ANNOTATION", arrow::utf8()),
-        arrow::field("MOBILITY_DATA", arrow::binary()),
-        arrow::field("INTENSITY_DATA", arrow::binary()),
-        arrow::field("MOBILITY_COMPRESSION", arrow::int64()),
-        arrow::field("INTENSITY_COMPRESSION", arrow::int64())
-      });
+      return XIMSchema::schema();
     }
 
     void openWriterIfNeeded_()
@@ -593,6 +544,15 @@ namespace OpenMS
 
       openWriterIfNeeded_();
       auto table = buildTableFromBuilders_();
+
+      // Validate table against registry schema
+      auto validation = ArrowSchemaValidation::validate(table, XIMSchema::schema());
+      if (!validation.valid)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "XIM table schema validation failed: " + validation.toString(), "");
+      }
+
       auto status = writer_->WriteTable(*table, PARQUET_ROW_GROUP_SIZE_);
       if (!status.ok())
       {
@@ -687,7 +647,6 @@ namespace OpenMS
     std::unordered_map<String, CompoundInfo> compound_info_;
     std::unordered_map<String, TransitionInfo> transition_info_;
     std::unordered_map<String, int64_t> transition_ids_;
-#endif
   };
 
   MobilogramParquetConsumer::MobilogramParquetConsumer(const String& filename,

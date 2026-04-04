@@ -11,6 +11,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/DIALOGS/FLASHDeconvTabWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/WizardHelper.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <ui_FLASHDeconvTabWidget.h>
 
 #include <QDesktopServices>
@@ -46,8 +47,8 @@ namespace OpenMS
     FLASHDeconvTabWidget::FLASHDeconvTabWidget(QWidget* parent) :
         QTabWidget(parent),
         ui(new Ui::FLASHDeconvTabWidget),
-        ep_([&](const String& out) { writeLog_(out.toQString()); },
-            [&](const String& out) { writeLog_(out.toQString()); })
+        ep_([&](const String& out) { writeLog_(toQString(out)); },
+            [&](const String& out) { writeLog_(toQString(out)); })
     {
       ui->setupUi(this);
 
@@ -104,17 +105,17 @@ namespace OpenMS
 
       for (const auto& mzML : in_mzMLs)
       {
-        updateOutputParamFromPerInputFile(mzML.toQString());
+        updateOutputParamFromPerInputFile(toQString(mzML));
         Param tmp_param = Param(fd_param);
         tmp_param.insert("FLASHDeconv:1:", flashdeconv_param_outputs_);
 
         ParamXMLFile().store(tmp_ini, tmp_param);
 
         auto r = ep_.run(this,
-                         getFLASHDeconvExe().toQString(),
-                         QStringList() << "-ini" << tmp_ini.toQString()
-                                       << "-in" << mzML.toQString()
-                                       << "-out" << getCurrentOutDir_() + "/" + infileToFDoutput(mzML).toQString(),
+                         getFLASHDeconvExe(),
+                         {"-ini", tmp_ini,
+                          "-in", mzML,
+                          "-out", String(getCurrentOutDir_().toStdString()) + "/" + infileToFDoutput(mzML)},
                          "",
                          true);
         if (r != ExternalProcess::RETURNSTATE::SUCCESS)
@@ -138,7 +139,7 @@ namespace OpenMS
       String tmp_file = File::getTemporaryFile();
       ParamXMLFile().store(tmp_file, tmp_param);
       QProcess qp;
-      qp.start(executable.toQString(), QStringList() << tmp_file.toQString());
+      qp.start(toQString(executable), QStringList() << toQString(tmp_file));
       ui->tab_run->setEnabled(false); // grey out the Wizard until INIFileEditor returns...
       qp.waitForFinished(-1);
       ui->tab_run->setEnabled(true);
@@ -195,7 +196,7 @@ namespace OpenMS
 
     void FLASHDeconvTabWidget::updateOutputParamFromPerInputFile(const QString& input_file_name)
     {
-      std::string filepath_without_ext = getCurrentOutDir_().toStdString() + "/" + FileHandler::stripExtension(File::basename(input_file_name));
+      std::string filepath_without_ext = getCurrentOutDir_().toStdString() + "/" + File::stemName(fromQString(input_file_name));
 
       for (const auto& param : flashdeconv_param_outputs_)
       {
@@ -239,8 +240,8 @@ namespace OpenMS
           }
           else if (tag == "ida_log")
           {
-            String dir_path_only = File::path(input_file_name);
-            String file_name_only = FileHandler::stripExtension(File::basename(input_file_name));
+            String dir_path_only = File::path(fromQString(input_file_name));
+            String file_name_only = File::stemName(fromQString(input_file_name));
             out_path = dir_path_only + '/' + "IDALog_" + file_name_only + ".log";
           }
           else if (tag == "out_spec1")
@@ -294,7 +295,7 @@ namespace OpenMS
     {
       // create a default INI of FLASHDeconv
       String tmp_file = File::getTemporaryFile();
-      if (ep_.run(this, getFLASHDeconvExe().toQString(), QStringList() << "-write_ini" << tmp_file.toQString(), "", true) != ExternalProcess::RETURNSTATE::SUCCESS)
+      if (ep_.run(this, getFLASHDeconvExe(), {"-write_ini", tmp_file}, "", true) != ExternalProcess::RETURNSTATE::SUCCESS)
       {
         exit(1);
       }
@@ -349,7 +350,7 @@ namespace OpenMS
 
     void FLASHDeconvTabWidget::writeLog_(const String& text, const QColor& color, bool new_section)
     {
-      writeLog_(text.toQString(), color, new_section);
+      writeLog_(toQString(text), color, new_section);
     }
 
     bool FLASHDeconvTabWidget::checkFDInputReady_()

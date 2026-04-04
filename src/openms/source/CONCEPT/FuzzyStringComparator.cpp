@@ -11,7 +11,8 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QtCore/QDir>
+#include <OpenMS/SYSTEM/PathUtils.h>
+#include <filesystem>
 #include <fstream>
 #include <istream>
 #include <iomanip>
@@ -191,26 +192,26 @@ namespace OpenMS
         << prefix << "\n"
         << prefix << "Offending lines:\t\t\t(tab_width = " << tab_width_ << ", first_column = " << first_column_ << ")\n"
         << prefix << "\n"
-        << prefix << "in1:  " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "   (line: " << line_num_1_ << ", position/column: " << input_line_1_.line_position_ << '/' << prefix1.line_column << ")\n"
+        << prefix << "in1:  " << to_path(File::absolutePath(input_1_name_)).make_preferred().string() << "   (line: " << line_num_1_ << ", position/column: " << input_line_1_.line_position_ << '/' << prefix1.line_column << ")\n"
         << prefix << prefix1.prefix << "!\n"
         << prefix << prefix1.prefix_whitespaces << OpenMS::String(input_line_1_.line_.str()).suffix(input_line_1_.line_.str().size() - prefix1.prefix.size()) << "\n"
         << prefix <<  "\n"
-        << prefix << "in2:  " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "   (line: " << line_num_2_ << ", position/column: " << input_line_2_.line_position_ << '/' << prefix2.line_column << ")\n"
+        << prefix << "in2:  " << to_path(File::absolutePath(input_2_name_)).make_preferred().string() << "   (line: " << line_num_2_ << ", position/column: " << input_line_2_.line_position_ << '/' << prefix2.line_column << ")\n"
         << prefix << prefix2.prefix << "!\n"
         << prefix << prefix2.prefix_whitespaces << OpenMS::String(input_line_2_.line_.str()).suffix(input_line_2_.line_.str().size() - prefix2.prefix.size()) << "\n"
         << prefix << "\n\n"
         << "Easy Access:" << "\n"
-        << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << ':' << line_num_1_ << ":" << prefix1.line_column << ":\n"
-        << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
+        << to_path(File::absolutePath(input_1_name_)).make_preferred().string() << ':' << line_num_1_ << ":" << prefix1.line_column << ":\n"
+        << to_path(File::absolutePath(input_2_name_)).make_preferred().string() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
         << "\n"
         #ifdef WIN32
         << "TortoiseGitMerge"
-        << " /base:\"" << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "\""
-        << " /mine:\"" << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "\""
+        << " /base:\"" << to_path(File::absolutePath(input_1_name_)).make_preferred().string() << "\""
+        << " /mine:\"" << to_path(File::absolutePath(input_2_name_)).make_preferred().string() << "\""
         #else
         << "diff"
-        << " " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString()
-        << " " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString()
+        << " " << to_path(File::absolutePath(input_1_name_)).make_preferred().string()
+        << " " << to_path(File::absolutePath(input_2_name_)).make_preferred().string()
         #endif
         << '\n';
     }
@@ -258,10 +259,10 @@ namespace OpenMS
         *log_dest_ <<
           prefix << "Maximum relative error was attained at these lines, enclosed in \"\":\n" <<
           prefix << '\n' <<
-          QDir::toNativeSeparators(input_1_name_.c_str()).toStdString() << ':' << line_num_1_max_ << ":\n" <<
+          to_path(input_1_name_).make_preferred().string() << ':' << line_num_1_max_ << ":\n" <<
           "\"" << line_str_1_max_ << "\"\n" <<
           '\n' <<
-          QDir::toNativeSeparators(input_2_name_.c_str()).toStdString() << ':' << line_num_2_max_ << ":\n" <<
+          to_path(input_2_name_).make_preferred().string() << ':' << line_num_2_max_ << ":\n" <<
           "\"" << line_str_2_max_ << "\"\n" <<
           std::endl;
       }

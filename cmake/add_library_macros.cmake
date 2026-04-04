@@ -131,7 +131,9 @@ function(openms_add_library)
 
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
-  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES AUTOMOC ON)
+  if(TARGET Qt6::moc)
+    set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES AUTOMOC ON)
+  endif()
 
   #------------------------------------------------------------------------------
   # Include directories

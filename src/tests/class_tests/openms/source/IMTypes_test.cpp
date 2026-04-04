@@ -76,6 +76,18 @@ START_SECTION(const String& imFormatToString(const IMFormat value))
 
 END_SECTION
 
+START_SECTION(IMPeakType string conversions)
+{
+  TEST_EQUAL(toIMPeakType("im_profile"), IMPeakType::IM_PROFILE)
+  TEST_EQUAL(toIMPeakType("im_centroided"), IMPeakType::IM_CENTROIDED)
+  TEST_EQUAL(toIMPeakType("unknown"), IMPeakType::UNKNOWN)
+  TEST_EQUAL(imPeakTypeToString(IMPeakType::IM_PROFILE), "im_profile")
+  TEST_EQUAL(imPeakTypeToString(IMPeakType::IM_CENTROIDED), "im_centroided")
+  TEST_EQUAL(imPeakTypeToString(IMPeakType::UNKNOWN), "unknown")
+  TEST_EXCEPTION(Exception::InvalidValue, toIMPeakType("garbage"))
+}
+END_SECTION
+
 
 // single IM value for whole spec
 const MSSpectrum IMwithDrift = [&]() { 
@@ -93,47 +105,68 @@ const MSSpectrum IMwithFDA = [&]() {
   return single[0];
 }();
 
-START_SECTION(static IMFormat determineIMFormat(const MSExperiment& exp))
+START_SECTION(static IMFormat determineIMFormat(const MSExperiment& exp, int ms_level))
 
-  TEST_EQUAL(IMTypes::determineIMFormat(MSExperiment()) == IMFormat::NONE, true)
+  // empty experiment
+  TEST_EQUAL(IMTypes::determineIMFormat(MSExperiment(), 1) == IMFormat::NONE, true)
 
   {
     MSExperiment exp;
+    exp.addSpectrum(MSSpectrum()); // default MS level = 1
     exp.addSpectrum(MSSpectrum());
-    exp.addSpectrum(MSSpectrum());
-    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::NONE, true)
-  }
-  
-  {
-    MSExperiment exp;
-    exp.addSpectrum(MSSpectrum());
-    exp.addSpectrum(IMwithDrift);
-    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::MULTIPLE_SPECTRA, true)
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 1) == IMFormat::NONE, true)
   }
 
   {
+    auto ms1_drift = IMwithDrift;
+    ms1_drift.setMSLevel(1);
     MSExperiment exp;
     exp.addSpectrum(MSSpectrum());
-    exp.addSpectrum(IMwithFDA);
-    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::CONCATENATED, true)
+    exp.addSpectrum(ms1_drift);
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 1) == IMFormat::IM_SPECTRUM, true)
   }
 
   {
+    auto ms1_peak = IMwithFDA;
+    ms1_peak.setMSLevel(1);
     MSExperiment exp;
-    exp.addSpectrum(IMwithDrift);
-    exp.addSpectrum(IMwithFDA);
-    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::MIXED, true)
+    exp.addSpectrum(MSSpectrum());
+    exp.addSpectrum(ms1_peak);
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 1) == IMFormat::IM_PEAK, true)
   }
 
   {
-    // set both ... is valid (typically concatenated + some average value)
-    auto IMwithFDA2 = IMwithFDA;
-    IMwithFDA2.setDriftTime(123.4);
+    // MS1 = IM_PEAK, MS2 = IM_SPECTRUM — per-level queries work independently
+    auto ms1_peak = IMwithFDA;
+    ms1_peak.setMSLevel(1);
+    auto ms2_drift = IMwithDrift;
+    ms2_drift.setMSLevel(2);
     MSExperiment exp;
-    exp.addSpectrum(IMwithDrift);
-    exp.addSpectrum(IMwithFDA);
-    exp.addSpectrum(IMwithFDA2);
-    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::MIXED, true)
+    exp.addSpectrum(ms1_peak);
+    exp.addSpectrum(ms2_drift);
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 1) == IMFormat::IM_PEAK, true)
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 2) == IMFormat::IM_SPECTRUM, true)
+  }
+
+  {
+    // no spectra of requested level
+    MSExperiment exp;
+    auto ms1 = IMwithDrift;
+    ms1.setMSLevel(1);
+    exp.addSpectrum(ms1);
+    TEST_EQUAL(IMTypes::determineIMFormat(exp, 2) == IMFormat::NONE, true)
+  }
+
+  {
+    // mixed formats within same MS level throws
+    auto ms1_drift = IMwithDrift;
+    ms1_drift.setMSLevel(1);
+    auto ms1_peak = IMwithFDA;
+    ms1_peak.setMSLevel(1);
+    MSExperiment exp;
+    exp.addSpectrum(ms1_drift);
+    exp.addSpectrum(ms1_peak);
+    TEST_EXCEPTION(Exception::InvalidValue, IMTypes::determineIMFormat(exp, 1))
   }
 
 END_SECTION
@@ -142,15 +175,26 @@ START_SECTION(static IMFormat determineIMFormat(const MSSpectrum& spec))
    TEST_EQUAL(IMTypes::determineIMFormat(MSSpectrum()) == IMFormat::NONE, true)
    
    // single IM value for whole spec
-   TEST_EQUAL(IMTypes::determineIMFormat(IMwithDrift) == IMFormat::MULTIPLE_SPECTRA, true)
+   TEST_EQUAL(IMTypes::determineIMFormat(IMwithDrift) == IMFormat::IM_SPECTRUM, true)
 
    // convert to IM-Frame with float meta-data array
-   TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA) == IMFormat::CONCATENATED, true)
+   TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA) == IMFormat::IM_PEAK, true)
 
    // set both ... is valid (typically concatenated + some average value)
    auto IMwithFDA2 = IMwithFDA;
    IMwithFDA2.setDriftTime(123.4);
-   TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA2) == IMFormat::CONCATENATED, true)
+   TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA2) == IMFormat::IM_PEAK, true)
+END_SECTION
+
+START_SECTION(determineIMFormat returns IM_PEAK for centroided IM data)
+{
+  MSSpectrum s;
+  MSSpectrum::FloatDataArray fda;
+  fda.setName("Ion Mobility");
+  s.getFloatDataArrays().push_back(fda);
+  s.setIMPeakType(IMPeakType::IM_CENTROIDED);
+  TEST_EQUAL(IMTypes::determineIMFormat(s), IMFormat::IM_PEAK)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

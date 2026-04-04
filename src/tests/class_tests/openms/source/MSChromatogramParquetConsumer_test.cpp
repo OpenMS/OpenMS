@@ -28,7 +28,6 @@ START_TEST(MSChromatogramParquetConsumer, "$Id$")
 
 START_SECTION(MSChromatogramParquetConsumer_basic)
 {
-#ifdef WITH_PARQUET
   // Load transitions and chromatograms from TOPP test data
   TargetedExperiment targeted_exp;
   TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("MSChromatogramParquetConsumer_1_input.TraML"), targeted_exp);
@@ -59,16 +58,11 @@ START_SECTION(MSChromatogramParquetConsumer_basic)
   TEST_EQUAL(chroms.size(), exp.getChromatograms().size())
   TEST_EQUAL(chroms[0].rt.empty(), false)
   TEST_EQUAL(chroms[0].intensity.empty(), false)
-#else
-  OpenSwath::LightTargetedExperiment light_exp;
-  TEST_EXCEPTION(Exception::NotImplemented, MSChromatogramParquetConsumer("dummy.xic", 1, "x", light_exp))
-#endif
 }
 END_SECTION
 
 START_SECTION(MSChromatogramParquetConsumer_empty_chromatograms)
 {
-#ifdef WITH_PARQUET
   TargetedExperiment targeted_exp;
   TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("MSChromatogramParquetConsumer_1_input.TraML"), targeted_exp);
 
@@ -87,13 +81,11 @@ START_SECTION(MSChromatogramParquetConsumer_empty_chromatograms)
   std::vector<XICChromatogram> chroms;
   xic.load(chroms);
   TEST_EQUAL(chroms.size(), 0)
-#endif
 }
 END_SECTION
 
 START_SECTION(MSChromatogramParquetConsumer_destructor_no_throw)
 {
-#ifdef WITH_PARQUET
   TargetedExperiment targeted_exp;
   TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("MSChromatogramParquetConsumer_1_input.TraML"), targeted_exp);
 
@@ -111,7 +103,6 @@ START_SECTION(MSChromatogramParquetConsumer_destructor_no_throw)
     caught = true;
   }
   TEST_EQUAL(caught, false)
-#endif
 }
 END_SECTION
 

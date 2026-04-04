@@ -35,9 +35,16 @@ public:
     {
     public:
       
-      /// Construct temporary folder
+      /// Construct temporary folder under system temp directory
       /// If keep_dir is set to true, the folder will not be deleted on destruction of the object.
       TempDir(bool keep_dir = false);
+
+      /// Construct temporary folder under a custom base directory
+      /// Creates a unique subdirectory with a generated name under base_dir.
+      /// If keep_dir is set to true, the folder will not be deleted on destruction of the object.
+      /// @param base_dir The base directory under which to create the temp folder (e.g., user-specified temp path)
+      /// @param keep_dir If true, the folder will not be deleted on destruction
+      TempDir(const String& base_dir, bool keep_dir = false);
 
       /// Destroy temporary folder (can be prohibited in Constructor)
       ~TempDir();
@@ -107,7 +114,7 @@ public:
        @return True on success
     */
     enum class CopyOptions {OVERWRITE,SKIP,CANCEL};
-    static bool copyDirRecursively(const QString &from_dir, const QString &to_dir, File::CopyOptions option = CopyOptions::OVERWRITE);
+    static bool copyDirRecursively(const String& from_dir, const String& to_dir, File::CopyOptions option = CopyOptions::OVERWRITE);
 
     /// Copy a file (if it exists). Returns true if successful.
     static bool copy(const String& from, const String& to);
@@ -119,11 +126,11 @@ public:
     */
     static bool remove(const String& file);
 
-    /// Removes the subdirectories of the specified directory (absolute path). Returns true if successful.
+    /// Removes a directory and all its contents recursively (absolute path). Returns true if successful.
     static bool removeDirRecursively(const String& dir_name);
 
-    /// Removes the directory and all subdirectories (absolute path).
-    static bool removeDir(const QString& dir_name);
+    /// Removes a directory and all its contents (absolute path). Returns true if successful.
+    static bool removeDir(const String& dir_name);
 
     /// Creates a directory (absolute path or relative to the current working dir), even if subdirectories do not exist. Returns true if successful.
     /// If the path already exists when this function is called, it will return true.
@@ -136,6 +143,23 @@ public:
     /// No checking is done on the filesystem, i.e. '/path/some_entity' will return 'some_entity', irrespective of 'some_entity' is a file or a directory.
     /// However, '/path/some_entity/' will return ''.
     static String basename(const String& file);
+
+    /// Returns the basename of the file without any known file extension.
+    /// Delegates to FileHandler::stripExtension(File::basename(file)).
+    /// E.g., "/path/sample.mzML.gz" returns "sample", "/path/data.featureXML" returns "data".
+    /// Unknown extensions are stripped at the last dot: "/path/file.txt" returns "file".
+    /// Directories with dots in the path are handled correctly: "/my.dir/file" returns "file".
+    static String stemName(const String& file);
+
+    /// Returns the file extension including the leading dot.
+    /// Recognizes compound OpenMS extensions like ".mzML.gz".
+    /// E.g., "/path/sample.mzML.gz" returns ".mzML.gz", "/path/file.txt" returns ".txt".
+    /// Returns empty string if there is no extension: "/path/file" returns "".
+    static String extension(const String& file);
+
+    /// Returns a sorted list of subdirectory absolute paths (non-recursive) in the given directory.
+    /// Uses '/' separators. Returns an empty list on any error or if the path is not a directory (no throw).
+    static StringList listDirectories(const String& dir);
 
     /// Returns the path of the file (without the file name and without path separator).
     /// If just a filename is given without any path, then "." is returned.

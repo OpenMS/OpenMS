@@ -52,6 +52,42 @@ public:
   **/
   static void resolve(ConsensusMap& features, bool keep_matching = false);
 
+  /** @brief Resolves ambiguous annotations of features with peptide identifications using rank aggregation.
+
+    For each feature, peptide hits across all identifications are aggregated by rank.
+    Each unique sequence is assigned a rank in every identification in which it appears
+    (rank 0 = best hit, 1 = second best, etc.). Sequences not found in an identification
+    receive a penalty rank equal to the maximum number of considered hits. The aggregate
+    score for each sequence is computed as:
+    @code
+      1.0 - (sum_of_ranks + penalty_for_missing_runs) / (max_hits * n_runs)
+    @endcode
+    The sequence with the highest aggregate score is selected as the winner and the
+    corresponding best-scoring identification is kept with only that hit.
+    All other identifications are moved to the unassigned list.
+
+    @param[in] features FeatureMap to work on
+  **/
+  static void resolveAllHitRankAggregation(FeatureMap& features);
+
+  /** @brief Resolves ambiguous annotations of consensus features with peptide identifications using rank aggregation.
+
+    For each consensus feature, peptide hits across all identifications are aggregated by rank.
+    Each unique sequence is assigned a rank in every identification in which it appears
+    (rank 0 = best hit, 1 = second best, etc.). Sequences not found in an identification
+    receive a penalty rank equal to the maximum number of considered hits. The aggregate
+    score for each sequence is computed as:
+    @code
+      1.0 - (sum_of_ranks + penalty_for_missing_runs) / (max_hits * n_runs)
+    @endcode
+    The sequence with the highest aggregate score is selected as the winner and the
+    corresponding best-scoring identification is kept with only that hit.
+    All other identifications are moved to the unassigned list.
+
+    @param[in] features ConsensusMap to work on
+  **/
+  static void resolveAllHitRankAggregation(ConsensusMap& features);
+
   /** @brief In a single (feature/consensus) map, features with the same (possibly modified) sequence and charge state may appear.
    This filter removes the peptide sequence annotations from features, if a higher-intensity feature with the same (charge, sequence)
    combination exists in the map. The total number of features remains unchanged. In the final output, each (charge, sequence) combination
@@ -110,7 +146,30 @@ protected:
       PeptideIdentificationList & peptides,
       PeptideIdentificationList & removed,
       UInt64 uid);
-  
+
+  static void resolveAggregateConflict_(
+      PeptideIdentificationList & peptides,
+      PeptideIdentificationList & removed,
+      UInt64 uid);
+
+  template<class T>
+  static void rankAggregation_(T& map)
+  {
+    // annotate unassigned IDs as not part of the resolution
+    for (PeptideIdentification& p : map.getUnassignedPeptideIdentifications())
+    {
+      p.setMetaValue("feature_id", "not mapped"); // not mapped to a feature
+    }
+
+    for (auto& c : map)
+    {
+      c.setMetaValue("feature_id", String(c.getUniqueId()));
+      resolveAggregateConflict_(c.getPeptideIdentifications(),
+                                map.getUnassignedPeptideIdentifications(),
+                                c.getUniqueId());
+    }
+  }
+
   template<class T>
   static void resolveBetweenFeatures_(T & map)
   {

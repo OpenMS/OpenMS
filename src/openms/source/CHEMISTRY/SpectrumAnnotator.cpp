@@ -377,7 +377,7 @@ namespace OpenMS
       }
       //TODO add "FragmentArray"s
 
-      Param sap = sa.getParameters();
+      const Param& sap = sa.getParameters();
       pi.setMetaValue("fragment_match_tolerance", (double)sap.getValue("tolerance"));
     }  
   }

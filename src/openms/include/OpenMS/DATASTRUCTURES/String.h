@@ -15,8 +15,6 @@
 #include <cstring>
 #include <vector>
 
-class QString;
-
 namespace OpenMS
 {
   class DataValue;
@@ -69,8 +67,6 @@ public:
     OPENMS_DLLAPI String(const std::string& s);
     /// Constructor from std::string_view
     OPENMS_DLLAPI String(const std::string_view& sv);
-    /// Constructor from Qt QString
-    OPENMS_DLLAPI String(const QString& s);
     /// Constructor from char*
     OPENMS_DLLAPI String(const char* s);
     /// Constructor from a char
@@ -330,9 +326,6 @@ public:
       @exception Exception::ConversionError is thrown if the string could not be converted to double
     */
     OPENMS_DLLAPI double toDouble() const;
-
-    /// Conversion to Qt QString
-    OPENMS_DLLAPI QString toQString() const;
 
     //@}
 

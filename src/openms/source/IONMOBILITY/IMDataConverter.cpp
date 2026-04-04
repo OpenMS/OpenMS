@@ -288,7 +288,7 @@ namespace OpenMS
     {
       // copy non-IM or already framed spectra
       // throws Exception if spec has mixed IM format
-      if (IMTypes::determineIMFormat(spec) != IMFormat::MULTIPLE_SPECTRA)
+      if (IMTypes::determineIMFormat(spec) != IMFormat::IM_SPECTRUM)
       {
         processDriftTimeStack(stack, result); // clear current stack
         result.getSpectra().push_back(spec);

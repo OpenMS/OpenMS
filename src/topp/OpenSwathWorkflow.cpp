@@ -22,12 +22,11 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
-#ifdef WITH_PARQUET
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
+#include <OpenMS/config.h>
 #include <filesystem>
-#endif
 #include <OpenMS/SYSTEM/File.h>
 
 // Kernel and implementations
@@ -69,7 +68,6 @@ using namespace OpenMS;
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 
-#include <QDir>
 #include <unordered_map>
 
 //-------------------------------------------------------------
@@ -89,7 +87,7 @@ http://openswath.org/ for additional documentation.
 It executes the following steps in order, which is implemented in @ref OpenMS::OpenSwathWorkflow "OpenSwathWorkflow":
 
 <ul>
-  <li>Reading of input SRM/MRM/PRM/DIA(PASEF) mzML files</li>
+  <li>Reading of input SRM/MRM/PRM/DIA(PASEF) mzML files or Bruker .d (TDF) directories (requires WITH_OPENTIMS)</li>
   <li>Computing the retention time transformation, mass-to-charge and ion mobility correction using calibrant peptides</li>
   <li>Reading of the transition list</li>
   <li>Extracting the specified transitions</li>
@@ -122,6 +120,14 @@ instrument exports individual window files.
 Since files can be large, it is recommended to avoid loading whole datasets
 into memory; use the `-readOptions` (for example `cacheWorkingInMemory`) to
 cache or reduce data in advance.
+
+<h4>Bruker .d (diaPASEF, requires WITH_OPENTIMS)</h4>
+Bruker TimsTOF .d directories containing DIA-PASEF data can be passed directly
+without prior mzML conversion when OpenMS is built with the WITH_OPENTIMS option.
+The tool automatically discovers SWATH windows from the TDF metadata and
+partitions spectra accordingly. Ion mobility lower/upper limits are attached as
+spectrum meta values so that PASEF windows sharing the same m/z range but
+differing in ion mobility are correctly distinguished.
 
 <h4>PRM</h4>
 PRM (parallel reaction monitoring) is a targeted MS2 acquisition mode. PRM
@@ -169,7 +175,7 @@ can adjust the smoothing parameters for the peak picking, by adjusting
 Gaussian smoothing based on your estimated peak width. Adjusting the signal
 to noise threshold will make the peaks wider or smaller.
 
-<h3>Output: Feature list and chromatograms </h3>
+<h3>Output: Feature list, chromatograms, and ion mobilograms </h3>
 The output of the OpenSwathWorkflow is a feature list, either as FeatureXML,
 a @ref OpenMS::OSWFile "OpenSWATH SQLite file", or an OpenSWATH Parquet output
 (use @p -out_features) while the SQLite output is more memory
@@ -181,6 +187,11 @@ For downstream analysis (e.g. using pyProphet) the @ref OpenMS::OSWFile "OSWFile
 
 In addition, the extracted chromatograms can be written out using the
 @p -out_chrom parameter.
+
+When processing ion mobility (diaPASEF) data, the extracted ion mobilograms
+(XIMs) can optionally be saved to a Parquet file using the @p -out_mobilogram
+parameter. The output file must have the @p .xim extension. The resulting file can be
+read back using the @ref OpenMS::XIMParquetFile "XIMParquetFile" class.
 
 <h4> Feature list output format </h4>
 
@@ -228,13 +239,15 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,sqMass"));
+    StringList in_formats = {"mzML", "mzXML", "sqMass"};
+#ifdef WITH_OPENTIMS
+    in_formats.push_back("d");
+#endif
+    setValidFormats_("in", in_formats);
 
     registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','pqp','oswpq')");
     StringList tr_formats = {"traML", "tsv", "pqp"};
-#ifdef WITH_PARQUET
     tr_formats.push_back("oswpq");
-#endif
     setValidFormats_("tr", tr_formats);
     registerStringOption_("tr_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
     setValidStrings_("tr_type", tr_formats);
@@ -250,9 +263,7 @@ protected:
 
     registerOutputFile_("out_features", "<file>", "", "feature output file, either .osw (PyProphet-compatible SQLite file), .oswpq, or .featureXML", false);
     std::vector<String> out_feature_formats = {"osw", "featureXML"};
-#ifdef WITH_PARQUET
     out_feature_formats.push_back("oswpq");
-#endif
     setValidFormats_("out_features", out_feature_formats);
 
     registerStringOption_("out_features_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
@@ -311,6 +322,7 @@ protected:
     setValidStrings_("readOptions", ListUtils::create<String>("normal,cache,cacheWorkingInMemory,workingInMemory"));
 
     registerStringOption_("tempDirectory", "<tmp>", File::getTempDirectory(), "Temporary directory to store cached files for example", false, true);
+    registerFlag_("keep_cached_files", "If set, do not remove cached files created in tempDirectory (disable automated cleanup)", false);
 
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
     setValidStrings_("extraction_function", ListUtils::create<String>("tophat,bartlett"));
@@ -576,14 +588,6 @@ protected:
       writeLogError_("Error: Could not determine input file type for '-out_features' !");
       return PARSE_ERROR;
     }
-#ifndef WITH_PARQUET
-    if (out_features_type == FileTypes::OSWPQ)
-    {
-      writeLogError_("Error: OpenMS was built without Parquet support, cannot write oswpq output.");
-      return PARSE_ERROR;
-    }
-#endif
-
     String out_qc = getStringOption_("out_qc");
 
     Param irt_calibration_params = getParam_().copy("Calibration:", true);
@@ -617,26 +621,6 @@ protected:
 
     String out_chrom = getStringOption_("out_chrom");
     String out_mobilogram = getStringOption_("out_mobilogram");
-#ifndef WITH_PARQUET
-    if (!out_chrom.empty())
-    {
-      const FileTypes::Type out_chrom_type = FileHandler::getType(out_chrom);
-      if (out_chrom_type == FileTypes::CHROMPARQUET)
-      {
-        writeLogError_("Error: OpenMS was built without Parquet support, cannot write chrom_parquet output.");
-        return PARSE_ERROR;
-      }
-    }
-    if (!out_mobilogram.empty())
-    {
-      const FileTypes::Type out_mob_type = FileHandler::getType(out_mobilogram);
-      if (out_mob_type == FileTypes::MOBILPARQUET)
-      {
-        writeLogError_("Error: OpenMS was built without Parquet support, cannot write mobilogram parquet output.");
-        return PARSE_ERROR;
-      }
-    }
-#endif
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
     bool force = getFlag_("force");
@@ -656,10 +640,11 @@ protected:
     bool disable_im_windowing   = std::find(disable_features.begin(), disable_features.end(), "no_IM_windowing")   != disable_features.end();
 
     String readoptions = getStringOption_("readOptions");
+    bool keep_cached_files = getFlag_("keep_cached_files");
 
     // make sure tmp is a directory with proper separator at the end (downstream methods simply do path + filename)
-    // (do not use QDir::separator(), since its platform specific (/ or \) while absolutePath() will always use '/')
-    String tmp_dir = String(QDir(getStringOption_("tempDirectory").c_str()).absolutePath()).ensureLastChar('/');
+    // File::absolutePath() always uses '/' separators
+    String tmp_dir = File::absolutePath(getStringOption_("tempDirectory")).ensureLastChar('/');
 
     ///////////////////////////////////
     // Parameter validation
@@ -890,10 +875,6 @@ protected:
       }
       else if (tr_type == FileTypes::OSWPQ)
       {
-#ifndef WITH_PARQUET
-        writeLogError_("Error: OpenMS was built without Parquet support, cannot use oswpq input with OSW output.");
-        return PARSE_ERROR;
-#else
         // Convert parquet library to .PQP for OSW output
         TransitionPQPFile().convertLightTargetedExperimentToPQP(out_features.c_str(), transition_exp);
 
@@ -922,7 +903,6 @@ protected:
             tr.transition_name = id->second;
           }
         }
-#endif
       }
       else if (tr_type == FileTypes::TRAML)
       {
@@ -1006,7 +986,6 @@ protected:
     String osw_out_filename = write_osw ? out_features : "";
     OpenSwathOSWWriter oswwriter(osw_out_filename, enable_uis_scoring);
 
-#ifdef WITH_PARQUET
     String parquet_dir = out_features;
     bool parquet_zip_output = false;
     std::unique_ptr<File::TempDir> parquet_temp_dir;
@@ -1018,16 +997,19 @@ protected:
       parquet_zip_output = out_features.hasSuffix(".oswpq");
       if (parquet_zip_output)
       {
-        parquet_temp_dir = std::make_unique<File::TempDir>();
-        parquet_dir = parquet_temp_dir->getPath() + "/oswpq_output";
-        // Pre-create the directory so that OpenSwathOSWParquetWriter::write()
-        // detects it as an existing directory (File::isDirectory() returns true)
-        // and persists all run data there instead of redirecting to its own
-        // internal temp dir (which is destroyed after each call).
-        File::makeDir(parquet_dir);
+        if (getFlag_("append_oswpq") && File::exists(out_features))
+        {
+          // Extract existing archive so prior run data is preserved when appending.
+          parquet_dir = ZipArchiveFile::unzipDirectory(out_features, parquet_temp_dir);
+        }
+        else
+        {
+          parquet_temp_dir = std::make_unique<File::TempDir>();
+          parquet_dir = parquet_temp_dir->getPath() + "/oswpq_output";
+          File::makeDir(parquet_dir);
+        }
       }
     }
-#endif
 
     // Write DB schema once (only for first file)
     if (write_osw)
@@ -1048,7 +1030,18 @@ protected:
       ChromExtractParams cp_ms1_current = cp_ms1;
       ChromExtractParams cp_irt_current = cp_irt;
       Param feature_finder_param_run = feature_finder_param;
+      
       ///////////////////////////////////
+      // Per-run temporary cache directory (created only when using cache readOptions)
+      // Use File::TempDir for RAII-based cleanup: destructor removes dir (unless keep_cached_files is true)
+      String per_run_tmp = tmp_dir;
+      std::unique_ptr<File::TempDir> per_run_temp_dir;
+      if (readoptions == "cache")
+      {
+        per_run_temp_dir = std::make_unique<File::TempDir>(tmp_dir, keep_cached_files);
+        per_run_tmp = per_run_temp_dir->getPath();
+      }
+
       // Load the SWATH files (if split data, otherwise load single experiment mzML)
       ///////////////////////////////////
       std::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
@@ -1064,9 +1057,9 @@ protected:
         MSDataTransformingConsumer qc_consumer; // apply some transformation
         qc_consumer.setSpectraProcessingFunc(qc.getSpectraProcessingFunc());
         qc_consumer.setExperimentalSettingsFunc(qc.getExpSettingsFunc());
-        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, tmp_dir, readoptions,
-                            swath_windows_file, min_upper_edge_dist, force,
-                            sort_swath_maps, prm, &qc_consumer))
+        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, per_run_tmp, readoptions,
+                swath_windows_file, min_upper_edge_dist, force,
+                sort_swath_maps, prm, &qc_consumer))
         {
           OPENMS_LOG_ERROR << "Failed to load SWATH files for Run " << (run_index + 1)
                            << ": " << ListUtils::concatenate(single_file_list, ", ") << std::endl
@@ -1079,9 +1072,9 @@ protected:
       }
       else
       {
-        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, tmp_dir, readoptions,
-                            swath_windows_file, min_upper_edge_dist, force,
-                            sort_swath_maps, prm))
+        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, per_run_tmp, readoptions,
+                swath_windows_file, min_upper_edge_dist, force,
+                sort_swath_maps, prm))
         {
           OPENMS_LOG_ERROR << "Failed to load SWATH files for Run " << (run_index + 1)
                            << ": " << ListUtils::concatenate(single_file_list, ", ") << std::endl
@@ -1305,10 +1298,14 @@ protected:
     String out_chrom_current = out_chrom;
     if (!out_chrom.empty() && run_groups.size() > 1)
     {
-      // For multi-run, use basename prefix to make unique filenames
-      String base_name = out_chrom.substr(0, out_chrom.find_last_of('.'));
-      String extension = out_chrom.substr(out_chrom.find_last_of('.'));
-      out_chrom_current = file_basename + "_" + base_name + extension;
+      // Preserve parent directory when creating per-run filenames.
+      // Split path and filename first, then prepend the run prefix to the filename only.
+      String parent = File::path(out_chrom);
+      String filename = File::basename(out_chrom);
+      String stem = filename.substr(0, filename.find_last_of('.'));
+      String extension = filename.substr(filename.find_last_of('.'));
+      String fname_with_prefix = file_basename + "_" + stem + extension;
+      out_chrom_current = (parent == "." ? fname_with_prefix : parent + "/" + fname_with_prefix);
     }
     prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, cur_run, current_run_files[0]);
 
@@ -1371,23 +1368,21 @@ protected:
 
     if (write_parquet)
     {
-#ifdef WITH_PARQUET
       parquet_writer.write(parquet_dir, transition_exp, active_feature_map,
                            cur_run, current_run_files[0], enable_uis_scoring);
-#endif
     }
 
     OPENMS_LOG_INFO << std::endl;
+
     ++run_index;
     } // end for each run
 
-#ifdef WITH_PARQUET
     if (write_parquet && parquet_zip_output)
     {
       // Stream files into the zip archive instead of unzipping/rezipping the
       // whole directory. This uses ZipArchiveFile::addOrReplaceFromFile which
       // streams from disk and avoids loading large parquet blobs into memory.
-      const std::filesystem::path dirpath = std::filesystem::u8path(std::string(parquet_dir));
+      const std::filesystem::path dirpath = std::filesystem::path(std::string(parquet_dir));
       const String output_zip_abs = File::absolutePath(out_features);
       if (File::exists(output_zip_abs))
       {
@@ -1405,7 +1400,6 @@ protected:
       // directly from the archive without extracting (RAF pattern).
       ZipArchiveFile::writeSidecarIndex(output_zip_abs);
     }
-#endif
 
     if ( out_features_type == FileTypes::FEATUREXML )
     {

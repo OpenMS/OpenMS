@@ -345,7 +345,7 @@ namespace OpenMS
     else
     {
       result.clear();
-      result.push_back(IsotopeDistribution::MassAbundance(0, 1.0));
+      result.emplace_back(0, 1.0);
     }
 
 

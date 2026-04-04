@@ -129,10 +129,26 @@ namespace OpenMS
             swath_map_sources.push_back(f);
           }
         }
+#ifdef WITH_OPENTIMS
+        else if (in_file_type == FileTypes::BRUKER_TDF)
+        {
+          auto maps = swath_file.loadBrukerTdf(f, exp_meta);
+          for (auto & m : maps)
+          {
+            swath_maps.push_back(m);
+            swath_map_sources.push_back(f);
+          }
+        }
+#endif
         else
         {
+#ifdef WITH_OPENTIMS
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                           "Input file needs to have ending mzML or mzXML");
+                                           "Input file needs to have ending mzML, mzXML, sqMass, or .d (Bruker TDF)");
+#else
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           "Input file needs to have ending mzML, mzXML, or sqMass");
+#endif
         }
       }
     }
@@ -159,10 +175,23 @@ namespace OpenMS
         swath_map_sources.clear();
         for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
       }
+#ifdef WITH_OPENTIMS
+      else if (in_file_type == FileTypes::BRUKER_TDF)
+      {
+        swath_maps = swath_file.loadBrukerTdf(file_list[0], exp_meta);
+        swath_map_sources.clear();
+        for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
+      }
+#endif
       else
       {
+#ifdef WITH_OPENTIMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Input file needs to have ending mzML or mzXML");
+                                         "Input file needs to have ending mzML, mzXML, sqMass, or .d (Bruker TDF)");
+#else
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Input file needs to have ending mzML, mzXML, or sqMass");
+#endif
       }
     }
   }
@@ -297,15 +326,10 @@ namespace OpenMS
       }
       else if (out_chrom_type == FileTypes::CHROMPARQUET)
       {
-#ifndef WITH_PARQUET
-        (void)source_file; // to suppress unused variable warning
-        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#else
         auto * chromConsumer = new MSChromatogramParquetConsumer(out_chrom, run_id, source_file, transition_exp);
         Size expected_chromatograms = transition_exp.transitions.size();
         chromConsumer->setExpectedSize(0, expected_chromatograms);
         *chromatogramConsumer = chromConsumer;
-#endif
       }
       else
       {
@@ -353,15 +377,10 @@ namespace OpenMS
       const FileTypes::Type out_mob_type = FileHandler::getType(out_mobilogram);
       if (out_mob_type == FileTypes::MOBILPARQUET)
       {
-#ifndef WITH_PARQUET
-        (void)source_file;
-        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#else
         mobilogramConsumer = std::make_unique<MobilogramParquetConsumer>(out_mobilogram, run_id, source_file, transition_exp);
         // estimate expected mobilograms from transitions
         Size expected = transition_exp.transitions.size();
         mobilogramConsumer->setExpectedSize(expected);
-#endif
       }
       else
       {
@@ -407,13 +426,9 @@ namespace OpenMS
     }
     else if (tr_type == FileTypes::OSWPQ)
     {
-#ifdef WITH_PARQUET
       progresslogger.startProgress(0, 1, "Load Parquet library");
       TransitionParquetFile().convertParquetToTargetedExperiment(tr_file, transition_exp);
       progresslogger.endProgress();
-#else
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
     }
     else
     {

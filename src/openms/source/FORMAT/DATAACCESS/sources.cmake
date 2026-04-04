@@ -15,10 +15,8 @@ set(sources_list
   SwathFileConsumer.cpp
 )
 
-if (WITH_PARQUET)
-  list(APPEND sources_list MSChromatogramParquetConsumer.cpp)
-  list(APPEND sources_list MobilogramParquetConsumer.cpp)
-endif()
+list(APPEND sources_list MSChromatogramParquetConsumer.cpp)
+list(APPEND sources_list MobilogramParquetConsumer.cpp)
 
 ### add path to the filenames
 set(sources)

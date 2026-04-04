@@ -6,7 +6,6 @@
 // $Authors: Chris Bielow, Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
 
 using namespace std;
@@ -58,46 +57,6 @@ namespace OpenMS
     {
     }
 
-    void ToolDescription::addExternalType(const String& type, const ToolExternalDetails& details)
-    {
-      types.push_back(type);
-      external_details.push_back(details);
-    }
-
-    void ToolDescription::append(const ToolDescription& other)
-    {
-      // sanity check
-      if (is_internal != other.is_internal
-         || name != other.name
-          //|| category != other.category
-         || (is_internal && !external_details.empty())
-         || (other.is_internal && !other.external_details.empty())
-         || (!is_internal && external_details.size() != types.size())
-         || (!other.is_internal && other.external_details.size() != other.types.size())
-          )
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Extending (external) ToolDescription failed!", "");
-      }
-
-      // append types and external information
-      types.insert(types.end(), other.types.begin(), other.types.end());
-      external_details.insert(external_details.end(), other.external_details.begin(), other.external_details.end());
-
-      // check that types are unique
-      std::set<String> unique_check;
-      unique_check.insert(types.begin(), types.end());
-      if (unique_check.size() != types.size())
-      {
-        OPENMS_LOG_ERROR << "A type appears at least twice for the TOPP tool '" << name << "'. Types given are '" << ListUtils::concatenate(types, ", ") << "'\n";
-        if (name == "GenericWrapper")
-        {
-          OPENMS_LOG_ERROR << "Check the .ttd files in your share/ folder and remove duplicate types!\n";
-        }
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "see above!", "");
-      }
-    }
   }
-
-  Internal::ToolDescription bla;
 
 } // namespace OpenMS

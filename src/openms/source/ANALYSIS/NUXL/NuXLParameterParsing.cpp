@@ -119,7 +119,7 @@ NuXLParameterParsing::getAllFeasibleFragmentAdducts(
       // we want to track if a certain MS1 mass and set of MS2 ions allow to distinguish 
       // (at least in theory) precursor adduct and cross-linked nucleotide 
       // to do so, we map mass and set of fragment ions to precursor adduct and cross-linked nucleotide 
-      mass_frags2pc_xlnuc[{pc2mass[pc], fragments}].push_back({pc, nucleotide});
+      mass_frags2pc_xlnuc[{pc2mass[pc], fragments}].emplace_back(pc, nucleotide);
 
       OPENMS_LOG_DEBUG << "  Cross-linkable nucleotide '" << nucleotide << "' and feasible fragment adducts:" << endl;
       for (auto const & a : ffa.second)
@@ -337,7 +337,7 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
         // store feasible adducts associated with a cross-link with character nucleotide
         vector<NuXLFragmentAdductDefinition> faa;
         std::copy(fragment_adducts.begin(), fragment_adducts.end(), back_inserter(faa));
-        ret.feasible_adducts.emplace_back(make_pair(nucleotide, faa));
+        ret.feasible_adducts.emplace_back(nucleotide, faa);
       }
     }
     
@@ -388,7 +388,7 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
         // store feasible adducts associated with a cross-link with character nucleotide[0]
         vector<NuXLFragmentAdductDefinition> faa;
         std::copy(fas.begin(), fas.end(), back_inserter(faa));
-        ret.feasible_adducts.emplace_back(make_pair(nucleotide, faa));
+        ret.feasible_adducts.emplace_back(nucleotide, faa);
 
         // We only have one nucleotide in the precursor adduct (the cross-linked one)
         // Note: marker ions of the cross-linked nucleotide are often missing or of very low intensity

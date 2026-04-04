@@ -10,8 +10,6 @@
 
 #include <OpenMS/config.h>
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -350,5 +348,3 @@ public:
 }; // class MSExperimentArrowExport
 
 } // namespace OpenMS
-
-#endif // WITH_PARQUET

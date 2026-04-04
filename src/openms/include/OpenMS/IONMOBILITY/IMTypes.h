@@ -41,18 +41,14 @@ namespace OpenMS
   OPENMS_DLLAPI const std::string& driftTimeUnitToString(const DriftTimeUnit value);
 
   /// Different ways to represent ion mobility data in a spectrum
-  /// Note: 
-  /// 1. MIXED is only used for MSExperiment, not for MSSpectrum
-  /// 2. UNKNOWN should be used if the format is not yet determined. 
+  /// Note: UNKNOWN should be used if the format is not yet determined.
   /// FileHandler or e.g. IM peak picker should ideally set the format a known value.
   enum class IMFormat
   {
     NONE,            ///< no ion mobility
-    CONCATENATED,    ///< ion mobility frame is stacked in a single spectrum (i.e. has an IM float data array)
-    MULTIPLE_SPECTRA,///< ion mobility is recorded as multiple spectra per frame (i.e. has one IM annotation per spectrum)
-    MIXED,           ///< an MSExperiment contains both CONCATENATED and MULTIPLE_SPECTRA
-    CENTROIDED,      ///< ion mobility of peaks after centroiding in IM dimension. Ion mobility is annotated in a single float data array (i.e., each peak might have a different IM value in the data array); identical to CONCATENATED in terms of data layout.
-    UNKNOWN,         ///< ion mobility format not yet determined. 
+    IM_PEAK,         ///< full TIMS frame / per-scan IM-resolved data: ion mobility is annotated per peak in a float data array
+    IM_SPECTRUM,     ///< conventional spectrum with one precursor IM value (i.e. has one IM annotation per spectrum via getDriftTime())
+    UNKNOWN,         ///< ion mobility format not yet determined.
     SIZE_OF_IMFORMAT
   };
   /// Names of IMFormat
@@ -65,23 +61,47 @@ namespace OpenMS
   /// @throws Exception::InvalidValue if @p value is SIZE_OF_IMFORMAT
   OPENMS_DLLAPI const std::string& imFormatToString(const IMFormat value);
 
+  /// Processing state of ion mobility data in the IM dimension.
+  /// Analogous to SpectrumSettings::SpectrumType for the m/z dimension.
+  enum class IMPeakType
+  {
+    IM_PROFILE,        ///< raw/unprocessed IM data (e.g. full TIMS frame before IM centroiding)
+    IM_CENTROIDED,     ///< IM data after centroiding in the IM dimension
+    UNKNOWN,           ///< IM peak type not yet determined
+    SIZE_OF_IMPEAKTYPE
+  };
+
+  /// Names of IMPeakType entries
+  OPENMS_DLLAPI extern const std::string NamesOfIMPeakType[(size_t) IMPeakType::SIZE_OF_IMPEAKTYPE];
+
+  /// @brief converts a string to IMPeakType
+  /// @param[in] im_peak_type string representation (e.g. "im_profile", "im_centroided", "unknown")
+  /// @return the corresponding IMPeakType enum value
+  /// @throws Exception::InvalidValue if the string does not match any known IMPeakType
+  OPENMS_DLLAPI IMPeakType toIMPeakType(const std::string& im_peak_type);
+
+  /// @brief converts an IMPeakType to a string
+  /// @param[in] im_peak_type the enum value to convert
+  /// @return reference to the string representation
+  /// @throws Exception::InvalidValue if the enum value is out of range
+  OPENMS_DLLAPI const std::string& imPeakTypeToString(IMPeakType im_peak_type);
+
   class OPENMS_DLLAPI IMTypes
   {
   public:
     /// If drift time for a spectrum is unavailable (i.e. not an IM spectrum), it will have this value
     inline static constexpr double DRIFTTIME_NOT_SET = -1.0;
 
-    /// Checks the all spectra for their type (see overload)
-    /// and returns the common type (or IMFormat::MIXED if both CONCATENATED and MULTIPLE_SPECTRA are present)
-    /// If @p exp is empty or contains no IM spectra at all, IMFormat::NONE is returned
-    /// @throws Exception::InvalidValue if IM values are annotated as single drift time and float array for any single spectrum
-    static IMFormat determineIMFormat(const MSExperiment& exp);
+    /// Checks only spectra of the given MS level for their IM format and returns the common type.
+    /// If no spectra of @p ms_level exist or none have IM data, IMFormat::NONE is returned.
+    /// @throws Exception::InvalidValue if spectra of the given MS level have different IM formats
+    static IMFormat determineIMFormat(const MSExperiment& exp, int ms_level);
 
     /** 
         @brief Checks for existence of a single driftTime (using spec.getDriftTime()) or an ion-mobility float data array (using spec.hasIMData()) 
         
         If neither is found, IMFormat::NONE is returned.
-        If a single drift time (== IMFormat::MULTIPLE_SPECTRA) is found, but no unit, a warning is issued.
+        If a single drift time (== IMFormat::IM_SPECTRUM) is found, but no unit, a warning is issued.
 
         @throws Exception::InvalidValue if IM values are annotated as single drift time and float array in the given spectrum
     */

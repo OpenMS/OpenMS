@@ -10,9 +10,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <sstream> 
-
-#include <QDir>
+#include <filesystem>
+#include <sstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -120,7 +119,7 @@ protected:
   ExitCodes main_(int, const char **) override
   {
      // Assemble command line for SpectraST
-     QStringList arguments;
+     std::vector<String> arguments;
 
      // Executable
      String executable = getStringOption_(TOPPSpectraSTSearchAdapter::param_executable);
@@ -130,16 +129,16 @@ protected:
      }
 
      // Make Search Mode explicit
-     arguments << "-s";
+     arguments.push_back("-s");
 
      double precursor_mz_tolerance = getDoubleOption_(TOPPSpectraSTSearchAdapter::param_precursor_mz_tolerance);
-     arguments << QString::number(precursor_mz_tolerance).prepend("-sM");
+     arguments.push_back("-sM" + String(precursor_mz_tolerance));
 
      // Set the parameter file if present
      String params_file = getStringOption_(TOPPSpectraSTSearchAdapter::param_params_file);
      if (! params_file.empty())
      {
-         arguments << params_file.toQString().prepend("-sF");
+         arguments.push_back("-sF" + params_file);
      }
 
      // Add library file argument, terminate if the corresponding spidx is not present
@@ -150,7 +149,7 @@ protected:
          OPENMS_LOG_ERROR << "ERROR: Index file required by spectrast not found:\n" << index_file << endl;
          return INPUT_FILE_NOT_FOUND;
      }
-     arguments << library_file.toQString().prepend("-sL");
+     arguments.push_back("-sL" + library_file);
 
      // Add Sequence Database file if exists
      String sequence_database_file  = getStringOption_(TOPPSpectraSTSearchAdapter::param_sequence_database_file);
@@ -164,30 +163,30 @@ protected:
             OPENMS_LOG_ERROR << "ERROR: Sequence database type invalid or not provided" << endl;
             return MISSING_PARAMETERS;
          }
-         arguments << sequence_database_type.toQString().prepend("-sT");
-         arguments << sequence_database_file.toQString().prepend("-sD");
+         arguments.push_back("-sT" + sequence_database_type);
+         arguments.push_back("-sD" + sequence_database_file);
      }
 
      // Set the number of threads in SpectraST
      Int threads = getIntOption_("threads");
-     arguments << (threads > 1 ?  QString::number(threads).prepend("-sP") : "-sP!");
+     arguments.push_back(threads > 1 ? "-sP" + String(threads) : "-sP!");
 
      // Set the search file
      String search_file = getStringOption_(TOPPSpectraSTSearchAdapter::param_search_file);
      if (! search_file.empty())
      {
-         arguments << search_file.toQString().prepend("-sS");
+         arguments.push_back("-sS" + search_file);
      }
 
      // Flags
-     arguments << (getFlag_(TOPPSpectraSTSearchAdapter::param_use_isotopically_averaged_mass) ? "-sA" : "-sA!");
-     arguments << (getFlag_(TOPPSpectraSTSearchAdapter::param_use_all_charge_states) ? "-sz" : "-sz!");
+     arguments.push_back(getFlag_(TOPPSpectraSTSearchAdapter::param_use_isotopically_averaged_mass) ? "-sA" : "-sA!");
+     arguments.push_back(getFlag_(TOPPSpectraSTSearchAdapter::param_use_all_charge_states) ? "-sz" : "-sz!");
 
      // User mod file
      String user_mod_file = getStringOption_(TOPPSpectraSTSearchAdapter::param_user_mod_file);
      if (! user_mod_file.empty())
      {
-        arguments << user_mod_file.toQString().prepend("-M");
+        arguments.push_back("-M" + user_mod_file);
      }
 
      // Input and output files, errors if lists are not equally long
@@ -233,8 +232,8 @@ protected:
      }
 
      String temp_dir = File::getTempDirectory();
-     arguments << outputFormat.toQString().prepend("-sE");
-     arguments << temp_dir.toQString().prepend("-sO");
+     arguments.push_back("-sE" + outputFormat);
+     arguments.push_back("-sO" + temp_dir);
 
      // Check whether input files agree in format
      String first_input_file = spectra_files[0];
@@ -267,34 +266,49 @@ protected:
                        << input_file << " is not " << inputFormat << endl;
         return ILLEGAL_PARAMETERS;
       }
-      arguments << input_file.toQString();
+      arguments.push_back(input_file);
      }
 
      // Writing the final SpectraST command to the DEBUG LOG
      std::stringstream ss;
      ss << "COMMAND: " << executable;
-     for (QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
+     for (const auto& arg : arguments)
      {
-         ss << " " << it->toStdString();
+         ss << " " << arg;
      }
      OPENMS_LOG_DEBUG << ss.str() << endl;
 
      // Run SpectraST
-     TOPPBase::ExitCodes exit_code = runExternalProcess_(executable.toQString(), arguments);
+     TOPPBase::ExitCodes exit_code = runExternalProcess_(executable, arguments);
      if (exit_code != EXECUTION_OK)
      {
        return exit_code;
      }
 
      // Copy the output files to the specified location
-     QDir temp_dir_qt = QDir(temp_dir.toQString());
+     std::filesystem::path temp_dir_path(static_cast<std::string>(temp_dir));
      for (size_t i = 0; i < spectra_files.size(); i++)
      {
         String spectra_file = spectra_files[i];
-        QString actual_path = temp_dir_qt.filePath(FileHandler::stripExtension(File::basename(spectra_file)).toQString().append(".").append(outputFormat.toQString()));
+        std::filesystem::path actual_path = temp_dir_path / (static_cast<std::string>(File::stemName(spectra_file)) + "." + static_cast<std::string>(outputFormat));
 
-        std::ifstream ifs(actual_path.toStdString().c_str(), std::ios::in | std::ios::binary);
+        if (!std::filesystem::exists(actual_path))
+        {
+          OPENMS_LOG_ERROR << "Expected output file '" << actual_path.string() << "' was not created by SpectraST for input '" << spectra_file << "'." << std::endl;
+          return INPUT_FILE_NOT_FOUND;
+        }
+        std::ifstream ifs(actual_path.string().c_str(), std::ios::in | std::ios::binary);
+        if (!ifs.is_open())
+        {
+          OPENMS_LOG_ERROR << "Could not open SpectraST output file '" << actual_path.string() << "' for reading." << std::endl;
+          return INPUT_FILE_NOT_FOUND;
+        }
         std::ofstream ofs(output_files[i].c_str(), std::ios::out | std::ios::binary);
+        if (!ofs.is_open())
+        {
+          OPENMS_LOG_ERROR << "Could not open output file '" << output_files[i] << "' for writing." << std::endl;
+          return CANNOT_WRITE_OUTPUT_FILE;
+        }
         ofs << ifs.rdbuf();
      }
 

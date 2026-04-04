@@ -188,6 +188,7 @@ class TestExistingEnumsBackwardCompat:
         ("DriftTimeUnit", "MILLISECOND"),
         ("FileType", "MZML"),
         ("IMFormat", "NONE"),
+        ("IMPeakType", "IM_PROFILE"),
         ("LogType", "CMD"),
     ])
     def test_enum_value_accessible(self, enum_name, value_name):

@@ -961,7 +961,7 @@ namespace OpenMS
       row.search_engine_score_ms_run[1][ms_run] = MzTabDouble();
     }
 
-    ConsensusFeature::HandleSetType fs = c.getFeatures();
+    const ConsensusFeature::HandleSetType& fs = c.getFeatures();
     for (auto fit = fs.begin(); fit != fs.end(); ++fit)
     {
       UInt study_variable{1};

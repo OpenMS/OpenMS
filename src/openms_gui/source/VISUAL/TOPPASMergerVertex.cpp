@@ -12,6 +12,7 @@
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <iostream>
 
@@ -90,7 +91,7 @@ namespace OpenMS
     if (!success)
     {
       std::cerr << "Could not retrieve input files from upstream nodes...\n";
-      emit mergeFailed((String("Merger #") + this->getTopoNr() + " failed. " + error_msg).toQString());
+      emit mergeFailed(toQString((String("Merger #") + this->getTopoNr() + " failed. " + error_msg)));
       return;
     }
 

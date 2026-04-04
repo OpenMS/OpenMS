@@ -224,7 +224,7 @@ std::vector<MSChromatogram> DIAChromHandler::extractAndMapChromatogramsForTransi
 
   std::vector< OpenSwath::ChromatogramPtr > chrom_list;
   std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
-  OpenSwath::LightTargetedExperiment transition_exp_copy = transition_exp;
+  const OpenSwath::LightTargetedExperiment& transition_exp_copy = transition_exp;
   ChromatogramExtractor::prepare_coordinates(chrom_list, coordinates, transition_exp_copy, cp.rt_extraction_window, /*ms1*/ false, /*ms1_isotopes*/ 0);
 
     try

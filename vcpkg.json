@@ -32,6 +32,7 @@
     "boost-date-time",
     "boost-accumulators",
     "boost-typeof",
+    "boost-process",
     "xerces-c",
     "qtbase",
     "libsvm",

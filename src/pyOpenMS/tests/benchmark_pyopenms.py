@@ -1116,7 +1116,7 @@ def main():
     # Check zero-copy availability
     try:
         from pyopenms._arrow_zerocopy import spectra_to_arrow
-        print("Arrow zero-copy: available (WITH_PARQUET)")
+        print("Arrow zero-copy: available")
     except ImportError:
         print("Arrow zero-copy: NOT available")
 
