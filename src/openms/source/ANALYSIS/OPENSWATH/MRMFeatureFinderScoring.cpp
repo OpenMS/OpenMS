@@ -84,7 +84,7 @@ namespace OpenMS
     defaults_.setMaxFloat("merge_spectra_by_peak_width_fraction", 1.0);
     defaults_.setValue("sn_min_threshold", 0.0, "Minimum S/N ratio for a feature to proceed to full scoring. "
       "Candidates below this threshold skip all expensive cross-correlation and DIA scores. "
-      "Default of 1.0 preserves existing behaviour. Increase for large in silico libraries to skip noise candidates.", {"advanced"});
+      "Default of 0.0 preserves existing behaviour (no candidates skipped). Increase for large in silico libraries to skip noise candidates.", {"advanced"});
     defaults_.setMinFloat("sn_min_threshold", 0.0);
     defaults_.setValue("uis_threshold_sn", -1, "S/N threshold to consider identification transition (set to -1 to consider all)");
     defaults_.setValue("uis_threshold_peak_area", 0, "Peak area threshold to consider identification transition (set to -1 to consider all)");
