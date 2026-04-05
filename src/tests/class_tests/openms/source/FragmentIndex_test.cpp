@@ -437,20 +437,20 @@ START_SECTION(benchmark_simd_vs_scalar)
   p.setValue("ions:add_c_ions", "false");
   p.setValue("ions:add_x_ions", "false");
   p.setValue("ions:add_z_ions", "false");
-  p.setValue("peptide:min_size", (UInt)5);
-  p.setValue("peptide:max_size", (UInt)40);
-  p.setValue("peptide:missed_cleavages", (UInt)1);
-  p.setValue("peptide:min_mass", 0.0);
-  p.setValue("peptide:max_mass", 5000.0);
-  p.setValue("fragment:min_mz", 0.0);
-  p.setValue("fragment:max_mz", 90000.0);
-  p.setValue("fragment:tolerance", 0.05);
-  p.setValue("fragment:tolerance_unit", "Da");
-  p.setValue("precursor:tolerance", 10.0);
-  p.setValue("precursor:tolerance_unit", "ppm");
-  p.setValue("precursor:min_charge", (UInt)1);
-  p.setValue("precursor:max_charge", (UInt)1);
-  p.setValue("search:max_fragment_charge", (UInt)1);
+  p.setValue("peptide:min_size", 5);
+  p.setValue("peptide:max_size", 40);
+  p.setValue("peptide:missed_cleavages", 1);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 5000);
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("fragment:max_mz", 90000);
+  p.setValue("fragment:mass_tolerance", 0.05);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  p.setValue("precursor:mass_tolerance", 10.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("precursor:min_charge", 1);
+  p.setValue("precursor:max_charge", 1);
+  p.setValue("search:max_fragment_charge", 1);
   benchFI.setParameters(p);
 
   // Use a larger protein for more fragments
