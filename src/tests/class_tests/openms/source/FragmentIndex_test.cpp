@@ -18,6 +18,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <chrono>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <limits>
 
@@ -422,6 +423,108 @@ START_SECTION(tolerance)
     }
   }
   TEST_TRUE(found);
+}
+END_SECTION
+
+START_SECTION(benchmark_simd_vs_scalar)
+{
+  // Build a moderately sized index for benchmarking
+  FragmentIndex_test benchFI;
+  Param p = benchFI.getParameters();
+  p.setValue("ions:add_b_ions", "true");
+  p.setValue("ions:add_y_ions", "true");
+  p.setValue("ions:add_a_ions", "false");
+  p.setValue("ions:add_c_ions", "false");
+  p.setValue("ions:add_x_ions", "false");
+  p.setValue("ions:add_z_ions", "false");
+  p.setValue("peptide:min_size", (UInt)5);
+  p.setValue("peptide:max_size", (UInt)40);
+  p.setValue("peptide:missed_cleavages", (UInt)1);
+  p.setValue("peptide:min_mass", 0.0);
+  p.setValue("peptide:max_mass", 5000.0);
+  p.setValue("fragment:min_mz", 0.0);
+  p.setValue("fragment:max_mz", 90000.0);
+  p.setValue("fragment:tolerance", 0.05);
+  p.setValue("fragment:tolerance_unit", "Da");
+  p.setValue("precursor:tolerance", 10.0);
+  p.setValue("precursor:tolerance_unit", "ppm");
+  p.setValue("precursor:min_charge", (UInt)1);
+  p.setValue("precursor:max_charge", (UInt)1);
+  p.setValue("search:max_fragment_charge", (UInt)1);
+  benchFI.setParameters(p);
+
+  // Use a larger protein for more fragments
+  std::vector<FASTAFile::FASTAEntry> bench_entries;
+  bench_entries.push_back({"sp|BENCH", "Benchmark protein",
+    "EVAEAATGEDASSPPPKMDAILRGLNFEQLEEVIQTLHNAFSKENEPQLYPAIERIHFHTYRQVKAFPAYQLDKK"
+    "MGKDYTRIVFVEDPTFHQIITSLENYRSMKARASNFKSARLAKYGVDLEKELVARFAQHTAIKNPNFTKLQGSR"});
+
+  benchFI.build(bench_entries);
+
+  // Generate a test spectrum from the first peptide
+  TheoreticalSpectrumGenerator tsg;
+  auto tsg_params = tsg.getParameters();
+  tsg_params.setValue("add_b_ions", "true");
+  tsg_params.setValue("add_y_ions", "true");
+  tsg.setParameters(tsg_params);
+
+  AASequence test_pep = AASequence::fromString("EVAEAATGEDASSPPPK");
+  MSSpectrum theo_spec;
+  tsg.getSpectrum(theo_spec, test_pep, 1, 1);
+
+  float precursor_mz = test_pep.getMonoWeight(Residue::Full, 1) + Constants::PROTON_MASS_U;
+  auto candidates_range = benchFI.getPeptidesInPrecursorRange(precursor_mz, {0.0f, 0.0f});
+
+  // Warm up
+  for (int w = 0; w < 10; ++w)
+  {
+    for (const auto& peak : theo_spec)
+    {
+      benchFI.query(peak, candidates_range, 1);
+      benchFI.queryScalar(peak, candidates_range, 1);
+    }
+  }
+
+  const int ITERATIONS = 1000;
+
+  // Benchmark SIMD
+  auto t0 = std::chrono::high_resolution_clock::now();
+  size_t simd_total_hits = 0;
+  for (int iter = 0; iter < ITERATIONS; ++iter)
+  {
+    for (const auto& peak : theo_spec)
+    {
+      auto hits = benchFI.query(peak, candidates_range, 1);
+      simd_total_hits += hits.size();
+    }
+  }
+  auto t1 = std::chrono::high_resolution_clock::now();
+
+  // Benchmark Scalar
+  auto t2 = std::chrono::high_resolution_clock::now();
+  size_t scalar_total_hits = 0;
+  for (int iter = 0; iter < ITERATIONS; ++iter)
+  {
+    for (const auto& peak : theo_spec)
+    {
+      auto hits = benchFI.queryScalar(peak, candidates_range, 1);
+      scalar_total_hits += hits.size();
+    }
+  }
+  auto t3 = std::chrono::high_resolution_clock::now();
+
+  double simd_ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
+  double scalar_ms = std::chrono::duration<double, std::milli>(t3 - t2).count();
+
+  std::cout << "\n=== FragmentIndex Query Benchmark ===" << std::endl;
+  std::cout << "Iterations: " << ITERATIONS << " x " << theo_spec.size() << " peaks" << std::endl;
+  std::cout << "SIMD:   " << simd_ms << " ms (hits: " << simd_total_hits << ")" << std::endl;
+  std::cout << "Scalar: " << scalar_ms << " ms (hits: " << scalar_total_hits << ")" << std::endl;
+  std::cout << "Speedup: " << (scalar_ms / simd_ms) << "x" << std::endl;
+  std::cout << "======================================\n" << std::endl;
+
+  // Verify both produce identical results
+  TEST_EQUAL(simd_total_hits, scalar_total_hits)
 }
 END_SECTION
 

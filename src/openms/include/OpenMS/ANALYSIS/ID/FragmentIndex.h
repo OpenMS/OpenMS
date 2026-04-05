@@ -214,6 +214,11 @@ namespace OpenMS
                            const std::pair<size_t,size_t>& peptide_idx_range,
                            uint16_t peak_charge);
 
+    /// Scalar (non-SIMD) query for benchmarking comparison
+    std::vector<Hit> queryScalar(const Peak1D& peak,
+                                 const std::pair<size_t,size_t>& peptide_idx_range,
+                                 uint16_t peak_charge);
+
     /**
      * @brief: queries one complete experimental spectra against the Database. Loops over all precursor charges
      * Starts at min_precursor_charge and iteratively goes to max_precursor_charge. We query all peaks multiple times with all the

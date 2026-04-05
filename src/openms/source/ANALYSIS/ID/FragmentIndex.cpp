@@ -387,6 +387,51 @@ namespace OpenMS
       return hits;
   }
 
+  vector<FragmentIndex::Hit> FragmentIndex::queryScalar(const OpenMS::Peak1D& peak,
+                                                        const pair<size_t, size_t>& peptide_idx_range,
+                                                        uint16_t peak_charge)
+  {
+      const float adjusted_mass = peak.getMZ() * static_cast<float>(peak_charge) - ((peak_charge - 1) * Constants::PROTON_MASS_U);
+      const float frag_tol = fragment_mz_tolerance_unit_ppm_ ? Math::ppmToMass(fragment_mz_tolerance_, adjusted_mass) : fragment_mz_tolerance_;
+      const float lo_bound = adjusted_mass - frag_tol;
+      const float hi_bound = adjusted_mass + frag_tol;
+
+      auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), lo_bound);
+      auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), hi_bound);
+      if (left_it != bucket_min_mz_.begin()) --left_it;
+
+      const auto in_range_buckets = make_pair(std::distance(bucket_min_mz_.begin(), left_it),
+                                              std::distance(bucket_min_mz_.begin(), right_it));
+
+      vector<FragmentIndex::Hit> hits;
+      hits.reserve(peptide_idx_range.second - peptide_idx_range.first);
+
+      const float* mz_data = fi_fragment_mzs_.data();
+      const UInt32* pidx_data = fi_fragment_peptide_idxs_.data();
+      const UInt32 pidx_max = static_cast<UInt32>(peptide_idx_range.second);
+
+      for (size_t j = static_cast<size_t>(in_range_buckets.first); j < static_cast<size_t>(in_range_buckets.second); ++j)
+      {
+        const size_t slice_begin = j * bucketsize_;
+        const size_t slice_end = std::min((j + 1) * bucketsize_, fi_fragment_mzs_.size());
+
+        auto lb = std::lower_bound(pidx_data + slice_begin, pidx_data + slice_end,
+                                   static_cast<UInt32>(peptide_idx_range.first));
+        size_t i = static_cast<size_t>(lb - pidx_data);
+
+        for (; i < slice_end; ++i)
+        {
+          if (pidx_data[i] > pidx_max) break;
+          if (mz_data[i] >= lo_bound && mz_data[i] <= hi_bound)
+          {
+            hits.emplace_back(pidx_data[i], mz_data[i]);
+          }
+        }
+      }
+
+      return hits;
+  }
+
   void FragmentIndex::queryPeaks(SpectrumMatchesTopN& candidates, const MSSpectrum& spectrum,
                                 const std::pair<size_t, size_t>& candidates_range,
                                 const int16_t isotope_error,
