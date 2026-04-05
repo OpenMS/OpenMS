@@ -29,6 +29,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/QC/QCBase.h>
+#include <omp.h>
 #include <functional>
 #include <numeric>
 
@@ -180,25 +181,32 @@ namespace OpenMS
       /// generate all Peptides
       generatePeptides(fasta_entries);
 
-      // reserve memory after peptide generation (each peptide gives ~#AA*2 fragments)
-      const size_t est_fragments = fi_peptides_.size() * 2 * peptide_min_length_;
-      fi_fragment_mzs_.reserve(est_fragments);
-      fi_fragment_peptide_idxs_.reserve(est_fragments);
-
       /// Since we (the new) Peptide struct does not store the AASequence, we must reconstruct the modified ones
       /// therefore we need the modificationGenerators:
       ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
       ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
 
+      OPENMS_LOG_INFO << "Generating fragments..." << std::endl;
+
+      // Per-thread fragment vectors to avoid omp critical serialization.
+      // Each thread accumulates into its own pair of vectors, then we merge.
+      const int num_threads = omp_get_max_threads();
+      const size_t est_per_thread = (fi_peptides_.size() * 2 * peptide_min_length_) / num_threads + 1;
+      vector<vector<float>> thread_mzs(num_threads);
+      vector<vector<UInt32>> thread_idxs(num_threads);
+      for (int t = 0; t < num_threads; ++t)
+      {
+        thread_mzs[t].reserve(est_per_thread);
+        thread_idxs[t].reserve(est_per_thread);
+      }
 
       vector<AASequence> mod_peptides;
       std::vector<float> b_y_ions;
 
-      OPENMS_LOG_INFO << "Generating fragments..." << std::endl;
-
-     #pragma omp parallel for private(mod_peptides, b_y_ions)
-      for(SignedSize peptide_idx = 0; peptide_idx < (SignedSize)fi_peptides_.size(); peptide_idx++)
+      #pragma omp parallel for private(mod_peptides, b_y_ions)
+      for (SignedSize peptide_idx = 0; peptide_idx < (SignedSize)fi_peptides_.size(); peptide_idx++)
       {
+        const int tid = omp_get_thread_num();
         const Peptide& pep = fi_peptides_[peptide_idx];
         mod_peptides.clear();
         b_y_ions.clear();
@@ -206,7 +214,7 @@ namespace OpenMS
 
         if (!(modifications_fixed_.empty() && modifications_variable_.empty()))
         {
-          AASequence mod_peptide = AASequence(unmod_peptide); // copy the peptide
+          AASequence mod_peptide = AASequence(unmod_peptide);
           ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, mod_peptide);
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, mod_peptide, max_variable_mods_per_peptide_, mod_peptides);
           tsg.getPrefixAndSuffixIonsMZ(b_y_ions, mod_peptides[pep.modification_idx_], 1);
@@ -218,14 +226,24 @@ namespace OpenMS
 
         for (const float& frag : b_y_ions)
         {
-          if (fragment_min_mz_ > frag || frag > fragment_max_mz_  ) continue;
-
-         #pragma omp critical (CreateFragment)
-          {
-            fi_fragment_mzs_.push_back(static_cast<float>(frag));
-            fi_fragment_peptide_idxs_.push_back(static_cast<UInt32>(peptide_idx));
-          }
+          if (fragment_min_mz_ > frag || frag > fragment_max_mz_) continue;
+          thread_mzs[tid].push_back(static_cast<float>(frag));
+          thread_idxs[tid].push_back(static_cast<UInt32>(peptide_idx));
         }
+      }
+
+      // Merge per-thread vectors into global SoA arrays
+      size_t total_fragments = 0;
+      for (int t = 0; t < num_threads; ++t) total_fragments += thread_mzs[t].size();
+      fi_fragment_mzs_.reserve(total_fragments);
+      fi_fragment_peptide_idxs_.reserve(total_fragments);
+      for (int t = 0; t < num_threads; ++t)
+      {
+        fi_fragment_mzs_.insert(fi_fragment_mzs_.end(), thread_mzs[t].begin(), thread_mzs[t].end());
+        fi_fragment_peptide_idxs_.insert(fi_fragment_peptide_idxs_.end(), thread_idxs[t].begin(), thread_idxs[t].end());
+        // Free thread-local memory immediately
+        vector<float>().swap(thread_mzs[t]);
+        vector<UInt32>().swap(thread_idxs[t]);
       }
 
       std::cout << "Sorting fragments..." << std::endl;
