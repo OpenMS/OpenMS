@@ -29,7 +29,6 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/QC/QCBase.h>
-#include <OpenMS/SYSTEM/SIMDe.h>
 #include <functional>
 #include <numeric>
 
@@ -321,10 +320,6 @@ namespace OpenMS
       vector<FragmentIndex::Hit> hits;
       hits.reserve(peptide_idx_range.second - peptide_idx_range.first);
 
-      // Broadcast tolerance bounds for SIMD (4 x float)
-      const simde__m128 v_lo = simde_mm_set1_ps(lo_bound);
-      const simde__m128 v_hi = simde_mm_set1_ps(hi_bound);
-
       const float* mz_data = fi_fragment_mzs_.data();
       const UInt32* pidx_data = fi_fragment_peptide_idxs_.data();
       const UInt32 pidx_limit = static_cast<UInt32>(peptide_idx_range.second); // exclusive upper bound
@@ -335,83 +330,6 @@ namespace OpenMS
         const size_t slice_end = std::min((j + 1) * bucketsize_, fi_fragment_mzs_.size());
 
         // Binary search on peptide_idx within this bucket
-        auto lb = std::lower_bound(pidx_data + slice_begin, pidx_data + slice_end,
-                                   static_cast<UInt32>(peptide_idx_range.first));
-        size_t pos = static_cast<size_t>(lb - pidx_data);
-
-        // --- SIMD loop: process 4 fragments at a time ---
-        size_t i = pos;
-        for (; i + 4 <= slice_end; i += 4)
-        {
-          // Early exit: peptide_idxs are sorted, so if first >= limit, all subsequent are too
-          if (pidx_data[i] >= pidx_limit) break;
-
-          // Load 4 consecutive m/z values
-          simde__m128 v_mz = simde_mm_loadu_ps(mz_data + i);
-
-          // Vectorized range check: mz >= lo AND mz <= hi
-          simde__m128 cmp_ge = simde_mm_cmpge_ps(v_mz, v_lo);
-          simde__m128 cmp_le = simde_mm_cmple_ps(v_mz, v_hi);
-          int mask = simde_mm_movemask_ps(simde_mm_and_ps(cmp_ge, cmp_le));
-
-          if (mask != 0)
-          {
-            for (int k = 0; k < 4; ++k)
-            {
-              if ((mask & (1 << k)) && pidx_data[i + k] < pidx_limit)
-              {
-                hits.emplace_back(pidx_data[i + k], mz_data[i + k]);
-              }
-            }
-          }
-
-          // If last element exceeded peptide range, no point continuing this bucket.
-          // Advance i past this group so the scalar remainder doesn't re-process it.
-          if (pidx_data[i + 3] >= pidx_limit) { i += 4; break; }
-        }
-
-        // --- Scalar remainder: last 0-3 elements ---
-        for (; i < slice_end; ++i)
-        {
-          if (pidx_data[i] >= pidx_limit) break;
-          if (mz_data[i] >= lo_bound && mz_data[i] <= hi_bound)
-          {
-            hits.emplace_back(pidx_data[i], mz_data[i]);
-          }
-        }
-      }
-
-      return hits;
-  }
-
-  vector<FragmentIndex::Hit> FragmentIndex::queryScalar(const OpenMS::Peak1D& peak,
-                                                        const pair<size_t, size_t>& peptide_idx_range,
-                                                        uint16_t peak_charge)
-  {
-      const float adjusted_mass = peak.getMZ() * static_cast<float>(peak_charge) - ((peak_charge - 1) * Constants::PROTON_MASS_U);
-      const float frag_tol = fragment_mz_tolerance_unit_ppm_ ? Math::ppmToMass(fragment_mz_tolerance_, adjusted_mass) : fragment_mz_tolerance_;
-      const float lo_bound = adjusted_mass - frag_tol;
-      const float hi_bound = adjusted_mass + frag_tol;
-
-      auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), lo_bound);
-      auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), hi_bound);
-      if (left_it != bucket_min_mz_.begin()) --left_it;
-
-      const auto in_range_buckets = make_pair(std::distance(bucket_min_mz_.begin(), left_it),
-                                              std::distance(bucket_min_mz_.begin(), right_it));
-
-      vector<FragmentIndex::Hit> hits;
-      hits.reserve(peptide_idx_range.second - peptide_idx_range.first);
-
-      const float* mz_data = fi_fragment_mzs_.data();
-      const UInt32* pidx_data = fi_fragment_peptide_idxs_.data();
-      const UInt32 pidx_limit = static_cast<UInt32>(peptide_idx_range.second); // exclusive upper bound
-
-      for (size_t j = static_cast<size_t>(in_range_buckets.first); j < static_cast<size_t>(in_range_buckets.second); ++j)
-      {
-        const size_t slice_begin = j * bucketsize_;
-        const size_t slice_end = std::min((j + 1) * bucketsize_, fi_fragment_mzs_.size());
-
         auto lb = std::lower_bound(pidx_data + slice_begin, pidx_data + slice_end,
                                    static_cast<UInt32>(peptide_idx_range.first));
         size_t i = static_cast<size_t>(lb - pidx_data);
@@ -428,6 +346,7 @@ namespace OpenMS
 
       return hits;
   }
+
 
   void FragmentIndex::queryPeaks(SpectrumMatchesTopN& candidates, const MSSpectrum& spectrum,
                                 const std::pair<size_t, size_t>& candidates_range,
