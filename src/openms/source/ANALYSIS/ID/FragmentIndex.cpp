@@ -369,8 +369,9 @@ namespace OpenMS
             }
           }
 
-          // If last element exceeded peptide range, no point continuing this bucket
-          if (pidx_data[i + 3] >= pidx_limit) break;
+          // If last element exceeded peptide range, no point continuing this bucket.
+          // Advance i past this group so the scalar remainder doesn't re-process it.
+          if (pidx_data[i + 3] >= pidx_limit) { i += 4; break; }
         }
 
         // --- Scalar remainder: last 0-3 elements ---
