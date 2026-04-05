@@ -74,6 +74,7 @@ TOPP tools:
         this filtering was silent and hardcoded; a warning is now emitted reporting how many hits were dropped (#9068)
     OpenSwathWorkflow:
       - Added cache file auto cleanup (#9029)
+      - MRMFeatureFinderScoring: enzyme used for missed cleavage counting is now configurable via new `enzyme` parameter (default: Trypsin) (#9077)
 
 PyOpenMS:
   - BREAKING: Binding backend replaced from Autowrap/Cython to hand-maintained nanobind C++ bindings (#8699)
@@ -337,6 +338,7 @@ Build System:
   - Qt6::Core removed from libOpenMS PUBLIC CMake link dependencies; downstream CMake targets must now explicitly link Qt6::Core if needed (#8965)
   - Minimum Boost version bumped to 1.78; fixes boost::filesystem link errors when boost::process uses BOOST_PROCESS_USE_STD_FS (#9042)
   - Qt6 find_package guarded by WITH_GUI block; Qt is no longer needed for non-GUI TOPP tool builds (#9041)
+  - yaml-cpp bumped to 0.9.0 in tool_description_lib; fixes broken hash/map type parsing in YAML CTD config files (#9056)
 
 
 ------------------------------------------------------------------------------------------
