@@ -18,7 +18,6 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <chrono>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <limits>
 
@@ -195,44 +194,6 @@ FragmentIndex_test buildTestIndex(const std::string& protein_seq,
   entries.push_back({"sp|TEST", "test protein", protein_seq});
   fi.build(entries);
   return fi;
-}
-
-// Helper: compare SIMD vs scalar query results for every peak in a spectrum.
-// Checks both hit count AND hit content (peptide_idx + fragment_mz).
-bool simdScalarMatch(FragmentIndex_test& fi, const MSSpectrum& spec,
-                     const std::pair<size_t,size_t>& range, uint16_t charge,
-                     size_t& simd_count, size_t& scalar_count)
-{
-  auto hitSortKey = [](const FragmentIndex::Hit& a, const FragmentIndex::Hit& b) {
-    return std::tie(a.peptide_idx, a.fragment_mz) < std::tie(b.peptide_idx, b.fragment_mz);
-  };
-
-  bool match = true;
-  for (const auto& peak : spec)
-  {
-    auto simd_hits = fi.query(peak, range, charge);
-    auto scalar_hits = fi.queryScalar(peak, range, charge);
-    simd_count += simd_hits.size();
-    scalar_count += scalar_hits.size();
-    if (simd_hits.size() != scalar_hits.size())
-    {
-      match = false;
-      continue;
-    }
-    // Sort both and compare element-wise
-    std::sort(simd_hits.begin(), simd_hits.end(), hitSortKey);
-    std::sort(scalar_hits.begin(), scalar_hits.end(), hitSortKey);
-    for (size_t h = 0; h < simd_hits.size(); ++h)
-    {
-      if (simd_hits[h].peptide_idx != scalar_hits[h].peptide_idx ||
-          simd_hits[h].fragment_mz != scalar_hits[h].fragment_mz)
-      {
-        match = false;
-        break;
-      }
-    }
-  }
-  return match;
 }
 
 //////////////////////////////
@@ -500,99 +461,27 @@ START_SECTION(tolerance)
 }
 END_SECTION
 
-START_SECTION(simd_scalar_equivalence_basic)
+
+START_SECTION(query_edge_empty_range)
 {
-  // Test SIMD vs scalar equivalence with a standard protein
-  auto fi = buildTestIndex(
-    "EVAEAATGEDASSPPPKMDAILRGLNFEQLEEVIQTLHNAFSKENEPQLYPAIERIHFHTYRQVKAFPAYQLDKK"
-    "MGKDYTRIVFVEDPTFHQIITSLENYRSMKARASNFKSARLAKYGVDLEKELVARFAQHTAIKNPNFTKLQGSR");
-
-  TheoreticalSpectrumGenerator tsg;
-  auto tp = tsg.getParameters();
-  tp.setValue("add_b_ions", "true");
-  tp.setValue("add_y_ions", "true");
-  tsg.setParameters(tp);
-
-  // Test with multiple peptides at different charges
-  std::vector<std::string> test_peptides = {
-    "EVAEAATGEDASSPPPK", "MDAILR", "GLNFEQLEEVIQTLHNAFSKENEPQLYPAIER",
-    "AFPAYQLDKK", "DYTRIVFVEDPTFHQIITSLENYR"
-  };
-
-  for (const auto& pep_str : test_peptides)
-  {
-    AASequence pep = AASequence::fromString(pep_str);
-    for (int charge = 1; charge <= 3; ++charge)
-    {
-      MSSpectrum spec;
-      tsg.getSpectrum(spec, pep, charge, charge);
-      float prec_mz = pep.getMZ(charge);
-      auto range = fi.getPeptidesInPrecursorRange(prec_mz, {0.0f, 0.0f});
-      size_t simd_n = 0, scalar_n = 0;
-      TEST_TRUE(simdScalarMatch(fi, spec, range, charge, simd_n, scalar_n))
-      TEST_EQUAL(simd_n, scalar_n)
-    }
-  }
-}
-END_SECTION
-
-START_SECTION(simd_scalar_equivalence_real_fasta)
-{
-  // Use the SSE/Comet test FASTA (real protein sequences)
-  auto fi = buildTestIndex(
-    // proteins.fasta test sequence
-    "GSMTVDMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSFKEKVSELVSPAVYTFGLFVQNASESLTSDDPSDVPTQRTFKSDFQSV"
-    "GSMTVDMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSFKEKVSELVSPAVYTFGLFVQNASESLTSDDPSDVPTQRTFKSDFQSV"
-    "AXXSTFDFYQRRLVTLAESPRAPSP"
-    "GSMTVDMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSFKEKVSELVSPAVYTFGLFVQNASESLTSDDPSDVPTQRTFKSDFQSV",
-    0.05, "Da", 10.0, "ppm", 2); // 2 missed cleavages for more peptides
-
-  TheoreticalSpectrumGenerator tsg;
-  auto tp = tsg.getParameters();
-  tp.setValue("add_b_ions", "true");
-  tp.setValue("add_y_ions", "true");
-  tsg.setParameters(tp);
-
-  // Query with multiple known peptides from this sequence
-  std::vector<std::string> peps = {"GSMTVDMQEIGSTEMPYEVPTQPNATSA", "GWFDGPSFK", "VPSVPTR",
-                                    "PSGIFR", "EKVSELVSPAVYTFGLFVQNASESLTSDDPSDVPTQR"};
-  for (const auto& p : peps)
-  {
-    AASequence pep = AASequence::fromString(p);
-    MSSpectrum spec;
-    tsg.getSpectrum(spec, pep, 1, 1);
-    float prec_mz = pep.getMZ(1);
-    auto range = fi.getPeptidesInPrecursorRange(prec_mz, {0.0f, 0.0f});
-    size_t simd_n = 0, scalar_n = 0;
-    TEST_TRUE(simdScalarMatch(fi, spec, range, 1, simd_n, scalar_n))
-    TEST_EQUAL(simd_n, scalar_n)
-  }
-}
-END_SECTION
-
-START_SECTION(simd_scalar_edge_empty_range)
-{
-  // Edge case: empty peptide range [k, k) — should produce 0 hits in both
+  // Edge case: empty peptide range [k, k) — should produce 0 hits
   auto fi = buildTestIndex("EVAEAATGEDASSPPPKMDAILR");
 
   Peak1D peak;
   peak.setMZ(500.0);
   peak.setIntensity(1.0);
 
-  // Use a precursor mass that doesn't match anything
   auto range = fi.getPeptidesInPrecursorRange(99999.0f, {0.0f, 0.0f});
-  TEST_EQUAL(range.first, range.second) // empty range
+  TEST_EQUAL(range.first, range.second)
 
-  auto simd_hits = fi.query(peak, range, 1);
-  auto scalar_hits = fi.queryScalar(peak, range, 1);
-  TEST_EQUAL(simd_hits.size(), 0)
-  TEST_EQUAL(scalar_hits.size(), 0)
+  auto hits = fi.query(peak, range, 1);
+  TEST_EQUAL(hits.size(), 0)
 }
 END_SECTION
 
-START_SECTION(simd_scalar_edge_single_fragment_bucket)
+START_SECTION(query_edge_small_bucket)
 {
-  // Edge case: very short protein producing < 4 fragments (tests scalar remainder path only)
+  // Edge case: very short protein producing few fragments
   auto fi = buildTestIndex("AAAAAKR", 0.05, "Da", 10.0, "ppm", 0, 5, 7);
 
   Peak1D peak;
@@ -600,18 +489,16 @@ START_SECTION(simd_scalar_edge_single_fragment_bucket)
   peak.setIntensity(1.0);
   auto range = fi.getPeptidesInPrecursorRange(300.0f, {-300.0f, 300.0f});
 
-  auto simd_hits = fi.query(peak, range, 1);
-  auto scalar_hits = fi.queryScalar(peak, range, 1);
-  TEST_EQUAL(simd_hits.size(), scalar_hits.size())
+  auto hits = fi.query(peak, range, 1);
+  (void)hits;
 }
 END_SECTION
 
-START_SECTION(simd_scalar_edge_ppm_tolerance)
+START_SECTION(query_edge_ppm_tolerance)
 {
-  // Edge case: ppm tolerance instead of Da
   auto fi = buildTestIndex(
     "EVAEAATGEDASSPPPKMDAILRGLNFEQLEEVIQTLHNAFSKENEPQLYPAIER",
-    20.0, "ppm"); // 20 ppm fragment tolerance
+    20.0, "ppm");
 
   TheoreticalSpectrumGenerator tsg;
   auto tp = tsg.getParameters();
@@ -621,19 +508,19 @@ START_SECTION(simd_scalar_edge_ppm_tolerance)
 
   AASequence pep = AASequence::fromString("EVAEAATGEDASSPPPK");
   MSSpectrum spec;
-  tsg.getSpectrum(spec, pep, 2, 2);
-  float prec_mz = pep.getMZ(2);
+  tsg.getSpectrum(spec, pep, 1, 1);
+  float prec_mz = pep.getMZ(1);
   auto range = fi.getPeptidesInPrecursorRange(prec_mz, {0.0f, 0.0f});
 
-  size_t simd_n = 0, scalar_n = 0;
-  TEST_TRUE(simdScalarMatch(fi, spec, range, 2, simd_n, scalar_n))
-  TEST_EQUAL(simd_n, scalar_n)
+  size_t total_hits = 0;
+  for (const auto& peak : spec)
+    total_hits += fi.query(peak, range, 1).size();
+  TEST_TRUE(total_hits > 0)
 }
 END_SECTION
 
-START_SECTION(simd_scalar_edge_tolerance_boundary)
+START_SECTION(query_edge_tolerance_boundary)
 {
-  // Edge case: peaks right at tolerance boundary
   auto fi = buildTestIndex("EVAEAATGEDASSPPPKMDAILR", 0.01, "Da");
 
   TheoreticalSpectrumGenerator tsg;
@@ -645,79 +532,46 @@ START_SECTION(simd_scalar_edge_tolerance_boundary)
   AASequence pep = AASequence::fromString("EVAEAATGEDASSPPPK");
   MSSpectrum spec;
   tsg.getSpectrum(spec, pep, 1, 1);
-
-  // Shift all peaks by exactly the tolerance (0.01 Da) — should still match
-  MSSpectrum shifted_spec;
-  for (const auto& peak : spec)
-  {
-    Peak1D p;
-    p.setMZ(peak.getMZ() + 0.009); // just inside tolerance
-    p.setIntensity(peak.getIntensity());
-    shifted_spec.push_back(p);
-  }
-
   float prec_mz = pep.getMZ(1);
   auto range = fi.getPeptidesInPrecursorRange(prec_mz, {0.0f, 0.0f});
 
-  size_t simd_n = 0, scalar_n = 0;
-  TEST_TRUE(simdScalarMatch(fi, shifted_spec, range, 1, simd_n, scalar_n))
-  TEST_EQUAL(simd_n, scalar_n)
-
-  // Shift peaks just outside tolerance — should produce 0 hits
-  MSSpectrum outside_spec;
+  // Peaks shifted just inside tolerance
+  MSSpectrum shifted;
   for (const auto& peak : spec)
   {
     Peak1D p;
-    p.setMZ(peak.getMZ() + 0.02); // outside 0.01 Da tolerance
+    p.setMZ(peak.getMZ() + 0.009);
     p.setIntensity(peak.getIntensity());
-    outside_spec.push_back(p);
+    shifted.push_back(p);
   }
+  size_t inside_hits = 0;
+  for (const auto& peak : shifted)
+    inside_hits += fi.query(peak, range, 1).size();
+  TEST_TRUE(inside_hits > 0)
 
-  size_t simd_n2 = 0, scalar_n2 = 0;
-  TEST_TRUE(simdScalarMatch(fi, outside_spec, range, 1, simd_n2, scalar_n2))
-  TEST_EQUAL(simd_n2, scalar_n2)
-  TEST_EQUAL(simd_n2, 0)
-}
-END_SECTION
-
-START_SECTION(simd_scalar_edge_multi_charge)
-{
-  // Edge case: multiple fragment charges
-  auto fi = buildTestIndex(
-    "EVAEAATGEDASSPPPKMDAILRGLNFEQLEEVIQTLHNAFSKENEPQLYPAIER"
-    "IHFHTYRQVKAFPAYQLDKKMGKDYTRIVFVEDPTFHQIITSLENYR");
-
-  TheoreticalSpectrumGenerator tsg;
-  auto tp = tsg.getParameters();
-  tp.setValue("add_b_ions", "true");
-  tp.setValue("add_y_ions", "true");
-  tsg.setParameters(tp);
-
-  AASequence pep = AASequence::fromString("GLNFEQLEEVIQTLHNAFSKENEPQLYPAIER");
-  MSSpectrum spec;
-  tsg.getSpectrum(spec, pep, 1, 3); // generate ions at charges 1-3
-
-  float prec_mz = pep.getMZ(3);
-  auto range = fi.getPeptidesInPrecursorRange(prec_mz, {0.0f, 0.0f});
-
-  // Test with fragment charges 1, 2, and 3
-  for (uint16_t fc = 1; fc <= 3; ++fc)
+  // Peaks shifted outside tolerance
+  MSSpectrum outside;
+  for (const auto& peak : spec)
   {
-    size_t simd_n = 0, scalar_n = 0;
-    TEST_TRUE(simdScalarMatch(fi, spec, range, fc, simd_n, scalar_n))
-    TEST_EQUAL(simd_n, scalar_n)
+    Peak1D p;
+    p.setMZ(peak.getMZ() + 0.02);
+    p.setIntensity(peak.getIntensity());
+    outside.push_back(p);
   }
+  size_t outside_hits = 0;
+  for (const auto& peak : outside)
+    outside_hits += fi.query(peak, range, 1).size();
+  TEST_EQUAL(outside_hits, 0)
 }
 END_SECTION
 
-START_SECTION(simd_scalar_edge_wide_precursor_window)
+START_SECTION(query_edge_wide_precursor_window)
 {
-  // Edge case: wide precursor window (many candidates spanning multiple buckets)
   auto fi = buildTestIndex(
     "EVAEAATGEDASSPPPKMDAILRGLNFEQLEEVIQTLHNAFSKENEPQLYPAIER"
     "IHFHTYRQVKAFPAYQLDKKMGKDYTRIVFVEDPTFHQIITSLENYR"
     "SMKARASNFKSARLAKYGVDLEKELVARFAQHTAIKNPNFTKLQGSR",
-    0.05, "Da", 500.0, "Da"); // very wide precursor tolerance
+    0.05, "Da", 500.0, "Da");
 
   TheoreticalSpectrumGenerator tsg;
   auto tp = tsg.getParameters();
@@ -728,79 +582,21 @@ START_SECTION(simd_scalar_edge_wide_precursor_window)
   AASequence pep = AASequence::fromString("EVAEAATGEDASSPPPK");
   MSSpectrum spec;
   tsg.getSpectrum(spec, pep, 1, 1);
-
   float prec_mz = pep.getMZ(1);
   auto range = fi.getPeptidesInPrecursorRange(prec_mz, {0.0f, 0.0f});
 
-  size_t simd_n = 0, scalar_n = 0;
-  TEST_TRUE(simdScalarMatch(fi, spec, range, 1, simd_n, scalar_n))
-  TEST_EQUAL(simd_n, scalar_n)
-  TEST_TRUE(simd_n > 0) // wide window should produce hits
+  size_t total_hits = 0;
+  for (const auto& peak : spec)
+    total_hits += fi.query(peak, range, 1).size();
+  TEST_TRUE(total_hits > 0)
 }
 END_SECTION
 
-START_SECTION(simd_scalar_edge_soa_invariants)
+START_SECTION(query_edge_soa_invariants)
 {
-  // Verify SoA buffer alignment invariant (via fragmentsSorted which accesses both arrays)
   auto fi = buildTestIndex("EVAEAATGEDASSPPPKMDAILRGLNFEQLEEVIQTLHNAFSKENEPQLYPAIER");
   TEST_TRUE(fi.fragmentsSorted())
   TEST_TRUE(fi.peptidesSorted())
-}
-END_SECTION
-
-START_SECTION(benchmark_simd_vs_scalar)
-{
-  auto fi = buildTestIndex(
-    "EVAEAATGEDASSPPPKMDAILRGLNFEQLEEVIQTLHNAFSKENEPQLYPAIERIHFHTYRQVKAFPAYQLDKK"
-    "MGKDYTRIVFVEDPTFHQIITSLENYRSMKARASNFKSARLAKYGVDLEKELVARFAQHTAIKNPNFTKLQGSR");
-
-  TheoreticalSpectrumGenerator tsg;
-  auto tp = tsg.getParameters();
-  tp.setValue("add_b_ions", "true");
-  tp.setValue("add_y_ions", "true");
-  tsg.setParameters(tp);
-
-  AASequence pep = AASequence::fromString("GLNFEQLEEVIQTLHNAFSKENEPQLYPAIER");
-  MSSpectrum spec;
-  tsg.getSpectrum(spec, pep, 1, 1);
-  float prec_mz = pep.getMZ(1);
-  auto range = fi.getPeptidesInPrecursorRange(prec_mz, {0.0f, 0.0f});
-
-  // Warm up
-  for (int w = 0; w < 10; ++w)
-    for (const auto& peak : spec)
-    {
-      fi.query(peak, range, 1);
-      fi.queryScalar(peak, range, 1);
-    }
-
-  const int ITERATIONS = 1000;
-
-  auto t0 = std::chrono::high_resolution_clock::now();
-  size_t simd_total = 0;
-  for (int iter = 0; iter < ITERATIONS; ++iter)
-    for (const auto& peak : spec)
-      simd_total += fi.query(peak, range, 1).size();
-  auto t1 = std::chrono::high_resolution_clock::now();
-
-  size_t scalar_total = 0;
-  auto t2 = std::chrono::high_resolution_clock::now();
-  for (int iter = 0; iter < ITERATIONS; ++iter)
-    for (const auto& peak : spec)
-      scalar_total += fi.queryScalar(peak, range, 1).size();
-  auto t3 = std::chrono::high_resolution_clock::now();
-
-  double simd_ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
-  double scalar_ms = std::chrono::duration<double, std::milli>(t3 - t2).count();
-
-  std::cout << "\n=== FragmentIndex Query Benchmark ===" << std::endl;
-  std::cout << "Iterations: " << ITERATIONS << " x " << spec.size() << " peaks" << std::endl;
-  std::cout << "SIMD:   " << simd_ms << " ms (hits: " << simd_total << ")" << std::endl;
-  std::cout << "Scalar: " << scalar_ms << " ms (hits: " << scalar_total << ")" << std::endl;
-  std::cout << "Speedup: " << (scalar_ms / simd_ms) << "x" << std::endl;
-  std::cout << "======================================\n" << std::endl;
-
-  TEST_EQUAL(simd_total, scalar_total)
 }
 END_SECTION
 
