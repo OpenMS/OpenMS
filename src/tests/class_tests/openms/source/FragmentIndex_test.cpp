@@ -81,6 +81,7 @@ public:
   // This captures the two-dimensional ordering constraint of the index.
   bool fragmentsSorted()
   {
+    if (fi_fragment_mzs_.size() != fi_fragment_peptide_idxs_.size()) return false;
     for (size_t fi_idx = 0; fi_idx < fi_fragment_mzs_.size(); fi_idx += bucketsize_)
     {
       UInt32 last_idx = 0;
@@ -196,11 +197,16 @@ FragmentIndex_test buildTestIndex(const std::string& protein_seq,
   return fi;
 }
 
-// Helper: compare SIMD vs scalar query results for every peak in a spectrum
+// Helper: compare SIMD vs scalar query results for every peak in a spectrum.
+// Checks both hit count AND hit content (peptide_idx + fragment_mz).
 bool simdScalarMatch(FragmentIndex_test& fi, const MSSpectrum& spec,
                      const std::pair<size_t,size_t>& range, uint16_t charge,
                      size_t& simd_count, size_t& scalar_count)
 {
+  auto hitSortKey = [](const FragmentIndex::Hit& a, const FragmentIndex::Hit& b) {
+    return std::tie(a.peptide_idx, a.fragment_mz) < std::tie(b.peptide_idx, b.fragment_mz);
+  };
+
   bool match = true;
   for (const auto& peak : spec)
   {
@@ -208,7 +214,23 @@ bool simdScalarMatch(FragmentIndex_test& fi, const MSSpectrum& spec,
     auto scalar_hits = fi.queryScalar(peak, range, charge);
     simd_count += simd_hits.size();
     scalar_count += scalar_hits.size();
-    if (simd_hits.size() != scalar_hits.size()) match = false;
+    if (simd_hits.size() != scalar_hits.size())
+    {
+      match = false;
+      continue;
+    }
+    // Sort both and compare element-wise
+    std::sort(simd_hits.begin(), simd_hits.end(), hitSortKey);
+    std::sort(scalar_hits.begin(), scalar_hits.end(), hitSortKey);
+    for (size_t h = 0; h < simd_hits.size(); ++h)
+    {
+      if (simd_hits[h].peptide_idx != scalar_hits[h].peptide_idx ||
+          simd_hits[h].fragment_mz != scalar_hits[h].fragment_mz)
+      {
+        match = false;
+        break;
+      }
+    }
   }
   return match;
 }

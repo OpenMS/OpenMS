@@ -165,14 +165,7 @@ namespace OpenMS
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
-      // reserve some memory: Each Peptide can approx give rise to up to #AA*2 fragments
-      const size_t est_fragments = fi_peptides_.size() * 2 * peptide_min_length_;
-      fi_fragment_mzs_.reserve(est_fragments);
-      fi_fragment_peptide_idxs_.reserve(est_fragments);
-
       // get the spectrum generator and set the ion-types
-      //TheoreticalSpectrumGenerator tsg;
-      //SimpleTSGXLMS tsg;
       TheoreticalSpectrumGenerator tsg;
 
       auto tsg_params = tsg.getParameters();
@@ -183,12 +176,15 @@ namespace OpenMS
       tsg_params.setValue("add_x_ions", this_params.getValue("ions:add_x_ions"));
       tsg_params.setValue("add_y_ions", this_params.getValue("ions:add_y_ions"));
       tsg_params.setValue("add_z_ions", this_params.getValue("ions:add_z_ions"));
-      //tsg_params.setValue("add_first_prefix_ion", "true");
       tsg.setParameters(tsg_params);
-
 
       /// generate all Peptides
       generatePeptides(fasta_entries);
+
+      // reserve memory after peptide generation (each peptide gives ~#AA*2 fragments)
+      const size_t est_fragments = fi_peptides_.size() * 2 * peptide_min_length_;
+      fi_fragment_mzs_.reserve(est_fragments);
+      fi_fragment_peptide_idxs_.reserve(est_fragments);
 
       /// Since we (the new) Peptide struct does not store the AASequence, we must reconstruct the modified ones
       /// therefore we need the modificationGenerators:
