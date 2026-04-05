@@ -331,7 +331,7 @@ namespace OpenMS
 
       const float* mz_data = fi_fragment_mzs_.data();
       const UInt32* pidx_data = fi_fragment_peptide_idxs_.data();
-      const UInt32 pidx_max = static_cast<UInt32>(peptide_idx_range.second);
+      const UInt32 pidx_limit = static_cast<UInt32>(peptide_idx_range.second); // exclusive upper bound
 
       for (size_t j = static_cast<size_t>(in_range_buckets.first); j < static_cast<size_t>(in_range_buckets.second); ++j)
       {
@@ -347,8 +347,8 @@ namespace OpenMS
         size_t i = pos;
         for (; i + 4 <= slice_end; i += 4)
         {
-          // Early exit: peptide_idxs are sorted, so if first > max, all subsequent are too
-          if (pidx_data[i] > pidx_max) break;
+          // Early exit: peptide_idxs are sorted, so if first >= limit, all subsequent are too
+          if (pidx_data[i] >= pidx_limit) break;
 
           // Load 4 consecutive m/z values
           simde__m128 v_mz = simde_mm_loadu_ps(mz_data + i);
@@ -362,7 +362,7 @@ namespace OpenMS
           {
             for (int k = 0; k < 4; ++k)
             {
-              if ((mask & (1 << k)) && pidx_data[i + k] <= pidx_max)
+              if ((mask & (1 << k)) && pidx_data[i + k] < pidx_limit)
               {
                 hits.emplace_back(pidx_data[i + k], mz_data[i + k]);
               }
@@ -370,13 +370,13 @@ namespace OpenMS
           }
 
           // If last element exceeded peptide range, no point continuing this bucket
-          if (pidx_data[i + 3] > pidx_max) break;
+          if (pidx_data[i + 3] >= pidx_limit) break;
         }
 
         // --- Scalar remainder: last 0-3 elements ---
         for (; i < slice_end; ++i)
         {
-          if (pidx_data[i] > pidx_max) break;
+          if (pidx_data[i] >= pidx_limit) break;
           if (mz_data[i] >= lo_bound && mz_data[i] <= hi_bound)
           {
             hits.emplace_back(pidx_data[i], mz_data[i]);
@@ -408,7 +408,7 @@ namespace OpenMS
 
       const float* mz_data = fi_fragment_mzs_.data();
       const UInt32* pidx_data = fi_fragment_peptide_idxs_.data();
-      const UInt32 pidx_max = static_cast<UInt32>(peptide_idx_range.second);
+      const UInt32 pidx_limit = static_cast<UInt32>(peptide_idx_range.second); // exclusive upper bound
 
       for (size_t j = static_cast<size_t>(in_range_buckets.first); j < static_cast<size_t>(in_range_buckets.second); ++j)
       {
@@ -421,7 +421,7 @@ namespace OpenMS
 
         for (; i < slice_end; ++i)
         {
-          if (pidx_data[i] > pidx_max) break;
+          if (pidx_data[i] >= pidx_limit) break;
           if (mz_data[i] >= lo_bound && mz_data[i] <= hi_bound)
           {
             hits.emplace_back(pidx_data[i], mz_data[i]);
