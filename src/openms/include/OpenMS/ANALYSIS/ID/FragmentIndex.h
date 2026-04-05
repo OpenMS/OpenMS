@@ -227,7 +227,8 @@ namespace OpenMS
 protected:
 
 
-  /**@brief One entry in the fragment index
+#ifdef DEBUG_FRAGMENT_INDEX
+  /**@brief One entry in the fragment index (debug only — SoA layout used in production)
    */
   struct Fragment
   {
@@ -235,9 +236,10 @@ protected:
           peptide_idx_(peptide_idx),
           fragment_mz_(fragment_mz)
       {}
-      UInt32 peptide_idx_; // 32 bit in sage
+      UInt32 peptide_idx_;
       float fragment_mz_;
   };
+#endif
 
     bool is_build_{false};              ///< true, if the database has been populated with fragments
 
@@ -251,8 +253,9 @@ protected:
      */
     void generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
 
-    std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
-    std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions)
+    std::vector<Peptide> fi_peptides_;           ///< vector of all (digested) peptides
+    std::vector<float>  fi_fragment_mzs_;        ///< SoA: fragment m/z values (parallel with fi_fragment_peptide_idxs_)
+    std::vector<UInt32> fi_fragment_peptide_idxs_; ///< SoA: peptide index for each fragment (parallel with fi_fragment_mzs_)
 
     float fragment_min_mz_;  ///< smallest fragment mz
     float fragment_max_mz_;  ///< largest fragment mz    

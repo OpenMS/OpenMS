@@ -80,14 +80,14 @@ public:
   // This captures the two-dimensional ordering constraint of the index.
   bool fragmentsSorted()
   {
-    for (size_t fi_idx = 0; fi_idx < fi_fragments_.size(); fi_idx += bucketsize_)
+    for (size_t fi_idx = 0; fi_idx < fi_fragment_mzs_.size(); fi_idx += bucketsize_)
     {
       UInt32 last_idx = 0;
-      const size_t end = (fi_idx + bucketsize_ > fi_fragments_.size()) ? fi_fragments_.size() : (fi_idx + bucketsize_);
+      const size_t end = std::min(fi_idx + bucketsize_, fi_fragment_mzs_.size());
       for (size_t bucket_idx = fi_idx; bucket_idx < end; ++bucket_idx)
       {
-        if (fi_fragments_[bucket_idx].peptide_idx_ < last_idx) return false;
-        last_idx = fi_fragments_[bucket_idx].peptide_idx_;
+        if (fi_fragment_peptide_idxs_[bucket_idx] < last_idx) return false;
+        last_idx = fi_fragment_peptide_idxs_[bucket_idx];
       }
     }
     return true;
