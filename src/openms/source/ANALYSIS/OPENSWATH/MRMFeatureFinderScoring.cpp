@@ -7,8 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
-double sn_min_threshold_ = 1.0;  // configurable via param
-defaults_.setValue("sn_min_threshold", 1.0,
+double sn_min_threshold_ = 0.0;  // configurable via param
+defaults_.setValue("sn_min_threshold", 0.0,
   "Minimum S/N ratio for a feature to proceed to full scoring. "
   "Candidates below this threshold skip expensive cross-correlation scores.");
 sn_min_threshold_ = param_.getValue("sn_min_threshold");
