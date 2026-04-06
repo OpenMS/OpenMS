@@ -52,12 +52,14 @@ namespace OpenMS
     if (mass_table_initialized_) return;
 
     residue_mass_table_.fill(0.0);
-    const string aa_codes = "ACDEFGHIKLMNPQRSTVWY";
     const ResidueDB* rdb = ResidueDB::getInstance();
-    for (char c : aa_codes)
+    for (char c = 'A'; c <= 'Z'; ++c)
     {
       const Residue* r = rdb->getResidue(static_cast<unsigned char>(c));
-      residue_mass_table_[static_cast<size_t>(c)] = r->getMonoWeight(Residue::Internal);
+      if (r != nullptr)
+      {
+        residue_mass_table_[static_cast<size_t>(c)] = r->getMonoWeight(Residue::Internal);
+      }
     }
 
     // Precompute ion-type offsets
@@ -92,7 +94,7 @@ namespace OpenMS
         double base_mass = proton * z + n_term_mod_mass;
         double cumulative = base_mass;
 
-        for (size_t i = 0; i < seq_len; ++i)
+        for (size_t i = 0; i + 1 < seq_len; ++i)
         {
           double res_mass = table[static_cast<unsigned char>(sequence[i])];
           if (residue_mod_masses) res_mass += residue_mod_masses[i];
@@ -128,7 +130,7 @@ namespace OpenMS
         double base_mass = proton * z + c_term_mod_mass;
         double cumulative = base_mass;
 
-        for (size_t j = seq_len; j >= 1; --j)
+        for (size_t j = seq_len; j > 1; --j)
         {
           double res_mass = table[static_cast<unsigned char>(sequence[j - 1])];
           if (residue_mod_masses) res_mass += residue_mod_masses[j - 1];
@@ -239,12 +241,15 @@ namespace OpenMS
 
         for (const pair<size_t, size_t>& digested_peptide : digested_peptides)
         {
-          // skip peptides containing unknown AA
-          if (protein.sequence.substr(digested_peptide.first, digested_peptide.second).find('X') != string::npos)
+          // skip peptides containing unknown or ambiguous AA codes (X, B, Z, J)
           {
-            #pragma omp atomic
-            skipped_peptides++;
-            continue;
+            const auto sub = protein.sequence.substr(digested_peptide.first, digested_peptide.second);
+            if (sub.find_first_of("XBZJ") != string::npos)
+            {
+              #pragma omp atomic
+              skipped_peptides++;
+              continue;
+            }
           }
 
           const char* seq_ptr = protein.sequence.c_str() + digested_peptide.first;
@@ -292,7 +297,7 @@ namespace OpenMS
       }
       if (skipped_peptides > 0)
       {
-        OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unkown AA \n";
+        OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unknown or ambiguous AA (X/B/Z/J)\n";
       }
 
       // Merge per-thread peptide vectors
