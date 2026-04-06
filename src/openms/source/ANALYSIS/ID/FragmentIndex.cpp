@@ -34,9 +34,9 @@
 #ifdef _OPENMP
   #include <omp.h>
 #endif
+#include <algorithm>
 #include <bit>
 #include <functional>
-#include <map>
 #include <mutex>
 #include <unordered_map>
 
@@ -423,15 +423,23 @@ namespace OpenMS
       new_groups.reserve(old_groups.size() * 2);
       for (auto& g : old_groups)
       {
-        // Map delta → sub-group.  Use a small inline vector for the common
-        // case of 2-3 alternatives to avoid heap allocation.
-        std::map<double, StateGroup> by_delta;
+        // Group members by their delta at this position.
+        // Conflict detection in generatePeptides ensures at most one slot per
+        // position is active per variant, so the number of distinct deltas is
+        // small (typically 2-3: "no mod" + one or two alternative mods).
+        // A flat vector with linear search is faster than std::map here.
+        vector<std::pair<double, StateGroup>> by_delta; // (delta, sub-group)
         for (auto& mem : g.members)
         {
           double d = var_delta(mem.first, slots_here);
-          auto& ng = by_delta[d];
-          if (ng.members.empty()) ng.cumulative = g.cumulative + base_res + d;
-          ng.members.push_back(mem);
+          auto it = std::find_if(by_delta.begin(), by_delta.end(),
+                                 [d](const auto& kv) { return kv.first == d; });
+          if (it == by_delta.end())
+          {
+            by_delta.push_back({d, StateGroup{g.cumulative + base_res + d, {}}});
+            it = std::prev(by_delta.end());
+          }
+          it->second.members.push_back(mem);
         }
         for (auto& [d, ng] : by_delta)
           new_groups.push_back(std::move(ng));
@@ -459,17 +467,20 @@ namespace OpenMS
     // ==================================================================
     if (add_b_ions_ || add_a_ions_ || add_c_ions_)
     {
-      std::map<double, StateGroup> by_nterm;
+      // Build initial groups by N-term delta using flat vector (typically 1-2 groups).
+      vector<StateGroup> groups;
       for (const auto& [bitmask, pep_idx] : variants)
       {
         double d = fixed_nterm + var_delta(bitmask, nterm_slot_idx);
-        auto& g = by_nterm[d];
-        if (g.members.empty()) g.cumulative = proton + d;
-        g.members.emplace_back(bitmask, pep_idx);
+        auto it = std::find_if(groups.begin(), groups.end(),
+                               [d](const StateGroup& g) { return g.cumulative == proton + d; });
+        if (it == groups.end())
+        {
+          groups.push_back(StateGroup{proton + d, {}});
+          it = std::prev(groups.end());
+        }
+        it->members.emplace_back(bitmask, pep_idx);
       }
-      vector<StateGroup> groups;
-      groups.reserve(by_nterm.size());
-      for (auto& [d, g] : by_nterm) groups.push_back(std::move(g));
 
       // Walk left-to-right; branch only at variable-mod positions.
       for (size_t i = 0; i + 1 < seq_len; ++i)
@@ -503,17 +514,20 @@ namespace OpenMS
     // ==================================================================
     if (add_y_ions_ || add_x_ions_ || add_z_ions_)
     {
-      std::map<double, StateGroup> by_cterm;
+      // Build initial groups by C-term delta using flat vector (typically 1-2 groups).
+      vector<StateGroup> groups;
       for (const auto& [bitmask, pep_idx] : variants)
       {
         double d = fixed_cterm + var_delta(bitmask, cterm_slot_idx);
-        auto& g = by_cterm[d];
-        if (g.members.empty()) g.cumulative = proton + d;
-        g.members.emplace_back(bitmask, pep_idx);
+        auto it = std::find_if(groups.begin(), groups.end(),
+                               [d](const StateGroup& g) { return g.cumulative == proton + d; });
+        if (it == groups.end())
+        {
+          groups.push_back(StateGroup{proton + d, {}});
+          it = std::prev(groups.end());
+        }
+        it->members.emplace_back(bitmask, pep_idx);
       }
-      vector<StateGroup> groups;
-      groups.reserve(by_cterm.size());
-      for (auto& [d, g] : by_cterm) groups.push_back(std::move(g));
 
       for (size_t j = seq_len; j > 1; --j)
       {
@@ -886,6 +900,8 @@ namespace OpenMS
         {
           size_t operator()(const SeqKey& k) const noexcept
           {
+            // Finalizer from the MurmurHash3 64-bit mix (Appleby, 2011).
+            // Spreads clusters of nearby integer values across the hash space.
             size_t h = size_t(k.protein_idx);
             h ^= (size_t(k.seq_start) << 16) | size_t(k.seq_len);
             h ^= h >> 33;
