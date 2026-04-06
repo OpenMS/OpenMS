@@ -34,6 +34,7 @@
 #ifdef _OPENMP
   #include <omp.h>
 #endif
+#include <bit>
 #include <functional>
 #include <mutex>
 
@@ -509,7 +510,7 @@ namespace OpenMS
               for (uint32_t bitmask = 0; bitmask < max_bitmask; ++bitmask)
               {
                 // Check max variable mods constraint
-                unsigned int popcount = __builtin_popcount(bitmask);
+                unsigned int popcount = std::popcount(bitmask);
                 if (popcount > max_variable_mods_per_peptide_) continue;
 
                 // Check position conflicts: no two set bits can map to the same position
