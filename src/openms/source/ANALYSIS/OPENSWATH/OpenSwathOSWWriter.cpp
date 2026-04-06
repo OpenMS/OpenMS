@@ -223,9 +223,7 @@ namespace OpenMS
 
     if (dv.valueType() == DataValue::DOUBLE_VALUE)
     {
-      double val = static_cast<double>(dv);
-      if (std::isnan(val)) return "NULL";
-      return String(val);
+      if (std::isnan(static_cast<double>(dv))) return "NULL";
     }
 
     String score = dv.toString();
