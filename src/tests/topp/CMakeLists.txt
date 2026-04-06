@@ -2951,7 +2951,8 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -Search:enzyme Trypsin/P
     -Search:peptide:missed_cleavages 2
     "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
-    -Search:decoys)
+    -Search:decoys
+    -threads 4)
 
   # SageAdapter DDA test: generate decoys externally (SageAdapter sets generate_decoys=false),
   # then search with Sage, then apply FDR filtering on hyperscore via FalseDiscoveryRate.
