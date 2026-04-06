@@ -745,10 +745,8 @@ namespace OpenMS
             }
             else
             {
-              // Pre-compute which slots share a position (conflict groups)
-              // Build position-to-slot mapping for conflict detection
-              // Two slots conflict if they map to the same residue position
-              // (mutually exclusive: at most one variable mod per position)
+              // Pre-compute conflict masks: two slots share a position (and are
+              // mutually exclusive) if they map to the same residue.
               uint32_t conflict_mask[MAX_MOD_SLOTS] = {};
               for (size_t a = 0; a < n_slots; ++a)
               {
@@ -900,8 +898,9 @@ namespace OpenMS
         {
           size_t operator()(const SeqKey& k) const noexcept
           {
-            // Finalizer from the MurmurHash3 64-bit mix (Appleby, 2011).
-            // Spreads clusters of nearby integer values across the hash space.
+            // MurmurHash3 64-bit finalizer (Appleby, 2011): good avalanche
+            // properties and fast on small integer keys like (protein_idx,
+            // seq_start, seq_len).
             size_t h = size_t(k.protein_idx);
             h ^= (size_t(k.seq_start) << 16) | size_t(k.seq_len);
             h ^= h >> 33;
