@@ -117,7 +117,78 @@ START_SECTION((static String basename(const String &file)))
   TEST_EQUAL(File::basename("/source/config/bla/bluff.h"), "bluff.h");
   TEST_EQUAL(File::basename("filename_only.h"), "filename_only.h");
   TEST_EQUAL(File::basename("/path/only/"), "");
-  END_SECTION
+END_SECTION
+
+START_SECTION((static String stemName(const String &file)))
+  // basic: strips known extension from full path
+  TEST_EQUAL(File::stemName("/path/to/sample.mzML"), "sample");
+  // compound extension: .mzML.gz is a known compound extension
+  TEST_EQUAL(File::stemName("/path/to/sample.mzML.gz"), "sample");
+  // unknown extension: strips last dot segment
+  TEST_EQUAL(File::stemName("/path/to/file.txt"), "file");
+  // unknown compound: only strips known part
+  TEST_EQUAL(File::stemName("/path/to/file.txt.tgz"), "file.txt");
+  // no extension
+  TEST_EQUAL(File::stemName("/path/to/file"), "file");
+  // filename only (no path)
+  TEST_EQUAL(File::stemName("experiment.featureXML"), "experiment");
+  // empty string
+  TEST_EQUAL(File::stemName(""), "");
+  // dotted directory, no extension on file
+  TEST_EQUAL(File::stemName("/home.with.dot/filename"), "filename");
+  // Windows path
+  TEST_EQUAL(File::stemName("c:\\data\\sample.idXML"), "sample");
+  // extension-only name
+  TEST_EQUAL(File::stemName(".mzML"), "");
+END_SECTION
+
+START_SECTION((static String extension(const String &file)))
+  // known extension
+  TEST_EQUAL(File::extension("/path/to/sample.mzML"), ".mzML");
+  // compound extension
+  TEST_EQUAL(File::extension("/path/to/sample.mzML.gz"), ".mzML.gz");
+  // unknown extension
+  TEST_EQUAL(File::extension("/path/to/file.txt"), ".txt");
+  // no extension
+  TEST_EQUAL(File::extension("/path/to/file"), "");
+  // filename only
+  TEST_EQUAL(File::extension("experiment.featureXML"), ".featureXML");
+  // empty string
+  TEST_EQUAL(File::extension(""), "");
+  // dotted directory, no extension on file
+  TEST_EQUAL(File::extension("/home.with.dot/filename"), "");
+  // Windows path
+  TEST_EQUAL(File::extension("c:\\data\\sample.idXML"), ".idXML");
+  // extension-only name
+  TEST_EQUAL(File::extension(".mzML"), ".mzML");
+END_SECTION
+
+START_SECTION((static StringList listDirectories(const String &dir)))
+  // create temp structure with subdirectories
+  File::TempDir tdir;
+  String base = tdir.getPath();
+  File::makeDir(base + "/subA");
+  File::makeDir(base + "/subB");
+  // also create a file (should NOT appear in results)
+  {
+    std::ofstream f(std::string(base + "/afile.txt"));
+    f << "test";
+  }
+
+  StringList dirs = File::listDirectories(base);
+  TEST_EQUAL(dirs.size(), 2);
+  // results are sorted
+  TEST_TRUE(dirs[0].hasSuffix("subA"));
+  TEST_TRUE(dirs[1].hasSuffix("subB"));
+
+  // non-existent directory returns empty list
+  StringList empty = File::listDirectories("/nonexistent_path_xyz");
+  TEST_EQUAL(empty.size(), 0);
+
+  // empty string returns empty list (not a directory)
+  StringList from_empty = File::listDirectories("");
+  // just verify it doesn't crash - result depends on cwd
+END_SECTION
 
 START_SECTION((static bool fileList(const String &dir, const String &file_pattern, StringList &output, bool full_path=false)))
   StringList vec;

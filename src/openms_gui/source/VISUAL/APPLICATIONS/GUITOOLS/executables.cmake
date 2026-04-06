@@ -3,8 +3,11 @@ set(directory source/VISUAL/APPLICATIONS/GUITOOLS)
 
 ### list GUI executables here
 set(GUI_executables
+ExecutePipeline
 FLASHDeconvWizard
+ImageCreator
 INIFileEditor
+INIUpdater
 SwathWizard
 TOPPAS
 TOPPView
