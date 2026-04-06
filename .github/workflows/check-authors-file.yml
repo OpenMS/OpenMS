@@ -28,6 +28,7 @@ jobs:
               gh pr comment "$PR" --body-file -
           fi
         env:
+          LC_ALL: C
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR: ${{ github.event.pull_request.html_url }}
           ACTOR: ${{ github.actor }}
