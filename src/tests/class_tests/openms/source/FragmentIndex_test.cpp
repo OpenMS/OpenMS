@@ -454,6 +454,15 @@ START_SECTION(lightweight_fragment_count)
   size_t expected_fragments = 2 * (seq.size() - 1);
   size_t actual_fragments = fcTest.fragmentCountForPeptide(0);
   TEST_EQUAL(actual_fragments, expected_fragments)
+
+  // With min_ion_index=2, skip b1/b2/y1/y2 → 2*(n-1-2) = 2*5 = 10 fragments
+  fcTest.clear();
+  params.setValue("fragment:min_ion_index", 2);
+  fcTest.setParameters(params);
+  fcTest.build(entries);
+  TEST_EQUAL(fcTest.getPeptides().size(), 1)
+  size_t expected_with_skip = 2 * (seq.size() - 1 - 2); // skip 2 from each series
+  TEST_EQUAL(fcTest.fragmentCountForPeptide(0), expected_with_skip)
 }
 END_SECTION
 

@@ -369,7 +369,8 @@ protected:
     std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions)
 
     float fragment_min_mz_;  ///< smallest fragment mz
-    float fragment_max_mz_;  ///< largest fragment mz    
+    float fragment_max_mz_;  ///< largest fragment mz
+    size_t min_ion_index_{0}; ///< skip ions below this index (0=all, 2=skip b1/b2/y1/y2)
     size_t bucketsize_;       ///< number of fragments per outer node
     std::vector<float> bucket_min_mz_;  ///< vector of the smalles fragment mz of each bucket
     float precursor_mz_tolerance_;

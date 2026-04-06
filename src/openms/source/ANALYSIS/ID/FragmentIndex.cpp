@@ -252,6 +252,7 @@ namespace OpenMS
 
     // Generate prefix ions (b, a, c) - left to right cumulative sum
     // Fragment charge is always 1 for the index (matching original TSG call)
+    // Ion index is 1-based: i=0 produces ion 1 (b1/a1/c1), so skip when (i+1) < min_ion_index_
     if (add_b_ions_ || add_a_ions_ || add_c_ions_)
     {
       {
@@ -264,6 +265,8 @@ namespace OpenMS
           double res_mass = table[static_cast<unsigned char>(sequence[i])];
           if (residue_mod_masses) res_mass += residue_mod_masses[i];
           cumulative += res_mass;
+
+          if (i + 1 <= min_ion_index_) continue; // skip ions below min_ion_index
 
           if (add_b_ions_)
           {
@@ -288,18 +291,23 @@ namespace OpenMS
     }
 
     // Generate suffix ions (y, x, z) - right to left cumulative sum
+    // Suffix ion index: first iteration produces y1, second y2, etc.
     if (add_y_ions_ || add_x_ions_ || add_z_ions_)
     {
       {
         constexpr int z = 1;
         double base_mass = proton * z + c_term_mod_mass;
         double cumulative = base_mass;
+        size_t suffix_ion_num = 0;
 
         for (size_t j = seq_len; j > 1; --j)
         {
           double res_mass = table[static_cast<unsigned char>(sequence[j - 1])];
           if (residue_mod_masses) res_mass += residue_mod_masses[j - 1];
           cumulative += res_mass;
+          ++suffix_ion_num;
+
+          if (suffix_ion_num <= min_ion_index_) continue; // skip ions below min_ion_index
 
           if (add_y_ions_)
           {
@@ -1078,6 +1086,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
     defaults_.setValue("fragment:min_mz", 150, "Minimal fragment mz for database");
     defaults_.setValue("fragment:max_mz", 2000, "Maximal fragment mz for database");
+    defaults_.setValue("fragment:min_ion_index", 0, "Minimum ion index to consider (0 = include all ions, 2 = skip b1/b2/y1/y2 like Sage). Ions below this index are not added to the fragment index.");
+    defaults_.setMinInt("fragment:min_ion_index", 0);
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
@@ -1155,6 +1165,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     peptide_max_length_ = param_.getValue("peptide:max_size");
     fragment_min_mz_ = param_.getValue("fragment:min_mz");
     fragment_max_mz_ = param_.getValue("fragment:max_mz");
+    min_ion_index_ = param_.getValue("fragment:min_ion_index");
     
     precursor_mz_tolerance_ = param_.getValue("precursor:mass_tolerance");
     fragment_mz_tolerance_ = param_.getValue("fragment:mass_tolerance");
