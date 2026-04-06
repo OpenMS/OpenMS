@@ -92,6 +92,12 @@ class SimpleSearchEngine :
 
     ExitCodes main_(int, const char**) override
     {
+      // Use all available cores by default (like Sage), unless user explicitly set threads > 1
+      if (getIntOption_("threads") <= 1)
+      {
+        TOPPBase::setMaxNumberOfThreads(0);
+      }
+
       String in = getStringOption_("in");
       String database = getStringOption_("database");
       String out = getStringOption_("out");
