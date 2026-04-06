@@ -83,7 +83,15 @@ namespace OpenMS
     if (!File::exists(version_file_name) || !File::readable(version_file_name))
     {
       // create OpenMS folder for .ver files
-      fs::create_directories(to_path(config_path));
+      std::error_code ec;
+      fs::create_directories(to_path(config_path), ec);
+      if (ec)
+      {
+        OPENMS_LOG_WARN << "Warning: Could not create config directory '"
+                        << config_path << "': " << ec.message()
+                        << ". Skipping update check." << std::endl;
+        return;
+      }
 
       // touch file to create it and set initial modification time stamp
       std::ofstream f(version_file_name.c_str());
