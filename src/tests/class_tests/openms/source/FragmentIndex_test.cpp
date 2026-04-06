@@ -93,6 +93,19 @@ public:
     return true;
   }
 
+  // Returns the total number of fragments generated for a given peptide index.
+  size_t fragmentCountForPeptide(UInt32 peptide_idx) const
+  {
+    size_t count = 0;
+    for (const auto& f : fi_fragments_)
+    {
+      if (f.peptide_idx_ == peptide_idx) ++count;
+    }
+    return count;
+  }
+
+  const std::vector<Fragment>& getFragments() const { return fi_fragments_; }
+
   bool testQuery(const UInt32 charge, const bool precursor_mz_known, const std::vector<FASTAFile::FASTAEntry>& entries)
   {
     // fetch parameters for modification generation
@@ -422,6 +435,39 @@ START_SECTION(tolerance)
     }
   }
   TEST_TRUE(found);
+}
+END_SECTION
+
+// Verify that the lightweight fragment generator produces the expected number of
+// b/y ions: 2*(n-1) for an n-residue peptide with default b+y ion types,
+// consistent with standard fragment indexing (b1..b(n-1), y1..y(n-1)).
+START_SECTION(lightweight_fragment_count)
+{
+  const std::string seq = "PEPTIDER";  // 8 residues
+  const std::vector<FASTAFile::FASTAEntry> entries {{"p", "p", seq}};
+
+  FragmentIndex_test fcTest;
+  auto params = fcTest.getParameters();
+  params.setValue("enzyme", "no cleavage");
+  params.setValue("peptide:min_size", 0);
+  params.setValue("peptide:max_size", 100);
+  params.setValue("peptide:min_mass", 0);
+  params.setValue("peptide:max_mass", 50000);
+  params.setValue("fragment:min_mz", 0);
+  params.setValue("fragment:max_mz", 50000);
+  params.setValue("modifications:variable", std::vector<std::string> {});
+  params.setValue("modifications:fixed", std::vector<std::string> {});
+  fcTest.setParameters(params);
+
+  fcTest.build(entries);
+
+  // Should produce exactly one peptide
+  TEST_EQUAL(fcTest.getPeptides().size(), 1)
+
+  // For b+y ions (default): 2 * (n-1) = 2 * 7 = 14 fragments
+  size_t expected_fragments = 2 * (seq.size() - 1);
+  size_t actual_fragments = fcTest.fragmentCountForPeptide(0);
+  TEST_EQUAL(actual_fragments, expected_fragments)
 }
 END_SECTION
 

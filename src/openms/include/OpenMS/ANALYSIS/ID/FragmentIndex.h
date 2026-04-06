@@ -16,6 +16,7 @@
 
 
 #include <array>
+#include <mutex>
 #include <vector>
 #include <functional>
 
@@ -255,7 +256,7 @@ protected:
     /// Precomputed residue mass lookup table: ASCII char -> internal monoisotopic mass (Da).
     /// Indexed by single-letter amino acid code (e.g., 'A'=65). Entries for non-AA chars are 0.
     static std::array<double, 128> residue_mass_table_;
-    static bool mass_table_initialized_;
+    static std::once_flag mass_table_once_flag_;
     static void initResidueMassTable_();
 
     /// Precomputed ion-type mass offsets (from Residue::getInternalTo*Ion formulas)

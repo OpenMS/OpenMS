@@ -31,8 +31,11 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/QC/QCBase.h>
-#include <omp.h>
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 #include <functional>
+#include <mutex>
 
 
 using namespace std;
@@ -44,33 +47,31 @@ namespace OpenMS
 
   // Static member definitions
   std::array<double, 128> FragmentIndex::residue_mass_table_{};
-  bool FragmentIndex::mass_table_initialized_{false};
+  std::once_flag FragmentIndex::mass_table_once_flag_;
   FragmentIndex::IonOffsets FragmentIndex::ion_offsets_{};
 
   void FragmentIndex::initResidueMassTable_()
   {
-    if (mass_table_initialized_) return;
-
-    residue_mass_table_.fill(0.0);
-    const ResidueDB* rdb = ResidueDB::getInstance();
-    for (char c = 'A'; c <= 'Z'; ++c)
-    {
-      const Residue* r = rdb->getResidue(static_cast<unsigned char>(c));
-      if (r != nullptr)
+    std::call_once(mass_table_once_flag_, []() {
+      residue_mass_table_.fill(0.0);
+      const ResidueDB* rdb = ResidueDB::getInstance();
+      for (char c = 'A'; c <= 'Z'; ++c)
       {
-        residue_mass_table_[static_cast<size_t>(c)] = r->getMonoWeight(Residue::Internal);
+        const Residue* r = rdb->getResidue(static_cast<unsigned char>(c));
+        if (r != nullptr)
+        {
+          residue_mass_table_[static_cast<size_t>(c)] = r->getMonoWeight(Residue::Internal);
+        }
       }
-    }
 
-    // Precompute ion-type offsets
-    ion_offsets_.b_offset = Residue::getInternalToBIon().getMonoWeight();
-    ion_offsets_.y_offset = Residue::getInternalToYIon().getMonoWeight();
-    ion_offsets_.a_offset = Residue::getInternalToAIon().getMonoWeight();
-    ion_offsets_.c_offset = Residue::getInternalToCIon().getMonoWeight();
-    ion_offsets_.x_offset = Residue::getInternalToXIon().getMonoWeight();
-    ion_offsets_.z_offset = Residue::getInternalToZIon().getMonoWeight();
-
-    mass_table_initialized_ = true;
+      // Precompute ion-type offsets
+      ion_offsets_.b_offset = Residue::getInternalToBIon().getMonoWeight();
+      ion_offsets_.y_offset = Residue::getInternalToYIon().getMonoWeight();
+      ion_offsets_.a_offset = Residue::getInternalToAIon().getMonoWeight();
+      ion_offsets_.c_offset = Residue::getInternalToCIon().getMonoWeight();
+      ion_offsets_.x_offset = Residue::getInternalToXIon().getMonoWeight();
+      ion_offsets_.z_offset = Residue::getInternalToZIon().getMonoWeight();
+    });
   }
 
   void FragmentIndex::generateFragmentsLightweight_(
@@ -189,7 +190,7 @@ namespace OpenMS
 
   /// Compute precursor m/z at charge 1 (M+H)+ directly from amino acid chars.
   /// Formula: (sum_of_internal_masses + H2O + proton) / 1
-  static float computePrecursorMzFromChars_(const char* seq, size_t len, const std::array<double, 128>& table)
+  static float computePrecursorMzFromChars(const char* seq, size_t len, const std::array<double, 128>& table)
   {
     // M+H = sum(internal masses) + H2O + proton
     static const double water = Residue::getInternalToFull().getMonoWeight(); // 18.0105646834
@@ -221,10 +222,14 @@ namespace OpenMS
       digestor.setEnzyme(digestion_enzyme_);
       digestor.setMissedCleavages(missed_cleavages_);
 
-      std::cout << "Generating peptides..." << std::endl;
+      OPENMS_LOG_INFO << "Generating peptides..." << std::endl;
 
       // Per-thread peptide vectors to avoid omp critical
+#ifdef _OPENMP
       const int num_threads = omp_get_max_threads();
+#else
+      const int num_threads = 1;
+#endif
       vector<vector<Peptide>> thread_peptides(num_threads);
       const size_t est_per_thread = (fasta_entries.size() * 5) / num_threads + 1;
       for (int t = 0; t < num_threads; ++t)
@@ -234,17 +239,21 @@ namespace OpenMS
       #pragma omp parallel for private(digested_peptides)
       for (SignedSize protein_idx = 0; protein_idx < (SignedSize)fasta_entries.size(); ++protein_idx)
       {
+#ifdef _OPENMP
         const int tid = omp_get_thread_num();
+#else
+        const int tid = 0;
+#endif
         digested_peptides.clear();
         const FASTAFile::FASTAEntry& protein = fasta_entries[protein_idx];
         digestor.digestUnmodified(StringView(protein.sequence), digested_peptides, peptide_min_length_, peptide_max_length_);
 
         for (const pair<size_t, size_t>& digested_peptide : digested_peptides)
         {
-          // skip peptides containing unknown or ambiguous AA codes (X, B, Z, J)
+          // skip peptides containing unknown or ambiguous AA codes (X, B, Z)
           {
             const auto sub = protein.sequence.substr(digested_peptide.first, digested_peptide.second);
-            if (sub.find_first_of("XBZJ") != string::npos)
+            if (sub.find_first_of("XBZ") != string::npos)
             {
               #pragma omp atomic
               skipped_peptides++;
@@ -284,7 +293,7 @@ namespace OpenMS
           else
           {
             // Unmodified path: compute precursor m/z directly from lookup table
-            float unmodified_mz = computePrecursorMzFromChars_(seq_ptr, seq_len, residue_mass_table_);
+            float unmodified_mz = computePrecursorMzFromChars(seq_ptr, seq_len, residue_mass_table_);
             if (peptide_min_mass_ <= unmodified_mz && unmodified_mz <= peptide_max_mass_)
             {
               thread_peptides[tid].emplace_back(static_cast<UInt32>(protein_idx), 0,
@@ -297,7 +306,7 @@ namespace OpenMS
       }
       if (skipped_peptides > 0)
       {
-        OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unknown or ambiguous AA (X/B/Z/J)\n";
+        OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unknown or ambiguous AA (X/B/Z)\n";
       }
 
       // Merge per-thread peptide vectors
@@ -310,20 +319,17 @@ namespace OpenMS
         vector<Peptide>().swap(thread_peptides[t]);
       }
 
-      std::cout << "Sorting peptides..." << std::endl;
+      OPENMS_LOG_INFO << "Sorting peptides..." << std::endl;
       sort(fi_peptides_.begin(), fi_peptides_.end(), [](const Peptide& a, const Peptide& b)
            {
         return std::tie(a.precursor_mz_, a.protein_idx) < std::tie(b.precursor_mz_, b.protein_idx);
            });
-      std::cout << "done." << std::endl;
+      OPENMS_LOG_INFO << "done." << std::endl;
   }
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
-      // Initialize residue mass lookup table (once, thread-safe via static flag)
-      initResidueMassTable_();
-
-      /// generate all Peptides
+      /// generate all Peptides (also initializes residue mass table)
       generatePeptides(fasta_entries);
 
       const bool has_modifications = !(modifications_fixed_.empty() && modifications_variable_.empty());
@@ -340,7 +346,11 @@ namespace OpenMS
       OPENMS_LOG_INFO << "Generating fragments..." << std::endl;
 
       // Per-thread fragment vectors to avoid omp critical serialization
+#ifdef _OPENMP
       const int num_threads = omp_get_max_threads();
+#else
+      const int num_threads = 1;
+#endif
       const size_t est_per_thread = (fi_peptides_.size() * 2 * peptide_min_length_) / num_threads + 1;
       vector<vector<Fragment>> thread_fragments(num_threads);
       for (int t = 0; t < num_threads; ++t)
@@ -357,7 +367,11 @@ namespace OpenMS
         #pragma omp parallel for private(mod_peptides)
         for (SignedSize peptide_idx = 0; peptide_idx < (SignedSize)fi_peptides_.size(); peptide_idx++)
         {
+#ifdef _OPENMP
           const int tid = omp_get_thread_num();
+#else
+          const int tid = 0;
+#endif
           const Peptide& pep = fi_peptides_[peptide_idx];
           mod_peptides.clear();
 
@@ -407,7 +421,11 @@ namespace OpenMS
         #pragma omp parallel for
         for (SignedSize peptide_idx = 0; peptide_idx < (SignedSize)fi_peptides_.size(); peptide_idx++)
         {
+#ifdef _OPENMP
           const int tid = omp_get_thread_num();
+#else
+          const int tid = 0;
+#endif
           const Peptide& pep = fi_peptides_[peptide_idx];
           const char* seq_ptr = fasta_entries[pep.protein_idx].sequence.c_str() + pep.sequence_.first;
           size_t seq_len = pep.sequence_.second;
@@ -428,7 +446,7 @@ namespace OpenMS
         vector<Fragment>().swap(thread_fragments[t]);
       }
 
-      std::cout << "Sorting fragments..." << std::endl;
+      OPENMS_LOG_INFO << "Sorting fragments..." << std::endl;
 
       /// 1.) First all Fragments are sorted by their own mass!
       sort(fi_fragments_.begin(), fi_fragments_.end(), [](const Fragment& a, const Fragment& b)
