@@ -231,7 +231,7 @@ namespace OpenMS
 
     /** @brief Reconstruct a fully modified AASequence from a Peptide's bitmask.
      *
-     * Used for result output — only called for final hits (not in the build hot path).
+     * Used for result output - only called for final hits (not in the build hot path).
      * Applies fixed modifications, then uses the bitmask to determine which variable
      * modifications are active at which positions.
      *
@@ -249,12 +249,13 @@ protected:
    */
   struct Fragment
   {
+      Fragment() = default;
       Fragment(UInt32 peptide_idx, float fragment_mz):
           peptide_idx_(peptide_idx),
           fragment_mz_(fragment_mz)
       {}
-      UInt32 peptide_idx_; // 32 bit in sage
-      float fragment_mz_;
+      UInt32 peptide_idx_{}; // 32 bit in sage
+      float fragment_mz_{};
   };
 
     bool is_build_{false};              ///< true, if the database has been populated with fragments
@@ -269,7 +270,7 @@ protected:
      */
     void generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
 
-    /// Entry in the per-AA variable modification lookup table.
+    /** @brief Entry in the per-AA variable modification lookup table. */
     struct VarModEntry
     {
       double delta_mass;                    ///< mass delta from this modification
@@ -277,17 +278,19 @@ protected:
       ResidueModification::TermSpecificity term_spec; ///< where this mod can be applied
     };
 
-    /// A candidate modification slot for a specific peptide.
-    /// Slots are built by scanning a peptide sequence left-to-right against the variable mod config.
-    /// The slot index determines its bit position in mod_bitmask_.
+    /** @brief A candidate modification slot for a specific peptide.
+     *
+     * Slots are built by scanning a peptide sequence left-to-right against the variable mod config.
+     * The slot index determines its bit position in mod_bitmask_.
+     */
     struct ModSlot
     {
       uint16_t position;                    ///< residue index, or NTERM_SLOT/CTERM_SLOT
       double delta_mass;                    ///< mass delta
       const ResidueModification* mod_ptr;   ///< for AASequence reconstruction
 
-      static constexpr uint16_t NTERM_SLOT = UINT16_MAX - 1;
-      static constexpr uint16_t CTERM_SLOT = UINT16_MAX;
+      static constexpr uint16_t NTERM_SLOT = UINT16_MAX - 1; ///< sentinel for pure N-terminal mod slot
+      static constexpr uint16_t CTERM_SLOT = UINT16_MAX;      ///< sentinel for pure C-terminal mod slot
     };
 
     static constexpr size_t MAX_MOD_SLOTS = 32; ///< max variable mod slots per peptide (uint32_t bitmask)
@@ -300,6 +303,9 @@ protected:
     /// Returns the number of slots written to out_slots (at most MAX_MOD_SLOTS).
     /// Deterministic ordering: N-term pure-terminal mods, then left-to-right residue mods
     /// (ANYWHERE + position-specific terminal), then C-term pure-terminal mods.
+    /// @param sequence raw amino acid character array
+    /// @param seq_len length of the sequence
+    /// @param out_slots output array for modification slots (must have space for MAX_MOD_SLOTS entries)
     /// @param is_protein_nterm true if this peptide starts at protein position 0
     /// @param is_protein_cterm true if this peptide ends at the last protein residue
     size_t buildModSlots_(const char* sequence, size_t seq_len, ModSlot* out_slots,
