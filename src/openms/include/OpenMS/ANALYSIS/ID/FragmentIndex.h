@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -37,8 +38,10 @@ namespace OpenMS
      *
      * Field semantics and how they relate to the braced initializer lists used in tests {a, b, {c, d}, e}:
      *  - protein_idx .......... 'a' Index into the FASTA entries vector passed to build(); identifies the source protein.
-     *  - modification_idx_ .... 'b' Index into the list of generated modification variants for the given unmodified subsequence.
-     *                             In tests, this maps to mod_peptides[modification_idx_] created by ModifiedPeptideGenerator.
+     *  - mod_bitmask_ ......... 'b' Bitmask encoding which variable modification slots are active.
+     *                             Each bit corresponds to a (position, mod_type) pair found by scanning
+     *                             the sequence left-to-right against the variable modification config.
+     *                             0 = unmodified (or fixed-only). Supports up to 32 variable mod slots.
      *  - sequence_ ............ '{c, d}' 0-based start offset and length (in residues) of the peptide subsequence within the protein.
      *                             Note: length (d) is used like std::string::substr(start, length).
      *  - precursor_mz_ ........ 'e' Mono-isotopic m/z at charge 1 (M+H)+; used for ordering/slicing in the index.
@@ -47,15 +50,15 @@ namespace OpenMS
     struct Peptide {
 
       // We need a constructor in order to emplace back
-      Peptide(UInt32 protein_idx, UInt32 modification_idx, std::pair<uint16_t , uint16_t> sequence, float precursor_mz):
+      Peptide(UInt32 protein_idx, uint32_t mod_bitmask, std::pair<uint16_t , uint16_t> sequence, float precursor_mz):
           protein_idx(protein_idx),
-        modification_idx_(modification_idx),
+        mod_bitmask_(mod_bitmask),
         sequence_(sequence),
         precursor_mz_(precursor_mz)
         {}
 
         UInt32 protein_idx;            ///< 0-based index into FASTA entries provided to build(); identifies the source protein
-        UInt32 modification_idx_;      ///< Index into variant list produced by ModifiedPeptideGenerator for this subsequence (0 = unmodified)
+        uint32_t mod_bitmask_;         ///< Bitmask of active variable mod slots (0 = unmodified/fixed-only; up to 32 slots)
         std::pair<uint16_t , uint16_t> sequence_; ///< {start, length} within the source protein sequence (start is 0-based; length in residues)
         float precursor_mz_;           ///< Mono-isotopic m/z at charge 1 (M+H)+ of this peptide; used for sorting/filtering
     };
@@ -226,6 +229,19 @@ namespace OpenMS
     void querySpectrum(const MSSpectrum& spectrum,
                        SpectrumMatchesTopN& sms);
 
+    /** @brief Reconstruct a fully modified AASequence from a Peptide's bitmask.
+     *
+     * Used for result output — only called for final hits (not in the build hot path).
+     * Applies fixed modifications, then uses the bitmask to determine which variable
+     * modifications are active at which positions.
+     *
+     * @param[in] peptide   The Peptide descriptor with mod_bitmask_
+     * @param[in] fasta_entries The FASTA database used during build()
+     * @return The fully modified AASequence
+     */
+    AASequence reconstructModifiedSequence(const Peptide& peptide,
+                                           const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const;
+
 protected:
 
 
@@ -252,6 +268,57 @@ protected:
      * @param[in] fasta_entries
      */
     void generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
+
+    /// Entry in the per-AA variable modification lookup table.
+    struct VarModEntry
+    {
+      double delta_mass;                    ///< mass delta from this modification
+      const ResidueModification* mod_ptr;   ///< pointer to the modification (for AASequence reconstruction)
+      ResidueModification::TermSpecificity term_spec; ///< where this mod can be applied
+    };
+
+    /// A candidate modification slot for a specific peptide.
+    /// Slots are built by scanning a peptide sequence left-to-right against the variable mod config.
+    /// The slot index determines its bit position in mod_bitmask_.
+    struct ModSlot
+    {
+      uint16_t position;                    ///< residue index, or NTERM_SLOT/CTERM_SLOT
+      double delta_mass;                    ///< mass delta
+      const ResidueModification* mod_ptr;   ///< for AASequence reconstruction
+
+      static constexpr uint16_t NTERM_SLOT = UINT16_MAX - 1;
+      static constexpr uint16_t CTERM_SLOT = UINT16_MAX;
+    };
+
+    static constexpr size_t MAX_MOD_SLOTS = 32; ///< max variable mod slots per peptide (uint32_t bitmask)
+
+    /// Build per-AA modification lookup tables from modifications_fixed_ and modifications_variable_.
+    /// Called once at the start of generatePeptides().
+    void initModificationTables_();
+
+    /// Scan a peptide sequence to find all variable modification slots.
+    /// Returns the number of slots written to out_slots (at most MAX_MOD_SLOTS).
+    /// Deterministic ordering: N-term pure-terminal mods, then left-to-right residue mods
+    /// (ANYWHERE + position-specific terminal), then C-term pure-terminal mods.
+    size_t buildModSlots_(const char* sequence, size_t seq_len, ModSlot* out_slots) const;
+
+    /// Per-AA fixed modification delta mass (0.0 if no fixed mod applies)
+    std::array<double, 128> fixed_mod_deltas_{};
+    /// Per-AA fixed modification pointer (nullptr if none)
+    std::array<const ResidueModification*, 128> fixed_mod_ptrs_{};
+    double fixed_nterm_delta_{0.0};   ///< Fixed N-terminal mod delta (0 if none)
+    double fixed_cterm_delta_{0.0};   ///< Fixed C-terminal mod delta (0 if none)
+    const ResidueModification* fixed_nterm_mod_ptr_{nullptr};
+    const ResidueModification* fixed_cterm_mod_ptr_{nullptr};
+
+    /// Per-AA variable modification table: for each ASCII char, list of possible variable mods
+    std::array<std::vector<VarModEntry>, 128> variable_mod_table_{};
+    /// Pure N-terminal variable mods (not residue-specific)
+    std::vector<VarModEntry> variable_nterm_mods_;
+    /// Pure C-terminal variable mods (not residue-specific)
+    std::vector<VarModEntry> variable_cterm_mods_;
+
+    bool mod_tables_initialized_{false};
 
     /// Precomputed residue mass lookup table: ASCII char -> internal monoisotopic mass (Da).
     /// Indexed by single-letter amino acid code (e.g., 'A'=65). Entries for non-AA chars are 0.

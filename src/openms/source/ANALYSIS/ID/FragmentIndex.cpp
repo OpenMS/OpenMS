@@ -74,6 +74,143 @@ namespace OpenMS
     });
   }
 
+  void FragmentIndex::initModificationTables_()
+  {
+    if (mod_tables_initialized_) return;
+
+    fixed_mod_deltas_.fill(0.0);
+    fixed_mod_ptrs_.fill(nullptr);
+    for (auto& v : variable_mod_table_) v.clear();
+    variable_nterm_mods_.clear();
+    variable_cterm_mods_.clear();
+    fixed_nterm_delta_ = 0.0;
+    fixed_cterm_delta_ = 0.0;
+    fixed_nterm_mod_ptr_ = nullptr;
+    fixed_cterm_mod_ptr_ = nullptr;
+
+    // Build fixed modification lookup
+    if (!modifications_fixed_.empty())
+    {
+      auto fixed_map = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
+      for (const auto& [mod_ptr, residue_ptr] : fixed_map.val)
+      {
+        auto term_spec = mod_ptr->getTermSpecificity();
+        double delta = mod_ptr->getDiffMonoMass();
+        char origin = mod_ptr->getOrigin();
+
+        if (origin == 'X' || origin == '.') // terminal-only, no specific AA
+        {
+          if (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::PROTEIN_N_TERM)
+          {
+            fixed_nterm_delta_ = delta;
+            fixed_nterm_mod_ptr_ = mod_ptr;
+          }
+          else if (term_spec == ResidueModification::C_TERM || term_spec == ResidueModification::PROTEIN_C_TERM)
+          {
+            fixed_cterm_delta_ = delta;
+            fixed_cterm_mod_ptr_ = mod_ptr;
+          }
+        }
+        else
+        {
+          // Residue-specific fixed mod (e.g., Carbamidomethyl on C)
+          // For ANYWHERE: applies at all matching positions
+          // For N_TERM/C_TERM: only at terminal positions (handled during enumeration)
+          if (term_spec == ResidueModification::ANYWHERE)
+          {
+            fixed_mod_deltas_[static_cast<unsigned char>(origin)] = delta;
+            fixed_mod_ptrs_[static_cast<unsigned char>(origin)] = mod_ptr;
+          }
+          else if (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::PROTEIN_N_TERM)
+          {
+            fixed_nterm_delta_ = delta;
+            fixed_nterm_mod_ptr_ = mod_ptr;
+          }
+          else if (term_spec == ResidueModification::C_TERM || term_spec == ResidueModification::PROTEIN_C_TERM)
+          {
+            fixed_cterm_delta_ = delta;
+            fixed_cterm_mod_ptr_ = mod_ptr;
+          }
+        }
+      }
+    }
+
+    // Build variable modification lookup
+    if (!modifications_variable_.empty())
+    {
+      auto var_map = ModifiedPeptideGenerator::getModifications(modifications_variable_);
+      for (const auto& [mod_ptr, residue_ptr] : var_map.val)
+      {
+        auto term_spec = mod_ptr->getTermSpecificity();
+        double delta = mod_ptr->getDiffMonoMass();
+        char origin = mod_ptr->getOrigin();
+        VarModEntry entry{delta, mod_ptr, term_spec};
+
+        if (origin == 'X' || origin == '.')
+        {
+          // Pure terminal mod (no specific AA)
+          if (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::PROTEIN_N_TERM)
+          {
+            variable_nterm_mods_.push_back(entry);
+          }
+          else if (term_spec == ResidueModification::C_TERM || term_spec == ResidueModification::PROTEIN_C_TERM)
+          {
+            variable_cterm_mods_.push_back(entry);
+          }
+        }
+        else
+        {
+          // Residue-specific variable mod — add to the table for this AA
+          variable_mod_table_[static_cast<unsigned char>(origin)].push_back(entry);
+        }
+      }
+    }
+
+    mod_tables_initialized_ = true;
+  }
+
+  size_t FragmentIndex::buildModSlots_(const char* sequence, size_t seq_len, ModSlot* out_slots) const
+  {
+    size_t n_slots = 0;
+
+    // 1. Pure N-terminal variable mods (not residue-specific)
+    for (const auto& entry : variable_nterm_mods_)
+    {
+      if (n_slots >= MAX_MOD_SLOTS) break;
+      out_slots[n_slots++] = {ModSlot::NTERM_SLOT, entry.delta_mass, entry.mod_ptr};
+    }
+
+    // 2. Per-residue variable mods, left-to-right
+    for (size_t i = 0; i < seq_len; ++i)
+    {
+      unsigned char aa = static_cast<unsigned char>(sequence[i]);
+      const auto& var_mods = variable_mod_table_[aa];
+      for (const auto& entry : var_mods)
+      {
+        if (n_slots >= MAX_MOD_SLOTS) break;
+        // Check term specificity: ANYWHERE applies everywhere,
+        // N_TERM only at position 0, C_TERM only at last position
+        if (entry.term_spec == ResidueModification::ANYWHERE ||
+            (entry.term_spec == ResidueModification::N_TERM && i == 0) ||
+            (entry.term_spec == ResidueModification::PROTEIN_N_TERM && i == 0) ||
+            (entry.term_spec == ResidueModification::C_TERM && i == seq_len - 1) ||
+            (entry.term_spec == ResidueModification::PROTEIN_C_TERM && i == seq_len - 1))
+        {
+          out_slots[n_slots++] = {static_cast<uint16_t>(i), entry.delta_mass, entry.mod_ptr};
+        }
+      }
+    }
+
+    // 3. Pure C-terminal variable mods (not residue-specific)
+    for (const auto& entry : variable_cterm_mods_)
+    {
+      if (n_slots >= MAX_MOD_SLOTS) break;
+      out_slots[n_slots++] = {ModSlot::CTERM_SLOT, entry.delta_mass, entry.mod_ptr};
+    }
+
+    return n_slots;
+  }
+
   void FragmentIndex::generateFragmentsLightweight_(
     std::vector<Fragment>& fragments,
     const char* sequence,
@@ -185,6 +322,66 @@ namespace OpenMS
     fi_peptides_.clear();
     bucket_min_mz_.clear();
     is_build_ = false;
+    mod_tables_initialized_ = false;
+  }
+
+  AASequence FragmentIndex::reconstructModifiedSequence(
+    const Peptide& peptide,
+    const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const
+  {
+    const string& protein_seq = fasta_entries[peptide.protein_idx].sequence;
+    AASequence seq = AASequence::fromString(protein_seq.substr(peptide.sequence_.first, peptide.sequence_.second));
+
+    const bool has_modifications = !(modifications_fixed_.empty() && modifications_variable_.empty());
+    if (!has_modifications) return seq;
+
+    // Apply fixed modifications at each residue
+    for (size_t i = 0; i < seq.size(); ++i)
+    {
+      unsigned char aa = static_cast<unsigned char>(protein_seq[peptide.sequence_.first + i]);
+      if (fixed_mod_ptrs_[aa] != nullptr)
+      {
+        seq.setModification(i, fixed_mod_ptrs_[aa]);
+      }
+    }
+    // Apply fixed terminal modifications
+    if (fixed_nterm_mod_ptr_ != nullptr)
+    {
+      seq.setNTerminalModification(fixed_nterm_mod_ptr_);
+    }
+    if (fixed_cterm_mod_ptr_ != nullptr)
+    {
+      seq.setCTerminalModification(fixed_cterm_mod_ptr_);
+    }
+
+    // Apply variable modifications from bitmask
+    if (peptide.mod_bitmask_ != 0)
+    {
+      const char* seq_ptr = protein_seq.c_str() + peptide.sequence_.first;
+      size_t seq_len = peptide.sequence_.second;
+      ModSlot slots[MAX_MOD_SLOTS];
+      size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots);
+
+      for (size_t s = 0; s < n_slots; ++s)
+      {
+        if (!(peptide.mod_bitmask_ & (1u << s))) continue;
+
+        if (slots[s].position == ModSlot::NTERM_SLOT)
+        {
+          seq.setNTerminalModification(slots[s].mod_ptr);
+        }
+        else if (slots[s].position == ModSlot::CTERM_SLOT)
+        {
+          seq.setCTerminalModification(slots[s].mod_ptr);
+        }
+        else
+        {
+          seq.setModification(slots[s].position, slots[s].mod_ptr);
+        }
+      }
+    }
+
+    return seq;
   }
 
 
@@ -207,13 +404,11 @@ namespace OpenMS
       initResidueMassTable_();
 
       const bool has_modifications = !(modifications_fixed_.empty() && modifications_variable_.empty());
+      const bool has_variable_mods = !modifications_variable_.empty();
 
-      ModifiedPeptideGenerator::MapToResidueType fixed_modifications;
-      ModifiedPeptideGenerator::MapToResidueType variable_modifications;
       if (has_modifications)
       {
-        fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
-        variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
+        initModificationTables_();
       }
 
       size_t skipped_peptides = 0;
@@ -264,42 +459,110 @@ namespace OpenMS
           const char* seq_ptr = protein.sequence.c_str() + digested_peptide.first;
           size_t seq_len = digested_peptide.second;
 
-          if (has_modifications)
+          // Compute base precursor mass from lookup table (includes fixed mod deltas)
+          static const double water = Residue::getInternalToFull().getMonoWeight();
+          double base_mass = water + Constants::PROTON_MASS_U + fixed_nterm_delta_ + fixed_cterm_delta_;
+          for (size_t i = 0; i < seq_len; ++i)
           {
-            // Modified path: still needs AASequence for modification application
-            AASequence unmod_peptide = AASequence::fromString(protein.sequence.substr(digested_peptide.first, seq_len));
-            vector<AASequence> modified_peptides;
-            AASequence mod_peptide = AASequence(unmod_peptide);
+            base_mass += residue_mass_table_[static_cast<unsigned char>(seq_ptr[i])]
+                       + fixed_mod_deltas_[static_cast<unsigned char>(seq_ptr[i])];
+          }
 
-            ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, mod_peptide);
-            ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, mod_peptide, max_variable_mods_per_peptide_, modified_peptides);
+          if (has_variable_mods)
+          {
+            // Bitmask-based variable modification enumeration
+            ModSlot slots[MAX_MOD_SLOTS];
+            size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots);
 
-            UInt32 modification_idx = 0;
-            for (const AASequence& modified_peptide : modified_peptides)
+            if (n_slots == 0)
             {
-              float modified_mz = modified_peptide.getMZ(1);
-              if (modified_mz < peptide_min_mass_ || modified_mz > peptide_max_mass_)
+              // No variable mod sites on this peptide — just the fixed-mod version
+              float mz = static_cast<float>(base_mass);
+              if (peptide_min_mass_ <= mz && mz <= peptide_max_mass_)
               {
-                continue;
+                thread_peptides[tid].emplace_back(static_cast<UInt32>(protein_idx), uint32_t(0),
+                  std::make_pair(static_cast<uint16_t>(digested_peptide.first),
+                                 static_cast<uint16_t>(seq_len)), mz);
               }
-              thread_peptides[tid].emplace_back(static_cast<UInt32>(protein_idx),
-                                      modification_idx,
-                                      std::make_pair(static_cast<uint16_t>(digested_peptide.first),
-                                                     static_cast<uint16_t>(seq_len)),
-                                      modified_mz);
-              ++modification_idx;
+            }
+            else
+            {
+              // Pre-compute which slots share a position (conflict groups)
+              // Build position-to-slot mapping for conflict detection
+              // Two slots conflict if they map to the same residue position
+              // (mutually exclusive: at most one variable mod per position)
+              uint32_t conflict_mask[MAX_MOD_SLOTS] = {};
+              for (size_t a = 0; a < n_slots; ++a)
+              {
+                for (size_t b = a + 1; b < n_slots; ++b)
+                {
+                  if (slots[a].position == slots[b].position)
+                  {
+                    conflict_mask[a] |= (1u << b);
+                    conflict_mask[b] |= (1u << a);
+                  }
+                }
+              }
+
+              // Enumerate all valid bitmask subsets
+              uint32_t max_bitmask = (1u << n_slots);
+              for (uint32_t bitmask = 0; bitmask < max_bitmask; ++bitmask)
+              {
+                // Check max variable mods constraint
+                unsigned int popcount = __builtin_popcount(bitmask);
+                if (popcount > max_variable_mods_per_peptide_) continue;
+
+                // Check position conflicts: no two set bits can map to the same position
+                bool conflict = false;
+                for (size_t s = 0; s < n_slots && !conflict; ++s)
+                {
+                  if ((bitmask & (1u << s)) && (bitmask & conflict_mask[s] & ~(1u << s)))
+                  {
+                    conflict = true;
+                  }
+                }
+                if (conflict) continue;
+
+                // Compute variant precursor mass
+                double variant_mass = base_mass;
+                for (size_t s = 0; s < n_slots; ++s)
+                {
+                  if (bitmask & (1u << s))
+                  {
+                    variant_mass += slots[s].delta_mass;
+                  }
+                }
+
+                float mz = static_cast<float>(variant_mass);
+                if (peptide_min_mass_ <= mz && mz <= peptide_max_mass_)
+                {
+                  thread_peptides[tid].emplace_back(static_cast<UInt32>(protein_idx), bitmask,
+                    std::make_pair(static_cast<uint16_t>(digested_peptide.first),
+                                   static_cast<uint16_t>(seq_len)), mz);
+                }
+              }
+            }
+          }
+          else if (has_modifications)
+          {
+            // Fixed mods only — no variable mods to enumerate
+            float mz = static_cast<float>(base_mass);
+            if (peptide_min_mass_ <= mz && mz <= peptide_max_mass_)
+            {
+              thread_peptides[tid].emplace_back(static_cast<UInt32>(protein_idx), uint32_t(0),
+                std::make_pair(static_cast<uint16_t>(digested_peptide.first),
+                               static_cast<uint16_t>(seq_len)), mz);
             }
           }
           else
           {
-            // Unmodified path: compute precursor m/z directly from lookup table
-            float unmodified_mz = computePrecursorMzFromChars(seq_ptr, seq_len, residue_mass_table_);
+            // No modifications at all
+            float unmodified_mz = static_cast<float>(base_mass);
             if (peptide_min_mass_ <= unmodified_mz && unmodified_mz <= peptide_max_mass_)
             {
-              thread_peptides[tid].emplace_back(static_cast<UInt32>(protein_idx), 0,
-                                      std::make_pair(static_cast<uint16_t>(digested_peptide.first),
-                                                     static_cast<uint16_t>(seq_len)),
-                                      unmodified_mz);
+              thread_peptides[tid].emplace_back(static_cast<UInt32>(protein_idx), uint32_t(0),
+                std::make_pair(static_cast<uint16_t>(digested_peptide.first),
+                               static_cast<uint16_t>(seq_len)), unmodified_mz);
             }
           }
         }
@@ -329,19 +592,10 @@ namespace OpenMS
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
-      /// generate all Peptides (also initializes residue mass table)
+      /// generate all Peptides (also initializes residue mass table and mod tables)
       generatePeptides(fasta_entries);
 
       const bool has_modifications = !(modifications_fixed_.empty() && modifications_variable_.empty());
-
-      // Only needed for the modified path
-      ModifiedPeptideGenerator::MapToResidueType fixed_modifications;
-      ModifiedPeptideGenerator::MapToResidueType variable_modifications;
-      if (has_modifications)
-      {
-        fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
-        variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
-      }
 
       OPENMS_LOG_INFO << "Generating fragments..." << std::endl;
 
@@ -358,42 +612,62 @@ namespace OpenMS
         thread_fragments[t].reserve(est_per_thread);
       }
 
-      if (has_modifications)
+      // Unified fragment generation path for all cases.
+      // For modified peptides: reconstruct per-residue deltas from bitmask + mod tables.
+      // No AASequence construction, no ModifiedPeptideGenerator.
+      #pragma omp parallel for
+      for (SignedSize peptide_idx = 0; peptide_idx < (SignedSize)fi_peptides_.size(); peptide_idx++)
       {
-        // Modified path: reconstruct AASequence to apply modifications,
-        // then extract per-residue mass deltas for lightweight generation
-        vector<AASequence> mod_peptides;
-
-        #pragma omp parallel for private(mod_peptides)
-        for (SignedSize peptide_idx = 0; peptide_idx < (SignedSize)fi_peptides_.size(); peptide_idx++)
-        {
 #ifdef _OPENMP
-          const int tid = omp_get_thread_num();
+        const int tid = omp_get_thread_num();
 #else
-          const int tid = 0;
+        const int tid = 0;
 #endif
-          const Peptide& pep = fi_peptides_[peptide_idx];
-          mod_peptides.clear();
+        const Peptide& pep = fi_peptides_[peptide_idx];
+        const char* seq_ptr = fasta_entries[pep.protein_idx].sequence.c_str() + pep.sequence_.first;
+        size_t seq_len = pep.sequence_.second;
 
-          const string& protein_seq = fasta_entries[pep.protein_idx].sequence;
-          const char* seq_ptr = protein_seq.c_str() + pep.sequence_.first;
-          size_t seq_len = pep.sequence_.second;
-
-          AASequence unmod_peptide = AASequence::fromString(protein_seq.substr(pep.sequence_.first, seq_len));
-          AASequence mod_peptide = AASequence(unmod_peptide);
-          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, mod_peptide);
-          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, mod_peptide, max_variable_mods_per_peptide_, mod_peptides);
-
-          const AASequence& final_peptide = mod_peptides[pep.modification_idx_];
-
-          // Extract per-residue modification mass deltas
+        if (!has_modifications || pep.mod_bitmask_ == 0)
+        {
+          // No modifications or unmodified variant: just fixed mod deltas (if any)
+          if (!has_modifications)
+          {
+            generateFragmentsLightweight_(
+              thread_fragments[tid], seq_ptr, seq_len, static_cast<UInt32>(peptide_idx),
+              0.0, 0.0, nullptr);
+          }
+          else
+          {
+            // Fixed mods only — build delta array from fixed_mod_deltas_
+            vector<double> mod_masses(seq_len, 0.0);
+            bool has_residue_mods = false;
+            for (size_t i = 0; i < seq_len; ++i)
+            {
+              double delta = fixed_mod_deltas_[static_cast<unsigned char>(seq_ptr[i])];
+              if (delta != 0.0)
+              {
+                mod_masses[i] = delta;
+                has_residue_mods = true;
+              }
+            }
+            generateFragmentsLightweight_(
+              thread_fragments[tid], seq_ptr, seq_len, static_cast<UInt32>(peptide_idx),
+              fixed_nterm_delta_, fixed_cterm_delta_,
+              has_residue_mods ? mod_masses.data() : nullptr);
+          }
+        }
+        else
+        {
+          // Variable modifications active: reconstruct delta array from bitmask
           vector<double> mod_masses(seq_len, 0.0);
           bool has_residue_mods = false;
+          double n_term_mod = fixed_nterm_delta_;
+          double c_term_mod = fixed_cterm_delta_;
+
+          // Apply fixed mod deltas first
           for (size_t i = 0; i < seq_len; ++i)
           {
-            double modified_mass = final_peptide[i].getMonoWeight(Residue::Internal);
-            double unmodified_mass = residue_mass_table_[static_cast<unsigned char>(seq_ptr[i])];
-            double delta = modified_mass - unmodified_mass;
+            double delta = fixed_mod_deltas_[static_cast<unsigned char>(seq_ptr[i])];
             if (delta != 0.0)
             {
               mod_masses[i] = delta;
@@ -401,38 +675,32 @@ namespace OpenMS
             }
           }
 
-          double n_term_mod = 0.0;
-          if (final_peptide.hasNTerminalModification())
-            n_term_mod = final_peptide.getNTerminalModification()->getDiffMonoMass();
+          // Rebuild mod slots and apply variable mods from bitmask
+          ModSlot slots[MAX_MOD_SLOTS];
+          size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots);
+          for (size_t s = 0; s < n_slots; ++s)
+          {
+            if (!(pep.mod_bitmask_ & (1u << s))) continue;
 
-          double c_term_mod = 0.0;
-          if (final_peptide.hasCTerminalModification())
-            c_term_mod = final_peptide.getCTerminalModification()->getDiffMonoMass();
-
-          generateFragmentsLightweight_(
-            thread_fragments[tid], seq_ptr, seq_len, static_cast<UInt32>(peptide_idx),
-            n_term_mod, c_term_mod, has_residue_mods ? mod_masses.data() : nullptr);
-        }
-      }
-      else
-      {
-        // Unmodified path: compute fragments directly from protein sequence chars.
-        // No AASequence parsing, no TheoreticalSpectrumGenerator needed.
-        #pragma omp parallel for
-        for (SignedSize peptide_idx = 0; peptide_idx < (SignedSize)fi_peptides_.size(); peptide_idx++)
-        {
-#ifdef _OPENMP
-          const int tid = omp_get_thread_num();
-#else
-          const int tid = 0;
-#endif
-          const Peptide& pep = fi_peptides_[peptide_idx];
-          const char* seq_ptr = fasta_entries[pep.protein_idx].sequence.c_str() + pep.sequence_.first;
-          size_t seq_len = pep.sequence_.second;
+            if (slots[s].position == ModSlot::NTERM_SLOT)
+            {
+              n_term_mod += slots[s].delta_mass;
+            }
+            else if (slots[s].position == ModSlot::CTERM_SLOT)
+            {
+              c_term_mod += slots[s].delta_mass;
+            }
+            else
+            {
+              mod_masses[slots[s].position] += slots[s].delta_mass;
+              has_residue_mods = true;
+            }
+          }
 
           generateFragmentsLightweight_(
             thread_fragments[tid], seq_ptr, seq_len, static_cast<UInt32>(peptide_idx),
-            0.0, 0.0, nullptr);
+            n_term_mod, c_term_mod,
+            has_residue_mods ? mod_masses.data() : nullptr);
         }
       }
 

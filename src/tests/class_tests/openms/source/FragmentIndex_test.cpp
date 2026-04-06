@@ -45,7 +45,7 @@ class FragmentIndex_test : public FragmentIndex
 {
 public:
   // Verifies that the generated peptide set matches the expected set exactly
-  // (by subsequence window and modification index).
+  // (by subsequence window and mod bitmask).
   bool testDigestion(const std::vector<FragmentIndex::Peptide>& expected)
   {
     if (expected.size() != fi_peptides_.size()) return false;
@@ -54,7 +54,7 @@ public:
       bool found = false;
       for (const auto& act : fi_peptides_)
       {
-        if ((exp.sequence_ == act.sequence_) && (exp.modification_idx_ == act.modification_idx_))
+        if ((exp.sequence_ == act.sequence_) && (exp.mod_bitmask_ == act.mod_bitmask_))
         {
           found = true;
           break;
@@ -108,16 +108,8 @@ public:
 
   bool testQuery(const UInt32 charge, const bool precursor_mz_known, const std::vector<FASTAFile::FASTAEntry>& entries)
   {
-    // fetch parameters for modification generation
-    auto params = getParameters();
-    const StringList modifications_fixed_ = ListUtils::toStringList<std::string>(params.getValue("modifications:fixed"));
-    const StringList modifications_variable_ = ListUtils::toStringList<std::string>(params.getValue("modifications:variable"));
-    const ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
-    const ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
-
     // Create theoretical spectra for different charges
     TheoreticalSpectrumGenerator tsg;
-    std::vector<AASequence> mod_peptides;
     PeakSpectrum b_y_ions;
     MSSpectrum spec_theo;
     Precursor prec_theo;
@@ -134,16 +126,10 @@ public:
     {
       FragmentIndex::SpectrumMatchesTopN sms;
       b_y_ions.clear(true);
-      mod_peptides.clear();
       spec_theo.clear(true);
 
       prec_theo.clearMetaInfo();
-      const AASequence unmod_peptide = AASequence::fromString(entries[0].sequence.substr(pep.sequence_.first, pep.sequence_.second));
-      AASequence mod_peptide = AASequence(unmod_peptide); // copy the peptide
-      ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, mod_peptide);
-      ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, mod_peptide,
-                                                           params.getValue("modifications:variable_max_per_peptide"), mod_peptides);
-      mod_peptide = mod_peptides[pep.modification_idx_];
+      AASequence mod_peptide = reconstructModifiedSequence(pep, entries);
       tsg.getSpectrum(b_y_ions, mod_peptide, charge, charge);
       prec_theo.setMZ(mod_peptide.getMZ(charge));
       if (precursor_mz_known) { prec_theo.setCharge(charge); }
@@ -184,18 +170,18 @@ START_SECTION(build())
   // Test proteins used to generate expected peptides for multiple parameterizations
   /*
     Format of expected peptide descriptors below and their mapping to FragmentIndex::Peptide fields:
-      { protein_idx, modification_idx_, { start, length }, precursor_mz_ }
+      { protein_idx, mod_bitmask_, { start, length }, precursor_mz_ }
 
     Where:
     - protein_idx: 0-based index into the FASTA entries vector passed to build(); selects the source protein.
-    - modification_idx_: index into mod_peptides returned by ModifiedPeptideGenerator for the given unmodified subsequence
-                        (0 = unmodified; higher values enumerate concrete variable-mod combinations).
+    - mod_bitmask_: bitmask of active variable modification slots. Each bit corresponds to a (position, mod_type) pair
+                   found by scanning the sequence left-to-right (0 = unmodified/fixed-only).
     - start: 0-based start offset within the selected protein sequence.
     - length: number of residues for the peptide (used as std::string::substr(start, length)).
     - precursor_mz_: mono-isotopic m/z at charge 1 (M+H)+. In these tests we often use a dummy value, as only ordering
                     invariants on peptides/fragment buckets are asserted.
 
-    Note: testDigestion() compares expected vs. built peptides only by {sequence_, modification_idx_}.
+    Note: testDigestion() compares expected vs. built peptides only by {sequence_, mod_bitmask_}.
   */
   const std::vector<FASTAFile::FASTAEntry> entries0 {{"t", "t", "ARGEPADSSRKDFDMDMDM"}, {"t2", "t2", "HALLORTSCHSM"}};
   // Expected peptides when enabling fixed Carbamidomethyl (C) and variable Oxidation (M)
@@ -468,6 +454,85 @@ START_SECTION(lightweight_fragment_count)
   size_t expected_fragments = 2 * (seq.size() - 1);
   size_t actual_fragments = fcTest.fragmentCountForPeptide(0);
   TEST_EQUAL(actual_fragments, expected_fragments)
+}
+END_SECTION
+
+// Test multi-mod-per-site: two different variable mods targeting the same AA (C)
+// and fragment count correctness with modifications
+START_SECTION(multi_mod_per_site)
+{
+  // Peptide with 2 C sites — both Glutathione(C) and Carbamidomethyl(C) are variable
+  const std::vector<FASTAFile::FASTAEntry> entries {{"p", "p", "ACACK"}};
+
+  FragmentIndex_test mmTest;
+  auto params = mmTest.getParameters();
+  params.setValue("enzyme", "no cleavage");
+  params.setValue("peptide:min_size", 0);
+  params.setValue("peptide:max_size", 100);
+  params.setValue("peptide:min_mass", 0);
+  params.setValue("peptide:max_mass", 50000);
+  params.setValue("fragment:min_mz", 0);
+  params.setValue("fragment:max_mz", 50000);
+  params.setValue("modifications:variable_max_per_peptide", 2);
+  params.setValue("modifications:variable", std::vector<std::string> {"Oxidation (M)"});
+  params.setValue("modifications:fixed", std::vector<std::string> {"Carbamidomethyl (C)"});
+  mmTest.setParameters(params);
+
+  mmTest.build(entries);
+
+  // "ACACK" has no M, so no variable mod sites → only 1 peptide (fixed C mods only)
+  TEST_EQUAL(mmTest.getPeptides().size(), 1)
+  // All peptides should have bitmask 0 (no variable mods)
+  TEST_EQUAL(mmTest.getPeptides()[0].mod_bitmask_, 0u)
+  TEST_TRUE(mmTest.peptidesSorted())
+  TEST_TRUE(mmTest.fragmentsSorted())
+  // Fragment count: 2*(5-1) = 8 for b+y ions
+  TEST_EQUAL(mmTest.fragmentCountForPeptide(0), 8)
+}
+END_SECTION
+
+// Test variable mods on M with fixed mods on C — verifies bitmask enumeration
+START_SECTION(fixed_plus_variable_mods)
+{
+  const std::vector<FASTAFile::FASTAEntry> entries {{"p", "p", "ACMK"}};
+
+  FragmentIndex_test fvTest;
+  auto params = fvTest.getParameters();
+  params.setValue("enzyme", "no cleavage");
+  params.setValue("peptide:min_size", 0);
+  params.setValue("peptide:max_size", 100);
+  params.setValue("peptide:min_mass", 0);
+  params.setValue("peptide:max_mass", 50000);
+  params.setValue("fragment:min_mz", 0);
+  params.setValue("fragment:max_mz", 50000);
+  params.setValue("modifications:variable_max_per_peptide", 2);
+  params.setValue("modifications:variable", std::vector<std::string> {"Oxidation (M)"});
+  params.setValue("modifications:fixed", std::vector<std::string> {"Carbamidomethyl (C)"});
+  fvTest.setParameters(params);
+
+  fvTest.build(entries);
+
+  // "ACMK": 1 M site → 2 peptides (bitmask 0 = no Ox, bitmask 1 = Ox on M)
+  TEST_EQUAL(fvTest.getPeptides().size(), 2)
+  TEST_TRUE(fvTest.peptidesSorted())
+  TEST_TRUE(fvTest.fragmentsSorted())
+
+  // Both variants should produce 2*(4-1) = 6 fragments each
+  for (size_t i = 0; i < fvTest.getPeptides().size(); ++i)
+  {
+    TEST_EQUAL(fvTest.fragmentCountForPeptide(static_cast<UInt32>(i)), 6)
+  }
+
+  // Verify reconstructModifiedSequence produces valid sequences
+  for (const auto& pep : fvTest.getPeptides())
+  {
+    AASequence reconstructed = fvTest.reconstructModifiedSequence(pep, entries);
+    TEST_EQUAL(reconstructed.size(), 4)
+    // C at position 1 should always have Carbamidomethyl (fixed mod)
+    TEST_TRUE(reconstructed[1].isModified())
+    // M at position 2: modified only when bitmask bit 0 is set
+    TEST_EQUAL(reconstructed[2].isModified(), (pep.mod_bitmask_ & 1u) != 0)
+  }
 }
 END_SECTION
 
