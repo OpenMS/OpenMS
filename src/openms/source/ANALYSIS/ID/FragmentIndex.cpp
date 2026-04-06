@@ -17,6 +17,8 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 
+#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -39,6 +41,121 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  // Static member definitions
+  std::array<double, 128> FragmentIndex::residue_mass_table_{};
+  bool FragmentIndex::mass_table_initialized_{false};
+  FragmentIndex::IonOffsets FragmentIndex::ion_offsets_{};
+
+  void FragmentIndex::initResidueMassTable_()
+  {
+    if (mass_table_initialized_) return;
+
+    residue_mass_table_.fill(0.0);
+    const string aa_codes = "ACDEFGHIKLMNPQRSTVWY";
+    const ResidueDB* rdb = ResidueDB::getInstance();
+    for (char c : aa_codes)
+    {
+      const Residue* r = rdb->getResidue(static_cast<unsigned char>(c));
+      residue_mass_table_[static_cast<size_t>(c)] = r->getMonoWeight(Residue::Internal);
+    }
+
+    // Precompute ion-type offsets
+    ion_offsets_.b_offset = Residue::getInternalToBIon().getMonoWeight();
+    ion_offsets_.y_offset = Residue::getInternalToYIon().getMonoWeight();
+    ion_offsets_.a_offset = Residue::getInternalToAIon().getMonoWeight();
+    ion_offsets_.c_offset = Residue::getInternalToCIon().getMonoWeight();
+    ion_offsets_.x_offset = Residue::getInternalToXIon().getMonoWeight();
+    ion_offsets_.z_offset = Residue::getInternalToZIon().getMonoWeight();
+
+    mass_table_initialized_ = true;
+  }
+
+  void FragmentIndex::generateFragmentsLightweight_(
+    std::vector<Fragment>& fragments,
+    const char* sequence,
+    size_t seq_len,
+    UInt32 peptide_idx,
+    double n_term_mod_mass,
+    double c_term_mod_mass,
+    const double* residue_mod_masses) const
+  {
+    const double proton = Constants::PROTON_MASS_U;
+    const auto& table = residue_mass_table_;
+
+    // Generate prefix ions (b, a, c) - left to right cumulative sum
+    // Fragment charge is always 1 for the index (matching original TSG call)
+    if (add_b_ions_ || add_a_ions_ || add_c_ions_)
+    {
+      {
+        constexpr int z = 1;
+        double base_mass = proton * z + n_term_mod_mass;
+        double cumulative = base_mass;
+
+        for (size_t i = 0; i < seq_len; ++i)
+        {
+          double res_mass = table[static_cast<unsigned char>(sequence[i])];
+          if (residue_mod_masses) res_mass += residue_mod_masses[i];
+          cumulative += res_mass;
+
+          if (add_b_ions_)
+          {
+            float mz = static_cast<float>((cumulative + ion_offsets_.b_offset) / z);
+            if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
+              fragments.emplace_back(peptide_idx, mz);
+          }
+          if (add_a_ions_)
+          {
+            float mz = static_cast<float>((cumulative + ion_offsets_.a_offset) / z);
+            if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
+              fragments.emplace_back(peptide_idx, mz);
+          }
+          if (add_c_ions_)
+          {
+            float mz = static_cast<float>((cumulative + ion_offsets_.c_offset) / z);
+            if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
+              fragments.emplace_back(peptide_idx, mz);
+          }
+        }
+      }
+    }
+
+    // Generate suffix ions (y, x, z) - right to left cumulative sum
+    if (add_y_ions_ || add_x_ions_ || add_z_ions_)
+    {
+      {
+        constexpr int z = 1;
+        double base_mass = proton * z + c_term_mod_mass;
+        double cumulative = base_mass;
+
+        for (size_t j = seq_len; j >= 1; --j)
+        {
+          double res_mass = table[static_cast<unsigned char>(sequence[j - 1])];
+          if (residue_mod_masses) res_mass += residue_mod_masses[j - 1];
+          cumulative += res_mass;
+
+          if (add_y_ions_)
+          {
+            float mz = static_cast<float>((cumulative + ion_offsets_.y_offset) / z);
+            if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
+              fragments.emplace_back(peptide_idx, mz);
+          }
+          if (add_x_ions_)
+          {
+            float mz = static_cast<float>((cumulative + ion_offsets_.x_offset) / z);
+            if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
+              fragments.emplace_back(peptide_idx, mz);
+          }
+          if (add_z_ions_)
+          {
+            float mz = static_cast<float>((cumulative + ion_offsets_.z_offset) / z);
+            if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
+              fragments.emplace_back(peptide_idx, mz);
+          }
+        }
+      }
+    }
+  }
 
 #ifdef DEBUG_FRAGMENT_INDEX
     static void print_slice(const std::vector<FragmentIndex::Fragment>& slice, size_t low, size_t high)
@@ -68,13 +185,34 @@ namespace OpenMS
   }
 
 
-  // TODO: check if it makes sense to stream fasta from disc (we have some code for that... would safe memory but might have other drawbacks)
+  /// Compute precursor m/z at charge 1 (M+H)+ directly from amino acid chars.
+  /// Formula: (sum_of_internal_masses + H2O + proton) / 1
+  static float computePrecursorMzFromChars_(const char* seq, size_t len, const std::array<double, 128>& table)
+  {
+    // M+H = sum(internal masses) + H2O + proton
+    static const double water = Residue::getInternalToFull().getMonoWeight(); // 18.0105646834
+    double mass = water + Constants::PROTON_MASS_U;
+    for (size_t i = 0; i < len; ++i)
+    {
+      mass += table[static_cast<unsigned char>(seq[i])];
+    }
+    return static_cast<float>(mass);
+  }
+
   void FragmentIndex::generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
+      initResidueMassTable_();
 
-      fi_peptides_.reserve(fasta_entries.size() * 5 * modifications_variable_.size()); //TODO: Calculate the average cleavage site number for the most important model organisms
-      ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
-      ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
+      const bool has_modifications = !(modifications_fixed_.empty() && modifications_variable_.empty());
+
+      ModifiedPeptideGenerator::MapToResidueType fixed_modifications;
+      ModifiedPeptideGenerator::MapToResidueType variable_modifications;
+      if (has_modifications)
+      {
+        fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
+        variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
+      }
+
       size_t skipped_peptides = 0;
 
       ProteaseDigestion digestor;
@@ -82,19 +220,26 @@ namespace OpenMS
       digestor.setMissedCleavages(missed_cleavages_);
 
       std::cout << "Generating peptides..." << std::endl;
-      
-      vector<pair<size_t, size_t>> digested_peptides; // every thread gets it own copy that is only cleared, not destructed (prevents frequent reallocations)
+
+      // Per-thread peptide vectors to avoid omp critical
+      const int num_threads = omp_get_max_threads();
+      vector<vector<Peptide>> thread_peptides(num_threads);
+      const size_t est_per_thread = (fasta_entries.size() * 5) / num_threads + 1;
+      for (int t = 0; t < num_threads; ++t)
+        thread_peptides[t].reserve(est_per_thread);
+
+      vector<pair<size_t, size_t>> digested_peptides;
       #pragma omp parallel for private(digested_peptides)
       for (SignedSize protein_idx = 0; protein_idx < (SignedSize)fasta_entries.size(); ++protein_idx)
       {
+        const int tid = omp_get_thread_num();
         digested_peptides.clear();
         const FASTAFile::FASTAEntry& protein = fasta_entries[protein_idx];
-        /// DIGEST (if bottom-up)
         digestor.digestUnmodified(StringView(protein.sequence), digested_peptides, peptide_min_length_, peptide_max_length_);
 
         for (const pair<size_t, size_t>& digested_peptide : digested_peptides)
         {
-          //remove peptides containing unknown AA
+          // skip peptides containing unknown AA
           if (protein.sequence.substr(digested_peptide.first, digested_peptide.second).find('X') != string::npos)
           {
             #pragma omp atomic
@@ -102,14 +247,15 @@ namespace OpenMS
             continue;
           }
 
-          /// MODIFY (if modifications are specified)
-          AASequence unmod_peptide = AASequence::fromString(protein.sequence.substr(digested_peptide.first, digested_peptide.second));
-          float unmodified_mz = unmod_peptide.getMZ(1);
+          const char* seq_ptr = protein.sequence.c_str() + digested_peptide.first;
+          size_t seq_len = digested_peptide.second;
 
-          if (!(modifications_fixed_.empty() && modifications_variable_.empty()))
+          if (has_modifications)
           {
+            // Modified path: still needs AASequence for modification application
+            AASequence unmod_peptide = AASequence::fromString(protein.sequence.substr(digested_peptide.first, seq_len));
             vector<AASequence> modified_peptides;
-            AASequence mod_peptide = AASequence(unmod_peptide); // copy the peptide
+            AASequence mod_peptide = AASequence(unmod_peptide);
 
             ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, mod_peptide);
             ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, mod_peptide, max_variable_mods_per_peptide_, modified_peptides);
@@ -118,32 +264,28 @@ namespace OpenMS
             for (const AASequence& modified_peptide : modified_peptides)
             {
               float modified_mz = modified_peptide.getMZ(1);
-              if (modified_mz < peptide_min_mass_ || modified_mz > peptide_max_mass_) // exclude peptides that are not in the min-max window
+              if (modified_mz < peptide_min_mass_ || modified_mz > peptide_max_mass_)
               {
-                continue;   //TODO: Integrate this check in ModPepGen from #6859
+                continue;
               }
-              #pragma omp critical (FIIndex)
-              {
-                fi_peptides_.emplace_back(static_cast<UInt32>(protein_idx),
-                                        modification_idx,
-                                        std::make_pair(static_cast<uint16_t>(digested_peptide.first),
-                                                       static_cast<uint16_t>(digested_peptide.second)),
-                                        modified_mz);
-                ++modification_idx;
-              }
+              thread_peptides[tid].emplace_back(static_cast<UInt32>(protein_idx),
+                                      modification_idx,
+                                      std::make_pair(static_cast<uint16_t>(digested_peptide.first),
+                                                     static_cast<uint16_t>(seq_len)),
+                                      modified_mz);
+              ++modification_idx;
             }
           }
           else
           {
+            // Unmodified path: compute precursor m/z directly from lookup table
+            float unmodified_mz = computePrecursorMzFromChars_(seq_ptr, seq_len, residue_mass_table_);
             if (peptide_min_mass_ <= unmodified_mz && unmodified_mz <= peptide_max_mass_)
             {
-              #pragma omp critical (FIIndex)
-              {
-                fi_peptides_.emplace_back(static_cast<UInt32>(protein_idx), 0,
-                                        std::make_pair(static_cast<uint16_t>(digested_peptide.first),
-                                                       static_cast<uint16_t>(digested_peptide.second)),
-                                        unmodified_mz);
-              }
+              thread_peptides[tid].emplace_back(static_cast<UInt32>(protein_idx), 0,
+                                      std::make_pair(static_cast<uint16_t>(digested_peptide.first),
+                                                     static_cast<uint16_t>(seq_len)),
+                                      unmodified_mz);
             }
           }
         }
@@ -152,37 +294,43 @@ namespace OpenMS
       {
         OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unkown AA \n";
       }
-      std::cout << "Sorting peptides..." << std::endl;        
-      // sort the peptide vector, critical for following steps
+
+      // Merge per-thread peptide vectors
+      size_t total_peptides = 0;
+      for (int t = 0; t < num_threads; ++t) total_peptides += thread_peptides[t].size();
+      fi_peptides_.reserve(total_peptides);
+      for (int t = 0; t < num_threads; ++t)
+      {
+        fi_peptides_.insert(fi_peptides_.end(), thread_peptides[t].begin(), thread_peptides[t].end());
+        vector<Peptide>().swap(thread_peptides[t]);
+      }
+
+      std::cout << "Sorting peptides..." << std::endl;
       sort(fi_peptides_.begin(), fi_peptides_.end(), [](const Peptide& a, const Peptide& b)
            {
         return std::tie(a.precursor_mz_, a.protein_idx) < std::tie(b.precursor_mz_, b.protein_idx);
            });
-      std::cout << "done." << std::endl;        
+      std::cout << "done." << std::endl;
   }
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
-      // get the spectrum generator and set the ion-types
-      TheoreticalSpectrumGenerator tsg;
-
-      auto tsg_params = tsg.getParameters();
-      auto this_params = getParameters();
-      tsg_params.setValue("add_a_ions", this_params.getValue("ions:add_a_ions"));
-      tsg_params.setValue("add_b_ions", this_params.getValue("ions:add_b_ions"));
-      tsg_params.setValue("add_c_ions", this_params.getValue("ions:add_c_ions"));
-      tsg_params.setValue("add_x_ions", this_params.getValue("ions:add_x_ions"));
-      tsg_params.setValue("add_y_ions", this_params.getValue("ions:add_y_ions"));
-      tsg_params.setValue("add_z_ions", this_params.getValue("ions:add_z_ions"));
-      tsg.setParameters(tsg_params);
+      // Initialize residue mass lookup table (once, thread-safe via static flag)
+      initResidueMassTable_();
 
       /// generate all Peptides
       generatePeptides(fasta_entries);
 
-      /// Since we (the new) Peptide struct does not store the AASequence, we must reconstruct the modified ones
-      /// therefore we need the modificationGenerators:
-      ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
-      ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
+      const bool has_modifications = !(modifications_fixed_.empty() && modifications_variable_.empty());
+
+      // Only needed for the modified path
+      ModifiedPeptideGenerator::MapToResidueType fixed_modifications;
+      ModifiedPeptideGenerator::MapToResidueType variable_modifications;
+      if (has_modifications)
+      {
+        fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
+        variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
+      }
 
       OPENMS_LOG_INFO << "Generating fragments..." << std::endl;
 
@@ -195,34 +343,73 @@ namespace OpenMS
         thread_fragments[t].reserve(est_per_thread);
       }
 
-      vector<AASequence> mod_peptides;
-      std::vector<float> b_y_ions;
-
-      #pragma omp parallel for private(mod_peptides, b_y_ions)
-      for (SignedSize peptide_idx = 0; peptide_idx < (SignedSize)fi_peptides_.size(); peptide_idx++)
+      if (has_modifications)
       {
-        const int tid = omp_get_thread_num();
-        const Peptide& pep = fi_peptides_[peptide_idx];
-        mod_peptides.clear();
-        b_y_ions.clear();
-        AASequence unmod_peptide = AASequence::fromString(fasta_entries[pep.protein_idx].sequence.substr(pep.sequence_.first, pep.sequence_.second));
+        // Modified path: reconstruct AASequence to apply modifications,
+        // then extract per-residue mass deltas for lightweight generation
+        vector<AASequence> mod_peptides;
 
-        if (!(modifications_fixed_.empty() && modifications_variable_.empty()))
+        #pragma omp parallel for private(mod_peptides)
+        for (SignedSize peptide_idx = 0; peptide_idx < (SignedSize)fi_peptides_.size(); peptide_idx++)
         {
+          const int tid = omp_get_thread_num();
+          const Peptide& pep = fi_peptides_[peptide_idx];
+          mod_peptides.clear();
+
+          const string& protein_seq = fasta_entries[pep.protein_idx].sequence;
+          const char* seq_ptr = protein_seq.c_str() + pep.sequence_.first;
+          size_t seq_len = pep.sequence_.second;
+
+          AASequence unmod_peptide = AASequence::fromString(protein_seq.substr(pep.sequence_.first, seq_len));
           AASequence mod_peptide = AASequence(unmod_peptide);
           ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, mod_peptide);
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, mod_peptide, max_variable_mods_per_peptide_, mod_peptides);
-          tsg.getPrefixAndSuffixIonsMZ(b_y_ions, mod_peptides[pep.modification_idx_], 1);
-        }
-        else
-        {
-          tsg.getPrefixAndSuffixIonsMZ(b_y_ions, unmod_peptide, 1);
-        }
 
-        for (const float& frag : b_y_ions)
+          const AASequence& final_peptide = mod_peptides[pep.modification_idx_];
+
+          // Extract per-residue modification mass deltas
+          vector<double> mod_masses(seq_len, 0.0);
+          bool has_residue_mods = false;
+          for (size_t i = 0; i < seq_len; ++i)
+          {
+            double modified_mass = final_peptide[i].getMonoWeight(Residue::Internal);
+            double unmodified_mass = residue_mass_table_[static_cast<unsigned char>(seq_ptr[i])];
+            double delta = modified_mass - unmodified_mass;
+            if (delta != 0.0)
+            {
+              mod_masses[i] = delta;
+              has_residue_mods = true;
+            }
+          }
+
+          double n_term_mod = 0.0;
+          if (final_peptide.hasNTerminalModification())
+            n_term_mod = final_peptide.getNTerminalModification()->getDiffMonoMass();
+
+          double c_term_mod = 0.0;
+          if (final_peptide.hasCTerminalModification())
+            c_term_mod = final_peptide.getCTerminalModification()->getDiffMonoMass();
+
+          generateFragmentsLightweight_(
+            thread_fragments[tid], seq_ptr, seq_len, static_cast<UInt32>(peptide_idx),
+            n_term_mod, c_term_mod, has_residue_mods ? mod_masses.data() : nullptr);
+        }
+      }
+      else
+      {
+        // Unmodified path: compute fragments directly from protein sequence chars.
+        // No AASequence parsing, no TheoreticalSpectrumGenerator needed.
+        #pragma omp parallel for
+        for (SignedSize peptide_idx = 0; peptide_idx < (SignedSize)fi_peptides_.size(); peptide_idx++)
         {
-          if (fragment_min_mz_ > frag || frag > fragment_max_mz_) continue;
-          thread_fragments[tid].emplace_back(static_cast<UInt32>(peptide_idx), frag);
+          const int tid = omp_get_thread_num();
+          const Peptide& pep = fi_peptides_[peptide_idx];
+          const char* seq_ptr = fasta_entries[pep.protein_idx].sequence.c_str() + pep.sequence_.first;
+          size_t seq_len = pep.sequence_.second;
+
+          generateFragmentsLightweight_(
+            thread_fragments[tid], seq_ptr, seq_len, static_cast<UInt32>(peptide_idx),
+            0.0, 0.0, nullptr);
         }
       }
 

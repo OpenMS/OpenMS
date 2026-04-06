@@ -15,6 +15,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 
 
+#include <array>
 #include <vector>
 #include <functional>
 
@@ -250,6 +251,42 @@ protected:
      * @param[in] fasta_entries
      */
     void generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
+
+    /// Precomputed residue mass lookup table: ASCII char -> internal monoisotopic mass (Da).
+    /// Indexed by single-letter amino acid code (e.g., 'A'=65). Entries for non-AA chars are 0.
+    static std::array<double, 128> residue_mass_table_;
+    static bool mass_table_initialized_;
+    static void initResidueMassTable_();
+
+    /// Precomputed ion-type mass offsets (from Residue::getInternalTo*Ion formulas)
+    struct IonOffsets
+    {
+      double b_offset{0.0};
+      double y_offset{0.0};
+      double a_offset{0.0};
+      double c_offset{0.0};
+      double x_offset{0.0};
+      double z_offset{0.0};
+    };
+    static IonOffsets ion_offsets_;
+
+    /// Lightweight fragment generation: compute b/y ion m/z directly from amino acid chars.
+    /// Bypasses AASequence::fromString and TheoreticalSpectrumGenerator.
+    /// @param[out] fragments  Output vector to append Fragment entries to
+    /// @param[in]  sequence   Raw amino acid string (no modifications)
+    /// @param[in]  seq_len    Length of sequence
+    /// @param[in]  peptide_idx Index of this peptide in fi_peptides_
+    /// @param[in]  n_term_mod_mass  Mass delta from N-terminal modification (0 if none)
+    /// @param[in]  c_term_mod_mass  Mass delta from C-terminal modification (0 if none)
+    /// @param[in]  residue_mod_masses  Per-residue modification mass deltas (nullptr if none; array of seq_len doubles)
+    void generateFragmentsLightweight_(
+      std::vector<Fragment>& fragments,
+      const char* sequence,
+      size_t seq_len,
+      UInt32 peptide_idx,
+      double n_term_mod_mass,
+      double c_term_mod_mass,
+      const double* residue_mod_masses) const;
 
     std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
     std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions)
