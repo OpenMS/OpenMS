@@ -9,12 +9,15 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
 
+#include <array>
+#include <mutex>
 #include <vector>
 #include <functional>
 
@@ -35,8 +38,10 @@ namespace OpenMS
      *
      * Field semantics and how they relate to the braced initializer lists used in tests {a, b, {c, d}, e}:
      *  - protein_idx .......... 'a' Index into the FASTA entries vector passed to build(); identifies the source protein.
-     *  - modification_idx_ .... 'b' Index into the list of generated modification variants for the given unmodified subsequence.
-     *                             In tests, this maps to mod_peptides[modification_idx_] created by ModifiedPeptideGenerator.
+     *  - mod_bitmask_ ......... 'b' Bitmask encoding which variable modification slots are active.
+     *                             Each bit corresponds to a (position, mod_type) pair found by scanning
+     *                             the sequence left-to-right against the variable modification config.
+     *                             0 = unmodified (or fixed-only). Supports up to 32 variable mod slots.
      *  - sequence_ ............ '{c, d}' 0-based start offset and length (in residues) of the peptide subsequence within the protein.
      *                             Note: length (d) is used like std::string::substr(start, length).
      *  - precursor_mz_ ........ 'e' Mono-isotopic m/z at charge 1 (M+H)+; used for ordering/slicing in the index.
@@ -45,15 +50,15 @@ namespace OpenMS
     struct Peptide {
 
       // We need a constructor in order to emplace back
-      Peptide(UInt32 protein_idx, UInt32 modification_idx, std::pair<uint16_t , uint16_t> sequence, float precursor_mz):
+      Peptide(UInt32 protein_idx, uint32_t mod_bitmask, std::pair<uint16_t , uint16_t> sequence, float precursor_mz):
           protein_idx(protein_idx),
-        modification_idx_(modification_idx),
+        mod_bitmask_(mod_bitmask),
         sequence_(sequence),
         precursor_mz_(precursor_mz)
         {}
 
         UInt32 protein_idx;            ///< 0-based index into FASTA entries provided to build(); identifies the source protein
-        UInt32 modification_idx_;      ///< Index into variant list produced by ModifiedPeptideGenerator for this subsequence (0 = unmodified)
+        uint32_t mod_bitmask_;         ///< Bitmask of active variable mod slots (0 = unmodified/fixed-only; up to 32 slots)
         std::pair<uint16_t , uint16_t> sequence_; ///< {start, length} within the source protein sequence (start is 0-based; length in residues)
         float precursor_mz_;           ///< Mono-isotopic m/z at charge 1 (M+H)+ of this peptide; used for sorting/filtering
     };
@@ -224,6 +229,19 @@ namespace OpenMS
     void querySpectrum(const MSSpectrum& spectrum,
                        SpectrumMatchesTopN& sms);
 
+    /** @brief Reconstruct a fully modified AASequence from a Peptide's bitmask.
+     *
+     * Used for result output — only called for final hits (not in the build hot path).
+     * Applies fixed modifications, then uses the bitmask to determine which variable
+     * modifications are active at which positions.
+     *
+     * @param[in] peptide   The Peptide descriptor with mod_bitmask_
+     * @param[in] fasta_entries The FASTA database used during build()
+     * @return The fully modified AASequence
+     */
+    AASequence reconstructModifiedSequence(const Peptide& peptide,
+                                           const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const;
+
 protected:
 
 
@@ -250,6 +268,140 @@ protected:
      * @param[in] fasta_entries
      */
     void generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
+
+    /// Entry in the per-AA variable modification lookup table.
+    struct VarModEntry
+    {
+      double delta_mass;                    ///< mass delta from this modification
+      const ResidueModification* mod_ptr;   ///< pointer to the modification (for AASequence reconstruction)
+      ResidueModification::TermSpecificity term_spec; ///< where this mod can be applied
+    };
+
+    /// A candidate modification slot for a specific peptide.
+    /// Slots are built by scanning a peptide sequence left-to-right against the variable mod config.
+    /// The slot index determines its bit position in mod_bitmask_.
+    struct ModSlot
+    {
+      uint16_t position;                    ///< residue index, or NTERM_SLOT/CTERM_SLOT
+      double delta_mass;                    ///< mass delta
+      const ResidueModification* mod_ptr;   ///< for AASequence reconstruction
+
+      static constexpr uint16_t NTERM_SLOT = UINT16_MAX - 1;
+      static constexpr uint16_t CTERM_SLOT = UINT16_MAX;
+    };
+
+    static constexpr size_t MAX_MOD_SLOTS = 32; ///< max variable mod slots per peptide (uint32_t bitmask)
+
+    /// Build per-AA modification lookup tables from modifications_fixed_ and modifications_variable_.
+    /// Called once at the start of generatePeptides().
+    void initModificationTables_();
+
+    /// Scan a peptide sequence to find all variable modification slots.
+    /// Returns the number of slots written to out_slots (at most MAX_MOD_SLOTS).
+    /// Deterministic ordering: N-term pure-terminal mods, then left-to-right residue mods
+    /// (ANYWHERE + position-specific terminal), then C-term pure-terminal mods.
+    /// @param is_protein_nterm true if this peptide starts at protein position 0
+    /// @param is_protein_cterm true if this peptide ends at the last protein residue
+    size_t buildModSlots_(const char* sequence, size_t seq_len, ModSlot* out_slots,
+                          bool is_protein_nterm = false, bool is_protein_cterm = false) const;
+
+    /// Per-AA fixed modification delta mass (0.0 if no fixed mod applies)
+    std::array<double, 128> fixed_mod_deltas_{};
+    /// Per-AA fixed modification pointer (nullptr if none)
+    std::array<const ResidueModification*, 128> fixed_mod_ptrs_{};
+    double fixed_nterm_delta_{0.0};   ///< Fixed N-terminal mod delta (0 if none)
+    double fixed_cterm_delta_{0.0};   ///< Fixed C-terminal mod delta (0 if none)
+    const ResidueModification* fixed_nterm_mod_ptr_{nullptr};
+    const ResidueModification* fixed_cterm_mod_ptr_{nullptr};
+
+    /// Per-AA variable modification table: for each ASCII char, list of possible variable mods
+    std::array<std::vector<VarModEntry>, 128> variable_mod_table_{};
+    /// Pure N-terminal variable mods (not residue-specific)
+    std::vector<VarModEntry> variable_nterm_mods_;
+    /// Pure C-terminal variable mods (not residue-specific)
+    std::vector<VarModEntry> variable_cterm_mods_;
+
+    bool mod_tables_initialized_{false};
+
+    /// Precomputed residue mass lookup table: ASCII char -> internal monoisotopic mass (Da).
+    /// Indexed by single-letter amino acid code (e.g., 'A'=65). Entries for non-AA chars are 0.
+    static std::array<double, 128> residue_mass_table_;
+    static std::once_flag mass_table_once_flag_;
+    static void initResidueMassTable_();
+
+    /// Precomputed ion-type mass offsets (from Residue::getInternalTo*Ion formulas)
+    struct IonOffsets
+    {
+      double b_offset{0.0};
+      double y_offset{0.0};
+      double a_offset{0.0};
+      double c_offset{0.0};
+      double x_offset{0.0};
+      double z_offset{0.0};
+    };
+    static IonOffsets ion_offsets_;
+
+    /// Lightweight fragment generation: compute b/y ion m/z directly from amino acid chars.
+    /// Bypasses AASequence::fromString and TheoreticalSpectrumGenerator.
+    /// @param[out] fragments  Output vector to append Fragment entries to
+    /// @param[in]  sequence   Raw amino acid string (no modifications)
+    /// @param[in]  seq_len    Length of sequence
+    /// @param[in]  peptide_idx Index of this peptide in fi_peptides_
+    /// @param[in]  n_term_mod_mass  Mass delta from N-terminal modification (0 if none)
+    /// @param[in]  c_term_mod_mass  Mass delta from C-terminal modification (0 if none)
+    /// @param[in]  residue_mod_masses  Per-residue modification mass deltas (nullptr if none; array of seq_len doubles)
+    void generateFragmentsLightweight_(
+      std::vector<Fragment>& fragments,
+      const char* sequence,
+      size_t seq_len,
+      UInt32 peptide_idx,
+      double n_term_mod_mass,
+      double c_term_mod_mass,
+      const double* residue_mod_masses) const;
+
+    /** @brief Tree-based fragment generation for all modified variants of a single base sequence.
+     *
+     * Instead of independently computing ion ladders for each of the 2^k modified variants
+     * (as generateFragmentsLightweight_ does), this method walks the residue sequence once,
+     * branching only at positions where a variable modification can be applied.
+     *
+     * Ion streams in the shared prefix — residues before the first variable-mod site — are
+     * computed exactly once and emitted for every variant simultaneously.  At each variable-mod
+     * site the active state groups are forked: one sub-group for each possible delta value
+     * (including "no modification").  The symmetric right-to-left pass handles suffix ions.
+     *
+     * Each variant's individual fragment stream is emitted in ascending m/z order (cumulative
+     * sums are monotone).  After this call the newly appended range in @p fragments consists of
+     * individually-sorted per-variant runs; callers can combine them via std::inplace_merge
+     * rather than a full std::sort.
+     *
+     * Complexity vs. generateFragmentsLightweight_ called once per variant:
+     *   - buildModSlots_() is called once per group instead of once per variant.
+     *   - Common-prefix residues are advanced through exactly once instead of 2^k times.
+     *   - The fork overhead grows as O(n_variants * seq_len) in the worst case (mods at pos 0),
+     *     matching the old approach, but is strictly cheaper when mod sites are downstream.
+     *
+     * @param[out] fragments     Output vector; new Fragment entries are *appended*.
+     * @param[in]  seq_ptr       Raw amino-acid sequence (no modification encoding).
+     * @param[in]  seq_len       Length of the sequence.
+     * @param[in]  variants      All (bitmask, peptide_idx) pairs for this base sequence,
+     *                           sorted by bitmask for deterministic output ordering.
+     * @param[in]  slots         Variable-mod slots from buildModSlots_() — shared across all variants.
+     * @param[in]  n_slots       Number of valid entries in @p slots.
+     * @param[in]  fixed_nterm   Fixed N-terminal mod mass delta (0 if none).
+     * @param[in]  fixed_cterm   Fixed C-terminal mod mass delta (0 if none).
+     * @param[in]  fixed_residue Per-residue fixed-mod mass deltas (nullptr if none; array of @p seq_len doubles).
+     */
+    void generateFragmentsVariants_(
+      std::vector<Fragment>& fragments,
+      const char* seq_ptr,
+      size_t seq_len,
+      const std::vector<std::pair<uint32_t, UInt32>>& variants,
+      const ModSlot* slots,
+      size_t n_slots,
+      double fixed_nterm,
+      double fixed_cterm,
+      const double* fixed_residue) const;
 
     std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
     std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions)
