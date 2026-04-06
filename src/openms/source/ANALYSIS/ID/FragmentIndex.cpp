@@ -170,13 +170,17 @@ namespace OpenMS
     mod_tables_initialized_ = true;
   }
 
-  size_t FragmentIndex::buildModSlots_(const char* sequence, size_t seq_len, ModSlot* out_slots) const
+  size_t FragmentIndex::buildModSlots_(const char* sequence, size_t seq_len, ModSlot* out_slots,
+                                       bool is_protein_nterm, bool is_protein_cterm) const
   {
     size_t n_slots = 0;
 
-    // 1. Pure N-terminal variable mods (not residue-specific)
+    // 1. Pure N-terminal variable mods (not residue-specific, origin='X')
     for (const auto& entry : variable_nterm_mods_)
     {
+      // PROTEIN_N_TERM: only for peptides at protein start
+      // N_TERM: for any peptide's N-terminus
+      if (entry.term_spec == ResidueModification::PROTEIN_N_TERM && !is_protein_nterm) continue;
       if (n_slots >= MAX_MOD_SLOTS) break;
       out_slots[n_slots++] = {ModSlot::NTERM_SLOT, entry.delta_mass, entry.mod_ptr};
     }
@@ -189,22 +193,43 @@ namespace OpenMS
       for (const auto& entry : var_mods)
       {
         if (n_slots >= MAX_MOD_SLOTS) break;
-        // Check term specificity: ANYWHERE applies everywhere,
-        // N_TERM only at position 0, C_TERM only at last position
-        if (entry.term_spec == ResidueModification::ANYWHERE ||
-            (entry.term_spec == ResidueModification::N_TERM && i == 0) ||
-            (entry.term_spec == ResidueModification::PROTEIN_N_TERM && i == 0) ||
-            (entry.term_spec == ResidueModification::C_TERM && i == seq_len - 1) ||
-            (entry.term_spec == ResidueModification::PROTEIN_C_TERM && i == seq_len - 1))
+        // ANYWHERE: any position
+        // N_TERM: peptide N-term (position 0)
+        // PROTEIN_N_TERM: only position 0 AND peptide is at protein start
+        // C_TERM: peptide C-term (last position)
+        // PROTEIN_C_TERM: only last position AND peptide is at protein end
+        bool applies = false;
+        if (entry.term_spec == ResidueModification::ANYWHERE)
+        {
+          applies = true;
+        }
+        else if (entry.term_spec == ResidueModification::N_TERM && i == 0)
+        {
+          applies = true;
+        }
+        else if (entry.term_spec == ResidueModification::PROTEIN_N_TERM && i == 0 && is_protein_nterm)
+        {
+          applies = true;
+        }
+        else if (entry.term_spec == ResidueModification::C_TERM && i == seq_len - 1)
+        {
+          applies = true;
+        }
+        else if (entry.term_spec == ResidueModification::PROTEIN_C_TERM && i == seq_len - 1 && is_protein_cterm)
+        {
+          applies = true;
+        }
+        if (applies)
         {
           out_slots[n_slots++] = {static_cast<uint16_t>(i), entry.delta_mass, entry.mod_ptr};
         }
       }
     }
 
-    // 3. Pure C-terminal variable mods (not residue-specific)
+    // 3. Pure C-terminal variable mods (not residue-specific, origin='X')
     for (const auto& entry : variable_cterm_mods_)
     {
+      if (entry.term_spec == ResidueModification::PROTEIN_C_TERM && !is_protein_cterm) continue;
       if (n_slots >= MAX_MOD_SLOTS) break;
       out_slots[n_slots++] = {ModSlot::CTERM_SLOT, entry.delta_mass, entry.mod_ptr};
     }
@@ -360,8 +385,10 @@ namespace OpenMS
     {
       const char* seq_ptr = protein_seq.c_str() + peptide.sequence_.first;
       size_t seq_len = peptide.sequence_.second;
+      bool is_prot_nterm = (peptide.sequence_.first == 0);
+      bool is_prot_cterm = (peptide.sequence_.first + seq_len == protein_seq.size());
       ModSlot slots[MAX_MOD_SLOTS];
-      size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots);
+      size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm);
 
       for (size_t s = 0; s < n_slots; ++s)
       {
@@ -472,8 +499,10 @@ namespace OpenMS
           if (has_variable_mods)
           {
             // Bitmask-based variable modification enumeration
+            bool is_prot_nterm = (digested_peptide.first == 0);
+            bool is_prot_cterm = (digested_peptide.first + seq_len == protein.sequence.size());
             ModSlot slots[MAX_MOD_SLOTS];
-            size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots);
+            size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm);
 
             if (n_slots == 0)
             {
@@ -677,8 +706,11 @@ namespace OpenMS
           }
 
           // Rebuild mod slots and apply variable mods from bitmask
+          const string& prot_seq = fasta_entries[pep.protein_idx].sequence;
+          bool is_prot_nterm = (pep.sequence_.first == 0);
+          bool is_prot_cterm = (pep.sequence_.first + seq_len == prot_seq.size());
           ModSlot slots[MAX_MOD_SLOTS];
-          size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots);
+          size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm);
           for (size_t s = 0; s < n_slots; ++s)
           {
             if (!(pep.mod_bitmask_ & (1u << s))) continue;

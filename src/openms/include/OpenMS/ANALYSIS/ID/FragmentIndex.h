@@ -300,7 +300,10 @@ protected:
     /// Returns the number of slots written to out_slots (at most MAX_MOD_SLOTS).
     /// Deterministic ordering: N-term pure-terminal mods, then left-to-right residue mods
     /// (ANYWHERE + position-specific terminal), then C-term pure-terminal mods.
-    size_t buildModSlots_(const char* sequence, size_t seq_len, ModSlot* out_slots) const;
+    /// @param is_protein_nterm true if this peptide starts at protein position 0
+    /// @param is_protein_cterm true if this peptide ends at the last protein residue
+    size_t buildModSlots_(const char* sequence, size_t seq_len, ModSlot* out_slots,
+                          bool is_protein_nterm = false, bool is_protein_cterm = false) const;
 
     /// Per-AA fixed modification delta mass (0.0 if no fixed mod applies)
     std::array<double, 128> fixed_mod_deltas_{};
