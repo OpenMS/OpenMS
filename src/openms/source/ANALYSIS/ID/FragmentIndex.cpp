@@ -37,6 +37,7 @@
 #include <bit>
 #include <functional>
 #include <mutex>
+#include <boost/sort/sort.hpp>
 
 
 using namespace std;
@@ -749,8 +750,8 @@ namespace OpenMS
 
       OPENMS_LOG_INFO << "Sorting fragments..." << std::endl;
 
-      /// 1.) First all Fragments are sorted by their own mass!
-      sort(fi_fragments_.begin(), fi_fragments_.end(), [](const Fragment& a, const Fragment& b)
+      /// 1.) First all Fragments are sorted by their own mass (parallel via Boost.Sort)
+      boost::sort::block_indirect_sort(fi_fragments_.begin(), fi_fragments_.end(), [](const Fragment& a, const Fragment& b)
       {
         return std::tie(a.fragment_mz_, a.peptide_idx_) < std::tie(b.fragment_mz_, b.peptide_idx_);
       });
