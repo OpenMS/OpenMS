@@ -80,15 +80,14 @@ public:
   // This captures the two-dimensional ordering constraint of the index.
   bool fragmentsSorted()
   {
-    if (fi_fragment_mzs_.size() != fi_fragment_peptide_idxs_.size()) return false;
-    for (size_t fi_idx = 0; fi_idx < fi_fragment_mzs_.size(); fi_idx += bucketsize_)
+    for (size_t fi_idx = 0; fi_idx < fi_fragments_.size(); fi_idx += bucketsize_)
     {
       UInt32 last_idx = 0;
-      const size_t end = std::min(fi_idx + bucketsize_, fi_fragment_mzs_.size());
+      const size_t end = (fi_idx + bucketsize_ > fi_fragments_.size()) ? fi_fragments_.size() : (fi_idx + bucketsize_);
       for (size_t bucket_idx = fi_idx; bucket_idx < end; ++bucket_idx)
       {
-        if (fi_fragment_peptide_idxs_[bucket_idx] < last_idx) return false;
-        last_idx = fi_fragment_peptide_idxs_[bucket_idx];
+        if (fi_fragments_[bucket_idx].peptide_idx_ < last_idx) return false;
+        last_idx = fi_fragments_[bucket_idx].peptide_idx_;
       }
     }
     return true;
@@ -160,41 +159,6 @@ public:
     return test;
   }
 };
-
-// Helper: build a FragmentIndex with given params and protein sequence
-FragmentIndex_test buildTestIndex(const std::string& protein_seq,
-                                  double frag_tol = 0.05,
-                                  const std::string& frag_unit = "Da",
-                                  double prec_tol = 10.0,
-                                  const std::string& prec_unit = "ppm",
-                                  int missed_cleavages = 1,
-                                  int min_size = 5,
-                                  int max_size = 40)
-{
-  FragmentIndex_test fi;
-  Param p = fi.getParameters();
-  p.setValue("ions:add_b_ions", "true");
-  p.setValue("ions:add_y_ions", "true");
-  p.setValue("peptide:min_size", min_size);
-  p.setValue("peptide:max_size", max_size);
-  p.setValue("peptide:missed_cleavages", missed_cleavages);
-  p.setValue("peptide:min_mass", 0);
-  p.setValue("peptide:max_mass", 9000);
-  p.setValue("fragment:min_mz", 0);
-  p.setValue("fragment:max_mz", 90000);
-  p.setValue("fragment:mass_tolerance", frag_tol);
-  p.setValue("fragment:mass_tolerance_unit", frag_unit);
-  p.setValue("precursor:mass_tolerance", prec_tol);
-  p.setValue("precursor:mass_tolerance_unit", prec_unit);
-  p.setValue("precursor:min_charge", 1);
-  p.setValue("precursor:max_charge", 3);
-  fi.setParameters(p);
-
-  std::vector<FASTAFile::FASTAEntry> entries;
-  entries.push_back({"sp|TEST", "test protein", protein_seq});
-  fi.build(entries);
-  return fi;
-}
 
 //////////////////////////////
 START_TEST(FragmentIndex, "$Id")
@@ -458,145 +422,6 @@ START_SECTION(tolerance)
     }
   }
   TEST_TRUE(found);
-}
-END_SECTION
-
-
-START_SECTION(query_edge_empty_range)
-{
-  // Edge case: empty peptide range [k, k) — should produce 0 hits
-  auto fi = buildTestIndex("EVAEAATGEDASSPPPKMDAILR");
-
-  Peak1D peak;
-  peak.setMZ(500.0);
-  peak.setIntensity(1.0);
-
-  auto range = fi.getPeptidesInPrecursorRange(99999.0f, {0.0f, 0.0f});
-  TEST_EQUAL(range.first, range.second)
-
-  auto hits = fi.query(peak, range, 1);
-  TEST_EQUAL(hits.size(), 0)
-}
-END_SECTION
-
-START_SECTION(query_edge_small_bucket)
-{
-  // Edge case: very short protein producing few fragments
-  auto fi = buildTestIndex("AAAAAKR", 0.05, "Da", 10.0, "ppm", 0, 5, 7);
-
-  Peak1D peak;
-  peak.setMZ(300.0);
-  peak.setIntensity(1.0);
-  auto range = fi.getPeptidesInPrecursorRange(300.0f, {-300.0f, 300.0f});
-
-  auto hits = fi.query(peak, range, 1);
-  (void)hits;
-}
-END_SECTION
-
-START_SECTION(query_edge_ppm_tolerance)
-{
-  auto fi = buildTestIndex(
-    "EVAEAATGEDASSPPPKMDAILRGLNFEQLEEVIQTLHNAFSKENEPQLYPAIER",
-    20.0, "ppm");
-
-  TheoreticalSpectrumGenerator tsg;
-  auto tp = tsg.getParameters();
-  tp.setValue("add_b_ions", "true");
-  tp.setValue("add_y_ions", "true");
-  tsg.setParameters(tp);
-
-  AASequence pep = AASequence::fromString("EVAEAATGEDASSPPPK");
-  MSSpectrum spec;
-  tsg.getSpectrum(spec, pep, 1, 1);
-  float prec_mz = pep.getMZ(1);
-  auto range = fi.getPeptidesInPrecursorRange(prec_mz, {0.0f, 0.0f});
-
-  size_t total_hits = 0;
-  for (const auto& peak : spec)
-    total_hits += fi.query(peak, range, 1).size();
-  TEST_TRUE(total_hits > 0)
-}
-END_SECTION
-
-START_SECTION(query_edge_tolerance_boundary)
-{
-  auto fi = buildTestIndex("EVAEAATGEDASSPPPKMDAILR", 0.01, "Da");
-
-  TheoreticalSpectrumGenerator tsg;
-  auto tp = tsg.getParameters();
-  tp.setValue("add_b_ions", "true");
-  tp.setValue("add_y_ions", "true");
-  tsg.setParameters(tp);
-
-  AASequence pep = AASequence::fromString("EVAEAATGEDASSPPPK");
-  MSSpectrum spec;
-  tsg.getSpectrum(spec, pep, 1, 1);
-  float prec_mz = pep.getMZ(1);
-  auto range = fi.getPeptidesInPrecursorRange(prec_mz, {0.0f, 0.0f});
-
-  // Peaks shifted just inside tolerance
-  MSSpectrum shifted;
-  for (const auto& peak : spec)
-  {
-    Peak1D p;
-    p.setMZ(peak.getMZ() + 0.009);
-    p.setIntensity(peak.getIntensity());
-    shifted.push_back(p);
-  }
-  size_t inside_hits = 0;
-  for (const auto& peak : shifted)
-    inside_hits += fi.query(peak, range, 1).size();
-  TEST_TRUE(inside_hits > 0)
-
-  // Peaks shifted outside tolerance
-  MSSpectrum outside;
-  for (const auto& peak : spec)
-  {
-    Peak1D p;
-    p.setMZ(peak.getMZ() + 0.02);
-    p.setIntensity(peak.getIntensity());
-    outside.push_back(p);
-  }
-  size_t outside_hits = 0;
-  for (const auto& peak : outside)
-    outside_hits += fi.query(peak, range, 1).size();
-  TEST_EQUAL(outside_hits, 0)
-}
-END_SECTION
-
-START_SECTION(query_edge_wide_precursor_window)
-{
-  auto fi = buildTestIndex(
-    "EVAEAATGEDASSPPPKMDAILRGLNFEQLEEVIQTLHNAFSKENEPQLYPAIER"
-    "IHFHTYRQVKAFPAYQLDKKMGKDYTRIVFVEDPTFHQIITSLENYR"
-    "SMKARASNFKSARLAKYGVDLEKELVARFAQHTAIKNPNFTKLQGSR",
-    0.05, "Da", 500.0, "Da");
-
-  TheoreticalSpectrumGenerator tsg;
-  auto tp = tsg.getParameters();
-  tp.setValue("add_b_ions", "true");
-  tp.setValue("add_y_ions", "true");
-  tsg.setParameters(tp);
-
-  AASequence pep = AASequence::fromString("EVAEAATGEDASSPPPK");
-  MSSpectrum spec;
-  tsg.getSpectrum(spec, pep, 1, 1);
-  float prec_mz = pep.getMZ(1);
-  auto range = fi.getPeptidesInPrecursorRange(prec_mz, {0.0f, 0.0f});
-
-  size_t total_hits = 0;
-  for (const auto& peak : spec)
-    total_hits += fi.query(peak, range, 1).size();
-  TEST_TRUE(total_hits > 0)
-}
-END_SECTION
-
-START_SECTION(query_edge_soa_invariants)
-{
-  auto fi = buildTestIndex("EVAEAATGEDASSPPPKMDAILRGLNFEQLEEVIQTLHNAFSKENEPQLYPAIER");
-  TEST_TRUE(fi.fragmentsSorted())
-  TEST_TRUE(fi.peptidesSorted())
 }
 END_SECTION
 

@@ -31,7 +31,6 @@
 #include <OpenMS/QC/QCBase.h>
 #include <omp.h>
 #include <functional>
-#include <numeric>
 
 
 using namespace std;
@@ -42,12 +41,12 @@ namespace OpenMS
 {
 
 #ifdef DEBUG_FRAGMENT_INDEX
-    static void print_slice(const std::vector<float>& mzs, size_t low, size_t high)
+    static void print_slice(const std::vector<FragmentIndex::Fragment>& slice, size_t low, size_t high)
     {
       cout << "Slice: ";
       for(size_t i = low; i <= high; i++)
       {
-        cout << mzs[i] << " ";
+        cout << slice[i].fragment_mz_ << " ";
       }
       cout << endl;
     }
@@ -62,8 +61,7 @@ namespace OpenMS
 
   void FragmentIndex::clear()
   {
-    fi_fragment_mzs_.clear();
-    fi_fragment_peptide_idxs_.clear();
+    fi_fragments_.clear();
     fi_peptides_.clear();
     bucket_min_mz_.clear();
     is_build_ = false;
@@ -188,16 +186,13 @@ namespace OpenMS
 
       OPENMS_LOG_INFO << "Generating fragments..." << std::endl;
 
-      // Per-thread fragment vectors to avoid omp critical serialization.
-      // Each thread accumulates into its own pair of vectors, then we merge.
+      // Per-thread fragment vectors to avoid omp critical serialization
       const int num_threads = omp_get_max_threads();
       const size_t est_per_thread = (fi_peptides_.size() * 2 * peptide_min_length_) / num_threads + 1;
-      vector<vector<float>> thread_mzs(num_threads);
-      vector<vector<UInt32>> thread_idxs(num_threads);
+      vector<vector<Fragment>> thread_fragments(num_threads);
       for (int t = 0; t < num_threads; ++t)
       {
-        thread_mzs[t].reserve(est_per_thread);
-        thread_idxs[t].reserve(est_per_thread);
+        thread_fragments[t].reserve(est_per_thread);
       }
 
       vector<AASequence> mod_peptides;
@@ -227,84 +222,51 @@ namespace OpenMS
         for (const float& frag : b_y_ions)
         {
           if (fragment_min_mz_ > frag || frag > fragment_max_mz_) continue;
-          thread_mzs[tid].push_back(static_cast<float>(frag));
-          thread_idxs[tid].push_back(static_cast<UInt32>(peptide_idx));
+          thread_fragments[tid].emplace_back(static_cast<UInt32>(peptide_idx), frag);
         }
       }
 
-      // Merge per-thread vectors into global SoA arrays
+      // Merge per-thread vectors into global fragment array
       size_t total_fragments = 0;
-      for (int t = 0; t < num_threads; ++t) total_fragments += thread_mzs[t].size();
-      fi_fragment_mzs_.reserve(total_fragments);
-      fi_fragment_peptide_idxs_.reserve(total_fragments);
+      for (int t = 0; t < num_threads; ++t) total_fragments += thread_fragments[t].size();
+      fi_fragments_.reserve(total_fragments);
       for (int t = 0; t < num_threads; ++t)
       {
-        fi_fragment_mzs_.insert(fi_fragment_mzs_.end(), thread_mzs[t].begin(), thread_mzs[t].end());
-        fi_fragment_peptide_idxs_.insert(fi_fragment_peptide_idxs_.end(), thread_idxs[t].begin(), thread_idxs[t].end());
-        // Free thread-local memory immediately
-        vector<float>().swap(thread_mzs[t]);
-        vector<UInt32>().swap(thread_idxs[t]);
+        fi_fragments_.insert(fi_fragments_.end(), thread_fragments[t].begin(), thread_fragments[t].end());
+        vector<Fragment>().swap(thread_fragments[t]);
       }
 
       std::cout << "Sorting fragments..." << std::endl;
 
-      /// 1.) First all Fragments are sorted by their own mass via index permutation (SoA)
-      const size_t n = fi_fragment_mzs_.size();
-      std::vector<size_t> perm(n);
-      std::iota(perm.begin(), perm.end(), 0);
-      std::sort(perm.begin(), perm.end(), [&](size_t a, size_t b) {
-        return std::tie(fi_fragment_mzs_[a], fi_fragment_peptide_idxs_[a])
-             < std::tie(fi_fragment_mzs_[b], fi_fragment_peptide_idxs_[b]);
-      });
+      /// 1.) First all Fragments are sorted by their own mass!
+      sort(fi_fragments_.begin(), fi_fragments_.end(), [](const Fragment& a, const Fragment& b)
       {
-        std::vector<float> sorted_mzs(n);
-        std::vector<UInt32> sorted_idxs(n);
-        for (size_t i = 0; i < n; ++i)
-        {
-          sorted_mzs[i] = fi_fragment_mzs_[perm[i]];
-          sorted_idxs[i] = fi_fragment_peptide_idxs_[perm[i]];
-        }
-        fi_fragment_mzs_ = std::move(sorted_mzs);
-        fi_fragment_peptide_idxs_ = std::move(sorted_idxs);
-      }
-      perm.clear(); // free permutation memory
+        return std::tie(a.fragment_mz_, a.peptide_idx_) < std::tie(b.fragment_mz_, b.peptide_idx_);
+      });
 
       /// Calculate the bucket size
-      bucketsize_ = sqrt(n);
+      bucketsize_ = sqrt(fi_fragments_.size()); //Todo: MSFragger uses a different approach, which might be better
       OPENMS_LOG_INFO << "Creating DB with bucket_size " << bucketsize_ << endl;
 
-      /// 2.) Per-bucket sort by peptide_idx and record bucket_min_mz_
-      std::vector<size_t> bperm; // reusable per-bucket permutation
-      #pragma omp parallel for private(bperm)
-      for (SignedSize i = 0; i < (SignedSize)n; i += bucketsize_)
+      /// 2.) next sort after precursor mass and save the min_mz of each bucket
+      #pragma omp parallel for
+      for (SignedSize i = 0; i < (SignedSize)fi_fragments_.size(); i += bucketsize_)
       {
+
         #pragma omp critical
-        bucket_min_mz_.emplace_back(fi_fragment_mzs_[i]);
+        bucket_min_mz_.emplace_back(fi_fragments_[i].fragment_mz_);
 
-        const size_t bucket_start = static_cast<size_t>(i);
-        const size_t bucket_end = std::min(bucket_start + bucketsize_, n);
-        const size_t bucket_len = bucket_end - bucket_start;
+        auto bucket_start = fi_fragments_.begin() + i;
+        auto bucket_end = (i + bucketsize_) > fi_fragments_.size() ? fi_fragments_.end() : bucket_start + bucketsize_;
 
-        bperm.resize(bucket_len);
-        std::iota(bperm.begin(), bperm.end(), size_t(0));
-        std::sort(bperm.begin(), bperm.end(), [&](size_t a, size_t b) {
-          return fi_fragment_peptide_idxs_[bucket_start + a]
-               < fi_fragment_peptide_idxs_[bucket_start + b];
+//TODO: is this thread safe????
+        sort(bucket_start, bucket_end, [](const Fragment& a, const Fragment& b) {
+          return a.peptide_idx_ < b.peptide_idx_; // we don´t need a tie, because the idx are unique
         });
-
-        std::vector<float> tmp_mzs(bucket_len);
-        std::vector<UInt32> tmp_idxs(bucket_len);
-        for (size_t k = 0; k < bucket_len; ++k)
-        {
-          tmp_mzs[k] = fi_fragment_mzs_[bucket_start + bperm[k]];
-          tmp_idxs[k] = fi_fragment_peptide_idxs_[bucket_start + bperm[k]];
-        }
-        std::copy(tmp_mzs.begin(), tmp_mzs.end(), fi_fragment_mzs_.begin() + bucket_start);
-        std::copy(tmp_idxs.begin(), tmp_idxs.end(), fi_fragment_peptide_idxs_.begin() + bucket_start);
       }
       OPENMS_LOG_INFO << "Sorting by bucket min m/z:" << bucketsize_ << endl;
-      // Resort in case the parallelization block above messed something up
-      std::sort(bucket_min_mz_.begin(), bucket_min_mz_.end());
+      //Resort in case the parallelization block above messed something up TODO: check if this can happen
+      std::sort( bucket_min_mz_.begin(), bucket_min_mz_.end());
       is_build_ = true;
       OPENMS_LOG_INFO << "Fragment index built!" << endl;
   }
@@ -323,48 +285,47 @@ namespace OpenMS
                                                   const pair<size_t, size_t>& peptide_idx_range,
                                                   uint16_t peak_charge)
   {
-      const float adjusted_mass = peak.getMZ() * static_cast<float>(peak_charge) - ((peak_charge - 1) * Constants::PROTON_MASS_U);
-      const float frag_tol = fragment_mz_tolerance_unit_ppm_ ? Math::ppmToMass(fragment_mz_tolerance_, adjusted_mass) : fragment_mz_tolerance_;
-      const float lo_bound = adjusted_mass - frag_tol;
-      const float hi_bound = adjusted_mass + frag_tol;
+      float adjusted_mass = peak.getMZ() * (float)peak_charge -((peak_charge-1) * Constants::PROTON_MASS_U);
 
-      auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), lo_bound);
-      auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), hi_bound);
+      float frag_tol = fragment_mz_tolerance_unit_ppm_ ? Math::ppmToMass(fragment_mz_tolerance_, adjusted_mass) : fragment_mz_tolerance_;
+
+      auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), adjusted_mass - frag_tol);
+      auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), adjusted_mass + frag_tol);
+
       if (left_it != bucket_min_mz_.begin()) --left_it;
 
-      const auto in_range_buckets = make_pair(std::distance(bucket_min_mz_.begin(), left_it),
-                                              std::distance(bucket_min_mz_.begin(), right_it));
+      auto in_range_buckets = make_pair(std::distance(bucket_min_mz_.begin(), left_it), std::distance(bucket_min_mz_.begin(), right_it));
 
       vector<FragmentIndex::Hit> hits;
       hits.reserve(peptide_idx_range.second - peptide_idx_range.first);
 
-      const float* mz_data = fi_fragment_mzs_.data();
-      const UInt32* pidx_data = fi_fragment_peptide_idxs_.data();
-      const UInt32 pidx_limit = static_cast<UInt32>(peptide_idx_range.second); // exclusive upper bound
 
-      for (size_t j = static_cast<size_t>(in_range_buckets.first); j < static_cast<size_t>(in_range_buckets.second); ++j)
+      for (UInt32 j = in_range_buckets.first; j < in_range_buckets.second; j++)
       {
-        const size_t slice_begin = j * bucketsize_;
-        const size_t slice_end = std::min((j + 1) * bucketsize_, fi_fragment_mzs_.size());
+        auto slice_begin = fi_fragments_.begin() + (j*bucketsize_);
+        auto slice_end = ((j+1) * bucketsize_) >= fi_fragments_.size() ? fi_fragments_.end() : (fi_fragments_.begin() + ((j+1) * bucketsize_)) ;
 
-        // Binary search on peptide_idx within this bucket
-        auto lb = std::lower_bound(pidx_data + slice_begin, pidx_data + slice_end,
-                                   static_cast<UInt32>(peptide_idx_range.first));
-        size_t i = static_cast<size_t>(lb - pidx_data);
+        auto left_iter = std::lower_bound(slice_begin, slice_end, peptide_idx_range.first, [](Fragment a, UInt32 b) { return a.peptide_idx_ < b;} );
 
-        for (; i < slice_end; ++i)
+        while (left_iter != slice_end) // sequential scan
         {
-          if (pidx_data[i] >= pidx_limit) break;
-          if (mz_data[i] >= lo_bound && mz_data[i] <= hi_bound)
+          if(left_iter->peptide_idx_ > peptide_idx_range.second) break;
+
+          if ((adjusted_mass >= left_iter->fragment_mz_ - frag_tol ) && adjusted_mass <= (left_iter->fragment_mz_+ frag_tol))
           {
-            hits.emplace_back(pidx_data[i], mz_data[i]);
+
+            hits.emplace_back(left_iter->peptide_idx_, left_iter->fragment_mz_);
+            #ifdef DEBUG_FRAGMENT_INDEX
+            if (left_iter->peptide_idx_ < peptide_idx_range.first || left_iter->peptide_idx_ > peptide_idx_range.second)
+              OPENMS_LOG_WARN << "idx out of range" << endl;
+            #endif
           }
+          ++left_iter;
         }
       }
 
       return hits;
   }
-
 
   void FragmentIndex::queryPeaks(SpectrumMatchesTopN& candidates, const MSSpectrum& spectrum,
                                 const std::pair<size_t, size_t>& candidates_range,
