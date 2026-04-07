@@ -215,5 +215,9 @@ double DecoyGenerator::SequenceIdentity_(const String& decoy, const String& targ
    
   return std::max(identity, rev_identity);
 }
-
+AASequence DecoyGenerator::repeatPreservingDecoy(const AASequence& protein)
+{
+  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
+  return shufflePeptides(protein, "no cleavage");
+}
 

@@ -80,6 +80,16 @@ namespace OpenMS
             const String& protease,
             const int max_attempts = 100
             );
+
+      /*
+        @brief Generate a repeat-preserving decoy sequence.
+        Shuffles the protein while preserving amino acid composition.
+  
+        @param[in] protein The target protein sequence
+        @return A decoy sequence with preserved composition
+        @note Modifications are discarded
+     */
+      AASequence repeatPreservingDecoy(const AASequence& protein);
     
     private:
       // sequence identity by matching AAs
