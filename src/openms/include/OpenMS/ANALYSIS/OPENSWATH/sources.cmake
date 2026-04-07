@@ -30,6 +30,7 @@ set(sources_list_h
   OpenSwathOSWParquetReader.h
   OpenSwathOSWParquetWriter.h
   OpenSwathOSWWriter.h
+  OpenSwathPrecursorEvidenceFilter.h
   OpenSwathWorkflow.h
   PeakIntegrator.h
   PeakPickerChromatogram.h
