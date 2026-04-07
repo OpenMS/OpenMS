@@ -15,17 +15,18 @@ import pytest
 import pyopenms
 
 
-def _get_all_classes():
-    """Return all public non-enum classes exported by pyopenms."""
+def _get_copyable_classes():
+    """Return public non-enum classes that define __copy__ (i.e., support copying)."""
     return sorted(
         name for name in dir(pyopenms)
         if not name.startswith("_")
         and inspect.isclass(getattr(pyopenms, name, None))
         and not issubclass(getattr(pyopenms, name), enum.Enum)
+        and hasattr(getattr(pyopenms, name), "__copy__")
     )
 
 
-ALL_CLASSES = _get_all_classes()
+COPYABLE_CLASSES = _get_copyable_classes()
 
 
 def _try_default_construct(cls):
@@ -45,11 +46,9 @@ def _has_own_eq(cls):
     )
 
 
-@pytest.mark.parametrize("class_name", ALL_CLASSES)
+@pytest.mark.parametrize("class_name", COPYABLE_CLASSES)
 def test_copy_copy(class_name):
     cls = getattr(pyopenms, class_name)
-    if not hasattr(cls, "__copy__"):
-        pytest.skip(f"{class_name} does not define __copy__")
     obj = _try_default_construct(cls)
     if obj is None:
         pytest.skip(f"{class_name} cannot be default-constructed")
@@ -60,11 +59,9 @@ def test_copy_copy(class_name):
         assert obj_copy == obj
 
 
-@pytest.mark.parametrize("class_name", ALL_CLASSES)
+@pytest.mark.parametrize("class_name", COPYABLE_CLASSES)
 def test_deepcopy(class_name):
     cls = getattr(pyopenms, class_name)
-    if not hasattr(cls, "__deepcopy__"):
-        pytest.skip(f"{class_name} does not define __deepcopy__")
     obj = _try_default_construct(cls)
     if obj is None:
         pytest.skip(f"{class_name} cannot be default-constructed")
@@ -75,7 +72,7 @@ def test_deepcopy(class_name):
         assert obj_copy == obj
 
 
-@pytest.mark.parametrize("class_name", ALL_CLASSES)
+@pytest.mark.parametrize("class_name", COPYABLE_CLASSES)
 def test_copy_constructor(class_name):
     cls = getattr(pyopenms, class_name)
     obj = _try_default_construct(cls)
