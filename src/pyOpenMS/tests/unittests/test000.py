@@ -245,6 +245,19 @@ def testAASequence():
     assert seq3.toBracketString() == "PEPTIDEXSEKUEM[147]CER"
     assert seq3.toBracketString(True) == "PEPTIDEXSEKUEM[147]CER"
 
+    # copy constructor from existing AASequence object
+    seq_orig = pyopenms.AASequence.fromString("PEPTIDER")
+    seq_copy = pyopenms.AASequence(seq_orig)
+    assert seq_copy.toString() == "PEPTIDER"
+    assert abs(seq_copy.getMonoWeight() - seq_orig.getMonoWeight()) < 0.001
+
+    # copy constructor with modified sequence
+    seq_mod = pyopenms.AASequence.fromString("PEPTM(Oxidation)IDE")
+    seq_mod_copy = pyopenms.AASequence(seq_mod)
+    assert seq_mod_copy.toString() == "PEPTM(Oxidation)IDE"
+    assert seq_mod_copy.isModified()
+    assert abs(seq_mod_copy.getMonoWeight() - seq_mod.getMonoWeight()) < 0.001
+
     assert seq.toBracketString(False) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
            seq.toBracketString(False) == "PEPTIDESEKUEM[147.035400017100017]CER"
 
@@ -283,13 +296,15 @@ def testAASequence():
     assert "length=" in repr_str
     assert "mono_mass=" in repr_str
     assert "modified=True" in repr_str
+    # __str__ returns the peptide string (not repr)
     str_str = str(aas_repr)
-    assert str_str == repr_str
+    assert str_str == "PEPTM(Oxidation)IDE"
 
     # Test unmodified sequence
     aas_unmod = pyopenms.AASequence.fromString("PEPTIDE")
     repr_unmod = repr(aas_unmod)
     assert "modified=True" not in repr_unmod
+    assert str(aas_unmod) == "PEPTIDE"
 
     # Test getAAFrequencies - matching C++ test case
     aas_freq = pyopenms.AASequence.fromString("THREEAAAWITHYYY")
