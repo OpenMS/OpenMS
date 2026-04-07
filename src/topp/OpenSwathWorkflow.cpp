@@ -50,13 +50,18 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPrecursorEvidenceFilter.h>
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <limits>
 #include <memory>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
 
 // #define OPENSWATH_WORKFLOW_DEBUG
 
@@ -419,7 +424,17 @@ protected:
     }
     else if (name == "Library")
     {
-      return TransitionTSVFile().getDefaults();
+      Param p = TransitionTSVFile().getDefaults();
+      p.insert("prefilter:", OpenSwathPrecursorEvidenceFilter().getDefaults());
+      p.setValue("prefilter:aggregation_method", "any",
+        "How to combine Library:prefilter evidence across input runs. 'any' keeps a target precursor if it is supported in at least one run; 'all' requires support in every run.");
+      p.setValidStrings("prefilter:aggregation_method", {"any", "all"});
+      p.setValue("prefilter:decoy_handling", "keep_matching",
+        "How to handle decoys after Library:prefilter target selection. 'remove' writes target-only libraries. 'keep_all' keeps all original decoys. 'keep_matching' keeps decoys whose precursor IDs map to kept targets after removing decoy_prefix.");
+      p.setValidStrings("prefilter:decoy_handling", {"remove", "keep_all", "keep_matching"});
+      p.setValue("prefilter:decoy_prefix", "DECOY_",
+        "Prefix used by Library:prefilter:decoy_handling=keep_matching to map decoy precursor IDs back to target precursor IDs.");
+      return p;
     }
     else if (name == "Calibration")
     {
@@ -550,6 +565,299 @@ protected:
                     << priority_sequences.size() << std::endl;
     
     return priority_sequences;
+  }
+
+  static bool hasDecoyPrefix_(const std::string& id, const String& decoy_prefix)
+  {
+    const std::string prefix = decoy_prefix;
+    if (!prefix.empty() && id.find(prefix) == 0)
+    {
+      return true;
+    }
+    return id.find("DECOY") == 0 || id.find("Decoy") == 0 || id.find("decoy") == 0;
+  }
+
+  static std::unordered_map<std::string, std::string> invertStringMap_(const std::unordered_map<std::string, std::string>& input)
+  {
+    std::unordered_map<std::string, std::string> output;
+    output.reserve(input.size());
+    for (const auto& item : input)
+    {
+      output[item.second] = item.first;
+    }
+    return output;
+  }
+
+  static bool mapsToSelectedTarget_(const std::string& decoy_ref,
+                                    const std::unordered_set<std::string>& selected_targets,
+                                    const String& decoy_prefix,
+                                    const std::unordered_map<std::string, std::string>& traml_to_current,
+                                    const std::unordered_map<std::string, std::string>& current_to_traml)
+  {
+    const std::string prefix = decoy_prefix;
+    if (!prefix.empty() && decoy_ref.find(prefix) == 0)
+    {
+      const std::string target_ref = decoy_ref.substr(prefix.size());
+      if (selected_targets.find(target_ref) != selected_targets.end())
+      {
+        return true;
+      }
+    }
+
+    const auto traml_it = current_to_traml.find(decoy_ref);
+    if (traml_it == current_to_traml.end())
+    {
+      return false;
+    }
+    const std::string& decoy_traml_ref = traml_it->second;
+    if (prefix.empty() || decoy_traml_ref.find(prefix) != 0)
+    {
+      return false;
+    }
+
+    const std::string target_traml_ref = decoy_traml_ref.substr(prefix.size());
+    if (selected_targets.find(target_traml_ref) != selected_targets.end())
+    {
+      return true;
+    }
+    const auto current_it = traml_to_current.find(target_traml_ref);
+    return current_it != traml_to_current.end() &&
+           selected_targets.find(current_it->second) != selected_targets.end();
+  }
+
+  static void applyPrecursorIMScale_(OpenSwath::LightTransition& transition, double precursor_im_scale)
+  {
+    if (precursor_im_scale != 1.0 && transition.precursor_im >= 0.0)
+    {
+      transition.precursor_im *= precursor_im_scale;
+    }
+  }
+
+  static void applyPrecursorIMScale_(OpenSwath::LightCompound& compound, double precursor_im_scale)
+  {
+    if (precursor_im_scale != 1.0 && compound.drift_time >= 0.0)
+    {
+      compound.drift_time *= precursor_im_scale;
+    }
+  }
+
+  static OpenSwath::LightTargetedExperiment buildPrefilteredLibraryExperiment_(
+    const OpenSwath::LightTargetedExperiment& transition_exp,
+    const std::unordered_set<std::string>& selected_targets,
+    const String& decoy_handling,
+    const String& decoy_prefix,
+    double precursor_im_scale,
+    const std::unordered_map<std::string, std::string>& traml_to_current)
+  {
+    const std::unordered_map<std::string, std::string> current_to_traml = invertStringMap_(traml_to_current);
+    OpenSwath::LightTargetedExperiment filtered_exp;
+    std::unordered_set<std::string> kept_compounds;
+    for (const auto& transition : transition_exp.getTransitions())
+    {
+      const bool decoy = transition.getDecoy() || hasDecoyPrefix_(transition.getPeptideRef(), decoy_prefix);
+      bool keep = false;
+      if (!decoy)
+      {
+        keep = selected_targets.find(transition.getPeptideRef()) != selected_targets.end();
+      }
+      else if (decoy_handling == "keep_all")
+      {
+        keep = true;
+      }
+      else if (decoy_handling == "keep_matching")
+      {
+        keep = mapsToSelectedTarget_(transition.getPeptideRef(), selected_targets, decoy_prefix, traml_to_current, current_to_traml);
+      }
+
+      if (keep)
+      {
+        OpenSwath::LightTransition transition_copy = transition;
+        applyPrecursorIMScale_(transition_copy, precursor_im_scale);
+        filtered_exp.transitions.push_back(std::move(transition_copy));
+        kept_compounds.insert(transition.getPeptideRef());
+      }
+    }
+
+    std::unordered_set<std::string> kept_proteins;
+    for (const auto& compound : transition_exp.getCompounds())
+    {
+      if (kept_compounds.find(compound.id) != kept_compounds.end())
+      {
+        OpenSwath::LightCompound compound_copy = compound;
+        applyPrecursorIMScale_(compound_copy, precursor_im_scale);
+        filtered_exp.compounds.push_back(std::move(compound_copy));
+        for (const auto& protein_ref : compound.protein_refs)
+        {
+          kept_proteins.insert(protein_ref);
+        }
+      }
+    }
+
+    for (const auto& protein : transition_exp.getProteins())
+    {
+      if (kept_proteins.find(protein.id) != kept_proteins.end())
+      {
+        filtered_exp.proteins.push_back(protein);
+      }
+    }
+
+    return filtered_exp;
+  }
+
+  std::unordered_map<std::string, std::string> getPrecursorTraMLToCurrentIDMap_(
+    FileTypes::Type tr_type,
+    FileTypes::Type out_features_type,
+    const String& tr_file,
+    const String& out_features) const
+  {
+    if (tr_type == FileTypes::PQP)
+    {
+      return TransitionPQPFile().getPQPIDToTraMLIDMap(tr_file.c_str(), "PRECURSOR");
+    }
+    if (out_features_type == FileTypes::OSW &&
+        (tr_type == FileTypes::TSV || tr_type == FileTypes::OSWPQ) &&
+        File::exists(out_features))
+    {
+      return TransitionPQPFile().getPQPIDToTraMLIDMap(out_features.c_str(), "PRECURSOR");
+    }
+    return {};
+  }
+
+  ExitCodes prefilterLibraryAcrossRuns_(OpenSwath::LightTargetedExperiment& transition_exp,
+                                        const std::vector<StringList>& run_groups,
+                                        const ChromExtractParams& ms1_params,
+                                        const ChromExtractParams& ms2_params,
+                                        Param prefilter_params,
+                                        bool user_pasef,
+                                        bool disable_im_windowing,
+                                        bool split_file,
+                                        const String& tmp_dir,
+                                        const String& readoptions,
+                                        bool keep_cached_files,
+                                        const String& swath_windows_file,
+                                        double min_upper_edge_dist,
+                                        bool force,
+                                        bool sort_swath_maps,
+                                        bool prm,
+                                        int outer_loop_threads,
+                                        const std::unordered_map<std::string, std::string>& traml_to_current)
+  {
+    const String aggregation_method = prefilter_params.getValue("aggregation_method").toString();
+    const bool require_all_runs = aggregation_method == "all";
+    const String decoy_handling = prefilter_params.getValue("decoy_handling").toString();
+    const String decoy_prefix = prefilter_params.getValue("decoy_prefix").toString();
+    const Size min_supported_precursors = static_cast<Size>(prefilter_params.getValue("min_supported_precursors"));
+    prefilter_params.setValue("enabled", "false");
+    prefilter_params.remove("aggregation_method");
+    prefilter_params.remove("decoy_handling");
+    prefilter_params.remove("decoy_prefix");
+
+    OpenSwathPrecursorEvidenceFilter evidence_filter;
+    evidence_filter.setParameters(prefilter_params);
+    evidence_filter.setLogType(log_type_);
+
+    std::unordered_map<std::string, Size> supported_run_counts;
+    double output_precursor_im_scale = 1.0;
+    Size run_index = 0;
+    for (const StringList& current_run_files : run_groups)
+    {
+      ++run_index;
+      OPENMS_LOG_INFO << "Library:prefilter scanning run " << run_index << "/" << run_groups.size()
+                      << ": " << ListUtils::concatenate(current_run_files, ", ") << "\n";
+
+      String per_run_tmp = tmp_dir;
+      std::unique_ptr<File::TempDir> per_run_temp_dir;
+      if (readoptions == "cache")
+      {
+        per_run_temp_dir = std::make_unique<File::TempDir>(tmp_dir, keep_cached_files);
+        per_run_tmp = per_run_temp_dir->getPath();
+      }
+
+      std::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
+      std::vector<OpenSwath::SwathMap> swath_maps;
+      std::vector<String> swath_map_sources;
+      if (!loadSwathFiles(current_run_files, exp_meta, swath_maps, swath_map_sources, split_file,
+                          per_run_tmp, readoptions, swath_windows_file,
+                          min_upper_edge_dist, force, sort_swath_maps, prm))
+      {
+        OPENMS_LOG_ERROR << "Failed to load SWATH files for Library:prefilter run " << run_index
+                         << ": " << ListUtils::concatenate(current_run_files, ", ") << "\n";
+        return PARSE_ERROR;
+      }
+
+      bool run_pasef = user_pasef;
+      if (!run_pasef)
+      {
+        run_pasef = std::any_of(swath_maps.begin(), swath_maps.end(),
+                                [](const OpenSwath::SwathMap& map)
+                                {
+                                  return !map.ms1 && map.imLower >= 0.0 && map.imUpper >= 0.0;
+                                });
+      }
+      if (disable_im_windowing)
+      {
+        run_pasef = false;
+      }
+
+      OpenSwathPrecursorEvidenceFilter::Result result = evidence_filter.filter(
+        swath_maps, transition_exp, ms1_params, ms2_params, run_pasef, outer_loop_threads);
+      if (result.precursor_im_scale != 1.0)
+      {
+        if (output_precursor_im_scale == 1.0)
+        {
+          output_precursor_im_scale = result.precursor_im_scale;
+        }
+        else if (std::fabs(output_precursor_im_scale - result.precursor_im_scale) > 1e-9)
+        {
+          OPENMS_LOG_WARN << "Library:prefilter observed different precursor IM scale factors across runs. "
+                          << "Using the first detected scale factor " << output_precursor_im_scale
+                          << " for the shared filtered library.\n";
+        }
+      }
+
+      std::unordered_set<std::string> run_supported;
+      for (const auto& compound : result.filtered_targets.getCompounds())
+      {
+        run_supported.insert(compound.id);
+      }
+      for (const auto& compound_id : run_supported)
+      {
+        ++supported_run_counts[compound_id];
+      }
+    }
+
+    std::unordered_set<std::string> selected_targets;
+    for (const auto& item : supported_run_counts)
+    {
+      if ((!require_all_runs && item.second > 0) ||
+          (require_all_runs && item.second == run_groups.size()))
+      {
+        selected_targets.insert(item.first);
+      }
+    }
+
+    if (selected_targets.size() < min_supported_precursors)
+    {
+      OPENMS_LOG_ERROR << "Library:prefilter retained only " << selected_targets.size()
+                       << " target precursors after aggregation, fewer than min_supported_precursors="
+                       << min_supported_precursors << ".\n";
+      return INCOMPATIBLE_INPUT_DATA;
+    }
+
+    OpenSwath::LightTargetedExperiment filtered_exp = buildPrefilteredLibraryExperiment_(
+      transition_exp, selected_targets, decoy_handling, decoy_prefix, output_precursor_im_scale, traml_to_current);
+    const Size decoy_transitions = std::count_if(filtered_exp.getTransitions().begin(), filtered_exp.getTransitions().end(),
+                                                [&decoy_prefix](const OpenSwath::LightTransition& transition)
+                                                {
+                                                  return transition.getDecoy() || hasDecoyPrefix_(transition.getPeptideRef(), decoy_prefix);
+                                                });
+    OPENMS_LOG_INFO << "Library:prefilter retained shared library with "
+                    << filtered_exp.getCompounds().size() << " compounds, "
+                    << filtered_exp.getTransitions().size() << " transitions, and "
+                    << decoy_transitions << " decoy transitions using aggregation_method="
+                    << aggregation_method << " and decoy_handling=" << decoy_handling << ".\n";
+    transition_exp = std::move(filtered_exp);
+    return EXECUTION_OK;
   }
 
   ExitCodes main_(int, const char **) override
@@ -778,7 +1086,11 @@ protected:
     feature_finder_param.setValue("use_ms1_ion_mobility", getStringOption_("use_ms1_ion_mobility"));
 
 
-    Param tsv_reader_param = getParam_().copy("Library:", true);
+    Param library_param = getParam_().copy("Library:", true);
+    Param tsv_reader_param = library_param;
+    tsv_reader_param.remove("prefilter:");
+    Param library_prefilter_param = library_param.copy("prefilter:", true);
+    const bool library_prefilter_enabled = library_prefilter_param.getValue("enabled").toBool();
     if (use_emg_score)
     {
       feature_finder_param.setValue("Scores:use_elution_model_score", "true");
@@ -975,6 +1287,29 @@ protected:
       }
     }
 
+    const bool user_pasef = pasef;
+
+    if (library_prefilter_enabled)
+    {
+      OPENMS_LOG_INFO << "Library:prefilter enabled: scanning all input runs once and using one shared evidence-filtered transition library." << std::endl;
+      const std::unordered_map<std::string, std::string> precursor_traml_to_current =
+        getPrecursorTraMLToCurrentIDMap_(tr_type, out_features_type, tr_file, out_features);
+      const ExitCodes prefilter_status = prefilterLibraryAcrossRuns_(
+        transition_exp, run_groups, cp_ms1, cp_irt, library_prefilter_param, user_pasef,
+        disable_im_windowing, split_file, tmp_dir, readoptions, keep_cached_files,
+        swath_windows_file, min_upper_edge_dist, force, sort_swath_maps, prm,
+        outer_loop_threads, precursor_traml_to_current);
+      if (prefilter_status != EXECUTION_OK)
+      {
+        return prefilter_status;
+      }
+
+      if (auto_irt && irt_calibration_params.getValue("auto_irt:prefilter:enabled").toBool())
+      {
+        OPENMS_LOG_INFO << "Library:prefilter enabled: skipping Calibration:auto_irt:prefilter because the transition library is already evidence-filtered." << std::endl;
+      }
+    }
+
     ///////////////////////////////////
     // Iterate over each run group and process individually
     ///////////////////////////////////
@@ -1016,8 +1351,6 @@ protected:
     {
       oswwriter.writeHeader();
     }
-
-    const bool user_pasef = pasef;
 
     Size run_index = 0;
     for (const StringList& current_run_files : run_groups)
@@ -1250,6 +1583,30 @@ protected:
         // Determine iRT strategy based on configured parameters and multi-run context
         IrtStrategy strategy = calibration_wf.determineIrtStrategy(
           transition_exp, run_groups.size());
+
+        OpenSwath::LightTargetedExperiment prefiltered_irt_targets;
+        const OpenSwath::LightTargetedExperiment* irt_sampling_transition_exp = &transition_exp;
+        const bool auto_irt_prefilter_enabled =
+          cal_params.getValue("auto_irt:prefilter:enabled").toBool() && !library_prefilter_enabled;
+        if (auto_irt && auto_irt_prefilter_enabled &&
+            (strategy == IrtStrategy::SAMPLE_ONCE || strategy == IrtStrategy::SAMPLE_PER_RUN))
+        {
+          OpenSwathPrecursorEvidenceFilter evidence_filter;
+          Param prefilter_params = cal_params.copy("auto_irt:prefilter:", true);
+          evidence_filter.setParameters(prefilter_params);
+          evidence_filter.setLogType(log_type_);
+
+          OpenSwathPrecursorEvidenceFilter::Result prefilter_result = evidence_filter.filter(
+            swath_maps, transition_exp, cp_ms1_current, cp_irt_current, pasef, outer_loop_threads);
+          prefiltered_irt_targets = std::move(prefilter_result.filtered_targets);
+          irt_sampling_transition_exp = &prefiltered_irt_targets;
+
+          if (strategy == IrtStrategy::SAMPLE_ONCE)
+          {
+            OPENMS_LOG_INFO << "Calibration:auto_irt:prefilter enabled: forcing run-specific auto-iRT sampling because evidence is run-specific." << std::endl;
+            strategy = IrtStrategy::SAMPLE_PER_RUN;
+          }
+        }
         
         // Prepare iRT experiments for this run
         std::vector<String> priority_pep_strings;
@@ -1260,7 +1617,7 @@ protected:
         }
         
         CalibrationWorkflow::IrtExperiments irt_experiments = calibration_wf.prepareIrtExperiments(
-          strategy, transition_exp, priority_pep_strings, run_index);
+          strategy, *irt_sampling_transition_exp, priority_pep_strings, run_index);
         
         // Single modular calibration call - handles all scenarios  
         auto calibration_result = calibration_wf.performCalibration(
