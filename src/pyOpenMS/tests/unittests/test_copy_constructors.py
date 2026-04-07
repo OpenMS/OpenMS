@@ -23,13 +23,18 @@ import pyopenms
 
 
 def _get_copyable_classes():
-    """Return public non-enum classes that define __copy__ (i.e., support copying)."""
+    """Return public non-enum classes that define __copy__ directly (not inherited).
+
+    Classes that merely inherit __copy__ from a base class (e.g., DefaultParamHandler,
+    ProgressLogger) suffer from object slicing: copy.copy() returns the base type.
+    Those classes need their own __copy__ binding before they can be tested here.
+    """
     return sorted(
         name for name in dir(pyopenms)
         if not name.startswith("_")
         and inspect.isclass(getattr(pyopenms, name, None))
         and not issubclass(getattr(pyopenms, name), enum.Enum)
-        and hasattr(getattr(pyopenms, name), "__copy__")
+        and "__copy__" in getattr(pyopenms, name).__dict__
     )
 
 
