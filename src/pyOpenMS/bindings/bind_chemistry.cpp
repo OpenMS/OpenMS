@@ -1838,8 +1838,8 @@ Modified residues get created and added if getModifiedResidue is called.
     // -----------------------------------------------------------------------
     auto ribonucleotide_class = nb::class_<OpenMS::Ribonucleotide>(m, "Ribonucleotide", "Ribonucleotide")
         .def(nb::init<>())
-        .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::EmpiricalFormula, char, double, double, OpenMS::Ribonucleotide::TermSpecificityNuc, OpenMS::EmpiricalFormula>())
         .def(nb::init<const OpenMS::Ribonucleotide &>())
+        .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::EmpiricalFormula, char, double, double, OpenMS::Ribonucleotide::TermSpecificityNuc, OpenMS::EmpiricalFormula>())
         .def("__copy__", [](const OpenMS::Ribonucleotide& self) { return OpenMS::Ribonucleotide(self); })
         .def("__deepcopy__", [](const OpenMS::Ribonucleotide& self, nb::dict) { return OpenMS::Ribonucleotide(self); }, "memo"_a)
         .def(nb::self == nb::self)
