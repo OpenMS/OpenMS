@@ -1086,7 +1086,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
     defaults_.setValue("fragment:min_mz", 150, "Minimal fragment mz for database");
     defaults_.setValue("fragment:max_mz", 2000, "Maximal fragment mz for database");
-    defaults_.setValue("fragment:min_ion_index", 0, "Minimum ion index to consider (0 = include all ions, 2 = skip b1/b2/y1/y2 like Sage). Ions below this index are not added to the fragment index.");
+    defaults_.setValue("fragment:min_ion_index", 2, "Minimum ion index to consider (0 = include all ions, 2 = skip b1/b2/y1/y2). Ions below this index are not added to the fragment index — they are often noisy and unreliable.");
     defaults_.setMinInt("fragment:min_ion_index", 0);
 
     vector<String> all_mods;

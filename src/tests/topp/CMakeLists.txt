@@ -2993,7 +2993,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
       -chimera false
       -predict_rt false
       -deisotope false
-      -min_ion_index 0)
+      -min_ion_index 2)
     set_tests_properties("TOPP_SageAdapter_DDA" PROPERTIES DEPENDS "TOPP_DecoyDatabase_DDA")
 
     add_test("TOPP_FalseDiscoveryRate_SageDDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
