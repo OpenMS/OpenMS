@@ -616,6 +616,15 @@ namespace OpenMS
     std::transform(precursor_chroms.begin(), precursor_chroms.end(), precursor_ids.begin(),
                    [](const auto& ch) { return ch.getNativeID(); });
 
+    // Copy params once per transition group, outside the OpenMP loop
+    Param dia_param = param_.copy("DIAScoring:", true);
+    DIAScoring local_diascoring;
+    local_diascoring.setParameters(dia_param);
+
+    Param emg_param = param_.copy("EMGScoring:", true);
+    EmgScoring local_emgscoring;
+    local_emgscoring.setFitterParam(emg_param);
+
     // Go through all peak groups (found MRM features) and score them
     #ifdef _OPENMP
     int in_parallel = omp_in_parallel();
@@ -702,7 +711,7 @@ namespace OpenMS
         // full spectra scores
         if (ms1_map_ && ms1_map_->getNrSpectra() > 0 && mrmfeature.getMZ() > 0)
         {
-          scorer.calculatePrecursorDIAScores(ms1_map_, diascoring_, precursor_mz, imrmfeature->getRT(), *pep, im_range, scores);
+          scorer.calculatePrecursorDIAScores(ms1_map_, local_diascoring, precursor_mz, imrmfeature->getRT(), *pep, im_range, scores);
         }
         if (su_.use_ms1_fullscan)
         {
@@ -742,7 +751,7 @@ namespace OpenMS
           std::vector<double> masserror_ppm;
           scorer.calculateDIAScores(imrmfeature,
                                     transition_group_detection.getTransitions(),
-                                    swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm,
+                                    swath_maps, ms1_map_, local_diascoring, *pep, scores, masserror_ppm,
                                     drift_target, im_range, mobilogram_consumer, feature_id);
           mrmfeature.setMetaValue("masserror_ppm", masserror_ppm);
         }
@@ -862,7 +871,7 @@ namespace OpenMS
         {
           //TODO wouldn't a weighted elution model score be much better? lower intensity traces usually will not have
           // a nice profile
-          scores.elution_model_fit_score = emgscoring_.calcElutionFitScore(mrmfeature, transition_group_detection);
+          scores.elution_model_fit_score = local_emgscoring.calcElutionFitScore(mrmfeature, transition_group_detection);
           mrmfeature.addScore("var_elution_model_fit_score", scores.elution_model_fit_score);
         }
 
