@@ -1997,6 +1997,14 @@ namespace OpenMS
         const double feature_rt = f.getRT();
         for (const PeptideIdentification& pid : f.getPeptideIdentifications())
         {
+          // Skip offset-peptide pseudo IDs (added by addOffsetPeptides_): they reuse the
+          // same XXX pseudo-hit marker as seeds but serve as intentional mass-shifted decoys
+          // for downstream MBR false-transfer rate estimation. Filtering them by seed apex
+          // RT would bias that estimate.
+          if (pid.metaValueExists("OffsetPeptide"))
+          {
+            continue;
+          }
           for (const PeptideHit& hit : pid.getHits())
           {
             if (isSeedPseudoHit_(hit))
