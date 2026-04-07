@@ -98,14 +98,19 @@ START_SECTION((virtual void group(const std::vector<FeatureMap>& maps, Consensus
   ConsensusMap result;
   algo.group(maps, result);
 
-  // We should get exactly 2 consensus features (the two close pairs)
-  TEST_EQUAL(result.size(), 2)
+  // We should get 4 consensus features: 2 matched pairs + 2 singletons
+  // (mz=700/rt=300 from map0 and mz=900/rt=900 from map1 are unmatched)
+  TEST_EQUAL(result.size(), 4)
 
-  // Each consensus feature should have exactly 2 handles (one from each map)
+  // Count matched pairs (size 2) and singletons (size 1)
+  Size pairs = 0, singletons = 0;
   for (Size i = 0; i < result.size(); ++i)
   {
-    TEST_EQUAL(result[i].size(), 2)
+    if (result[i].size() == 2) ++pairs;
+    else if (result[i].size() == 1) ++singletons;
   }
+  TEST_EQUAL(pairs, 2)
+  TEST_EQUAL(singletons, 2)
 }
 END_SECTION
 
