@@ -157,6 +157,9 @@ namespace OpenMS
     defaults_.setValue("add_mass_offset_peptides", 0.0, "If for every peptide (or seed) also an offset peptide is extracted (true). Can be used to downstream to determine MBR false transfer rates. (0.0 = disabled)");
     defaults_.setMinFloat("add_mass_offset_peptides", 0.0);
 
+    defaults_.setValue("seed_apex_rt_tolerance", 5.0, "Maximum allowed RT deviation (in seconds) between a seed's apex and the detected feature's apex. Seed-derived features whose detected apex deviates more than this value from the original seed apex are removed during filtering. This is useful to discard unreliable seed extractions where the picked peak is far from the seed location.");
+    defaults_.setMinFloat("seed_apex_rt_tolerance", 0.0);
+
     // available scores: initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelution,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score
     // exclude some redundant/uninformative scores:
     // @TODO: intensity bias introduced by "peak_apices_sum"?
@@ -1961,6 +1964,8 @@ namespace OpenMS
     }
 
     add_mass_offset_peptides_ = double(param_.getValue("add_mass_offset_peptides"));
+
+    seed_apex_rt_tolerance_ = double(param_.getValue("seed_apex_rt_tolerance"));
   }
 
   
@@ -1970,7 +1975,7 @@ namespace OpenMS
     {
       return;
     }
-    
+
     // For non-classified features, we still use the original filtering
     if (!classified)
     {
@@ -1980,6 +1985,40 @@ namespace OpenMS
     }
     // Note: The classified case is now handled by ExternalIDHandler::filterClassifiedFeatures
     // in the postProcess_ method
+
+    // Filter seed-derived features whose detected apex RT deviates too far from
+    // the original seed apex RT. Such features are typically picked from the wrong
+    // region of the chromatogram and are unreliable.
+    const double rt_tol = seed_apex_rt_tolerance_;
+    const Size before_seed_rt_filter = features.size();
+    features.erase(std::remove_if(features.begin(), features.end(),
+      [rt_tol](const Feature& f)
+      {
+        const double feature_rt = f.getRT();
+        for (const PeptideIdentification& pid : f.getPeptideIdentifications())
+        {
+          for (const PeptideHit& hit : pid.getHits())
+          {
+            if (isSeedPseudoHit_(hit))
+            {
+              // seed apex RT was stored on the PeptideIdentification in addSeeds_()
+              if (std::fabs(pid.getRT() - feature_rt) > rt_tol)
+              {
+                return true; // detected apex too far from seed apex -> remove
+              }
+              break; // seed pseudo hit found in this pid; no need to check further hits
+            }
+          }
+        }
+        return false;
+      }), features.end());
+    const Size removed_seed_rt = before_seed_rt_filter - features.size();
+    if (removed_seed_rt > 0)
+    {
+      OPENMS_LOG_INFO << "Removed " << removed_seed_rt
+                      << " seed-derived feature(s) with detected apex RT deviating more than "
+                      << rt_tol << " s from the seed apex." << endl;
+    }
   }
 
 }
