@@ -236,6 +236,7 @@ protected:
     registerTOPPSubsection_("report", "Reporting Options");
     registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top-scoring hits per spectrum that are reported ('0' for all hits)", false, true);
     setMinInt_("report:top_hits", 0);
+    registerFlag_("report:require_full_coverage", "Only report hits with fragment ions covering all internal positions of the oligonucleotide (requires at least one fragment of type a, a-B, b, c, d, w, x, y, or z at each position)", true);
 
     registerTOPPSubsection_("fdr", "False Discovery Rate options");
     registerStringOption_("fdr:decoy_pattern", "<string>", "", "String used as part of the accession to annotate decoy sequences (e.g. 'DECOY_'). Leave empty to skip the FDR/q-value calculation.", false);
@@ -927,6 +928,106 @@ protected:
       }
     }
     id_data.cleanup();
+  }
+
+
+  /// Check if all internal positions of an oligonucleotide have fragment coverage
+  bool hasFullFragmentCoverage_(const NASequence& oligo,
+                                const vector<PeptideHit::PeakAnnotation>& annotations)
+  {
+    Size length = oligo.size();
+    if (length <= 1) return true; // No internal positions to check
+
+    // Track which positions have coverage (positions 1 through length-1)
+    set<Size> covered_positions;
+
+    for (const auto& annotation : annotations)
+    {
+      String ann = annotation.annotation;
+      if (ann.empty())
+      {
+        OPENMS_LOG_WARN << "Empty fragment annotation found in coverage check" << endl;
+        continue;
+      }
+
+      // Check for a-B ions (e.g., "a1-B", "a2-B")
+      if (ann.hasSubstring("-B"))
+      {
+        // Extract position from "a1-B" -> "1"
+        String prefix = ann.prefix('-');
+        if (prefix.hasPrefix("a"))
+        {
+          String pos_str = prefix.substr(1); // Remove 'a'
+          try
+          {
+            Size pos = pos_str.toInt();
+            if (pos >= 1 && pos < length)
+            {
+              covered_positions.insert(pos);
+            }
+          }
+          catch (Exception::ConversionError&)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Malformed a-B fragment annotation: '" + ann + "' - expected format 'aN-B' where N is a position number",
+              ann);
+          }
+        }
+      }
+      else
+      {
+        // Regular ions: extract ion type and position
+        // Format: "a1", "b2", "w9", "y3", etc.
+        char ion_type = ann[0];
+        String ion_type_str(1, ion_type);
+        
+        // Check if this is a valid fragment ion type (using class member)
+        if (std::find(fragment_ion_codes_.begin(), fragment_ion_codes_.end(), 
+                      ion_type_str) != fragment_ion_codes_.end())
+        {
+          // Extract numeric position
+          String pos_str = ann.substr(1);
+          // Handle annotations like "y3+" by removing non-digits
+          pos_str.substitute("+", "");
+          pos_str.substitute("-", "");
+          
+          try
+          {
+            Size pos = pos_str.toInt();
+            
+            // w/x/y/z ions count from 3' end, need to convert to 5' end position
+            // For a 10-mer: w9 = position 1, w8 = position 2, ..., w1 = position 9
+            Size actual_pos = pos;
+            if (ion_type == 'w' || ion_type == 'x' || ion_type == 'y' || ion_type == 'z')
+            {
+              actual_pos = length - pos;
+            }
+            
+            if (actual_pos >= 1 && actual_pos < length)
+            {
+              covered_positions.insert(actual_pos);
+            }
+          }
+          catch (Exception::ConversionError&)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Malformed fragment annotation: '" + ann + "' - expected format like 'a1', 'b2', 'y3', etc.",
+              ann);
+          }
+        }
+      }
+    }
+
+    // Check if all internal positions (1 through length-1) are covered
+    for (Size i = 1; i < length; ++i)
+    {
+      if (covered_positions.find(i) == covered_positions.end())
+      {
+        return false; // Missing coverage at position i
+      }
+    }
+
+    return true; // All positions covered
   }
 
 
@@ -1626,6 +1727,15 @@ protected:
             }
 
             if (score < 1e-16) continue; // no hit
+
+            // Check fragment coverage if required
+            bool require_coverage = getFlag_("report:require_full_coverage");
+            if (require_coverage && !hasFullFragmentCoverage_(candidate, annotations))
+            {
+              OPENMS_LOG_DEBUG << "Skipping hit due to insufficient fragment coverage: "
+                               << candidate.toString() << endl;
+              continue; // Insufficient fragment coverage
+            }
 
 #pragma omp atomic
             ++hit_counter;
