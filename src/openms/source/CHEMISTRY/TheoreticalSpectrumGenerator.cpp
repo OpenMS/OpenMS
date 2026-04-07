@@ -830,7 +830,19 @@ namespace OpenMS
             fx_losses.insert(EmpiricalFormula("H2O")); // HCD water loss at N-term
           }
 
-          for (i = Size(!add_first_prefix_ion_); i < peptide.size() - 1; ++i)
+          // Re-apply preamble for peptide[0] (same as plain-ion loop above)
+          // so that the running mass includes the first residue. (#9078)
+          i = Size(!add_first_prefix_ion_);
+          if (i == 1)
+          {
+            mono_weight += peptide[0].getMonoWeight(Residue::Internal);
+            if (peptide[0].hasNeutralLoss())
+            {
+              for (const auto& formula : peptide[0].getLossFormulas()) fx_losses.insert(formula);
+            }
+          }
+
+          for (; i < peptide.size() - 1; ++i)
           {
             mono_weight += peptide[i].getMonoWeight(Residue::Internal); // standard internal residue including named modifications: c
 

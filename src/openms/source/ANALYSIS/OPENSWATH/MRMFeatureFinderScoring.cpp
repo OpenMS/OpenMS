@@ -24,7 +24,9 @@ sn_min_threshold_ = param_.getValue("sn_min_threshold");
 
 // Helpers
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
 
 #include <boost/range/adaptor/map.hpp>
@@ -98,6 +100,12 @@ namespace OpenMS
     defaults_.setValue("use_ms1_ion_mobility", "true", "Performs ion mobility extraction in MS1. Set to false if MS1 spectra do not contain ion mobility", {"advanced"});
     defaults_.setValue("apply_im_peak_picking", "false", "Perform peak picking on the extracted ion mobilograms. This is useful for reducing intefering signals from co-eluting analytes in the ion mobility dimension. The peak picking will take the highest peak and discard the remaining peaks for ion mobility scoring. ", {"advanced"});
     defaults_.setValidStrings("apply_im_peak_picking", {"true","false"});
+
+    // enzyme used for missed cleavage counting
+    std::vector<String> all_enzymes;
+    ProteaseDB::getInstance()->getAllNames(all_enzymes);
+    defaults_.setValue("enzyme", "Trypsin", "Enzyme used for counting missed cleavages in peptide sequences");
+    defaults_.setValidStrings("enzyme", ListUtils::create<std::string>(all_enzymes));
 
     defaults_.insert("TransitionGroupPicker:", MRMTransitionGroupPicker().getDefaults());
 
@@ -600,7 +608,7 @@ namespace OpenMS
                       apply_im_peak_picking_);
 
     ProteaseDigestion pd;
-    pd.setEnzyme("Trypsin");
+    pd.setEnzyme(enzyme_);
 
     auto& mrmfeatures = transition_group_detection.getFeaturesMuteable();
 
@@ -1093,6 +1101,7 @@ namespace OpenMS
     strict_ = (bool)param_.getValue("strict").toBool();
     use_ms1_ion_mobility_ = (bool)param_.getValue("use_ms1_ion_mobility").toBool();
     apply_im_peak_picking_ = (bool)param_.getValue("apply_im_peak_picking").toBool();
+    enzyme_ = param_.getValue("enzyme").toString();
 
     su_.use_coelution_score_     = param_.getValue("Scores:use_coelution_score").toBool();
     su_.use_shape_score_         = param_.getValue("Scores:use_shape_score").toBool();
