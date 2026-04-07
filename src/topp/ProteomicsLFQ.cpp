@@ -13,7 +13,6 @@
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapMBRFilter.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
@@ -320,21 +319,6 @@ protected:
     pq_defaults.setValue("top:include_all", "true");
     pq_defaults.addTag("top:include_all", "advanced");
 
-    // post-link MBR filter: gating flag is registered as a top-level string option
-    // (kept out of the Param block below to avoid the "false"/"true" → FLAG auto-conversion).
-    registerStringOption_("MBRFilter:enabled", "<option>", "false",
-                          "Filter unreliable match-between-runs transferred handles after linking, "
-                          "based on pairwise RT residual statistics from identified anchors.",
-                          false, true);
-    setValidStrings_("MBRFilter:enabled", ListUtils::create<String>("true,false"));
-
-    // The remaining MBRFilter parameters live inside the helper's defaults.
-    Param mbrf_defaults = ConsensusMapMBRFilter().getDefaults();
-    for (auto it = mbrf_defaults.begin(); it != mbrf_defaults.end(); ++it)
-    {
-      mbrf_defaults.addTag(it.getName(), "advanced");
-    }
-
     Param bio_defaults = Biosaur2Algorithm().getDefaults();
     bio_defaults.setValue("mini", 500.0);   // filter low-intensity noise peaks (default 1.0 too permissive)
     bio_defaults.setValue("minlh", 3);      // require hills spanning >= 3 scans (default 2 keeps transient noise)
@@ -350,7 +334,6 @@ protected:
     combined.insert("PeptideQuantification:", ffi_defaults);
     combined.insert("Alignment:", ma_defaults);
     combined.insert("Linking:", fl_defaults);
-    combined.insert("MBRFilter:", mbrf_defaults);
     combined.insert("ProteinQuantification:", pq_defaults);
     combined.insert("Seeding:Biosaur2:", bio_defaults);
 
@@ -672,33 +655,6 @@ protected:
         median_fwhm,
         max_alignment_diff,
         consensus_fraction);
-
-      // Optional post-link MBR filter: removes unidentified handles whose RT
-      // is statistically inconsistent with per-pair anchor distributions.
-      if (getStringOption_("MBRFilter:enabled") == "true")
-      {
-        Param mbrf_param = getParam_().copy("MBRFilter:", true);
-        mbrf_param.remove("enabled"); // not part of the helper's defaults
-        ConsensusMapMBRFilter mbrf;
-        mbrf.setParameters(mbrf_param);
-        ConsensusMapMBRFilter::Report rep = mbrf.filter(consensus_fraction);
-
-        OPENMS_LOG_INFO << "MBRFilter: removed " << rep.handles_removed
-                        << " unreliable transferred handles." << endl;
-        OPENMS_LOG_INFO << "MBRFilter pooled fallback: n=" << rep.pooled.n
-                        << " sigma=" << rep.pooled.mad_sigma << endl;
-        for (const auto& kv : rep.pair_stats)
-        {
-          OPENMS_LOG_INFO << "  pair (" << kv.first.first << "," << kv.first.second << "): "
-                          << "n=" << kv.second.n
-                          << " median=" << kv.second.median
-                          << " sigma=" << kv.second.mad_sigma
-                          << " filtered=" << kv.second.removals << endl;
-        }
-
-        addDataProcessing_(consensus_fraction,
-                           getProcessingInfo_(DataProcessing::FILTERING));
-      }
     }
     else // only one feature map
     {

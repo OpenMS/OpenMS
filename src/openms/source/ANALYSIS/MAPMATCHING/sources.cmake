@@ -5,7 +5,6 @@ set(directory source/ANALYSIS/MAPMATCHING)
 set(sources_list
 BaseGroupFinder.cpp
 BaseSuperimposer.cpp
-ConsensusMapMBRFilter.cpp
 ConsensusMapNormalizerAlgorithmThreshold.cpp
 ConsensusMapNormalizerAlgorithmMedian.cpp
 ConsensusMapNormalizerAlgorithmQuantile.cpp
