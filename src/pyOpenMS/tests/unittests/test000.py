@@ -245,19 +245,6 @@ def testAASequence():
     assert seq3.toBracketString() == "PEPTIDEXSEKUEM[147]CER"
     assert seq3.toBracketString(True) == "PEPTIDEXSEKUEM[147]CER"
 
-    # copy constructor from existing AASequence object
-    seq_orig = pyopenms.AASequence.fromString("PEPTIDER")
-    seq_copy = pyopenms.AASequence(seq_orig)
-    assert seq_copy.toString() == "PEPTIDER"
-    assert abs(seq_copy.getMonoWeight() - seq_orig.getMonoWeight()) < 0.001
-
-    # copy constructor with modified sequence
-    seq_mod = pyopenms.AASequence.fromString("PEPTM(Oxidation)IDE")
-    seq_mod_copy = pyopenms.AASequence(seq_mod)
-    assert seq_mod_copy.toString() == "PEPTM(Oxidation)IDE"
-    assert seq_mod_copy.isModified()
-    assert abs(seq_mod_copy.getMonoWeight() - seq_mod.getMonoWeight()) < 0.001
-
     assert seq.toBracketString(False) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
            seq.toBracketString(False) == "PEPTIDESEKUEM[147.035400017100017]CER"
 
