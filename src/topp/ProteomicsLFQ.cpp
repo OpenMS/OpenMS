@@ -848,8 +848,8 @@ protected:
     else if (id_msfile_ref.size() == 1)
     {
       // Check if the annotated primary MS run filename matches the mzML filename (comparison by base name)
-      const String& in_bn = FileHandler::stripExtension(File::basename(mz_file_abs_path));
-      const String& id_primaryMSRun_bn = FileHandler::stripExtension(File::basename(id_msfile_ref[0]));
+      const String& in_bn = File::stemName(mz_file_abs_path);
+      const String& id_primaryMSRun_bn = File::stemName(id_msfile_ref[0]);
 
       if (in_bn != id_primaryMSRun_bn)  // mismatch between annotation in ID file and provided mzML file
       {
@@ -1126,8 +1126,8 @@ protected:
         {
           fm.setPrimaryMSRunPath({mz_file});
         }
-        else if (FileHandler::stripExtension(File::basename(run_paths[0])) !=
-                 FileHandler::stripExtension(File::basename(mz_file)))
+        else if (File::stemName(run_paths[0]) !=
+                 File::stemName(mz_file))
         {
           OPENMS_LOG_WARN << "Primary MS run path in featureXML (" << run_paths[0]
                           << ") does not match the mzML at the same position (" << mz_file

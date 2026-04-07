@@ -116,6 +116,7 @@ QCImporter
 QCMerger
 QCShrinker
 QualityControl
+Resampler
 RNADigestor
 RNAMassCalculator
 RNPxlXICFilter
@@ -158,18 +159,9 @@ set(TOPP_executables
   ParquetConverter
 )
 
-## all targets requiring OpenMS_GUI
-set(TOPP_executables_with_GUIlib
-ExecutePipeline
-Resampler
-# util category
-ImageCreator
-INIUpdater
-)
-
 ### add filenames to Visual Studio solution tree
 set(sources_VS)
-foreach(i ${TOPP_executables} ${TOPP_executables_with_GUIlib})
+foreach(i ${TOPP_executables})
 	list(APPEND sources_VS "${i}.cpp")
 endforeach(i)
 

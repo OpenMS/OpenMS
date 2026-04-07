@@ -204,6 +204,13 @@ ARG INSTALL_DIR
 COPY --from=build ${INSTALL_DIR}/bin ${INSTALL_DIR}/bin
 ENV PATH="${INSTALL_DIR}/bin:${PATH}"
 
+# Ensure a writable home directory for config files (e.g., UpdateCheck .ver files).
+# Without this, $HOME may resolve to / in CI environments, causing tools to crash
+# when trying to create $HOME/.config/OpenMS.
+# This ENV propagates to all child stages (tools-thirdparty, test).
+RUN mkdir -p /app && chmod -R 755 /app
+ENV HOME=/app
+
 LABEL software="OpenMS (tools)"
 
 

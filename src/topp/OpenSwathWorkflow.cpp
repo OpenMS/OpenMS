@@ -68,7 +68,6 @@ using namespace OpenMS;
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 
-#include <QDir>
 #include <unordered_map>
 
 //-------------------------------------------------------------
@@ -88,7 +87,7 @@ http://openswath.org/ for additional documentation.
 It executes the following steps in order, which is implemented in @ref OpenMS::OpenSwathWorkflow "OpenSwathWorkflow":
 
 <ul>
-  <li>Reading of input SRM/MRM/PRM/DIA(PASEF) mzML files</li>
+  <li>Reading of input SRM/MRM/PRM/DIA(PASEF) mzML files or Bruker .d (TDF) directories (requires WITH_OPENTIMS)</li>
   <li>Computing the retention time transformation, mass-to-charge and ion mobility correction using calibrant peptides</li>
   <li>Reading of the transition list</li>
   <li>Extracting the specified transitions</li>
@@ -121,6 +120,14 @@ instrument exports individual window files.
 Since files can be large, it is recommended to avoid loading whole datasets
 into memory; use the `-readOptions` (for example `cacheWorkingInMemory`) to
 cache or reduce data in advance.
+
+<h4>Bruker .d (diaPASEF, requires WITH_OPENTIMS)</h4>
+Bruker TimsTOF .d directories containing DIA-PASEF data can be passed directly
+without prior mzML conversion when OpenMS is built with the WITH_OPENTIMS option.
+The tool automatically discovers SWATH windows from the TDF metadata and
+partitions spectra accordingly. Ion mobility lower/upper limits are attached as
+spectrum meta values so that PASEF windows sharing the same m/z range but
+differing in ion mobility are correctly distinguished.
 
 <h4>PRM</h4>
 PRM (parallel reaction monitoring) is a targeted MS2 acquisition mode. PRM
@@ -315,6 +322,7 @@ protected:
     setValidStrings_("readOptions", ListUtils::create<String>("normal,cache,cacheWorkingInMemory,workingInMemory"));
 
     registerStringOption_("tempDirectory", "<tmp>", File::getTempDirectory(), "Temporary directory to store cached files for example", false, true);
+    registerFlag_("keep_cached_files", "If set, do not remove cached files created in tempDirectory (disable automated cleanup)", false);
 
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
     setValidStrings_("extraction_function", ListUtils::create<String>("tophat,bartlett"));
@@ -632,10 +640,11 @@ protected:
     bool disable_im_windowing   = std::find(disable_features.begin(), disable_features.end(), "no_IM_windowing")   != disable_features.end();
 
     String readoptions = getStringOption_("readOptions");
+    bool keep_cached_files = getFlag_("keep_cached_files");
 
     // make sure tmp is a directory with proper separator at the end (downstream methods simply do path + filename)
-    // (do not use QDir::separator(), since its platform specific (/ or \) while absolutePath() will always use '/')
-    String tmp_dir = String(QDir(getStringOption_("tempDirectory").c_str()).absolutePath().toStdString()).ensureLastChar('/');
+    // File::absolutePath() always uses '/' separators
+    String tmp_dir = File::absolutePath(getStringOption_("tempDirectory")).ensureLastChar('/');
 
     ///////////////////////////////////
     // Parameter validation
@@ -1021,7 +1030,18 @@ protected:
       ChromExtractParams cp_ms1_current = cp_ms1;
       ChromExtractParams cp_irt_current = cp_irt;
       Param feature_finder_param_run = feature_finder_param;
+      
       ///////////////////////////////////
+      // Per-run temporary cache directory (created only when using cache readOptions)
+      // Use File::TempDir for RAII-based cleanup: destructor removes dir (unless keep_cached_files is true)
+      String per_run_tmp = tmp_dir;
+      std::unique_ptr<File::TempDir> per_run_temp_dir;
+      if (readoptions == "cache")
+      {
+        per_run_temp_dir = std::make_unique<File::TempDir>(tmp_dir, keep_cached_files);
+        per_run_tmp = per_run_temp_dir->getPath();
+      }
+
       // Load the SWATH files (if split data, otherwise load single experiment mzML)
       ///////////////////////////////////
       std::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
@@ -1037,9 +1057,9 @@ protected:
         MSDataTransformingConsumer qc_consumer; // apply some transformation
         qc_consumer.setSpectraProcessingFunc(qc.getSpectraProcessingFunc());
         qc_consumer.setExperimentalSettingsFunc(qc.getExpSettingsFunc());
-        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, tmp_dir, readoptions,
-                            swath_windows_file, min_upper_edge_dist, force,
-                            sort_swath_maps, prm, &qc_consumer))
+        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, per_run_tmp, readoptions,
+                swath_windows_file, min_upper_edge_dist, force,
+                sort_swath_maps, prm, &qc_consumer))
         {
           OPENMS_LOG_ERROR << "Failed to load SWATH files for Run " << (run_index + 1)
                            << ": " << ListUtils::concatenate(single_file_list, ", ") << std::endl
@@ -1052,9 +1072,9 @@ protected:
       }
       else
       {
-        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, tmp_dir, readoptions,
-                            swath_windows_file, min_upper_edge_dist, force,
-                            sort_swath_maps, prm))
+        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, per_run_tmp, readoptions,
+                swath_windows_file, min_upper_edge_dist, force,
+                sort_swath_maps, prm))
         {
           OPENMS_LOG_ERROR << "Failed to load SWATH files for Run " << (run_index + 1)
                            << ": " << ListUtils::concatenate(single_file_list, ", ") << std::endl
@@ -1353,6 +1373,7 @@ protected:
     }
 
     OPENMS_LOG_INFO << std::endl;
+
     ++run_index;
     } // end for each run
 
@@ -1361,7 +1382,7 @@ protected:
       // Stream files into the zip archive instead of unzipping/rezipping the
       // whole directory. This uses ZipArchiveFile::addOrReplaceFromFile which
       // streams from disk and avoids loading large parquet blobs into memory.
-      const std::filesystem::path dirpath = std::filesystem::u8path(std::string(parquet_dir));
+      const std::filesystem::path dirpath = std::filesystem::path(std::string(parquet_dir));
       const String output_zip_abs = File::absolutePath(out_features);
       if (File::exists(output_zip_abs))
       {
