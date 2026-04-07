@@ -648,6 +648,7 @@ if(NOT DISABLE_OPENSWATH)
     ChromatogramExtractorAlgorithm_test
     OpenSwathHelper_test
     OpenSwathOSWWriter_test
+    OpenSwathPrecursorEvidenceFilter_test
     OpenSwathScoring_test
     OpenSwathScores_test
     PeakIntegrator_test
