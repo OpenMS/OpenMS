@@ -54,6 +54,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPrecursorEvidenceFilter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
@@ -3771,6 +3772,79 @@ correct all maps according to the m/z shift found in those fixed
 points. *
 )doc")
         .def(nb::init<>())
+        ;
+
+    // -----------------------------------------------------------------------
+    // OpenSwathPrecursorEvidenceFilter::PrecursorEvidence
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::OpenSwathPrecursorEvidenceFilter::PrecursorEvidence>(
+        m, "OpenSwathPrecursorEvidenceFilter_PrecursorEvidence",
+        "Compact raw-data evidence summary for one target precursor candidate")
+        .def(nb::init<>())
+        .def_rw("compound_id", &OpenMS::OpenSwathPrecursorEvidenceFilter::PrecursorEvidence::compound_id)
+        .def_rw("sequence", &OpenMS::OpenSwathPrecursorEvidenceFilter::PrecursorEvidence::sequence)
+        .def_rw("precursor_mz", &OpenMS::OpenSwathPrecursorEvidenceFilter::PrecursorEvidence::precursor_mz)
+        .def_rw("precursor_im", &OpenMS::OpenSwathPrecursorEvidenceFilter::PrecursorEvidence::precursor_im)
+        .def_rw("supported_ms1", &OpenMS::OpenSwathPrecursorEvidenceFilter::PrecursorEvidence::supported_ms1)
+        .def_rw("supported_ms2", &OpenMS::OpenSwathPrecursorEvidenceFilter::PrecursorEvidence::supported_ms2)
+        .def_rw("ms1_hit_count", &OpenMS::OpenSwathPrecursorEvidenceFilter::PrecursorEvidence::ms1_hit_count)
+        .def_rw("ms1_max_intensity", &OpenMS::OpenSwathPrecursorEvidenceFilter::PrecursorEvidence::ms1_max_intensity)
+        .def_rw("ms1_sum_intensity", &OpenMS::OpenSwathPrecursorEvidenceFilter::PrecursorEvidence::ms1_sum_intensity)
+        .def_rw("ms1_best_rt", &OpenMS::OpenSwathPrecursorEvidenceFilter::PrecursorEvidence::ms1_best_rt)
+        .def_rw("ms2_hit_count", &OpenMS::OpenSwathPrecursorEvidenceFilter::PrecursorEvidence::ms2_hit_count)
+        .def_rw("ms2_best_fragment_hits", &OpenMS::OpenSwathPrecursorEvidenceFilter::PrecursorEvidence::ms2_best_fragment_hits)
+        .def_rw("ms2_max_intensity", &OpenMS::OpenSwathPrecursorEvidenceFilter::PrecursorEvidence::ms2_max_intensity)
+        .def_rw("ms2_sum_intensity", &OpenMS::OpenSwathPrecursorEvidenceFilter::PrecursorEvidence::ms2_sum_intensity)
+        .def_rw("ms2_best_rt", &OpenMS::OpenSwathPrecursorEvidenceFilter::PrecursorEvidence::ms2_best_rt)
+        ;
+
+    // -----------------------------------------------------------------------
+    // OpenSwathPrecursorEvidenceFilter::Result
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::OpenSwathPrecursorEvidenceFilter::Result>(m, "OpenSwathPrecursorEvidenceFilter_Result",
+        "Filtered target experiment and compact raw-data evidence summaries")
+        .def(nb::init<>())
+        .def_rw("filtered_targets", &OpenMS::OpenSwathPrecursorEvidenceFilter::Result::filtered_targets)
+        .def_rw("evidence", &OpenMS::OpenSwathPrecursorEvidenceFilter::Result::evidence)
+        .def_rw("total_target_precursors", &OpenMS::OpenSwathPrecursorEvidenceFilter::Result::total_target_precursors)
+        .def_rw("supported_precursors", &OpenMS::OpenSwathPrecursorEvidenceFilter::Result::supported_precursors)
+        .def_rw("ms1_supported", &OpenMS::OpenSwathPrecursorEvidenceFilter::Result::ms1_supported)
+        .def_rw("ms2_supported", &OpenMS::OpenSwathPrecursorEvidenceFilter::Result::ms2_supported)
+        .def_rw("hybrid_supported", &OpenMS::OpenSwathPrecursorEvidenceFilter::Result::hybrid_supported)
+        .def_rw("summary", &OpenMS::OpenSwathPrecursorEvidenceFilter::Result::summary)
+        .def_rw("precursor_im_scale", &OpenMS::OpenSwathPrecursorEvidenceFilter::Result::precursor_im_scale)
+        ;
+
+    // -----------------------------------------------------------------------
+    // OpenSwathPrecursorEvidenceFilter
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::OpenSwathPrecursorEvidenceFilter, OpenMS::DefaultParamHandler>(
+        m, "OpenSwathPrecursorEvidenceFilter",
+        "Prefilter transition-library precursors by quick raw-data evidence")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::OpenSwathPrecursorEvidenceFilter&>())
+        .def("__copy__", [](const OpenMS::OpenSwathPrecursorEvidenceFilter& self)
+        {
+          return OpenMS::OpenSwathPrecursorEvidenceFilter(self);
+        })
+        .def("__deepcopy__", [](const OpenMS::OpenSwathPrecursorEvidenceFilter& self, nb::dict)
+        {
+          return OpenMS::OpenSwathPrecursorEvidenceFilter(self);
+        }, "memo"_a)
+        .def("filter",
+             [](const OpenMS::OpenSwathPrecursorEvidenceFilter& self,
+                const std::vector<OpenSwath::SwathMap>& swath_maps,
+                const OpenSwath::LightTargetedExperiment& transition_exp,
+                const OpenMS::ChromExtractParams& ms1_params,
+                const OpenMS::ChromExtractParams& ms2_params,
+                bool pasef,
+                int threads)
+             {
+               return self.filter(swath_maps, transition_exp, ms1_params, ms2_params, pasef, threads);
+             },
+             "swath_maps"_a, "transition_exp"_a, "ms1_params"_a, "ms2_params"_a,
+             "pasef"_a, "threads"_a = 1,
+             "Filter target precursors by MS1/MS2 evidence observed in the current run")
         ;
 
     // -----------------------------------------------------------------------
