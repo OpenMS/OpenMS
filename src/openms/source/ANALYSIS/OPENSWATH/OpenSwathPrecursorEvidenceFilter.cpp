@@ -908,7 +908,7 @@ namespace OpenMS
     DefaultParamHandler("OpenSwathPrecursorEvidenceFilter"),
     ProgressLogger()
   {
-    defaults_.setValue("enabled", "false", "Enable raw-data evidence prefiltering for auto-iRT sampling only.");
+    defaults_.setValue("enabled", "false", "Enable raw-data evidence prefiltering.");
     defaults_.setValidStrings("enabled", {"true", "false"});
 
     defaults_.setValue("evidence_sources", "hybrid", "Evidence source used to keep precursor candidates: 'ms1', 'ms2', or 'hybrid' (MS1 OR MS2).");
