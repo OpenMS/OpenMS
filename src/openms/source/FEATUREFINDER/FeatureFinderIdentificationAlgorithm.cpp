@@ -157,7 +157,7 @@ namespace OpenMS
     defaults_.setValue("add_mass_offset_peptides", 0.0, "If for every peptide (or seed) also an offset peptide is extracted (true). Can be used to downstream to determine MBR false transfer rates. (0.0 = disabled)");
     defaults_.setMinFloat("add_mass_offset_peptides", 0.0);
 
-    defaults_.setValue("seed_apex_rt_tolerance", 5.0, "Maximum allowed RT deviation (in seconds) between a seed's apex and the detected feature's apex. Seed-derived features whose detected apex deviates more than this value from the original seed apex are removed during filtering. This is useful to discard unreliable seed extractions where the picked peak is far from the seed location.");
+    defaults_.setValue("seed_apex_rt_tolerance", 0.0, "Maximum allowed RT deviation (in seconds) between a seed's apex and the detected feature's apex. Seed-derived features whose detected apex deviates more than this value from the original seed apex are removed during filtering. Useful to discard unreliable seed extractions where the picked peak is far from the seed location. (0 = disabled)");
     defaults_.setMinFloat("seed_apex_rt_tolerance", 0.0);
 
     // available scores: initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelution,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score
@@ -1988,8 +1988,12 @@ namespace OpenMS
 
     // Filter seed-derived features whose detected apex RT deviates too far from
     // the original seed apex RT. Such features are typically picked from the wrong
-    // region of the chromatogram and are unreliable.
+    // region of the chromatogram and are unreliable. Disabled when tolerance <= 0.
     const double rt_tol = seed_apex_rt_tolerance_;
+    if (rt_tol <= 0.0)
+    {
+      return;
+    }
     const Size before_seed_rt_filter = features.size();
     features.erase(std::remove_if(features.begin(), features.end(),
       [rt_tol](const Feature& f)
