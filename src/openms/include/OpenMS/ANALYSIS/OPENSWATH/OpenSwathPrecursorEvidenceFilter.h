@@ -25,9 +25,9 @@ namespace OpenMS
     This module scans MS1 and/or SWATH MS2 spectra directly through the OpenSWATH
     spectrum access layer. It keeps a target precursor when the run contains
     precursor m/z evidence in MS1 or enough distinct library fragment hits in MS2.
-    The output experiment is intended as a data-supported auto-iRT sampling pool;
-    callers should keep the original extraction library unchanged when they need
-    target-decoy accounting for downstream scoring.
+    The output experiment is target-only and can be used as a data-supported
+    auto-iRT sampling pool or as the target selection step for a caller that
+    adds matching decoys before downstream scoring.
 
     @ingroup TargetedQuantitation
   */
