@@ -29,6 +29,8 @@ General:
   - BREAKING: QProcess/QObject replaced with boost::process in ExternalProcess, PythonInfo, JavaInfo, and RWrapper; ExternalProcess no longer inherits from QObject; ExternalProcess::run(), TOPPBase::runExternalProcess_(), RWrapper::findR()/runScript(), and ExternalProcessMBox::run() now use String/vector<String> instead of QString/QStringList (#8939)
   - BREAKING: Qt string interop removed from core String and DataValue API; String(const QString&), String::toQString(), DataValue(const QString&), DataValue::toQString(), and StringListUtils::fromQStringList() removed; Qt5Port.h deleted (#8940)
   - BREAKING: Qt6::Core removed from libOpenMS PUBLIC CMake link dependencies; downstream CMake projects must now link Qt6::Core directly if needed (#8965)
+  - Fix: UpdateCheck no longer crashes TOPP tools when $HOME is not writable (e.g., in container environments where $HOME=/); the update check is skipped gracefully (#9075, fixes #9074)
+  - Fix: TheoreticalSpectrumGenerator: corrected m/z calculation for b/a neutral-loss fragment ions; the neutral-loss loop previously omitted the first residue mass, causing all b/a neutral-loss fragments to report masses that were too low by the first residue's internal mass (#9078, #9084)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -42,7 +44,9 @@ Dependencies:
     - QJsonDocument/QJsonObject replaced with nlohmann/json in OMSFileLoad (#8936)
     - Qt string interop removed from String, DataValue, StringUtils, StringListUtils; Qt5Port.h deleted (#8940)
     - Qt6::Core removed from libOpenMS PUBLIC CMake link dependencies; downstream CMake targets must link Qt6::Core directly if they use Qt (#8965)
+    - Qt6::Core removed from all non-GUI TOPP tools; Qt is now only required when building with WITH_GUI=ON; ExecutePipeline, INIUpdater, and ImageCreator moved from src/topp/ to the GUI library (#9041)
   - boost-process added as a header-only dependency for cross-platform subprocess management (#8939)
+  - ENABLE_TDL CMake option (required for CWL/Common Workflow Language file support) now defaults to OFF; set -DENABLE_TDL=ON to re-enable (#9067)
 
 TOPP tools:
   Changes:
@@ -62,9 +66,17 @@ TOPP tools:
       - Arrow/DataFrame/Parquet export for ConsensusMap (#8729)
       - Added -in_feat parameter to accept pre-computed featureXML files, bypassing internal feature finding (#8796)
       - BREAKING: -out_feature_qpx (single file) replaced with -out_qpx (directory); exports quantms.feature.parquet, quantms.psm.parquet, and quantms.pg.parquet following the QPX/quantms schema (#8973, #8974)
+      - Added Bruker TimsTOF .d (BRUKER_TDF) input support with Biosaur2-based seed generation; IM_PEAK data path with automatic FWHM estimation and skip of PeakPickerHiRes/PrecursorCorrection; new Seeding:algorithm parameter (#9030)
     MetaProSIP:
       - Added detailed documentation of CSV output column formats (#4400)
         Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
+    MSstatsConverter:
+      - Added -remove_shared_peptides parameter (default true) to explicitly control whether shared peptides
+        (mapping to multiple indistinguishable protein groups) are removed from MSstats output; previously
+        this filtering was silent and hardcoded; a warning is now emitted reporting how many hits were dropped (#9068)
+    OpenSwathWorkflow:
+      - Added cache file auto cleanup (#9029)
+      - MRMFeatureFinderScoring: enzyme used for missed cleavage counting is now configurable via new `enzyme` parameter (default: Trypsin) (#9077)
 
 PyOpenMS:
   - BREAKING: Binding backend replaced from Autowrap/Cython to hand-maintained nanobind C++ bindings (#8699)
@@ -148,6 +160,7 @@ TOPP tools:
       - Handles MS2 spectra without corresponding MS3 in SPS-MS3 workflow (#8592)
       - Arrow/Parquet export for ConsensusMap (#8729)
       - BREAKING: -out_feature_qpx (single file) replaced with -out_qpx (directory); exports quantms.feature.parquet, quantms.psm.parquet, and quantms.pg.parquet following the QPX/quantms schema (#8973, #8974)
+      - Added TMT 32-plex and 35-plex quantitation support; isotope correction matrix defaults to identity until calibrated values are provided (#9003)
     SageAdapter:
       - Fixed thread handling - removed duplicate parameter registration (#8441)
     OpenSwathWorkflow:
@@ -155,14 +168,23 @@ TOPP tools:
       - Decoy generation speed optimizations (#8569)
       - Added SRM support (#8700)
       - Added Parquet chromatogram output support (#8737)
+      - Direct Bruker .d (TDF) file input: Bruker TimsTOF files can now be passed directly without prior mzML conversion; requires WITH_TIMSRUST=ON (#9019)
     PeakPickerHiRes:
       - New parameter to allow peak cores with no leading flank peaks (#8649)
+      - Warns when given IM_PEAK format (per-peak ion mobility) data; partial support via intensity-weighted mean IM per picked peak (#9018)
+    PeakPickerIM:
+      - Direct Bruker TimsTOF .d directory input: files can now be passed directly without prior mzML conversion; requires WITH_TIMSRUST=ON (#9022)
+      - Built-in Sage IM centroiding via new bruker:ms1_centroid_mz_ppm and bruker:ms1_centroid_im_pct parameters; when both are set, centroiding is performed on raw gridded TOF data and the subsequent IM picking step is skipped (#9022)
+      - Rejects IM_SPECTRUM format input with a clear error message (#9022)
+    Resampler, FeatureFinderCentroided:
+      - Now error out with INCOMPATIBLE_INPUT_DATA when given IM_PEAK format (per-peak ion mobility) data that cannot be processed (#9018)
     FileMerger:
       - Documented input/output file type combinations (#8615)
     TextExporter:
       - Added support for XIC Parquet files (#8737, #8738)
     FeatureFinderMultiplex, MultiplexResolver:
       - BREAKING: Parameter `missed_cleavages` renamed to `max_nr_labelled_aas` (#8911)
+      - Now errors out with INCOMPATIBLE_INPUT_DATA when given IM_PEAK format (per-peak ion mobility) data (#9018)
     MaRaClusterAdapter:
       - Consensus spectra now annotated with original native IDs, file origins, and cluster size (#8864)
     MetaboliteAdductDecharger:
@@ -221,6 +243,8 @@ OpenMS Library:
     - ModifiedSincSmoother: new class for profile data smoothing using Modified Sinc interpolation with configurable degree, window size, and passband correction coefficients (#8217)
     - BrukerTimsFile: experimental reader for Bruker TimsTOF .d directory format (BRUKER_TDF file type); supports DDA-PASEF, DIA-PASEF, and raw frame-level 4D access; requires CMake option WITH_TIMSRUST=ON (#8975)
     - BrukerTimsFile: tiered scan→1/K0 calibration with three fallback levels: Bruker SDK → rational function from TimsCalibration table (open-source) → linear; RationalScan2ImConverter added for the rational function model (#8999)
+    - TMTThirtyTwoPlexQuantitationMethod, TMTThirtyFivePlexQuantitationMethod: new classes for TMT 32-plex and 35-plex isobaric quantitation; isotope correction matrix defaults to identity until calibrated values are provided (#9003)
+    - IMPeakType enum (IM_PROFILE, IM_CENTROIDED, UNKNOWN) added to SpectrumSettings to track per-peak ion mobility processing state independently of data layout (IMFormat); IMFormat::CENTROIDED deprecated (#9007)
   Changes:
     - BREAKING: Matrix<T> no longer inherits from Eigen; uses std::vector<T> for storage (#8511)
     - BREAKING: Eigen moved from PUBLIC to PRIVATE linking - downstream users no longer need Eigen headers (#8511)
@@ -251,6 +275,7 @@ OpenMS Library:
     - OpenSwath scoring speedups: cap XCorr maxdelay, vectorize DIAScoring, hoist loop-invariant computations, pass SwathMap by const& (#8787, #8785)
     - BREAKING: ChromatogramPeak::IntensityType changed from double to float for consistency with Peak1D (#8857)
     - BREAKING: IMFormat enum values renamed for clarity: CONCATENATED → IM_PEAK, MULTIPLE_SPECTRA → IM_SPECTRUM (#8993)
+    - BREAKING: IMFormat::MIXED removed; determineIMFormat(MSExperiment) replaced with determineIMFormat(MSExperiment, int ms_level) requiring explicit MS level for unambiguous format detection (#9011)
     - AccurateMassSearchEngine: Performance improvement when use_feature_adducts is set and a specific adduct is observed; only that adduct is evaluated instead of the full list (fixes #5867) (#8635)
     - BREAKING: Transitive Qt and other includes trimmed from core KERNEL and METADATA headers (ConsensusMap.h, FeatureMap.h, ProteinIdentification.h, SpectrumSettings.h, ExperimentalSettings.h); downstream code relying on these transitive includes must now include headers directly (#8946)
 
@@ -313,6 +338,9 @@ Build System:
   - Fix Windows CI Release builds: removed erroneous /Od /Ob0 flag override that caused all Windows CI Release binaries to be unoptimized since 2021; builds now use CMake defaults (/O2 /Ob2) (#8961)
   - Arrow/Parquet made a required dependency; WITH_PARQUET CMake option removed (#8991)
   - Qt6::Core removed from libOpenMS PUBLIC CMake link dependencies; downstream CMake targets must now explicitly link Qt6::Core if needed (#8965)
+  - Minimum Boost version bumped to 1.78; fixes boost::filesystem link errors when boost::process uses BOOST_PROCESS_USE_STD_FS (#9042)
+  - Qt6 find_package guarded by WITH_GUI block; Qt is no longer needed for non-GUI TOPP tool builds (#9041)
+  - yaml-cpp bumped to 0.9.0 in tool_description_lib; fixes broken hash/map type parsing in YAML CTD config files (#9056)
 
 
 ------------------------------------------------------------------------------------------

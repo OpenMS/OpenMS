@@ -34,8 +34,8 @@
 
 #include <fstream>
 #include <iomanip>
-
-#include <QRegularExpression>
+#include <regex>
+#include <algorithm>
 
 using namespace OpenMS;
 using namespace std;
@@ -296,10 +296,14 @@ protected:
     isotope_error["-1/0/1/2/3"] = 5;
 
     // comet_version is something like "# comet_version 2017.01 rev. 1"
-    QRegularExpression comet_version_regex("(\\d{4})\\.(\\d*)rev");
-    if (auto match = comet_version_regex.match(QString::fromStdString(comet_version).remove(' ')); match.hasMatch())
+    // Remove spaces for matching
+    std::string version_no_spaces = comet_version;
+    version_no_spaces.erase(std::remove(version_no_spaces.begin(), version_no_spaces.end(), ' '), version_no_spaces.end());
+    std::regex comet_version_regex("(\\d{4})\\.(\\d*)rev");
+    std::smatch match;
+    if (std::regex_search(version_no_spaces, match, comet_version_regex))
     {
-      const int comet_year = match.captured(1).toInt();
+      const int comet_year = std::stoi(match[1].str());
       if (comet_version.hasSubstring("2024.01 rev. 0"))
       {
         OPENMS_LOG_WARN << "Comet v2024.01.0 is known to have several bugs (see https://github.com/UWPR/Comet/issues/63). Please use a different version if possible." << std::endl;

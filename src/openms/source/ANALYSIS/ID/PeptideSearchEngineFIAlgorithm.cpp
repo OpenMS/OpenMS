@@ -89,7 +89,9 @@ namespace OpenMS
 
 
     defaults_.setValue("fragment:min_mz", 150, "Minimal fragment mz for database");
-    defaults_.setValue("fragment:max_mz", 2000, "Maximal fragment mz for database");    
+    defaults_.setValue("fragment:max_mz", 2000, "Maximal fragment mz for database");
+    defaults_.setValue("fragment:min_ion_index", 2, "Ions with index less than or equal to this value are not added to the fragment index (use 0 to include all ions; 2 skips b1/b2/y1/y2). Low-index ions are often noisy and unreliable.");
+    defaults_.setMinInt("fragment:min_ion_index", 0);
 
     defaults_.setSectionDescription("fragment", "Fragments (Product Ion) Options");
 
@@ -590,23 +592,8 @@ if (!pi.getHits().empty())
 
       for (const auto& sms : top_sms.hits_)
       {
-        FragmentIndex::Peptide sms_pep = fragment_index_.getPeptides()[sms.peptide_idx_];
-        pair<size_t, size_t> candidate_snippet = sms_pep.sequence_;
-        AASequence unmod_candidate = AASequence::fromString(db[sms_pep.protein_idx].sequence.substr(candidate_snippet.first, candidate_snippet.second));
-        AASequence mod_candidate;
-        if (!(modifications_variable_.empty() && modifications_fixed_.empty()))
-        {
-          vector<AASequence> mod_candidates;
-          ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
-          ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
-          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, unmod_candidate);
-          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, unmod_candidate, modifications_max_variable_mods_per_peptide_, mod_candidates);
-          mod_candidate = mod_candidates[sms_pep.modification_idx_];
-        }
-        else
-        {
-          mod_candidate = unmod_candidate;
-        }
+        const FragmentIndex::Peptide& sms_pep = fragment_index_.getPeptides()[sms.peptide_idx_];
+        AASequence mod_candidate = fragment_index_.reconstructModifiedSequence(sms_pep, db);
 
         PeakSpectrum theo_spectrum;
         spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, 1);
