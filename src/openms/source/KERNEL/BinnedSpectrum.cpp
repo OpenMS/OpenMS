@@ -38,7 +38,7 @@ namespace OpenMS
     bin_size_(rhs.bin_size_),
     unit_ppm_(rhs.unit_ppm_),
     offset_(rhs.offset_),
-    bins_(new SparseVectorType(*rhs.bins_)),
+    bins_(rhs.bins_ ? new SparseVectorType(*rhs.bins_) : nullptr),
     precursors_(rhs.precursors_)
   {
   }
@@ -54,7 +54,7 @@ namespace OpenMS
       precursors_ = rhs.precursors_;
 
       delete bins_;
-      bins_ = new SparseVectorType(*rhs.bins_);
+      bins_ = rhs.bins_ ? new SparseVectorType(*rhs.bins_) : nullptr;
     }
 
     return *this;
