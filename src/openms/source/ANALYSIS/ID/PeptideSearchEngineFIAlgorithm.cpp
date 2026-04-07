@@ -89,7 +89,9 @@ namespace OpenMS
 
 
     defaults_.setValue("fragment:min_mz", 150, "Minimal fragment mz for database");
-    defaults_.setValue("fragment:max_mz", 2000, "Maximal fragment mz for database");    
+    defaults_.setValue("fragment:max_mz", 2000, "Maximal fragment mz for database");
+    defaults_.setValue("fragment:min_ion_index", 2, "Ions with index less than or equal to this value are not added to the fragment index (use 0 to include all ions; 2 skips b1/b2/y1/y2). Low-index ions are often noisy and unreliable.");
+    defaults_.setMinInt("fragment:min_ion_index", 0);
 
     defaults_.setSectionDescription("fragment", "Fragments (Product Ion) Options");
 

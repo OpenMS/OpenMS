@@ -252,7 +252,7 @@ namespace OpenMS
 
     // Generate prefix ions (b, a, c) - left to right cumulative sum
     // Fragment charge is always 1 for the index (matching original TSG call)
-    // Ion index is 1-based: i=0 produces ion 1 (b1/a1/c1), so skip when (i+1) < min_ion_index_
+    // Ion index is 1-based: i=0 produces ion 1 (b1/a1/c1), so skip when (i+1) <= min_ion_index_
     if (add_b_ions_ || add_a_ions_ || add_c_ions_)
     {
       {
@@ -1086,7 +1086,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
     defaults_.setValue("fragment:min_mz", 150, "Minimal fragment mz for database");
     defaults_.setValue("fragment:max_mz", 2000, "Maximal fragment mz for database");
-    defaults_.setValue("fragment:min_ion_index", 0, "Minimum ion index to consider (0 = include all ions, 2 = skip b1/b2/y1/y2 like Sage). Ions below this index are not added to the fragment index.");
+    defaults_.setValue("fragment:min_ion_index", 2, "Ions with index less than or equal to this value are not added to the fragment index (use 0 to include all ions; 2 skips b1/b2/y1/y2). Low-index ions are often noisy and unreliable.");
     defaults_.setMinInt("fragment:min_ion_index", 0);
 
     vector<String> all_mods;

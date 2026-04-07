@@ -284,6 +284,7 @@ START_SECTION(void querySpectrum(const MSSpectrum& spectrum, SpectrumMatchesTopN
   params.setValue("fragment:min_mz", 0);
   // ensure all peptides/fragments are generated for exhaustive self-hit checks
   params.setValue("fragment:max_mz", 5000000);
+  params.setValue("fragment:min_ion_index", 0);
   queryTest.setParameters(params);
 
   queryTest.build(entries);
@@ -372,6 +373,7 @@ START_SECTION(tolerance)
   auto params = tolTest.getParameters();
   params.setValue("fragment:min_mz", 0);
   params.setValue("fragment:max_mz", 90000);
+  params.setValue("fragment:min_ion_index", 0); // index all ions to verify all theoretical peaks match
   params.setValue("fragment:mass_tolerance", 0.05);
   params.setValue("fragment:mass_tolerance_unit", "Da");
   params.setValue("precursor:mass_tolerance", 2.0);
@@ -441,6 +443,7 @@ START_SECTION(lightweight_fragment_count)
   params.setValue("peptide:max_mass", 50000);
   params.setValue("fragment:min_mz", 0);
   params.setValue("fragment:max_mz", 50000);
+  params.setValue("fragment:min_ion_index", 0); // include all ions for this test
   params.setValue("modifications:variable", std::vector<std::string> {});
   params.setValue("modifications:fixed", std::vector<std::string> {});
   fcTest.setParameters(params);
@@ -482,6 +485,7 @@ START_SECTION(multi_mod_per_site)
   params.setValue("peptide:max_mass", 50000);
   params.setValue("fragment:min_mz", 0);
   params.setValue("fragment:max_mz", 50000);
+  params.setValue("fragment:min_ion_index", 0); // include all ions for fragment count check
   params.setValue("modifications:variable_max_per_peptide", 2);
   params.setValue("modifications:variable", std::vector<std::string> {"Oxidation (M)"});
   params.setValue("modifications:fixed", std::vector<std::string> {"Carbamidomethyl (C)"});
@@ -514,6 +518,7 @@ START_SECTION(fixed_plus_variable_mods)
   params.setValue("peptide:max_mass", 50000);
   params.setValue("fragment:min_mz", 0);
   params.setValue("fragment:max_mz", 50000);
+  params.setValue("fragment:min_ion_index", 0); // include all ions for fragment count check
   params.setValue("modifications:variable_max_per_peptide", 2);
   params.setValue("modifications:variable", std::vector<std::string> {"Oxidation (M)"});
   params.setValue("modifications:fixed", std::vector<std::string> {"Carbamidomethyl (C)"});
