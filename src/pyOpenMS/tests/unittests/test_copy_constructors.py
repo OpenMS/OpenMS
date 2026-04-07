@@ -4,11 +4,18 @@ pyopenms classes that support copying.
 
 Catches regressions where nanobind dispatches copy-construction to a string
 constructor instead of the copy constructor due to registration order.
+
+Uses a subprocess probe at collection time to discover classes that segfault
+during default-construction or copy. Those classes are excluded from the
+parametrized tests but cause test_no_segfaults_during_copy to FAIL with
+a clear list of crashers.
 """
 
 import copy
 import enum
 import inspect
+import subprocess
+import sys
 
 import pytest
 
@@ -26,7 +33,74 @@ def _get_copyable_classes():
     )
 
 
-COPYABLE_CLASSES = _get_copyable_classes()
+_PROBE_CODE = """\
+import copy, sys
+import pyopenms
+for name in {class_names!r}:
+    cls = getattr(pyopenms, name)
+    try:
+        obj = cls()
+    except Exception:
+        print("SKIP:" + name, flush=True)
+        continue
+    try:
+        copy.copy(obj)
+    except Exception:
+        print("SKIP:" + name, flush=True)
+        continue
+    print("OK:" + name, flush=True)
+"""
+
+
+def _probe_safe_classes(class_names, timeout=120):
+    """Probe which classes can be default-constructed and copied without segfaulting.
+
+    Runs operations in a subprocess. If it crashes, identifies the crasher from
+    the last successfully printed class name and recurses on remaining classes.
+
+    Returns (safe_set, crashed_list).
+    """
+    if not class_names:
+        return set(), []
+
+    code = _PROBE_CODE.format(class_names=class_names)
+    try:
+        result = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True, text=True, timeout=timeout
+        )
+    except subprocess.TimeoutExpired:
+        return set(), list(class_names)
+
+    safe = set()
+    skipped = set()
+    for line in result.stdout.strip().splitlines():
+        if line.startswith("OK:"):
+            safe.add(line[3:])
+        elif line.startswith("SKIP:"):
+            skipped.add(line[5:])
+
+    if result.returncode == 0:
+        return safe, []
+
+    # Subprocess crashed. Identify crasher and recurse on remaining.
+    reported = safe | skipped
+    remaining = [n for n in class_names if n not in reported]
+    crashed = []
+    if remaining:
+        crashed.append(remaining[0])  # first unreported class = the crasher
+        remaining = remaining[1:]
+    if remaining:
+        more_safe, more_crashed = _probe_safe_classes(remaining, timeout)
+        safe |= more_safe
+        crashed.extend(more_crashed)
+
+    return safe, crashed
+
+
+_ALL_COPYABLE = _get_copyable_classes()
+_SAFE_CLASSES, _CRASHED_CLASSES = _probe_safe_classes(_ALL_COPYABLE)
+COPYABLE_CLASSES = sorted(_SAFE_CLASSES)
 
 
 def _try_default_construct(cls):
@@ -43,6 +117,14 @@ def _has_own_eq(cls):
         "__eq__" in base.__dict__
         for base in cls.__mro__
         if base is not object
+    )
+
+
+def test_no_segfaults_during_copy():
+    """Fail if any copyable class segfaults during default-construct + copy."""
+    assert not _CRASHED_CLASSES, (
+        f"{len(_CRASHED_CLASSES)} class(es) segfault during copy probe: "
+        + ", ".join(_CRASHED_CLASSES)
     )
 
 
