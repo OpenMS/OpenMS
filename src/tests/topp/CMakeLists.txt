@@ -2940,6 +2940,13 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -Search:decoys
     -threads 4)
 
+  add_test("TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+    -in ${TESTS_TEMP_DIR}/SimpleSearchEngine_DDA_out.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/SimpleSearchEngine_DDA_fdr.tmp.idXML
+    -FDR:PSM 0.01
+    -protein false)
+  set_tests_properties("TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA" PROPERTIES DEPENDS "TOPP_SimpleSearchEngine_DDA")
+
   add_test("TOPP_PeptideDataBaseSearchFI_DDA" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
@@ -2951,8 +2958,14 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -Search:enzyme Trypsin/P
     -Search:peptide:missed_cleavages 2
     "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
-    -Search:decoys
-    -threads 4)
+    -Search:decoys)
+
+  add_test("TOPP_FalseDiscoveryRate_PeptideDataBaseSearchFIDDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+    -in ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_out.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_fdr.tmp.idXML
+    -FDR:PSM 0.01
+    -protein false)
+  set_tests_properties("TOPP_FalseDiscoveryRate_PeptideDataBaseSearchFIDDA" PROPERTIES DEPENDS "TOPP_PeptideDataBaseSearchFI_DDA")
 
   # SageAdapter DDA test: generate decoys externally (SageAdapter sets generate_decoys=false),
   # then search with Sage, then apply FDR filtering on hyperscore via FalseDiscoveryRate.
@@ -2979,7 +2992,8 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
       "-variable_modifications" "Oxidation (M)" "Acetyl (Protein N-term)"
       -chimera false
       -predict_rt false
-      -deisotope false)
+      -deisotope false
+      -min_ion_index 2)
     set_tests_properties("TOPP_SageAdapter_DDA" PROPERTIES DEPENDS "TOPP_DecoyDatabase_DDA")
 
     add_test("TOPP_FalseDiscoveryRate_SageDDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test

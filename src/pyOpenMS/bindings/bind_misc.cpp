@@ -245,8 +245,8 @@ NB_MODULE(_pyopenms_misc, m) {
     // DefaultParamHandler
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::DefaultParamHandler>(m, "DefaultParamHandler", "A base class for all classes handling default parameters")
-        .def(nb::init<OpenMS::String>())
         .def(nb::init<const OpenMS::DefaultParamHandler &>())
+        .def(nb::init<OpenMS::String>())
         .def("__copy__", [](const OpenMS::DefaultParamHandler& self) { return OpenMS::DefaultParamHandler(self); })
         .def("__deepcopy__", [](const OpenMS::DefaultParamHandler& self, nb::dict) { return OpenMS::DefaultParamHandler(self); }, "memo"_a)
         .def("setParameters", [](OpenMS::DefaultParamHandler& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
