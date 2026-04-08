@@ -10,6 +10,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/HydrophobicityScale.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -437,6 +438,15 @@ public:
     /// ostream iterator to write the residue to a stream
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
 
+    /// @brief returns the hydrophobicity value of the residue
+    /// @param scale which scale to use for the hydrophobicity value
+    /// @return hydrophobicity value of the residue
+    double getHydrophobicity(const HydrophobicityScaleNumber scale);
+ 
+
+    /* int testfunktion(){
+      return 1;
+    } */
 protected:
 
     /// the name of the residue

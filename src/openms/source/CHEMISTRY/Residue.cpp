@@ -630,6 +630,70 @@ namespace OpenMS
     return os;
   }
 
+  double Residue::getHydrophobicity(const HydrophobicityScaleNumber scale)
+  {
+    double scales[6][20]=
+    {
+  //kyteDooloiitle
+  {  
+    1.800 , -4.500,  -3.500,  -3.500,  2.500,  -3.500,  -3.500,  -0.400,  -3.200,  4.500 , 3.800,  -3.900,  1.900,  2.800,  1.600,  -0.800,  -0.700,  -0.900,  -1.300,  4.200  
+  },
+  //Eisenberg
+  {
+  0.620,  -2.530,  -0.780,  -0.900,  0.290,  -0.850,  -0.740,   0.480,  -0.400,  1.380,  1.060,  -1.500,  0.640,  1.190,  0.120,  -0.180,  -0.050,  0.810,  0.260 , 1.080  
+  },
+  //HoppWoods
+  {
+ -0.500,  3.000,  0.200,  3.000,  -1.000,  0.200,  3.000,  0.000,  -0.500,  -1.800,  -1.800,  3.000,  -1.300,  -2.500,  0.000,  0.300,  -0.400,  -3.400,  -2.300,  -1.500  
+  },
+ //BullBreese:
+  {
+0.610, 0.690, 0.890, 0.610, 0.360, 0.970, 0.510, 0.810, 0.690, -1.450, -1.650, 0.460, -0.660, -1.520, -0.170, 0.420, 0.290, -1.200, -1.430, -0.750
+  },
+  //BlackMould:
+  {
+    0.616, 0.000, 0.236, 0.028, 0.680, 0.251, 0.043, 0.501, 0.165, 0.943, 0.943, 0.283, 0.738, 1.000, 0.711, 0.359, 0.450, 0.878, 0.880, 0.825
+  },
+  //Guy
+  {
+    0.100, 1.910, 0.480, 0.780, -1.420, 0.950, 0.830, 0.330, -0.500, -1.130, -1.180, 1.400, 1.590, -2.120, 0.730, 0.520, 0.070, -0.510, -0.210, -1.270 
+  }
+
+};
+
+int amino_acid_number;
+
+
+if (one_letter_code_ == "A"){amino_acid_number = 0;}
+else if (one_letter_code_ == "R"){amino_acid_number = 1;}
+else if (one_letter_code_ == "N"){amino_acid_number = 2;}
+else if (one_letter_code_ == "D"){amino_acid_number = 3;}
+else if (one_letter_code_ == "C"){amino_acid_number = 4;}
+else if (one_letter_code_ == "Q"){amino_acid_number = 5;}
+else if (one_letter_code_ == "E"){amino_acid_number = 6;}
+else if (one_letter_code_ == "G"){amino_acid_number = 7;}
+else if (one_letter_code_ == "H"){amino_acid_number = 8;}
+else if (one_letter_code_ == "I"){amino_acid_number = 9;}
+else if (one_letter_code_ == "L"){amino_acid_number = 10;}
+else if (one_letter_code_ == "K"){amino_acid_number = 11;}
+else if (one_letter_code_ == "M"){amino_acid_number = 12;}
+else if (one_letter_code_ == "F"){amino_acid_number = 13;}
+else if (one_letter_code_ == "P"){amino_acid_number = 14;}
+else if (one_letter_code_ == "S"){amino_acid_number = 15;}
+else if (one_letter_code_ == "T"){amino_acid_number = 16;}
+else if (one_letter_code_ == "W"){amino_acid_number = 17;}
+else if (one_letter_code_ == "Y"){amino_acid_number = 18;}
+else if (one_letter_code_ == "V"){amino_acid_number = 19;}
+else{OPENMS_LOG_WARN << "Unknown residue name encountered. Can't find hydrophobicity value" << endl;
+  return 0;
+
+}
+
+
+return scales[scale][amino_acid_number];
+
+  }
+
   // static members
   // TODO They could actually be constexpr but EmpiricalFormula of a string literal is not constexpr yet
   //  not sure if possible with current C++ standard
