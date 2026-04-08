@@ -61,6 +61,7 @@ TOPP tools:
       - Merges compatible variable modifications for improved search performance (3x+ speedup) (#8407)
     PeptideDataBaseSearchFI:
       - Expanded fragment index open search with modification discovery and FDR filtering (#8414)
+      - BREAKING: Default fragment:min_ion_index changed from 0 to 2; b1/b2/y1/y2 ions are now excluded by default (matching Sage behavior); improves PSM yield and reduces memory usage; use -fragment:min_ion_index 0 to restore previous behavior (#9094)
     ProteomicsLFQ:
       - Removed unnecessary group reindexing, added stricter validation (#8752)
       - Arrow/DataFrame/Parquet export for ConsensusMap (#8729)
@@ -117,6 +118,7 @@ PyOpenMS:
   - Fix: getAAFrequencies() loop bug in AASequence addon (#8502)
   - Fix: ~50 mutable reference output parameter bugs fixed across all bindings (#8699)
   - Fix: ~100 missing default arguments restored (#8699)
+  - Fix: AASequence.__str__() now returns the peptide sequence string instead of repr format; copy constructor dispatch fixed for AASequence and 11 other classes (ProteinHit, Software, CVTerm, PeptideEvidence, USI, and others) to prevent implicit string conversion (#9098)
   - Test: Docstring format validation tests added (#8674)
   - ProForma v2 support: Full Python bindings for ProFormaParser (#8648)
     - Parse ProForma strings: Peptidoform.fromString(), PeptidoformIon.fromString()
@@ -338,7 +340,7 @@ Build System:
   - Fix Windows CI Release builds: removed erroneous /Od /Ob0 flag override that caused all Windows CI Release binaries to be unoptimized since 2021; builds now use CMake defaults (/O2 /Ob2) (#8961)
   - Arrow/Parquet made a required dependency; WITH_PARQUET CMake option removed (#8991)
   - Qt6::Core removed from libOpenMS PUBLIC CMake link dependencies; downstream CMake targets must now explicitly link Qt6::Core if needed (#8965)
-  - Minimum Boost version bumped to 1.78; fixes boost::filesystem link errors when boost::process uses BOOST_PROCESS_USE_STD_FS (#9042)
+  - Minimum Boost version bumped to 1.81 (#9042, #9095)
   - Qt6 find_package guarded by WITH_GUI block; Qt is no longer needed for non-GUI TOPP tool builds (#9041)
   - yaml-cpp bumped to 0.9.0 in tool_description_lib; fixes broken hash/map type parsing in YAML CTD config files (#9056)
 
