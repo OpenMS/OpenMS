@@ -219,7 +219,7 @@ int main(int argc, const char** argv)
   }
   catch (Exception::ParseError& e)
   {
-    cout << String("Error: Unable to read file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+    cout << String("Error: Unable to read file - parse error: ") << e.what() << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
   catch (Exception::InvalidValue& e)
   {

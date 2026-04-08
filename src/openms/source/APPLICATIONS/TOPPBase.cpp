@@ -521,7 +521,7 @@ namespace OpenMS
     }
     catch (ParseError& e)
     {
-      writeLogError_(String("Error: Unable to read file (") + e.what() + ")");
+      writeLogError_(String("Error: Unable to read file - parse error: ") + e.what());
       writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
       return INPUT_FILE_CORRUPT;
     }
