@@ -342,7 +342,8 @@ namespace OpenMS
       //check if both source and target node were also selected (otherwise don't copy)
       TOPPASVertex* old_source = e->getSourceVertex();
       TOPPASVertex* old_target = e->getTargetVertex();
-      if (vertex_map.find(old_source) == vertex_map.end())
+      if (vertex_map.find(old_source) == vertex_map.end() ||
+          vertex_map.find(old_target) == vertex_map.end())
       {
         continue;
       }
