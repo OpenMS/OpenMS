@@ -415,16 +415,17 @@ namespace OpenMS
           }
         }
 
-// Debug: log spectrum-level top hit details before storing PeptideIdentification
-if (!pi.getHits().empty())
-{
-  const PeptideHit& top_hit = pi.getHits().front();
-  OPENMS_LOG_INFO << "[PDBS-FI] scan_index=" << scan_index
-                    << " top_ln(hyperscore)=" << top_hit.getScore()
-                    << " top_charge=" << top_hit.getCharge()
-                    << " top_isotope_error=" << (int)top_hit.getMetaValue("isotope_error")
-                    << std::endl;
-}
+        // Debug: log spectrum-level top hit details before storing PeptideIdentification.
+        // DEBUG (not INFO) because multi-file mode would emit one line per scan per input.
+        if (!pi.getHits().empty())
+        {
+          const PeptideHit& top_hit = pi.getHits().front();
+          OPENMS_LOG_DEBUG << "[PDBS-FI] scan_index=" << scan_index
+                           << " top_ln(hyperscore)=" << top_hit.getScore()
+                           << " top_charge=" << top_hit.getCharge()
+                           << " top_isotope_error=" << (int)top_hit.getMetaValue("isotope_error")
+                           << std::endl;
+        }
 #pragma omp critical (peptide_ids_access)
         {
           //clang-tidy: seems to be a false-positive in combination with omp
@@ -950,6 +951,9 @@ if (!pi.getHits().empty())
     }
 
     // Build the aggregate result by pooling per-file PSMs.
+    // If every per-file run failed, propagate the first non-OK exit code into the
+    // aggregate (rather than overloading UNEXPECTED_RESULT, which has a specific
+    // meaning - PeptideIndexing failure).
     bool any_ok = false;
     for (const auto& pf : mfres.per_file)
     {
@@ -958,16 +962,24 @@ if (!pi.getHits().empty())
 
     if (!any_ok)
     {
-      mfres.aggregate.exit_code = ExitCodes::UNEXPECTED_RESULT;
+      for (const auto& pf : mfres.per_file)
+      {
+        if (pf.exit_code != ExitCodes::EXECUTION_OK)
+        {
+          mfres.aggregate.exit_code = pf.exit_code;
+          break;
+        }
+      }
       return mfres;
     }
 
     // Single-file fast path: the aggregate would just duplicate the only per-file
-    // result. Copy it across (so callers can rely on aggregate being populated)
-    // and skip the redundant pooled modification analysis.
+    // result and re-run modification analysis on the same PSMs. Skip the pooling
+    // and analysis entirely. The aggregate is left with only @c is_open_search
+    // and @c exit_code populated; callers should use @c per_file[0] for the
+    // actual identifications. This is documented on @c MultiFileSearchResult.
     if (mfres.per_file.size() == 1 && mfres.per_file[0].exit_code == ExitCodes::EXECUTION_OK)
     {
-      mfres.aggregate = mfres.per_file[0];
       return mfres;
     }
 

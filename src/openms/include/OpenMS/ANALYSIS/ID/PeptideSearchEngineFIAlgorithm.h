@@ -80,6 +80,21 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
      * single @p aggregate result whose peptide_ids are the concatenation of all
      * per-file PSMs and whose modification_analysis is computed once on the
      * pooled set of PSMs.
+     *
+     * Special cases for @p aggregate:
+     *  - When the input list contains exactly one file, @p aggregate is left
+     *    almost-empty (only @c is_open_search and @c exit_code are set) — the
+     *    single-file pooled aggregate would just duplicate @c per_file[0] and
+     *    re-run modification analysis on the same PSMs. Callers should use
+     *    @c per_file[0] for the result in this case.
+     *  - When every per-file run failed, @p aggregate.exit_code is set to the
+     *    first non-OK per-file exit code (so callers can inspect it without
+     *    walking the @p per_file vector).
+     *
+     * The aggregate's @c protein_ids template is taken from the first
+     * successful per-file result (search parameters are identical across files
+     * by construction), with the primary MS run path overwritten to list every
+     * input file.
      */
     struct MultiFileSearchResult
     {
