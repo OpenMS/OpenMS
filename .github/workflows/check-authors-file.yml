@@ -23,7 +23,10 @@ jobs:
           path: ci-tools
       - name: Check the AUTHORS File
         run: |
-          if ! ci-tools/scripts/authors.sh "$GITHUB_BASE_REF" "HEAD"; then
+          exit_code=0
+          ci-tools/scripts/authors.sh "$GITHUB_BASE_REF" "HEAD" || exit_code=$?
+
+          if [ "$exit_code" -eq 100 ]; then
             ci-tools/scripts/authors.sh -p "$ACTOR" "$GITHUB_BASE_REF" "HEAD" |
               gh pr comment "$PR" --body-file -
           fi
