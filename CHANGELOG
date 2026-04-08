@@ -47,6 +47,7 @@ Dependencies:
     - Qt6::Core removed from all non-GUI TOPP tools; Qt is now only required when building with WITH_GUI=ON; ExecutePipeline, INIUpdater, and ImageCreator moved from src/topp/ to the GUI library (#9041)
   - boost-process added as a header-only dependency for cross-platform subprocess management (#8939)
   - ENABLE_TDL CMake option (required for CWL/Common Workflow Language file support) now defaults to OFF; set -DENABLE_TDL=ON to re-enable (#9067)
+  - Boost minimum version requirement raised from 1.78 to 1.81 (#9095)
 
 TOPP tools:
   Changes:
@@ -61,7 +62,8 @@ TOPP tools:
       - Merges compatible variable modifications for improved search performance (3x+ speedup) (#8407)
     PeptideDataBaseSearchFI:
       - Expanded fragment index open search with modification discovery and FDR filtering (#8414)
-      - BREAKING: Default fragment:min_ion_index changed from 0 to 2; b1/b2/y1/y2 ions are now excluded by default (matching Sage behavior); improves PSM yield and reduces memory usage; use -fragment:min_ion_index 0 to restore previous behavior (#9094)
+      - FragmentIndex: default fragment:min_ion_index changed from 0 to 2, skipping b1/b2/y1/y2 ions by default (matches Sage behavior); improves PSM count, reduces memory and runtime; set fragment:min_ion_index=0 to include all ions (#9094)
+      - FragmentIndex: faster index build using bitmask-based modification enumeration and SoA memory layout with SIMD-accelerated query loop (#9088)
     ProteomicsLFQ:
       - Removed unnecessary group reindexing, added stricter validation (#8752)
       - Arrow/DataFrame/Parquet export for ConsensusMap (#8729)
@@ -115,6 +117,8 @@ PyOpenMS:
   - BREAKING: Metadata enums converted to strongly typed enum classes (#8604)
   - BREAKING: Activation methods enum handling changed (#8405)
   - BREAKING: DataFrame methods renamed to Pythonic conventions: get_df() → to_df(), get_df_columns() → df_columns(), etc. Deprecated aliases provided for backward compatibility (#8655)
+  - Fix: AASequence copy constructor dispatch corrected; AASequence(existing_seq) now copies instead of round-tripping via __str__; __str__ now returns the peptide sequence string via toString() (#9098)
+  - Fix: copy constructor registration order fixed for 11 additional classes (ProteinHit, Software, CVTerm, PeptideEvidence, USI, Ribonucleotide, FIAMSScheduler, CachedmzML, IndexedMzMLHandler, XICParquetFile, XIMParquetFile) (#9098)
   - Fix: getAAFrequencies() loop bug in AASequence addon (#8502)
   - Fix: ~50 mutable reference output parameter bugs fixed across all bindings (#8699)
   - Fix: ~100 missing default arguments restored (#8699)
