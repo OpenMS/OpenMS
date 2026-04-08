@@ -205,11 +205,11 @@ int main(int argc, const char** argv)
   }
   catch (Exception::FileNotReadable& e)
   {
-    cout << String("Error: File not readable (") << e.what()  << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+    cout << String("Error: File not readable (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
   catch (Exception::FileEmpty& e)
   {
-    cout << String("Error: File empty (") << e.what()  << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+    cout << String("Error: File empty (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
   catch (Exception::ParseError& e)
   {
