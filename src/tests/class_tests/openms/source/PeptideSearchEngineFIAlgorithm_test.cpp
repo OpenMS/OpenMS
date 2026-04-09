@@ -819,6 +819,7 @@ START_SECTION((SearchResult searchWithModificationAnalysis(const String &, const
 }
 END_SECTION
 
+<<<<<<< HEAD
 START_SECTION(([EXTRA] prepareContext + context-based search produces same IDs as single-shot search))
 {
   // Build a tiny synthetic dataset where we know the search returns hits.
@@ -961,6 +962,101 @@ END_SECTION
 START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<String>&, const String&, const std::vector<String>&, const String&) const))
 {
   NOT_TESTABLE // tested via TOPP tool (multi-file integration test)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] PSM annotations - matched ion counts, longest run, fragment annotations))
+{
+  // Create a small FASTA database with one protein containing a single tryptic peptide
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "TestProtein", "PEPTIDEK"}
+  };
+
+  // Generate a synthetic MS2 spectrum from a known tryptic peptide
+  AASequence peptide = AASequence::fromString("PEPTIDEK");
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param(tsg.getParameters());
+  tsg_param.setValue("add_metainfo", "true");
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg.setParameters(tsg_param);
+
+  PeakSpectrum theo;
+  tsg.getSpectrum(theo, peptide, 1, 1);
+
+  // Build a PeakMap with one MS2 spectrum
+  PeakMap exp;
+  MSSpectrum ms2;
+  ms2.setMSLevel(2);
+  ms2.setRT(100.0);
+  Precursor prec;
+  prec.setMZ(peptide.getMZ(2));  // charge 2
+  prec.setCharge(2);
+  ms2.setPrecursors({prec});
+
+  // Copy theoretical peaks to experimental (perfect match)
+  for (const auto& p : theo)
+  {
+    ms2.emplace_back(p.getMZ(), p.getIntensity());
+  }
+  ms2.sortByPosition();
+  exp.addSpectrum(std::move(ms2));
+
+  // Configure search engine
+  PeptideSearchEngineFIAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance", 10.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 10.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("enzyme", "Trypsin");
+  p.setValue("peptide:missed_cleavages", 0);
+  p.setValue("peptide:min_size", 5);
+  p.setValue("peptide:max_size", 40);
+  p.setValue("annotate:PSM", vector<string>{"ALL"});
+  p.setValue("modifications:fixed", vector<string>{});
+  p.setValue("modifications:variable", vector<string>{});
+  algo.setParameters(p);
+
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  algo.search(exp, fasta_db, prot_ids, pep_ids);
+
+  // Should have found our peptide
+  TEST_EQUAL(pep_ids.size(), 1)
+  TEST_EQUAL(pep_ids[0].getHits().size() >= 1, true)
+
+  const PeptideHit& hit = pep_ids[0].getHits()[0];
+  TEST_EQUAL(hit.getSequence(), peptide)
+
+  // Verify matched ion count annotations exist and are positive
+  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::NUM_MATCHED_PEAKS), true)
+  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MATCHED_B_IONS), true)
+  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MATCHED_Y_IONS), true)
+  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE), true)
+
+  int num_matched = hit.getMetaValue(Constants::UserParam::NUM_MATCHED_PEAKS);
+  int b_ions = hit.getMetaValue(Constants::UserParam::MATCHED_B_IONS);
+  int y_ions = hit.getMetaValue(Constants::UserParam::MATCHED_Y_IONS);
+  int longest_run = hit.getMetaValue(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE);
+
+  TEST_EQUAL(num_matched > 0, true)
+  TEST_EQUAL(num_matched, b_ions + y_ions)
+  TEST_EQUAL(b_ions > 0, true)
+  TEST_EQUAL(y_ions > 0, true)
+
+  // Perfect match: longest run should be substantial (peptide length - 1 for one series)
+  TEST_EQUAL(longest_run >= 3, true)
+
+  // Verify fragment annotations
+  const auto& annotations = hit.getPeakAnnotations();
+  TEST_EQUAL(annotations.empty(), false)
+  // Each annotation should have mz > 0, non-empty name, and charge >= 1
+  for (const auto& ann : annotations)
+  {
+    TEST_EQUAL(ann.mz > 0.0, true)
+    TEST_EQUAL(ann.annotation.empty(), false)
+    TEST_EQUAL(ann.charge >= 1, true)
+  }
 }
 END_SECTION
 
