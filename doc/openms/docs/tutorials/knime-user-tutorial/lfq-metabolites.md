@@ -3,7 +3,7 @@ Label-free quantification of metabolites
 
 ## Introduction
 
-Quantification and identification of chemical compounds are basic tasks in metabolomic studies. In this tutorial session we construct a UPLC-MS based, label-free quantification and identification workflow. Following quantification and identification we then perform statistical downstream analysis to detect quantification values that differ significantly between two conditions. This approach can, for example, be used to detect biomarkers. 
+Quantification and identification of chemical compounds are basic tasks in metabolomic studies. In this tutorial session we construct a UPLC-MS-based, label-free quantification and identification workflow. Following quantification and identification we then perform statistical downstream analysis to detect quantification values that differ significantly between two conditions. This approach can, for example, be used to detect biomarkers. 
 
 Here, we analyze a dataset derived from bacterial cytosolic fractions to investigate the metabolic effects of fosfomycin, an antibiotic that inhibits a key step in peptidoglycan biosynthesis. The study is based on *Bacillus subtilis* cultures subjected to different treatment conditions.
 
@@ -18,7 +18,7 @@ The primary goal of this analysis is to evaluate the metabolic response of *B. s
 
 ## Basics of non-targeted metabolomics data analysis
 
-For the metabolite quantification we choose an approach similar to the one used for peptides, but this time based on the OpenMS `FeatureFinderMetabo` method. This feature finder again collects peak picked data into individual mass traces. The reason
+For the metabolite quantification we choose an approach similar to the one used for peptides, but this time based on the OpenMS `FeatureFinderMetabo` method. This feature finder again collects peak-picked data into individual mass traces. The reason
 why we need a different feature finder for metabolites lies in the step after trace detection: the aggregation of isotopic traces belonging to the same compound ion into the same feature. Compared to peptides with their averagine model, small molecules
 have very different isotopic distributions. To group small molecule mass traces correctly, an aggregation model tailored to small molecules is thus needed.
 
@@ -56,7 +56,7 @@ The parameters change the behavior of `FeatureFinderMetabo` as follows:
 - **remove_single_traces**: If set to true, unassembled traces are removed (single traces).
 - **report_convex_hulls**: If set to true, convex hulls including mass traces will be reported for all identified features. This increases the output size considerably.
 
-The output file .featureXML can be visualized with TOPPView on top of the used `.mzML` file - in a so called layer - to look at the identified features.
+The output file .featureXML can be visualized with TOPPView on top of the used `.mzML` file - in a so-called layer - to look at the identified features.
 
 First start TOPPView and open the example `.mzML` file (see <a href="#figure-28">Fig. 28</a>). Afterwards open the `.featureXML` output as new layer (see <a href="#figure-29">Fig. 29</a>). The overlay is depicted in <a href="#figure-30">Figure 30</a>. The zoom of the `.mzML` - `.featureXML` overlay shows the individual mass traces and the assembly of those in a feature (see <a href="#figure-31">Fig. 31</a>).
 
@@ -80,20 +80,20 @@ First start TOPPView and open the example `.mzML` file (see <a href="#figure-28"
 |:--:|
 |Figure 31: Zoom of the overlay of the .mzML with the .featureXML layer. Here the individual isotope traces (blue lines) are assembled into a feature here shown as convex hull (rectangular box).|
 
-To correct precursor m/z values in centroided high-resolution data,, one can add a `HighResPrecursorMassCorrector`node (**Community Nodes**>**OpenMS**>**Mass Correction and Calibration**) before the `FeatureFinderMetabo` node. The following parameter will be used to refine precursor masses by selecting the most intense centroided MS1 peak within a m/z tolerance of 10ppm:
+To correct precursor m/z values in centroided high-resolution data,, one can add a `HighResPrecursorMassCorrector`node (**Community Nodes**>**OpenMS**>**Mass Correction and Calibration**) before the `FeatureFinderMetabo` node. The following parameter will be used to refine precursor masses by selecting the most intense centroided MS1 peak within a m/z tolerance of 10 ppm:
 
 |**parameter**|	**value**|
 |:------------|:---------|
-|*highest_intensity_peak* → *mz_tolerance* → |100.0|
+|*highest_intensity_peak* → *mz_tolerance* → |10.0|
 |*highest_intensity_peak* → *mz_tolerance_unit* → |ppm|
 
 The parameters change the behavior of `HighResPrecursorMassCorrector` as follows:
 - **mz_tolerance**: The precursor mass tolerance to find the highest intensity MS1 peak.
 - **mz_tolerance_unit**: Unit of precursor mass tolerance.
 
-The workflow can be extended for multi-file analysis, here an `Input Files` node is to be used instead of the `File Importer` node. In front of the `HighResPrecursorMassCorrector`, a `ZipLoopStart` and behind `ZipLoopEnd` has to be used, since `HighResPrecursorMassCorrector` and `FeatureFinderMetabo` will analysis on file to file bases.
+The workflow can be extended for multi-file analysis by replacing the `File Importer` node with an `Input Files` node. Since `HighResPrecursorMassCorrector` and `FeatureFinderMetabo` operate on individual files, wrap them with a `ZipLoopStart` node before and a `ZipLoopEnd` node after.
 
-To facilitate the collection of features corresponding to the same compound ion across different samples, an alignment of the samples’ feature maps along retention time is often helpful. In addition to local, small-scale elution differences, one can often see constant retention time shifts across large sections between samples. We can use linear transformations to correct for these large scale retention differences. This brings the majority of corresponding compound ions close to each other. Finding the correct corresponding ions is then faster and easier, as we don’t have to search as far around individual features.
+To facilitate the collection of features corresponding to the same compound ion across different samples, an alignment of the samples’ feature maps along retention time is often helpful. In addition to local, small-scale elution differences, one can often see constant retention time shifts across large sections between samples. We can use linear transformations to correct for these large-scale retention differences. This brings the majority of corresponding compound ions close to each other. Finding the correct corresponding ions is then faster and easier, as we don’t have to search as far around individual features.
 
 (Figure_32)=
 |![map alignment example](/_images/openms-user-tutorial/metabo/align.png)|
@@ -160,7 +160,7 @@ The `FeatureLinkerUnlabeledKD` output can be visualized in TOPPView on top of th
 At the current state we found several metabolites in the individual maps but so far don’t know what they are. To identify metabolites, OpenMS provides multiple tools, including search by mass: the AccurateMassSearch node searches observed masses against the Human Metabolome Database (HMDB)[^1]<sup>,</sup> [^2]<sup>,</sup> [^3]. We start with the workflow from the previous section (see <a href="#figure-34">Figure 34</a>).
 
 - Add a **FileConverter** node (**Community Nodes** > **OpenMS** > **File Handling**) and connect the output of the FeatureLinkerUnlabeledKD to the incoming port.
-- Open the Configure dialog of the **FileConverter** node and select the tab **OutputTypes**. In the drop down list for FileConverter.1.out select **featureXML**.
+- Open the Configure dialog of the **FileConverter** node and select the tab **OutputTypes**. In the dropdown list for FileConverter.1.out select **featureXML**.
 - Add an **AccurateMassSearch** node (**Community Nodes** > **OpenMS** > **Utilities**) and connect the output of the **FileConverter** node to the first port of the **AccurateMassSearch** node.
 - Add four `File Importer` nodes and configure them with the following [files](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Tutorials/Example_Data/Metabolomics/databases/):
     - {path}`Example_Data,Metabolomics,databases,PositiveAdducts.tsv`
@@ -185,7 +185,7 @@ The result of the **AccurateMassSearch** node is in the mzTab format[^4] so you 
 ### Convert your data into a KNIME table
 
 The result from the TextExporter node as well as the result from the **AccurateMassSearch** node are files while standard KNIME nodes display and process only KNIME tables. To convert these files into KNIME tables we need two different nodes. For the **AccurateMassSearch** results, we use the **MzTabReader** node (**Community Nodes** > **OpenMS** > **Conversion** > **mzTab**) and its **Small Molecule Section** port. For the result of the **TextExporter**, we use the `ConsensusTextReader` (**Community Nodes** > **OpenMS** > **Conversion**).
-When executed, both nodes will import the OpenMS files and provide access to the data as KNIME tables. The retention time values are exported as a list using the **MzTabReader** based on the current PSI-Standard. This has to be parsed using the **SplitCollectionColumn**, which outputs a ”Split Value 1” based on the first entry in the rention time list, which has to be renamed to retention time using the **ColumnRename**. You can now combine both tables using the **Joiner** node (**Manipulation** > **Column** > **Split & Combine**) and configure it to match the m/z and retention time values of the respective tables. The full workflow is shown in <a href="#figure-37">Figure 37</a>.
+When executed, both nodes will import the OpenMS files and provide access to the data as KNIME tables. The retention time values are exported as a list using the **MzTabReader** based on the current PSI-Standard. This has to be parsed using the **SplitCollectionColumn**, which outputs a ”Split Value 1” based on the first entry in the retention time list, which has to be renamed to retention time using the **ColumnRename**. You can now combine both tables using the **Joiner** node (**Manipulation** > **Column** > **Split & Combine**) and configure it to match the m/z and retention time values of the respective tables. The full workflow is shown in <a href="#figure-37">Figure 37</a>.
 
 (Figure_37)=
 |![Label-free quantification and identification workflow for metabolites that loads the results into KNIME and joins the tables](/_images/openms-user-tutorial/metabo/metabo_part3.png)|
@@ -194,7 +194,7 @@ When executed, both nodes will import the OpenMS files and provide access to the
 
 ### Adduct grouping
 
-Metabolites commonly co-elute as ions with different adducts (e.g., glutathione+H, glutathione+Na) or with charge-neutral modifications (e.g., water loss). Grouping such related ions allows to leverage information across features. For example, a low intensity, single trace feature could still be assigned a charge and adduct due to a matching high-quality feature. Several OpenMS tools, such as **AccurateMassSearch**, can use this information to, for example, narrow down candidates for identification.
+Metabolites commonly co-elute as ions with different adducts (e.g., glutathione+H, glutathione+Na) or with charge-neutral modifications (e.g., water loss). Grouping such related ions allows to leverage information across features. For example, a low-intensity, single-trace feature could still be assigned a charge and adduct due to a matching high-quality feature. Several OpenMS tools, such as **AccurateMassSearch**, can use this information to, for example, narrow down candidates for identification.
 
 For this grouping task, we provide the **MetaboliteAdductDecharger** node. Its method explores the combinatorial space of all adduct combinations in a charge range for optimal explanations. Using defined adduct probabilities, it assigns co-eluting features having suitable mass shifts and charges those adduct combinations which maximize overall ion probabilities.
 
@@ -253,7 +253,7 @@ Originally designed for proteomics, **IDMapper** expects protein identifications
 
 After linking features, we remove MS1-based features that lack fragment spectrum annotations. This is done by connecting a **FileFilter** node to the output of **FeatureLinkerUnlabeledKD** and enabling:
 
-```
+```text
 id → remove_unannotated_features = true
 ```
 
@@ -270,7 +270,7 @@ Now, we are ready to identify metabolites using the **MetaboliteSpectralMatcher*
 
 1. Add a **FileImporter** node to load the spectral database.
 2. Convert the `mgf` output of **GNPSExport** into `mzML` format using the **FileConverter** node, ensuring:
-   ```
+   ```text
    algorithm → merge_spectra = false
    ```
 3. Read the resulting `mzTab` file into a KNIME table using the **mzTabReader** node.
@@ -292,11 +292,3 @@ Human Metabolome Database in 2013, Nucleic Acids Res 41(Database issue),D801–7
 Thallinger, R. M. Salek, C. Steinbeck, N. Neuhauser, J. Cox, S. Neumann, J. Fan,
 F. Reisinger, Q.-W. Xu, N. Del Toro, Y. Perez-Riverol, F. Ghali, N. Bandeira, I. Xenarios, O. Kohlbacher, J. A. Vizcaino, and H. Hermjakob, The mzTab Data Exchange Format: communicating MS-based proteomics and metabolomics experimental results to a wider audience, Mol Cell Proteomics (Jun 2014), doi:10.1074/mcp.O113.036681. 69
 
-[^5]: S. Böcker, M. C. Letzel, Z. Lipták, and A. Pervukhin, SIRIUS: Decomposing isotope
-patterns for metabolite identification, Bioinformatics 25(2), 218–224 (2009), <a href="https://academic.oup.com/bioinformatics/article/25/2/218/218950">doi:10.1093/bioinformatics/btn603</a>. 75
-
-[^6]: S. Böcker and K. Dührkop, Fragmentation trees reloaded, J. Cheminform. 8(1),
-1–26 (2016), <a href="https://jcheminf.biomedcentral.com/articles/10.1186/s13321-016-0116-8">doi:10.1186/s13321-016-0116-8</a>. 75
-
-[^7]: K. Dührkop, H. Shen, M. Meusel, J. Rousu, and S. Böcker, <a href="https://www.pnas.org/doi/abs/10.1073/pnas.1509788112">Searching molecular structure databases with tandem mass spectra using CSI:FingerID</a>, Proc. Natl.
-Acad. Sci. 112(41), 12580–12585 (oct 2015), <a href="https://www.pnas.org/doi/full/10.1073/pnas.1509788112">doi:10.1073/pnas.1509788112</a>. 75
