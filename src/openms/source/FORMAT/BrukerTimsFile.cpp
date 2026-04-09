@@ -329,6 +329,209 @@ namespace OpenMS
       return false;
     }
 
+    /// Helper for DIA MS2 frame aggregation and denoising.
+    /// Bins peaks from multiple frames onto a sparse (mz_bin, scan_id) grid,
+    /// applies spatial denoising, and outputs the surviving peaks.
+    class DIAFrameAggregator
+    {
+    public:
+      static constexpr double MZ_BIN_WIDTH = 0.02; // Da — absorbs frame-to-frame m/z jitter
+
+      struct OutputPeak
+      {
+        double mz;        // intensity-weighted mean m/z
+        double intensity;  // summed intensity
+        uint32_t scan_id;  // native scan index (for IM conversion)
+      };
+
+      /// Add a peak to the grid. Call for every peak from every neighbor frame.
+      void addPeak(double mz, uint32_t intensity, uint32_t scan_id)
+      {
+        int64_t mz_bin = static_cast<int64_t>(std::round(mz / MZ_BIN_WIDTH));
+        uint64_t key = (static_cast<uint64_t>(static_cast<uint32_t>(mz_bin)) << 32) | scan_id;
+
+        auto& cell = grid_[key];
+        double int_d = static_cast<double>(intensity);
+        cell.intensity_sum += int_d;
+        cell.mz_weighted_sum += mz * int_d;
+      }
+
+      /// Apply spatial denoising and return surviving peaks.
+      /// min_support: minimum occupied neighbors in 3x3 grid (center excluded).
+      /// If skip_denoise is true (e.g., only 1 frame), return all peaks without filtering.
+      std::vector<OutputPeak> finalize(int min_support, bool skip_denoise) const
+      {
+        std::vector<OutputPeak> result;
+        result.reserve(grid_.size());
+
+        for (const auto& [key, cell] : grid_)
+        {
+          if (!skip_denoise)
+          {
+            int neighbors = 0;
+            uint32_t scan_id = static_cast<uint32_t>(key & 0xFFFFFFFF);
+            uint32_t mz_bin = static_cast<uint32_t>(key >> 32);
+
+            // Check 3x3 neighborhood (center excluded)
+            for (int dm = -1; dm <= 1; ++dm)
+            {
+              for (int ds = -1; ds <= 1; ++ds)
+              {
+                if (dm == 0 && ds == 0) continue;
+                uint64_t nkey = (static_cast<uint64_t>(static_cast<uint32_t>(mz_bin + dm)) << 32)
+                              | (scan_id + ds);
+                if (grid_.count(nkey)) ++neighbors;
+              }
+            }
+
+            if (neighbors < min_support) continue;
+          }
+
+          uint32_t scan_id = static_cast<uint32_t>(key & 0xFFFFFFFF);
+          double mz = cell.mz_weighted_sum / cell.intensity_sum;
+
+          result.push_back({mz, cell.intensity_sum, scan_id});
+        }
+
+        // Sort by m/z for spectrum output
+        std::sort(result.begin(), result.end(),
+          [](const OutputPeak& a, const OutputPeak& b) { return a.mz < b.mz; });
+
+        return result;
+      }
+
+      /// Apply 2D Gaussian smoothing + local maxima peak picking to the denoised grid.
+      /// Returns centroided peaks with sub-bin (m/z, scan_id) precision.
+      std::vector<OutputPeak> finalizeCentroided(int min_support, bool skip_denoise) const
+      {
+        // Step 1: Denoise (same as finalize)
+        std::unordered_map<uint64_t, Cell> denoised;
+        for (const auto& [key, cell] : grid_)
+        {
+          if (!skip_denoise)
+          {
+            int neighbors = 0;
+            uint32_t scan_id = static_cast<uint32_t>(key & 0xFFFFFFFF);
+            uint32_t mz_bin = static_cast<uint32_t>(key >> 32);
+            for (int dm = -1; dm <= 1; ++dm)
+            {
+              for (int ds = -1; ds <= 1; ++ds)
+              {
+                if (dm == 0 && ds == 0) continue;
+                uint64_t nkey = (static_cast<uint64_t>(static_cast<uint32_t>(mz_bin + dm)) << 32)
+                              | (scan_id + ds);
+                if (grid_.count(nkey)) ++neighbors;
+              }
+            }
+            if (neighbors < min_support) continue;
+          }
+          denoised[key] = cell;
+        }
+
+        // Step 2: Gaussian smooth (sigma=1 bin, 5x5 support)
+        static const double kernel[5][5] = {
+          {0.003, 0.013, 0.022, 0.013, 0.003},
+          {0.013, 0.059, 0.097, 0.059, 0.013},
+          {0.022, 0.097, 0.159, 0.097, 0.022},
+          {0.013, 0.059, 0.097, 0.059, 0.013},
+          {0.003, 0.013, 0.022, 0.013, 0.003}
+        };
+
+        std::unordered_map<uint64_t, double> smoothed;
+        for (const auto& [key, cell] : denoised)
+        {
+          uint32_t scan_id = static_cast<uint32_t>(key & 0xFFFFFFFF);
+          uint32_t mz_bin = static_cast<uint32_t>(key >> 32);
+          double weighted_sum = 0.0;
+          for (int dm = -2; dm <= 2; ++dm)
+          {
+            for (int ds = -2; ds <= 2; ++ds)
+            {
+              uint64_t nkey = (static_cast<uint64_t>(static_cast<uint32_t>(mz_bin + dm)) << 32)
+                            | (scan_id + ds);
+              auto it = denoised.find(nkey);
+              if (it != denoised.end())
+              {
+                weighted_sum += it->second.intensity_sum * kernel[dm + 2][ds + 2];
+              }
+            }
+          }
+          smoothed[key] = weighted_sum;
+        }
+
+        // Step 3: Find local maxima in smoothed grid
+        std::vector<uint64_t> maxima;
+        for (const auto& [key, val] : smoothed)
+        {
+          uint32_t scan_id = static_cast<uint32_t>(key & 0xFFFFFFFF);
+          uint32_t mz_bin = static_cast<uint32_t>(key >> 32);
+          bool is_max = true;
+          for (int dm = -1; dm <= 1 && is_max; ++dm)
+          {
+            for (int ds = -1; ds <= 1 && is_max; ++ds)
+            {
+              if (dm == 0 && ds == 0) continue;
+              uint64_t nkey = (static_cast<uint64_t>(static_cast<uint32_t>(mz_bin + dm)) << 32)
+                            | (scan_id + ds);
+              auto it = smoothed.find(nkey);
+              if (it != smoothed.end() && it->second >= val) is_max = false;
+            }
+          }
+          if (is_max) maxima.push_back(key);
+        }
+
+        // Step 4: Centroid each maximum from original denoised cells within ±2 radius
+        std::vector<OutputPeak> result;
+        result.reserve(maxima.size());
+        for (uint64_t max_key : maxima)
+        {
+          uint32_t center_scan = static_cast<uint32_t>(max_key & 0xFFFFFFFF);
+          uint32_t center_mz_bin = static_cast<uint32_t>(max_key >> 32);
+
+          double total_intensity = 0.0;
+          double mz_weighted = 0.0;
+          double scan_weighted = 0.0;
+
+          for (int dm = -2; dm <= 2; ++dm)
+          {
+            for (int ds = -2; ds <= 2; ++ds)
+            {
+              uint64_t nkey = (static_cast<uint64_t>(static_cast<uint32_t>(center_mz_bin + dm)) << 32)
+                            | (center_scan + ds);
+              auto it = denoised.find(nkey);
+              if (it != denoised.end())
+              {
+                double int_val = it->second.intensity_sum;
+                double mz_val = it->second.mz_weighted_sum / it->second.intensity_sum;
+                total_intensity += int_val;
+                mz_weighted += mz_val * int_val;
+                scan_weighted += static_cast<double>(static_cast<uint32_t>(nkey & 0xFFFFFFFF)) * int_val;
+              }
+            }
+          }
+
+          double centroid_mz = mz_weighted / total_intensity;
+          uint32_t centroid_scan = static_cast<uint32_t>(std::round(scan_weighted / total_intensity));
+          result.push_back({centroid_mz, total_intensity, centroid_scan});
+        }
+
+        std::sort(result.begin(), result.end(),
+          [](const OutputPeak& a, const OutputPeak& b) { return a.mz < b.mz; });
+        return result;
+      }
+
+      /// Clear grid for reuse
+      void clear() { grid_.clear(); }
+
+    private:
+      struct Cell
+      {
+        double intensity_sum = 0.0;
+        double mz_weighted_sum = 0.0;
+      };
+      std::unordered_map<uint64_t, Cell> grid_;
+    };
+
     // SWATH window descriptor
     struct DIAWindow
     {
@@ -337,6 +540,8 @@ namespace OpenMS
       double mz_width;
       double im_lower;  // 1/K0 lower bound
       double im_upper;  // 1/K0 upper bound
+      uint32_t scan_begin;  // raw scan index lower bound (for grid-based IM filtering)
+      uint32_t scan_end;    // raw scan index upper bound
     };
 
     // Read DIA SWATH windows from SQL, converting scan bounds to IM
@@ -367,6 +572,8 @@ namespace OpenMS
           w.window_group = q.getColumn(0).getInt();
           uint32_t scan_begin = static_cast<uint32_t>(q.getColumn(1).getInt());
           uint32_t scan_end   = static_cast<uint32_t>(q.getColumn(2).getInt());
+          w.scan_begin = scan_begin;
+          w.scan_end = scan_end;
           w.mz_center = q.getColumn(3).getDouble();
           w.mz_width  = q.getColumn(4).getDouble();
 
@@ -395,6 +602,8 @@ namespace OpenMS
           w.window_group = group_id++;
           uint32_t scan_begin = static_cast<uint32_t>(q.getColumn(0).getInt());
           uint32_t scan_end   = static_cast<uint32_t>(q.getColumn(1).getInt());
+          w.scan_begin = scan_begin;
+          w.scan_end = scan_end;
           w.mz_center = q.getColumn(2).getDouble();
           w.mz_width  = q.getColumn(3).getDouble();
 
@@ -409,6 +618,84 @@ namespace OpenMS
       }
 
       return windows;
+    }
+
+    // Build frame_id -> WindowGroup mapping from SQL.
+    // Returns map<window_group, vector<frame_id>> sorted by frame_id within each group.
+    std::map<int, std::vector<uint32_t>> readFrameToWindowGroupMapping(
+      SQLite::Database& db,
+      const std::vector<DIAWindow>& windows)
+    {
+      std::map<int, std::vector<uint32_t>> mapping;
+
+      // Try DiaFrameMsMsInfo with WindowGroup column first (newer format)
+      bool has_window_group_column = false;
+      try
+      {
+        SQLite::Statement check(db,
+          "SELECT WindowGroup FROM DiaFrameMsMsInfo LIMIT 1");
+        if (check.executeStep()) has_window_group_column = true;
+      }
+      catch (const SQLite::Exception&) {}
+
+      if (has_window_group_column)
+      {
+        SQLite::Statement q(db,
+          "SELECT DISTINCT Frame, WindowGroup FROM DiaFrameMsMsInfo ORDER BY Frame");
+        while (q.executeStep())
+        {
+          uint32_t frame_id = static_cast<uint32_t>(q.getColumn(0).getInt());
+          int group = q.getColumn(1).getInt();
+          mapping[group].push_back(frame_id);
+        }
+      }
+      else
+      {
+        // Older format: DiaFrameMsMsInfo has (Frame, ScanNumBegin, ScanNumEnd, IsolationMz, IsolationWidth)
+        // but no WindowGroup column. Match each frame's geometry to the synthetic group IDs
+        // assigned by readDIAWindows().
+        struct WindowKey
+        {
+          double mz; double width; uint32_t sb; uint32_t se;
+          bool operator<(const WindowKey& o) const
+          {
+            if (mz != o.mz) return mz < o.mz;
+            if (width != o.width) return width < o.width;
+            if (sb != o.sb) return sb < o.sb;
+            return se < o.se;
+          }
+        };
+        std::map<WindowKey, int> key_to_group;
+        for (const auto& w : windows)
+        {
+          key_to_group[{w.mz_center, w.mz_width, w.scan_begin, w.scan_end}] = w.window_group;
+        }
+
+        SQLite::Statement q(db,
+          "SELECT Frame, IsolationMz, IsolationWidth, ScanNumBegin, ScanNumEnd "
+          "FROM DiaFrameMsMsInfo ORDER BY Frame");
+        while (q.executeStep())
+        {
+          uint32_t frame_id = static_cast<uint32_t>(q.getColumn(0).getInt());
+          WindowKey key{
+            q.getColumn(1).getDouble(),
+            q.getColumn(2).getDouble(),
+            static_cast<uint32_t>(q.getColumn(3).getInt()),
+            static_cast<uint32_t>(q.getColumn(4).getInt())
+          };
+          auto it = key_to_group.find(key);
+          if (it != key_to_group.end())
+          {
+            auto& frames = mapping[it->second];
+            if (frames.empty() || frames.back() != frame_id)
+            {
+              frames.push_back(frame_id);
+            }
+          }
+        }
+      }
+
+      return mapping;
     }
 
     // DDA precursor info (joined from Precursors + PasefFrameMsMsInfo)
