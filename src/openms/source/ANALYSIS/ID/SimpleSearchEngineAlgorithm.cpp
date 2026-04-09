@@ -690,6 +690,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             ah.prefix_fraction = (double)detail.matched_b_ions/(double)c.size();
             ah.suffix_fraction = (double)detail.matched_y_ions/(double)c.size();
             ah.mean_error = detail.mean_error;
+            ah.matched_b_ions = static_cast<uint16_t>(detail.matched_b_ions);
+            ah.matched_y_ions = static_cast<uint16_t>(detail.matched_y_ions);
             ah.isotope_error = low_it->second.second;
 
 #ifdef _OPENMP

@@ -671,6 +671,8 @@ namespace OpenMS
         ah.prefix_fraction = (double)detail.matched_b_ions/seq_length;
         ah.suffix_fraction = (double)detail.matched_y_ions/seq_length;
         ah.mean_error = detail.mean_error;
+        ah.matched_b_ions = static_cast<uint16_t>(detail.matched_b_ions);
+        ah.matched_y_ions = static_cast<uint16_t>(detail.matched_y_ions);
 
         ah.isotope_error = sms.isotope_error_;
         ah.applied_charge = sms.precursor_charge_;
