@@ -15,29 +15,32 @@
  
 namespace OpenMS
 {
-    /* class HydrophobicityProfile {
-public:
-    // Per-residue and windowed profiles
-    static std::vector<double> computeProfile(
+    class HydrophobicityProfile {
+ public:
+    /* // Per-residue and windowed profiles
+    std::vector<double> computeProfile(
         const AASequence& seq, 
         const HydrophobicityScaleNumber scale = KYTEDOOLITTLE
     );
     
-    static std::vector<double> computeWindowedProfile(
+    std::vector<double> computeWindowedProfile(
         const AASequence& seq,
         Size window_size = 7,
         const HydrophobicityScaleNumber scale = KYTEDOOLITTLE
     );
     
     // GRAVY score
-    static double computeGRAVY(const AASequence& seq);
+    double computeGRAVY(const AASequence& seq);
     
     // Hydrophobic moment (Eisenberg et al., 1982)
-    static std::vector<double> computeHydrophobicMoment(
+    std::vector<double> computeHydrophobicMoment(
         const AASequence& seq,
         Size window_size = 11,
         double angle = 100.0  // degrees; 100=alpha-helix, 160=beta-sheet
-    );
-}; */
+    );  */
+
+    int testfunktion();
+    
+}; 
    
 } // namespace OpenMS

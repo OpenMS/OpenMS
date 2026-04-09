@@ -8,8 +8,23 @@
  
 #include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/CHEMISTRY/HydrophobicityProfile.h>
- 
+
 namespace OpenMS
 {
+   /* double computeGRAVY(const AASequence& seq)
+   {
+      double sum = 0;
+      for (const auto& residue : seq) 
+      {
+         sum += residue.getHydrophobicity(KYTEDOOLITTLE);
+      }
+      return sum/seq.size();
+   } */
+
+   int HydrophobicityProfile::testfunktion()
+   {
+      return 1;
+   }
+
    //... the actual code goes here ...
 } // namespace OpenMS

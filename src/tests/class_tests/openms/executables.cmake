@@ -416,6 +416,7 @@ set(chemistry_executables_list
   EmpiricalFormula_test
   EnzymaticDigestion_test
   FineIsotopeDistribution_test
+  HydrophobicityProfile_test
   IMSAlphabetParser_test
   IMSAlphabetTextParser_test
   IMSAlphabet_test
