@@ -12,10 +12,10 @@ build:
     post_checkout:
       # Reasons to cancel the documentation build (exit 183).
       #
-      # Only build docs on the `develop` branch, or one of the release
-      # branches.
+      # Only build docs on the `develop` branch, release branches,
+      # or RTD version names (latest, stable).
       - |
-        if echo "$READTHEDOCS_GIT_IDENTIFIER" | grep -qvE "^(develop|release)\b"; then
+        if echo "$READTHEDOCS_GIT_IDENTIFIER" | grep -qvE "^(develop|release|latest|stable)\b"; then
           exit 183;
         fi
     post_install:
