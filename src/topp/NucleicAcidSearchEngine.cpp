@@ -202,6 +202,16 @@ protected:
     registerStringList_("fragment:ions", "<choice>", fragment_ion_codes_, "Fragment ions to include in theoretical spectra", false);
     setValidStrings_("fragment:ions", fragment_ion_codes_);
 
+    registerTOPPSubsection_("scoring", "Scoring Options");
+    registerStringOption_("scoring:method", "<method>", "hyperscore", "Scoring method to use for spectrum matching", false);
+    setValidStrings_("scoring:method", ListUtils::create<String>("hyperscore,mvh"));
+    registerIntOption_("scoring:num_intensity_classes", "<num>", 3, "Number of intensity classes for peak stratification in MVH scoring (only used if scoring:method is 'mvh')", false, true);
+    setMinInt_("scoring:num_intensity_classes", 1);
+    setMaxInt_("scoring:num_intensity_classes", 7);
+    registerDoubleOption_("scoring:tic_fraction", "<fraction>", 0.98, "Fraction of total ion current to retain for MVH scoring (only used if scoring:method is 'mvh')", false, true);
+    setMinFloat_("scoring:tic_fraction", 0.5);
+    setMaxFloat_("scoring:tic_fraction", 1.0);
+
     registerTOPPSubsection_("modifications", "Modification options");
 
     // add modified ribos from database
@@ -1033,7 +1043,10 @@ protected:
 
   void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits)
   {
-    IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType("hyperscore");
+    // Find the score type that was registered (either "hyperscore" or "MVH score")
+    String scoring_method = getStringOption_("scoring:method");
+    String score_name = (scoring_method == "mvh") ? "MVH score" : "hyperscore";
+    IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType(score_name);
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
     fdr_params.setValue("use_all_hits", only_top_hits ? "false" : "true");
@@ -1286,8 +1299,10 @@ protected:
     IdentificationData::InputFileRef file_ref =
       id_data.registerInputFile(input);
     // processing software meta data:
-    IdentificationData::ScoreType score("hyperscore", true);
-    IdentificationData::ScoreTypeRef hyperscore_ref =
+    String scoring_method = getStringOption_("scoring:method");
+    String score_name = (scoring_method == "mvh") ? "MVH score" : "hyperscore";
+    IdentificationData::ScoreType score(score_name, true);
+    IdentificationData::ScoreTypeRef score_ref =
       id_data.registerScoreType(score);
     CVTerm qvalue("MS:1002354", "PSM-level q-value", "MS");
     score = IdentificationData::ScoreType(qvalue, false);
@@ -1297,7 +1312,7 @@ protected:
     // in test mode just overwrite with a generic version:
     if (test_mode_) software.setVersion("test");
     // @TODO: which should be the "primary" (first) score?
-    software.assigned_scores.push_back(hyperscore_ref);
+    software.assigned_scores.push_back(score_ref);
     software.assigned_scores.push_back(qvalue_ref);
     IdentificationData::ProcessingSoftwareRef software_ref =
       id_data.registerProcessingSoftware(software);
@@ -1708,10 +1723,25 @@ protected:
             Size scan_index = prec_it->second.scan_index;
             const MSSpectrum& exp_spectrum = spectra[scan_index];
             vector<PeptideHit::PeakAnnotation> annotations;
-            double score = MetaboliteSpectralMatching::computeHyperScore(
-              search_param.fragment_mass_tolerance,
-              search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
-              annotations);
+            
+            // Compute score using selected method
+            double score;
+            if (scoring_method == "mvh")
+            {
+              Size num_intensity_classes = getIntOption_("scoring:num_intensity_classes");
+              double tic_fraction = getDoubleOption_("scoring:tic_fraction");
+              score = MetaboliteSpectralMatching::computeMVHScore(
+                search_param.fragment_mass_tolerance,
+                search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
+                annotations, num_intensity_classes, tic_fraction);
+            }
+            else // hyperscore
+            {
+              score = MetaboliteSpectralMatching::computeHyperScore(
+                search_param.fragment_mass_tolerance,
+                search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
+                annotations);
+            }
 
             if (!exp_ms2_out.empty())
             {

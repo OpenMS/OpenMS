@@ -15,6 +15,9 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <numeric>
+#include <cmath>
+#include <cctype>
+#include <limits>
 #include <boost/math/special_functions/factorials.hpp>
 
 #include <boost/dynamic_bitset.hpp>
@@ -26,6 +29,110 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    /**
+     * @brief Calculate bonus for consecutive ion series in fragment annotations
+     * 
+     * Detects consecutive fragment ions of the same type (e.g., w3, w4, w5)
+     * which provide strong evidence for correct sequence assignment.
+     * 
+     * @param annotations Vector of peak annotations containing ion type and position
+     * @return Bonus score based on longest consecutive series found
+     */
+    double calculateConsecutiveSeriesBonus(const vector<PeptideHit::PeakAnnotation>& annotations)
+    {
+      if (annotations.empty()) return 0.0;
+      
+      // Group annotations by ion type and extract positions
+      map<char, set<int>> ion_positions;
+      
+      for (const auto& ann : annotations)
+      {
+        String annotation = ann.annotation;  // Copy, not reference - avoid potential dangling reference
+        if (annotation.empty()) continue;
+        
+        // Skip special cases (like 'precursor' or empty annotations)
+        if (!std::isalpha(static_cast<unsigned char>(annotation[0]))) continue;
+        
+        char ion_type = annotation[0];
+        
+        // Extract position number from annotation (e.g., "w3" -> 3)
+        annotation.erase(0, 1);  // Remove first character
+        annotation.trim();  // Remove any whitespace
+        
+        //Remove charge indicators
+        size_t plus_pos = annotation.find('+');
+        if (plus_pos != String::npos)
+        {
+          annotation = annotation.substr(0, plus_pos);
+        }
+        size_t minus_pos = annotation.find('-');
+        if (minus_pos != String::npos)
+        {
+          annotation = annotation.substr(0, minus_pos);
+        }
+        
+        if (annotation.empty()) continue;
+        
+        int position;
+        try
+        {
+          position = annotation.toInt();
+        }
+        catch (const Exception::ConversionError&)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Failed to parse fragment ion annotation '" + ann.annotation + 
+            "' - expected ion type followed by position number. Internal error - annotations should be well-formed.",
+            ann.annotation);
+        }
+        ion_positions[ion_type].insert(position);
+      }
+      
+      // Find the longest consecutive sequence for each ion type
+      int max_consecutive = 0;
+      
+      for (const auto& ion_pair : ion_positions)
+      {
+        const set<int>& positions = ion_pair.second;
+        if (positions.size() < 2) continue;
+        
+        int current_consecutive = 1;
+        int prev_position = -1; // Use -1 to indicate no previous position
+        
+        for (int pos : positions)
+        {
+          if (prev_position >= 0 && pos == prev_position + 1)
+          {
+            current_consecutive++;
+          }
+          else if (prev_position >= 0)
+          {
+            // Broke the consecutive streak, update max and restart
+            max_consecutive = max(max_consecutive, current_consecutive);
+            current_consecutive = 1;
+          }
+          prev_position = pos;
+        }
+        
+        // Don't forget to check the final consecutive run
+        max_consecutive = max(max_consecutive, current_consecutive);
+      }
+      
+      // Calculate multiplicative bonus factor
+      // Consecutive series provide strong evidence, so boost score multiplicatively
+      // Returns: 1.0 (no bonus) to ~2.0 (very long series)
+      if (max_consecutive >= 2)
+      {
+        // 10% boost per consecutive ion, capped to avoid over-weighting
+        double bonus_factor = 1.0 + (0.1 * max_consecutive);
+        return min(bonus_factor, 2.0); // Cap at 2x multiplier
+      }
+      
+      return 1.0; // No bonus = 1.0 multiplier (identity)
+    }
+  }
 
   SpectralMatch::SpectralMatch() :
     observed_precursor_mass_(),
@@ -357,11 +464,23 @@ namespace OpenMS
     for (const auto& match : peak_matches)
     {
       double db_intensity = 0.0;
+      double best_mass_error = std::numeric_limits<double>::max();
       for (const auto& db_it : match.second)
       {
         db_intensity = max(db_intensity, double(db_it->getIntensity()));
+        // Track the smallest mass error for this experimental peak
+        double mass_error = abs(exp_spectrum[match.first].getMZ() - db_it->getMZ());
+        best_mass_error = min(best_mass_error, mass_error);
       }
-      dot_product += db_intensity * exp_spectrum[match.first].getIntensity();
+      
+      // Calculate mass accuracy weight (1.0 = perfect match, 0.0 = at tolerance edge)
+      double tolerance = fragment_mass_tolerance_unit_ppm ? 
+                        exp_spectrum[match.first].getMZ() * fragment_mass_error * 1e-6 :
+                        fragment_mass_error;
+      double mass_accuracy_weight = 1.0 - (best_mass_error / tolerance);
+      mass_accuracy_weight = max(0.0, mass_accuracy_weight); // Ensure non-negative
+      
+      dot_product += mass_accuracy_weight * db_intensity * exp_spectrum[match.first].getIntensity();
     }
 
     // return annotations for matching peaks?
@@ -406,9 +525,325 @@ namespace OpenMS
     }
 
     double hyperscore = log(dot_product) + matched_ions_term;
+    
+    // Apply consecutive ion series multiplier if we have annotations
+    if (annotations != nullptr && !annotations->empty())
+    {
+      double series_multiplier = calculateConsecutiveSeriesBonus(*annotations);
+      hyperscore *= series_multiplier;
+    }
+    
     if (hyperscore < 0) hyperscore = 0;
 
     return hyperscore;
+  }
+
+
+  double MetaboliteSpectralMatching::computeMVHScore(
+    double fragment_mass_error,
+    bool fragment_mass_tolerance_unit_ppm,
+    const MSSpectrum& exp_spectrum,
+    const MSSpectrum& db_spectrum,
+    Size num_intensity_classes,
+    double tic_fraction,
+    double mz_lower_bound)
+  {
+    return computeMVHScore_(fragment_mass_error,
+                            fragment_mass_tolerance_unit_ppm, exp_spectrum,
+                            db_spectrum, num_intensity_classes, tic_fraction,
+                            nullptr, mz_lower_bound);
+  }
+
+
+  double MetaboliteSpectralMatching::computeMVHScore(
+    double fragment_mass_error,
+    bool fragment_mass_tolerance_unit_ppm,
+    const MSSpectrum& exp_spectrum,
+    const MSSpectrum& db_spectrum,
+    vector<PeptideHit::PeakAnnotation>& annotations,
+    Size num_intensity_classes,
+    double tic_fraction,
+    double mz_lower_bound)
+  {
+    return computeMVHScore_(fragment_mass_error,
+                            fragment_mass_tolerance_unit_ppm, exp_spectrum,
+                            db_spectrum, num_intensity_classes, tic_fraction,
+                            &annotations, mz_lower_bound);
+  }
+
+
+  double MetaboliteSpectralMatching::computeMVHScore_(
+    double fragment_mass_error,
+    bool fragment_mass_tolerance_unit_ppm,
+    const MSSpectrum& exp_spectrum,
+    const MSSpectrum& db_spectrum,
+    Size num_intensity_classes,
+    double tic_fraction,
+    vector<PeptideHit::PeakAnnotation>* annotations,
+    double mz_lower_bound)
+  {
+    if (exp_spectrum.empty()) return 0;
+    if (num_intensity_classes < 1) num_intensity_classes = 1;
+    if (num_intensity_classes > 7) num_intensity_classes = 7;
+    if (tic_fraction < 0.5) tic_fraction = 0.5;
+    if (tic_fraction > 1.0) tic_fraction = 1.0;
+
+    // Step 1: Filter peaks by TIC fraction
+    // Sort peaks by intensity to find TIC threshold
+    vector<pair<double, Size>> intensity_index_pairs;
+    intensity_index_pairs.reserve(exp_spectrum.size());
+    double total_intensity = 0.0;
+    for (Size i = 0; i < exp_spectrum.size(); ++i)
+    {
+      double inten = exp_spectrum[i].getIntensity();
+      intensity_index_pairs.emplace_back(inten, i);
+      total_intensity += inten;
+    }
+    
+    // Sort by intensity (descending)
+    sort(intensity_index_pairs.begin(), intensity_index_pairs.end(),
+         [](const pair<double, Size>& a, const pair<double, Size>& b) {
+           return a.first > b.first;
+         });
+    
+    // Find peaks that account for tic_fraction of total intensity
+    double cumulative_intensity = 0.0;
+    double target_intensity = total_intensity * tic_fraction;
+    vector<Size> retained_peak_indices;
+    
+    for (const auto& pair : intensity_index_pairs)
+    {
+      retained_peak_indices.push_back(pair.second);
+      cumulative_intensity += pair.first;
+      if (cumulative_intensity >= target_intensity) break;
+    }
+    
+    // Sort retained indices by m/z for efficient matching
+    sort(retained_peak_indices.begin(), retained_peak_indices.end());
+    
+    // Step 2: Classify retained peaks into intensity classes
+    // Classes have sizes in ratio 1:2:4:8... (geometric progression with ratio 2)
+    Size total_peaks = retained_peak_indices.size();
+    if (total_peaks == 0) return 0;
+    
+    // Calculate minimum peaks needed for intensity classes
+    Size min_peaks_for_classes = (1 << num_intensity_classes) - 1;
+    if (total_peaks < min_peaks_for_classes)
+    {
+      // Not enough peaks for requested number of classes
+      return 0;
+    }
+    
+    // Calculate class sizes (smallest class first)
+    vector<Size> class_sizes(num_intensity_classes);
+    Size peaks_allocated = 0;
+    for (Size i = 0; i < num_intensity_classes; ++i)
+    {
+      class_sizes[i] = 1 << i; // Powers of 2: 1, 2, 4, 8...
+      peaks_allocated += class_sizes[i];
+    }
+    
+    // Distribute remaining peaks to largest class
+    if (total_peaks > peaks_allocated)
+    {
+      class_sizes[num_intensity_classes - 1] += (total_peaks - peaks_allocated);
+    }
+    
+    // Step 3: Assign peaks to classes based on intensity ranking
+    // Class 0 = highest intensity (A), Class 1 = medium (B), etc.
+    vector<Size> peak_to_class(exp_spectrum.size(), SIZE_MAX);
+    
+    Size class_idx = 0;
+    Size peaks_in_current_class = 0;
+    for (Size i = 0; i < retained_peak_indices.size(); ++i)
+    {
+      Size peak_idx = retained_peak_indices[i];
+      
+      // Move to next class if current class is full
+      while (class_idx < num_intensity_classes && 
+             peaks_in_current_class >= class_sizes[class_idx])
+      {
+        class_idx++;
+        peaks_in_current_class = 0;
+      }
+      
+      if (class_idx < num_intensity_classes)
+      {
+        peak_to_class[peak_idx] = class_idx;
+        peaks_in_current_class++;
+      }
+    }
+    
+    // Step 4: Match theoretical peaks to experimental peaks
+    // Count total m/z locations and matches per class
+    double min_exp_mz = exp_spectrum[0].getMZ();
+    double mz_offset = fragment_mass_error;
+    if (fragment_mass_tolerance_unit_ppm)
+    {
+      mz_offset = min_exp_mz * fragment_mass_error * 1e-6;
+    }
+    mz_lower_bound = max(mz_lower_bound, min_exp_mz - mz_offset);
+    
+    double max_exp_mz = exp_spectrum.back().getMZ();
+    if (fragment_mass_tolerance_unit_ppm)
+    {
+      mz_offset = max_exp_mz * fragment_mass_error * 1e-6;
+    }
+    double mz_upper_bound = max_exp_mz + mz_offset;
+    
+    // Count matches per intensity class
+    vector<Size> matches_per_class(num_intensity_classes, 0);
+    map<Size, vector<MSSpectrum::ConstIterator>> peak_matches;
+    double mass_accuracy_sum = 0.0; // Track cumulative mass accuracy for bonus term
+    
+    for (auto db_it = db_spectrum.MZBegin(mz_lower_bound);
+         db_it != db_spectrum.MZEnd(mz_upper_bound); ++db_it)
+    {
+      double db_mz = db_it->getMZ();
+      
+      if (fragment_mass_tolerance_unit_ppm)
+      {
+        mz_offset = db_mz * fragment_mass_error * 1e-6;
+      }
+      
+      Int index = exp_spectrum.findNearest(db_mz, mz_offset);
+      if (index >= 0)
+      {
+        Size exp_idx = static_cast<Size>(index);
+        peak_matches[exp_idx].push_back(db_it);
+        
+        // Count this match in the appropriate intensity class
+        Size class_id = peak_to_class[exp_idx];
+        if (class_id < num_intensity_classes)
+        {
+          matches_per_class[class_id]++;
+        }
+        
+        // Calculate mass accuracy weight for this match
+        double mass_error = abs(exp_spectrum[exp_idx].getMZ() - db_mz);
+        double tolerance = fragment_mass_tolerance_unit_ppm ? 
+                          db_mz * fragment_mass_error * 1e-6 :
+                          fragment_mass_error;
+        double mass_accuracy_weight = 1.0 - (mass_error / tolerance);
+        mass_accuracy_sum += max(0.0, mass_accuracy_weight);
+      }
+    }
+    
+    // Return annotations if requested
+    if ((annotations != nullptr) &&
+        !db_spectrum.getStringDataArrays().empty() &&
+        !db_spectrum.getIntegerDataArrays().empty())
+    {
+      for (const auto& match : peak_matches)
+      {
+        const auto& exp_peak = exp_spectrum[match.first];
+        for (const auto& db_it : match.second)
+        {
+          PeptideHit::PeakAnnotation ann;
+          Size index = db_it - db_spectrum.begin();
+          ann.annotation = db_spectrum.getStringDataArrays()[0].at(index);
+          ann.charge = db_spectrum.getIntegerDataArrays()[0].at(index);
+          ann.mz = exp_peak.getMZ();
+          ann.intensity = exp_peak.getIntensity();
+          annotations->push_back(ann);
+        }
+      }
+    }
+    
+    // Step 5: Compute MVH score using multivariate hypergeometric distribution
+    // Calculate total number of theoretical peaks (M)
+    Size total_theoretical_peaks = 0;
+    for (auto db_it = db_spectrum.MZBegin(mz_lower_bound);
+         db_it != db_spectrum.MZEnd(mz_upper_bound); ++db_it)
+    {
+      total_theoretical_peaks++;
+    }
+    
+    if (total_theoretical_peaks == 0) return 0;
+    
+    // Calculate total number of possible m/z locations (T)
+    // This is approximate based on mass range and tolerance
+    double mass_range = mz_upper_bound - mz_lower_bound;
+    double location_resolution = fragment_mass_error;
+    if (fragment_mass_tolerance_unit_ppm)
+    {
+      // Use average m/z for ppm-based resolution estimate
+      double avg_mz = (mz_lower_bound + mz_upper_bound) / 2.0;
+      location_resolution = avg_mz * fragment_mass_error * 1e-6;
+    }
+    Size total_locations = static_cast<Size>(mass_range / location_resolution);
+    if (total_locations < total_peaks + total_theoretical_peaks)
+    {
+      total_locations = total_peaks + total_theoretical_peaks;
+    }
+    
+    // Count peaks per class and unmatched theoretical peaks
+    vector<Size> peaks_per_class(num_intensity_classes, 0);
+    for (Size idx : retained_peak_indices)
+    {
+      Size class_id = peak_to_class[idx];
+      if (class_id < num_intensity_classes)
+      {
+        peaks_per_class[class_id]++;
+      }
+    }
+    
+    Size total_matched = 0;
+    for (Size m : matches_per_class) total_matched += m;
+    
+    Size unmatched_theoretical = total_theoretical_peaks - total_matched;
+    Size empty_locations = total_locations - total_peaks;
+    
+    // Compute log of MVH probability using log-space arithmetic
+    // log P = sum(log(C(ti, mi))) - log(C(T, M))
+    // where C(n, k) is binomial coefficient "n choose k"
+    
+    auto log_binomial = [](Size n, Size k) -> double {
+      if (k > n) return -std::numeric_limits<double>::infinity();
+      if (k == 0 || k == n) return 0.0;
+      
+      // Use lgamma for numerical stability
+      return lgamma(n + 1) - lgamma(k + 1) - lgamma(n - k + 1);
+    };
+    
+    double log_prob = 0.0;
+    
+    // Add contribution from each intensity class
+    for (Size i = 0; i < num_intensity_classes; ++i)
+    {
+      log_prob += log_binomial(peaks_per_class[i], matches_per_class[i]);
+    }
+    
+    // Add contribution from empty locations
+    log_prob += log_binomial(empty_locations, unmatched_theoretical);
+    
+    // Subtract normalization term
+    log_prob -= log_binomial(total_locations, total_theoretical_peaks);
+    
+    // Return negative log probability (higher = better match)
+    double mvh_score = -log_prob;
+    
+    // Add mass accuracy bonus term (scaled to be comparable to log probability)
+    // Average mass accuracy per match, scaled by number of matches
+    Size total_matches = 0;
+    for (Size m : matches_per_class) total_matches += m;
+    if (total_matches > 0)
+    {
+      double avg_mass_accuracy = mass_accuracy_sum / total_matches;
+      mvh_score += avg_mass_accuracy * log(1.0 + total_matches);
+    }
+    
+    // Apply consecutive ion series multiplier if we have annotations
+    if (annotations != nullptr && !annotations->empty())
+    {
+      double series_multiplier = calculateConsecutiveSeriesBonus(*annotations);
+      mvh_score *= series_multiplier;
+    }
+    
+    // Ensure non-negative score
+    if (mvh_score < 0) mvh_score = 0;
+    
+    return mvh_score;
   }
 
 
