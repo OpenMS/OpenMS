@@ -24,8 +24,10 @@ def get_version_from_rtd():
     rtd_version = os.environ.get("READTHEDOCS_VERSION_NAME", "")
 
     if not rtd_version:
-        print("Warning: READTHEDOCS_VERSION_NAME not set, defaulting to 'latest'")
-        return "latest"
+        # When not running on ReadTheDocs (e.g. GitHub Actions CI),
+        # install the latest stable release instead of a pre-release.
+        print("Warning: READTHEDOCS_VERSION_NAME not set, installing latest stable release")
+        return "stable"
 
     print(f"READTHEDOCS_VERSION_NAME: {rtd_version}")
 
@@ -71,6 +73,9 @@ def install_pyopenms(version):
     if version == "latest":
         print("Installing latest version of pyopenms (including pre-releases)")
         cmd.append("--pre")  # Allow pre-release versions only for latest
+        cmd.append("pyopenms")
+    elif version == "stable":
+        print("Installing latest stable version of pyopenms")
         cmd.append("pyopenms")
     else:
         print(f"Installing pyopenms=={version}")

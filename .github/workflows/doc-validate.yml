@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - develop
+    paths:
+      - 'doc/**'
+      - '.github/workflows/doc-validate.yml'
   workflow_dispatch:
 
 jobs:

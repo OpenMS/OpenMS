@@ -132,7 +132,7 @@ html_theme = "pydata_sphinx_theme"
 #
 html_theme_options = {
     "switcher": {
-        "json_url": "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master/docs/source/_static/switcher.json",
+        "json_url": "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms/docs/source/_static/switcher.json",
         "version_match": release,
     },
     "navbar_end": ["navbar-icon-links", "version-switcher"],
@@ -176,9 +176,9 @@ html_theme_options = {
 html_context = {
     # "github_url": "https://github.com", # or your GitHub Enterprise site
     "github_user": "OpenMS",
-    "github_repo": "pyopenms-docs",
-    "github_version": "master",
-    "doc_path": "docs/source/",
+    "github_repo": "OpenMS",
+    "github_version": "develop",
+    "doc_path": "doc/pyopenms/docs/source/",
 }
 
 html_sidebars = {"**": ["search-field.html", "sidebar-nav-bs.html"]}
