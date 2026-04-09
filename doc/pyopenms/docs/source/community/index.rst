@@ -17,9 +17,9 @@ If you are unsure how to do that or want to discuss questions
 pyopenms sources
 ----------------
 
-pyopenms mostly consists of Cython wrappers around the OpenMS C++ library. Below
+pyopenms uses nanobind to wrap the OpenMS C++ library for Python. Below
 you will find information on how to build pyopenms from source and how to wrap
-new classes. You can of course also contribute classesa and functionality in pure python.
+new classes. You can of course also contribute classes and functionality in pure Python.
 
 .. toctree::
    :maxdepth: 2
