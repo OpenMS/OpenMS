@@ -15,7 +15,7 @@
  
 namespace OpenMS
 {
-    class HydrophobicityProfile {
+    /* class HydrophobicityProfile {
 public:
     // Per-residue and windowed profiles
     static std::vector<double> computeProfile(
@@ -38,6 +38,6 @@ public:
         Size window_size = 11,
         double angle = 100.0  // degrees; 100=alpha-helix, 160=beta-sheet
     );
-};
-   //... the actual code goes here ...
+}; */
+   
 } // namespace OpenMS

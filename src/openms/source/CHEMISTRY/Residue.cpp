@@ -631,67 +631,41 @@ namespace OpenMS
   }
 
   double Residue::getHydrophobicity(const HydrophobicityScaleNumber scale)
-  {
-    double scales[6][20]=
-    {
-  //kyteDooloiitle
   {  
-    1.800 , -4.500,  -3.500,  -3.500,  2.500,  -3.500,  -3.500,  -0.400,  -3.200,  4.500 , 3.800,  -3.900,  1.900,  2.800,  1.600,  -0.800,  -0.700,  -0.900,  -1.300,  4.200  
-  },
-  //Eisenberg
-  {
-  0.620,  -2.530,  -0.780,  -0.900,  0.290,  -0.850,  -0.740,   0.480,  -0.400,  1.380,  1.060,  -1.500,  0.640,  1.190,  0.120,  -0.180,  -0.050,  0.810,  0.260 , 1.080  
-  },
-  //HoppWoods
-  {
- -0.500,  3.000,  0.200,  3.000,  -1.000,  0.200,  3.000,  0.000,  -0.500,  -1.800,  -1.800,  3.000,  -1.300,  -2.500,  0.000,  0.300,  -0.400,  -3.400,  -2.300,  -1.500  
-  },
- //BullBreese:
-  {
-0.610, 0.690, 0.890, 0.610, 0.360, 0.970, 0.510, 0.810, 0.690, -1.450, -1.650, 0.460, -0.660, -1.520, -0.170, 0.420, 0.290, -1.200, -1.430, -0.750
-  },
-  //BlackMould:
-  {
-    0.616, 0.000, 0.236, 0.028, 0.680, 0.251, 0.043, 0.501, 0.165, 0.943, 0.943, 0.283, 0.738, 1.000, 0.711, 0.359, 0.450, 0.878, 0.880, 0.825
-  },
-  //Guy
-  {
-    0.100, 1.910, 0.480, 0.780, -1.420, 0.950, 0.830, 0.330, -0.500, -1.130, -1.180, 1.400, 1.590, -2.120, 0.730, 0.520, 0.070, -0.510, -0.210, -1.270 
-  }
-
-};
-
-int amino_acid_number;
-
-
-if (one_letter_code_ == "A"){amino_acid_number = 0;}
-else if (one_letter_code_ == "R"){amino_acid_number = 1;}
-else if (one_letter_code_ == "N"){amino_acid_number = 2;}
-else if (one_letter_code_ == "D"){amino_acid_number = 3;}
-else if (one_letter_code_ == "C"){amino_acid_number = 4;}
-else if (one_letter_code_ == "Q"){amino_acid_number = 5;}
-else if (one_letter_code_ == "E"){amino_acid_number = 6;}
-else if (one_letter_code_ == "G"){amino_acid_number = 7;}
-else if (one_letter_code_ == "H"){amino_acid_number = 8;}
-else if (one_letter_code_ == "I"){amino_acid_number = 9;}
-else if (one_letter_code_ == "L"){amino_acid_number = 10;}
-else if (one_letter_code_ == "K"){amino_acid_number = 11;}
-else if (one_letter_code_ == "M"){amino_acid_number = 12;}
-else if (one_letter_code_ == "F"){amino_acid_number = 13;}
-else if (one_letter_code_ == "P"){amino_acid_number = 14;}
-else if (one_letter_code_ == "S"){amino_acid_number = 15;}
-else if (one_letter_code_ == "T"){amino_acid_number = 16;}
-else if (one_letter_code_ == "W"){amino_acid_number = 17;}
-else if (one_letter_code_ == "Y"){amino_acid_number = 18;}
-else if (one_letter_code_ == "V"){amino_acid_number = 19;}
-else{OPENMS_LOG_WARN << "Unknown residue name encountered. Can't find hydrophobicity value" << endl;
-  return 0;
-
-}
-
-
-return scales[scale][amino_acid_number];
-
+    std::vector<std::map<string,double>> scales =
+    {
+      {
+        //KyteDoolittle Scale
+        {"A", 1.8}, {"R", -4.5}, {"N", -3.5}, {"D", -3.5}, {"C", 2.5}, {"E", -3.5}, {"Q", -3.5}, {"G", -0.4},{"H", -3.2}, {"I", 4.5}, 
+        {"L", 3.8}, {"K", -3.9}, {"M", 1.9}, {"F", 2.8}, {"P", -1.6}, {"S", -0.8}, {"T", -0.7}, {"W", -0.9}, {"Y", -1.3}, {"V", 4.2}
+      },
+      {
+        //Eisenberg Scale
+        {"A", 0.62}, {"R", -2.53}, {"N", -0.78}, {"D", -0.9}, {"C", 0.29}, {"E", -0.85}, {"Q", -0.74}, {"G", 0.48},{"H", -0.4}, {"I", 1.38}, 
+        {"L", 1.08}, {"K", -1.5}, {"M", 0.64}, {"F", 1.19}, {"P", 0.12}, {"S", -0.18}, {"T", -0.05}, {"W", -0.81}, {"Y", 0.26}, {"V", 1.08}
+      },
+      {
+        //HoppWoods Scale
+        {"A", -0.5}, {"R", 3}, {"N", 0.2}, {"D", 3}, {"C", -1}, {"E", 0.2}, {"Q", 3}, {"G", 0},{"H", -0.5}, {"I", -1.8}, 
+        {"L", -1.8}, {"K", 3}, {"M", -1.3}, {"F", -2.5}, {"P", 0}, {"S", 0.3}, {"T", -0.4}, {"W", -3.4}, {"Y", -2.3}, {"V", -1.5}
+      },
+      {
+        //BullBreese
+        {"A", 0.61}, {"R", 0.69}, {"N", 0.89}, {"D", 0.61}, {"C", 0.36}, {"E", 0.97}, {"Q", 0.51}, {"G", 0.81},{"H", 0.69}, {"I", -1.45}, 
+        {"L", -1.65}, {"K", 0.46}, {"M", -0.66}, {"F", -1.52}, {"P", -0.17}, {"S", 0.42}, {"T", 0.29}, {"W", -1.2}, {"Y", -1.43}, {"V", -0.75}
+      },
+      {
+        //BlackMould Scale
+        {"A", 0.616}, {"R", 0}, {"N", 0.236}, {"D", 0.028}, {"C", 0.68}, {"E", 0.251}, {"Q", 0.043}, {"G", 0.501},{"H", 0.165}, {"I", 0.943}, 
+        {"L", 0.943}, {"K", 0.283}, {"M", 0.738}, {"F", 1}, {"P", 0.711}, {"S", 0.359}, {"T", 0.45}, {"W", 0.878}, {"Y", 0.88}, {"V", 0.825}
+      },
+      {
+        //Guy Scale
+        {"A", 0.1}, {"R", 1.91}, {"N", 0.48}, {"D", 0.78}, {"C", -1.42}, {"E", 0.95}, {"Q", 0.83}, {"G", 0.33},{"H", -0.5}, {"I", -1.13}, 
+        {"L", -1.18}, {"K", 1.4}, {"M", -1.59}, {"F", -2.12}, {"P", 0.73}, {"S", 0.52}, {"T", 0.07}, {"W", -0.51}, {"Y", -0.21}, {"V", -1.27}
+      }
+    };
+    return scales[scale].at(one_letter_code_);
   }
 
   // static members
