@@ -243,6 +243,7 @@ protected:
 
     std::unordered_map<std::string, Size> supported_run_counts;
     double output_precursor_im_scale = 1.0;
+    bool output_precursor_im_scaled_by_charge = false;
     Size run_index = 0;
     for (const auto& run_files : run_groups)
     {
@@ -289,16 +290,19 @@ protected:
       filter.setLogType(log_type_);
       OpenSwathPrecursorEvidenceFilter::Result result = filter.filter(
         swath_maps, transition_exp, ms1_params, ms2_params, run_pasef, threads);
-      if (result.precursor_im_scale != 1.0)
+      if (result.precursor_im_scale != 1.0 || result.precursor_im_scaled_by_charge)
       {
-        if (output_precursor_im_scale == 1.0)
+        if (output_precursor_im_scale == 1.0 && !output_precursor_im_scaled_by_charge)
         {
           output_precursor_im_scale = result.precursor_im_scale;
+          output_precursor_im_scaled_by_charge = result.precursor_im_scaled_by_charge;
         }
-        else if (std::fabs(output_precursor_im_scale - result.precursor_im_scale) > 1e-9)
+        else if (std::fabs(output_precursor_im_scale - result.precursor_im_scale) > 1e-9 ||
+                 output_precursor_im_scaled_by_charge != result.precursor_im_scaled_by_charge)
         {
-          OPENMS_LOG_WARN << "OpenSwathPrecursorEvidenceFilter observed different precursor IM scale factors across runs. "
+          OPENMS_LOG_WARN << "OpenSwathPrecursorEvidenceFilter observed different precursor IM transforms across runs. "
                           << "Using the first detected scale factor " << output_precursor_im_scale
+                          << (output_precursor_im_scaled_by_charge ? " with precursor charge multiplication" : "")
                           << " for the aggregated output.\n";
         }
       }
@@ -333,7 +337,8 @@ protected:
     }
 
     OpenSwath::LightTargetedExperiment filtered_exp = buildOutputExperiment_(
-      transition_exp, selected_targets, decoy_handling, getStringOption_("decoy_prefix"), output_precursor_im_scale);
+      transition_exp, selected_targets, decoy_handling, getStringOption_("decoy_prefix"),
+      output_precursor_im_scale, output_precursor_im_scaled_by_charge);
 
     writeTransitionList_(out, out_type, filtered_exp);
     OPENMS_LOG_INFO << "Wrote filtered transition list with " << filtered_exp.getProteins().size()
@@ -401,9 +406,17 @@ private:
     const std::unordered_set<std::string>& selected_targets,
     const String& decoy_handling,
     const String& decoy_prefix,
-    double precursor_im_scale)
+    double precursor_im_scale,
+    bool precursor_im_scaled_by_charge)
   {
     OpenSwath::LightTargetedExperiment filtered_exp;
+    std::unordered_map<std::string, int> charge_by_compound;
+    charge_by_compound.reserve(transition_exp.getCompounds().size());
+    for (const auto& compound : transition_exp.getCompounds())
+    {
+      charge_by_compound[compound.id] = compound.charge;
+    }
+
     std::unordered_set<std::string> kept_compounds;
     for (const auto& transition : transition_exp.getTransitions())
     {
@@ -425,9 +438,15 @@ private:
       if (keep)
       {
         OpenSwath::LightTransition transition_copy = transition;
-        if (precursor_im_scale != 1.0 && transition_copy.precursor_im >= 0.0)
+        double precursor_im_factor = precursor_im_scale;
+        const auto charge_it = charge_by_compound.find(transition.getPeptideRef());
+        if (precursor_im_scaled_by_charge && charge_it != charge_by_compound.end() && charge_it->second > 0)
         {
-          transition_copy.precursor_im *= precursor_im_scale;
+          precursor_im_factor *= charge_it->second;
+        }
+        if (precursor_im_factor != 1.0 && transition_copy.precursor_im >= 0.0)
+        {
+          transition_copy.precursor_im *= precursor_im_factor;
         }
         filtered_exp.transitions.push_back(std::move(transition_copy));
         kept_compounds.insert(transition.getPeptideRef());
@@ -440,9 +459,14 @@ private:
       if (kept_compounds.find(compound.id) != kept_compounds.end())
       {
         OpenSwath::LightCompound compound_copy = compound;
-        if (precursor_im_scale != 1.0 && compound_copy.drift_time >= 0.0)
+        double precursor_im_factor = precursor_im_scale;
+        if (precursor_im_scaled_by_charge && compound_copy.charge > 0)
         {
-          compound_copy.drift_time *= precursor_im_scale;
+          precursor_im_factor *= compound_copy.charge;
+        }
+        if (precursor_im_factor != 1.0 && compound_copy.drift_time >= 0.0)
+        {
+          compound_copy.drift_time *= precursor_im_factor;
         }
         filtered_exp.compounds.push_back(std::move(compound_copy));
         for (const auto& protein_ref : compound.protein_refs)

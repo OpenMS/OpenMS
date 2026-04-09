@@ -59,6 +59,27 @@ namespace OpenMS
       std::vector<FragmentCandidate> fragments;
     };
 
+    struct PrecursorIMTransform
+    {
+      double scale{1.0};
+      bool multiply_by_charge{false};
+
+      bool isIdentity() const
+      {
+        return scale == 1.0 && !multiply_by_charge;
+      }
+
+      double factor(const PrecursorCandidate& candidate) const
+      {
+        double factor = scale;
+        if (multiply_by_charge && candidate.compound.charge > 0)
+        {
+          factor *= candidate.compound.charge;
+        }
+        return factor;
+      }
+    };
+
     struct MzIndexEntry
     {
       double mz{0.0};
@@ -478,7 +499,7 @@ namespace OpenMS
     Size countPasefWindowMatches_(const std::vector<PrecursorCandidate>& candidates,
                                   const std::vector<OpenSwath::SwathMap>& swath_maps,
                                   const ChromExtractParams& params,
-                                  double precursor_im_scale)
+                                  const PrecursorIMTransform& transform)
     {
       Size matches = 0;
       for (const auto& candidate : candidates)
@@ -487,7 +508,7 @@ namespace OpenMS
         {
           continue;
         }
-        const double scaled_im = candidate.precursor_im * precursor_im_scale;
+        const double scaled_im = candidate.precursor_im * transform.factor(candidate);
         for (const auto& map : swath_maps)
         {
           if (map.ms1 || map.imLower < 0.0 || map.imUpper < 0.0)
@@ -508,14 +529,14 @@ namespace OpenMS
       return matches;
     }
 
-    double determinePrecursorIMScale_(const std::vector<PrecursorCandidate>& candidates,
-                                      const std::vector<OpenSwath::SwathMap>& swath_maps,
-                                      const ChromExtractParams& params,
-                                      bool pasef)
+    PrecursorIMTransform determinePrecursorIMTransform_(const std::vector<PrecursorCandidate>& candidates,
+                                                        const std::vector<OpenSwath::SwathMap>& swath_maps,
+                                                        const ChromExtractParams& params,
+                                                        bool pasef)
     {
       if (!pasef)
       {
-        return 1.0;
+        return {};
       }
 
       const bool has_pasef_windows = std::any_of(swath_maps.begin(), swath_maps.end(),
@@ -525,55 +546,60 @@ namespace OpenMS
                                                  });
       if (!has_pasef_windows)
       {
-        return 1.0;
+        return {};
       }
 
       const double scales[] = {1.0, 1000.0, 0.001};
-      double best_scale = 1.0;
+      PrecursorIMTransform best_transform;
       Size best_matches = 0;
       Size unscaled_matches = 0;
       for (double scale : scales)
       {
-        const Size matches = countPasefWindowMatches_(candidates, swath_maps, params, scale);
-        if (scale == 1.0)
+        for (bool multiply_by_charge : {false, true})
         {
-          unscaled_matches = matches;
-        }
-        if (matches > best_matches)
-        {
-          best_matches = matches;
-          best_scale = scale;
+          PrecursorIMTransform transform{scale, multiply_by_charge};
+          const Size matches = countPasefWindowMatches_(candidates, swath_maps, params, transform);
+          if (transform.isIdentity())
+          {
+            unscaled_matches = matches;
+          }
+          if (matches > best_matches)
+          {
+            best_matches = matches;
+            best_transform = transform;
+          }
         }
       }
 
-      if (best_scale != 1.0 && best_matches > 0 &&
+      if (!best_transform.isIdentity() && best_matches > 0 &&
           (unscaled_matches == 0 || best_matches > unscaled_matches * 10))
       {
-        return best_scale;
+        return best_transform;
       }
-      return 1.0;
+      return {};
     }
 
-    void applyPrecursorIMScale_(std::vector<PrecursorCandidate>& candidates,
-                                double precursor_im_scale)
+    void applyPrecursorIMTransform_(std::vector<PrecursorCandidate>& candidates,
+                                    const PrecursorIMTransform& transform)
     {
-      if (precursor_im_scale == 1.0)
+      if (transform.isIdentity())
       {
         return;
       }
 
       for (auto& candidate : candidates)
       {
+        const double factor = transform.factor(candidate);
         if (candidate.precursor_im >= 0.0)
         {
-          candidate.precursor_im *= precursor_im_scale;
+          candidate.precursor_im *= factor;
           candidate.compound.drift_time = candidate.precursor_im;
         }
         for (auto& transition : candidate.transitions)
         {
           if (transition.precursor_im >= 0.0)
           {
-            transition.precursor_im *= precursor_im_scale;
+            transition.precursor_im *= factor;
           }
           else if (candidate.precursor_im >= 0.0)
           {
@@ -985,13 +1011,19 @@ namespace OpenMS
     }
 
     std::vector<PrecursorCandidate> candidates = buildCandidates_(transition_exp, ms2_top_transitions_per_precursor_);
-    result.precursor_im_scale = determinePrecursorIMScale_(candidates, swath_maps, ms2_params, pasef);
-    if (result.precursor_im_scale != 1.0)
+    const PrecursorIMTransform precursor_im_transform = determinePrecursorIMTransform_(candidates, swath_maps, ms2_params, pasef);
+    result.precursor_im_scale = precursor_im_transform.scale;
+    result.precursor_im_scaled_by_charge = precursor_im_transform.multiply_by_charge;
+    if (!precursor_im_transform.isIdentity())
     {
-      OPENMS_LOG_WARN << "OpenSwathPrecursorEvidenceFilter detected a precursor ion mobility scale mismatch between the transition library and PASEF windows. "
-                      << "Applying scale factor " << result.precursor_im_scale
-                      << " to precursor ion mobility values for matching and filtered output.\n";
-      applyPrecursorIMScale_(candidates, result.precursor_im_scale);
+      OPENMS_LOG_WARN << "OpenSwathPrecursorEvidenceFilter detected a precursor ion mobility transform mismatch between the transition library and PASEF windows. "
+                      << "Applying scale factor " << result.precursor_im_scale;
+      if (result.precursor_im_scaled_by_charge)
+      {
+        OPENMS_LOG_WARN << " and multiplying by precursor charge";
+      }
+      OPENMS_LOG_WARN << " to precursor ion mobility values for matching and filtered output.\n";
+      applyPrecursorIMTransform_(candidates, precursor_im_transform);
     }
     result.total_target_precursors = candidates.size();
     result.evidence.resize(candidates.size());

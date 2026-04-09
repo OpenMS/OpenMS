@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -106,6 +107,105 @@ START_SECTION([EXTRA] RUN.ID is stored as INTEGER not BLOB (regression test for 
     conn.executeStatement(
       "CREATE TEMP TABLE _id_match AS SELECT 1 FROM RUN WHERE ID = " + String(rid) + ";");
     TEST_EQUAL(conn.countTableRows("_id_match"), 1)
+  }
+
+  File::remove(temp_file);
+}
+END_SECTION
+
+START_SECTION([EXTRA] prepareLine indexes masserror_ppm by MS2 subordinate position)
+{
+  String temp_file = File::getTemporaryFile();
+
+  {
+    OpenSwathOSWWriter writer(temp_file, false);
+    writer.writeHeader();
+    writer.addRun(1, "test_input_file.mzML");
+
+    Feature feature;
+    feature.ensureUniqueId();
+    feature.setRT(10.0);
+    feature.setIntensity(100.0);
+    feature.setMetaValue("leftWidth", 9.0);
+    feature.setMetaValue("rightWidth", 11.0);
+    feature.setMetaValue("total_xic", 1000.0);
+    feature.setMetaValue("peak_apices_sum", 100.0);
+    feature.setMetaValue("masserror_ppm", DataValue(DoubleList{12.5}));
+
+    Feature ms1;
+    ms1.setIntensity(10.0);
+    ms1.setMetaValue("FeatureLevel", "MS1");
+    ms1.setMetaValue("native_id", "Precursor_i0");
+    ms1.setMetaValue("peak_apex_int", 5.0);
+
+    Feature ms2;
+    ms2.setIntensity(50.0);
+    ms2.setMetaValue("FeatureLevel", "MS2");
+    ms2.setMetaValue("native_id", 123);
+    ms2.setMetaValue("total_xic", 500.0);
+    ms2.setMetaValue("peak_apex_int", 25.0);
+    ms2.setMetaValue("peak_apex_position", 10.5);
+    ms2.setMetaValue("width_at_50", 2.0);
+
+    feature.getSubordinates().push_back(ms1);
+    feature.getSubordinates().push_back(ms2);
+
+    FeatureMap output;
+    output.push_back(feature);
+    writer.writeLines(std::vector<String>{writer.prepareLine(OpenSwath::LightCompound(), nullptr, output, "77")});
+  }
+
+  {
+    SqliteConnector conn(temp_file);
+    conn.executeStatement(
+      "CREATE TEMP TABLE _masserror_ok AS "
+      "SELECT 1 FROM FEATURE_TRANSITION WHERE TRANSITION_ID = 123 AND MASSERROR_PPM = 12.5;");
+    TEST_EQUAL(conn.countTableRows("_masserror_ok"), 1)
+  }
+
+  File::remove(temp_file);
+}
+END_SECTION
+
+START_SECTION([EXTRA] prepareLine uses available UIS transition names instead of reported count)
+{
+  String temp_file = File::getTemporaryFile();
+
+  {
+    OpenSwathOSWWriter writer(temp_file, true);
+    writer.writeHeader();
+    writer.addRun(1, "test_input_file.mzML");
+
+    Feature feature;
+    feature.ensureUniqueId();
+    feature.setRT(10.0);
+    feature.setIntensity(100.0);
+    feature.setMetaValue("leftWidth", 9.0);
+    feature.setMetaValue("rightWidth", 11.0);
+    feature.setMetaValue("total_xic", 1000.0);
+    feature.setMetaValue("peak_apices_sum", 100.0);
+    feature.setMetaValue("id_target_num_transitions", 2);
+    feature.setMetaValue("id_target_transition_names", DataValue(IntList{201}));
+    feature.setMetaValue("id_target_area_intensity", DataValue(DoubleList{10.0}));
+    feature.setMetaValue("id_target_total_area_intensity", DataValue(DoubleList{20.0}));
+    feature.setMetaValue("id_target_apex_intensity", DataValue(DoubleList{30.0}));
+    feature.setMetaValue("id_target_peak_apex_position", DataValue(DoubleList{10.5}));
+    feature.setMetaValue("id_target_width_at_50", DataValue(DoubleList{2.0}));
+
+    FeatureMap output;
+    output.push_back(feature);
+    writer.writeLines(std::vector<String>{writer.prepareLine(OpenSwath::LightCompound(), nullptr, output, "77")});
+  }
+
+  {
+    SqliteConnector conn(temp_file);
+    conn.executeStatement("CREATE TEMP TABLE _uis_rows AS SELECT 1 FROM FEATURE_TRANSITION;");
+    TEST_EQUAL(conn.countTableRows("_uis_rows"), 1)
+
+    conn.executeStatement(
+      "CREATE TEMP TABLE _uis_expected AS "
+      "SELECT 1 FROM FEATURE_TRANSITION WHERE TRANSITION_ID = 201 AND AREA_INTENSITY = 10.0;");
+    TEST_EQUAL(conn.countTableRows("_uis_expected"), 1)
   }
 
   File::remove(temp_file);

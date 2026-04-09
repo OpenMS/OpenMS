@@ -3813,6 +3813,7 @@ points. *
         .def_rw("hybrid_supported", &OpenMS::OpenSwathPrecursorEvidenceFilter::Result::hybrid_supported)
         .def_rw("summary", &OpenMS::OpenSwathPrecursorEvidenceFilter::Result::summary)
         .def_rw("precursor_im_scale", &OpenMS::OpenSwathPrecursorEvidenceFilter::Result::precursor_im_scale)
+        .def_rw("precursor_im_scaled_by_charge", &OpenMS::OpenSwathPrecursorEvidenceFilter::Result::precursor_im_scaled_by_charge)
         ;
 
     // -----------------------------------------------------------------------

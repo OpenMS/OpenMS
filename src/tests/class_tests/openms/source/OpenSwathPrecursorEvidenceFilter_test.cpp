@@ -275,6 +275,32 @@ START_SECTION((filter() - PASEF precursor ion mobility auto scale))
 }
 END_SECTION
 
+START_SECTION((filter() - PASEF precursor ion mobility charge transform))
+{
+  LightTargetedExperiment transition_exp;
+  LightProtein protein;
+  protein.id = "protein";
+  transition_exp.proteins.push_back(protein);
+  addCompound(transition_exp, "PEP_IM_CHARGE", 500.0, {100.0, 110.0, 120.0}, false, 0.35);
+
+  vector<SwathMap> swath_maps;
+  swath_maps.push_back(makeSwathMap(false, 400.0, 650.0,
+                                    {makeIMSpectrum(12.0, {{100.002, 1200.0, 0.70}, {110.002, 900.0, 0.70}})},
+                                    0.60, 0.80));
+
+  OpenSwathPrecursorEvidenceFilter filter = makeFilter("ms2");
+  OpenSwathPrecursorEvidenceFilter::Result result = filter.filter(
+    swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.02), true, 1);
+
+  TEST_EQUAL(result.supported_precursors, 1)
+  TEST_REAL_SIMILAR(result.precursor_im_scale, 1.0)
+  TEST_EQUAL(result.precursor_im_scaled_by_charge, true)
+  TEST_REAL_SIMILAR(result.evidence[0].precursor_im, 0.7)
+  TEST_REAL_SIMILAR(result.filtered_targets.compounds[0].getDriftTime(), 0.7)
+  TEST_REAL_SIMILAR(result.filtered_targets.transitions[0].getPrecursorIM(), 0.7)
+}
+END_SECTION
+
 START_SECTION((filter() - too few supported precursors))
 {
   LightTargetedExperiment transition_exp = makeLibrary();

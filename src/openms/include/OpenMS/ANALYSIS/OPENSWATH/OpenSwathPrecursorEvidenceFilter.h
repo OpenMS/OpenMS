@@ -92,6 +92,8 @@ public:
       String summary;
       /// Scale factor applied to precursor ion mobility values for matching and filtered output.
       double precursor_im_scale{1.0};
+      /// Whether precursor ion mobility values were also multiplied by precursor charge.
+      bool precursor_im_scaled_by_charge{false};
     };
 
     /** @name Constructors and Destructors

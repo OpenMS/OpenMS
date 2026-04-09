@@ -625,19 +625,29 @@ protected:
            selected_targets.find(current_it->second) != selected_targets.end();
   }
 
-  static void applyPrecursorIMScale_(OpenSwath::LightTransition& transition, double precursor_im_scale)
+  static double precursorIMFactor_(double precursor_im_scale, bool precursor_im_scaled_by_charge, int charge)
   {
-    if (precursor_im_scale != 1.0 && transition.precursor_im >= 0.0)
+    double factor = precursor_im_scale;
+    if (precursor_im_scaled_by_charge && charge > 0)
     {
-      transition.precursor_im *= precursor_im_scale;
+      factor *= charge;
+    }
+    return factor;
+  }
+
+  static void applyPrecursorIMScale_(OpenSwath::LightTransition& transition, double precursor_im_factor)
+  {
+    if (precursor_im_factor != 1.0 && transition.precursor_im >= 0.0)
+    {
+      transition.precursor_im *= precursor_im_factor;
     }
   }
 
-  static void applyPrecursorIMScale_(OpenSwath::LightCompound& compound, double precursor_im_scale)
+  static void applyPrecursorIMScale_(OpenSwath::LightCompound& compound, double precursor_im_factor)
   {
-    if (precursor_im_scale != 1.0 && compound.drift_time >= 0.0)
+    if (precursor_im_factor != 1.0 && compound.drift_time >= 0.0)
     {
-      compound.drift_time *= precursor_im_scale;
+      compound.drift_time *= precursor_im_factor;
     }
   }
 
@@ -647,10 +657,18 @@ protected:
     const String& decoy_handling,
     const String& decoy_prefix,
     double precursor_im_scale,
+    bool precursor_im_scaled_by_charge,
     const std::unordered_map<std::string, std::string>& traml_to_current)
   {
     const std::unordered_map<std::string, std::string> current_to_traml = invertStringMap_(traml_to_current);
     OpenSwath::LightTargetedExperiment filtered_exp;
+    std::unordered_map<std::string, int> charge_by_compound;
+    charge_by_compound.reserve(transition_exp.getCompounds().size());
+    for (const auto& compound : transition_exp.getCompounds())
+    {
+      charge_by_compound[compound.id] = compound.charge;
+    }
+
     std::unordered_set<std::string> kept_compounds;
     for (const auto& transition : transition_exp.getTransitions())
     {
@@ -672,7 +690,9 @@ protected:
       if (keep)
       {
         OpenSwath::LightTransition transition_copy = transition;
-        applyPrecursorIMScale_(transition_copy, precursor_im_scale);
+        const auto charge_it = charge_by_compound.find(transition.getPeptideRef());
+        const int charge = charge_it == charge_by_compound.end() ? 0 : charge_it->second;
+        applyPrecursorIMScale_(transition_copy, precursorIMFactor_(precursor_im_scale, precursor_im_scaled_by_charge, charge));
         filtered_exp.transitions.push_back(std::move(transition_copy));
         kept_compounds.insert(transition.getPeptideRef());
       }
@@ -684,7 +704,7 @@ protected:
       if (kept_compounds.find(compound.id) != kept_compounds.end())
       {
         OpenSwath::LightCompound compound_copy = compound;
-        applyPrecursorIMScale_(compound_copy, precursor_im_scale);
+        applyPrecursorIMScale_(compound_copy, precursorIMFactor_(precursor_im_scale, precursor_im_scaled_by_charge, compound_copy.charge));
         filtered_exp.compounds.push_back(std::move(compound_copy));
         for (const auto& protein_ref : compound.protein_refs)
         {
@@ -758,6 +778,7 @@ protected:
 
     std::unordered_map<std::string, Size> supported_run_counts;
     double output_precursor_im_scale = 1.0;
+    bool output_precursor_im_scaled_by_charge = false;
     Size run_index = 0;
     for (const StringList& current_run_files : run_groups)
     {
@@ -801,16 +822,19 @@ protected:
 
       OpenSwathPrecursorEvidenceFilter::Result result = evidence_filter.filter(
         swath_maps, transition_exp, ms1_params, ms2_params, run_pasef, outer_loop_threads);
-      if (result.precursor_im_scale != 1.0)
+      if (result.precursor_im_scale != 1.0 || result.precursor_im_scaled_by_charge)
       {
-        if (output_precursor_im_scale == 1.0)
+        if (output_precursor_im_scale == 1.0 && !output_precursor_im_scaled_by_charge)
         {
           output_precursor_im_scale = result.precursor_im_scale;
+          output_precursor_im_scaled_by_charge = result.precursor_im_scaled_by_charge;
         }
-        else if (std::fabs(output_precursor_im_scale - result.precursor_im_scale) > 1e-9)
+        else if (std::fabs(output_precursor_im_scale - result.precursor_im_scale) > 1e-9 ||
+                 output_precursor_im_scaled_by_charge != result.precursor_im_scaled_by_charge)
         {
-          OPENMS_LOG_WARN << "Library:prefilter observed different precursor IM scale factors across runs. "
+          OPENMS_LOG_WARN << "Library:prefilter observed different precursor IM transforms across runs. "
                           << "Using the first detected scale factor " << output_precursor_im_scale
+                          << (output_precursor_im_scaled_by_charge ? " with precursor charge multiplication" : "")
                           << " for the shared filtered library.\n";
         }
       }
@@ -845,7 +869,8 @@ protected:
     }
 
     OpenSwath::LightTargetedExperiment filtered_exp = buildPrefilteredLibraryExperiment_(
-      transition_exp, selected_targets, decoy_handling, decoy_prefix, output_precursor_im_scale, traml_to_current);
+      transition_exp, selected_targets, decoy_handling, decoy_prefix,
+      output_precursor_im_scale, output_precursor_im_scaled_by_charge, traml_to_current);
     const Size decoy_transitions = std::count_if(filtered_exp.getTransitions().begin(), filtered_exp.getTransitions().end(),
                                                 [&decoy_prefix](const OpenSwath::LightTransition& transition)
                                                 {
