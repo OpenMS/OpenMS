@@ -28,7 +28,6 @@ class LoadFasta_FastaViewer:
         default = 0
 
         with open(fastaFile) as file_content:
-
             # Go through the fasta file, line by line
             nextline = file_content.readline()
 
@@ -43,10 +42,14 @@ class LoadFasta_FastaViewer:
                     # check for extra pattern if used
                     check_for_extra_pattern = -1
                     if extra_pattern != "":
-                        check_for_extra_pattern = protein_declaration.find(extra_pattern)
+                        check_for_extra_pattern = protein_declaration.find(
+                            extra_pattern
+                        )
 
                     # find upper and lower index of Protein Accession (ID)
-                    bounds = [m.start() for m in re.finditer(r"\|", protein_declaration)]
+                    bounds = [
+                        m.start() for m in re.finditer(r"\|", protein_declaration)
+                    ]
 
                     # if a Protein Accesion (ID) was found
                     if len(bounds) >= 1:
