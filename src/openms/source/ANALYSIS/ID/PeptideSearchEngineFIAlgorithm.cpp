@@ -888,6 +888,8 @@ namespace OpenMS
       OPENMS_LOG_WARN << "FDR:PSM is set but decoys are disabled. Skipping FDR filtering." << endl;
     }
 
+    logSearchDiagnostics_(spectra, protein_ids, peptide_ids);
+
     return ExitCodes::EXECUTION_OK;
   }
 
@@ -1235,6 +1237,109 @@ namespace OpenMS
     }
 
     return std::move(mfres.per_file[0]);
+  }
+
+  // =====================================================================
+  // Helper: log search summary statistics and per-run tolerance estimation
+  // =====================================================================
+  void PeptideSearchEngineFIAlgorithm::logSearchDiagnostics_(
+      const PeakMap& spectra,
+      const std::vector<ProteinIdentification>& /*protein_ids*/,
+      const PeptideIdentificationList& peptide_ids) const
+  {
+    // -- Search summary --
+    Size num_ms2 = std::count_if(spectra.begin(), spectra.end(),
+                                 [](const MSSpectrum& s) { return s.getMSLevel() == 2; });
+    Size num_identified = peptide_ids.size();
+
+    set<String> unique_peptides;
+    set<String> unique_proteins;
+
+    // Collect per-PSM error values for tolerance estimation (top-ranked hits only)
+    vector<double> precursor_errors;
+    vector<double> fragment_errors;
+
+    // Missed cleavages
+    EnzymaticDigestion digestor;
+    digestor.setEnzyme(ProteaseDB::getInstance()->getEnzyme(enzyme_));
+    map<Size, Size> mc_counts;
+
+    for (const auto& pid : peptide_ids)
+    {
+      if (pid.getHits().empty()) continue;
+      const PeptideHit& top = pid.getHits().front();
+      unique_peptides.insert(top.getSequence().toString());
+
+      for (const auto& ev : top.getPeptideEvidences())
+      {
+        unique_proteins.insert(ev.getProteinAccession());
+      }
+
+      if (top.metaValueExists(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))
+      {
+        precursor_errors.push_back(fabs(static_cast<double>(top.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))));
+      }
+      if (top.metaValueExists(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM))
+      {
+        fragment_errors.push_back(static_cast<double>(top.getMetaValue(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM)));
+      }
+
+      mc_counts[digestor.countInternalCleavageSites(top.getSequence().toUnmodifiedString())]++;
+    }
+
+    OPENMS_LOG_INFO << "\n[PDBS-FI] ============ Search Summary ============" << std::endl;
+    OPENMS_LOG_INFO << "[PDBS-FI]   MS2 spectra:          " << num_ms2 << std::endl;
+    OPENMS_LOG_INFO << "[PDBS-FI]   PSMs:                 " << num_identified << std::endl;
+    if (num_ms2 > 0)
+    {
+      OPENMS_LOG_INFO << "[PDBS-FI]   MS2 ID rate:          "
+                      << std::fixed << std::setprecision(1) << (100.0 * num_identified / num_ms2) << "%" << std::endl;
+    }
+    OPENMS_LOG_INFO << "[PDBS-FI]   Unique peptides:      " << unique_peptides.size() << std::endl;
+    OPENMS_LOG_INFO << "[PDBS-FI]   Unique proteins:      " << unique_proteins.size() << std::endl;
+
+    // Missed cleavages distribution
+    if (!mc_counts.empty())
+    {
+      std::ostringstream mc_oss;
+      for (const auto& [mc, count] : mc_counts)
+      {
+        if (mc_oss.tellp() > 0) mc_oss << ", ";
+        mc_oss << mc << ": " << count;
+      }
+      OPENMS_LOG_INFO << "[PDBS-FI]   Missed cleavages:    " << mc_oss.str() << std::endl;
+    }
+
+    // -- Per-run tolerance estimation --
+    const Size min_psms_for_estimation = 10;
+    if (precursor_errors.size() >= min_psms_for_estimation || fragment_errors.size() >= min_psms_for_estimation)
+    {
+      OPENMS_LOG_INFO << "[PDBS-FI] -------- Tolerance Estimation --------" << std::endl;
+    }
+
+    if (precursor_errors.size() >= min_psms_for_estimation)
+    {
+      double med = Math::median(precursor_errors.begin(), precursor_errors.end());
+      double mad = Math::MAD(precursor_errors.begin(), precursor_errors.end(), med);
+      double recommended = std::ceil(med + 3.0 * mad);
+      OPENMS_LOG_INFO << "[PDBS-FI]   Precursor error: median=" << std::fixed << std::setprecision(2) << med
+                      << " ppm, MAD=" << mad << " ppm"
+                      << " -> recommended: " << static_cast<int>(recommended) << " ppm" << std::endl;
+    }
+
+    if (fragment_errors.size() >= min_psms_for_estimation)
+    {
+      double med = Math::median(fragment_errors.begin(), fragment_errors.end());
+      double mad = Math::MAD(fragment_errors.begin(), fragment_errors.end(), med);
+      double recommended = std::ceil(med + 3.0 * mad);
+      OPENMS_LOG_INFO << "[PDBS-FI]   Fragment error:  median=" << std::fixed << std::setprecision(2) << med
+                      << " ppm, MAD=" << mad << " ppm"
+                      << " -> recommended: " << static_cast<int>(recommended) << " ppm" << std::endl;
+    }
+
+    OPENMS_LOG_INFO << "[PDBS-FI]   (configured: precursor=" << precursor_mass_tolerance_ << " " << precursor_mass_tolerance_unit_
+                    << ", fragment=" << fragment_mass_tolerance_ << " " << fragment_mass_tolerance_unit_ << ")" << std::endl;
+    OPENMS_LOG_INFO << "[PDBS-FI] ============================================\n" << std::endl;
   }
 
   // =====================================================================
