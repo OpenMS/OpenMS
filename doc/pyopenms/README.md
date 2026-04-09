@@ -1,5 +1,3 @@
-> **Note:** This documentation was migrated from the standalone [OpenMS/pyopenms-docs](https://github.com/OpenMS/pyopenms-docs) repository into the OpenMS monorepo. The old repository has been archived. All future development happens here.
-
 [![Documentation Status](https://readthedocs.org/projects/pyopenms/badge/?version=latest)](https://pyopenms.readthedocs.io/en/latest/?badge=latest)
 
 pyOpenMS Documentation
