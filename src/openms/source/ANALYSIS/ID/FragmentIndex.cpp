@@ -771,7 +771,7 @@ namespace OpenMS
       // contain entries shorter than peptide:min_size.
       if (fi_fragments_.empty())
       {
-        bucketsize_ = 0;
+        bucketsize_ = 1; // keep non-zero to preserve bucket-walking loop invariants
         OPENMS_LOG_INFO << "[FragmentIndex] No fragments generated — index is empty." << std::endl;
         is_build_ = true;
         return;

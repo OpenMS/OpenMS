@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/QPXFile.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
@@ -136,6 +137,16 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
     std::vector<std::shared_ptr<arrow::ArrayBuilder>>{smv_name_b, smv_value_b, smv_type_b});
   arrow::ListBuilder spectrum_metavalues_builder(arrow::default_memory_pool(), smv_struct_b);
 
+  // -- fragment annotation arrays: mz_array, intensity_array, charge_array, ion_type_array --
+  auto psm_mz_arr_vb = std::make_shared<arrow::FloatBuilder>();
+  arrow::ListBuilder psm_mz_array_builder(arrow::default_memory_pool(), psm_mz_arr_vb);
+  auto psm_int_arr_vb = std::make_shared<arrow::FloatBuilder>();
+  arrow::ListBuilder psm_intensity_array_builder(arrow::default_memory_pool(), psm_int_arr_vb);
+  auto psm_chg_arr_vb = std::make_shared<arrow::Int32Builder>();
+  arrow::ListBuilder psm_charge_array_builder(arrow::default_memory_pool(), psm_chg_arr_vb);
+  auto psm_ion_arr_vb = std::make_shared<arrow::StringBuilder>();
+  arrow::ListBuilder psm_ion_type_array_builder(arrow::default_memory_pool(), psm_ion_arr_vb);
+
   // Estimate total rows for capacity reservation
   Size num_rows = 0;
   for (const auto& pep_id : peptide_identifications)
@@ -203,7 +214,8 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   // Metavalue keys excluded from psm_metavalues (they have dedicated columns)
   static const std::unordered_set<std::string> excluded_hit_mvs_psm = {
     "target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM",
-    "scan", "reference_file_name"
+    "scan", "reference_file_name",
+    Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM  // dedicated mz/intensity/charge/ion_type arrays
   };
 
   IDScoreSwitcherAlgorithm idsa;
@@ -570,6 +582,30 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
           }
         }
       }
+
+      // === fragment annotation arrays (from PeakAnnotations) ===
+      const auto& psm_peak_annotations = hit.getPeakAnnotations();
+      if (!psm_peak_annotations.empty())
+      {
+        (void)psm_mz_array_builder.Append();
+        (void)psm_intensity_array_builder.Append();
+        (void)psm_charge_array_builder.Append();
+        (void)psm_ion_type_array_builder.Append();
+        for (const auto& pa : psm_peak_annotations)
+        {
+          (void)psm_mz_arr_vb->Append(static_cast<float>(pa.mz));
+          (void)psm_int_arr_vb->Append(static_cast<float>(pa.intensity));
+          (void)psm_chg_arr_vb->Append(pa.charge);
+          (void)psm_ion_arr_vb->Append(pa.annotation);
+        }
+      }
+      else
+      {
+        (void)psm_mz_array_builder.AppendNull();
+        (void)psm_intensity_array_builder.AppendNull();
+        (void)psm_charge_array_builder.AppendNull();
+        (void)psm_ion_type_array_builder.AppendNull();
+      }
     } // end hit loop
 
     ++p_id_index;
@@ -638,6 +674,15 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   std::shared_ptr<arrow::Array> arr_run_identifier;
   status = run_identifier_builder.Finish(&arr_run_identifier);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: run_identifier_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  std::shared_ptr<arrow::Array> arr_psm_mz_array, arr_psm_intensity_array, arr_psm_charge_array, arr_psm_ion_type_array;
+  status = psm_mz_array_builder.Finish(&arr_psm_mz_array);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: psm_mz_array_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = psm_intensity_array_builder.Finish(&arr_psm_intensity_array);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: psm_intensity_array_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = psm_charge_array_builder.Finish(&arr_psm_charge_array);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: psm_charge_array_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = psm_ion_type_array_builder.Finish(&arr_psm_ion_type_array);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: psm_ion_type_array_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
   // Build schema from registry
   auto schema = PSMSchema::schema();
@@ -650,7 +695,8 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
     arr_cv_params, arr_scan, arr_rt, arr_ion_mobility,
     arr_spectrum_ref, arr_score, arr_score_type, arr_higher_score_better,
     arr_rank, arr_p_id, arr_psm_mvs, arr_spectrum_mvs,
-    arr_run_identifier
+    arr_run_identifier,
+    arr_psm_mz_array, arr_psm_intensity_array, arr_psm_charge_array, arr_psm_ion_type_array
   });
 
   // Validate table against registry schema (strict — write path must match exactly)
@@ -755,8 +801,17 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   auto cross_links_type = QPXPSMSchema::crossLinksType();
   // We build a null array later
 
-  // -- mz_array, intensity_array, charge_array, ion_type_array, ion_mobility_array (null for now) --
-  // We build null arrays later
+  // -- mz_array list<float32>, intensity_array list<float32>, charge_array list<int32>, ion_type_array list<utf8> --
+  // Populated from PeptideHit::getPeakAnnotations() (fragment ion annotations).
+  auto mz_arr_vb = std::make_shared<arrow::FloatBuilder>();
+  arrow::ListBuilder mz_array_builder(arrow::default_memory_pool(), mz_arr_vb);
+  auto int_arr_vb = std::make_shared<arrow::FloatBuilder>();
+  arrow::ListBuilder intensity_array_builder(arrow::default_memory_pool(), int_arr_vb);
+  auto chg_arr_vb = std::make_shared<arrow::Int32Builder>();
+  arrow::ListBuilder charge_array_builder(arrow::default_memory_pool(), chg_arr_vb);
+  auto ion_arr_vb = std::make_shared<arrow::StringBuilder>();
+  arrow::ListBuilder ion_type_array_builder(arrow::default_memory_pool(), ion_arr_vb);
+  // -- ion_mobility_array (null for now — no per-fragment IM data) --
 
   // Estimate total rows for capacity reservation
   Size num_rows = 0;
@@ -811,7 +866,8 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   // Metavalue keys excluded from additional_scores (they have dedicated columns)
   static const std::unordered_set<std::string> excluded_hit_mvs = {
     "target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM",
-    "scan", "reference_file_name"
+    "scan", "reference_file_name",
+    Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM  // dedicated mz/intensity/charge/ion_type arrays
   };
 
   IDScoreSwitcherAlgorithm idsa;
@@ -1128,6 +1184,30 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
         (void)pa_vb->Append(ev.getProteinAccession());
       }
 
+      // === fragment annotation arrays (from PeakAnnotations) ===
+      const auto& peak_annotations = hit.getPeakAnnotations();
+      if (!peak_annotations.empty())
+      {
+        (void)mz_array_builder.Append();
+        (void)intensity_array_builder.Append();
+        (void)charge_array_builder.Append();
+        (void)ion_type_array_builder.Append();
+        for (const auto& pa : peak_annotations)
+        {
+          (void)mz_arr_vb->Append(static_cast<float>(pa.mz));
+          (void)int_arr_vb->Append(static_cast<float>(pa.intensity));
+          (void)chg_arr_vb->Append(pa.charge);
+          (void)ion_arr_vb->Append(pa.annotation);
+        }
+      }
+      else
+      {
+        (void)mz_array_builder.AppendNull();
+        (void)intensity_array_builder.AppendNull();
+        (void)charge_array_builder.AppendNull();
+        (void)ion_type_array_builder.AppendNull();
+      }
+
     } // end hit loop
 
   } // end peptide identification loop
@@ -1178,6 +1258,15 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: missed_cleavages_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = protein_accessions_builder.Finish(&arr_protein_acc);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: protein_accessions_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  std::shared_ptr<arrow::Array> arr_mz_array, arr_intensity_array, arr_charge_array, arr_ion_type_array;
+  status = mz_array_builder.Finish(&arr_mz_array);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: mz_array_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = intensity_array_builder.Finish(&arr_intensity_array);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: intensity_array_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = charge_array_builder.Finish(&arr_charge_array);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: charge_array_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = ion_type_array_builder.Finish(&arr_ion_type_array);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: ion_type_array_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
   // Build null arrays for columns not yet populated.
   // Use actual row count from a finalized array to avoid coupling with the pre-loop estimate.
@@ -1194,10 +1283,6 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   };
 
   auto arr_cross_links = make_null_array(QPXPSMSchema::crossLinksType());
-  auto arr_mz_array = make_null_array(arrow::list(arrow::float32()));
-  auto arr_intensity_array = make_null_array(arrow::list(arrow::float32()));
-  auto arr_charge_array = make_null_array(arrow::list(arrow::int32()));
-  auto arr_ion_type_array = make_null_array(arrow::list(arrow::utf8()));
   auto arr_ion_mobility_array = make_null_array(arrow::list(arrow::float32()));
 
   if (!arr_cross_links || !arr_mz_array || !arr_intensity_array ||
