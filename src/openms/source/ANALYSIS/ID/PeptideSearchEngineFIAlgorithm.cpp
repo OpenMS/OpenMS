@@ -1429,8 +1429,9 @@ namespace OpenMS
     tsg_param.setValue("add_metainfo", "true");
     tsg.setParameters(tsg_param);
 
-    vector<double> precursor_errors;     // signed, same unit as configured
-    vector<double> fragment_errors_abs;  // unsigned, same unit as configured
+    // Collect per-spectrum best hits with scores and errors
+    struct CalHit { double score; double prec_error; double frag_error; };
+    vector<CalHit> cal_hits;
 
     for (Size si = 0; si < subset_size; ++si)
     {
@@ -1471,26 +1472,37 @@ namespace OpenMS
 
       if (best_score == 0 || best_seq.empty()) continue;
 
-      // Precursor error (signed)
+      // Compute precursor error (signed)
       double exp_mz = spec.getPrecursors()[0].getMZ();
       double theo_mz = best_seq.getMZ(best_charge);
       double corrected_exp_mz = exp_mz - static_cast<double>(best_isotope_error)
                                           * Constants::C13C12_MASSDIFF_U / best_charge;
+      double prec_err = (precursor_mass_tolerance_unit_ == "ppm")
+                          ? Math::getPPM(corrected_exp_mz, theo_mz)
+                          : (corrected_exp_mz - theo_mz);
 
-      if (precursor_mass_tolerance_unit_ == "ppm")
-      {
-        precursor_errors.push_back(Math::getPPM(corrected_exp_mz, theo_mz));
-      }
-      else
-      {
-        precursor_errors.push_back(corrected_exp_mz - theo_mz);
-      }
+      cal_hits.push_back({best_score, prec_err, static_cast<double>(best_mean_error)});
+    }
 
-      // Fragment error (unsigned mean, same unit as HyperScore used)
-      if (best_mean_error > 0)
-      {
-        fragment_errors_abs.push_back(best_mean_error);
-      }
+    // Filter to high-confidence PSMs: keep only top 50% by score (robust against
+    // random matches inflating the error distribution tails).
+    Size cal_hits_total = cal_hits.size();
+    std::sort(cal_hits.begin(), cal_hits.end(),
+              [](const CalHit& a, const CalHit& b) { return a.score > b.score; });
+    Size keep = std::max<Size>(calibration_min_psms_, cal_hits.size() / 2);
+    if (keep < cal_hits.size()) cal_hits.resize(keep);
+
+    // Extract error vectors from filtered hits.
+    // Additionally discard PSMs with precursor error exceeding configured tolerance —
+    // these are definitionally wrong matches that would inflate the calibrated window.
+    double prec_tol_limit = precursor_mass_tolerance_;
+    vector<double> precursor_errors;
+    vector<double> fragment_errors_abs;
+    for (const auto& h : cal_hits)
+    {
+      if (std::abs(h.prec_error) > prec_tol_limit) continue; // wrong match
+      precursor_errors.push_back(h.prec_error);
+      if (h.frag_error > 0) fragment_errors_abs.push_back(h.frag_error);
     }
 
     if (precursor_errors.size() < calibration_min_psms_)
@@ -1501,17 +1513,20 @@ namespace OpenMS
       return result; // success=false
     }
 
-    // --- Compute calibrated tolerances (NuXL-inspired percentile approach) ---
-    std::sort(precursor_errors.begin(), precursor_errors.end());
-    std::sort(fragment_errors_abs.begin(), fragment_errors_abs.end());
+    // --- Compute calibrated tolerances ---
+    // Convert precursor errors to absolute values for robust estimation.
+    // Use median + 3*MAD (robust to outliers, follows InternalCalibration pattern).
+    vector<double> prec_abs_errors;
+    prec_abs_errors.reserve(precursor_errors.size());
+    for (double e : precursor_errors) { prec_abs_errors.push_back(std::abs(e)); }
 
-    // Precursor: use 0.5th–99.5th percentile range (captures 99% of PSMs, robust to outliers)
-    double prec_left  = precursor_errors[static_cast<Size>(precursor_errors.size() * 0.005)];
-    double prec_right = precursor_errors[static_cast<Size>(precursor_errors.size() * 0.995)];
-    result.precursor_tolerance = std::ceil(std::max(std::abs(prec_left), std::abs(prec_right)));
+    double prec_median = Math::median(prec_abs_errors.begin(), prec_abs_errors.end());
+    double prec_mad = Math::MAD(prec_abs_errors.begin(), prec_abs_errors.end(), prec_median);
+    result.precursor_tolerance = std::ceil(prec_median + 3.0 * prec_mad);
     if (result.precursor_tolerance < 1.0) result.precursor_tolerance = 1.0;
 
-    // Fragment: 4 × 68th percentile (following NuXL / identipy convention)
+    // Fragment: 4 × 68th percentile (following NuXL / identipy convention).
+    std::sort(fragment_errors_abs.begin(), fragment_errors_abs.end());
     if (!fragment_errors_abs.empty())
     {
       double frag_68 = fragment_errors_abs[static_cast<Size>(fragment_errors_abs.size() * 0.68)];
@@ -1520,12 +1535,10 @@ namespace OpenMS
     }
     else
     {
-      result.fragment_tolerance = fragment_mass_tolerance_; // keep configured
+      result.fragment_tolerance = fragment_mass_tolerance_;
     }
 
-    // Fragment shift: median of signed fragment errors is not available from HyperScore
-    // (only unsigned mean). For precursor shift, use the median.
-    result.fragment_shift = 0.0; // no shift correction without signed fragment errors
+    result.fragment_shift = 0.0;
 
     // Don't widen beyond configured tolerance (only tighten)
     if (result.precursor_tolerance > precursor_mass_tolerance_)
@@ -1539,7 +1552,10 @@ namespace OpenMS
 
     result.success = true;
 
-    OPENMS_LOG_INFO << "[PDBS-FI] Calibration: " << precursor_errors.size() << " PSMs used" << std::endl;
+    OPENMS_LOG_INFO << "[PDBS-FI] Calibration: " << precursor_errors.size() << " PSMs used (top "
+                    << static_cast<int>(100.0 * precursor_errors.size() / cal_hits_total) << "% by score)" << std::endl;
+    OPENMS_LOG_INFO << "[PDBS-FI]   Precursor |error|: median=" << std::fixed << std::setprecision(2) << prec_median
+                    << ", MAD=" << prec_mad << " " << precursor_mass_tolerance_unit_ << std::endl;
     OPENMS_LOG_INFO << "[PDBS-FI]   Precursor tolerance: " << precursor_mass_tolerance_
                     << " -> " << result.precursor_tolerance << " " << precursor_mass_tolerance_unit_ << std::endl;
     OPENMS_LOG_INFO << "[PDBS-FI]   Fragment tolerance:  " << fragment_mass_tolerance_
