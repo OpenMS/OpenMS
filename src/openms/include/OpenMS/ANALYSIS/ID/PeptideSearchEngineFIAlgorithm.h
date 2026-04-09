@@ -416,6 +416,7 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
     bool decoys_;
 
     double fdr_psm_;
+    double fdr_protein_;
 
     StringList annotate_psm_;
 

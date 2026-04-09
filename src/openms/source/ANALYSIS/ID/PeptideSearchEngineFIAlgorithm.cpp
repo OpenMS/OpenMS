@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
 
+#include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
@@ -152,6 +153,9 @@ namespace OpenMS
     defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Requires '-decoys' to be set.");
     defaults_.setMinFloat("FDR:PSM", 0.0);
     defaults_.setMaxFloat("FDR:PSM", 1.0);
+    defaults_.setValue("FDR:protein", 0.0, "Filter proteins based on picked-protein FDR q-value (e.g., 0.01 = 1% protein FDR, set to 0 to disable). Applied after PSM-level FDR. Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. Requires '-decoys' to be set.");
+    defaults_.setMinFloat("FDR:protein", 0.0);
+    defaults_.setMaxFloat("FDR:protein", 1.0);
     defaults_.setSectionDescription("FDR", "False Discovery Rate control (requires decoys)");
 
     // Add parameters which are only used by FragmentIndex
@@ -257,6 +261,7 @@ namespace OpenMS
     decoys_ = param_.getValue("decoys") == "true";
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
     fdr_psm_ = param_.getValue("FDR:PSM");
+    fdr_protein_ = param_.getValue("FDR:protein");
 
     // Open search mode is automatically determined based on precursor tolerance in isOpenSearchMode_()
 
@@ -936,15 +941,23 @@ namespace OpenMS
       }
     }
 
-    // PSM-level FDR filtering (requires decoys)
+    // PSM-level FDR filtering (requires decoys).
+    // Decoy hits are kept when protein FDR is requested — applyPickedProteinFDR
+    // needs both target and decoy proteins with scores. Decoy removal is
+    // deferred to the caller (file-based search or multi-file aggregate path).
     if (fdr_psm_ > 0.0 && decoys_)
     {
       FalseDiscoveryRate fdr;
       fdr.apply(peptide_ids);
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
-      IDFilter::removeDecoyHits(peptide_ids);
-      IDFilter::removeEmptyIdentifications(peptide_ids);
-      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+
+      if (fdr_protein_ == 0.0)
+      {
+        // No protein FDR → safe to remove decoys now
+        IDFilter::removeDecoyHits(peptide_ids);
+        IDFilter::removeEmptyIdentifications(peptide_ids);
+        IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+      }
     }
     else if (fdr_psm_ > 0.0 && !decoys_)
     {
@@ -986,6 +999,24 @@ namespace OpenMS
     if (ec != ExitCodes::EXECUTION_OK)
     {
       return ec;
+    }
+
+    // Protein inference + picked-protein FDR for single-file search.
+    // Must run before decoy removal so both target and decoy proteins
+    // receive aggregated scores from BPIA.
+    if (fdr_protein_ > 0.0 && decoys_)
+    {
+      BasicProteinInferenceAlgorithm bpia;
+      bpia.run(peptide_ids, protein_ids);
+
+      FalseDiscoveryRate fdr;
+      fdr.applyPickedProteinFDR(protein_ids[0], "DECOY_", true);
+      IDFilter::filterHitsByScore(protein_ids, fdr_protein_);
+
+      // Now safe to remove decoys (deferred from search() above)
+      IDFilter::removeDecoyHits(peptide_ids);
+      IDFilter::removeEmptyIdentifications(peptide_ids);
+      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
     }
 
     // patch file-specific metadata
@@ -1212,6 +1243,54 @@ namespace OpenMS
       {
         mfres.aggregate.peptide_ids.push_back(pid);
       }
+    }
+
+    // Aggregate protein inference + picked-protein FDR on pooled PSMs (across
+    // all files). This is the correct level for protein inference — per-file
+    // protein FDR is too conservative because each file sees only a subset of
+    // the proteome. Mirrors the ProteomicsLFQ pattern.
+    if (fdr_protein_ > 0.0 && decoys_ && !mfres.aggregate.protein_ids.empty())
+    {
+      // Synchronize identifiers: pooled PSMs carry per-file identifiers
+      // but BasicProteinInferenceAlgorithm filters by identifier match.
+      // Set all PSMs to the aggregate protein run identifier (analogous to
+      // ConsensusMapMergerAlgorithm::mergeAllIDRuns setting "merged").
+      const String& agg_id = mfres.aggregate.protein_ids[0].getIdentifier();
+      for (auto& pid : mfres.aggregate.peptide_ids)
+      {
+        pid.setIdentifier(agg_id);
+      }
+
+      // Re-index pooled PSMs against the aggregate protein list
+      PeptideIndexing indexer;
+      Param param_pi = indexer.getParameters();
+      param_pi.setValue("decoy_string", "DECOY_");
+      param_pi.setValue("decoy_string_position", "prefix");
+      param_pi.setValue("enzyme:name", enzyme_);
+      param_pi.setValue("enzyme:specificity",
+                        EnzymaticDigestion::NamesOfSpecificity[peptide_enzyme_specificity_]);
+      param_pi.setValue("missing_decoy_action", "silent");
+      indexer.setParameters(param_pi);
+      indexer.run(ctx.db, mfres.aggregate.protein_ids, mfres.aggregate.peptide_ids);
+
+      // Protein inference: aggregate best PSM score per peptide per protein.
+      // Uses BasicProteinInferenceAlgorithm (aggregation mode, default "best")
+      // which keeps the best PSM per peptidoform and assigns the aggregated
+      // score to each protein. This sets meaningful protein-level scores
+      // that applyPickedProteinFDR can work with.
+      BasicProteinInferenceAlgorithm bpia;
+      bpia.run(mfres.aggregate.peptide_ids, mfres.aggregate.protein_ids);
+
+      FalseDiscoveryRate fdr;
+      fdr.applyPickedProteinFDR(mfres.aggregate.protein_ids[0], "DECOY_", true);
+      IDFilter::filterHitsByScore(mfres.aggregate.protein_ids, fdr_protein_);
+      IDFilter::removeDecoyHits(mfres.aggregate.peptide_ids);
+      IDFilter::removeEmptyIdentifications(mfres.aggregate.peptide_ids);
+      IDFilter::removeUnreferencedProteins(mfres.aggregate.protein_ids, mfres.aggregate.peptide_ids);
+
+      OPENMS_LOG_INFO << "[PDBS-FI] Aggregate protein inference + FDR: "
+                      << mfres.aggregate.protein_ids[0].getHits().size() << " proteins at "
+                      << fdr_protein_ * 100 << "% FDR" << std::endl;
     }
 
     // Aggregate modification analysis on the pooled PSM set.
