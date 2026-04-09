@@ -192,6 +192,10 @@ namespace OpenMS
     static constexpr const char* PSM_METAVALUES = "psm_metavalues";
     static constexpr const char* SPECTRUM_METAVALUES = "spectrum_metavalues";
     static constexpr const char* RUN_IDENTIFIER = "run_identifier";
+    static constexpr const char* MZ_ARRAY = "mz_array";
+    static constexpr const char* INTENSITY_ARRAY = "intensity_array";
+    static constexpr const char* CHARGE_ARRAY = "charge_array";
+    static constexpr const char* ION_TYPE_ARRAY = "ion_type_array";
 
     static std::shared_ptr<arrow::DataType> modificationsType();
     static std::shared_ptr<arrow::DataType> additionalScoresType();

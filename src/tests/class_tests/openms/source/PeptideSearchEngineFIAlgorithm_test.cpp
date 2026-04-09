@@ -819,7 +819,6 @@ START_SECTION((SearchResult searchWithModificationAnalysis(const String &, const
 }
 END_SECTION
 
-<<<<<<< HEAD
 START_SECTION(([EXTRA] prepareContext + context-based search produces same IDs as single-shot search))
 {
   // Build a tiny synthetic dataset where we know the search returns hits.

@@ -761,7 +761,7 @@ START_SECTION(PSMSchema::schema() returns non-null with 25 fields)
 {
   auto s = PSMSchema::schema();
   TEST_NOT_EQUAL(s, nullptr)
-  TEST_EQUAL(s->num_fields(), 25)
+  TEST_EQUAL(s->num_fields(), 29)
 }
 END_SECTION
 

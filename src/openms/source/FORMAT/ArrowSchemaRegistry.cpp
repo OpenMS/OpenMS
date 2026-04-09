@@ -393,6 +393,10 @@ namespace OpenMS
       arrow::field(PSM_METAVALUES, metavaluesType()),
       arrow::field(SPECTRUM_METAVALUES, metavaluesType()),
       arrow::field(RUN_IDENTIFIER, arrow::utf8()),
+      arrow::field(MZ_ARRAY, arrow::list(arrow::float32())),
+      arrow::field(INTENSITY_ARRAY, arrow::list(arrow::float32())),
+      arrow::field(CHARGE_ARRAY, arrow::list(arrow::int32())),
+      arrow::field(ION_TYPE_ARRAY, arrow::list(arrow::utf8())),
     });
   }
 
