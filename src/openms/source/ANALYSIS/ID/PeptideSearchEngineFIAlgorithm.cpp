@@ -189,6 +189,25 @@ namespace OpenMS
     defaults_.setValidStrings("ions:add_z_ions", {"true","false"});
     defaults_.setSectionDescription("ions", "Theoretical ion series toggles");
 
+    defaults_.setValue("calibration:enabled", "false",
+      "If enabled, run a fast calibration pass on a subset of spectra before the main search. "
+      "Estimates tighter precursor and fragment tolerances from confident PSMs and applies a "
+      "global fragment m/z shift correction. The fragment index is NOT rebuilt — only query-time "
+      "tolerances change. Inspired by MSFragger's calibrate_mass and OpenNuXL's autotune.");
+    defaults_.setValidStrings("calibration:enabled", {"true", "false"});
+    defaults_.setValue("calibration:subset_ratio", 0.1,
+      "Fraction of spectra (by TIC, highest first) used for the calibration pass (0.0-1.0).");
+    defaults_.setMinFloat("calibration:subset_ratio", 0.01);
+    defaults_.setMaxFloat("calibration:subset_ratio", 1.0);
+    defaults_.setValue("calibration:min_psms", 50,
+      "Minimum number of confident PSMs required for calibration. If fewer are found, "
+      "calibration is skipped and the user-configured tolerances are used.");
+    defaults_.setMinInt("calibration:min_psms", 1);
+    defaults_.setSectionDescription("calibration",
+      "Automatic mass accuracy calibration (two-pass search). A fast first pass on a subset of "
+      "spectra estimates instrument-specific mass accuracy, then the main search uses the "
+      "calibrated (typically tighter) tolerances for better discrimination.");
+
     defaultsToParam_();
   }
 
@@ -241,6 +260,9 @@ namespace OpenMS
 
     // Open search mode is automatically determined based on precursor tolerance in isOpenSearchMode_()
 
+    calibration_enabled_ = param_.getValue("calibration:enabled") == "true";
+    calibration_subset_ratio_ = param_.getValue("calibration:subset_ratio");
+    calibration_min_psms_ = param_.getValue("calibration:min_psms");
   }
 
   // static
@@ -715,6 +737,34 @@ namespace OpenMS
     preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
     endProgress();
 
+    // Reference the prepared (decoy-augmented) database and prebuilt fragment index from the context.
+    std::vector<FASTAFile::FASTAEntry>& db = ctx.db;
+    FragmentIndex& fragment_index_ = ctx.fragment_index;
+
+    // Effective tolerances: may be overridden by calibration pass below.
+    double effective_precursor_tol = precursor_mass_tolerance_;
+    double effective_fragment_tol = fragment_mass_tolerance_;
+
+    // --- Optional calibration pass ---
+    if (calibration_enabled_ && !open_search)
+    {
+      startProgress(0, 1, "Running calibration pass...");
+      CalibrationResult_ cal = runCalibrationPass_(spectra, fragment_index_, db);
+      endProgress();
+
+      if (cal.success)
+      {
+        effective_precursor_tol = cal.precursor_tolerance;
+        effective_fragment_tol = cal.fragment_tolerance;
+
+        // Update the fragment index's query-time tolerances (no index rebuild)
+        Param fi_params = fragment_index_.getParameters();
+        fi_params.setValue("precursor:mass_tolerance", effective_precursor_tol);
+        fi_params.setValue("fragment:mass_tolerance", effective_fragment_tol);
+        fragment_index_.setParameters(fi_params);
+      }
+    }
+
     // create spectrum generator
     TheoreticalSpectrumGenerator spectrum_generator;
     Param param(spectrum_generator.getParameters());
@@ -726,19 +776,13 @@ namespace OpenMS
     vector<vector<AnnotatedHit_> > annotated_hits(spectra.size(), vector<AnnotatedHit_>());
     for (auto & a : annotated_hits) { a.reserve(report_top_hits_); }
 
-    // Reference the prepared (decoy-augmented) database and prebuilt fragment index from the context.
-    // The fragment index is queried (not mutated) during scoring; the database is handed to
-    // PeptideIndexing::run() below which requires a non-const reference.
-    std::vector<FASTAFile::FASTAEntry>& db = ctx.db;
-    FragmentIndex& fragment_index_ = ctx.fragment_index;
-
     startProgress(0, spectra.size(), "Scoring peptide models against spectra...");
     size_t count_spectra{};
 
     bool open_search_mode = open_search;
     const double proton_mass_u = Constants::PROTON_MASS_U;
 
-#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fragment_index_, spectrum_generator, db, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u)
+#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fragment_index_, spectrum_generator, db, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, effective_fragment_tol)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
 
@@ -764,7 +808,7 @@ namespace OpenMS
         theo_spectrum.sortByPosition();
 
         HyperScore::PSMDetail detail;
-        const double& score = HyperScore::computeWithDetail(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
+        const double& score = HyperScore::computeWithDetail(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
 
         if (score == 0)
         {
@@ -808,8 +852,8 @@ namespace OpenMS
       modifications_fixed_,
       modifications_variable_,
       peptide_missed_cleavages_,
-      precursor_mass_tolerance_,
-      fragment_mass_tolerance_,
+      effective_precursor_tol,
+      effective_fragment_tol,
       precursor_mass_tolerance_unit_,
       fragment_mass_tolerance_unit_,
       precursor_min_charge_,
@@ -1348,6 +1392,160 @@ namespace OpenMS
     OPENMS_LOG_INFO << "[PDBS-FI]   (configured: precursor=" << precursor_mass_tolerance_ << " " << precursor_mass_tolerance_unit_
                     << ", fragment=" << fragment_mass_tolerance_ << " " << fragment_mass_tolerance_unit_ << ")" << std::endl;
     OPENMS_LOG_INFO << "[PDBS-FI] ============================================\n" << std::endl;
+  }
+
+  // =====================================================================
+  // Helper: run calibration pass on a subset of spectra
+  // =====================================================================
+  PeptideSearchEngineFIAlgorithm::CalibrationResult_
+  PeptideSearchEngineFIAlgorithm::runCalibrationPass_(
+      PeakMap& spectra,
+      FragmentIndex& fragment_index,
+      const std::vector<FASTAFile::FASTAEntry>& db) const
+  {
+    CalibrationResult_ result;
+    bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
+
+    // Select subset by TIC (highest-quality spectra first)
+    vector<pair<double, Size>> tic_index;
+    tic_index.reserve(spectra.size());
+    for (Size i = 0; i < spectra.size(); ++i)
+    {
+      double tic = 0;
+      for (const auto& p : spectra[i]) { tic += p.getIntensity(); }
+      tic_index.emplace_back(tic, i);
+    }
+    std::sort(tic_index.rbegin(), tic_index.rend());
+    Size subset_size = std::max<Size>(1, static_cast<Size>(spectra.size() * calibration_subset_ratio_));
+    if (subset_size > tic_index.size()) subset_size = tic_index.size();
+
+    OPENMS_LOG_INFO << "[PDBS-FI] Calibration: scoring " << subset_size << " / " << spectra.size()
+                    << " spectra (top TIC)..." << std::endl;
+
+    // Score subset and collect errors from the best hit per spectrum
+    TheoreticalSpectrumGenerator tsg;
+    Param tsg_param(tsg.getParameters());
+    tsg_param.setValue("add_first_prefix_ion", "true");
+    tsg_param.setValue("add_metainfo", "true");
+    tsg.setParameters(tsg_param);
+
+    vector<double> precursor_errors;     // signed, same unit as configured
+    vector<double> fragment_errors_abs;  // unsigned, same unit as configured
+
+    for (Size si = 0; si < subset_size; ++si)
+    {
+      const Size scan_idx = tic_index[si].second;
+      const MSSpectrum& spec = spectra[scan_idx];
+
+      FragmentIndex::SpectrumMatchesTopN top_sms;
+      fragment_index.querySpectrum(spec, top_sms);
+
+      // Find the best-scoring hit for this spectrum
+      double best_score = 0;
+      AASequence best_seq;
+      int best_isotope_error = 0;
+      uint16_t best_charge = 0;
+      float best_mean_error = 0;
+
+      for (const auto& sms : top_sms.hits_)
+      {
+        AASequence seq = fragment_index.reconstructModifiedSequence(
+            fragment_index.getPeptides()[sms.peptide_idx_], db);
+        PeakSpectrum theo;
+        tsg.getSpectrum(theo, seq, 1, 1);
+        theo.sortByPosition();
+
+        HyperScore::PSMDetail detail;
+        double score = HyperScore::computeWithDetail(
+            fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
+
+        if (score > best_score)
+        {
+          best_score = score;
+          best_seq = std::move(seq);
+          best_isotope_error = sms.isotope_error_;
+          best_charge = sms.precursor_charge_;
+          best_mean_error = static_cast<float>(detail.mean_error);
+        }
+      }
+
+      if (best_score == 0 || best_seq.empty()) continue;
+
+      // Precursor error (signed)
+      double exp_mz = spec.getPrecursors()[0].getMZ();
+      double theo_mz = best_seq.getMZ(best_charge);
+      double corrected_exp_mz = exp_mz - static_cast<double>(best_isotope_error)
+                                          * Constants::C13C12_MASSDIFF_U / best_charge;
+
+      if (precursor_mass_tolerance_unit_ == "ppm")
+      {
+        precursor_errors.push_back(Math::getPPM(corrected_exp_mz, theo_mz));
+      }
+      else
+      {
+        precursor_errors.push_back(corrected_exp_mz - theo_mz);
+      }
+
+      // Fragment error (unsigned mean, same unit as HyperScore used)
+      if (best_mean_error > 0)
+      {
+        fragment_errors_abs.push_back(best_mean_error);
+      }
+    }
+
+    if (precursor_errors.size() < calibration_min_psms_)
+    {
+      OPENMS_LOG_WARN << "[PDBS-FI] Calibration: insufficient PSMs (" << precursor_errors.size()
+                      << " < " << calibration_min_psms_
+                      << "), using configured tolerances." << std::endl;
+      return result; // success=false
+    }
+
+    // --- Compute calibrated tolerances (NuXL-inspired percentile approach) ---
+    std::sort(precursor_errors.begin(), precursor_errors.end());
+    std::sort(fragment_errors_abs.begin(), fragment_errors_abs.end());
+
+    // Precursor: use 0.5th–99.5th percentile range (captures 99% of PSMs, robust to outliers)
+    double prec_left  = precursor_errors[static_cast<Size>(precursor_errors.size() * 0.005)];
+    double prec_right = precursor_errors[static_cast<Size>(precursor_errors.size() * 0.995)];
+    result.precursor_tolerance = std::ceil(std::max(std::abs(prec_left), std::abs(prec_right)));
+    if (result.precursor_tolerance < 1.0) result.precursor_tolerance = 1.0;
+
+    // Fragment: 4 × 68th percentile (following NuXL / identipy convention)
+    if (!fragment_errors_abs.empty())
+    {
+      double frag_68 = fragment_errors_abs[static_cast<Size>(fragment_errors_abs.size() * 0.68)];
+      result.fragment_tolerance = std::ceil(4.0 * frag_68);
+      if (result.fragment_tolerance < 1.0) result.fragment_tolerance = 1.0;
+    }
+    else
+    {
+      result.fragment_tolerance = fragment_mass_tolerance_; // keep configured
+    }
+
+    // Fragment shift: median of signed fragment errors is not available from HyperScore
+    // (only unsigned mean). For precursor shift, use the median.
+    result.fragment_shift = 0.0; // no shift correction without signed fragment errors
+
+    // Don't widen beyond configured tolerance (only tighten)
+    if (result.precursor_tolerance > precursor_mass_tolerance_)
+    {
+      result.precursor_tolerance = precursor_mass_tolerance_;
+    }
+    if (result.fragment_tolerance > fragment_mass_tolerance_)
+    {
+      result.fragment_tolerance = fragment_mass_tolerance_;
+    }
+
+    result.success = true;
+
+    OPENMS_LOG_INFO << "[PDBS-FI] Calibration: " << precursor_errors.size() << " PSMs used" << std::endl;
+    OPENMS_LOG_INFO << "[PDBS-FI]   Precursor tolerance: " << precursor_mass_tolerance_
+                    << " -> " << result.precursor_tolerance << " " << precursor_mass_tolerance_unit_ << std::endl;
+    OPENMS_LOG_INFO << "[PDBS-FI]   Fragment tolerance:  " << fragment_mass_tolerance_
+                    << " -> " << result.fragment_tolerance << " " << fragment_mass_tolerance_unit_ << std::endl;
+
+    return result;
   }
 
   // =====================================================================

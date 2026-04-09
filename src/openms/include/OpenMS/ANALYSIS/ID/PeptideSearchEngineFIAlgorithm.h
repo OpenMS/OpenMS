@@ -428,6 +428,24 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
 
     Size report_top_hits_;
 
+    bool calibration_enabled_{false};
+    double calibration_subset_ratio_{0.1};
+    Size calibration_min_psms_{50};
+
+    /// Result of a calibration pass.
+    struct CalibrationResult_
+    {
+      double precursor_tolerance{0};
+      double fragment_tolerance{0};
+      double fragment_shift{0};  ///< systematic shift (ppm or Da, same unit as configured)
+      bool success{false};
+    };
+
+    /// Run a fast calibration pass on a subset of spectra to estimate mass accuracy.
+    CalibrationResult_ runCalibrationPass_(PeakMap& spectra,
+                                           FragmentIndex& fragment_index,
+                                           const std::vector<FASTAFile::FASTAEntry>& db) const;
+
     /// Helper: log the modification analysis summary (shared by in-memory and file-based paths)
     void logModificationAnalysisSummary_(const SearchResult& result,
                                          const String& output_base_name) const;
