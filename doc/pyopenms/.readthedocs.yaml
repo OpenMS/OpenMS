@@ -2,7 +2,7 @@ version: 2
 
 # Build from the docs/ directory with Sphinx
 sphinx:
-  configuration: docs/source/conf.py
+  configuration: doc/pyopenms/docs/source/conf.py
 
 build:
   os: ubuntu-24.04
@@ -19,8 +19,8 @@ build:
           exit 183;
         fi
     post_install:
-      - python docs/install_pyopenms.py
+      - python doc/pyopenms/docs/install_pyopenms.py
 
 python:
   install:
-    - requirements: docs/requirements.txt
+    - requirements: doc/pyopenms/docs/requirements.txt
