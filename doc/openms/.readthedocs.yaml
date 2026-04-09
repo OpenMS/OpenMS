@@ -2,7 +2,7 @@ version: 2
 
 # Build from the docs/ directory with Sphinx
 sphinx:
-  configuration: docs/conf.py
+  configuration: doc/openms/docs/conf.py
 
 build:
   os: ubuntu-24.04
@@ -21,7 +21,7 @@ build:
 
 python:
   install:
-    - requirements: requirements.txt
+    - requirements: doc/openms/requirements.txt
 
 formats:
     - pdf
