@@ -775,9 +775,9 @@ namespace OpenMS
         ah.sequence = std::move(mod_candidate);
         ah.score = score;
         double seq_length = (double)ah.sequence.size();
-        ah.prefix_fraction = (double)detail.matched_b_ions/seq_length;
-        ah.suffix_fraction = (double)detail.matched_y_ions/seq_length;
-        ah.mean_error = detail.mean_error;
+        ah.prefix_fraction = static_cast<float>(detail.matched_b_ions / seq_length);
+        ah.suffix_fraction = static_cast<float>(detail.matched_y_ions / seq_length);
+        ah.mean_error = static_cast<float>(detail.mean_error);
         ah.matched_b_ions = static_cast<uint16_t>(detail.matched_b_ions);
         ah.matched_y_ions = static_cast<uint16_t>(detail.matched_y_ions);
 
