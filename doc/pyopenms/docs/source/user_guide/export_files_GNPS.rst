@@ -16,7 +16,7 @@ First, download two example :term:`mzML` files that have been map aligned based 
 
     from urllib.request import urlretrieve
 
-    gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(
         gh + "/src/data/Metabolomics_1_aligned.mzML", "Metabolomics_1_aligned.mzML"
     )

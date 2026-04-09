@@ -47,7 +47,7 @@ Using the same example file as before, we can execute a :py:class:`~.GaussFilter
     import pyopenms as oms
     from urllib.request import urlretrieve
 
-    gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(gh + "/src/data/tiny.mzML", "test.mzML")
 
     gf = oms.GaussFilter()

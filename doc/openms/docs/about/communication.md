@@ -27,10 +27,8 @@ Discord allows the users to communicate in different channels, publicly as well 
 ### <a class="button cta rounded primary-btn raised" href="https://github.com/openms">GitHub</a>
 
 The following repositories can be used:
-- [OpenMS](https://github.com/OpenMS/OpenMS) (Bug Reports, Feature requests)
-- [OpenMS-docs](https://github.com/OpenMS/OpenMS-docs) (Documentation-related issues)
+- [OpenMS](https://github.com/OpenMS/OpenMS) (Bug Reports, Feature requests, Documentation)
 - [OpenMS.de](https://github.com/OpenMS/openms.de) (Any issue related to website)
-- [pyopenms-docs](https://github.com/OpenMS/pyopenms-docs) (Any issue related to pyopenms)
 
 In case if you are confused, please ask your query [here](https://openms.de/help-request/)
 
@@ -47,8 +45,8 @@ OpenMS
 - [TOPPView](https://github.com/OpenMS/OpenMS/labels/TOPPView)
 
 Documentation
-- [Bug reports](https://github.com/OpenMS/OpenMS-docs/labels/bug)
-- [Feature requests](https://github.com/OpenMS/OpenMS-docs/labels/enhancement)
+- [Bug reports](https://github.com/OpenMS/OpenMS/labels/bug)
+- [Feature requests](https://github.com/OpenMS/OpenMS/labels/enhancement)
 
 ***
 

@@ -27,7 +27,7 @@ Binary Encoding
     import pyopenms as oms
     from urllib.request import urlretrieve
 
-    gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(gh + "/src/data/tiny.mzML", "test.mzML")
 
 Let's investigate the file ``test.mzML`` and look at line 197:

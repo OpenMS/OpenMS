@@ -17,7 +17,7 @@ Required imports for the examples:
     import pandas as pd
     from urllib.request import urlretrieve
 
-    url = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master/src/data/"
+    url = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms/src/data/"
 
 
 MSExperiment

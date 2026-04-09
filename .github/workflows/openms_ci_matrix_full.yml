@@ -1144,15 +1144,8 @@ jobs:
           JSViewer_SHA=$(curl -s -X GET https://api.github.com/repos/genericworkflownodes/de.openms.knime.dynamicJSViewers/git/ref/heads/master |jq -r '.object.sha')
           CONTRIB_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/OpenMS/contents/contrib\?ref\=${{ github.sha }} | jq -r ".sha")
           THIRDPARTY_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/OpenMS/contents/THIRDPARTY\?ref\=${{ github.sha }} | jq -r ".sha")
-          PYDOCS_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/OpenMS/contents/src/pyOpenMS/pyopenms-docs\?ref\=${{ github.sha }} | jq -r ".sha")
-          TUTORIAL_SHA=$(curl https://api.github.com/repos/OpenMS/Tutorials/git/refs/heads/master | jq -r ".object.sha")
-          DOCS_SHA=$(curl https://api.github.com/repos/OpenMS/OpenMS-docs/git/refs/heads/develop | jq -r ".object.sha")
-
           handleGitTag OpenMS/contrib $CONTRIB_SHA
-          handleGitTag OpenMS/pyopenms-docs $PYDOCS_SHA
           handleGitTag OpenMS/THIRDPARTY $THIRDPARTY_SHA
-          handleGitTag OpenMS/Tutorials $TUTORIAL_SHA
-          handleGitTag OpenMS/OpenMS-docs $DOCS_SHA
           handleGitTag OpenMS/de.openms.knime $DEOPENMS_SHA
           # Uncomment when permissions are fixed
           # handleGitTag genericworkflownodes/de.openms.knime.dynamicJSViewers $JSViewer_SHA

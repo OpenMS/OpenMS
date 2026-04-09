@@ -47,7 +47,7 @@ Load an example file into a :py:class:`~.MSExperiment` and get the :term:`MS1` a
 
     from urllib.request import urlretrieve
 
-    url = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master/src/data/"
+    url = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms/src/data/"
 
     urlretrieve(url + "small.mzML", "small.mzML")
 

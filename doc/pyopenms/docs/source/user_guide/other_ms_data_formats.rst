@@ -14,7 +14,7 @@ You can store and load identification data from an `idXML` file as follows:
     from urllib.request import urlretrieve
     import pyopenms as oms
 
-    gh = gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(gh + "/src/data/IdXMLFile_whole.idXML", "test.idXML")
     protein_ids = []
     peptide_ids = oms.PeptideIdentificationList()
@@ -28,7 +28,7 @@ You can store and load identification data from an `mzIdentML` file as follows:
 
     from urllib.request import urlretrieve
 
-    gh = gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(gh + "/src/data/MzIdentML_3runs.mzid", "test.mzid")
     protein_ids = []
     peptide_ids = oms.PeptideIdentificationList()
@@ -45,7 +45,7 @@ You can store and load identification data from a TPP `pepXML` file as follows:
 
     from urllib.request import urlretrieve
 
-    gh = gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(gh + "/src/data/PepXMLFile_test.pepxml", "test.pepxml")
     protein_ids = []
     peptide_ids = oms.PeptideIdentificationList()
@@ -60,7 +60,7 @@ You can load (storing is not supported) identification data from a TPP `protXML`
 
     from urllib.request import urlretrieve
 
-    gh = gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(gh + "/src/data/ProtXMLFile_input_1.protXML", "test.protXML")
     protein_ids = oms.ProteinIdentification()
     peptide_ids = oms.PeptideIdentification()
@@ -88,7 +88,7 @@ as follows:
 
     from urllib.request import urlretrieve
 
-    gh = gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(
         gh + "/src/data/FeatureFinderCentroided_1_output.featureXML",
         "test.featureXML",
@@ -104,7 +104,7 @@ and for ``consensusXML``
 
     from urllib.request import urlretrieve
 
-    gh = gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(
         gh + "/src/data/ConsensusXMLFile_1.consensusXML", "test.consensusXML"
     )

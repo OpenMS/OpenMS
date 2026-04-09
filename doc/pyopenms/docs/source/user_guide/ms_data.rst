@@ -472,7 +472,7 @@ provided by OpenMS.
 
     from urllib.request import urlretrieve
 
-    gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(gh + "/src/data/FeatureFinderMetaboIdent_1_input.mzML", "test.mzML")
 
     exp = oms.MSExperiment()
@@ -558,7 +558,7 @@ Here, we can assess the purity of the precursor to filter spectra with a score b
 
     from urllib.request import urlretrieve
 
-    gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(
         gh + "/src/data/PrecursorPurity_input.mzML", "PrecursorPurity_input.mzML"
     )
@@ -629,7 +629,7 @@ But first, we will load some test data:
 .. code-block:: python
     :linenos:
 
-    gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(gh + "/src/data/tiny.mzML", "test.mzML")
 
     inp = oms.MSExperiment()
@@ -781,7 +781,7 @@ We can also use predefined TOPP tools to filter our data. First we need to load 
     import matplotlib.pyplot as plt
     from pyopenms.plotting import plot_spectrum, mirror_plot_spectrum
 
-    gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(
         gh + "/src/data/YIC(Carbamidomethyl)DNQDTISSK.mzML", "observed.mzML"
     )

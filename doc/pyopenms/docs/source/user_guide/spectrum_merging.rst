@@ -31,7 +31,7 @@ Let's take a look at the different algorithms in the examples below. First we do
   import pyopenms as oms
   import matplotlib.pyplot as plt
 
-  gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+  gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
   urlretrieve(gh + "/src/data/small.mzML", "test.mzML")
 
   # load MS data and store as MSExperiment object

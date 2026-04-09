@@ -13,7 +13,7 @@ First we load a (chemically modified) peptide:
     from urllib.request import urlretrieve
     import pyopenms as oms
 
-    gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(
         gh + "/src/data/YIC(Carbamidomethyl)DNQDTISSK.mzML", "observed.mzML"
     )

@@ -159,7 +159,7 @@ state:
     from urllib.request import urlretrieve
     import matplotlib.pyplot as plt
 
-    gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(gh + "/src/data/BSA1.mzML", "BSA1.mzML")
 
     e = oms.MSExperiment()

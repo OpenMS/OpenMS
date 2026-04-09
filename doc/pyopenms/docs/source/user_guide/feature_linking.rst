@@ -29,7 +29,7 @@ Download Example Data
     from urllib.request import urlretrieve
 
     base_url = (
-        "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master/src/data/"
+        "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms/src/data/"
     )
 
     feature_files = [

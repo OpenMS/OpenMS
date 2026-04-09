@@ -15,7 +15,7 @@ To begin, we need to load the mass spectrometry data. The following Python code 
   import pyopenms as oms
   import matplotlib.pyplot as plt
 
-  gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+  gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
   urlretrieve(gh + "/src/data/peakpicker_tutorial_1_baseline_filtered.mzML", "tutorial.mzML")
 
   exp = oms.MSExperiment()

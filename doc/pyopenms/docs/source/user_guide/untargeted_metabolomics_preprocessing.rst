@@ -13,7 +13,7 @@ First, download two example :term:`mzML` files.
 
     from urllib.request import urlretrieve
 
-    gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(gh + "/src/data/Metabolomics_1.mzML", "Metabolomics_1.mzML")
     urlretrieve(gh + "/src/data/Metabolomics_2.mzML", "Metabolomics_2.mzML")
 

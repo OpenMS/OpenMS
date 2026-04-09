@@ -36,7 +36,7 @@ Once we have imported all libraries successfully, we are going to store the data
 .. code-block:: python
     :linenos:
 
-    gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(gh + "/src/data/pyOpenMS_ML_Tutorial.tsv", "data.tsv")
     tsv_data = pd.read_csv("data.tsv", sep="\t", skiprows=17)
 

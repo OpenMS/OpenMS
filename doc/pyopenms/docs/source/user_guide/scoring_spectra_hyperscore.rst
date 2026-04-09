@@ -24,7 +24,7 @@ In OpenMS the :py:class:`~.HyperScore` expects a maximal fragment mass tolerance
     from urllib.request import urlretrieve
     import pyopenms as oms
 
-    gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(gh + "/src/data/SimpleSearchEngine_1.mzML", "searchfile.mzML")
 
 Generate a Theoretical Spectrum

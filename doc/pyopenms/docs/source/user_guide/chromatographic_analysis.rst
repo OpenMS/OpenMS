@@ -21,7 +21,7 @@ about the targeted peptides:
     from urllib.request import urlretrieve
     import pyopenms as oms
 
-    gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(gh + "/src/data/OpenSwathAnalyzer_1_input_chrom.mzML", "chrom.mzML")
     urlretrieve(
         gh + "/src/data/OpenSwathAnalyzer_1_input.TraML", "transitions.TraML"

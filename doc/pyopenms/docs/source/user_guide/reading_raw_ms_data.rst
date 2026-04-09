@@ -12,7 +12,7 @@ spectrometry` data is using the :py:class:`~.MzMLFile` class:
     import pyopenms as oms
     from urllib.request import urlretrieve
 
-    gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(gh + "/src/data/tiny.mzML", "test.mzML")
     exp = oms.MSExperiment()
     oms.MzMLFile().load("test.mzML", exp)
@@ -147,7 +147,7 @@ use this to implement a simple filtering function for mass spectra:
 	import pyopenms as oms
 	from urllib.request import urlretrieve
 
-	gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+	gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
 	urlretrieve(gh + "/src/data/tiny.mzML", "test.mzML")
 
 	print("Current Working Directory where all files are stored:", os.getcwd())

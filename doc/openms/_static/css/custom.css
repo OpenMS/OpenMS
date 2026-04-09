@@ -35,7 +35,7 @@ div.admonition.question p:first-of-type {
 
 div.admonition.task p::before {
   -webkit-mask-image: var(--icon-task) !important;
-  mask-image: var (--icon-task) !important;
+  mask-image: var(--icon-task) !important;
   -webkit-mask-size: 90%;
   mask-size: 90%;
   background-color: var(--color-admonition-title);
@@ -49,7 +49,7 @@ div.admonition.question p::before {
 
 div.admonition.video p::before {
   -webkit-mask-image: var(--icon-video) !important;
-  mask-image: var (--icon-video) !important;
+  mask-image: var(--icon-video) !important;
   -webkit-mask-size: 90%;
   mask-size: 90%;
   background-color: rgb(88, 60, 25);

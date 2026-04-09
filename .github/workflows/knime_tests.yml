@@ -62,10 +62,11 @@ jobs:
         run: |
           wget -c https://abibuilder.cs.uni-tuebingen.de/archive/openms/Tutorials/Example_Data.tar.gz -O - | tar -xz
             
-      - name:  Clone Tutorials
+      - uses: actions/checkout@v4
+
+      - name: Run Tutorial Workflows
         run: |
-          gh repo clone OpenMS/Tutorials
-          pushd Tutorials/Workflows
+          pushd doc/tutorials/Workflows
             ./executeBatch.sh "$KNIME_DIR/knime" ${INSTALLATION_DIR}
             cat log*.txt
           popd

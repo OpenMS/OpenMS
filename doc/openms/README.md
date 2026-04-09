@@ -1,7 +1,7 @@
 OpenMS Documentation
 ====================
 
-This repository is the home for OpenMS documentation. OpenMS documentation is categorised as per:
+This directory contains the OpenMS documentation, part of the [OpenMS/OpenMS](https://github.com/OpenMS/OpenMS) monorepo. OpenMS documentation is categorised as per:
 
 - Supported libraries, tools, packages.
 - Users who prefer GUI.
@@ -35,7 +35,7 @@ documentation.
 
 ## Build OpenMS Docs locally
 
-In the root directory, run
+From the `doc/openms/` directory, run
 
 ```
 pip3 install -r requirements.txt
@@ -43,9 +43,9 @@ pip3 install -r requirements.txt
 
 to install dependencies. It is suggested to create a virtual environment, for more information read [venv](https://docs.python.org/3/library/venv.html) docs.
 
-As the next step, there are a few options to build OpenMS/OpenMS-docs locally:
+As the next step, there are a few options to build the docs locally:
 
-1. Run `make html` in root directory.
+1. Run `make html` in this directory.
 2. Run `sphinx-build -a docs /tmp/rtd` to build all files.
 3. Run `sphinx-build docs/ /tmp/rtd` to build changed files.
 
@@ -53,7 +53,7 @@ Now, open index.html file to view the changes or output of OpenMS ReadTheDocs do
 
 ## Contributing to OpenMS Docs
 
-Please read our [contributing guidelines](.github/CONTRIBUTING.md), before starting with contributing to OpenMS
+Please read our [contributing guidelines](https://github.com/OpenMS/OpenMS/blob/develop/CONTRIBUTING.md), before starting with contributing to OpenMS
 Documentation.
 
-Let us know what you would like to read in OpenMS documentation using [GitHub issues](https://github.com/OpenMS/OpenMS-docs/issues/new/choose)!
+Let us know what you would like to read in OpenMS documentation using [GitHub issues](https://github.com/OpenMS/OpenMS/issues/new/choose)!

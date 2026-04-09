@@ -25,7 +25,7 @@ In pyOpenMS, :py:class:`~.MetaboliteFeatureDeconvolution` takes a :term:`feature
     import pyopenms as poms
 
     # get example data file with metabolmics feature map
-    gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(gh + "/src/data/MetaboliteFeatureDeconvolution_input.featureXML", "example.featureXML")
 
     # open example input feature map

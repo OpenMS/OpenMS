@@ -17,7 +17,7 @@ proteomics and metabolomics quality metrics.
     import pyopenms as oms
     from urllib.request import urlretrieve
 
-    gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
 
     # minimal required informations are input_file, output_file and a MSExperiment
     input_file = "QCCalculator_input.mzML"

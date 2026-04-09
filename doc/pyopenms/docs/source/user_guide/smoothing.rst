@@ -10,7 +10,7 @@ further analysis
     from urllib.request import urlretrieve
     import pyopenms as oms
 
-    gh = "https://raw.githubusercontent.com/OpenMS/pyopenms-docs/master"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(
         gh + "/src/data/peakpicker_tutorial_1_baseline_filtered.mzML",
         "tutorial.mzML",
