@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
@@ -120,6 +121,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
     Size peptide_min_size_;
     Size peptide_max_size_;
     Size peptide_missed_cleavages_;
+    EnzymaticDigestion::Specificity peptide_enzyme_specificity_{EnzymaticDigestion::SPEC_FULL};
 
     String peptide_motif_;
 

@@ -251,6 +251,105 @@ START_SECTION(build())
 }
 END_SECTION
 
+// Verify that the new 'peptide:enzyme_specificity' parameter changes digestion behavior.
+// Three modes are tested:
+//   - "full" (default): both termini must be enzyme-specific (canonical, e.g. tryptic)
+//   - "semi": one terminus may be non-enzyme-specific (semi-tryptic)
+//   - "none": every substring of length [min,max] is enumerated, regardless of enzyme
+//             (the canonical immunopeptidomics path, e.g. HLA-I 8..12mers)
+START_SECTION([EXTRA] peptide:enzyme_specificity (full / semi / none))
+{
+  // 18-aa "protein" with two internal trypsin cuts (after K at pos 1, after R at pos 7).
+  // Sequence has no B/X/Z (which FragmentIndex filters out as ambiguous AAs).
+  // Tryptic products: "AK" (0..1), "ACDEFGR" (2..8), "HILMNPQSTV" (9..18).
+  const std::vector<FASTAFile::FASTAEntry> entries{
+    {"t", "t", "AKACDEFGRHILMNPQSTV"}};
+  // sanity: 19 aa total, no B/X/Z
+
+  // ---------- full (default): only fully-tryptic products ----------
+  {
+    FragmentIndex_test fi_full;
+    auto p = fi_full.getParameters();
+    p.setValue("enzyme", "Trypsin");
+    p.setValue("peptide:missed_cleavages", 0);
+    p.setValue("peptide:enzyme_specificity", "full");
+    p.setValue("peptide:min_size", 2);
+    p.setValue("peptide:max_size", 100);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("modifications:variable", std::vector<std::string>{});
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    fi_full.setParameters(p);
+    fi_full.build(entries);
+    // 3 fully-tryptic products of length >= 2
+    TEST_EQUAL(fi_full.getPeptides().size(), 3)
+  }
+
+  // ---------- semi: fully-tryptic + semi-tryptic variants ----------
+  size_t semi_count = 0;
+  {
+    FragmentIndex_test fi_semi;
+    auto p = fi_semi.getParameters();
+    p.setValue("enzyme", "Trypsin");
+    p.setValue("peptide:missed_cleavages", 0);
+    p.setValue("peptide:enzyme_specificity", "semi");
+    p.setValue("peptide:min_size", 2);
+    p.setValue("peptide:max_size", 100);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("modifications:variable", std::vector<std::string>{});
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    fi_semi.setParameters(p);
+    fi_semi.build(entries);
+    semi_count = fi_semi.getPeptides().size();
+    // semi must yield strictly more peptides than full (semi = full + semi-specific extras)
+    TEST_EQUAL(semi_count > 3, true)
+  }
+
+  // ---------- none (immunopeptidomics): all substrings of [min,max] ----------
+  // For 8..12mers from a 19-aa sequence: 8mers=12, 9mers=11, 10mers=10, 11mers=9, 12mers=8 → 50.
+  {
+    FragmentIndex_test fi_none;
+    auto p = fi_none.getParameters();
+    p.setValue("enzyme", "Trypsin"); // enzyme is irrelevant under specificity=none
+    p.setValue("peptide:missed_cleavages", 0);
+    p.setValue("peptide:enzyme_specificity", "none");
+    p.setValue("peptide:min_size", 8);
+    p.setValue("peptide:max_size", 12);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("modifications:variable", std::vector<std::string>{});
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    fi_none.setParameters(p);
+    fi_none.build(entries);
+    TEST_EQUAL(fi_none.getPeptides().size(), 50)
+    // semi must produce fewer peptides than fully unconstrained (over the same length window).
+    // (We use a different length window above, so this is not directly comparable; just sanity-check
+    //  that none-mode produces a substantial multiple of full-mode.)
+    TEST_EQUAL(fi_none.getPeptides().size() > semi_count, true)
+  }
+
+  // ---------- none with very short protein: must not crash ----------
+  // FASTA databases often contain very short entries; pre-fix this would underflow.
+  {
+    const std::vector<FASTAFile::FASTAEntry> tiny{{"t", "t", "ABC"}}; // shorter than min_size
+    FragmentIndex_test fi_tiny;
+    auto p = fi_tiny.getParameters();
+    p.setValue("enzyme", "Trypsin");
+    p.setValue("peptide:enzyme_specificity", "none");
+    p.setValue("peptide:min_size", 8);
+    p.setValue("peptide:max_size", 12);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("modifications:variable", std::vector<std::string>{});
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    fi_tiny.setParameters(p);
+    fi_tiny.build(tiny); // must not crash
+    TEST_EQUAL(fi_tiny.getPeptides().size(), 0)
+  }
+}
+END_SECTION
+
 // Verify that clear() resets the internal peptide container.
 START_SECTION(clear())
 {

@@ -453,6 +453,7 @@ namespace OpenMS
       ProteaseDigestion digestor;
       digestor.setEnzyme(digestion_enzyme_);
       digestor.setMissedCleavages(missed_cleavages_);
+      digestor.setSpecificity(enzyme_specificity_);
 
       OPENMS_LOG_INFO << "Generating peptides..." << std::endl;
 
@@ -763,6 +764,18 @@ namespace OpenMS
       {
         return std::tie(a.fragment_mz_, a.peptide_idx_) < std::tie(b.fragment_mz_, b.peptide_idx_);
       });
+
+      // Empty database (no peptide passed length / mass / motif filters): nothing to bucket.
+      // Mark as built and return — guards against the OMP loop below dividing by zero
+      // when bucketsize_ becomes 0. This is a real risk for immunopeptidomics FASTAs that
+      // contain entries shorter than peptide:min_size.
+      if (fi_fragments_.empty())
+      {
+        bucketsize_ = 0;
+        OPENMS_LOG_INFO << "[FragmentIndex] No fragments generated — index is empty." << std::endl;
+        is_build_ = true;
+        return;
+      }
 
       /// Calculate the bucket size
       bucketsize_ = sqrt(fi_fragments_.size()); //Todo: MSFragger uses a different approach, which might be better
@@ -1104,6 +1117,15 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
 
     defaults_.setValue("peptide:missed_cleavages", 1, "Missed cleavages for digestion");
+    defaults_.setValue("peptide:enzyme_specificity", "full",
+      "Enzyme cleavage specificity required for both peptide termini.\n"
+      "  'full' : both termini must be enzyme-specific (canonical, e.g. tryptic).\n"
+      "  'semi' : only one terminus needs to be enzyme-specific (semi-tryptic).\n"
+      "  'none' : no enzyme constraint at either terminus; every substring of length\n"
+      "           [min_size, max_size] is enumerated. This is the canonical setting for\n"
+      "           immunopeptidomics (e.g. HLA peptides 8..12mers). For very large search\n"
+      "           spaces consider tightening 'peptide:min_size'/'peptide:max_size'.");
+    defaults_.setValidStrings("peptide:enzyme_specificity", {"full", "semi", "none"});
     defaults_.setValue("peptide:min_size", 7, "Minimal peptide length for database");
     defaults_.setValue("peptide:max_size", 40, "Maximal peptide length for database");
 
@@ -1158,6 +1180,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     add_x_ions_ = param_.getValue("ions:add_x_ions").toBool();
     add_z_ions_ = param_.getValue("ions:add_z_ions").toBool();
     digestion_enzyme_ = param_.getValue("enzyme").toString();
+    enzyme_specificity_ = EnzymaticDigestion::getSpecificityByName(
+      param_.getValue("peptide:enzyme_specificity").toString());
     missed_cleavages_ = param_.getValue("peptide:missed_cleavages");
     peptide_min_mass_ = param_.getValue("peptide:min_mass");
     peptide_max_mass_ = param_.getValue("peptide:max_mass");
