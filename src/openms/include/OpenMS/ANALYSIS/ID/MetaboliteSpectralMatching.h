@@ -273,6 +273,27 @@ namespace OpenMS
       std::vector<PeptideHit::PeakAnnotation>& annotations,
       double mz_lower_bound = 0.0);
 
+    /// MVH (Multivariate Hypergeometric) score computation
+    static double computeMVHScore(
+      double fragment_mass_error,
+      bool fragment_mass_tolerance_unit_ppm,
+      const MSSpectrum& exp_spectrum,
+      const MSSpectrum& db_spectrum,
+      Size num_intensity_classes = 3,
+      double tic_fraction = 0.98,
+      double mz_lower_bound = 0.0);
+
+    /// MVH score computation (with output of peak annotations)
+    static double computeMVHScore(
+      double fragment_mass_error,
+      bool fragment_mass_tolerance_unit_ppm,
+      const MSSpectrum& exp_spectrum,
+      const MSSpectrum& db_spectrum,
+      std::vector<PeptideHit::PeakAnnotation>& annotations,
+      Size num_intensity_classes = 3,
+      double tic_fraction = 0.98,
+      double mz_lower_bound = 0.0);
+
     /**
       @brief Run the metabolomics spectral-library search and populate the MzTab output.
 
@@ -299,6 +320,16 @@ namespace OpenMS
       std::vector<PeptideHit::PeakAnnotation>* annotations = 0,
       double mz_lower_bound = 0.0);
 
+    static double computeMVHScore_(
+      double fragment_mass_error,
+      bool fragment_mass_tolerance_unit_ppm,
+      const MSSpectrum& exp_spectrum,
+      const MSSpectrum& db_spectrum,
+      Size num_intensity_classes,
+      double tic_fraction,
+      std::vector<PeptideHit::PeakAnnotation>* annotations = 0,
+      double mz_lower_bound = 0.0);
+
   private:
     /// Convert the accumulated @ref SpectralMatch records into an MzTab table.
     void exportMzTab_(const std::vector<SpectralMatch>&, MzTab&);
@@ -316,4 +347,3 @@ namespace OpenMS
   };
 
 }
-
