@@ -145,7 +145,9 @@ namespace OpenMS
     const int last_c = cleavage_positions.back(); // Last cleavage
     const int lgth = last_c - first_c;
 
-    // Lambda checking min & max conditions and adding to output
+    // Lambda checking min & max conditions and adding to output as (start, end) pairs.
+    // NOTE: ProteaseDigestion::digest also calls semiSpecificDigestion_ and uses (start, end).
+    // EnzymaticDigestion::digestUnmodified callers convert to their own convention at the call site.
     auto variant = [&output, &wrong, min_length, max_length](Size x, Size y)
     {
       if (min_length <= y - x &&
@@ -485,7 +487,7 @@ namespace OpenMS
 
     // Semi-specific: in addition to the fully-specific products above, generate variants
     // where one terminus is a non-cleavage site. semiSpecificDigestion_() returns pair<Size,Size>
-    // (start, length) which we then materialize as StringView sub-views into the same backing string.
+    // as (start, end) which we convert to substr(start, length) for StringView sub-views.
     if (specificity_ == SPEC_SEMI)
     {
       fragment_positions.push_back(static_cast<int>(sequence.size()));
@@ -493,7 +495,7 @@ namespace OpenMS
       wrong_size += semiSpecificDigestion_(fragment_positions, semi_pairs, min_length, max_length);
       for (const auto& p : semi_pairs)
       {
-        output.emplace_back(sequence.substr(p.first, p.second));
+        output.emplace_back(sequence.substr(p.first, p.second - p.first));
       }
     }
 
@@ -544,12 +546,18 @@ namespace OpenMS
     Size wrong_size = digestAfterTokenize_(fragment_positions, sequence, output, min_length, max_length);
 
     // Semi-specific: in addition to the fully-specific products above, generate variants
-    // where one terminus is a non-cleavage site. semiSpecificDigestion_() expects a positions
-    // vector that includes both sequence termini, so append the past-the-end position.
+    // where one terminus is a non-cleavage site. semiSpecificDigestion_() returns (start, end)
+    // pairs (matching ProteaseDigestion convention), so convert to (start, length) to match
+    // digestAfterTokenize_'s convention used in this overload.
     if (specificity_ == SPEC_SEMI)
     {
       fragment_positions.push_back(static_cast<int>(sequence.size()));
-      wrong_size += semiSpecificDigestion_(fragment_positions, output, min_length, max_length);
+      std::vector<std::pair<Size, Size>> semi_pairs;
+      wrong_size += semiSpecificDigestion_(fragment_positions, semi_pairs, min_length, max_length);
+      for (const auto& p : semi_pairs)
+      {
+        output.emplace_back(p.first, p.second - p.first);
+      }
     }
 
     return wrong_size;

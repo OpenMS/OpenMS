@@ -547,7 +547,16 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       for (size_t i = 0; i != old_size; ++i)
       {
         FASTAFile::FASTAEntry e = fasta_db[i];
-        e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
+        // Non-specific search: plain reverse (no enzyme boundaries to preserve).
+        // Enzyme-specific search: reverse within enzymatic peptide boundaries.
+        if (peptide_enzyme_specificity_ == EnzymaticDigestion::SPEC_NONE)
+        {
+          e.sequence = decoy_generator.reverseProtein(AASequence::fromString(e.sequence)).toString();
+        }
+        else
+        {
+          e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
+        }
         e.identifier = "DECOY_" + e.identifier;
         fasta_db.push_back(std::move(e));
       }
