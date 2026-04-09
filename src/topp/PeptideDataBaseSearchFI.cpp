@@ -83,7 +83,7 @@ class PeptideDataBaseSearchFI :
       registerOutputFileList_("out", "<files>", StringList(), "Output identification file(s). Must have the same number of entries as -in. Output format is auto-detected per file from the extension (.idXML or .parquet); a mix of formats within one run is allowed.");
       setValidFormats_("out", ListUtils::create<String>("idXML,parquet"));
 
-      registerOutputDir_("out_mod_analysis_dir", "<dir>", "", "Optional directory to write modification-analysis tables (delta-mass, PTM stats) when running in open-search mode. When set, per-file tables are written using each input mzML's basename and an additional aggregate table is written across all input files. Has no effect in closed-search mode.", false, true);
+      registerOutputDir_("out_mod_analysis_dir", "<dir>", "", "Optional directory to write modification-analysis tables (delta-mass, PTM stats) when running in open-search mode. When set, per-file tables are written using each input file's basename and an additional aggregate table is written across all input files. Has no effect in closed-search mode.", false, true);
 
       // put search algorithm parameters at Search: subtree of parameters
       Param search_algo_params_with_subsection;
@@ -152,7 +152,7 @@ class PeptideDataBaseSearchFI :
       // Build per-file modification-analysis base names if -out_mod_analysis_dir is set.
       // Each per-file base name is "<dir>/<input_basename_without_ext>" so the algorithm
       // appends suffixes like _ModificationAnalysis_DeltaMassStats.tsv.
-      // Use a long, unlikely-to-collide aggregate stem so an input named "aggregate.mzML"
+      // Use a long, unlikely-to-collide aggregate stem so an input named "aggregate.mzML" (or "aggregate.d")
       // doesn't silently overwrite the aggregate output (or vice versa).
       static const String AGGREGATE_STEM = "_aggregate_across_files";
       std::vector<String> mod_analysis_base_names;

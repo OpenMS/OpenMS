@@ -30,7 +30,7 @@ namespace OpenMS
   Provides a self-contained search engine that matches MS/MS spectra against a protein
   database using an FI (Fragment Index). Typical usage:
   - Configure parameters via DefaultParamHandler (mass tolerances, enzyme, charges, etc.)
-  - Call search() with an input mzML file and a FASTA database to populate identification
+  - Call search() with an input spectrum file (mzML or Bruker .d) and a FASTA database to populate identification
     outputs (ProteinIdentification and PeptideIdentificationList)
   - Intended for educational/prototyping use and to demonstrate FI-backed searching
 
@@ -76,7 +76,7 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
      * @brief Multi-file search result bundle.
      *
      * Returned by the file-list searchWithModificationAnalysis() overloads. Holds
-     * one SearchResult per input mzML (in @p per_file, in input order) and a
+     * one SearchResult per input file (in @p per_file, in input order) and a
      * single @p aggregate result whose peptide_ids are the concatenation of all
      * per-file PSMs and whose modification_analysis is computed once on the
      * pooled set of PSMs.
@@ -117,7 +117,7 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
     };
 
     /**
-     * @brief Search spectra in an mzML file against a protein database using an FI-backed workflow.
+     * @brief Search spectra in a spectrum file (mzML or Bruker .d) against a protein database using an FI-backed workflow.
      *
      * Populates protein and peptide identifications, including search meta data, PSM hits,
      * and search engine annotations. Parameters are taken from this instance (DefaultParamHandler).
