@@ -55,13 +55,12 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       double suffix_fraction = 0; ///< fraction of annotated y-ions
       double mean_error = 0.0; ///< mean absolute fragment mass error
       int isotope_error = 0;
-      std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
+      uint16_t matched_b_ions = 0; ///< number of matched b-ions
+      uint16_t matched_y_ions = 0; ///< number of matched y-ions
 
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {
         if (a.score != b.score) return a.score > b.score;
-        // compare the mod_index first, as it is cheaper than the strncmp() of the sequences
-        // there doesn't have to be a certain ordering (that makes sense), we just need it to be thread-safe
         if (b.peptide_mod_index != a.peptide_mod_index) return a.peptide_mod_index < b.peptide_mod_index;
         return a.sequence < b.sequence;
       }
