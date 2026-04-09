@@ -37,7 +37,7 @@ OpenMS is developed by a group of `core developers <https://openms.de/contributo
     :caption: About
     :hidden:
 
-    about/installation.md
+    about/installation.rst
     about/communication.md
     about/learning/background.md
 
@@ -48,7 +48,7 @@ OpenMS is developed by a group of `core developers <https://openms.de/contributo
 
     getting-started/introduction.rst
     getting-started/webapps.md
-    getting-started/workflows.md
+    getting-started/workflows.rst
     getting-started/visualize-with-openms.md
     getting-started/topp-tools.md
     pyOpenMS <https://pyopenms.readthedocs.io/en/latest/>

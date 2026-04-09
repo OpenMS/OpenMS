@@ -245,7 +245,7 @@ Relying solely on accurate mass for metabolite identification can yield ambiguou
 
 ### Annotating MS1 Features with Fragment Spectra
 
-Before performing a spectral library search, we must annotate MS1-based features with their corresponding fragment spectra. To achieve this, we introduce the **IDMapper** node between **MapAlignerPoseClusteringKD** and **FeatureLinkerUnlabeledKD**. Since **IDMapper** operates on a per-spectrum basis, we loop over the individual `featureXML` files using a **ZipLoop**. Additionally, as we aim to annotate MS spectra, we also connect the original mzML **FileImporter** node to the loop.
+Before performing a spectral library search, we must annotate MS1-based features with their corresponding fragment spectra. To achieve this, we introduce the **IDMapper** node between **MapAlignerPoseClustering** and **FeatureLinkerUnlabeledKD**. Since **IDMapper** operates on a per-spectrum basis, we loop over the individual `featureXML` files using a **ZipLoop**. Additionally, as we aim to annotate MS spectra, we also connect the original mzML **FileImporter** node to the loop.
 
 Originally designed for proteomics, **IDMapper** expects protein identifications. To bypass this requirement, we connect an **empty ID file** via a **FileImporter** node.
 
