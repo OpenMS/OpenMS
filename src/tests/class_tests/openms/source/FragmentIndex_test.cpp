@@ -286,7 +286,6 @@ START_SECTION([EXTRA] peptide:enzyme_specificity (full / semi / none))
   }
 
   // ---------- semi: fully-tryptic + semi-tryptic variants ----------
-  size_t semi_count = 0;
   {
     FragmentIndex_test fi_semi;
     auto p = fi_semi.getParameters();
@@ -301,9 +300,8 @@ START_SECTION([EXTRA] peptide:enzyme_specificity (full / semi / none))
     p.setValue("modifications:fixed", std::vector<std::string>{});
     fi_semi.setParameters(p);
     fi_semi.build(entries);
-    semi_count = fi_semi.getPeptides().size();
     // semi must yield strictly more peptides than full (semi = full + semi-specific extras)
-    TEST_EQUAL(semi_count > 3, true)
+    TEST_EQUAL(fi_semi.getPeptides().size() > 3, true)
   }
 
   // ---------- none (immunopeptidomics): all substrings of [min,max] ----------
@@ -323,10 +321,26 @@ START_SECTION([EXTRA] peptide:enzyme_specificity (full / semi / none))
     fi_none.setParameters(p);
     fi_none.build(entries);
     TEST_EQUAL(fi_none.getPeptides().size(), 50)
-    // semi must produce fewer peptides than fully unconstrained (over the same length window).
-    // (We use a different length window above, so this is not directly comparable; just sanity-check
-    //  that none-mode produces a substantial multiple of full-mode.)
-    TEST_EQUAL(fi_none.getPeptides().size() > semi_count, true)
+  }
+
+  // ---------- none > semi when using same length window ----------
+  {
+    // Use same 8..12 window for both modes so the comparison is fair.
+    FragmentIndex_test fi_semi_8_12;
+    auto p = fi_semi_8_12.getParameters();
+    p.setValue("enzyme", "Trypsin");
+    p.setValue("peptide:missed_cleavages", 0);
+    p.setValue("peptide:enzyme_specificity", "semi");
+    p.setValue("peptide:min_size", 8);
+    p.setValue("peptide:max_size", 12);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("modifications:variable", std::vector<std::string>{});
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    fi_semi_8_12.setParameters(p);
+    fi_semi_8_12.build(entries);
+    // none (50 substrings) must exceed semi with the same length window
+    TEST_EQUAL(50 > fi_semi_8_12.getPeptides().size(), true)
   }
 
   // ---------- none with very short protein: must not crash ----------
