@@ -1,5 +1,3 @@
-Note: this repo has been merged into OpenMS/OpenMS as a subtree
-
 # Tutorials
 Handouts and workflows as used in the tutorial session during user meetings. 
 
