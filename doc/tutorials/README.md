@@ -1,3 +1,5 @@
+> **Note:** These tutorials were migrated from the standalone [OpenMS/Tutorials](https://github.com/OpenMS/Tutorials) repository into the OpenMS monorepo. The old repository has been archived. All future development happens here.
+
 # Tutorials
 Handouts and workflows as used in the tutorial session during user meetings. 
 

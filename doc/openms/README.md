@@ -1,3 +1,5 @@
+> **Note:** This documentation was migrated from the standalone [OpenMS/OpenMS-docs](https://github.com/OpenMS/OpenMS-docs) repository into the OpenMS monorepo. The old repository has been archived. All future development happens here.
+
 OpenMS Documentation
 ====================
 
