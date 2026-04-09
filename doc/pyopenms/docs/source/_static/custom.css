@@ -1,0 +1,163 @@
+:root {
+    --icon-video: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAABmJLR0QA/wD/AP+gvaeTAAAA4klEQVRIie3VQUoDMRSA4W/UVheuWm+hlyjS3kMQhZ5g3PUOBRcivUDrGbyEbvQOrrrQhbSLSUHCFJPWAcX+EPII7+VP4JGwI4OiZq2LC+xvsN8nJnj7LvEGHbTwgn5Yn6EMcYlpiPshrxUOWIrYq5Ecqr9hTBHNK44Sao2w2GKM4g3rbvLj/F/JGR6bljzjHNeYNyWh6qA7XDYpKXCF+9SCg0zBKcbo5RTlSp4y8/FLW/jvSbpo4xUDVUc9qL6BIsyzEA9CXhsnqZIP2z317+sSv9LBEMcJopg5biX8jDvWsgTMLSq1OdtB+QAAAABJRU5ErkJggg==');
+    --color-video: rgb(88, 60, 25);
+  }
+
+div.highlight-python td.code pre {
+         padding-left: 0px;
+}
+
+/* For a sticky header, so binder buttons etc. can always be clicked. z-index 1000 to stay on top of other relative divs like code snippets */
+div[aria-label="Page navigation"] {
+    top: 0;
+    position: sticky;
+    background: #fcfcfc;
+    z-index: 1000;
+}
+
+/* Adjust scroll behaviour for anchors in section headers to sticky header */
+section {
+    scroll-margin-top: 60px;
+}
+
+/* If a parent has overflow, sticky position does not work */
+body {
+    overflow-x: unset;
+}
+
+/* Video admonitions */
+
+div.admonition-video p:first-of-type {
+  background-color: #BFF0D4;
+}
+
+div.admonition-video {
+  background: #bff0d457;
+}
+
+/* Video admonition fontawesome video icon. */
+div.admonition-video > p.admonition-title::after {
+  content: "\f008";
+}
+
+/*terms with tooltips*/
+
+a.hxr-hoverxref {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--color-link-underline);
+  border-bottom: none;
+}
+
+a.hxr-hoverxref:hover {
+  text-decoration-color: var(--color-link-underline--hover);
+}
+
+/* second column of API autosummaries should break more and be a bit smaller */
+table.autosummary td:nth-child(2) {
+  FONT-WEIGHT: 300;
+  font-size: 13px;
+  vertical-align: bottom;
+  word-break: break-word;
+}
+
+/* Overloads should be a bit smaller */
+p.rubric+dl.py.function {
+  font-size: small;
+}
+
+/* Parameter names should look a bit different from types */
+.sig-param > span.n:nth-child(1) > .pre {
+  font-weight: 500;
+  color: #3f87d3;
+}
+
+/* In desktop mode, when the top navbar is filled, make the padding to
+   the left a bit bigger */
+@media (min-width: 960px) {
+  .bd-header .navbar-header-items {
+  padding: 0 0 0 2rem;
+  }
+}
+
+
+/* Fix some bugs in the pydata css */
+.navbar-nav .toctree-checkbox:checked~label i {
+    transform-origin: 25% center;
+}
+
+.navbar-icon-links {
+    column-gap: 1rem;
+}
+
+.bd-sidebar-primary .sidebar-header-items .sidebar-header-items__end {
+    gap: 1rem;
+}
+
+/* Make the Binder rocket fly */
+@media (min-width: 960px) {
+  .fa-rocket {
+    &:hover {
+        animation: readyRocket 0.5s ease, flyRocket 1s ease infinite 0.5s;
+    }
+  }
+}
+
+
+@keyframes readyRocket {
+  0% {transform: rotate(0deg);}
+  100% {transform: rotate(-35deg);}
+}
+@keyframes flyRocket {
+  0% {transform: rotate(-35deg) translate(0, 0);}
+  70% {transform: rotate(-35deg) translate(20px, -20px);}
+  71% {transform: rotate(-35deg) translate(-10px, -20px);}
+  72% {transform: rotate(-35deg) translate(-10px, 5px);}
+  73% {transform: rotate(-35deg) translate(-20px, 20px);}
+  100% {transform: rotate(-35deg) translate(0px, 0px);}
+}
+
+/* In the right tocs:
+ The edit pencil icon is a bit bigger than the show source file icon.
+ Therefore pad it. */
+div.tocsection > a > i.fa-file-lines::before {
+    padding-right: 0.17rem;
+}
+
+/* big screen = no top padding */
+.bd-sidebar-primary {
+    padding: 2rem 1rem 1rem;
+}
+
+/* small screen = top padding */
+@media (min-width: 960px) {
+  .bd-sidebar-primary {
+    padding: 0rem 1rem 1rem;
+  }
+}
+
+
+/* version selector styling*/
+button.version-switcher__button.btn.btn-sm.navbar-btn.dropdown-toggle {
+    font-size: 0.75em;
+    margin-bottom: 0;
+}
+
+.version-switcher__menu, button.version-switcher__button {
+    font-size: 0.75em;
+}
+
+.version-switcher__button[data-active-version-name*="nightly"] {
+   background-color: var(--pst-color-secondary);
+}
+
+i.pypi {
+    -webkit-mask-size: cover;
+    mask-size: cover;
+    -webkit-mask-image: url(https://raw.githubusercontent.com/file-icons/icons/master/svg/PyPi.svg);
+    mask-image: url(https://raw.githubusercontent.com/file-icons/icons/master/svg/PyPi.svg);
+    background-color: var(--pst-color-text-muted);
+    width: 20px;
+    height: 22px;
+  }
