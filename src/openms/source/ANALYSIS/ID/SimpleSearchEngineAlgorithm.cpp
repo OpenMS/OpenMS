@@ -119,6 +119,15 @@ namespace OpenMS
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
     defaults_.setValue("peptide:max_size", 40, "Maximum size a peptide must have after digestion to be considered in the search (0 = disabled).");
     defaults_.setValue("peptide:missed_cleavages", 1, "Number of missed cleavages.");
+    defaults_.setValue("peptide:enzyme_specificity", "full",
+      "Enzyme cleavage specificity required for both peptide termini.\n"
+      "  'full' : both termini must be enzyme-specific (canonical, e.g. tryptic).\n"
+      "  'semi' : only one terminus needs to be enzyme-specific (semi-tryptic).\n"
+      "  'none' : no enzyme constraint at either terminus; every substring of length\n"
+      "           [min_size, max_size] is enumerated. Use this for immunopeptidomics\n"
+      "           (e.g. HLA peptides 8..12mers). For very large search spaces consider\n"
+      "           tightening 'peptide:min_size'/'peptide:max_size'.");
+    defaults_.setValidStrings("peptide:enzyme_specificity", {"full", "semi", "none"});
     defaults_.setValue("peptide:motif", "", "If set, only peptides that contain this motif (provided as RegEx) will be considered.");
     defaults_.setSectionDescription("peptide", "Peptide Options");
 
@@ -170,6 +179,8 @@ namespace OpenMS
     peptide_min_size_ = param_.getValue("peptide:min_size");
     peptide_max_size_ = param_.getValue("peptide:max_size");
     peptide_missed_cleavages_ = param_.getValue("peptide:missed_cleavages");
+    peptide_enzyme_specificity_ = EnzymaticDigestion::getSpecificityByName(
+      param_.getValue("peptide:enzyme_specificity").toString());
     peptide_motif_ = param_.getValue("peptide:motif").toString();
 
     report_top_hits_ = param_.getValue("report:top_hits");
@@ -412,7 +423,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
 
-    search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
+    search_parameters.enzyme_term_specificity = peptide_enzyme_specificity_;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
 
     // Annotate IM unit on ProteinIdentification if all PeptideIdentifications have IM
@@ -536,7 +547,16 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       for (size_t i = 0; i != old_size; ++i)
       {
         FASTAFile::FASTAEntry e = fasta_db[i];
-        e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
+        // Non-specific search: plain reverse (no enzyme boundaries to preserve).
+        // Enzyme-specific search: reverse within enzymatic peptide boundaries.
+        if (peptide_enzyme_specificity_ == EnzymaticDigestion::SPEC_NONE)
+        {
+          e.sequence = decoy_generator.reverseProtein(AASequence::fromString(e.sequence)).toString();
+        }
+        else
+        {
+          e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
+        }
         e.identifier = "DECOY_" + e.identifier;
         fasta_db.push_back(std::move(e));
       }
@@ -549,6 +569,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme_);
     digestor.setMissedCleavages(peptide_missed_cleavages_);
+    digestor.setSpecificity(peptide_enzyme_specificity_);
     startProgress(0, fasta_db.size(), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
@@ -723,13 +744,17 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     // add meta data on spectra file
     protein_ids[0].setPrimaryMSRunPath({in_spectra}, spectra);
 
-    // reindex peptides to proteins
+    // reindex peptides to proteins.
+    // The PeptideIndexer uses isValidProduct() to drop peptides whose termini do not
+    // match the configured specificity, so it must agree with the search-time setting —
+    // otherwise semi/non-specific hits would be silently filtered out here.
     PeptideIndexing indexer;
     Param param_pi = indexer.getParameters();
     param_pi.setValue("decoy_string", "DECOY_");
     param_pi.setValue("decoy_string_position", "prefix");
     param_pi.setValue("enzyme:name", enzyme_);
-    param_pi.setValue("enzyme:specificity", "full");
+    param_pi.setValue("enzyme:specificity",
+                      EnzymaticDigestion::NamesOfSpecificity[peptide_enzyme_specificity_]);
     param_pi.setValue("missing_decoy_action", "silent");
     indexer.setParameters(param_pi);
 

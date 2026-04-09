@@ -13,6 +13,7 @@
 
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
@@ -419,6 +420,7 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
     Size peptide_min_size_;
     Size peptide_max_size_;
     Size peptide_missed_cleavages_;
+    EnzymaticDigestion::Specificity peptide_enzyme_specificity_{EnzymaticDigestion::SPEC_FULL};
 
     String peptide_motif_;
 

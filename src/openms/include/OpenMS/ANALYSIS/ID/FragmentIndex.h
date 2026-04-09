@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
@@ -422,6 +423,7 @@ private:
 
     // SpectrumGenerator independend member variables
     std::string digestion_enzyme_;
+    EnzymaticDigestion::Specificity enzyme_specificity_{EnzymaticDigestion::SPEC_FULL}; ///< 'full' (default), 'semi' (semi-tryptic), or 'none' (e.g. immunopeptidomics)
 
     size_t missed_cleavages_; ///< number of missed cleavages
     float peptide_min_mass_;
