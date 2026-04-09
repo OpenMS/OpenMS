@@ -11,12 +11,13 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
+#include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
+#include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
+#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
-#include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 
 #include <vector>
 
@@ -29,7 +30,7 @@ namespace OpenMS
   Provides a self-contained search engine that matches MS/MS spectra against a protein
   database using an FI (Fragment Index). Typical usage:
   - Configure parameters via DefaultParamHandler (mass tolerances, enzyme, charges, etc.)
-  - Call search() with an input mzML file and a FASTA database to populate identification
+  - Call search() with an input spectrum file (mzML or Bruker .d) and a FASTA database to populate identification
     outputs (ProteinIdentification and PeptideIdentificationList)
   - Intended for educational/prototyping use and to demonstrate FI-backed searching
 
@@ -72,7 +73,51 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
     };
 
     /**
-     * @brief Search spectra in an mzML file against a protein database using an FI-backed workflow.
+     * @brief Multi-file search result bundle.
+     *
+     * Returned by the file-list searchWithModificationAnalysis() overloads. Holds
+     * one SearchResult per input file (in @p per_file, in input order) and a
+     * single @p aggregate result whose peptide_ids are the concatenation of all
+     * per-file PSMs and whose modification_analysis is computed once on the
+     * pooled set of PSMs.
+     *
+     * Special cases for @p aggregate:
+     *  - When the input list contains exactly one file, @p aggregate is left
+     *    almost-empty (only @c is_open_search and @c exit_code are set) — the
+     *    single-file pooled aggregate would just duplicate @c per_file[0] and
+     *    re-run modification analysis on the same PSMs. Callers should use
+     *    @c per_file[0] for the result in this case.
+     *  - When every per-file run failed, @p aggregate.exit_code is set to the
+     *    first non-OK per-file exit code (so callers can inspect it without
+     *    walking the @p per_file vector).
+     *
+     * The aggregate's @c protein_ids template is taken from the first
+     * successful per-file result (search parameters are identical across files
+     * by construction), with the primary MS run path overwritten to list every
+     * input file.
+     */
+    struct MultiFileSearchResult
+    {
+      std::vector<SearchResult> per_file;
+      SearchResult aggregate;
+    };
+
+    /**
+     * @brief Prepared per-database state shared across multiple spectrum files.
+     *
+     * Holds the (decoy-augmented) protein database and the built FragmentIndex
+     * so that searching N spectrum files against the same FASTA pays the index
+     * build cost only once. Construct via prepareContext() and pass to the
+     * context-taking search() overload.
+     */
+    struct SearchContext
+    {
+      std::vector<FASTAFile::FASTAEntry> db;
+      FragmentIndex fragment_index;
+    };
+
+    /**
+     * @brief Search spectra in a spectrum file (mzML or Bruker .d) against a protein database using an FI-backed workflow.
      *
      * Populates protein and peptide identifications, including search meta data, PSM hits,
      * and search engine annotations. Parameters are taken from this instance (DefaultParamHandler).
@@ -156,9 +201,59 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
      * @param[out] prot_ids  Output protein-level identifications.
      * @param[out] pep_ids   Output spectrum-level peptide identifications (PSMs).
      * @return ExitCodes indicating success or error.
+     *
+     * Internally this is a thin wrapper around prepareContext() + the
+     * context-taking search() overload, so the FragmentIndex is rebuilt on every
+     * call. For repeated searches against the same database, prefer calling
+     * prepareContext() once and reusing the resulting SearchContext.
      */
     ExitCodes search(PeakMap& spectra,
                      const std::vector<FASTAFile::FASTAEntry>& fasta_db,
+                     std::vector<ProteinIdentification>& prot_ids,
+                     PeptideIdentificationList& pep_ids) const;
+
+    /**
+     * @brief Build a SearchContext (decoy-augmented database + FragmentIndex) for reuse.
+     *
+     * Performs the database preparation and FragmentIndex construction steps so
+     * that subsequent calls to search(spectra, ctx, ...) can reuse the same
+     * index across many spectrum files. If decoy generation is enabled
+     * (parameter "decoys"), decoys are generated and shuffled into the
+     * returned context's db member exactly once here.
+     *
+     * @param[in] fasta_db Protein sequence database as FASTA entries.
+     * @return Prepared SearchContext containing the (possibly decoy-augmented)
+     *         database and the built FragmentIndex.
+     *
+     * Thread-safety: the returned context's FragmentIndex is read-only during
+     * subsequent search() calls; concurrent search() calls reading the same
+     * SearchContext are safe (per FragmentIndex query thread-safety contract).
+     * Do not call prepareContext() concurrently on the same algorithm instance.
+     */
+    SearchContext prepareContext(const std::vector<FASTAFile::FASTAEntry>& fasta_db) const;
+
+    /**
+     * @brief In-memory search using a pre-built SearchContext.
+     *
+     * Searches @p spectra against the database and FragmentIndex held in @p ctx.
+     * The fragment index build cost (decoy generation, peptide/fragment
+     * generation, sorting, bucketing) is paid by prepareContext() and is not
+     * repeated here, making this overload the right choice when searching many
+     * spectrum files against the same database.
+     *
+     * @param[in,out] spectra MS/MS spectra to search (preprocessed in-place).
+     * @param[in,out] ctx Pre-built SearchContext from prepareContext(). Taken
+     *            by non-const reference because the underlying FragmentIndex
+     *            query API is non-const, even though the index content is not
+     *            modified during the search; the @c db member is also handed
+     *            non-const to the downstream PeptideIndexing step (which
+     *            requires a non-const reference).
+     * @param[out] prot_ids Output protein-level identifications.
+     * @param[out] pep_ids  Output spectrum-level peptide identifications (PSMs).
+     * @return ExitCodes indicating success or error.
+     */
+    ExitCodes search(PeakMap& spectra,
+                     SearchContext& ctx,
                      std::vector<ProteinIdentification>& prot_ids,
                      PeptideIdentificationList& pep_ids) const;
 
@@ -175,6 +270,54 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
     SearchResult searchWithModificationAnalysis(PeakMap& spectra,
                                                 const std::vector<FASTAFile::FASTAEntry>& fasta_db,
                                                 const String& output_base_name = "") const;
+
+    /**
+     * @brief Multi-file search with modification analysis (in-memory FASTA).
+     *
+     * Builds a single SearchContext (decoy generation + FragmentIndex) from
+     * @p fasta_db and reuses it across all input spectrum files. Each input
+     * file produces its own SearchResult including a per-file modification
+     * analysis (TSV written if a non-empty per-file base name is provided). An
+     * additional aggregate SearchResult is computed by pooling all per-file
+     * peptide identifications and running modification analysis once on the
+     * pooled set.
+     *
+     * @param[in] in_spectra_files Spectrum file paths (mzML or Bruker .d).
+     * @param[in] fasta_db Protein sequence database as FASTA entries.
+     * @param[in] output_base_names Optional per-file base names for
+     *            modification-analysis TSV outputs. Must be empty or have the
+     *            same length as @p in_spectra_files. Empty entries skip TSV
+     *            writing for that file.
+     * @param[in] aggregate_base_name Optional base name for the aggregate
+     *            modification-analysis TSV output. Empty disables aggregate
+     *            TSV writing (the aggregate analysis is still computed).
+     * @return MultiFileSearchResult bundling per-file results and aggregate.
+     *
+     * Errors:
+     *  - Throws Exception::InvalidParameter if @p output_base_names is
+     *    non-empty and its size differs from @p in_spectra_files.
+     */
+    MultiFileSearchResult searchWithModificationAnalysis(
+        const std::vector<String>& in_spectra_files,
+        const std::vector<FASTAFile::FASTAEntry>& fasta_db,
+        const std::vector<String>& output_base_names = {},
+        const String& aggregate_base_name = "") const;
+
+    /**
+     * @brief Multi-file search with modification analysis (FASTA file path).
+     *
+     * Convenience overload that loads the FASTA database from @p in_db and
+     * delegates to the in-memory multi-file overload. The database file path
+     * is recorded in each per-file ProteinIdentification's SearchParameters
+     * (and on the aggregate result).
+     *
+     * @see searchWithModificationAnalysis(const std::vector<String>&, const std::vector<FASTAFile::FASTAEntry>&, const std::vector<String>&, const String&) const
+     */
+    MultiFileSearchResult searchWithModificationAnalysis(
+        const std::vector<String>& in_spectra_files,
+        const String& in_db,
+        const std::vector<String>& output_base_names = {},
+        const String& aggregate_base_name = "") const;
 
   protected:
     void updateMembers_() override;

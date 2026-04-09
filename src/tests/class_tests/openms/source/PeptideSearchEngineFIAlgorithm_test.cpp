@@ -819,6 +819,151 @@ START_SECTION((SearchResult searchWithModificationAnalysis(const String &, const
 }
 END_SECTION
 
+START_SECTION(([EXTRA] prepareContext + context-based search produces same IDs as single-shot search))
+{
+  // Build a tiny synthetic dataset where we know the search returns hits.
+  // Then verify that:
+  //   1. search(spectra, fasta_db, ...) (single-shot, builds index internally)
+  //   2. prepareContext(fasta_db) + search(spectra, ctx, ...) (context reuse)
+  // produce identical PSM counts (same internal pipeline).
+
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test01",
+     "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+     "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"},
+    {"P02", "Test02",
+     "MKAILNHVGSTFREDWQCPYLKMISGDTFNHRVAWQECPLKYMTGISNHFR"
+     "DVEWAQCPLKTMIYGSNHFRDVEWAQCPKLIMTGSYNHFRDVEWAQCKPLIM"},
+  };
+
+  // Generate spectra from a few tryptic peptides (closed search, perfect matches).
+  ProteaseDigestion digester;
+  digester.setEnzyme("Trypsin");
+  digester.setMissedCleavages(1);
+
+  ModifiedPeptideGenerator::MapToResidueType fixed_mods =
+    ModifiedPeptideGenerator::getModifications({"Carbamidomethyl (C)"});
+
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg_param.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_param);
+
+  PeakMap spectra;
+  double rt = 100.0;
+  for (const auto& entry : fasta_db)
+  {
+    AASequence protein = AASequence::fromString(entry.sequence);
+    vector<AASequence> peptides;
+    digester.digest(protein, peptides, 7, 40);
+    for (auto& pep : peptides)
+    {
+      ModifiedPeptideGenerator::applyFixedModifications(fixed_mods, pep);
+      if (pep.size() < 8) continue;
+
+      MSSpectrum spec;
+      tsg.getSpectrum(spec, pep, 1, 1);
+      spec.sortByPosition();
+      if (spec.size() < 10) continue;
+
+      spec.setMSLevel(2);
+      spec.setRT(rt);
+      rt += 0.1;
+
+      Precursor prec;
+      prec.setMZ(pep.getMZ(2));
+      prec.setCharge(2);
+      spec.setPrecursors({prec});
+      spec.setNativeID("spectrum=" + String(spectra.size()));
+
+      spectra.addSpectrum(std::move(spec));
+    }
+  }
+  TEST_TRUE(spectra.size() > 5)
+
+  PeptideSearchEngineFIAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", vector<string>{"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", vector<string>{});
+  p.setValue("decoys", "false");
+  algo.setParameters(p);
+
+  // Path A: single-shot search (builds + tears down the index internally).
+  PeakMap spectra_a = spectra; // search() preprocesses in place
+  vector<ProteinIdentification> prot_a;
+  PeptideIdentificationList pep_a;
+  auto ec_a = algo.search(spectra_a, fasta_db, prot_a, pep_a);
+  TEST_EQUAL(ec_a == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_TRUE(pep_a.size() > 0)
+
+  // Path B: prepareContext + context-based search.
+  PeakMap spectra_b = spectra;
+  PeptideSearchEngineFIAlgorithm::SearchContext ctx = algo.prepareContext(fasta_db);
+  TEST_EQUAL(ctx.fragment_index.isBuild(), true)
+  vector<ProteinIdentification> prot_b;
+  PeptideIdentificationList pep_b;
+  auto ec_b = algo.search(spectra_b, ctx, prot_b, pep_b);
+  TEST_EQUAL(ec_b == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+
+  // Both paths must yield the same number of PSMs (the search engine itself is
+  // deterministic when decoys are disabled).
+  TEST_EQUAL(pep_a.size(), pep_b.size())
+
+  // Compare top-hit sequences spectrum-by-spectrum: they should match exactly.
+  TEST_EQUAL(prot_a.size(), prot_b.size())
+  for (Size i = 0; i < pep_a.size(); ++i)
+  {
+    TEST_EQUAL(pep_a[i].getHits().empty(), pep_b[i].getHits().empty())
+    if (!pep_a[i].getHits().empty() && !pep_b[i].getHits().empty())
+    {
+      TEST_STRING_EQUAL(pep_a[i].getHits()[0].getSequence().toString(),
+                        pep_b[i].getHits()[0].getSequence().toString())
+    }
+  }
+
+  // Reusing the same context for a second search must also work.
+  PeakMap spectra_c = spectra;
+  vector<ProteinIdentification> prot_c;
+  PeptideIdentificationList pep_c;
+  auto ec_c = algo.search(spectra_c, ctx, prot_c, pep_c);
+  TEST_EQUAL(ec_c == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(pep_c.size(), pep_b.size())
+}
+END_SECTION
+
+START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<String>&, const std::vector<FASTAFile::FASTAEntry>&, const std::vector<String>&, const String&) const))
+{
+  // Verify the multi-file in-memory FASTA overload validates input list lengths.
+  PeptideSearchEngineFIAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("decoys", "false");
+  algo.setParameters(p);
+
+  vector<FASTAFile::FASTAEntry> fasta_db = {{"P01", "Test", "MSDEREKVLGFHQRMPNASTICYWDLK"}};
+  vector<String> in_files = {"a.mzML", "b.mzML"};
+  vector<String> mismatched_base_names = {"a"}; // wrong size
+
+  TEST_EXCEPTION(Exception::InvalidParameter,
+                 algo.searchWithModificationAnalysis(in_files, fasta_db, mismatched_base_names, ""))
+
+  // Empty input file list returns INPUT_FILE_EMPTY (no exception).
+  auto empty_res = algo.searchWithModificationAnalysis(std::vector<String>{}, fasta_db, std::vector<String>{}, "");
+  TEST_EQUAL(empty_res.per_file.empty(), true)
+  TEST_EQUAL(empty_res.aggregate.exit_code == PeptideSearchEngineFIAlgorithm::ExitCodes::INPUT_FILE_EMPTY, true)
+}
+END_SECTION
+
+START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<String>&, const String&, const std::vector<String>&, const String&) const))
+{
+  NOT_TESTABLE // tested via TOPP tool (multi-file integration test)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

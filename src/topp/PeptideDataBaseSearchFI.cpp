@@ -10,10 +10,14 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+
+#include <map>
 
 using namespace OpenMS;
 using namespace std;
@@ -70,14 +74,16 @@ class PeptideDataBaseSearchFI :
   protected:
     void registerOptionsAndFlags_() override
     {
-      registerInputFile_("in", "<file>", "", "input file ");
+      registerInputFileList_("in", "<files>", StringList(), "Input spectrum file(s). Multiple files are searched against the same database; the fragment index is built once and reused.");
       setValidFormats_("in", ListUtils::create<String>("mzML,d"));
 
-      registerInputFile_("database", "<file>", "", "input file ");
+      registerInputFile_("database", "<file>", "", "Input protein sequence database in FASTA format.");
       setValidFormats_("database", ListUtils::create<String>("fasta"));
 
-      registerOutputFile_("out", "<file>", "", "output file ");
-      setValidFormats_("out", ListUtils::create<String>("idXML"));
+      registerOutputFileList_("out", "<files>", StringList(), "Output identification file(s). Must have the same number of entries as -in. Output format is auto-detected per file from the extension (.idXML or .parquet); a mix of formats within one run is allowed.");
+      setValidFormats_("out", ListUtils::create<String>("idXML,parquet"));
+
+      registerOutputDir_("out_mod_analysis_dir", "<dir>", "", "Optional directory to write modification-analysis tables (delta-mass, PTM stats) when running in open-search mode. When set, per-file tables are written using each input file's basename and an additional aggregate table is written across all input files. Has no effect in closed-search mode.", false, true);
 
       // put search algorithm parameters at Search: subtree of parameters
       Param search_algo_params_with_subsection;
@@ -87,34 +93,160 @@ class PeptideDataBaseSearchFI :
 
     ExitCodes main_(int, const char**) override
     {
-      String in = getStringOption_("in");
-      String database = getStringOption_("database");
-      String out = getStringOption_("out");
+      const StringList in_list = getStringList_("in");
+      const String database = getStringOption_("database");
+      const StringList out_list = getStringList_("out");
+      // getOutputDirOption auto-creates the directory if it doesn't exist (and returns "" if unset).
+      const String out_mod_analysis_dir = getOutputDirOption("out_mod_analysis_dir");
+
+      if (in_list.empty())
+      {
+        OPENMS_LOG_ERROR << "No input files provided (-in)." << endl;
+        return ILLEGAL_PARAMETERS;
+      }
+
+      if (in_list.size() != out_list.size())
+      {
+        OPENMS_LOG_ERROR << "Number of output files (-out, " << out_list.size()
+                         << ") must match number of input files (-in, " << in_list.size() << ")." << endl;
+        return ILLEGAL_PARAMETERS;
+      }
+
+      // Pre-flight validate every -out file extension before running the search,
+      // so the user learns about a typo (e.g. ".idxml" -> "idxml") before paying the
+      // index-build + search cost. registerOutputFileList_ does NOT validate per-entry
+      // formats at the CLI layer, so we have to do it here.
+      for (const String& out_file : out_list)
+      {
+        const FileTypes::Type out_type = FileHandler::getTypeByFileName(out_file);
+        if (out_type != FileTypes::IDXML && out_type != FileTypes::PARQUET)
+        {
+          OPENMS_LOG_ERROR << "Unsupported output format for '" << out_file
+                           << "' (expected .idXML or .parquet)." << endl;
+          return ILLEGAL_PARAMETERS;
+        }
+      }
 
       ProgressLogger progresslogger;
       progresslogger.setLogType(log_type_);
 
-      vector<ProteinIdentification> protein_ids;
-      PeptideIdentificationList peptide_ids;
-
+      const Param search_params = getParam_().copy("Search:", true);
       PeptideSearchEngineFIAlgorithm sse;
-      sse.setParameters(getParam_().copy("Search:", true));
-      // map algorithm exit code to application exit code
-      PeptideSearchEngineFIAlgorithm::ExitCodes e = sse.search(in, database, protein_ids, peptide_ids);
-      if (e != PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK)
+      sse.setParameters(search_params);
+
+      // Determine open-search mode the same way the algorithm does, so we can give
+      // the user actionable feedback if -out_mod_analysis_dir is set in closed-search.
+      const double precursor_tol = static_cast<double>(search_params.getValue("precursor:mass_tolerance"));
+      const String precursor_tol_unit = search_params.getValue("precursor:mass_tolerance_unit").toString();
+      const bool open_search_mode = (precursor_tol_unit == "ppm")
+        ? (precursor_tol > 1000.0)
+        : (precursor_tol > 1.0);
+
+      if (!out_mod_analysis_dir.empty() && !open_search_mode)
       {
-        return TOPPBase::ExitCodes::INTERNAL_ERROR;
+        OPENMS_LOG_WARN << "-out_mod_analysis_dir was set but the search is in CLOSED-search mode "
+                        << "(precursor tolerance " << precursor_tol << " " << precursor_tol_unit
+                        << "). Modification-analysis tables will NOT be written." << endl;
       }
 
-      // MS path already set in algorithm. Overwrite here so we get something testable
-      if (getFlag_("test"))
+      // Build per-file modification-analysis base names if -out_mod_analysis_dir is set.
+      // Each per-file base name is "<dir>/<input_basename_without_ext>" so the algorithm
+      // appends suffixes like _ModificationAnalysis_DeltaMassStats.tsv.
+      // Use a long, unlikely-to-collide aggregate stem so an input named "aggregate.mzML" (or "aggregate.d")
+      // doesn't silently overwrite the aggregate output (or vice versa).
+      static const String AGGREGATE_STEM = "_aggregate_across_files";
+      std::vector<String> mod_analysis_base_names;
+      String aggregate_base_name;
+      if (!out_mod_analysis_dir.empty() && open_search_mode)
       {
-        // if test mode set, add file without path so we can compare it
-        protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in)});
+        // Detect collisions: two inputs with the same File::stemName, OR an input whose
+        // stem matches the aggregate stem. We refuse to run rather than silently overwrite.
+        std::map<String, Size> stem_to_first_index;
+        for (Size i = 0; i < in_list.size(); ++i)
+        {
+          const String stem = File::stemName(in_list[i]);
+          if (stem == AGGREGATE_STEM)
+          {
+            OPENMS_LOG_ERROR << "Input file '" << in_list[i] << "' has basename '" << stem
+                             << "' which would collide with the reserved aggregate output name. "
+                             << "Rename the file or omit -out_mod_analysis_dir." << endl;
+            return ILLEGAL_PARAMETERS;
+          }
+          auto [it, inserted] = stem_to_first_index.emplace(stem, i);
+          if (!inserted)
+          {
+            OPENMS_LOG_ERROR << "Two -in files share basename '" << stem
+                             << "': '" << in_list[it->second] << "' and '" << in_list[i]
+                             << "'. Per-file modification-analysis TSVs would overwrite each other. "
+                             << "Rename one of them or omit -out_mod_analysis_dir." << endl;
+            return ILLEGAL_PARAMETERS;
+          }
+        }
+
+        mod_analysis_base_names.reserve(in_list.size());
+        for (const String& in_file : in_list)
+        {
+          mod_analysis_base_names.push_back(out_mod_analysis_dir + "/" + File::stemName(in_file));
+        }
+        aggregate_base_name = out_mod_analysis_dir + "/" + AGGREGATE_STEM;
       }
 
-      FileHandler().storeIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML});
+      // Single-shot multi-file search: builds the fragment index once and iterates over -in.
+      PeptideSearchEngineFIAlgorithm::MultiFileSearchResult mfres =
+        sse.searchWithModificationAnalysis(in_list, database, mod_analysis_base_names, aggregate_base_name);
 
+      if (mfres.per_file.size() != in_list.size())
+      {
+        OPENMS_LOG_ERROR << "Internal error: per-file result count (" << mfres.per_file.size()
+                         << ") does not match input file count (" << in_list.size() << ")." << endl;
+        return INTERNAL_ERROR;
+      }
+
+      // Write per-file outputs and track failures.
+      Size failed_count = 0;
+      for (Size i = 0; i < in_list.size(); ++i)
+      {
+        const String& in_file = in_list[i];
+        const String& out_file = out_list[i];
+        PeptideSearchEngineFIAlgorithm::SearchResult& result = mfres.per_file[i];
+
+        if (result.exit_code != PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK)
+        {
+          OPENMS_LOG_ERROR << "Search failed for " << in_file
+                           << " (algorithm exit code " << static_cast<int>(result.exit_code) << "). Skipping output." << endl;
+          ++failed_count;
+          continue;
+        }
+
+        // In test mode, replace the absolute MS run path with file://<basename> for reproducible diffs.
+        if (getFlag_("test") && !result.protein_ids.empty())
+        {
+          result.protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in_file)});
+        }
+
+        // Dispatch on output extension (already validated above to be IDXML or PARQUET).
+        const FileTypes::Type out_type = FileHandler::getTypeByFileName(out_file);
+        if (out_type == FileTypes::IDXML)
+        {
+          FileHandler().storeIdentifications(out_file, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
+        }
+        else // FileTypes::PARQUET
+        {
+          if (!QPXFile::exportToParquet(result.protein_ids, result.peptide_ids, out_file, /*export_all_psms=*/false))
+          {
+            OPENMS_LOG_ERROR << "Failed to write parquet output for " << in_file << " -> " << out_file << endl;
+            ++failed_count;
+            continue;
+          }
+        }
+      }
+
+      if (failed_count > 0)
+      {
+        OPENMS_LOG_ERROR << "PeptideDataBaseSearchFI finished with " << failed_count
+                         << " file(s) failing out of " << in_list.size() << "." << endl;
+        return INTERNAL_ERROR;
+      }
       return EXECUTION_OK;
     }
 };

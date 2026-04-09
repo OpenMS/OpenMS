@@ -2916,6 +2916,21 @@ add_test("TOPP_PeptideDataBaseSearchFI_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/Pep
 set_tests_properties("TOPP_PeptideDataBaseSearchFI_2_out" PROPERTIES DEPENDS
 "TOPP_PeptideDataBaseSearchFI_2")
 
+# Multi-file test: search two mzML inputs (here the same file twice for simplicity)
+# against the same FASTA in a single invocation. The fragment index is built once
+# and reused. The first output is idXML (compared against the _1 reference), the
+# second output is QPX PSM parquet (smoke-tested via sha256sum which fails if the
+# file does not exist).
+add_test("TOPP_PeptideDataBaseSearchFI_3_multi" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
+-ini ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_1.ini
+-in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+-out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_3_multi_a.tmp.idXML ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_3_multi_b.tmp.parquet
+-database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+add_test("TOPP_PeptideDataBaseSearchFI_3_multi_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_3_multi_a.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+set_tests_properties("TOPP_PeptideDataBaseSearchFI_3_multi_idXML_out" PROPERTIES DEPENDS "TOPP_PeptideDataBaseSearchFI_3_multi")
+add_test(NAME "TOPP_PeptideDataBaseSearchFI_3_multi_parquet_out" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_3_multi_b.tmp.parquet)
+set_tests_properties("TOPP_PeptideDataBaseSearchFI_3_multi_parquet_out" PROPERTIES DEPENDS "TOPP_PeptideDataBaseSearchFI_3_multi")
+
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   # Create a symlink with .d suffix so FileHandler recognizes the format

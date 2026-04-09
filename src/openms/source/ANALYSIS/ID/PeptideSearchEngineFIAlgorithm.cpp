@@ -415,16 +415,17 @@ namespace OpenMS
           }
         }
 
-// Debug: log spectrum-level top hit details before storing PeptideIdentification
-if (!pi.getHits().empty())
-{
-  const PeptideHit& top_hit = pi.getHits().front();
-  OPENMS_LOG_INFO << "[PDBS-FI] scan_index=" << scan_index
-                    << " top_ln(hyperscore)=" << top_hit.getScore()
-                    << " top_charge=" << top_hit.getCharge()
-                    << " top_isotope_error=" << (int)top_hit.getMetaValue("isotope_error")
-                    << std::endl;
-}
+        // Debug: log spectrum-level top hit details before storing PeptideIdentification.
+        // DEBUG (not INFO) because multi-file mode would emit one line per scan per input.
+        if (!pi.getHits().empty())
+        {
+          const PeptideHit& top_hit = pi.getHits().front();
+          OPENMS_LOG_DEBUG << "[PDBS-FI] scan_index=" << scan_index
+                           << " top_ln(hyperscore)=" << top_hit.getScore()
+                           << " top_charge=" << top_hit.getCharge()
+                           << " top_isotope_error=" << (int)top_hit.getMetaValue("isotope_error")
+                           << std::endl;
+        }
 #pragma omp critical (peptide_ids_access)
         {
           //clang-tidy: seems to be a false-positive in combination with omp
@@ -499,11 +500,71 @@ if (!pi.getHits().empty())
   }
 
   // =====================================================================
-  // In-memory search: core logic without file I/O
+  // Build a SearchContext (decoys + FragmentIndex) from a FASTA database.
+  // Hoisted out of the in-memory search() body so callers can build the
+  // index once and reuse it across many spectrum files.
+  // =====================================================================
+  PeptideSearchEngineFIAlgorithm::SearchContext
+  PeptideSearchEngineFIAlgorithm::prepareContext(
+      const std::vector<FASTAFile::FASTAEntry>& fasta_db) const
+  {
+    SearchContext ctx;
+    // Always work with a mutable local copy (PeptideIndexing::run requires non-const ref)
+    ctx.db = fasta_db;
+
+    if (decoys_)
+    {
+      startProgress(0, 1, "Generate decoys...");
+      DecoyGenerator decoy_generator;
+
+      const size_t old_size = ctx.db.size();
+      ctx.db.reserve(ctx.db.size() * 2);
+      for (size_t i = 0; i != old_size; ++i)
+      {
+        FASTAFile::FASTAEntry e = ctx.db[i];
+        e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
+        e.identifier = "DECOY_" + e.identifier;
+        ctx.db.push_back(std::move(e));
+      }
+      Math::RandomShuffler shuffler;
+      shuffler.portable_random_shuffle(ctx.db.begin(), ctx.db.end());
+      endProgress();
+    }
+
+    // build fragment index
+    startProgress(0, 1, "Building fragment index...");
+    auto this_params = getParameters();
+    ctx.fragment_index.setParameters(this_params);
+    ctx.fragment_index.build(ctx.db);
+    endProgress();
+
+    return ctx;
+  }
+
+  // =====================================================================
+  // In-memory search: thin wrapper that builds a fresh SearchContext per call.
+  // For repeated searches against the same database, prefer the
+  // context-taking overload below.
   // =====================================================================
   PeptideSearchEngineFIAlgorithm::ExitCodes PeptideSearchEngineFIAlgorithm::search(
       PeakMap& spectra,
       const std::vector<FASTAFile::FASTAEntry>& fasta_db,
+      vector<ProteinIdentification>& protein_ids,
+      PeptideIdentificationList& peptide_ids) const
+  {
+    SearchContext ctx = prepareContext(fasta_db);
+    return search(spectra, ctx, protein_ids, peptide_ids);
+  }
+
+  // =====================================================================
+  // In-memory search using a pre-built SearchContext (no index rebuild).
+  // Takes the context by non-const reference because the underlying
+  // FragmentIndex::querySpectrum() and PeptideIndexing::run() APIs are both
+  // non-const, even though neither conceptually mutates shared state.
+  // =====================================================================
+  PeptideSearchEngineFIAlgorithm::ExitCodes PeptideSearchEngineFIAlgorithm::search(
+      PeakMap& spectra,
+      SearchContext& ctx,
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
@@ -538,35 +599,11 @@ if (!pi.getHits().empty())
     vector<vector<AnnotatedHit_> > annotated_hits(spectra.size(), vector<AnnotatedHit_>());
     for (auto & a : annotated_hits) { a.reserve(report_top_hits_); }
 
-    // Always work with a mutable local copy (PeptideIndexing::run requires non-const ref)
-    vector<FASTAFile::FASTAEntry> db(fasta_db);
-
-    if (decoys_)
-    {
-      startProgress(0, 1, "Generate decoys...");
-      DecoyGenerator decoy_generator;
-
-      const size_t old_size = db.size();
-      db.reserve(db.size() * 2);
-      for (size_t i = 0; i != old_size; ++i)
-      {
-        FASTAFile::FASTAEntry e = db[i];
-        e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
-        e.identifier = "DECOY_" + e.identifier;
-        db.push_back(std::move(e));
-      }
-      Math::RandomShuffler shuffler;
-      shuffler.portable_random_shuffle(db.begin(), db.end());
-      endProgress();
-    }
-
-    // build fragment index
-    startProgress(0, 1, "Building fragment index...");
-    FragmentIndex fragment_index_;
-    auto this_params = getParameters();
-    fragment_index_.setParameters(this_params);
-    fragment_index_.build(db);
-    endProgress();
+    // Reference the prepared (decoy-augmented) database and prebuilt fragment index from the context.
+    // The fragment index is queried (not mutated) during scoring; the database is handed to
+    // PeptideIndexing::run() below which requires a non-const reference.
+    std::vector<FASTAFile::FASTAEntry>& db = ctx.db;
+    FragmentIndex& fragment_index_ = ctx.fragment_index;
 
     startProgress(0, spectra.size(), "Scoring peptide models against spectra...");
     size_t count_spectra{};
@@ -808,37 +845,263 @@ if (!pi.getHits().empty())
   }
 
   // =====================================================================
-  // File-based searchWithModificationAnalysis: delegates to in-memory version
+  // Multi-file searchWithModificationAnalysis (in-memory FASTA).
+  //
+  // Builds the FragmentIndex once via prepareContext() and reuses it across
+  // all input spectrum files. Each input file produces its own SearchResult
+  // (with per-file modification analysis); a final aggregate SearchResult is
+  // computed by pooling all per-file PSMs and running modification analysis
+  // once on the pooled set.
+  // =====================================================================
+  PeptideSearchEngineFIAlgorithm::MultiFileSearchResult
+  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(
+      const std::vector<String>& in_spectra_files,
+      const std::vector<FASTAFile::FASTAEntry>& fasta_db,
+      const std::vector<String>& output_base_names,
+      const String& aggregate_base_name) const
+  {
+    if (!output_base_names.empty() && output_base_names.size() != in_spectra_files.size())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "output_base_names must be empty or have exactly one entry per spectrum file (got "
+        + String(output_base_names.size()) + " entries for " + String(in_spectra_files.size())
+        + " spectrum files).");
+    }
+
+    MultiFileSearchResult mfres;
+    mfres.aggregate.is_open_search = isOpenSearchMode_();
+
+    if (in_spectra_files.empty())
+    {
+      mfres.aggregate.exit_code = ExitCodes::INPUT_FILE_EMPTY;
+      return mfres;
+    }
+
+    // Build the (decoy-augmented) database and FragmentIndex exactly once.
+    SearchContext ctx = prepareContext(fasta_db);
+
+    mfres.per_file.reserve(in_spectra_files.size());
+
+    for (Size i = 0; i < in_spectra_files.size(); ++i)
+    {
+      const String& in_spectra = in_spectra_files[i];
+      const String per_file_base = (i < output_base_names.size()) ? output_base_names[i] : String("");
+
+      OPENMS_LOG_INFO << "[PDBS-FI] [" << (i + 1) << "/" << in_spectra_files.size()
+                      << "] Searching " << in_spectra << std::endl;
+
+      // load MS2 map
+      PeakMap spectra;
+      {
+        FileHandler f;
+        PeakFileOptions options;
+        options.clearMSLevels();
+        options.addMSLevel(2);
+        f.getOptions() = options;
+        f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+      }
+      spectra.sortSpectra(true);
+
+      SearchResult result;
+      result.is_open_search = isOpenSearchMode_();
+      result.exit_code = search(spectra, ctx, result.protein_ids, result.peptide_ids);
+
+      if (result.exit_code != ExitCodes::EXECUTION_OK)
+      {
+        OPENMS_LOG_WARN << "[PDBS-FI] Search failed for " << in_spectra
+                        << " (exit code " << static_cast<int>(result.exit_code) << "). Continuing." << std::endl;
+        mfres.per_file.push_back(std::move(result));
+        continue;
+      }
+
+      // patch per-file metadata
+      if (!result.protein_ids.empty())
+      {
+        result.protein_ids[0].setPrimaryMSRunPath({in_spectra}, spectra);
+      }
+
+      // per-file modification analysis (only meaningful in open-search mode)
+      if (result.is_open_search)
+      {
+        OPENMS_LOG_INFO << "[PDBS-FI] Running detailed modification analysis for " << in_spectra << std::endl;
+
+        OpenSearchModificationAnalysis mod_analyzer;
+        String output_file = "";
+        if (!per_file_base.empty())
+        {
+          output_file = per_file_base + "_ModificationAnalysis.idXML";
+        }
+
+        result.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
+          result.peptide_ids,
+          precursor_mass_tolerance_,
+          precursor_mass_tolerance_unit_ == "ppm",
+          false, // no smoothing
+          output_file
+        );
+
+        logModificationAnalysisSummary_(result, per_file_base);
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "[PDBS-FI] Closed search mode - per-file modification analysis skipped" << std::endl;
+      }
+
+      mfres.per_file.push_back(std::move(result));
+    }
+
+    // Build the aggregate result by pooling per-file PSMs.
+    // If every per-file run failed, propagate the first non-OK exit code into the
+    // aggregate (rather than overloading UNEXPECTED_RESULT, which has a specific
+    // meaning - PeptideIndexing failure).
+    bool any_ok = false;
+    for (const auto& pf : mfres.per_file)
+    {
+      if (pf.exit_code == ExitCodes::EXECUTION_OK) { any_ok = true; break; }
+    }
+
+    if (!any_ok)
+    {
+      for (const auto& pf : mfres.per_file)
+      {
+        if (pf.exit_code != ExitCodes::EXECUTION_OK)
+        {
+          mfres.aggregate.exit_code = pf.exit_code;
+          break;
+        }
+      }
+      return mfres;
+    }
+
+    // Single-file fast path: the aggregate would just duplicate the only per-file
+    // result and re-run modification analysis on the same PSMs. Skip the pooling
+    // and analysis entirely. The aggregate is left with only @c is_open_search
+    // and @c exit_code populated; callers should use @c per_file[0] for the
+    // actual identifications. This is documented on @c MultiFileSearchResult.
+    if (mfres.per_file.size() == 1 && mfres.per_file[0].exit_code == ExitCodes::EXECUTION_OK)
+    {
+      return mfres;
+    }
+
+    // Use the first successful per-file result's protein metadata as the aggregate template.
+    for (const auto& pf : mfres.per_file)
+    {
+      if (pf.exit_code == ExitCodes::EXECUTION_OK)
+      {
+        mfres.aggregate.protein_ids = pf.protein_ids;
+        break;
+      }
+    }
+    // Overwrite the primary MS run path on the aggregate to point at all input files.
+    if (!mfres.aggregate.protein_ids.empty())
+    {
+      mfres.aggregate.protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
+    }
+
+    // Pool peptide_ids across all successful per-file results.
+    Size pooled_count = 0;
+    for (const auto& pf : mfres.per_file)
+    {
+      if (pf.exit_code == ExitCodes::EXECUTION_OK) { pooled_count += pf.peptide_ids.size(); }
+    }
+    mfres.aggregate.peptide_ids.reserve(pooled_count);
+    for (const auto& pf : mfres.per_file)
+    {
+      if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
+      for (const auto& pid : pf.peptide_ids)
+      {
+        mfres.aggregate.peptide_ids.push_back(pid);
+      }
+    }
+
+    // Aggregate modification analysis on the pooled PSM set.
+    if (mfres.aggregate.is_open_search && !mfres.aggregate.peptide_ids.empty())
+    {
+      OPENMS_LOG_INFO << "[PDBS-FI] Running aggregate modification analysis on "
+                      << mfres.aggregate.peptide_ids.size() << " pooled PSM(s) from "
+                      << in_spectra_files.size() << " input file(s)." << std::endl;
+
+      OpenSearchModificationAnalysis mod_analyzer;
+      String agg_output_file = "";
+      if (!aggregate_base_name.empty())
+      {
+        agg_output_file = aggregate_base_name + "_ModificationAnalysis.idXML";
+      }
+
+      mfres.aggregate.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
+        mfres.aggregate.peptide_ids,
+        precursor_mass_tolerance_,
+        precursor_mass_tolerance_unit_ == "ppm",
+        false, // no smoothing
+        agg_output_file
+      );
+
+      logModificationAnalysisSummary_(mfres.aggregate, aggregate_base_name);
+    }
+
+    return mfres;
+  }
+
+  // =====================================================================
+  // Multi-file searchWithModificationAnalysis (FASTA file path).
+  //
+  // Loads the FASTA from disk once, delegates to the in-memory multi-file
+  // overload, and patches the database file path on each per-file (and the
+  // aggregate) ProteinIdentification.
+  // =====================================================================
+  PeptideSearchEngineFIAlgorithm::MultiFileSearchResult
+  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(
+      const std::vector<String>& in_spectra_files,
+      const String& in_db,
+      const std::vector<String>& output_base_names,
+      const String& aggregate_base_name) const
+  {
+    // load FASTA once
+    vector<FASTAFile::FASTAEntry> fasta_db;
+    FASTAFile().load(in_db, fasta_db);
+
+    MultiFileSearchResult mfres = searchWithModificationAnalysis(
+      in_spectra_files, fasta_db, output_base_names, aggregate_base_name);
+
+    // Patch database file path into each per-file and aggregate ProteinIdentification.
+    for (auto& pf : mfres.per_file)
+    {
+      if (pf.exit_code == ExitCodes::EXECUTION_OK && !pf.protein_ids.empty())
+      {
+        pf.protein_ids[0].getSearchParameters().db = in_db;
+      }
+    }
+    if (mfres.aggregate.exit_code == ExitCodes::EXECUTION_OK && !mfres.aggregate.protein_ids.empty())
+    {
+      mfres.aggregate.protein_ids[0].getSearchParameters().db = in_db;
+    }
+
+    return mfres;
+  }
+
+  // =====================================================================
+  // File-based single-file searchWithModificationAnalysis: thin wrapper around
+  // the multi-file overload using a single-element list.
   // =====================================================================
   PeptideSearchEngineFIAlgorithm::SearchResult
   PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(const String& in_spectra,
                                                                   const String& in_db,
                                                                   const String& output_base_name) const
   {
-    // load MS2 map
-    PeakMap spectra;
-    FileHandler f;
-    PeakFileOptions options;
-    options.clearMSLevels();
-    options.addMSLevel(2);
-    f.getOptions() = options;
-    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
-    spectra.sortSpectra(true);
+    std::vector<String> in_files{in_spectra};
+    std::vector<String> base_names;
+    if (!output_base_name.empty()) { base_names.push_back(output_base_name); }
 
-    // load FASTA
-    vector<FASTAFile::FASTAEntry> fasta_db;
-    FASTAFile().load(in_db, fasta_db);
+    MultiFileSearchResult mfres = searchWithModificationAnalysis(in_files, in_db, base_names, "");
 
-    // delegate to in-memory version
-    SearchResult result = searchWithModificationAnalysis(spectra, fasta_db, output_base_name);
-
-    if (result.exit_code == ExitCodes::EXECUTION_OK && !result.protein_ids.empty())
+    if (mfres.per_file.empty())
     {
-      result.protein_ids[0].getSearchParameters().db = in_db;
-      result.protein_ids[0].setPrimaryMSRunPath({in_spectra}, spectra);
+      SearchResult empty_result;
+      empty_result.exit_code = ExitCodes::INPUT_FILE_EMPTY;
+      return empty_result;
     }
 
-    return result;
+    return std::move(mfres.per_file[0]);
   }
 
   // =====================================================================
