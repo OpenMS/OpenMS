@@ -80,7 +80,7 @@ First start TOPPView and open the example `.mzML` file (see <a href="#figure-28"
 |:--:|
 |Figure 31: Zoom of the overlay of the .mzML with the .featureXML layer. Here the individual isotope traces (blue lines) are assembled into a feature here shown as convex hull (rectangular box).|
 
-To correct precursor m/z values in centroided high-resolution data,, one can add a `HighResPrecursorMassCorrector`node (**Community Nodes**>**OpenMS**>**Mass Correction and Calibration**) before the `FeatureFinderMetabo` node. The following parameter will be used to refine precursor masses by selecting the most intense centroided MS1 peak within a m/z tolerance of 10 ppm:
+To correct precursor m/z values in centroided high-resolution data, one can add a `HighResPrecursorMassCorrector` node (**Community Nodes** > **OpenMS** > **Mass Correction and Calibration**) before the `FeatureFinderMetabo` node. The following parameter will be used to refine precursor masses by selecting the most intense centroided MS1 peak within a m/z tolerance of 10 ppm:
 
 |**parameter**|	**value**|
 |:------------|:---------|
@@ -273,7 +273,8 @@ Now, we are ready to identify metabolites using the **MetaboliteSpectralMatcher*
    ```text
    algorithm → merge_spectra = false
    ```
-3. Read the resulting `mzTab` file into a KNIME table using the **mzTabReader** node.
+3. Add a **MetaboliteSpectralMatcher** node. Connect the **FileConverter** output (converted `mzML`) to its query input, and the **FileImporter** (spectral database) to its library input.
+4. Read the resulting `mzTab` output of **MetaboliteSpectralMatcher** into a KNIME table using the **mzTabReader** node.
 
 This completes the workflow for spectral library-based metabolite identification.
 

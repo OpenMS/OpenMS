@@ -26,7 +26,9 @@ def get_version_from_rtd():
     if not rtd_version:
         # When not running on ReadTheDocs (e.g. GitHub Actions CI),
         # install the latest stable release instead of a pre-release.
-        print("Warning: READTHEDOCS_VERSION_NAME not set, installing latest stable release")
+        print(
+            "Warning: READTHEDOCS_VERSION_NAME not set, installing latest stable release"
+        )
         return "stable"
 
     print(f"READTHEDOCS_VERSION_NAME: {rtd_version}")
@@ -34,6 +36,10 @@ def get_version_from_rtd():
     # If it's "latest", install latest version
     if rtd_version == "latest":
         return "latest"
+
+    # RTD sends "stable" for the default stable version
+    if rtd_version == "stable":
+        return "stable"
 
     # If it's a release branch like "release/3.5.0" or "Release/3.5.0", extract the version
     if rtd_version.lower().startswith("release/"):
