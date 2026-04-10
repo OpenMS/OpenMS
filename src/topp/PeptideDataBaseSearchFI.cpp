@@ -11,6 +11,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -85,6 +86,14 @@ class PeptideDataBaseSearchFI :
       setValidFormats_("out", ListUtils::create<String>("idXML,parquet"));
 
       registerOutputDir_("out_mod_analysis_dir", "<dir>", "", "Optional directory to write modification-analysis tables (delta-mass, PTM stats) when running in open-search mode. When set, per-file tables are written using each input file's basename and an additional aggregate table is written across all input files. Has no effect in closed-search mode.", false, true);
+
+      registerInputFile_("percolator_executable", "<executable>",
+#ifdef OPENMS_WINDOWSPLATFORM
+        "",
+#else
+        "",
+#endif
+        "Path to the Percolator executable. If set, per-file PSMs are rescored with Percolator (via PercolatorAdapter) before output. Leave empty to skip rescoring.", false, true, ListUtils::create<String>("skipexists"));
 
       // put search algorithm parameters at Search: subtree of parameters
       Param search_algo_params_with_subsection;
@@ -201,6 +210,85 @@ class PeptideDataBaseSearchFI :
         OPENMS_LOG_ERROR << "Internal error: per-file result count (" << mfres.per_file.size()
                          << ") does not match input file count (" << in_list.size() << ")." << endl;
         return INTERNAL_ERROR;
+      }
+
+      // Optional per-file Percolator rescoring (replaces HyperScore with
+      // Percolator q-values for downstream FDR / protein inference).
+      const String percolator_executable = getStringOption_("percolator_executable");
+      if (!percolator_executable.empty())
+      {
+        // Percolator requires decoys for target/decoy competition.
+        // Check per-file results for target_decoy annotations.
+        bool has_decoys_for_percolator = false;
+        for (const auto& pf : mfres.per_file)
+        {
+          if (pf.exit_code != PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK) continue;
+          for (const auto& ph : pf.protein_ids[0].getHits())
+          {
+            if (ph.metaValueExists("target_decoy") && ph.getMetaValue("target_decoy").toString() == "decoy")
+            {
+              has_decoys_for_percolator = true;
+              break;
+            }
+          }
+          if (has_decoys_for_percolator) break;
+        }
+
+        if (!has_decoys_for_percolator)
+        {
+          OPENMS_LOG_WARN << "Percolator rescoring requires decoys but none found in results. "
+                          << "Enable '-Search:decoys' or provide a FASTA with decoy proteins. "
+                          << "Skipping rescoring." << endl;
+        }
+        else
+        for (Size i = 0; i < in_list.size(); ++i)
+        {
+          auto& result = mfres.per_file[i];
+          if (result.exit_code != PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK) continue;
+          if (result.peptide_ids.size() < 100)
+          {
+            OPENMS_LOG_WARN << "Skipping Percolator rescoring for " << in_list[i]
+                            << " (only " << result.peptide_ids.size() << " PSMs, need >= 100)." << endl;
+            continue;
+          }
+
+          // Write intermediate idXML for PercolatorAdapter input
+          String tmp_in = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_in.idXML";
+          String tmp_out = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_out.idXML";
+          String tmp_weights = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc.weights";
+          FileHandler().storeIdentifications(tmp_in, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
+
+          std::vector<String> perc_params = {
+            "-in", tmp_in,
+            "-out", tmp_out,
+            "-percolator_executable", percolator_executable,
+            "-train_best_positive",
+            "-score_type", "q-value",
+            "-post_processing_tdc",
+            "-weights", tmp_weights
+          };
+
+          OPENMS_LOG_INFO << "[PDBS-FI] Rescoring " << in_list[i] << " with Percolator..." << endl;
+          TOPPBase::ExitCodes perc_ec = runExternalProcess_(String("PercolatorAdapter"), perc_params);
+
+          if (perc_ec != EXECUTION_OK)
+          {
+            OPENMS_LOG_WARN << "Percolator rescoring failed for " << in_list[i]
+                            << ". Using original HyperScore results." << endl;
+          }
+          else
+          {
+            result.protein_ids.clear();
+            result.peptide_ids.clear();
+            FileHandler().loadIdentifications(tmp_out, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
+            IDFilter::keepNBestHits(result.peptide_ids, 1);
+          }
+
+          // Clean up temp files
+          File::remove(tmp_in);
+          File::remove(tmp_out);
+          File::remove(tmp_weights);
+        }
       }
 
       // Write per-file outputs and track failures.
