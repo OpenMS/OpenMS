@@ -1261,7 +1261,11 @@ namespace OpenMS
         pid.setIdentifier(agg_id);
       }
 
-      // Re-index pooled PSMs against the aggregate protein list
+      // Re-index pooled PSMs against the aggregate protein list.
+      // Necessary because the aggregate protein_ids is a template from one
+      // per-file result — its ProteinHits may not cover proteins identified
+      // only in other files. PeptideIndexing rebuilds the full protein list
+      // from the database and maps all pooled PSMs to it.
       PeptideIndexing indexer;
       Param param_pi = indexer.getParameters();
       param_pi.setValue("decoy_string", "DECOY_");
