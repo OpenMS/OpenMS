@@ -345,6 +345,8 @@ protected:
         try
         {
           MSSpectrum& spectrum = exp[static_cast<Size>(i)];
+          // Skip already-centroided spectra (e.g., DIA MS2 with bruker:dia_ms2_centroid=true)
+          if (spectrum.getIMPeakType() == IMPeakType::IM_CENTROIDED) continue;
           if (method == "mobilogram")       picker.pickIMTraces(spectrum);
           else if (method == "cluster")     picker.pickIMCluster(spectrum);
           else if (method == "traces")      picker.pickIMElutionProfiles(spectrum);

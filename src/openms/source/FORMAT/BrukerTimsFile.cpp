@@ -475,7 +475,7 @@ namespace OpenMS
               uint64_t nkey = (static_cast<uint64_t>(static_cast<uint32_t>(mz_bin + dm)) << 32)
                             | (scan_id + ds);
               auto it = smoothed.find(nkey);
-              if (it != smoothed.end() && it->second >= val) is_max = false;
+              if (it != smoothed.end() && it->second > val) is_max = false;
             }
           }
           if (is_max) maxima.push_back(key);
@@ -1056,7 +1056,11 @@ namespace OpenMS
     auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
 
     DIAStreamingMetadata meta;
-    if (windows.empty()) { return meta; }
+    if (windows.empty())
+    {
+      OPENMS_LOG_WARN << "Warning: DIA dataset detected but no SWATH windows found in '" << path << "'" << std::endl;
+      return meta;
+    }
 
     // Build SwathMap boundaries from DIAWindow structs
     meta.boundaries.reserve(windows.size());
@@ -1843,7 +1847,13 @@ namespace OpenMS
               }
             }
 
-            // Denoise (skip if only 1 frame contributed)
+            // Denoise (skip if only 1 frame in range)
+            // TODO: This checks the index range, not the actual number of neighbor
+            // frames that contributed peaks to the grid. If neighbor frames exist
+            // but have zero peaks passing the IM filter for this window, the grid
+            // contains only single-frame data yet denoising still runs — which may
+            // remove valid isolated peaks. Consider counting actual contributing
+            // frames if this becomes an issue in practice.
             bool skip_denoise = (hi - lo) < 1;
             auto peaks = config.dia_ms2_centroid
               ? aggregator.finalizeCentroided(config.dia_ms2_min_support, skip_denoise)

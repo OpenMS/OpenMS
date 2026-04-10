@@ -607,6 +607,12 @@ START_SECTION(DIA MS2 aggregation test)
   TEST_NOT_EQUAL(raw_ms2_count, 0);
   TEST_NOT_EQUAL(agg_ms2_count, 0);
 
+  // Same spectrum count (both use per-WindowGroup iteration)
+  TEST_EQUAL(raw_ms2_count, agg_ms2_count);
+
+  // Aggregation + denoising should reduce total peak count
+  TEST_EQUAL(agg_ms2_peaks < raw_ms2_peaks, true);
+
   // Aggregated spectra should have per-peak IM data
   for (const auto& spec : exp_agg)
   {
@@ -619,8 +625,6 @@ START_SECTION(DIA MS2 aggregation test)
     }
   }
 
-  // Aggregated path should produce spectra (may differ in count due to
-  // window-group iteration vs brute-force, but both must be non-empty)
   STATUS("DIA aggregation: raw MS2 spectra=" << raw_ms2_count
          << " peaks=" << raw_ms2_peaks
          << " | aggregated MS2 spectra=" << agg_ms2_count
