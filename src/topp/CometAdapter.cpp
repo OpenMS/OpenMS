@@ -718,6 +718,10 @@ protected:
       auto tmp_mzml = File::getTemporaryFile() + ".mzML";
       MzMLFile().store(tmp_mzml, exp);
       input_file_with_index = tmp_mzml;
+
+      // Free peak data but keep spectrum metadata (native IDs, drift times)
+      // needed for IM annotation in post-processing.
+      for (auto& spec : exp.getSpectra()) { spec.clear(false); }
     }
     else
 #endif

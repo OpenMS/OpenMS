@@ -3032,6 +3032,11 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
       -FDR:PSM 0.01
       -protein false)
     set_tests_properties("TOPP_FalseDiscoveryRate_CometDDA" PROPERTIES DEPENDS "TOPP_CometAdapter_DDA")
+
+    # Verify that ion mobility metadata was annotated on peptide IDs from .d input
+    add_test(NAME "TOPP_CometAdapter_DDA_IM_check"
+      COMMAND grep -q "UserParam type=\"float\" name=\"IM\"" ${TESTS_TEMP_DIR}/CometAdapter_DDA_out.tmp.idXML)
+    set_tests_properties("TOPP_CometAdapter_DDA_IM_check" PROPERTIES DEPENDS "TOPP_CometAdapter_DDA")
   endif()
 
   # SageAdapter DDA test: search with Sage, then apply FDR filtering on hyperscore via FalseDiscoveryRate.
