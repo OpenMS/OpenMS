@@ -227,6 +227,20 @@ class PeptideDataBaseSearchFI :
         return INTERNAL_ERROR;
       }
 
+      // If the algorithm ran aggregate protein FDR (multi-file, FDR:protein > 0),
+      // propagate the aggregate protein list to each per-file result so the
+      // per-file output files contain the cross-file protein inference result.
+      const double protein_fdr = static_cast<double>(search_params.getValue("FDR:protein"));
+      if (in_list.size() > 1 && protein_fdr > 0.0
+          && !mfres.aggregate.protein_ids.empty())
+      {
+        for (auto& pf : mfres.per_file)
+        {
+          if (pf.exit_code != PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK) continue;
+          pf.protein_ids = mfres.aggregate.protein_ids;
+        }
+      }
+
       // Optional per-file Percolator rescoring (replaces HyperScore with
       // Percolator q-values for downstream FDR / protein inference).
       if (!percolator_executable.empty())
