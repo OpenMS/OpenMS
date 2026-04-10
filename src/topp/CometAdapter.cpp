@@ -805,6 +805,13 @@ protected:
     {
       protein_identifications[0].setMetaValue(Constants::UserParam::IM, exp.getSpectrum(0).getDriftTimeUnitAsString());
     }
+#ifdef WITH_OPENTIMS
+    else if (is_bruker_d)
+    {
+      OPENMS_LOG_WARN << "Warning: Bruker .d input but not all peptide IDs could be annotated with ion mobility values. "
+                      << "This may indicate a native ID mismatch between the .d data and Comet results." << std::endl;
+    }
+#endif
 
     // Parse FAIMS compensation voltage if present
     SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_identifications, exp);
