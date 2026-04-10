@@ -1012,7 +1012,7 @@ namespace OpenMS
     // receive aggregated scores from BPIA.
     bool has_decoys_single = std::any_of(fasta_db.begin(), fasta_db.end(),
         [this](const FASTAFile::FASTAEntry& e) { return e.identifier.hasPrefix(decoy_prefix_); });
-    if (fdr_protein_ > 0.0 && has_decoys_single)
+    if (fdr_protein_ > 0.0 && (decoys_ || has_decoys_single))
     {
       BasicProteinInferenceAlgorithm bpia;
       bpia.run(peptide_ids, protein_ids);
@@ -1257,7 +1257,11 @@ namespace OpenMS
     // all files). This is the correct level for protein inference — per-file
     // protein FDR is too conservative because each file sees only a subset of
     // the proteome. Mirrors the ProteomicsLFQ pattern.
-    if (fdr_protein_ > 0.0 && decoys_ && !mfres.aggregate.protein_ids.empty())
+    // Check for decoys: either generated internally (decoys_) or present in
+    // the database (external decoys matching decoy_prefix_).
+    bool has_decoys_agg = decoys_ || std::any_of(ctx.db.begin(), ctx.db.end(),
+        [this](const FASTAFile::FASTAEntry& e) { return e.identifier.hasPrefix(decoy_prefix_); });
+    if (fdr_protein_ > 0.0 && has_decoys_agg && !mfres.aggregate.protein_ids.empty())
     {
       // Synchronize identifiers: pooled PSMs carry per-file identifiers
       // but BasicProteinInferenceAlgorithm filters by identifier match.
