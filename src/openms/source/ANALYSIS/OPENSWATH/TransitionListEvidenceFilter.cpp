@@ -1010,159 +1010,174 @@ namespace OpenMS
                                        "TransitionListEvidenceFilter requires a positive MS2/iRT m/z extraction window for MS2 evidence.");
     }
 
-    std::vector<PrecursorCandidate> candidates = buildCandidates_(transition_exp, ms2_top_transitions_per_precursor_);
-    const PrecursorIMTransform precursor_im_transform = determinePrecursorIMTransform_(candidates, swath_maps, ms2_params, pasef);
-    result.precursor_im_scale = precursor_im_transform.scale;
-    result.precursor_im_scaled_by_charge = precursor_im_transform.multiply_by_charge;
-    if (!precursor_im_transform.isIdentity())
+    startProgress(0, 1, "Filtering Transition List");
+    bool progress_started = true;
+    try
     {
-      OPENMS_LOG_WARN << "TransitionListEvidenceFilter detected a precursor ion mobility transform mismatch between the transition library and PASEF windows. "
-                      << "Applying scale factor " << result.precursor_im_scale;
-      if (result.precursor_im_scaled_by_charge)
+      std::vector<PrecursorCandidate> candidates = buildCandidates_(transition_exp, ms2_top_transitions_per_precursor_);
+      const PrecursorIMTransform precursor_im_transform = determinePrecursorIMTransform_(candidates, swath_maps, ms2_params, pasef);
+      result.precursor_im_scale = precursor_im_transform.scale;
+      result.precursor_im_scaled_by_charge = precursor_im_transform.multiply_by_charge;
+      if (!precursor_im_transform.isIdentity())
       {
-        OPENMS_LOG_WARN << " and multiplying by precursor charge";
-      }
-      OPENMS_LOG_WARN << " to precursor ion mobility values for matching and filtered output.\n";
-      applyPrecursorIMTransform_(candidates, precursor_im_transform);
-    }
-    result.total_target_precursors = candidates.size();
-    result.evidence.resize(candidates.size());
-    for (Size i = 0; i < candidates.size(); ++i)
-    {
-      result.evidence[i].compound_id = candidates[i].compound_id;
-      result.evidence[i].sequence = candidates[i].compound.sequence;
-      result.evidence[i].precursor_mz = candidates[i].precursor_mz;
-      result.evidence[i].precursor_im = candidates[i].precursor_im;
-    }
-
-    if (candidates.empty())
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "TransitionListEvidenceFilter found no non-decoy target precursors in the transition experiment.");
-    }
-
-    const Param picker_params = param_.copy("peak_picking:PeakPickerHiRes:", true);
-    std::vector<EvidenceAccum> evidence(candidates.size());
-
-    bool has_ms1_map = false;
-    bool has_ms2_map = false;
-
-    const std::vector<MzIndexEntry> precursor_index = buildPrecursorIndex_(candidates);
-
-    if (use_ms1 && ms1_params.mz_extraction_window > 0.0)
-    {
-      for (const auto& map : swath_maps)
-      {
-        if (map.ms1 && map.sptr && map.sptr->getNrSpectra() > 0)
+        OPENMS_LOG_WARN << "TransitionListEvidenceFilter detected a precursor ion mobility transform mismatch between the transition library and PASEF windows. "
+                        << "Applying scale factor " << result.precursor_im_scale;
+        if (result.precursor_im_scaled_by_charge)
         {
-          has_ms1_map = true;
-          scanMS1Map_(map, candidates, precursor_index, ms1_params,
-                      ms1_top_peaks_per_spectrum_, peak_picking_enabled_,
-                      picker_params, peak_picking_use_gauss_, threads, evidence);
+          OPENMS_LOG_WARN << " and multiplying by precursor charge";
+        }
+        OPENMS_LOG_WARN << " to precursor ion mobility values for matching and filtered output.\n";
+        applyPrecursorIMTransform_(candidates, precursor_im_transform);
+      }
+      result.total_target_precursors = candidates.size();
+      result.evidence.resize(candidates.size());
+      for (Size i = 0; i < candidates.size(); ++i)
+      {
+        result.evidence[i].compound_id = candidates[i].compound_id;
+        result.evidence[i].sequence = candidates[i].compound.sequence;
+        result.evidence[i].precursor_mz = candidates[i].precursor_mz;
+        result.evidence[i].precursor_im = candidates[i].precursor_im;
+      }
+
+      if (candidates.empty())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "TransitionListEvidenceFilter found no non-decoy target precursors in the transition experiment.");
+      }
+
+      const Param picker_params = param_.copy("peak_picking:PeakPickerHiRes:", true);
+      std::vector<EvidenceAccum> evidence(candidates.size());
+
+      bool has_ms1_map = false;
+      bool has_ms2_map = false;
+
+      const std::vector<MzIndexEntry> precursor_index = buildPrecursorIndex_(candidates);
+
+      if (use_ms1 && ms1_params.mz_extraction_window > 0.0)
+      {
+        for (const auto& map : swath_maps)
+        {
+          if (map.ms1 && map.sptr && map.sptr->getNrSpectra() > 0)
+          {
+            has_ms1_map = true;
+            scanMS1Map_(map, candidates, precursor_index, ms1_params,
+                        ms1_top_peaks_per_spectrum_, peak_picking_enabled_,
+                        picker_params, peak_picking_use_gauss_, threads, evidence);
+          }
         }
       }
-    }
 
-    if (use_ms2 && ms2_params.mz_extraction_window > 0.0)
-    {
-      for (const auto& map : swath_maps)
+      if (use_ms2 && ms2_params.mz_extraction_window > 0.0)
       {
-        if (!map.ms1 && map.sptr && map.sptr->getNrSpectra() > 0)
+        for (const auto& map : swath_maps)
         {
-          has_ms2_map = true;
-          const std::vector<ProductIndexEntry> product_index = buildProductIndexForMap_(candidates, precursor_index, map, ms2_params, pasef);
-          scanMS2Map_(map, product_index, ms2_params, ms2_top_peaks_per_spectrum_,
-                      ms2_min_fragment_hits_, peak_picking_enabled_, picker_params,
-                      peak_picking_use_gauss_, threads, evidence);
+          if (!map.ms1 && map.sptr && map.sptr->getNrSpectra() > 0)
+          {
+            has_ms2_map = true;
+            const std::vector<ProductIndexEntry> product_index = buildProductIndexForMap_(candidates, precursor_index, map, ms2_params, pasef);
+            scanMS2Map_(map, product_index, ms2_params, ms2_top_peaks_per_spectrum_,
+                        ms2_min_fragment_hits_, peak_picking_enabled_, picker_params,
+                        peak_picking_use_gauss_, threads, evidence);
+          }
         }
       }
-    }
 
-    if (evidence_sources_ == "ms1" && !has_ms1_map)
+      if (evidence_sources_ == "ms1" && !has_ms1_map)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "TransitionListEvidenceFilter was configured for MS1 evidence but no MS1 spectra were available.");
+      }
+      if (evidence_sources_ == "ms2" && !has_ms2_map)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "TransitionListEvidenceFilter was configured for MS2 evidence but no MS2 spectra were available.");
+      }
+      if (evidence_sources_ == "hybrid" && !has_ms1_map && !has_ms2_map)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "TransitionListEvidenceFilter was configured for hybrid evidence but no usable MS1 or MS2 spectra were available.");
+      }
+
+      std::vector<bool> supported(candidates.size(), false);
+      for (Size i = 0; i < candidates.size(); ++i)
+      {
+        auto& out = result.evidence[i];
+        out.supported_ms1 = evidence[i].ms1_hit_count > 0;
+        out.supported_ms2 = evidence[i].ms2_best_fragment_hits >= ms2_min_fragment_hits_;
+        out.ms1_hit_count = evidence[i].ms1_hit_count;
+        out.ms1_max_intensity = evidence[i].ms1_max_intensity;
+        out.ms1_sum_intensity = evidence[i].ms1_sum_intensity;
+        out.ms1_best_rt = evidence[i].ms1_best_rt;
+        out.ms2_hit_count = evidence[i].ms2_hit_count;
+        out.ms2_best_fragment_hits = evidence[i].ms2_best_fragment_hits;
+        out.ms2_max_intensity = evidence[i].ms2_max_intensity;
+        out.ms2_sum_intensity = evidence[i].ms2_sum_intensity;
+        out.ms2_best_rt = evidence[i].ms2_best_rt;
+
+        if (out.supported_ms1)
+        {
+          ++result.ms1_supported;
+        }
+        if (out.supported_ms2)
+        {
+          ++result.ms2_supported;
+        }
+        if (out.supported_ms1 && out.supported_ms2)
+        {
+          ++result.hybrid_supported;
+        }
+
+        if (evidence_sources_ == "ms1")
+        {
+          supported[i] = out.supported_ms1;
+        }
+        else if (evidence_sources_ == "ms2")
+        {
+          supported[i] = out.supported_ms2;
+        }
+        else
+        {
+          supported[i] = out.supported_ms1 || out.supported_ms2;
+        }
+        if (supported[i])
+        {
+          ++result.supported_precursors;
+        }
+      }
+
+      if (enabled_ && result.supported_precursors < min_supported_precursors_)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "TransitionListEvidenceFilter retained only " + String(result.supported_precursors) +
+                                         " supported target precursors, fewer than min_supported_precursors=" + String(min_supported_precursors_) +
+                                         ". Disable Calibration:auto_irt:prefilter or loosen its parameters.");
+      }
+
+      result.filtered_targets = buildFilteredExperiment_(transition_exp, candidates, supported);
+
+      std::ostringstream summary;
+      summary << "TransitionListEvidenceFilter retained " << result.supported_precursors
+              << " of " << result.total_target_precursors << " target precursors"
+              << " (MS1: " << result.ms1_supported
+              << ", MS2: " << result.ms2_supported
+              << ", both: " << result.hybrid_supported
+              << ", transitions: " << result.filtered_targets.transitions.size()
+              << ", compounds: " << result.filtered_targets.compounds.size()
+              << ").";
+      result.summary = summary.str();
+
+      OPENMS_LOG_INFO << result.summary << "\n";
+      endProgress();
+      progress_started = false;
+      return result;
+    }
+    catch (...)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "TransitionListEvidenceFilter was configured for MS1 evidence but no MS1 spectra were available.");
+      if (progress_started)
+      {
+        endProgress();
+      }
+      throw;
     }
-    if (evidence_sources_ == "ms2" && !has_ms2_map)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "TransitionListEvidenceFilter was configured for MS2 evidence but no MS2 spectra were available.");
-    }
-    if (evidence_sources_ == "hybrid" && !has_ms1_map && !has_ms2_map)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "TransitionListEvidenceFilter was configured for hybrid evidence but no usable MS1 or MS2 spectra were available.");
-    }
-
-    std::vector<bool> supported(candidates.size(), false);
-    for (Size i = 0; i < candidates.size(); ++i)
-    {
-      auto& out = result.evidence[i];
-      out.supported_ms1 = evidence[i].ms1_hit_count > 0;
-      out.supported_ms2 = evidence[i].ms2_best_fragment_hits >= ms2_min_fragment_hits_;
-      out.ms1_hit_count = evidence[i].ms1_hit_count;
-      out.ms1_max_intensity = evidence[i].ms1_max_intensity;
-      out.ms1_sum_intensity = evidence[i].ms1_sum_intensity;
-      out.ms1_best_rt = evidence[i].ms1_best_rt;
-      out.ms2_hit_count = evidence[i].ms2_hit_count;
-      out.ms2_best_fragment_hits = evidence[i].ms2_best_fragment_hits;
-      out.ms2_max_intensity = evidence[i].ms2_max_intensity;
-      out.ms2_sum_intensity = evidence[i].ms2_sum_intensity;
-      out.ms2_best_rt = evidence[i].ms2_best_rt;
-
-      if (out.supported_ms1)
-      {
-        ++result.ms1_supported;
-      }
-      if (out.supported_ms2)
-      {
-        ++result.ms2_supported;
-      }
-      if (out.supported_ms1 && out.supported_ms2)
-      {
-        ++result.hybrid_supported;
-      }
-
-      if (evidence_sources_ == "ms1")
-      {
-        supported[i] = out.supported_ms1;
-      }
-      else if (evidence_sources_ == "ms2")
-      {
-        supported[i] = out.supported_ms2;
-      }
-      else
-      {
-        supported[i] = out.supported_ms1 || out.supported_ms2;
-      }
-      if (supported[i])
-      {
-        ++result.supported_precursors;
-      }
-    }
-
-    if (enabled_ && result.supported_precursors < min_supported_precursors_)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "TransitionListEvidenceFilter retained only " + String(result.supported_precursors) +
-                                       " supported target precursors, fewer than min_supported_precursors=" + String(min_supported_precursors_) +
-                                       ". Disable Calibration:auto_irt:prefilter or loosen its parameters.");
-    }
-
-    result.filtered_targets = buildFilteredExperiment_(transition_exp, candidates, supported);
-
-    std::ostringstream summary;
-    summary << "TransitionListEvidenceFilter retained " << result.supported_precursors
-            << " of " << result.total_target_precursors << " target precursors"
-            << " (MS1: " << result.ms1_supported
-            << ", MS2: " << result.ms2_supported
-            << ", both: " << result.hybrid_supported
-            << ", transitions: " << result.filtered_targets.transitions.size()
-            << ", compounds: " << result.filtered_targets.compounds.size()
-            << ").";
-    result.summary = summary.str();
-
-    OPENMS_LOG_INFO << result.summary << "\n";
-    return result;
   }
 }
