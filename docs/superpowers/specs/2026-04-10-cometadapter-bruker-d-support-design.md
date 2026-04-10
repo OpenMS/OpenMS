@@ -43,7 +43,9 @@ In `main_()`, after `getRawfileName()` and before Comet invocation:
   7. Log debug-level native IDs from the loaded experiment for traceability.
 - If mzML input: existing flow unchanged.
 
-The `MSExperiment` from the .d load is kept for post-processing (IM annotation). Peak data can be cleared after writing the temp mzML to save memory, but spectrum metadata and native IDs are retained.
+The `MSExperiment` from the .d load is kept for post-processing (IM annotation). After writing the temp mzML, keep the full experiment in memory — DDA-PASEF MS2 peak data is modest in size, and clearing individual spectra adds complexity for negligible gain. The existing mzML path uses a separate metadata-only load; the .d path simply reuses the already-loaded experiment.
+
+All MS-level filtering should use the existing `ms_level` variable (set to 2 in CometAdapter) rather than hardcoding.
 
 ### 3. CometAdapter.cpp — Post-Processing
 
@@ -71,7 +73,10 @@ All .d-related code is guarded by `#ifdef WITH_OPENTIMS` to match existing patte
 .d directory
     |
     v
-BrukerTimsFile::load() --> MSExperiment (MS2 only, with peak data)
+BrukerTimsFile::load() --> MSExperiment (all MS levels, with peak data)
+    |
+    v
+Filter to MS2 only (erase non-MS2 spectra)
     |                            |
     v                            | (retained for post-processing)
 MzMLFile::store()                |
