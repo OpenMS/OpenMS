@@ -43,6 +43,19 @@ START_SECTION(int testfunktion())
 }
 END_SECTION
 
+START_SECTION(double computeGRAVY(const AASequence& seq))
+{
+  AASequence seq = AASequence::fromString("ACDE");
+  double gravy = ptr->computeGRAVY(seq);
+  TEST_REAL_SIMILAR(gravy, -0.675); // Expected GRAVY value for "ACDE" with Kyte-Doolittle scale
+  AASequence seq_2 = AASequence::fromString("");
+  double gravy_2 = ptr->computeGRAVY(seq_2);
+  TEST_REAL_SIMILAR(gravy_2, 0); // Expected GRAVY value for "ACDE" with Kyte-Doolittle scale
+}
+END_SECTION
+
+
+
 
 // Add more test sections for each method...
 

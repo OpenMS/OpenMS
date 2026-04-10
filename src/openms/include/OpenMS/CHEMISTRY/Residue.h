@@ -10,7 +10,6 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/HydrophobicityScale.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -24,6 +23,16 @@
 namespace OpenMS
 {
   class ResidueModification;
+
+  enum HydrophobicityScaleNumber
+    {
+      KYTEDOOLITTLE = 0,
+      EISENBERG = 1,
+      HOPPWOODS = 2,
+      BULLBREESE = 3,
+      BLACKMOULD = 4,
+      GUY = 5
+    }; 
 
   /**
       @ingroup Chemistry
