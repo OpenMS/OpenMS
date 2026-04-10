@@ -32,6 +32,10 @@
 
 #include <OpenMS/ANALYSIS/ID/CometModification.h>
 
+#ifdef WITH_OPENTIMS
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
+#endif
+
 #include <fstream>
 #include <iomanip>
 #include <regex>
@@ -107,11 +111,28 @@ protected:
 
   map<string,int> num_enzyme_termini {{"semi",1},{"fully",2},{"C-term unspecific", 8},{"N-term unspecific",9}};
 
+#ifdef WITH_OPENTIMS
+  BrukerTimsFile::Config getBrukerConfig_()
+  {
+    BrukerTimsFile::Config c;
+    c.calibration_tolerance = getDoubleOption_("bruker:calibration_tolerance");
+    c.calibrate = (getStringOption_("bruker:calibrate") == "true");
+    String mode = getStringOption_("bruker:export_mode");
+    if (mode == "spectrum") c.export_mode = BrukerTimsFile::Config::SPECTRUM;
+    else c.export_mode = BrukerTimsFile::Config::AUTO;
+    return c;
+  }
+#endif
+
   void registerOptionsAndFlags_() override
   {
 
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", { "mzML" } );
+    setValidFormats_("in", { "mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+    });
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", { "idXML"} );
     registerInputFile_("database", "<file>", "", "FASTA file", true, false, {"skipexists"});
@@ -248,8 +269,19 @@ protected:
     registerStringOption_("require_variable_mod", "<bool>", "false", "If true, requires at least one variable modification per peptide", false, true);
     setValidStrings_("require_variable_mod", ListUtils::create<String>("true,false"));
 
+#ifdef WITH_OPENTIMS
+    registerTOPPSubsection_("bruker", "Options for reading Bruker TimsTOF .d files (requires WITH_OPENTIMS)");
+    registerStringOption_("bruker:export_mode", "<mode>", "auto", "Export mode: 'auto' detects DDA/DIA acquisition type, "
+      "'spectrum' forces per-precursor spectra (DDA style).", false, true);
+    setValidStrings_("bruker:export_mode", {"auto", "spectrum"});
+    registerDoubleOption_("bruker:calibration_tolerance", "<float>", 0.0, "m/z recalibration tolerance (0 = library default)", false, true);
+    setMinFloat_("bruker:calibration_tolerance", 0.0);
+    registerStringOption_("bruker:calibrate", "<toggle>", "false", "Enable m/z recalibration (may fail on some datasets)", false, true);
+    setValidStrings_("bruker:calibrate", {"true", "false"});
+#endif
+
     // register peptide indexing parameter (with defaults for this search engine) TODO: check if search engine defaults are needed
-    registerPeptideIndexingParameter_(PeptideIndexing().getParameters()); 
+    registerPeptideIndexingParameter_(PeptideIndexing().getParameters());
   }
 
   const vector<const ResidueModification*> getModifications_(const StringList& modNames)
