@@ -20,6 +20,7 @@ namespace OpenMS
       }
       return sum/seq.size();
    } */
+ 
 
    int HydrophobicityProfile::testfunktion()
    {
