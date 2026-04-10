@@ -191,9 +191,9 @@ namespace OpenMS
 
     defaults_.setValue("calibration:enabled", "false",
       "If enabled, run a fast calibration pass on a subset of spectra before the main search. "
-      "Estimates tighter precursor and fragment tolerances from confident PSMs and applies a "
-      "global fragment m/z shift correction. The fragment index is NOT rebuilt — only query-time "
-      "tolerances change. Inspired by MSFragger's calibrate_mass and OpenNuXL's autotune.");
+      "Estimates tighter precursor and fragment tolerances from confident PSMs. "
+      "The fragment index is NOT rebuilt — only query-time tolerances are tightened. "
+      "Inspired by MSFragger's calibrate_mass and OpenNuXL's autotune.");
     defaults_.setValidStrings("calibration:enabled", {"true", "false"});
     defaults_.setValue("calibration:subset_ratio", 0.1,
       "Fraction of spectra (by TIC, highest first) used for the calibration pass (0.0-1.0).");
@@ -745,6 +745,12 @@ namespace OpenMS
     double effective_precursor_tol = precursor_mass_tolerance_;
     double effective_fragment_tol = fragment_mass_tolerance_;
 
+    // Save original FragmentIndex parameters so we can restore them after the
+    // search if calibration modifies query-time tolerances. This avoids
+    // persistent mutation of the shared SearchContext across multi-file calls.
+    const Param fi_params_original = fragment_index_.getParameters();
+    bool fi_params_modified = false;
+
     // --- Optional calibration pass ---
     if (calibration_enabled_ && !open_search)
     {
@@ -757,11 +763,12 @@ namespace OpenMS
         effective_precursor_tol = cal.precursor_tolerance;
         effective_fragment_tol = cal.fragment_tolerance;
 
-        // Update the fragment index's query-time tolerances (no index rebuild)
-        Param fi_params = fragment_index_.getParameters();
+        // Temporarily update the fragment index's query-time tolerances.
+        Param fi_params = fi_params_original;
         fi_params.setValue("precursor:mass_tolerance", effective_precursor_tol);
         fi_params.setValue("fragment:mass_tolerance", effective_fragment_tol);
         fragment_index_.setParameters(fi_params);
+        fi_params_modified = true;
       }
     }
 
@@ -930,6 +937,13 @@ namespace OpenMS
     else if (fdr_psm_ > 0.0 && !decoys_)
     {
       OPENMS_LOG_WARN << "FDR:PSM is set but decoys are disabled. Skipping FDR filtering." << endl;
+    }
+
+    // Restore original FragmentIndex parameters if calibration modified them,
+    // so the shared SearchContext is unchanged for subsequent per-file searches.
+    if (fi_params_modified)
+    {
+      fragment_index_.setParameters(fi_params_original);
     }
 
     logSearchDiagnostics_(spectra, protein_ids, peptide_ids);
@@ -1520,18 +1534,20 @@ namespace OpenMS
     prec_abs_errors.reserve(precursor_errors.size());
     for (double e : precursor_errors) { prec_abs_errors.push_back(std::abs(e)); }
 
+    const double min_tolerance = 1e-6; // avoid non-positive tolerances
+
     double prec_median = Math::median(prec_abs_errors.begin(), prec_abs_errors.end());
     double prec_mad = Math::MAD(prec_abs_errors.begin(), prec_abs_errors.end(), prec_median);
-    result.precursor_tolerance = std::ceil(prec_median + 3.0 * prec_mad);
-    if (result.precursor_tolerance < 1.0) result.precursor_tolerance = 1.0;
+    result.precursor_tolerance = prec_median + 3.0 * prec_mad;
+    if (result.precursor_tolerance < min_tolerance) result.precursor_tolerance = min_tolerance;
 
     // Fragment: 4 × 68th percentile (following NuXL / identipy convention).
     std::sort(fragment_errors_abs.begin(), fragment_errors_abs.end());
     if (!fragment_errors_abs.empty())
     {
       double frag_68 = fragment_errors_abs[static_cast<Size>(fragment_errors_abs.size() * 0.68)];
-      result.fragment_tolerance = std::ceil(4.0 * frag_68);
-      if (result.fragment_tolerance < 1.0) result.fragment_tolerance = 1.0;
+      result.fragment_tolerance = 4.0 * frag_68;
+      if (result.fragment_tolerance < min_tolerance) result.fragment_tolerance = min_tolerance;
     }
     else
     {
