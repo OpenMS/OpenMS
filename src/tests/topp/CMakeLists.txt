@@ -3004,15 +3004,43 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -protein false)
   set_tests_properties("TOPP_FalseDiscoveryRate_PeptideDataBaseSearchFIDDA_calibrated" PROPERTIES DEPENDS "TOPP_PeptideDataBaseSearchFI_DDA_calibrated")
 
-  # SageAdapter DDA test: generate decoys externally (SageAdapter sets generate_decoys=false),
-  # then search with Sage, then apply FDR filtering on hyperscore via FalseDiscoveryRate.
-  if (NOT (${SAGE_BINARY} STREQUAL "SAGE_BINARY-NOTFOUND"))
-    add_test("TOPP_DecoyDatabase_DDA" ${TOPP_BIN_PATH}/DecoyDatabase -test
-      -in ${OPENTIMS_TEST_FASTA}
-      -out ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
-      -decoy_string DECOY_
-      -decoy_string_position prefix)
+  # Generate target-decoy database (shared by CometAdapter and SageAdapter DDA tests)
+  add_test("TOPP_DecoyDatabase_DDA" ${TOPP_BIN_PATH}/DecoyDatabase -test
+    -in ${OPENTIMS_TEST_FASTA}
+    -out ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
+    -decoy_string DECOY_
+    -decoy_string_position prefix)
 
+  # CometAdapter DDA test: search Bruker .d input with Comet, then apply FDR filtering.
+  if (NOT (${COMET_BINARY} STREQUAL "COMET_BINARY-NOTFOUND"))
+    add_test("TOPP_CometAdapter_DDA" ${TOPP_BIN_PATH}/CometAdapter -test
+      -in ${OPENTIMS_DDA_SYMLINK}
+      -database ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
+      -out ${TESTS_TEMP_DIR}/CometAdapter_DDA_out.tmp.idXML
+      -comet_executable "${COMET_BINARY}"
+      -precursor_mass_tolerance 20
+      -precursor_error_units ppm
+      -fragment_mass_tolerance 0.02
+      -enzyme Trypsin/P
+      -missed_cleavages 2
+      "-variable_modifications" "Oxidation (M)" "Acetyl (Protein N-term)")
+    set_tests_properties("TOPP_CometAdapter_DDA" PROPERTIES DEPENDS "TOPP_DecoyDatabase_DDA")
+
+    add_test("TOPP_FalseDiscoveryRate_CometDDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+      -in ${TESTS_TEMP_DIR}/CometAdapter_DDA_out.tmp.idXML
+      -out ${TESTS_TEMP_DIR}/CometAdapter_DDA_fdr.tmp.idXML
+      -FDR:PSM 0.01
+      -protein false)
+    set_tests_properties("TOPP_FalseDiscoveryRate_CometDDA" PROPERTIES DEPENDS "TOPP_CometAdapter_DDA")
+
+    # Verify that ion mobility metadata was annotated on peptide IDs from .d input
+    add_test(NAME "TOPP_CometAdapter_DDA_IM_check"
+      COMMAND grep -q "UserParam type=\"float\" name=\"IM\"" ${TESTS_TEMP_DIR}/CometAdapter_DDA_out.tmp.idXML)
+    set_tests_properties("TOPP_CometAdapter_DDA_IM_check" PROPERTIES DEPENDS "TOPP_CometAdapter_DDA")
+  endif()
+
+  # SageAdapter DDA test: search with Sage, then apply FDR filtering on hyperscore via FalseDiscoveryRate.
+  if (NOT (${SAGE_BINARY} STREQUAL "SAGE_BINARY-NOTFOUND"))
     add_test("TOPP_SageAdapter_DDA" ${TOPP_BIN_PATH}/SageAdapter -test
       -in ${OPENTIMS_DDA_SYMLINK}
       -database ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
