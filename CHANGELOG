@@ -65,6 +65,8 @@ TOPP tools:
     MetaProSIP:
       - Added detailed documentation of CSV output column formats (#4400)
         Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
+    FeatureFinderCentroided:
+      - Reworked the underlying algorithm to omit a RAM-costly copy statement. RAM usage is now significantly reduced.
 
 PyOpenMS:
   - BREAKING: Binding backend replaced from Autowrap/Cython to hand-maintained nanobind C++ bindings (#8699)
