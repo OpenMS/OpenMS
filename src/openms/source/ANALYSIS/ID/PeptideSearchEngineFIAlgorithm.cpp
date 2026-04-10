@@ -1289,7 +1289,7 @@ namespace OpenMS
 
     OPENMS_LOG_INFO << "\n[PDBS-FI] ============ Search Summary ============" << std::endl;
     OPENMS_LOG_INFO << "[PDBS-FI]   MS2 spectra:          " << num_ms2 << std::endl;
-    OPENMS_LOG_INFO << "[PDBS-FI]   PSMs:                 " << num_identified << std::endl;
+    OPENMS_LOG_INFO << "[PDBS-FI]   Matched spectra:      " << num_identified << std::endl;
     if (num_ms2 > 0)
     {
       OPENMS_LOG_INFO << "[PDBS-FI]   MS2 ID rate:          "
