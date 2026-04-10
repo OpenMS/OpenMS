@@ -10,6 +10,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 #include <cstdint>
 #include <string>
 
@@ -17,6 +18,7 @@ class TimsDataHandle;
 
 namespace OpenMS
 {
+  class FullSwathFileConsumer;
 
   /**
    * @brief Reader for Bruker TimsTOF .d directories via opentims.
@@ -75,6 +77,29 @@ namespace OpenMS
       /// Empty string (default): discover from OPENMS_BRUKER_SDK_PATH env var.
       std::string bruker_sdk_path;
     };
+
+    /// Metadata for constructing a FullSwathFileConsumer for DIA streaming.
+    struct DIAStreamingMetadata
+    {
+      std::vector<OpenSwath::SwathMap> boundaries;  ///< one SwathMap per DIAWindow (MS2 only)
+      int nr_ms1_spectra = 0;                       ///< number of MS1 frames
+      std::vector<int> nr_ms2_spectra;              ///< per-window spectrum counts (parallel to boundaries)
+    };
+
+    /// Read DIA SWATH boundaries and spectrum counts from a .d directory (SQL only, no peak data).
+    /// Also populates exp_settings with source file metadata.
+    DIAStreamingMetadata readDIAMetadata(const String& path, ExperimentalSettings& exp_settings);
+    /// @overload with explicit configuration
+    DIAStreamingMetadata readDIAMetadata(const String& path, ExperimentalSettings& exp_settings,
+                                         const Config& config);
+
+    /// Stream DIA spectra to a consumer one-at-a-time without accumulating.
+    /// MS2 spectra are always raw (no aggregation/denoising/centroiding).
+    /// MS1 centroiding respects the Config settings.
+    void loadDIAStreaming(const String& path, FullSwathFileConsumer& consumer);
+    /// @overload with explicit configuration
+    void loadDIAStreaming(const String& path, FullSwathFileConsumer& consumer,
+                          const Config& config);
 
     /// Load entire .d directory into MSExperiment
     void load(const String& path, MSExperiment& exp);

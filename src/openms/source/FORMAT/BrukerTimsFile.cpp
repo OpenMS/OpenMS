@@ -1031,6 +1031,69 @@ namespace OpenMS
   }
 
   // =====================================================================
+  // readDIAMetadata: SQL-only boundary and count extraction
+  // =====================================================================
+  BrukerTimsFile::DIAStreamingMetadata BrukerTimsFile::readDIAMetadata(
+      const String& path, ExperimentalSettings& exp_settings)
+  {
+    return readDIAMetadata(path, exp_settings, Config());
+  }
+
+  BrukerTimsFile::DIAStreamingMetadata BrukerTimsFile::readDIAMetadata(
+      const String& path, ExperimentalSettings& exp_settings, const Config& config)
+  {
+    auto handle = openTimsDataHandle(path, config);
+    String tdf_path = path + "/analysis.tdf";
+    SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
+
+    if (!isDIA(db))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "readDIAMetadata() requires a DIA dataset, but '" + path + "' appears to be DDA.");
+    }
+
+    loadExperimentalSettings_(path, exp_settings);
+
+    // Read DIA windows (with IM conversion via handle's calibration)
+    auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
+
+    DIAStreamingMetadata meta;
+    if (windows.empty()) { return meta; }
+
+    // Build SwathMap boundaries from DIAWindow structs
+    meta.boundaries.reserve(windows.size());
+    for (const auto& w : windows)
+    {
+      meta.boundaries.emplace_back(
+        w.mz_center - w.mz_width / 2.0,  // lower
+        w.mz_center + w.mz_width / 2.0,  // upper
+        w.mz_center,                       // center
+        w.im_lower,                        // imLower
+        w.im_upper,                        // imUpper
+        false);                            // ms1 = false
+    }
+
+    // Count MS1 frames
+    for (uint32_t fid = handle->min_frame_id(); fid <= handle->max_frame_id(); ++fid)
+    {
+      if (handle->has_frame(fid) && handle->get_frame(fid).msms_type == 0)
+        ++meta.nr_ms1_spectra;
+    }
+
+    // Count MS2 spectra per window (= frames per WindowGroup)
+    auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+    meta.nr_ms2_spectra.reserve(windows.size());
+    for (const auto& w : windows)
+    {
+      auto it = group_to_frames.find(w.window_group);
+      meta.nr_ms2_spectra.push_back(
+        it != group_to_frames.end() ? static_cast<int>(it->second.size()) : 0);
+    }
+
+    return meta;
+  }
+
+  // =====================================================================
   // load() overloads
   // =====================================================================
   void BrukerTimsFile::load(const String& path, MSExperiment& exp)
