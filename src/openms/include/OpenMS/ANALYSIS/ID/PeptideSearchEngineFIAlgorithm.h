@@ -432,6 +432,11 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
     void logModificationAnalysisSummary_(const SearchResult& result,
                                          const String& output_base_name) const;
 
+    /// Helper: log search summary statistics and per-run tolerance estimation
+    void logSearchDiagnostics_(const PeakMap& spectra,
+                               const std::vector<ProteinIdentification>& protein_ids,
+                               const PeptideIdentificationList& peptide_ids) const;
+
     /// Helper function to determine if open search should be used based on tolerance
     bool isOpenSearchMode_() const
     {
