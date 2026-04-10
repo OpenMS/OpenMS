@@ -1540,9 +1540,8 @@ namespace OpenMS
     String tdf_path = handle.get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
-    // Collect frame IDs by MS level
+    // Collect MS1 frame IDs (MS2 frames are mapped via DiaFrameMsMsInfo below)
     std::vector<uint32_t> ms1_frame_ids;
-    std::vector<uint32_t> ms2_frame_ids;
 
     for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
     {
@@ -1550,8 +1549,6 @@ namespace OpenMS
       TimsFrame& frame = handle.get_frame(fid);
       if (frame.msms_type == 0)
         ms1_frame_ids.push_back(fid);
-      else
-        ms2_frame_ids.push_back(fid);
     }
 
     // --- MS1 frames ---
@@ -1585,28 +1582,32 @@ namespace OpenMS
     }
 
     // --- MS2 frames (split by SWATH window) ---
+    // Use per-WindowGroup iteration for both paths: each diaPASEF frame belongs
+    // to exactly one WindowGroup, so we only produce spectra for valid
+    // frame/window combinations (not the brute-force frames × all_windows).
+    auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+
+    // Group DIAWindows by window_group
+    std::map<int, std::vector<const DIAWindow*>> group_to_windows;
+    for (const auto& w : windows)
+    {
+      group_to_windows[w.window_group].push_back(&w);
+    }
+
+    // Count total work units for progress (frames * windows-per-group)
+    Size total_work = 0;
+    for (const auto& [group, frames] : group_to_frames)
+    {
+      auto wit = group_to_windows.find(group);
+      if (wit != group_to_windows.end())
+        total_work += frames.size() * wit->second.size();
+    }
+
     const bool do_aggregate = config.dia_ms2_n_neighbors > 0;
 
     if (do_aggregate)
     {
       // === Aggregated path: per-WindowGroup iteration with RT-neighbor summing ===
-      auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
-
-      // Group DIAWindows by window_group
-      std::map<int, std::vector<const DIAWindow*>> group_to_windows;
-      for (const auto& w : windows)
-      {
-        group_to_windows[w.window_group].push_back(&w);
-      }
-
-      // Count total work units for progress (frames * windows-per-group)
-      Size total_work = 0;
-      for (const auto& [group, frames] : group_to_frames)
-      {
-        auto wit = group_to_windows.find(group);
-        if (wit != group_to_windows.end())
-          total_work += frames.size() * wit->second.size();
-      }
       startProgress(0, total_work, "Loading DIA-PASEF MS2 frames (aggregated)");
       Size progress_count = 0;
 
@@ -1701,61 +1702,68 @@ namespace OpenMS
     }
     else
     {
-      // === Raw path: existing per-frame iteration (unchanged) ===
-      startProgress(0, ms2_frame_ids.size(), "Loading DIA-PASEF MS2 frames");
-      for (size_t fi = 0; fi < ms2_frame_ids.size(); ++fi)
+      // === Raw path: per-WindowGroup iteration (no aggregation) ===
+      startProgress(0, total_work, "Loading DIA-PASEF MS2 frames");
+      Size progress_count = 0;
+
+      for (const auto& [group, frame_ids] : group_to_frames)
       {
-        setProgress(fi);
-        TimsFrame& frame = handle.get_frame(ms2_frame_ids[fi]);
-        if (frame.num_peaks == 0) continue;
+        auto wit = group_to_windows.find(group);
+        if (wit == group_to_windows.end()) continue;
+        const auto& dia_windows = wit->second;
 
-        std::vector<uint32_t> scan_ids(frame.num_peaks);
-        std::vector<uint32_t> intensities(frame.num_peaks);
-        std::vector<double> mzs(frame.num_peaks);
-        std::vector<double> inv_ion_mobilities(frame.num_peaks);
-
-        frame.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
-                            mzs.data(), inv_ion_mobilities.data(), nullptr);
-
-        for (size_t wi = 0; wi < windows.size(); ++wi)
+        for (const DIAWindow* win : dia_windows)
         {
-          const DIAWindow& win = windows[wi];
-
-          MSSpectrum spec;
-          spec.setRT(frame.time);
-          spec.setMSLevel(2);
-          spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-          spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win.window_group));
-
-          Precursor prec;
-          prec.setMZ(win.mz_center);
-          prec.setIsolationWindowLowerOffset(win.mz_width / 2.0);
-          prec.setIsolationWindowUpperOffset(win.mz_width / 2.0);
-          spec.setPrecursors({prec});
-
-          spec.setMetaValue("ion mobility lower limit", win.im_lower);
-          spec.setMetaValue("ion mobility upper limit", win.im_upper);
-
-          DataArrays::FloatDataArray im_array;
-          IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
-
-          for (uint32_t p = 0; p < frame.num_peaks; ++p)
+          for (size_t i = 0; i < frame_ids.size(); ++i)
           {
-            if (inv_ion_mobilities[p] >= win.im_lower && inv_ion_mobilities[p] <= win.im_upper)
+            setProgress(progress_count++);
+            TimsFrame& frame = handle.get_frame(frame_ids[i]);
+            if (frame.num_peaks == 0) continue;
+
+            std::vector<uint32_t> scan_ids(frame.num_peaks);
+            std::vector<uint32_t> intensities(frame.num_peaks);
+            std::vector<double> mzs(frame.num_peaks);
+            std::vector<double> inv_ion_mobilities(frame.num_peaks);
+
+            frame.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
+                                mzs.data(), inv_ion_mobilities.data(), nullptr);
+
+            MSSpectrum spec;
+            spec.setRT(frame.time);
+            spec.setMSLevel(2);
+            spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+            spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win->window_group));
+
+            Precursor prec;
+            prec.setMZ(win->mz_center);
+            prec.setIsolationWindowLowerOffset(win->mz_width / 2.0);
+            prec.setIsolationWindowUpperOffset(win->mz_width / 2.0);
+            spec.setPrecursors({prec});
+
+            spec.setMetaValue("ion mobility lower limit", win->im_lower);
+            spec.setMetaValue("ion mobility upper limit", win->im_upper);
+
+            DataArrays::FloatDataArray im_array;
+            IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+
+            for (uint32_t p = 0; p < frame.num_peaks; ++p)
             {
-              Peak1D peak;
-              peak.setMZ(mzs[p]);
-              peak.setIntensity(static_cast<double>(intensities[p]));
-              spec.push_back(peak);
-              im_array.push_back(static_cast<float>(inv_ion_mobilities[p]));
+              if (inv_ion_mobilities[p] >= win->im_lower && inv_ion_mobilities[p] <= win->im_upper)
+              {
+                Peak1D peak;
+                peak.setMZ(mzs[p]);
+                peak.setIntensity(static_cast<double>(intensities[p]));
+                spec.push_back(peak);
+                im_array.push_back(static_cast<float>(inv_ion_mobilities[p]));
+              }
             }
-          }
 
-          if (!spec.empty())
-          {
-            spec.getFloatDataArrays().push_back(std::move(im_array));
-            spec.setIMPeakType(IMPeakType::IM_PROFILE);
-            exp.addSpectrum(std::move(spec));
+            if (!spec.empty())
+            {
+              spec.getFloatDataArrays().push_back(std::move(im_array));
+              spec.setIMPeakType(IMPeakType::IM_PROFILE);
+              exp.addSpectrum(std::move(spec));
+            }
           }
         }
       }
