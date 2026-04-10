@@ -64,6 +64,12 @@ TOPP tools:
       - Expanded fragment index open search with modification discovery and FDR filtering (#8414)
       - FragmentIndex: default fragment:min_ion_index changed from 0 to 2, skipping b1/b2/y1/y2 ions by default (matches Sage behavior); improves PSM count, reduces memory and runtime; set fragment:min_ion_index=0 to include all ions (#9094)
       - FragmentIndex: faster index build using bitmask-based modification enumeration and SoA memory layout with SIMD-accelerated query loop (#9088)
+      - Multi-file search: -in/-out now accept file lists; the fragment index is built once and reused across all inputs; per-file output format (idXML or QPX parquet) is auto-detected from each -out extension; new advanced -out_mod_analysis_dir parameter writes per-file and aggregate modification-analysis TSVs (#9109)
+      - Added peptide:enzyme_specificity parameter (full/semi/none) to enable semi-tryptic and non-specific (e.g. immunopeptidomics) searches; fixes EnzymaticDigestion underflow for very short peptides and FragmentIndex crash on empty search results (#9112)
+      - New annotate:PSM options: num_matched_peaks, matched_b_ions, matched_y_ions, longest_peptide_ion_sequence, fragment_annotation; matched ion counts and fragment annotations are also exported to PSM/QPX parquet output (#9117)
+    SimpleSearchEngine:
+      - Added peptide:enzyme_specificity parameter (full/semi/none) to enable semi-tryptic and non-specific searches (#9112)
+      - New annotate:PSM options: num_matched_peaks, matched_b_ions, matched_y_ions, longest_peptide_ion_sequence, fragment_annotation (#9117)
     ProteomicsLFQ:
       - Removed unnecessary group reindexing, added stricter validation (#8752)
       - Arrow/DataFrame/Parquet export for ConsensusMap (#8729)
