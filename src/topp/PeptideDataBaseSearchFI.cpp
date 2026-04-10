@@ -9,8 +9,13 @@
 #include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -50,6 +55,7 @@ using namespace std;
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
     @note Open-search mode is automatically determined by the precursor mass tolerance: enabled when tolerance exceeds 1 Da or 1000 ppm. No explicit open-search parameter is needed. This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.
+    @note Decoy handling: either enable '-Search:decoys' to generate decoys internally, or provide a FASTA database that already contains decoy proteins (e.g., from DecoyDatabase). In both cases, the decoy accession prefix must match '-Search:decoy_prefix' (default: "DECOY_").
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_PeptideDataBaseSearchFI.cli
@@ -83,7 +89,18 @@ class PeptideDataBaseSearchFI :
       registerOutputFileList_("out", "<files>", StringList(), "Output identification file(s). Must have the same number of entries as -in. Output format is auto-detected per file from the extension (.idXML or .parquet); a mix of formats within one run is allowed.");
       setValidFormats_("out", ListUtils::create<String>("idXML,parquet"));
 
+      registerOutputFile_("out_merged", "<file>", "", "Optional merged output file containing all PSMs pooled across input files with cross-file protein inference (BasicProteinInferenceAlgorithm) and optional picked-protein FDR (FDR:protein). Per-file outputs (-out) retain run-level information. Only useful with multiple -in files.", false);
+      setValidFormats_("out_merged", ListUtils::create<String>("idXML"));
+
       registerOutputDir_("out_mod_analysis_dir", "<dir>", "", "Optional directory to write modification-analysis tables (delta-mass, PTM stats) when running in open-search mode. When set, per-file tables are written using each input file's basename and an additional aggregate table is written across all input files. Has no effect in closed-search mode.", false, true);
+
+      registerInputFile_("percolator_executable", "<executable>",
+#ifdef OPENMS_WINDOWSPLATFORM
+        "",
+#else
+        "",
+#endif
+        "Path to the Percolator executable. If set, per-file PSMs are rescored with Percolator (via PercolatorAdapter) before output. Leave empty to skip rescoring.", false, true, ListUtils::create<String>("skipexists"));
 
       // put search algorithm parameters at Search: subtree of parameters
       Param search_algo_params_with_subsection;
@@ -96,6 +113,7 @@ class PeptideDataBaseSearchFI :
       const StringList in_list = getStringList_("in");
       const String database = getStringOption_("database");
       const StringList out_list = getStringList_("out");
+      const String out_merged = getStringOption_("out_merged");
       // getOutputDirOption auto-creates the directory if it doesn't exist (and returns "" if unset).
       const String out_mod_analysis_dir = getOutputDirOption("out_mod_analysis_dir");
 
@@ -130,7 +148,18 @@ class PeptideDataBaseSearchFI :
       ProgressLogger progresslogger;
       progresslogger.setLogType(log_type_);
 
-      const Param search_params = getParam_().copy("Search:", true);
+      Param search_params = getParam_().copy("Search:", true);
+      const String percolator_executable = getStringOption_("percolator_executable");
+      const double user_protein_fdr = static_cast<double>(search_params.getValue("FDR:protein"));
+
+      // When Percolator rescoring is enabled, defer protein FDR to after rescoring
+      // so protein inference uses Percolator q-values, not raw HyperScores.
+      if (!percolator_executable.empty() && user_protein_fdr > 0.0)
+      {
+        OPENMS_LOG_INFO << "[PDBS-FI] Percolator rescoring enabled: deferring protein FDR to post-rescoring." << endl;
+        search_params.setValue("FDR:protein", 0.0);
+      }
+
       PeptideSearchEngineFIAlgorithm sse;
       sse.setParameters(search_params);
 
@@ -200,6 +229,140 @@ class PeptideDataBaseSearchFI :
         OPENMS_LOG_ERROR << "Internal error: per-file result count (" << mfres.per_file.size()
                          << ") does not match input file count (" << in_list.size() << ")." << endl;
         return INTERNAL_ERROR;
+      }
+
+      // Optional per-file Percolator rescoring (replaces HyperScore with
+      // Percolator q-values for downstream FDR / protein inference).
+      if (!percolator_executable.empty())
+      {
+        // Percolator requires decoys for target/decoy competition.
+        // Check per-file results for target_decoy annotations.
+        bool has_decoys_for_percolator = false;
+        for (const auto& pf : mfres.per_file)
+        {
+          if (pf.exit_code != PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK) continue;
+          for (const auto& ph : pf.protein_ids[0].getHits())
+          {
+            if (ph.metaValueExists("target_decoy") && ph.getMetaValue("target_decoy").toString() == "decoy")
+            {
+              has_decoys_for_percolator = true;
+              break;
+            }
+          }
+          if (has_decoys_for_percolator) break;
+        }
+
+        if (!has_decoys_for_percolator)
+        {
+          OPENMS_LOG_WARN << "Percolator rescoring requires decoys but none found in results. "
+                          << "Enable '-Search:decoys' or provide a FASTA with decoy proteins. "
+                          << "Skipping rescoring." << endl;
+        }
+        else
+        for (Size i = 0; i < in_list.size(); ++i)
+        {
+          auto& result = mfres.per_file[i];
+          if (result.exit_code != PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK) continue;
+          if (result.peptide_ids.size() < 100)
+          {
+            OPENMS_LOG_WARN << "Skipping Percolator rescoring for " << in_list[i]
+                            << " (only " << result.peptide_ids.size() << " PSMs, need >= 100)." << endl;
+            continue;
+          }
+
+          // Write intermediate idXML for PercolatorAdapter input
+          String tmp_in = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_in.idXML";
+          String tmp_out = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_out.idXML";
+          String tmp_weights = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc.weights";
+          FileHandler().storeIdentifications(tmp_in, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
+
+          std::vector<String> perc_params = {
+            "-in", tmp_in,
+            "-out", tmp_out,
+            "-percolator_executable", percolator_executable,
+            "-train_best_positive",
+            "-score_type", "q-value",
+            "-post_processing_tdc",
+            "-weights", tmp_weights
+          };
+
+          OPENMS_LOG_INFO << "[PDBS-FI] Rescoring " << in_list[i] << " with Percolator..." << endl;
+          TOPPBase::ExitCodes perc_ec = runExternalProcess_(String("PercolatorAdapter"), perc_params);
+
+          if (perc_ec != EXECUTION_OK)
+          {
+            OPENMS_LOG_WARN << "Percolator rescoring failed for " << in_list[i]
+                            << ". Using original HyperScore results." << endl;
+          }
+          else
+          {
+            result.protein_ids.clear();
+            result.peptide_ids.clear();
+            FileHandler().loadIdentifications(tmp_out, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
+            IDFilter::keepNBestHits(result.peptide_ids, 1);
+          }
+
+          // Clean up temp files
+          File::remove(tmp_in);
+          File::remove(tmp_out);
+          File::remove(tmp_weights);
+        }
+      }
+
+      // Write merged output: pool all per-file PSMs (possibly Percolator-rescored),
+      // run cross-file protein inference + optional protein FDR, write to -out_merged.
+      // Per-file outputs (-out) are NOT modified — they retain run-level information.
+      if (!out_merged.empty() && in_list.size() > 1)
+      {
+        const String decoy_prefix = search_params.getValue("decoy_prefix").toString();
+
+        // Merge per-file results via IDMergerAlgorithm (accession dedup + identifier remap)
+        IDMergerAlgorithm merger;
+        for (const auto& pf : mfres.per_file)
+        {
+          if (pf.exit_code != PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK) continue;
+          merger.insertRuns(pf.protein_ids, pf.peptide_ids);
+        }
+        ProteinIdentification merged_proteins;
+        PeptideIdentificationList merged_peptides;
+        merger.returnResultsAndClear(merged_proteins, merged_peptides);
+
+        vector<ProteinIdentification> merged_protein_ids = {std::move(merged_proteins)};
+        merged_protein_ids[0].setPrimaryMSRunPath(in_list);
+
+        // Protein inference: aggregate best PSM score per peptide per protein
+        BasicProteinInferenceAlgorithm bpia;
+        bpia.run(merged_peptides, merged_protein_ids);
+
+        // Optional picked-protein FDR
+        if (user_protein_fdr > 0.0)
+        {
+          FalseDiscoveryRate fdr;
+          fdr.applyPickedProteinFDR(merged_protein_ids[0], decoy_prefix, true);
+          IDFilter::filterHitsByScore(merged_protein_ids, user_protein_fdr);
+
+          OPENMS_LOG_INFO << "[PDBS-FI] Merged protein inference + FDR: "
+                          << merged_protein_ids[0].getHits().size() << " proteins at "
+                          << user_protein_fdr * 100 << "% FDR" << endl;
+        }
+
+        // Clean up decoys in merged output
+        IDFilter::removeDecoyHits(merged_peptides);
+        IDFilter::removeEmptyIdentifications(merged_peptides);
+        IDFilter::removeUnreferencedProteins(merged_protein_ids, merged_peptides);
+
+        if (getFlag_("test") && !merged_protein_ids.empty())
+        {
+          StringList basenames;
+          for (const auto& f : in_list) basenames.push_back("file://" + File::basename(f));
+          merged_protein_ids[0].setPrimaryMSRunPath(basenames);
+        }
+
+        FileHandler().storeIdentifications(out_merged, merged_protein_ids, merged_peptides, {FileTypes::IDXML});
+      }
+      else if (!out_merged.empty() && in_list.size() == 1)
+      {
+        OPENMS_LOG_WARN << "-out_merged is only useful with multiple -in files. Skipping merged output." << endl;
       }
 
       // Write per-file outputs and track failures.

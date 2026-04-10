@@ -8,7 +8,9 @@
 
 #include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
 
+#include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
@@ -114,6 +116,8 @@ namespace OpenMS
     defaults_.setValue("decoys", "false", "Should decoys be generated?");
     defaults_.setValidStrings("decoys", {"true","false"} );
 
+    defaults_.setValue("decoy_prefix", "DECOY_", "Accession prefix used for decoy proteins. When decoy generation is enabled (-decoys), this prefix is added to generated decoy accessions. When decoy generation is disabled, the FASTA database may already contain decoy proteins with this prefix (e.g., from DecoyDatabase) and FDR can still be applied.", {"advanced"});
+
     defaults_.setValue("annotate:PSM",  std::vector<std::string>{"ALL"}, "Annotations added to each PSM.");
     defaults_.setValidStrings("annotate:PSM",
       std::vector<std::string>{
@@ -152,6 +156,9 @@ namespace OpenMS
     defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Requires '-decoys' to be set.");
     defaults_.setMinFloat("FDR:PSM", 0.0);
     defaults_.setMaxFloat("FDR:PSM", 1.0);
+    defaults_.setValue("FDR:protein", 0.0, "Filter proteins based on picked-protein FDR q-value (e.g., 0.01 = 1% protein FDR, set to 0 to disable). Applied after PSM-level FDR. Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. Requires '-decoys' to be set.");
+    defaults_.setMinFloat("FDR:protein", 0.0);
+    defaults_.setMaxFloat("FDR:protein", 1.0);
     defaults_.setSectionDescription("FDR", "False Discovery Rate control (requires decoys)");
 
     // Add parameters which are only used by FragmentIndex
@@ -255,8 +262,10 @@ namespace OpenMS
     report_top_hits_ = param_.getValue("report:top_hits");
 
     decoys_ = param_.getValue("decoys") == "true";
+    decoy_prefix_ = param_.getValue("decoy_prefix").toString();
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
     fdr_psm_ = param_.getValue("FDR:PSM");
+    fdr_protein_ = param_.getValue("FDR:protein");
 
     // Open search mode is automatically determined based on precursor tolerance in isOpenSearchMode_()
 
@@ -672,7 +681,7 @@ namespace OpenMS
         {
           e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
         }
-        e.identifier = "DECOY_" + e.identifier;
+        e.identifier = decoy_prefix_ + e.identifier;
         ctx.db.push_back(std::move(e));
       }
       Math::RandomShuffler shuffler;
@@ -897,7 +906,7 @@ namespace OpenMS
     // semi-specific / non-specific PSMs would be silently filtered out here.
     PeptideIndexing indexer;
     Param param_pi = indexer.getParameters();
-    param_pi.setValue("decoy_string", "DECOY_");
+    param_pi.setValue("decoy_string", decoy_prefix_);
     param_pi.setValue("decoy_string_position", "prefix");
     param_pi.setValue("enzyme:name", enzyme_);
     param_pi.setValue("enzyme:specificity",
@@ -936,19 +945,30 @@ namespace OpenMS
       }
     }
 
-    // PSM-level FDR filtering (requires decoys)
-    if (fdr_psm_ > 0.0 && decoys_)
+    // PSM-level FDR filtering.
+    // Decoys may be generated internally (decoys_=true) or present in the
+    // input FASTA (external, identified by decoy_prefix_).
+    bool has_decoys = std::any_of(db.begin(), db.end(),
+        [this](const FASTAFile::FASTAEntry& e) { return e.identifier.hasPrefix(decoy_prefix_); });
+
+    if (fdr_psm_ > 0.0 && has_decoys)
     {
       FalseDiscoveryRate fdr;
       fdr.apply(peptide_ids);
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
-      IDFilter::removeDecoyHits(peptide_ids);
-      IDFilter::removeEmptyIdentifications(peptide_ids);
-      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+
+      if (fdr_protein_ == 0.0)
+      {
+        // No protein FDR → safe to remove decoys now
+        IDFilter::removeDecoyHits(peptide_ids);
+        IDFilter::removeEmptyIdentifications(peptide_ids);
+        IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+      }
     }
-    else if (fdr_psm_ > 0.0 && !decoys_)
+    else if (fdr_psm_ > 0.0 && !has_decoys)
     {
-      OPENMS_LOG_WARN << "FDR:PSM is set but decoys are disabled. Skipping FDR filtering." << endl;
+      OPENMS_LOG_WARN << "FDR:PSM is set but no decoys found (decoy_prefix='" << decoy_prefix_
+                      << "'). Provide a FASTA with decoy proteins or enable '-decoys'. Skipping FDR filtering." << endl;
     }
 
     restore_fi_params();
@@ -986,6 +1006,26 @@ namespace OpenMS
     if (ec != ExitCodes::EXECUTION_OK)
     {
       return ec;
+    }
+
+    // Protein inference + picked-protein FDR for single-file search.
+    // Must run before decoy removal so both target and decoy proteins
+    // receive aggregated scores from BPIA.
+    bool has_decoys_single = std::any_of(fasta_db.begin(), fasta_db.end(),
+        [this](const FASTAFile::FASTAEntry& e) { return e.identifier.hasPrefix(decoy_prefix_); });
+    if (fdr_protein_ > 0.0 && (decoys_ || has_decoys_single))
+    {
+      BasicProteinInferenceAlgorithm bpia;
+      bpia.run(peptide_ids, protein_ids);
+
+      FalseDiscoveryRate fdr;
+      fdr.applyPickedProteinFDR(protein_ids[0], decoy_prefix_, true);
+      IDFilter::filterHitsByScore(protein_ids, fdr_protein_);
+
+      // Now safe to remove decoys (deferred from search() above)
+      IDFilter::removeDecoyHits(peptide_ids);
+      IDFilter::removeEmptyIdentifications(peptide_ids);
+      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
     }
 
     // patch file-specific metadata
@@ -1183,36 +1223,29 @@ namespace OpenMS
       return mfres;
     }
 
-    // Use the first successful per-file result's protein metadata as the aggregate template.
-    for (const auto& pf : mfres.per_file)
-    {
-      if (pf.exit_code == ExitCodes::EXECUTION_OK)
-      {
-        mfres.aggregate.protein_ids = pf.protein_ids;
-        break;
-      }
-    }
-    // Overwrite the primary MS run path on the aggregate to point at all input files.
-    if (!mfres.aggregate.protein_ids.empty())
-    {
-      mfres.aggregate.protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
-    }
-
-    // Pool peptide_ids across all successful per-file results.
-    Size pooled_count = 0;
-    for (const auto& pf : mfres.per_file)
-    {
-      if (pf.exit_code == ExitCodes::EXECUTION_OK) { pooled_count += pf.peptide_ids.size(); }
-    }
-    mfres.aggregate.peptide_ids.reserve(pooled_count);
+    // Merge per-file identifications into a single aggregate using
+    // IDMergerAlgorithm — the canonical OpenMS pattern for cross-file protein
+    // inference (mirrors ConsensusMapMergerAlgorithm::mergeAllIDRuns in
+    // ProteomicsLFQ). This deduplicates ProteinHits by accession (union) and
+    // remaps all PeptideIdentification identifiers to the merged run. No
+    // PeptideIndexing re-run needed: per-file searches already linked
+    // peptides to proteins.
+    IDMergerAlgorithm merger;
     for (const auto& pf : mfres.per_file)
     {
       if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
-      for (const auto& pid : pf.peptide_ids)
-      {
-        mfres.aggregate.peptide_ids.push_back(pid);
-      }
+      merger.insertRuns(pf.protein_ids, pf.peptide_ids);
     }
+    ProteinIdentification merged_proteins;
+    merger.returnResultsAndClear(merged_proteins, mfres.aggregate.peptide_ids);
+    mfres.aggregate.protein_ids = {std::move(merged_proteins)};
+    mfres.aggregate.protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
+
+    // Note: protein inference + FDR on the aggregate is left to the caller
+    // (e.g., the TOPP tool's -out_merged option) so that per-file outputs
+    // retain run-level information without being overwritten by aggregate
+    // protein lists. The aggregate here contains the merged (unfiltered)
+    // proteins + pooled PSMs for downstream use.
 
     // Aggregate modification analysis on the pooled PSM set.
     if (mfres.aggregate.is_open_search && !mfres.aggregate.peptide_ids.empty())
