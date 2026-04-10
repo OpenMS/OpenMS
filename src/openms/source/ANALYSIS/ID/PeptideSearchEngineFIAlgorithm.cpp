@@ -1506,12 +1506,17 @@ namespace OpenMS
     }
 
     // Filter to high-confidence PSMs: keep only top 50% by score (robust against
-    // random matches inflating the error distribution tails).
+    // random matches inflating the error distribution tails). Only crop if the
+    // top 50% still meets the minimum PSM threshold; otherwise leave all hits
+    // and let the calibration_min_psms_ check below disable calibration.
     Size cal_hits_total = cal_hits.size();
     std::sort(cal_hits.begin(), cal_hits.end(),
               [](const CalHit& a, const CalHit& b) { return a.score > b.score; });
-    Size keep = std::max<Size>(calibration_min_psms_, cal_hits.size() / 2);
-    if (keep < cal_hits.size()) cal_hits.resize(keep);
+    Size keep = cal_hits.size() / 2;
+    if (keep >= calibration_min_psms_ && keep < cal_hits.size())
+    {
+      cal_hits.resize(keep);
+    }
 
     // Extract error vectors from filtered hits.
     // Additionally discard PSMs with precursor error exceeding configured tolerance —
