@@ -9,6 +9,10 @@
 #include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
@@ -140,7 +144,18 @@ class PeptideDataBaseSearchFI :
       ProgressLogger progresslogger;
       progresslogger.setLogType(log_type_);
 
-      const Param search_params = getParam_().copy("Search:", true);
+      Param search_params = getParam_().copy("Search:", true);
+      const String percolator_executable = getStringOption_("percolator_executable");
+      const double user_protein_fdr = static_cast<double>(search_params.getValue("FDR:protein"));
+
+      // When Percolator rescoring is enabled, defer protein FDR to after rescoring
+      // so protein inference uses Percolator q-values, not raw HyperScores.
+      if (!percolator_executable.empty() && user_protein_fdr > 0.0)
+      {
+        OPENMS_LOG_INFO << "[PDBS-FI] Percolator rescoring enabled: deferring protein FDR to post-rescoring." << endl;
+        search_params.setValue("FDR:protein", 0.0);
+      }
+
       PeptideSearchEngineFIAlgorithm sse;
       sse.setParameters(search_params);
 
@@ -214,7 +229,6 @@ class PeptideDataBaseSearchFI :
 
       // Optional per-file Percolator rescoring (replaces HyperScore with
       // Percolator q-values for downstream FDR / protein inference).
-      const String percolator_executable = getStringOption_("percolator_executable");
       if (!percolator_executable.empty())
       {
         // Percolator requires decoys for target/decoy competition.
@@ -288,6 +302,69 @@ class PeptideDataBaseSearchFI :
           File::remove(tmp_in);
           File::remove(tmp_out);
           File::remove(tmp_weights);
+        }
+      }
+
+      // Post-rescoring protein inference + FDR on Percolator q-values.
+      // Only runs when both Percolator and protein FDR were requested.
+      if (!percolator_executable.empty() && user_protein_fdr > 0.0)
+      {
+        // Load FASTA for PeptideIndexing
+        vector<FASTAFile::FASTAEntry> fasta_db;
+        FASTAFile().load(database, fasta_db);
+        const String decoy_prefix = search_params.getValue("decoy_prefix").toString();
+        const String enzyme = search_params.getValue("enzyme").toString();
+
+        // Pool rescored PSMs across all files
+        vector<ProteinIdentification> agg_protein_ids;
+        PeptideIdentificationList agg_peptide_ids;
+        if (!mfres.per_file.empty() && mfres.per_file[0].exit_code == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK)
+        {
+          agg_protein_ids = mfres.per_file[0].protein_ids;
+        }
+        const String& agg_id = agg_protein_ids.empty() ? String("merged") : agg_protein_ids[0].getIdentifier();
+        for (auto& pf : mfres.per_file)
+        {
+          if (pf.exit_code != PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK) continue;
+          for (auto& pid : pf.peptide_ids)
+          {
+            pid.setIdentifier(agg_id);
+            agg_peptide_ids.push_back(pid);
+          }
+        }
+
+        if (!agg_protein_ids.empty() && !agg_peptide_ids.empty())
+        {
+          // Re-index and run protein inference on rescored PSMs
+          PeptideIndexing indexer;
+          Param param_pi = indexer.getParameters();
+          param_pi.setValue("decoy_string", decoy_prefix);
+          param_pi.setValue("decoy_string_position", "prefix");
+          param_pi.setValue("enzyme:name", enzyme);
+          param_pi.setValue("missing_decoy_action", "silent");
+          indexer.setParameters(param_pi);
+          indexer.run(fasta_db, agg_protein_ids, agg_peptide_ids);
+
+          BasicProteinInferenceAlgorithm bpia;
+          bpia.run(agg_peptide_ids, agg_protein_ids);
+
+          FalseDiscoveryRate fdr;
+          fdr.applyPickedProteinFDR(agg_protein_ids[0], decoy_prefix, true);
+          IDFilter::filterHitsByScore(agg_protein_ids, user_protein_fdr);
+          IDFilter::removeDecoyHits(agg_peptide_ids);
+          IDFilter::removeEmptyIdentifications(agg_peptide_ids);
+          IDFilter::removeUnreferencedProteins(agg_protein_ids, agg_peptide_ids);
+
+          OPENMS_LOG_INFO << "[PDBS-FI] Post-Percolator protein inference + FDR: "
+                          << agg_protein_ids[0].getHits().size() << " proteins at "
+                          << user_protein_fdr * 100 << "% FDR" << endl;
+
+          // Write back filtered protein list to each per-file result
+          for (auto& pf : mfres.per_file)
+          {
+            if (pf.exit_code != PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK) continue;
+            pf.protein_ids = agg_protein_ids;
+          }
         }
       }
 
