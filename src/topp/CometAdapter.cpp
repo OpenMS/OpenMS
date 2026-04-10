@@ -689,31 +689,60 @@ protected:
         tmp_file = default_params;
     }
 
-    // check for mzML index (comet requires one)
+    // Load input data — branch on file type
     MSExperiment exp;
-    MzMLFile mzml_file{};
     String input_file_with_index = inputfile_name;
-    if (!mzml_file.hasIndex(inputfile_name))
-    {
-      OPENMS_LOG_WARN << "The mzML file provided to CometAdapter is not indexed, but comet requires one. "
-                      << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
-      // Low memory conversion
-      // write mzML with index again
-      auto tmp_file = File::getTemporaryFile() + ".mzML";
-      PlainMSDataWritingConsumer consumer(tmp_file);
-      consumer.getOptions().addMSLevel(ms_level); // only load msLevel 2
-      bool skip_full_count = true;
-      mzml_file.transform(inputfile_name, &consumer, skip_full_count);
-      input_file_with_index = tmp_file;
-    }
 
-	// Load spectra metadata to map to idXML
-    mzml_file.getOptions().setMetadataOnly(false);
-	mzml_file.getOptions().setFillData(false);
-	mzml_file.getOptions().clearMSLevels();
-	// Ion mobility data is currently stored in MS2
-	mzml_file.getOptions().addMSLevel(2);
-    mzml_file.load(inputfile_name, exp);
+#ifdef WITH_OPENTIMS
+    const bool is_bruker_d = (FileHandler::getType(inputfile_name) == FileTypes::BRUKER_TDF);
+    if (is_bruker_d)
+    {
+      // Load .d via BrukerTimsFile
+      auto bruker_config = getBrukerConfig_();
+      BrukerTimsFile tims_file;
+      tims_file.setLogType(log_type_);
+      tims_file.load(inputfile_name, exp, bruker_config);
+
+      // Filter to target MS level only (Comet only needs MS2)
+      std::erase_if(exp.getSpectra(), [&](const MSSpectrum& s) { return s.getMSLevel() != static_cast<UInt>(ms_level); });
+
+      OPENMS_LOG_INFO << "Loaded " << exp.size() << " MS" << ms_level << " spectra from Bruker .d directory." << std::endl;
+
+      if (!exp.empty())
+      {
+        writeDebug_("First native ID from .d: " + exp[0].getNativeID(), 2);
+        writeDebug_("Last native ID from .d: " + exp[exp.size() - 1].getNativeID(), 2);
+      }
+
+      // Write to temporary indexed mzML for Comet
+      auto tmp_mzml = File::getTemporaryFile() + ".mzML";
+      MzMLFile().store(tmp_mzml, exp);
+      input_file_with_index = tmp_mzml;
+    }
+    else
+#endif
+    {
+      // Existing mzML path
+      MzMLFile mzml_file{};
+      if (!mzml_file.hasIndex(inputfile_name))
+      {
+        OPENMS_LOG_WARN << "The mzML file provided to CometAdapter is not indexed, but comet requires one. "
+                        << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
+        auto tmp_file_mzml = File::getTemporaryFile() + ".mzML";
+        PlainMSDataWritingConsumer consumer(tmp_file_mzml);
+        consumer.getOptions().addMSLevel(ms_level);
+        bool skip_full_count = true;
+        mzml_file.transform(inputfile_name, &consumer, skip_full_count);
+        input_file_with_index = tmp_file_mzml;
+      }
+
+      // Load spectra metadata to map to idXML
+      mzml_file.getOptions().setMetadataOnly(false);
+      mzml_file.getOptions().setFillData(false);
+      mzml_file.getOptions().clearMSLevels();
+      mzml_file.getOptions().addMSLevel(ms_level);
+      mzml_file.load(inputfile_name, exp);
+    }
 
     //-------------------------------------------------------------
     // calculations
