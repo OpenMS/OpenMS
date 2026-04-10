@@ -567,6 +567,109 @@ START_SECTION(DIA MS1 centroiding test)
 }
 END_SECTION
 
+START_SECTION(DIA MS2 aggregation test)
+{
+  BrukerTimsFile f;
+
+  // Load without aggregation (baseline)
+  MSExperiment exp_raw;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_raw);
+
+  // Load with aggregation (n_neighbors=1 → 3-frame sum)
+  BrukerTimsFile::Config cfg;
+  cfg.dia_ms2_n_neighbors = 1;
+  cfg.dia_ms2_min_support = 1;
+  MSExperiment exp_agg;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_agg, cfg);
+
+  // Count MS2 spectra and total MS2 peaks in both
+  Size raw_ms2_count = 0, agg_ms2_count = 0;
+  Size raw_ms2_peaks = 0, agg_ms2_peaks = 0;
+  for (const auto& spec : exp_raw)
+  {
+    if (spec.getMSLevel() == 2)
+    {
+      ++raw_ms2_count;
+      raw_ms2_peaks += spec.size();
+    }
+  }
+  for (const auto& spec : exp_agg)
+  {
+    if (spec.getMSLevel() == 2)
+    {
+      ++agg_ms2_count;
+      agg_ms2_peaks += spec.size();
+    }
+  }
+
+  // Both should have MS2 spectra
+  TEST_NOT_EQUAL(raw_ms2_count, 0);
+  TEST_NOT_EQUAL(agg_ms2_count, 0);
+
+  // Aggregated spectra should have per-peak IM data
+  for (const auto& spec : exp_agg)
+  {
+    if (spec.getMSLevel() == 2 && !spec.empty())
+    {
+      TEST_EQUAL(spec.containsIMData(), true);
+      TEST_EQUAL(spec.getIMPeakType() == IMPeakType::IM_PROFILE, true);
+      TEST_NOT_EQUAL(spec.getPrecursors().size(), 0);
+      break;
+    }
+  }
+
+  // Aggregated path should produce spectra (may differ in count due to
+  // window-group iteration vs brute-force, but both must be non-empty)
+  STATUS("DIA aggregation: raw MS2 spectra=" << raw_ms2_count
+         << " peaks=" << raw_ms2_peaks
+         << " | aggregated MS2 spectra=" << agg_ms2_count
+         << " peaks=" << agg_ms2_peaks);
+}
+END_SECTION
+
+START_SECTION(DIA MS2 centroiding test)
+{
+  BrukerTimsFile f;
+
+  // Load with aggregation + centroiding
+  BrukerTimsFile::Config cfg;
+  cfg.dia_ms2_n_neighbors = 1;
+  cfg.dia_ms2_min_support = 1;
+  cfg.dia_ms2_centroid = true;
+  MSExperiment exp_cent;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_cent, cfg);
+
+  // Count MS2 spectra
+  Size cent_ms2_count = 0;
+  Size cent_ms2_peaks = 0;
+  for (const auto& spec : exp_cent)
+  {
+    if (spec.getMSLevel() == 2)
+    {
+      ++cent_ms2_count;
+      cent_ms2_peaks += spec.size();
+    }
+  }
+
+  TEST_NOT_EQUAL(cent_ms2_count, 0);
+
+  // Centroided spectra should have IM_CENTROIDED type and per-peak IM data
+  for (const auto& spec : exp_cent)
+  {
+    if (spec.getMSLevel() == 2 && !spec.empty())
+    {
+      TEST_EQUAL(spec.containsIMData(), true);
+      TEST_EQUAL(spec.getIMPeakType() == IMPeakType::IM_CENTROIDED, true);
+      TEST_NOT_EQUAL(spec.getPrecursors().size(), 0);
+      break;
+    }
+  }
+
+  STATUS("DIA centroiding: MS2 spectra=" << cent_ms2_count
+         << " peaks=" << cent_ms2_peaks);
+}
+END_SECTION
+
 #endif // OPENTIMS_DIA_TEST_DATA
 
 END_TEST
