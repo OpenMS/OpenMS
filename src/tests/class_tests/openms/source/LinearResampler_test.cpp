@@ -101,6 +101,43 @@ START_SECTION((template<typename PeakType> void raster(MSSpectrum& spectrum)))
   TEST_REAL_SIMILAR(spec[2].getIntensity(), 1.0/3*8+2+1.0/3);
   TEST_REAL_SIMILAR(spec[3].getIntensity(), 2.0 / 3);
 }
+/////////// test raster where resampled points >> raw points (regression test for index bug)
+{
+  // 3 raw points spanning a wide range, resampled at fine spacing
+  // This triggers the bug where right_index was clamped to number_raw_points-1
+  // instead of number_resampled_points-1
+  MSSpectrum spec;
+  spec.resize(3);
+  spec[0].setMZ(0);
+  spec[0].setIntensity(10.0f);
+  spec[1].setMZ(5.0);
+  spec[1].setIntensity(20.0f);
+  spec[2].setMZ(10.0);
+  spec[2].setIntensity(10.0f);
+
+  LinearResampler lr;
+  Param param;
+  param.setValue("spacing", 0.1);
+  lr.setParameters(param);
+  lr.raster(spec);
+
+  // resampled grid: 101 points (ceil((10-0)/0.1 + 1))
+  TEST_EQUAL(spec.size(), 101);
+
+  // total intensity must be conserved
+  double sum = 0.0;
+  for (Size i = 0; i < spec.size(); ++i)
+  {
+    sum += spec[i].getIntensity();
+  }
+  TEST_REAL_SIMILAR(sum, 40.0);
+
+  // no resampled point should exceed the max raw intensity
+  for (Size i = 0; i < spec.size(); ++i)
+  {
+    TEST_EQUAL(spec[i].getIntensity() <= 20.0 + 1e-5, true);
+  }
+}
 END_SECTION
 
 START_SECTION(( template <typename PeakType > void rasterExperiment(MSExperiment<PeakType>& exp)))

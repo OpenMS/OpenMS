@@ -91,7 +91,7 @@ public:
       {
         int help = static_cast<int>(floor(((first + i)->getMZ() - start_pos) / spacing_));
         left_index = (help < 0) ? 0 : help;
-        help = distance(first, last) - 1;
+        help = number_resampled_points - 1;
         right_index = (left_index >= help) ? help : left_index + 1;
 
         // compute the distance between x and the left adjacent resampled peak
