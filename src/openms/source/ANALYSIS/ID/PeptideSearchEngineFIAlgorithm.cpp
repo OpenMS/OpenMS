@@ -1241,28 +1241,11 @@ namespace OpenMS
     mfres.aggregate.protein_ids = {std::move(merged_proteins)};
     mfres.aggregate.protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
 
-    // Aggregate protein inference + picked-protein FDR on pooled PSMs.
-    // Check for decoys: either generated internally (decoys_) or present in
-    // the database (external decoys matching decoy_prefix_).
-    bool has_decoys_agg = decoys_ || std::any_of(ctx.db.begin(), ctx.db.end(),
-        [this](const FASTAFile::FASTAEntry& e) { return e.identifier.hasPrefix(decoy_prefix_); });
-    if (fdr_protein_ > 0.0 && has_decoys_agg && !mfres.aggregate.protein_ids.empty())
-    {
-      // Protein inference: aggregate best PSM score per peptide per protein.
-      BasicProteinInferenceAlgorithm bpia;
-      bpia.run(mfres.aggregate.peptide_ids, mfres.aggregate.protein_ids);
-
-      FalseDiscoveryRate fdr;
-      fdr.applyPickedProteinFDR(mfres.aggregate.protein_ids[0], decoy_prefix_, true);
-      IDFilter::filterHitsByScore(mfres.aggregate.protein_ids, fdr_protein_);
-      IDFilter::removeDecoyHits(mfres.aggregate.peptide_ids);
-      IDFilter::removeEmptyIdentifications(mfres.aggregate.peptide_ids);
-      IDFilter::removeUnreferencedProteins(mfres.aggregate.protein_ids, mfres.aggregate.peptide_ids);
-
-      OPENMS_LOG_INFO << "[PDBS-FI] Aggregate protein inference + FDR: "
-                      << mfres.aggregate.protein_ids[0].getHits().size() << " proteins at "
-                      << fdr_protein_ * 100 << "% FDR" << std::endl;
-    }
+    // Note: protein inference + FDR on the aggregate is left to the caller
+    // (e.g., the TOPP tool's -out_merged option) so that per-file outputs
+    // retain run-level information without being overwritten by aggregate
+    // protein lists. The aggregate here contains the merged (unfiltered)
+    // proteins + pooled PSMs for downstream use.
 
     // Aggregate modification analysis on the pooled PSM set.
     if (mfres.aggregate.is_open_search && !mfres.aggregate.peptide_ids.empty())
