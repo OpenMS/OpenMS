@@ -1277,9 +1277,13 @@ namespace OpenMS
 
       // Precursor error: always compute inline (cheap) so tolerance estimation
       // does not depend on the annotate:PSM setting.
-      double theo_mz = top.getSequence().getMZ(top.getCharge());
-      double prec_error_ppm = Math::getPPM(pid.getMZ(), theo_mz);
-      precursor_errors.push_back(fabs(prec_error_ppm));
+      // Skip hits with unresolved charge (0) — getMZ() would throw.
+      if (top.getCharge() > 0)
+      {
+        double theo_mz = top.getSequence().getMZ(top.getCharge());
+        double prec_error_ppm = Math::getPPM(pid.getMZ(), theo_mz);
+        precursor_errors.push_back(fabs(prec_error_ppm));
+      }
 
       // Fragment error: use annotation metavalue if available (computing it
       // inline would require spectrum alignment which is expensive).
