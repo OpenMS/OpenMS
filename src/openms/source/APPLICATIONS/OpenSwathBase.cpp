@@ -132,7 +132,7 @@ namespace OpenMS
 #ifdef WITH_OPENTIMS
         else if (in_file_type == FileTypes::BRUKER_TDF)
         {
-          auto maps = swath_file.loadBrukerTdf(f, exp_meta);
+          auto maps = swath_file.loadBrukerTdf(f, tmp, exp_meta, readoptions);
           for (auto & m : maps)
           {
             swath_maps.push_back(m);
@@ -178,7 +178,7 @@ namespace OpenMS
 #ifdef WITH_OPENTIMS
       else if (in_file_type == FileTypes::BRUKER_TDF)
       {
-        swath_maps = swath_file.loadBrukerTdf(file_list[0], exp_meta);
+        swath_maps = swath_file.loadBrukerTdf(file_list[0], tmp, exp_meta, readoptions);
         swath_map_sources.clear();
         for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
       }
