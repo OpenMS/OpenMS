@@ -1275,10 +1275,14 @@ namespace OpenMS
         unique_proteins.insert(ev.getProteinAccession());
       }
 
-      if (top.metaValueExists(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))
-      {
-        precursor_errors.push_back(fabs(static_cast<double>(top.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))));
-      }
+      // Precursor error: always compute inline (cheap) so tolerance estimation
+      // does not depend on the annotate:PSM setting.
+      double theo_mz = top.getSequence().getMZ(top.getCharge());
+      double prec_error_ppm = Math::getPPM(pid.getMZ(), theo_mz);
+      precursor_errors.push_back(fabs(prec_error_ppm));
+
+      // Fragment error: use annotation metavalue if available (computing it
+      // inline would require spectrum alignment which is expensive).
       if (top.metaValueExists(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM))
       {
         fragment_errors.push_back(static_cast<double>(top.getMetaValue(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM)));
