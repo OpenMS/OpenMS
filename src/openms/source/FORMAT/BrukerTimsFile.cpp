@@ -1023,11 +1023,8 @@ namespace OpenMS
     sf.setNameOfFile(File::basename(path));
     sf.setPathToFile(File::path(path));
     sf.setFileType("Bruker TDF");
-    // TODO: MS:1000776 ("scan number only nativeID format") expects "scan=NUMBER" IDs,
-    // but MS1/DIA spectra use "frame=..." and DIA MS2 uses "frame=... windowGroup=...".
-    // There is no standard CV term for Bruker frame-based native IDs yet.
-    sf.setNativeIDType("scan number only nativeID format");
-    sf.setNativeIDTypeAccession("MS:1000776");
+    sf.setNativeIDType("Bruker TDF nativeID format");
+    sf.setNativeIDTypeAccession("MS:1002818");
     settings.getSourceFiles().push_back(sf);
   }
 
@@ -1185,7 +1182,7 @@ namespace OpenMS
           spec.setRT(frame.time);
           spec.setMSLevel(2);
           spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-          spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win->window_group));
+          spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win->window_group) + " scan=" + String(win->scan_begin));
 
           Precursor prec;
           prec.setMZ(win->mz_center);
@@ -1860,7 +1857,7 @@ namespace OpenMS
             spec.setRT(center_frame.time);
             spec.setMSLevel(2);
             spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-            spec.setNativeID("frame=" + String(center_frame.id) + " windowGroup=" + String(win->window_group));
+            spec.setNativeID("frame=" + String(center_frame.id) + " windowGroup=" + String(win->window_group) + " scan=" + String(win->scan_begin));
 
             Precursor prec;
             prec.setMZ(win->mz_center);
@@ -1924,7 +1921,7 @@ namespace OpenMS
             spec.setRT(frame.time);
             spec.setMSLevel(2);
             spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-            spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win->window_group));
+            spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win->window_group) + " scan=" + String(win->scan_begin));
 
             Precursor prec;
             prec.setMZ(win->mz_center);
