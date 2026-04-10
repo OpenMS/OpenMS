@@ -428,6 +428,41 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
 
     Size report_top_hits_;
 
+    bool calibration_enabled_{false};
+    double calibration_subset_ratio_{0.1};
+    Size calibration_min_psms_{50};
+
+    /**
+     * @brief Result of a calibration pass.
+     *
+     * Holds the estimated precursor and fragment tolerances computed from
+     * confident PSMs during the calibration pass. When @c success is false,
+     * the tolerance values are undefined and should not be used.
+     */
+    struct CalibrationResult_
+    {
+      double precursor_tolerance{0}; ///< estimated precursor tolerance (same unit as configured)
+      double fragment_tolerance{0};  ///< estimated fragment tolerance (same unit as configured)
+      double fragment_shift{0};      ///< reserved for future fragment m/z shift correction
+      bool success{false};           ///< true if enough PSMs were found for reliable estimation
+    };
+
+    /**
+     * @brief Run a fast calibration pass on a subset of spectra to estimate mass accuracy.
+     *
+     * Scores a TIC-ranked subset of spectra against the fragment index,
+     * collects precursor and fragment mass errors from high-confidence PSMs,
+     * and returns calibrated tolerances using median + 3*MAD estimation.
+     *
+     * @param[in] spectra  Preprocessed MS/MS spectra (subset is selected internally by TIC).
+     * @param[in,out] fragment_index  Pre-built fragment index for candidate lookup.
+     * @param[in] db  Protein database (for sequence reconstruction of candidates).
+     * @return CalibrationResult_ with estimated tolerances, or success=false if insufficient PSMs.
+     */
+    CalibrationResult_ runCalibrationPass_(PeakMap& spectra,
+                                           FragmentIndex& fragment_index,
+                                           const std::vector<FASTAFile::FASTAEntry>& db) const;
+
     /// Helper: log the modification analysis summary (shared by in-memory and file-based paths)
     void logModificationAnalysisSummary_(const SearchResult& result,
                                          const String& output_base_name) const;

@@ -2982,6 +2982,28 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -protein false)
   set_tests_properties("TOPP_FalseDiscoveryRate_PeptideDataBaseSearchFIDDA" PROPERTIES DEPENDS "TOPP_PeptideDataBaseSearchFI_DDA")
 
+  # Same DDA search with automatic calibration enabled
+  add_test("TOPP_PeptideDataBaseSearchFI_DDA_calibrated" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
+    -in ${OPENTIMS_DDA_SYMLINK}
+    -database ${OPENTIMS_TEST_FASTA}
+    -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_calibrated_out.tmp.idXML
+    -Search:precursor:mass_tolerance 20
+    -Search:precursor:mass_tolerance_unit ppm
+    -Search:fragment:mass_tolerance 20
+    -Search:fragment:mass_tolerance_unit ppm
+    -Search:enzyme Trypsin/P
+    -Search:peptide:missed_cleavages 2
+    "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
+    -Search:decoys
+    -Search:calibration:enabled)
+
+  add_test("TOPP_FalseDiscoveryRate_PeptideDataBaseSearchFIDDA_calibrated" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+    -in ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_calibrated_out.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_calibrated_fdr.tmp.idXML
+    -FDR:PSM 0.01
+    -protein false)
+  set_tests_properties("TOPP_FalseDiscoveryRate_PeptideDataBaseSearchFIDDA_calibrated" PROPERTIES DEPENDS "TOPP_PeptideDataBaseSearchFI_DDA_calibrated")
+
   # SageAdapter DDA test: generate decoys externally (SageAdapter sets generate_decoys=false),
   # then search with Sage, then apply FDR filtering on hyperscore via FalseDiscoveryRate.
   if (NOT (${SAGE_BINARY} STREQUAL "SAGE_BINARY-NOTFOUND"))
