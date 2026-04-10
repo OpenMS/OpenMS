@@ -18,6 +18,7 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -667,6 +668,101 @@ START_SECTION(DIA MS2 centroiding test)
 
   STATUS("DIA centroiding: MS2 spectra=" << cent_ms2_count
          << " peaks=" << cent_ms2_peaks);
+}
+END_SECTION
+
+START_SECTION(DIA readDIAMetadata test)
+{
+  BrukerTimsFile f;
+  ExperimentalSettings settings;
+  auto meta = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings);
+
+  // Should have SWATH windows
+  TEST_NOT_EQUAL(meta.boundaries.size(), 0);
+
+  // Should have MS1 frames
+  TEST_NOT_EQUAL(meta.nr_ms1_spectra, 0);
+
+  // nr_ms2_spectra should have same size as boundaries
+  TEST_EQUAL(meta.nr_ms2_spectra.size(), meta.boundaries.size());
+
+  // Each window should have spectra
+  for (Size i = 0; i < meta.nr_ms2_spectra.size(); ++i)
+  {
+    TEST_NOT_EQUAL(meta.nr_ms2_spectra[i], 0);
+  }
+
+  // Boundaries should have valid m/z and IM ranges
+  for (const auto& b : meta.boundaries)
+  {
+    TEST_EQUAL(b.ms1, false);
+    TEST_EQUAL(b.center > 0, true);
+    TEST_EQUAL(b.lower < b.upper, true);
+    TEST_EQUAL(b.imLower >= 0, true);
+    TEST_EQUAL(b.imUpper > b.imLower, true);
+  }
+
+  // ExperimentalSettings should have source file
+  TEST_EQUAL(settings.getSourceFiles().size(), 1);
+
+  STATUS("readDIAMetadata: " << meta.boundaries.size() << " windows, "
+         << meta.nr_ms1_spectra << " MS1 spectra");
+}
+END_SECTION
+
+START_SECTION(DIA loadDIAStreaming test)
+{
+  BrukerTimsFile f;
+
+  // Get metadata first
+  ExperimentalSettings settings;
+  auto meta = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings);
+
+  // Create in-memory consumer with known boundaries
+  RegularSwathFileConsumer consumer(meta.boundaries);
+  consumer.setExperimentalSettings(settings);
+
+  // Stream spectra
+  f.loadDIAStreaming(OPENTIMS_DIA_TEST_DATA, consumer);
+
+  // Retrieve SwathMaps
+  std::vector<OpenSwath::SwathMap> swath_maps;
+  consumer.retrieveSwathMaps(swath_maps);
+
+  // Should have MS1 map + MS2 maps
+  Size ms1_count = 0, ms2_count = 0;
+  for (const auto& m : swath_maps)
+  {
+    if (m.ms1) ++ms1_count;
+    else ++ms2_count;
+  }
+  TEST_EQUAL(ms1_count, 1);
+  TEST_EQUAL(ms2_count, meta.boundaries.size());
+
+  // MS1 map should have spectra matching metadata count
+  for (const auto& m : swath_maps)
+  {
+    if (m.ms1)
+    {
+      TEST_EQUAL(m.sptr->getNrSpectra(), static_cast<size_t>(meta.nr_ms1_spectra));
+      break;
+    }
+  }
+
+  // Each MS2 map should have spectra with IM data
+  for (const auto& m : swath_maps)
+  {
+    if (!m.ms1 && m.sptr->getNrSpectra() > 0)
+    {
+      auto spec = m.sptr->getSpectrumById(0);
+      TEST_NOT_EQUAL(spec->getMZArray()->data.size(), 0);
+      TEST_EQUAL(spec->getDriftTimeArray() == nullptr, false);
+      break;
+    }
+  }
+
+  STATUS("loadDIAStreaming: " << swath_maps.size() << " SwathMaps "
+         << "(" << ms1_count << " MS1, " << ms2_count << " MS2)");
 }
 END_SECTION
 
