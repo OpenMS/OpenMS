@@ -94,21 +94,30 @@ public:
         help = number_resampled_points - 1;
         right_index = (left_index >= help) ? help : left_index + 1;
 
-        // compute the distance between x and the left adjacent resampled peak
-        distance_left = fabs((first + i)->getMZ() - (it + left_index)->getMZ()) / spacing_;
-        //std::cout << "Distance left " << distance_left << std::endl;
-        // compute the distance between x and the right adjacent resampled peak
-        distance_right = fabs((first + i)->getMZ() - (it + right_index)->getMZ());
-        //std::cout << "Distance right " << distance_right << std::endl;
+        // boundary case: raw point falls on (or is clamped to) the last resampled
+        // point so left_index == right_index.  Both interpolation distances are 0,
+        // which would lose the entire intensity.  Assign it directly instead.
+        if (left_index == right_index)
+        {
+          double intensity = static_cast<double>((it + left_index)->getIntensity());
+          intensity += static_cast<double>((first + i)->getIntensity());
+          (it + left_index)->setIntensity(intensity);
+        }
+        else
+        {
+          // compute the distance between x and the left adjacent resampled peak
+          distance_left = fabs((first + i)->getMZ() - (it + left_index)->getMZ()) / spacing_;
+          // compute the distance between x and the right adjacent resampled peak
+          distance_right = fabs((first + i)->getMZ() - (it + right_index)->getMZ());
 
-
-        // add the distance_right*h to the left resampled peak and distance_left*h to the right resampled peak
-        double intensity = static_cast<double>((it + left_index)->getIntensity());
-        intensity += static_cast<double>((first + i)->getIntensity()) * distance_right / spacing_;
-        (it + left_index)->setIntensity(intensity);
-        intensity = static_cast<double>((it + right_index)->getIntensity());
-        intensity += static_cast<double>((first + i)->getIntensity()) * distance_left;
-        (it + right_index)->setIntensity(intensity);
+          // add the distance_right*h to the left resampled peak and distance_left*h to the right resampled peak
+          double intensity = static_cast<double>((it + left_index)->getIntensity());
+          intensity += static_cast<double>((first + i)->getIntensity()) * distance_right / spacing_;
+          (it + left_index)->setIntensity(intensity);
+          intensity = static_cast<double>((it + right_index)->getIntensity());
+          intensity += static_cast<double>((first + i)->getIntensity()) * distance_left;
+          (it + right_index)->setIntensity(intensity);
+        }
       }
 
       spectrum.swap(resampled_peak_container);
