@@ -50,7 +50,7 @@ using namespace std;
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
     @note Open-search mode is automatically determined by the precursor mass tolerance: enabled when tolerance exceeds 1 Da or 1000 ppm. No explicit open-search parameter is needed. This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.
-    @note Decoy generation uses an internal "DECOY_" prefix. FASTA databases with pre-existing decoys (external decoy prefix) are not supported — provide a target-only FASTA and enable '-Search:decoys' to let the tool generate decoys internally.
+    @note Decoy handling: either enable '-Search:decoys' to generate decoys internally, or provide a FASTA database that already contains decoy proteins (e.g., from DecoyDatabase). In both cases, the decoy accession prefix must match '-Search:decoy_prefix' (default: "DECOY_").
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_PeptideDataBaseSearchFI.cli

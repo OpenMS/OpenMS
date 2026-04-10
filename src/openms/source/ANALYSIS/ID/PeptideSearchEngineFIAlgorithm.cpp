@@ -115,6 +115,8 @@ namespace OpenMS
     defaults_.setValue("decoys", "false", "Should decoys be generated?");
     defaults_.setValidStrings("decoys", {"true","false"} );
 
+    defaults_.setValue("decoy_prefix", "DECOY_", "Accession prefix used for decoy proteins. When decoy generation is enabled (-decoys), this prefix is added to generated decoy accessions. When decoy generation is disabled, the FASTA database may already contain decoy proteins with this prefix (e.g., from DecoyDatabase) and FDR can still be applied.", {"advanced"});
+
     defaults_.setValue("annotate:PSM",  std::vector<std::string>{"ALL"}, "Annotations added to each PSM.");
     defaults_.setValidStrings("annotate:PSM",
       std::vector<std::string>{
@@ -259,6 +261,7 @@ namespace OpenMS
     report_top_hits_ = param_.getValue("report:top_hits");
 
     decoys_ = param_.getValue("decoys") == "true";
+    decoy_prefix_ = param_.getValue("decoy_prefix").toString();
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
     fdr_psm_ = param_.getValue("FDR:PSM");
     fdr_protein_ = param_.getValue("FDR:protein");
@@ -677,7 +680,7 @@ namespace OpenMS
         {
           e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
         }
-        e.identifier = "DECOY_" + e.identifier;
+        e.identifier = decoy_prefix_ + e.identifier;
         ctx.db.push_back(std::move(e));
       }
       Math::RandomShuffler shuffler;
@@ -902,7 +905,7 @@ namespace OpenMS
     // semi-specific / non-specific PSMs would be silently filtered out here.
     PeptideIndexing indexer;
     Param param_pi = indexer.getParameters();
-    param_pi.setValue("decoy_string", "DECOY_");
+    param_pi.setValue("decoy_string", decoy_prefix_);
     param_pi.setValue("decoy_string_position", "prefix");
     param_pi.setValue("enzyme:name", enzyme_);
     param_pi.setValue("enzyme:specificity",
@@ -941,11 +944,13 @@ namespace OpenMS
       }
     }
 
-    // PSM-level FDR filtering (requires decoys).
-    // Decoy hits are kept when protein FDR is requested — applyPickedProteinFDR
-    // needs both target and decoy proteins with scores. Decoy removal is
-    // deferred to the caller (file-based search or multi-file aggregate path).
-    if (fdr_psm_ > 0.0 && decoys_)
+    // PSM-level FDR filtering.
+    // Decoys may be generated internally (decoys_=true) or present in the
+    // input FASTA (external, identified by decoy_prefix_).
+    bool has_decoys = std::any_of(db.begin(), db.end(),
+        [this](const FASTAFile::FASTAEntry& e) { return e.identifier.hasPrefix(decoy_prefix_); });
+
+    if (fdr_psm_ > 0.0 && has_decoys)
     {
       FalseDiscoveryRate fdr;
       fdr.apply(peptide_ids);
@@ -959,9 +964,10 @@ namespace OpenMS
         IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
       }
     }
-    else if (fdr_psm_ > 0.0 && !decoys_)
+    else if (fdr_psm_ > 0.0 && !has_decoys)
     {
-      OPENMS_LOG_WARN << "FDR:PSM is set but decoys are disabled. Skipping FDR filtering." << endl;
+      OPENMS_LOG_WARN << "FDR:PSM is set but no decoys found (decoy_prefix='" << decoy_prefix_
+                      << "'). Provide a FASTA with decoy proteins or enable '-decoys'. Skipping FDR filtering." << endl;
     }
 
     restore_fi_params();
@@ -1004,13 +1010,15 @@ namespace OpenMS
     // Protein inference + picked-protein FDR for single-file search.
     // Must run before decoy removal so both target and decoy proteins
     // receive aggregated scores from BPIA.
-    if (fdr_protein_ > 0.0 && decoys_)
+    bool has_decoys_single = std::any_of(fasta_db.begin(), fasta_db.end(),
+        [this](const FASTAFile::FASTAEntry& e) { return e.identifier.hasPrefix(decoy_prefix_); });
+    if (fdr_protein_ > 0.0 && has_decoys_single)
     {
       BasicProteinInferenceAlgorithm bpia;
       bpia.run(peptide_ids, protein_ids);
 
       FalseDiscoveryRate fdr;
-      fdr.applyPickedProteinFDR(protein_ids[0], "DECOY_", true);
+      fdr.applyPickedProteinFDR(protein_ids[0], decoy_prefix_, true);
       IDFilter::filterHitsByScore(protein_ids, fdr_protein_);
 
       // Now safe to remove decoys (deferred from search() above)
@@ -1268,7 +1276,7 @@ namespace OpenMS
       // from the database and maps all pooled PSMs to it.
       PeptideIndexing indexer;
       Param param_pi = indexer.getParameters();
-      param_pi.setValue("decoy_string", "DECOY_");
+      param_pi.setValue("decoy_string", decoy_prefix_);
       param_pi.setValue("decoy_string_position", "prefix");
       param_pi.setValue("enzyme:name", enzyme_);
       param_pi.setValue("enzyme:specificity",
@@ -1286,7 +1294,7 @@ namespace OpenMS
       bpia.run(mfres.aggregate.peptide_ids, mfres.aggregate.protein_ids);
 
       FalseDiscoveryRate fdr;
-      fdr.applyPickedProteinFDR(mfres.aggregate.protein_ids[0], "DECOY_", true);
+      fdr.applyPickedProteinFDR(mfres.aggregate.protein_ids[0], decoy_prefix_, true);
       IDFilter::filterHitsByScore(mfres.aggregate.protein_ids, fdr_protein_);
       IDFilter::removeDecoyHits(mfres.aggregate.peptide_ids);
       IDFilter::removeEmptyIdentifications(mfres.aggregate.peptide_ids);
