@@ -10,6 +10,7 @@
 
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
@@ -1222,78 +1223,32 @@ namespace OpenMS
       return mfres;
     }
 
-    // Use the first successful per-file result's protein metadata as the aggregate template.
-    for (const auto& pf : mfres.per_file)
-    {
-      if (pf.exit_code == ExitCodes::EXECUTION_OK)
-      {
-        mfres.aggregate.protein_ids = pf.protein_ids;
-        break;
-      }
-    }
-    // Overwrite the primary MS run path on the aggregate to point at all input files.
-    if (!mfres.aggregate.protein_ids.empty())
-    {
-      mfres.aggregate.protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
-    }
-
-    // Pool peptide_ids across all successful per-file results.
-    Size pooled_count = 0;
-    for (const auto& pf : mfres.per_file)
-    {
-      if (pf.exit_code == ExitCodes::EXECUTION_OK) { pooled_count += pf.peptide_ids.size(); }
-    }
-    mfres.aggregate.peptide_ids.reserve(pooled_count);
+    // Merge per-file identifications into a single aggregate using
+    // IDMergerAlgorithm — the canonical OpenMS pattern for cross-file protein
+    // inference (mirrors ConsensusMapMergerAlgorithm::mergeAllIDRuns in
+    // ProteomicsLFQ). This deduplicates ProteinHits by accession (union) and
+    // remaps all PeptideIdentification identifiers to the merged run. No
+    // PeptideIndexing re-run needed: per-file searches already linked
+    // peptides to proteins.
+    IDMergerAlgorithm merger;
     for (const auto& pf : mfres.per_file)
     {
       if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
-      for (const auto& pid : pf.peptide_ids)
-      {
-        mfres.aggregate.peptide_ids.push_back(pid);
-      }
+      merger.insertRuns(pf.protein_ids, pf.peptide_ids);
     }
+    ProteinIdentification merged_proteins;
+    merger.returnResultsAndClear(merged_proteins, mfres.aggregate.peptide_ids);
+    mfres.aggregate.protein_ids = {std::move(merged_proteins)};
+    mfres.aggregate.protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
 
-    // Aggregate protein inference + picked-protein FDR on pooled PSMs (across
-    // all files). This is the correct level for protein inference — per-file
-    // protein FDR is too conservative because each file sees only a subset of
-    // the proteome. Mirrors the ProteomicsLFQ pattern.
+    // Aggregate protein inference + picked-protein FDR on pooled PSMs.
     // Check for decoys: either generated internally (decoys_) or present in
     // the database (external decoys matching decoy_prefix_).
     bool has_decoys_agg = decoys_ || std::any_of(ctx.db.begin(), ctx.db.end(),
         [this](const FASTAFile::FASTAEntry& e) { return e.identifier.hasPrefix(decoy_prefix_); });
     if (fdr_protein_ > 0.0 && has_decoys_agg && !mfres.aggregate.protein_ids.empty())
     {
-      // Synchronize identifiers: pooled PSMs carry per-file identifiers
-      // but BasicProteinInferenceAlgorithm filters by identifier match.
-      // Set all PSMs to the aggregate protein run identifier (analogous to
-      // ConsensusMapMergerAlgorithm::mergeAllIDRuns setting "merged").
-      const String& agg_id = mfres.aggregate.protein_ids[0].getIdentifier();
-      for (auto& pid : mfres.aggregate.peptide_ids)
-      {
-        pid.setIdentifier(agg_id);
-      }
-
-      // Re-index pooled PSMs against the aggregate protein list.
-      // Necessary because the aggregate protein_ids is a template from one
-      // per-file result — its ProteinHits may not cover proteins identified
-      // only in other files. PeptideIndexing rebuilds the full protein list
-      // from the database and maps all pooled PSMs to it.
-      PeptideIndexing indexer;
-      Param param_pi = indexer.getParameters();
-      param_pi.setValue("decoy_string", decoy_prefix_);
-      param_pi.setValue("decoy_string_position", "prefix");
-      param_pi.setValue("enzyme:name", enzyme_);
-      param_pi.setValue("enzyme:specificity",
-                        EnzymaticDigestion::NamesOfSpecificity[peptide_enzyme_specificity_]);
-      param_pi.setValue("missing_decoy_action", "silent");
-      indexer.setParameters(param_pi);
-      indexer.run(ctx.db, mfres.aggregate.protein_ids, mfres.aggregate.peptide_ids);
-
       // Protein inference: aggregate best PSM score per peptide per protein.
-      // Uses BasicProteinInferenceAlgorithm (aggregation mode, default "best")
-      // which keeps the best PSM per peptidoform and assigns the aggregated
-      // score to each protein. This sets meaningful protein-level scores
-      // that applyPickedProteinFDR can work with.
       BasicProteinInferenceAlgorithm bpia;
       bpia.run(mfres.aggregate.peptide_ids, mfres.aggregate.protein_ids);
 
