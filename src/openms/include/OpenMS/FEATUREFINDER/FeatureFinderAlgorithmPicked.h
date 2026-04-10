@@ -110,7 +110,7 @@ public:
 
     void setSeeds(const FeatureMap& seeds);
 
-    void setData(const MSExperiment& map, FeatureMap& features);
+    void setData(MSExperiment& map, FeatureMap& features);
 
     /**
       @brief Main method of the FeatureFinderAlgorithmPicked.
@@ -121,7 +121,7 @@ public:
 
       @note: The algorithm will not work on data with negative m/z values and throw an exception.
 
-      @note: the input data will be copied internally (leading to a memory overhead).
+      @note: the input data is modified internally (no memory overhead from copying).
 
       @param[in] input_map The input map of centroided spectra with MS level 1.
       @param[out] features The output feature map.
@@ -141,8 +141,8 @@ public:
 protected:
     void run();
 
-    /// editable copy of the map
-    MapType map_;
+    /// pointer to the editable map
+    MapType* map_;
 
     FeatureMap* features_;
 
