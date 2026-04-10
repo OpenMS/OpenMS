@@ -1585,71 +1585,182 @@ namespace OpenMS
     }
 
     // --- MS2 frames (split by SWATH window) ---
-    startProgress(0, ms2_frame_ids.size(), "Loading DIA-PASEF MS2 frames");
-    for (size_t fi = 0; fi < ms2_frame_ids.size(); ++fi)
+    const bool do_aggregate = config.dia_ms2_n_neighbors > 0;
+
+    if (do_aggregate)
     {
-      setProgress(fi);
-      TimsFrame& frame = handle.get_frame(ms2_frame_ids[fi]);
-      if (frame.num_peaks == 0) continue;
+      // === Aggregated path: per-WindowGroup iteration with RT-neighbor summing ===
+      auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
 
-      // Extract all data from frame
-      std::vector<uint32_t> scan_ids(frame.num_peaks);
-      std::vector<uint32_t> intensities(frame.num_peaks);
-      std::vector<double> mzs(frame.num_peaks);
-      std::vector<double> inv_ion_mobilities(frame.num_peaks);
-
-      frame.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
-                          mzs.data(), inv_ion_mobilities.data(), nullptr);
-
-      // Split peaks by SWATH window IM bounds
-      for (size_t wi = 0; wi < windows.size(); ++wi)
+      // Group DIAWindows by window_group
+      std::map<int, std::vector<const DIAWindow*>> group_to_windows;
+      for (const auto& w : windows)
       {
-        const DIAWindow& win = windows[wi];
+        group_to_windows[w.window_group].push_back(&w);
+      }
 
-        MSSpectrum spec;
-        spec.setRT(frame.time);
-        spec.setMSLevel(2);
-        spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-        spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win.window_group));
+      // Count total work units for progress (frames * windows-per-group)
+      Size total_work = 0;
+      for (const auto& [group, frames] : group_to_frames)
+      {
+        auto wit = group_to_windows.find(group);
+        if (wit != group_to_windows.end())
+          total_work += frames.size() * wit->second.size();
+      }
+      startProgress(0, total_work, "Loading DIA-PASEF MS2 frames (aggregated)");
+      Size progress_count = 0;
 
-        // Set isolation window
-        Precursor prec;
-        prec.setMZ(win.mz_center);
-        prec.setIsolationWindowLowerOffset(win.mz_width / 2.0);
-        prec.setIsolationWindowUpperOffset(win.mz_width / 2.0);
-        spec.setPrecursors({prec});
+      const int N = config.dia_ms2_n_neighbors;
+      DIAFrameAggregator aggregator;
 
-        // Set ion mobility window bounds for PASEF window grouping
-        // (required by SwathFile/OpenSwath pipeline to distinguish windows
-        // sharing the same m/z range but differing in IM)
-        spec.setMetaValue("ion mobility lower limit", win.im_lower);
-        spec.setMetaValue("ion mobility upper limit", win.im_upper);
+      for (const auto& [group, frame_ids] : group_to_frames)
+      {
+        auto wit = group_to_windows.find(group);
+        if (wit == group_to_windows.end()) continue;
+        const auto& dia_windows = wit->second;
 
-        DataArrays::FloatDataArray im_array;
-        IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
-
-        for (uint32_t p = 0; p < frame.num_peaks; ++p)
+        for (const DIAWindow* win : dia_windows)
         {
-          // Check if peak falls within this window's IM bounds
-          if (inv_ion_mobilities[p] >= win.im_lower && inv_ion_mobilities[p] <= win.im_upper)
+          for (size_t i = 0; i < frame_ids.size(); ++i)
           {
-            Peak1D peak;
-            peak.setMZ(mzs[p]);
-            peak.setIntensity(static_cast<double>(intensities[p]));
-            spec.push_back(peak);
-            im_array.push_back(static_cast<float>(inv_ion_mobilities[p]));
+            setProgress(progress_count++);
+            aggregator.clear();
+
+            // Determine neighbor range
+            size_t lo = (i >= static_cast<size_t>(N)) ? i - N : 0;
+            size_t hi = std::min(i + N, frame_ids.size() - 1);
+
+            // Aggregate peaks from all neighbor frames
+            for (size_t ni = lo; ni <= hi; ++ni)
+            {
+              TimsFrame& nframe = handle.get_frame(frame_ids[ni]);
+              if (nframe.num_peaks == 0) continue;
+
+              std::vector<uint32_t> scan_ids(nframe.num_peaks);
+              std::vector<uint32_t> intensities(nframe.num_peaks);
+              std::vector<double> mzs(nframe.num_peaks);
+
+              nframe.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
+                                   mzs.data(), nullptr, nullptr);
+
+              for (uint32_t p = 0; p < nframe.num_peaks; ++p)
+              {
+                // Filter by scan bounds (integer comparison, no IM conversion needed)
+                if (scan_ids[p] >= win->scan_begin && scan_ids[p] <= win->scan_end)
+                {
+                  aggregator.addPeak(mzs[p], intensities[p], scan_ids[p]);
+                }
+              }
+            }
+
+            // Denoise (skip if only 1 frame contributed)
+            bool skip_denoise = (hi - lo) < 1;
+            auto peaks = config.dia_ms2_centroid
+              ? aggregator.finalizeCentroided(config.dia_ms2_min_support, skip_denoise)
+              : aggregator.finalize(config.dia_ms2_min_support, skip_denoise);
+
+            if (peaks.empty()) continue;
+
+            // Build spectrum from center frame metadata
+            TimsFrame& center_frame = handle.get_frame(frame_ids[i]);
+            MSSpectrum spec;
+            spec.setRT(center_frame.time);
+            spec.setMSLevel(2);
+            spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+            spec.setNativeID("frame=" + String(center_frame.id) + " windowGroup=" + String(win->window_group));
+
+            Precursor prec;
+            prec.setMZ(win->mz_center);
+            prec.setIsolationWindowLowerOffset(win->mz_width / 2.0);
+            prec.setIsolationWindowUpperOffset(win->mz_width / 2.0);
+            spec.setPrecursors({prec});
+
+            spec.setMetaValue("ion mobility lower limit", win->im_lower);
+            spec.setMetaValue("ion mobility upper limit", win->im_upper);
+
+            DataArrays::FloatDataArray im_array;
+            IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+
+            for (const auto& peak : peaks)
+            {
+              spec.emplace_back(peak.mz, peak.intensity);
+              // Convert scan_id → 1/K0 using center frame's calibration
+              double im_val = 0.0;
+              handle.scan2inv_ion_mobility_converter->convert(
+                center_frame.id, &im_val, &peak.scan_id, 1);
+              im_array.push_back(static_cast<float>(im_val));
+            }
+
+            spec.getFloatDataArrays().push_back(std::move(im_array));
+            spec.setIMPeakType(config.dia_ms2_centroid ? IMPeakType::IM_CENTROIDED : IMPeakType::IM_PROFILE);
+            exp.addSpectrum(std::move(spec));
           }
         }
+      }
+      endProgress();
+    }
+    else
+    {
+      // === Raw path: existing per-frame iteration (unchanged) ===
+      startProgress(0, ms2_frame_ids.size(), "Loading DIA-PASEF MS2 frames");
+      for (size_t fi = 0; fi < ms2_frame_ids.size(); ++fi)
+      {
+        setProgress(fi);
+        TimsFrame& frame = handle.get_frame(ms2_frame_ids[fi]);
+        if (frame.num_peaks == 0) continue;
 
-        if (!spec.empty())
+        std::vector<uint32_t> scan_ids(frame.num_peaks);
+        std::vector<uint32_t> intensities(frame.num_peaks);
+        std::vector<double> mzs(frame.num_peaks);
+        std::vector<double> inv_ion_mobilities(frame.num_peaks);
+
+        frame.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
+                            mzs.data(), inv_ion_mobilities.data(), nullptr);
+
+        for (size_t wi = 0; wi < windows.size(); ++wi)
         {
-          spec.getFloatDataArrays().push_back(std::move(im_array));
-          spec.setIMPeakType(IMPeakType::IM_PROFILE);
-          exp.addSpectrum(std::move(spec));
+          const DIAWindow& win = windows[wi];
+
+          MSSpectrum spec;
+          spec.setRT(frame.time);
+          spec.setMSLevel(2);
+          spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+          spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win.window_group));
+
+          Precursor prec;
+          prec.setMZ(win.mz_center);
+          prec.setIsolationWindowLowerOffset(win.mz_width / 2.0);
+          prec.setIsolationWindowUpperOffset(win.mz_width / 2.0);
+          spec.setPrecursors({prec});
+
+          spec.setMetaValue("ion mobility lower limit", win.im_lower);
+          spec.setMetaValue("ion mobility upper limit", win.im_upper);
+
+          DataArrays::FloatDataArray im_array;
+          IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+
+          for (uint32_t p = 0; p < frame.num_peaks; ++p)
+          {
+            if (inv_ion_mobilities[p] >= win.im_lower && inv_ion_mobilities[p] <= win.im_upper)
+            {
+              Peak1D peak;
+              peak.setMZ(mzs[p]);
+              peak.setIntensity(static_cast<double>(intensities[p]));
+              spec.push_back(peak);
+              im_array.push_back(static_cast<float>(inv_ion_mobilities[p]));
+            }
+          }
+
+          if (!spec.empty())
+          {
+            spec.getFloatDataArrays().push_back(std::move(im_array));
+            spec.setIMPeakType(IMPeakType::IM_PROFILE);
+            exp.addSpectrum(std::move(spec));
+          }
         }
       }
+      endProgress();
     }
-    endProgress();
   }
 
   // =====================================================================
