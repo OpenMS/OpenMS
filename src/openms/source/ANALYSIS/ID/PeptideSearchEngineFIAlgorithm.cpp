@@ -907,9 +907,21 @@ namespace OpenMS
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(db, protein_ids, peptide_ids);
 
+    // Helper lambda: restore FragmentIndex parameters before returning if
+    // calibration modified them, so the shared SearchContext is clean for
+    // subsequent per-file searches.
+    auto restore_fi_params = [&]()
+    {
+      if (fi_params_modified)
+      {
+        fragment_index_.setParameters(fi_params_original);
+      }
+    };
+
     if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
         (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
     {
+      restore_fi_params();
       if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY)
       {
         return ExitCodes::INPUT_FILE_EMPTY;
@@ -939,12 +951,7 @@ namespace OpenMS
       OPENMS_LOG_WARN << "FDR:PSM is set but decoys are disabled. Skipping FDR filtering." << endl;
     }
 
-    // Restore original FragmentIndex parameters if calibration modified them,
-    // so the shared SearchContext is unchanged for subsequent per-file searches.
-    if (fi_params_modified)
-    {
-      fragment_index_.setParameters(fi_params_original);
-    }
+    restore_fi_params();
 
     logSearchDiagnostics_(spectra, protein_ids, peptide_ids);
 
@@ -1545,7 +1552,7 @@ namespace OpenMS
     std::sort(fragment_errors_abs.begin(), fragment_errors_abs.end());
     if (!fragment_errors_abs.empty())
     {
-      double frag_68 = fragment_errors_abs[static_cast<Size>(fragment_errors_abs.size() * 0.68)];
+      double frag_68 = fragment_errors_abs[static_cast<Size>((fragment_errors_abs.size() - 1) * 0.68)];
       result.fragment_tolerance = 4.0 * frag_68;
       if (result.fragment_tolerance < min_tolerance) result.fragment_tolerance = min_tolerance;
     }
