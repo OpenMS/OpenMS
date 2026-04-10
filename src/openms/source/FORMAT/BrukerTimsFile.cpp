@@ -1014,6 +1014,23 @@ namespace OpenMS
   }
 
   // =====================================================================
+  // loadExperimentalSettings_: populate SourceFile metadata
+  // =====================================================================
+  void BrukerTimsFile::loadExperimentalSettings_(const String& path, ExperimentalSettings& settings)
+  {
+    SourceFile sf;
+    sf.setNameOfFile(File::basename(path));
+    sf.setPathToFile(File::path(path));
+    sf.setFileType("Bruker TDF");
+    // TODO: MS:1000776 ("scan number only nativeID format") expects "scan=NUMBER" IDs,
+    // but MS1/DIA spectra use "frame=..." and DIA MS2 uses "frame=... windowGroup=...".
+    // There is no standard CV term for Bruker frame-based native IDs yet.
+    sf.setNativeIDType("scan number only nativeID format");
+    sf.setNativeIDTypeAccession("MS:1000776");
+    settings.getSourceFiles().push_back(sf);
+  }
+
+  // =====================================================================
   // load() overloads
   // =====================================================================
   void BrukerTimsFile::load(const String& path, MSExperiment& exp)
@@ -1043,17 +1060,7 @@ namespace OpenMS
       loadDIA_(*handle, exp, config);
     }
 
-    // Populate source file metadata
-    SourceFile sf;
-    sf.setNameOfFile(File::basename(path));
-    sf.setPathToFile(File::path(path));
-    sf.setFileType("Bruker TDF");
-    // TODO: MS:1000776 ("scan number only nativeID format") expects "scan=NUMBER" IDs,
-    // but MS1/DIA spectra use "frame=..." and DIA MS2 uses "frame=... windowGroup=...".
-    // There is no standard CV term for Bruker frame-based native IDs yet.
-    sf.setNativeIDType("scan number only nativeID format");
-    sf.setNativeIDTypeAccession("MS:1000776");
-    exp.getSourceFiles().push_back(sf);
+    loadExperimentalSettings_(path, exp);
 
     // Sort by RT, interleaved across MS levels
     exp.sortSpectra(true);
@@ -1102,15 +1109,7 @@ namespace OpenMS
 
     // Populate source file metadata (same as load())
     ExperimentalSettings settings;
-    SourceFile sf;
-    sf.setNameOfFile(File::basename(path));
-    sf.setPathToFile(File::path(path));
-    sf.setFileType("Bruker TDF");
-    // TODO: MS:1000776 ("scan number only nativeID format") expects "scan=NUMBER" IDs,
-    // but MS1/DIA spectra use "frame=..." and DIA MS2 uses "frame=... windowGroup=...".
-    sf.setNativeIDType("scan number only nativeID format");
-    sf.setNativeIDTypeAccession("MS:1000776");
-    settings.getSourceFiles().push_back(sf);
+    loadExperimentalSettings_(path, settings);
     consumer->setExperimentalSettings(settings);
 
     // NOTE: This loads into a temporary experiment then feeds to consumer.

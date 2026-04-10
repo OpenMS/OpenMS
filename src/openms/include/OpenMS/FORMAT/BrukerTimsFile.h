@@ -100,6 +100,9 @@ namespace OpenMS
 
     /// Detect DDA vs DIA by checking for SWATH windows
     bool isDIA_(const String& tdf_path) const;
+
+    /// Populate SourceFile metadata from the .d path (no peak data read)
+    void loadExperimentalSettings_(const String& path, ExperimentalSettings& settings);
   };
 
 } // namespace OpenMS
