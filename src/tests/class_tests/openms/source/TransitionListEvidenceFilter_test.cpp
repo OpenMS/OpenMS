@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPrecursorEvidenceFilter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionListEvidenceFilter.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <memory>
@@ -135,9 +135,9 @@ namespace
     return exp;
   }
 
-  OpenSwathPrecursorEvidenceFilter makeFilter(const String& evidence_sources, Size min_supported = 1)
+  TransitionListEvidenceFilter makeFilter(const String& evidence_sources, Size min_supported = 1)
   {
-    OpenSwathPrecursorEvidenceFilter filter;
+    TransitionListEvidenceFilter filter;
     Param params = filter.getParameters();
     params.setValue("enabled", "true");
     params.setValue("evidence_sources", evidence_sources);
@@ -151,11 +151,11 @@ namespace
   }
 }
 
-START_TEST(OpenSwathPrecursorEvidenceFilter, "$Id$")
+START_TEST(TransitionListEvidenceFilter, "$Id$")
 
-START_SECTION(OpenSwathPrecursorEvidenceFilter())
+START_SECTION(TransitionListEvidenceFilter())
 {
-  OpenSwathPrecursorEvidenceFilter filter;
+  TransitionListEvidenceFilter filter;
   TEST_EQUAL(filter.getParameters().getValue("enabled").toString(), "false")
   TEST_EQUAL(filter.getParameters().getValue("evidence_sources").toString(), "hybrid")
 }
@@ -167,8 +167,8 @@ START_SECTION((filter() - MS1 support))
   vector<SwathMap> swath_maps;
   swath_maps.push_back(makeSwathMap(true, 0.0, 0.0, {makeSpectrum(10.0, {{500.004, 1000.0}, {700.0, 5000.0}})}));
 
-  OpenSwathPrecursorEvidenceFilter filter = makeFilter("ms1");
-  OpenSwathPrecursorEvidenceFilter::Result result = filter.filter(
+  TransitionListEvidenceFilter filter = makeFilter("ms1");
+  TransitionListEvidenceFilter::Result result = filter.filter(
     swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.02), false, 1);
 
   TEST_EQUAL(result.total_target_precursors, 2)
@@ -187,8 +187,8 @@ START_SECTION((filter() - MS2 support))
   vector<SwathMap> swath_maps;
   swath_maps.push_back(makeSwathMap(false, 400.0, 650.0, {makeSpectrum(12.0, {{100.002, 1200.0}, {110.003, 900.0}, {200.0, 500.0}})}));
 
-  OpenSwathPrecursorEvidenceFilter filter = makeFilter("ms2");
-  OpenSwathPrecursorEvidenceFilter::Result result = filter.filter(
+  TransitionListEvidenceFilter filter = makeFilter("ms2");
+  TransitionListEvidenceFilter::Result result = filter.filter(
     swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.02), false, 1);
 
   TEST_EQUAL(result.total_target_precursors, 2)
@@ -208,8 +208,8 @@ START_SECTION((filter() - hybrid support and decoy exclusion))
   swath_maps.push_back(makeSwathMap(true, 0.0, 0.0, {makeSpectrum(10.0, {{500.001, 1000.0}, {700.0, 9000.0}})}));
   swath_maps.push_back(makeSwathMap(false, 400.0, 650.0, {makeSpectrum(12.0, {{200.002, 1100.0}, {210.002, 1000.0}, {300.0, 8000.0}, {310.0, 8000.0}})}));
 
-  OpenSwathPrecursorEvidenceFilter filter = makeFilter("hybrid", 2);
-  OpenSwathPrecursorEvidenceFilter::Result result = filter.filter(
+  TransitionListEvidenceFilter filter = makeFilter("hybrid", 2);
+  TransitionListEvidenceFilter::Result result = filter.filter(
     swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.02), false, 1);
 
   TEST_EQUAL(result.total_target_precursors, 2)
@@ -237,13 +237,13 @@ START_SECTION((filter() - peak picking path))
                                                   {{99.98, 10.0}, {99.99, 200.0}, {100.0, 2000.0}, {100.01, 200.0}, {100.02, 10.0},
                                                    {109.98, 10.0}, {109.99, 200.0}, {110.0, 1500.0}, {110.01, 200.0}, {110.02, 10.0}})}));
 
-  OpenSwathPrecursorEvidenceFilter filter = makeFilter("ms2");
+  TransitionListEvidenceFilter filter = makeFilter("ms2");
   Param params = filter.getParameters();
   params.setValue("peak_picking:enabled", "true");
   params.setValue("peak_picking:PeakPickerHiRes:signal_to_noise", 0.0);
   filter.setParameters(params);
 
-  OpenSwathPrecursorEvidenceFilter::Result result = filter.filter(
+  TransitionListEvidenceFilter::Result result = filter.filter(
     swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.05), false, 1);
   TEST_EQUAL(result.supported_precursors, 1)
   TEST_EQUAL(result.filtered_targets.compounds[0].id, "PEP_A")
@@ -263,8 +263,8 @@ START_SECTION((filter() - PASEF precursor ion mobility auto scale))
                                     {makeIMSpectrum(12.0, {{100.002, 1200.0, 0.70}, {110.002, 900.0, 0.70}})},
                                     0.60, 0.80));
 
-  OpenSwathPrecursorEvidenceFilter filter = makeFilter("ms2");
-  OpenSwathPrecursorEvidenceFilter::Result result = filter.filter(
+  TransitionListEvidenceFilter filter = makeFilter("ms2");
+  TransitionListEvidenceFilter::Result result = filter.filter(
     swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.02), true, 1);
 
   TEST_EQUAL(result.supported_precursors, 1)
@@ -288,8 +288,8 @@ START_SECTION((filter() - PASEF precursor ion mobility charge transform))
                                     {makeIMSpectrum(12.0, {{100.002, 1200.0, 0.70}, {110.002, 900.0, 0.70}})},
                                     0.60, 0.80));
 
-  OpenSwathPrecursorEvidenceFilter filter = makeFilter("ms2");
-  OpenSwathPrecursorEvidenceFilter::Result result = filter.filter(
+  TransitionListEvidenceFilter filter = makeFilter("ms2");
+  TransitionListEvidenceFilter::Result result = filter.filter(
     swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.02), true, 1);
 
   TEST_EQUAL(result.supported_precursors, 1)
@@ -307,7 +307,7 @@ START_SECTION((filter() - too few supported precursors))
   vector<SwathMap> swath_maps;
   swath_maps.push_back(makeSwathMap(true, 0.0, 0.0, {makeSpectrum(10.0, {{500.001, 1000.0}})}));
 
-  OpenSwathPrecursorEvidenceFilter filter = makeFilter("ms1", 2);
+  TransitionListEvidenceFilter filter = makeFilter("ms1", 2);
   TEST_EXCEPTION(Exception::IllegalArgument, filter.filter(swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.02), false, 1))
 }
 END_SECTION
@@ -323,10 +323,10 @@ START_SECTION((filter() - threaded consistency))
                                     {makeSpectrum(12.0, {{100.002, 1100.0}, {110.002, 1000.0}}),
                                      makeSpectrum(13.0, {{200.002, 1400.0}, {210.002, 1300.0}})}));
 
-  OpenSwathPrecursorEvidenceFilter filter = makeFilter("hybrid", 2);
-  OpenSwathPrecursorEvidenceFilter::Result single_thread = filter.filter(
+  TransitionListEvidenceFilter filter = makeFilter("hybrid", 2);
+  TransitionListEvidenceFilter::Result single_thread = filter.filter(
     swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.02), false, 1);
-  OpenSwathPrecursorEvidenceFilter::Result two_threads = filter.filter(
+  TransitionListEvidenceFilter::Result two_threads = filter.filter(
     swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.02), false, 2);
 
   TEST_EQUAL(single_thread.supported_precursors, two_threads.supported_precursors)

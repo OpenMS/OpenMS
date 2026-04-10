@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/OpenSwathBase.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPrecursorEvidenceFilter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionListEvidenceFilter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
@@ -26,13 +26,13 @@
 using namespace OpenMS;
 
 /**
-@page TOPP_OpenSwathPrecursorEvidenceFilter OpenSwathPrecursorEvidenceFilter
+@page TOPP_TransitionListEvidenceFilter TransitionListEvidenceFilter
 
-@brief Filters an OpenSWATH transition list by quick precursor evidence in raw data.
+@brief Filters a transition list by quick precursor evidence in raw data.
 
 This tool scans one or more mzML/sqMass input runs with the
-OpenMS::OpenSwathPrecursorEvidenceFilter module and writes a filtered transition
-list for follow-up inspection or downstream OpenSWATH processing.
+OpenMS::TransitionListEvidenceFilter module and writes a filtered transition
+list for follow-up inspection or downstream DIA processing.
 
 For multiple input files, the default behavior is a union across runs:
 a target precursor is kept if it has evidence in any mzML file. Use
@@ -51,13 +51,13 @@ strategies before integrating filtered libraries into production workflows.
 */
 
 /// @cond TOPPCLASSES
-class TOPPOpenSwathPrecursorEvidenceFilter :
+class TOPPTransitionListEvidenceFilter :
   public TOPPOpenSwathBase
 {
 public:
-  TOPPOpenSwathPrecursorEvidenceFilter() :
-    TOPPOpenSwathBase("OpenSwathPrecursorEvidenceFilter",
-                      "Filter OpenSWATH transition-library precursors by quick raw-data evidence.",
+  TOPPTransitionListEvidenceFilter() :
+    TOPPOpenSwathBase("TransitionListEvidenceFilter",
+                      "Filter transition-list precursors by quick raw-data evidence.",
                       true)
   {
   }
@@ -148,7 +148,7 @@ protected:
   {
     if (name == "Algorithm")
     {
-      Param defaults = OpenSwathPrecursorEvidenceFilter().getDefaults();
+      Param defaults = TransitionListEvidenceFilter().getDefaults();
       defaults.remove("enabled");
       return defaults;
     }
@@ -285,10 +285,10 @@ protected:
         }
       }
 
-      OpenSwathPrecursorEvidenceFilter filter;
+      TransitionListEvidenceFilter filter;
       filter.setParameters(filter_params);
       filter.setLogType(log_type_);
-      OpenSwathPrecursorEvidenceFilter::Result result = filter.filter(
+      TransitionListEvidenceFilter::Result result = filter.filter(
         swath_maps, transition_exp, ms1_params, ms2_params, run_pasef, threads);
       if (result.precursor_im_scale != 1.0 || result.precursor_im_scaled_by_charge)
       {
@@ -300,7 +300,7 @@ protected:
         else if (std::fabs(output_precursor_im_scale - result.precursor_im_scale) > 1e-9 ||
                  output_precursor_im_scaled_by_charge != result.precursor_im_scaled_by_charge)
         {
-          OPENMS_LOG_WARN << "OpenSwathPrecursorEvidenceFilter observed different precursor IM transforms across runs. "
+          OPENMS_LOG_WARN << "TransitionListEvidenceFilter observed different precursor IM transforms across runs. "
                           << "Using the first detected scale factor " << output_precursor_im_scale
                           << (output_precursor_im_scaled_by_charge ? " with precursor charge multiplication" : "")
                           << " for the aggregated output.\n";
@@ -518,7 +518,7 @@ private:
 
 int main(int argc, const char** argv)
 {
-  TOPPOpenSwathPrecursorEvidenceFilter tool;
+  TOPPTransitionListEvidenceFilter tool;
   return tool.main(argc, argv);
 }
 

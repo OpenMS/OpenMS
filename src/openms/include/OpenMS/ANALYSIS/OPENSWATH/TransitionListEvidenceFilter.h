@@ -31,7 +31,7 @@ namespace OpenMS
 
     @ingroup TargetedQuantitation
   */
-  class OPENMS_DLLAPI OpenSwathPrecursorEvidenceFilter :
+  class OPENMS_DLLAPI TransitionListEvidenceFilter :
     public DefaultParamHandler,
     public ProgressLogger
   {
@@ -100,10 +100,10 @@ public:
     */
     //@{
     /// Default constructor
-    OpenSwathPrecursorEvidenceFilter();
+    TransitionListEvidenceFilter();
 
     /// Destructor
-    ~OpenSwathPrecursorEvidenceFilter() override = default;
+    ~TransitionListEvidenceFilter() override = default;
     //@}
 
     /// Synchronize members with the parameter object.

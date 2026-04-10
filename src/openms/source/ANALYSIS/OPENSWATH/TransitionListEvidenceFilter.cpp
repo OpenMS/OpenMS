@@ -6,7 +6,7 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPrecursorEvidenceFilter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionListEvidenceFilter.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -930,8 +930,8 @@ namespace OpenMS
     }
   }
 
-  OpenSwathPrecursorEvidenceFilter::OpenSwathPrecursorEvidenceFilter() :
-    DefaultParamHandler("OpenSwathPrecursorEvidenceFilter"),
+  TransitionListEvidenceFilter::TransitionListEvidenceFilter() :
+    DefaultParamHandler("TransitionListEvidenceFilter"),
     ProgressLogger()
   {
     defaults_.setValue("enabled", "false", "Enable raw-data evidence prefiltering.");
@@ -969,7 +969,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void OpenSwathPrecursorEvidenceFilter::updateMembers_()
+  void TransitionListEvidenceFilter::updateMembers_()
   {
     enabled_ = param_.getValue("enabled").toBool();
     evidence_sources_ = param_.getValue("evidence_sources").toString();
@@ -982,7 +982,7 @@ namespace OpenMS
     peak_picking_use_gauss_ = param_.getValue("peak_picking:use_gauss").toBool();
   }
 
-  OpenSwathPrecursorEvidenceFilter::Result OpenSwathPrecursorEvidenceFilter::filter(
+  TransitionListEvidenceFilter::Result TransitionListEvidenceFilter::filter(
     const std::vector<OpenSwath::SwathMap>& swath_maps,
     const OpenSwath::LightTargetedExperiment& transition_exp,
     const ChromExtractParams& ms1_params,
@@ -997,17 +997,17 @@ namespace OpenMS
     if (!use_ms1 && !use_ms2)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "OpenSwathPrecursorEvidenceFilter evidence_sources must be 'ms1', 'ms2', or 'hybrid'.");
+                                       "TransitionListEvidenceFilter evidence_sources must be 'ms1', 'ms2', or 'hybrid'.");
     }
     if (evidence_sources_ == "ms1" && ms1_params.mz_extraction_window <= 0.0)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "OpenSwathPrecursorEvidenceFilter requires a positive MS1 m/z extraction window for MS1 evidence.");
+                                       "TransitionListEvidenceFilter requires a positive MS1 m/z extraction window for MS1 evidence.");
     }
     if (evidence_sources_ == "ms2" && ms2_params.mz_extraction_window <= 0.0)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "OpenSwathPrecursorEvidenceFilter requires a positive MS2/iRT m/z extraction window for MS2 evidence.");
+                                       "TransitionListEvidenceFilter requires a positive MS2/iRT m/z extraction window for MS2 evidence.");
     }
 
     std::vector<PrecursorCandidate> candidates = buildCandidates_(transition_exp, ms2_top_transitions_per_precursor_);
@@ -1016,7 +1016,7 @@ namespace OpenMS
     result.precursor_im_scaled_by_charge = precursor_im_transform.multiply_by_charge;
     if (!precursor_im_transform.isIdentity())
     {
-      OPENMS_LOG_WARN << "OpenSwathPrecursorEvidenceFilter detected a precursor ion mobility transform mismatch between the transition library and PASEF windows. "
+      OPENMS_LOG_WARN << "TransitionListEvidenceFilter detected a precursor ion mobility transform mismatch between the transition library and PASEF windows. "
                       << "Applying scale factor " << result.precursor_im_scale;
       if (result.precursor_im_scaled_by_charge)
       {
@@ -1038,7 +1038,7 @@ namespace OpenMS
     if (candidates.empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "OpenSwathPrecursorEvidenceFilter found no non-decoy target precursors in the transition experiment.");
+                                       "TransitionListEvidenceFilter found no non-decoy target precursors in the transition experiment.");
     }
 
     const Param picker_params = param_.copy("peak_picking:PeakPickerHiRes:", true);
@@ -1081,17 +1081,17 @@ namespace OpenMS
     if (evidence_sources_ == "ms1" && !has_ms1_map)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "OpenSwathPrecursorEvidenceFilter was configured for MS1 evidence but no MS1 spectra were available.");
+                                       "TransitionListEvidenceFilter was configured for MS1 evidence but no MS1 spectra were available.");
     }
     if (evidence_sources_ == "ms2" && !has_ms2_map)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "OpenSwathPrecursorEvidenceFilter was configured for MS2 evidence but no MS2 spectra were available.");
+                                       "TransitionListEvidenceFilter was configured for MS2 evidence but no MS2 spectra were available.");
     }
     if (evidence_sources_ == "hybrid" && !has_ms1_map && !has_ms2_map)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "OpenSwathPrecursorEvidenceFilter was configured for hybrid evidence but no usable MS1 or MS2 spectra were available.");
+                                       "TransitionListEvidenceFilter was configured for hybrid evidence but no usable MS1 or MS2 spectra were available.");
     }
 
     std::vector<bool> supported(candidates.size(), false);
@@ -1144,7 +1144,7 @@ namespace OpenMS
     if (enabled_ && result.supported_precursors < min_supported_precursors_)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "OpenSwathPrecursorEvidenceFilter retained only " + String(result.supported_precursors) +
+                                       "TransitionListEvidenceFilter retained only " + String(result.supported_precursors) +
                                        " supported target precursors, fewer than min_supported_precursors=" + String(min_supported_precursors_) +
                                        ". Disable Calibration:auto_irt:prefilter or loosen its parameters.");
     }
@@ -1152,7 +1152,7 @@ namespace OpenMS
     result.filtered_targets = buildFilteredExperiment_(transition_exp, candidates, supported);
 
     std::ostringstream summary;
-    summary << "OpenSwathPrecursorEvidenceFilter retained " << result.supported_precursors
+    summary << "TransitionListEvidenceFilter retained " << result.supported_precursors
             << " of " << result.total_target_precursors << " target precursors"
             << " (MS1: " << result.ms1_supported
             << ", MS2: " << result.ms2_supported

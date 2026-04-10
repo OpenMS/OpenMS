@@ -10,7 +10,7 @@
 #include <OpenMS/APPLICATIONS/OpenSwathBase.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPrecursorEvidenceFilter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionListEvidenceFilter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
@@ -65,7 +65,7 @@ namespace OpenMS
     defaults_.setValue("auto_irt:irt_nonlinear_rt_extraction_window", 600.0, "Only extract RT around this value for non linear iRT calibration (set to -1 to use whole range)");
     defaults_.setMinFloat("auto_irt:irt_nonlinear_rt_extraction_window", -1.0);
 
-    defaults_.insert("auto_irt:prefilter:", OpenSwathPrecursorEvidenceFilter().getDefaults());
+    defaults_.insert("auto_irt:prefilter:", TransitionListEvidenceFilter().getDefaults());
     
     // Static iRT file parameters
     defaults_.setValue("files:linear_irt_file", "", "Path(s) to linear iRT transition file(s) (TraML, TSV, or PQP). Accepts a string of a single file path or multiple file paths (space-separated, 'run1_irt.pqp run2_irt.pqp ... runN_irt.pqp') for run-specific mapping (positional: nth entry -> nth run).");

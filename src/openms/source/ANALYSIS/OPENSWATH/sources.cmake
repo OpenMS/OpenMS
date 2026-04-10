@@ -30,7 +30,7 @@ set(sources_list
   OpenSwathOSWParquetReader.cpp
   OpenSwathOSWParquetWriter.cpp
   OpenSwathOSWWriter.cpp
-  OpenSwathPrecursorEvidenceFilter.cpp
+  TransitionListEvidenceFilter.cpp
   OpenSwathWorkflow.cpp
   PeakIntegrator.cpp
   PeakPickerChromatogram.cpp

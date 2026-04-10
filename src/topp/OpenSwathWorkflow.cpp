@@ -50,7 +50,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPrecursorEvidenceFilter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionListEvidenceFilter.h>
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
@@ -425,7 +425,7 @@ protected:
     else if (name == "Library")
     {
       Param p = TransitionTSVFile().getDefaults();
-      p.insert("prefilter:", OpenSwathPrecursorEvidenceFilter().getDefaults());
+      p.insert("prefilter:", TransitionListEvidenceFilter().getDefaults());
       p.setValue("prefilter:aggregation_method", "any",
         "How to combine Library:prefilter evidence across input runs. 'any' keeps a target precursor if it is supported in at least one run; 'all' requires support in every run.");
       p.setValidStrings("prefilter:aggregation_method", {"any", "all"});
@@ -772,7 +772,7 @@ protected:
     prefilter_params.remove("decoy_handling");
     prefilter_params.remove("decoy_prefix");
 
-    OpenSwathPrecursorEvidenceFilter evidence_filter;
+    TransitionListEvidenceFilter evidence_filter;
     evidence_filter.setParameters(prefilter_params);
     evidence_filter.setLogType(log_type_);
 
@@ -820,7 +820,7 @@ protected:
         run_pasef = false;
       }
 
-      OpenSwathPrecursorEvidenceFilter::Result result = evidence_filter.filter(
+      TransitionListEvidenceFilter::Result result = evidence_filter.filter(
         swath_maps, transition_exp, ms1_params, ms2_params, run_pasef, outer_loop_threads);
       if (result.precursor_im_scale != 1.0 || result.precursor_im_scaled_by_charge)
       {
@@ -1616,12 +1616,12 @@ protected:
         if (auto_irt && auto_irt_prefilter_enabled &&
             (strategy == IrtStrategy::SAMPLE_ONCE || strategy == IrtStrategy::SAMPLE_PER_RUN))
         {
-          OpenSwathPrecursorEvidenceFilter evidence_filter;
+          TransitionListEvidenceFilter evidence_filter;
           Param prefilter_params = cal_params.copy("auto_irt:prefilter:", true);
           evidence_filter.setParameters(prefilter_params);
           evidence_filter.setLogType(log_type_);
 
-          OpenSwathPrecursorEvidenceFilter::Result prefilter_result = evidence_filter.filter(
+          TransitionListEvidenceFilter::Result prefilter_result = evidence_filter.filter(
             swath_maps, transition_exp, cp_ms1_current, cp_irt_current, pasef, outer_loop_threads);
           prefiltered_irt_targets = std::move(prefilter_result.filtered_targets);
           irt_sampling_transition_exp = &prefiltered_irt_targets;
