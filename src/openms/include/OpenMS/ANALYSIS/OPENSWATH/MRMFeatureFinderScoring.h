@@ -342,7 +342,7 @@ private:
 
     void prepareScoredFeatureOutput_(OpenMS::MRMFeature& mrmfeature,
                                      const PeptideType& pep,
-                                     const ProteaseDigestion& pd,
+                                     ProteaseDigestion& pd,
                                      bool swath_present,
                                      double precursor_mz,
                                      bool ms1only) const;
