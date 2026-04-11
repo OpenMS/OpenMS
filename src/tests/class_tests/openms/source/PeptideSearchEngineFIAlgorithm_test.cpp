@@ -1291,6 +1291,38 @@ START_SECTION(([EXTRA] computeModMatchTolerance_ reads post-calibration members)
 }
 END_SECTION
 
+START_SECTION(([EXTRA] calibration extreme-bias path preserves user bounds))
+{
+  // Uniform +50 ppm shift → residual median/MAD collapse to ~0 → spread = 1e-6
+  // (the floor in runCalibrationPass_). |shift| = 50 >> spread, so extreme_bias
+  // triggers and the writeback block is skipped: algo members stay at the
+  // user-configured values.
+  //
+  // User window [100, 100] ppm is wide enough that (a) the candidate look-up
+  // finds the theoretical peptide (the +50 ppm error is within the [-100, +100]
+  // window), and (b) the wrong-match filter passes every hit.
+  const vector<double> ppm_shifts(12, 50.0); // uniform
+  PeakMap spectra = build_calibration_spectra_(ppm_shifts);
+  auto fasta_db = calibration_fasta_db_();
+
+  PeptideSearchEngineFIAlgorithm_test algo;
+  configure_calibration_params_(algo, /*lower_ppm*/ 100.0, /*upper_ppm*/ 100.0,
+                                /*min_psms*/ 3);
+
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
+  TEST_EQUAL(ec == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+
+  const auto& cal = algo.last_calibration_result_;
+  TEST_EQUAL(cal.success, true)
+  TEST_EQUAL(cal.extreme_bias, true)
+  // User bounds unchanged — no writeback happened.
+  TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_lower_, 100.0)
+  TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_upper_, 100.0)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
