@@ -808,6 +808,15 @@ namespace OpenMS
   std::pair<size_t, size_t> FragmentIndex::getPeptidesInMassWindow(float precursor_mass,
                                                                    const std::pair<float, float>& window) const
   {
+    // Defensive: a reversed window (first > second) yields an empty half-open range.
+    // Under normal computeMassWindow_() usage this never happens (lower is always <= 0,
+    // upper is always >= 0), but if a caller builds a window by hand, we must not let
+    // (second - first) underflow size_t downstream in searchDifferentPrecursorRanges.
+    if (window.first > window.second)
+    {
+      return {0u, 0u};
+    }
+
     auto left_it = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
                                     precursor_mass + window.first,
                                     [](const Peptide& a, float b) { return a.precursor_mz_ < b; });

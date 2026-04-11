@@ -666,9 +666,10 @@ START_SECTION(DIA MS2 aggregation test)
   //   - no intensity boost at all (ratio == 1, aggregation broken)
   //   - runaway intensity (ratio > 1.5, e.g. double-counting)
   // while tolerating minor fixture variation.
+  TEST_EQUAL(raw_ms2_intensity > 0.0, true); // guard division below
   const double intensity_ratio = agg_ms2_intensity / raw_ms2_intensity;
-  TEST_EQUAL(intensity_ratio > 1.15, true);
-  TEST_EQUAL(intensity_ratio < 1.45, true);
+  TEST_EQUAL(intensity_ratio >= 1.15, true);
+  TEST_EQUAL(intensity_ratio <= 1.45, true);
 
   // Aggregated spectra should have per-peak IM data.
   for (const auto& spec : exp_agg)
@@ -688,7 +689,7 @@ START_SECTION(DIA MS2 aggregation test)
          << " | aggregated MS2 spectra=" << agg_ms2_count
          << " peaks=" << agg_ms2_peaks
          << " intensity=" << agg_ms2_intensity
-         << " | intensity_ratio=" << (agg_ms2_intensity / raw_ms2_intensity));
+         << " | intensity_ratio=" << intensity_ratio);
 }
 END_SECTION
 

@@ -751,10 +751,14 @@ namespace OpenMS
                                               precursor_mass_tolerance_upper_);
     double effective_fragment_tol = fragment_mass_tolerance_;
 
-    // Save original FragmentIndex parameters so we can restore them after the
-    // search if calibration modifies query-time tolerances. This avoids
-    // persistent mutation of the shared SearchContext across multi-file calls.
+    // Save original FragmentIndex parameters AND algo-level tolerance members so we
+    // can restore them after the search if calibration modifies query-time tolerances.
+    // This avoids persistent mutation of the shared SearchContext and the algorithm
+    // instance across multi-file calls (the multi-file wrapper reuses a single
+    // PeptideSearchEngineFIAlgorithm instance, so member leaks corrupt later runs).
     const Param fi_params_original = fragment_index_.getParameters();
+    const double orig_precursor_mass_tolerance_lower = precursor_mass_tolerance_lower_;
+    const double orig_precursor_mass_tolerance_upper = precursor_mass_tolerance_upper_;
     bool fi_params_modified = false;
 
     // --- Optional calibration pass ---
@@ -765,42 +769,60 @@ namespace OpenMS
       const CalibrationResult_& cal = last_calibration_result_;
       endProgress();
 
-      if (cal.success && !cal.extreme_bias)
+      if (cal.success)
       {
+        // Fragment-side calibration is independent of the precursor positive-magnitude
+        // representability check — always apply it when calibration succeeds.
         Param fi_params = fi_params_original;
-        fi_params.setValue("precursor:mass_tolerance_lower", cal.cal_lower);
-        fi_params.setValue("precursor:mass_tolerance_upper", cal.cal_upper);
         fi_params.setValue("fragment:mass_tolerance", cal.fragment_tolerance);
-        fragment_index_.setParameters(fi_params);
-        fi_params_modified = true;
-
-        // Refresh algo-level member copies — OpenSearchModificationAnalysis reads them via
-        // computeModMatchTolerance_() and would otherwise see stale pre-calibration values.
-        precursor_mass_tolerance_lower_ = cal.cal_lower;
-        precursor_mass_tolerance_upper_ = cal.cal_upper;
-        effective_precursor_tol = std::max(cal.cal_lower, cal.cal_upper);
         effective_fragment_tol = cal.fragment_tolerance;
 
-        OPENMS_LOG_INFO << "[PDBS-FI] Calibration: shift=" << cal.precursor_shift
-                        << " spread=" << cal.precursor_spread << " "
-                        << precursor_mass_tolerance_unit_
-                        << " -> window [-" << cal.cal_lower << ", +" << cal.cal_upper << "]"
-                        << std::endl;
-      }
-      else if (cal.success && cal.extreme_bias)
-      {
-        OPENMS_LOG_WARN << "[PDBS-FI] Calibration: |shift|=" << std::abs(cal.precursor_shift)
-                        << " >= spread=" << cal.precursor_spread << " "
-                        << precursor_mass_tolerance_unit_ << " - calibration result discarded. "
-                        << "The true signed window ["
-                        << (cal.precursor_shift - cal.precursor_spread) << ", "
-                        << (cal.precursor_shift + cal.precursor_spread)
-                        << "] lies entirely on one side of zero; the positive-magnitude schema "
-                        << "cannot express it without loosening. Fix external calibration, or "
-                        << "configure mass_tolerance_lower/_upper manually." << std::endl;
-        // Preserve user bounds - fi_params_modified stays false, members unchanged.
+        if (!cal.extreme_bias)
+        {
+          // Precursor calibration is representable in the positive-magnitude schema —
+          // apply the calibrated bounds.
+          fi_params.setValue("precursor:mass_tolerance_lower", cal.cal_lower);
+          fi_params.setValue("precursor:mass_tolerance_upper", cal.cal_upper);
+
+          // Refresh algo-level member copies — OpenSearchModificationAnalysis reads them
+          // via computeModMatchTolerance_() and would otherwise see stale pre-calibration
+          // values. Restored to originals by restore_fi_params() below on return paths.
+          precursor_mass_tolerance_lower_ = cal.cal_lower;
+          precursor_mass_tolerance_upper_ = cal.cal_upper;
+          effective_precursor_tol = std::max(cal.cal_lower, cal.cal_upper);
+
+          OPENMS_LOG_INFO << "[PDBS-FI] Calibration: shift=" << cal.precursor_shift
+                          << " spread=" << cal.precursor_spread << " "
+                          << precursor_mass_tolerance_unit_
+                          << " -> window [-" << cal.cal_lower << ", +" << cal.cal_upper << "]"
+                          << std::endl;
+        }
+        else
+        {
+          OPENMS_LOG_WARN << "[PDBS-FI] Calibration: |shift|=" << std::abs(cal.precursor_shift)
+                          << " > spread=" << cal.precursor_spread << " "
+                          << precursor_mass_tolerance_unit_ << " - precursor calibration discarded. "
+                          << "The true signed window ["
+                          << (cal.precursor_shift - cal.precursor_spread) << ", "
+                          << (cal.precursor_shift + cal.precursor_spread)
+                          << "] lies entirely on one side of zero (not representable in the "
+                          << "positive-magnitude schema without loosening). Fragment calibration "
+                          << "still applied. Fix external calibration, or configure "
+                          << "mass_tolerance_lower/_upper manually." << std::endl;
+          // Precursor bounds unchanged; fragment_tolerance applied above.
+        }
+
+        fragment_index_.setParameters(fi_params);
+        fi_params_modified = true;
       }
     }
+
+    // Capture the mod-match tolerance reflecting the current (post-calibration)
+    // member state. This fires unconditionally — even for closed searches that
+    // won't invoke OpenSearchModificationAnalysis — so tests can observe whether
+    // calibration wiring reaches the helper regardless of search mode. The OSMA
+    // call sites below read from this field instead of re-computing.
+    last_mod_match_tolerance_used_ = computeModMatchTolerance_();
 
     // create spectrum generator
     TheoreticalSpectrumGenerator spectrum_generator;
@@ -907,9 +929,13 @@ namespace OpenMS
       startProgress(0, 1, "Analyzing modification patterns...");
 
       OpenSearchModificationAnalysis mod_analyzer;
+      // Read from last_mod_match_tolerance_used_ (captured earlier post-calibration,
+      // pre-restoration) rather than re-computing: by now the restore_fi_params()
+      // call at the end of search() has already reset members to user-configured
+      // values, so computeModMatchTolerance_() would return the wrong value here.
       auto modification_summaries = mod_analyzer.analyzeModifications(
         peptide_ids,
-        computeModMatchTolerance_(),
+        last_mod_match_tolerance_used_,
         precursor_mass_tolerance_unit_ == "ppm",
         false, // no smoothing
         ""     // no output file for in-memory search
@@ -937,14 +963,17 @@ namespace OpenMS
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(db, protein_ids, peptide_ids);
 
-    // Helper lambda: restore FragmentIndex parameters before returning if
-    // calibration modified them, so the shared SearchContext is clean for
-    // subsequent per-file searches.
+    // Helper lambda: restore FragmentIndex parameters AND algo-level tolerance members
+    // before returning if calibration modified them, so the shared SearchContext and the
+    // algorithm instance are both clean for subsequent per-file searches in the
+    // multi-file wrapper.
     auto restore_fi_params = [&]()
     {
       if (fi_params_modified)
       {
         fragment_index_.setParameters(fi_params_original);
+        precursor_mass_tolerance_lower_ = orig_precursor_mass_tolerance_lower;
+        precursor_mass_tolerance_upper_ = orig_precursor_mass_tolerance_upper;
       }
     };
 
@@ -1087,9 +1116,12 @@ namespace OpenMS
         output_file = output_base_name + "_ModificationAnalysis.idXML";
       }
 
+      // Read the post-calibration value captured during the internal search()
+      // call. Do NOT re-compute here — by now search()'s restore_fi_params() has
+      // reset the tolerance members to user-configured values.
       result.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
         result.peptide_ids,
-        computeModMatchTolerance_(),
+        last_mod_match_tolerance_used_,
         precursor_mass_tolerance_unit_ == "ppm",
         false, // no smoothing
         output_file
@@ -1193,9 +1225,12 @@ namespace OpenMS
           output_file = per_file_base + "_ModificationAnalysis.idXML";
         }
 
+        // Read the post-calibration value captured during the internal search()
+        // call. Do NOT re-compute here — by now search()'s restore_fi_params() has
+        // reset the tolerance members to user-configured values.
         result.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
           result.peptide_ids,
-          computeModMatchTolerance_(),
+          last_mod_match_tolerance_used_,
           precursor_mass_tolerance_unit_ == "ppm",
           false, // no smoothing
           output_file
@@ -1617,7 +1652,11 @@ namespace OpenMS
 
     result.precursor_shift  = prec_shift;
     result.precursor_spread = std::max(min_tolerance, res_median + 3.0 * res_mad);
-    result.extreme_bias     = std::abs(prec_shift) >= result.precursor_spread;
+    // Strict `>`: at |shift| == spread the signed window is exactly [0, 2*spread] or
+    // [-2*spread, 0] — both expressible in the positive-magnitude schema (one side == 0
+    // is legal and a well-defined half-line window). Only |shift| strictly greater
+    // than spread requires discarding the calibration result.
+    result.extreme_bias     = std::abs(prec_shift) > result.precursor_spread;
 
     if (!result.extreme_bias)
     {

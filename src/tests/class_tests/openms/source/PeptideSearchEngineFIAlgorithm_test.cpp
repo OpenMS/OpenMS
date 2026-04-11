@@ -50,6 +50,7 @@ public:
   using PeptideSearchEngineFIAlgorithm::precursor_mass_tolerance_unit_;
   using PeptideSearchEngineFIAlgorithm::computeModMatchTolerance_;
   using PeptideSearchEngineFIAlgorithm::last_calibration_result_;
+  using PeptideSearchEngineFIAlgorithm::last_mod_match_tolerance_used_;
   using PeptideSearchEngineFIAlgorithm::CalibrationResult_;
 };
 
@@ -1251,20 +1252,26 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   TEST_EQUAL(cal.cal_upper < 30.0, true)
   // And remain asymmetric — the positive bias means cal_upper > cal_lower.
   TEST_EQUAL(cal.cal_upper > cal.cal_lower, true)
-  // Algo-level members refreshed in place by the writeback branch.
-  TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_lower_, cal.cal_lower)
-  TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_upper_, cal.cal_upper)
+  // Post-search, the tolerance members have been RESTORED to the user-configured
+  // values to avoid per-file state leaks in the multi-file wrapper (which reuses a
+  // single PeptideSearchEngineFIAlgorithm instance across files). The calibrated
+  // values are observable via last_calibration_result_, which is checked above.
+  TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_lower_, 20.0)
+  TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_upper_, 30.0)
 }
 END_SECTION
 
-START_SECTION(([EXTRA] computeModMatchTolerance_ reads post-calibration members))
+START_SECTION(([EXTRA] OpenSearchModificationAnalysis received post-calibration tolerance))
 {
-  // Same setup as the previous test. After calibration, computeModMatchTolerance_()
-  // must return min(cal_lower, cal_upper) — NOT min(20, 30) = 20 (the user-configured
-  // values). This is the double-bookkeeping regression guard: before the
-  // refactor, OpenSearchModificationAnalysis was called with a scalar tolerance
-  // computed from the pre-calibration DefaultParamHandler copy, so the mod
-  // match window was wider than the FragmentIndex's post-calibration window.
+  // Double-bookkeeping regression guard: OpenSearchModificationAnalysis must be
+  // called with the CALIBRATED mod-match tolerance, not the pre-calibration
+  // user-configured one.
+  //
+  // We observe this via the `last_mod_match_tolerance_used_` hook, which captures
+  // what computeModMatchTolerance_() returned at the moment the OSMA call fired.
+  // Post-search, the tolerance members are restored to user values (see previous
+  // test), so calling computeModMatchTolerance_() directly after search() would
+  // return the user-configured value — the opposite of what we want to check.
   const vector<double> ppm_shifts = {
     0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0
   };
@@ -1284,10 +1291,11 @@ START_SECTION(([EXTRA] computeModMatchTolerance_ reads post-calibration members)
   TEST_EQUAL(cal.success, true)
   TEST_EQUAL(cal.extreme_bias, false)
 
+  // OSMA must have received the calibrated min(cal_lower, cal_upper) — NOT the
+  // user-configured min(20, 30) = 20.
   const double expected = std::min(cal.cal_lower, cal.cal_upper);
-  TEST_REAL_SIMILAR(algo.computeModMatchTolerance_(), expected)
-  // And definitely NOT the pre-calibration min (lower=20 bound).
-  TEST_NOT_EQUAL(algo.computeModMatchTolerance_(), 20.0)
+  TEST_REAL_SIMILAR(algo.last_mod_match_tolerance_used_, expected)
+  TEST_NOT_EQUAL(algo.last_mod_match_tolerance_used_, 20.0)
 }
 END_SECTION
 

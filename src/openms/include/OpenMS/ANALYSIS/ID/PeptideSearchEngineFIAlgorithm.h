@@ -464,12 +464,29 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
     /// diagnostic/telemetry state that doesn't affect the logical const-ness of search().
     mutable CalibrationResult_ last_calibration_result_;
 
+    /// Scalar tolerance passed to OpenSearchModificationAnalysis on the most recent
+    /// search() call. Stored for test observability: because the calibration writeback
+    /// restores the tolerance members on exit (to avoid per-file state leaks in the
+    /// multi-file wrapper), tests that want to verify "the mod analyzer received the
+    /// calibrated value, not the user-configured one" can't just read the members
+    /// post-search — they need to see what was actually passed to the analyzer.
+    /// Default -1.0 (sentinel: no search has run yet).
+    mutable double last_mod_match_tolerance_used_{-1.0};
+
     /// Scalar tolerance passed to OpenSearchModificationAnalysis under asymmetric bounds.
     /// Uses the tighter of the two positive magnitudes — semantically correct for
     /// UniMod Δmass matching precision. OpenSearchModificationAnalysis internally clamps
     /// this at MAX_MOD_MAPPING_TOL_ = 0.02 Da; see spec §7 for rationale.
+    ///
+    /// Zero on one side is a legal one-sided window (e.g., [0, 500] Da = "search only
+    /// positive mass shifts"). In that case std::min() would collapse to 0, passing
+    /// a useless zero tolerance into the mod analyzer — masked in ppm mode by the
+    /// internal clamp, but genuinely broken in Da mode. Fall back to the non-zero
+    /// side so the mod-matching precision reflects the configured tolerance.
     double computeModMatchTolerance_() const
     {
+      if (precursor_mass_tolerance_lower_ <= 0.0) return precursor_mass_tolerance_upper_;
+      if (precursor_mass_tolerance_upper_ <= 0.0) return precursor_mass_tolerance_lower_;
       return std::min(precursor_mass_tolerance_lower_, precursor_mass_tolerance_upper_);
     }
 
