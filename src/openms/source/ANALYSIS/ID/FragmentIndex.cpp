@@ -860,14 +860,15 @@ namespace OpenMS
 
         while (left_iter != slice_end) // sequential scan
         {
-          if(left_iter->peptide_idx_ > peptide_idx_range.second) break;
+          // peptide_idx_range is half-open [first, second) — stop BEFORE index second.
+          if (left_iter->peptide_idx_ >= peptide_idx_range.second) break;
 
           if ((adjusted_mass >= left_iter->fragment_mz_ - frag_tol ) && adjusted_mass <= (left_iter->fragment_mz_+ frag_tol))
           {
 
             hits.emplace_back(left_iter->peptide_idx_, left_iter->fragment_mz_);
             #ifdef DEBUG_FRAGMENT_INDEX
-            if (left_iter->peptide_idx_ < peptide_idx_range.first || left_iter->peptide_idx_ > peptide_idx_range.second)
+            if (left_iter->peptide_idx_ < peptide_idx_range.first || left_iter->peptide_idx_ >= peptide_idx_range.second)
               OPENMS_LOG_WARN << "idx out of range" << endl;
             #endif
           }
@@ -999,7 +1000,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
       SpectrumMatchesTopN candidates_iso_error;
       auto candidates_range = getPeptidesInMassWindow(shifted_mass, window);
-      candidates_iso_error.hits_.resize(candidates_range.second - candidates_range.first + 1);
+      // candidates_range is half-open [first, second) — size the hits vector exactly for
+      // (second - first) entries. queryPeaks indexes via (peptide_idx - first), and the
+      // loop in FragmentIndex::query() stops strictly before peptide_idx == second.
+      candidates_iso_error.hits_.resize(candidates_range.second - candidates_range.first);
 
       queryPeaks(candidates_iso_error, spectrum, candidates_range, isotope_error, charge);
 

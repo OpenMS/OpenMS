@@ -1049,4 +1049,188 @@ START_SECTION((validation: NaN rejected))
 }
 END_SECTION
 
+// ---------------------------------------------------------------------------
+// Half-open vs closed-closed peptide_idx_range contract
+// ---------------------------------------------------------------------------
+// getPeptidesInMassWindow returns a HALF-OPEN [first, second) index range.
+// Previously the callers (searchDifferentPrecursorRanges and
+// FragmentIndex::query()) treated the range as closed-closed, spuriously
+// including the peptide at index `second` — a peptide whose precursor_mz is
+// strictly greater than the window's upper bound. The tests below pin the
+// half-open contract and guard against a regression of the callers.
+
+START_SECTION((getPeptidesInMassWindow half-open contract))
+{
+  // Build an index with 5 well-separated peptide masses. peptide:enzyme=no cleavage
+  // makes each FASTA entry one peptide with a predictable mass.
+  FragmentIndex_test fi;
+  Param p = fi.getParameters();
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("precursor:mass_tolerance_lower", 1000.0);   // wide at build time — the
+  p.setValue("precursor:mass_tolerance_upper", 1000.0);   // window we test with is passed
+                                                           // directly to getPeptidesInMassWindow,
+                                                           // not derived from these params.
+  p.setValue("enzyme", "no cleavage");
+  p.setValue("peptide:min_size", 1);
+  fi.setParameters(p);
+
+  std::vector<FASTAFile::FASTAEntry> entries;
+  FASTAFile::FASTAEntry e1, e2, e3, e4, e5;
+  e1.identifier = "P1"; e1.sequence = "AAAK";        // ~ 388 Da
+  e2.identifier = "P2"; e2.sequence = "AAAAK";       // ~ 459 Da
+  e3.identifier = "P3"; e3.sequence = "AAAAAK";      // ~ 530 Da
+  e4.identifier = "P4"; e4.sequence = "AAAAAAK";     // ~ 601 Da
+  e5.identifier = "P5"; e5.sequence = "AAAAAAAK";    // ~ 672 Da
+  entries = {e1, e2, e3, e4, e5};
+  fi.build(entries);
+
+  const auto& peptides = fi.getPeptides();
+  TEST_EQUAL(peptides.size(), 5u);
+  // Peptides are sorted ascending by precursor_mz_ after build().
+  TEST_EQUAL(peptides[0].precursor_mz_ < peptides[1].precursor_mz_, true);
+  TEST_EQUAL(peptides[3].precursor_mz_ < peptides[4].precursor_mz_, true);
+
+  // Case 1: narrow window at a middle peptide excludes both neighbours.
+  const float p2_mass = peptides[2].precursor_mz_;
+  auto r1 = fi.getPeptidesInMassWindow(p2_mass, {-10.0f, 10.0f});
+  TEST_EQUAL(r1.first, 2u);
+  TEST_EQUAL(r1.second, 3u);   // HALF-OPEN: [2, 3) — only peptide 2
+  // peptide at index r1.second (== 3) must have mass STRICTLY GREATER than the
+  // window's upper bound. This is the half-open invariant the callers must respect.
+  TEST_EQUAL(peptides[r1.second].precursor_mz_ > p2_mass + 10.0f, true);
+
+  // Case 2: window at the last peptide — second == size() is the half-open sentinel.
+  const float p5_mass = peptides[4].precursor_mz_;
+  auto r2 = fi.getPeptidesInMassWindow(p5_mass, {-10.0f, 10.0f});
+  TEST_EQUAL(r2.first, 4u);
+  TEST_EQUAL(r2.second, 5u);   // [4, 5) == [4, size())
+
+  // Case 3: window at the first peptide.
+  const float p1_mass = peptides[0].precursor_mz_;
+  auto r3 = fi.getPeptidesInMassWindow(p1_mass, {-10.0f, 10.0f});
+  TEST_EQUAL(r3.first, 0u);
+  TEST_EQUAL(r3.second, 1u);
+
+  // Case 4: empty window in the gap between two peptides.
+  const float gap_mass = (peptides[1].precursor_mz_ + peptides[2].precursor_mz_) * 0.5f;
+  const float gap_tol = (peptides[2].precursor_mz_ - peptides[1].precursor_mz_) * 0.25f;
+  auto r4 = fi.getPeptidesInMassWindow(gap_mass, {-gap_tol, gap_tol});
+  TEST_EQUAL(r4.first, r4.second);   // empty range (first == second)
+
+  // Case 5: window entirely below all peptides.
+  auto r5 = fi.getPeptidesInMassWindow(100.0f, {-10.0f, 10.0f});
+  TEST_EQUAL(r5.first, 0u);
+  TEST_EQUAL(r5.second, 0u);   // empty at the beginning
+
+  // Case 6: window entirely above all peptides.
+  auto r6 = fi.getPeptidesInMassWindow(10000.0f, {-10.0f, 10.0f});
+  TEST_EQUAL(r6.first, 5u);
+  TEST_EQUAL(r6.second, 5u);   // empty at the end (first == size == second)
+
+  // Case 7: wide window covering all peptides — second == size() signals "no peptide past end".
+  auto r7 = fi.getPeptidesInMassWindow(peptides[2].precursor_mz_, {-10000.0f, 10000.0f});
+  TEST_EQUAL(r7.first, 0u);
+  TEST_EQUAL(r7.second, 5u);
+
+  // Case 8: upper bound EXACTLY at a peptide's mass. upper_bound returns the first
+  // iterator strictly greater than the bound, so a peptide whose mass equals the bound
+  // IS included in the half-open range.
+  const float lo_mass = peptides[1].precursor_mz_;
+  const float hi_mass = peptides[2].precursor_mz_;
+  const float upper_offset = hi_mass - lo_mass;   // so lo_mass + upper_offset == hi_mass
+  auto r8 = fi.getPeptidesInMassWindow(lo_mass, {0.0f, upper_offset});
+  TEST_EQUAL(r8.first, 1u);
+  // peptide 2 (mass == upper bound) IS included; peptide 3 is not.
+  TEST_EQUAL(r8.second, 3u);   // [1, 3) contains peptides 1 and 2
+}
+END_SECTION
+
+START_SECTION((FragmentIndex does not score the peptide at range.second (closed-closed regression guard)))
+{
+  // Regression guard: before fixing the callers, FragmentIndex::query() used strict `>`
+  // to decide loop termination (treating range.second as inclusive) and
+  // searchDifferentPrecursorRanges sized candidates_iso_error.hits_ with `second - first + 1`,
+  // creating a spurious slot for the out-of-window neighbour peptide. queryPeaks would then
+  // write that neighbour's fragment matches into the spurious slot, making it appear in the
+  // PSM output even though its precursor mass was strictly outside the user's window.
+  //
+  // Fixture: two peptides A (light) and B (heavy, +71 Da outside). Query uses A's precursor
+  // mass but B's theoretical fragment peaks — so if the old closed-closed iteration is still
+  // active, B scores perfectly as a spurious hit. With the half-open fix, B is excluded from
+  // the candidate range and never written into hits.
+
+  FragmentIndex_test fi;
+  Param p = fi.getParameters();
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("precursor:mass_tolerance_lower", 5.0);
+  p.setValue("precursor:mass_tolerance_upper", 5.0);
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("enzyme", "no cleavage");
+  p.setValue("peptide:min_size", 1);
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("fragment:max_mz", 50000);
+  fi.setParameters(p);
+
+  std::vector<FASTAFile::FASTAEntry> entries;
+  FASTAFile::FASTAEntry eA, eB;
+  eA.identifier = "A"; eA.sequence = "PEPTIDER";      // ~ 957 Da
+  eB.identifier = "B"; eB.sequence = "PEPTIDERA";     // ~ 957 + 71 = 1028 Da (well outside 10 Da window)
+  entries = {eA, eB};
+  fi.build(entries);
+
+  const auto& peptides = fi.getPeptides();
+  TEST_EQUAL(peptides.size(), 2u);
+  // Lighter (A) sorts to index 0, heavier (B) to index 1.
+  TEST_EQUAL(peptides[0].precursor_mz_ < peptides[1].precursor_mz_, true);
+  const size_t idx_A = 0u;
+  const size_t idx_B = 1u;
+  // Confirm B is genuinely outside A's window.
+  TEST_EQUAL(peptides[idx_B].precursor_mz_ > peptides[idx_A].precursor_mz_ + 5.0f, true);
+
+  // Confirm getPeptidesInMassWindow returns the half-open single-peptide range [0, 1).
+  auto range = fi.getPeptidesInMassWindow(peptides[idx_A].precursor_mz_, {-5.0f, 5.0f});
+  TEST_EQUAL(range.first, idx_A);
+  TEST_EQUAL(range.second, idx_A + 1);  // points past A but BEFORE B
+
+  // Construct a query spectrum: precursor m/z is A's, fragment peaks are B's theoretical fragments.
+  // If the pre-fix closed-closed iteration were still active, B would be processed and its
+  // fragment matches would be written via (peptide_idx - first) into a spurious slot.
+  AASequence seqB = AASequence::fromString(eB.sequence);
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_params = tsg.getParameters();
+  tsg_params.setValue("add_first_prefix_ion", "true");
+  tsg.setParameters(tsg_params);
+  PeakSpectrum theoB;
+  tsg.getSpectrum(theoB, seqB, 1, 1);
+
+  MSSpectrum spec;
+  for (const auto& peak : theoB) spec.push_back(peak);
+  spec.sortByPosition();
+  Precursor prec;
+  prec.setMZ(peptides[idx_A].precursor_mz_);
+  prec.setCharge(1);
+  spec.getPrecursors().push_back(prec);
+  spec.setMSLevel(2);
+
+  FragmentIndex::SpectrumMatchesTopN sms;
+  fi.querySpectrum(spec, sms);
+
+  // Post-fix expectation: peptide B is never scored, because its index (1) is the `second`
+  // bound of the half-open range and the query loop stops strictly before it. No hit in
+  // sms.hits_ should reference idx_B.
+  bool found_B_hit = false;
+  for (const auto& hit : sms.hits_)
+  {
+    if (hit.peptide_idx_ == idx_B && hit.num_matched_ > 0)
+    {
+      found_B_hit = true;
+      break;
+    }
+  }
+  TEST_EQUAL(found_B_hit, false);
+}
+END_SECTION
+
 END_TEST
