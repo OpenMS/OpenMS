@@ -817,4 +817,110 @@ START_SECTION(cross_validate_vs_ModifiedPeptideGenerator)
 }
 END_SECTION
 
+// --- Asymmetric precursor window: Task 8 tests 1-3 ---
+
+START_SECTION((pair<size_t, size_t> getPeptidesInMassWindow(float, const pair<float, float>&) const))
+{
+  // Symmetric default [20, 20] ppm — each peptide retrieves itself within its own mass window.
+  // Uses the high-level self-hit helper `testQuery`, which is the behavioural equivalent of
+  // a getPeptidesInMassWindow round-trip (peptide -> theoretical spectrum -> back to peptide_idx).
+  FragmentIndex_test fi;
+  Param p = fi.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  // include all fragment ions so testQuery's `num_matched >= spec.size()` can be satisfied
+  p.setValue("fragment:min_ion_index", 0);
+  // restrict to iso=0 so the test isolates the symmetric-window self-hit semantics
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  fi.setParameters(p);
+
+  // Build a small fixture
+  vector<FASTAFile::FASTAEntry> entries;
+  FASTAFile::FASTAEntry e;
+  e.identifier = "TEST1";
+  e.sequence = "PEPTIDER";
+  entries.push_back(e);
+  fi.build(entries);
+
+  TEST_EQUAL(fi.testQuery(2, true, entries), true);
+}
+END_SECTION
+
+START_SECTION((asymmetric window compensates precursor calibration offset))
+{
+  // Instrument reads precursor m/z +8 ppm high. A symmetric [5, 5] ppm window misses the peptide
+  // at iso=0, because the observed mass sits 8 ppm ABOVE the peptide — outside [-5, +5] ppm.
+  // Compensating asymmetrically by widening the LOWER side ([15, 5] ppm) shifts the window
+  // down to cover the peptide: [-15, +5] ppm around the observed mass includes the true mass.
+  //
+  // Isotope iteration is collapsed to [0, 0] so the test observes *only* the window behaviour
+  // under investigation (iso=±1 would otherwise reshape the effective window by ±1.003 Da).
+  FragmentIndex_test fi;
+  Param p = fi.getParameters();
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+
+  vector<FASTAFile::FASTAEntry> entries;
+  FASTAFile::FASTAEntry e;
+  e.identifier = "TEST";
+  e.sequence = "PEPTIDER";
+  entries.push_back(e);
+
+  // First run: symmetric tight — should NOT find
+  p.setValue("precursor:mass_tolerance_lower", 5.0);
+  p.setValue("precursor:mass_tolerance_upper", 5.0);
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Construct a query spectrum whose precursor is shifted +8 ppm
+  AASequence seq = AASequence::fromString("PEPTIDER");
+  MSSpectrum spec;
+  Precursor prec;
+  const double true_mz = seq.getMZ(2);
+  prec.setMZ(true_mz * (1.0 + 8e-6));   // +8 ppm
+  prec.setCharge(2);
+  spec.getPrecursors().push_back(prec);
+  spec.setMSLevel(2);
+
+  // Build a minimal theoretical spectrum for the query (all b/y ions, charge 1)
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum theo;
+  tsg.getSpectrum(theo, seq, 1, 1);
+  for (const auto& peak : theo) spec.push_back(peak);
+  spec.sortByPosition();
+
+  FragmentIndex::SpectrumMatchesTopN sms_tight;
+  fi.querySpectrum(spec, sms_tight);
+  TEST_EQUAL(sms_tight.hits_.empty(), true);
+
+  // Second run: asymmetric [15, 5] ppm — widen the LOWER side to compensate the +8 ppm bias
+  p.setValue("precursor:mass_tolerance_lower", 15.0);
+  p.setValue("precursor:mass_tolerance_upper", 5.0);
+  fi.setParameters(p);
+
+  FragmentIndex::SpectrumMatchesTopN sms_asym;
+  fi.querySpectrum(spec, sms_asym);
+  TEST_NOT_EQUAL(sms_asym.hits_.size(), 0);
+}
+END_SECTION
+
+START_SECTION((static bool isOpenSearchMode(double, double, bool)))
+{
+  // Strict > threshold. 1000 ppm stays closed.
+  TEST_EQUAL(FragmentIndex::isOpenSearchMode(500.0,  1500.0, true), true);
+  TEST_EQUAL(FragmentIndex::isOpenSearchMode(999.0,   999.0, true), false);
+  TEST_EQUAL(FragmentIndex::isOpenSearchMode(1000.0, 1000.0, true), false);
+  TEST_EQUAL(FragmentIndex::isOpenSearchMode(1000.0001, 1000.0, true), true);
+
+  // Da unit — threshold 1.0
+  TEST_EQUAL(FragmentIndex::isOpenSearchMode(0.9, 0.9, false), false);
+  TEST_EQUAL(FragmentIndex::isOpenSearchMode(1.0, 1.0, false), false);
+  TEST_EQUAL(FragmentIndex::isOpenSearchMode(1.1, 0.5, false), true);
+}
+END_SECTION
+
 END_TEST
