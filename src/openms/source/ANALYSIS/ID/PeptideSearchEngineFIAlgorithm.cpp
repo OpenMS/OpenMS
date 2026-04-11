@@ -1574,15 +1574,20 @@ namespace OpenMS
     }
 
     // Extract error vectors from filtered hits.
-    // Additionally discard PSMs whose signed precursor error falls outside the user's
-    // configured asymmetric window [-lower, +upper] — definitionally wrong matches that
-    // would otherwise inflate the calibrated shift/spread estimates.
+    // Additionally discard PSMs whose signed precursor error falls outside the band the
+    // FragmentIndex actually delivers. The mass-space window is [observed - lower, observed + upper];
+    // rewriting in terms of the signed error e = observed - theoretical:
+    //   theoretical in [observed - lower, observed + upper]
+    //     <=>  e in [-upper, +lower]
+    // So legitimate hits from FragmentIndex have e in [-upper, +lower], NOT [-lower, +upper].
+    // The bounds flip for asymmetric windows; matching on the wrong band silently drops
+    // real matches when the user has compensated an instrument bias.
     vector<double> precursor_errors;
     vector<double> fragment_errors_abs;
     for (const auto& h : cal_hits)
     {
-      if (h.prec_error < -precursor_mass_tolerance_lower_ ||
-          h.prec_error > precursor_mass_tolerance_upper_) continue; // wrong match
+      if (h.prec_error < -precursor_mass_tolerance_upper_ ||
+          h.prec_error > precursor_mass_tolerance_lower_) continue; // wrong match
       precursor_errors.push_back(h.prec_error);
       if (h.frag_error > 0) fragment_errors_abs.push_back(h.frag_error);
     }
