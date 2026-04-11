@@ -14,7 +14,7 @@ Two independent forces push toward asymmetric closed-search tolerance:
 1. **Comet / Sage / MSFragger parity.** All three reference engines expose asymmetric bounds as the primary tolerance knob.
 2. **Wide-window acquisition (WWA) preparation.** WWA deposits fragments from a wide asymmetric isolation window into each MS2 spectrum; the search engine needs an asymmetric mass window that ultimately becomes per-spectrum (read from `Precursor::getIsolationWindow{Lower,Upper}Offset()`).
 
-This spec unifies the two existing asymmetric-window mechanisms (closed-search tolerance + open-search window) into a single signed pair, refactors the underlying `FragmentIndex` API to an honest absolute-bounds interface, and declares a `wide_window` placeholder flag so the future per-spectrum path drops in without another refactor.
+This spec unifies the two existing asymmetric-window mechanisms (closed-search tolerance + open-search window) into a single positive-magnitude pair and refactors the underlying `FragmentIndex` API to an honest absolute-bounds interface. Wide-window acquisition (WWA) is listed as follow-up work in §11; **no `wide_window` flag is declared in this PR** — it would be premature commitment to a param name before the WWA design is nailed down, and adds param-schema churn for zero current user value.
 
 Because `PeptideSearchEngineFI` / `PeptideDataBaseSearchFI` have not yet shipped to users, we take the freedom to make breaking parameter changes rather than layer backward-compat shims.
 
@@ -23,12 +23,12 @@ Because `PeptideSearchEngineFI` / `PeptideDataBaseSearchFI` have not yet shipped
 - **G1.** Users can specify an asymmetric precursor window for closed search (e.g., `mass_tolerance_lower=5, mass_tolerance_upper=15` ppm → effective window `[−5, +15]` ppm to compensate a known calibration bias). Calibration pass (§7) preserves this bias instead of clobbering it to symmetric.
 - **G2.** Closed and open search use one unified asymmetric window mechanism. No duplicate knobs.
 - **G3.** The `FragmentIndex` candidate-lookup API has a single, honest, absolute-bounds signature. The current additive `prec_tol + window` semantics — which hide the tolerance inside the function and only accept an *additional* offset from the caller — are removed.
-- **G4.** `wide_window` flag declared (default `false`, implementation deferred) so the per-spectrum WWA path can wire into the same refactored interface without further churn.
-- **G5.** No regression in modification discovery for today's open-search flow.
+- **G4.** No regression in modification discovery for today's open-search flow.
+- **G5.** Calibration pass preserves asymmetric user bounds — the flagship use case (a user compensating a known instrument bias via `[15, 5]` ppm) must not have its window clobbered back to symmetric by the calibration step.
 
 ## 3. Non-goals
 
-- **NG1.** Implementing wide-window acquisition / per-spectrum isolation-window candidate selection. The flag is declared; the implementation is a separate design.
+- **NG1.** Wide-window acquisition (WWA) in any form. No `wide_window` param, no per-spectrum isolation-window candidate selection, no placeholder flag. The WWA work is listed in §11 as a dedicated follow-up design; committing to a flag name today before the implementation shape is settled would be premature.
 - **NG2.** Chimeric-spectrum support (issue #9108 item 16). Separate design.
 - **NG3.** A dedicated, tight tolerance for `OpenSearchModificationAnalysis` mod-delta → UniMod matching. Preserved as-is; `OpenSearchModificationAnalysis` currently clamps every input at `MAX_MOD_MAPPING_TOL_ = 0.02 Da` (and discards ppm inputs entirely), so the reduction rule is behavior-neutral today (§7). Future work listed in §11.
 - **NG4.** Backward compatibility with the existing `precursor:mass_tolerance` scalar or `precursor:open_window_*` params. Clean removal. Test INIs are migrated.
@@ -45,7 +45,7 @@ Because `PeptideSearchEngineFI` / `PeptideDataBaseSearchFI` have not yet shipped
 **Convention chosen: positive magnitudes**, matching `MSFraggerAdapter.cpp:97-98,252-253,987-988` and Comet. The internal FragmentIndex helper applies the signs (`[-lower, +upper]`). Rationale:
 
 - Keeps the user-facing config form consistent across `MSFraggerAdapter`, `CometAdapter`, and `PeptideDataBaseSearchFI`. Two OpenMS adapters disagreeing on the sign convention for identically named params would be a real footgun.
-- Users rarely need truly asymmetric windows in practice; magnitudes read naturally as "how much slack in each direction".
+- Users rarely need truly asymmetric windows in practice; magnitudes read naturally as "how many ppm/Da of tolerance on each side".
 - Sign flips happen exactly once, inside `computeMassWindow_()`, where the convention is centralized.
 
 ## 5. Parameter schema
@@ -54,9 +54,8 @@ Because `PeptideSearchEngineFI` / `PeptideDataBaseSearchFI` have not yet shipped
 
 | Param | Type | Default | Notes |
 |---|---|---|---|
-| `precursor:mass_tolerance_lower` | `double` | `20.0` | **Positive magnitude.** Applied internally as `−lower` to form the lower bound. Must be ≥ 0. Unit controlled by `precursor:mass_tolerance_unit`. Default widened from the original `10.0` to reduce first-run surprises on uncalibrated / non-Orbitrap instruments (Bruker timsTOF typically needs 15–20 ppm). The internal calibration pass (§7) tightens it on real data. |
-| `precursor:mass_tolerance_upper` | `double` | `20.0` | **Positive magnitude.** Applied internally as `+upper`. Must be ≥ 0. Same unit. |
-| `precursor:wide_window` | `string` (enum `"true"`/`"false"`) | `"false"` | **Declared but not implemented in this PR.** Registered only in `PeptideSearchEngineFIAlgorithm` (not `FragmentIndex` — see §7), since the flag requires per-spectrum metadata the index never touches. When `true`, the algorithm throws `Exception::NotImplemented` at `updateMembers_()`-time. Future: the WWA path reads per-spectrum isolation-window offsets and bypasses the member bounds. |
+| `precursor:mass_tolerance_lower` | `double` | `20.0` | **Positive magnitude.** Effective lower bound is `−lower`. Must be finite and ≥ 0. Unit controlled by `precursor:mass_tolerance_unit`. Default widened from the original `10.0` to reduce first-run surprises on uncalibrated / non-Orbitrap instruments (Bruker timsTOF typically needs 15–20 ppm). The internal calibration pass (§7) tightens it on real data. |
+| `precursor:mass_tolerance_upper` | `double` | `20.0` | **Positive magnitude.** Effective upper bound is `+upper`. Must be finite and ≥ 0. Same unit. |
 
 ### Removed
 
@@ -76,8 +75,10 @@ Because `PeptideSearchEngineFI` / `PeptideDataBaseSearchFI` have not yet shipped
 
 ### Validation
 
-- Both `mass_tolerance_lower` and `mass_tolerance_upper` must be `>= 0` (positive magnitudes). Nonzero total width (`lower + upper > 0`) required.
+- Both `mass_tolerance_lower` and `mass_tolerance_upper` must be **finite** and `>= 0` (positive magnitudes). `setMinFloat(0.0)` at registration catches negatives via `Param::checkDefaults_`, but does **not** reject `+inf` or `NaN` (see `ParamEntry::isValid` at `Param.cpp:143-166` — `NaN < 0.0` is `false`, so NaN passes the min check). `FragmentIndex::updateMembers_()` therefore adds an explicit `std::isfinite` guard — NaN would otherwise reach `lower_bound`'s comparator and break strict-weak-ordering.
+- Nonzero total width (`lower + upper > 0`) is required — checked in `updateMembers_()` after default merging, since `setMinFloat(0.0)` accepts zero.
 - Unit `"Da"` accepts any magnitude; unit `"ppm"` is unbounded but auto-trips open-mode detection below.
+- Zero on one side is legal: `[0, 5]` ppm means "the target mass plus 0 to 5 ppm" — a one-sided half-line window, useful when the user wants to encode "only search *above* the observed precursor".
 
 ### Open-search auto-detection
 
@@ -147,7 +148,6 @@ with:
 double precursor_mass_tolerance_lower_{20.0};    // positive magnitude, applied as -lower
 double precursor_mass_tolerance_upper_{20.0};    // positive magnitude, applied as +upper
 bool   precursor_mass_tolerance_unit_ppm_{true};
-// NB: no wide_window_ member here — lives in PeptideSearchEngineFIAlgorithm (§7).
 ```
 
 ### Includes
@@ -224,16 +224,18 @@ precursor_mass_tolerance_lower_     = param_.getValue("precursor:mass_tolerance_
 precursor_mass_tolerance_upper_     = param_.getValue("precursor:mass_tolerance_upper");
 precursor_mass_tolerance_unit_ppm_  = param_.getValue("precursor:mass_tolerance_unit").toString() == "ppm";
 
-// Validation
-if (precursor_mass_tolerance_lower_ < 0.0 || precursor_mass_tolerance_upper_ < 0.0)
+// Validation — `setMinFloat(0.0)` rejects negatives via checkDefaults_, but NaN and +inf
+// slip through (NaN < 0 is false). NaN would break lower_bound's strict-weak-ordering.
+if (!std::isfinite(precursor_mass_tolerance_lower_) ||
+    !std::isfinite(precursor_mass_tolerance_upper_))
 {
   throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-    "precursor:mass_tolerance_lower and mass_tolerance_upper must be >= 0 (positive magnitudes)");
+    "precursor:mass_tolerance_lower and mass_tolerance_upper must be finite");
 }
 if (precursor_mass_tolerance_lower_ + precursor_mass_tolerance_upper_ <= 0.0)
 {
   throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-    "precursor window has zero width");
+    "precursor window has zero width (lower + upper must be > 0)");
 }
 
 if (isOpenSearchMode_())
@@ -246,8 +248,6 @@ if (isOpenSearchMode_())
                   << std::endl;
 }
 ```
-
-`wide_window` is intentionally **not** read here — it's a `PeptideSearchEngineFIAlgorithm`-layer concern (§7).
 
 ### `isOpenSearchMode_()` update + deduplication
 
@@ -282,10 +282,10 @@ bool isOpenSearchMode_() const noexcept
 
 Four issues found in the existing code that this refactor cleans up:
 
-1. **Dead parameter registration** (`PeptideSearchEngineFIAlgorithm.cpp:181-182`): registers `precursor:open_window_lower`/`_upper` but never reads them in `updateMembers_()`. Pure pass-through to `FragmentIndex`. **Delete these two lines.**
-2. **Duplicate `isOpenSearchMode_()`** (`PeptideSearchEngineFIAlgorithm.h:478-483`): a second copy of the auto-detection logic lives as an inline method in the header, alongside `FragmentIndex`'s. Consolidate via the new static helper on `FragmentIndex` (below).
-3. **`OpenSearchModificationAnalysis` tolerance input** (`PeptideSearchEngineFIAlgorithm.cpp:889-895`): currently passes `precursor_mass_tolerance_` (the scalar) and the unit. It uses this tolerance to match observed Δmass to UniMod entries.
-4. **Calibration pass discards signed bias** (`PeptideSearchEngineFIAlgorithm.cpp:1580`): `runCalibrationPass_` computes signed `prec_err` at `:1534` then throws the sign away via `std::abs` at `:1580`. Also updates **only** the `fragment_index_` params, leaving the algo-level `precursor_mass_tolerance_*_` stale — a latent bug today (since `OpenSearchModificationAnalysis` reads the stale members), which would silently survive the refactor. Both fixed here.
+1. **Dead parameter registration** (`PeptideSearchEngineFIAlgorithm.cpp:181-182`): registers `precursor:open_window_lower`/`_upper` but never reads them in `updateMembers_()`. Pure pass-through to `FragmentIndex`. Delete.
+2. **Duplicate `isOpenSearchMode_()`** (`PeptideSearchEngineFIAlgorithm.h:478-483`): a second copy of the auto-detection logic lives as an inline method in the header, alongside `FragmentIndex`'s. Consolidate via the new static helper on `FragmentIndex`.
+3. **`OpenSearchModificationAnalysis` tolerance input** (`PeptideSearchEngineFIAlgorithm.cpp:889-895`): currently passes `precursor_mass_tolerance_` (scalar) and unit. The scalar is used to match observed Δmass to UniMod entries.
+4. **Calibration pass discards signed bias** (`PeptideSearchEngineFIAlgorithm.cpp:1580`): `runCalibrationPass_` computes signed `prec_err` at `:1534` then throws the sign away via `std::abs` at `:1580`. Writeback at `:770-780` updates **only** the `fragment_index_` params, leaving the algo-level `precursor_mass_tolerance_*_` stale — a latent bug today (since `OpenSearchModificationAnalysis` reads the stale members), which would silently survive the refactor.
 
 ### Parameter registration changes (PeptideSearchEngineFIAlgorithm.cpp:65-72, 181-182)
 
@@ -296,16 +296,13 @@ defaults_.setValue("precursor:mass_tolerance", 10.0, "+/- tolerance for precurso
 with
 ```cpp
 defaults_.setValue("precursor:mass_tolerance_lower", 20.0,
-                   "Lower-side precursor-mass slack (positive magnitude, applied as -lower). "
-                   "Note: when strongly asymmetric, also review precursor:isotope_error_min.");
+                   "Lower-side precursor-mass tolerance (positive magnitude; effective window "
+                   "is [-lower, +upper] around the precursor). "
+                   "When strongly asymmetric, also review precursor:isotope_error_min.");
 defaults_.setMinFloat("precursor:mass_tolerance_lower", 0.0);
 defaults_.setValue("precursor:mass_tolerance_upper", 20.0,
-                   "Upper-side precursor-mass slack (positive magnitude, applied as +upper).");
+                   "Upper-side precursor-mass tolerance (positive magnitude).");
 defaults_.setMinFloat("precursor:mass_tolerance_upper", 0.0);
-defaults_.setValue("precursor:wide_window", "false",
-                   "Declared for forward compatibility — per-spectrum isolation-window search. "
-                   "NOT YET IMPLEMENTED; setting to true throws Exception::NotImplemented.");
-defaults_.setValidStrings("precursor:wide_window", {"true", "false"});
 ```
 Delete lines 181-182 (`open_window_lower` / `_upper` registrations — dead).
 
@@ -328,15 +325,9 @@ with
 ```cpp
 precursor_mass_tolerance_lower_ = param_.getValue("precursor:mass_tolerance_lower");
 precursor_mass_tolerance_upper_ = param_.getValue("precursor:mass_tolerance_upper");
-wide_window_                    = param_.getValue("precursor:wide_window").toString() == "true";
-
-if (wide_window_)
-{
-  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-}
 ```
 
-`wide_window_` is a new private `bool` member in `PeptideSearchEngineFIAlgorithm.h`, declared next to the existing precursor-tolerance members. `FragmentIndex` never sees the flag.
+The finiteness / zero-width validation lives in `FragmentIndex::updateMembers_()` (§6) and fires when the algorithm's param subtree is pushed into `fragment_index_.setParameters()` at `cpp:695`. No duplicate validation needed here.
 
 ### `isOpenSearchMode_()` duplicate → shared helper (`PeptideSearchEngineFIAlgorithm.h:478-483`)
 
@@ -351,52 +342,63 @@ bool isOpenSearchMode_() const
 ```
 One source of truth. This was flagged in the spec review as "cheap to fix now" rather than deferred — it's the root cause of the two-classes-drifting risk and adds no header coupling beyond what's already there (`PeptideSearchEngineFIAlgorithm.h` already includes `FragmentIndex.h`).
 
-### Calibration pass changes — preserve signed bias (cpp:760-782, 1454-1626)
+### Calibration pass — preserve signed bias (cpp:760-782, 1454-1626)
 
-**Blocker fix from review.** The current `runCalibrationPass_` computes signed `prec_err` at cpp:1534, then immediately `std::abs()`-es it at cpp:1580 and returns a single-scalar spread. Writing that scalar back as `[−spread, +spread]` discards any real calibration bias — which is precisely the use case that motivates asymmetric closed search. A user setting `[15, 5]` ppm to compensate a −5 ppm bias would have the window clobbered to `[3, 3]` ppm and lose every target.
+The current `runCalibrationPass_` computes signed `prec_err` at cpp:1534 then throws the sign away via `std::abs` at cpp:1580 and returns a single-scalar spread. Writing `[−spread, +spread]` back discards any real calibration bias — defeating the whole point of asymmetric closed search. A user setting `[15, 5]` ppm to compensate a −5 ppm bias would have the window clobbered to `[3, 3]` ppm and lose every target.
 
-**Fix:** extend `CalibrationResult_` (`PeptideSearchEngineFIAlgorithm.h:444-450`) with a signed shift, compute `median(signed_err)` + MAD-around-the-median, and write asymmetric bounds back.
+**Fix summary.** Extend `CalibrationResult_` with a signed shift plus a spread-around-the-shift and an `extreme_bias` flag; compute them from the signed residuals; write asymmetric bounds back **unless** `|shift| > spread` (extreme bias, positive-magnitude schema can't faithfully represent a one-sided window without a lossy approximation that would widen the result — we skip instead and log a WARN).
 
-Extended struct:
+Extended `CalibrationResult_` (`PeptideSearchEngineFIAlgorithm.h:444-450`):
 ```cpp
 struct CalibrationResult_
 {
-  double precursor_shift{0};    ///< median of signed precursor errors (bias, same unit as configured)
-  double precursor_spread{0};   ///< half-width around the shift (median + 3*MAD of |err - shift|)
+  double precursor_shift{0};     ///< median of signed precursor errors (bias)
+  double precursor_spread{0};    ///< median(|e - shift|) + 3*MAD(|e - shift|)
+  double cal_lower{0};           ///< calibrated lower magnitude (valid iff !extreme_bias)
+  double cal_upper{0};           ///< calibrated upper magnitude (valid iff !extreme_bias)
   double fragment_tolerance{0};
   double fragment_shift{0};
+  bool   extreme_bias{false};    ///< |shift| > spread — writeback skipped (test hook)
   bool   success{false};
 };
 ```
-(`precursor_tolerance` is replaced by the more honest `precursor_shift` + `precursor_spread` pair.)
+`precursor_tolerance` is replaced. Verified by the header-coupling review: nothing outside `PeptideSearchEngineFIAlgorithm.{h,cpp}` references `CalibrationResult_::precursor_tolerance` (no pyOpenMS bindings, no tests). Safe to remove.
 
-Updated `runCalibrationPass_` (replacing cpp:1575-1601):
+Updated `runCalibrationPass_` (replacing cpp:1575-1601). Uses the existing `min_tolerance` local at `cpp:1582` — no new constant. The formula `res_median + 3*MAD(residuals)` mirrors the current `median(|e|) + 3*MAD(|e|)` structure applied to residuals around the signed shift rather than raw errors, so the symmetric-case spread is unchanged for a zero-centered distribution:
+
 ```cpp
-// Signed median gives the calibration bias; MAD around it gives the spread.
-std::vector<double> signed_errors = precursor_errors; // already signed from cpp:1534-1536
-const double prec_shift = Math::median(signed_errors.begin(), signed_errors.end());
+// Signed median gives the calibration bias; spread is median(|e - shift|) + 3*MAD(|e - shift|),
+// i.e., the same "typical residual + 3*scale" shape as the pre-refactor formula,
+// just applied to residuals around the signed center instead of raw errors.
+const double prec_shift = Math::median(precursor_errors.begin(), precursor_errors.end());
 
 std::vector<double> residuals;
-residuals.reserve(signed_errors.size());
-for (double e : signed_errors) { residuals.push_back(std::abs(e - prec_shift)); }
-const double prec_mad = Math::median(residuals.begin(), residuals.end());
+residuals.reserve(precursor_errors.size());
+for (double e : precursor_errors) { residuals.push_back(std::abs(e - prec_shift)); }
+const double res_median = Math::median(residuals.begin(), residuals.end());
+const double res_mad    = Math::MAD(residuals.begin(), residuals.end(), res_median);
 
 result.precursor_shift  = prec_shift;
-result.precursor_spread = std::max(min_tolerance, 3.0 * prec_mad);
+result.precursor_spread = std::max(min_tolerance, res_median + 3.0 * res_mad);
+result.extreme_bias     = std::abs(prec_shift) >= result.precursor_spread;
+
+if (!result.extreme_bias)
+{
+  // Only tighten. True calibrated signed window is [shift - spread, shift + spread],
+  // which straddles zero because |shift| < spread. Map to positive magnitudes:
+  //   -cal_lower = shift - spread  =>  cal_lower = spread - shift (> 0)
+  //   +cal_upper = shift + spread  =>  cal_upper = spread + shift (> 0)
+  const double cal_lower_raw = result.precursor_spread - prec_shift;
+  const double cal_upper_raw = result.precursor_spread + prec_shift;
+  result.cal_lower = std::min(cal_lower_raw, precursor_mass_tolerance_lower_);
+  result.cal_upper = std::min(cal_upper_raw, precursor_mass_tolerance_upper_);
+}
+// else: cal_lower/cal_upper left at 0; writeback block must check !extreme_bias before use.
 ```
-The "don't widen beyond configured" cap at cpp:1605-1608 generalizes to asymmetric:
-```cpp
-// Only tighten. Cap each side independently against the user-configured bound.
-const double cal_lower_raw = std::max(0.0, result.precursor_spread - result.precursor_shift);
-const double cal_upper_raw = std::max(0.0, result.precursor_spread + result.precursor_shift);
-result.cal_lower = std::min(cal_lower_raw, precursor_mass_tolerance_lower_);
-result.cal_upper = std::min(cal_upper_raw, precursor_mass_tolerance_upper_);
-```
-(`cal_lower` and `cal_upper` are added to `CalibrationResult_` alongside `shift`/`spread`.)
 
 Updated writeback at cpp:770-780:
 ```cpp
-if (cal.success)
+if (cal.success && !cal.extreme_bias)
 {
   Param fi_params = fi_params_original;
   fi_params.setValue("precursor:mass_tolerance_lower", cal.cal_lower);
@@ -405,71 +407,66 @@ if (cal.success)
   fragment_index_.setParameters(fi_params);
   fi_params_modified = true;
 
-  // **Fix for the double-bookkeeping blocker**: refresh the algorithm's OWN member copies too.
-  // Otherwise OpenSearchModificationAnalysis (cpp:889-895) reads stale pre-calibration values.
+  // Refresh the algorithm's OWN member copies — OpenSearchModificationAnalysis (cpp:889-895)
+  // reads them via computeModMatchTolerance_() and would otherwise see stale pre-calibration
+  // values (latent bug today under the scalar tolerance; same class under the new schema).
   precursor_mass_tolerance_lower_ = cal.cal_lower;
   precursor_mass_tolerance_upper_ = cal.cal_upper;
-  effective_fragment_tol           = cal.fragment_tolerance;
 
   OPENMS_LOG_INFO << "[PDBS-FI] Calibration: shift=" << cal.precursor_shift
                   << " spread=" << cal.precursor_spread << " "
                   << precursor_mass_tolerance_unit_
                   << " → window [-" << cal.cal_lower << ", +" << cal.cal_upper << "]" << std::endl;
-  if (cal.precursor_shift > cal.precursor_spread
-      || -cal.precursor_shift > cal.precursor_spread)
-  {
-    OPENMS_LOG_WARN << "[PDBS-FI] Calibration: shift exceeds spread (extreme instrument bias). "
-                    << "Window floored at one edge; consider fixing calibration externally "
-                    << "before running this tool." << std::endl;
-  }
+}
+else if (cal.success && cal.extreme_bias)
+{
+  OPENMS_LOG_WARN << "[PDBS-FI] Calibration: |shift|=" << std::abs(cal.precursor_shift)
+                  << " >= spread=" << cal.precursor_spread << " "
+                  << precursor_mass_tolerance_unit_ << " — calibration result discarded. "
+                  << "The true signed window [" << (cal.precursor_shift - cal.precursor_spread)
+                  << ", " << (cal.precursor_shift + cal.precursor_spread)
+                  << "] lies entirely on one side of zero; the positive-magnitude schema cannot "
+                  << "express it without loosening. Fix external calibration, or configure "
+                  << "mass_tolerance_lower/_upper manually." << std::endl;
+  // Preserve user-configured bounds. fi_params_modified stays false.
+}
+// cal.fragment_tolerance still applied separately when success — unchanged from pre-refactor.
+```
+
+**Why skip writeback on extreme bias.** The round-2 review worked the math: with `shift=+7, spread=2` the true calibrated window is `[+5, +9]`. Any positive-magnitude approximation either (a) floors `cal_lower` at 0 → effective window `[0, 9]`, which is **5 units wider** on the lower side than calibration justifies — a loosening, violating the "only tighten" invariant; or (b) encodes `[+5, +9]` exactly by storing `lower = -5` — breaks the positive-magnitude schema. Neither is acceptable. Discarding the calibration result and preserving user intent is the only honest choice, and matches the spec's "fix external calibration" advice.
+
+**`!open_search` guard** at cpp:764 still works. `open_search` now comes from the new `isOpenSearchMode_()` delegating to the shared helper: `[20, 200]` Da → max 200 > 1 → open → calibration skipped. `[500, 1500]` ppm → max 1500 > 1000 → open → skipped.
+
+**Fragment writeback unchanged.** `effective_fragment_tol` handling at cpp:773 is preserved — the new block replaces only the precursor-tolerance writeback.
+
+### `OpenSearchModificationAnalysis` input (cpp:889-895) + new `computeModMatchTolerance_()` helper
+
+`analyzeModifications` takes a scalar matching precision for Δmass → UniMod lookup. Under asymmetric bounds, the correct reduction is `min(lower, upper)` (tightest available matching precision). `OpenSearchModificationAnalysis.cpp:161-163` clamps every input at `MAX_MOD_MAPPING_TOL_ = 0.02 Da` and **discards ppm inputs entirely** (using the cap directly), so any realistic input is behavior-equivalent today — but `min` is the semantically honest choice and preserves correctness if the clamp is ever lifted.
+
+Extract the reduction into a named private const helper so the test suite can observe it without spying on the `analyzeModifications` call (OpenMS class-tests have no spy/mock infrastructure):
+
+```cpp
+// PeptideSearchEngineFIAlgorithm.h (private section)
+/// Scalar tolerance passed to OpenSearchModificationAnalysis under asymmetric bounds.
+/// Uses the tighter of the two positive magnitudes — semantically correct for UniMod
+/// matching precision. See spec §7 for the 0.02 Da internal clamp context.
+double computeModMatchTolerance_() const
+{
+  return std::min(precursor_mass_tolerance_lower_, precursor_mass_tolerance_upper_);
 }
 ```
 
-**Why the two member-refresh lines matter.** Today, `OpenSearchModificationAnalysis` at cpp:889-895 reads `precursor_mass_tolerance_` from the algorithm's members — which, after calibration, is **stale** (FragmentIndex got updated, the algo didn't). Under the new asymmetric flow, the same bug would fire via `precursor_mass_tolerance_lower_/_upper_`. This refactor fixes it alongside the calibration rewrite rather than leaving it as pre-existing silent breakage.
-
-**Positive-magnitude edge case.** If `|shift| > spread`, the signed window `[shift−spread, shift+spread]` lies entirely on one side of zero — which the positive-magnitude schema can't express, since `[-lower, +upper]` always straddles zero. In that case we floor the opposite side at 0 and emit a `WARN`. This is the exact point where the user should fix external calibration; the search-engine should not silently mask it. The same convention is used by `MSFraggerAdapter`.
-
-**`!open_search` guard** at cpp:764. `open_search` is now computed from the new `isOpenSearchMode_()` (which in turn delegates to the shared helper). `[−100, +200]` Da → `max(100,200) > 1` → open → calibration skipped. `[−500, +1500]` ppm → `max(500,1500) > 1000` → open → skipped. Correct.
-
-### `OpenSearchModificationAnalysis` input (cpp:889-895)
-
-**Corrected from the original spec draft after review.** The scalar passed to `analyzeModifications` is a **matching precision** for Δmass → UniMod lookup — tighter = better, not wider = safer. The original draft used `max(|lower|, upper)`, which would *loosen* matching for asymmetric users. Fix: use `min(lower, upper)`.
-
-However, reading `OpenSearchModificationAnalysis.cpp:155-163`:
+Call site at cpp:889-895:
 ```cpp
-const double effective_tol = precursor_mass_tolerance_unit_ppm
-  ? MAX_MOD_MAPPING_TOL_                                    // 0.02 Da, ignores ppm input entirely
-  : std::min(precursor_mass_tolerance, MAX_MOD_MAPPING_TOL_); // Da: hard cap at 0.02 Da
-```
-reveals that the scalar is **clamped to `MAX_MOD_MAPPING_TOL_ = 0.02 Da` unconditionally**. In ppm mode the input value is **discarded entirely**. So in practice `min`, `max`, midpoint, or the original scalar all produce bitwise-identical output for every realistic configuration (any ppm value → 0.02 Da; any Da value ≥ 0.02 → 0.02 Da).
-
-Pick `min(lower, upper)` anyway, because:
-1. It is semantically correct (matching precision).
-2. It is strictly ≤ today's symmetric scalar, so no regression is possible even if the clamp is later lifted.
-3. The comment documents the invariant explicitly so a future maintainer "fixing" the clamp doesn't accidentally widen matching.
-
-```cpp
-// OpenSearchModificationAnalysis matches observed Δmass to UniMod entries using a
-// scalar matching precision (tighter = better). Under asymmetric bounds we feed the
-// tighter of the two magnitudes — strictly ≤ today's symmetric value, never worse.
-//
-// Note: internally, analyzeModifications clamps this at MAX_MOD_MAPPING_TOL_ = 0.02 Da
-// (and DISCARDS the value entirely in ppm mode, using the cap directly). So in
-// practice any realistic input produces the same output. This is correct behavior
-// today but a latent regression pit if the clamp is ever lifted without revisiting
-// this reduction rule. See spec §11 for the follow-up "dedicated mod-matching
-// tolerance" item.
-const double mod_match_tol = std::min(precursor_mass_tolerance_lower_,
-                                      precursor_mass_tolerance_upper_);
 mod_analyzer.analyzeModifications(
   peptide_ids,
-  mod_match_tol,
+  computeModMatchTolerance_(),
   precursor_mass_tolerance_unit_ == "ppm",
   false,
   "");
 ```
 
-No change to `OpenSearchModificationAnalysis` itself. Testing: §9 adds an explicit regression test pinning the input value that reaches `analyzeModifications`, so drift in this reduction rule is detectable even while the internal clamp absorbs the effect.
+The helper is exposed to the test suite via a `PeptideSearchEngineFIAlgorithm_test` friend subclass in the test file (same pattern as `FragmentIndex_test` at `FragmentIndex_test.cpp:44`), so tests 8 and 10 in §9 can pin the reduction rule directly without running a full search or capturing log output.
 
 ## 8. Call-site changes: `PeptideDataBaseSearchFI.cpp`
 
@@ -477,41 +474,61 @@ The TOPP tool wrapper reads `precursor:mass_tolerance` and `mass_tolerance_unit`
 
 ## 9. Tests
 
+### Test infrastructure additions
+
+OpenMS class-tests (`START_TEST` / `TEST_EQUAL`) have no mock/spy infrastructure. Observability for tests 7, 8, 9, 10 below uses named state, not intercepted calls. Tests 4 and 5 use an observable-proxy approach instead (running the same fixture twice with different settings and asserting PSM-set equivalence) — no new API required. The refactor introduces exactly four observability hooks, all minimal:
+
+1. **`PeptideSearchEngineFIAlgorithm::computeModMatchTolerance_() const`** — private helper, returns `std::min(_lower_, _upper_)`. Already declared in §7 for code-structure reasons; also used as the test hook for the OSMA reduction rule. Exposed to tests via `using` in the test friend subclass.
+2. **`CalibrationResult_::bool extreme_bias`** — already declared in §7. Test asserts on struct field instead of capturing `OPENMS_LOG_WARN`.
+3. **`PeptideSearchEngineFIAlgorithm_test` friend subclass** (new, in `PeptideSearchEngineFIAlgorithm_test.cpp`) mirroring the `FragmentIndex_test` pattern at `FragmentIndex_test.cpp:44`. Exposes `precursor_mass_tolerance_lower_/_upper_`, `computeModMatchTolerance_`, `fragment_index_`, and `last_calibration_result_` (next hook).
+4. **`PeptideSearchEngineFIAlgorithm::last_calibration_result_`** — private member, holds the most recent `CalibrationResult_` so tests can read `shift`, `spread`, `cal_lower`, `cal_upper`, `extreme_bias` after a search completes. Currently the calibration result is a local in the caller and is discarded; storing it is a one-line change. Also useful for debugging.
+
 ### Migration (mechanical)
 
-- `src/tests/topp/PeptideDataBaseSearchFI_1.ini`: `mass_tolerance = 5` → `mass_tolerance_lower = 5`, `mass_tolerance_upper = 5` (positive magnitudes).
-- `src/tests/topp/PeptideDataBaseSearchFI_2.ini`: `mass_tolerance = 10.0` → `mass_tolerance_lower = 10.0`, `mass_tolerance_upper = 10.0`.
-- `src/tests/class_tests/openms/source/PeptideSearchEngineFIAlgorithm_test.cpp`: every site that sets `precursor:mass_tolerance` → replace with the positive-magnitude pair.
-- `src/pyOpenMS/tests/test_modification_discovery.py`: `precursor:mass_tolerance` at lines 197-198, 300-301, 354-355, 434-435 (4 call sites) → migrate in lockstep. **Not optional** — this test file will fail on the first CI run after the C++ change otherwise.
+- `src/tests/topp/PeptideDataBaseSearchFI_1.ini`: `mass_tolerance = 5` → `mass_tolerance_lower = 5`, `mass_tolerance_upper = 5`.
+- `src/tests/topp/PeptideDataBaseSearchFI_2.ini`: `mass_tolerance = 10.0` → both bounds `10.0`.
+- `src/tests/class_tests/openms/source/PeptideSearchEngineFIAlgorithm_test.cpp`: every `precursor:mass_tolerance` set site → positive-magnitude pair.
+- `src/pyOpenMS/tests/test_modification_discovery.py`: **8 hits across 4 test functions** at lines 197-198, 300-301, 354-355, 434-435 (each function sets `mass_tolerance` + `mass_tolerance_unit`). **Not optional** — CI will fail on the first run otherwise. Note: pyOpenMS bindings are hand-maintained nanobind files (per `src/pyOpenMS/CLAUDE.md`), no codegen step — only the test file needs touching.
 
-**Reference-file invariance claim.** idXML reference outputs for the migrated symmetric INIs should be **unchanged**. Proof sketch: `Math::ppmToMass` is linear (`MathFunctions.h:403-407`), so `Math::ppmToMass<float>(10, m)` and `-Math::ppmToMass<float>(10, m)` are bitwise additive inverses in IEEE float. The new code path `precursor_mass + {-Math::ppmToMass<float>(lower, m), +Math::ppmToMass<float>(upper, m)}` produces the same float values that the old path computed as `precursor_mass ± Math::ppmToMass<float>(tol, m)`, modulo the `static_cast<float>` chain on the member inputs (which matters — see "load-bearing" note below). If any reference file diffs after migration, it's a real regression to root-cause, not a reference to bulk-update.
-
-**`(float)` cast chain is load-bearing.** The equivalence above relies on `computeMassWindow_` casting the `double` members to `float` *before* calling `Math::ppmToMass<float>(...)`, exactly matching how the legacy code computed `prec_tol` as `float`. If someone later widens the helper to `double`, the final `float`-narrowing of the final mass comparison differs and reference files drift. Explicit `<float>` template tag + `static_cast<float>` on the member input guards against this.
+**Reference-file invariance (for symmetric configs).** `Math::ppmToMass<float>` is linear (`MathFunctions.h:403-407`): `ppmToMass<float>(10, m) = -ppmToMass<float>(-10, m)` in IEEE float (unary negation of a single product). The new code path computes `precursor_mass + {-Math::ppmToMass<float>(lower, m), +Math::ppmToMass<float>(upper, m)}` — bitwise identical to the legacy `precursor_mass ± Math::ppmToMass<float>(tol, m)` when `lower == upper == tol`. Any reference drift after migration is a real regression to root-cause, not a reference to bulk-update. The `static_cast<float>` chain on the `double` members and the explicit `<float>` template tag are load-bearing for this invariance — see §6.
 
 ### New tests (`FragmentIndex_test.cpp`)
 
-1. **Symmetric default equivalence.** Build index at default `[20, 20]` ppm, search a fixture spectrum, confirm the PSM set is identical to the pre-refactor baseline. Guards the refactor via bitwise `lower_bound` invariance.
-2. **Asymmetric closed window — simulate calibration offset.** Load a fixture spectrum, **apply `Precursor::setMZ(exp_mz * (1 + 8e-6))` to shift the *spectrum precursor* by +8 ppm** (the DB is correct, the instrument is mis-calibrated — the realistic scenario). With `[5, 5]` ppm bounds the target peptide is NOT identified; with `[5, 15]` ppm it IS. Template pattern: existing `isotope_error` section (`FragmentIndex_test.cpp:453-455`).
-3. **Open-mode auto-detection boundaries.**
-   - `[500, 1500]` ppm → open mode (flipped by upper side, strict `>` at 1000 threshold)
-   - `[999, 999]` ppm → closed mode
-   - `[1000, 1000]` ppm → closed mode (strict `>`, exactly at threshold)
-   - `[1000.0001, 1000]` ppm → open mode (just over)
-4. **Open-mode isotope-error force-to-zero.** Confirm iteration collapses to `[0, 0]` when open mode trips, even with user-configured `isotope_error_min=−2, max=+2`.
-5. **Asymmetric + isotope-error interaction.** `[5, 15]` ppm closed mode with `isotope_error_range = [-1, +2]`. Verify the window travels correctly with each `+k·1.00336 Da` shift and candidate sets match the expected union.
-6. **Validation.** `mass_tolerance_lower = -5` throws `Exception::InvalidParameter`. `[0, 0]` throws `Exception::InvalidParameter` (zero width). Use `TEST_EXCEPTION(Exception::InvalidParameter, ...)` macro.
-7. **`wide_window = "true"` throws `Exception::NotImplemented`.** Declared in `PeptideSearchEngineFIAlgorithm`, test lives in `PeptideSearchEngineFIAlgorithm_test.cpp`. Use `TEST_EXCEPTION(Exception::NotImplemented, ...)`.
+1. **Symmetric default self-hit.** At default `[20, 20]` ppm, build the index from a small synthesized peptide set and confirm each peptide retrieves itself via `getPeptidesInMassWindow` within the expected range. Uses the existing `FragmentIndex_test` friend subclass pattern from `FragmentIndex_test.cpp:44-160`. Also confirm the pre-refactor code path on the same fixture yields the same peptide-index range — this is a bitwise-equivalence guard, not a stored-baseline comparison.
+2. **Asymmetric window — simulate calibration offset.** Synthesize a spectrum whose `Precursor::getMZ()` is shifted by `setMZ(peptide.getMZ(1) * (1 + 8e-6))` (+8 ppm). At `[5, 5]` ppm, the peptide is NOT retrieved; at `[5, 15]` ppm it IS. Arithmetic check: at peptide mass 1500 Da, effective window `[-5, +15]` ppm = `[-0.0075, +0.0225]` Da; observed Δ = `+0.012` Da, which lies in `[5, 15]` but not in `[5, 5]` (`|Δ| > 0.0075`). Add this arithmetic as an inline comment so a future widening of the fixture doesn't silently break the boundary.
+3. **Open-mode auto-detection boundaries** — call the static `FragmentIndex::isOpenSearchMode(lower, upper, unit_ppm)` directly (no `updateMembers_()` round-trip needed; the static is a pure function):
+   - `isOpenSearchMode(500, 1500, true) == true` (flipped by upper)
+   - `isOpenSearchMode(999, 999, true) == false`
+   - `isOpenSearchMode(1000, 1000, true) == false` (strict `>`, exactly at threshold → closed)
+   - `isOpenSearchMode(1000.0001, 1000, true) == true` (just over)
+   - `isOpenSearchMode(0.9, 0.9, false) == false`, `isOpenSearchMode(1.0, 1.0, false) == false`, `isOpenSearchMode(1.1, 0.5, false) == true` (Da unit boundaries).
+4. **Open-mode isotope-error force-to-zero — observable-proxy.** Build a fixture that depends on isotope_error iteration (e.g., target peptide whose precursor m/z is misassigned one `13C` up). Configure `isotope_error_min=-2, max=+2` AND open-mode-triggering tolerance. Compare PSM set against the same fixture with `isotope_error_min=0, max=0` + open mode. Equal PSM sets → iteration was collapsed. No internal-state inspection required.
+5. **Asymmetric + isotope_error interaction — observable PSM-count check.** `[5, 15]` ppm closed mode with `isotope_error_range=[-1, +2]` on a fixture with peptides at `mass`, `mass + 1.00336 Da`, `mass + 2*1.00336 Da`, `mass - 1.00336 Da`. Each isotope-shifted peptide should be found at its corresponding shift; the `-1.00336 Da` peptide AND the `+2*1.00336 Da` peptide both fall inside the iteration. No white-box access needed — just candidate-set membership assertions.
+6a. **Validation: negative magnitude** — `TEST_EXCEPTION(Exception::InvalidParameter, algo.setParameters(p_with_neg_lower))`. Fires from `Param::checkDefaults_` via `setMinFloat(0.0)` at the `setParameters` boundary, before the algorithm's `updateMembers_()` validator.
+6b. **Validation: zero width** — `TEST_EXCEPTION(Exception::InvalidParameter, algo.setParameters(p_with_zero_both))`. Fires from `FragmentIndex::updateMembers_()` (where the explicit `lower + upper > 0` check lives), because `setMinFloat(0.0)` accepts zero.
+6c. **Validation: NaN rejection** — `TEST_EXCEPTION(Exception::InvalidParameter, algo.setParameters(p_with_nan_upper))`. Fires from the `std::isfinite` guard in `FragmentIndex::updateMembers_()`.
 
 ### New tests (`PeptideSearchEngineFIAlgorithm_test.cpp`)
 
-8. **Calibration preserves asymmetric bias.** Configure `[20, 5]` ppm with a fixture run whose signed `prec_err` has `median ≈ +7 ppm` (synthesized or captured). Run the algorithm with `calibration:enabled=true`. After the search, read back `fragment_index_.getParameters()` and the algo's own `precursor_mass_tolerance_lower_/_upper_` members. Assert both sides reflect the calibrated `[cal_lower, cal_upper]` (not the original `[20, 5]`), and that neither has been clobbered to the symmetric scalar of previous behavior. Capture the `OPENMS_LOG_INFO` "Calibration: shift=... spread=..." line to verify the signed shift is reported.
-9. **Algorithm-level member refresh after calibration.** Same setup as (8). Spy on the `OpenSearchModificationAnalysis::analyzeModifications` call at cpp:889-895 and assert the `precursor_mass_tolerance` argument equals `min(cal.cal_lower, cal.cal_upper)` — NOT the user-configured `min(20, 5) = 5`. This is the double-bookkeeping fix regression guard.
-10. **Calibration: extreme bias warning path.** Construct a fixture where `|shift| > spread`. Assert `OPENMS_LOG_WARN` fires and one side of the window is floored at 0.
-11. **OpenSearchModificationAnalysis reduction under asymmetry (no calibration).** `[5, 50]` ppm and `[50, 5]` ppm → both feed `5` ppm into `analyzeModifications`. `[5, 50]` Da → feeds 5 Da. Pins the `min()` reduction rule even though the internal 0.02 Da clamp absorbs the effect. Prevents silent drift if someone changes the reduction to `max` or midpoint.
+7. **Calibration preserves asymmetric bias (normal case).** Friend subclass exposes members. Configure `[20, 5]` ppm + `calibration:enabled=true`. Synthesize spectra (pattern: closed-search baseline around `PeptideSearchEngineFIAlgorithm_test.cpp:632+`) with a deliberate `+7 ppm` systematic shift on precursor m/z values. Run the search. Assert:
+   - `algo.last_calibration_result_.success == true`
+   - `algo.last_calibration_result_.extreme_bias == false`
+   - `algo.last_calibration_result_.precursor_shift ≈ +7 ppm` (`TEST_REAL_SIMILAR` with loose tolerance)
+   - `algo.last_calibration_result_.cal_lower < 20` and `cal_upper < 5` (tightened, not clobbered to symmetric)
+   - `algo.precursor_mass_tolerance_lower_ == algo.last_calibration_result_.cal_lower` (member refresh fired)
+   - `algo.fragment_index_.getParameters().getValue("precursor:mass_tolerance_lower") == cal_lower` (fragment-index side also updated)
+8. **`computeModMatchTolerance_()` reads refreshed members.** Same setup as (7). After the search, assert `algo.computeModMatchTolerance_() == std::min(cal_lower, cal_upper)`. This is the double-bookkeeping regression guard — without the member-refresh lines in §7's calibration writeback, this would return `min(20, 5) == 5`, not the calibrated value. Pure helper call — no spy needed.
+9. **Extreme bias path discards calibration.** Synthesize a fixture where `|shift| > spread` (e.g., all errors clustered near `+12 ppm` with very low variance). Assert:
+   - `algo.last_calibration_result_.success == true`
+   - `algo.last_calibration_result_.extreme_bias == true`
+   - `algo.precursor_mass_tolerance_lower_/_upper_` equal the user-configured values (unchanged)
+   - `algo.fragment_index_.getParameters()` also unchanged on the precursor side
+   No log-stream capture — the bool flag is the test hook.
+10. **Reduction rule pinned without calibration.** Disable calibration. Configure `[5, 50]` ppm → `computeModMatchTolerance_() == 5.0`. Configure `[50, 5]` ppm → `== 5.0`. Configure `[5, 50]` Da → `== 5.0`. Pure unit test on the helper via the friend subclass. Prevents silent drift if someone changes the reduction to `max` or midpoint.
 
 ### Regression watch
 
-Run the full `FragmentIndex` and `PeptideSearchEngineFIAlgorithm` class tests + the two TOPP `PeptideDataBaseSearchFI_*` integration tests + `test_modification_discovery.py` after the refactor. Any diff in reference outputs is a real regression, not a reference to update.
+Run the full `FragmentIndex_test`, `PeptideSearchEngineFIAlgorithm_test`, the two TOPP `PeptideDataBaseSearchFI_*` integration tests, and `test_modification_discovery.py` after the refactor. Any diff in idXML reference outputs is a real regression to investigate, not a reference to bulk-accept.
 
 ## 10. Files touched
 
@@ -519,29 +536,30 @@ Run the full `FragmentIndex` and `PeptideSearchEngineFIAlgorithm` class tests + 
 |---|---|
 | `src/openms/include/OpenMS/ANALYSIS/ID/FragmentIndex.h` | rename `getPeptidesInPrecursorRange` → `getPeptidesInMassWindow` (const); add `computeMassWindow_` (const); new static `isOpenSearchMode(lower, upper, unit_ppm)`; update instance `isOpenSearchMode_()` to delegate; replace members with positive-magnitude pair; add `#include <algorithm>` |
 | `src/openms/source/ANALYSIS/ID/FragmentIndex.cpp` | implementations of above; rewrite `searchDifferentPrecursorRanges`; `updateMembers_()` validation + WARN log on mode flip; param registrations mirror (drop `mass_tolerance`, `open_window_*`; add `mass_tolerance_lower/_upper`); delete dead "modification window" comment at `:993` |
-| `src/openms/include/OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h` | replace scalar tolerance members with `_lower_` / `_upper_`; add `wide_window_` bool member; extend `CalibrationResult_` with `precursor_shift`, `precursor_spread`, `cal_lower`, `cal_upper` (replace `precursor_tolerance`); `isOpenSearchMode_()` delegates to `FragmentIndex::isOpenSearchMode` static |
-| `src/openms/source/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.cpp` | param registrations (add pair + `wide_window`, delete dead `open_window_*`, delete `mass_tolerance`); section description update; `updateMembers_()` with `wide_window` read + throw; `runCalibrationPass_` signed-shift preservation (lines 1520-1626); calibration writeback refreshes both `fragment_index_` params AND algo member copies; `OpenSearchModificationAnalysis` input uses `min(lower, upper)` + comment block |
+| `src/openms/include/OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h` | replace scalar tolerance members with `_lower_` / `_upper_`; add private `computeModMatchTolerance_() const` helper; add `last_calibration_result_` member (stores the most recent `CalibrationResult_` for test observability); extend `CalibrationResult_` with `precursor_shift`, `precursor_spread`, `cal_lower`, `cal_upper`, `bool extreme_bias` (replace `precursor_tolerance`); `isOpenSearchMode_()` delegates to `FragmentIndex::isOpenSearchMode` static |
+| `src/openms/source/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.cpp` | param registrations (add pair, delete dead `open_window_*`, delete `mass_tolerance`); section description update; `updateMembers_()` reads the new pair; `runCalibrationPass_` signed-shift preservation with extreme-bias detection (cpp:1454-1626); calibration writeback skips on extreme bias, refreshes both `fragment_index_` params AND algo member copies in the normal case; `OpenSearchModificationAnalysis` input routes through `computeModMatchTolerance_()` |
 | `src/topp/PeptideDataBaseSearchFI.cpp` | param reads (`mass_tolerance_lower/_upper`) + local open-mode detection (delegate to shared helper) |
 | `src/tests/topp/PeptideDataBaseSearchFI_1.ini` / `_2.ini` | migrate param names (positive magnitudes) |
-| `src/tests/class_tests/openms/source/PeptideSearchEngineFIAlgorithm_test.cpp` | migrate + new tests (8)-(11): calibration preservation, member refresh, extreme-bias warn, mod-analyzer reduction |
-| `src/tests/class_tests/openms/source/FragmentIndex_test.cpp` | add tests (1)-(7) above |
-| `src/pyOpenMS/tests/test_modification_discovery.py` | **migrate param names** at lines 197-198, 300-301, 354-355, 434-435 — **mandatory** (otherwise first CI run red) |
+| `src/tests/class_tests/openms/source/PeptideSearchEngineFIAlgorithm_test.cpp` | migrate + add `PeptideSearchEngineFIAlgorithm_test` friend subclass + new tests 7-10 (calibration normal case, helper refresh, extreme-bias path, reduction pinning) |
+| `src/tests/class_tests/openms/source/FragmentIndex_test.cpp` | add tests 1-6c above (symmetric self-hit, asymmetric fixture, boundary cases, observable-proxy iso tests, validation sub-cases incl. NaN) |
+| `src/pyOpenMS/tests/test_modification_discovery.py` | **migrate 8 hits across 4 test functions** at lines 197-198, 300-301, 354-355, 434-435 — **mandatory** (otherwise first CI run red). pyOpenMS bindings are hand-maintained; no codegen step |
 | `CHANGELOG` | `BREAKING:` entry under `TOPP tools: > Changes: > PeptideDataBaseSearchFI:` with `(#9108)` suffix, noting param renames + pyOpenMS user impact |
 
 ## 11. Deferred / follow-ups
 
-- **Wide-window implementation.** The `getPeptidesInMassWindow` candidate-lookup *signature* is stable. What the WWA PR will still need to add:
-  1. **Per-spectrum Th→Da conversion** in `PeptideSearchEngineFIAlgorithm`. `Precursor::getIsolationWindowLowerOffset()` / `UpperOffset()` return m/z (Thomson) — the caller must multiply by the assigned charge to get Da offsets before handing them to `getPeptidesInMassWindow(mass, {lo_Da, hi_Da})`.
-  2. **Charge-loop branch** in `FragmentIndex::querySpectrum()` at `FragmentIndex.cpp:1027-1054`. Today the code short-circuits to the single reported charge when `precursor.getCharge() != 0` (`:1030-1033`). WWA mode must override that short-circuit and iterate the plausible-charge range, because the wide isolation window contains co-fragmenting species at **other** charges.
-  3. **Isotope-error force-to-zero** under wide-window, same as open mode (the isotope offset is redundant with a wide isolation window).
-  4. **Chimera gate at `FragmentIndex.cpp:1021`** (`precursor.size() != 1`) is **preserved** by this refactor and intentionally remains compatible with WWA — WWA DDA spectra still list one assigned precursor with a wide isolation window.
+- **Wide-window acquisition (WWA) implementation.** NOT in this PR — no flag, no param, no stub. The `getPeptidesInMassWindow` candidate-lookup *signature* is stable and will accept WWA inputs without further change. What the WWA PR will need to add:
+  1. **`precursor:wide_window` bool param + member.** Declared for the first time in the WWA PR, where the name can be validated against the actual implementation rather than committed speculatively now.
+  2. **Per-spectrum Th→Da conversion** in `PeptideSearchEngineFIAlgorithm`. `Precursor::getIsolationWindowLowerOffset()` / `UpperOffset()` return m/z (Thomson) — the caller must multiply by the assigned charge to get Da offsets before handing them to `getPeptidesInMassWindow(mass, {lo_Da, hi_Da})`.
+  3. **Charge-loop branch** in `FragmentIndex::querySpectrum()` at `FragmentIndex.cpp:1027-1054`. Today the code short-circuits to the single reported charge when `precursor.getCharge() != 0` (`:1030-1033`). WWA mode must override that short-circuit and iterate the plausible-charge range, because the wide isolation window contains co-fragmenting species at **other** charges.
+  4. **Isotope-error force-to-zero** under wide-window, same as open mode (the isotope offset is redundant with a wide isolation window).
+  5. **Chimera gate at `FragmentIndex.cpp:1021`** (`precursor.size() != 1`) is **preserved** by this refactor and intentionally remains compatible with WWA — WWA DDA spectra still list one assigned precursor with a wide isolation window.
 - **Dedicated mod-matching tolerance.** `modification:matching_tolerance` param for `OpenSearchModificationAnalysis`, decoupled from the (wide) search window and from the internal `MAX_MOD_MAPPING_TOL_ = 0.02 Da` clamp. Improves UniMod matching precision when the clamp is lifted. Separate design.
 - **Lifting `MAX_MOD_MAPPING_TOL_` clamp.** Currently hidden inside `OpenSearchModificationAnalysis.cpp:161-163`; the ppm path discards its input entirely. Revisit as part of the dedicated mod-matching tolerance work.
 - **Completing `const`-correctness on `FragmentIndex`.** `queryPeaks`, `query`, `searchDifferentPrecursorRanges`, `querySpectrum` are all non-`const` today and none of them actually mutate the index. Out of scope here; worth a follow-up janitor pass.
 
 ## 12. Risk
 
-- **Low-to-medium** — changes are confined to one search engine with no released users, BUT the calibration-bias preservation work (§7) genuinely extends `CalibrationResult_` and touches `runCalibrationPass_` internals. That's new functionality riding alongside the refactor, not a pure rename.
-- **pyOpenMS breakage surface.** `PeptideSearchEngineFIAlgorithm` is fully bound via `bind_misc.cpp:3322-3406`. Python users hitting the old `precursor:mass_tolerance` param name will get silent "unknown key" behavior until `checkDefaults_()` fires. The mitigation is the mandatory `test_modification_discovery.py` migration (§10) + a CHANGELOG `BREAKING:` entry that names the rename explicitly.
-- **Test reference drift** — mitigated by the bitwise-equivalence argument in §9 plus the explicit "any diff is a real regression, not a reference to bulk-update" rule. The `(float)` cast chain is load-bearing; see §9.
-- **Calibration-refresh blast radius.** The fix writes back to two places (`fragment_index_` params AND algo-level members). Missing either side reintroduces the `OpenSearchModificationAnalysis` stale-tolerance bug that exists today. Tests 8 and 9 in §9 pin both sides independently.
+- **Medium** — driven by the calibration rewrite. The pure-refactor portion (asymmetric-param rename + `FragmentIndex` interface refactor) is low risk; the calibration bias-preservation work (§7) is new functionality with new math, a new struct shape, and new edge-case logic (extreme-bias detection and writeback skip). Tests 7, 9, 10 in §9 exercise it directly.
+- **pyOpenMS breakage surface.** `PeptideSearchEngineFIAlgorithm` is fully bound via `bind_misc.cpp:3322-3406`. Python users hitting the old `precursor:mass_tolerance` param name will get a `checkDefaults_` error the first time they call `setParameters()`. Mitigation: mandatory `test_modification_discovery.py` migration (§10) + CHANGELOG `BREAKING:` entry naming the rename explicitly.
+- **Test reference drift** — mitigated by the bitwise-equivalence argument in §9 plus the explicit "any diff is a real regression" rule. The `(float)` cast chain + explicit `<float>` template tag are load-bearing; see §6 and §9.
+- **Calibration double-bookkeeping.** The fix writes to two places (`fragment_index_` params AND algo-level members). Missing either side reintroduces the latent stale-tolerance bug that already exists today under the scalar schema. Tests 7 and 8 in §9 pin both sides independently via the friend subclass.
