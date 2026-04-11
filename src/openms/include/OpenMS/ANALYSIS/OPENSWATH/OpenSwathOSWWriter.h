@@ -15,7 +15,9 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 
+#include <cstddef>
 #include <fstream>
+#include <string>
 #include <vector>
 
 namespace OpenMS
@@ -95,14 +97,49 @@ namespace OpenMS
     bool enable_uis_scoring_;
 
   public:
+    /// Typed OSW cell value used for direct SQLite binding.
+    struct OPENMS_DLLAPI OSWValue
+    {
+      enum class Type : unsigned char
+      {
+        Null,
+        Int64,
+        Double,
+        Text
+      };
+
+      Type type = Type::Null;
+      Int64 int_value = 0;
+      double double_value = 0.0;
+      String text_value;
+
+      OSWValue() = default;
+      OSWValue(std::nullptr_t);
+      OSWValue(const char* value);
+      OSWValue(const String& value);
+      OSWValue(const std::string& value);
+      OSWValue(Int64 value);
+      OSWValue(UInt64 value);
+      OSWValue(int value);
+      OSWValue(double value);
+
+      /// Returns a NULL OSW cell.
+      static OSWValue null();
+
+      /// Returns true if the cell should be inserted as SQL NULL.
+      bool isNull() const;
+    };
+
+    using OSWRow = std::vector<OSWValue>;
+
     /// Buffered OSW table rows ready for insertion through prepared statements.
     struct OPENMS_DLLAPI OSWData
     {
-      std::vector<std::vector<String>> feature_rows;
-      std::vector<std::vector<String>> feature_ms1_rows;
-      std::vector<std::vector<String>> feature_ms2_rows;
-      std::vector<std::vector<String>> feature_precursor_rows;
-      std::vector<std::vector<String>> feature_transition_rows;
+      std::vector<OSWRow> feature_rows;
+      std::vector<OSWRow> feature_ms1_rows;
+      std::vector<OSWRow> feature_ms2_rows;
+      std::vector<OSWRow> feature_precursor_rows;
+      std::vector<OSWRow> feature_transition_rows;
 
       /// Reserve storage for roughly @p row_count rows per OSW table.
       void reserve(Size row_count);

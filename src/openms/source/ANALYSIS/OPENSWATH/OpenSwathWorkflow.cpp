@@ -406,6 +406,8 @@ namespace OpenMS
         bool active = false;
         int score_job_size = 0;
         SignedSize nr_score_jobs = 0;
+        SignedSize remaining_score_jobs = 0;
+        bool finalized = false;
         OpenSwathWorkflowPhaseTiming swath_timing;
         OpenSwath::LightTargetedExperiment transition_exp_used_all;
         OpenSwath::SpectrumAccessPtr current_swath_map;
@@ -514,6 +516,7 @@ namespace OpenMS
         if (context.score_job_size > 0)
         {
           context.nr_score_jobs = static_cast<SignedSize>((n_compounds + context.score_job_size - 1) / context.score_job_size);
+          context.remaining_score_jobs = context.nr_score_jobs;
           if (osw_writer.isActive())
           {
             context.osw_output.reserve(n_compounds * 5);
@@ -589,7 +592,70 @@ namespace OpenMS
           score_jobs.push_back({context_index, range_index});
         }
       }
-      std::vector<OpenSwathOSWWriter::OSWData> score_job_osw_output(score_jobs.size());
+
+      auto finalize_context = [&](const Size context_index)
+      {
+        SwathSchedulerContext& context = contexts[context_index];
+        if (!context.active || context.finalized)
+        {
+          return;
+        }
+
+        double writing_seconds = 0.0;
+#ifdef _OPENMP
+#pragma omp critical (osw_write_out)
+#endif
+        {
+          auto write_start = profileStart(profile);
+          if (osw_writer.isActive() && !context.osw_output.empty())
+          {
+            auto osw_write_start = profileStart(profile);
+            osw_writer.writeRows(context.osw_output);
+            if (profile)
+            {
+              context.swath_timing.scoring_breakdown.osw_write += elapsedProfileSeconds(osw_write_start);
+            }
+          }
+          writeOutFeaturesAndChroms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms,
+              context.feature_file, out_featureFile, store_features, chromConsumer);
+          if (profile)
+          {
+            writing_seconds = elapsedProfileSeconds(write_start);
+          }
+        }
+        if (profile)
+        {
+          context.swath_timing.writing = writing_seconds;
+          if (!swath_maps[context_index].ms1)
+          {
+            context.swath_timing.swath_count = 1;
+            context.swath_timing.total = context.swath_timing.transition_selection +
+                                         context.swath_timing.swath_loading +
+                                         context.swath_timing.batch_selection +
+                                         context.swath_timing.ms1_extraction +
+                                         context.swath_timing.coordinate_preparation +
+                                         context.swath_timing.ms2_extraction +
+                                         context.swath_timing.chromatogram_conversion +
+                                         context.swath_timing.scoring +
+                                         context.swath_timing.writing;
+#ifdef _OPENMP
+#pragma omp critical (osw_scheduler_profile)
+#endif
+            {
+              logSwathProfile(context.swath_index, context.swath_timing);
+              profile_total.add(context.swath_timing);
+            }
+          }
+        }
+
+        context.finalized = true;
+#ifdef _OPENMP
+#pragma omp critical (progress)
+#endif
+        {
+          this->setProgress(++progress);
+        }
+      };
 
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1)
@@ -618,9 +684,10 @@ namespace OpenMS
         std::vector<OpenSwath::SwathMap> tmp = {swath_maps[context.swath_index]};
         tmp.back().sptr = context.current_swath_map->lightClone();
         OpenSwathScoringPhaseTiming scoring_profile;
+        OpenSwathOSWWriter::OSWData job_osw_output;
         scoreAllChromatograms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms, tmp, transition_exp_used,
           feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false,
-          mobilogram_consumer, profile ? &scoring_profile : nullptr, &score_job_osw_output[job_index]);
+          mobilogram_consumer, profile ? &scoring_profile : nullptr, &job_osw_output);
         if (profile)
         {
           batch_timing.scoring = elapsedProfileSeconds(batch_phase_start);
@@ -629,11 +696,16 @@ namespace OpenMS
           batch_timing.total = elapsedProfileSeconds(batch_profile_start);
         }
 
-        if (!osw_writer.isActive() && store_features)
-        {
+        bool context_ready_to_finalize = false;
 #ifdef _OPENMP
 #pragma omp critical (osw_scheduler_context)
 #endif
+        {
+          if (osw_writer.isActive())
+          {
+            context.osw_output.append(std::move(job_osw_output));
+          }
+          else if (store_features)
           {
             for (FeatureMap::const_iterator feature_it = featureFile.begin(); feature_it != featureFile.end(); ++feature_it)
             {
@@ -645,76 +717,34 @@ namespace OpenMS
               context.feature_file.getProteinIdentifications().push_back(*protid_it);
             }
           }
-        }
 
-        if (profile)
-        {
-#ifdef _OPENMP
-#pragma omp critical (osw_scheduler_profile)
-#endif
+          if (profile)
           {
             context.swath_timing.add(batch_timing);
             logBatchProfile(context.swath_index, job.range_index, context.nr_score_jobs, batch_timing);
           }
-        }
-      }
 
-      for (Size job_index = 0; job_index < score_jobs.size(); ++job_index)
-      {
-        SwathSchedulerContext& context = contexts[score_jobs[job_index].context_index];
-        context.osw_output.append(std::move(score_job_osw_output[job_index]));
+          --context.remaining_score_jobs;
+          context_ready_to_finalize = context.remaining_score_jobs == 0;
+        }
+
+        if (context_ready_to_finalize)
+        {
+          finalize_context(job.context_index);
+        }
       }
 
       for (Size context_index = 0; context_index < contexts.size(); ++context_index)
       {
         SwathSchedulerContext& context = contexts[context_index];
-        if (context.active)
+        if (context.active && !context.finalized)
         {
-          double writing_seconds = 0.0;
-#ifdef _OPENMP
-#pragma omp critical (osw_write_out)
-#endif
-          {
-            auto write_start = profileStart(profile);
-            if (osw_writer.isActive() && !context.osw_output.empty())
-            {
-              auto osw_write_start = profileStart(profile);
-              osw_writer.writeRows(context.osw_output);
-              if (profile)
-              {
-                context.swath_timing.scoring_breakdown.osw_write += elapsedProfileSeconds(osw_write_start);
-              }
-            }
-            writeOutFeaturesAndChroms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms,
-                context.feature_file, out_featureFile, store_features, chromConsumer);
-            if (profile)
-            {
-              writing_seconds = elapsedProfileSeconds(write_start);
-            }
-          }
-          if (profile)
-          {
-            context.swath_timing.writing = writing_seconds;
-          }
+          finalize_context(context_index);
         }
-
-        if (profile && !swath_maps[context_index].ms1)
+        else if (!context.active)
         {
-          context.swath_timing.swath_count = 1;
-          context.swath_timing.total = context.swath_timing.transition_selection +
-                                       context.swath_timing.swath_loading +
-                                       context.swath_timing.batch_selection +
-                                       context.swath_timing.ms1_extraction +
-                                       context.swath_timing.coordinate_preparation +
-                                       context.swath_timing.ms2_extraction +
-                                       context.swath_timing.chromatogram_conversion +
-                                       context.swath_timing.scoring +
-                                       context.swath_timing.writing;
-          logSwathProfile(context.swath_index, context.swath_timing);
-          profile_total.add(context.swath_timing);
+          this->setProgress(++progress);
         }
-
-        this->setProgress(++progress);
       }
       this->endProgress();
 

@@ -12,7 +12,10 @@
 
 #include <sqlite3.h>
 #include <algorithm>
+#include <cerrno>
+#include <cctype>
 #include <cmath>
+#include <cstdlib>
 #include <iterator>
 #include <sstream>
 
@@ -95,46 +98,207 @@ namespace OpenMS
              value == "NaN" || value == "-NaN";
     }
 
-    String oswValue(const String& value)
+    bool hasOnlyTrailingWhitespace(const char* position)
     {
-      return isNullLiteral(value) ? String("NULL") : value;
+      while (*position != '\0')
+      {
+        if (std::isspace(static_cast<unsigned char>(*position)) == 0)
+        {
+          return false;
+        }
+        ++position;
+      }
+      return true;
     }
 
-    String oswValue(const DataValue& value)
+    bool parseInt64(const String& value, Int64& result)
     {
+      errno = 0;
+      char* end = nullptr;
+      const long long parsed = std::strtoll(value.c_str(), &end, 10);
+      if (end == value.c_str() || errno == ERANGE || !hasOnlyTrailingWhitespace(end))
+      {
+        return false;
+      }
+      result = static_cast<Int64>(parsed);
+      return true;
+    }
+
+    bool parseDouble(const String& value, double& result)
+    {
+      errno = 0;
+      char* end = nullptr;
+      const double parsed = std::strtod(value.c_str(), &end);
+      if (end == value.c_str() || errno == ERANGE || !hasOnlyTrailingWhitespace(end))
+      {
+        return false;
+      }
+      result = parsed;
+      return true;
+    }
+
+    OpenSwathOSWWriter::OSWValue makeOSWValueFromString(const String& value)
+    {
+      OpenSwathOSWWriter::OSWValue result;
+      if (isNullLiteral(value))
+      {
+        return result;
+      }
+
+      Int64 int_value = 0;
+      if (parseInt64(value, int_value))
+      {
+        result.type = OpenSwathOSWWriter::OSWValue::Type::Int64;
+        result.int_value = int_value;
+        return result;
+      }
+
+      double double_value = 0.0;
+      if (parseDouble(value, double_value))
+      {
+        if (std::isnan(double_value))
+        {
+          return result;
+        }
+        result.type = OpenSwathOSWWriter::OSWValue::Type::Double;
+        result.double_value = double_value;
+        return result;
+      }
+
+      result.type = OpenSwathOSWWriter::OSWValue::Type::Text;
+      result.text_value = value;
+      return result;
+    }
+
+    String oswValueToString(const OpenSwathOSWWriter::OSWValue& value)
+    {
+      switch (value.type)
+      {
+        case OpenSwathOSWWriter::OSWValue::Type::Null:
+          return "NULL";
+        case OpenSwathOSWWriter::OSWValue::Type::Int64:
+          return String(value.int_value);
+        case OpenSwathOSWWriter::OSWValue::Type::Double:
+          return std::isnan(value.double_value) ? String("NULL") : String(value.double_value);
+        case OpenSwathOSWWriter::OSWValue::Type::Text:
+          return value.text_value;
+      }
+      return "NULL";
+    }
+
+    String oswValueToSQLLiteral(const OpenSwathOSWWriter::OSWValue& value)
+    {
+      if (value.type != OpenSwathOSWWriter::OSWValue::Type::Text)
+      {
+        return oswValueToString(value);
+      }
+
+      String quoted = value.text_value;
+      quoted.substitute("'", "''");
+      return String("'") + quoted + "'";
+    }
+
+    OpenSwathOSWWriter::OSWValue oswValue(const String& value)
+    {
+      return makeOSWValueFromString(value);
+    }
+
+    OpenSwathOSWWriter::OSWValue oswValue(const DataValue& value)
+    {
+      OpenSwathOSWWriter::OSWValue result;
       if (value.isEmpty())
       {
-        return "NULL";
+        return result;
       }
-      return oswValue(value.toString());
-    }
 
-    String oswValue(const double value)
-    {
-      if (std::isnan(value))
+      if (value.valueType() == DataValue::INT_VALUE)
       {
-        return "NULL";
+        result.type = OpenSwathOSWWriter::OSWValue::Type::Int64;
+        result.int_value = static_cast<Int64>(static_cast<long long>(value));
+        return result;
       }
-      return String(value);
+      if (value.valueType() == DataValue::DOUBLE_VALUE)
+      {
+        const double double_value = static_cast<double>(value);
+        if (!std::isnan(double_value))
+        {
+          result.type = OpenSwathOSWWriter::OSWValue::Type::Double;
+          result.double_value = double_value;
+        }
+        return result;
+      }
+
+      return makeOSWValueFromString(value.toString());
     }
 
-    String oswValue(const UInt64 value)
+    OpenSwathOSWWriter::OSWValue oswValue(const double value)
     {
-      return String(static_cast<Int64>(value));
+      OpenSwathOSWWriter::OSWValue result;
+      if (!std::isnan(value))
+      {
+        result.type = OpenSwathOSWWriter::OSWValue::Type::Double;
+        result.double_value = value;
+      }
+      return result;
     }
 
-    String oswValueAt(const std::vector<String>& values, Size index)
+    OpenSwathOSWWriter::OSWValue oswValue(const UInt64 value)
+    {
+      OpenSwathOSWWriter::OSWValue result;
+      result.type = OpenSwathOSWWriter::OSWValue::Type::Int64;
+      result.int_value = static_cast<Int64>(value);
+      return result;
+    }
+
+    OpenSwathOSWWriter::OSWValue oswValueAt(const std::vector<OpenSwathOSWWriter::OSWValue>& values, Size index)
     {
       if (index >= values.size())
       {
-        return "NULL";
+        return OpenSwathOSWWriter::OSWValue::null();
       }
-      return oswValue(values[index]);
+      return values[index];
     }
 
-    std::vector<String> makeTransitionRow(const String& feature_id)
+    std::vector<OpenSwathOSWWriter::OSWValue> getSeparateScoreValues(const Feature& feature, const std::string& score_name)
     {
-      std::vector<String> row(featureTransitionColumns().size(), "NULL");
+      std::vector<OpenSwathOSWWriter::OSWValue> separated_scores;
+
+      const DataValue& dv = feature.getMetaValue(score_name);
+      if (!dv.isEmpty())
+      {
+        if (dv.valueType() == DataValue::STRING_LIST)
+        {
+          const StringList string_scores = dv.toStringList();
+          separated_scores.reserve(string_scores.size());
+          std::transform(string_scores.begin(), string_scores.end(), std::back_inserter(separated_scores),
+                         [](const String& value) { return oswValue(value); });
+        }
+        else if (dv.valueType() == DataValue::INT_LIST)
+        {
+          const IntList int_scores = dv.toIntList();
+          separated_scores.reserve(int_scores.size());
+          std::transform(int_scores.begin(), int_scores.end(), std::back_inserter(separated_scores),
+                         [](const Int num) { return OpenSwathOSWWriter::OSWValue(static_cast<Int64>(num)); });
+        }
+        else if (dv.valueType() == DataValue::DOUBLE_LIST)
+        {
+          const DoubleList double_scores = dv.toDoubleList();
+          separated_scores.reserve(double_scores.size());
+          std::transform(double_scores.begin(), double_scores.end(), std::back_inserter(separated_scores),
+                         [](const double num) { return oswValue(num); });
+        }
+        else
+        {
+          separated_scores.push_back(oswValue(dv));
+        }
+      }
+
+      return separated_scores;
+    }
+
+    OpenSwathOSWWriter::OSWRow makeTransitionRow(const OpenSwathOSWWriter::OSWValue& feature_id)
+    {
+      OpenSwathOSWWriter::OSWRow row(featureTransitionColumns().size());
       row[0] = feature_id;
       return row;
     }
@@ -170,7 +334,7 @@ namespace OpenMS
         operation + " failed: " + sqlite3_errmsg(db));
     }
 
-    void bindRow(sqlite3* db, sqlite3_stmt* stmt, const std::vector<String>& row, Size expected_columns)
+    void bindRow(sqlite3* db, sqlite3_stmt* stmt, const OpenSwathOSWWriter::OSWRow& row, Size expected_columns)
     {
       if (row.size() != expected_columns)
       {
@@ -181,14 +345,22 @@ namespace OpenMS
       for (Size i = 0; i < row.size(); ++i)
       {
         int rc = SQLITE_OK;
-        if (isNullLiteral(row[i]))
+        if (row[i].isNull())
         {
           rc = sqlite3_bind_null(stmt, static_cast<int>(i + 1));
         }
-        else
+        else if (row[i].type == OpenSwathOSWWriter::OSWValue::Type::Int64)
         {
-          rc = sqlite3_bind_text(stmt, static_cast<int>(i + 1), row[i].c_str(),
-                                 static_cast<int>(row[i].size()), SQLITE_TRANSIENT);
+          rc = sqlite3_bind_int64(stmt, static_cast<int>(i + 1), static_cast<sqlite3_int64>(row[i].int_value));
+        }
+        else if (row[i].type == OpenSwathOSWWriter::OSWValue::Type::Double)
+        {
+          rc = sqlite3_bind_double(stmt, static_cast<int>(i + 1), row[i].double_value);
+        }
+        else if (row[i].type == OpenSwathOSWWriter::OSWValue::Type::Text)
+        {
+          rc = sqlite3_bind_text(stmt, static_cast<int>(i + 1), row[i].text_value.c_str(),
+                                 static_cast<int>(row[i].text_value.size()), SQLITE_TRANSIENT);
         }
         if (rc != SQLITE_OK)
         {
@@ -214,7 +386,7 @@ namespace OpenMS
     }
 
     void writeTableRows(sqlite3* db, const char* table, const std::vector<const char*>& columns,
-                        const std::vector<std::vector<String>>& rows)
+                        const std::vector<OpenSwathOSWWriter::OSWRow>& rows)
     {
       if (rows.empty())
       {
@@ -238,14 +410,14 @@ namespace OpenMS
       sqlite3_finalize(stmt);
     }
 
-    void appendRows(std::vector<std::vector<String>>& target, std::vector<std::vector<String>>& source)
+    void appendRows(std::vector<OpenSwathOSWWriter::OSWRow>& target, std::vector<OpenSwathOSWWriter::OSWRow>& source)
     {
       target.insert(target.end(), std::make_move_iterator(source.begin()), std::make_move_iterator(source.end()));
       source.clear();
     }
 
     void appendInsertSQL(std::stringstream& sql, const char* table, const std::vector<const char*>& columns,
-                         const std::vector<std::vector<String>>& rows)
+                         const std::vector<OpenSwathOSWWriter::OSWRow>& rows)
     {
       for (const auto& row : rows)
       {
@@ -265,11 +437,65 @@ namespace OpenMS
           {
             sql << ", ";
           }
-          sql << oswValue(row[i]);
+          sql << oswValueToSQLLiteral(row[i]);
         }
         sql << "); ";
       }
     }
+  }
+
+  OpenSwathOSWWriter::OSWValue::OSWValue(std::nullptr_t) :
+    OSWValue()
+  {
+  }
+
+  OpenSwathOSWWriter::OSWValue::OSWValue(const char* value) :
+    OSWValue(value == nullptr ? String() : String(value))
+  {
+  }
+
+  OpenSwathOSWWriter::OSWValue::OSWValue(const String& value) :
+    OSWValue(makeOSWValueFromString(value))
+  {
+  }
+
+  OpenSwathOSWWriter::OSWValue::OSWValue(const std::string& value) :
+    OSWValue(makeOSWValueFromString(String(value)))
+  {
+  }
+
+  OpenSwathOSWWriter::OSWValue::OSWValue(Int64 value) :
+    type(Type::Int64),
+    int_value(value)
+  {
+  }
+
+  OpenSwathOSWWriter::OSWValue::OSWValue(UInt64 value) :
+    type(Type::Int64),
+    int_value(static_cast<Int64>(value))
+  {
+  }
+
+  OpenSwathOSWWriter::OSWValue::OSWValue(int value) :
+    type(Type::Int64),
+    int_value(static_cast<Int64>(value))
+  {
+  }
+
+  OpenSwathOSWWriter::OSWValue::OSWValue(double value) :
+    type(std::isnan(value) ? Type::Null : Type::Double),
+    double_value(value)
+  {
+  }
+
+  OpenSwathOSWWriter::OSWValue OpenSwathOSWWriter::OSWValue::null()
+  {
+    return OSWValue();
+  }
+
+  bool OpenSwathOSWWriter::OSWValue::isNull() const
+  {
+    return type == Type::Null || (type == Type::Double && std::isnan(double_value));
   }
 
   void OpenSwathOSWWriter::OSWData::reserve(Size row_count)
@@ -498,48 +724,16 @@ namespace OpenMS
 
   String OpenSwathOSWWriter::getScore(const Feature& feature, const std::string& score_name) const
   {
-    const DataValue& dv = feature.getMetaValue(score_name);
-    if (dv.isEmpty()) return "NULL";
-
-    if (dv.valueType() == DataValue::DOUBLE_VALUE)
-    {
-      if (std::isnan(static_cast<double>(dv))) return "NULL";
-    }
-
-    String score = dv.toString();
-    if (score == "nan" || score == "-nan" || score == "NaN" || score == "-NaN") return "NULL";
-    return score;
+    return oswValueToString(oswValue(feature.getMetaValue(score_name)));
   }
 
   std::vector<String> OpenSwathOSWWriter::getSeparateScore(const Feature& feature, const std::string& score_name) const
   {
     std::vector<String> separated_scores;
-
-    const DataValue& dv = feature.getMetaValue(score_name);
-    if (!dv.isEmpty())
-    {
-      if (dv.valueType() == DataValue::STRING_LIST)
-      {
-        separated_scores = dv.toStringList();
-        std::transform(separated_scores.begin(), separated_scores.end(), separated_scores.begin(),
-                       [](const String& value) { return oswValue(value); });
-      }
-      else if (dv.valueType() == DataValue::INT_LIST)
-      {
-        std::vector<int> int_separated_scores = dv.toIntList();
-        std::transform(int_separated_scores.begin(), int_separated_scores.end(), std::back_inserter(separated_scores), [](const int& num) { return String(num); });
-      }
-      else if (dv.valueType() == DataValue::DOUBLE_LIST)
-      {
-        std::vector<double> double_separated_scores = dv.toDoubleList();
-        std::transform(double_separated_scores.begin(), double_separated_scores.end(), std::back_inserter(separated_scores), [](const double& num) { return oswValue(num); });
-      }
-      else
-      {
-        separated_scores.push_back(oswValue(dv.toString()));
-      }
-    }
-
+    const auto score_values = getSeparateScoreValues(feature, score_name);
+    separated_scores.reserve(score_values.size());
+    std::transform(score_values.begin(), score_values.end(), std::back_inserter(separated_scores),
+                   [](const OSWValue& value) { return oswValueToString(value); });
     return separated_scores;
   }
 
@@ -550,16 +744,16 @@ namespace OpenMS
   {
     OSWData rows;
     rows.reserve(output.size());
-    std::vector<std::vector<String>> ms2_transition_rows;
-    std::vector<std::vector<String>> uis_transition_rows;
+    std::vector<OSWRow> ms2_transition_rows;
+    std::vector<OSWRow> uis_transition_rows;
     ms2_transition_rows.reserve(output.size());
     uis_transition_rows.reserve(output.size());
 
     for (const auto& feature_it : output)
     {
-      const String feature_id = oswValue(Internal::SqliteHelper::clearSignBit(feature_it.getUniqueId()));
+      const OSWValue feature_id = oswValue(Internal::SqliteHelper::clearSignBit(feature_it.getUniqueId()));
 
-      const auto& masserror_ppm = feature_it.metaValueExists("masserror_ppm") ? getSeparateScore(feature_it, "masserror_ppm") : std::vector<String>();
+      const auto masserror_ppm = feature_it.metaValueExists("masserror_ppm") ? getSeparateScoreValues(feature_it, "masserror_ppm") : std::vector<OSWValue>();
 
       const auto& subordinates = feature_it.getSubordinates();
       for (Size i=0; i < subordinates.size(); i++)
@@ -567,18 +761,18 @@ namespace OpenMS
         const auto& sub_it = subordinates[i];
         if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS2")
         {
-          String total_mi = oswValue(sub_it.getMetaValue("total_mi")); // total_mi is not guaranteed to be set
-          String masserror_ppm_query = oswValueAt(masserror_ppm, i); // masserror_ppm is not guaranteed to be set
+          OSWValue total_mi = oswValue(sub_it.getMetaValue("total_mi")); // total_mi is not guaranteed to be set
+          OSWValue masserror_ppm_query = oswValueAt(masserror_ppm, i); // masserror_ppm is not guaranteed to be set
 
-          std::vector<String> transition_row = makeTransitionRow(feature_id);
+          OSWRow transition_row = makeTransitionRow(feature_id);
           transition_row[1] = oswValue(sub_it.getMetaValue("native_id"));
           transition_row[2] = oswValue(sub_it.getIntensity());
           transition_row[3] = oswValue(sub_it.getMetaValue("total_xic"));
           transition_row[4] = oswValue(sub_it.getMetaValue("peak_apex_position"));
           transition_row[5] = oswValue(sub_it.getMetaValue("peak_apex_int"));
           transition_row[6] = oswValue(sub_it.getMetaValue("width_at_50"));
-          transition_row[7] = oswValue(masserror_ppm_query);
-          transition_row[8] = oswValue(total_mi);
+          transition_row[7] = masserror_ppm_query;
+          transition_row[8] = total_mi;
 
           if (sub_it.metaValueExists("start_position_at_5"))
           {
@@ -601,10 +795,10 @@ namespace OpenMS
         else if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS1" && sub_it.getIntensity() > 0.0)
         {
           std::vector<String> precursor_id;
-          oswValue(sub_it.getMetaValue("native_id")).split(OpenMS::String("Precursor_i"), precursor_id);
+          oswValueToString(oswValue(sub_it.getMetaValue("native_id"))).split(OpenMS::String("Precursor_i"), precursor_id);
           rows.feature_precursor_rows.push_back({
             feature_id,
-            precursor_id.size() > 1 ? oswValue(precursor_id[1]) : String("NULL"),
+            precursor_id.size() > 1 ? oswValue(precursor_id[1]) : OSWValue::null(),
             oswValue(sub_it.getIntensity()),
             oswValue(sub_it.getMetaValue("peak_apex_int"))
           });
@@ -621,54 +815,54 @@ namespace OpenMS
         oswValue(run_id_),
         oswValue(id),
         oswValue(feature_it.getRT()),
-        getScore(feature_it, "im_drift"),
+        oswValue(feature_it.getMetaValue("im_drift")),
         oswValue(norm_rt),
         oswValue(delta_rt),
         oswValue(feature_it.getMetaValue("leftWidth")),
         oswValue(feature_it.getMetaValue("rightWidth")),
-        getScore(feature_it, "im_drift_left"),
-        getScore(feature_it, "im_drift_right")
+        oswValue(feature_it.getMetaValue("im_drift_left")),
+        oswValue(feature_it.getMetaValue("im_drift_right"))
       });
 
       rows.feature_ms2_rows.push_back({
         feature_id,
         oswValue(feature_it.getIntensity()),
-        getScore(feature_it, "total_xic"),
-        getScore(feature_it, "peak_apices_sum"),
-        getScore(feature_it, "im_drift"),
-        getScore(feature_it, "im_drift_left"),
-        getScore(feature_it, "im_drift_right"),
-        getScore(feature_it, "im_delta"),
-        getScore(feature_it, "total_mi"),
-        getScore(feature_it, "var_bseries_score"),
-        getScore(feature_it, "var_dotprod_score"),
-        getScore(feature_it, "var_intensity_score"),
-        getScore(feature_it, "var_isotope_correlation_score"),
-        getScore(feature_it, "var_isotope_overlap_score"),
-        getScore(feature_it, "var_library_corr"),
-        getScore(feature_it, "var_library_dotprod"),
-        getScore(feature_it, "var_library_manhattan"),
-        getScore(feature_it, "var_library_rmsd"),
-        getScore(feature_it, "var_library_rootmeansquare"),
-        getScore(feature_it, "var_library_sangle"),
-        getScore(feature_it, "var_log_sn_score"),
-        getScore(feature_it, "var_manhatt_score"),
-        getScore(feature_it, "var_massdev_score"),
-        getScore(feature_it, "var_massdev_score_weighted"),
-        getScore(feature_it, "var_mi_score"),
-        getScore(feature_it, "var_mi_weighted_score"),
-        getScore(feature_it, "var_mi_ratio_score"),
-        getScore(feature_it, "var_norm_rt_score"),
-        getScore(feature_it, "var_xcorr_coelution"),
-        getScore(feature_it, "var_xcorr_coelution_weighted"),
-        getScore(feature_it, "var_xcorr_shape"),
-        getScore(feature_it, "var_xcorr_shape_weighted"),
-        getScore(feature_it, "var_yseries_score"),
-        getScore(feature_it, "var_elution_model_fit_score"),
-        getScore(feature_it, "var_im_xcorr_shape"),
-        getScore(feature_it, "var_im_xcorr_coelution"),
-        getScore(feature_it, "var_im_delta_score"),
-        getScore(feature_it, "im_log_intensity")
+        oswValue(feature_it.getMetaValue("total_xic")),
+        oswValue(feature_it.getMetaValue("peak_apices_sum")),
+        oswValue(feature_it.getMetaValue("im_drift")),
+        oswValue(feature_it.getMetaValue("im_drift_left")),
+        oswValue(feature_it.getMetaValue("im_drift_right")),
+        oswValue(feature_it.getMetaValue("im_delta")),
+        oswValue(feature_it.getMetaValue("total_mi")),
+        oswValue(feature_it.getMetaValue("var_bseries_score")),
+        oswValue(feature_it.getMetaValue("var_dotprod_score")),
+        oswValue(feature_it.getMetaValue("var_intensity_score")),
+        oswValue(feature_it.getMetaValue("var_isotope_correlation_score")),
+        oswValue(feature_it.getMetaValue("var_isotope_overlap_score")),
+        oswValue(feature_it.getMetaValue("var_library_corr")),
+        oswValue(feature_it.getMetaValue("var_library_dotprod")),
+        oswValue(feature_it.getMetaValue("var_library_manhattan")),
+        oswValue(feature_it.getMetaValue("var_library_rmsd")),
+        oswValue(feature_it.getMetaValue("var_library_rootmeansquare")),
+        oswValue(feature_it.getMetaValue("var_library_sangle")),
+        oswValue(feature_it.getMetaValue("var_log_sn_score")),
+        oswValue(feature_it.getMetaValue("var_manhatt_score")),
+        oswValue(feature_it.getMetaValue("var_massdev_score")),
+        oswValue(feature_it.getMetaValue("var_massdev_score_weighted")),
+        oswValue(feature_it.getMetaValue("var_mi_score")),
+        oswValue(feature_it.getMetaValue("var_mi_weighted_score")),
+        oswValue(feature_it.getMetaValue("var_mi_ratio_score")),
+        oswValue(feature_it.getMetaValue("var_norm_rt_score")),
+        oswValue(feature_it.getMetaValue("var_xcorr_coelution")),
+        oswValue(feature_it.getMetaValue("var_xcorr_coelution_weighted")),
+        oswValue(feature_it.getMetaValue("var_xcorr_shape")),
+        oswValue(feature_it.getMetaValue("var_xcorr_shape_weighted")),
+        oswValue(feature_it.getMetaValue("var_yseries_score")),
+        oswValue(feature_it.getMetaValue("var_elution_model_fit_score")),
+        oswValue(feature_it.getMetaValue("var_im_xcorr_shape")),
+        oswValue(feature_it.getMetaValue("var_im_xcorr_coelution")),
+        oswValue(feature_it.getMetaValue("var_im_delta_score")),
+        oswValue(feature_it.getMetaValue("im_log_intensity"))
       });
 
       bool enable_ms1 = feature_it.metaValueExists("var_ms1_ppm_diff");
@@ -676,77 +870,77 @@ namespace OpenMS
       {
         rows.feature_ms1_rows.push_back({
           feature_id,
-          getScore(feature_it, "ms1_area_intensity"),
-          getScore(feature_it, "ms1_apex_intensity"),
-          getScore(feature_it, "im_ms1_drift"),
-          getScore(feature_it, "im_ms1_delta"),
-          getScore(feature_it, "var_ms1_ppm_diff"),
-          getScore(feature_it, "var_im_ms1_delta_score"),
-          getScore(feature_it, "var_ms1_mi_score"),
-          getScore(feature_it, "var_ms1_mi_contrast_score"),
-          getScore(feature_it, "var_ms1_mi_combined_score"),
-          getScore(feature_it, "var_ms1_isotope_correlation"),
-          getScore(feature_it, "var_ms1_isotope_overlap"),
-          getScore(feature_it, "var_ms1_xcorr_coelution"),
-          getScore(feature_it, "var_ms1_xcorr_coelution_contrast"),
-          getScore(feature_it, "var_ms1_xcorr_coelution_combined"),
-          getScore(feature_it, "var_ms1_xcorr_shape"),
-          getScore(feature_it, "var_ms1_xcorr_shape_contrast"),
-          getScore(feature_it, "var_ms1_xcorr_shape_combined")
+          oswValue(feature_it.getMetaValue("ms1_area_intensity")),
+          oswValue(feature_it.getMetaValue("ms1_apex_intensity")),
+          oswValue(feature_it.getMetaValue("im_ms1_drift")),
+          oswValue(feature_it.getMetaValue("im_ms1_delta")),
+          oswValue(feature_it.getMetaValue("var_ms1_ppm_diff")),
+          oswValue(feature_it.getMetaValue("var_im_ms1_delta_score")),
+          oswValue(feature_it.getMetaValue("var_ms1_mi_score")),
+          oswValue(feature_it.getMetaValue("var_ms1_mi_contrast_score")),
+          oswValue(feature_it.getMetaValue("var_ms1_mi_combined_score")),
+          oswValue(feature_it.getMetaValue("var_ms1_isotope_correlation")),
+          oswValue(feature_it.getMetaValue("var_ms1_isotope_overlap")),
+          oswValue(feature_it.getMetaValue("var_ms1_xcorr_coelution")),
+          oswValue(feature_it.getMetaValue("var_ms1_xcorr_coelution_contrast")),
+          oswValue(feature_it.getMetaValue("var_ms1_xcorr_coelution_combined")),
+          oswValue(feature_it.getMetaValue("var_ms1_xcorr_shape")),
+          oswValue(feature_it.getMetaValue("var_ms1_xcorr_shape_contrast")),
+          oswValue(feature_it.getMetaValue("var_ms1_xcorr_shape_combined"))
         });
       }
 
       if (enable_uis_scoring_)
       {
-        auto id_target_transition_names = getSeparateScore(feature_it, "id_target_transition_names");
-        auto id_target_area_intensity = getSeparateScore(feature_it, "id_target_area_intensity");
-        auto id_target_total_area_intensity = getSeparateScore(feature_it, "id_target_total_area_intensity");
-        auto id_target_apex_intensity = getSeparateScore(feature_it, "id_target_apex_intensity");
-        auto id_target_peak_apex_position = getSeparateScore(feature_it, "id_target_peak_apex_position");
-        auto id_target_peak_fwhm = getSeparateScore(feature_it, "id_target_width_at_50");
-        auto id_target_total_mi = getSeparateScore(feature_it, "id_target_total_mi");
-        auto id_target_intensity_score = getSeparateScore(feature_it, "id_target_intensity_score");
-        auto id_target_intensity_ratio_score = getSeparateScore(feature_it, "id_target_intensity_ratio_score");
-        auto id_target_log_intensity = getSeparateScore(feature_it, "id_target_ind_log_intensity");
-        auto id_target_ind_xcorr_coelution = getSeparateScore(feature_it, "id_target_ind_xcorr_coelution");
-        auto id_target_ind_xcorr_shape = getSeparateScore(feature_it, "id_target_ind_xcorr_shape");
-        auto id_target_ind_log_sn_score = getSeparateScore(feature_it, "id_target_ind_log_sn_score");
-        auto id_target_ind_massdev_score = getSeparateScore(feature_it, "id_target_ind_massdev_score");
-        auto id_target_ind_mi_score = getSeparateScore(feature_it, "id_target_ind_mi_score");
-        auto id_target_ind_mi_ratio_score = getSeparateScore(feature_it, "id_target_ind_mi_ratio_score");
-        auto id_target_ind_isotope_correlation = getSeparateScore(feature_it, "id_target_ind_isotope_correlation");
-        auto id_target_ind_isotope_overlap = getSeparateScore(feature_it, "id_target_ind_isotope_overlap");
+        auto id_target_transition_names = getSeparateScoreValues(feature_it, "id_target_transition_names");
+        auto id_target_area_intensity = getSeparateScoreValues(feature_it, "id_target_area_intensity");
+        auto id_target_total_area_intensity = getSeparateScoreValues(feature_it, "id_target_total_area_intensity");
+        auto id_target_apex_intensity = getSeparateScoreValues(feature_it, "id_target_apex_intensity");
+        auto id_target_peak_apex_position = getSeparateScoreValues(feature_it, "id_target_peak_apex_position");
+        auto id_target_peak_fwhm = getSeparateScoreValues(feature_it, "id_target_width_at_50");
+        auto id_target_total_mi = getSeparateScoreValues(feature_it, "id_target_total_mi");
+        auto id_target_intensity_score = getSeparateScoreValues(feature_it, "id_target_intensity_score");
+        auto id_target_intensity_ratio_score = getSeparateScoreValues(feature_it, "id_target_intensity_ratio_score");
+        auto id_target_log_intensity = getSeparateScoreValues(feature_it, "id_target_ind_log_intensity");
+        auto id_target_ind_xcorr_coelution = getSeparateScoreValues(feature_it, "id_target_ind_xcorr_coelution");
+        auto id_target_ind_xcorr_shape = getSeparateScoreValues(feature_it, "id_target_ind_xcorr_shape");
+        auto id_target_ind_log_sn_score = getSeparateScoreValues(feature_it, "id_target_ind_log_sn_score");
+        auto id_target_ind_massdev_score = getSeparateScoreValues(feature_it, "id_target_ind_massdev_score");
+        auto id_target_ind_mi_score = getSeparateScoreValues(feature_it, "id_target_ind_mi_score");
+        auto id_target_ind_mi_ratio_score = getSeparateScoreValues(feature_it, "id_target_ind_mi_ratio_score");
+        auto id_target_ind_isotope_correlation = getSeparateScoreValues(feature_it, "id_target_ind_isotope_correlation");
+        auto id_target_ind_isotope_overlap = getSeparateScoreValues(feature_it, "id_target_ind_isotope_overlap");
         // Ion Mobility scores
-        auto id_target_ind_im_drift = getSeparateScore(feature_it, "id_target_ind_im_drift");
-        auto id_target_ind_im_drift_left = getSeparateScore(feature_it, "id_target_ind_im_drift_left");
-        auto id_target_ind_im_drift_right = getSeparateScore(feature_it, "id_target_ind_im_drift_right");
-        auto id_target_ind_im_delta = getSeparateScore(feature_it, "id_target_ind_im_delta");
-        auto id_target_ind_im_delta_score = getSeparateScore(feature_it, "id_target_ind_im_delta_score");
-        auto id_target_ind_im_log_intensity = getSeparateScore(feature_it, "id_target_ind_im_log_intensity");
-        auto id_target_ind_im_contrast_coelution = getSeparateScore(feature_it, "id_target_ind_im_contrast_coelution");
-        auto id_target_ind_im_contrast_shape = getSeparateScore(feature_it, "id_target_ind_im_contrast_shape");
-        auto id_target_ind_im_sum_contrast_coelution = getSeparateScore(feature_it, "id_target_ind_im_sum_contrast_coelution");
-        auto id_target_ind_im_sum_contrast_shape = getSeparateScore(feature_it, "id_target_ind_im_sum_contrast_shape");
+        auto id_target_ind_im_drift = getSeparateScoreValues(feature_it, "id_target_ind_im_drift");
+        auto id_target_ind_im_drift_left = getSeparateScoreValues(feature_it, "id_target_ind_im_drift_left");
+        auto id_target_ind_im_drift_right = getSeparateScoreValues(feature_it, "id_target_ind_im_drift_right");
+        auto id_target_ind_im_delta = getSeparateScoreValues(feature_it, "id_target_ind_im_delta");
+        auto id_target_ind_im_delta_score = getSeparateScoreValues(feature_it, "id_target_ind_im_delta_score");
+        auto id_target_ind_im_log_intensity = getSeparateScoreValues(feature_it, "id_target_ind_im_log_intensity");
+        auto id_target_ind_im_contrast_coelution = getSeparateScoreValues(feature_it, "id_target_ind_im_contrast_coelution");
+        auto id_target_ind_im_contrast_shape = getSeparateScoreValues(feature_it, "id_target_ind_im_contrast_shape");
+        auto id_target_ind_im_sum_contrast_coelution = getSeparateScoreValues(feature_it, "id_target_ind_im_sum_contrast_coelution");
+        auto id_target_ind_im_sum_contrast_shape = getSeparateScoreValues(feature_it, "id_target_ind_im_sum_contrast_shape");
 
 
         // check if there are compute_peak_shape_metrics scores
-        auto id_target_ind_start_position_at_5 = getSeparateScore(feature_it, "id_target_ind_start_position_at_5");
-        bool enable_compute_peak_shape_metrics = id_target_ind_start_position_at_5.size() > 0 && id_target_ind_start_position_at_5[0] != "0";
+        auto id_target_ind_start_position_at_5 = getSeparateScoreValues(feature_it, "id_target_ind_start_position_at_5");
+        bool enable_compute_peak_shape_metrics = id_target_ind_start_position_at_5.size() > 0 && oswValueToString(id_target_ind_start_position_at_5[0]) != "0";
         
         // get scores for peak shape metrics will just be empty vector if not present
-        auto start_position_at_5 = getSeparateScore(feature_it, "id_target_ind_start_position_at_5");
-        auto end_position_at_5 = getSeparateScore(feature_it, "id_target_ind_end_position_at_5");
-        auto start_position_at_10 = getSeparateScore(feature_it, "id_target_ind_start_position_at_10");
-        auto end_position_at_10 = getSeparateScore(feature_it, "id_target_ind_end_position_at_10");
-        auto start_position_at_50 = getSeparateScore(feature_it, "id_target_ind_start_position_at_50");
-        auto end_position_at_50 = getSeparateScore(feature_it, "id_target_ind_end_position_at_50");
-        auto total_width = getSeparateScore(feature_it, "id_target_ind_total_width");
-        auto tailing_factor = getSeparateScore(feature_it, "id_target_ind_tailing_factor");
-        auto asymmetry_factor = getSeparateScore(feature_it, "id_target_ind_asymmetry_factor");
-        auto slope_of_baseline = getSeparateScore(feature_it, "id_target_ind_slope_of_baseline");
-        auto baseline_delta_2_height = getSeparateScore(feature_it, "id_target_ind_baseline_delta_2_height");
-        auto points_across_baseline = getSeparateScore(feature_it, "id_target_ind_points_across_baseline");
-        auto points_across_half_height = getSeparateScore(feature_it, "id_target_ind_points_across_half_height");
+        auto start_position_at_5 = getSeparateScoreValues(feature_it, "id_target_ind_start_position_at_5");
+        auto end_position_at_5 = getSeparateScoreValues(feature_it, "id_target_ind_end_position_at_5");
+        auto start_position_at_10 = getSeparateScoreValues(feature_it, "id_target_ind_start_position_at_10");
+        auto end_position_at_10 = getSeparateScoreValues(feature_it, "id_target_ind_end_position_at_10");
+        auto start_position_at_50 = getSeparateScoreValues(feature_it, "id_target_ind_start_position_at_50");
+        auto end_position_at_50 = getSeparateScoreValues(feature_it, "id_target_ind_end_position_at_50");
+        auto total_width = getSeparateScoreValues(feature_it, "id_target_ind_total_width");
+        auto tailing_factor = getSeparateScoreValues(feature_it, "id_target_ind_tailing_factor");
+        auto asymmetry_factor = getSeparateScoreValues(feature_it, "id_target_ind_asymmetry_factor");
+        auto slope_of_baseline = getSeparateScoreValues(feature_it, "id_target_ind_slope_of_baseline");
+        auto baseline_delta_2_height = getSeparateScoreValues(feature_it, "id_target_ind_baseline_delta_2_height");
+        auto points_across_baseline = getSeparateScoreValues(feature_it, "id_target_ind_points_across_baseline");
+        auto points_across_half_height = getSeparateScoreValues(feature_it, "id_target_ind_points_across_half_height");
 
         if (feature_it.metaValueExists("id_target_num_transitions"))
         {
@@ -754,7 +948,7 @@ namespace OpenMS
 
           for (int i = 0; i < id_target_num_transitions; ++i)
           {
-            std::vector<String> transition_row = makeTransitionRow(feature_id);
+            OSWRow transition_row = makeTransitionRow(feature_id);
             transition_row[1] = oswValueAt(id_target_transition_names, i);
             transition_row[2] = oswValueAt(id_target_area_intensity, i);
             transition_row[3] = oswValueAt(id_target_total_area_intensity, i);
@@ -805,51 +999,51 @@ namespace OpenMS
           }
         }
 
-        auto id_decoy_transition_names = getSeparateScore(feature_it, "id_decoy_transition_names");
-        auto id_decoy_area_intensity = getSeparateScore(feature_it, "id_decoy_area_intensity");
-        auto id_decoy_total_area_intensity = getSeparateScore(feature_it, "id_decoy_total_area_intensity");
-        auto id_decoy_apex_intensity = getSeparateScore(feature_it, "id_decoy_apex_intensity");
-        auto id_decoy_peak_apex_position = getSeparateScore(feature_it, "id_decoy_peak_apex_position");
-        auto id_decoy_peak_fwhm = getSeparateScore(feature_it, "id_decoy_width_at_50");
-        auto id_decoy_total_mi = getSeparateScore(feature_it, "id_decoy_total_mi");
-        auto id_decoy_intensity_score = getSeparateScore(feature_it, "id_decoy_intensity_score");
-        auto id_decoy_intensity_ratio_score = getSeparateScore(feature_it, "id_decoy_intensity_ratio_score");
-        auto id_decoy_log_intensity = getSeparateScore(feature_it, "id_decoy_ind_log_intensity");
-        auto id_decoy_ind_xcorr_coelution = getSeparateScore(feature_it, "id_decoy_ind_xcorr_coelution");
-        auto id_decoy_ind_xcorr_shape = getSeparateScore(feature_it, "id_decoy_ind_xcorr_shape");
-        auto id_decoy_ind_log_sn_score = getSeparateScore(feature_it, "id_decoy_ind_log_sn_score");
-        auto id_decoy_ind_massdev_score = getSeparateScore(feature_it, "id_decoy_ind_massdev_score");
-        auto id_decoy_ind_mi_score = getSeparateScore(feature_it, "id_decoy_ind_mi_score");
-        auto id_decoy_ind_mi_ratio_score = getSeparateScore(feature_it, "id_decoy_ind_mi_ratio_score");
-        auto id_decoy_ind_isotope_correlation = getSeparateScore(feature_it, "id_decoy_ind_isotope_correlation");
-        auto id_decoy_ind_isotope_overlap = getSeparateScore(feature_it, "id_decoy_ind_isotope_overlap");
+        auto id_decoy_transition_names = getSeparateScoreValues(feature_it, "id_decoy_transition_names");
+        auto id_decoy_area_intensity = getSeparateScoreValues(feature_it, "id_decoy_area_intensity");
+        auto id_decoy_total_area_intensity = getSeparateScoreValues(feature_it, "id_decoy_total_area_intensity");
+        auto id_decoy_apex_intensity = getSeparateScoreValues(feature_it, "id_decoy_apex_intensity");
+        auto id_decoy_peak_apex_position = getSeparateScoreValues(feature_it, "id_decoy_peak_apex_position");
+        auto id_decoy_peak_fwhm = getSeparateScoreValues(feature_it, "id_decoy_width_at_50");
+        auto id_decoy_total_mi = getSeparateScoreValues(feature_it, "id_decoy_total_mi");
+        auto id_decoy_intensity_score = getSeparateScoreValues(feature_it, "id_decoy_intensity_score");
+        auto id_decoy_intensity_ratio_score = getSeparateScoreValues(feature_it, "id_decoy_intensity_ratio_score");
+        auto id_decoy_log_intensity = getSeparateScoreValues(feature_it, "id_decoy_ind_log_intensity");
+        auto id_decoy_ind_xcorr_coelution = getSeparateScoreValues(feature_it, "id_decoy_ind_xcorr_coelution");
+        auto id_decoy_ind_xcorr_shape = getSeparateScoreValues(feature_it, "id_decoy_ind_xcorr_shape");
+        auto id_decoy_ind_log_sn_score = getSeparateScoreValues(feature_it, "id_decoy_ind_log_sn_score");
+        auto id_decoy_ind_massdev_score = getSeparateScoreValues(feature_it, "id_decoy_ind_massdev_score");
+        auto id_decoy_ind_mi_score = getSeparateScoreValues(feature_it, "id_decoy_ind_mi_score");
+        auto id_decoy_ind_mi_ratio_score = getSeparateScoreValues(feature_it, "id_decoy_ind_mi_ratio_score");
+        auto id_decoy_ind_isotope_correlation = getSeparateScoreValues(feature_it, "id_decoy_ind_isotope_correlation");
+        auto id_decoy_ind_isotope_overlap = getSeparateScoreValues(feature_it, "id_decoy_ind_isotope_overlap");
 
         // Ion Mobility scores
-        auto id_decoy_ind_im_drift = getSeparateScore(feature_it, "id_decoy_ind_im_drift");
-        auto id_decoy_ind_im_drift_left = getSeparateScore(feature_it, "id_decoy_ind_im_drift_left");
-        auto id_decoy_ind_im_drift_right = getSeparateScore(feature_it, "id_decoy_ind_im_drift_right");
-        auto id_decoy_ind_im_delta = getSeparateScore(feature_it, "id_decoy_ind_im_delta");
-        auto id_decoy_ind_ind_im_delta_score = getSeparateScore(feature_it, "id_decoy_ind_im_delta_score");
-        auto id_decoy_ind_log_intensity = getSeparateScore(feature_it, "id_decoy_ind_im_log_intensity");
-        auto id_decoy_ind_im_contrast_coelution = getSeparateScore(feature_it, "id_decoy_ind_im_contrast_coelution");
-        auto id_decoy_ind_im_contrast_shape = getSeparateScore(feature_it, "id_decoy_ind_im_contrast_shape");
-        auto id_decoy_ind_im_sum_contrast_coelution = getSeparateScore(feature_it, "id_decoy_ind_im_sum_contrast_coelution");
-        auto id_decoy_ind_im_sum_contrast_shape = getSeparateScore(feature_it, "id_decoy_ind_im_sum_contrast_shape");
+        auto id_decoy_ind_im_drift = getSeparateScoreValues(feature_it, "id_decoy_ind_im_drift");
+        auto id_decoy_ind_im_drift_left = getSeparateScoreValues(feature_it, "id_decoy_ind_im_drift_left");
+        auto id_decoy_ind_im_drift_right = getSeparateScoreValues(feature_it, "id_decoy_ind_im_drift_right");
+        auto id_decoy_ind_im_delta = getSeparateScoreValues(feature_it, "id_decoy_ind_im_delta");
+        auto id_decoy_ind_ind_im_delta_score = getSeparateScoreValues(feature_it, "id_decoy_ind_im_delta_score");
+        auto id_decoy_ind_log_intensity = getSeparateScoreValues(feature_it, "id_decoy_ind_im_log_intensity");
+        auto id_decoy_ind_im_contrast_coelution = getSeparateScoreValues(feature_it, "id_decoy_ind_im_contrast_coelution");
+        auto id_decoy_ind_im_contrast_shape = getSeparateScoreValues(feature_it, "id_decoy_ind_im_contrast_shape");
+        auto id_decoy_ind_im_sum_contrast_coelution = getSeparateScoreValues(feature_it, "id_decoy_ind_im_sum_contrast_coelution");
+        auto id_decoy_ind_im_sum_contrast_shape = getSeparateScoreValues(feature_it, "id_decoy_ind_im_sum_contrast_shape");
 
         // get scores for peak shape metrics will just be empty vector if not present
-        auto decoy_start_position_at_5 = getSeparateScore(feature_it, "id_decoy_ind_start_position_at_5");
-        auto decoy_end_position_at_5 = getSeparateScore(feature_it, "id_decoy_ind_end_position_at_5");
-        auto decoy_start_position_at_10 = getSeparateScore(feature_it, "id_decoy_ind_start_position_at_10");
-        auto decoy_end_position_at_10 = getSeparateScore(feature_it, "id_decoy_ind_end_position_at_10");
-        auto decoy_start_position_at_50 = getSeparateScore(feature_it, "id_decoy_ind_start_position_at_50");
-        auto decoy_end_position_at_50 = getSeparateScore(feature_it, "id_decoy_ind_end_position_at_50");
-        auto decoy_total_width = getSeparateScore(feature_it, "id_decoy_ind_total_width");
-        auto decoy_tailing_factor = getSeparateScore(feature_it, "id_decoy_ind_tailing_factor");
-        auto decoy_asymmetry_factor = getSeparateScore(feature_it, "id_decoy_ind_asymmetry_factor");
-        auto decoy_slope_of_baseline = getSeparateScore(feature_it, "id_decoy_ind_slope_of_baseline");
-        auto decoy_baseline_delta_2_height = getSeparateScore(feature_it, "id_decoy_ind_baseline_delta_2_height");
-        auto decoy_points_across_baseline = getSeparateScore(feature_it, "id_decoy_ind_points_across_baseline");
-        auto decoy_points_across_half_height = getSeparateScore(feature_it, "id_decoy_ind_points_across_half_height");
+        auto decoy_start_position_at_5 = getSeparateScoreValues(feature_it, "id_decoy_ind_start_position_at_5");
+        auto decoy_end_position_at_5 = getSeparateScoreValues(feature_it, "id_decoy_ind_end_position_at_5");
+        auto decoy_start_position_at_10 = getSeparateScoreValues(feature_it, "id_decoy_ind_start_position_at_10");
+        auto decoy_end_position_at_10 = getSeparateScoreValues(feature_it, "id_decoy_ind_end_position_at_10");
+        auto decoy_start_position_at_50 = getSeparateScoreValues(feature_it, "id_decoy_ind_start_position_at_50");
+        auto decoy_end_position_at_50 = getSeparateScoreValues(feature_it, "id_decoy_ind_end_position_at_50");
+        auto decoy_total_width = getSeparateScoreValues(feature_it, "id_decoy_ind_total_width");
+        auto decoy_tailing_factor = getSeparateScoreValues(feature_it, "id_decoy_ind_tailing_factor");
+        auto decoy_asymmetry_factor = getSeparateScoreValues(feature_it, "id_decoy_ind_asymmetry_factor");
+        auto decoy_slope_of_baseline = getSeparateScoreValues(feature_it, "id_decoy_ind_slope_of_baseline");
+        auto decoy_baseline_delta_2_height = getSeparateScoreValues(feature_it, "id_decoy_ind_baseline_delta_2_height");
+        auto decoy_points_across_baseline = getSeparateScoreValues(feature_it, "id_decoy_ind_points_across_baseline");
+        auto decoy_points_across_half_height = getSeparateScoreValues(feature_it, "id_decoy_ind_points_across_half_height");
 
         if (feature_it.metaValueExists("id_decoy_num_transitions"))
         {
@@ -857,7 +1051,7 @@ namespace OpenMS
 
           for (int i = 0; i < id_decoy_num_transitions; ++i)
           {
-            std::vector<String> transition_row = makeTransitionRow(feature_id);
+            OSWRow transition_row = makeTransitionRow(feature_id);
             transition_row[1] = oswValueAt(id_decoy_transition_names, i);
             transition_row[2] = oswValueAt(id_decoy_area_intensity, i);
             transition_row[3] = oswValueAt(id_decoy_total_area_intensity, i);
