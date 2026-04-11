@@ -25,6 +25,7 @@
 #include <OpenMS/FORMAT/SqliteConnector.h>
 
 #include <boost/range/adaptor/map.hpp>
+#include <algorithm>
 #include <chrono>
 #include <memory>
 #include <boost/foreach.hpp>
@@ -558,6 +559,8 @@ namespace OpenMS
     }
 
     std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
+    const bool has_feature_report_limit = stop_report_after_feature_ >= 0;
+    std::vector<SignedSize> scored_feature_indices;
     std::vector<MRMFeature> feature_list;
 
     // get drift time upper/lower offset (this assumes that all chromatograms
@@ -635,9 +638,21 @@ namespace OpenMS
     pd.setEnzyme(enzyme_);
 
     auto& mrmfeatures = transition_group_detection.getFeaturesMuteable();
+    const bool defer_feature_output = has_feature_report_limit &&
+      static_cast<Size>(stop_report_after_feature_) < mrmfeatures.size();
+    if (defer_feature_output)
+    {
+      scored_feature_indices.reserve(mrmfeatures.size());
+    }
+    else
+    {
+      feature_list.reserve(mrmfeatures.size());
+    }
 
     // Pre-compute group-invariant values (constant across all features)
     const bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
+    const double detection_precursor_mz = !transition_group_detection.getTransitions().empty() ?
+      transition_group_detection.getTransitions()[0].getPrecursorMZ() : -1.0;
 
     std::vector<double> normalized_library_intensity;
     transition_group_detection.getLibraryIntensity(normalized_library_intensity);
@@ -1030,56 +1045,41 @@ namespace OpenMS
           feature_profile.score_output += elapsedScoringProfileSeconds(feature_phase_start);
         }
 
-        precursor_mz = transition_group_detection.getTransitions()[0].getPrecursorMZ();
+        precursor_mz = detection_precursor_mz;
 
       }
 
-      ///////////////////////////////////////////////////////////////////////////
-      // add the peptide hit information to the feature
-      ///////////////////////////////////////////////////////////////////////////
-      auto feature_output_start = scoringProfileStart(profile);
-      PeptideIdentification pep_id_;
-      PeptideHit pep_hit_;
-
-      if (pep->getChargeState() != 0)
+      if (defer_feature_output)
       {
-        pep_hit_.setCharge(pep->getChargeState());
+#ifdef _OPENMP
+#pragma omp critical (openswath_scored_feature_indices)
+#endif
+        {
+          scored_feature_indices.push_back(feature_idx);
+        }
       }
-      pep_hit_.setScore(xx_lda_prescore);
-      if (swath_present && mrmfeature.metaValueExists("xx_swath_prelim_score"))
+      else
       {
-        pep_hit_.setScore(mrmfeature.getMetaValue("xx_swath_prelim_score"));
+        ///////////////////////////////////////////////////////////////////////////
+        // add the peptide hit information to the feature
+        ///////////////////////////////////////////////////////////////////////////
+        auto feature_output_start = scoringProfileStart(profile);
+        prepareScoredFeatureOutput_(mrmfeature, *pep, pd, swath_present, precursor_mz, ms1only);
+#ifdef _OPENMP
+#pragma omp critical (openswath_feature_output_list)
+#endif
+        {
+          feature_list.push_back(mrmfeature);
+        }
+        if (profile)
+        {
+          feature_profile.score_output += elapsedScoringProfileSeconds(feature_output_start);
+        }
       }
-
-      if (pep->isPeptide() && !pep->sequence.empty())
-      {
-        pep_hit_.setSequence(AASequence::fromString(pep->sequence));
-        mrmfeature.setMetaValue("missedCleavages", pd.peptideCount(pep_hit_.getSequence()) - 1);
-      }
-
-      // set protein accession numbers
-      for (Size k = 0; k < pep->protein_refs.size(); k++)
-      {
-        PeptideEvidence pe;
-        pe.setProteinAccession(pep->protein_refs[k]);
-        pep_hit_.addPeptideEvidence(pe);
-      }
-      pep_id_.insertHit(pep_hit_);
-      pep_id_.setIdentifier(run_identifier);
-
-      mrmfeature.getPeptideIdentifications().push_back(pep_id_);
-      mrmfeature.ensureUniqueId();
-
-      mrmfeature.setMetaValue("PrecursorMZ", precursor_mz);
-      prepareFeatureOutput_(mrmfeature, ms1only, pep->getChargeState());
-      mrmfeature.setMetaValue("xx_swath_prelim_score", 0.0);
-      #pragma omp critical
-      feature_list.push_back(mrmfeature);
 
       delete imrmfeature;
       if (profile)
       {
-        feature_profile.score_output += elapsedScoringProfileSeconds(feature_output_start);
         feature_profile.scored_feature_count = 1;
 #ifdef _OPENMP
 #pragma omp critical (openswath_scoring_profile)
@@ -1090,22 +1090,111 @@ namespace OpenMS
       }
     }
 
-    // Order by quality (high to low, via reverse iterator)
     profile_phase_start = scoringProfileStart(profile);
-    std::sort(feature_list.rbegin(), feature_list.rend(), OpenMS::Feature::OverallQualityLess());
+    if (defer_feature_output)
+    {
+      // Order by quality before expensive feature output preparation. In the
+      // OpenSwathWorkflow TOPP path only the top few candidates are reported.
+      Size report_count = scored_feature_indices.size();
+      if (stop_report_after_feature_ >= 0)
+      {
+        report_count = std::min(report_count, static_cast<Size>(stop_report_after_feature_));
+      }
+      OpenMS::Feature::OverallQualityLess quality_less;
+      auto quality_greater = [&mrmfeatures, &quality_less](SignedSize lhs, SignedSize rhs)
+      {
+        return quality_less(mrmfeatures[rhs], mrmfeatures[lhs]);
+      };
+      if (report_count > 0 && report_count < scored_feature_indices.size())
+      {
+        std::partial_sort(scored_feature_indices.begin(), scored_feature_indices.begin() + report_count,
+                          scored_feature_indices.end(), quality_greater);
+      }
+      else if (report_count > 0)
+      {
+        std::sort(scored_feature_indices.begin(), scored_feature_indices.end(), quality_greater);
+      }
+      if (profile)
+      {
+        scoring_profile_.feature_sort_output += elapsedScoringProfileSeconds(profile_phase_start);
+      }
 
-    for (Size i = 0; i < feature_list.size(); i++)
-    {
-      if (stop_report_after_feature_ >= 0 && i >= (Size)stop_report_after_feature_) {break;}
-      output.push_back(feature_list[i]);
+      for (Size i = 0; i < report_count; ++i)
+      {
+        auto feature_output_start = scoringProfileStart(profile);
+        MRMFeature& selected_feature = mrmfeatures[scored_feature_indices[i]];
+        const double selected_precursor_mz = ms1only ? selected_feature.getMZ() : detection_precursor_mz;
+        prepareScoredFeatureOutput_(selected_feature, *pep, pd, swath_present, selected_precursor_mz, ms1only);
+        output.push_back(selected_feature);
+        if (profile)
+        {
+          scoring_profile_.score_output += elapsedScoringProfileSeconds(feature_output_start);
+        }
+      }
     }
-    if (profile)
+    else
     {
-      scoring_profile_.feature_sort_output += elapsedScoringProfileSeconds(profile_phase_start);
+      // Order by quality (high to low, via reverse iterator)
+      std::sort(feature_list.rbegin(), feature_list.rend(), OpenMS::Feature::OverallQualityLess());
+
+      for (Size i = 0; i < feature_list.size(); i++)
+      {
+        output.push_back(feature_list[i]);
+      }
+      if (profile)
+      {
+        scoring_profile_.feature_sort_output += elapsedScoringProfileSeconds(profile_phase_start);
+      }
     }
 
     // store all data manipulation performed on the features of the transition group
     transition_group = transition_group_detection;
+  }
+
+  void MRMFeatureFinderScoring::prepareScoredFeatureOutput_(OpenMS::MRMFeature& mrmfeature,
+                                                            const PeptideType& pep,
+                                                            const ProteaseDigestion& pd,
+                                                            bool swath_present,
+                                                            double precursor_mz,
+                                                            bool ms1only) const
+  {
+    PeptideIdentification pep_id_;
+    PeptideHit pep_hit_;
+
+    if (pep.getChargeState() != 0)
+    {
+      pep_hit_.setCharge(pep.getChargeState());
+    }
+    const double xx_lda_prescore = mrmfeature.metaValueExists("xx_lda_prelim_score") ?
+      static_cast<double>(mrmfeature.getMetaValue("xx_lda_prelim_score")) : mrmfeature.getOverallQuality();
+    pep_hit_.setScore(xx_lda_prescore);
+    if (swath_present && mrmfeature.metaValueExists("xx_swath_prelim_score"))
+    {
+      pep_hit_.setScore(mrmfeature.getMetaValue("xx_swath_prelim_score"));
+    }
+
+    if (pep.isPeptide() && !pep.sequence.empty())
+    {
+      pep_hit_.setSequence(AASequence::fromString(pep.sequence));
+      mrmfeature.setMetaValue("missedCleavages", pd.peptideCount(pep_hit_.getSequence()) - 1);
+    }
+
+    // set protein accession numbers
+    for (Size k = 0; k < pep.protein_refs.size(); k++)
+    {
+      PeptideEvidence pe;
+      pe.setProteinAccession(pep.protein_refs[k]);
+      pep_hit_.addPeptideEvidence(pe);
+    }
+    pep_id_.insertHit(pep_hit_);
+    pep_id_.setIdentifier(run_identifier);
+
+    mrmfeature.getPeptideIdentifications().push_back(pep_id_);
+    mrmfeature.ensureUniqueId();
+
+    mrmfeature.setMetaValue("PrecursorMZ", precursor_mz);
+    prepareFeatureOutput_(mrmfeature, ms1only, pep.getChargeState());
+    mrmfeature.setMetaValue("xx_swath_prelim_score", 0.0);
   }
 
   void MRMFeatureFinderScoring::prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge) const

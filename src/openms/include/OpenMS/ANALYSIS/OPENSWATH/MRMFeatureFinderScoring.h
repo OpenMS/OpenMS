@@ -40,6 +40,7 @@ namespace OpenMS
 {
   // Forward declaration for optional mobilogram consumer
   class MobilogramParquetConsumer;
+  class ProteaseDigestion;
 
   /**
     @brief Aggregated timing counters for OpenSWATH scoring diagnostics.
@@ -338,6 +339,13 @@ private:
                                               const double drift_target,
                                               RangeMobility& im_range,
                                               MobilogramParquetConsumer* mobilogram_consumer = nullptr) const;
+
+    void prepareScoredFeatureOutput_(OpenMS::MRMFeature& mrmfeature,
+                                     const PeptideType& pep,
+                                     const ProteaseDigestion& pd,
+                                     bool swath_present,
+                                     double precursor_mz,
+                                     bool ms1only) const;
 
     void prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge) const;
 
