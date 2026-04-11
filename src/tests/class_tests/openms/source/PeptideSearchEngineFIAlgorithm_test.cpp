@@ -1257,6 +1257,40 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] computeModMatchTolerance_ reads post-calibration members))
+{
+  // Same setup as the previous test. After calibration, computeModMatchTolerance_()
+  // must return min(cal_lower, cal_upper) — NOT min(20, 30) = 20 (the user-configured
+  // values). This is the double-bookkeeping regression guard: before the
+  // refactor, OpenSearchModificationAnalysis was called with a scalar tolerance
+  // computed from the pre-calibration DefaultParamHandler copy, so the mod
+  // match window was wider than the FragmentIndex's post-calibration window.
+  const vector<double> ppm_shifts = {
+    0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0
+  };
+  PeakMap spectra = build_calibration_spectra_(ppm_shifts);
+  auto fasta_db = calibration_fasta_db_();
+
+  PeptideSearchEngineFIAlgorithm_test algo;
+  configure_calibration_params_(algo, /*lower_ppm*/ 20.0, /*upper_ppm*/ 30.0,
+                                /*min_psms*/ 3);
+
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
+  TEST_EQUAL(ec == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+
+  const auto& cal = algo.last_calibration_result_;
+  TEST_EQUAL(cal.success, true)
+  TEST_EQUAL(cal.extreme_bias, false)
+
+  const double expected = std::min(cal.cal_lower, cal.cal_upper);
+  TEST_REAL_SIMILAR(algo.computeModMatchTolerance_(), expected)
+  // And definitely NOT the pre-calibration min (lower=20 bound).
+  TEST_NOT_EQUAL(algo.computeModMatchTolerance_(), 20.0)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
