@@ -522,8 +522,6 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
                                              precursor_mass_tolerance_upper_,
                                              precursor_mass_tolerance_unit_ == "ppm");
     }
-
-    friend class PeptideSearchEngineFIAlgorithm_test;
 };
 
 } // namespace
