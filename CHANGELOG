@@ -31,6 +31,7 @@ General:
   - BREAKING: Qt6::Core removed from libOpenMS PUBLIC CMake link dependencies; downstream CMake projects must now link Qt6::Core directly if needed (#8965)
   - Fix: UpdateCheck no longer crashes TOPP tools when $HOME is not writable (e.g., in container environments where $HOME=/); the update check is skipped gracefully (#9075, fixes #9074)
   - Fix: TheoreticalSpectrumGenerator: corrected m/z calculation for b/a neutral-loss fragment ions; the neutral-loss loop previously omitted the first residue mass, causing all b/a neutral-loss fragments to report masses that were too low by the first residue's internal mass (#9078, #9084)
+  - Fix: LinearResampler: right_index was clamped to the number of raw data points instead of the number of resampled points; when resampled points far outnumber raw points (e.g. fine spacing over a wide m/z range), this caused extreme intensity spikes; bug introduced in 2008 and masked by LinearResamplerAlign which has an independent correct implementation (#9127)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -60,6 +61,7 @@ TOPP tools:
       - Improved error messages for command-line parameter errors (#8670)
     CometAdapter:
       - Merges compatible variable modifications for improved search performance (3x+ speedup) (#8407)
+      - Added Bruker TimsTOF .d DDA-PASEF input support; .d directories are converted to mzML on-the-fly via BrukerTimsFile before search; requires WITH_TIMSRUST=ON (#9126)
     PeptideDataBaseSearchFI:
       - Expanded fragment index open search with modification discovery and FDR filtering (#8414)
       - FragmentIndex: default fragment:min_ion_index changed from 0 to 2, skipping b1/b2/y1/y2 ions by default (matches Sage behavior); improves PSM count, reduces memory and runtime; set fragment:min_ion_index=0 to include all ions (#9094)
@@ -67,6 +69,9 @@ TOPP tools:
       - Multi-file search: -in/-out now accept file lists; the fragment index is built once and reused across all inputs; per-file output format (idXML or QPX parquet) is auto-detected from each -out extension; new advanced -out_mod_analysis_dir parameter writes per-file and aggregate modification-analysis TSVs (#9109)
       - Added peptide:enzyme_specificity parameter (full/semi/none) to enable semi-tryptic and non-specific (e.g. immunopeptidomics) searches; fixes EnzymaticDigestion underflow for very short peptides and FragmentIndex crash on empty search results (#9112)
       - New annotate:PSM options: num_matched_peaks, matched_b_ions, matched_y_ions, longest_peptide_ion_sequence, fragment_annotation; matched ion counts and fragment annotations are also exported to PSM/QPX parquet output (#9117)
+      - Runtime search diagnostics: after every search a summary (matched spectra count, MS2 ID rate, unique peptides/proteins, missed cleavage distribution) and per-run tolerance estimation (median ± MAD of precursor/fragment errors with recommended tolerances) are logged (#9121)
+      - Automatic mass accuracy calibration (two-pass search): optional Search:calibration:enabled parameter runs a fast first-pass search on a subset of spectra (default: top 10% by TIC) to estimate tighter precursor and fragment tolerances; tolerances are applied without rebuilding the index (#9122)
+      - Protein-level FDR: new FDR:protein parameter applies picked-protein FDR (Savitski 2015) after PSM-level FDR using BasicProteinInferenceAlgorithm for score aggregation; supported in both single-file and multi-file search modes (#9123)
     SimpleSearchEngine:
       - Added peptide:enzyme_specificity parameter (full/semi/none) to enable semi-tryptic and non-specific searches (#9112)
       - New annotate:PSM options: num_matched_peaks, matched_b_ions, matched_y_ions, longest_peptide_ion_sequence, fragment_annotation (#9117)
@@ -88,6 +93,7 @@ TOPP tools:
       - Added cache file auto cleanup (#9029)
       - MRMFeatureFinderScoring: enzyme used for missed cleavage counting is now configurable via new `enzyme` parameter (default: Trypsin) (#9077)
       - Fix: OpenSwathOSWWriter::getScore() and getSeparateScore() now correctly handle all NaN variants ("NaN", "-NaN") and avoid redundant meta value lookups; double score values are written with full precision (#9047)
+      - Bruker DIA MS2 frame aggregation, denoising, and OpenSwath streaming: new BrukerTimsFile::Config fields (bruker:dia_ms2_n_neighbors, bruker:dia_ms2_min_support, bruker:dia_ms2_centroid) enable grid-based denoising and 2D peak picking of DIA MS2 frames; aggregated spectra can be streamed directly into the OpenSwath pipeline without prior mzML conversion; registered in FileConverter and PeakPickerIM; requires WITH_TIMSRUST=ON (#9129)
 
 PyOpenMS:
   - BREAKING: Binding backend replaced from Autowrap/Cython to hand-maintained nanobind C++ bindings (#8699)
