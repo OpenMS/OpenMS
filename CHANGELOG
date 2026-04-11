@@ -63,6 +63,18 @@ TOPP tools:
       - Merges compatible variable modifications for improved search performance (3x+ speedup) (#8407)
       - Added Bruker TimsTOF .d DDA-PASEF input support; .d directories are converted to mzML on-the-fly via BrukerTimsFile before search; requires WITH_TIMSRUST=ON (#9126)
     PeptideDataBaseSearchFI:
+      - BREAKING: precursor tolerance schema changed to asymmetric positive-magnitude pair (#9108)
+        The scalar `precursor:mass_tolerance` and the `precursor:open_window_lower/_upper`
+        params are REMOVED and replaced by `precursor:mass_tolerance_lower` and
+        `precursor:mass_tolerance_upper`, both non-negative magnitudes applied internally as
+        `[-lower, +upper]` around the precursor mass. Matches MSFraggerAdapter convention.
+        Default widened from 10 to 20 ppm per side. The calibration pass now preserves signed
+        precursor bias (median of signed errors + MAD-of-residuals) instead of clobbering
+        asymmetric user bounds to symmetric; an extreme-bias guard (`|shift| >= spread`)
+        discards the calibration result and warns rather than silently loosening. Open-search
+        auto-detection trips when `max(lower, upper) > 1000 ppm` or `> 1 Da`. pyOpenMS users
+        setting `precursor:mass_tolerance` must migrate to the new param names. Fixes a latent
+        calibration-filter bug that flipped the signed-error band for asymmetric windows.
       - Expanded fragment index open search with modification discovery and FDR filtering (#8414)
       - FragmentIndex: default fragment:min_ion_index changed from 0 to 2, skipping b1/b2/y1/y2 ions by default (matches Sage behavior); improves PSM count, reduces memory and runtime; set fragment:min_ion_index=0 to include all ions (#9094)
       - FragmentIndex: faster index build using bitmask-based modification enumeration and SoA memory layout with SIMD-accelerated query loop (#9088)
