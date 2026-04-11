@@ -32,6 +32,27 @@
 using namespace OpenMS;
 using namespace std;
 
+// Test subclass exposing internal state for white-box assertions on
+// asymmetric bounds, calibration-pass results, and the mod-match tolerance helper.
+//
+// The `friend class PeptideSearchEngineFIAlgorithm_test;` declaration in the
+// production header makes the `using` re-exposure below legal.
+//
+// Note: `fragment_index_` is NOT a member of PeptideSearchEngineFIAlgorithm — it
+// lives on the SearchContext and is a local reference during search(). Tests that
+// need to observe FragmentIndex state must do so via prepareContext() + the
+// context-taking search() overload before/after the restore hook fires.
+class PeptideSearchEngineFIAlgorithm_test : public PeptideSearchEngineFIAlgorithm
+{
+public:
+  using PeptideSearchEngineFIAlgorithm::precursor_mass_tolerance_lower_;
+  using PeptideSearchEngineFIAlgorithm::precursor_mass_tolerance_upper_;
+  using PeptideSearchEngineFIAlgorithm::precursor_mass_tolerance_unit_;
+  using PeptideSearchEngineFIAlgorithm::computeModMatchTolerance_;
+  using PeptideSearchEngineFIAlgorithm::last_calibration_result_;
+  using PeptideSearchEngineFIAlgorithm::CalibrationResult_;
+};
+
 START_TEST(PeptideSearchEngineFIAlgorithm, "$Id$")
 
 /////////////////////////////////////////////////////////////
