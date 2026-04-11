@@ -1166,7 +1166,7 @@ namespace OpenMS
               << ").";
       result.summary = summary.str();
 
-      OPENMS_LOG_INFO << result.summary << "\n";
+      OPENMS_LOG_INFO << result.summary << std::endl;
       endProgress();
       progress_started = false;
       return result;
