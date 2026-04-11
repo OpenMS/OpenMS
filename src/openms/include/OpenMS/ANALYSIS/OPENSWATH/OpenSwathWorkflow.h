@@ -409,6 +409,7 @@ protected:
      * @param[in] ms1only If true, will only score on MS1 level and ignore MS2 level
      * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
      * @param[out] scoring_profile Optional detailed scoring phase timings
+     * @param[out] deferred_osw_output Optional buffer for OSW output lines, deferring writer access to the caller
      *
     */
   void scoreAllChromatograms_(
@@ -424,7 +425,8 @@ protected:
         int nr_ms1_isotopes = 0,
         bool ms1only = false,
         class MobilogramParquetConsumer * mobilogram_consumer = nullptr,
-        OpenSwathScoringPhaseTiming* scoring_profile = nullptr) const;
+        OpenSwathScoringPhaseTiming* scoring_profile = nullptr,
+        std::vector<String>* deferred_osw_output = nullptr) const;
 
     /** @brief Select which compounds to analyze in the next batch (and copy to output)
      *

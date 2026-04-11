@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <iterator>
 #include <memory>
 #include <sstream>
 #include <unordered_map>
@@ -411,6 +412,7 @@ namespace OpenMS
         std::vector<MSChromatogram> ms1_chromatograms;
         PeakMap chrom_exp;
         FeatureMap feature_file;
+        std::vector<String> osw_output;
       };
 
       struct SwathScoreJob
@@ -512,6 +514,10 @@ namespace OpenMS
         if (context.score_job_size > 0)
         {
           context.nr_score_jobs = static_cast<SignedSize>((n_compounds + context.score_job_size - 1) / context.score_job_size);
+          if (osw_writer.isActive())
+          {
+            context.osw_output.reserve(n_compounds);
+          }
         }
 
 #ifdef _OPENMP
@@ -583,6 +589,7 @@ namespace OpenMS
           score_jobs.push_back({context_index, range_index});
         }
       }
+      std::vector<std::vector<String>> score_job_osw_output(score_jobs.size());
 
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1)
@@ -613,7 +620,7 @@ namespace OpenMS
         OpenSwathScoringPhaseTiming scoring_profile;
         scoreAllChromatograms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms, tmp, transition_exp_used,
           feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false,
-          mobilogram_consumer, profile ? &scoring_profile : nullptr);
+          mobilogram_consumer, profile ? &scoring_profile : nullptr, &score_job_osw_output[job_index]);
         if (profile)
         {
           batch_timing.scoring = elapsedProfileSeconds(batch_phase_start);
@@ -652,6 +659,14 @@ namespace OpenMS
         }
       }
 
+      for (Size job_index = 0; job_index < score_jobs.size(); ++job_index)
+      {
+        SwathSchedulerContext& context = contexts[score_jobs[job_index].context_index];
+        context.osw_output.insert(context.osw_output.end(),
+                                  std::make_move_iterator(score_job_osw_output[job_index].begin()),
+                                  std::make_move_iterator(score_job_osw_output[job_index].end()));
+      }
+
       for (Size context_index = 0; context_index < contexts.size(); ++context_index)
       {
         SwathSchedulerContext& context = contexts[context_index];
@@ -663,6 +678,15 @@ namespace OpenMS
 #endif
           {
             auto write_start = profileStart(profile);
+            if (osw_writer.isActive() && !context.osw_output.empty())
+            {
+              auto osw_write_start = profileStart(profile);
+              osw_writer.writeLines(context.osw_output);
+              if (profile)
+              {
+                context.swath_timing.scoring_breakdown.osw_write += elapsedProfileSeconds(osw_write_start);
+              }
+            }
             writeOutFeaturesAndChroms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms,
                 context.feature_file, out_featureFile, store_features, chromConsumer);
             if (profile)
@@ -1088,7 +1112,8 @@ namespace OpenMS
     int nr_ms1_isotopes,
     bool ms1only,
     MobilogramParquetConsumer* mobilogram_consumer,
-    OpenSwathScoringPhaseTiming* scoring_profile) const
+    OpenSwathScoringPhaseTiming* scoring_profile,
+    std::vector<String>* deferred_osw_output) const
   {
     const bool profile = scoring_profile != nullptr;
     if (profile)
@@ -1484,9 +1509,18 @@ namespace OpenMS
       scoring_profile->add(featureFinder.getScoringProfile());
     }
 
-    // Only write at the very end since this is a step that needs a barrier
+    // Only write at the very end since this is a step that needs a barrier.
+    // Schedulers can defer these rows to avoid blocking worker threads on the writer.
     if (osw_writer.isActive())
     {
+      if (deferred_osw_output != nullptr)
+      {
+        deferred_osw_output->insert(deferred_osw_output->end(),
+                                    std::make_move_iterator(to_osw_output.begin()),
+                                    std::make_move_iterator(to_osw_output.end()));
+        return;
+      }
+
 #ifdef _OPENMP
 #pragma omp critical (osw_write_tsv)
 #endif
