@@ -761,6 +761,7 @@ namespace OpenMS
     {
       startProgress(0, 1, "Running calibration pass...");
       CalibrationResult_ cal = runCalibrationPass_(spectra, fragment_index_, db);
+      last_calibration_result_ = cal;   // stored for test observability + diagnostics (Task 7 reads this)
       endProgress();
 
       if (cal.success)

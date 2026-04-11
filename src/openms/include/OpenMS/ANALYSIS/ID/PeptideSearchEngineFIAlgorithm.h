@@ -457,8 +457,9 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
     };
 
     /// Most recent calibration result (valid after any search that invoked runCalibrationPass_).
-    /// Stored for test observability and diagnostics.
-    CalibrationResult_ last_calibration_result_;
+    /// Stored for test observability and diagnostics. Marked `mutable` because it is pure
+    /// diagnostic/telemetry state that doesn't affect the logical const-ness of search().
+    mutable CalibrationResult_ last_calibration_result_;
 
     /// Scalar tolerance passed to OpenSearchModificationAnalysis under asymmetric bounds.
     /// Uses the tighter of the two positive magnitudes — semantically correct for

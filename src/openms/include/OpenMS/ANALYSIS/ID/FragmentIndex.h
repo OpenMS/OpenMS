@@ -194,9 +194,10 @@ namespace OpenMS
      * for all i in the returned range.
      *
      * @param[in] precursor_mass The mono-charged precursor mass (M+H).
-     * @param[in] window Signed absolute offsets around the precursor mass. `window.first` must be
-     *                   ≤ 0 and `window.second` must be ≥ 0. No hidden tolerance is added —
-     *                   the caller supplies the full signed window (see `computeMassWindow_`).
+     * @param[in] window Signed absolute offsets around the precursor mass. By convention
+     *                   `window.first` is <= 0 and `window.second` is >= 0 (produced by
+     *                   `computeMassWindow_`). A reversed window trivially returns an empty
+     *                   range; no diagnostic is emitted. No hidden tolerance is added.
      * @return [begin_idx, end_idx) half-open index range into `fi_peptides_`.
      */
     std::pair<size_t, size_t> getPeptidesInMassWindow(float precursor_mass,
