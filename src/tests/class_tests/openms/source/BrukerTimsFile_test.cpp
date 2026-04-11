@@ -586,15 +586,36 @@ START_SECTION(DIA MS2 aggregation test)
 
   // Count MS2 spectra, total MS2 peaks, and cumulative MS2 intensity in both.
   //
-  // The aggregator (DIAFrameAggregator in BrukerTimsFile.cpp) is a sparse 2D
-  // grid binning keyed by (mz_bin, scan_id) — NOT (mz_bin, scan_id, frame_id).
-  // With MZ_BIN_WIDTH = 0.02 Da (~40 ppm @ m/z 500) and scan_id being the
-  // stable IM drift index, adjacent diaPASEF frames at the same WindowGroup
-  // land on essentially the same cells. Aggregation therefore does NOT
-  // multiply peak count by n_neighbors*2+1 — each cell collapses multi-frame
-  // contributions into ONE output peak whose intensity is the SUM of the
-  // contributing frames' intensities. The "reduce sparsity for picking"
-  // intent is reflected in intensity summation, not peak count reduction.
+  // DIAFrameAggregator (BrukerTimsFile.cpp) is a two-stage operation on a
+  // sparse 2D grid keyed by (mz_bin, scan_id) — NOT (mz_bin, scan_id, frame_id):
+  //
+  //   1. SUM stage: for each (center_frame_i, window) position, accumulate
+  //      peaks from 2*n_neighbors+1 = 3 adjacent frames into grid cells. Each
+  //      cell's intensity_sum is the SUM of all contributing frames' peak
+  //      intensities at that (mz_bin, scan_id). Each raw frame's peaks get
+  //      added to 3 different aggregator grids (one as center, two as
+  //      neighbors), so the TOTAL intensity across all aggregated positions
+  //      is ~3x the raw total (verified empirically with min_support=0:
+  //      8469 raw spectra, 50.1M peaks, 6.00e9 intensity ->
+  //      8469 agg spectra, 141.2M peaks, 1.80e10 intensity = 2.998x raw).
+  //
+  //   2. DENOISE stage: with min_support=1, each cell is dropped unless at
+  //      least ONE of its 8 spatial neighbors in the (mz_bin, scan_id) 3x3
+  //      grid is also occupied. This is a 2D convolution-style filter that
+  //      removes isolated cells — typically noise peaks that lack a compact
+  //      cluster shape in (m/z, IM) space. Empirically, this drops ~64% of
+  //      peaks and ~57% of intensity (141.2M -> 50.6M peaks, 1.80e10 ->
+  //      7.71e9 intensity). Surviving peaks have ~1.20x the average
+  //      intensity of the pre-denoise pool, confirming denoising
+  //      preferentially keeps high-SNR signal.
+  //
+  // Net effect (n_neighbors=1, min_support=1): peak COUNT stays roughly equal
+  // to raw (+1% from transient edge peaks that just pass the neighbor check);
+  // total intensity is ~1.28x raw. The sparsity reduction for picking comes
+  // from the DENOISED output: each surviving cell is both part of a compact
+  // 2D cluster AND has its intensity boosted by the 3-frame sum. Downstream
+  // 2D Gaussian smoothing in finalizeCentroided() operates on this
+  // clustered-and-boosted grid, giving much better centroid fits than raw.
   Size raw_ms2_count = 0, agg_ms2_count = 0;
   Size raw_ms2_peaks = 0, agg_ms2_peaks = 0;
   double raw_ms2_intensity = 0.0, agg_ms2_intensity = 0.0;
