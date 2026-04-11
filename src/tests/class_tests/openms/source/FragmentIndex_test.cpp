@@ -923,4 +923,94 @@ START_SECTION((static bool isOpenSearchMode(double, double, bool)))
 }
 END_SECTION
 
+// --- Asymmetric precursor window: Task 9 observable-proxy isotope tests ---
+
+START_SECTION((open-mode forces isotope_error iteration to [0,0]))
+{
+  // Observable-proxy: under open mode, a fixture with isotope_error_range [-2, +2]
+  // produces the same PSM set as [0, 0] — proving iteration collapsed.
+  vector<FASTAFile::FASTAEntry> entries;
+  FASTAFile::FASTAEntry e;
+  e.identifier = "TEST";
+  e.sequence = "PEPTIDER";
+  entries.push_back(e);
+
+  // Run 1: open mode with user iso range [-2, +2]
+  FragmentIndex_test fi_a;
+  Param p_a = fi_a.getParameters();
+  p_a.setValue("precursor:mass_tolerance_lower", 0.5);
+  p_a.setValue("precursor:mass_tolerance_upper", 1.5);  // 1.5 Da > 1.0 → open mode
+  p_a.setValue("precursor:mass_tolerance_unit", "Da");
+  p_a.setValue("precursor:isotope_error_min", -2);
+  p_a.setValue("precursor:isotope_error_max", +2);
+  fi_a.setParameters(p_a);
+  fi_a.build(entries);
+
+  // Run 2: open mode with iso range [0, 0]
+  FragmentIndex_test fi_b;
+  Param p_b = fi_b.getParameters();
+  p_b.setValue("precursor:mass_tolerance_lower", 0.5);
+  p_b.setValue("precursor:mass_tolerance_upper", 1.5);
+  p_b.setValue("precursor:mass_tolerance_unit", "Da");
+  p_b.setValue("precursor:isotope_error_min", 0);
+  p_b.setValue("precursor:isotope_error_max", 0);
+  fi_b.setParameters(p_b);
+  fi_b.build(entries);
+
+  // Construct identical query spectrum for both
+  AASequence seq = AASequence::fromString("PEPTIDER");
+  MSSpectrum spec;
+  Precursor prec;
+  prec.setMZ(seq.getMZ(2));
+  prec.setCharge(2);
+  spec.getPrecursors().push_back(prec);
+  spec.setMSLevel(2);
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum theo;
+  tsg.getSpectrum(theo, seq, 1, 1);
+  for (const auto& peak : theo) spec.push_back(peak);
+  spec.sortByPosition();
+
+  FragmentIndex::SpectrumMatchesTopN sms_a, sms_b;
+  fi_a.querySpectrum(spec, sms_a);
+  fi_b.querySpectrum(spec, sms_b);
+
+  // Equal PSM set sizes → iteration collapsed (the [-2,+2] config did NOT produce more hits)
+  TEST_EQUAL(sms_a.hits_.size(), sms_b.hits_.size());
+}
+END_SECTION
+
+START_SECTION((asymmetric closed window interacts with isotope_error iteration))
+{
+  // [5, 15] ppm + isotope_error [-1, +2]. A multi-peptide fixture covered by a closed-mode
+  // asymmetric window; each peptide self-hits under testQuery (observable proxy for the
+  // combined window + iso_error iteration path).
+  // Use 'no cleavage' so the full fasta sequences become distinct peptides with distinct masses.
+  vector<FASTAFile::FASTAEntry> entries;
+  FASTAFile::FASTAEntry e1, e2, e3;
+  e1.identifier = "P1"; e1.sequence = "PEPTIDER";      // mass m0
+  e2.identifier = "P2"; e2.sequence = "PEPTIDERG";     // mass ~m0+57 Da (G = 57.02)
+  e3.identifier = "P3"; e3.sequence = "PEPTIDERA";     // mass ~m0+71 Da (A = 71.04)
+  entries = {e1, e2, e3};
+
+  FragmentIndex_test fi;
+  Param p = fi.getParameters();
+  p.setValue("enzyme", "no cleavage");
+  p.setValue("precursor:mass_tolerance_lower", 5.0);
+  p.setValue("precursor:mass_tolerance_upper", 15.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("precursor:isotope_error_min", -1);
+  p.setValue("precursor:isotope_error_max", +2);
+  // Include all fragment peaks (low-mz + low-index) so testQuery can satisfy num_matched >= spec.size()
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("fragment:max_mz", 50000);
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Query each peptide's own theoretical spectrum and verify self-hit via testQuery
+  TEST_EQUAL(fi.testQuery(2, true, entries), true);
+}
+END_SECTION
+
 END_TEST
