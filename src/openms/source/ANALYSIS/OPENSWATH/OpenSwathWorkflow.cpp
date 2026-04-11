@@ -412,7 +412,7 @@ namespace OpenMS
         std::vector<MSChromatogram> ms1_chromatograms;
         PeakMap chrom_exp;
         FeatureMap feature_file;
-        std::vector<String> osw_output;
+        OpenSwathOSWWriter::OSWData osw_output;
       };
 
       struct SwathScoreJob
@@ -516,7 +516,7 @@ namespace OpenMS
           context.nr_score_jobs = static_cast<SignedSize>((n_compounds + context.score_job_size - 1) / context.score_job_size);
           if (osw_writer.isActive())
           {
-            context.osw_output.reserve(n_compounds);
+            context.osw_output.reserve(n_compounds * 5);
           }
         }
 
@@ -589,7 +589,7 @@ namespace OpenMS
           score_jobs.push_back({context_index, range_index});
         }
       }
-      std::vector<std::vector<String>> score_job_osw_output(score_jobs.size());
+      std::vector<OpenSwathOSWWriter::OSWData> score_job_osw_output(score_jobs.size());
 
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1)
@@ -662,9 +662,7 @@ namespace OpenMS
       for (Size job_index = 0; job_index < score_jobs.size(); ++job_index)
       {
         SwathSchedulerContext& context = contexts[score_jobs[job_index].context_index];
-        context.osw_output.insert(context.osw_output.end(),
-                                  std::make_move_iterator(score_job_osw_output[job_index].begin()),
-                                  std::make_move_iterator(score_job_osw_output[job_index].end()));
+        context.osw_output.append(std::move(score_job_osw_output[job_index]));
       }
 
       for (Size context_index = 0; context_index < contexts.size(); ++context_index)
@@ -681,7 +679,7 @@ namespace OpenMS
             if (osw_writer.isActive() && !context.osw_output.empty())
             {
               auto osw_write_start = profileStart(profile);
-              osw_writer.writeLines(context.osw_output);
+              osw_writer.writeRows(context.osw_output);
               if (profile)
               {
                 context.swath_timing.scoring_breakdown.osw_write += elapsedProfileSeconds(osw_write_start);
@@ -1113,7 +1111,7 @@ namespace OpenMS
     bool ms1only,
     MobilogramParquetConsumer* mobilogram_consumer,
     OpenSwathScoringPhaseTiming* scoring_profile,
-    std::vector<String>* deferred_osw_output) const
+    OpenSwathOSWWriter::OSWData* deferred_osw_output) const
   {
     const bool profile = scoring_profile != nullptr;
     if (profile)
@@ -1193,7 +1191,11 @@ namespace OpenMS
       scoring_profile->map_setup += elapsedProfileSeconds(profile_phase_start);
     }
 
-    std::vector<String> to_osw_output;
+    OpenSwathOSWWriter::OSWData to_osw_output;
+    if (osw_writer.isActive())
+    {
+      to_osw_output.reserve(transition_exp.getCompounds().size() * 5);
+    }
     ///////////////////////////////////
     // Start of main function
     // Iterating over all the assays
@@ -1492,11 +1494,10 @@ namespace OpenMS
       if (osw_writer.isActive() && !output.empty()) // implies that detection_assay_it was set
       {
         auto osw_prepare_start = profileStart(profile);
-        const OpenSwath::LightCompound pep;
-        to_osw_output.push_back(osw_writer.prepareLine(OpenSwath::LightCompound(), // not used currently: transition_exp.getCompounds()[ assay_peptide_map[id] ],
-                                                       nullptr, // not used currently: detection_assay_it,
-                                                       output,
-                                                       id));
+        to_osw_output.append(osw_writer.prepareRows(OpenSwath::LightCompound(), // not used currently: transition_exp.getCompounds()[ assay_peptide_map[id] ],
+                                                    nullptr, // not used currently: detection_assay_it,
+                                                    output,
+                                                    id));
         if (profile)
         {
           scoring_profile->osw_prepare += elapsedProfileSeconds(osw_prepare_start);
@@ -1515,9 +1516,7 @@ namespace OpenMS
     {
       if (deferred_osw_output != nullptr)
       {
-        deferred_osw_output->insert(deferred_osw_output->end(),
-                                    std::make_move_iterator(to_osw_output.begin()),
-                                    std::make_move_iterator(to_osw_output.end()));
+        deferred_osw_output->append(std::move(to_osw_output));
         return;
       }
 
@@ -1526,7 +1525,7 @@ namespace OpenMS
 #endif
       {
         auto osw_write_start = profileStart(profile);
-        osw_writer.writeLines(to_osw_output);
+        osw_writer.writeRows(to_osw_output);
         if (profile)
         {
           scoring_profile->osw_write += elapsedProfileSeconds(osw_write_start);
