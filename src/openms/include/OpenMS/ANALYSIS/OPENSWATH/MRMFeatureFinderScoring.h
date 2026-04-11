@@ -347,6 +347,14 @@ private:
                                      double precursor_mz,
                                      bool ms1only) const;
 
+    void addScoreMetaValues_(OpenMS::MRMFeature& mrmfeature,
+                             const MRMTransitionGroupType& transition_group_detection,
+                             const std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+                             const std::vector<OpenSwath::ISignalToNoisePtr>& ms1_signal_noise_estimators,
+                             double expected_rt,
+                             bool swath_present,
+                             bool ms1only) const;
+
     void prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge) const;
 
     /// Synchronize members with param class
