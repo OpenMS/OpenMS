@@ -41,6 +41,59 @@ namespace OpenMS
   // Forward declaration for optional mobilogram consumer
   class MobilogramParquetConsumer;
 
+  /**
+    @brief Aggregated timing counters for OpenSWATH scoring diagnostics.
+
+    These counters are only populated when explicit profiling is enabled by the
+    caller. They are intentionally coarse and cumulative so profiling large
+    transition lists does not produce one log line per assay or peakgroup.
+  */
+  struct OPENMS_DLLAPI OpenSwathScoringPhaseTiming
+  {
+    double map_setup = 0.0;
+    double assay_setup = 0.0;
+    double transition_group_picker = 0.0;
+    double score_peakgroups = 0.0;
+    double score_setup = 0.0;
+    double signal_to_noise_setup = 0.0;
+    double chrom_scores = 0.0;
+    double library_scores = 0.0;
+    double dia_scores = 0.0;
+    double ms1_scores = 0.0;
+    double uis_scores = 0.0;
+    double score_output = 0.0;
+    double feature_sort_output = 0.0;
+    double osw_prepare = 0.0;
+    double osw_write = 0.0;
+    Size assay_count = 0;
+    Size scored_assay_count = 0;
+    Size skipped_assay_count = 0;
+    Size scored_feature_count = 0;
+
+    void add(const OpenSwathScoringPhaseTiming& rhs)
+    {
+      map_setup += rhs.map_setup;
+      assay_setup += rhs.assay_setup;
+      transition_group_picker += rhs.transition_group_picker;
+      score_peakgroups += rhs.score_peakgroups;
+      score_setup += rhs.score_setup;
+      signal_to_noise_setup += rhs.signal_to_noise_setup;
+      chrom_scores += rhs.chrom_scores;
+      library_scores += rhs.library_scores;
+      dia_scores += rhs.dia_scores;
+      ms1_scores += rhs.ms1_scores;
+      uis_scores += rhs.uis_scores;
+      score_output += rhs.score_output;
+      feature_sort_output += rhs.feature_sort_output;
+      osw_prepare += rhs.osw_prepare;
+      osw_write += rhs.osw_write;
+      assay_count += rhs.assay_count;
+      scored_assay_count += rhs.scored_assay_count;
+      skipped_assay_count += rhs.skipped_assay_count;
+      scored_feature_count += rhs.scored_feature_count;
+    }
+  };
+
 
   /**
   @brief The MRMFeatureFinder finds and scores peaks of transitions that co-elute.
@@ -189,6 +242,24 @@ public:
       ms1_map_ = ms1_map;
     }
 
+    /// Enable or disable detailed scoring phase timing.
+    void setScoringProfiling(bool enabled)
+    {
+      scoring_profiling_enabled_ = enabled;
+    }
+
+    /// Reset accumulated detailed scoring phase timing.
+    void resetScoringProfile()
+    {
+      scoring_profile_ = OpenSwathScoringPhaseTiming();
+    }
+
+    /// Return accumulated detailed scoring phase timing.
+    const OpenSwathScoringPhaseTiming& getScoringProfile() const
+    {
+      return scoring_profile_;
+    }
+
     /** @brief Map the chromatograms to the transitions.
      *
      * Map an input chromatogram experiment (mzML) and transition list (TraML)
@@ -307,9 +378,10 @@ private:
 
     // data
     OpenSwath::SpectrumAccessPtr ms1_map_;
+    bool scoring_profiling_enabled_ = false;
+    mutable OpenSwathScoringPhaseTiming scoring_profile_;
 
   };
 }
 
 #undef run_identifier
-

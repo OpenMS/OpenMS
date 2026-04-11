@@ -25,11 +25,27 @@
 #include <OpenMS/FORMAT/SqliteConnector.h>
 
 #include <boost/range/adaptor/map.hpp>
+#include <chrono>
 #include <memory>
 #include <boost/foreach.hpp>
 #include <unordered_map>
 
 #define run_identifier "unique_run_identifier"
+
+namespace
+{
+  using ScoringProfileClock = std::chrono::steady_clock;
+
+  ScoringProfileClock::time_point scoringProfileStart(bool enabled)
+  {
+    return enabled ? ScoringProfileClock::now() : ScoringProfileClock::time_point();
+  }
+
+  double elapsedScoringProfileSeconds(const ScoringProfileClock::time_point& start)
+  {
+    return std::chrono::duration<double>(ScoringProfileClock::now() - start).count();
+  }
+}
 
 bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std::pair<double, double>& right)
 {
@@ -516,6 +532,9 @@ namespace OpenMS
                                                 bool ms1only,
                                                 MobilogramParquetConsumer* mobilogram_consumer) const
   {
+    const bool profile = scoring_profiling_enabled_;
+    auto profile_phase_start = scoringProfileStart(profile);
+
     if (PeptideRefMap_.empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -532,6 +551,10 @@ namespace OpenMS
     if (su_.use_uis_scores)
     {
       splitTransitionGroupsIdentification_(transition_group, transition_group_identification, transition_group_identification_decoy);
+    }
+    if (profile)
+    {
+      scoring_profile_.score_setup += elapsedScoringProfileSeconds(profile_phase_start);
     }
 
     std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
@@ -565,6 +588,7 @@ namespace OpenMS
     }
 
     // currently we cannot do much about the log messages and they mostly occur in decoy transition signals
+    profile_phase_start = scoringProfileStart(profile);
     for (Size k = 0; k < transition_group_detection.getChromatograms().size(); k++)
     {
       OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram >(
@@ -583,8 +607,13 @@ namespace OpenMS
         ms1_signal_noise_estimators.push_back(snptr);
       }
     }
+    if (profile)
+    {
+      scoring_profile_.signal_to_noise_setup += elapsedScoringProfileSeconds(profile_phase_start);
+    }
 
     // get the expected rt value for this compound
+    profile_phase_start = scoringProfileStart(profile);
     const PeptideType* pep = PeptideRefMap_.at(transition_group_detection.getTransitionGroupID());
     double expected_rt = pep->rt;
     TransformationDescription newtr = trafo;
@@ -623,6 +652,10 @@ namespace OpenMS
     std::vector<std::string> precursor_ids(precursor_chroms.size());
     std::transform(precursor_chroms.begin(), precursor_chroms.end(), precursor_ids.begin(),
                    [](const auto& ch) { return ch.getNativeID(); });
+    if (profile)
+    {
+      scoring_profile_.score_setup += elapsedScoringProfileSeconds(profile_phase_start);
+    }
 
     // Go through all peak groups (found MRM features) and score them
     #ifdef _OPENMP
@@ -631,6 +664,7 @@ namespace OpenMS
     #pragma omp parallel for if (in_parallel == 0)
     for (SignedSize feature_idx = 0; feature_idx < (SignedSize) mrmfeatures.size(); ++feature_idx)
     {
+      OpenSwathScoringPhaseTiming feature_profile;
       auto& mrmfeature = mrmfeatures[feature_idx];
       mrmfeature.ensureUniqueId();
       OpenSwath::IMRMFeature* imrmfeature;
@@ -655,6 +689,7 @@ namespace OpenMS
 
       if (ms1only)
       {
+        auto feature_phase_start = scoringProfileStart(profile);
         ///////////////////////////////////
         // Call the scoring for MS1 only
         ///////////////////////////////////
@@ -726,6 +761,10 @@ namespace OpenMS
         mrmfeature.addScore("main_var_xx_lda_prelim_score", xx_lda_prescore);
         mrmfeature.addScore("xx_lda_prelim_score", xx_lda_prescore);
         mrmfeature.setOverallQuality(xx_lda_prescore);
+        if (profile)
+        {
+          feature_profile.ms1_scores += elapsedScoringProfileSeconds(feature_phase_start);
+        }
       }
       else //!ms1only
       {
@@ -737,22 +776,37 @@ namespace OpenMS
         ///////////////////////////////////
         // Library and chromatographic scores
         OpenSwath_Scores& scores = mrmfeature.getScores();
+        auto feature_phase_start = scoringProfileStart(profile);
         scorer.calculateChromatographicScores(imrmfeature, native_ids_detection, precursor_ids, normalized_library_intensity,
                                               signal_noise_estimators, scores);
+        if (profile)
+        {
+          feature_profile.chrom_scores += elapsedScoringProfileSeconds(feature_phase_start);
+        }
 
         double normalized_experimental_rt = trafo.apply(imrmfeature->getRT());
+        feature_phase_start = scoringProfileStart(profile);
         scorer.calculateLibraryScores(imrmfeature, transition_group_detection.getTransitions(), *pep, normalized_experimental_rt, scores);
+        if (profile)
+        {
+          feature_profile.library_scores += elapsedScoringProfileSeconds(feature_phase_start);
+        }
 
         ///////////////////////////////////
         // DIA scores
         if (swath_present && su_.use_dia_scores_)
         {
+          feature_phase_start = scoringProfileStart(profile);
           std::vector<double> masserror_ppm;
           scorer.calculateDIAScores(imrmfeature,
                                     transition_group_detection.getTransitions(),
                                     swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm,
                                     drift_target, im_range, mobilogram_consumer, feature_id);
           mrmfeature.setMetaValue("masserror_ppm", masserror_ppm);
+          if (profile)
+          {
+            feature_profile.dia_scores += elapsedScoringProfileSeconds(feature_phase_start);
+          }
         }
         
         double det_intensity_ratio_score = 0;
@@ -774,23 +828,32 @@ namespace OpenMS
 
         ///////////////////////////////////
         // Unique Ion Signature (UIS) scores
-        if (su_.use_uis_scores && !transition_group_identification.getTransitions().empty())
+        if (su_.use_uis_scores)
         {
-          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification, transition_group_detection, scorer, feature_idx,
-                                                               feature_id,
-                                                               native_ids_detection, det_intensity_ratio_score,
-                                                               det_mi_ratio_score, swath_maps,drift_target, im_range, mobilogram_consumer);
-          mrmfeature.IDScoresAsMetaValue(false, idscores);
-        }
-        if (su_.use_uis_scores && !transition_group_identification_decoy.getTransitions().empty())
-        {
-          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification_decoy, transition_group_detection, scorer, feature_idx,
-                                                               feature_id,
-                                                               native_ids_detection, det_intensity_ratio_score,
-                                                               det_mi_ratio_score, swath_maps, drift_target, im_range, mobilogram_consumer);
-          mrmfeature.IDScoresAsMetaValue(true, idscores);
+          feature_phase_start = scoringProfileStart(profile);
+          if (!transition_group_identification.getTransitions().empty())
+          {
+            OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification, transition_group_detection, scorer, feature_idx,
+                                                                 feature_id,
+                                                                 native_ids_detection, det_intensity_ratio_score,
+                                                                 det_mi_ratio_score, swath_maps,drift_target, im_range, mobilogram_consumer);
+            mrmfeature.IDScoresAsMetaValue(false, idscores);
+          }
+          if (!transition_group_identification_decoy.getTransitions().empty())
+          {
+            OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification_decoy, transition_group_detection, scorer, feature_idx,
+                                                                 feature_id,
+                                                                 native_ids_detection, det_intensity_ratio_score,
+                                                                 det_mi_ratio_score, swath_maps, drift_target, im_range, mobilogram_consumer);
+            mrmfeature.IDScoresAsMetaValue(true, idscores);
+          }
+          if (profile)
+          {
+            feature_profile.uis_scores += elapsedScoringProfileSeconds(feature_phase_start);
+          }
         }
 
+        feature_phase_start = scoringProfileStart(profile);
         if (su_.use_coelution_score_)
         {
           mrmfeature.addScore("var_xcorr_coelution", scores.xcorr_coelution_score);
@@ -962,6 +1025,11 @@ namespace OpenMS
           mrmfeature.addScore("im_delta", scores.im_delta); // MS2 level
         }
 
+        if (profile)
+        {
+          feature_profile.score_output += elapsedScoringProfileSeconds(feature_phase_start);
+        }
+
         precursor_mz = transition_group_detection.getTransitions()[0].getPrecursorMZ();
 
       }
@@ -969,6 +1037,7 @@ namespace OpenMS
       ///////////////////////////////////////////////////////////////////////////
       // add the peptide hit information to the feature
       ///////////////////////////////////////////////////////////////////////////
+      auto feature_output_start = scoringProfileStart(profile);
       PeptideIdentification pep_id_;
       PeptideHit pep_hit_;
 
@@ -1008,15 +1077,31 @@ namespace OpenMS
       feature_list.push_back(mrmfeature);
 
       delete imrmfeature;
+      if (profile)
+      {
+        feature_profile.score_output += elapsedScoringProfileSeconds(feature_output_start);
+        feature_profile.scored_feature_count = 1;
+#ifdef _OPENMP
+#pragma omp critical (openswath_scoring_profile)
+#endif
+        {
+          scoring_profile_.add(feature_profile);
+        }
+      }
     }
 
     // Order by quality (high to low, via reverse iterator)
+    profile_phase_start = scoringProfileStart(profile);
     std::sort(feature_list.rbegin(), feature_list.rend(), OpenMS::Feature::OverallQualityLess());
 
     for (Size i = 0; i < feature_list.size(); i++)
     {
       if (stop_report_after_feature_ >= 0 && i >= (Size)stop_report_after_feature_) {break;}
       output.push_back(feature_list[i]);
+    }
+    if (profile)
+    {
+      scoring_profile_.feature_sort_output += elapsedScoringProfileSeconds(profile_phase_start);
     }
 
     // store all data manipulation performed on the features of the transition group
@@ -1227,4 +1312,3 @@ namespace OpenMS
   }
 
 }
-

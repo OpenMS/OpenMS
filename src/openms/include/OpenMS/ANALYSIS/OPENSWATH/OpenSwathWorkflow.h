@@ -408,6 +408,7 @@ protected:
      * @param[in] nr_ms1_isotopes Consider this many MS1 isotopes for precursor chromatograms
      * @param[in] ms1only If true, will only score on MS1 level and ignore MS2 level
      * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
+     * @param[out] scoring_profile Optional detailed scoring phase timings
      *
     */
   void scoreAllChromatograms_(
@@ -422,7 +423,8 @@ protected:
         OpenSwathOSWWriter& osw_writer,
         int nr_ms1_isotopes = 0,
         bool ms1only = false,
-        class MobilogramParquetConsumer * mobilogram_consumer = nullptr) const;
+        class MobilogramParquetConsumer * mobilogram_consumer = nullptr,
+        OpenSwathScoringPhaseTiming* scoring_profile = nullptr) const;
 
     /** @brief Select which compounds to analyze in the next batch (and copy to output)
      *
@@ -457,4 +459,3 @@ protected:
       std::vector<OpenSwath::LightTransition>& output);
   };
 }
-

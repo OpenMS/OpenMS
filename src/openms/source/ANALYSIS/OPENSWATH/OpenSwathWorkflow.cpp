@@ -20,6 +20,7 @@
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <chrono>
 #include <cmath>
+#include <sstream>
 #include <unordered_map>
 
 
@@ -54,6 +55,7 @@ namespace OpenMS
       double scoring = 0.0;
       double writing = 0.0;
       double total = 0.0;
+      OpenSwathScoringPhaseTiming scoring_breakdown;
       Size swath_count = 0;
       Size batch_count = 0;
       Size compound_count = 0;
@@ -76,6 +78,7 @@ namespace OpenMS
         scoring += rhs.scoring;
         writing += rhs.writing;
         total += rhs.total;
+        scoring_breakdown.add(rhs.scoring_breakdown);
         swath_count += rhs.swath_count;
         batch_count += rhs.batch_count;
         compound_count += rhs.compound_count;
@@ -89,6 +92,32 @@ namespace OpenMS
     String formatProfileSeconds(double seconds)
     {
       return StopWatch::toString(seconds);
+    }
+
+    String formatScoringBreakdown(const OpenSwathScoringPhaseTiming& timing)
+    {
+      std::ostringstream os;
+      os << "score_detail=(map_setup=" << formatProfileSeconds(timing.map_setup)
+         << ", assay_setup=" << formatProfileSeconds(timing.assay_setup)
+         << ", picker=" << formatProfileSeconds(timing.transition_group_picker)
+         << ", score_peakgroups=" << formatProfileSeconds(timing.score_peakgroups)
+         << ", score_setup=" << formatProfileSeconds(timing.score_setup)
+         << ", sn_setup=" << formatProfileSeconds(timing.signal_to_noise_setup)
+         << ", chrom=" << formatProfileSeconds(timing.chrom_scores)
+         << ", library=" << formatProfileSeconds(timing.library_scores)
+         << ", dia=" << formatProfileSeconds(timing.dia_scores)
+         << ", ms1=" << formatProfileSeconds(timing.ms1_scores)
+         << ", uis=" << formatProfileSeconds(timing.uis_scores)
+         << ", score_output=" << formatProfileSeconds(timing.score_output)
+         << ", feature_sort_output=" << formatProfileSeconds(timing.feature_sort_output)
+         << ", osw_prepare=" << formatProfileSeconds(timing.osw_prepare)
+         << ", osw_write=" << formatProfileSeconds(timing.osw_write)
+         << "; assays=" << timing.assay_count
+         << ", scored_assays=" << timing.scored_assay_count
+         << ", skipped_assays=" << timing.skipped_assay_count
+         << ", scored_features=" << timing.scored_feature_count
+         << ")";
+      return String(os.str());
     }
 
     void logBatchProfile(SignedSize swath_index, SignedSize batch_index, SignedSize nr_batches, const OpenSwathWorkflowPhaseTiming& timing)
@@ -107,7 +136,8 @@ namespace OpenMS
                       << ", transitions=" << timing.transition_count
                       << ", ms1_chromatograms=" << timing.ms1_chromatogram_count
                       << ", ms2_chromatograms=" << timing.ms2_chromatogram_count
-                      << ", features=" << timing.feature_count << std::endl;
+                      << ", features=" << timing.feature_count
+                      << "; " << formatScoringBreakdown(timing.scoring_breakdown) << std::endl;
     }
 
     void logSwathProfile(SignedSize swath_index, const OpenSwathWorkflowPhaseTiming& timing)
@@ -125,7 +155,8 @@ namespace OpenMS
                       << ", write=" << formatProfileSeconds(timing.writing)
                       << "); batches=" << timing.batch_count
                       << ", compounds=" << timing.compound_count
-                      << ", transitions=" << timing.transition_count << std::endl;
+                      << ", transitions=" << timing.transition_count
+                      << "; " << formatScoringBreakdown(timing.scoring_breakdown) << std::endl;
     }
 
     void logWorkflowProfileSummary(double workflow_wall_time, const OpenSwathWorkflowPhaseTiming& timing)
@@ -151,7 +182,8 @@ namespace OpenMS
                       << ", transitions=" << timing.transition_count
                       << ", ms1_chromatograms=" << timing.ms1_chromatogram_count
                       << ", ms2_chromatograms=" << timing.ms2_chromatogram_count
-                      << ", features=" << timing.feature_count << std::endl;
+                      << ", features=" << timing.feature_count
+                      << "; " << formatScoringBreakdown(timing.scoring_breakdown) << std::endl;
     }
   }
 
@@ -582,12 +614,15 @@ namespace OpenMS
             FeatureMap featureFile;
             std::vector< OpenSwath::SwathMap > tmp = {swath_maps[i]};
             tmp.back().sptr = current_swath_map_inner;
+            OpenSwathScoringPhaseTiming scoring_profile;
             scoreAllChromatograms_(chrom_exp.getChromatograms(), ms1_chromatograms, tmp, transition_exp_used,
-              feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false, mobilogram_consumer);
+              feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false,
+              mobilogram_consumer, profile ? &scoring_profile : nullptr);
             if (profile)
             {
               batch_timing.scoring = elapsedProfileSeconds(batch_phase_start);
               batch_timing.feature_count = featureFile.size();
+              batch_timing.scoring_breakdown.add(scoring_profile);
             }
 
             // Step 4: write all chromatograms and features out into an output object / file
@@ -731,8 +766,16 @@ namespace OpenMS
     OpenSwathOSWWriter & osw_writer,
     int nr_ms1_isotopes,
     bool ms1only,
-    MobilogramParquetConsumer* mobilogram_consumer) const
+    MobilogramParquetConsumer* mobilogram_consumer,
+    OpenSwathScoringPhaseTiming* scoring_profile) const
   {
+    const bool profile = scoring_profile != nullptr;
+    if (profile)
+    {
+      *scoring_profile = OpenSwathScoringPhaseTiming();
+    }
+
+    auto profile_phase_start = profileStart(profile);
     TransformationDescription trafo_inv = trafo;
     trafo_inv.invert();
 
@@ -761,6 +804,8 @@ namespace OpenMS
     trgroup_picker.setParameters(trgroup_picker_param);
 
     featureFinder.setParameters(feature_finder_param);
+    featureFinder.setScoringProfiling(profile);
+    featureFinder.resetScoringProfile();
     featureFinder.prepareProteinPeptideMaps_(transition_exp);
 
     std::unordered_map<String, int> ms1_chromatogram_map;
@@ -797,6 +842,10 @@ namespace OpenMS
     {
       assay_map[transition_exp.getTransitions()[i].getPeptideRef()].push_back(&transition_exp.getTransitions()[i]);
     }
+    if (profile)
+    {
+      scoring_profile->map_setup += elapsedProfileSeconds(profile_phase_start);
+    }
 
     std::vector<String> to_osw_output;
     ///////////////////////////////////
@@ -805,6 +854,21 @@ namespace OpenMS
     ///////////////////////////////////
     for (AssayMapT::iterator assay_it = assay_map.begin(); assay_it != assay_map.end(); ++assay_it)
     {
+      auto assay_setup_start = profileStart(profile);
+      bool assay_setup_recorded = false;
+      auto recordAssaySetup = [&]()
+      {
+        if (profile && !assay_setup_recorded)
+        {
+          scoring_profile->assay_setup += elapsedProfileSeconds(assay_setup_start);
+          assay_setup_recorded = true;
+        }
+      };
+      if (profile)
+      {
+        ++scoring_profile->assay_count;
+      }
+
       // Create new MRMTransitionGroup
       String id = assay_it->first;
       MRMTransitionGroupType transition_group;
@@ -890,6 +954,11 @@ namespace OpenMS
       if (transition_group.getChromatograms().empty() && transition_group.getPrecursorChromatograms().empty())
       {
         OPENMS_LOG_DEBUG << "No chromatograms present for assay " << id << "; skipping scoring." << std::endl;
+        recordAssaySetup();
+        if (profile)
+        {
+          ++scoring_profile->skipped_assay_count;
+        }
         continue;
       }
 
@@ -921,6 +990,11 @@ namespace OpenMS
         {
           OPENMS_LOG_DEBUG << "No detecting chromatograms for assay " << id
                            << "; skipping this assay." << std::endl;
+          recordAssaySetup();
+          if (profile)
+          {
+            ++scoring_profile->skipped_assay_count;
+          }
           continue;
         }
         else
@@ -930,12 +1004,25 @@ namespace OpenMS
         }
       }
 
+      recordAssaySetup();
+      auto picker_profile_start = profileStart(profile);
+      bool picker_profile_recorded = false;
+      auto recordPickerProfile = [&]()
+      {
+        if (profile && !picker_profile_recorded)
+        {
+          scoring_profile->transition_group_picker += elapsedProfileSeconds(picker_profile_start);
+          picker_profile_recorded = true;
+        }
+      };
       try
       {
         trgroup_picker.pickTransitionGroup(transition_group);
+        recordPickerProfile();
       }
       catch (const Exception::InvalidRange & e)
       {
+        recordPickerProfile();
         // In SRM/MRM mode extraction/mapping failures are common for noisy or
         // partially-mapped chromatograms -> log and continue. In DIA mode an
         // InvalidRange usually indicates a real extraction/mapping bug and
@@ -949,10 +1036,15 @@ namespace OpenMS
                          << ", chroms=" << transition_group.getChromatograms().size()
                          << ", prec_chroms=" << transition_group.getPrecursorChromatograms().size()
                          << ": " << e.getMessage() << " - skipping assay." << std::endl;
+        if (profile)
+        {
+          ++scoring_profile->skipped_assay_count;
+        }
         continue;
       }
       catch (const Exception::IllegalArgument & e)
       {
+        recordPickerProfile();
         // IllegalArgument may be thrown when mapping fails (e.g. no matching
         // chromatograms). Treat mode-specifically similar to InvalidRange.
         if (!mrm_)
@@ -961,21 +1053,46 @@ namespace OpenMS
         }
         OPENMS_LOG_ERROR << "IllegalArgument while picking transition group for assay " << id
                          << ": " << e.getMessage() << " - skipping assay." << std::endl;
+        if (profile)
+        {
+          ++scoring_profile->skipped_assay_count;
+        }
         continue;
       }
       catch (const std::exception & e)
       {
+        recordPickerProfile();
         OPENMS_LOG_ERROR << "Exception while picking transition group for assay " << id
                          << ": " << e.what() << " - skipping assay." << std::endl;
+        if (profile)
+        {
+          ++scoring_profile->skipped_assay_count;
+        }
         continue;
       }
 
+      auto score_profile_start = profileStart(profile);
+      bool score_profile_recorded = false;
+      auto recordScoreProfile = [&]()
+      {
+        if (profile && !score_profile_recorded)
+        {
+          scoring_profile->score_peakgroups += elapsedProfileSeconds(score_profile_start);
+          score_profile_recorded = true;
+        }
+      };
       try
       {
         featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only, mobilogram_consumer);
+        recordScoreProfile();
+        if (profile)
+        {
+          ++scoring_profile->scored_assay_count;
+        }
       }
       catch (const Exception::InvalidRange & e)
       {
+        recordScoreProfile();
         if (!mrm_)
         {
           throw;
@@ -985,22 +1102,36 @@ namespace OpenMS
                          << ", chroms=" << transition_group.getChromatograms().size()
                          << ", prec_chroms=" << transition_group.getPrecursorChromatograms().size()
                          << ": " << e.getMessage() << " - skipping assay." << std::endl;
+        if (profile)
+        {
+          ++scoring_profile->skipped_assay_count;
+        }
         continue;
       }
       catch (const Exception::IllegalArgument & e)
       {
+        recordScoreProfile();
         if (!mrm_)
         {
           throw;
         }
         OPENMS_LOG_ERROR << "IllegalArgument while scoring transition group for assay " << id
                          << ": " << e.getMessage() << " - skipping assay." << std::endl;
+        if (profile)
+        {
+          ++scoring_profile->skipped_assay_count;
+        }
         continue;
       }
       catch (const std::exception & e)
       {
+        recordScoreProfile();
         OPENMS_LOG_ERROR << "Exception while scoring transition group for assay " << id
                          << ": " << e.what() << " - skipping assay." << std::endl;
+        if (profile)
+        {
+          ++scoring_profile->skipped_assay_count;
+        }
         continue;
       }
 
@@ -1014,12 +1145,22 @@ namespace OpenMS
       // 5. Add to the output osw if given
       if (osw_writer.isActive() && !output.empty()) // implies that detection_assay_it was set
       {
+        auto osw_prepare_start = profileStart(profile);
         const OpenSwath::LightCompound pep;
         to_osw_output.push_back(osw_writer.prepareLine(OpenSwath::LightCompound(), // not used currently: transition_exp.getCompounds()[ assay_peptide_map[id] ],
                                                        nullptr, // not used currently: detection_assay_it,
                                                        output,
                                                        id));
+        if (profile)
+        {
+          scoring_profile->osw_prepare += elapsedProfileSeconds(osw_prepare_start);
+        }
       }
+    }
+
+    if (profile)
+    {
+      scoring_profile->add(featureFinder.getScoringProfile());
     }
 
     // Only write at the very end since this is a step that needs a barrier
@@ -1029,7 +1170,12 @@ namespace OpenMS
 #pragma omp critical (osw_write_tsv)
 #endif
       {
+        auto osw_write_start = profileStart(profile);
         osw_writer.writeLines(to_osw_output);
+        if (profile)
+        {
+          scoring_profile->osw_write += elapsedProfileSeconds(osw_write_start);
+        }
       }
     }
   }
