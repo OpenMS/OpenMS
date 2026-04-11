@@ -86,6 +86,7 @@ TOPP tools:
         this filtering was silent and hardcoded; a warning is now emitted reporting how many hits were dropped (#9068)
     OpenSwathWorkflow:
       - Added cache file auto cleanup (#9029)
+      - Added `Debugging:profile` flag to log per-batch and per-SWATH phase timings for performance diagnostics.
       - MRMFeatureFinderScoring: enzyme used for missed cleavage counting is now configurable via new `enzyme` parameter (default: Trypsin) (#9077)
       - Fix: OpenSwathOSWWriter::getScore() and getSeparateScore() now correctly handle all NaN variants ("NaN", "-NaN") and avoid redundant meta value lookups; double score values are written with full precision (#9047)
 

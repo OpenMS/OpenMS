@@ -347,6 +347,7 @@ protected:
     setValidFormats_("Debugging:irt_mzml", ListUtils::create<String>("mzML"));
     registerOutputFile_("Debugging:irt_trafo", "<file>", "", "Transformation file for RT transform", false);
     setValidFormats_("Debugging:irt_trafo", ListUtils::create<String>("trafoXML"));
+    registerFlag_("Debugging:profile", "Write per-batch and per-SWATH OpenSwathWorkflow phase timings to the log for performance diagnostics.", true);
     registerStringList_("Debugging:disable_features", "<list>", StringList(),
       "Selectively disable features for debugging/benchmarking. "
       "Valid values: "
@@ -636,6 +637,7 @@ protected:
     Param debug_params = getParam_().copy("Debugging:", true);
 
     StringList disable_features = getStringList_("Debugging:disable_features");
+    bool profile_workflow = getFlag_("Debugging:profile");
     bool disable_im_calibration = std::find(disable_features.begin(), disable_features.end(), "no_IM_calibration") != disable_features.end();
     bool disable_im_windowing   = std::find(disable_features.begin(), disable_features.end(), "no_IM_windowing")   != disable_features.end();
 
@@ -1351,6 +1353,7 @@ protected:
 
     OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
     wf.setLogType(log_type_);
+    wf.setPhaseProfiling(profile_workflow);
 
     // perform extraction for this file's swath maps
     wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run, transition_exp,

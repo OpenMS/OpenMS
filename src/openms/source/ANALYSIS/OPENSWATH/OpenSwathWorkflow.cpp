@@ -17,6 +17,8 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
+#include <chrono>
 #include <cmath>
 #include <unordered_map>
 
@@ -24,6 +26,135 @@
 // OpenSwathWorkflow
 namespace OpenMS
 {
+  namespace
+  {
+    using ProfileClock = std::chrono::steady_clock;
+
+    double elapsedProfileSeconds(const ProfileClock::time_point& start)
+    {
+      return std::chrono::duration<double>(ProfileClock::now() - start).count();
+    }
+
+    ProfileClock::time_point profileStart(bool enabled)
+    {
+      return enabled ? ProfileClock::now() : ProfileClock::time_point();
+    }
+
+    struct OpenSwathWorkflowPhaseTiming
+    {
+      double ms1_map_loading = 0.0;
+      double window_mapping = 0.0;
+      double transition_selection = 0.0;
+      double swath_loading = 0.0;
+      double batch_selection = 0.0;
+      double ms1_extraction = 0.0;
+      double coordinate_preparation = 0.0;
+      double ms2_extraction = 0.0;
+      double chromatogram_conversion = 0.0;
+      double scoring = 0.0;
+      double writing = 0.0;
+      double total = 0.0;
+      Size swath_count = 0;
+      Size batch_count = 0;
+      Size compound_count = 0;
+      Size transition_count = 0;
+      Size ms1_chromatogram_count = 0;
+      Size ms2_chromatogram_count = 0;
+      Size feature_count = 0;
+
+      void add(const OpenSwathWorkflowPhaseTiming& rhs)
+      {
+        ms1_map_loading += rhs.ms1_map_loading;
+        window_mapping += rhs.window_mapping;
+        transition_selection += rhs.transition_selection;
+        swath_loading += rhs.swath_loading;
+        batch_selection += rhs.batch_selection;
+        ms1_extraction += rhs.ms1_extraction;
+        coordinate_preparation += rhs.coordinate_preparation;
+        ms2_extraction += rhs.ms2_extraction;
+        chromatogram_conversion += rhs.chromatogram_conversion;
+        scoring += rhs.scoring;
+        writing += rhs.writing;
+        total += rhs.total;
+        swath_count += rhs.swath_count;
+        batch_count += rhs.batch_count;
+        compound_count += rhs.compound_count;
+        transition_count += rhs.transition_count;
+        ms1_chromatogram_count += rhs.ms1_chromatogram_count;
+        ms2_chromatogram_count += rhs.ms2_chromatogram_count;
+        feature_count += rhs.feature_count;
+      }
+    };
+
+    String formatProfileSeconds(double seconds)
+    {
+      return StopWatch::toString(seconds);
+    }
+
+    void logBatchProfile(SignedSize swath_index, SignedSize batch_index, SignedSize nr_batches, const OpenSwathWorkflowPhaseTiming& timing)
+    {
+      OPENMS_LOG_INFO << "[OpenSwathWorkflow profile] SWATH " << swath_index
+                      << " batch " << batch_index << "/" << nr_batches
+                      << ": total=" << formatProfileSeconds(timing.total)
+                      << " (batch_select=" << formatProfileSeconds(timing.batch_selection)
+                      << ", ms1_extract=" << formatProfileSeconds(timing.ms1_extraction)
+                      << ", prepare=" << formatProfileSeconds(timing.coordinate_preparation)
+                      << ", ms2_extract=" << formatProfileSeconds(timing.ms2_extraction)
+                      << ", convert=" << formatProfileSeconds(timing.chromatogram_conversion)
+                      << ", score=" << formatProfileSeconds(timing.scoring)
+                      << ", write=" << formatProfileSeconds(timing.writing)
+                      << "); compounds=" << timing.compound_count
+                      << ", transitions=" << timing.transition_count
+                      << ", ms1_chromatograms=" << timing.ms1_chromatogram_count
+                      << ", ms2_chromatograms=" << timing.ms2_chromatogram_count
+                      << ", features=" << timing.feature_count << std::endl;
+    }
+
+    void logSwathProfile(SignedSize swath_index, const OpenSwathWorkflowPhaseTiming& timing)
+    {
+      OPENMS_LOG_INFO << "[OpenSwathWorkflow profile] SWATH " << swath_index
+                      << " total=" << formatProfileSeconds(timing.total)
+                      << " (transition_select=" << formatProfileSeconds(timing.transition_selection)
+                      << ", swath_load=" << formatProfileSeconds(timing.swath_loading)
+                      << ", batch_select=" << formatProfileSeconds(timing.batch_selection)
+                      << ", ms1_extract=" << formatProfileSeconds(timing.ms1_extraction)
+                      << ", prepare=" << formatProfileSeconds(timing.coordinate_preparation)
+                      << ", ms2_extract=" << formatProfileSeconds(timing.ms2_extraction)
+                      << ", convert=" << formatProfileSeconds(timing.chromatogram_conversion)
+                      << ", score=" << formatProfileSeconds(timing.scoring)
+                      << ", write=" << formatProfileSeconds(timing.writing)
+                      << "); batches=" << timing.batch_count
+                      << ", compounds=" << timing.compound_count
+                      << ", transitions=" << timing.transition_count << std::endl;
+    }
+
+    void logWorkflowProfileSummary(double workflow_wall_time, const OpenSwathWorkflowPhaseTiming& timing)
+    {
+      OPENMS_LOG_INFO << "[OpenSwathWorkflow profile] Workflow wall="
+                      << formatProfileSeconds(workflow_wall_time)
+                      << "; summed worker phases="
+                      << "ms1_map_load=" << formatProfileSeconds(timing.ms1_map_loading)
+                      << ", window_map=" << formatProfileSeconds(timing.window_mapping)
+                      << ", transition_select=" << formatProfileSeconds(timing.transition_selection)
+                      << ", swath_load=" << formatProfileSeconds(timing.swath_loading)
+                      << ", batch_select=" << formatProfileSeconds(timing.batch_selection)
+                      << ", ms1_extract=" << formatProfileSeconds(timing.ms1_extraction)
+                      << ", prepare=" << formatProfileSeconds(timing.coordinate_preparation)
+                      << ", ms2_extract=" << formatProfileSeconds(timing.ms2_extraction)
+                      << ", convert=" << formatProfileSeconds(timing.chromatogram_conversion)
+                      << ", score=" << formatProfileSeconds(timing.scoring)
+                      << ", write=" << formatProfileSeconds(timing.writing)
+                      << ", swath_total=" << formatProfileSeconds(timing.total)
+                      << "; swaths=" << timing.swath_count
+                      << ", batches=" << timing.batch_count
+                      << ", compounds=" << timing.compound_count
+                      << ", transitions=" << timing.transition_count
+                      << ", ms1_chromatograms=" << timing.ms1_chromatogram_count
+                      << ", ms2_chromatograms=" << timing.ms2_chromatogram_count
+                      << ", features=" << timing.feature_count << std::endl;
+    }
+  }
+
   // Helper: load MS1 map (returns first swath map marked as ms1)
   OpenSwath::SpectrumAccessPtr OpenSwathWorkflow::loadMS1Map(const std::vector< OpenSwath::SwathMap > & swath_maps, bool load_into_memory)
   {
@@ -83,6 +214,10 @@ namespace OpenMS
       return;
     }
 
+    const bool profile = phase_profiling_enabled_;
+    const auto profile_workflow_start = profileStart(profile);
+    OpenSwathWorkflowPhaseTiming profile_total;
+
     // Compute inversion of the transformation
     TransformationDescription trafo_inverse = trafo;
     trafo_inverse.invert();
@@ -100,7 +235,12 @@ namespace OpenMS
           "Error, you need to enable use_ms1_traces when run in MS1 mode." );
     }
 
+    ProfileClock::time_point profile_phase_start = profileStart(profile);
     if (use_ms1_traces_) ms1_map_ = loadMS1Map(swath_maps, load_into_memory);
+    if (profile)
+    {
+      profile_total.ms1_map_loading = elapsedProfileSeconds(profile_phase_start);
+    }
 
     // (ii) Precursor extraction only
     if (ms1_only)
@@ -125,6 +265,7 @@ namespace OpenMS
     // (iii) map transitions to individual DIA windows for cases where this is
     // non-trivial (e.g. when there is m/z overlap and a transition could be
     // extracted from more than one window
+    profile_phase_start = profileStart(profile);
     std::vector<int> tr_win_map; // maps transition k to dia map i from which it should be extracted
     //
     // currently not supported to do PASEF and PRM
@@ -204,6 +345,10 @@ namespace OpenMS
     }
     else {
     };
+    if (profile)
+    {
+      profile_total.window_mapping = elapsedProfileSeconds(profile_phase_start);
+    }
 
     // (iv) Perform extraction and scoring of fragment ion chromatograms (MS2)
     // We set dynamic scheduling such that the maps are worked on in the order
@@ -228,10 +373,16 @@ namespace OpenMS
 #endif
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
     {
+      OpenSwathWorkflowPhaseTiming swath_timing;
+      const auto swath_profile_start = profileStart(profile);
+      bool profile_swath = false;
+
       if (!swath_maps[i].ms1) // skip MS1
       {
+        profile_swath = true;
 
         // Step 1: select which transitions to extract (proceed in batches)
+        auto phase_start = profileStart(profile);
         OpenSwath::LightTargetedExperiment transition_exp_used_all;
         if (!(prm_ || pasef_))
         {
@@ -274,15 +425,29 @@ namespace OpenMS
             }
           }
         }
+        if (profile)
+        {
+          swath_timing.transition_selection = elapsedProfileSeconds(phase_start);
+          if (transition_exp_used_all.getTransitions().empty())
+          {
+            swath_timing.compound_count = transition_exp_used_all.getCompounds().size();
+            swath_timing.transition_count = transition_exp_used_all.getTransitions().size();
+          }
+        }
 
         if (!transition_exp_used_all.getTransitions().empty()) // skip if no transitions found
         {
 
+          phase_start = profileStart(profile);
           OpenSwath::SpectrumAccessPtr current_swath_map = swath_maps[i].sptr;
           if (load_into_memory)
           {
             // This creates an InMemory object that keeps all data in memory
             current_swath_map = std::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*current_swath_map) );
+          }
+          if (profile)
+          {
+            swath_timing.swath_loading = elapsedProfileSeconds(phase_start);
           }
 
           int batch_size;
@@ -319,6 +484,9 @@ namespace OpenMS
 #endif
           for (SignedSize pep_idx = 0; pep_idx < nr_batches; ++pep_idx)
           {
+            OpenSwathWorkflowPhaseTiming batch_timing;
+            const auto batch_profile_start = profileStart(profile);
+            batch_timing.batch_count = 1;
             OpenSwath::SpectrumAccessPtr current_swath_map_inner = current_swath_map;
 
 #ifdef _OPENMP
@@ -350,16 +518,29 @@ namespace OpenMS
             }
 
             // Create the new, batch-size transition experiment
+            auto batch_phase_start = profileStart(profile);
             OpenSwath::LightTargetedExperiment transition_exp_used;
             selectCompoundsForBatch_(transition_exp_used_all, transition_exp_used, batch_size, pep_idx);
+            if (profile)
+            {
+              batch_timing.batch_selection = elapsedProfileSeconds(batch_phase_start);
+              batch_timing.compound_count = transition_exp_used.getCompounds().size();
+              batch_timing.transition_count = transition_exp_used.getTransitions().size();
+            }
 
             // Extract MS1 chromatograms for this batch
+            batch_phase_start = profileStart(profile);
             std::vector< MSChromatogram > ms1_chromatograms;
             if (ms1_map_ != nullptr)
             {
               OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
               MS1Extraction_(threadsafe_ms1, swath_maps, ms1_chromatograms, ms1_cp,
                   transition_exp_used, trafo_inverse, ms1_only, ms1_isotopes);
+            }
+            if (profile)
+            {
+              batch_timing.ms1_extraction = elapsedProfileSeconds(batch_phase_start);
+              batch_timing.ms1_chromatogram_count = ms1_chromatograms.size();
             }
 
             // Step 2.1: extract these transitions
@@ -369,40 +550,98 @@ namespace OpenMS
 
             // Step 2.2: prepare the extraction coordinates and extract chromatograms
             // chrom_list contains one entry for each fragment ion (transition) in transition_exp_used
+            batch_phase_start = profileStart(profile);
             prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, trafo_inverse, cp);
+            if (profile)
+            {
+              batch_timing.coordinate_preparation = elapsedProfileSeconds(batch_phase_start);
+            }
+
+            batch_phase_start = profileStart(profile);
             extractor.extractChromatograms(current_swath_map_inner, chrom_list, coordinates, cp.mz_extraction_window,
                 cp.ppm, cp.im_extraction_window, cp.extraction_function);
+            if (profile)
+            {
+              batch_timing.ms2_extraction = elapsedProfileSeconds(batch_phase_start);
+            }
 
             // Step 2.3: convert chromatograms back to OpenMS::MSChromatogram and write to output
+            batch_phase_start = profileStart(profile);
             PeakMap chrom_exp;
             extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,  SpectrumSettings(),
                                           chrom_exp.getChromatograms(), false, cp.im_extraction_window);
+            if (profile)
+            {
+              batch_timing.chromatogram_conversion = elapsedProfileSeconds(batch_phase_start);
+              batch_timing.ms2_chromatogram_count = chrom_exp.getChromatograms().size();
+            }
 
 
             // Step 3: score these extracted transitions
+            batch_phase_start = profileStart(profile);
             FeatureMap featureFile;
             std::vector< OpenSwath::SwathMap > tmp = {swath_maps[i]};
             tmp.back().sptr = current_swath_map_inner;
             scoreAllChromatograms_(chrom_exp.getChromatograms(), ms1_chromatograms, tmp, transition_exp_used,
               feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false, mobilogram_consumer);
+            if (profile)
+            {
+              batch_timing.scoring = elapsedProfileSeconds(batch_phase_start);
+              batch_timing.feature_count = featureFile.size();
+            }
 
             // Step 4: write all chromatograms and features out into an output object / file
             // (this needs to be done in a critical section since we only have one
             // output file and one output map).
             #pragma omp critical (osw_write_out)
             {
+              batch_phase_start = profileStart(profile);
               writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
+              if (profile)
+              {
+                batch_timing.writing = elapsedProfileSeconds(batch_phase_start);
+              }
+            }
+
+            if (profile)
+            {
+              batch_timing.total = elapsedProfileSeconds(batch_profile_start);
+#ifdef _OPENMP
+#pragma omp critical (osw_profile_stdout)
+#endif
+              {
+                swath_timing.add(batch_timing);
+                logBatchProfile(i, pep_idx, nr_batches, batch_timing);
+              }
             }
           }
 
         } // continue 2 (no continue due to OpenMP)
       } // continue 1 (no continue due to OpenMP)
 
+      if (profile && profile_swath)
+      {
+        swath_timing.total = elapsedProfileSeconds(swath_profile_start);
+        swath_timing.swath_count = 1;
+#ifdef _OPENMP
+#pragma omp critical (osw_profile_stdout)
+#endif
+        {
+          logSwathProfile(i, swath_timing);
+          profile_total.add(swath_timing);
+        }
+      }
+
       #pragma omp critical (progress)
       this->setProgress(++progress);
 
     }
     this->endProgress();
+
+    if (profile)
+    {
+      logWorkflowProfileSummary(elapsedProfileSeconds(profile_workflow_start), profile_total);
+    }
 
 #ifdef _OPENMP
 #ifdef MT_ENABLE_NESTED_OPENMP

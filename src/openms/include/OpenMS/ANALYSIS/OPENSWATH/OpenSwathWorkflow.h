@@ -85,7 +85,8 @@ protected:
       prm_(false),
       pasef_(false),
       mrm_(false),
-      threads_outer_loop_(-1)
+      threads_outer_loop_(-1),
+      phase_profiling_enabled_(false)
     {
     }
 
@@ -111,7 +112,8 @@ protected:
       prm_(prm),
       pasef_(pasef),
       mrm_(mrm),
-      threads_outer_loop_(threads_outer_loop)
+      threads_outer_loop_(threads_outer_loop),
+      phase_profiling_enabled_(false)
     {
     }
 
@@ -216,6 +218,9 @@ protected:
      **/
     int threads_outer_loop_;
 
+    /// Whether to log detailed OpenSwathWorkflow phase timings
+    bool phase_profiling_enabled_;
+
 };
 
   /**
@@ -273,6 +278,19 @@ protected:
     OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, bool pasef, bool mrm, int threads_outer_loop) :
     OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, prm, pasef, mrm, threads_outer_loop)
     {
+    }
+
+    /**
+      @brief Enable detailed phase timing logs.
+
+      When enabled, performExtraction() writes per-batch, per-SWATH, and final
+      summed phase timings to OPENMS_LOG_INFO for performance diagnostics.
+
+      @param[in] enabled Whether phase profiling should be logged
+    */
+    void setPhaseProfiling(bool enabled)
+    {
+      phase_profiling_enabled_ = enabled;
     }
 
     /** @brief Load MS1 SpectrumAccessPtr from given swath maps.
@@ -439,5 +457,4 @@ protected:
       std::vector<OpenSwath::LightTransition>& output);
   };
 }
-
 
