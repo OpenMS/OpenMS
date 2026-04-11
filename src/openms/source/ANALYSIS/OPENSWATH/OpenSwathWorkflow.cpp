@@ -20,6 +20,7 @@
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <chrono>
 #include <cmath>
+#include <exception>
 #include <sstream>
 #include <unordered_map>
 
@@ -779,18 +780,10 @@ namespace OpenMS
     TransformationDescription trafo_inv = trafo;
     trafo_inv.invert();
 
-    MRMFeatureFinderScoring featureFinder;
-    MRMTransitionGroupPicker trgroup_picker;
+    MRMFeatureFinderScoring base_feature_finder;
+    MRMTransitionGroupPicker base_trgroup_picker;
 
-    // To ensure multi-threading safe access to the individual spectra, we
-    // need to use a light clone of the spectrum access (if multiple threads
-    // share a single filestream and call seek on it, chaos will ensue).
-    if (use_ms1_traces_ && ms1_map_)
-    {
-      OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
-      featureFinder.setMS1Map( threadsafe_ms1 );
-    }
-    else if (use_ms1_traces_ && !ms1_map_)
+    if (use_ms1_traces_ && !ms1_map_)
     {
       OPENMS_LOG_WARN << "WARNING: Attempted to use MS1 traces but no MS1 map was provided: Will not use MS1 signal!\n";
     }
@@ -801,12 +794,12 @@ namespace OpenMS
     {
       trgroup_picker_param.setValue("compute_total_mi", "true");
     }
-    trgroup_picker.setParameters(trgroup_picker_param);
+    base_trgroup_picker.setParameters(trgroup_picker_param);
 
-    featureFinder.setParameters(feature_finder_param);
-    featureFinder.setScoringProfiling(profile);
-    featureFinder.resetScoringProfile();
-    featureFinder.prepareProteinPeptideMaps_(transition_exp);
+    base_feature_finder.setParameters(feature_finder_param);
+    base_feature_finder.setScoringProfiling(profile);
+    base_feature_finder.resetScoringProfile();
+    base_feature_finder.prepareProteinPeptideMaps_(transition_exp);
 
     std::unordered_map<String, int> ms1_chromatogram_map;
     ms1_chromatogram_map.reserve(ms1_chromatograms.size());
@@ -842,35 +835,117 @@ namespace OpenMS
     {
       assay_map[transition_exp.getTransitions()[i].getPeptideRef()].push_back(&transition_exp.getTransitions()[i]);
     }
+
+    struct AssayWorkItem
+    {
+      String id;
+      std::vector<const TransitionType*> transitions;
+    };
+    std::vector<AssayWorkItem> assays;
+    assays.reserve(assay_map.size());
+    for (const auto& assay : assay_map)
+    {
+      assays.push_back({assay.first, assay.second});
+    }
+
+#ifdef _OPENMP
+    const int worker_count = omp_in_parallel() ? omp_get_num_threads() : 1;
+#else
+    const int worker_count = 1;
+#endif
+
+    std::vector<MRMFeatureFinderScoring> feature_finders;
+    feature_finders.reserve(worker_count);
+    std::vector<MRMTransitionGroupPicker> trgroup_pickers;
+    trgroup_pickers.reserve(worker_count);
+    std::vector<OpenSwathScoringPhaseTiming> worker_profiles(worker_count);
+    for (int worker_idx = 0; worker_idx < worker_count; ++worker_idx)
+    {
+      feature_finders.push_back(base_feature_finder);
+      feature_finders.back().resetScoringProfile();
+
+      // SpectrumAccess implementations are not generally thread-safe. Each
+      // OpenMP worker that may score DIA/MS1 spectra gets its own light clone.
+      if (use_ms1_traces_ && ms1_map_)
+      {
+        feature_finders.back().setMS1Map(ms1_map_->lightClone());
+      }
+      trgroup_pickers.push_back(base_trgroup_picker);
+    }
     if (profile)
     {
       scoring_profile->map_setup += elapsedProfileSeconds(profile_phase_start);
     }
 
-    std::vector<String> to_osw_output;
-    ///////////////////////////////////
-    // Start of main function
-    // Iterating over all the assays
-    ///////////////////////////////////
-    for (AssayMapT::iterator assay_it = assay_map.begin(); assay_it != assay_map.end(); ++assay_it)
+    const bool osw_active = osw_writer.isActive();
+    struct AssayResult
     {
+      FeatureMap output;
+      String osw_line;
+    };
+    std::vector<AssayResult> assay_results(assays.size());
+    FeatureMap last_osw_output;
+    SignedSize last_osw_output_index = -1;
+    std::exception_ptr first_exception;
+
+    auto recordException = [&](std::exception_ptr exception)
+    {
+#ifdef _OPENMP
+#pragma omp critical (openswath_score_exception)
+#endif
+      {
+        if (!first_exception)
+        {
+          first_exception = exception;
+        }
+      }
+    };
+
+    auto updateLastOSWOutput = [&](Size assay_idx, FeatureMap& assay_output)
+    {
+#ifdef _OPENMP
+#pragma omp critical (openswath_last_osw_output)
+#endif
+      {
+        if (static_cast<SignedSize>(assay_idx) > last_osw_output_index)
+        {
+          last_osw_output = assay_output;
+          last_osw_output_index = static_cast<SignedSize>(assay_idx);
+        }
+      }
+    };
+
+    auto processAssay = [&](Size assay_idx)
+    {
+      try
+      {
+#ifdef _OPENMP
+        const int worker_idx = omp_in_parallel() ? omp_get_thread_num() : 0;
+#else
+        const int worker_idx = 0;
+#endif
+        MRMFeatureFinderScoring& feature_finder = feature_finders[worker_idx];
+        MRMTransitionGroupPicker& trgroup_picker = trgroup_pickers[worker_idx];
+        OpenSwathScoringPhaseTiming& worker_profile = worker_profiles[worker_idx];
+        const AssayWorkItem& assay = assays[assay_idx];
+
       auto assay_setup_start = profileStart(profile);
       bool assay_setup_recorded = false;
       auto recordAssaySetup = [&]()
       {
         if (profile && !assay_setup_recorded)
         {
-          scoring_profile->assay_setup += elapsedProfileSeconds(assay_setup_start);
+          worker_profile.assay_setup += elapsedProfileSeconds(assay_setup_start);
           assay_setup_recorded = true;
         }
       };
       if (profile)
       {
-        ++scoring_profile->assay_count;
+        ++worker_profile.assay_count;
       }
 
       // Create new MRMTransitionGroup
-      String id = assay_it->first;
+      String id = assay.id;
       MRMTransitionGroupType transition_group;
       transition_group.setTransitionGroupID(id);
       double expected_rt = transition_exp.getCompounds()[ assay_peptide_map[id] ].rt;
@@ -878,7 +953,7 @@ namespace OpenMS
       // 1. Go through all transitions, for each transition get
       // the chromatogram and the assay to the MRMTransitionGroup
       const TransitionType* detection_assay_it = nullptr; // store last detecting transition
-      for (const TransitionType* transition : assay_it->second)
+      for (const TransitionType* transition : assay.transitions)
       {
         if (transition->isDetectingTransition())
         {
@@ -933,9 +1008,6 @@ namespace OpenMS
         transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
       }
 
-      // currently  .osw and .featureXML are mutually exclusive
-      if (osw_writer.isActive()) { output.clear(); }
-
       // 2. Set the MS1 chromatograms for the different isotopes, if available
       // (note that for 3 isotopes, we include the monoisotopic peak plus three
       // isotopic traces)
@@ -957,9 +1029,9 @@ namespace OpenMS
         recordAssaySetup();
         if (profile)
         {
-          ++scoring_profile->skipped_assay_count;
+          ++worker_profile.skipped_assay_count;
         }
-        continue;
+        return;
       }
 
       // Ensure there is at least one chromatogram originating from a
@@ -993,9 +1065,9 @@ namespace OpenMS
           recordAssaySetup();
           if (profile)
           {
-            ++scoring_profile->skipped_assay_count;
+            ++worker_profile.skipped_assay_count;
           }
-          continue;
+          return;
         }
         else
         {
@@ -1011,7 +1083,7 @@ namespace OpenMS
       {
         if (profile && !picker_profile_recorded)
         {
-          scoring_profile->transition_group_picker += elapsedProfileSeconds(picker_profile_start);
+          worker_profile.transition_group_picker += elapsedProfileSeconds(picker_profile_start);
           picker_profile_recorded = true;
         }
       };
@@ -1038,9 +1110,9 @@ namespace OpenMS
                          << ": " << e.getMessage() << " - skipping assay." << std::endl;
         if (profile)
         {
-          ++scoring_profile->skipped_assay_count;
+          ++worker_profile.skipped_assay_count;
         }
-        continue;
+        return;
       }
       catch (const Exception::IllegalArgument & e)
       {
@@ -1055,9 +1127,9 @@ namespace OpenMS
                          << ": " << e.getMessage() << " - skipping assay." << std::endl;
         if (profile)
         {
-          ++scoring_profile->skipped_assay_count;
+          ++worker_profile.skipped_assay_count;
         }
-        continue;
+        return;
       }
       catch (const std::exception & e)
       {
@@ -1066,9 +1138,9 @@ namespace OpenMS
                          << ": " << e.what() << " - skipping assay." << std::endl;
         if (profile)
         {
-          ++scoring_profile->skipped_assay_count;
+          ++worker_profile.skipped_assay_count;
         }
-        continue;
+        return;
       }
 
       auto score_profile_start = profileStart(profile);
@@ -1077,17 +1149,18 @@ namespace OpenMS
       {
         if (profile && !score_profile_recorded)
         {
-          scoring_profile->score_peakgroups += elapsedProfileSeconds(score_profile_start);
+          worker_profile.score_peakgroups += elapsedProfileSeconds(score_profile_start);
           score_profile_recorded = true;
         }
       };
+      FeatureMap assay_output;
       try
       {
-        featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only, mobilogram_consumer);
+        feature_finder.scorePeakgroups(transition_group, trafo, swath_maps, assay_output, ms1only, mobilogram_consumer);
         recordScoreProfile();
         if (profile)
         {
-          ++scoring_profile->scored_assay_count;
+          ++worker_profile.scored_assay_count;
         }
       }
       catch (const Exception::InvalidRange & e)
@@ -1104,9 +1177,9 @@ namespace OpenMS
                          << ": " << e.getMessage() << " - skipping assay." << std::endl;
         if (profile)
         {
-          ++scoring_profile->skipped_assay_count;
+          ++worker_profile.skipped_assay_count;
         }
-        continue;
+        return;
       }
       catch (const Exception::IllegalArgument & e)
       {
@@ -1119,9 +1192,9 @@ namespace OpenMS
                          << ": " << e.getMessage() << " - skipping assay." << std::endl;
         if (profile)
         {
-          ++scoring_profile->skipped_assay_count;
+          ++worker_profile.skipped_assay_count;
         }
-        continue;
+        return;
       }
       catch (const std::exception & e)
       {
@@ -1130,37 +1203,116 @@ namespace OpenMS
                          << ": " << e.what() << " - skipping assay." << std::endl;
         if (profile)
         {
-          ++scoring_profile->skipped_assay_count;
+          ++worker_profile.skipped_assay_count;
         }
-        continue;
+        return;
       }
 
       // Ensure that a detection transition is used to derive features for output
-      if (detection_assay_it == nullptr && !output.empty())
+      if (detection_assay_it == nullptr && !assay_output.empty())
       {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "Error, did not find any detection transition for feature " + id );
       }
 
       // 5. Add to the output osw if given
-      if (osw_writer.isActive() && !output.empty()) // implies that detection_assay_it was set
+      if (osw_active && !assay_output.empty()) // implies that detection_assay_it was set
       {
         auto osw_prepare_start = profileStart(profile);
-        const OpenSwath::LightCompound pep;
-        to_osw_output.push_back(osw_writer.prepareLine(OpenSwath::LightCompound(), // not used currently: transition_exp.getCompounds()[ assay_peptide_map[id] ],
-                                                       nullptr, // not used currently: detection_assay_it,
-                                                       output,
-                                                       id));
+        assay_results[assay_idx].osw_line = osw_writer.prepareLine(OpenSwath::LightCompound(), // not used currently: transition_exp.getCompounds()[ assay_peptide_map[id] ],
+                                                                   nullptr, // not used currently: detection_assay_it,
+                                                                   assay_output,
+                                                                   id);
+        updateLastOSWOutput(assay_idx, assay_output);
         if (profile)
         {
-          scoring_profile->osw_prepare += elapsedProfileSeconds(osw_prepare_start);
+          worker_profile.osw_prepare += elapsedProfileSeconds(osw_prepare_start);
+        }
+      }
+      else if (!osw_active)
+      {
+        assay_results[assay_idx].output = assay_output;
+      }
+      }
+      catch (...)
+      {
+        recordException(std::current_exception());
+      }
+    };
+
+    ///////////////////////////////////
+    // Start of main function
+    // Iterating over all the assays
+    ///////////////////////////////////
+#ifdef _OPENMP
+    const bool use_assay_tasks = omp_in_parallel() && worker_count > 1 && assays.size() >= 64;
+    if (use_assay_tasks)
+    {
+      constexpr Size assay_task_grain = 8;
+#pragma omp taskgroup
+      {
+        for (Size task_begin = 0; task_begin < assays.size(); task_begin += assay_task_grain)
+        {
+          const Size task_end = std::min(task_begin + assay_task_grain, assays.size());
+#pragma omp task firstprivate(task_begin, task_end)
+          {
+            for (Size assay_idx = task_begin; assay_idx < task_end; ++assay_idx)
+            {
+              processAssay(assay_idx);
+            }
+          }
+        }
+      }
+    }
+    else
+#endif
+    {
+      for (Size assay_idx = 0; assay_idx < assays.size(); ++assay_idx)
+      {
+        processAssay(assay_idx);
+      }
+    }
+
+    if (first_exception)
+    {
+      std::rethrow_exception(first_exception);
+    }
+
+    std::vector<String> to_osw_output;
+    if (osw_active)
+    {
+      output = last_osw_output;
+      to_osw_output.reserve(assay_results.size());
+      for (const AssayResult& result : assay_results)
+      {
+        if (!result.osw_line.empty())
+        {
+          to_osw_output.push_back(result.osw_line);
+        }
+      }
+    }
+    else
+    {
+      for (const AssayResult& result : assay_results)
+      {
+        for (const Feature& feature : result.output)
+        {
+          output.push_back(feature);
+        }
+        for (const ProteinIdentification& protein : result.output.getProteinIdentifications())
+        {
+          output.getProteinIdentifications().push_back(protein);
         }
       }
     }
 
     if (profile)
     {
-      scoring_profile->add(featureFinder.getScoringProfile());
+      for (int worker_idx = 0; worker_idx < worker_count; ++worker_idx)
+      {
+        scoring_profile->add(worker_profiles[worker_idx]);
+        scoring_profile->add(feature_finders[worker_idx].getScoringProfile());
+      }
     }
 
     // Only write at the very end since this is a step that needs a barrier
