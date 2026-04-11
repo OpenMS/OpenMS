@@ -1323,6 +1323,33 @@ START_SECTION(([EXTRA] calibration extreme-bias path preserves user bounds))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] computeModMatchTolerance_ returns min(lower, upper)))
+{
+  // Pure unit test — no search, no calibration. Pins the min() reduction rule
+  // so a future change to max() or midpoint is caught.
+  PeptideSearchEngineFIAlgorithm_test algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+
+  p.setValue("precursor:mass_tolerance_lower", 5.0);
+  p.setValue("precursor:mass_tolerance_upper", 50.0);
+  algo.setParameters(p);
+  TEST_REAL_SIMILAR(algo.computeModMatchTolerance_(), 5.0)
+
+  p.setValue("precursor:mass_tolerance_lower", 50.0);
+  p.setValue("precursor:mass_tolerance_upper", 5.0);
+  algo.setParameters(p);
+  TEST_REAL_SIMILAR(algo.computeModMatchTolerance_(), 5.0)
+
+  // Da unit
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("precursor:mass_tolerance_lower", 0.5);
+  p.setValue("precursor:mass_tolerance_upper", 2.0);
+  algo.setParameters(p);
+  TEST_REAL_SIMILAR(algo.computeModMatchTolerance_(), 0.5)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
