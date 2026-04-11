@@ -744,8 +744,9 @@ namespace OpenMS
     FragmentIndex& fragment_index_ = ctx.fragment_index;
 
     // Effective tolerances: may be overridden by calibration pass below.
-    // Task 4 stub: uses max(lower, upper) as a single scalar for legacy consumers.
-    // Task 7 will refresh this from the signed-bias calibration result.
+    // The precursor scalar passed to postProcessHits_ is the widest bound
+    // (legacy API); calibration may narrow it. Fragment tolerance is a
+    // single scalar throughout.
     double effective_precursor_tol = std::max(precursor_mass_tolerance_lower_,
                                               precursor_mass_tolerance_upper_);
     double effective_fragment_tol = fragment_mass_tolerance_;
@@ -760,23 +761,44 @@ namespace OpenMS
     if (calibration_enabled_ && !open_search)
     {
       startProgress(0, 1, "Running calibration pass...");
-      CalibrationResult_ cal = runCalibrationPass_(spectra, fragment_index_, db);
-      last_calibration_result_ = cal;   // stored for test observability + diagnostics (Task 7 reads this)
+      last_calibration_result_ = runCalibrationPass_(spectra, fragment_index_, db);
+      const CalibrationResult_& cal = last_calibration_result_;
       endProgress();
 
-      if (cal.success)
+      if (cal.success && !cal.extreme_bias)
       {
-        // Task 4 stub: calibration produces a symmetric spread; writes it to both
-        // lower and upper bounds. Task 7 follow-up replaces this with signed-bias
-        // preservation and member-refresh.
         Param fi_params = fi_params_original;
-        fi_params.setValue("precursor:mass_tolerance_lower", cal.precursor_spread);
-        fi_params.setValue("precursor:mass_tolerance_upper", cal.precursor_spread);
+        fi_params.setValue("precursor:mass_tolerance_lower", cal.cal_lower);
+        fi_params.setValue("precursor:mass_tolerance_upper", cal.cal_upper);
         fi_params.setValue("fragment:mass_tolerance", cal.fragment_tolerance);
         fragment_index_.setParameters(fi_params);
         fi_params_modified = true;
-        effective_precursor_tol = cal.precursor_spread;
+
+        // Refresh algo-level member copies — OpenSearchModificationAnalysis reads them via
+        // computeModMatchTolerance_() and would otherwise see stale pre-calibration values.
+        precursor_mass_tolerance_lower_ = cal.cal_lower;
+        precursor_mass_tolerance_upper_ = cal.cal_upper;
+        effective_precursor_tol = std::max(cal.cal_lower, cal.cal_upper);
         effective_fragment_tol = cal.fragment_tolerance;
+
+        OPENMS_LOG_INFO << "[PDBS-FI] Calibration: shift=" << cal.precursor_shift
+                        << " spread=" << cal.precursor_spread << " "
+                        << precursor_mass_tolerance_unit_
+                        << " -> window [-" << cal.cal_lower << ", +" << cal.cal_upper << "]"
+                        << std::endl;
+      }
+      else if (cal.success && cal.extreme_bias)
+      {
+        OPENMS_LOG_WARN << "[PDBS-FI] Calibration: |shift|=" << std::abs(cal.precursor_shift)
+                        << " >= spread=" << cal.precursor_spread << " "
+                        << precursor_mass_tolerance_unit_ << " - calibration result discarded. "
+                        << "The true signed window ["
+                        << (cal.precursor_shift - cal.precursor_spread) << ", "
+                        << (cal.precursor_shift + cal.precursor_spread)
+                        << "] lies entirely on one side of zero; the positive-magnitude schema "
+                        << "cannot express it without loosening. Fix external calibration, or "
+                        << "configure mass_tolerance_lower/_upper manually." << std::endl;
+        // Preserve user bounds - fi_params_modified stays false, members unchanged.
       }
     }
 
@@ -1552,17 +1574,15 @@ namespace OpenMS
     }
 
     // Extract error vectors from filtered hits.
-    // Additionally discard PSMs with precursor error exceeding configured tolerance —
-    // these are definitionally wrong matches that would inflate the calibrated window.
-    // Task 4 stub: use the widest configured bound as the filter limit (symmetric
-    // case is bitwise equivalent; asymmetric case deferred to Task 7).
-    const double prec_tol_limit = std::max(precursor_mass_tolerance_lower_,
-                                           precursor_mass_tolerance_upper_);
+    // Additionally discard PSMs whose signed precursor error falls outside the user's
+    // configured asymmetric window [-lower, +upper] — definitionally wrong matches that
+    // would otherwise inflate the calibrated shift/spread estimates.
     vector<double> precursor_errors;
     vector<double> fragment_errors_abs;
     for (const auto& h : cal_hits)
     {
-      if (std::abs(h.prec_error) > prec_tol_limit) continue; // wrong match
+      if (h.prec_error < -precursor_mass_tolerance_lower_ ||
+          h.prec_error > precursor_mass_tolerance_upper_) continue; // wrong match
       precursor_errors.push_back(h.prec_error);
       if (h.frag_error > 0) fragment_errors_abs.push_back(h.frag_error);
     }
@@ -1576,19 +1596,37 @@ namespace OpenMS
     }
 
     // --- Compute calibrated tolerances ---
-    // Task 4 stub: use absolute-error median + 3*MAD (equivalent to the pre-refactor
-    // formula on zero-centered distributions). Task 7 will replace this with signed
-    // median (precursor_shift) + MAD-of-residuals (precursor_spread).
-    vector<double> prec_abs_errors;
-    prec_abs_errors.reserve(precursor_errors.size());
-    for (double e : precursor_errors) { prec_abs_errors.push_back(std::abs(e)); }
-
     const double min_tolerance = 1e-6; // avoid non-positive tolerances
 
-    double prec_median = Math::median(prec_abs_errors.begin(), prec_abs_errors.end());
-    double prec_mad = Math::MAD(prec_abs_errors.begin(), prec_abs_errors.end(), prec_median);
-    result.precursor_spread = prec_median + 3.0 * prec_mad;
-    if (result.precursor_spread < min_tolerance) result.precursor_spread = min_tolerance;
+    // Signed median gives the calibration bias; spread is median(|e - shift|) + 3*MAD(|e - shift|),
+    // i.e., the same "typical residual + 3*scale" shape as the pre-refactor formula, just applied
+    // to residuals around the signed center instead of raw errors. Zero-centered distributions
+    // get identical spread; biased distributions correctly separate shift from spread.
+    const double prec_shift = Math::median(precursor_errors.begin(), precursor_errors.end());
+
+    std::vector<double> residuals;
+    residuals.reserve(precursor_errors.size());
+    for (double e : precursor_errors) { residuals.push_back(std::abs(e - prec_shift)); }
+    const double res_median = Math::median(residuals.begin(), residuals.end());
+    const double res_mad    = Math::MAD(residuals.begin(), residuals.end(), res_median);
+
+    result.precursor_shift  = prec_shift;
+    result.precursor_spread = std::max(min_tolerance, res_median + 3.0 * res_mad);
+    result.extreme_bias     = std::abs(prec_shift) >= result.precursor_spread;
+
+    if (!result.extreme_bias)
+    {
+      // Map signed window [shift - spread, shift + spread] to positive magnitudes:
+      //   -cal_lower = shift - spread  ->  cal_lower = spread - shift
+      //   +cal_upper = shift + spread  ->  cal_upper = spread + shift
+      // Both are non-negative when |shift| < spread.
+      const double cal_lower_raw = result.precursor_spread - prec_shift;
+      const double cal_upper_raw = result.precursor_spread + prec_shift;
+      // Only tighten - cap against user-configured bounds.
+      result.cal_lower = std::min(cal_lower_raw, precursor_mass_tolerance_lower_);
+      result.cal_upper = std::min(cal_upper_raw, precursor_mass_tolerance_upper_);
+    }
+    // else: cal_lower/cal_upper stay at 0; writeback block skips the calibration result.
 
     // Fragment: 4 × 68th percentile (following NuXL / identipy convention).
     std::sort(fragment_errors_abs.begin(), fragment_errors_abs.end());
@@ -1605,14 +1643,7 @@ namespace OpenMS
 
     result.fragment_shift = 0.0;
 
-    // Don't widen beyond configured tolerance (only tighten).
-    // Task 4 stub: cap against the widest configured bound (symmetric case behaves
-    // identically to the pre-refactor code). Task 7 replaces this with signed
-    // bias-preserving caps via cal_lower/cal_upper.
-    if (result.precursor_spread > prec_tol_limit)
-    {
-      result.precursor_spread = prec_tol_limit;
-    }
+    // Don't widen beyond configured fragment tolerance (only tighten).
     if (result.fragment_tolerance > fragment_mass_tolerance_)
     {
       result.fragment_tolerance = fragment_mass_tolerance_;
@@ -1622,10 +1653,12 @@ namespace OpenMS
 
     OPENMS_LOG_INFO << "[PDBS-FI] Calibration: " << precursor_errors.size() << " PSMs used (top "
                     << static_cast<int>(100.0 * precursor_errors.size() / cal_hits_total) << "% by score)" << std::endl;
-    OPENMS_LOG_INFO << "[PDBS-FI]   Precursor |error|: median=" << std::fixed << std::setprecision(2) << prec_median
-                    << ", MAD=" << prec_mad << " " << precursor_mass_tolerance_unit_ << std::endl;
-    OPENMS_LOG_INFO << "[PDBS-FI]   Precursor spread: -> " << result.precursor_spread
+    OPENMS_LOG_INFO << "[PDBS-FI]   Precursor signed: shift=" << std::fixed << std::setprecision(2) << prec_shift
+                    << ", residual median=" << res_median << ", residual MAD=" << res_mad
                     << " " << precursor_mass_tolerance_unit_ << std::endl;
+    OPENMS_LOG_INFO << "[PDBS-FI]   Precursor spread: -> " << result.precursor_spread
+                    << " " << precursor_mass_tolerance_unit_
+                    << (result.extreme_bias ? " (extreme bias, discarded)" : "") << std::endl;
     OPENMS_LOG_INFO << "[PDBS-FI]   Fragment tolerance:  " << fragment_mass_tolerance_
                     << " -> " << result.fragment_tolerance << " " << fragment_mass_tolerance_unit_ << std::endl;
 
