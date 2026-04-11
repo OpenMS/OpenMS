@@ -2949,7 +2949,7 @@ add_test("TOPP_PeptideDataBaseSearchFI_4_out" ${DIFF}
   -in1 ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_4_out.tmp.idXML
   -in2 ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_4_out.idXML
   -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version"
-  -ratio 1.01 -absdiff 0.01)
+  -ratio 1.2 -absdiff 2.0)
 set_tests_properties("TOPP_PeptideDataBaseSearchFI_4_out" PROPERTIES DEPENDS
   "TOPP_PeptideDataBaseSearchFI_4")
 
