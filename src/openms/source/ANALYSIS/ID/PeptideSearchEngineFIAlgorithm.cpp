@@ -62,19 +62,23 @@ namespace OpenMS
     DefaultParamHandler("PeptideSearchEngineFIAlgorithm"),
     ProgressLogger()
   {
-    defaults_.setValue("precursor:mass_tolerance", 10.0, "+/- tolerance for precursor mass.");
-
-    std::vector<std::string> precursor_mass_tolerance_unit_valid_strings;
-    precursor_mass_tolerance_unit_valid_strings.emplace_back("ppm");
-    precursor_mass_tolerance_unit_valid_strings.emplace_back("Da");
-
+    defaults_.setValue("precursor:mass_tolerance_lower", 20.0,
+                       "Lower-side precursor-mass tolerance (positive magnitude; effective window "
+                       "is [-lower, +upper] around the precursor). "
+                       "When strongly asymmetric, also review precursor:isotope_error_min.");
+    defaults_.setMinFloat("precursor:mass_tolerance_lower", 0.0);
+    defaults_.setValue("precursor:mass_tolerance_upper", 20.0,
+                       "Upper-side precursor-mass tolerance (positive magnitude).");
+    defaults_.setMinFloat("precursor:mass_tolerance_upper", 0.0);
     defaults_.setValue("precursor:mass_tolerance_unit", "ppm", "Unit of precursor mass tolerance.");
-    defaults_.setValidStrings("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_valid_strings);
+    defaults_.setValidStrings("precursor:mass_tolerance_unit", {"ppm", "Da"});
 
     defaults_.setValue("precursor:min_charge", 2, "Minimum precursor charge to be considered.");
     defaults_.setValue("precursor:max_charge", 5, "Maximum precursor charge to be considered.");
 
-    defaults_.setSectionDescription("precursor", "Precursor (Parent Ion) Options");
+    defaults_.setSectionDescription("precursor",
+      "Precursor (Parent Ion) Options. mass_tolerance_lower/_upper are positive magnitudes "
+      "applied as [-lower, +upper] around the precursor mass.");
 
     // consider one before annotated monoisotopic peak and the annotated one
     IntList isotopes = {0, 1};
@@ -177,10 +181,6 @@ namespace OpenMS
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
 
-    // Open search window bounds (used when tolerance > 1 Da or > 1000 ppm)
-    defaults_.setValue("precursor:open_window_lower", -100.0, "lower bound of the open precursor window");
-    defaults_.setValue("precursor:open_window_upper", 200.0, "upper bound of the open precursor window");
-
     // Ion series toggles
     defaults_.setValue("ions:add_y_ions", "true", "Add peaks of y-ions to the spectrum");
     defaults_.setValidStrings("ions:add_y_ions", {"true","false"});
@@ -220,7 +220,8 @@ namespace OpenMS
 
   void PeptideSearchEngineFIAlgorithm::updateMembers_()
   {
-    precursor_mass_tolerance_ = param_.getValue("precursor:mass_tolerance");
+    precursor_mass_tolerance_lower_ = param_.getValue("precursor:mass_tolerance_lower");
+    precursor_mass_tolerance_upper_ = param_.getValue("precursor:mass_tolerance_upper");
     precursor_mass_tolerance_unit_ = param_.getValue("precursor:mass_tolerance_unit").toString();
 
     precursor_min_charge_ = param_.getValue("precursor:min_charge");
@@ -726,21 +727,13 @@ namespace OpenMS
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
-    bool precursor_mass_tolerance_unit_ppm = (precursor_mass_tolerance_unit_ == "ppm");
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
-
-    // Debug: log effective precursor/fragment tolerances (value + unit)
-    OPENMS_LOG_INFO << "[PDBS-FI] fragment_tol="
-                      << fragment_mass_tolerance_ << " "
-                      << (fragment_mass_tolerance_unit_ppm ? "ppm" : "Da")
-                      << " | precursor_tol="
-                      << precursor_mass_tolerance_ << " "
-                      << (precursor_mass_tolerance_unit_ppm ? "ppm" : "Da")
-                      << std::endl;
 
     bool open_search = isOpenSearchMode_();
     OPENMS_LOG_INFO << "[PDBS-FI] open_search=" << (open_search ? "true" : "false")
-                    << " (auto-determined from precursor tolerance)" << std::endl;
+                    << " (precursor tolerance [-" << precursor_mass_tolerance_lower_
+                    << ", +" << precursor_mass_tolerance_upper_ << "] "
+                    << precursor_mass_tolerance_unit_ << ")" << std::endl;
 
     startProgress(0, 1, "Filtering spectra...");
     preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
@@ -751,7 +744,10 @@ namespace OpenMS
     FragmentIndex& fragment_index_ = ctx.fragment_index;
 
     // Effective tolerances: may be overridden by calibration pass below.
-    double effective_precursor_tol = precursor_mass_tolerance_;
+    // Task 4 stub: uses max(lower, upper) as a single scalar for legacy consumers.
+    // Task 7 will refresh this from the signed-bias calibration result.
+    double effective_precursor_tol = std::max(precursor_mass_tolerance_lower_,
+                                              precursor_mass_tolerance_upper_);
     double effective_fragment_tol = fragment_mass_tolerance_;
 
     // Save original FragmentIndex parameters so we can restore them after the
@@ -769,15 +765,17 @@ namespace OpenMS
 
       if (cal.success)
       {
-        effective_precursor_tol = cal.precursor_tolerance;
-        effective_fragment_tol = cal.fragment_tolerance;
-
-        // Temporarily update the fragment index's query-time tolerances.
+        // Task 4 stub: calibration produces a symmetric spread; writes it to both
+        // lower and upper bounds. Task 7 follow-up replaces this with signed-bias
+        // preservation and member-refresh.
         Param fi_params = fi_params_original;
-        fi_params.setValue("precursor:mass_tolerance", effective_precursor_tol);
-        fi_params.setValue("fragment:mass_tolerance", effective_fragment_tol);
+        fi_params.setValue("precursor:mass_tolerance_lower", cal.precursor_spread);
+        fi_params.setValue("precursor:mass_tolerance_upper", cal.precursor_spread);
+        fi_params.setValue("fragment:mass_tolerance", cal.fragment_tolerance);
         fragment_index_.setParameters(fi_params);
         fi_params_modified = true;
+        effective_precursor_tol = cal.precursor_spread;
+        effective_fragment_tol = cal.fragment_tolerance;
       }
     }
 
@@ -798,7 +796,7 @@ namespace OpenMS
     bool open_search_mode = open_search;
     const double proton_mass_u = Constants::PROTON_MASS_U;
 
-#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fragment_index_, spectrum_generator, db, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, effective_fragment_tol)
+#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fragment_index_, spectrum_generator, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, effective_fragment_tol)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
 
@@ -888,7 +886,7 @@ namespace OpenMS
       OpenSearchModificationAnalysis mod_analyzer;
       auto modification_summaries = mod_analyzer.analyzeModifications(
         peptide_ids,
-        precursor_mass_tolerance_,
+        computeModMatchTolerance_(),
         precursor_mass_tolerance_unit_ == "ppm",
         false, // no smoothing
         ""     // no output file for in-memory search
@@ -1068,7 +1066,7 @@ namespace OpenMS
 
       result.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
         result.peptide_ids,
-        precursor_mass_tolerance_,
+        computeModMatchTolerance_(),
         precursor_mass_tolerance_unit_ == "ppm",
         false, // no smoothing
         output_file
@@ -1174,7 +1172,7 @@ namespace OpenMS
 
         result.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
           result.peptide_ids,
-          precursor_mass_tolerance_,
+          computeModMatchTolerance_(),
           precursor_mass_tolerance_unit_ == "ppm",
           false, // no smoothing
           output_file
@@ -1263,7 +1261,7 @@ namespace OpenMS
 
       mfres.aggregate.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
         mfres.aggregate.peptide_ids,
-        precursor_mass_tolerance_,
+        computeModMatchTolerance_(),
         precursor_mass_tolerance_unit_ == "ppm",
         false, // no smoothing
         agg_output_file
@@ -1443,7 +1441,8 @@ namespace OpenMS
                       << " -> recommended: " << static_cast<int>(recommended) << " ppm" << std::endl;
     }
 
-    OPENMS_LOG_INFO << "[PDBS-FI]   (configured: precursor=" << precursor_mass_tolerance_ << " " << precursor_mass_tolerance_unit_
+    OPENMS_LOG_INFO << "[PDBS-FI]   (configured: precursor=[-" << precursor_mass_tolerance_lower_
+                    << ", +" << precursor_mass_tolerance_upper_ << "] " << precursor_mass_tolerance_unit_
                     << ", fragment=" << fragment_mass_tolerance_ << " " << fragment_mass_tolerance_unit_ << ")" << std::endl;
     OPENMS_LOG_INFO << "[PDBS-FI] ============================================\n" << std::endl;
   }
@@ -1554,7 +1553,10 @@ namespace OpenMS
     // Extract error vectors from filtered hits.
     // Additionally discard PSMs with precursor error exceeding configured tolerance —
     // these are definitionally wrong matches that would inflate the calibrated window.
-    double prec_tol_limit = precursor_mass_tolerance_;
+    // Task 4 stub: use the widest configured bound as the filter limit (symmetric
+    // case is bitwise equivalent; asymmetric case deferred to Task 7).
+    const double prec_tol_limit = std::max(precursor_mass_tolerance_lower_,
+                                           precursor_mass_tolerance_upper_);
     vector<double> precursor_errors;
     vector<double> fragment_errors_abs;
     for (const auto& h : cal_hits)
@@ -1573,8 +1575,9 @@ namespace OpenMS
     }
 
     // --- Compute calibrated tolerances ---
-    // Convert precursor errors to absolute values for robust estimation.
-    // Use median + 3*MAD (robust to outliers, follows InternalCalibration pattern).
+    // Task 4 stub: use absolute-error median + 3*MAD (equivalent to the pre-refactor
+    // formula on zero-centered distributions). Task 7 will replace this with signed
+    // median (precursor_shift) + MAD-of-residuals (precursor_spread).
     vector<double> prec_abs_errors;
     prec_abs_errors.reserve(precursor_errors.size());
     for (double e : precursor_errors) { prec_abs_errors.push_back(std::abs(e)); }
@@ -1583,8 +1586,8 @@ namespace OpenMS
 
     double prec_median = Math::median(prec_abs_errors.begin(), prec_abs_errors.end());
     double prec_mad = Math::MAD(prec_abs_errors.begin(), prec_abs_errors.end(), prec_median);
-    result.precursor_tolerance = prec_median + 3.0 * prec_mad;
-    if (result.precursor_tolerance < min_tolerance) result.precursor_tolerance = min_tolerance;
+    result.precursor_spread = prec_median + 3.0 * prec_mad;
+    if (result.precursor_spread < min_tolerance) result.precursor_spread = min_tolerance;
 
     // Fragment: 4 × 68th percentile (following NuXL / identipy convention).
     std::sort(fragment_errors_abs.begin(), fragment_errors_abs.end());
@@ -1601,10 +1604,13 @@ namespace OpenMS
 
     result.fragment_shift = 0.0;
 
-    // Don't widen beyond configured tolerance (only tighten)
-    if (result.precursor_tolerance > precursor_mass_tolerance_)
+    // Don't widen beyond configured tolerance (only tighten).
+    // Task 4 stub: cap against the widest configured bound (symmetric case behaves
+    // identically to the pre-refactor code). Task 7 replaces this with signed
+    // bias-preserving caps via cal_lower/cal_upper.
+    if (result.precursor_spread > prec_tol_limit)
     {
-      result.precursor_tolerance = precursor_mass_tolerance_;
+      result.precursor_spread = prec_tol_limit;
     }
     if (result.fragment_tolerance > fragment_mass_tolerance_)
     {
@@ -1617,8 +1623,8 @@ namespace OpenMS
                     << static_cast<int>(100.0 * precursor_errors.size() / cal_hits_total) << "% by score)" << std::endl;
     OPENMS_LOG_INFO << "[PDBS-FI]   Precursor |error|: median=" << std::fixed << std::setprecision(2) << prec_median
                     << ", MAD=" << prec_mad << " " << precursor_mass_tolerance_unit_ << std::endl;
-    OPENMS_LOG_INFO << "[PDBS-FI]   Precursor tolerance: " << precursor_mass_tolerance_
-                    << " -> " << result.precursor_tolerance << " " << precursor_mass_tolerance_unit_ << std::endl;
+    OPENMS_LOG_INFO << "[PDBS-FI]   Precursor spread: -> " << result.precursor_spread
+                    << " " << precursor_mass_tolerance_unit_ << std::endl;
     OPENMS_LOG_INFO << "[PDBS-FI]   Fragment tolerance:  " << fragment_mass_tolerance_
                     << " -> " << result.fragment_tolerance << " " << fragment_mass_tolerance_unit_ << std::endl;
 

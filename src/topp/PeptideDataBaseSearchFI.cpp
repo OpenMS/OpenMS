@@ -165,16 +165,18 @@ class PeptideDataBaseSearchFI :
 
       // Determine open-search mode the same way the algorithm does, so we can give
       // the user actionable feedback if -out_mod_analysis_dir is set in closed-search.
-      const double precursor_tol = static_cast<double>(search_params.getValue("precursor:mass_tolerance"));
+      const double precursor_tol_lower = static_cast<double>(search_params.getValue("precursor:mass_tolerance_lower"));
+      const double precursor_tol_upper = static_cast<double>(search_params.getValue("precursor:mass_tolerance_upper"));
       const String precursor_tol_unit = search_params.getValue("precursor:mass_tolerance_unit").toString();
-      const bool open_search_mode = (precursor_tol_unit == "ppm")
-        ? (precursor_tol > 1000.0)
-        : (precursor_tol > 1.0);
+      const bool open_search_mode = FragmentIndex::isOpenSearchMode(precursor_tol_lower,
+                                                                    precursor_tol_upper,
+                                                                    precursor_tol_unit == "ppm");
 
       if (!out_mod_analysis_dir.empty() && !open_search_mode)
       {
         OPENMS_LOG_WARN << "-out_mod_analysis_dir was set but the search is in CLOSED-search mode "
-                        << "(precursor tolerance " << precursor_tol << " " << precursor_tol_unit
+                        << "(precursor tolerance [-" << precursor_tol_lower
+                        << ", +" << precursor_tol_upper << "] " << precursor_tol_unit
                         << "). Modification-analysis tables will NOT be written." << endl;
       }
 

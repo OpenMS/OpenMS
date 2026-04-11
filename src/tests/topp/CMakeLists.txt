@@ -2966,7 +2966,8 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
     -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_out.tmp.idXML
-    -Search:precursor:mass_tolerance 20
+    -Search:precursor:mass_tolerance_lower 20
+    -Search:precursor:mass_tolerance_upper 20
     -Search:precursor:mass_tolerance_unit ppm
     -Search:fragment:mass_tolerance 20
     -Search:fragment:mass_tolerance_unit ppm
@@ -2987,7 +2988,8 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
     -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_calibrated_out.tmp.idXML
-    -Search:precursor:mass_tolerance 20
+    -Search:precursor:mass_tolerance_lower 20
+    -Search:precursor:mass_tolerance_upper 20
     -Search:precursor:mass_tolerance_unit ppm
     -Search:fragment:mass_tolerance 20
     -Search:fragment:mass_tolerance_unit ppm

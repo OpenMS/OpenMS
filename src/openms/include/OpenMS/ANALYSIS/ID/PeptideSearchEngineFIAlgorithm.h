@@ -20,6 +20,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
+#include <algorithm>   // std::min (used by inline computeModMatchTolerance_)
 #include <vector>
 
 namespace OpenMS
@@ -166,7 +167,8 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
      * @code
      * PeptideSearchEngineFIAlgorithm algo;
      * Param p = algo.getParameters();
-     * p.setValue("precursor:mass_tolerance", 500.0);  // Open search
+     * p.setValue("precursor:mass_tolerance_lower", 500.0);  // Open search
+     * p.setValue("precursor:mass_tolerance_upper", 500.0);
      * p.setValue("precursor:mass_tolerance_unit", "Da");
      * algo.setParameters(p);
      *
@@ -393,8 +395,9 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
       const String& enzyme,
       const String& database_name) const;
 
-    double precursor_mass_tolerance_;
-    String precursor_mass_tolerance_unit_;
+    double precursor_mass_tolerance_lower_{20.0};   ///< positive magnitude
+    double precursor_mass_tolerance_upper_{20.0};   ///< positive magnitude
+    String precursor_mass_tolerance_unit_{"ppm"};
 
     Size precursor_min_charge_;
     Size precursor_max_charge_;
@@ -443,11 +446,28 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
      */
     struct CalibrationResult_
     {
-      double precursor_tolerance{0}; ///< estimated precursor tolerance (same unit as configured)
+      double precursor_shift{0};     ///< signed median of precursor errors (calibration bias)
+      double precursor_spread{0};    ///< median(|e - shift|) + 3 * MAD(|e - shift|)
+      double cal_lower{0};           ///< calibrated lower magnitude (valid iff !extreme_bias && success)
+      double cal_upper{0};           ///< calibrated upper magnitude (valid iff !extreme_bias && success)
       double fragment_tolerance{0};  ///< estimated fragment tolerance (same unit as configured)
       double fragment_shift{0};      ///< reserved for future fragment m/z shift correction
+      bool extreme_bias{false};      ///< |shift| >= spread — writeback skipped (test observability)
       bool success{false};           ///< true if enough PSMs were found for reliable estimation
     };
+
+    /// Most recent calibration result (valid after any search that invoked runCalibrationPass_).
+    /// Stored for test observability and diagnostics.
+    CalibrationResult_ last_calibration_result_;
+
+    /// Scalar tolerance passed to OpenSearchModificationAnalysis under asymmetric bounds.
+    /// Uses the tighter of the two positive magnitudes — semantically correct for
+    /// UniMod Δmass matching precision. OpenSearchModificationAnalysis internally clamps
+    /// this at MAX_MOD_MAPPING_TOL_ = 0.02 Da; see spec §7 for rationale.
+    double computeModMatchTolerance_() const
+    {
+      return std::min(precursor_mass_tolerance_lower_, precursor_mass_tolerance_upper_);
+    }
 
     /**
      * @brief Run a fast calibration pass on a subset of spectra to estimate mass accuracy.
@@ -477,10 +497,12 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
     /// Helper function to determine if open search should be used based on tolerance
     bool isOpenSearchMode_() const
     {
-      return precursor_mass_tolerance_unit_ == "ppm"
-               ? (precursor_mass_tolerance_ > 1000.0)
-               : (precursor_mass_tolerance_ > 1.0);
+      return FragmentIndex::isOpenSearchMode(precursor_mass_tolerance_lower_,
+                                             precursor_mass_tolerance_upper_,
+                                             precursor_mass_tolerance_unit_ == "ppm");
     }
+
+    friend class PeptideSearchEngineFIAlgorithm_test;
 };
 
 } // namespace

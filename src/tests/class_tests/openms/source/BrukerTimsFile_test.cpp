@@ -446,7 +446,8 @@ START_SECTION(DDA search engine IM annotation integration test)
   // Typical timsTOF Pro DDA-PASEF search parameters
   PeptideSearchEngineFIAlgorithm algo;
   Param p = algo.getParameters();
-  p.setValue("precursor:mass_tolerance", 20.0);
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
   p.setValue("precursor:mass_tolerance_unit", "ppm");
   p.setValue("fragment:mass_tolerance", 20.0);
   p.setValue("fragment:mass_tolerance_unit", "ppm");

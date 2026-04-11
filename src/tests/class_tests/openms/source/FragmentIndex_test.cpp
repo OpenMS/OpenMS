@@ -489,7 +489,8 @@ START_SECTION(tolerance)
   params.setValue("fragment:min_ion_index", 0); // index all ions to verify all theoretical peaks match
   params.setValue("fragment:mass_tolerance", 0.05);
   params.setValue("fragment:mass_tolerance_unit", "Da");
-  params.setValue("precursor:mass_tolerance", 2.0);
+  params.setValue("precursor:mass_tolerance_lower", 2.0);
+  params.setValue("precursor:mass_tolerance_upper", 2.0);
   params.setValue("precursor:mass_tolerance_unit", "Da");
   params.setValue("modifications:variable", std::vector<std::string> {});
   params.setValue("modifications:fixed", std::vector<std::string> {});

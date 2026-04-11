@@ -35,6 +35,7 @@
   #include <omp.h>
 #endif
 #include <bit>
+#include <cmath>
 #include <functional>
 #include <mutex>
 #include <boost/sort/sort.hpp>
@@ -804,14 +805,31 @@ namespace OpenMS
       OPENMS_LOG_INFO << "Fragment index built!" << endl;
   }
 
-  std::pair<size_t, size_t > FragmentIndex::getPeptidesInPrecursorRange(float precursor_mass,
-                                                                       const std::pair<float, float>& window)
+  std::pair<size_t, size_t> FragmentIndex::getPeptidesInMassWindow(float precursor_mass,
+                                                                   const std::pair<float, float>& window) const
   {
-      float prec_tol = precursor_mz_tolerance_unit_ppm_ ? Math::ppmToMass(precursor_mz_tolerance_, precursor_mass) : precursor_mz_tolerance_ ;
+    auto left_it = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
+                                    precursor_mass + window.first,
+                                    [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
+    auto right_it = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(),
+                                     precursor_mass + window.second,
+                                     [](float b, const Peptide& a) { return b < a.precursor_mz_; });
+    return std::make_pair(std::distance(fi_peptides_.begin(), left_it),
+                          std::distance(fi_peptides_.begin(), right_it));
+  }
 
-      auto left_it = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(), precursor_mass - prec_tol + window.first, [](const Peptide& a, float b) { return a.precursor_mz_ < b;});
-      auto right_it = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(), precursor_mass + prec_tol + window.second, [](float b, const Peptide& a) { return b < a.precursor_mz_;});
-      return make_pair(std::distance(fi_peptides_.begin(), left_it), std::distance(fi_peptides_.begin(), right_it));
+  std::pair<float, float> FragmentIndex::computeMassWindow_(float precursor_mass) const
+  {
+    if (precursor_mass_tolerance_unit_ppm_)
+    {
+      const float lo = -Math::ppmToMass<float>(static_cast<float>(precursor_mass_tolerance_lower_),
+                                               precursor_mass);
+      const float hi =  Math::ppmToMass<float>(static_cast<float>(precursor_mass_tolerance_upper_),
+                                               precursor_mass);
+      return {lo, hi};
+    }
+    return {-static_cast<float>(precursor_mass_tolerance_lower_),
+             static_cast<float>(precursor_mass_tolerance_upper_)};
   }
 
   vector<FragmentIndex::Hit> FragmentIndex::query(const OpenMS::Peak1D& peak,
@@ -967,40 +985,26 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
                                                      SpectrumMatchesTopN& sms,
                                                      uint16_t charge)
   {
-      int16_t  min_isotope_error_applied;
-      int16_t  max_isotope_error_applied;
-      float precursor_window_upper_applied;
-      float precursor_window_lower_applied;
-      if (isOpenSearchMode_())
-      {
-        min_isotope_error_applied = 0;
-        max_isotope_error_applied = 0;
-        precursor_window_upper_applied = open_precursor_window_upper_;
-        precursor_window_lower_applied = open_precursor_window_lower_;
-      }
-      else
-      {
-        min_isotope_error_applied = min_isotope_error_;
-        max_isotope_error_applied = max_isotope_error_;
-        precursor_window_upper_applied = 0;
-        precursor_window_lower_applied = 0;
-      }
+    // Open mode absorbs isotope shifts into the wide window — no per-isotope iteration.
+    const bool open_mode = isOpenSearchMode_();
+    const int16_t iso_lo = open_mode ? 0 : min_isotope_error_;
+    const int16_t iso_hi = open_mode ? 0 : max_isotope_error_;
 
-      for (int16_t isotope_error = min_isotope_error_applied; isotope_error <= max_isotope_error_applied; isotope_error++)
-      {
-        SpectrumMatchesTopN candidates_iso_error;
-        float precursor_mass_isotope_error = precursor_mass + ((float)isotope_error * (float)Constants::C13C12_MASSDIFF_U);
-        auto candidates_range = getPeptidesInPrecursorRange(precursor_mass_isotope_error, {precursor_window_lower_applied, precursor_window_upper_applied}); // for the simple search we do not apply any modification window!!
-        candidates_iso_error.hits_.resize(candidates_range.second - candidates_range.first + 1);
+    for (int16_t isotope_error = iso_lo; isotope_error <= iso_hi; ++isotope_error)
+    {
+      const float shifted_mass = precursor_mass
+        + static_cast<float>(isotope_error) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
 
-        queryPeaks(candidates_iso_error, spectrum, candidates_range, isotope_error, charge);
+      const auto window = computeMassWindow_(shifted_mass);
 
-        // take only top 50 hits
-        //trimHits(candidates_iso_error);
+      SpectrumMatchesTopN candidates_iso_error;
+      auto candidates_range = getPeptidesInMassWindow(shifted_mass, window);
+      candidates_iso_error.hits_.resize(candidates_range.second - candidates_range.first + 1);
 
-        sms += candidates_iso_error;
-      }
-      //trimHits(sms);
+      queryPeaks(candidates_iso_error, spectrum, candidates_range, isotope_error, charge);
+
+      sms += candidates_iso_error;
+    }
   }
 
   void FragmentIndex::querySpectrum(const OpenMS::MSSpectrum& spectrum,
@@ -1080,12 +1084,16 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setSectionDescription("ions", "Theoretical ion series toggles");
 
 
-    defaults_.setValue("precursor:mass_tolerance", 10.0, "Tolerance for precursor-m/z in search");
-    std::vector<std::string> precursor_mass_tolerance_unit_valid_strings;
-    precursor_mass_tolerance_unit_valid_strings.emplace_back("ppm");
-    precursor_mass_tolerance_unit_valid_strings.emplace_back("Da");
+    defaults_.setValue("precursor:mass_tolerance_lower", 20.0,
+                       "Lower-side precursor-mass tolerance (positive magnitude; effective window "
+                       "is [-lower, +upper] around the precursor). "
+                       "When strongly asymmetric, also review precursor:isotope_error_min.");
+    defaults_.setMinFloat("precursor:mass_tolerance_lower", 0.0);
+    defaults_.setValue("precursor:mass_tolerance_upper", 20.0,
+                       "Upper-side precursor-mass tolerance (positive magnitude).");
+    defaults_.setMinFloat("precursor:mass_tolerance_upper", 0.0);
     defaults_.setValue("precursor:mass_tolerance_unit", "ppm", "Unit of precursor mass tolerance.");
-    defaults_.setValidStrings("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_valid_strings);
+    defaults_.setValidStrings("precursor:mass_tolerance_unit", {"ppm", "Da"});
 
     defaults_.setValue("fragment:mass_tolerance", 10.0, "Fragment mass tolerance");
     std::vector<std::string> fragment_mass_tolerance_unit_valid_strings;
@@ -1144,9 +1152,6 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
-    // Open search window bounds (used when tolerance > 1 Da or > 1000 ppm)
-    defaults_.setValue("precursor:open_window_lower", -100.0, "lower bound of the open precursor window");
-    defaults_.setValue("precursor:open_window_upper", 200.0, "upper bound of the open precursor window");
 
     //defaults from the searchEngine that are not needed for this class, but otherwise we would generate a warning
     defaults_.setValue("decoys", "false", "Should decoys be generated?");
@@ -1191,15 +1196,30 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     fragment_max_mz_ = param_.getValue("fragment:max_mz");
     min_ion_index_ = param_.getValue("fragment:min_ion_index");
     
-    precursor_mz_tolerance_ = param_.getValue("precursor:mass_tolerance");
+    precursor_mass_tolerance_lower_ = param_.getValue("precursor:mass_tolerance_lower");
+    precursor_mass_tolerance_upper_ = param_.getValue("precursor:mass_tolerance_upper");
+    precursor_mass_tolerance_unit_ppm_ = param_.getValue("precursor:mass_tolerance_unit").toString() == "ppm";
     fragment_mz_tolerance_ = param_.getValue("fragment:mass_tolerance");
-    precursor_mz_tolerance_unit_ppm_ = param_.getValue("precursor:mass_tolerance_unit").toString() == "ppm";
     fragment_mz_tolerance_unit_ppm_ = param_.getValue("fragment:mass_tolerance_unit").toString() == "ppm";
-    
+
+    // Validation — setMinFloat(0.0) rejects negatives via checkDefaults_, but NaN/+inf slip past
+    // (NaN < 0 is false). NaN would break lower_bound's strict-weak-ordering.
+    if (!std::isfinite(precursor_mass_tolerance_lower_) ||
+        !std::isfinite(precursor_mass_tolerance_upper_))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "precursor:mass_tolerance_lower and mass_tolerance_upper must be finite");
+    }
+    if (precursor_mass_tolerance_lower_ + precursor_mass_tolerance_upper_ <= 0.0)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "precursor window has zero width (lower + upper must be > 0)");
+    }
+
     modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
     modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:variable"));
     max_variable_mods_per_peptide_ = param_.getValue("modifications:variable_max_per_peptide");
-    
+
     min_matched_peaks_ = param_.getValue("fragment:min_matched_ions");
     min_isotope_error_ = param_.getValue("precursor:isotope_error_min");
     max_isotope_error_ = param_.getValue("precursor:isotope_error_max");
@@ -1207,16 +1227,16 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     max_precursor_charge_ = param_.getValue("precursor:max_charge");
     max_fragment_charge_ = param_.getValue("fragment:max_charge");
     max_processed_hits_ = param_.getValue("scoring:max_candidates_per_spectrum");
-    // Open search mode is automatically determined in isOpenSearchMode_()
+
     if (isOpenSearchMode_())
     {
-      OPENMS_LOG_INFO << "[FragmentIndex] Open-search mode enabled because precursor mass tolerance ("
-                      << precursor_mz_tolerance_ << " "
-                      << (precursor_mz_tolerance_unit_ppm_ ? "ppm" : "Da")
-                      << ") exceeds threshold (1000 ppm or 1 Da)." << std::endl;
+      OPENMS_LOG_WARN << "[FragmentIndex] Open-search mode auto-triggered: window [-"
+                      << precursor_mass_tolerance_lower_ << ", +"
+                      << precursor_mass_tolerance_upper_ << "] "
+                      << (precursor_mass_tolerance_unit_ppm_ ? "ppm" : "Da")
+                      << " exceeds threshold. Isotope-error iteration collapses to [0, 0]."
+                      << std::endl;
     }
-    open_precursor_window_lower_ = param_.getValue("precursor:open_window_lower");
-    open_precursor_window_upper_ = param_.getValue("precursor:open_window_upper");
   }
  
   bool FragmentIndex::isBuild() const

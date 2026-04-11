@@ -240,7 +240,8 @@ START_SECTION(([EXTRA] Synthetic modification discovery - open search))
   // =========================================================================
   PeptideSearchEngineFIAlgorithm algo;
   Param p = algo.getParameters();
-  p.setValue("precursor:mass_tolerance", 500.0);
+  p.setValue("precursor:mass_tolerance_lower", 500.0);
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
   p.setValue("precursor:mass_tolerance_unit", "Da");
   p.setValue("fragment:mass_tolerance", 20.0);
   p.setValue("fragment:mass_tolerance_unit", "ppm");
@@ -535,7 +536,8 @@ START_SECTION(([EXTRA] FDR-filtered modification discovery))
   // =========================================================================
   PeptideSearchEngineFIAlgorithm algo;
   Param p = algo.getParameters();
-  p.setValue("precursor:mass_tolerance", 500.0);
+  p.setValue("precursor:mass_tolerance_lower", 500.0);
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
   p.setValue("precursor:mass_tolerance_unit", "Da");
   p.setValue("fragment:mass_tolerance", 20.0);
   p.setValue("fragment:mass_tolerance_unit", "ppm");
@@ -674,7 +676,8 @@ START_SECTION(([EXTRA] Closed search baseline))
 
   PeptideSearchEngineFIAlgorithm algo;
   Param p = algo.getParameters();
-  p.setValue("precursor:mass_tolerance", 10.0);
+  p.setValue("precursor:mass_tolerance_lower", 10.0);
+  p.setValue("precursor:mass_tolerance_upper", 10.0);
   p.setValue("precursor:mass_tolerance_unit", "ppm");
   p.setValue("fragment:mass_tolerance", 20.0);
   p.setValue("fragment:mass_tolerance_unit", "ppm");
@@ -743,7 +746,8 @@ START_SECTION(([EXTRA] Ion mobility annotation))
 
   PeptideSearchEngineFIAlgorithm algo;
   Param p = algo.getParameters();
-  p.setValue("precursor:mass_tolerance", 10.0);
+  p.setValue("precursor:mass_tolerance_lower", 10.0);
+  p.setValue("precursor:mass_tolerance_upper", 10.0);
   p.setValue("precursor:mass_tolerance_unit", "ppm");
   p.setValue("fragment:mass_tolerance", 20.0);
   p.setValue("fragment:mass_tolerance_unit", "ppm");
@@ -884,7 +888,8 @@ START_SECTION(([EXTRA] prepareContext + context-based search produces same IDs a
 
   PeptideSearchEngineFIAlgorithm algo;
   Param p = algo.getParameters();
-  p.setValue("precursor:mass_tolerance", 20.0);
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
   p.setValue("precursor:mass_tolerance_unit", "ppm");
   p.setValue("fragment:mass_tolerance", 20.0);
   p.setValue("fragment:mass_tolerance_unit", "ppm");
@@ -1003,7 +1008,8 @@ START_SECTION(([EXTRA] PSM annotations - matched ion counts, longest run, fragme
   // Configure search engine
   PeptideSearchEngineFIAlgorithm algo;
   Param p = algo.getParameters();
-  p.setValue("precursor:mass_tolerance", 10.0);
+  p.setValue("precursor:mass_tolerance_lower", 10.0);
+  p.setValue("precursor:mass_tolerance_upper", 10.0);
   p.setValue("precursor:mass_tolerance_unit", "ppm");
   p.setValue("fragment:mass_tolerance", 10.0);
   p.setValue("fragment:mass_tolerance_unit", "ppm");
