@@ -1013,4 +1013,40 @@ START_SECTION((asymmetric closed window interacts with isotope_error iteration))
 }
 END_SECTION
 
+// --- Task 10: parameter validation throws ---
+
+START_SECTION((validation: negative magnitude rejected))
+{
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", -5.0);  // invalid: below setMinFloat(0.0)
+  p.setValue("precursor:mass_tolerance_upper", 10.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  // checkDefaults_ fires from setParameters via the min-float check
+  TEST_EXCEPTION(Exception::InvalidParameter, fi.setParameters(p));
+}
+END_SECTION
+
+START_SECTION((validation: zero-width window rejected))
+{
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 0.0);
+  p.setValue("precursor:mass_tolerance_upper", 0.0);   // sum == 0 → rejected
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  TEST_EXCEPTION(Exception::InvalidParameter, fi.setParameters(p));
+}
+END_SECTION
+
+START_SECTION((validation: NaN rejected))
+{
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 10.0);
+  p.setValue("precursor:mass_tolerance_upper", std::numeric_limits<double>::quiet_NaN());
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  TEST_EXCEPTION(Exception::InvalidParameter, fi.setParameters(p));
+}
+END_SECTION
+
 END_TEST
