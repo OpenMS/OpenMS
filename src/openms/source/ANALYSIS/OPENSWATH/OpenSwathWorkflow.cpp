@@ -21,8 +21,10 @@
 #include <chrono>
 #include <cmath>
 #include <exception>
+#include <memory>
 #include <sstream>
 #include <unordered_map>
+#include <utility>
 
 
 // OpenSwathWorkflow
@@ -780,9 +782,6 @@ namespace OpenMS
     TransformationDescription trafo_inv = trafo;
     trafo_inv.invert();
 
-    MRMFeatureFinderScoring base_feature_finder;
-    MRMTransitionGroupPicker base_trgroup_picker;
-
     if (use_ms1_traces_ && !ms1_map_)
     {
       OPENMS_LOG_WARN << "WARNING: Attempted to use MS1 traces but no MS1 map was provided: Will not use MS1 signal!\n";
@@ -794,12 +793,6 @@ namespace OpenMS
     {
       trgroup_picker_param.setValue("compute_total_mi", "true");
     }
-    base_trgroup_picker.setParameters(trgroup_picker_param);
-
-    base_feature_finder.setParameters(feature_finder_param);
-    base_feature_finder.setScoringProfiling(profile);
-    base_feature_finder.resetScoringProfile();
-    base_feature_finder.prepareProteinPeptideMaps_(transition_exp);
 
     std::unordered_map<String, int> ms1_chromatogram_map;
     ms1_chromatogram_map.reserve(ms1_chromatograms.size());
@@ -854,23 +847,45 @@ namespace OpenMS
     const int worker_count = 1;
 #endif
 
-    std::vector<MRMFeatureFinderScoring> feature_finders;
+    std::vector<std::unique_ptr<MRMFeatureFinderScoring>> feature_finders;
     feature_finders.reserve(worker_count);
-    std::vector<MRMTransitionGroupPicker> trgroup_pickers;
+    std::vector<std::unique_ptr<MRMTransitionGroupPicker>> trgroup_pickers;
     trgroup_pickers.reserve(worker_count);
+    std::vector<std::vector<OpenSwath::SwathMap>> worker_swath_maps;
+    worker_swath_maps.reserve(worker_count);
     std::vector<OpenSwathScoringPhaseTiming> worker_profiles(worker_count);
     for (int worker_idx = 0; worker_idx < worker_count; ++worker_idx)
     {
-      feature_finders.push_back(base_feature_finder);
-      feature_finders.back().resetScoringProfile();
+      std::vector<OpenSwath::SwathMap> cloned_swath_maps = swath_maps;
+      if (worker_count > 1)
+      {
+        for (auto& swath_map : cloned_swath_maps)
+        {
+          if (swath_map.sptr)
+          {
+            swath_map.sptr = swath_map.sptr->lightClone();
+          }
+        }
+      }
+      worker_swath_maps.push_back(std::move(cloned_swath_maps));
+
+      auto feature_finder = std::make_unique<MRMFeatureFinderScoring>();
+      feature_finder->setParameters(feature_finder_param);
+      feature_finder->setScoringProfiling(profile);
+      feature_finder->resetScoringProfile();
+      feature_finder->prepareProteinPeptideMaps_(transition_exp);
 
       // SpectrumAccess implementations are not generally thread-safe. Each
       // OpenMP worker that may score DIA/MS1 spectra gets its own light clone.
       if (use_ms1_traces_ && ms1_map_)
       {
-        feature_finders.back().setMS1Map(ms1_map_->lightClone());
+        feature_finder->setMS1Map(ms1_map_->lightClone());
       }
-      trgroup_pickers.push_back(base_trgroup_picker);
+      feature_finders.push_back(std::move(feature_finder));
+
+      auto trgroup_picker = std::make_unique<MRMTransitionGroupPicker>();
+      trgroup_picker->setParameters(trgroup_picker_param);
+      trgroup_pickers.push_back(std::move(trgroup_picker));
     }
     if (profile)
     {
@@ -924,8 +939,9 @@ namespace OpenMS
 #else
         const int worker_idx = 0;
 #endif
-        MRMFeatureFinderScoring& feature_finder = feature_finders[worker_idx];
-        MRMTransitionGroupPicker& trgroup_picker = trgroup_pickers[worker_idx];
+        MRMFeatureFinderScoring& feature_finder = *feature_finders[worker_idx];
+        MRMTransitionGroupPicker& trgroup_picker = *trgroup_pickers[worker_idx];
+        const std::vector<OpenSwath::SwathMap>& thread_swath_maps = worker_swath_maps[worker_idx];
         OpenSwathScoringPhaseTiming& worker_profile = worker_profiles[worker_idx];
         const AssayWorkItem& assay = assays[assay_idx];
 
@@ -1156,7 +1172,7 @@ namespace OpenMS
       FeatureMap assay_output;
       try
       {
-        feature_finder.scorePeakgroups(transition_group, trafo, swath_maps, assay_output, ms1only, mobilogram_consumer);
+        feature_finder.scorePeakgroups(transition_group, trafo, thread_swath_maps, assay_output, ms1only, mobilogram_consumer);
         recordScoreProfile();
         if (profile)
         {
@@ -1245,7 +1261,7 @@ namespace OpenMS
     // Iterating over all the assays
     ///////////////////////////////////
 #ifdef _OPENMP
-    const bool use_assay_tasks = omp_in_parallel() && worker_count > 1 && assays.size() >= 64;
+    const bool use_assay_tasks = omp_in_parallel() && worker_count > 1 && mobilogram_consumer == nullptr && assays.size() >= 64;
     if (use_assay_tasks)
     {
       constexpr Size assay_task_grain = 8;
@@ -1311,7 +1327,7 @@ namespace OpenMS
       for (int worker_idx = 0; worker_idx < worker_count; ++worker_idx)
       {
         scoring_profile->add(worker_profiles[worker_idx]);
-        scoring_profile->add(feature_finders[worker_idx].getScoringProfile());
+        scoring_profile->add(feature_finders[worker_idx]->getScoringProfile());
       }
     }
 
