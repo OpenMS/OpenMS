@@ -473,12 +473,12 @@ namespace OpenMS
         best_mass_error = min(best_mass_error, mass_error);
       }
       
-      // Calculate mass accuracy weight (1.0 = perfect match, 0.0 = at tolerance edge)
+      // Calculate mass accuracy weight using Gaussian model (tolerance = 2σ)
+      // weight = exp(-mass_error²/(2σ²)) where σ = tolerance/2
       double tolerance = fragment_mass_tolerance_unit_ppm ? 
                         exp_spectrum[match.first].getMZ() * fragment_mass_error * 1e-6 :
                         fragment_mass_error;
-      double mass_accuracy_weight = 1.0 - (best_mass_error / tolerance);
-      mass_accuracy_weight = max(0.0, mass_accuracy_weight); // Ensure non-negative
+      double mass_accuracy_weight = exp(-2.0 * pow(best_mass_error / tolerance, 2));
       
       dot_product += mass_accuracy_weight * db_intensity * exp_spectrum[match.first].getIntensity();
     }
@@ -527,11 +527,12 @@ namespace OpenMS
     double hyperscore = log(dot_product) + matched_ions_term;
     
     // Apply consecutive ion series multiplier if we have annotations
-    if (annotations != nullptr && !annotations->empty())
-    {
-      double series_multiplier = calculateConsecutiveSeriesBonus(*annotations);
-      hyperscore *= series_multiplier;
-    }
+    // DISABLED: Testing impact of consecutive series bonus
+    // if (annotations != nullptr && !annotations->empty())
+    // {
+    //   double series_multiplier = calculateConsecutiveSeriesBonus(*annotations);
+    //   hyperscore *= series_multiplier;
+    // }
     
     if (hyperscore < 0) hyperscore = 0;
 
@@ -583,10 +584,18 @@ namespace OpenMS
     double mz_lower_bound)
   {
     if (exp_spectrum.empty()) return 0;
-    if (num_intensity_classes < 1) num_intensity_classes = 1;
-    if (num_intensity_classes > 7) num_intensity_classes = 7;
-    if (tic_fraction < 0.5) tic_fraction = 0.5;
-    if (tic_fraction > 1.0) tic_fraction = 1.0;
+    
+    // Validate parameters
+    if (num_intensity_classes < 1 || num_intensity_classes > 7)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "num_intensity_classes must be between 1 and 7, got " + String(num_intensity_classes));
+    }
+    if (tic_fraction < 0.5 || tic_fraction > 1.0)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "tic_fraction must be between 0.5 and 1.0, got " + String(tic_fraction));
+    }
 
     // Step 1: Filter peaks by TIC fraction
     // Sort peaks by intensity to find TIC threshold
@@ -719,13 +728,14 @@ namespace OpenMS
           matches_per_class[class_id]++;
         }
         
-        // Calculate mass accuracy weight for this match
+        // Calculate mass accuracy weight using Gaussian model (tolerance = 2σ)
+        // weight = exp(-mass_error²/(3σ²)) where σ = tolerance/3
         double mass_error = abs(exp_spectrum[exp_idx].getMZ() - db_mz);
         double tolerance = fragment_mass_tolerance_unit_ppm ? 
                           db_mz * fragment_mass_error * 1e-6 :
                           fragment_mass_error;
-        double mass_accuracy_weight = 1.0 - (mass_error / tolerance);
-        mass_accuracy_sum += max(0.0, mass_accuracy_weight);
+        double mass_accuracy_weight = exp(-2.0 * pow(mass_error / tolerance, 2));
+        mass_accuracy_sum += mass_accuracy_weight;
       }
     }
     
@@ -811,7 +821,9 @@ namespace OpenMS
     // Add contribution from each intensity class
     for (Size i = 0; i < num_intensity_classes; ++i)
     {
-      log_prob += log_binomial(peaks_per_class[i], matches_per_class[i]);
+      double contrib = log_binomial(peaks_per_class[i], matches_per_class[i]);
+      if (std::isinf(contrib)) return 0.0; // Invalid configuration
+      log_prob += contrib;
     }
     
     // Add contribution from empty locations
@@ -834,11 +846,12 @@ namespace OpenMS
     }
     
     // Apply consecutive ion series multiplier if we have annotations
-    if (annotations != nullptr && !annotations->empty())
-    {
-      double series_multiplier = calculateConsecutiveSeriesBonus(*annotations);
-      mvh_score *= series_multiplier;
-    }
+    // DISABLED: Testing impact of consecutive series bonus
+    // if (annotations != nullptr && !annotations->empty())
+    // {
+    //   double series_multiplier = calculateConsecutiveSeriesBonus(*annotations);
+    //   mvh_score *= series_multiplier;
+    // }
     
     // Ensure non-negative score
     if (mvh_score < 0) mvh_score = 0;
