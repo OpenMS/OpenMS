@@ -248,7 +248,8 @@ namespace OpenMS
       bool fragment_mass_tolerance_unit_ppm,
       const MSSpectrum& exp_spectrum,
       const MSSpectrum& db_spectrum,
-      double mz_lower_bound = 0.0);
+      double mz_lower_bound = 0.0,
+      bool use_mass_accuracy = true);
 
     /**
       @brief Same as the other overload, but also fills @p annotations with per-peak match metadata.
@@ -271,7 +272,8 @@ namespace OpenMS
       const MSSpectrum& exp_spectrum,
       const MSSpectrum& db_spectrum,
       std::vector<PeptideHit::PeakAnnotation>& annotations,
-      double mz_lower_bound = 0.0);
+      double mz_lower_bound = 0.0,
+      bool use_mass_accuracy = true);
 
     /// MVH (Multivariate Hypergeometric) score computation
     static double computeMVHScore(
@@ -281,7 +283,8 @@ namespace OpenMS
       const MSSpectrum& db_spectrum,
       Size num_intensity_classes = 3,
       double tic_fraction = 0.98,
-      double mz_lower_bound = 0.0);
+      double mz_lower_bound = 0.0,
+      bool use_mass_accuracy = true);
 
     /// MVH score computation (with output of peak annotations)
     static double computeMVHScore(
@@ -292,7 +295,8 @@ namespace OpenMS
       std::vector<PeptideHit::PeakAnnotation>& annotations,
       Size num_intensity_classes = 3,
       double tic_fraction = 0.98,
-      double mz_lower_bound = 0.0);
+      double mz_lower_bound = 0.0,
+      bool use_mass_accuracy = true);
 
     /**
       @brief Run the metabolomics spectral-library search and populate the MzTab output.
@@ -318,7 +322,8 @@ namespace OpenMS
       const MSSpectrum& exp_spectrum,
       const MSSpectrum& db_spectrum,
       std::vector<PeptideHit::PeakAnnotation>* annotations = 0,
-      double mz_lower_bound = 0.0);
+      double mz_lower_bound = 0.0,
+      bool use_mass_accuracy = true);
 
     static double computeMVHScore_(
       double fragment_mass_error,
@@ -328,7 +333,8 @@ namespace OpenMS
       Size num_intensity_classes,
       double tic_fraction,
       std::vector<PeptideHit::PeakAnnotation>* annotations = 0,
-      double mz_lower_bound = 0.0);
+      double mz_lower_bound = 0.0,
+      bool use_mass_accuracy = true);
 
   private:
     /// Convert the accumulated @ref SpectralMatch records into an MzTab table.
