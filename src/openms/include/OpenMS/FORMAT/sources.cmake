@@ -42,6 +42,8 @@ GNPSMGFFile.h
 GNPSQuantificationFile.h
 GzipIfstream.h
 GzipInputStream.h
+ZipIfstream.h
+ZipInputStream.h
 IBSpectraFile.h
 IdXMLFile.h
 IndentedStream.h

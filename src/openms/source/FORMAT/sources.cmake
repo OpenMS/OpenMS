@@ -30,6 +30,8 @@ GNPSMGFFile.cpp
 GNPSQuantificationFile.cpp
 GzipIfstream.cpp
 GzipInputStream.cpp
+ZipIfstream.cpp
+ZipInputStream.cpp
 IBSpectraFile.cpp
 IdXMLFile.cpp
 IndentedStream.cpp
