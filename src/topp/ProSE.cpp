@@ -6,7 +6,7 @@
 // $Authors:  $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
@@ -32,7 +32,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-@page TOPP_PeptideDataBaseSearchFI PeptideDataBaseSearchFI
+@page TOPP_ProSE ProSE
 
 @brief Identifies peptides in MS/MS spectra.
 
@@ -40,7 +40,7 @@ using namespace std;
     <table>
         <tr>
             <th ALIGN = "center"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> &rarr; PeptideDataBaseSearchFI &rarr;</td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; ProSE &rarr;</td>
             <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
@@ -58,21 +58,21 @@ using namespace std;
     @note Decoy handling: either enable '-Search:decoys' to generate decoys internally, or provide a FASTA database that already contains decoy proteins (e.g., from DecoyDatabase). In both cases, the decoy accession prefix must match '-Search:decoy_prefix' (default: "DECOY_").
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_PeptideDataBaseSearchFI.cli
+    @verbinclude TOPP_ProSE.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_PeptideDataBaseSearchFI.html
+    @htmlinclude TOPP_ProSE.html
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class PeptideDataBaseSearchFI :
+class ProSE :
     public TOPPBase
 {
   public:
-    PeptideDataBaseSearchFI() :
-      TOPPBase("PeptideDataBaseSearchFI",
-        "Annotates bottom-up MS/MS spectra using PeptideDataBaseSearchFI.",
+    ProSE() :
+      TOPPBase("ProSE",
+        "Annotates bottom-up MS/MS spectra using ProSE.",
         false)
     {
     }
@@ -104,7 +104,7 @@ class PeptideDataBaseSearchFI :
 
       // put search algorithm parameters at Search: subtree of parameters
       Param search_algo_params_with_subsection;
-      search_algo_params_with_subsection.insert("Search:", PeptideSearchEngineFIAlgorithm().getDefaults());
+      search_algo_params_with_subsection.insert("Search:", ProSEAlgorithm().getDefaults());
       registerFullParam_(search_algo_params_with_subsection);
     }
 
@@ -156,11 +156,11 @@ class PeptideDataBaseSearchFI :
       // so protein inference uses Percolator q-values, not raw HyperScores.
       if (!percolator_executable.empty() && user_protein_fdr > 0.0)
       {
-        OPENMS_LOG_INFO << "[PDBS-FI] Percolator rescoring enabled: deferring protein FDR to post-rescoring." << endl;
+        OPENMS_LOG_INFO << "[ProSE] Percolator rescoring enabled: deferring protein FDR to post-rescoring." << endl;
         search_params.setValue("FDR:protein", 0.0);
       }
 
-      PeptideSearchEngineFIAlgorithm sse;
+      ProSEAlgorithm sse;
       sse.setParameters(search_params);
 
       // Determine open-search mode the same way the algorithm does, so we can give
@@ -223,7 +223,7 @@ class PeptideDataBaseSearchFI :
       }
 
       // Single-shot multi-file search: builds the fragment index once and iterates over -in.
-      PeptideSearchEngineFIAlgorithm::MultiFileSearchResult mfres =
+      ProSEAlgorithm::MultiFileSearchResult mfres =
         sse.searchWithModificationAnalysis(in_list, database, mod_analysis_base_names, aggregate_base_name);
 
       if (mfres.per_file.size() != in_list.size())
@@ -242,7 +242,7 @@ class PeptideDataBaseSearchFI :
         bool has_decoys_for_percolator = false;
         for (const auto& pf : mfres.per_file)
         {
-          if (pf.exit_code != PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK) continue;
+          if (pf.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
           for (const auto& ph : pf.protein_ids[0].getHits())
           {
             if (ph.metaValueExists("target_decoy") && ph.getMetaValue("target_decoy").toString() == "decoy")
@@ -264,7 +264,7 @@ class PeptideDataBaseSearchFI :
         for (Size i = 0; i < in_list.size(); ++i)
         {
           auto& result = mfres.per_file[i];
-          if (result.exit_code != PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK) continue;
+          if (result.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
           if (result.peptide_ids.size() < 100)
           {
             OPENMS_LOG_WARN << "Skipping Percolator rescoring for " << in_list[i]
@@ -288,7 +288,7 @@ class PeptideDataBaseSearchFI :
             "-weights", tmp_weights
           };
 
-          OPENMS_LOG_INFO << "[PDBS-FI] Rescoring " << in_list[i] << " with Percolator..." << endl;
+          OPENMS_LOG_INFO << "[ProSE] Rescoring " << in_list[i] << " with Percolator..." << endl;
           TOPPBase::ExitCodes perc_ec = runExternalProcess_(String("PercolatorAdapter"), perc_params);
 
           if (perc_ec != EXECUTION_OK)
@@ -322,7 +322,7 @@ class PeptideDataBaseSearchFI :
         IDMergerAlgorithm merger;
         for (const auto& pf : mfres.per_file)
         {
-          if (pf.exit_code != PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK) continue;
+          if (pf.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
           merger.insertRuns(pf.protein_ids, pf.peptide_ids);
         }
         ProteinIdentification merged_proteins;
@@ -343,7 +343,7 @@ class PeptideDataBaseSearchFI :
           fdr.applyPickedProteinFDR(merged_protein_ids[0], decoy_prefix, true);
           IDFilter::filterHitsByScore(merged_protein_ids, user_protein_fdr);
 
-          OPENMS_LOG_INFO << "[PDBS-FI] Merged protein inference + FDR: "
+          OPENMS_LOG_INFO << "[ProSE] Merged protein inference + FDR: "
                           << merged_protein_ids[0].getHits().size() << " proteins at "
                           << user_protein_fdr * 100 << "% FDR" << endl;
         }
@@ -373,9 +373,9 @@ class PeptideDataBaseSearchFI :
       {
         const String& in_file = in_list[i];
         const String& out_file = out_list[i];
-        PeptideSearchEngineFIAlgorithm::SearchResult& result = mfres.per_file[i];
+        ProSEAlgorithm::SearchResult& result = mfres.per_file[i];
 
-        if (result.exit_code != PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK)
+        if (result.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK)
         {
           OPENMS_LOG_ERROR << "Search failed for " << in_file
                            << " (algorithm exit code " << static_cast<int>(result.exit_code) << "). Skipping output." << endl;
@@ -408,7 +408,7 @@ class PeptideDataBaseSearchFI :
 
       if (failed_count > 0)
       {
-        OPENMS_LOG_ERROR << "PeptideDataBaseSearchFI finished with " << failed_count
+        OPENMS_LOG_ERROR << "ProSE finished with " << failed_count
                          << " file(s) failing out of " << in_list.size() << "." << endl;
         return INTERNAL_ERROR;
       }
@@ -418,7 +418,7 @@ class PeptideDataBaseSearchFI :
 
 int main(int argc, const char** argv)
 {
-  PeptideDataBaseSearchFI tool;
+  ProSE tool;
   return tool.main(argc, argv);
 }
 

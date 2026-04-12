@@ -37,15 +37,15 @@ namespace OpenMS
   - Intended for educational/prototyping use and to demonstrate FI-backed searching
 
   Notes:
-  - Used by the PeptideDataBaseSearchFI TOPP tool
+  - Used by the ProSE TOPP tool
   - Experimental; interfaces and behavior may change
 */
-class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
+class OPENMS_DLLAPI ProSEAlgorithm :
   public DefaultParamHandler,
   public ProgressLogger
 {
   public:
-    PeptideSearchEngineFIAlgorithm(); 
+    ProSEAlgorithm(); 
 
     /// Exit codes
     enum class ExitCodes
@@ -165,7 +165,7 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
      *
      * Example usage:
      * @code
-     * PeptideSearchEngineFIAlgorithm algo;
+     * ProSEAlgorithm algo;
      * Param p = algo.getParameters();
      * p.setValue("precursor:mass_tolerance_lower", 500.0);  // Open search
      * p.setValue("precursor:mass_tolerance_upper", 500.0);
@@ -379,7 +379,7 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
      * @param[out] database_name Database file name used for the search (stored in protein_ids).
      */
     void postProcessHits_(const PeakMap& exp,
-      std::vector<std::vector<PeptideSearchEngineFIAlgorithm::AnnotatedHit_> >& annotated_hits,
+      std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,
       std::vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids,
       Size top_hits,

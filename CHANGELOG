@@ -62,7 +62,7 @@ TOPP tools:
     CometAdapter:
       - Merges compatible variable modifications for improved search performance (3x+ speedup) (#8407)
       - Added Bruker TimsTOF .d DDA-PASEF input support; .d directories are converted to mzML on-the-fly via BrukerTimsFile before search; requires WITH_TIMSRUST=ON (#9126)
-    PeptideDataBaseSearchFI:
+    ProSE:
       - BREAKING: precursor tolerance schema changed to asymmetric positive-magnitude pair (#9108)
         The scalar `precursor:mass_tolerance` and the `precursor:open_window_lower/_upper`
         params are REMOVED and replaced by `precursor:mass_tolerance_lower` and
@@ -451,7 +451,7 @@ TOPP tools:
       - Improved precursor mass assignment for MSn spectra
   Added Tools:
     - OpenNuXL - A peptide-RNA/DNA cross-linking search engine
-    - PeptideDataBaseSearchFI - Experimental peptide database search engine using a fragment index (FI) and the new PeptideSearchEngineFIAlgorithm
+    - ProSE - Experimental peptide database search engine using a fragment index (FI) and the new ProSEAlgorithm
     - FeatureFinderLFQ (experimental) - Feature detection for label-free proteomics DDA-LFQ based on the Biosaur2 algorithm with support for FAIMS and TimsTOF ion mobility
     - PeakPickerIM - Ion mobility peak picker for TimsTOF and other IM data. Supports three methods: mobilogram-based,
       clustering, and elution profile-based picking. Supports both in-memory and low-memory streaming modes. (#8177)
@@ -478,7 +478,7 @@ OpenMS Library:
     - Both: Added isDecoy().
     - unify isotopic distributions (coarse vs. fine) for EmpiricalFormulas with charge (#8099)
     - FragmentIndex (experimental): New fragment index for fast peptide fragment lookup supporting FI-based peptide database search.
-    - PeptideSearchEngineFIAlgorithm (experimental): Library algorithm leveraging FragmentIndex for peptide database search; used by the PeptideDataBaseSearchFI TOPP tool.
+    - ProSEAlgorithm (experimental): Library algorithm leveraging FragmentIndex for peptide database search; used by the ProSE TOPP tool.
     - AhoCorasick: Improved high-performance string matching algorithm with path compression (#8269, #8304)
     - HashGrid: Exposed cellIndexAtClusterCenter method (#8318)
   Changes:

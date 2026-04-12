@@ -10,7 +10,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -35,23 +35,23 @@ using namespace std;
 // Test subclass exposing internal state for white-box assertions on
 // asymmetric bounds, calibration-pass results, and the mod-match tolerance helper.
 //
-// The `friend class PeptideSearchEngineFIAlgorithm_test;` declaration in the
+// The `friend class ProSEAlgorithm_test;` declaration in the
 // production header makes the `using` re-exposure below legal.
 //
-// Note: `fragment_index_` is NOT a member of PeptideSearchEngineFIAlgorithm — it
+// Note: `fragment_index_` is NOT a member of ProSEAlgorithm — it
 // lives on the SearchContext and is a local reference during search(). Tests that
 // need to observe FragmentIndex state must do so via prepareContext() + the
 // context-taking search() overload before/after the restore hook fires.
-class PeptideSearchEngineFIAlgorithm_test : public PeptideSearchEngineFIAlgorithm
+class ProSEAlgorithm_test : public ProSEAlgorithm
 {
 public:
-  using PeptideSearchEngineFIAlgorithm::precursor_mass_tolerance_lower_;
-  using PeptideSearchEngineFIAlgorithm::precursor_mass_tolerance_upper_;
-  using PeptideSearchEngineFIAlgorithm::precursor_mass_tolerance_unit_;
-  using PeptideSearchEngineFIAlgorithm::computeModMatchTolerance_;
-  using PeptideSearchEngineFIAlgorithm::last_calibration_result_;
-  using PeptideSearchEngineFIAlgorithm::last_mod_match_tolerance_used_;
-  using PeptideSearchEngineFIAlgorithm::CalibrationResult_;
+  using ProSEAlgorithm::precursor_mass_tolerance_lower_;
+  using ProSEAlgorithm::precursor_mass_tolerance_upper_;
+  using ProSEAlgorithm::precursor_mass_tolerance_unit_;
+  using ProSEAlgorithm::computeModMatchTolerance_;
+  using ProSEAlgorithm::last_calibration_result_;
+  using ProSEAlgorithm::last_mod_match_tolerance_used_;
+  using ProSEAlgorithm::CalibrationResult_;
 };
 
 // --- Shared calibration fixture -------------------------------------------------
@@ -70,17 +70,17 @@ public:
 //   3. User window [20, 30] ppm is wide enough that:
 //        - the candidate look-up in computeMassWindow_() finds the theoretical
 //          peptide (max applied error < 30)
-//        - the wrong-match filter at PSEFIA.cpp:1584 passes every hit
+//        - the wrong-match filter at ProSEAlgorithm.cpp:1584 passes every hit
 //      and the calibration result is a genuine tightening relative to user
 //      bounds rather than a clamp-to-user artifact.
-//   4. calibration:min_psms = 5 bypasses the top-50% score crop (PSEFIA.cpp:1571)
+//   4. calibration:min_psms = 5 bypasses the top-50% score crop (ProSEAlgorithm.cpp:1571)
 //      for our small fixture (only ~12 hits) so the full scattered distribution
 //      reaches the median/MAD estimator.
 //
 // Error distribution rationale:
 //   The 12-element error vector below has median = 7.0 and a spread such that
 //   precursor_spread = median(|e-7|) + 3 * MAD(|e-7|) > 7, keeping
-//   extreme_bias = false. See comments in PSEFIA.cpp runCalibrationPass_.
+//   extreme_bias = false. See comments in ProSEAlgorithm.cpp runCalibrationPass_.
 static vector<FASTAFile::FASTAEntry> calibration_fasta_db_()
 {
   return {
@@ -146,7 +146,7 @@ static PeakMap build_calibration_spectra_(const vector<double>& ppm_shifts)
   return spectra;
 }
 
-static void configure_calibration_params_(PeptideSearchEngineFIAlgorithm& algo,
+static void configure_calibration_params_(ProSEAlgorithm& algo,
                                           double lower_ppm,
                                           double upper_ppm,
                                           Size min_psms = 3)
@@ -161,7 +161,7 @@ static void configure_calibration_params_(PeptideSearchEngineFIAlgorithm& algo,
   p.setValue("calibration:enabled", "true");
   p.setValue("calibration:subset_ratio", 1.0);
   // min_psms is chosen per-test. When min_psms > cal_hits/2, the top-50% score
-  // crop at PSEFIA.cpp:1571 is skipped and every collected error reaches the
+  // crop at ProSEAlgorithm.cpp:1571 is skipped and every collected error reaches the
   // estimator. For our small fixture that's what we want.
   p.setValue("calibration:min_psms", static_cast<Int>(min_psms));
   p.setValue("decoys", "false");
@@ -171,22 +171,22 @@ static void configure_calibration_params_(PeptideSearchEngineFIAlgorithm& algo,
   algo.setParameters(p);
 }
 
-START_TEST(PeptideSearchEngineFIAlgorithm, "$Id$")
+START_TEST(ProSEAlgorithm, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeptideSearchEngineFIAlgorithm* ptr = nullptr;
-PeptideSearchEngineFIAlgorithm* null_ptr = nullptr;
+ProSEAlgorithm* ptr = nullptr;
+ProSEAlgorithm* null_ptr = nullptr;
 
-START_SECTION(PeptideSearchEngineFIAlgorithm())
+START_SECTION(ProSEAlgorithm())
 {
-  ptr = new PeptideSearchEngineFIAlgorithm();
+  ptr = new ProSEAlgorithm();
   TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
-START_SECTION(~PeptideSearchEngineFIAlgorithm())
+START_SECTION(~ProSEAlgorithm())
 {
   delete ptr;
 }
@@ -377,7 +377,7 @@ START_SECTION(([EXTRA] Synthetic modification discovery - open search))
   // =========================================================================
   // Configure and run open search
   // =========================================================================
-  PeptideSearchEngineFIAlgorithm algo;
+  ProSEAlgorithm algo;
   Param p = algo.getParameters();
   p.setValue("precursor:mass_tolerance_lower", 500.0);
   p.setValue("precursor:mass_tolerance_upper", 500.0);
@@ -398,7 +398,7 @@ START_SECTION(([EXTRA] Synthetic modification discovery - open search))
   // =========================================================================
   // Verify results
   // =========================================================================
-  TEST_EQUAL(result.exit_code == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(result.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
   TEST_EQUAL(result.is_open_search, true)
 
   OPENMS_LOG_INFO << "[TEST] Total PSMs: " << result.peptide_ids.size() << std::endl;
@@ -673,7 +673,7 @@ START_SECTION(([EXTRA] FDR-filtered modification discovery))
   // =========================================================================
   // Step 1: Search with decoys enabled
   // =========================================================================
-  PeptideSearchEngineFIAlgorithm algo;
+  ProSEAlgorithm algo;
   Param p = algo.getParameters();
   p.setValue("precursor:mass_tolerance_lower", 500.0);
   p.setValue("precursor:mass_tolerance_upper", 500.0);
@@ -693,7 +693,7 @@ START_SECTION(([EXTRA] FDR-filtered modification discovery))
   PeptideIdentificationList pep_ids;
   auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
 
-  TEST_EQUAL(ec == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
   Size total_before = pep_ids.size();
   OPENMS_LOG_INFO << "[TEST FDR] Total PSMs before filtering: " << total_before << std::endl;
   TEST_TRUE(total_before > 500)
@@ -813,7 +813,7 @@ START_SECTION(([EXTRA] Closed search baseline))
     spectra.addSpectrum(std::move(spec));
   }
 
-  PeptideSearchEngineFIAlgorithm algo;
+  ProSEAlgorithm algo;
   Param p = algo.getParameters();
   p.setValue("precursor:mass_tolerance_lower", 10.0);
   p.setValue("precursor:mass_tolerance_upper", 10.0);
@@ -832,10 +832,10 @@ START_SECTION(([EXTRA] Closed search baseline))
   PeptideIdentificationList pep_ids;
   auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
 
-  TEST_EQUAL(ec == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
   TEST_TRUE(pep_ids.size() > 0)
   TEST_EQUAL(prot_ids.size(), 1)
-  TEST_EQUAL(prot_ids[0].getSearchEngine(), "PeptideDataBaseSearchFI")
+  TEST_EQUAL(prot_ids[0].getSearchEngine(), "ProSE")
 }
 END_SECTION
 
@@ -883,7 +883,7 @@ START_SECTION(([EXTRA] Ion mobility annotation))
     spectra.addSpectrum(std::move(spec));
   }
 
-  PeptideSearchEngineFIAlgorithm algo;
+  ProSEAlgorithm algo;
   Param p = algo.getParameters();
   p.setValue("precursor:mass_tolerance_lower", 10.0);
   p.setValue("precursor:mass_tolerance_upper", 10.0);
@@ -902,7 +902,7 @@ START_SECTION(([EXTRA] Ion mobility annotation))
   PeptideIdentificationList pep_ids;
   auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
 
-  TEST_EQUAL(ec == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
   TEST_EQUAL(prot_ids.size(), 1)
   TEST_EQUAL(pep_ids.size(), 2) // one PSM per input spectrum
 
@@ -932,7 +932,7 @@ START_SECTION(([EXTRA] Edge cases - empty inputs))
     PeakMap empty_spectra;
     vector<FASTAFile::FASTAEntry> fasta_db = {{"P01", "Test", "MSDEREKVLGFHQR"}};
 
-    PeptideSearchEngineFIAlgorithm algo;
+    ProSEAlgorithm algo;
     Param p = algo.getParameters();
     p.setValue("decoys", "false");
     algo.setParameters(p);
@@ -940,7 +940,7 @@ START_SECTION(([EXTRA] Edge cases - empty inputs))
     vector<ProteinIdentification> prot_ids;
     PeptideIdentificationList pep_ids;
     auto ec = algo.search(empty_spectra, fasta_db, prot_ids, pep_ids);
-    TEST_EQUAL(ec == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+    TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
     TEST_EQUAL(pep_ids.size(), 0)
   }
 
@@ -1025,7 +1025,7 @@ START_SECTION(([EXTRA] prepareContext + context-based search produces same IDs a
   }
   TEST_TRUE(spectra.size() > 5)
 
-  PeptideSearchEngineFIAlgorithm algo;
+  ProSEAlgorithm algo;
   Param p = algo.getParameters();
   p.setValue("precursor:mass_tolerance_lower", 20.0);
   p.setValue("precursor:mass_tolerance_upper", 20.0);
@@ -1042,17 +1042,17 @@ START_SECTION(([EXTRA] prepareContext + context-based search produces same IDs a
   vector<ProteinIdentification> prot_a;
   PeptideIdentificationList pep_a;
   auto ec_a = algo.search(spectra_a, fasta_db, prot_a, pep_a);
-  TEST_EQUAL(ec_a == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(ec_a == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
   TEST_TRUE(pep_a.size() > 0)
 
   // Path B: prepareContext + context-based search.
   PeakMap spectra_b = spectra;
-  PeptideSearchEngineFIAlgorithm::SearchContext ctx = algo.prepareContext(fasta_db);
+  ProSEAlgorithm::SearchContext ctx = algo.prepareContext(fasta_db);
   TEST_EQUAL(ctx.fragment_index.isBuild(), true)
   vector<ProteinIdentification> prot_b;
   PeptideIdentificationList pep_b;
   auto ec_b = algo.search(spectra_b, ctx, prot_b, pep_b);
-  TEST_EQUAL(ec_b == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(ec_b == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
 
   // Both paths must yield the same number of PSMs (the search engine itself is
   // deterministic when decoys are disabled).
@@ -1075,7 +1075,7 @@ START_SECTION(([EXTRA] prepareContext + context-based search produces same IDs a
   vector<ProteinIdentification> prot_c;
   PeptideIdentificationList pep_c;
   auto ec_c = algo.search(spectra_c, ctx, prot_c, pep_c);
-  TEST_EQUAL(ec_c == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(ec_c == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
   TEST_EQUAL(pep_c.size(), pep_b.size())
 }
 END_SECTION
@@ -1083,7 +1083,7 @@ END_SECTION
 START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::vector<String>&, const std::vector<FASTAFile::FASTAEntry>&, const std::vector<String>&, const String&) const))
 {
   // Verify the multi-file in-memory FASTA overload validates input list lengths.
-  PeptideSearchEngineFIAlgorithm algo;
+  ProSEAlgorithm algo;
   Param p = algo.getParameters();
   p.setValue("decoys", "false");
   algo.setParameters(p);
@@ -1098,7 +1098,7 @@ START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::v
   // Empty input file list returns INPUT_FILE_EMPTY (no exception).
   auto empty_res = algo.searchWithModificationAnalysis(std::vector<String>{}, fasta_db, std::vector<String>{}, "");
   TEST_EQUAL(empty_res.per_file.empty(), true)
-  TEST_EQUAL(empty_res.aggregate.exit_code == PeptideSearchEngineFIAlgorithm::ExitCodes::INPUT_FILE_EMPTY, true)
+  TEST_EQUAL(empty_res.aggregate.exit_code == ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY, true)
 }
 END_SECTION
 
@@ -1145,7 +1145,7 @@ START_SECTION(([EXTRA] PSM annotations - matched ion counts, longest run, fragme
   exp.addSpectrum(std::move(ms2));
 
   // Configure search engine
-  PeptideSearchEngineFIAlgorithm algo;
+  ProSEAlgorithm algo;
   Param p = algo.getParameters();
   p.setValue("precursor:mass_tolerance_lower", 10.0);
   p.setValue("precursor:mass_tolerance_upper", 10.0);
@@ -1213,7 +1213,7 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   //
   // PLAN DEVIATION: the plan asked for [20, 5] ppm + a uniform +7 ppm shift.
   //   - [lower=20, upper=5] = [-20, +5], so the wrong-match filter at
-  //     PSEFIA.cpp:1584 rejects every +7 ppm hit.
+  //     ProSEAlgorithm.cpp:1584 rejects every +7 ppm hit.
   //   - A uniform shift gives residual spread ~ 1e-6, so |shift| >> spread
   //     and extreme_bias triggers (same pathology as test 9).
   //   - The plan's SimpleSearchEngine_1.mzML fixture does not exist in
@@ -1230,14 +1230,14 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   PeakMap spectra = build_calibration_spectra_(ppm_shifts);
   auto fasta_db = calibration_fasta_db_();
 
-  PeptideSearchEngineFIAlgorithm_test algo;
+  ProSEAlgorithm_test algo;
   configure_calibration_params_(algo, /*lower_ppm*/ 20.0, /*upper_ppm*/ 30.0,
                                 /*min_psms*/ 3);
 
   vector<ProteinIdentification> prot_ids;
   PeptideIdentificationList pep_ids;
   auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
-  TEST_EQUAL(ec == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
 
   const auto& cal = algo.last_calibration_result_;
   TEST_EQUAL(cal.success, true)
@@ -1254,7 +1254,7 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   TEST_EQUAL(cal.cal_upper > cal.cal_lower, true)
   // Post-search, the tolerance members have been RESTORED to the user-configured
   // values to avoid per-file state leaks in the multi-file wrapper (which reuses a
-  // single PeptideSearchEngineFIAlgorithm instance across files). The calibrated
+  // single ProSEAlgorithm instance across files). The calibrated
   // values are observable via last_calibration_result_, which is checked above.
   TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_lower_, 20.0)
   TEST_REAL_SIMILAR(algo.precursor_mass_tolerance_upper_, 30.0)
@@ -1278,14 +1278,14 @@ START_SECTION(([EXTRA] OpenSearchModificationAnalysis received post-calibration 
   PeakMap spectra = build_calibration_spectra_(ppm_shifts);
   auto fasta_db = calibration_fasta_db_();
 
-  PeptideSearchEngineFIAlgorithm_test algo;
+  ProSEAlgorithm_test algo;
   configure_calibration_params_(algo, /*lower_ppm*/ 20.0, /*upper_ppm*/ 30.0,
                                 /*min_psms*/ 3);
 
   vector<ProteinIdentification> prot_ids;
   PeptideIdentificationList pep_ids;
   auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
-  TEST_EQUAL(ec == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
 
   const auto& cal = algo.last_calibration_result_;
   TEST_EQUAL(cal.success, true)
@@ -1313,14 +1313,14 @@ START_SECTION(([EXTRA] calibration extreme-bias path preserves user bounds))
   PeakMap spectra = build_calibration_spectra_(ppm_shifts);
   auto fasta_db = calibration_fasta_db_();
 
-  PeptideSearchEngineFIAlgorithm_test algo;
+  ProSEAlgorithm_test algo;
   configure_calibration_params_(algo, /*lower_ppm*/ 100.0, /*upper_ppm*/ 100.0,
                                 /*min_psms*/ 3);
 
   vector<ProteinIdentification> prot_ids;
   PeptideIdentificationList pep_ids;
   auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
-  TEST_EQUAL(ec == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
 
   const auto& cal = algo.last_calibration_result_;
   TEST_EQUAL(cal.success, true)
@@ -1335,7 +1335,7 @@ START_SECTION(([EXTRA] computeModMatchTolerance_ returns min(lower, upper)))
 {
   // Pure unit test — no search, no calibration. Pins the min() reduction rule
   // so a future change to max() or midpoint is caught.
-  PeptideSearchEngineFIAlgorithm_test algo;
+  ProSEAlgorithm_test algo;
   Param p = algo.getParameters();
   p.setValue("precursor:mass_tolerance_unit", "ppm");
 

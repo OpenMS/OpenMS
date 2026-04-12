@@ -2899,37 +2899,37 @@ set_tests_properties("TOPP_SimpleSearchEngine_2_out" PROPERTIES DEPENDS
 "TOPP_SimpleSearchEngine_2")
 
 
-# PeptideDataBaseSearchFI:
-add_test("TOPP_PeptideDataBaseSearchFI_1" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
--ini ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_1.ini -in
-${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_1_out.tmp.idXML
+# ProSE:
+add_test("TOPP_ProSE_1" ${TOPP_BIN_PATH}/ProSE -test
+-ini ${DATA_DIR_TOPP}/ProSE_1.ini -in
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML
 -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
-add_test("TOPP_PeptideDataBaseSearchFI_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
-set_tests_properties("TOPP_PeptideDataBaseSearchFI_1_out" PROPERTIES DEPENDS
-"TOPP_PeptideDataBaseSearchFI_1")
+add_test("TOPP_ProSE_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+set_tests_properties("TOPP_ProSE_1_out" PROPERTIES DEPENDS
+"TOPP_ProSE_1")
 
-add_test("TOPP_PeptideDataBaseSearchFI_2" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
--ini ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_2.ini -in
-${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_2_out.tmp.idXML
+add_test("TOPP_ProSE_2" ${TOPP_BIN_PATH}/ProSE -test
+-ini ${DATA_DIR_TOPP}/ProSE_2.ini -in
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML
 -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
-add_test("TOPP_PeptideDataBaseSearchFI_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_2_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
-set_tests_properties("TOPP_PeptideDataBaseSearchFI_2_out" PROPERTIES DEPENDS
-"TOPP_PeptideDataBaseSearchFI_2")
+add_test("TOPP_ProSE_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+set_tests_properties("TOPP_ProSE_2_out" PROPERTIES DEPENDS
+"TOPP_ProSE_2")
 
 # Multi-file test: search two mzML inputs (here the same file twice for simplicity)
 # against the same FASTA in a single invocation. The fragment index is built once
 # and reused. The first output is idXML (compared against the _1 reference), the
 # second output is QPX PSM parquet (smoke-tested via sha256sum which fails if the
 # file does not exist).
-add_test("TOPP_PeptideDataBaseSearchFI_3_multi" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
--ini ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_1.ini
+add_test("TOPP_ProSE_3_multi" ${TOPP_BIN_PATH}/ProSE -test
+-ini ${DATA_DIR_TOPP}/ProSE_1.ini
 -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
--out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_3_multi_a.tmp.idXML ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_3_multi_b.tmp.parquet
+-out ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_3_multi_b.tmp.parquet
 -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
-add_test("TOPP_PeptideDataBaseSearchFI_3_multi_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_3_multi_a.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
-set_tests_properties("TOPP_PeptideDataBaseSearchFI_3_multi_idXML_out" PROPERTIES DEPENDS "TOPP_PeptideDataBaseSearchFI_3_multi")
-add_test(NAME "TOPP_PeptideDataBaseSearchFI_3_multi_parquet_out" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_3_multi_b.tmp.parquet)
-set_tests_properties("TOPP_PeptideDataBaseSearchFI_3_multi_parquet_out" PROPERTIES DEPENDS "TOPP_PeptideDataBaseSearchFI_3_multi")
+add_test("TOPP_ProSE_3_multi_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+set_tests_properties("TOPP_ProSE_3_multi_idXML_out" PROPERTIES DEPENDS "TOPP_ProSE_3_multi")
+add_test(NAME "TOPP_ProSE_3_multi_parquet_out" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/ProSE_3_multi_b.tmp.parquet)
+set_tests_properties("TOPP_ProSE_3_multi_parquet_out" PROPERTIES DEPENDS "TOPP_ProSE_3_multi")
 
 # Asymmetric precursor window + calibration bias preservation end-to-end test.
 # Uses SimpleSearchEngine_1_shifted_7ppm.mzML (all MS2 precursors multiplied by
@@ -2940,18 +2940,18 @@ set_tests_properties("TOPP_PeptideDataBaseSearchFI_3_multi_parquet_out" PROPERTI
 # (3 MS2 spectra) triggers the calibration pass, which detects shift ~ +7 ppm
 # as the signed median. With 3 tight residuals the |shift| >> spread check
 # routes the result through the extreme-bias path, preserving user bounds.
-add_test("TOPP_PeptideDataBaseSearchFI_4" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
-  -ini ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_4.ini
+add_test("TOPP_ProSE_4" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_4.ini
   -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1_shifted_7ppm.mzML
-  -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_4_out.tmp.idXML
+  -out ${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
-add_test("TOPP_PeptideDataBaseSearchFI_4_out" ${DIFF}
-  -in1 ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_4_out.tmp.idXML
-  -in2 ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_4_out.idXML
+add_test("TOPP_ProSE_4_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
+  -in2 ${DATA_DIR_TOPP}/ProSE_4_out.idXML
   -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version"
   -ratio 1.2 -absdiff 2.0)
-set_tests_properties("TOPP_PeptideDataBaseSearchFI_4_out" PROPERTIES DEPENDS
-  "TOPP_PeptideDataBaseSearchFI_4")
+set_tests_properties("TOPP_ProSE_4_out" PROPERTIES DEPENDS
+  "TOPP_ProSE_4")
 
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
@@ -2984,10 +2984,10 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -protein false)
   set_tests_properties("TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA" PROPERTIES DEPENDS "TOPP_SimpleSearchEngine_DDA")
 
-  add_test("TOPP_PeptideDataBaseSearchFI_DDA" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
+  add_test("TOPP_ProSE_DDA" ${TOPP_BIN_PATH}/ProSE -test
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
-    -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_out.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/ProSE_DDA_out.tmp.idXML
     -Search:precursor:mass_tolerance_lower 20
     -Search:precursor:mass_tolerance_upper 20
     -Search:precursor:mass_tolerance_unit ppm
@@ -2998,18 +2998,18 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
     -Search:decoys)
 
-  add_test("TOPP_FalseDiscoveryRate_PeptideDataBaseSearchFIDDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
-    -in ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_out.tmp.idXML
-    -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_fdr.tmp.idXML
+  add_test("TOPP_FalseDiscoveryRate_ProSEDDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+    -in ${TESTS_TEMP_DIR}/ProSE_DDA_out.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/ProSE_DDA_fdr.tmp.idXML
     -FDR:PSM 0.01
     -protein false)
-  set_tests_properties("TOPP_FalseDiscoveryRate_PeptideDataBaseSearchFIDDA" PROPERTIES DEPENDS "TOPP_PeptideDataBaseSearchFI_DDA")
+  set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA" PROPERTIES DEPENDS "TOPP_ProSE_DDA")
 
   # Same DDA search with automatic calibration enabled
-  add_test("TOPP_PeptideDataBaseSearchFI_DDA_calibrated" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
+  add_test("TOPP_ProSE_DDA_calibrated" ${TOPP_BIN_PATH}/ProSE -test
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
-    -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_calibrated_out.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_out.tmp.idXML
     -Search:precursor:mass_tolerance_lower 20
     -Search:precursor:mass_tolerance_upper 20
     -Search:precursor:mass_tolerance_unit ppm
@@ -3021,12 +3021,12 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -Search:decoys
     -Search:calibration:enabled)
 
-  add_test("TOPP_FalseDiscoveryRate_PeptideDataBaseSearchFIDDA_calibrated" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
-    -in ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_calibrated_out.tmp.idXML
-    -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_calibrated_fdr.tmp.idXML
+  add_test("TOPP_FalseDiscoveryRate_ProSEDDA_calibrated" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+    -in ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_out.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_fdr.tmp.idXML
     -FDR:PSM 0.01
     -protein false)
-  set_tests_properties("TOPP_FalseDiscoveryRate_PeptideDataBaseSearchFIDDA_calibrated" PROPERTIES DEPENDS "TOPP_PeptideDataBaseSearchFI_DDA_calibrated")
+  set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_calibrated" PROPERTIES DEPENDS "TOPP_ProSE_DDA_calibrated")
 
   # Generate target-decoy database (shared by CometAdapter and SageAdapter DDA tests)
   add_test("TOPP_DecoyDatabase_DDA" ${TOPP_BIN_PATH}/DecoyDatabase -test
