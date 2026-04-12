@@ -50,6 +50,7 @@
 
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
+#include <OpenMS/FORMAT/ZipIfstream.h>
 
 #ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
@@ -377,7 +378,26 @@ namespace OpenMS
       all_simple = first_line + ' ' + two_five;
       complete_file = split;
     }
-    //else {} // TODO: ZIP
+    else if (bz[0] == 'P' && bz[1] == 'K') // ZIP
+    {
+      ZipIfstream zip_file(filename.c_str());
+
+      // read in 1024 bytes (keep last byte for zero to end string)
+      char buffer[1024];
+      size_t bytes_read = zip_file.read(buffer, 1024-1);
+      buffer[bytes_read] = '\0';
+
+      // get first five lines
+      String buffer_str(buffer);
+      vector<String> split;
+      buffer_str.split('\n', split);
+      split.resize(5);
+
+      first_line = split[0];
+      two_five = split[1] + ' ' + split[2] + ' ' + split[3] + ' ' + split[4];
+      all_simple = first_line + ' ' + two_five;
+      complete_file = split;
+    }
     else // uncompressed
     {
       //load first 5 lines
