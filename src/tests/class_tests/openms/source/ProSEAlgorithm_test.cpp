@@ -70,17 +70,17 @@ public:
 //   3. User window [20, 30] ppm is wide enough that:
 //        - the candidate look-up in computeMassWindow_() finds the theoretical
 //          peptide (max applied error < 30)
-//        - the wrong-match filter at PSEFIA.cpp:1584 passes every hit
+//        - the wrong-match filter at ProSEAlgorithm.cpp:1584 passes every hit
 //      and the calibration result is a genuine tightening relative to user
 //      bounds rather than a clamp-to-user artifact.
-//   4. calibration:min_psms = 5 bypasses the top-50% score crop (PSEFIA.cpp:1571)
+//   4. calibration:min_psms = 5 bypasses the top-50% score crop (ProSEAlgorithm.cpp:1571)
 //      for our small fixture (only ~12 hits) so the full scattered distribution
 //      reaches the median/MAD estimator.
 //
 // Error distribution rationale:
 //   The 12-element error vector below has median = 7.0 and a spread such that
 //   precursor_spread = median(|e-7|) + 3 * MAD(|e-7|) > 7, keeping
-//   extreme_bias = false. See comments in PSEFIA.cpp runCalibrationPass_.
+//   extreme_bias = false. See comments in ProSEAlgorithm.cpp runCalibrationPass_.
 static vector<FASTAFile::FASTAEntry> calibration_fasta_db_()
 {
   return {
@@ -161,7 +161,7 @@ static void configure_calibration_params_(ProSEAlgorithm& algo,
   p.setValue("calibration:enabled", "true");
   p.setValue("calibration:subset_ratio", 1.0);
   // min_psms is chosen per-test. When min_psms > cal_hits/2, the top-50% score
-  // crop at PSEFIA.cpp:1571 is skipped and every collected error reaches the
+  // crop at ProSEAlgorithm.cpp:1571 is skipped and every collected error reaches the
   // estimator. For our small fixture that's what we want.
   p.setValue("calibration:min_psms", static_cast<Int>(min_psms));
   p.setValue("decoys", "false");
@@ -1213,7 +1213,7 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   //
   // PLAN DEVIATION: the plan asked for [20, 5] ppm + a uniform +7 ppm shift.
   //   - [lower=20, upper=5] = [-20, +5], so the wrong-match filter at
-  //     PSEFIA.cpp:1584 rejects every +7 ppm hit.
+  //     ProSEAlgorithm.cpp:1584 rejects every +7 ppm hit.
   //   - A uniform shift gives residual spread ~ 1e-6, so |shift| >> spread
   //     and extreme_bias triggers (same pathology as test 9).
   //   - The plan's SimpleSearchEngine_1.mzML fixture does not exist in

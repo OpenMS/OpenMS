@@ -7,7 +7,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/FORMAT/RationalScan2ImConverter.h>
@@ -436,7 +436,7 @@ START_SECTION(DDA search engine IM annotation integration test)
   TEST_TRUE(ms2_count > 0)
   TEST_EQUAL(ms2_with_im, ms2_count) // all MS2 spectra should have drift time
 
-  // Run PeptideSearchEngineFIAlgorithm in-memory with the same FASTA and
+  // Run ProSEAlgorithm in-memory with the same FASTA and
   // parameters used by the TOPP-level DDA tests for SSE and FI.
   // The key test: any PSMs produced must have IM annotation.
   vector<FASTAFile::FASTAEntry> fasta_db;
@@ -444,7 +444,7 @@ START_SECTION(DDA search engine IM annotation integration test)
   TEST_TRUE(fasta_db.size() > 0)
 
   // Typical timsTOF Pro DDA-PASEF search parameters
-  PeptideSearchEngineFIAlgorithm algo;
+  ProSEAlgorithm algo;
   Param p = algo.getParameters();
   p.setValue("precursor:mass_tolerance_lower", 20.0);
   p.setValue("precursor:mass_tolerance_upper", 20.0);
@@ -460,7 +460,7 @@ START_SECTION(DDA search engine IM annotation integration test)
   PeptideIdentificationList pep_ids;
   auto ec = algo.search(exp, fasta_db, prot_ids, pep_ids);
 
-  TEST_EQUAL(ec == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
   TEST_EQUAL(prot_ids.size(), 1)
 
   // Verify IM annotation: every PSM must have IM meta value (all MS2 spectra have drift time)

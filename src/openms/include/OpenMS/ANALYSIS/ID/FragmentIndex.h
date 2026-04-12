@@ -206,7 +206,7 @@ namespace OpenMS
     /// Shared auto-detection: open-search iff max(lower, upper) > threshold (1000 ppm or 1 Da).
     /// Strict `>`: exactly 1000 ppm stays closed.
     /// This is the single source of truth for the open-search auto-detection rule and is
-    /// reused by PeptideSearchEngineFIAlgorithm and the TOPP tool.
+    /// reused by ProSEAlgorithm and the TOPP tool.
     static bool isOpenSearchMode(double lower_magnitude,
                                  double upper_magnitude,
                                  bool unit_ppm) noexcept
