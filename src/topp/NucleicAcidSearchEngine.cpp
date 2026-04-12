@@ -246,7 +246,9 @@ protected:
     registerTOPPSubsection_("report", "Reporting Options");
     registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top-scoring hits per spectrum that are reported ('0' for all hits)", false, true);
     setMinInt_("report:top_hits", 0);
-    registerFlag_("report:require_full_coverage", "Only report hits with fragment ions covering all internal positions of the oligonucleotide (requires at least one fragment of type a, a-B, b, c, d, w, x, y, or z at each position)", true);
+    registerDoubleOption_("report:require_coverage", "<fraction>", 0.0, "Minimum fraction of internal oligonucleotide positions that must be covered by fragment ions (0.0 = no requirement, 1.0 = full coverage required). Coverage requires at least one fragment of type a, a-B, b, c, d, w, x, y, or z at each position.", false, true);
+    setMinFloat_("report:require_coverage", 0.0);
+    setMaxFloat_("report:require_coverage", 1.0);
 
     registerTOPPSubsection_("fdr", "False Discovery Rate options");
     registerStringOption_("fdr:decoy_pattern", "<string>", "", "String used as part of the accession to annotate decoy sequences (e.g. 'DECOY_'). Leave empty to skip the FDR/q-value calculation.", false);
@@ -367,9 +369,46 @@ protected:
 
     NASequence shuffled = original;
     std::vector<const Ribonucleotide*> residues = shuffled.getSequence();
-    std::mt19937_64 rng(seed);
-    std::shuffle(residues.begin(), residues.end(), rng);
-    shuffled.setSequence(residues);
+    
+    // Separate residues by terminal specificity
+    std::vector<const Ribonucleotide*> five_prime_residues;
+    std::vector<const Ribonucleotide*> anywhere_residues;
+    std::vector<const Ribonucleotide*> three_prime_residues;
+    
+    for (size_t i = 0; i < residues.size(); ++i)
+    {
+      const Ribonucleotide* ribo = residues[i];
+      Ribonucleotide::TermSpecificityNuc term_spec = ribo->getTermSpecificity();
+      
+      if (term_spec == Ribonucleotide::FIVE_PRIME)
+      {
+        five_prime_residues.push_back(ribo);
+      }
+      else if (term_spec == Ribonucleotide::THREE_PRIME)
+      {
+        three_prime_residues.push_back(ribo);
+      }
+      else // ANYWHERE
+      {
+        anywhere_residues.push_back(ribo);
+      }
+    }
+    
+    // Shuffle only the ANYWHERE residues
+    if (!anywhere_residues.empty())
+    {
+      std::mt19937_64 rng(seed);
+      std::shuffle(anywhere_residues.begin(), anywhere_residues.end(), rng);
+    }
+    
+    // Reconstruct: 5' mods, shuffled middles, 3' mods
+    std::vector<const Ribonucleotide*> new_residues;
+    new_residues.reserve(residues.size());
+    new_residues.insert(new_residues.end(), five_prime_residues.begin(), five_prime_residues.end());
+    new_residues.insert(new_residues.end(), anywhere_residues.begin(), anywhere_residues.end());
+    new_residues.insert(new_residues.end(), three_prime_residues.begin(), three_prime_residues.end());
+    
+    shuffled.setSequence(new_residues);
     return shuffled;
   }
 
@@ -425,6 +464,9 @@ protected:
     Size& decoy_max_attempts_reached) const
   {
     NASequence final_fragment = fragment;
+    bool should_register = true; // Only register if no unresolved collision
+    bool was_reshuffled = false; // Track if this decoy was reshuffled
+    
     if (parent_ref->is_decoy)
     {
       if (target_oligos.count(fragment))
@@ -443,10 +485,12 @@ protected:
         if (resolved)
         {
           ++decoy_resolved;
+          was_reshuffled = true; // Fragment was successfully reshuffled
         }
         else
         {
           ++decoy_unresolved;
+          should_register = false; // Skip registration - collision not resolved
         }
       }
     }
@@ -455,17 +499,30 @@ protected:
       target_oligos.insert(fragment);
     }
 
-    IdentificationData::IdentifiedOligo oligo(final_fragment);
-    Size end_pos = pos.first + pos.second; // past-the-end position!
-    IdentificationData::ParentMatch match(pos.first, end_pos - 1);
-    match.left_neighbor = ((pos.first > 0) ?
-                           digestion_parent[pos.first - 1]->getCode() :
-                           IdentificationData::ParentMatch::LEFT_TERMINUS);
-    match.right_neighbor = ((end_pos < digestion_parent.size()) ?
-                            digestion_parent[end_pos]->getCode() :
-                            IdentificationData::ParentMatch::RIGHT_TERMINUS);
-    oligo.parent_matches[parent_ref].insert(match);
-    id_data.registerIdentifiedOligo(oligo);
+    // Only register if no unresolved collision
+    if (should_register)
+    {
+      IdentificationData::IdentifiedOligo oligo(final_fragment);
+      
+      // Add parent match with coordinates
+      Size end_pos = pos.first + pos.second; // past-the-end position!
+      IdentificationData::ParentMatch match(pos.first, end_pos - 1);
+      match.left_neighbor = ((pos.first > 0) ?
+                             digestion_parent[pos.first - 1]->getCode() :
+                             IdentificationData::ParentMatch::LEFT_TERMINUS);
+      match.right_neighbor = ((end_pos < digestion_parent.size()) ?
+                              digestion_parent[end_pos]->getCode() :
+                              IdentificationData::ParentMatch::RIGHT_TERMINUS);
+      
+      // Mark reshuffled decoys - coordinates point to original location, not reshuffled sequence
+      if (was_reshuffled)
+      {
+        match.setMetaValue("reshuffled_decoy", "true");
+      }
+      
+      oligo.parent_matches[parent_ref].insert(match);
+      id_data.registerIdentifiedOligo(oligo);
+    }
   }
 
   // check for minimum and maximum size
@@ -942,11 +999,11 @@ protected:
 
 
   /// Check if all internal positions of an oligonucleotide have fragment coverage
-  bool hasFullFragmentCoverage_(const NASequence& oligo,
-                                const vector<PeptideHit::PeakAnnotation>& annotations)
+  double calculateFragmentCoverage_(const NASequence& oligo,
+                                     const vector<PeptideHit::PeakAnnotation>& annotations)
   {
     Size length = oligo.size();
-    if (length <= 1) return true; // No internal positions to check
+    if (length <= 1) return 1.0; // No internal positions to check - full coverage
 
     // Track which positions have coverage (positions 1 through length-1)
     set<Size> covered_positions;
@@ -1028,16 +1085,11 @@ protected:
       }
     }
 
-    // Check if all internal positions (1 through length-1) are covered
-    for (Size i = 1; i < length; ++i)
-    {
-      if (covered_positions.find(i) == covered_positions.end())
-      {
-        return false; // Missing coverage at position i
-      }
-    }
-
-    return true; // All positions covered
+    // Calculate coverage fraction: number of covered positions / total internal positions
+    Size total_internal_positions = length - 1;
+    double coverage = static_cast<double>(covered_positions.size()) / static_cast<double>(total_internal_positions);
+    
+    return coverage;
   }
 
 
@@ -1759,12 +1811,17 @@ protected:
             if (score < 1e-16) continue; // no hit
 
             // Check fragment coverage if required
-            bool require_coverage = getFlag_("report:require_full_coverage");
-            if (require_coverage && !hasFullFragmentCoverage_(candidate, annotations))
+            double min_coverage = getDoubleOption_("report:require_coverage");
+            if (min_coverage > 0.0)
             {
-              OPENMS_LOG_DEBUG << "Skipping hit due to insufficient fragment coverage: "
-                               << candidate.toString() << endl;
-              continue; // Insufficient fragment coverage
+              double actual_coverage = calculateFragmentCoverage_(candidate, annotations);
+              if (actual_coverage < min_coverage)
+              {
+                OPENMS_LOG_DEBUG << "Skipping hit due to insufficient fragment coverage: "
+                                 << candidate.toString() << " (coverage: " << actual_coverage 
+                                 << ", required: " << min_coverage << ")" << endl;
+                continue; // Insufficient fragment coverage
+              }
             }
 
 #pragma omp atomic
