@@ -6,7 +6,7 @@
 // $Authors: Raphael Förster $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -58,8 +58,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  PeptideSearchEngineFIAlgorithm::PeptideSearchEngineFIAlgorithm() :
-    DefaultParamHandler("PeptideSearchEngineFIAlgorithm"),
+  ProSEAlgorithm::ProSEAlgorithm() :
+    DefaultParamHandler("ProSEAlgorithm"),
     ProgressLogger()
   {
     defaults_.setValue("precursor:mass_tolerance_lower", 20.0,
@@ -218,7 +218,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void PeptideSearchEngineFIAlgorithm::updateMembers_()
+  void ProSEAlgorithm::updateMembers_()
   {
     precursor_mass_tolerance_lower_ = param_.getValue("precursor:mass_tolerance_lower");
     precursor_mass_tolerance_upper_ = param_.getValue("precursor:mass_tolerance_upper");
@@ -276,7 +276,7 @@ namespace OpenMS
   }
 
   // static
-  void PeptideSearchEngineFIAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
+  void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -322,8 +322,8 @@ namespace OpenMS
     }
   }
 
-  void PeptideSearchEngineFIAlgorithm::postProcessHits_(const PeakMap& exp,
-        std::vector<std::vector<PeptideSearchEngineFIAlgorithm::AnnotatedHit_> >& annotated_hits,
+  void ProSEAlgorithm::postProcessHits_(const PeakMap& exp,
+        std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,
         std::vector<ProteinIdentification>& protein_ids,
         PeptideIdentificationList& peptide_ids,
         Size top_hits,
@@ -598,11 +598,11 @@ namespace OpenMS
     // protein identifications (leave as is...)
     protein_ids = vector<ProteinIdentification>(1);
     protein_ids[0].setDateTime(DateTime::now());
-    protein_ids[0].setSearchEngine("PeptideDataBaseSearchFI");
+    protein_ids[0].setSearchEngine("ProSE");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
 
     DateTime now = DateTime::now();
-    String identifier("PDBSFI_" + now.get());
+    String identifier("ProSE_" + now.get());
     protein_ids[0].setIdentifier(identifier);
     for (auto & pid : peptide_ids) { pid.setIdentifier(identifier); }
 
@@ -654,8 +654,8 @@ namespace OpenMS
   // Hoisted out of the in-memory search() body so callers can build the
   // index once and reuse it across many spectrum files.
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::SearchContext
-  PeptideSearchEngineFIAlgorithm::prepareContext(
+  ProSEAlgorithm::SearchContext
+  ProSEAlgorithm::prepareContext(
       const std::vector<FASTAFile::FASTAEntry>& fasta_db) const
   {
     SearchContext ctx;
@@ -705,7 +705,7 @@ namespace OpenMS
   // For repeated searches against the same database, prefer the
   // context-taking overload below.
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::ExitCodes PeptideSearchEngineFIAlgorithm::search(
+  ProSEAlgorithm::ExitCodes ProSEAlgorithm::search(
       PeakMap& spectra,
       const std::vector<FASTAFile::FASTAEntry>& fasta_db,
       vector<ProteinIdentification>& protein_ids,
@@ -721,7 +721,7 @@ namespace OpenMS
   // FragmentIndex::querySpectrum() and PeptideIndexing::run() APIs are both
   // non-const, even though neither conceptually mutates shared state.
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::ExitCodes PeptideSearchEngineFIAlgorithm::search(
+  ProSEAlgorithm::ExitCodes ProSEAlgorithm::search(
       PeakMap& spectra,
       SearchContext& ctx,
       vector<ProteinIdentification>& protein_ids,
@@ -755,7 +755,7 @@ namespace OpenMS
     // can restore them after the search if calibration modifies query-time tolerances.
     // This avoids persistent mutation of the shared SearchContext and the algorithm
     // instance across multi-file calls (the multi-file wrapper reuses a single
-    // PeptideSearchEngineFIAlgorithm instance, so member leaks corrupt later runs).
+    // ProSEAlgorithm instance, so member leaks corrupt later runs).
     const Param fi_params_original = fragment_index_.getParameters();
     const double orig_precursor_mass_tolerance_lower = precursor_mass_tolerance_lower_;
     const double orig_precursor_mass_tolerance_upper = precursor_mass_tolerance_upper_;
@@ -903,7 +903,7 @@ namespace OpenMS
     endProgress();
 
     startProgress(0, 1, "Post-processing PSMs...");
-    PeptideSearchEngineFIAlgorithm::postProcessHits_(spectra,
+    ProSEAlgorithm::postProcessHits_(spectra,
       annotated_hits,
       protein_ids,
       peptide_ids,
@@ -1031,7 +1031,7 @@ namespace OpenMS
   // =====================================================================
   // File-based search: thin I/O wrapper that delegates to in-memory search
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::ExitCodes PeptideSearchEngineFIAlgorithm::search(
+  ProSEAlgorithm::ExitCodes ProSEAlgorithm::search(
       const String& in_spectra, const String& in_db,
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
@@ -1088,8 +1088,8 @@ namespace OpenMS
   // =====================================================================
   // In-memory searchWithModificationAnalysis
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::SearchResult
-  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(
+  ProSEAlgorithm::SearchResult
+  ProSEAlgorithm::searchWithModificationAnalysis(
       PeakMap& spectra,
       const std::vector<FASTAFile::FASTAEntry>& fasta_db,
       const String& output_base_name) const
@@ -1146,8 +1146,8 @@ namespace OpenMS
   // computed by pooling all per-file PSMs and running modification analysis
   // once on the pooled set.
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::MultiFileSearchResult
-  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(
+  ProSEAlgorithm::MultiFileSearchResult
+  ProSEAlgorithm::searchWithModificationAnalysis(
       const std::vector<String>& in_spectra_files,
       const std::vector<FASTAFile::FASTAEntry>& fasta_db,
       const std::vector<String>& output_base_names,
@@ -1338,8 +1338,8 @@ namespace OpenMS
   // overload, and patches the database file path on each per-file (and the
   // aggregate) ProteinIdentification.
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::MultiFileSearchResult
-  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(
+  ProSEAlgorithm::MultiFileSearchResult
+  ProSEAlgorithm::searchWithModificationAnalysis(
       const std::vector<String>& in_spectra_files,
       const String& in_db,
       const std::vector<String>& output_base_names,
@@ -1372,8 +1372,8 @@ namespace OpenMS
   // File-based single-file searchWithModificationAnalysis: thin wrapper around
   // the multi-file overload using a single-element list.
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::SearchResult
-  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(const String& in_spectra,
+  ProSEAlgorithm::SearchResult
+  ProSEAlgorithm::searchWithModificationAnalysis(const String& in_spectra,
                                                                   const String& in_db,
                                                                   const String& output_base_name) const
   {
@@ -1396,7 +1396,7 @@ namespace OpenMS
   // =====================================================================
   // Helper: log search summary statistics and per-run tolerance estimation
   // =====================================================================
-  void PeptideSearchEngineFIAlgorithm::logSearchDiagnostics_(
+  void ProSEAlgorithm::logSearchDiagnostics_(
       const PeakMap& spectra,
       const std::vector<ProteinIdentification>& /*protein_ids*/,
       const PeptideIdentificationList& peptide_ids) const
@@ -1508,8 +1508,8 @@ namespace OpenMS
   // =====================================================================
   // Helper: run calibration pass on a subset of spectra
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::CalibrationResult_
-  PeptideSearchEngineFIAlgorithm::runCalibrationPass_(
+  ProSEAlgorithm::CalibrationResult_
+  ProSEAlgorithm::runCalibrationPass_(
       PeakMap& spectra,
       FragmentIndex& fragment_index,
       const std::vector<FASTAFile::FASTAEntry>& db) const
@@ -1712,7 +1712,7 @@ namespace OpenMS
   // =====================================================================
   // Helper: log modification analysis summary
   // =====================================================================
-  void PeptideSearchEngineFIAlgorithm::logModificationAnalysisSummary_(
+  void ProSEAlgorithm::logModificationAnalysisSummary_(
       const SearchResult& result,
       const String& output_base_name) const
   {
