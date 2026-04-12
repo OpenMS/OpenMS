@@ -234,7 +234,7 @@ namespace OpenMS
       return FileTypes::UNKNOWN;
     }
     tmp.toUpper();
-    if (tmp == "BZ2" || tmp == "GZ") // todo ZIP (not supported yet):       || tmp == "ZIP"
+    if (tmp == "BZ2" || tmp == "GZ" || tmp == "ZIP")
     {
       // do not use getTypeByContent() here, as this is deadly for output files!
       return getTypeByFileName(filename.prefix(filename.size() - tmp.size() - 1)); // check name without compression suffix (e.g. bla.mzML.gz --> bla.mzML)
