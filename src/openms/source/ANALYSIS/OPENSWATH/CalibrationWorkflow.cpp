@@ -604,7 +604,6 @@ namespace OpenMS
           "Common causes:\n"
           "  - Too few iRT/CiRT peptides in the transition library for the LC gradient\n"
           "  - Low data quality (check the 'Detected N empty chromatograms' warnings above)\n"
-          "  - Input spectra with unsorted m/z peaks (e.g. Bruker .d loaded via streaming)\n"
           "  - Wrong SWATH window boundaries (precursor m/z mismatch between library and data)");
       }
     }
