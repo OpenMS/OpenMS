@@ -202,6 +202,16 @@ protected:
     registerStringList_("fragment:ions", "<choice>", fragment_ion_codes_, "Fragment ions to include in theoretical spectra", false);
     setValidStrings_("fragment:ions", fragment_ion_codes_);
 
+    registerTOPPSubsection_("preprocessing", "Spectrum preprocessing options");
+    registerFlag_("preprocessing:filter_window_mower", "Apply WindowMower filter to remove noise peaks by m/z windows", true);
+    registerDoubleOption_("preprocessing:window_mower:windowsize", "<size>", 100.0, "Size of the sliding window along the m/z axis for WindowMower", false, true);
+    setMinFloat_("preprocessing:window_mower:windowsize", 1.0);
+    registerIntOption_("preprocessing:window_mower:peakcount", "<num>", 50, "Number of peaks that should be kept per window", false, true);
+    setMinInt_("preprocessing:window_mower:peakcount", 1);
+    registerFlag_("preprocessing:filter_nlargest", "Apply NLargest filter to keep only the top N most intense peaks", true);
+    registerIntOption_("preprocessing:nlargest:n", "<num>", 1000, "Number of largest (most intense) peaks to keep per spectrum", false, true);
+    setMinInt_("preprocessing:nlargest:n", 1);
+
     registerTOPPSubsection_("scoring", "Scoring Options");
     registerStringOption_("scoring:method", "<method>", "hyperscore", "Scoring method to use for spectrum matching", false);
     setValidStrings_("scoring:method", ListUtils::create<String>("hyperscore,mvh"));
@@ -725,7 +735,7 @@ protected:
   }
 
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, bool use_nlargest, int nlargest_n)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -740,16 +750,17 @@ protected:
 
     // filter settings
     WindowMower window_mower_filter;
-    Param filter_param = window_mower_filter.getParameters();
-    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
+    if (use_window_mower)
+    {
+      Param filter_param = window_mower_filter.getParameters();
+      filter_param.setValue("windowsize", window_size, "The size of the sliding window along the m/z axis.");
+      filter_param.setValue("peakcount", window_peakcount, "The number of peaks that should be kept.");
+      filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+      window_mower_filter.setParameters(filter_param);
+    }
 
     // Note: we expect a higher number for NA than e.g., for peptides
-    filter_param.setValue("peakcount", 50, "The number of peaks that should be kept.");
-    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
-    window_mower_filter.setParameters(filter_param);
-
-    // Note: we expect a higher number for NA than e.g., for peptides
-    NLargest nlargest_filter = NLargest(1000);
+    NLargest nlargest_filter = NLargest(nlargest_n);
 
     Size n_zero_charge = 0, n_inferred_charge = 0;
 
@@ -822,8 +833,14 @@ protected:
       deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * precursor_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
 
       // remove noise
-      window_mower_filter.filterPeakSpectrum(spec);
-      nlargest_filter.filterPeakSpectrum(spec);
+      if (use_window_mower)
+      {
+        window_mower_filter.filterPeakSpectrum(spec);
+      }
+      if (use_nlargest)
+      {
+        nlargest_filter.filterPeakSpectrum(spec);
+      }
 
       // sort (nlargest changes order)
       spec.sortByPosition();
@@ -1567,10 +1584,17 @@ protected:
 
     progresslogger.startProgress(0, 1, "filtering spectra...");
     // @TODO: move this into the loop below (run only when checks pass)
+    bool use_window_mower = getFlag_("preprocessing:filter_window_mower");
+    double window_size = getDoubleOption_("preprocessing:window_mower:windowsize");
+    int window_peakcount = getIntOption_("preprocessing:window_mower:peakcount");
+    bool use_nlargest = getFlag_("preprocessing:filter_nlargest");
+    int nlargest_n = getIntOption_("preprocessing:nlargest:n");
     preprocessSpectra_(spectra, search_param.fragment_mass_tolerance,
                        search_param.fragment_tolerance_ppm,
                        single_charge_spectra, negative_mode, min_charge,
-                       max_charge, include_unknown_charge);
+                       max_charge, include_unknown_charge,
+                       use_window_mower, window_size, window_peakcount,
+                       use_nlargest, nlargest_n);
     progresslogger.endProgress();
     OPENMS_LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra()
                      << endl;
