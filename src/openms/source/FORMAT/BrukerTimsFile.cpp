@@ -1130,6 +1130,14 @@ namespace OpenMS
         centroidMS1Frame(frame, spec, config, centroider);
       else
         frameToSpectrum(frame, spec, 1);
+      // Sort peaks by m/z (and the associated IM float data array alongside).
+      // TIMS save_to_buffs returns peaks in (scan_id, m/z-within-scan) order,
+      // which is NOT globally m/z-sorted. Downstream consumers
+      // (OpenSwath's chromatogram extraction) assume sorted m/z for lower_bound /
+      // upper_bound range queries; without this sort, queries silently miss
+      // peaks, producing empty chromatograms and breaking iRT calibration.
+      // The non-streaming load() path gets this sort for free via exp.sortSpectra(true).
+      spec.sortByPosition();
       consumer.consumeSpectrum(spec);
       setProgress(i);
     }
@@ -1216,6 +1224,11 @@ namespace OpenMS
           {
             spec.getFloatDataArrays().push_back(std::move(im_array));
             spec.setIMPeakType(IMPeakType::IM_PROFILE);
+            // Sort peaks by m/z (and the IM float data array alongside).
+            // See the matching comment in the MS1 loop above — TIMS save_to_buffs
+            // returns peaks in (scan_id, m/z-within-scan) order; OpenSwath's
+            // chromatogram extraction assumes globally m/z-sorted input.
+            spec.sortByPosition();
             consumer.consumeSpectrum(spec);
           }
         }
