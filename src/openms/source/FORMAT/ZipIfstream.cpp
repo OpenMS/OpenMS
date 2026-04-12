@@ -107,6 +107,10 @@ namespace OpenMS
   size_t ZipIfstream::read(char* s, size_t n)
   {
 #if defined(OPENMS_HAVE_LIBZIP)
+    if (n == 0)
+    {
+      return 0;
+    }
     if (zip_entry_ != nullptr)
     {
       zip_int64_t bytes_read = zip_fread(static_cast<zip_file_t*>(zip_entry_), s, n);

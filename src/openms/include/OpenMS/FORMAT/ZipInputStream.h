@@ -35,10 +35,30 @@ public:
     /// returns true if file is open
     bool getIsOpen() const;
 
+    /**
+      * @brief returns the current position in the file
+      *
+      * @note Implementation of the xerces-c input stream interface
+    */
     XMLFilePos curPos() const override;
 
+    /**
+      * @brief writes bytes into buffer from file
+      *
+      * @note Implementation of the xerces-c input stream interface
+      *
+      * @param[out] to_fill is the buffer which is written to
+      * @param[in] max_to_read is the size of the buffer
+      *
+      * @return returns the number of bytes which were actually read
+    */
     XMLSize_t readBytes(XMLByte* const to_fill, const XMLSize_t max_to_read) override;
 
+    /**
+      * @brief returns 0
+      *
+      * @note Implementation of the xerces-c input stream interface
+    */
     const XMLCh* getContentType() const override;
 
     ZipInputStream() = delete;
