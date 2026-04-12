@@ -2931,6 +2931,28 @@ set_tests_properties("TOPP_PeptideDataBaseSearchFI_3_multi_idXML_out" PROPERTIES
 add_test(NAME "TOPP_PeptideDataBaseSearchFI_3_multi_parquet_out" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_3_multi_b.tmp.parquet)
 set_tests_properties("TOPP_PeptideDataBaseSearchFI_3_multi_parquet_out" PROPERTIES DEPENDS "TOPP_PeptideDataBaseSearchFI_3_multi")
 
+# Asymmetric precursor window + calibration bias preservation end-to-end test.
+# Uses SimpleSearchEngine_1_shifted_7ppm.mzML (all MS2 precursors multiplied by
+# 1 + 7e-6). The asymmetric window [lower=15 ppm, upper=10 ppm] is skewed
+# toward the low mass side so the FragmentIndex mass window [m_obs - 15 ppm,
+# m_obs + 10 ppm] captures the true peptide mass that sits ~7 ppm below the
+# observed mass. Calibration is enabled with min_psms=3 so the small fixture
+# (3 MS2 spectra) triggers the calibration pass, which detects shift ~ +7 ppm
+# as the signed median. With 3 tight residuals the |shift| >> spread check
+# routes the result through the extreme-bias path, preserving user bounds.
+add_test("TOPP_PeptideDataBaseSearchFI_4" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
+  -ini ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_4.ini
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1_shifted_7ppm.mzML
+  -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_4_out.tmp.idXML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+add_test("TOPP_PeptideDataBaseSearchFI_4_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_4_out.tmp.idXML
+  -in2 ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_4_out.idXML
+  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version"
+  -ratio 1.2 -absdiff 2.0)
+set_tests_properties("TOPP_PeptideDataBaseSearchFI_4_out" PROPERTIES DEPENDS
+  "TOPP_PeptideDataBaseSearchFI_4")
+
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   # Create a symlink with .d suffix so FileHandler recognizes the format
@@ -2966,7 +2988,8 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
     -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_out.tmp.idXML
-    -Search:precursor:mass_tolerance 20
+    -Search:precursor:mass_tolerance_lower 20
+    -Search:precursor:mass_tolerance_upper 20
     -Search:precursor:mass_tolerance_unit ppm
     -Search:fragment:mass_tolerance 20
     -Search:fragment:mass_tolerance_unit ppm
@@ -2987,7 +3010,8 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
     -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_calibrated_out.tmp.idXML
-    -Search:precursor:mass_tolerance 20
+    -Search:precursor:mass_tolerance_lower 20
+    -Search:precursor:mass_tolerance_upper 20
     -Search:precursor:mass_tolerance_unit ppm
     -Search:fragment:mass_tolerance 20
     -Search:fragment:mass_tolerance_unit ppm
