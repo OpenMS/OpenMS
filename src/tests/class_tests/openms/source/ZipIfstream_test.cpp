@@ -43,7 +43,7 @@ END_SECTION
 START_SECTION(void open(const char* filename))
   // Valid single-entry ZIP
   ZipIfstream zif;
-  zif.open(OPENMS_GET_TEST_DATA_PATH("SimpleSearchEngine_1.mzML.zip"));
+  zif.open(OPENMS_GET_TEST_DATA_PATH("Deisotoper_input1.mzML.zip"));
   TEST_EQUAL(zif.isOpen(), true)
   TEST_EQUAL(zif.streamEnd(), false)
   zif.close();
@@ -51,7 +51,7 @@ END_SECTION
 
 START_SECTION(size_t read(char* s, size_t n))
   // Read some bytes and verify they match the uncompressed file
-  ZipIfstream zif(OPENMS_GET_TEST_DATA_PATH("SimpleSearchEngine_1.mzML.zip"));
+  ZipIfstream zif(OPENMS_GET_TEST_DATA_PATH("Deisotoper_input1.mzML.zip"));
   char buf[256];
   size_t n = zif.read(buf, 255);
   TEST_EQUAL(n > 0, true)
@@ -62,7 +62,7 @@ START_SECTION(size_t read(char* s, size_t n))
 END_SECTION
 
 START_SECTION(bool streamEnd() const)
-  ZipIfstream zif(OPENMS_GET_TEST_DATA_PATH("SimpleSearchEngine_1.mzML.zip"));
+  ZipIfstream zif(OPENMS_GET_TEST_DATA_PATH("Deisotoper_input1.mzML.zip"));
   TEST_EQUAL(zif.streamEnd(), false)
   // Read until EOF
   char buf[4096];
@@ -76,14 +76,14 @@ END_SECTION
 START_SECTION(bool isOpen() const)
   ZipIfstream zif;
   TEST_EQUAL(zif.isOpen(), false)
-  zif.open(OPENMS_GET_TEST_DATA_PATH("SimpleSearchEngine_1.mzML.zip"));
+  zif.open(OPENMS_GET_TEST_DATA_PATH("Deisotoper_input1.mzML.zip"));
   TEST_EQUAL(zif.isOpen(), true)
   zif.close();
   TEST_EQUAL(zif.isOpen(), false)
 END_SECTION
 
 START_SECTION(void close())
-  ZipIfstream zif(OPENMS_GET_TEST_DATA_PATH("SimpleSearchEngine_1.mzML.zip"));
+  ZipIfstream zif(OPENMS_GET_TEST_DATA_PATH("Deisotoper_input1.mzML.zip"));
   TEST_EQUAL(zif.isOpen(), true)
   zif.close();
   TEST_EQUAL(zif.isOpen(), false)
@@ -125,8 +125,8 @@ END_SECTION
 START_SECTION([EXTRA] End-to-end: load mzML from ZIP via FileHandler)
   MSExperiment exp_zip, exp_plain;
 
-  FileHandler().loadExperiment(OPENMS_GET_TEST_DATA_PATH("SimpleSearchEngine_1.mzML.zip"), exp_zip);
-  FileHandler().loadExperiment(OPENMS_GET_TEST_DATA_PATH("SimpleSearchEngine_1.mzML"), exp_plain);
+  FileHandler().loadExperiment(OPENMS_GET_TEST_DATA_PATH("Deisotoper_input1.mzML.zip"), exp_zip);
+  FileHandler().loadExperiment(OPENMS_GET_TEST_DATA_PATH("Deisotoper_input1.mzML"), exp_plain);
 
   TEST_EQUAL(exp_zip.size(), exp_plain.size())
   for (Size i = 0; i < exp_zip.size(); ++i)

@@ -10,6 +10,8 @@
 
 #include <OpenMS/config.h>
 
+#include <cstddef>
+
 namespace OpenMS
 {
 /**
