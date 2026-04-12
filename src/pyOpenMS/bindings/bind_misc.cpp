@@ -27,7 +27,7 @@
 #include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
-#include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>
@@ -3319,23 +3319,23 @@ only in decoy proteins, or in both. The target/decoy information is crucial for 
         ;
 
     // -----------------------------------------------------------------------
-    // PeptideSearchEngineFIAlgorithm
+    // ProSEAlgorithm
     // -----------------------------------------------------------------------
-    // SearchResult struct (nested in PeptideSearchEngineFIAlgorithm)
-    nb::class_<OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult>(m, "SearchResult",
+    // SearchResult struct (nested in ProSEAlgorithm)
+    nb::class_<OpenMS::ProSEAlgorithm::SearchResult>(m, "SearchResult",
         "Comprehensive search result including modification analysis")
         .def(nb::init<>())
-        .def(nb::init<const OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult&>())
-        .def("__copy__", [](const OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult& self) { return OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult(self); })
-        .def("__deepcopy__", [](const OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult& self, nb::dict) { return OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult(self); }, "memo"_a)
-        .def_rw("exit_code", &OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult::exit_code)
-        .def_rw("protein_ids", &OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult::protein_ids)
-        .def_rw("peptide_ids", &OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult::peptide_ids)
-        .def_rw("modification_analysis", &OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult::modification_analysis)
-        .def_rw("is_open_search", &OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult::is_open_search)
+        .def(nb::init<const OpenMS::ProSEAlgorithm::SearchResult&>())
+        .def("__copy__", [](const OpenMS::ProSEAlgorithm::SearchResult& self) { return OpenMS::ProSEAlgorithm::SearchResult(self); })
+        .def("__deepcopy__", [](const OpenMS::ProSEAlgorithm::SearchResult& self, nb::dict) { return OpenMS::ProSEAlgorithm::SearchResult(self); }, "memo"_a)
+        .def_rw("exit_code", &OpenMS::ProSEAlgorithm::SearchResult::exit_code)
+        .def_rw("protein_ids", &OpenMS::ProSEAlgorithm::SearchResult::protein_ids)
+        .def_rw("peptide_ids", &OpenMS::ProSEAlgorithm::SearchResult::peptide_ids)
+        .def_rw("modification_analysis", &OpenMS::ProSEAlgorithm::SearchResult::modification_analysis)
+        .def_rw("is_open_search", &OpenMS::ProSEAlgorithm::SearchResult::is_open_search)
         ;
 
-    auto peptidesearchenginefialgorithm_class = nb::class_<OpenMS::PeptideSearchEngineFIAlgorithm, OpenMS::DefaultParamHandler>(m, "PeptideSearchEngineFIAlgorithm",
+    auto prosealgorithm_class = nb::class_<OpenMS::ProSEAlgorithm, OpenMS::DefaultParamHandler>(m, "ProSEAlgorithm",
         R"doc(
 DefaultParamHandler
 ProgressLogger
@@ -3350,7 +3350,7 @@ outputs (ProteinIdentification and PeptideIdentificationList)
 )doc")
         .def(nb::init<>())
         // in-memory search with prot_ids output parameter (4-arg, most specific — must be first)
-        .def("search", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, OpenMS::PeakMap& spectra, const std::vector<OpenMS::FASTAFile::FASTAEntry>& fasta_db, nb::list prot_ids_out, OpenMS::PeptideIdentificationList& pep_ids) {
+        .def("search", [](const OpenMS::ProSEAlgorithm& self, OpenMS::PeakMap& spectra, const std::vector<OpenMS::FASTAFile::FASTAEntry>& fasta_db, nb::list prot_ids_out, OpenMS::PeptideIdentificationList& pep_ids) {
             std::vector<OpenMS::ProteinIdentification> prot_ids;
             auto result = self.search(spectra, fasta_db, prot_ids, pep_ids);
             for (auto& p : prot_ids) {
@@ -3360,14 +3360,14 @@ outputs (ProteinIdentification and PeptideIdentificationList)
         }, "spectra"_a, "fasta_db"_a, "prot_ids"_a, "pep_ids"_a,
            "In-memory search. Populates prot_ids list and returns ExitCodes")
         // in-memory search overload (PeakMap + FASTAEntry vector, 3-arg returns tuple)
-        .def("search", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, OpenMS::PeakMap& spectra, const std::vector<OpenMS::FASTAFile::FASTAEntry>& fasta_db, OpenMS::PeptideIdentificationList& pep_ids) {
+        .def("search", [](const OpenMS::ProSEAlgorithm& self, OpenMS::PeakMap& spectra, const std::vector<OpenMS::FASTAFile::FASTAEntry>& fasta_db, OpenMS::PeptideIdentificationList& pep_ids) {
             std::vector<OpenMS::ProteinIdentification> prot_ids;
             auto result = self.search(spectra, fasta_db, prot_ids, pep_ids);
             return nb::make_tuple(result, prot_ids);
         }, "spectra"_a, "fasta_db"_a, "pep_ids"_a,
            "In-memory search. Returns (ExitCodes, list[ProteinIdentification])")
         // file-based search with prot_ids output parameter (4-arg)
-        .def("search", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, nb::list prot_ids_out, OpenMS::PeptideIdentificationList& pep_ids) {
+        .def("search", [](const OpenMS::ProSEAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, nb::list prot_ids_out, OpenMS::PeptideIdentificationList& pep_ids) {
             std::vector<OpenMS::ProteinIdentification> prot_ids;
             auto result = self.search(in_mzML, in_db, prot_ids, pep_ids);
             for (auto& p : prot_ids) {
@@ -3377,7 +3377,7 @@ outputs (ProteinIdentification and PeptideIdentificationList)
         }, "in_mzML"_a, "in_db"_a, "prot_ids"_a, "pep_ids"_a,
            "File-based search. Populates prot_ids list and returns ExitCodes")
         // file-based search (3-arg returns tuple)
-        .def("search", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, OpenMS::PeptideIdentificationList& pep_ids) {
+        .def("search", [](const OpenMS::ProSEAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, OpenMS::PeptideIdentificationList& pep_ids) {
             std::vector<OpenMS::ProteinIdentification> prot_ids;
             auto result = self.search(in_mzML, in_db, prot_ids, pep_ids);
             return nb::make_tuple(result, prot_ids);
@@ -3385,25 +3385,25 @@ outputs (ProteinIdentification and PeptideIdentificationList)
            "File-based search. Returns (ExitCodes, list[ProteinIdentification])")
         // in-memory searchWithModificationAnalysis (more specific types — must be first)
         .def("searchWithModificationAnalysis",
-            static_cast<OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult (OpenMS::PeptideSearchEngineFIAlgorithm::*)(OpenMS::PeakMap&, const std::vector<OpenMS::FASTAFile::FASTAEntry>&, const OpenMS::String&) const>(
-                &OpenMS::PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis),
+            static_cast<OpenMS::ProSEAlgorithm::SearchResult (OpenMS::ProSEAlgorithm::*)(OpenMS::PeakMap&, const std::vector<OpenMS::FASTAFile::FASTAEntry>&, const OpenMS::String&) const>(
+                &OpenMS::ProSEAlgorithm::searchWithModificationAnalysis),
             "spectra"_a, "fasta_db"_a, "output_base_name"_a = OpenMS::String(""),
             "In-memory search with modification analysis. Returns SearchResult")
         // file-based searchWithModificationAnalysis
         .def("searchWithModificationAnalysis",
-            static_cast<OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult (OpenMS::PeptideSearchEngineFIAlgorithm::*)(const OpenMS::String&, const OpenMS::String&, const OpenMS::String&) const>(
-                &OpenMS::PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis),
+            static_cast<OpenMS::ProSEAlgorithm::SearchResult (OpenMS::ProSEAlgorithm::*)(const OpenMS::String&, const OpenMS::String&, const OpenMS::String&) const>(
+                &OpenMS::ProSEAlgorithm::searchWithModificationAnalysis),
             "in_mzML"_a, "in_db"_a, "output_base_name"_a = OpenMS::String(""),
             "File-based search with modification analysis. Returns SearchResult")
         ;
-    def_ProgressLogger<OpenMS::PeptideSearchEngineFIAlgorithm>(peptidesearchenginefialgorithm_class);
-    // PeptideSearchEngineFIAlgorithm_ExitCodes enum nested under PeptideSearchEngineFIAlgorithm
-    nb::enum_<OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes>(peptidesearchenginefialgorithm_class, "PeptideSearchEngineFIAlgorithm_ExitCodes", nb::is_arithmetic())
-        .value("EXECUTION_OK", OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK)
-        .value("INPUT_FILE_EMPTY", OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes::INPUT_FILE_EMPTY)
-        .value("UNEXPECTED_RESULT", OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes::UNEXPECTED_RESULT)
-        .value("UNKNOWN_ERROR", OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes::UNKNOWN_ERROR)
-        .value("ILLEGAL_PARAMETERS", OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes::ILLEGAL_PARAMETERS)
+    def_ProgressLogger<OpenMS::ProSEAlgorithm>(prosealgorithm_class);
+    // ProSEAlgorithm_ExitCodes enum nested under ProSEAlgorithm
+    nb::enum_<OpenMS::ProSEAlgorithm::ExitCodes>(prosealgorithm_class, "ProSEAlgorithm_ExitCodes", nb::is_arithmetic())
+        .value("EXECUTION_OK", OpenMS::ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+        .value("INPUT_FILE_EMPTY", OpenMS::ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY)
+        .value("UNEXPECTED_RESULT", OpenMS::ProSEAlgorithm::ExitCodes::UNEXPECTED_RESULT)
+        .value("UNKNOWN_ERROR", OpenMS::ProSEAlgorithm::ExitCodes::UNKNOWN_ERROR)
+        .value("ILLEGAL_PARAMETERS", OpenMS::ProSEAlgorithm::ExitCodes::ILLEGAL_PARAMETERS)
         .export_values();
 
     // -----------------------------------------------------------------------
