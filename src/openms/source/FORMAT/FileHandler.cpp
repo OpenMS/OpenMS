@@ -51,6 +51,7 @@
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
 #include <OpenMS/FORMAT/ZipIfstream.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
 
 #ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
@@ -181,6 +182,11 @@ namespace OpenMS
     if (type == FileTypes::BRUKER_TDF)
     {
       if (File::exists(normalized + "/analysis.tdf") || File::exists(normalized + "/analysis.tdf_bin"))
+      {
+        return FileTypes::BRUKER_TDF;
+      }
+      // Check for .d.zip: a ZIP archive containing a Bruker .d directory
+      if (File::exists(normalized) && !File::isDirectory(normalized) && normalized.hasSuffix(".zip"))
       {
         return FileTypes::BRUKER_TDF;
       }
@@ -925,9 +931,25 @@ namespace OpenMS
 #ifdef WITH_OPENTIMS
       case FileTypes::BRUKER_TDF:
       {
+        // If the input is a .d.zip archive, extract to a temp directory first.
+        std::unique_ptr<File::TempDir> temp_dir;
+        String load_path = filename;
+        if (!File::isDirectory(filename) && filename.hasSuffix(".zip"))
+        {
+          load_path = ZipArchiveFile::unzipDirectory(filename, temp_dir);
+          // Find the .d directory inside the extracted archive
+          for (const auto& entry : std::filesystem::directory_iterator(std::string(load_path)))
+          {
+            if (entry.is_directory() && entry.path().extension() == ".d")
+            {
+              load_path = entry.path().string();
+              break;
+            }
+          }
+        }
         BrukerTimsFile f;
         f.setLogType(log);
-        f.load(filename, exp);
+        f.load(load_path, exp);
         // Apply MS level filtering (BrukerTimsFile loads all levels)
         if (options_.hasMSLevels())
         {
