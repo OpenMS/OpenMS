@@ -395,11 +395,12 @@ namespace OpenMS
     bool fragment_mass_tolerance_unit_ppm,
     const MSSpectrum& exp_spectrum,
     const MSSpectrum& db_spectrum,
-    double mz_lower_bound)
+    double mz_lower_bound,
+    bool use_mass_accuracy)
   {
     return computeHyperScore_(fragment_mass_error,
                               fragment_mass_tolerance_unit_ppm, exp_spectrum,
-                              db_spectrum, nullptr, mz_lower_bound);
+                              db_spectrum, nullptr, mz_lower_bound, use_mass_accuracy);
   }
 
 
@@ -409,11 +410,12 @@ namespace OpenMS
     const MSSpectrum& exp_spectrum,
     const MSSpectrum& db_spectrum,
     vector<PeptideHit::PeakAnnotation>& annotations,
-    double mz_lower_bound)
+    double mz_lower_bound,
+    bool use_mass_accuracy)
   {
     return computeHyperScore_(fragment_mass_error,
                               fragment_mass_tolerance_unit_ppm, exp_spectrum,
-                              db_spectrum, &annotations, mz_lower_bound);
+                              db_spectrum, &annotations, mz_lower_bound, use_mass_accuracy);
   }
 
 
@@ -423,7 +425,8 @@ namespace OpenMS
     const MSSpectrum& exp_spectrum,
     const MSSpectrum& db_spectrum,
     vector<PeptideHit::PeakAnnotation>* annotations,
-    double mz_lower_bound)
+    double mz_lower_bound,
+    bool use_mass_accuracy)
   {
     if (exp_spectrum.empty()) return 0;
 
@@ -478,7 +481,8 @@ namespace OpenMS
       double tolerance = fragment_mass_tolerance_unit_ppm ? 
                         exp_spectrum[match.first].getMZ() * fragment_mass_error * 1e-6 :
                         fragment_mass_error;
-      double mass_accuracy_weight = exp(-2.0 * pow(best_mass_error / tolerance, 2));
+      double mass_accuracy_weight = use_mass_accuracy ? 
+                                    exp(-2.0 * pow(best_mass_error / tolerance, 2)) : 1.0;
       
       dot_product += mass_accuracy_weight * db_intensity * exp_spectrum[match.first].getIntensity();
     }
@@ -547,12 +551,13 @@ namespace OpenMS
     const MSSpectrum& db_spectrum,
     Size num_intensity_classes,
     double tic_fraction,
-    double mz_lower_bound)
+    double mz_lower_bound,
+    bool use_mass_accuracy)
   {
     return computeMVHScore_(fragment_mass_error,
                             fragment_mass_tolerance_unit_ppm, exp_spectrum,
                             db_spectrum, num_intensity_classes, tic_fraction,
-                            nullptr, mz_lower_bound);
+                            nullptr, mz_lower_bound, use_mass_accuracy);
   }
 
 
@@ -564,12 +569,13 @@ namespace OpenMS
     vector<PeptideHit::PeakAnnotation>& annotations,
     Size num_intensity_classes,
     double tic_fraction,
-    double mz_lower_bound)
+    double mz_lower_bound,
+    bool use_mass_accuracy)
   {
     return computeMVHScore_(fragment_mass_error,
                             fragment_mass_tolerance_unit_ppm, exp_spectrum,
                             db_spectrum, num_intensity_classes, tic_fraction,
-                            &annotations, mz_lower_bound);
+                            &annotations, mz_lower_bound, use_mass_accuracy);
   }
 
 
@@ -581,9 +587,14 @@ namespace OpenMS
     Size num_intensity_classes,
     double tic_fraction,
     vector<PeptideHit::PeakAnnotation>* annotations,
-    double mz_lower_bound)
+    double mz_lower_bound,
+    bool use_mass_accuracy)
   {
-    if (exp_spectrum.empty()) return 0;
+    if (exp_spectrum.empty())
+    {
+      OPENMS_LOG_DEBUG << "MVH: Skipping empty experimental spectrum" << endl;
+      return 0;
+    }
     
     // Validate parameters
     if (num_intensity_classes < 1 || num_intensity_classes > 7)
@@ -633,13 +644,21 @@ namespace OpenMS
     // Step 2: Classify retained peaks into intensity classes
     // Classes have sizes in ratio 1:2:4:8... (geometric progression with ratio 2)
     Size total_peaks = retained_peak_indices.size();
-    if (total_peaks == 0) return 0;
+    if (total_peaks == 0)
+    {
+      OPENMS_LOG_DEBUG << "MVH: No peaks retained after TIC filtering (TIC fraction: " 
+                       << tic_fraction << ")" << endl;
+      return 0;
+    }
     
     // Calculate minimum peaks needed for intensity classes
     Size min_peaks_for_classes = (1 << num_intensity_classes) - 1;
     if (total_peaks < min_peaks_for_classes)
     {
       // Not enough peaks for requested number of classes
+      OPENMS_LOG_DEBUG << "MVH: Insufficient peaks for intensity classes (have: " 
+                       << total_peaks << ", need: " << min_peaks_for_classes 
+                       << " for " << num_intensity_classes << " classes)" << endl;
       return 0;
     }
     
@@ -735,7 +754,10 @@ namespace OpenMS
                           db_mz * fragment_mass_error * 1e-6 :
                           fragment_mass_error;
         double mass_accuracy_weight = exp(-2.0 * pow(mass_error / tolerance, 2));
-        mass_accuracy_sum += mass_accuracy_weight;
+        if (use_mass_accuracy)
+        {
+          mass_accuracy_sum += mass_accuracy_weight;
+        }
       }
     }
     
@@ -769,7 +791,12 @@ namespace OpenMS
       total_theoretical_peaks++;
     }
     
-    if (total_theoretical_peaks == 0) return 0;
+    if (total_theoretical_peaks == 0)
+    {
+      OPENMS_LOG_DEBUG << "MVH: No theoretical peaks in range [" << mz_lower_bound 
+                       << ", " << mz_upper_bound << "]" << endl;
+      return 0;
+    }
     
     // Calculate total number of possible m/z locations (T)
     // This is approximate based on mass range and tolerance
@@ -822,12 +849,27 @@ namespace OpenMS
     for (Size i = 0; i < num_intensity_classes; ++i)
     {
       double contrib = log_binomial(peaks_per_class[i], matches_per_class[i]);
-      if (std::isinf(contrib)) return 0.0; // Invalid configuration
+      if (std::isinf(contrib))
+      {
+        OPENMS_LOG_DEBUG << "MVH: Invalid binomial coefficient for class " << i 
+                         << " (peaks: " << peaks_per_class[i] << ", matches: " 
+                         << matches_per_class[i] << ")" << endl;
+        return 0.0; // Invalid configuration
+      }
       log_prob += contrib;
     }
     
     // Add contribution from empty locations
-    log_prob += log_binomial(empty_locations, unmatched_theoretical);
+    double empty_contrib = log_binomial(empty_locations, unmatched_theoretical);
+    if (std::isinf(empty_contrib))
+    {
+      OPENMS_LOG_DEBUG << "MVH: Invalid binomial coefficient for empty locations "
+                       << "(empty: " << empty_locations << ", unmatched: " 
+                       << unmatched_theoretical << ", total_locations: " 
+                       << total_locations << ", total_peaks: " << total_peaks << ")" << endl;
+      return 0.0;
+    }
+    log_prob += empty_contrib;
     
     // Subtract normalization term
     log_prob -= log_binomial(total_locations, total_theoretical_peaks);
@@ -839,7 +881,7 @@ namespace OpenMS
     // Average mass accuracy per match, scaled by number of matches
     Size total_matches = 0;
     for (Size m : matches_per_class) total_matches += m;
-    if (total_matches > 0)
+    if (use_mass_accuracy && total_matches > 0)
     {
       double avg_mass_accuracy = mass_accuracy_sum / total_matches;
       mvh_score += avg_mass_accuracy * log(1.0 + total_matches);

@@ -211,6 +211,7 @@ protected:
     registerDoubleOption_("scoring:tic_fraction", "<fraction>", 0.98, "Fraction of total ion current to retain for MVH scoring (only used if scoring:method is 'mvh')", false, true);
     setMinFloat_("scoring:tic_fraction", 0.5);
     setMaxFloat_("scoring:tic_fraction", 1.0);
+    registerFlag_("scoring:use_mass_accuracy", "Apply mass accuracy-based distance weighting to scores (applies to both 'hyperscore' and 'mvh' methods)", true);
 
     registerTOPPSubsection_("modifications", "Modification options");
 
@@ -1782,17 +1783,19 @@ protected:
             {
               Size num_intensity_classes = getIntOption_("scoring:num_intensity_classes");
               double tic_fraction = getDoubleOption_("scoring:tic_fraction");
+              bool use_mass_accuracy = getFlag_("scoring:use_mass_accuracy");
               score = MetaboliteSpectralMatching::computeMVHScore(
                 search_param.fragment_mass_tolerance,
                 search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
-                annotations, num_intensity_classes, tic_fraction);
+                annotations, num_intensity_classes, tic_fraction, 0.0, use_mass_accuracy);
             }
             else // hyperscore
             {
+              bool use_mass_accuracy = getFlag_("scoring:use_mass_accuracy");
               score = MetaboliteSpectralMatching::computeHyperScore(
                 search_param.fragment_mass_tolerance,
                 search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
-                annotations);
+                annotations, 0.0, use_mass_accuracy);
             }
 
             if (!exp_ms2_out.empty())
