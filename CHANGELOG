@@ -63,7 +63,8 @@ TOPP tools:
       - Merges compatible variable modifications for improved search performance (3x+ speedup) (#8407)
       - Added Bruker TimsTOF .d DDA-PASEF input support; .d directories are converted to mzML on-the-fly via BrukerTimsFile before search; requires WITH_TIMSRUST=ON (#9126)
     ProSE:
-      - BREAKING: precursor tolerance schema changed to asymmetric positive-magnitude pair (#9108)
+      - BREAKING: renamed from PeptideDataBaseSearchFI to ProSE; the old executable name is no longer available (#9137)
+      - BREAKING: precursor tolerance schema changed to asymmetric positive-magnitude pair (#9108, #9132)
         The scalar `precursor:mass_tolerance` and the `precursor:open_window_lower/_upper`
         params are REMOVED and replaced by `precursor:mass_tolerance_lower` and
         `precursor:mass_tolerance_upper`, both non-negative magnitudes applied internally as
@@ -106,6 +107,7 @@ TOPP tools:
       - MRMFeatureFinderScoring: enzyme used for missed cleavage counting is now configurable via new `enzyme` parameter (default: Trypsin) (#9077)
       - Fix: OpenSwathOSWWriter::getScore() and getSeparateScore() now correctly handle all NaN variants ("NaN", "-NaN") and avoid redundant meta value lookups; double score values are written with full precision (#9047)
       - Bruker DIA MS2 frame aggregation, denoising, and OpenSwath streaming: new BrukerTimsFile::Config fields (bruker:dia_ms2_n_neighbors, bruker:dia_ms2_min_support, bruker:dia_ms2_centroid) enable grid-based denoising and 2D peak picking of DIA MS2 frames; aggregated spectra can be streamed directly into the OpenSwath pipeline without prior mzML conversion; registered in FileConverter and PeakPickerIM; requires WITH_TIMSRUST=ON (#9129)
+      - Fix: BrukerTimsFile::loadDIAStreaming now sorts each spectrum's peaks by m/z before feeding them to the OpenSwath consumer; unsorted peaks (caused by TIMS scan ordering) silently produced empty chromatograms, breaking iRT calibration on .d DIA input (#9135)
 
 PyOpenMS:
   - BREAKING: Binding backend replaced from Autowrap/Cython to hand-maintained nanobind C++ bindings (#8699)
