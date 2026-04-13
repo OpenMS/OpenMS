@@ -758,8 +758,10 @@ START_SECTION((double getHydrophobicity(const HydrophobicityScaleNumber scale) c
   TEST_REAL_SIMILAR(res.getHydrophobicity(BULLBREESE),0.610);
   TEST_REAL_SIMILAR(res.getHydrophobicity(BLACKMOULD),0.616);
   TEST_REAL_SIMILAR(res.getHydrophobicity(GUY),0.1);
-  
-
+  res.setOneLetterCode("X");
+  TEST_EXCEPTION(Exception::InvalidValue,res.getHydrophobicity(KYTEDOOLITTLE));
+  res.setOneLetterCode("");
+  TEST_EXCEPTION(Exception::InvalidValue,res.getHydrophobicity(KYTEDOOLITTLE));
 }
 END_SECTION
 

@@ -19,32 +19,19 @@ namespace OpenMS
       if(seq.size() == 0)
       {
          return 0;
-      }
-      
+      }      
       double sum = 0;
-
       for (auto residue : seq) 
-      {
-         
+      {     
          sum += residue.getHydrophobicity(KYTEDOOLITTLE);
       }
       return sum/seq.size(); 
    } 
       
-
    int HydrophobicityProfile::testfunktion()
    {
       Residue res;
       res.setOneLetterCode("A");
       return 1;
    } 
-  
-   
-   
-   
- 
-
-   
-
-   //... the actual code goes here ...
 } // namespace OpenMS

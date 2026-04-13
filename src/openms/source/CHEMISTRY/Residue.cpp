@@ -665,6 +665,10 @@ namespace OpenMS
         {"L", -1.18}, {"K", 1.4}, {"M", -1.59}, {"F", -2.12}, {"P", 0.73}, {"S", 0.52}, {"T", 0.07}, {"W", -0.51}, {"Y", -0.21}, {"V", -1.27}
       }
     };
+    if (scales[0].end()==scales[0].find(one_letter_code_))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No hydrophobicity value known for this residue", "");
+    }
     return scales[scale].at(one_letter_code_);
   }
 

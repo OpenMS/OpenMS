@@ -16,18 +16,8 @@
 namespace OpenMS
 {
 
-    /*
-      @ingroup Chemistry
-
-      @brief This class is used for Hydrophobicity Profiling of Peptides
-  */
-
-    class OPENMS_DLLAPI HydrophobicityProfile {
- public:
-    
-    /// @brief calculates Hydrophobicity profile per residue
-    /// @param seq: the Aminoacid Sequence for which to calculate the profile
-    /// @param scale: the scale to use for the calculation 
+    /// @brief This class is used for hydrophobicity profiling of peptides
+    /// currently there are 6 scales available.
     /// possible scales are:                                                                       
     /// KYTEDOOLITTLE,
     /// EISENBERG,
@@ -35,14 +25,22 @@ namespace OpenMS
     /// BULLBREESE,
     /// BLACKMOULD,
     /// GUY
-    /// @return Hydrophobicity Profile
+  
+    class OPENMS_DLLAPI HydrophobicityProfile {
+
+ public:
+    
+    /// @brief calculates hydrophobicity profile per residue
+    /// @param seq: the amino acid sequence for which to calculate the profile
+    /// @param scale: the scale to use for the calculation    
+    /// @return hydrophobicity profile
     std::vector<double> computeProfile(
         const AASequence& seq, 
         const HydrophobicityScaleNumber scale = KYTEDOOLITTLE
     );
     
-    /// @brief calculates windowed Hydrophobicity profile
-    /// @param seq the Aminoacid Sequence for which to calculate the profile
+    /// @brief calculates windowed hydrophobicity profile
+    /// @param seq the amino acid Sequence for which to calculate the profile
     /// @param window_size the size of the sliding window for the calculation
     /// @param scale the scale to use for the calculation
     /// @return windowed hydrophobicity profile
@@ -54,15 +52,14 @@ namespace OpenMS
     
     // GRAVY score
     /// @brief calculates GRAVY score
-    /// @param seq the Aminoacid Sequence for which to calculate the GRAVY score
+    /// @param seq the amin oacid sequence for which to calculate the GRAVY score
     /// @return the GRAVY score
     double computeGRAVY(const AASequence& seq);
     
-    // Hydrophobic moment (Eisenberg et al., 1982)
-    /// @brief calculates Hydrophobic moments
+    /// @brief calculates hydrophobic moments
     /// @param seq the Amino acid sequence
     /// @param window_size the size of the sliding window for the calculation
-    /// @return ?????????
+    /// @return hydrophobic moments of the amino acid sequence
     std::vector<double> computeHydrophobicMoment(
         const AASequence& seq,
         Size window_size = 11,
