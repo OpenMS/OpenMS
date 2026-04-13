@@ -18,6 +18,9 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
+#include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <arrow/api.h>
 #include <arrow/io/api.h>
@@ -385,6 +388,93 @@ START_SECTION(Test modifications structured output)
   auto mod_col2 = table2->GetColumnByName("modifications");
   auto mod_list2 = std::static_pointer_cast<arrow::ListArray>(mod_col2->chunk(0));
   TEST_EQUAL(mod_list2->value_length(0), 0) // empty list for unmodified
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+START_SECTION(QPXPgSchema::schema())
+{
+  auto schema = QPXPgSchema::schema();
+  TEST_EQUAL(schema->num_fields(), 20)
+
+  // Required (non-nullable) fields
+  TEST_EQUAL(schema->GetFieldByName("pg_accessions")->nullable(), false)
+  TEST_EQUAL(schema->GetFieldByName("anchor_protein")->nullable(), false)
+  TEST_EQUAL(schema->GetFieldByName("run_file_name")->nullable(), false)
+  TEST_EQUAL(schema->GetFieldByName("is_decoy")->nullable(), false)
+  TEST_EQUAL(schema->GetFieldByName("peptides")->nullable(), false)
+
+  // Nullable (optional) fields
+  TEST_EQUAL(schema->GetFieldByName("intensities")->nullable(), true)
+  TEST_EQUAL(schema->GetFieldByName("additional_intensities")->nullable(), true)
+  TEST_EQUAL(schema->GetFieldByName("global_qvalue")->nullable(), true)
+  TEST_EQUAL(schema->GetFieldByName("pg_qvalue")->nullable(), true)
+}
+END_SECTION
+
+START_SECTION(ProteinGroupArrowExport::exportToArrow(vector<ProteinIdentification>, PeptideIdentificationList))
+{
+  // Set up minimal protein identification with one group
+  ProteinIdentification prot_id;
+  prot_id.setPrimaryMSRunPath({"test_run.mzML"});
+  ProteinHit hit1;
+  hit1.setAccession("PROT_A");
+  hit1.setScore(0.99);
+  hit1.setTargetDecoyType(ProteinHit::TargetDecoyType::TARGET);
+  ProteinHit hit2;
+  hit2.setAccession("PROT_B");
+  hit2.setScore(0.95);
+  hit2.setTargetDecoyType(ProteinHit::TargetDecoyType::TARGET);
+  prot_id.setHits({hit1, hit2});
+  prot_id.setScoreType("Mascot");
+  prot_id.setHigherScoreBetter(true);
+
+  ProteinIdentification::ProteinGroup group;
+  group.accessions = {"PROT_A", "PROT_B"};
+  group.probability = 0.01;
+  prot_id.insertIndistinguishableProteins(group);
+
+  // Set up peptide identifications
+  PeptideIdentification pep_id;
+  PeptideHit pep_hit;
+  pep_hit.setSequence(AASequence::fromString("PEPTIDE"));
+  PeptideEvidence ev;
+  ev.setProteinAccession("PROT_A");
+  pep_hit.setPeptideEvidences({ev});
+  pep_id.setHits({pep_hit});
+  PeptideIdentificationList pep_ids = {pep_id};
+
+  auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, pep_ids);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 1)
+  TEST_EQUAL(table->num_columns(), 20)
+
+  // Verify run_file_name is derived from ProteinIdentification
+  auto run_col = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("run_file_name")->chunk(0));
+  TEST_STRING_EQUAL(run_col->GetString(0), "test_run.mzML")
+
+  // Verify anchor_protein
+  auto anchor_col = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("anchor_protein")->chunk(0));
+  TEST_STRING_EQUAL(anchor_col->GetString(0), "PROT_A")
+
+  // Verify intensities is null (no quantification)
+  auto int_col = table->GetColumnByName("intensities")->chunk(0);
+  TEST_EQUAL(int_col->IsNull(0), true)
+}
+END_SECTION
+
+START_SECTION(ProteinGroupArrowExport::exportToArrow empty groups)
+{
+  ProteinIdentification prot_id;
+  prot_id.setPrimaryMSRunPath({"test.mzML"});
+  PeptideIdentificationList pep_ids;
+
+  auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, pep_ids);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 0)
+  TEST_EQUAL(table->num_columns(), 20)
 }
 END_SECTION
 
