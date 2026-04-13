@@ -456,6 +456,16 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
       TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_position"), 14);
       TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 16); // consensus = 7
       TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 7);
+
+      // Hull points must be equal-sized across all transitions so that
+      // cross-correlation scoring receives consistent intensity vectors
+      // (regression test for GitHub issue #9138).
+      Size hp1 = mrmfeature.getFeature("1").getConvexHulls()[0].getHullPoints().size();
+      Size hp2 = mrmfeature.getFeature("2").getConvexHulls()[0].getHullPoints().size();
+      Size hp3 = mrmfeature.getFeature("3").getConvexHulls()[0].getHullPoints().size();
+      TEST_EQUAL(hp1, hp2)
+      TEST_EQUAL(hp1, hp3)
+      TEST_TRUE(hp1 > 0)
     }
 
     {

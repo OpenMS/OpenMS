@@ -482,6 +482,20 @@ public:
         double peak_integral = pa.area;
         double peak_apex_int = pa.height;
         f.setMetaValue("peak_apex_position", pa.apex_pos);
+
+        // In non-consensus mode, override hull_points with the full resampled
+        // chromatogram so all transitions produce equal-sized intensity vectors
+        // for cross-correlation scoring. Area/height/apex are already correct
+        // from the per-transition integration above.
+        if (!use_consensus_)
+        {
+          pa.hull_points.clear();
+          for (const auto& p : used_chromatogram)
+          {
+            pa.hull_points.push_back(DPosition<2>(p.getPos(), p.getIntensity()));
+          }
+        }
+
         if (background_subtraction_ != "none")
         {
           double background{0};
@@ -625,6 +639,18 @@ public:
         PeakIntegrator::PeakArea pa = pi_.integratePeak(used_chromatogram, local_left, local_right);
         double peak_integral = pa.area;
         double peak_apex_int = pa.height;
+
+        // In non-consensus mode, override hull_points with the full resampled
+        // chromatogram so all precursors produce equal-sized intensity vectors
+        // for cross-correlation scoring (see pickFragmentChromatograms).
+        if (!use_consensus_)
+        {
+          pa.hull_points.clear();
+          for (const auto& p : used_chromatogram)
+          {
+            pa.hull_points.push_back(DPosition<2>(p.getPos(), p.getIntensity()));
+          }
+        }
 
         if (background_subtraction_ != "none")
         {
