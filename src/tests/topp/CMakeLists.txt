@@ -2902,7 +2902,7 @@ set_tests_properties("TOPP_SimpleSearchEngine_2_out" PROPERTIES DEPENDS
 # ProSE:
 add_test("TOPP_ProSE_1" ${TOPP_BIN_PATH}/ProSE -test
 -ini ${DATA_DIR_TOPP}/ProSE_1.ini -in
-${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML
 -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
 add_test("TOPP_ProSE_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
 set_tests_properties("TOPP_ProSE_1_out" PROPERTIES DEPENDS
@@ -2910,26 +2910,39 @@ set_tests_properties("TOPP_ProSE_1_out" PROPERTIES DEPENDS
 
 add_test("TOPP_ProSE_2" ${TOPP_BIN_PATH}/ProSE -test
 -ini ${DATA_DIR_TOPP}/ProSE_2.ini -in
-${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML
 -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
 add_test("TOPP_ProSE_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
 set_tests_properties("TOPP_ProSE_2_out" PROPERTIES DEPENDS
 "TOPP_ProSE_2")
 
-# Multi-file test: search two mzML inputs (here the same file twice for simplicity)
-# against the same FASTA in a single invocation. The fragment index is built once
-# and reused. The first output is idXML (compared against the _1 reference), the
-# second output is QPX PSM parquet (smoke-tested via sha256sum which fails if the
-# file does not exist).
+# Multi-file test: single-file idXML output
 add_test("TOPP_ProSE_3_multi" ${TOPP_BIN_PATH}/ProSE -test
--ini ${DATA_DIR_TOPP}/ProSE_1.ini
--in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
--out ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_3_multi_b.tmp.parquet
--database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
-add_test("TOPP_ProSE_3_multi_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+add_test("TOPP_ProSE_3_multi_idXML_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML
+  -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML
+  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
 set_tests_properties("TOPP_ProSE_3_multi_idXML_out" PROPERTIES DEPENDS "TOPP_ProSE_3_multi")
-add_test(NAME "TOPP_ProSE_3_multi_parquet_out" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/ProSE_3_multi_b.tmp.parquet)
-set_tests_properties("TOPP_ProSE_3_multi_parquet_out" PROPERTIES DEPENDS "TOPP_ProSE_3_multi")
+
+# Test 3b: QPX directory output (smoke test — check files exist)
+add_test("TOPP_ProSE_3_qpx" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  -out_qpx ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+add_test(NAME "TOPP_ProSE_3_qpx_psm_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
+  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.psm.parquet)
+set_tests_properties("TOPP_ProSE_3_qpx_psm_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
+add_test(NAME "TOPP_ProSE_3_qpx_pg_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
+  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.pg.parquet)
+set_tests_properties("TOPP_ProSE_3_qpx_pg_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
+add_test(NAME "TOPP_ProSE_3_qpx_merged_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
+  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.psm.parquet)
+set_tests_properties("TOPP_ProSE_3_qpx_merged_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
 
 # Asymmetric precursor window + calibration bias preservation end-to-end test.
 # Uses SimpleSearchEngine_1_shifted_7ppm.mzML (all MS2 precursors multiplied by
@@ -2943,7 +2956,7 @@ set_tests_properties("TOPP_ProSE_3_multi_parquet_out" PROPERTIES DEPENDS "TOPP_P
 add_test("TOPP_ProSE_4" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_4.ini
   -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1_shifted_7ppm.mzML
-  -out ${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
 add_test("TOPP_ProSE_4_out" ${DIFF}
   -in1 ${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
@@ -2987,7 +3000,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   add_test("TOPP_ProSE_DDA" ${TOPP_BIN_PATH}/ProSE -test
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
-    -out ${TESTS_TEMP_DIR}/ProSE_DDA_out.tmp.idXML
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_DDA_out.tmp.idXML
     -Search:precursor:mass_tolerance_lower 20
     -Search:precursor:mass_tolerance_upper 20
     -Search:precursor:mass_tolerance_unit ppm
@@ -3009,7 +3022,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   add_test("TOPP_ProSE_DDA_calibrated" ${TOPP_BIN_PATH}/ProSE -test
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
-    -out ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_out.tmp.idXML
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_out.tmp.idXML
     -Search:precursor:mass_tolerance_lower 20
     -Search:precursor:mass_tolerance_upper 20
     -Search:precursor:mass_tolerance_unit ppm
