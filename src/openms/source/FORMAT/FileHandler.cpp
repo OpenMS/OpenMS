@@ -186,7 +186,7 @@ namespace OpenMS
         return FileTypes::BRUKER_TDF;
       }
       // Check for .d.zip: a ZIP archive containing a Bruker .d directory
-      if (File::exists(normalized) && !File::isDirectory(normalized) && normalized.hasSuffix(".zip"))
+      if (File::exists(normalized) && !File::isDirectory(normalized) && String(normalized).toLower().hasSuffix(".zip"))
       {
         return FileTypes::BRUKER_TDF;
       }
@@ -333,10 +333,10 @@ namespace OpenMS
     // so far, compression is only supported for XML files
     vector<String> complete_file;
 
-    // test whether the file is compressed (bzip2 or gzip)
+    // test whether the file is compressed (bzip2, gzip, or zip)
     ifstream compressed_file(filename.c_str());
-    char bz[2];
-    compressed_file.read(bz, 2);
+    char bz[4] = {};
+    compressed_file.read(bz, 4);
     char g1 = 0x1f;
     char g2 = 0;
     g2 |= 1 << 7;
@@ -384,7 +384,7 @@ namespace OpenMS
       all_simple = first_line + ' ' + two_five;
       complete_file = split;
     }
-    else if (bz[0] == 'P' && bz[1] == 'K') // ZIP
+    else if (bz[0] == 'P' && bz[1] == 'K' && bz[2] == 0x03 && bz[3] == 0x04) // ZIP local file header
     {
       ZipIfstream zip_file(filename.c_str());
 
@@ -934,17 +934,24 @@ namespace OpenMS
         // If the input is a .d.zip archive, extract to a temp directory first.
         std::unique_ptr<File::TempDir> temp_dir;
         String load_path = filename;
-        if (!File::isDirectory(filename) && filename.hasSuffix(".zip"))
+        if (!File::isDirectory(filename) && String(filename).toLower().hasSuffix(".zip"))
         {
           load_path = ZipArchiveFile::unzipDirectory(filename, temp_dir);
-          // Find the .d directory inside the extracted archive
-          for (const auto& entry : std::filesystem::directory_iterator(std::string(load_path)))
+          // Find the .d directory inside the extracted archive (may be nested)
+          bool found_d = false;
+          for (const auto& entry : std::filesystem::recursive_directory_iterator(std::string(load_path)))
           {
             if (entry.is_directory() && entry.path().extension() == ".d")
             {
               load_path = entry.path().string();
+              found_d = true;
               break;
             }
+          }
+          if (!found_d)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              filename, "ZIP archive does not contain a .d directory");
           }
         }
         BrukerTimsFile f;
