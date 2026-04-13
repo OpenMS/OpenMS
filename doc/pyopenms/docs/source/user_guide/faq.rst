@@ -6,13 +6,15 @@ Frequently Asked Questions
 How can I wrap a new method with pyOpenMS?
 **************************************************
 
-Add an entry to ``src/pyOpenMS/pxds/CLASS_NAME.pxd`` with the signature of your new method(s).
+Add a ``.def(...)`` call for the method in the appropriate ``src/pyOpenMS/bindings/bind_<domain>.cpp``
+file using nanobind syntax. See the `wrapping guide <../community/wrapping_workflows_new_classes.html#how-to-wrap-new-classes>`_ for details.
 
 
 How can I wrap a new class with pyOpenMS?
 *************************************************
 
-Create a new file ``src/pyOpenMS/pxds/CLASS_NAME.pxd`` and use the `procedure outlined <../community/wrapping_workflows_new_classes.html#how-to-wrap-new-classes>`_. 
+Add a ``nb::class_<OpenMS::ClassName>(m, "ClassName", "docstring")`` block in the appropriate
+``src/pyOpenMS/bindings/bind_<domain>.cpp`` file and use the `procedure outlined <../community/wrapping_workflows_new_classes.html#how-to-wrap-new-classes>`_. 
 
 
 Can I use multiple output parameters?
