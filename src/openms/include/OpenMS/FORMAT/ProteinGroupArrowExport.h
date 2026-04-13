@@ -13,14 +13,21 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <memory>
 #include <string>
+#include <vector>
 
 // Forward declarations
 namespace arrow
 {
   class Table;
+}
+
+namespace OpenMS
+{
+  class ProteinIdentification;
 }
 
 namespace OpenMS
@@ -64,6 +71,36 @@ public:
   */
   static bool exportToParquet(
     const ConsensusMap& cmap,
+    const String& filename,
+    const ParquetWriteConfig& config = ParquetWriteConfig{});
+
+  /**
+    @brief Export protein group data to Arrow table from identification data (no quantification)
+
+    For search-engine output where no ConsensusMap is available. Populates required
+    QPX pg fields (pg_accessions, anchor_protein, run_file_name, is_decoy, peptides)
+    and sets quantification columns (intensities, additional_intensities) to null.
+
+    @param[in] protein_identifications Protein identifications with protein groups
+    @param[in] peptide_identifications Peptide identifications (for peptide-per-protein counts)
+    @return Shared pointer to Arrow Table (empty table if no groups, never nullptr)
+  */
+  static std::shared_ptr<arrow::Table> exportToArrow(
+    const std::vector<ProteinIdentification>& protein_identifications,
+    const PeptideIdentificationList& peptide_identifications);
+
+  /**
+    @brief Export protein group data to Parquet file from identification data (no quantification)
+
+    @param[in] protein_identifications Protein identifications with protein groups
+    @param[in] peptide_identifications Peptide identifications (for peptide-per-protein counts)
+    @param[in] filename Output file path
+    @param[in] config Parquet writing options
+    @return true on success, false on error
+  */
+  static bool exportToParquet(
+    const std::vector<ProteinIdentification>& protein_identifications,
+    const PeptideIdentificationList& peptide_identifications,
     const String& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 };
