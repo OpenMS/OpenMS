@@ -213,8 +213,11 @@ namespace OpenMS
       OSWBufferedWriter(OpenSwathOSWWriter& writer, UInt64 buffer_budget_bytes, bool profile) :
         writer_(writer),
         buffer_budget_bytes_(std::max(buffer_budget_bytes, OSW_MIN_WRITE_BUFFER_BYTES)),
-        flush_trigger_bytes_(std::min(buffer_budget_bytes_,
-                                      std::max(OSW_MIN_WRITE_BUFFER_BYTES, buffer_budget_bytes_ / 2ull))),
+        flush_trigger_bytes_(std::min<UInt64>(
+          buffer_budget_bytes_,
+          std::max<UInt64>(
+            OSW_MIN_WRITE_BUFFER_BYTES,
+            buffer_budget_bytes_ / static_cast<UInt64>(2)))),
         profile_(profile)
       {
         stats_.buffer_budget_bytes = buffer_budget_bytes_;
