@@ -14,18 +14,13 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
+#include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
-#include <arrow/io/file.h>
-#include <parquet/arrow/writer.h>
-#include <parquet/properties.h>
 
-#include <cstdio>
-#include <cstring>
 #include <map>
-#include <random>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -468,6 +463,23 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
 }
 
 
+namespace
+{
+  /// Attach the canonical QPX "pg" file metadata to a table's schema.
+  std::shared_ptr<arrow::Table> attachQPXPgMetadata(const std::shared_ptr<arrow::Table>& table)
+  {
+    auto metadata = arrow::key_value_metadata({
+      {"qpx_version", "1.0"},
+      {"creator", "OpenMS"},
+      {"file_type", "pg"},
+      {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
+      {"uuid", std::string(ArrowIOHelpers::generateUuidV4())},
+      {"software_provider", "OpenMS"}
+    });
+    return table->ReplaceSchemaMetadata(metadata);
+  }
+}
+
 bool ProteinGroupArrowExport::exportToParquet(
   const ConsensusMap& cmap,
   const String& filename,
@@ -479,99 +491,7 @@ bool ProteinGroupArrowExport::exportToParquet(
     OPENMS_LOG_ERROR << "ProteinGroupArrowExport: Failed to create Arrow table" << std::endl;
     return false;
   }
-
-  // Add QPX metadata to schema
-  {
-    // Generate RFC 4122 version-4 UUID
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<uint32_t> dist;
-    uint8_t bytes[16];
-    for (int i = 0; i < 4; ++i)
-    {
-      uint32_t r = dist(gen);
-      std::memcpy(bytes + i * 4, &r, 4);
-    }
-    bytes[6] = (bytes[6] & 0x0F) | 0x40; // version 4
-    bytes[8] = (bytes[8] & 0x3F) | 0x80; // variant 1
-    char buf[37];
-    std::snprintf(buf, sizeof(buf),
-      "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-      bytes[0], bytes[1], bytes[2], bytes[3],
-      bytes[4], bytes[5], bytes[6], bytes[7],
-      bytes[8], bytes[9], bytes[10], bytes[11],
-      bytes[12], bytes[13], bytes[14], bytes[15]);
-
-    auto metadata = arrow::key_value_metadata({
-      {"qpx_version", "1.0"},
-      {"creator", "OpenMS"},
-      {"file_type", "pg"},
-      {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
-      {"uuid", std::string(buf)},
-      {"software_provider", "OpenMS"}
-    });
-    table = table->ReplaceSchemaMetadata(metadata);
-  }
-
-  // Open output file
-  auto result = arrow::io::FileOutputStream::Open(filename);
-  if (!result.ok())
-  {
-    OPENMS_LOG_ERROR << "ProteinGroupArrowExport: Failed to open file: " << filename << std::endl;
-    return false;
-  }
-  const auto& outfile = *result;
-
-  // Configure Parquet writer
-  auto builder = parquet::WriterProperties::Builder();
-
-  switch (config.compression)
-  {
-    case ParquetWriteConfig::Compression::NONE:
-      builder.compression(arrow::Compression::UNCOMPRESSED);
-      break;
-    case ParquetWriteConfig::Compression::SNAPPY:
-      builder.compression(arrow::Compression::SNAPPY);
-      break;
-    case ParquetWriteConfig::Compression::GZIP:
-      builder.compression(arrow::Compression::GZIP);
-      builder.compression_level(config.compression_level);
-      break;
-    case ParquetWriteConfig::Compression::LZ4:
-      builder.compression(arrow::Compression::LZ4);
-      break;
-    case ParquetWriteConfig::Compression::ZSTD:
-      builder.compression(arrow::Compression::ZSTD);
-      builder.compression_level(config.compression_level);
-      break;
-  }
-
-  builder.data_pagesize(config.data_page_size);
-
-  if (config.write_statistics)
-  {
-    builder.enable_statistics();
-  }
-  else
-  {
-    builder.disable_statistics();
-  }
-
-  auto writer_props = builder.build();
-  auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
-
-  auto write_status = parquet::arrow::WriteTable(
-    *table, arrow::default_memory_pool(), outfile,
-    config.row_group_size, writer_props, arrow_props);
-
-  if (!write_status.ok())
-  {
-    OPENMS_LOG_ERROR << "ProteinGroupArrowExport: Failed to write Parquet: "
-                     << write_status.ToString() << std::endl;
-    return false;
-  }
-
-  return true;
+  return ArrowIOHelpers::writeTableToParquet(attachQPXPgMetadata(table), filename, config);
 }
 
 
@@ -767,22 +687,18 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
       }
     }
 
-    // gg_accessions, gg_names (gene groups — populate if meta values available)
+    // gg_accessions, gg_names (gene groups — one entry per group member, keep
+    // parallel to pg_accessions so consumers can zip positionally; empty string
+    // when the meta value is missing).
     (void)gg_accessions_builder.Append();
     (void)gg_names_builder.Append();
     for (const auto& acc : group.accessions)
     {
       auto it = hit_lookup.find(acc);
-      if (it != hit_lookup.end())
-      {
-        bool has_ga = it->second->metaValueExists("gene_accession");
-        bool has_gn = it->second->metaValueExists("gene_name");
-        if (has_ga || has_gn)
-        {
-          (void)gg_acc_vb->Append(has_ga ? it->second->getMetaValue("gene_accession").toString() : "");
-          (void)gg_names_vb->Append(has_gn ? it->second->getMetaValue("gene_name").toString() : "");
-        }
-      }
+      bool has_ga = (it != hit_lookup.end()) && it->second->metaValueExists("gene_accession");
+      bool has_gn = (it != hit_lookup.end()) && it->second->metaValueExists("gene_name");
+      (void)gg_acc_vb->Append(has_ga ? it->second->getMetaValue("gene_accession").toString() : "");
+      (void)gg_names_vb->Append(has_gn ? it->second->getMetaValue("gene_name").toString() : "");
     }
 
     // gg_qvalue - not available
@@ -814,9 +730,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
     // contaminant - not tracked
     (void)contaminant_builder.AppendNull();
 
-    // peptides — populate from peptide evidence counts
+    // peptides — one {protein_name, peptide_count} per group member
     (void)peptides_builder.Append();
-    int total_unique = 0;
+    int total_sequences = 0;
+    std::unordered_set<std::string> group_unique_peptides;
     for (const auto& acc : group.accessions)
     {
       auto pit = acc_to_peptides.find(acc);
@@ -824,16 +741,19 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
       (void)pep_struct_b->Append();
       (void)pep_name_b->Append(acc);
       (void)pep_count_b->Append(count);
-      total_unique += count;
+      total_sequences += count;
+      if (pit != acc_to_peptides.end())
+      {
+        group_unique_peptides.insert(pit->second.begin(), pit->second.end());
+      }
     }
 
-    // peptide_counts — unique across all group members (use anchor as proxy for unique)
+    // peptide_counts — unique sequences across the union of group members,
+    // total_sequences is the sum of per-protein counts (double-counts shared peptides).
     {
-      auto pit = acc_to_peptides.find(anchor);
-      int unique_count = (pit != acc_to_peptides.end()) ? static_cast<int>(pit->second.size()) : 0;
       (void)peptide_counts_builder.Append();
-      (void)pc_unique_b->Append(unique_count);
-      (void)pc_total_b->Append(total_unique);
+      (void)pc_unique_b->Append(static_cast<int>(group_unique_peptides.size()));
+      (void)pc_total_b->Append(total_sequences);
     }
 
     // feature_counts - not available for id-only
@@ -944,99 +864,7 @@ bool ProteinGroupArrowExport::exportToParquet(
     OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): Failed to create Arrow table" << std::endl;
     return false;
   }
-
-  // Add QPX metadata to schema
-  {
-    // Generate RFC 4122 version-4 UUID
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<uint32_t> dist;
-    uint8_t bytes[16];
-    for (int i = 0; i < 4; ++i)
-    {
-      uint32_t r = dist(gen);
-      std::memcpy(bytes + i * 4, &r, 4);
-    }
-    bytes[6] = (bytes[6] & 0x0F) | 0x40; // version 4
-    bytes[8] = (bytes[8] & 0x3F) | 0x80; // variant 1
-    char buf[37];
-    std::snprintf(buf, sizeof(buf),
-      "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-      bytes[0], bytes[1], bytes[2], bytes[3],
-      bytes[4], bytes[5], bytes[6], bytes[7],
-      bytes[8], bytes[9], bytes[10], bytes[11],
-      bytes[12], bytes[13], bytes[14], bytes[15]);
-
-    auto metadata = arrow::key_value_metadata({
-      {"qpx_version", "1.0"},
-      {"creator", "OpenMS"},
-      {"file_type", "pg"},
-      {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
-      {"uuid", std::string(buf)},
-      {"software_provider", "OpenMS"}
-    });
-    table = table->ReplaceSchemaMetadata(metadata);
-  }
-
-  // Open output file
-  auto result = arrow::io::FileOutputStream::Open(filename);
-  if (!result.ok())
-  {
-    OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): Failed to open file: " << filename << std::endl;
-    return false;
-  }
-  const auto& outfile = *result;
-
-  // Configure Parquet writer
-  auto builder = parquet::WriterProperties::Builder();
-
-  switch (config.compression)
-  {
-    case ParquetWriteConfig::Compression::NONE:
-      builder.compression(arrow::Compression::UNCOMPRESSED);
-      break;
-    case ParquetWriteConfig::Compression::SNAPPY:
-      builder.compression(arrow::Compression::SNAPPY);
-      break;
-    case ParquetWriteConfig::Compression::GZIP:
-      builder.compression(arrow::Compression::GZIP);
-      builder.compression_level(config.compression_level);
-      break;
-    case ParquetWriteConfig::Compression::LZ4:
-      builder.compression(arrow::Compression::LZ4);
-      break;
-    case ParquetWriteConfig::Compression::ZSTD:
-      builder.compression(arrow::Compression::ZSTD);
-      builder.compression_level(config.compression_level);
-      break;
-  }
-
-  builder.data_pagesize(config.data_page_size);
-
-  if (config.write_statistics)
-  {
-    builder.enable_statistics();
-  }
-  else
-  {
-    builder.disable_statistics();
-  }
-
-  auto writer_props = builder.build();
-  auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
-
-  auto write_status = parquet::arrow::WriteTable(
-    *table, arrow::default_memory_pool(), outfile,
-    config.row_group_size, writer_props, arrow_props);
-
-  if (!write_status.ok())
-  {
-    OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): Failed to write Parquet: "
-                     << write_status.ToString() << std::endl;
-    return false;
-  }
-
-  return true;
+  return ArrowIOHelpers::writeTableToParquet(attachQPXPgMetadata(table), filename, config);
 }
 
 } // namespace OpenMS

@@ -99,7 +99,7 @@ class ProSE :
 
       registerOutputDir_("out_parquet", "<dir>", "", "Output directory for OpenMS internal format Parquet files. Writes per-input <basename>.psm/proteins/pg/search_params.parquet, plus merged openms.* files.", false, true);
 
-      registerOutputFile_("out_merged", "<file>", "", "Optional merged output file containing all PSMs pooled across input files with cross-file protein inference (BasicProteinInferenceAlgorithm) and optional picked-protein FDR (FDR:protein). Per-file outputs (-out) retain run-level information. Only useful with multiple -in files.", false);
+      registerOutputFile_("out_merged", "<file>", "", "Optional merged output file containing all PSMs pooled across input files with cross-file protein inference (BasicProteinInferenceAlgorithm) and optional picked-protein FDR (FDR:protein). Per-file outputs (-out_idxml / -out_qpx / -out_parquet) retain run-level information. Only useful with multiple -in files.", false);
       setValidFormats_("out_merged", ListUtils::create<String>("idXML"));
 
       registerOutputDir_("out_mod_analysis_dir", "<dir>", "", "Optional directory to write modification-analysis tables (delta-mass, PTM stats) when running in open-search mode. When set, per-file tables are written using each input file's basename and an additional aggregate table is written across all input files. Has no effect in closed-search mode.", false, true);
@@ -334,7 +334,7 @@ class ProSE :
 
       // Write merged output: pool all per-file PSMs (possibly Percolator-rescored),
       // run cross-file protein inference + optional protein FDR, write to -out_merged.
-      // Per-file outputs (-out) are NOT modified — they retain run-level information.
+      // Per-file outputs (-out_idxml/-out_qpx/-out_parquet) are NOT modified — they retain run-level information.
       if (!out_merged.empty() && in_list.size() > 1)
       {
         const String decoy_prefix = search_params.getValue("decoy_prefix").toString();
@@ -415,83 +415,132 @@ class ProSE :
           result.protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in_file)});
         }
 
+        // Output modes are independent: a failure in one mode must not skip the
+        // sibling modes for the same input. Each mode contributes at most one
+        // failure to input_failed; the input counts as failed if any mode failed.
+        bool input_failed = false;
+
         // -- idXML output --
         if (!out_idxml_list.empty())
         {
-          FileHandler().storeIdentifications(out_idxml_list[i], result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
+          try
+          {
+            FileHandler().storeIdentifications(out_idxml_list[i], result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
+          }
+          catch (const Exception::BaseException& e)
+          {
+            OPENMS_LOG_ERROR << "Failed to write idXML output for " << in_file
+                             << " -> " << out_idxml_list[i] << ": " << e.what() << endl;
+            input_failed = true;
+          }
         }
 
         // -- QPX directory output --
         if (!out_qpx_dir.empty())
         {
-          // PSM
+          // PSM — write file and accumulate table for merge independently.
+          // Accumulation uses a freshly-built table (exportToParquet rebuilds internally).
           const String qpx_psm_file = out_qpx_dir + "/" + basename + ".psm.parquet";
-          if (!QPXFile::exportToParquet(result.protein_ids, result.peptide_ids, qpx_psm_file, /*export_all_psms=*/false))
+          if (QPXFile::exportToParquet(result.protein_ids, result.peptide_ids, qpx_psm_file, /*export_all_psms=*/false))
           {
-            OPENMS_LOG_ERROR << "Failed to write QPX PSM parquet for " << in_file << endl;
-            ++failed_count; continue;
+            auto qpx_psm_table = QPXFile::exportPSMsToQPXArrow(result.protein_ids, result.peptide_ids, /*export_all_psms=*/false);
+            if (qpx_psm_table) { qpx_psm_tables.push_back(qpx_psm_table); }
+            else { OPENMS_LOG_WARN << "QPX PSM table build returned null for " << in_file << " (merged quantms.psm.parquet will not include this run)" << endl; }
           }
-          auto qpx_psm_table = QPXFile::exportPSMsToQPXArrow(result.protein_ids, result.peptide_ids, /*export_all_psms=*/false);
-          if (qpx_psm_table) qpx_psm_tables.push_back(qpx_psm_table);
+          else
+          {
+            OPENMS_LOG_ERROR << "Failed to write QPX PSM parquet for " << in_file << " -> " << qpx_psm_file << endl;
+            input_failed = true;
+          }
 
-          // Protein groups
+          // Protein groups — independent of PSM result.
           const String qpx_pg_file = out_qpx_dir + "/" + basename + ".pg.parquet";
-          if (!ProteinGroupArrowExport::exportToParquet(result.protein_ids, result.peptide_ids, qpx_pg_file))
+          if (ProteinGroupArrowExport::exportToParquet(result.protein_ids, result.peptide_ids, qpx_pg_file))
           {
-            OPENMS_LOG_ERROR << "Failed to write QPX PG parquet for " << in_file << endl;
-            ++failed_count; continue;
+            auto qpx_pg_table = ProteinGroupArrowExport::exportToArrow(result.protein_ids, result.peptide_ids);
+            if (qpx_pg_table) { qpx_pg_tables.push_back(qpx_pg_table); }
+            else { OPENMS_LOG_WARN << "QPX PG table build returned null for " << in_file << " (merged quantms.pg.parquet will not include this run)" << endl; }
           }
-          auto qpx_pg_table = ProteinGroupArrowExport::exportToArrow(result.protein_ids, result.peptide_ids);
-          if (qpx_pg_table) qpx_pg_tables.push_back(qpx_pg_table);
+          else
+          {
+            OPENMS_LOG_ERROR << "Failed to write QPX PG parquet for " << in_file << " -> " << qpx_pg_file << endl;
+            input_failed = true;
+          }
         }
 
         // -- OpenMS internal directory output --
         if (!out_parquet_dir.empty())
         {
-          bool ok = true;
-
-          // PSM (internal schema)
+          // PSM (internal PSMSchema) — build once, write, accumulate for merge.
           const String oms_psm_file = out_parquet_dir + "/" + basename + ".psm.parquet";
           auto oms_psm_table = QPXFile::exportToArrow(result.protein_ids, result.peptide_ids, /*export_all_psms=*/false);
           if (oms_psm_table)
           {
             oms_psm_tables.push_back(oms_psm_table);
-            ok = ArrowIOHelpers::writeTableToParquet(oms_psm_table, oms_psm_file) && ok;
+            if (!ArrowIOHelpers::writeTableToParquet(oms_psm_table, oms_psm_file))
+            {
+              OPENMS_LOG_ERROR << "Failed to write internal PSM parquet for " << in_file << " -> " << oms_psm_file << endl;
+              input_failed = true;
+            }
+          }
+          else
+          {
+            OPENMS_LOG_WARN << "Internal PSM table build returned null for " << in_file << " — skipping " << oms_psm_file << endl;
           }
 
           // Proteins
+          const String oms_prot_file = out_parquet_dir + "/" + basename + ".proteins.parquet";
           auto prot_table = ProteinIdentificationArrowIO::exportProteinsToArrow(result.protein_ids);
           if (prot_table)
           {
             oms_prot_tables.push_back(prot_table);
-            ok = ProteinIdentificationArrowIO::exportProteinsToParquet(
-              result.protein_ids, out_parquet_dir + "/" + basename + ".proteins.parquet") && ok;
+            if (!ProteinIdentificationArrowIO::exportProteinsToParquet(result.protein_ids, oms_prot_file))
+            {
+              OPENMS_LOG_ERROR << "Failed to write proteins parquet for " << in_file << " -> " << oms_prot_file << endl;
+              input_failed = true;
+            }
+          }
+          else
+          {
+            OPENMS_LOG_WARN << "Proteins table build returned null for " << in_file << " — skipping " << oms_prot_file << endl;
           }
 
           // Protein groups
+          const String oms_pg_file = out_parquet_dir + "/" + basename + ".pg.parquet";
           auto pg_table = ProteinIdentificationArrowIO::exportProteinGroupsToArrow(result.protein_ids);
           if (pg_table)
           {
             oms_pg_tables.push_back(pg_table);
-            ok = ProteinIdentificationArrowIO::exportProteinGroupsToParquet(
-              result.protein_ids, out_parquet_dir + "/" + basename + ".pg.parquet") && ok;
+            if (!ProteinIdentificationArrowIO::exportProteinGroupsToParquet(result.protein_ids, oms_pg_file))
+            {
+              OPENMS_LOG_ERROR << "Failed to write protein groups parquet for " << in_file << " -> " << oms_pg_file << endl;
+              input_failed = true;
+            }
+          }
+          else
+          {
+            OPENMS_LOG_WARN << "Protein groups table build returned null for " << in_file << " — skipping " << oms_pg_file << endl;
           }
 
           // Search params
+          const String oms_sp_file = out_parquet_dir + "/" + basename + ".search_params.parquet";
           auto sp_table = ProteinIdentificationArrowIO::exportSearchParamsToArrow(result.protein_ids);
           if (sp_table)
           {
             oms_sp_tables.push_back(sp_table);
-            ok = ProteinIdentificationArrowIO::exportSearchParamsToParquet(
-              result.protein_ids, out_parquet_dir + "/" + basename + ".search_params.parquet") && ok;
+            if (!ProteinIdentificationArrowIO::exportSearchParamsToParquet(result.protein_ids, oms_sp_file))
+            {
+              OPENMS_LOG_ERROR << "Failed to write search params parquet for " << in_file << " -> " << oms_sp_file << endl;
+              input_failed = true;
+            }
           }
-
-          if (!ok)
+          else
           {
-            OPENMS_LOG_ERROR << "Failed to write one or more internal parquet files for " << in_file << endl;
-            ++failed_count; continue;
+            OPENMS_LOG_WARN << "Search params table build returned null for " << in_file << " — skipping " << oms_sp_file << endl;
           }
         }
+
+        if (input_failed) { ++failed_count; }
       }
 
       // -- Write merged Parquet files --
