@@ -17,14 +17,22 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <condition_variable>
+#include <deque>
+#include <exception>
 #include <iterator>
+#include <limits>
 #include <memory>
+#include <mutex>
 #include <sstream>
+#include <thread>
 #include <unordered_map>
+#include <utility>
 
 
 // OpenSwathWorkflow
@@ -97,6 +105,273 @@ namespace OpenMS
       return StopWatch::toString(seconds);
     }
 
+    constexpr UInt64 OSW_MIN_WRITE_BUFFER_BYTES = 64ull * 1024ull * 1024ull;
+    constexpr UInt64 OSW_FALLBACK_WRITE_BUFFER_BYTES = 512ull * 1024ull * 1024ull;
+    constexpr UInt64 OSW_MAX_WRITE_BUFFER_BYTES = 2ull * 1024ull * 1024ull * 1024ull;
+    constexpr UInt64 OSW_SYSTEM_MEMORY_RESERVE_BYTES = 4ull * 1024ull * 1024ull * 1024ull;
+
+    UInt64 determineOSWWriteBufferBytes()
+    {
+      size_t available_kb = 0;
+      if (!SysInfo::getFreeSystemMemory(available_kb))
+      {
+        return OSW_FALLBACK_WRITE_BUFFER_BYTES;
+      }
+
+      const UInt64 available_kb_64 = static_cast<UInt64>(available_kb);
+      UInt64 available_bytes = 0;
+      if (available_kb_64 > std::numeric_limits<UInt64>::max() / 1024ull)
+      {
+        available_bytes = std::numeric_limits<UInt64>::max();
+      }
+      else
+      {
+        available_bytes = available_kb_64 * 1024ull;
+      }
+
+      const UInt64 usable_bytes = available_bytes > OSW_SYSTEM_MEMORY_RESERVE_BYTES ?
+        available_bytes - OSW_SYSTEM_MEMORY_RESERVE_BYTES :
+        available_bytes / 8ull;
+      const UInt64 budget_bytes = usable_bytes / 4ull;
+      return std::clamp(budget_bytes, OSW_MIN_WRITE_BUFFER_BYTES, OSW_MAX_WRITE_BUFFER_BYTES);
+    }
+
+    // Queue OSW rows so scoring threads only block when the memory budget is exhausted.
+    class OSWBufferedWriter
+    {
+    public:
+      struct EnqueueProfile
+      {
+        double wait_seconds = 0.0;
+        Size row_count = 0;
+        UInt64 byte_count = 0;
+      };
+
+      struct Stats
+      {
+        double enqueue_wait = 0.0;
+        double write_hold = 0.0;
+        Size queued_jobs = 0;
+        Size flush_count = 0;
+        Size queued_rows = 0;
+        Size written_rows = 0;
+        UInt64 queued_bytes = 0;
+        UInt64 written_bytes = 0;
+        UInt64 max_buffered_bytes = 0;
+        UInt64 buffer_budget_bytes = 0;
+        UInt64 flush_trigger_bytes = 0;
+      };
+
+      OSWBufferedWriter(OpenSwathOSWWriter& writer, UInt64 buffer_budget_bytes, bool profile) :
+        writer_(writer),
+        buffer_budget_bytes_(std::max(buffer_budget_bytes, OSW_MIN_WRITE_BUFFER_BYTES)),
+        flush_trigger_bytes_(std::max(OSW_MIN_WRITE_BUFFER_BYTES, buffer_budget_bytes_ * 7ull / 10ull)),
+        profile_(profile)
+      {
+        stats_.buffer_budget_bytes = buffer_budget_bytes_;
+        stats_.flush_trigger_bytes = flush_trigger_bytes_;
+        worker_ = std::thread(&OSWBufferedWriter::writerLoop_, this);
+      }
+
+      OSWBufferedWriter(const OSWBufferedWriter&) = delete;
+      OSWBufferedWriter& operator=(const OSWBufferedWriter&) = delete;
+
+      ~OSWBufferedWriter()
+      {
+        try
+        {
+          finish();
+        }
+        catch (...)
+        {
+        }
+      }
+
+      EnqueueProfile enqueue(OpenSwathOSWWriter::OSWData&& rows)
+      {
+        EnqueueProfile profile;
+        if (rows.empty())
+        {
+          return profile;
+        }
+
+        profile.row_count = rows.rowCount();
+        profile.byte_count = std::max<UInt64>(rows.estimateMemoryUsage(), 1ull);
+        const auto wait_start = profileStart(profile_);
+
+        std::unique_lock<std::mutex> lock(mutex_);
+        checkExceptionLocked_();
+        cv_.wait(lock, [&]()
+        {
+          return exception_ != nullptr ||
+                 finish_requested_ ||
+                 (buffered_bytes_ <= buffer_budget_bytes_ &&
+                  profile.byte_count <= buffer_budget_bytes_ - buffered_bytes_) ||
+                 (buffered_bytes_ == 0 && queue_.empty());
+        });
+        checkExceptionLocked_();
+        if (finish_requested_)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Cannot enqueue OSW rows after the buffered writer was finished.");
+        }
+
+        if (profile_)
+        {
+          profile.wait_seconds = elapsedProfileSeconds(wait_start);
+        }
+
+        queue_.push_back({std::move(rows), profile.byte_count, profile.row_count});
+        buffered_bytes_ += profile.byte_count;
+        stats_.enqueue_wait += profile.wait_seconds;
+        stats_.queued_jobs += 1;
+        stats_.queued_rows += profile.row_count;
+        stats_.queued_bytes += profile.byte_count;
+        stats_.max_buffered_bytes = std::max(stats_.max_buffered_bytes, buffered_bytes_);
+
+        lock.unlock();
+        cv_.notify_all();
+        return profile;
+      }
+
+      void finish()
+      {
+        {
+          std::lock_guard<std::mutex> lock(mutex_);
+          finish_requested_ = true;
+        }
+        cv_.notify_all();
+
+        if (worker_.joinable())
+        {
+          worker_.join();
+        }
+
+        std::lock_guard<std::mutex> lock(mutex_);
+        checkExceptionLocked_();
+      }
+
+      Stats stats() const
+      {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return stats_;
+      }
+
+    private:
+      struct QueueItem
+      {
+        OpenSwathOSWWriter::OSWData rows;
+        UInt64 byte_count = 0;
+        Size row_count = 0;
+      };
+
+      void checkExceptionLocked_() const
+      {
+        if (exception_ != nullptr)
+        {
+          std::rethrow_exception(exception_);
+        }
+      }
+
+      void writerLoop_()
+      {
+        try
+        {
+          while (true)
+          {
+            OpenSwathOSWWriter::OSWData batch;
+            UInt64 batch_bytes = 0;
+            Size batch_rows = 0;
+
+            {
+              std::unique_lock<std::mutex> lock(mutex_);
+              cv_.wait(lock, [&]()
+              {
+                return exception_ != nullptr ||
+                       finish_requested_ ||
+                       buffered_bytes_ >= flush_trigger_bytes_;
+              });
+
+              if (exception_ != nullptr)
+              {
+                return;
+              }
+
+              if (queue_.empty() && finish_requested_)
+              {
+                return;
+              }
+              if (queue_.empty())
+              {
+                continue;
+              }
+
+              while (!queue_.empty())
+              {
+                QueueItem item = std::move(queue_.front());
+                queue_.pop_front();
+                batch_bytes += item.byte_count;
+                batch_rows += item.row_count;
+                batch.append(std::move(item.rows));
+              }
+            }
+
+            if (!batch.empty())
+            {
+              const auto write_start = profileStart(profile_);
+              writer_.writeRows(batch);
+              const double write_hold = profile_ ? elapsedProfileSeconds(write_start) : 0.0;
+
+              std::lock_guard<std::mutex> lock(mutex_);
+              stats_.write_hold += write_hold;
+              stats_.flush_count += 1;
+              stats_.written_rows += batch_rows;
+              stats_.written_bytes += batch_bytes;
+              buffered_bytes_ -= batch_bytes;
+              cv_.notify_all();
+            }
+          }
+        }
+        catch (...)
+        {
+          std::lock_guard<std::mutex> lock(mutex_);
+          exception_ = std::current_exception();
+          queue_.clear();
+          buffered_bytes_ = 0;
+          cv_.notify_all();
+        }
+      }
+
+      OpenSwathOSWWriter& writer_;
+      UInt64 buffer_budget_bytes_ = OSW_FALLBACK_WRITE_BUFFER_BYTES;
+      UInt64 flush_trigger_bytes_ = OSW_FALLBACK_WRITE_BUFFER_BYTES;
+      bool profile_ = false;
+      mutable std::mutex mutex_;
+      std::condition_variable cv_;
+      std::deque<QueueItem> queue_;
+      UInt64 buffered_bytes_ = 0;
+      bool finish_requested_ = false;
+      std::exception_ptr exception_;
+      Stats stats_;
+      std::thread worker_;
+    };
+
+    void logOSWBufferedWriterProfile(const OSWBufferedWriter::Stats& stats)
+    {
+      OPENMS_LOG_INFO << "[OpenSwathWorkflow profile] OSW writer queue: "
+                      << "wait=" << formatProfileSeconds(stats.enqueue_wait)
+                      << ", write_hold=" << formatProfileSeconds(stats.write_hold)
+                      << ", flushes=" << stats.flush_count
+                      << ", jobs=" << stats.queued_jobs
+                      << ", rows=" << stats.written_rows
+                      << ", budget=" << bytesToHumanReadable(stats.buffer_budget_bytes)
+                      << ", trigger=" << bytesToHumanReadable(stats.flush_trigger_bytes)
+                      << ", max_buffered=" << bytesToHumanReadable(stats.max_buffered_bytes)
+                      << ", queued=" << bytesToHumanReadable(stats.queued_bytes)
+                      << ", written=" << bytesToHumanReadable(stats.written_bytes)
+                      << std::endl;
+    }
+
     String formatScoringBreakdown(const OpenSwathScoringPhaseTiming& timing)
     {
       std::ostringstream os;
@@ -115,6 +390,8 @@ namespace OpenMS
          << ", feature_sort_output=" << formatProfileSeconds(timing.feature_sort_output)
          << ", osw_prepare=" << formatProfileSeconds(timing.osw_prepare)
          << ", osw_write=" << formatProfileSeconds(timing.osw_write)
+         << ", osw_write_wait=" << formatProfileSeconds(timing.osw_write_wait)
+         << ", osw_write_hold=" << formatProfileSeconds(timing.osw_write_hold)
          << "; assays=" << timing.assay_count
          << ", scored_assays=" << timing.scored_assay_count
          << ", skipped_assays=" << timing.skipped_assay_count
@@ -423,6 +700,15 @@ namespace OpenMS
       };
 
       std::vector<SwathSchedulerContext> contexts(swath_maps.size());
+      std::unique_ptr<OSWBufferedWriter> buffered_osw_writer;
+      if (osw_writer.isActive())
+      {
+        const UInt64 osw_buffer_bytes = determineOSWWriteBufferBytes();
+        OPENMS_LOG_INFO << "Use buffered OSW writer with "
+                        << bytesToHumanReadable(osw_buffer_bytes)
+                        << " queue budget and a single writer thread." << std::endl;
+        buffered_osw_writer = std::make_unique<OSWBufferedWriter>(osw_writer, osw_buffer_bytes, profile);
+      }
 
 #ifdef _OPENMP
       OPENMS_LOG_INFO << "Use SWATH assay-range scheduler with " << omp_get_max_threads()
@@ -680,26 +966,22 @@ namespace OpenMS
           batch_timing.feature_count = featureFile.size();
         }
 
-        double job_osw_write_seconds = 0.0;
+        double job_osw_wait_seconds = 0.0;
         if (osw_writer.isActive() && !job_osw_output.empty())
         {
-#ifdef _OPENMP
-#pragma omp critical (osw_write_out)
-#endif
+          OSWBufferedWriter::EnqueueProfile osw_enqueue_profile =
+            buffered_osw_writer->enqueue(std::move(job_osw_output));
+          if (profile)
           {
-            auto osw_write_start = profileStart(profile);
-            osw_writer.writeRows(job_osw_output);
-            if (profile)
-            {
-              job_osw_write_seconds = elapsedProfileSeconds(osw_write_start);
-              scoring_profile.osw_write += job_osw_write_seconds;
-            }
+            job_osw_wait_seconds = osw_enqueue_profile.wait_seconds;
+            scoring_profile.osw_write_wait += job_osw_wait_seconds;
+            scoring_profile.osw_write += job_osw_wait_seconds;
           }
         }
 
         if (profile)
         {
-          batch_timing.writing += job_osw_write_seconds;
+          batch_timing.writing += job_osw_wait_seconds;
           batch_timing.scoring_breakdown.add(scoring_profile);
           batch_timing.total = elapsedProfileSeconds(batch_profile_start);
         }
@@ -748,6 +1030,18 @@ namespace OpenMS
         else if (!context.active)
         {
           this->setProgress(++progress);
+        }
+      }
+
+      if (buffered_osw_writer != nullptr)
+      {
+        buffered_osw_writer->finish();
+        if (profile)
+        {
+          const OSWBufferedWriter::Stats osw_writer_stats = buffered_osw_writer->stats();
+          profile_total.scoring_breakdown.osw_write_hold += osw_writer_stats.write_hold;
+          profile_total.scoring_breakdown.osw_write += osw_writer_stats.write_hold;
+          logOSWBufferedWriterProfile(osw_writer_stats);
         }
       }
       this->endProgress();
@@ -1554,16 +1848,29 @@ namespace OpenMS
         return;
       }
 
+      double osw_write_wait = 0.0;
+      double osw_write_hold = 0.0;
+      const auto osw_write_wait_start = profileStart(profile);
 #ifdef _OPENMP
 #pragma omp critical (osw_write_tsv)
 #endif
       {
+        if (profile)
+        {
+          osw_write_wait = elapsedProfileSeconds(osw_write_wait_start);
+        }
         auto osw_write_start = profileStart(profile);
         osw_writer.writeRows(to_osw_output);
         if (profile)
         {
-          scoring_profile->osw_write += elapsedProfileSeconds(osw_write_start);
+          osw_write_hold = elapsedProfileSeconds(osw_write_start);
         }
+      }
+      if (profile)
+      {
+        scoring_profile->osw_write_wait += osw_write_wait;
+        scoring_profile->osw_write_hold += osw_write_hold;
+        scoring_profile->osw_write += osw_write_wait + osw_write_hold;
       }
     }
   }
