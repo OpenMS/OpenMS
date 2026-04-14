@@ -10,7 +10,7 @@
 #include <OpenMS/OPENSWATHALGO/Macros.h>
 #include <cmath>
 #include <algorithm>
-#include <unordered_map>
+#include <cstdint>
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
@@ -298,22 +298,41 @@ namespace OpenSwath::Scoring
     {
       OPENSWATH_PRECONDITION(ranked_data1.size() != 0 && ranked_data1.size() == ranked_data2.size(), "Both data vectors need to have the same length");
 
-      unsigned int inputVectorlength = ranked_data1.size();
-      unsigned int firstNumStates = max_rank1 + 1;
-      unsigned int secondNumStates = max_rank2 + 1;
-      std::vector<double> firstStateCounts(firstNumStates,0);
-      std::vector<double> secondStateCounts(secondNumStates,0);
-      std::unordered_map<pos2D, double, pair_hash> jointStateCounts{};
+      const unsigned int inputVectorlength = ranked_data1.size();
+      const unsigned int firstNumStates = max_rank1 + 1;
+      const unsigned int secondNumStates = max_rank2 + 1;
+      std::vector<unsigned int> firstStateCounts(firstNumStates, 0);
+      std::vector<unsigned int> secondStateCounts(secondNumStates, 0);
+      std::vector<std::uint64_t> jointStates;
+      jointStates.reserve(inputVectorlength);
 
-      for (unsigned int i = 0; i < inputVectorlength; i++) {
-        firstStateCounts[ranked_data1[i]] += 1;
-        secondStateCounts[ranked_data2[i]] += 1;
-        jointStateCounts[std::make_pair(ranked_data1[i], ranked_data2[i])] += 1;
+      for (unsigned int i = 0; i < inputVectorlength; i++)
+      {
+        const unsigned int first_rank = ranked_data1[i];
+        const unsigned int second_rank = ranked_data2[i];
+        ++firstStateCounts[first_rank];
+        ++secondStateCounts[second_rank];
+        jointStates.push_back(static_cast<std::uint64_t>(first_rank) * secondNumStates + second_rank);
       }
 
+      std::sort(jointStates.begin(), jointStates.end());
+
       double mutualInformation = 0.0;
-      for (const auto &[pos, jointStateCount_val]: jointStateCounts) {
-        mutualInformation += jointStateCount_val * log(jointStateCount_val / firstStateCounts[pos.first] / secondStateCounts[pos.second]);
+      for (std::size_t i = 0; i < jointStates.size();)
+      {
+        const std::uint64_t joint_state = jointStates[i];
+        std::size_t j = i + 1;
+        while (j < jointStates.size() && jointStates[j] == joint_state)
+        {
+          ++j;
+        }
+
+        const double jointStateCount_val = static_cast<double>(j - i);
+        const unsigned int first_rank = static_cast<unsigned int>(joint_state / secondNumStates);
+        const unsigned int second_rank = static_cast<unsigned int>(joint_state % secondNumStates);
+        mutualInformation += jointStateCount_val *
+          log(jointStateCount_val / firstStateCounts[first_rank] / secondStateCounts[second_rank]);
+        i = j;
       }
 
       mutualInformation /= inputVectorlength;
