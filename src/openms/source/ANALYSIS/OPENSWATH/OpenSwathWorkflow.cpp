@@ -414,7 +414,6 @@ namespace OpenMS
         std::vector<MSChromatogram> ms1_chromatograms;
         PeakMap chrom_exp;
         FeatureMap feature_file;
-        OpenSwathOSWWriter::OSWData osw_output;
       };
 
       struct SwathScoreJob
@@ -517,10 +516,6 @@ namespace OpenMS
         {
           context.nr_score_jobs = static_cast<SignedSize>((n_compounds + context.score_job_size - 1) / context.score_job_size);
           context.remaining_score_jobs = context.nr_score_jobs;
-          if (osw_writer.isActive())
-          {
-            context.osw_output.reserve(n_compounds * 5);
-          }
         }
 
 #ifdef _OPENMP
@@ -607,15 +602,6 @@ namespace OpenMS
 #endif
         {
           auto write_start = profileStart(profile);
-          if (osw_writer.isActive() && !context.osw_output.empty())
-          {
-            auto osw_write_start = profileStart(profile);
-            osw_writer.writeRows(context.osw_output);
-            if (profile)
-            {
-              context.swath_timing.scoring_breakdown.osw_write += elapsedProfileSeconds(osw_write_start);
-            }
-          }
           writeOutFeaturesAndChroms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms,
               context.feature_file, out_featureFile, store_features, chromConsumer);
           if (profile)
@@ -625,7 +611,7 @@ namespace OpenMS
         }
         if (profile)
         {
-          context.swath_timing.writing = writing_seconds;
+          context.swath_timing.writing += writing_seconds;
           if (!swath_maps[context_index].ms1)
           {
             context.swath_timing.swath_count = 1;
@@ -692,6 +678,28 @@ namespace OpenMS
         {
           batch_timing.scoring = elapsedProfileSeconds(batch_phase_start);
           batch_timing.feature_count = featureFile.size();
+        }
+
+        double job_osw_write_seconds = 0.0;
+        if (osw_writer.isActive() && !job_osw_output.empty())
+        {
+#ifdef _OPENMP
+#pragma omp critical (osw_write_out)
+#endif
+          {
+            auto osw_write_start = profileStart(profile);
+            osw_writer.writeRows(job_osw_output);
+            if (profile)
+            {
+              job_osw_write_seconds = elapsedProfileSeconds(osw_write_start);
+              scoring_profile.osw_write += job_osw_write_seconds;
+            }
+          }
+        }
+
+        if (profile)
+        {
+          batch_timing.writing += job_osw_write_seconds;
           batch_timing.scoring_breakdown.add(scoring_profile);
           batch_timing.total = elapsedProfileSeconds(batch_profile_start);
         }
@@ -701,11 +709,7 @@ namespace OpenMS
 #pragma omp critical (osw_scheduler_context)
 #endif
         {
-          if (osw_writer.isActive())
-          {
-            context.osw_output.append(std::move(job_osw_output));
-          }
-          else if (store_features)
+          if (!osw_writer.isActive() && store_features)
           {
             for (FeatureMap::const_iterator feature_it = featureFile.begin(); feature_it != featureFile.end(); ++feature_it)
             {
@@ -1224,7 +1228,7 @@ namespace OpenMS
     OpenSwathOSWWriter::OSWData to_osw_output;
     if (osw_writer.isActive())
     {
-      to_osw_output.reserve(transition_exp.getCompounds().size() * 5);
+      to_osw_output.reserve(transition_exp.getCompounds().size());
     }
     ///////////////////////////////////
     // Start of main function
