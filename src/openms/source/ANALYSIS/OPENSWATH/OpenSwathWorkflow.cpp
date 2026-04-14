@@ -198,6 +198,7 @@ namespace OpenMS
       {
         double enqueue_wait = 0.0;
         double write_hold = 0.0;
+        double finish_wait = 0.0;
         Size queued_jobs = 0;
         Size flush_count = 0;
         Size queued_rows = 0;
@@ -206,14 +207,18 @@ namespace OpenMS
         UInt64 written_bytes = 0;
         UInt64 max_buffered_bytes = 0;
         UInt64 buffer_budget_bytes = 0;
+        UInt64 flush_trigger_bytes = 0;
       };
 
       OSWBufferedWriter(OpenSwathOSWWriter& writer, UInt64 buffer_budget_bytes, bool profile) :
         writer_(writer),
         buffer_budget_bytes_(std::max(buffer_budget_bytes, OSW_MIN_WRITE_BUFFER_BYTES)),
+        flush_trigger_bytes_(std::min(buffer_budget_bytes_,
+                                      std::max(OSW_MIN_WRITE_BUFFER_BYTES, buffer_budget_bytes_ / 2ull))),
         profile_(profile)
       {
         stats_.buffer_budget_bytes = buffer_budget_bytes_;
+        stats_.flush_trigger_bytes = flush_trigger_bytes_;
         worker_ = std::thread(&OSWBufferedWriter::writerLoop_, this);
       }
 
@@ -282,16 +287,25 @@ namespace OpenMS
       {
         {
           std::lock_guard<std::mutex> lock(mutex_);
+          if (finished_)
+          {
+            checkExceptionLocked_();
+            return;
+          }
           finish_requested_ = true;
         }
         cv_.notify_all();
 
+        const auto finish_wait_start = profileStart(profile_);
         if (worker_.joinable())
         {
           worker_.join();
         }
+        const double finish_wait = profile_ ? elapsedProfileSeconds(finish_wait_start) : 0.0;
 
         std::lock_guard<std::mutex> lock(mutex_);
+        stats_.finish_wait += finish_wait;
+        finished_ = true;
         checkExceptionLocked_();
       }
 
@@ -333,7 +347,7 @@ namespace OpenMS
               {
                 return exception_ != nullptr ||
                        finish_requested_ ||
-                       !queue_.empty();
+                       (!queue_.empty() && buffered_bytes_ >= flush_trigger_bytes_);
               });
 
               if (exception_ != nullptr)
@@ -346,6 +360,10 @@ namespace OpenMS
                 return;
               }
               if (queue_.empty())
+              {
+                continue;
+              }
+              if (!finish_requested_ && buffered_bytes_ < flush_trigger_bytes_)
               {
                 continue;
               }
@@ -388,12 +406,14 @@ namespace OpenMS
 
       OpenSwathOSWWriter& writer_;
       UInt64 buffer_budget_bytes_ = OSW_FALLBACK_WRITE_BUFFER_BYTES;
+      UInt64 flush_trigger_bytes_ = OSW_FALLBACK_WRITE_BUFFER_BYTES;
       bool profile_ = false;
       mutable std::mutex mutex_;
       std::condition_variable cv_;
       std::deque<QueueItem> queue_;
       UInt64 buffered_bytes_ = 0;
       bool finish_requested_ = false;
+      bool finished_ = false;
       std::exception_ptr exception_;
       Stats stats_;
       std::thread worker_;
@@ -404,10 +424,12 @@ namespace OpenMS
       OPENMS_LOG_INFO << "[OpenSwathWorkflow profile] OSW writer queue: "
                       << "wait=" << formatProfileSeconds(stats.enqueue_wait)
                       << ", write_hold=" << formatProfileSeconds(stats.write_hold)
+                      << ", finish_wait=" << formatProfileSeconds(stats.finish_wait)
                       << ", flushes=" << stats.flush_count
                       << ", jobs=" << stats.queued_jobs
                       << ", rows=" << stats.written_rows
                       << ", budget=" << bytesToHumanReadable(stats.buffer_budget_bytes)
+                      << ", trigger=" << bytesToHumanReadable(stats.flush_trigger_bytes)
                       << ", max_buffered=" << bytesToHumanReadable(stats.max_buffered_bytes)
                       << ", queued=" << bytesToHumanReadable(stats.queued_bytes)
                       << ", written=" << bytesToHumanReadable(stats.written_bytes)
@@ -1102,7 +1124,9 @@ namespace OpenMS
         {
           const OSWBufferedWriter::Stats osw_writer_stats = buffered_osw_writer->stats();
           profile_total.scoring_breakdown.osw_write_hold += osw_writer_stats.write_hold;
+          profile_total.scoring_breakdown.osw_write_wait += osw_writer_stats.finish_wait;
           profile_total.scoring_breakdown.osw_write += osw_writer_stats.write_hold;
+          profile_total.scoring_breakdown.osw_write += osw_writer_stats.finish_wait;
           logOSWBufferedWriterProfile(osw_writer_stats);
         }
       }
