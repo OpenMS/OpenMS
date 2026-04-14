@@ -752,16 +752,16 @@ START_SECTION((double getHydrophobicity(const HydrophobicityScaleNumber scale) c
 {
   Residue res;
   res.setOneLetterCode("A");
-  TEST_REAL_SIMILAR(res.getHydrophobicity(KYTEDOOLITTLE),1.800);
-  TEST_REAL_SIMILAR(res.getHydrophobicity(EISENBERG),0.620);
-  TEST_REAL_SIMILAR(res.getHydrophobicity(HOPPWOODS),-0.5);
-  TEST_REAL_SIMILAR(res.getHydrophobicity(BULLBREESE),0.610);
-  TEST_REAL_SIMILAR(res.getHydrophobicity(BLACKMOULD),0.616);
-  TEST_REAL_SIMILAR(res.getHydrophobicity(GUY),0.1);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE),1.800);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG),0.620);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::HOPP_WOODS),-0.5);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::BULL_BREESE),0.610);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::BLACK_MOULD),0.616);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::GUY),0.1);
   res.setOneLetterCode("X");
-  TEST_EXCEPTION(Exception::InvalidValue,res.getHydrophobicity(KYTEDOOLITTLE));
+  TEST_EXCEPTION(Exception::InvalidValue,res.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE));
   res.setOneLetterCode("");
-  TEST_EXCEPTION(Exception::InvalidValue,res.getHydrophobicity(KYTEDOOLITTLE));
+  TEST_EXCEPTION(Exception::InvalidValue,res.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE));
 }
 END_SECTION
 

@@ -2,28 +2,25 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  $
+// $Maintainer: $
 // $Authors: Markus Apel, Nora Heese $
 // --------------------------------------------------------------------------
  
 #include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/CHEMISTRY/HydrophobicityProfile.h>
-#include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/ResidueDB.h>
 
 namespace OpenMS
 {
    double HydrophobicityProfile::computeGRAVY(const AASequence& seq)
    {
-      if(seq.size() == 0)
+      if(seq.empty())
       {
          return 0;
       }      
       double sum = 0;
-      for (auto residue : seq) 
+      for (const auto& residue : seq) //std accumulate
       {     
-         sum += residue.getHydrophobicity(KYTEDOOLITTLE);
+         sum += residue.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE);
       }
       return sum/seq.size(); 
    } 

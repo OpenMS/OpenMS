@@ -10,6 +10,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CONCEPT/CommonEnums.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -24,15 +25,7 @@ namespace OpenMS
 {
   class ResidueModification;
 
-  enum HydrophobicityScaleNumber
-    {
-      KYTEDOOLITTLE = 0,
-      EISENBERG = 1,
-      HOPPWOODS = 2,
-      BULLBREESE = 3,
-      BLACKMOULD = 4,
-      GUY = 5
-    }; 
+  
 
   /**
       @ingroup Chemistry
@@ -450,12 +443,9 @@ public:
     /// @brief returns the hydrophobicity value of the residue
     /// @param scale which scale to use for the hydrophobicity value
     /// @return hydrophobicity value of the residue
-    double getHydrophobicity(const HydrophobicityScaleNumber scale);
+    /// @throw this will throw an exception if the residue is not one of the 20 common amino acids
+    double getHydrophobicity(const HydrophobicityScaleMethod scale) const;
  
-
-    /* int testfunktion(){
-      return 1;
-    } */
 protected:
 
     /// the name of the residue

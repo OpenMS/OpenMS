@@ -39,4 +39,15 @@ namespace OpenMS
   };
   inline std::string_view MZ_UNIT_NAMES[(int)MZ_UNITS::SIZE_OF_MZ_UNITS] = {"Da", "ppm"};
 
+  /// @brief Enum for different hydrophobicity scales
+  enum class HydrophobicityScaleMethod 
+    {
+      KYTE_DOOLITTLE = 0,
+      EISENBERG = 1,
+      HOPP_WOODS = 2,
+      BULL_BREESE = 3,
+      BLACK_MOULD = 4,
+      GUY = 5
+    }; 
+
 } // namespace OpenMS

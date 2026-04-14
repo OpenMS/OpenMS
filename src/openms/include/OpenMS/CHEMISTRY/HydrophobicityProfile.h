@@ -2,64 +2,60 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  $
+// $Maintainer: $
 // $Authors: Markus Apel, Nora Heese $
 // --------------------------------------------------------------------------
  
 #pragma once
  
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/CommonEnums.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <functional>
 #include <sstream>
  
 namespace OpenMS
 {
-
-    /// @brief This class is used for hydrophobicity profiling of peptides
-    /// currently there are 6 scales available.
-    /// possible scales are:                                                                       
-    /// KYTEDOOLITTLE,
-    /// EISENBERG,
-    /// HOPPWOODS,
-    /// BULLBREESE,
-    /// BLACKMOULD,
-    /// GUY
+    /** 
+    @brief This class is used for hydrophobicity profiling of peptides.
+    Currently there are 6 scales available.
+    The scales are implemented in:
+    @ref HydrophobicityScaleMethod 
+    */
   
     class OPENMS_DLLAPI HydrophobicityProfile {
 
  public:
     
-    /// @brief calculates hydrophobicity profile per residue
-    /// @param seq: the amino acid sequence for which to calculate the profile
-    /// @param scale: the scale to use for the calculation    
-    /// @return hydrophobicity profile
+    /// @brief Calculates hydrophobicity profile per residue
+    /// @param seq The amino acid sequence for which to calculate the profile
+    /// @param scale The scale to use for the calculation    
+    /// @return Hydrophobicity profile
     std::vector<double> computeProfile(
         const AASequence& seq, 
-        const HydrophobicityScaleNumber scale = KYTEDOOLITTLE
+        const HydrophobicityScaleMethod scale = HydrophobicityScaleMethod::KYTE_DOOLITTLE
     );
     
-    /// @brief calculates windowed hydrophobicity profile
-    /// @param seq the amino acid Sequence for which to calculate the profile
-    /// @param window_size the size of the sliding window for the calculation
-    /// @param scale the scale to use for the calculation
-    /// @return windowed hydrophobicity profile
+    /// @brief Calculates windowed hydrophobicity profile
+    /// @param seqTthe Amino acid Sequence for which to calculate the profile
+    /// @param window_size The size of the sliding window for the calculation
+    /// @param scale The scale to use for the calculation
+    /// @return Windowed hydrophobicity profile
     std::vector<double> computeWindowedProfile(
         const AASequence& seq,
         Size window_size = 7,
-        const HydrophobicityScaleNumber scale = KYTEDOOLITTLE
+        const HydrophobicityScaleMethod scale = HydrophobicityScaleMethod::KYTE_DOOLITTLE
     );
     
-    // GRAVY score
-    /// @brief calculates GRAVY score
-    /// @param seq the amin oacid sequence for which to calculate the GRAVY score
-    /// @return the GRAVY score
+    /// @brief Calculates the GRAVY score
+    /// @param seq The amino acid sequence for which to calculate the GRAVY score
+    /// @return The GRAVY score
     double computeGRAVY(const AASequence& seq);
     
-    /// @brief calculates hydrophobic moments
-    /// @param seq the Amino acid sequence
-    /// @param window_size the size of the sliding window for the calculation
-    /// @return hydrophobic moments of the amino acid sequence
+    /// @brief Calculates hydrophobic moments
+    /// @param seq The Amino acid sequence
+    /// @param window_size The size of the sliding window for the calculation
+    /// @return Hydrophobic moments of the amino acid sequence
     std::vector<double> computeHydrophobicMoment(
         const AASequence& seq,
         Size window_size = 11,
