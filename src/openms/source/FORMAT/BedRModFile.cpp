@@ -287,7 +287,13 @@ namespace OpenMS
           for (Size i = 0; i < sequence.size(); ++i)
           {
             const auto* ribo = sequence[i];
-            if ((ribo == nullptr) || !ribo->isModified())
+            if (ribo == nullptr)
+            {
+              continue;
+            }
+
+            // Skip terminal modifications (5' and 3' terminal groups)
+            if (ribo->getTermSpecificity() != Ribonucleotide::ANYWHERE)
             {
               continue;
             }

@@ -204,11 +204,13 @@ protected:
 
     registerTOPPSubsection_("preprocessing", "Spectrum preprocessing options");
     registerFlag_("preprocessing:filter_window_mower", "Apply WindowMower filter to remove noise peaks by m/z windows", true);
+    registerTOPPSubsection_("preprocessing:window_mower", "WindowMower filter parameters");
     registerDoubleOption_("preprocessing:window_mower:windowsize", "<size>", 100.0, "Size of the sliding window along the m/z axis for WindowMower", false, true);
     setMinFloat_("preprocessing:window_mower:windowsize", 1.0);
     registerIntOption_("preprocessing:window_mower:peakcount", "<num>", 50, "Number of peaks that should be kept per window", false, true);
     setMinInt_("preprocessing:window_mower:peakcount", 1);
     registerFlag_("preprocessing:filter_nlargest", "Apply NLargest filter to keep only the top N most intense peaks", true);
+    registerTOPPSubsection_("preprocessing:nlargest", "NLargest filter parameters");
     registerIntOption_("preprocessing:nlargest:n", "<num>", 1000, "Number of largest (most intense) peaks to keep per spectrum", false, true);
     setMinInt_("preprocessing:nlargest:n", 1);
 

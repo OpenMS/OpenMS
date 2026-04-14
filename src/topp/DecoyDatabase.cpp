@@ -94,6 +94,8 @@ protected:
     registerStringOption_("type", "<choice>", "protein", "Type of sequence. RNA sequences may contain modification codes, which will be handled correctly if this is set to 'RNA'.", false);
     setValidStrings_("type", {"protein", "RNA"});
 
+    registerFlag_("keep_terminal_nucleotides", "For RNA sequences: preserve 5' and 3' terminal nucleotides when reversing/shuffling. This creates more biologically realistic decoys that maintain RNase cleavage site characteristics, improving FDR calibration.", false);
+
     registerStringOption_("method", "<choice>", "reverse", "Method by which decoy sequences are generated from target sequences. Note that all sequences are shuffled using the same random seed, ensuring that identical sequences produce the same shuffled decoy sequences. Shuffled sequences that produce highly similar output sequences are shuffled again (see shuffle_sequence_identity_threshold).", false);
     setValidStrings_("method", {"reverse", "shuffle"});
     registerIntOption_("shuffle_max_attempts", "<int>", 30, "shuffle: maximum attempts to lower the amino acid sequence identity between target and decoy for the shuffle algorithm", false, true);
@@ -200,6 +202,14 @@ protected:
     }
 
     const SeqType input_type = getStringOption_("type") == "RNA" ? SeqType::RNA : SeqType::protein;
+    bool keep_terminal_nucleotides = getFlag_("keep_terminal_nucleotides");
+
+    // Warn if keep_terminal_nucleotides is used with protein mode
+    if (keep_terminal_nucleotides && input_type == SeqType::protein)
+    {
+      OPENMS_LOG_WARN << "Warning: 'keep_terminal_nucleotides' flag is intended for RNA mode and will be ignored for protein sequences.\n";
+      keep_terminal_nucleotides = false;
+    }
 
     Param decoy_param = getParam_().copy("Decoy:", true);
     bool keepN = decoy_param.getValue("keepPeptideNTerm").toBool();
@@ -435,11 +445,28 @@ protected:
             if (shuffle)
             {
               shuffler.seed(repeat_seed);
-              shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end());
+              if (keep_terminal_nucleotides && tokenized.size() > 2)
+              {
+                // Preserve first and last nucleotides, shuffle middle only
+                shuffler.portable_random_shuffle(tokenized.begin() + 1, tokenized.end() - 1);
+              }
+              else
+              {
+                shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end());
+              }
             }
             else // reverse
             {
-              reverse(tokenized.begin(), tokenized.end()); // reverse the tokens
+              if (keep_terminal_nucleotides && tokenized.size() > 2)
+              {
+                // Preserve first and last nucleotides, reverse middle only
+                // This creates more realistic decoys that maintain RNase cleavage site characteristics
+                reverse(tokenized.begin() + 1, tokenized.end() - 1);
+              }
+              else
+              {
+                reverse(tokenized.begin(), tokenized.end()); // reverse the tokens
+              }
             }
             if (five_p) // add back 5'
             {

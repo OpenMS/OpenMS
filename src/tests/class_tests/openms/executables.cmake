@@ -171,6 +171,7 @@ set(kernel_executables_list
 set(format_executables_list
   AbsoluteQuantitationStandardsFile_test
   Base64_test
+  BedRModFile_test
   BrukerTimsFile_test
   MSNumpressCoder_test
   Bzip2Ifstream_test
