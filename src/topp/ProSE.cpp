@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  $
-// $Authors:  $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
@@ -19,16 +19,13 @@
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
-#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
+#include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
-#include <arrow/api.h>
-#include <arrow/io/file.h>
-#include <parquet/arrow/writer.h>
-#include <parquet/properties.h>
+#include <arrow/table.h>  // only for std::shared_ptr<arrow::Table> declarations
 
 #include <map>
 #include <set>
@@ -396,29 +393,6 @@ class ProSE :
       std::vector<std::shared_ptr<arrow::Table>> qpx_psm_tables, qpx_pg_tables;
       std::vector<std::shared_ptr<arrow::Table>> oms_psm_tables, oms_prot_tables, oms_pg_tables, oms_sp_tables;
 
-      // Helper: write an Arrow table to a Parquet file with default settings
-      auto writeTableToParquet = [](const std::shared_ptr<arrow::Table>& table, const String& filename) -> bool
-      {
-        auto file_result = arrow::io::FileOutputStream::Open(filename);
-        if (!file_result.ok())
-        {
-          OPENMS_LOG_ERROR << "Failed to open " << filename << " for writing" << endl;
-          return false;
-        }
-        auto props = parquet::WriterProperties::Builder()
-          .compression(arrow::Compression::ZSTD)->compression_level(3)
-          ->enable_statistics()->data_pagesize(1024 * 1024)->build();
-        auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
-        auto status = parquet::arrow::WriteTable(*table, arrow::default_memory_pool(),
-          file_result.ValueOrDie(), 128 * 1024 * 1024, props, arrow_props);
-        if (!status.ok())
-        {
-          OPENMS_LOG_ERROR << "Failed to write parquet " << filename << ": " << status.ToString() << endl;
-          return false;
-        }
-        return true;
-      };
-
       Size failed_count = 0;
       for (Size i = 0; i < in_list.size(); ++i)
       {
@@ -482,7 +456,7 @@ class ProSE :
           if (oms_psm_table)
           {
             oms_psm_tables.push_back(oms_psm_table);
-            ok = writeTableToParquet(oms_psm_table, oms_psm_file) && ok;
+            ok = ArrowIOHelpers::writeTableToParquet(oms_psm_table, oms_psm_file) && ok;
           }
 
           // Proteins
@@ -521,33 +495,19 @@ class ProSE :
       }
 
       // -- Write merged Parquet files --
-      auto concatAndWrite = [&writeTableToParquet](const std::vector<std::shared_ptr<arrow::Table>>& tables,
-                               const String& filename) -> bool
-      {
-        if (tables.empty()) return true;
-        auto concat_result = arrow::ConcatenateTables(tables);
-        if (!concat_result.ok())
-        {
-          OPENMS_LOG_ERROR << "Failed to concatenate tables for " << filename << ": "
-                           << concat_result.status().ToString() << endl;
-          return false;
-        }
-        return writeTableToParquet(concat_result.ValueOrDie(), filename);
-      };
-
       // Always write merged files (even for single input — provides a canonical name).
       if (!out_qpx_dir.empty())
       {
-        concatAndWrite(qpx_psm_tables, out_qpx_dir + "/quantms.psm.parquet");
-        concatAndWrite(qpx_pg_tables, out_qpx_dir + "/quantms.pg.parquet");
+        ArrowIOHelpers::concatenateAndWriteToParquet(qpx_psm_tables, out_qpx_dir + "/quantms.psm.parquet");
+        ArrowIOHelpers::concatenateAndWriteToParquet(qpx_pg_tables, out_qpx_dir + "/quantms.pg.parquet");
       }
 
       if (!out_parquet_dir.empty())
       {
-        concatAndWrite(oms_psm_tables, out_parquet_dir + "/openms.psm.parquet");
-        concatAndWrite(oms_prot_tables, out_parquet_dir + "/openms.proteins.parquet");
-        concatAndWrite(oms_pg_tables, out_parquet_dir + "/openms.pg.parquet");
-        concatAndWrite(oms_sp_tables, out_parquet_dir + "/openms.search_params.parquet");
+        ArrowIOHelpers::concatenateAndWriteToParquet(oms_psm_tables, out_parquet_dir + "/openms.psm.parquet");
+        ArrowIOHelpers::concatenateAndWriteToParquet(oms_prot_tables, out_parquet_dir + "/openms.proteins.parquet");
+        ArrowIOHelpers::concatenateAndWriteToParquet(oms_pg_tables, out_parquet_dir + "/openms.pg.parquet");
+        ArrowIOHelpers::concatenateAndWriteToParquet(oms_sp_tables, out_parquet_dir + "/openms.search_params.parquet");
       }
 
       if (failed_count > 0)
