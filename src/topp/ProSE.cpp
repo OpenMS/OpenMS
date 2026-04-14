@@ -545,24 +545,30 @@ class ProSE :
 
       // -- Write merged Parquet files --
       // Always write merged files (even for single input — provides a canonical name).
+      bool merged_ok = true;
       if (!out_qpx_dir.empty())
       {
-        ArrowIOHelpers::concatenateAndWriteToParquet(qpx_psm_tables, out_qpx_dir + "/quantms.psm.parquet");
-        ArrowIOHelpers::concatenateAndWriteToParquet(qpx_pg_tables, out_qpx_dir + "/quantms.pg.parquet");
+        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(qpx_psm_tables, out_qpx_dir + "/quantms.psm.parquet") && merged_ok;
+        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(qpx_pg_tables,  out_qpx_dir + "/quantms.pg.parquet")  && merged_ok;
       }
 
       if (!out_parquet_dir.empty())
       {
-        ArrowIOHelpers::concatenateAndWriteToParquet(oms_psm_tables, out_parquet_dir + "/openms.psm.parquet");
-        ArrowIOHelpers::concatenateAndWriteToParquet(oms_prot_tables, out_parquet_dir + "/openms.proteins.parquet");
-        ArrowIOHelpers::concatenateAndWriteToParquet(oms_pg_tables, out_parquet_dir + "/openms.pg.parquet");
-        ArrowIOHelpers::concatenateAndWriteToParquet(oms_sp_tables, out_parquet_dir + "/openms.search_params.parquet");
+        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(oms_psm_tables,  out_parquet_dir + "/openms.psm.parquet")           && merged_ok;
+        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(oms_prot_tables, out_parquet_dir + "/openms.proteins.parquet")      && merged_ok;
+        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(oms_pg_tables,   out_parquet_dir + "/openms.pg.parquet")            && merged_ok;
+        merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(oms_sp_tables,   out_parquet_dir + "/openms.search_params.parquet") && merged_ok;
       }
 
       if (failed_count > 0)
       {
         OPENMS_LOG_ERROR << "ProSE finished with " << failed_count
                          << " file(s) failing out of " << in_list.size() << "." << endl;
+        return INTERNAL_ERROR;
+      }
+      if (!merged_ok)
+      {
+        OPENMS_LOG_ERROR << "ProSE failed to write one or more merged Parquet files." << endl;
         return INTERNAL_ERROR;
       }
       return EXECUTION_OK;
