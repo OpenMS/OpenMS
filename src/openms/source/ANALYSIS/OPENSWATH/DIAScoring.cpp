@@ -25,6 +25,7 @@
 #include <numeric>
 #include <algorithm>
 #include <functional>
+#include <unordered_map>
 
 #include <cmath> // for isnan
 #include <utility>
@@ -33,6 +34,50 @@ const double C13C12_MASSDIFF_U = 1.0033548;
 
 namespace OpenMS
 {
+  namespace
+  {
+    struct AveragineIsotopeDistributionKey
+    {
+      double neutral_mass;
+      int nr_isotopes;
+
+      bool operator==(const AveragineIsotopeDistributionKey& rhs) const
+      {
+        return neutral_mass == rhs.neutral_mass &&
+               nr_isotopes == rhs.nr_isotopes;
+      }
+    };
+
+    void hashCombine(std::size_t& seed, std::size_t value)
+    {
+      seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+
+    struct AveragineIsotopeDistributionKeyHash
+    {
+      std::size_t operator()(const AveragineIsotopeDistributionKey& key) const
+      {
+        std::size_t seed = std::hash<double>{}(key.neutral_mass);
+        hashCombine(seed, std::hash<int>{}(key.nr_isotopes));
+        return seed;
+      }
+    };
+
+    const IsotopeDistribution& getCachedAveragineIsotopeDistribution(double neutral_mass, int nr_isotopes)
+    {
+      static thread_local std::unordered_map<AveragineIsotopeDistributionKey, IsotopeDistribution, AveragineIsotopeDistributionKeyHash> isotope_cache;
+
+      const AveragineIsotopeDistributionKey key{neutral_mass, nr_isotopes};
+      const auto cached = isotope_cache.find(key);
+      if (cached != isotope_cache.end())
+      {
+        return cached->second;
+      }
+
+      CoarseIsotopePatternGenerator solver(nr_isotopes);
+      return isotope_cache.emplace(key, solver.estimateFromPeptideWeight(neutral_mass)).first->second;
+    }
+  }
 
   DIAScoring::DIAScoring() :
     DefaultParamHandler("DIAScoring")
@@ -216,9 +261,10 @@ namespace OpenMS
   {
     std::vector<double> exp_isotopes_int;
     getIsotopeIntysFromExpSpec_(precursor_mz, spectrum, charge_state, im_range, exp_isotopes_int);
-    CoarseIsotopePatternGenerator solver(dia_nr_isotopes_ + 1);
     // NOTE: this is a rough estimate of the neutral mz value since we would not know the charge carrier for negative ions
-    IsotopeDistribution isotope_dist = solver.estimateFromPeptideWeight(std::fabs(precursor_mz * charge_state));
+    const IsotopeDistribution& isotope_dist = getCachedAveragineIsotopeDistribution(
+      std::fabs(precursor_mz * charge_state),
+      static_cast<int>(dia_nr_isotopes_) + 1);
 
     double max_ratio;
     int nr_occurrences;
@@ -380,12 +426,11 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(putative_fragment_charge != 0, "Charge needs to be set to != 0"); // charge can be positive and negative
 
-    IsotopeDistribution isotope_dist;
-
     // create the theoretical distribution from the peptide weight
-    CoarseIsotopePatternGenerator solver(dia_nr_isotopes_ + 1);
     // NOTE: this is a rough estimate of the neutral mz value since we would not know the charge carrier for negative ions
-    isotope_dist = solver.estimateFromPeptideWeight(std::fabs(product_mz * putative_fragment_charge));
+    const IsotopeDistribution& isotope_dist = getCachedAveragineIsotopeDistribution(
+      std::fabs(product_mz * putative_fragment_charge),
+      static_cast<int>(dia_nr_isotopes_) + 1);
 
     return scoreIsotopePattern_(isotopes_int, isotope_dist);
   } //end of dia_isotope_corr_sub

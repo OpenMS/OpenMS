@@ -10,17 +10,79 @@
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
-#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
+#include <cstdlib>
+#include <unordered_map>
 #include <utility>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS::DIAHelpers
   {
+    namespace
+    {
+      constexpr double DEFAULT_MANN_MASS = 1.00048;
+
+      struct AveragineDistributionKey
+      {
+        double product_mz;
+        int charge;
+        int nr_isotopes;
+
+        bool operator==(const AveragineDistributionKey& rhs) const
+        {
+          return product_mz == rhs.product_mz &&
+                 charge == rhs.charge &&
+                 nr_isotopes == rhs.nr_isotopes;
+        }
+      };
+
+      void hashCombine(std::size_t& seed, std::size_t value)
+      {
+        seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+      }
+
+      struct AveragineDistributionKeyHash
+      {
+        std::size_t operator()(const AveragineDistributionKey& key) const
+        {
+          std::size_t seed = std::hash<double>{}(key.product_mz);
+          hashCombine(seed, std::hash<int>{}(key.charge));
+          hashCombine(seed, std::hash<int>{}(key.nr_isotopes));
+          return seed;
+        }
+      };
+
+      const std::vector<double>& getCachedAveragineIntensities(
+        double product_mz,
+        int charge,
+        int nr_isotopes)
+      {
+        static thread_local std::unordered_map<AveragineDistributionKey, std::vector<double>, AveragineDistributionKeyHash> isotope_cache;
+
+        const AveragineDistributionKey key{product_mz, charge, nr_isotopes};
+        const auto cached = isotope_cache.find(key);
+        if (cached != isotope_cache.end())
+        {
+          return cached->second;
+        }
+
+        CoarseIsotopePatternGenerator solver(nr_isotopes);
+        const IsotopeDistribution distribution = solver.estimateFromPeptideWeight(product_mz * charge);
+
+        std::vector<double> intensities;
+        intensities.reserve(distribution.size());
+        for (const auto& peak : distribution)
+        {
+          intensities.push_back(peak.getIntensity());
+        }
+
+        return isotope_cache.emplace(key, std::move(intensities)).first->second;
+      }
+    }
 
     void adjustExtractionWindow(double& right, double& left, const double& mz_extract_window, const bool& mz_extraction_ppm)
     {
@@ -384,17 +446,15 @@ namespace OpenMS::DIAHelpers
                                          const double mannmass)
     {
       charge = std::abs(charge);
-      typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
-      // create the theoretical distribution
-      CoarseIsotopePatternGenerator solver(nr_isotopes);
-      TheoreticalIsotopePattern isotopes;
-      //Note: this is a rough estimate of the weight, usually the protons should be deducted first, left for backwards compatibility.
-      auto d = solver.estimateFromPeptideWeight(product_mz * charge);
+      // Note: this is a rough estimate of the weight, usually the protons should be deducted first,
+      // left for backwards compatibility.
+      const std::vector<double>& intensities = getCachedAveragineIntensities(product_mz, charge, nr_isotopes);
 
       double mass = product_mz;
-      for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
+      isotopes_spec.reserve(isotopes_spec.size() + intensities.size());
+      for (double intensity : intensities)
       {
-        isotopes_spec.emplace_back(mass, it->getIntensity());
+        isotopes_spec.emplace_back(mass, intensity);
         mass += mannmass / charge;
       }
     } //end of dia_isotope_corr_sub
@@ -436,12 +496,14 @@ namespace OpenMS::DIAHelpers
                                     std::vector<std::pair<double, double>>& isotope_masses, //[out]
                                     Size nr_isotopes, int charge)
     {
-      std::vector<std::pair<double, double> > isotopes;
-      getAveragineIsotopeDistribution(mz, isotopes, charge, nr_isotopes);
-      for (Size j = 0; j < isotopes.size(); ++j)
+      charge = std::abs(charge);
+      const std::vector<double>& intensities = getCachedAveragineIntensities(mz, charge, static_cast<int>(nr_isotopes));
+      double mass = mz;
+      isotope_masses.reserve(isotope_masses.size() + intensities.size());
+      for (double intensity : intensities)
       {
-        isotopes[j].second *= ity; //multiple isotope intensity by spec intensity
-        isotope_masses.push_back(isotopes[j]);
+        isotope_masses.emplace_back(mass, intensity * ity);
+        mass += DEFAULT_MANN_MASS / charge;
       }
     }
 

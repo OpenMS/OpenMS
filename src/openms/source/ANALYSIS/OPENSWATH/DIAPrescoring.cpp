@@ -114,8 +114,12 @@ namespace OpenMS
                           double& dotprod,
                           double& manhattan) const
   {
-    std::vector<std::pair<double, double> > res;
     std::vector<std::pair<double, double> > spectrumWIso, spectrumWIsoNegPreIso;
+    UInt nrNegPeaks = 2;
+    const Size nr_isotopes = nr_isotopes_ > 0 ? static_cast<Size>(nr_isotopes_) : 0;
+    spectrumWIso.reserve(lt.size() * (nr_isotopes + nrNegPeaks));
+    spectrumWIsoNegPreIso.reserve(lt.size() * (nr_isotopes + nrNegPeaks));
+
     int chg;
     // add expected isotope intensities for every transition productMZ based on averagine
     //TODO allow usage of annotated formulas from transition.compound.sum_formula
@@ -130,9 +134,7 @@ namespace OpenMS
                                              chg);
     }
     // duplicate since we will add differently weighted preIsotope intensities
-    spectrumWIsoNegPreIso.reserve(spectrumWIso.size());
     std::copy(spectrumWIso.begin(), spectrumWIso.end(), back_inserter(spectrumWIsoNegPreIso));
-    UInt nrNegPeaks = 2;
     double avgTheorTransitionInt = std::accumulate(lt.begin(),lt.end(),0.,[](double val, const OpenSwath::LightTransition& lt){return val + lt.getLibraryIntensity();});
     avgTheorTransitionInt /= lt.size();
     double negWeight = 0.5 * avgTheorTransitionInt; // how much of ONE transition should be negatively weighted at the prePeaks (distributed equally on them)
