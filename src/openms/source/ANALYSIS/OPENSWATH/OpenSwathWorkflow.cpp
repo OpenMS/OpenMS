@@ -207,21 +207,14 @@ namespace OpenMS
         UInt64 written_bytes = 0;
         UInt64 max_buffered_bytes = 0;
         UInt64 buffer_budget_bytes = 0;
-        UInt64 flush_trigger_bytes = 0;
       };
 
       OSWBufferedWriter(OpenSwathOSWWriter& writer, UInt64 buffer_budget_bytes, bool profile) :
         writer_(writer),
         buffer_budget_bytes_(std::max(buffer_budget_bytes, OSW_MIN_WRITE_BUFFER_BYTES)),
-        flush_trigger_bytes_(std::min<UInt64>(
-          buffer_budget_bytes_,
-          std::max<UInt64>(
-            OSW_MIN_WRITE_BUFFER_BYTES,
-            buffer_budget_bytes_ / static_cast<UInt64>(2)))),
         profile_(profile)
       {
         stats_.buffer_budget_bytes = buffer_budget_bytes_;
-        stats_.flush_trigger_bytes = flush_trigger_bytes_;
         worker_ = std::thread(&OSWBufferedWriter::writerLoop_, this);
       }
 
@@ -350,7 +343,7 @@ namespace OpenMS
               {
                 return exception_ != nullptr ||
                        finish_requested_ ||
-                       (!queue_.empty() && buffered_bytes_ >= flush_trigger_bytes_);
+                       !queue_.empty();
               });
 
               if (exception_ != nullptr)
@@ -366,11 +359,6 @@ namespace OpenMS
               {
                 continue;
               }
-              if (!finish_requested_ && buffered_bytes_ < flush_trigger_bytes_)
-              {
-                continue;
-              }
-
               while (!queue_.empty())
               {
                 QueueItem item = std::move(queue_.front());
@@ -409,7 +397,6 @@ namespace OpenMS
 
       OpenSwathOSWWriter& writer_;
       UInt64 buffer_budget_bytes_ = OSW_FALLBACK_WRITE_BUFFER_BYTES;
-      UInt64 flush_trigger_bytes_ = OSW_FALLBACK_WRITE_BUFFER_BYTES;
       bool profile_ = false;
       mutable std::mutex mutex_;
       std::condition_variable cv_;
@@ -432,7 +419,6 @@ namespace OpenMS
                       << ", jobs=" << stats.queued_jobs
                       << ", rows=" << stats.written_rows
                       << ", budget=" << bytesToHumanReadable(stats.buffer_budget_bytes)
-                      << ", trigger=" << bytesToHumanReadable(stats.flush_trigger_bytes)
                       << ", max_buffered=" << bytesToHumanReadable(stats.max_buffered_bytes)
                       << ", queued=" << bytesToHumanReadable(stats.queued_bytes)
                       << ", written=" << bytesToHumanReadable(stats.written_bytes)

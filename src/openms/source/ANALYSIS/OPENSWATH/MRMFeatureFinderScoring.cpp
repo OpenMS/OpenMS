@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <chrono>
 #include <memory>
+#include <numeric>
 #include <boost/foreach.hpp>
 #include <unordered_map>
 
@@ -642,7 +643,8 @@ namespace OpenMS
       static_cast<Size>(stop_report_after_feature_) < mrmfeatures.size();
     if (defer_feature_output)
     {
-      scored_feature_indices.reserve(mrmfeatures.size());
+      scored_feature_indices.resize(mrmfeatures.size());
+      std::iota(scored_feature_indices.begin(), scored_feature_indices.end(), SignedSize{0});
     }
     else
     {
@@ -675,7 +677,11 @@ namespace OpenMS
     // Go through all peak groups (found MRM features) and score them
     #ifdef _OPENMP
     int in_parallel = omp_in_parallel();
+    const bool score_features_in_parallel = in_parallel == 0;
+    #else
+    const bool score_features_in_parallel = false;
     #endif
+    OpenSwathScoringPhaseTiming serial_feature_profile;
     #pragma omp parallel for if (in_parallel == 0)
     for (SignedSize feature_idx = 0; feature_idx < (SignedSize) mrmfeatures.size(); ++feature_idx)
     {
@@ -867,16 +873,7 @@ namespace OpenMS
 
       }
 
-      if (defer_feature_output)
-      {
-#ifdef _OPENMP
-#pragma omp critical (openswath_scored_feature_indices)
-#endif
-        {
-          scored_feature_indices.push_back(feature_idx);
-        }
-      }
-      else
+      if (!defer_feature_output)
       {
         ///////////////////////////////////////////////////////////////////////////
         // add the peptide hit information to the feature
@@ -902,11 +899,26 @@ namespace OpenMS
       {
         feature_profile.scored_feature_count = 1;
 #ifdef _OPENMP
-#pragma omp critical (openswath_scoring_profile)
-#endif
+        if (score_features_in_parallel)
         {
+#pragma omp critical (openswath_scoring_profile)
           scoring_profile_.add(feature_profile);
         }
+        else
+#endif
+        {
+          serial_feature_profile.add(feature_profile);
+        }
+      }
+    }
+
+    if (profile)
+    {
+#ifdef _OPENMP
+      if (!score_features_in_parallel)
+#endif
+      {
+        scoring_profile_.add(serial_feature_profile);
       }
     }
 
