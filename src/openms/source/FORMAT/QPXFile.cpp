@@ -1364,6 +1364,18 @@ bool QPXFile::exportToParquet(
     OPENMS_LOG_ERROR << "QPXFile: null table passed to exportToParquet (" << filename << ")" << std::endl;
     return false;
   }
+
+  // Guard: the table-taking overload attaches file_type="psm" metadata, so the
+  // caller must actually pass a QPXPSMSchema table (not, e.g., the internal
+  // PSMSchema produced by exportToArrow).
+  auto validation = ArrowSchemaValidation::validate(table, QPXPSMSchema::schema(), ArrowSchemaValidation::Mode::Strict);
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "QPXFile: table schema does not match QPXPSMSchema ("
+                     << filename << "): " << validation.toString() << std::endl;
+    return false;
+  }
+
   return ArrowIOHelpers::writeTableToParquet(attachQPXPsmMetadata(table), filename, config);
 }
 
