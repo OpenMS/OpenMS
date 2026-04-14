@@ -15,6 +15,7 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 
+#include <array>
 #include <cstddef>
 #include <fstream>
 #include <string>
@@ -108,12 +109,21 @@ namespace OpenMS
         Text
       };
 
-      Type type = Type::Null;
-      Int64 int_value = 0;
-      double double_value = 0.0;
-      String text_value;
+      union Storage
+      {
+        Int64 int_value;
+        double double_value;
+        String text_value;
 
-      OSWValue() = default;
+        Storage();
+        ~Storage();
+      };
+
+      Type type;
+      Storage storage;
+
+      OSWValue();
+      ~OSWValue();
       OSWValue(std::nullptr_t);
       OSWValue(const char* value);
       OSWValue(const String& value);
@@ -122,24 +132,55 @@ namespace OpenMS
       OSWValue(UInt64 value);
       OSWValue(int value);
       OSWValue(double value);
+      OSWValue(const OSWValue& rhs);
+      OSWValue(OSWValue&& rhs) noexcept;
+      OSWValue& operator=(const OSWValue& rhs);
+      OSWValue& operator=(OSWValue&& rhs) noexcept;
 
       /// Returns a NULL OSW cell.
       static OSWValue null();
 
+      /// Returns a TEXT OSW cell without numeric/null parsing.
+      static OSWValue text(const String& value);
+
       /// Returns true if the cell should be inserted as SQL NULL.
       bool isNull() const;
+
+      /// Returns the integer payload. Only valid when type == Type::Int64.
+      Int64 asInt() const;
+
+      /// Returns the double payload. Only valid when type == Type::Double.
+      double asDouble() const;
+
+      /// Returns the text payload. Only valid when type == Type::Text.
+      const String& asText() const;
+
+    private:
+      void destroyText_();
+      void copyFrom_(const OSWValue& rhs);
+      void moveFrom_(OSWValue&& rhs);
     };
 
-    using OSWRow = std::vector<OSWValue>;
+    static constexpr Size FEATURE_COLUMN_COUNT = 11;
+    static constexpr Size FEATURE_MS1_COLUMN_COUNT = 18;
+    static constexpr Size FEATURE_MS2_COLUMN_COUNT = 38;
+    static constexpr Size FEATURE_PRECURSOR_COLUMN_COUNT = 4;
+    static constexpr Size FEATURE_TRANSITION_COLUMN_COUNT = 43;
+
+    using FeatureRow = std::array<OSWValue, FEATURE_COLUMN_COUNT>;
+    using FeatureMS1Row = std::array<OSWValue, FEATURE_MS1_COLUMN_COUNT>;
+    using FeatureMS2Row = std::array<OSWValue, FEATURE_MS2_COLUMN_COUNT>;
+    using FeaturePrecursorRow = std::array<OSWValue, FEATURE_PRECURSOR_COLUMN_COUNT>;
+    using FeatureTransitionRow = std::array<OSWValue, FEATURE_TRANSITION_COLUMN_COUNT>;
 
     /// Buffered OSW table rows ready for insertion through prepared statements.
     struct OPENMS_DLLAPI OSWData
     {
-      std::vector<OSWRow> feature_rows;
-      std::vector<OSWRow> feature_ms1_rows;
-      std::vector<OSWRow> feature_ms2_rows;
-      std::vector<OSWRow> feature_precursor_rows;
-      std::vector<OSWRow> feature_transition_rows;
+      std::vector<FeatureRow> feature_rows;
+      std::vector<FeatureMS1Row> feature_ms1_rows;
+      std::vector<FeatureMS2Row> feature_ms2_rows;
+      std::vector<FeaturePrecursorRow> feature_precursor_rows;
+      std::vector<FeatureTransitionRow> feature_transition_rows;
 
       /// Reserve storage for roughly @p row_count rows per OSW table.
       void reserve(Size row_count);
