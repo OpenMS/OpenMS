@@ -109,6 +109,8 @@ namespace OpenMS
     constexpr UInt64 OSW_FALLBACK_WRITE_BUFFER_BYTES = 512ull * 1024ull * 1024ull;
     constexpr UInt64 OSW_MAX_WRITE_BUFFER_BYTES = 2ull * 1024ull * 1024ull * 1024ull;
     constexpr UInt64 OSW_SYSTEM_MEMORY_RESERVE_BYTES = 4ull * 1024ull * 1024ull * 1024ull;
+    constexpr UInt64 OSW_WRITE_BUFFER_FLUSH_NUMERATOR = 7;
+    constexpr UInt64 OSW_WRITE_BUFFER_FLUSH_DENOMINATOR = 10;
 
     UInt64 determineOSWWriteBufferBytes()
     {
@@ -165,7 +167,9 @@ namespace OpenMS
       OSWBufferedWriter(OpenSwathOSWWriter& writer, UInt64 buffer_budget_bytes, bool profile) :
         writer_(writer),
         buffer_budget_bytes_(std::max(buffer_budget_bytes, OSW_MIN_WRITE_BUFFER_BYTES)),
-        flush_trigger_bytes_(std::max(OSW_MIN_WRITE_BUFFER_BYTES, buffer_budget_bytes_ * 7ull / 10ull)),
+        flush_trigger_bytes_(std::max(buffer_budget_bytes_ * OSW_WRITE_BUFFER_FLUSH_NUMERATOR /
+                                        OSW_WRITE_BUFFER_FLUSH_DENOMINATOR,
+                                      OSW_MIN_WRITE_BUFFER_BYTES)),
         profile_(profile)
       {
         stats_.buffer_budget_bytes = buffer_budget_bytes_;
