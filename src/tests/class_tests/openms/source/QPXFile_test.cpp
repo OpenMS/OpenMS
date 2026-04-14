@@ -18,6 +18,9 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
+#include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <arrow/api.h>
 #include <arrow/io/api.h>
@@ -385,6 +388,133 @@ START_SECTION(Test modifications structured output)
   auto mod_col2 = table2->GetColumnByName("modifications");
   auto mod_list2 = std::static_pointer_cast<arrow::ListArray>(mod_col2->chunk(0));
   TEST_EQUAL(mod_list2->value_length(0), 0) // empty list for unmodified
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+START_SECTION(QPXPgSchema::schema())
+{
+  auto schema = QPXPgSchema::schema();
+  TEST_EQUAL(schema->num_fields(), 20)
+
+  // Required (non-nullable) fields
+  TEST_EQUAL(schema->GetFieldByName("pg_accessions")->nullable(), false)
+  TEST_EQUAL(schema->GetFieldByName("anchor_protein")->nullable(), false)
+  TEST_EQUAL(schema->GetFieldByName("run_file_name")->nullable(), false)
+  TEST_EQUAL(schema->GetFieldByName("is_decoy")->nullable(), false)
+  TEST_EQUAL(schema->GetFieldByName("peptides")->nullable(), false)
+
+  // Nullable (optional) fields
+  TEST_EQUAL(schema->GetFieldByName("intensities")->nullable(), true)
+  TEST_EQUAL(schema->GetFieldByName("additional_intensities")->nullable(), true)
+  TEST_EQUAL(schema->GetFieldByName("global_qvalue")->nullable(), true)
+  TEST_EQUAL(schema->GetFieldByName("pg_qvalue")->nullable(), true)
+}
+END_SECTION
+
+START_SECTION(ProteinGroupArrowExport::exportToArrow(vector<ProteinIdentification>, PeptideIdentificationList))
+{
+  // Set up minimal protein identification with one group
+  ProteinIdentification prot_id;
+  prot_id.setPrimaryMSRunPath({"test_run.mzML"});
+  ProteinHit hit1;
+  hit1.setAccession("PROT_A");
+  hit1.setScore(0.99);
+  hit1.setTargetDecoyType(ProteinHit::TargetDecoyType::TARGET);
+  ProteinHit hit2;
+  hit2.setAccession("PROT_B");
+  hit2.setScore(0.95);
+  hit2.setTargetDecoyType(ProteinHit::TargetDecoyType::TARGET);
+  prot_id.setHits({hit1, hit2});
+  prot_id.setScoreType("Mascot");
+  prot_id.setHigherScoreBetter(true);
+
+  ProteinIdentification::ProteinGroup group;
+  group.accessions = {"PROT_A", "PROT_B"};
+  group.probability = 0.01;
+  prot_id.insertIndistinguishableProteins(group);
+
+  // Set up peptide identifications
+  PeptideIdentification pep_id;
+  PeptideHit pep_hit;
+  pep_hit.setSequence(AASequence::fromString("PEPTIDE"));
+  PeptideEvidence ev;
+  ev.setProteinAccession("PROT_A");
+  pep_hit.setPeptideEvidences({ev});
+  pep_id.setHits({pep_hit});
+  PeptideIdentificationList pep_ids = {pep_id};
+
+  auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, pep_ids);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 1)
+  TEST_EQUAL(table->num_columns(), 20)
+
+  // Verify run_file_name is derived from ProteinIdentification
+  auto run_col = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("run_file_name")->chunk(0));
+  TEST_STRING_EQUAL(run_col->GetString(0), "test_run.mzML")
+
+  // Verify anchor_protein
+  auto anchor_col = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("anchor_protein")->chunk(0));
+  TEST_STRING_EQUAL(anchor_col->GetString(0), "PROT_A")
+
+  // Verify intensities is null (no quantification)
+  auto int_col = table->GetColumnByName("intensities")->chunk(0);
+  TEST_EQUAL(int_col->IsNull(0), true)
+
+  // is_decoy
+  auto is_decoy_col = std::static_pointer_cast<arrow::BooleanArray>(
+    table->GetColumnByName("is_decoy")->chunk(0));
+  TEST_EQUAL(is_decoy_col->Value(0), false)
+
+  // global_qvalue carries group.probability
+  auto qv_col = std::static_pointer_cast<arrow::DoubleArray>(
+    table->GetColumnByName("global_qvalue")->chunk(0));
+  TEST_EQUAL(qv_col->IsNull(0), false)
+  TEST_REAL_SIMILAR(qv_col->Value(0), 0.01)
+
+  // peptides list: one entry per group accession (2 here: PROT_A and PROT_B)
+  auto peptides_list = std::static_pointer_cast<arrow::ListArray>(
+    table->GetColumnByName("peptides")->chunk(0));
+  TEST_EQUAL(peptides_list->value_length(0), 2)
+  auto peptides_struct = std::static_pointer_cast<arrow::StructArray>(peptides_list->values());
+  auto pep_name_arr = std::static_pointer_cast<arrow::StringArray>(peptides_struct->field(0));
+  auto pep_count_arr = std::static_pointer_cast<arrow::Int32Array>(peptides_struct->field(1));
+  TEST_STRING_EQUAL(pep_name_arr->GetString(0), "PROT_A")
+  TEST_EQUAL(pep_count_arr->Value(0), 1)   // one peptide evidence for PROT_A
+  TEST_STRING_EQUAL(pep_name_arr->GetString(1), "PROT_B")
+  TEST_EQUAL(pep_count_arr->Value(1), 0)   // no peptide evidence for PROT_B
+
+  // peptide_counts: unique sequences = 1 (the peptide is attributed to PROT_A only);
+  // total_sequences = 1 (sum of per-protein counts)
+  auto pc_struct = std::static_pointer_cast<arrow::StructArray>(
+    table->GetColumnByName("peptide_counts")->chunk(0));
+  auto pc_unique = std::static_pointer_cast<arrow::Int32Array>(pc_struct->field(0));
+  auto pc_total = std::static_pointer_cast<arrow::Int32Array>(pc_struct->field(1));
+  TEST_EQUAL(pc_unique->Value(0), 1)
+  TEST_EQUAL(pc_total->Value(0), 1)
+
+  // gg_accessions / gg_names must be parallel to pg_accessions (length 2, both empty strings)
+  auto gg_acc_list = std::static_pointer_cast<arrow::ListArray>(
+    table->GetColumnByName("gg_accessions")->chunk(0));
+  auto gg_names_list = std::static_pointer_cast<arrow::ListArray>(
+    table->GetColumnByName("gg_names")->chunk(0));
+  TEST_EQUAL(gg_acc_list->value_length(0), 2)
+  TEST_EQUAL(gg_names_list->value_length(0), 2)
+}
+END_SECTION
+
+START_SECTION(ProteinGroupArrowExport::exportToArrow empty groups)
+{
+  ProteinIdentification prot_id;
+  prot_id.setPrimaryMSRunPath({"test.mzML"});
+  PeptideIdentificationList pep_ids;
+
+  auto table = ProteinGroupArrowExport::exportToArrow({prot_id}, pep_ids);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 0)
+  TEST_EQUAL(table->num_columns(), 20)
 }
 END_SECTION
 

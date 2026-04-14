@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
+#include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/Scores.h>
@@ -1318,6 +1319,25 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
 }
 
 
+namespace
+{
+  /// Attach the canonical QPX "psm" file metadata (qpx_version, file_type="psm",
+  /// UUID, creation date, scan_format, creator) to the schema of @p table.
+  std::shared_ptr<arrow::Table> attachQPXPsmMetadata(const std::shared_ptr<arrow::Table>& table)
+  {
+    auto metadata = arrow::key_value_metadata({
+      {"qpx_version", "1.0"},
+      {"creator", "OpenMS"},
+      {"file_type", "psm"},
+      {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
+      {"uuid", std::string(ArrowIOHelpers::generateUuidV4())},
+      {"scan_format", "scan"},
+      {"software_provider", "OpenMS"}
+    });
+    return table->ReplaceSchemaMetadata(metadata);
+  }
+}
+
 bool QPXFile::exportToParquet(
   const std::vector<ProteinIdentification>& protein_identifications,
   const PeptideIdentificationList& peptide_identifications,
@@ -1331,103 +1351,32 @@ bool QPXFile::exportToParquet(
     OPENMS_LOG_ERROR << "QPXFile: Failed to create Arrow table" << std::endl;
     return false;
   }
+  return exportToParquet(table, filename, config);
+}
 
-  // Add QPX file metadata to the table schema (matches Python to_psm_qpx())
+bool QPXFile::exportToParquet(
+  const std::shared_ptr<arrow::Table>& table,
+  const String& filename,
+  const ParquetWriteConfig& config)
+{
+  if (!table)
   {
-    // Generate RFC 4122 version-4 UUID
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<uint32_t> dist;
-    uint8_t bytes[16];
-    for (int i = 0; i < 4; ++i)
-    {
-      uint32_t r = dist(gen);
-      std::memcpy(bytes + i * 4, &r, 4);
-    }
-    bytes[6] = (bytes[6] & 0x0F) | 0x40; // version 4
-    bytes[8] = (bytes[8] & 0x3F) | 0x80; // variant 1
-    char buf[37];
-    std::snprintf(buf, sizeof(buf),
-      "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-      bytes[0], bytes[1], bytes[2], bytes[3],
-      bytes[4], bytes[5], bytes[6], bytes[7],
-      bytes[8], bytes[9], bytes[10], bytes[11],
-      bytes[12], bytes[13], bytes[14], bytes[15]);
-    std::string uuid_str(buf);
-    
-    auto metadata = arrow::key_value_metadata({
-      {"qpx_version", "1.0"},
-      {"creator", "OpenMS"},
-      {"file_type", "psm"},
-      {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
-      {"uuid", uuid_str},
-      {"scan_format", "scan"},
-      {"software_provider", "OpenMS"}
-    });
-    table = table->ReplaceSchemaMetadata(metadata);
-  }
-
-  // Open output file
-  auto result = arrow::io::FileOutputStream::Open(filename);
-  if (!result.ok())
-  {
-    OPENMS_LOG_ERROR << "QPXFile: Failed to open file: " << filename << std::endl;
-    return false;
-  }
-  const auto& outfile = *result;
-
-  // Configure Parquet writer
-  auto builder = parquet::WriterProperties::Builder();
-
-  switch (config.compression)
-  {
-    case ParquetWriteConfig::Compression::NONE:
-      builder.compression(arrow::Compression::UNCOMPRESSED);
-      break;
-    case ParquetWriteConfig::Compression::SNAPPY:
-      builder.compression(arrow::Compression::SNAPPY);
-      break;
-    case ParquetWriteConfig::Compression::GZIP:
-      builder.compression(arrow::Compression::GZIP);
-      builder.compression_level(config.compression_level);
-      break;
-    case ParquetWriteConfig::Compression::LZ4:
-      builder.compression(arrow::Compression::LZ4);
-      break;
-    case ParquetWriteConfig::Compression::ZSTD:
-      builder.compression(arrow::Compression::ZSTD);
-      builder.compression_level(config.compression_level);
-      break;
-  }
-
-  builder.data_pagesize(config.data_page_size);
-
-  if (config.write_statistics)
-  {
-    builder.enable_statistics();
-  }
-  else
-  {
-    builder.disable_statistics();
-  }
-
-  auto writer_props = builder.build();
-
-  auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
-
-  // Write
-  auto write_status = parquet::arrow::WriteTable(
-    *table, arrow::default_memory_pool(), outfile,
-    config.row_group_size, writer_props, arrow_props);
-
-  if (!write_status.ok())
-  {
-    OPENMS_LOG_ERROR << "QPXFile: Failed to write Parquet: "
-                     << write_status.ToString() << std::endl;
+    OPENMS_LOG_ERROR << "QPXFile: null table passed to exportToParquet (" << filename << ")" << std::endl;
     return false;
   }
 
-  return true;
+  // Guard: the table-taking overload attaches file_type="psm" metadata, so the
+  // caller must actually pass a QPXPSMSchema table (not, e.g., the internal
+  // PSMSchema produced by exportToArrow).
+  auto validation = ArrowSchemaValidation::validate(table, QPXPSMSchema::schema(), ArrowSchemaValidation::Mode::Strict);
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "QPXFile: table schema does not match QPXPSMSchema ("
+                     << filename << "): " << validation.toString() << std::endl;
+    return false;
+  }
+
+  return ArrowIOHelpers::writeTableToParquet(attachQPXPsmMetadata(table), filename, config);
 }
 
 } // namespace OpenMS
