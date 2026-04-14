@@ -32,6 +32,7 @@ General:
   - Fix: UpdateCheck no longer crashes TOPP tools when $HOME is not writable (e.g., in container environments where $HOME=/); the update check is skipped gracefully (#9075, fixes #9074)
   - Fix: TheoreticalSpectrumGenerator: corrected m/z calculation for b/a neutral-loss fragment ions; the neutral-loss loop previously omitted the first residue mass, causing all b/a neutral-loss fragments to report masses that were too low by the first residue's internal mass (#9078, #9084)
   - Fix: LinearResampler: right_index was clamped to the number of raw data points instead of the number of resampled points; when resampled points far outnumber raw points (e.g. fine spacing over a wide m/z range), this caused extreme intensity spikes; bug introduced in 2008 and masked by LinearResamplerAlign which has an independent correct implementation (#9127)
+  - Transparent .zip decompression for XML-based formats (mzML, idXML, etc.) and Bruker .d directories: files with a .zip extension are now decompressed on-the-fly during parsing; .d.zip archives are extracted to a temporary directory and loaded via BrukerTimsFile; no conversion step required (#9139)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -108,6 +109,7 @@ TOPP tools:
       - Fix: OpenSwathOSWWriter::getScore() and getSeparateScore() now correctly handle all NaN variants ("NaN", "-NaN") and avoid redundant meta value lookups; double score values are written with full precision (#9047)
       - Bruker DIA MS2 frame aggregation, denoising, and OpenSwath streaming: new BrukerTimsFile::Config fields (bruker:dia_ms2_n_neighbors, bruker:dia_ms2_min_support, bruker:dia_ms2_centroid) enable grid-based denoising and 2D peak picking of DIA MS2 frames; aggregated spectra can be streamed directly into the OpenSwath pipeline without prior mzML conversion; registered in FileConverter and PeakPickerIM; requires WITH_TIMSRUST=ON (#9129)
       - Fix: BrukerTimsFile::loadDIAStreaming now sorts each spectrum's peaks by m/z before feeding them to the OpenSwath consumer; unsorted peaks (caused by TIMS scan ordering) silently produced empty chromatograms, breaking iRT calibration on .d DIA input (#9135)
+      - Fix: segfault when use_consensus=false; hull_points returned by PeakIntegrator::integratePeak varied in size per-transition, causing Eigen::Map to read past the end of the shorter vector in MRMScoring::initializeXCorrMatrix; fixed by padding hull_points to the full resampled chromatogram length in non-consensus mode (#9143)
 
 PyOpenMS:
   - BREAKING: Binding backend replaced from Autowrap/Cython to hand-maintained nanobind C++ bindings (#8699)
