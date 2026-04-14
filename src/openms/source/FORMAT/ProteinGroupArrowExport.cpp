@@ -491,6 +491,19 @@ bool ProteinGroupArrowExport::exportToParquet(
     OPENMS_LOG_ERROR << "ProteinGroupArrowExport: Failed to create Arrow table" << std::endl;
     return false;
   }
+  return exportToParquet(table, filename, config);
+}
+
+bool ProteinGroupArrowExport::exportToParquet(
+  const std::shared_ptr<arrow::Table>& table,
+  const String& filename,
+  const ParquetWriteConfig& config)
+{
+  if (!table)
+  {
+    OPENMS_LOG_ERROR << "ProteinGroupArrowExport: null table passed to exportToParquet (" << filename << ")" << std::endl;
+    return false;
+  }
   return ArrowIOHelpers::writeTableToParquet(attachQPXPgMetadata(table), filename, config);
 }
 
@@ -864,7 +877,7 @@ bool ProteinGroupArrowExport::exportToParquet(
     OPENMS_LOG_ERROR << "ProteinGroupArrowExport (id-only): Failed to create Arrow table" << std::endl;
     return false;
   }
-  return ArrowIOHelpers::writeTableToParquet(attachQPXPgMetadata(table), filename, config);
+  return exportToParquet(table, filename, config);
 }
 
 } // namespace OpenMS

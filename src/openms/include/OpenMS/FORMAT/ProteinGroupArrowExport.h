@@ -103,6 +103,24 @@ public:
     const PeptideIdentificationList& peptide_identifications,
     const String& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
+
+  /**
+    @brief Write a pre-built QPX protein group Arrow table to a Parquet file
+
+    The table is expected to follow QPXPgSchema (e.g., from exportToArrow).
+    Attaches QPX file metadata (qpx_version, file_type="pg", UUID, creation_date)
+    before writing. Use this overload when the caller already has the table built
+    (e.g., for merged output) to avoid rebuilding it.
+
+    @param[in] table QPX pg Arrow table (must not be null)
+    @param[in] filename Output file path
+    @param[in] config Parquet writing options
+    @return true on success, false on error
+  */
+  static bool exportToParquet(
+    const std::shared_ptr<arrow::Table>& table,
+    const String& filename,
+    const ParquetWriteConfig& config = ParquetWriteConfig{});
 };
 
 } // namespace OpenMS

@@ -438,33 +438,38 @@ class ProSE :
         // -- QPX directory output --
         if (!out_qpx_dir.empty())
         {
-          // PSM — write file and accumulate table for merge independently.
-          // Accumulation uses a freshly-built table (exportToParquet rebuilds internally).
+          // PSM — build table once, write to file, accumulate same table for merge.
           const String qpx_psm_file = out_qpx_dir + "/" + basename + ".psm.parquet";
-          if (QPXFile::exportToParquet(result.protein_ids, result.peptide_ids, qpx_psm_file, /*export_all_psms=*/false))
+          auto qpx_psm_table = QPXFile::exportPSMsToQPXArrow(result.protein_ids, result.peptide_ids, /*export_all_psms=*/false);
+          if (qpx_psm_table)
           {
-            auto qpx_psm_table = QPXFile::exportPSMsToQPXArrow(result.protein_ids, result.peptide_ids, /*export_all_psms=*/false);
-            if (qpx_psm_table) { qpx_psm_tables.push_back(qpx_psm_table); }
-            else { OPENMS_LOG_WARN << "QPX PSM table build returned null for " << in_file << " (merged quantms.psm.parquet will not include this run)" << endl; }
+            qpx_psm_tables.push_back(qpx_psm_table);
+            if (!QPXFile::exportToParquet(qpx_psm_table, qpx_psm_file))
+            {
+              OPENMS_LOG_ERROR << "Failed to write QPX PSM parquet for " << in_file << " -> " << qpx_psm_file << endl;
+              input_failed = true;
+            }
           }
           else
           {
-            OPENMS_LOG_ERROR << "Failed to write QPX PSM parquet for " << in_file << " -> " << qpx_psm_file << endl;
-            input_failed = true;
+            OPENMS_LOG_WARN << "QPX PSM table build returned null for " << in_file << " — skipping " << qpx_psm_file << endl;
           }
 
           // Protein groups — independent of PSM result.
           const String qpx_pg_file = out_qpx_dir + "/" + basename + ".pg.parquet";
-          if (ProteinGroupArrowExport::exportToParquet(result.protein_ids, result.peptide_ids, qpx_pg_file))
+          auto qpx_pg_table = ProteinGroupArrowExport::exportToArrow(result.protein_ids, result.peptide_ids);
+          if (qpx_pg_table)
           {
-            auto qpx_pg_table = ProteinGroupArrowExport::exportToArrow(result.protein_ids, result.peptide_ids);
-            if (qpx_pg_table) { qpx_pg_tables.push_back(qpx_pg_table); }
-            else { OPENMS_LOG_WARN << "QPX PG table build returned null for " << in_file << " (merged quantms.pg.parquet will not include this run)" << endl; }
+            qpx_pg_tables.push_back(qpx_pg_table);
+            if (!ProteinGroupArrowExport::exportToParquet(qpx_pg_table, qpx_pg_file))
+            {
+              OPENMS_LOG_ERROR << "Failed to write QPX PG parquet for " << in_file << " -> " << qpx_pg_file << endl;
+              input_failed = true;
+            }
           }
           else
           {
-            OPENMS_LOG_ERROR << "Failed to write QPX PG parquet for " << in_file << " -> " << qpx_pg_file << endl;
-            input_failed = true;
+            OPENMS_LOG_WARN << "QPX PG table build returned null for " << in_file << " — skipping " << qpx_pg_file << endl;
           }
         }
 
