@@ -185,6 +185,9 @@ namespace OpenMS
       /// Reserve storage for roughly @p row_count rows per OSW table.
       void reserve(Size row_count);
 
+      /// Reserve storage for expected feature-level and transition-level rows.
+      void reserve(Size feature_row_count, Size transition_row_count);
+
       /// Append rows from @p rhs, moving row storage where possible.
       void append(OSWData&& rhs);
 
@@ -256,6 +259,23 @@ namespace OpenMS
      * @return Buffered OSW table rows
      */
     OSWData prepareRows(const OpenSwath::LightCompound& pep,
+        const OpenSwath::LightTransition* transition,
+        const FeatureMap& output, const String& id) const;
+
+    /**
+     * @brief Append feature rows for SQLite insertion into an existing buffer
+     *
+     * This avoids constructing small per-assay OSWData buffers in high-throughput
+     * schedulers.
+     *
+     * @param[in,out] rows The row buffer to append to
+     * @param[in] pep The compound (peptide/metabolite) used for extraction
+     * @param[in] transition The transition used for extraction
+     * @param[in] output The feature map containing all features
+     * @param[in] id The transition group identifier (peptide/metabolite id)
+     */
+    void prepareRowsInto(OSWData& rows,
+        const OpenSwath::LightCompound& pep,
         const OpenSwath::LightTransition* transition,
         const FeatureMap& output, const String& id) const;
 

@@ -148,34 +148,22 @@ namespace OpenMS
       return job_count;
     }
 
-    Size determineScoreJobTargetCount(Size active_swath_count)
-    {
-#ifdef _OPENMP
-      const Size thread_count = static_cast<Size>(std::max(1, omp_get_max_threads()));
-#else
-      const Size thread_count = 1;
-#endif
-
-      if (thread_count <= active_swath_count)
-      {
-        return active_swath_count;
-      }
-
-      // Leave a little slack for the writer and OpenMP scheduling overhead, but
-      // avoid starving CPUs when fewer SWATHs than threads contain transitions.
-      const Size spare_threads = thread_count - active_swath_count;
-      const Size extra_jobs = std::max<Size>(1, (spare_threads * 3) / 4);
-      return std::min(thread_count, active_swath_count + extra_jobs);
-    }
-
-    Size determineScoreJobCompoundCount(const std::vector<Size>& compound_counts,
-                                        Size target_job_count)
+    Size determineScoreJobCompoundCount(const std::vector<Size>& compound_counts)
     {
       if (compound_counts.empty())
       {
         return OSW_MIN_SCORE_JOB_COMPOUNDS;
       }
 
+#ifdef _OPENMP
+      const Size thread_count = static_cast<Size>(std::max(1, omp_get_max_threads()));
+#else
+      const Size thread_count = 1;
+#endif
+      const Size active_swath_count = compound_counts.size();
+      const Size target_job_count = thread_count > active_swath_count ?
+        active_swath_count + 1 :
+        active_swath_count;
       const Size max_compounds = *std::max_element(compound_counts.begin(), compound_counts.end());
 
       Size lower = OSW_MIN_SCORE_JOB_COMPOUNDS;
@@ -916,12 +904,9 @@ namespace OpenMS
         }
       }
 
-      const Size score_job_target_count = determineScoreJobTargetCount(active_compound_counts.size());
-      const Size score_job_compound_count = determineScoreJobCompoundCount(active_compound_counts,
-                                                                          score_job_target_count);
+      const Size score_job_compound_count = determineScoreJobCompoundCount(active_compound_counts);
       OPENMS_LOG_INFO << "Use " << score_job_compound_count
-                      << " compounds per scoring job for up to "
-                      << score_job_target_count << " scoring jobs." << std::endl;
+                      << " compounds per scoring job." << std::endl;
 
       for (Size context_index = 0; context_index < contexts.size(); ++context_index)
       {
@@ -1599,7 +1584,13 @@ namespace OpenMS
     OpenSwathOSWWriter::OSWData to_osw_output;
     if (osw_writer.isActive())
     {
-      to_osw_output.reserve(transition_exp.getCompounds().size());
+      const int stop_report_after_feature =
+        static_cast<int>(feature_finder_param.getValue("stop_report_after_feature"));
+      const Size expected_features_per_assay = stop_report_after_feature > 0 ?
+        static_cast<Size>(stop_report_after_feature) :
+        5;
+      to_osw_output.reserve(transition_exp.getCompounds().size() * expected_features_per_assay,
+                            transition_exp.getTransitions().size() * expected_features_per_assay);
     }
     ///////////////////////////////////
     // Start of main function
@@ -1899,10 +1890,12 @@ namespace OpenMS
       if (osw_writer.isActive() && !output.empty()) // implies that detection_assay_it was set
       {
         auto osw_prepare_start = profileStart(profile);
-        to_osw_output.append(osw_writer.prepareRows(OpenSwath::LightCompound(), // not used currently: transition_exp.getCompounds()[ assay_peptide_map[id] ],
-                                                    nullptr, // not used currently: detection_assay_it,
-                                                    output,
-                                                    id));
+        // Compound and transition are currently unused by the OSW row writer.
+        osw_writer.prepareRowsInto(to_osw_output,
+                                   OpenSwath::LightCompound(),
+                                   nullptr,
+                                   output,
+                                   id);
         if (profile)
         {
           scoring_profile->osw_prepare += elapsedProfileSeconds(osw_prepare_start);

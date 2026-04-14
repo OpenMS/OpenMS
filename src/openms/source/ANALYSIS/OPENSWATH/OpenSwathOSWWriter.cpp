@@ -694,6 +694,15 @@ namespace OpenMS
     feature_transition_rows.reserve(row_count);
   }
 
+  void OpenSwathOSWWriter::OSWData::reserve(Size feature_row_count, Size transition_row_count)
+  {
+    feature_rows.reserve(feature_row_count);
+    feature_ms1_rows.reserve(feature_row_count);
+    feature_ms2_rows.reserve(feature_row_count);
+    feature_precursor_rows.reserve(feature_row_count);
+    feature_transition_rows.reserve(transition_row_count);
+  }
+
   void OpenSwathOSWWriter::OSWData::append(OSWData&& rhs)
   {
     appendRows(feature_rows, rhs.feature_rows);
@@ -948,10 +957,31 @@ namespace OpenMS
   {
     OSWData rows;
     rows.reserve(output.size());
-    std::vector<FeatureTransitionRow> ms2_transition_rows;
+    prepareRowsInto(rows, OpenSwath::LightCompound(), nullptr, output, id);
+    return rows;
+  }
+
+  void OpenSwathOSWWriter::prepareRowsInto(OSWData& rows,
+                                           const OpenSwath::LightCompound& /* pep */,
+                                           const OpenSwath::LightTransition* /* transition */,
+                                           const FeatureMap& output,
+                                           const String& id) const
+  {
+    std::vector<FeatureTransitionRow> ms2_transition_rows_storage;
     std::vector<FeatureTransitionRow> uis_transition_rows;
-    ms2_transition_rows.reserve(output.size());
-    uis_transition_rows.reserve(output.size());
+    std::vector<FeatureTransitionRow>& ms2_transition_rows =
+      enable_uis_scoring_ ? ms2_transition_rows_storage : rows.feature_transition_rows;
+    const Size transition_row_estimate = output.empty() ? 0 :
+      output.size() * output.front().getSubordinates().size();
+    if (enable_uis_scoring_)
+    {
+      ms2_transition_rows.reserve(transition_row_estimate);
+    }
+    else
+    {
+      rows.feature_transition_rows.reserve(rows.feature_transition_rows.size() + transition_row_estimate);
+    }
+    uis_transition_rows.reserve(transition_row_estimate);
 
     for (const auto& feature_it : output)
     {
@@ -1309,10 +1339,14 @@ namespace OpenMS
       }
     }
 
-    rows.feature_transition_rows = (enable_uis_scoring_ && !uis_transition_rows.empty()) ?
-      std::move(uis_transition_rows) : std::move(ms2_transition_rows);
-
-    return rows;
+    if (enable_uis_scoring_)
+    {
+      std::vector<FeatureTransitionRow>& selected_transition_rows =
+        !uis_transition_rows.empty() ? uis_transition_rows : ms2_transition_rows;
+      rows.feature_transition_rows.insert(rows.feature_transition_rows.end(),
+          std::make_move_iterator(selected_transition_rows.begin()),
+          std::make_move_iterator(selected_transition_rows.end()));
+    }
   }
 
   String OpenSwathOSWWriter::prepareLine(const OpenSwath::LightCompound& pep,
