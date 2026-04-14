@@ -2943,6 +2943,9 @@ set_tests_properties("TOPP_ProSE_3_qpx_pg_exists" PROPERTIES DEPENDS "TOPP_ProSE
 add_test(NAME "TOPP_ProSE_3_qpx_merged_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
   ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.psm.parquet)
 set_tests_properties("TOPP_ProSE_3_qpx_merged_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
+add_test(NAME "TOPP_ProSE_3_qpx_merged_pg_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
+  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.pg.parquet)
+set_tests_properties("TOPP_ProSE_3_qpx_merged_pg_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
 
 # Asymmetric precursor window + calibration bias preservation end-to-end test.
 # Uses SimpleSearchEngine_1_shifted_7ppm.mzML (all MS2 precursors multiplied by

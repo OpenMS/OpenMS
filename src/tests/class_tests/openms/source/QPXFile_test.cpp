@@ -462,6 +462,46 @@ START_SECTION(ProteinGroupArrowExport::exportToArrow(vector<ProteinIdentificatio
   // Verify intensities is null (no quantification)
   auto int_col = table->GetColumnByName("intensities")->chunk(0);
   TEST_EQUAL(int_col->IsNull(0), true)
+
+  // is_decoy
+  auto is_decoy_col = std::static_pointer_cast<arrow::BooleanArray>(
+    table->GetColumnByName("is_decoy")->chunk(0));
+  TEST_EQUAL(is_decoy_col->Value(0), false)
+
+  // global_qvalue carries group.probability
+  auto qv_col = std::static_pointer_cast<arrow::DoubleArray>(
+    table->GetColumnByName("global_qvalue")->chunk(0));
+  TEST_EQUAL(qv_col->IsNull(0), false)
+  TEST_REAL_SIMILAR(qv_col->Value(0), 0.01)
+
+  // peptides list: one entry per group accession (2 here: PROT_A and PROT_B)
+  auto peptides_list = std::static_pointer_cast<arrow::ListArray>(
+    table->GetColumnByName("peptides")->chunk(0));
+  TEST_EQUAL(peptides_list->value_length(0), 2)
+  auto peptides_struct = std::static_pointer_cast<arrow::StructArray>(peptides_list->values());
+  auto pep_name_arr = std::static_pointer_cast<arrow::StringArray>(peptides_struct->field(0));
+  auto pep_count_arr = std::static_pointer_cast<arrow::Int32Array>(peptides_struct->field(1));
+  TEST_STRING_EQUAL(pep_name_arr->GetString(0), "PROT_A")
+  TEST_EQUAL(pep_count_arr->Value(0), 1)   // one peptide evidence for PROT_A
+  TEST_STRING_EQUAL(pep_name_arr->GetString(1), "PROT_B")
+  TEST_EQUAL(pep_count_arr->Value(1), 0)   // no peptide evidence for PROT_B
+
+  // peptide_counts: unique sequences = 1 (the peptide is attributed to PROT_A only);
+  // total_sequences = 1 (sum of per-protein counts)
+  auto pc_struct = std::static_pointer_cast<arrow::StructArray>(
+    table->GetColumnByName("peptide_counts")->chunk(0));
+  auto pc_unique = std::static_pointer_cast<arrow::Int32Array>(pc_struct->field(0));
+  auto pc_total = std::static_pointer_cast<arrow::Int32Array>(pc_struct->field(1));
+  TEST_EQUAL(pc_unique->Value(0), 1)
+  TEST_EQUAL(pc_total->Value(0), 1)
+
+  // gg_accessions / gg_names must be parallel to pg_accessions (length 2, both empty strings)
+  auto gg_acc_list = std::static_pointer_cast<arrow::ListArray>(
+    table->GetColumnByName("gg_accessions")->chunk(0));
+  auto gg_names_list = std::static_pointer_cast<arrow::ListArray>(
+    table->GetColumnByName("gg_names")->chunk(0));
+  TEST_EQUAL(gg_acc_list->value_length(0), 2)
+  TEST_EQUAL(gg_names_list->value_length(0), 2)
 }
 END_SECTION
 

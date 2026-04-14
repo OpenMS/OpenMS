@@ -36,6 +36,15 @@ namespace OpenMS
 namespace ArrowIOHelpers
 {
   /**
+    @brief Generate a lowercase hyphenated RFC 4122 version-4 UUID string
+
+    Used by QPX Parquet exporters when attaching file metadata.
+
+    @return UUID string, e.g. "550e8400-e29b-41d4-a716-446655440000"
+  */
+  OPENMS_DLLAPI String generateUuidV4();
+
+  /**
     @brief Write an Arrow table to a Parquet file
 
     @param[in] table The Arrow table to write (must not be null)
