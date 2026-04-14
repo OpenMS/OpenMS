@@ -446,27 +446,13 @@ namespace OpenMS
       source.clear();
     }
 
-    UInt64 estimateValueMemory(const OpenSwathOSWWriter::OSWValue& value)
-    {
-      if (value.type == OpenSwathOSWWriter::OSWValue::Type::Text)
-      {
-        return static_cast<UInt64>(value.asText().capacity() + 1);
-      }
-      return 0;
-    }
-
     template <typename RowT>
     UInt64 estimateRowVectorMemory(const std::vector<RowT>& rows)
     {
-      UInt64 memory = static_cast<UInt64>(rows.capacity()) * static_cast<UInt64>(sizeof(RowT));
-      for (const RowT& row : rows)
-      {
-        for (const auto& value : row)
-        {
-          memory += estimateValueMemory(value);
-        }
-      }
-      return memory;
+      constexpr UInt64 string_headroom_per_value = 16;
+      return static_cast<UInt64>(rows.capacity()) *
+             (static_cast<UInt64>(sizeof(RowT)) +
+              static_cast<UInt64>(std::tuple_size<RowT>::value) * string_headroom_per_value);
     }
 
     template <typename RowT>
