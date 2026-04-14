@@ -1,0 +1,246 @@
+\section{OpenSWATH for Metabolomics}
+\subsection{Introduction}
+We would like to present an automated DIA/SWATH analysis workflow for metabolomics, which takes advantage of experiment specific target-decoy assay library generation. This allows for targeted extraction, scoring and statistical validation of metabolomics DIA data \cite{Rost2014}, \cite{Teleman2015}. 
+
+\subsection{Workflow}
+The workflow follows multiple steps (see Fig. \ref{fig:pipline_overview}). 
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=0.7\textwidth]{graphics/openswathmetabo/pipeline_overview.png}
+  \caption{\textbf{DIAMetAlyzer - pipeline for assay library generation and targeted analysis with statistical validation} DDA data is used for candidate identification containing feature detection, adduct grouping and accurate mass search. Library construction uses fragment annotation via compositional fragmentation trees and decoy generation using a fragmentation tree re-rooting method to create a target-decoy assay library. This library is used in a second step to analyse metabolomics DIA data performing targeted extraction, scoring and statistical validation (FDR estimation).}
+  \label{fig:pipline_overview}
+\end{figure}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{graphics/openswathmetabo/assay_library_generation.png}
+  \caption{\textbf{Assay library generation}  The results of the compound identification (feature, molecular formula, adduct), with the corresponding fragment spectra  for the feature, are used to perform fragment annotation via SIRIUS, using the compositional fragmentation trees. Then, the n highest intensity transitions are extracted and stored in the assay library.}
+  \label{fig:assay_library_generation}
+\end{figure}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{graphics/openswathmetabo/decoy_generation.png}
+  \caption{\textbf{Decoy generation} The compositional fragmentations trees from the step above are used to run the fragmentation tree re-rooting method from Passatutto, generating a compound specific decoy MS2 spectrum. Here, the n highest intensity decoy transitions are extracted and stored in the target-decoy assay library.}
+  \label{fig:decoy_generation}
+\end{figure}
+
+\textbf{Candidate identification.} Feature detection, adduct grouping and accurate mass search are applied on DDA data. \textbf{Library construction.} The knowledge determined from the DDA data, about  compound identification, its potential adduct and the corresponding fragment spectra are used to perform fragment annotation via compositional fragmentation trees sugin SIRIUS 4 \cite{Duhrkop2019}. Afterwards transitions, which are the reference of a precursor to its fragment ions are stored in a so-called assay library (Fig. \ref{fig:assay_library_generation}). Assay libraries usually contain additional metadata (i.e. retention time, peak intensities). FDR estimation is based on the target-decoy approach \cite{Elias2007}. For the generation of the MS2 decoys, the fragmentation tree-based rerooting method by Passatutto ensure the consistency of decoy spectra (Fig.\ref{fig:decoy_generation}) \cite{Scheubert2017}. The target-decoy assay library is then used to analyse the SWATH data. \textbf{Targeted extraction.} Chromatogram extraction and peak-group scoring. This step is performed using an algorithm based on OpenSWATH \cite{Rost2014} for metabolomics data. \textbf{Statistical validation} FDR estimation uses the PyProphet algorithm \cite{Teleman2015}. To prevent overfitting we chose the simpler linear model (LDA) for target-decoy discrimination in PyProphet, using MS1 and MS2 scoring with low correlated scores.
+
+
+
+\subsection{Prerequisites}
+Apart from the usual KNIME nodes, the workflow uses python scripting nodes. One basic requirement for the installation of python packages, in particular pyOpenMS, is a package manager for python. Using conda as an environment manger allows to specify a specific environment in the KNIME settings (\menu{File > Preferences > KNIME > Python})
+
+\subsubsection{Windows}
+We suggest do use a virtual environment for the Python 3 installation on windows. 
+Here you can install miniconda and follow the further instructions. \\
+
+\begin{enumerate}
+  \item Create new conda python environment
+  	    \begin{code}
+    	\begin{minted}{bash}
+conda create -n py39 python=3.9
+   		\end{minted}
+   		\end{code}
+  \item Activate py39 environment
+    	\begin{code}
+    	\begin{minted}{bash}
+conda activate py39    
+    	\end{minted}
+    	\end{code}
+  \item Install pip (see above)
+  \item On the command line:
+    	\begin{code}
+		\begin{minted}{bash}
+python -m pip install -U pip
+python -m pip install -U numpy
+python -m pip install -U pandas
+python -m pip isntall -U pyprophet
+python -m pip install -U pyopenms
+    \end{minted}
+    \end{code}
+\end{enumerate}
+
+\subsubsection{MacOS}
+We suggest do use a virtual environment for the Python 3 installation on Mac. 
+Here you can install miniconda and follow the further instructions. \\
+
+\begin{enumerate}
+  \item Create new conda python environment
+      	\begin{code}
+    	\begin{minted}{bash}
+conda create -n py39 python=3.9
+    	\end{minted}
+    	\end{code}
+    \item Activate py39 environment
+        \begin{code}
+    	\begin{minted}{bash}
+conda activate py39
+    	\end{minted}
+    	\end{code}
+  \item On the Terminal:
+      	\begin{code}
+		\begin{minted}{bash}
+python -m pip install -U pip
+python -m pip install -U numpy
+python -m pip install -U pandas
+python -m pip isntall -U pyprophet
+python -m pip install -U pyopenms
+		\end{minted}
+		\end{code}
+\end{enumerate}
+
+\subsubsection{Linux}
+Use your package manager apt-get or yum, where possible.
+\begin{enumerate}
+  \item Install Python 3.9 (Debian: python-dev, RedHat: python-devel)
+  \item Install NumPy (Debian / RedHat: python-numpy)
+  \item Install setuptools (Debian / RedHat: python-setuptools)
+  \item On the Terminal:
+      	\begin{code}
+		\begin{minted}{bash}
+python -m pip install -U pip
+python -m pip install -U numpy
+python -m pip install -U pandas
+python -m pip isntall -U pyprophet
+python -m pip install -U pyopenms
+        \end{minted}
+        \end{code}
+\end{enumerate}
+
+\subsection{Benchmark data}
+For the assay library construction pesticide mixes (Agilent Technologies, Waldbronn, Germany) were measured individually in solvent (DDA). 
+Benchmark DIA samples were prepared by spiking different commercially available pesticide mixes into human plasma metabolite extracts in a 1:4 dilution series, which covers 5 orders of magnitude.
+
+\noindent The example data can be found here:
+\url{https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Tutorials/Data/DIAMetAlyzer/}
+
+\subsection{Example Workflow}
+Example workflow for the usage of the DIAMetAlyzer Pipeline in KNIME (see Fig. \ref{fig:oswm_example_wf}). Inputs are the SWATH-MS data in profile mode (.mzML), a path for saving the new target-decoy assay library, the SIRIUS 4.9.0 executable, the DDA data (.mzML), custom libraries and adducts for \KNIMENODE{AccurateMassSearch}, the min/max fragment mass-to-charge to be able to restrict the mass of the transitions and the path to the PyProphet executable. The DDA is used for feature detection, adduct grouping, accurate mass search and forwarded to the \KNIMENODE{AssayGeneratorMetabo}. Here, feature mapping is performed to collect MS2 spectra that belong to a feature. All information collected before (feautre, adduct, putative identification, MS2 spectra) are then internally forwarded to SIRIUS. SIRIUS is used for fragment annotation and decoy generation based on the fragmentation tree re-rooting approach. This information is then used to filter spectra/decoys based on their explained intensity (min. 85\%). Afterwards internal feature linking is performed which is most important for untargeted experiments using a lot of DDA data to construct the library. The constructed target-decoy assay library is processed with the SWATH-MS data in OpenSWATH. The results are used by PyProphet for scoring and output a list of metabolites with their respective q-value and quantitative information.
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=0.95\textwidth]{openswathmetabo/oswm_example_wf.png}
+  \caption{Example workflow for the usage of the DIAMetAlyzer Pipeline in KNIME}
+  \label{fig:oswm_example_wf}
+\end{figure}
+
+\subsection{Run the Workflow}
+These steps need to be followed to run the workflow successfully:
+
+\begin{itemize}
+\item Add DDA Input Files (.mzML).
+\item Specify SIRIUS 4.9.0 executable.
+\item Specify library files (mapping, struct) for \KNIMENODE{AccurateMassSearch}.
+\item Add positive/negative adducts lists for \KNIMENODE{AccurateMassSearch}
+\item Supply an output path for the SIRIUS workspace in the \KNIMENODE{AssayGeneratorMetabo}.
+\item Specify additional paths and variables, such as an output path for the target-decoy assay library and a path to the pyprophet installation as well as decoy fragment mz filter (min/max).
+\item Input DIA/SWATH files (.mzML).
+\item Specify output path in the output folders.
+\item Ready to go - run the workflow! 
+\end{itemize}
+
+\subsection{Important parameters}
+\noindent Please have a look at the most important parameters, which should be tweaked to fit your data. In general, OpenMS has a lot of room for parameter optimization to best fit your chromatography and instrumental settings. \\
+
+\noindent\KNIMENODE{\textbf{FeatureFinderMetabo}}:
+\begin{center}
+\begin{tabular*}{\textwidth}{ p{5.5cm}|p{10.5cm} }
+\textbf{parameter} & \textbf{explanation} \\ \hline
+\textit{noise\_threshold\_int} & Intensity threshold below which peaks are regarded as noise. \\
+\textit{chrom\_fwhm} & Expected chromatographic peak width (in seconds). \\
+\textit{mass\_error\_ppm} & Allowed mass deviation (in ppm) \\
+\end{tabular*}
+\end{center}
+
+\noindent\KNIMENODE{\textbf{MetaboliteAdductDecharger}}:
+\begin{center}
+\begin{tabular*}{\textwidth}{ p{5.5cm}|p{10.5cm} }
+\textbf{parameter} & \textbf{explanation} \\ \hline
+\textit{mass\_max\_diff} & Maximum allowed mass tolerance per feature.. \\
+\textit{potential\_adducts} & Adducts used to explain mass differences - These should fit to the adduct list specified for AccurateMassSearch. \\
+\end{tabular*}
+\end{center}
+
+\noindent\KNIMENODE{\textbf{AccurateMassSearch}}:
+\begin{center}
+\begin{tabular*}{\textwidth}{ p{5.5cm}|p{10.5cm} }
+\textbf{parameter} & \textbf{explanation} \\ \hline
+\textit{mass\_error\_value} & Tolerance allowed for accurate mass search. \\
+\textit{ionization\_mode} &  Positive or negative ionization mode. \\
+\end{tabular*}
+\end{center}
+
+\noindent\KNIMENODE{\textbf{AssayGeneratorMetabo}}:
+\begin{center}
+\begin{tabular*}{\textwidth}{ p{5.5cm}|p{10.5cm} }
+\textbf{parameter} & \textbf{explanation} \\ \hline
+\textit{min\_transitions} & Minimal number of transitions (3). \\
+\textit{max\_transitions} &  Maximal number of transitions (3). \\
+\textbf{min\_fragment\_mz} & Minimal m/z of a fragment ion choosen as a transition \\
+\textbf{max\_fragment\_mz} & Maximal m/z of a fragment ion choosen as a transition \\
+\textit{transitions\_threshold} & Further transitions need at least x\% of the maximum intensity. \\
+\textbf{fragment\_annotation score\_threshold} & Filters annotations based on the explained intensity of the peaks in a spectrum (0.8). \\
+SIRIUS (internal): & \\
+\textit{out\_workspace\_directory} & Output directory for SIRIUS workspace (Fragmentation Trees). \\
+\textit{filter\_by\_num\_masstraces} &  Features have to have at least x MassTraces. To use this parameter feature\_only is neccessary. \\
+\textit{precursor\_mass\_tolerance} & Tolerance window for precursor selection (Feature selection in regard to the precursor). \\
+\textit{precursor\_rt\_tolerance} & Tolerance allowed for matching MS2 spectra depeding on the feature size (should be around the FWHM of the chromatograms). \\
+\textit{profile} & Specify the used analysis profile (e.g. qtof). \\
+\textit{elements} & Allowed elements for assessing the putative sumformula (e.g. CHNOP[5]S[8]Cl[1]). Elements found in the isotopic pattern are added automatically, but can be specified nonetheless. \\
+Feature linking (internal): & \\
+\textbf{ambiguity\_resolution mz\_tolerance} & M/z tolerance for the resolution of identification ambiguity over multiple files - Feature linking m/z tolerance. \\
+\textbf{ambiguity\_resolution rt\_tolerance} & RT tolerance in seconds for the resolution of identification ambiguity over multiple files - Feature linking m/z tolerance.\\
+\textbf{total\_occurrence\_filter} & Filter compound based on total occurrence in analysed samples.\\
+\end{tabular*}
+\end{center}
+
+\noindent In case of the \textbf{total\_occurrence\_filter} the value to chose depends on the analysis strategy used. In the instance you are using only identified compounds (\textbf{use\_known\_unkowns} = false) - it will filter based on identified features. This means that even if the feature was detected in e.g. 50\% of all samples it might be only identified correctly by accurate mass search in 20\% of all samples. Using a \textbf{total\_occurrence\_filter} this specific feature would still be filtered out  due to less identifications. 
+
+\noindent\KNIMENODE{\textbf{OpenSWATH}}:
+\begin{center}
+\begin{tabular*}{\textwidth}{ p{5.5cm}|p{10.5cm} }
+\textbf{parameter} & \textbf{explanation} \\ \hline
+\textit{rt\_extraction\_window} & Extract x seconds around this value. \\
+\textit{rt\_normalization\_factor} &  Please use the range of your gradient e.g. 950 seconds. \\
+\end{tabular*}
+\end{center} 
+
+\noindent If you are analysing a lot of big DIA mzML files $\approx$ 3-20GB per File, it makes sense to change how OpenSWATH processes the spectra. 
+
+\begin{center}
+\begin{tabular*}{\textwidth}{ p{5.5cm}|p{10.5cm} }
+\textbf{parameter} & \textbf{explanation} \\ \hline
+\textit{readOptions} & Set cacheWorkingInMemory - will cache the files to disk and read SWATH-by-SWATH into memory\\
+\textit{tempDirectory} &  Set a directory, where cached mzMLs are stored (be aware that his directory can be quite huge depending on the data). \\
+\end{tabular*}
+\end{center} 
+
+\noindent In the workflow pyprophet is called after OpenSWATH, it merges the result files, which allows to get enough data for the model training. 
+
+\begin{code}
+\begin{minted}{bash}
+pyprophet merge  --template path_to_target-decoy_assay_library.pqp --out merged.osw  ./*.osw
+\end{minted}
+\end{code}
+\noindent Afterwards, the results are scored using the MS1 and MS2 levels and filter for metabolomics scores, which have a low correlation. 
+
+\begin{code}
+\begin{minted}{bash}
+pyprophet score --in  merged.osw  --out  scored.osw --level ms1ms2 --ss_main_score "var_isotope_correlation_score" --ss_score_filter metabolomics
+\end{minted}
+\end{code}
+\noindent Export the non filtered results: 
+
+\begin{code}
+\begin{minted}{bash}
+pyprophet export-compound --in scored.osw --out scored + "_pyprophet_nofilter_ms1ms2.tsv" 
+--max_rs_peakgroup_qvalue 1000.0
+\end{minted}
+\end{code}
+
+\noindent Please see the workflow for actual parameter values used for the benchmarking dataset. \\
+
+\noindent  The workflow can be used without any identification (remove \KNIMENODE{AccurateMassSearch}). Here, all features (known\_unknowns) are processed. The assay library is constructed based on the chemical composition elucidated via the fragment annotation (SIRIUS 4). It is also possible to use identified and in addition unknown (non-identified) features, by using \KNIMENODE{AccurateMassSearch} in combination with the \textbf{use\_known\_unknowns} in the \KNIMENODE{AssayGeneratorMetabo}.  

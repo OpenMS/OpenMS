@@ -276,6 +276,7 @@ set(format_executables_list
   ZlibCompression_test
   Libzip_test
   ZipArchiveFile_test
+  ZipIfstream_test
   ZipRandomAccessFile_test
   # DATAACCESS
   MSDataCachedConsumer_test
@@ -552,6 +553,7 @@ set(analysis_executables_list
   PeptideProteinResolution_test
   PeakGroup_test
   PScore_test
+  FragmentIndex_test
   HyperScore_test
   MorpheusScore_test
   OpenPepXLAlgorithm_test
@@ -564,7 +566,7 @@ set(analysis_executables_list
   ReactionMonitoringTransition_test
   NuXLModificationsGenerator_test
   NuXLParameterParsing_test
-  PeptideSearchEngineFIAlgorithm_test
+  ProSEAlgorithm_test
   SimpleSearchEngineAlgorithm_test
   SimpleSVM_test
   SpectralDeconvolution_test

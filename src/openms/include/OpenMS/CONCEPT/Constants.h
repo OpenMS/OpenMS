@@ -344,6 +344,18 @@ namespace OpenMS
       // User parameter name for the fraction of suffix ions that have been matched
       inline const std::string MATCHED_SUFFIX_IONS_FRACTION = "matched_suffix_ions_fraction";
 
+      // User parameter name for the number of matched b-ions (absolute count)
+      inline const std::string MATCHED_B_IONS = "matched_b_ions";
+
+      // User parameter name for the number of matched y-ions (absolute count)
+      inline const std::string MATCHED_Y_IONS = "matched_y_ions";
+
+      // User parameter name for the total number of matched fragment ions
+      inline const std::string NUM_MATCHED_PEAKS = "num_matched_peaks";
+
+      // User parameter name for the longest consecutive b- or y-ion series
+      inline const std::string LONGEST_PEPTIDE_ION_SEQUENCE = "longest_peptide_ion_sequence";
+
       /** User parameter name for the spectrum reference in PeptideIdentification (it is not yet treated as a class attribute)
               String
       */
