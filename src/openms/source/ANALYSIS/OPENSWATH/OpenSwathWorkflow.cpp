@@ -109,8 +109,8 @@ namespace OpenMS
     constexpr UInt64 OSW_FALLBACK_WRITE_BUFFER_BYTES = 512ull * 1024ull * 1024ull;
     constexpr UInt64 OSW_MAX_WRITE_BUFFER_BYTES = 2ull * 1024ull * 1024ull * 1024ull;
     constexpr UInt64 OSW_SYSTEM_MEMORY_RESERVE_BYTES = 4ull * 1024ull * 1024ull * 1024ull;
-    constexpr UInt64 OSW_WRITE_BUFFER_FLUSH_NUMERATOR = 7;
-    constexpr UInt64 OSW_WRITE_BUFFER_FLUSH_DENOMINATOR = 10;
+    constexpr Size OSW_MIN_SCORE_JOB_COMPOUNDS = 1000;
+    constexpr Size OSW_MAX_SCORE_JOB_COMPOUNDS = 10000;
 
     UInt64 determineOSWWriteBufferBytes()
     {
@@ -138,6 +138,22 @@ namespace OpenMS
       return std::clamp(budget_bytes, OSW_MIN_WRITE_BUFFER_BYTES, OSW_MAX_WRITE_BUFFER_BYTES);
     }
 
+    Size determineScoreJobCompoundCount(Size compound_count)
+    {
+      if (compound_count == 0)
+      {
+        return OSW_MIN_SCORE_JOB_COMPOUNDS;
+      }
+
+#ifdef _OPENMP
+      const Size thread_count = static_cast<Size>(std::max(1, omp_get_max_threads()));
+#else
+      const Size thread_count = 1;
+#endif
+      const Size adaptive_size = (compound_count + thread_count - 1) / thread_count;
+      return std::clamp(adaptive_size, OSW_MIN_SCORE_JOB_COMPOUNDS, OSW_MAX_SCORE_JOB_COMPOUNDS);
+    }
+
     // Queue OSW rows so scoring threads only block when the memory budget is exhausted.
     class OSWBufferedWriter
     {
@@ -161,19 +177,14 @@ namespace OpenMS
         UInt64 written_bytes = 0;
         UInt64 max_buffered_bytes = 0;
         UInt64 buffer_budget_bytes = 0;
-        UInt64 flush_trigger_bytes = 0;
       };
 
       OSWBufferedWriter(OpenSwathOSWWriter& writer, UInt64 buffer_budget_bytes, bool profile) :
         writer_(writer),
         buffer_budget_bytes_(std::max(buffer_budget_bytes, OSW_MIN_WRITE_BUFFER_BYTES)),
-        flush_trigger_bytes_(std::max(buffer_budget_bytes_ * OSW_WRITE_BUFFER_FLUSH_NUMERATOR /
-                                        OSW_WRITE_BUFFER_FLUSH_DENOMINATOR,
-                                      OSW_MIN_WRITE_BUFFER_BYTES)),
         profile_(profile)
       {
         stats_.buffer_budget_bytes = buffer_budget_bytes_;
-        stats_.flush_trigger_bytes = flush_trigger_bytes_;
         worker_ = std::thread(&OSWBufferedWriter::writerLoop_, this);
       }
 
@@ -293,7 +304,7 @@ namespace OpenMS
               {
                 return exception_ != nullptr ||
                        finish_requested_ ||
-                       buffered_bytes_ >= flush_trigger_bytes_;
+                       !queue_.empty();
               });
 
               if (exception_ != nullptr)
@@ -348,7 +359,6 @@ namespace OpenMS
 
       OpenSwathOSWWriter& writer_;
       UInt64 buffer_budget_bytes_ = OSW_FALLBACK_WRITE_BUFFER_BYTES;
-      UInt64 flush_trigger_bytes_ = OSW_FALLBACK_WRITE_BUFFER_BYTES;
       bool profile_ = false;
       mutable std::mutex mutex_;
       std::condition_variable cv_;
@@ -369,7 +379,6 @@ namespace OpenMS
                       << ", jobs=" << stats.queued_jobs
                       << ", rows=" << stats.written_rows
                       << ", budget=" << bytesToHumanReadable(stats.buffer_budget_bytes)
-                      << ", trigger=" << bytesToHumanReadable(stats.flush_trigger_bytes)
                       << ", max_buffered=" << bytesToHumanReadable(stats.max_buffered_bytes)
                       << ", queued=" << bytesToHumanReadable(stats.queued_bytes)
                       << ", written=" << bytesToHumanReadable(stats.written_bytes)
@@ -679,7 +688,7 @@ namespace OpenMS
 #endif
     if (use_swath_range_scheduler)
     {
-      constexpr Size score_job_compound_count = 1000;
+      const Size score_job_compound_count = determineScoreJobCompoundCount(transition_exp.getCompounds().size());
 
       struct SwathSchedulerContext
       {
