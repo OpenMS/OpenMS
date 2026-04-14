@@ -148,22 +148,34 @@ namespace OpenMS
       return job_count;
     }
 
-    Size determineScoreJobCompoundCount(const std::vector<Size>& compound_counts)
+    Size determineScoreJobTargetCount(Size active_swath_count)
+    {
+#ifdef _OPENMP
+      const Size thread_count = static_cast<Size>(std::max(1, omp_get_max_threads()));
+#else
+      const Size thread_count = 1;
+#endif
+
+      if (thread_count <= active_swath_count)
+      {
+        return active_swath_count;
+      }
+
+      // Leave a little slack for the writer and OpenMP scheduling overhead, but
+      // avoid starving CPUs when fewer SWATHs than threads contain transitions.
+      const Size spare_threads = thread_count - active_swath_count;
+      const Size extra_jobs = std::max<Size>(1, (spare_threads * 3) / 4);
+      return std::min(thread_count, active_swath_count + extra_jobs);
+    }
+
+    Size determineScoreJobCompoundCount(const std::vector<Size>& compound_counts,
+                                        Size target_job_count)
     {
       if (compound_counts.empty())
       {
         return OSW_MIN_SCORE_JOB_COMPOUNDS;
       }
 
-#ifdef _OPENMP
-      const Size thread_count = static_cast<Size>(std::max(1, omp_get_max_threads()));
-#else
-      const Size thread_count = 1;
-#endif
-      const Size active_swath_count = compound_counts.size();
-      const Size target_job_count = thread_count > active_swath_count ?
-        active_swath_count + 1 :
-        active_swath_count;
       const Size max_compounds = *std::max_element(compound_counts.begin(), compound_counts.end());
 
       Size lower = OSW_MIN_SCORE_JOB_COMPOUNDS;
@@ -904,9 +916,12 @@ namespace OpenMS
         }
       }
 
-      const Size score_job_compound_count = determineScoreJobCompoundCount(active_compound_counts);
+      const Size score_job_target_count = determineScoreJobTargetCount(active_compound_counts.size());
+      const Size score_job_compound_count = determineScoreJobCompoundCount(active_compound_counts,
+                                                                          score_job_target_count);
       OPENMS_LOG_INFO << "Use " << score_job_compound_count
-                      << " compounds per scoring job." << std::endl;
+                      << " compounds per scoring job for up to "
+                      << score_job_target_count << " scoring jobs." << std::endl;
 
       for (Size context_index = 0; context_index < contexts.size(); ++context_index)
       {
