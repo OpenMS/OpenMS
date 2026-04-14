@@ -741,7 +741,7 @@ namespace OpenMS
     };
     if (scales[0].end()==scales[0].find(amino_acid))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No hydrophobicity value known for this residue", "");
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No hydrophobicity value known for this residue", one_letter_code_);
     }
     return scales[int(scale)][amino_acid];
   }

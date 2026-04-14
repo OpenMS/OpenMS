@@ -16,24 +16,32 @@
  
 namespace OpenMS
 {
-    /** 
-    @brief This class is used for hydrophobicity profiling of peptides.
-    Currently there are 6 scales available.
-    The scales are implemented in:
-    @ref HydrophobicityScaleMethod 
-    */
+  /** 
+  @brief This class is used for hydrophobicity profiling of peptides.
+  Currently there are 6 scales available.
+  The scales are implemented in:
+  @ref HydrophobicityScaleMethod 
+  */
   
-    class OPENMS_DLLAPI HydrophobicityProfile {
+  class OPENMS_DLLAPI HydrophobicityProfile 
+  {
 
- public:
+public:
+
+    /// @brief Calculates the GRAVY score
+    /// @param seq The amino acid sequence for which to calculate the GRAVY score
+    /// @return The GRAVY score
+    /// @throw TODO
+    double computeGRAVY(const AASequence& seq);
     
     /// @brief Calculates hydrophobicity profile per residue
     /// @param seq The amino acid sequence for which to calculate the profile
     /// @param scale The scale to use for the calculation    
     /// @return Hydrophobicity profile
+    /// @throw throws an exception if the sequence is empty or contains invalid symbols(noch zu wage später verbessern)
     std::vector<double> computeProfile(
-        const AASequence& seq, 
-        const HydrophobicityScaleMethod scale = HydrophobicityScaleMethod::KYTE_DOOLITTLE
+      const AASequence& seq, 
+      const HydrophobicityScaleMethod scale = HydrophobicityScaleMethod::KYTE_DOOLITTLE
     );
     
     /// @brief Calculates windowed hydrophobicity profile
@@ -42,29 +50,24 @@ namespace OpenMS
     /// @param scale The scale to use for the calculation
     /// @return Windowed hydrophobicity profile
     std::vector<double> computeWindowedProfile(
-        const AASequence& seq,
-        Size window_size = 7,
-        const HydrophobicityScaleMethod scale = HydrophobicityScaleMethod::KYTE_DOOLITTLE
+      const AASequence& seq,
+      Size window_size = 7,
+      const HydrophobicityScaleMethod scale = HydrophobicityScaleMethod::KYTE_DOOLITTLE
     );
-    
-    /// @brief Calculates the GRAVY score
-    /// @param seq The amino acid sequence for which to calculate the GRAVY score
-    /// @return The GRAVY score
-    double computeGRAVY(const AASequence& seq);
-    
+      
     /// @brief Calculates hydrophobic moments
     /// @param seq The Amino acid sequence
     /// @param window_size The size of the sliding window for the calculation
     /// @return Hydrophobic moments of the amino acid sequence
     std::vector<double> computeHydrophobicMoment(
-        const AASequence& seq,
-        Size window_size = 11,
-        double angle = 100.0  // degrees; 100=alpha-helix, 160=beta-sheet
+      const AASequence& seq,
+      Size window_size = 11,
+      double angle = 100.0  // degrees; 100=alpha-helix, 160=beta-sheet
     );  
 
     //just for testing will be removed later
     int testfunktion();
     
-}; 
+  }; 
    
 } // namespace OpenMS
