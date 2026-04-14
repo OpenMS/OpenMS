@@ -9,6 +9,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
 
 #include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/METADATA/MetaInfo.h>
 
 #include <sqlite3.h>
 #include <algorithm>
@@ -19,6 +20,7 @@
 #include <iterator>
 #include <new>
 #include <sstream>
+#include <unordered_map>
 #include <utility>
 
 namespace OpenMS
@@ -227,6 +229,35 @@ namespace OpenMS
       return OpenSwathOSWWriter::OSWValue(value);
     }
 
+    UInt cachedMetaInfoIndex(const std::string& name)
+    {
+      static thread_local std::unordered_map<std::string, UInt> index_cache;
+      const auto it = index_cache.find(name);
+      if (it != index_cache.end())
+      {
+        return it->second;
+      }
+
+      const UInt index = MetaInfo::registry().getIndex(name);
+      if (index != UInt(-1))
+      {
+        index_cache.emplace(name, index);
+      }
+      return index;
+    }
+
+    const DataValue& cachedMetaValue(const Feature& feature, const std::string& name)
+    {
+      const UInt index = cachedMetaInfoIndex(name);
+      return index == UInt(-1) ? DataValue::EMPTY : feature.getMetaValue(index);
+    }
+
+    bool cachedMetaValueExists(const Feature& feature, const std::string& name)
+    {
+      const UInt index = cachedMetaInfoIndex(name);
+      return index != UInt(-1) && feature.metaValueExists(index);
+    }
+
     class ScoreValueList
     {
     public:
@@ -234,7 +265,13 @@ namespace OpenMS
 
       ScoreValueList(const Feature& feature, const std::string& score_name)
       {
-        const DataValue& dv = feature.getMetaValue(score_name);
+        const UInt score_index = cachedMetaInfoIndex(score_name);
+        if (score_index == UInt(-1))
+        {
+          return;
+        }
+
+        const DataValue& dv = feature.getMetaValue(score_index);
         if (dv.isEmpty())
         {
           return;
@@ -935,7 +972,7 @@ namespace OpenMS
 
   String OpenSwathOSWWriter::getScore(const Feature& feature, const std::string& score_name) const
   {
-    return oswValueToString(oswValue(feature.getMetaValue(score_name)));
+    return oswValueToString(oswValue(cachedMetaValue(feature, score_name)));
   }
 
   std::vector<String> OpenSwathOSWWriter::getSeparateScore(const Feature& feature, const std::string& score_name) const
@@ -993,134 +1030,134 @@ namespace OpenMS
       for (Size i=0; i < subordinates.size(); i++)
       {
         const auto& sub_it = subordinates[i];
-        if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS2")
+        if (cachedMetaValueExists(sub_it, "FeatureLevel") && cachedMetaValue(sub_it, "FeatureLevel") == "MS2")
         {
-          OSWValue total_mi = oswValue(sub_it.getMetaValue("total_mi")); // total_mi is not guaranteed to be set
+          OSWValue total_mi = oswValue(cachedMetaValue(sub_it, "total_mi")); // total_mi is not guaranteed to be set
           OSWValue masserror_ppm_query = oswValueAt(masserror_ppm, i); // masserror_ppm is not guaranteed to be set
 
           FeatureTransitionRow transition_row = makeTransitionRow(feature_id);
-          transition_row[1] = oswValue(sub_it.getMetaValue("native_id"));
+          transition_row[1] = oswValue(cachedMetaValue(sub_it, "native_id"));
           transition_row[2] = oswValue(sub_it.getIntensity());
-          transition_row[3] = oswValue(sub_it.getMetaValue("total_xic"));
-          transition_row[4] = oswValue(sub_it.getMetaValue("peak_apex_position"));
-          transition_row[5] = oswValue(sub_it.getMetaValue("peak_apex_int"));
-          transition_row[6] = oswValue(sub_it.getMetaValue("width_at_50"));
+          transition_row[3] = oswValue(cachedMetaValue(sub_it, "total_xic"));
+          transition_row[4] = oswValue(cachedMetaValue(sub_it, "peak_apex_position"));
+          transition_row[5] = oswValue(cachedMetaValue(sub_it, "peak_apex_int"));
+          transition_row[6] = oswValue(cachedMetaValue(sub_it, "width_at_50"));
           transition_row[7] = masserror_ppm_query;
           transition_row[8] = total_mi;
 
-          if (sub_it.metaValueExists("start_position_at_5"))
+          if (cachedMetaValueExists(sub_it, "start_position_at_5"))
           {
-            transition_row[30] = oswValue(sub_it.getMetaValue("start_position_at_5"));
-            transition_row[31] = oswValue(sub_it.getMetaValue("end_position_at_5"));
-            transition_row[32] = oswValue(sub_it.getMetaValue("start_position_at_10"));
-            transition_row[33] = oswValue(sub_it.getMetaValue("end_position_at_10"));
-            transition_row[34] = oswValue(sub_it.getMetaValue("start_position_at_50"));
-            transition_row[35] = oswValue(sub_it.getMetaValue("end_position_at_50"));
-            transition_row[36] = oswValue(sub_it.getMetaValue("total_width"));
-            transition_row[37] = oswValue(sub_it.getMetaValue("tailing_factor"));
-            transition_row[38] = oswValue(sub_it.getMetaValue("asymmetry_factor"));
-            transition_row[39] = oswValue(sub_it.getMetaValue("slope_of_baseline"));
-            transition_row[40] = oswValue(sub_it.getMetaValue("baseline_delta_2_height"));
-            transition_row[41] = oswValue(sub_it.getMetaValue("points_across_baseline"));
-            transition_row[42] = oswValue(sub_it.getMetaValue("points_across_half_height"));
+            transition_row[30] = oswValue(cachedMetaValue(sub_it, "start_position_at_5"));
+            transition_row[31] = oswValue(cachedMetaValue(sub_it, "end_position_at_5"));
+            transition_row[32] = oswValue(cachedMetaValue(sub_it, "start_position_at_10"));
+            transition_row[33] = oswValue(cachedMetaValue(sub_it, "end_position_at_10"));
+            transition_row[34] = oswValue(cachedMetaValue(sub_it, "start_position_at_50"));
+            transition_row[35] = oswValue(cachedMetaValue(sub_it, "end_position_at_50"));
+            transition_row[36] = oswValue(cachedMetaValue(sub_it, "total_width"));
+            transition_row[37] = oswValue(cachedMetaValue(sub_it, "tailing_factor"));
+            transition_row[38] = oswValue(cachedMetaValue(sub_it, "asymmetry_factor"));
+            transition_row[39] = oswValue(cachedMetaValue(sub_it, "slope_of_baseline"));
+            transition_row[40] = oswValue(cachedMetaValue(sub_it, "baseline_delta_2_height"));
+            transition_row[41] = oswValue(cachedMetaValue(sub_it, "points_across_baseline"));
+            transition_row[42] = oswValue(cachedMetaValue(sub_it, "points_across_half_height"));
           }
           ms2_transition_rows.push_back(std::move(transition_row));
         }
-        else if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS1" && sub_it.getIntensity() > 0.0)
+        else if (cachedMetaValueExists(sub_it, "FeatureLevel") && cachedMetaValue(sub_it, "FeatureLevel") == "MS1" && sub_it.getIntensity() > 0.0)
         {
           std::vector<String> precursor_id;
-          oswValueToString(oswValue(sub_it.getMetaValue("native_id"))).split(OpenMS::String("Precursor_i"), precursor_id);
+          oswValueToString(oswValue(cachedMetaValue(sub_it, "native_id"))).split(OpenMS::String("Precursor_i"), precursor_id);
           rows.feature_precursor_rows.push_back({
             feature_id,
             precursor_id.size() > 1 ? oswValue(precursor_id[1]) : OSWValue::null(),
             oswValue(sub_it.getIntensity()),
-            oswValue(sub_it.getMetaValue("peak_apex_int"))
+            oswValue(cachedMetaValue(sub_it, "peak_apex_int"))
           });
         }
       }
 
       // these will be missing if RT scoring is disabled
       double norm_rt = -1, delta_rt = -1;
-      if (feature_it.metaValueExists("norm_RT") ) norm_rt = feature_it.getMetaValue("norm_RT");
-      if (feature_it.metaValueExists("delta_rt") ) delta_rt = feature_it.getMetaValue("delta_rt");
+      if (cachedMetaValueExists(feature_it, "norm_RT") ) norm_rt = cachedMetaValue(feature_it, "norm_RT");
+      if (cachedMetaValueExists(feature_it, "delta_rt") ) delta_rt = cachedMetaValue(feature_it, "delta_rt");
 
       rows.feature_rows.push_back({
         feature_id,
         oswValue(run_id_),
         oswValue(id),
         oswValue(feature_it.getRT()),
-        oswValue(feature_it.getMetaValue("im_drift")),
+        oswValue(cachedMetaValue(feature_it, "im_drift")),
         oswValue(norm_rt),
         oswValue(delta_rt),
-        oswValue(feature_it.getMetaValue("leftWidth")),
-        oswValue(feature_it.getMetaValue("rightWidth")),
-        oswValue(feature_it.getMetaValue("im_drift_left")),
-        oswValue(feature_it.getMetaValue("im_drift_right"))
+        oswValue(cachedMetaValue(feature_it, "leftWidth")),
+        oswValue(cachedMetaValue(feature_it, "rightWidth")),
+        oswValue(cachedMetaValue(feature_it, "im_drift_left")),
+        oswValue(cachedMetaValue(feature_it, "im_drift_right"))
       });
 
       rows.feature_ms2_rows.push_back({
         feature_id,
         oswValue(feature_it.getIntensity()),
-        oswValue(feature_it.getMetaValue("total_xic")),
-        oswValue(feature_it.getMetaValue("peak_apices_sum")),
-        oswValue(feature_it.getMetaValue("im_drift")),
-        oswValue(feature_it.getMetaValue("im_drift_left")),
-        oswValue(feature_it.getMetaValue("im_drift_right")),
-        oswValue(feature_it.getMetaValue("im_delta")),
-        oswValue(feature_it.getMetaValue("total_mi")),
-        oswValue(feature_it.getMetaValue("var_bseries_score")),
-        oswValue(feature_it.getMetaValue("var_dotprod_score")),
-        oswValue(feature_it.getMetaValue("var_intensity_score")),
-        oswValue(feature_it.getMetaValue("var_isotope_correlation_score")),
-        oswValue(feature_it.getMetaValue("var_isotope_overlap_score")),
-        oswValue(feature_it.getMetaValue("var_library_corr")),
-        oswValue(feature_it.getMetaValue("var_library_dotprod")),
-        oswValue(feature_it.getMetaValue("var_library_manhattan")),
-        oswValue(feature_it.getMetaValue("var_library_rmsd")),
-        oswValue(feature_it.getMetaValue("var_library_rootmeansquare")),
-        oswValue(feature_it.getMetaValue("var_library_sangle")),
-        oswValue(feature_it.getMetaValue("var_log_sn_score")),
-        oswValue(feature_it.getMetaValue("var_manhatt_score")),
-        oswValue(feature_it.getMetaValue("var_massdev_score")),
-        oswValue(feature_it.getMetaValue("var_massdev_score_weighted")),
-        oswValue(feature_it.getMetaValue("var_mi_score")),
-        oswValue(feature_it.getMetaValue("var_mi_weighted_score")),
-        oswValue(feature_it.getMetaValue("var_mi_ratio_score")),
-        oswValue(feature_it.getMetaValue("var_norm_rt_score")),
-        oswValue(feature_it.getMetaValue("var_xcorr_coelution")),
-        oswValue(feature_it.getMetaValue("var_xcorr_coelution_weighted")),
-        oswValue(feature_it.getMetaValue("var_xcorr_shape")),
-        oswValue(feature_it.getMetaValue("var_xcorr_shape_weighted")),
-        oswValue(feature_it.getMetaValue("var_yseries_score")),
-        oswValue(feature_it.getMetaValue("var_elution_model_fit_score")),
-        oswValue(feature_it.getMetaValue("var_im_xcorr_shape")),
-        oswValue(feature_it.getMetaValue("var_im_xcorr_coelution")),
-        oswValue(feature_it.getMetaValue("var_im_delta_score")),
-        oswValue(feature_it.getMetaValue("im_log_intensity"))
+        oswValue(cachedMetaValue(feature_it, "total_xic")),
+        oswValue(cachedMetaValue(feature_it, "peak_apices_sum")),
+        oswValue(cachedMetaValue(feature_it, "im_drift")),
+        oswValue(cachedMetaValue(feature_it, "im_drift_left")),
+        oswValue(cachedMetaValue(feature_it, "im_drift_right")),
+        oswValue(cachedMetaValue(feature_it, "im_delta")),
+        oswValue(cachedMetaValue(feature_it, "total_mi")),
+        oswValue(cachedMetaValue(feature_it, "var_bseries_score")),
+        oswValue(cachedMetaValue(feature_it, "var_dotprod_score")),
+        oswValue(cachedMetaValue(feature_it, "var_intensity_score")),
+        oswValue(cachedMetaValue(feature_it, "var_isotope_correlation_score")),
+        oswValue(cachedMetaValue(feature_it, "var_isotope_overlap_score")),
+        oswValue(cachedMetaValue(feature_it, "var_library_corr")),
+        oswValue(cachedMetaValue(feature_it, "var_library_dotprod")),
+        oswValue(cachedMetaValue(feature_it, "var_library_manhattan")),
+        oswValue(cachedMetaValue(feature_it, "var_library_rmsd")),
+        oswValue(cachedMetaValue(feature_it, "var_library_rootmeansquare")),
+        oswValue(cachedMetaValue(feature_it, "var_library_sangle")),
+        oswValue(cachedMetaValue(feature_it, "var_log_sn_score")),
+        oswValue(cachedMetaValue(feature_it, "var_manhatt_score")),
+        oswValue(cachedMetaValue(feature_it, "var_massdev_score")),
+        oswValue(cachedMetaValue(feature_it, "var_massdev_score_weighted")),
+        oswValue(cachedMetaValue(feature_it, "var_mi_score")),
+        oswValue(cachedMetaValue(feature_it, "var_mi_weighted_score")),
+        oswValue(cachedMetaValue(feature_it, "var_mi_ratio_score")),
+        oswValue(cachedMetaValue(feature_it, "var_norm_rt_score")),
+        oswValue(cachedMetaValue(feature_it, "var_xcorr_coelution")),
+        oswValue(cachedMetaValue(feature_it, "var_xcorr_coelution_weighted")),
+        oswValue(cachedMetaValue(feature_it, "var_xcorr_shape")),
+        oswValue(cachedMetaValue(feature_it, "var_xcorr_shape_weighted")),
+        oswValue(cachedMetaValue(feature_it, "var_yseries_score")),
+        oswValue(cachedMetaValue(feature_it, "var_elution_model_fit_score")),
+        oswValue(cachedMetaValue(feature_it, "var_im_xcorr_shape")),
+        oswValue(cachedMetaValue(feature_it, "var_im_xcorr_coelution")),
+        oswValue(cachedMetaValue(feature_it, "var_im_delta_score")),
+        oswValue(cachedMetaValue(feature_it, "im_log_intensity"))
       });
 
-      bool enable_ms1 = feature_it.metaValueExists("var_ms1_ppm_diff");
+      bool enable_ms1 = cachedMetaValueExists(feature_it, "var_ms1_ppm_diff");
       if (enable_ms1) // only write MS1 scores if they are present
       {
         rows.feature_ms1_rows.push_back({
           feature_id,
-          oswValue(feature_it.getMetaValue("ms1_area_intensity")),
-          oswValue(feature_it.getMetaValue("ms1_apex_intensity")),
-          oswValue(feature_it.getMetaValue("im_ms1_drift")),
-          oswValue(feature_it.getMetaValue("im_ms1_delta")),
-          oswValue(feature_it.getMetaValue("var_ms1_ppm_diff")),
-          oswValue(feature_it.getMetaValue("var_im_ms1_delta_score")),
-          oswValue(feature_it.getMetaValue("var_ms1_mi_score")),
-          oswValue(feature_it.getMetaValue("var_ms1_mi_contrast_score")),
-          oswValue(feature_it.getMetaValue("var_ms1_mi_combined_score")),
-          oswValue(feature_it.getMetaValue("var_ms1_isotope_correlation")),
-          oswValue(feature_it.getMetaValue("var_ms1_isotope_overlap")),
-          oswValue(feature_it.getMetaValue("var_ms1_xcorr_coelution")),
-          oswValue(feature_it.getMetaValue("var_ms1_xcorr_coelution_contrast")),
-          oswValue(feature_it.getMetaValue("var_ms1_xcorr_coelution_combined")),
-          oswValue(feature_it.getMetaValue("var_ms1_xcorr_shape")),
-          oswValue(feature_it.getMetaValue("var_ms1_xcorr_shape_contrast")),
-          oswValue(feature_it.getMetaValue("var_ms1_xcorr_shape_combined"))
+          oswValue(cachedMetaValue(feature_it, "ms1_area_intensity")),
+          oswValue(cachedMetaValue(feature_it, "ms1_apex_intensity")),
+          oswValue(cachedMetaValue(feature_it, "im_ms1_drift")),
+          oswValue(cachedMetaValue(feature_it, "im_ms1_delta")),
+          oswValue(cachedMetaValue(feature_it, "var_ms1_ppm_diff")),
+          oswValue(cachedMetaValue(feature_it, "var_im_ms1_delta_score")),
+          oswValue(cachedMetaValue(feature_it, "var_ms1_mi_score")),
+          oswValue(cachedMetaValue(feature_it, "var_ms1_mi_contrast_score")),
+          oswValue(cachedMetaValue(feature_it, "var_ms1_mi_combined_score")),
+          oswValue(cachedMetaValue(feature_it, "var_ms1_isotope_correlation")),
+          oswValue(cachedMetaValue(feature_it, "var_ms1_isotope_overlap")),
+          oswValue(cachedMetaValue(feature_it, "var_ms1_xcorr_coelution")),
+          oswValue(cachedMetaValue(feature_it, "var_ms1_xcorr_coelution_contrast")),
+          oswValue(cachedMetaValue(feature_it, "var_ms1_xcorr_coelution_combined")),
+          oswValue(cachedMetaValue(feature_it, "var_ms1_xcorr_shape")),
+          oswValue(cachedMetaValue(feature_it, "var_ms1_xcorr_shape_contrast")),
+          oswValue(cachedMetaValue(feature_it, "var_ms1_xcorr_shape_combined"))
         });
       }
 
@@ -1177,9 +1214,9 @@ namespace OpenMS
         ScoreValueList points_across_baseline(feature_it, "id_target_ind_points_across_baseline");
         ScoreValueList points_across_half_height(feature_it, "id_target_ind_points_across_half_height");
 
-        if (feature_it.metaValueExists("id_target_num_transitions"))
+        if (cachedMetaValueExists(feature_it, "id_target_num_transitions"))
         {
-          int id_target_num_transitions = feature_it.getMetaValue("id_target_num_transitions");
+          int id_target_num_transitions = cachedMetaValue(feature_it, "id_target_num_transitions");
 
           for (int i = 0; i < id_target_num_transitions; ++i)
           {
@@ -1280,9 +1317,9 @@ namespace OpenMS
         ScoreValueList decoy_points_across_baseline(feature_it, "id_decoy_ind_points_across_baseline");
         ScoreValueList decoy_points_across_half_height(feature_it, "id_decoy_ind_points_across_half_height");
 
-        if (feature_it.metaValueExists("id_decoy_num_transitions"))
+        if (cachedMetaValueExists(feature_it, "id_decoy_num_transitions"))
         {
-          int id_decoy_num_transitions = feature_it.getMetaValue("id_decoy_num_transitions");
+          int id_decoy_num_transitions = cachedMetaValue(feature_it, "id_decoy_num_transitions");
 
           for (int i = 0; i < id_decoy_num_transitions; ++i)
           {

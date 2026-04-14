@@ -13,6 +13,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
+#include <OpenMS/METADATA/MetaInfo.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h>
@@ -89,6 +90,10 @@ public:
       OPENMS_PRECONDITION(transition_group.isInternallyConsistent(), "Consistent state required")
       OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
 
+      static const UInt meta_left_width = MetaInfo::registry().registerName("leftWidth");
+      static const UInt meta_right_width = MetaInfo::registry().registerName("rightWidth");
+      static const UInt meta_total_xic = MetaInfo::registry().registerName("total_xic");
+
       std::vector<MSChromatogram > picked_chroms;
       std::vector<MSChromatogram > smoothed_chroms;
 
@@ -160,7 +165,7 @@ public:
         double intensity = mrm_feature.getIntensity();
         if (intensity > 0)
         {
-          total_xic = mrm_feature.getMetaValue("total_xic");
+          total_xic = mrm_feature.getMetaValue(meta_total_xic);
           features.push_back(std::move(mrm_feature));
           cnt++;
         }
@@ -183,8 +188,8 @@ public:
         bool skip = false;
         for (Size j = 0; j < i; j++)
         {
-          if ((double)mrm_feature.getMetaValue("leftWidth") >=  (double)features[j].getMetaValue("leftWidth") && 
-              (double)mrm_feature.getMetaValue("rightWidth") <= (double)features[j].getMetaValue("rightWidth") )
+          if ((double)mrm_feature.getMetaValue(meta_left_width) >=  (double)features[j].getMetaValue(meta_left_width) &&
+              (double)mrm_feature.getMetaValue(meta_right_width) <= (double)features[j].getMetaValue(meta_right_width))
           { skip = true; }
         }
         if (mrm_feature.getIntensity() > 0 && !skip)
@@ -205,6 +210,15 @@ public:
     {
       OPENMS_PRECONDITION(transition_group.isInternallyConsistent(), "Consistent state required")
       OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
+
+      static const UInt meta_initial_peak_quality = MetaInfo::registry().registerName("initialPeakQuality");
+      static const UInt meta_left_width = MetaInfo::registry().registerName("leftWidth");
+      static const UInt meta_peak_apices_sum = MetaInfo::registry().registerName("peak_apices_sum");
+      static const UInt meta_peptide_ref = MetaInfo::registry().registerName("PeptideRef");
+      static const UInt meta_potential_outlier = MetaInfo::registry().registerName("potentialOutlier");
+      static const UInt meta_right_width = MetaInfo::registry().registerName("rightWidth");
+      static const UInt meta_total_mi = MetaInfo::registry().registerName("total_mi");
+      static const UInt meta_total_xic = MetaInfo::registry().registerName("total_xic");
 
       MRMFeature mrmFeature;
       mrmFeature.setIntensity(0.0);
@@ -261,8 +275,8 @@ public:
           {
             return mrmFeature;
           }
-          mrmFeature.setMetaValue("potentialOutlier", outlier);
-          mrmFeature.setMetaValue("initialPeakQuality", qual);
+          mrmFeature.setMetaValue(meta_potential_outlier, outlier);
+          mrmFeature.setMetaValue(meta_initial_peak_quality, qual);
           mrmFeature.setOverallQuality(qual);
         }
       }
@@ -295,15 +309,15 @@ public:
 
       mrmFeature.setRT(peak_apex);
       mrmFeature.setIntensity(total_intensity);
-      mrmFeature.setMetaValue("PeptideRef", transition_group.getTransitionGroupID());
-      mrmFeature.setMetaValue("leftWidth", best_left);
-      mrmFeature.setMetaValue("rightWidth", best_right);
-      mrmFeature.setMetaValue("total_xic", total_xic);
+      mrmFeature.setMetaValue(meta_peptide_ref, transition_group.getTransitionGroupID());
+      mrmFeature.setMetaValue(meta_left_width, best_left);
+      mrmFeature.setMetaValue(meta_right_width, best_right);
+      mrmFeature.setMetaValue(meta_total_xic, total_xic);
       if (compute_total_mi_)
       {
-        mrmFeature.setMetaValue("total_mi", total_mi);
+        mrmFeature.setMetaValue(meta_total_mi, total_mi);
       }
-      mrmFeature.setMetaValue("peak_apices_sum", total_peak_apices);
+      mrmFeature.setMetaValue(meta_peak_apices_sum, total_peak_apices);
 
       mrmFeature.ensureUniqueId();
       return mrmFeature;
@@ -379,6 +393,32 @@ public:
                                     const int chr_idx,
                                     const int peak_idx)
     {
+      static const UInt meta_area_background_level = MetaInfo::registry().registerName("area_background_level");
+      static const UInt meta_asymmetry_factor = MetaInfo::registry().registerName("asymmetry_factor");
+      static const UInt meta_baseline_delta_2_height = MetaInfo::registry().registerName("baseline_delta_2_height");
+      static const UInt meta_end_position_at_5 = MetaInfo::registry().registerName("end_position_at_5");
+      static const UInt meta_end_position_at_10 = MetaInfo::registry().registerName("end_position_at_10");
+      static const UInt meta_end_position_at_50 = MetaInfo::registry().registerName("end_position_at_50");
+      static const UInt meta_mz = MetaInfo::registry().registerName("MZ");
+      static const UInt meta_native_id = MetaInfo::registry().registerName("native_id");
+      static const UInt meta_noise_background_level = MetaInfo::registry().registerName("noise_background_level");
+      static const UInt meta_peak_apex_int = MetaInfo::registry().registerName("peak_apex_int");
+      static const UInt meta_peak_apex_position = MetaInfo::registry().registerName("peak_apex_position");
+      static const UInt meta_points_across_baseline = MetaInfo::registry().registerName("points_across_baseline");
+      static const UInt meta_points_across_half_height = MetaInfo::registry().registerName("points_across_half_height");
+      static const UInt meta_product_mz = MetaInfo::registry().registerName("product_mz");
+      static const UInt meta_slope_of_baseline = MetaInfo::registry().registerName("slope_of_baseline");
+      static const UInt meta_start_position_at_5 = MetaInfo::registry().registerName("start_position_at_5");
+      static const UInt meta_start_position_at_10 = MetaInfo::registry().registerName("start_position_at_10");
+      static const UInt meta_start_position_at_50 = MetaInfo::registry().registerName("start_position_at_50");
+      static const UInt meta_tailing_factor = MetaInfo::registry().registerName("tailing_factor");
+      static const UInt meta_total_mi = MetaInfo::registry().registerName("total_mi");
+      static const UInt meta_total_width = MetaInfo::registry().registerName("total_width");
+      static const UInt meta_total_xic = MetaInfo::registry().registerName("total_xic");
+      static const UInt meta_width_at_5 = MetaInfo::registry().registerName("width_at_5");
+      static const UInt meta_width_at_10 = MetaInfo::registry().registerName("width_at_10");
+      static const UInt meta_width_at_50 = MetaInfo::registry().registerName("width_at_50");
+
       for (Size k = 0; k < transition_group.getTransitions().size(); k++)
       {
 
@@ -481,7 +521,7 @@ public:
         PeakIntegrator::PeakArea pa = pi_.integratePeak(used_chromatogram, local_left, local_right);
         double peak_integral = pa.area;
         double peak_apex_int = pa.height;
-        f.setMetaValue("peak_apex_position", pa.apex_pos);
+        f.setMetaValue(meta_peak_apex_position, pa.apex_pos);
         if (background_subtraction_ != "none")
         {
           double background{0};
@@ -505,8 +545,8 @@ public:
           if (peak_integral < 0) {peak_integral = 0;}
           if (peak_apex_int < 0) {peak_apex_int = 0;}
 
-          f.setMetaValue("area_background_level", background);
-          f.setMetaValue("noise_background_level", avg_noise_level);
+          f.setMetaValue(meta_area_background_level, background);
+          f.setMetaValue(meta_noise_background_level, avg_noise_level);
         } // end background
 
         f.setRT(picked_chroms[chr_idx][peak_idx].getPos());
@@ -518,18 +558,18 @@ public:
         f.setMZ(chromatogram.getProduct().getMZ());
         mrmFeature.setMZ(chromatogram.getPrecursor().getMZ());
 
-        if (chromatogram.metaValueExists("product_mz")) // legacy code (ensures that old tests still work)
+        if (chromatogram.metaValueExists(meta_product_mz)) // legacy code (ensures that old tests still work)
         {
-          f.setMetaValue("MZ", chromatogram.getMetaValue("product_mz"));
-          f.setMZ(chromatogram.getMetaValue("product_mz"));
+          f.setMetaValue(meta_mz, chromatogram.getMetaValue(meta_product_mz));
+          f.setMZ(chromatogram.getMetaValue(meta_product_mz));
         }
 
-        f.setMetaValue("native_id", chromatogram.getNativeID());
-        f.setMetaValue("peak_apex_int", peak_apex_int);
-        f.setMetaValue("total_xic", transition_total_xic);
+        f.setMetaValue(meta_native_id, chromatogram.getNativeID());
+        f.setMetaValue(meta_peak_apex_int, peak_apex_int);
+        f.setMetaValue(meta_total_xic, transition_total_xic);
         if (compute_total_mi_)
         {
-          f.setMetaValue("total_mi", transition_total_mi);
+          f.setMetaValue(meta_total_mi, transition_total_mi);
         }
 
         if (transition_group.getTransitions()[k].isQuantifyingTransition())
@@ -541,24 +581,24 @@ public:
         // for backwards compatibility with TOPP tests
         // Calculate peak shape metrics that will be used for later QC
         PeakIntegrator::PeakShapeMetrics psm = pi_.calculatePeakShapeMetrics(used_chromatogram, local_left, local_right, peak_apex_int, pa.apex_pos);
-        f.setMetaValue("width_at_50", psm.width_at_50);
+        f.setMetaValue(meta_width_at_50, psm.width_at_50);
         if (compute_peak_shape_metrics_)
         {
-          f.setMetaValue("width_at_5", psm.width_at_5);
-          f.setMetaValue("width_at_10", psm.width_at_10);
-          f.setMetaValue("start_position_at_5", psm.start_position_at_5);
-          f.setMetaValue("start_position_at_10", psm.start_position_at_10);
-          f.setMetaValue("start_position_at_50", psm.start_position_at_50);
-          f.setMetaValue("end_position_at_5", psm.end_position_at_5);
-          f.setMetaValue("end_position_at_10", psm.end_position_at_10);
-          f.setMetaValue("end_position_at_50", psm.end_position_at_50);
-          f.setMetaValue("total_width", psm.total_width);
-          f.setMetaValue("tailing_factor", psm.tailing_factor);
-          f.setMetaValue("asymmetry_factor", psm.asymmetry_factor);
-          f.setMetaValue("slope_of_baseline", psm.slope_of_baseline);
-          f.setMetaValue("baseline_delta_2_height", psm.baseline_delta_2_height);
-          f.setMetaValue("points_across_baseline", psm.points_across_baseline);
-          f.setMetaValue("points_across_half_height", psm.points_across_half_height);
+          f.setMetaValue(meta_width_at_5, psm.width_at_5);
+          f.setMetaValue(meta_width_at_10, psm.width_at_10);
+          f.setMetaValue(meta_start_position_at_5, psm.start_position_at_5);
+          f.setMetaValue(meta_start_position_at_10, psm.start_position_at_10);
+          f.setMetaValue(meta_start_position_at_50, psm.start_position_at_50);
+          f.setMetaValue(meta_end_position_at_5, psm.end_position_at_5);
+          f.setMetaValue(meta_end_position_at_10, psm.end_position_at_10);
+          f.setMetaValue(meta_end_position_at_50, psm.end_position_at_50);
+          f.setMetaValue(meta_total_width, psm.total_width);
+          f.setMetaValue(meta_tailing_factor, psm.tailing_factor);
+          f.setMetaValue(meta_asymmetry_factor, psm.asymmetry_factor);
+          f.setMetaValue(meta_slope_of_baseline, psm.slope_of_baseline);
+          f.setMetaValue(meta_baseline_delta_2_height, psm.baseline_delta_2_height);
+          f.setMetaValue(meta_points_across_baseline, psm.points_across_baseline);
+          f.setMetaValue(meta_points_across_half_height, psm.points_across_half_height);
         }
 
         mrmFeature.addFeature(f, chromatogram.getNativeID()); //map index and feature
@@ -579,6 +619,12 @@ public:
                                     const int chr_idx,
                                     const int peak_idx)
     {
+      static const UInt meta_area_background_level = MetaInfo::registry().registerName("area_background_level");
+      static const UInt meta_native_id = MetaInfo::registry().registerName("native_id");
+      static const UInt meta_noise_background_level = MetaInfo::registry().registerName("noise_background_level");
+      static const UInt meta_peak_apex_int = MetaInfo::registry().registerName("peak_apex_int");
+      static const UInt meta_precursor_mz = MetaInfo::registry().registerName("precursor_mz");
+
       for (Size k = 0; k < transition_group.getPrecursorChromatograms().size(); k++)
       {
         const SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
@@ -654,17 +700,17 @@ public:
           if (peak_integral < 0) {peak_integral = 0;}
           if (peak_apex_int < 0) {peak_apex_int = 0;}
 
-          f.setMetaValue("area_background_level", background);
-          f.setMetaValue("noise_background_level", avg_noise_level);
+          f.setMetaValue(meta_area_background_level, background);
+          f.setMetaValue(meta_noise_background_level, avg_noise_level);
         }
 
         f.setMZ(chromatogram.getPrecursor().getMZ());
         if (k == 0) {mrmFeature.setMZ(chromatogram.getPrecursor().getMZ());} // only use m/z if first (monoisotopic) isotope
 
-        if (chromatogram.metaValueExists("precursor_mz")) // legacy code (ensures that old tests still work)
+        if (chromatogram.metaValueExists(meta_precursor_mz)) // legacy code (ensures that old tests still work)
         {
-          f.setMZ(chromatogram.getMetaValue("precursor_mz"));
-          if (k == 0) {mrmFeature.setMZ(chromatogram.getMetaValue("precursor_mz"));} // only use m/z if first (monoisotopic) isotope
+          f.setMZ(chromatogram.getMetaValue(meta_precursor_mz));
+          if (k == 0) {mrmFeature.setMZ(chromatogram.getMetaValue(meta_precursor_mz));} // only use m/z if first (monoisotopic) isotope
         }
 
         f.setRT(picked_chroms[chr_idx][peak_idx].getPos());
@@ -672,8 +718,8 @@ public:
         ConvexHull2D hull;
         hull.setHullPoints(pa.hull_points);
         f.getConvexHulls().push_back(hull);
-        f.setMetaValue("native_id", chromatogram.getNativeID());
-        f.setMetaValue("peak_apex_int", peak_apex_int);
+        f.setMetaValue(meta_native_id, chromatogram.getNativeID());
+        f.setMetaValue(meta_peak_apex_int, peak_apex_int);
 
         if (use_precursors_ && transition_group.getTransitions().empty())
         {
@@ -1144,5 +1190,3 @@ protected:
     PeakIntegrator pi_;
   };
 }
-
-
