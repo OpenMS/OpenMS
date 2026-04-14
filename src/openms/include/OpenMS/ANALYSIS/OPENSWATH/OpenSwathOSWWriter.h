@@ -190,6 +190,12 @@ namespace OpenMS
 
       /// Returns true if no rows were buffered.
       bool empty() const;
+
+      /// Returns the total number of buffered rows across all OSW tables.
+      Size rowCount() const;
+
+      /// Estimate the memory retained by this buffer in bytes.
+      UInt64 estimateMemoryUsage() const;
     };
 
     OpenSwathOSWWriter(const String& output_filename,

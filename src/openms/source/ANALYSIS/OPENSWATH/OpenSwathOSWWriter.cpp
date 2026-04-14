@@ -435,8 +435,38 @@ namespace OpenMS
     template <typename RowT>
     void appendRows(std::vector<RowT>& target, std::vector<RowT>& source)
     {
-      target.insert(target.end(), std::make_move_iterator(source.begin()), std::make_move_iterator(source.end()));
+      if (target.empty())
+      {
+        target = std::move(source);
+      }
+      else
+      {
+        target.insert(target.end(), std::make_move_iterator(source.begin()), std::make_move_iterator(source.end()));
+      }
       source.clear();
+    }
+
+    UInt64 estimateValueMemory(const OpenSwathOSWWriter::OSWValue& value)
+    {
+      if (value.type == OpenSwathOSWWriter::OSWValue::Type::Text)
+      {
+        return static_cast<UInt64>(value.asText().capacity() + 1);
+      }
+      return 0;
+    }
+
+    template <typename RowT>
+    UInt64 estimateRowVectorMemory(const std::vector<RowT>& rows)
+    {
+      UInt64 memory = static_cast<UInt64>(rows.capacity()) * static_cast<UInt64>(sizeof(RowT));
+      for (const RowT& row : rows)
+      {
+        for (const auto& value : row)
+        {
+          memory += estimateValueMemory(value);
+        }
+      }
+      return memory;
     }
 
     template <typename RowT>
@@ -691,6 +721,21 @@ namespace OpenMS
   {
     return feature_rows.empty() && feature_ms1_rows.empty() && feature_ms2_rows.empty() &&
            feature_precursor_rows.empty() && feature_transition_rows.empty();
+  }
+
+  Size OpenSwathOSWWriter::OSWData::rowCount() const
+  {
+    return feature_rows.size() + feature_ms1_rows.size() + feature_ms2_rows.size() +
+           feature_precursor_rows.size() + feature_transition_rows.size();
+  }
+
+  UInt64 OpenSwathOSWWriter::OSWData::estimateMemoryUsage() const
+  {
+    return estimateRowVectorMemory(feature_rows) +
+           estimateRowVectorMemory(feature_ms1_rows) +
+           estimateRowVectorMemory(feature_ms2_rows) +
+           estimateRowVectorMemory(feature_precursor_rows) +
+           estimateRowVectorMemory(feature_transition_rows);
   }
 
   OpenSwathOSWWriter::OpenSwathOSWWriter(const String& output_filename, bool uis_scores) :

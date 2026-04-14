@@ -66,6 +66,8 @@ namespace OpenMS
     double feature_sort_output = 0.0;
     double osw_prepare = 0.0;
     double osw_write = 0.0;
+    double osw_write_wait = 0.0;
+    double osw_write_hold = 0.0;
     Size assay_count = 0;
     Size scored_assay_count = 0;
     Size skipped_assay_count = 0;
@@ -88,6 +90,8 @@ namespace OpenMS
       feature_sort_output += rhs.feature_sort_output;
       osw_prepare += rhs.osw_prepare;
       osw_write += rhs.osw_write;
+      osw_write_wait += rhs.osw_write_wait;
+      osw_write_hold += rhs.osw_write_hold;
       assay_count += rhs.assay_count;
       scored_assay_count += rhs.scored_assay_count;
       skipped_assay_count += rhs.skipped_assay_count;
