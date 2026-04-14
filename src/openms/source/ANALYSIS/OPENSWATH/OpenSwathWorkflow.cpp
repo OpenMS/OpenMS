@@ -138,9 +138,19 @@ namespace OpenMS
       return std::clamp(budget_bytes, OSW_MIN_WRITE_BUFFER_BYTES, OSW_MAX_WRITE_BUFFER_BYTES);
     }
 
-    Size determineScoreJobCompoundCount(Size compound_count)
+    Size estimateScoreJobCount(const std::vector<Size>& compound_counts, Size job_size)
     {
-      if (compound_count == 0)
+      Size job_count = 0;
+      for (Size count : compound_counts)
+      {
+        job_count += (count + job_size - 1) / job_size;
+      }
+      return job_count;
+    }
+
+    Size determineScoreJobCompoundCount(const std::vector<Size>& compound_counts)
+    {
+      if (compound_counts.empty())
       {
         return OSW_MIN_SCORE_JOB_COMPOUNDS;
       }
@@ -150,8 +160,27 @@ namespace OpenMS
 #else
       const Size thread_count = 1;
 #endif
-      const Size adaptive_size = (compound_count + thread_count - 1) / thread_count;
-      return std::clamp(adaptive_size, OSW_MIN_SCORE_JOB_COMPOUNDS, OSW_MAX_SCORE_JOB_COMPOUNDS);
+      const Size active_swath_count = compound_counts.size();
+      const Size target_job_count = thread_count > active_swath_count ?
+        active_swath_count + 1 :
+        active_swath_count;
+      const Size max_compounds = *std::max_element(compound_counts.begin(), compound_counts.end());
+
+      Size lower = OSW_MIN_SCORE_JOB_COMPOUNDS;
+      Size upper = std::max(OSW_MIN_SCORE_JOB_COMPOUNDS, max_compounds);
+      while (lower < upper)
+      {
+        const Size middle = lower + (upper - lower) / 2;
+        if (estimateScoreJobCount(compound_counts, middle) <= target_job_count)
+        {
+          upper = middle;
+        }
+        else
+        {
+          lower = middle + 1;
+        }
+      }
+      return std::clamp(lower, OSW_MIN_SCORE_JOB_COMPOUNDS, OSW_MAX_SCORE_JOB_COMPOUNDS);
     }
 
     // Queue OSW rows so scoring threads only block when the memory budget is exhausted.
@@ -688,8 +717,6 @@ namespace OpenMS
 #endif
     if (use_swath_range_scheduler)
     {
-      const Size score_job_compound_count = determineScoreJobCompoundCount(transition_exp.getCompounds().size());
-
       struct SwathSchedulerContext
       {
         SignedSize swath_index = -1;
@@ -725,8 +752,7 @@ namespace OpenMS
 
 #ifdef _OPENMP
       OPENMS_LOG_INFO << "Use SWATH assay-range scheduler with " << omp_get_max_threads()
-                      << " threads and " << score_job_compound_count
-                      << " compounds per scoring job." << std::endl;
+                      << " threads." << std::endl;
 #pragma omp parallel for schedule(dynamic,1)
 #endif
       for (SignedSize swath_index = 0; swath_index < boost::numeric_cast<SignedSize>(swath_maps.size()); ++swath_index)
@@ -809,14 +835,6 @@ namespace OpenMS
           context.swath_timing.swath_loading = elapsedProfileSeconds(phase_start);
         }
 
-        const Size n_compounds = context.transition_exp_used_all.getCompounds().size();
-        context.score_job_size = boost::numeric_cast<int>(std::min(score_job_compound_count, n_compounds));
-        if (context.score_job_size > 0)
-        {
-          context.nr_score_jobs = static_cast<SignedSize>((n_compounds + context.score_job_size - 1) / context.score_job_size);
-          context.remaining_score_jobs = context.nr_score_jobs;
-        }
-
 #ifdef _OPENMP
 #pragma omp critical (osw_write_stdout)
 #endif
@@ -829,8 +847,7 @@ namespace OpenMS
 #endif
             "will extract " << context.transition_exp_used_all.getCompounds().size() << " compounds and "
                             << context.transition_exp_used_all.getTransitions().size() << " transitions "
-                            << "from SWATH " << swath_index << " into "
-                            << context.nr_score_jobs << " scoring jobs" << std::endl;
+                            << "from SWATH " << swath_index << std::endl;
         }
 
         phase_start = profileStart(profile);
@@ -878,9 +895,41 @@ namespace OpenMS
       }
 
       std::vector<SwathScoreJob> score_jobs;
+      std::vector<Size> active_compound_counts;
+      for (const SwathSchedulerContext& context : contexts)
+      {
+        if (context.active)
+        {
+          active_compound_counts.push_back(context.transition_exp_used_all.getCompounds().size());
+        }
+      }
+
+      const Size score_job_compound_count = determineScoreJobCompoundCount(active_compound_counts);
+      OPENMS_LOG_INFO << "Use " << score_job_compound_count
+                      << " compounds per scoring job." << std::endl;
+
       for (Size context_index = 0; context_index < contexts.size(); ++context_index)
       {
-        const SwathSchedulerContext& context = contexts[context_index];
+        SwathSchedulerContext& context = contexts[context_index];
+        if (!context.active)
+        {
+          continue;
+        }
+
+        const Size n_compounds = context.transition_exp_used_all.getCompounds().size();
+        context.score_job_size = boost::numeric_cast<int>(std::min(score_job_compound_count, n_compounds));
+        if (context.score_job_size > 0)
+        {
+          context.nr_score_jobs = static_cast<SignedSize>((n_compounds + context.score_job_size - 1) / context.score_job_size);
+          context.remaining_score_jobs = context.nr_score_jobs;
+        }
+
+        OPENMS_LOG_INFO << "SWATH " << context.swath_index
+                        << " will score " << context.transition_exp_used_all.getCompounds().size()
+                        << " compounds and " << context.transition_exp_used_all.getTransitions().size()
+                        << " transitions in " << context.nr_score_jobs
+                        << " scoring jobs" << std::endl;
+
         for (SignedSize range_index = 0; range_index < context.nr_score_jobs; ++range_index)
         {
           score_jobs.push_back({context_index, range_index});
