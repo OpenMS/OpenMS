@@ -28,7 +28,6 @@
 #include <algorithm>
 #include <chrono>
 #include <memory>
-#include <numeric>
 #include <boost/foreach.hpp>
 #include <unordered_map>
 
@@ -355,8 +354,7 @@ namespace OpenMS
                                                                      MobilogramParquetConsumer* mobilogram_consumer) const
   {
     MRMFeature idmrmfeature = trgr_ident.getFeaturesMuteable()[feature_idx];
-    OpenSwath::IMRMFeature* idimrmfeature;
-    idimrmfeature = new MRMFeatureOpenMS(idmrmfeature);
+    MRMFeatureOpenMS idimrmfeature(idmrmfeature);
 
     std::vector<std::string> native_ids_identification;
     std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators_identification;
@@ -377,7 +375,7 @@ namespace OpenMS
     OpenSwath_Ind_Scores idscores;
     if (!native_ids_identification.empty())
     {
-      scorer.calculateChromatographicIdScores(idimrmfeature,
+      scorer.calculateChromatographicIdScores(&idimrmfeature,
                                               native_ids_identification,
                                               native_ids_detection,
                                               signal_noise_estimators_identification,
@@ -486,7 +484,7 @@ namespace OpenMS
       {
         OpenSwath_Scores tmp_scores;
 
-        scorer.calculateDIAIdScores(idimrmfeature,
+        scorer.calculateDIAIdScores(&idimrmfeature,
                                     trgr_ident.getTransition(native_ids_identification[i]),
                                     trgr_detect,
                                     swath_maps, im_range, diascoring_, tmp_scores, drift_target, mobilogram_consumer, feature_id);
@@ -522,8 +520,6 @@ namespace OpenMS
       idscores.ind_im_sum_contrast_coelution = ind_im_sum_contrast_coelution;
       idscores.ind_im_sum_contrast_shape = ind_im_sum_contrast_shape;
     }
-
-    delete idimrmfeature;
     return idscores;
   }
 
@@ -643,8 +639,7 @@ namespace OpenMS
       static_cast<Size>(stop_report_after_feature_) < mrmfeatures.size();
     if (defer_feature_output)
     {
-      scored_feature_indices.resize(mrmfeatures.size());
-      std::iota(scored_feature_indices.begin(), scored_feature_indices.end(), SignedSize{0});
+      scored_feature_indices.reserve(mrmfeatures.size());
     }
     else
     {
@@ -677,19 +672,14 @@ namespace OpenMS
     // Go through all peak groups (found MRM features) and score them
     #ifdef _OPENMP
     int in_parallel = omp_in_parallel();
-    const bool score_features_in_parallel = in_parallel == 0;
-    #else
-    const bool score_features_in_parallel = false;
     #endif
-    OpenSwathScoringPhaseTiming serial_feature_profile;
     #pragma omp parallel for if (in_parallel == 0)
     for (SignedSize feature_idx = 0; feature_idx < (SignedSize) mrmfeatures.size(); ++feature_idx)
     {
       OpenSwathScoringPhaseTiming feature_profile;
       auto& mrmfeature = mrmfeatures[feature_idx];
       mrmfeature.ensureUniqueId();
-      OpenSwath::IMRMFeature* imrmfeature;
-      imrmfeature = new MRMFeatureOpenMS(mrmfeature);
+      MRMFeatureOpenMS imrmfeature(mrmfeature);
       const Int64 feature_id = mrmfeature.hasValidUniqueId() ? static_cast<Int64>(Internal::SqliteHelper::clearSignBit(mrmfeature.getUniqueId())) : -1;
 
       OPENMS_LOG_DEBUG << "Scoring feature " << (mrmfeature) << " == " << mrmfeature.getMetaValue("PeptideRef") <<
@@ -700,7 +690,6 @@ namespace OpenMS
       int group_size = boost::numeric_cast<int>(transition_group_detection.size());
       if (group_size == 0 && !ms1only)
       {
-        delete imrmfeature; // free resources before continuing
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Error: Transition group " + transition_group_detection.getTransitionGroupID() +
                                          " has no chromatograms.");
@@ -720,7 +709,7 @@ namespace OpenMS
 
         // S/N scores
         OpenSwath::MRMScoring mrmscore_;
-        scores.sn_ratio = mrmscore_.calcSNScore(imrmfeature, ms1_signal_noise_estimators);
+        scores.sn_ratio = mrmscore_.calcSNScore(&imrmfeature, ms1_signal_noise_estimators);
         // everything below S/N 1 can be set to zero (and the log safely applied)
         if (scores.sn_ratio < 1)
         {
@@ -731,7 +720,7 @@ namespace OpenMS
           scores.log_sn_score = std::log(scores.sn_ratio);
         }
         // RT scores
-        double normalized_experimental_rt = trafo.apply(imrmfeature->getRT());
+        double normalized_experimental_rt = trafo.apply(imrmfeature.getRT());
         {
           // rt score is delta iRT
           double rt_score = mrmscore_.calcRTScore(*pep, normalized_experimental_rt);
@@ -743,7 +732,7 @@ namespace OpenMS
         // full spectra scores
         if (ms1_map_ && ms1_map_->getNrSpectra() > 0 && mrmfeature.getMZ() > 0)
         {
-          scorer.calculatePrecursorDIAScores(ms1_map_, diascoring_, precursor_mz, imrmfeature->getRT(), *pep, im_range, scores);
+          scorer.calculatePrecursorDIAScores(ms1_map_, diascoring_, precursor_mz, imrmfeature.getRT(), *pep, im_range, scores);
         }
         xx_lda_prescore = -scores.calculate_lda_prescore(scores);
         if (scoring_model_ == "single_transition")
@@ -767,16 +756,16 @@ namespace OpenMS
         // Library and chromatographic scores
         OpenSwath_Scores& scores = mrmfeature.getScores();
         auto feature_phase_start = scoringProfileStart(profile);
-        scorer.calculateChromatographicScores(imrmfeature, native_ids_detection, precursor_ids, normalized_library_intensity,
+        scorer.calculateChromatographicScores(&imrmfeature, native_ids_detection, precursor_ids, normalized_library_intensity,
                                               signal_noise_estimators, scores);
         if (profile)
         {
           feature_profile.chrom_scores += elapsedScoringProfileSeconds(feature_phase_start);
         }
 
-        double normalized_experimental_rt = trafo.apply(imrmfeature->getRT());
+        double normalized_experimental_rt = trafo.apply(imrmfeature.getRT());
         feature_phase_start = scoringProfileStart(profile);
-        scorer.calculateLibraryScores(imrmfeature, transition_group_detection.getTransitions(), *pep, normalized_experimental_rt, scores);
+        scorer.calculateLibraryScores(&imrmfeature, transition_group_detection.getTransitions(), *pep, normalized_experimental_rt, scores);
         if (profile)
         {
           feature_profile.library_scores += elapsedScoringProfileSeconds(feature_phase_start);
@@ -788,7 +777,7 @@ namespace OpenMS
         {
           feature_phase_start = scoringProfileStart(profile);
           std::vector<double> masserror_ppm;
-          scorer.calculateDIAScores(imrmfeature,
+          scorer.calculateDIAScores(&imrmfeature,
                                     transition_group_detection.getTransitions(),
                                     swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm,
                                     drift_target, im_range, mobilogram_consumer, feature_id);
@@ -873,7 +862,16 @@ namespace OpenMS
 
       }
 
-      if (!defer_feature_output)
+      if (defer_feature_output)
+      {
+#ifdef _OPENMP
+#pragma omp critical (openswath_scored_feature_indices)
+#endif
+        {
+          scored_feature_indices.push_back(feature_idx);
+        }
+      }
+      else
       {
         ///////////////////////////////////////////////////////////////////////////
         // add the peptide hit information to the feature
@@ -893,32 +891,15 @@ namespace OpenMS
           feature_profile.score_output += elapsedScoringProfileSeconds(feature_output_start);
         }
       }
-
-      delete imrmfeature;
       if (profile)
       {
         feature_profile.scored_feature_count = 1;
 #ifdef _OPENMP
-        if (score_features_in_parallel)
-        {
 #pragma omp critical (openswath_scoring_profile)
+#endif
+        {
           scoring_profile_.add(feature_profile);
         }
-        else
-#endif
-        {
-          serial_feature_profile.add(feature_profile);
-        }
-      }
-    }
-
-    if (profile)
-    {
-#ifdef _OPENMP
-      if (!score_features_in_parallel)
-#endif
-      {
-        scoring_profile_.add(serial_feature_profile);
       }
     }
 
