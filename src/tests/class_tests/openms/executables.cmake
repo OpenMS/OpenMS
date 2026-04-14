@@ -187,6 +187,7 @@ set(kernel_executables_list
 set(format_executables_list
   AbsoluteQuantitationStandardsFile_test
   Base64_test
+  BedRModFile_test
   BrukerTimsFile_test
   BrukerTimsImagingFile_test
   PASEFHillCentroider_test
