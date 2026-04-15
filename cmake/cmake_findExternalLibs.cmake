@@ -398,12 +398,31 @@ if (WITH_OPENTIMS)
     set(OPENTIMS_BUILD_LIB              ON  CACHE BOOL "" FORCE)
     set(OPENTIMS_BUILD_PYTHON           OFF CACHE BOOL "" FORCE)
     set(OPENTIMS_LINK_SQLITE_STATICALLY ON  CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(opentims)
 
-    # Provide OpenMS's sqlite3 headers and library to opentims
+    # OpenMS sets BUILD_SHARED_LIBS=true (to build libOpenMS.so). Without this
+    # override, opentims's CMakeLists.txt would build libopentims_cpp.so instead
+    # of libopentims_cpp.a. A shared opentims would land in _deps/opentims-build/
+    # rather than the system lib path, so the build-time linker would fail with
+    # "undefined reference to TimsDataHandle" when linking test binaries against
+    # libOpenMS.so (because libopentims_cpp.so's directory is not in the test's
+    # -L search path). Force static so all opentims symbols get absorbed into
+    # libOpenMS.so at link time.
+    set(_openms_saved_build_shared_libs ${BUILD_SHARED_LIBS})
+    set(BUILD_SHARED_LIBS OFF)
+    FetchContent_MakeAvailable(opentims)
+    set(BUILD_SHARED_LIBS ${_openms_saved_build_shared_libs})
+
+    # Provide OpenMS's sqlite3 headers to opentims so it compiles with
+    # OPENTIMS_LINK_SQLITE_STATICALLY (direct sqlite3 calls vs. dlopen).
+    # We intentionally do NOT call target_link_libraries(opentims_cpp PRIVATE sqlite3)
+    # here: adding the CMake sqlite3 target as a PRIVATE dep of a STATIC library
+    # would require sqlite3 to appear in the CMake export sets, which creates
+    # conflicts with SQLiteCpp's own sqlite3 export. The sqlite3 symbols are
+    # resolved at final link time through OpenMS's own SQLiteCpp dependency
+    # (SQLiteCpp PUBLIC-links sqlite3, so libsqlite3.a already appears in
+    # libOpenMS.so's link command after libopentims_cpp.a).
     target_include_directories(opentims_cpp PRIVATE
       "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
-    target_link_libraries(opentims_cpp PRIVATE sqlite3)
 
     # ZSTD: prefer system; fall back to opentims's bundled decoder.
     set(_OPENTIMS_SRC "${opentims_SOURCE_DIR}/src/opentims++")
