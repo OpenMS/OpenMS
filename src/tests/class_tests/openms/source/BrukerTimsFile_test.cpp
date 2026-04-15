@@ -248,6 +248,9 @@ START_SECTION(DDA loading integration test)
       TEST_NOT_EQUAL(spec.getDriftTime(), 0.0);
       TEST_EQUAL(spec.getDriftTimeUnit(), DriftTimeUnit::VSSC);
       TEST_NOT_EQUAL(spec.getPrecursors()[0].getMZ(), 0.0);
+      // TDF MS2 peaks are detector-centroided; must be labelled CENTROID so
+      // downstream tools (e.g. CometAdapter) don't reject them as profile.
+      TEST_EQUAL(spec.getType(), SpectrumSettings::SpectrumType::CENTROID);
       break;
     }
   }
@@ -313,6 +316,8 @@ START_SECTION(DDA frame-level loading test)
     if (!spec.empty())
     {
       TEST_EQUAL(spec.containsIMData(), true);
+      // frameToSpectrum emits detector-centroided peaks; label as CENTROID.
+      TEST_EQUAL(spec.getType(), SpectrumSettings::SpectrumType::CENTROID);
       break;
     }
   }
@@ -505,6 +510,8 @@ START_SECTION(DIA loading integration test)
     {
       TEST_EQUAL(spec.containsIMData(), true);
       TEST_NOT_EQUAL(spec.getPrecursors().size(), 0);
+      // TDF MS2 peaks are detector-centroided; must be labelled CENTROID.
+      TEST_EQUAL(spec.getType(), SpectrumSettings::SpectrumType::CENTROID);
       break;
     }
   }
