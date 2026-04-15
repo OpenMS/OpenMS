@@ -864,6 +864,84 @@ START_SECTION(DIA MS1 default config regression test)
 }
 END_SECTION
 
+START_SECTION(DIA MS1 aggregation test)
+{
+  // RED test for MS1 frame aggregation. With ms1_n_neighbors=1 we expect
+  // ~same spectrum count as raw (edge-truncation aside), boosted intensity,
+  // and IM_PROFILE output with per-peak IM.
+  BrukerTimsFile f;
+
+  MSExperiment exp_raw;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_raw);
+
+  BrukerTimsFile::Config cfg;
+  cfg.ms1_n_neighbors = 1;
+  MSExperiment exp_agg;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_agg, cfg);
+
+  Size raw_ms1_spectra = 0, raw_ms1_peaks = 0;
+  double raw_ms1_intensity = 0.0;
+  for (const auto& spec : exp_raw)
+  {
+    if (spec.getMSLevel() == 1)
+    {
+      ++raw_ms1_spectra;
+      raw_ms1_peaks += spec.size();
+      for (const auto& p : spec) raw_ms1_intensity += p.getIntensity();
+    }
+  }
+
+  Size agg_ms1_spectra = 0, agg_ms1_peaks = 0;
+  double agg_ms1_intensity = 0.0;
+  for (const auto& spec : exp_agg)
+  {
+    if (spec.getMSLevel() == 1)
+    {
+      ++agg_ms1_spectra;
+      agg_ms1_peaks += spec.size();
+      for (const auto& p : spec) agg_ms1_intensity += p.getIntensity();
+    }
+  }
+
+  TEST_NOT_EQUAL(raw_ms1_spectra, 0);
+  TEST_NOT_EQUAL(agg_ms1_spectra, 0);
+
+  // Spectrum count: aggregated path keeps per-center-frame cadence; allow
+  // ±2% for edge truncation (MS2 aggregation test uses 2% as well).
+  TEST_EQUAL(agg_ms1_spectra <= raw_ms1_spectra, true);
+  TEST_EQUAL(agg_ms1_spectra >= raw_ms1_spectra * 98 / 100, true);
+
+  // Intensity boost: aggregation sums intensity across 2*N+1 = 3 frames.
+  // Shared-cell overlap determines the effective ratio; MS2 fixture shows
+  // ≈ 1.28x. Use the same bounds initially; re-tune on first empirical run.
+  TEST_EQUAL(raw_ms1_intensity > 0.0, true);
+  const double intensity_ratio = agg_ms1_intensity / raw_ms1_intensity;
+  TEST_EQUAL(intensity_ratio >= 1.15, true);
+  TEST_EQUAL(intensity_ratio <= 1.45, true);
+
+  // Output must carry per-peak IM with IM_PROFILE type
+  for (const auto& spec : exp_agg)
+  {
+    if (spec.getMSLevel() == 1 && !spec.empty())
+    {
+      TEST_EQUAL(spec.containsIMData(), true);
+      TEST_EQUAL(spec.getIMPeakType() == IMPeakType::IM_PROFILE, true);
+      // MS1 spectra must NOT carry precursors (unlike MS2).
+      TEST_EQUAL(spec.getPrecursors().empty(), true);
+      break;
+    }
+  }
+
+  STATUS("DIA MS1 aggregation: raw spectra=" << raw_ms1_spectra
+         << " peaks=" << raw_ms1_peaks
+         << " intensity=" << raw_ms1_intensity
+         << " | aggregated spectra=" << agg_ms1_spectra
+         << " peaks=" << agg_ms1_peaks
+         << " intensity=" << agg_ms1_intensity
+         << " | ratio=" << intensity_ratio);
+}
+END_SECTION
+
 START_SECTION(DIA readDIAMetadata test)
 {
   BrukerTimsFile f;
