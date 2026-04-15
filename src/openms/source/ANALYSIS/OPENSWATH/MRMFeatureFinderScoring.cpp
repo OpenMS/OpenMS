@@ -652,19 +652,24 @@ namespace OpenMS
     const double detection_precursor_mz = !transition_group_detection.getTransitions().empty() ?
       transition_group_detection.getTransitions()[0].getPrecursorMZ() : -1.0;
 
-    std::vector<double> normalized_library_intensity;
-    transition_group_detection.getLibraryIntensity(normalized_library_intensity);
-    OpenSwath::Scoring::normalize_sum(normalized_library_intensity.data(), static_cast<unsigned int>(normalized_library_intensity.size()));
+    // Populate a TransitionGroupCache once per group to avoid per-feature recomputation
+    TransitionGroupCache tg_cache;
+    transition_group_detection.getLibraryIntensity(tg_cache.normalized_library_intensity);
+    OpenSwath::Scoring::normalize_sum(tg_cache.normalized_library_intensity.data(), static_cast<unsigned int>(tg_cache.normalized_library_intensity.size()));
 
     const auto& transitions = transition_group_detection.getTransitions();
-    std::vector<std::string> native_ids_detection(transitions.size());
-    std::transform(transitions.begin(), transitions.end(), native_ids_detection.begin(),
+    tg_cache.transition_native_ids.resize(transitions.size());
+    std::transform(transitions.begin(), transitions.end(), tg_cache.transition_native_ids.begin(),
                    [](const auto& tr) { return tr.getNativeID(); });
 
     const auto& precursor_chroms = transition_group_detection.getPrecursorChromatograms();
-    std::vector<std::string> precursor_ids(precursor_chroms.size());
-    std::transform(precursor_chroms.begin(), precursor_chroms.end(), precursor_ids.begin(),
+    tg_cache.precursor_ids.resize(precursor_chroms.size());
+    std::transform(precursor_chroms.begin(), precursor_chroms.end(), tg_cache.precursor_ids.begin(),
                    [](const auto& ch) { return ch.getNativeID(); });
+
+    // Cache the swath maps and trafo for read-only access in the feature loop
+    tg_cache.swath_cache = swath_maps;
+    tg_cache.trafo_cache = trafo;
     if (profile)
     {
       scoring_profile_.score_setup += elapsedScoringProfileSeconds(profile_phase_start);
@@ -762,8 +767,8 @@ namespace OpenMS
         // Library and chromatographic scores
         OpenSwath_Scores& scores = mrmfeature.getScores();
         auto feature_phase_start = scoringProfileStart(profile);
-        scorer.calculateChromatographicScores(&imrmfeature, native_ids_detection, precursor_ids, normalized_library_intensity,
-                                              signal_noise_estimators, scores);
+        scorer.calculateChromatographicScores(&imrmfeature, tg_cache.transition_native_ids, tg_cache.precursor_ids, tg_cache.normalized_library_intensity,
+                      signal_noise_estimators, scores);
         if (profile)
         {
           feature_profile.chrom_scores += elapsedScoringProfileSeconds(feature_phase_start);
@@ -820,7 +825,7 @@ namespace OpenMS
           {
             scoreIdentification_(transition_group_identification, transition_group_detection, scorer, feature_idx,
                                  feature_id,
-                                 native_ids_detection, det_intensity_ratio_score,
+                                 tg_cache.transition_native_ids, det_intensity_ratio_score,
                                  det_mi_ratio_score, swath_maps,drift_target, im_range, idscores_pool, mobilogram_consumer);
             mrmfeature.IDScoresAsMetaValue(false, idscores_pool);
           }
@@ -828,7 +833,7 @@ namespace OpenMS
           {
             scoreIdentification_(transition_group_identification_decoy, transition_group_detection, scorer, feature_idx,
                                  feature_id,
-                                 native_ids_detection, det_intensity_ratio_score,
+                                 tg_cache.transition_native_ids, det_intensity_ratio_score,
                                  det_mi_ratio_score, swath_maps, drift_target, im_range, idscores_pool, mobilogram_consumer);
             mrmfeature.IDScoresAsMetaValue(true, idscores_pool);
           }
