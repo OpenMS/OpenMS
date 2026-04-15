@@ -80,9 +80,12 @@ namespace OpenSwath
       xcorr_matrix_max_peak_.resize(data.size(), data.size());
       xcorr_matrix_max_peak_sec_.resize(data.size(), data.size());
 
-      std::vector< std::vector< double > > tmp_data = data;
-      for (std::size_t i = 0; i < tmp_data.size(); i++)
+      // reuse thread-local pool to hold standardized copies (preserve capacity)
+      mrm_poolA.ensure_size(data.size());
+      std::vector<std::vector<double>>& tmp_data = mrm_poolA.vv;
+      for (std::size_t i = 0; i < data.size(); i++)
       {
+        tmp_data[i] = data[i];
         Scoring::standardize_data(tmp_data[i]);
       }
 
@@ -298,10 +301,12 @@ namespace OpenSwath
       xcorr_precursor_combined_matrix_.resize(combined_size, combined_size);
       for (std::size_t ii = 0; ii < combined_size; ++ii)
       {
-        const std::vector<double>& vi = (ii < ni) ? intensityi[ii] : intensityj[ii - ni];
+        std::vector<double>* pvi = (ii < ni) ? &intensityi[ii] : &intensityj[ii - ni];
+        std::vector<double>& vi = *pvi;
         for (std::size_t jj = ii; jj < combined_size; ++jj)
         {
-          const std::vector<double>& vj = (jj < ni) ? intensityi[jj] : intensityj[jj - ni];
+          std::vector<double>* pvj = (jj < ni) ? &intensityi[jj] : &intensityj[jj - ni];
+          std::vector<double>& vj = *pvj;
           xcorr_precursor_combined_matrix_(ii, jj) = Scoring::normalizedCrossCorrelationPost(vi, vj, std::min(XCORR_MAX_DELAY, static_cast<int>(vi.size())), 1);
         }
       }
