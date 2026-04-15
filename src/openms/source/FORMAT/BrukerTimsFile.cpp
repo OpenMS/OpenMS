@@ -336,7 +336,8 @@ namespace OpenMS
     class FrameAggregator
     {
     public:
-      static constexpr double MZ_BIN_WIDTH = 0.02; // Da — absorbs frame-to-frame m/z jitter
+      explicit FrameAggregator(double mz_bin_width = 0.02)
+        : mz_bin_width_(mz_bin_width) {}
 
       struct OutputPeak
       {
@@ -348,7 +349,7 @@ namespace OpenMS
       /// Add a peak to the grid. Call for every peak from every neighbor frame.
       void addPeak(double mz, uint32_t intensity, uint32_t scan_id)
       {
-        int64_t mz_bin = static_cast<int64_t>(std::round(mz / MZ_BIN_WIDTH));
+        int64_t mz_bin = static_cast<int64_t>(std::round(mz / mz_bin_width_));
         uint64_t key = (static_cast<uint64_t>(static_cast<uint32_t>(mz_bin)) << 32) | scan_id;
 
         auto& cell = grid_[key];
@@ -525,6 +526,7 @@ namespace OpenMS
       void clear() { grid_.clear(); }
 
     private:
+      double mz_bin_width_;
       struct Cell
       {
         double intensity_sum = 0.0;
