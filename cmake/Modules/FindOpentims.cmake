@@ -23,7 +23,21 @@ if(opentims_FOUND)
   endif()
   set(Opentims_FOUND TRUE)
   get_target_property(Opentims_INCLUDE_DIR opentims::opentims_cpp INTERFACE_INCLUDE_DIRECTORIES)
-  get_target_property(Opentims_LIBRARIES   opentims::opentims_cpp IMPORTED_LOCATION)
+  # IMPORTED_LOCATION is not set on interface-only or alias targets; try
+  # configuration-specific locations before giving up.
+  get_target_property(Opentims_LIBRARIES opentims::opentims_cpp IMPORTED_LOCATION)
+  if(Opentims_LIBRARIES MATCHES "NOTFOUND")
+    foreach(_cfg Release Debug RelWithDebInfo MinSizeRel)
+      get_target_property(_loc opentims::opentims_cpp "IMPORTED_LOCATION_${_cfg}")
+      if(_loc AND NOT _loc MATCHES "NOTFOUND")
+        set(Opentims_LIBRARIES "${_loc}")
+        break()
+      endif()
+    endforeach()
+    if(Opentims_LIBRARIES MATCHES "NOTFOUND")
+      set(Opentims_LIBRARIES "")
+    endif()
+  endif()
   return()
 endif()
 
@@ -53,10 +67,20 @@ if(Opentims_FOUND)
   set(Opentims_LIBRARIES "${Opentims_LIBRARY}")
 
   if(NOT TARGET opentims::opentims_cpp)
+    # NOTE: This manual-import path does not know whether the library was built
+    # with OPENTIMS_LINK_SQLITE_STATICALLY (which requires the caller to supply
+    # sqlite3 headers via Opentims_INCLUDE_DIR and link sqlite3).
+    # INTERFACE_COMPILE_DEFINITIONS is intentionally set to an empty list so
+    # that downstream consumers (e.g. cmake_findExternalLibs.cmake) can
+    # distinguish "property not set at all" (CONFIG target) from "property set
+    # but empty" (manual target) when deciding whether to inject sqlite3.
+    # If OPENTIMS_LINK_SQLITE_STATICALLY is required, override this property or
+    # pass -DOpentims_ROOT_DIR pointing to an installation with a config package.
     add_library(opentims::opentims_cpp STATIC IMPORTED)
     set_target_properties(opentims::opentims_cpp PROPERTIES
       IMPORTED_LOCATION             "${Opentims_LIBRARY}"
       INTERFACE_INCLUDE_DIRECTORIES "${Opentims_INCLUDE_DIR}"
+      INTERFACE_COMPILE_DEFINITIONS ""
     )
   endif()
 endif()

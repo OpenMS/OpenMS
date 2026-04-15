@@ -418,8 +418,12 @@ if (WITH_OPENTIMS)
     # that compile definition is propagated via the imported target's
     # INTERFACE_COMPILE_DEFINITIONS. OpenMS must then supply sqlite3 headers
     # and the library, just as it does in the FetchContent path.
+    # When the library was found via the manual search path (no CMake config
+    # package), INTERFACE_COMPILE_DEFINITIONS may not be set; in that case we
+    # conservatively inject sqlite3 because we cannot know how it was built.
     get_target_property(_opentims_defs opentims::opentims_cpp INTERFACE_COMPILE_DEFINITIONS)
-    if(_opentims_defs MATCHES "OPENTIMS_LINK_SQLITE_STATICALLY")
+    if(_opentims_defs MATCHES "OPENTIMS_LINK_SQLITE_STATICALLY"
+       OR (_opentims_defs MATCHES "NOTFOUND" AND NOT opentims_FOUND))
       target_include_directories(opentims::opentims_cpp INTERFACE
         "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
       target_link_libraries(opentims::opentims_cpp INTERFACE sqlite3)
@@ -433,7 +437,7 @@ if (WITH_OPENTIMS)
     FetchContent_Declare(
       opentims
       GIT_REPOSITORY https://github.com/michalsta/opentims.git
-      GIT_TAG        v1.2.0b1
+      GIT_TAG        v1.2.0b3
     )
 
     # Build opentims as a C++ static library, not a Python module.
