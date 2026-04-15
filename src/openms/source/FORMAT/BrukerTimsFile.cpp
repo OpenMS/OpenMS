@@ -1850,6 +1850,7 @@ namespace OpenMS
           {
             setProgress(progress_count++);
             aggregator.clear();
+            size_t contributing_frames = 0;
 
             // Determine neighbor range
             size_t lo = (i >= static_cast<size_t>(N)) ? i - N : 0;
@@ -1868,24 +1869,24 @@ namespace OpenMS
               nframe.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
                                    mzs.data(), nullptr, nullptr);
 
+              bool frame_contributed = false;
               for (uint32_t p = 0; p < nframe.num_peaks; ++p)
               {
                 // Filter by scan bounds (integer comparison, no IM conversion needed)
                 if (scan_ids[p] >= win->scan_begin && scan_ids[p] <= win->scan_end)
                 {
                   aggregator.addPeak(mzs[p], intensities[p], scan_ids[p]);
+                  frame_contributed = true;
                 }
               }
+              if (frame_contributed) ++contributing_frames;
             }
 
-            // Denoise (skip if only 1 frame in range, or caller disabled it via min_support <= 0)
-            // TODO: This checks the index range, not the actual number of neighbor
-            // frames that contributed peaks to the grid. If neighbor frames exist
-            // but have zero peaks passing the IM filter for this window, the grid
-            // contains only single-frame data yet denoising still runs — which may
-            // remove valid isolated peaks. Consider counting actual contributing
-            // frames if this becomes an issue in practice.
-            bool skip_denoise = (hi - lo) < 1 || config.dia_ms2_min_support <= 0;
+            // Denoise skipped when the grid was populated from a single frame (or none),
+            // because spatial denoising requires neighbor context that only cross-frame
+            // aggregation provides. Also skipped when min_support <= 0 (user explicitly
+            // disabled the filter).
+            bool skip_denoise = (contributing_frames <= 1) || config.dia_ms2_min_support <= 0;
             auto peaks = config.dia_ms2_centroid
               ? aggregator.finalizeCentroided(config.dia_ms2_min_support, skip_denoise)
               : aggregator.finalize(config.dia_ms2_min_support, skip_denoise);
