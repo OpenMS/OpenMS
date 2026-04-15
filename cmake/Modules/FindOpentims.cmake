@@ -8,10 +8,17 @@
 # And the imported target:
 #  opentims::opentims_cpp
 #
-# Hints:
-#  Set Opentims_ROOT_DIR to the root of a custom installation.
+# Standard CMake mechanisms (all honoured automatically):
+#  opentims_DIR          - directory containing opentimsConfig.cmake
+#  opentims_ROOT         - root of the opentims installation (CMake 3.12+ / CMP0074)
+#  CMAKE_PREFIX_PATH     - list of installation prefixes to search
+#
+# Legacy OpenMS hint (kept for backwards compatibility):
+#  Opentims_ROOT_DIR     - same role as opentims_ROOT
 
 # Prefer a CMake config package produced by opentims's own install rules.
+# opentims_ROOT / opentims_DIR / CMAKE_PREFIX_PATH are checked automatically
+# by CMake (CMP0074); Opentims_ROOT_DIR is the legacy OpenMS-specific hint.
 find_package(opentims CONFIG QUIET
   HINTS
     "${Opentims_ROOT_DIR}"
@@ -45,6 +52,8 @@ endif()
 find_path(Opentims_INCLUDE_DIR
   NAMES opentims++/opentims.h
   HINTS
+    "${opentims_ROOT}/include"
+    "${opentims_ROOT}"
     "${Opentims_ROOT_DIR}/include"
     "${Opentims_ROOT_DIR}"
   DOC "opentims include directory (parent of opentims++/)"
@@ -53,9 +62,11 @@ find_path(Opentims_INCLUDE_DIR
 find_library(Opentims_LIBRARY
   NAMES opentims_cpp
   HINTS
+    "${opentims_ROOT}/lib"
+    "${opentims_ROOT}"
     "${Opentims_ROOT_DIR}/lib"
     "${Opentims_ROOT_DIR}"
-  DOC "opentims static library"
+  DOC "opentims library"
 )
 
 include(FindPackageHandleStandardArgs)
@@ -76,7 +87,7 @@ if(Opentims_FOUND)
     # but empty" (manual target) when deciding whether to inject sqlite3.
     # If OPENTIMS_LINK_SQLITE_STATICALLY is required, override this property or
     # pass -DOpentims_ROOT_DIR pointing to an installation with a config package.
-    add_library(opentims::opentims_cpp STATIC IMPORTED)
+    add_library(opentims::opentims_cpp UNKNOWN IMPORTED)
     set_target_properties(opentims::opentims_cpp PROPERTIES
       IMPORTED_LOCATION             "${Opentims_LIBRARY}"
       INTERFACE_INCLUDE_DIRECTORIES "${Opentims_INCLUDE_DIR}"
