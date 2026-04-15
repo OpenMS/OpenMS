@@ -690,7 +690,12 @@ namespace OpenMS
       // thread-local pooled idscores to avoid per-feature vector allocations
       static thread_local MRMFeatureFinderScoring::OpenSwath_Ind_Scores_Pooled idscores_pool;
       idscores_pool.reset();
-      idscores_pool.preallocate(std::max<Size>(transitions.size(), static_cast<Size>(16)));
+      // Only preallocate once per thread or if capacity is too small
+      Size needed_capacity = std::max<Size>(transitions.size(), static_cast<Size>(16));
+      if (idscores_pool.ind_transition_names.capacity() < needed_capacity)
+      {
+        idscores_pool.preallocate(needed_capacity);
+      }
       const Int64 feature_id = mrmfeature.hasValidUniqueId() ? static_cast<Int64>(Internal::SqliteHelper::clearSignBit(mrmfeature.getUniqueId())) : -1;
 
       OPENMS_LOG_DEBUG << "Scoring feature " << (mrmfeature) << " == " << mrmfeature.getMetaValue("PeptideRef") <<
