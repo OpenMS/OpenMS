@@ -62,16 +62,20 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Can not compute profile of an empty sequence", "");
     }
     std::vector<double> profile;
-    for (auto i = 0; i <= seq.size()-window_size; i++)
+    AASequence subsequence = seq.getSubsequence(0,window_size);
+    double sum = 0;
+    for (const auto& residue : subsequence)
     {
-      AASequence subsequence = seq.getSubsequence(i,window_size);
-      double sum = 0;
-      for (const auto& residue : subsequence)
-      {     
-        sum += residue.getHydrophobicity(scale);
-      }
-      sum = sum / window_size;
-      profile.push_back(sum);
+      sum += residue.getHydrophobicity(scale);
+    }
+    profile.push_back(sum / window_size);
+    double prev_value = seq[0].getHydrophobicity(scale);
+    for (auto i = window_size; i < seq.size(); i++)
+    {
+      sum -= prev_value;
+      sum += seq[i].getHydrophobicity(scale);
+      profile.push_back(sum / window_size);
+      prev_value = seq[i - window_size + 1].getHydrophobicity(scale);
     }
     return profile;
   }
@@ -94,17 +98,28 @@ namespace OpenMS
     std::vector<double> profile;
     for (auto i = 0; i <= seq.size()-window_size; i++)
     {
+      std::cout << "Fenster: " << i << std::endl;
       AASequence subsequence = seq.getSubsequence(i,window_size);
       double sum_1 = 0;
       double sum_2 = 0;
+      double j = 1;
       for (const auto& residue : subsequence)
       {
-        sum_1 += residue.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG)*std::sin((100*window_size*3.14159)/180);
-        sum_1 += residue.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG)*std::cos((100*window_size*3.14159)/180);
+        std::cout << "durchlauf: " << j << std::endl;
+        sum_1 += residue.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG)*std::sin((100*j*3.14159)/180);
+        std::cout << "sum1: " << sum_1 << std::endl;
+        sum_2 += residue.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG)*std::cos((100*j*3.14159)/180);
+        std::cout << "sum2: " << sum_2 << std::endl;
+        j++;
       }
       sum_1 = std::pow(sum_1,2);
-      profile.push_back(std::pow(sum_1+sum_2,0.5));
+      std::cout << "sum1 nach hoch 2: " << sum_1 << std::endl;
+      sum_2 = std::pow(sum_2,2);
+      std::cout << "sum2 nach hoch 2: " << sum_2 << std::endl;
+      profile.push_back(std::pow(sum_1+sum_2,0.5)/window_size);
+      std::cout << "profile wert:" << std::pow(sum_1+sum_2,0.5)/window_size<< std::endl;
     }
+    return profile;
   }
 
 

@@ -76,9 +76,23 @@ END_SECTION
 START_SECTION(computeWindowedProfile)
 {
   HydrophobicityProfile profile;
-  AASequence seq("ACDE");
+  AASequence seq("ACDEF");
   TEST_REAL_SIMILAR(profile.computeWindowedProfile(seq,3,HydrophobicityScaleMethod::KYTE_DOOLITTLE)[0],0.266666666666667);
-  TEST_EXCEPTION(Exception::InvalidSize,profile.computeWindowedProfile(seq,5,HydrophobicityScaleMethod::KYTE_DOOLITTLE))
+  TEST_REAL_SIMILAR(profile.computeWindowedProfile(seq,3,HydrophobicityScaleMethod::KYTE_DOOLITTLE)[1],-1.5);
+  TEST_REAL_SIMILAR(profile.computeWindowedProfile(seq,3,HydrophobicityScaleMethod::KYTE_DOOLITTLE)[2],-1.4);
+  TEST_EXCEPTION(Exception::InvalidSize,profile.computeWindowedProfile(seq,6,HydrophobicityScaleMethod::KYTE_DOOLITTLE))
+}
+END_SECTION
+
+START_SECTION(computeHydrophobicMoment)
+{
+  HydrophobicityProfile profile;
+  AASequence seq("A");
+  TEST_REAL_SIMILAR(profile.computeHydrophobicMoment(seq,1,100)[0],0.62);
+  AASequence seq_2("ACDEF");
+  TEST_REAL_SIMILAR(profile.computeHydrophobicMoment(seq_2,3,100)[0],0.512);
+  TEST_REAL_SIMILAR(profile.computeHydrophobicMoment(seq_2,3,100)[1],0.435);
+  TEST_REAL_SIMILAR(profile.computeHydrophobicMoment(seq_2,3,100)[2],0.735);
 }
 END_SECTION
 

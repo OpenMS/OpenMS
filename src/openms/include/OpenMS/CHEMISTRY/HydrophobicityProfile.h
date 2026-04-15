@@ -9,7 +9,7 @@
 #pragma once
  
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CONCEPT/CommonEnums.h>
+//#include <OpenMS/CONCEPT/CommonEnums.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <functional>
 #include <sstream>

@@ -758,6 +758,7 @@ START_SECTION((double getHydrophobicity(const HydrophobicityScaleNumber scale) c
   TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::BULL_BREESE),0.610);
   TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::BLACK_MOULD),0.616);
   TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::GUY),0.1);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG_CONSENSUS),0.25);
   res.setOneLetterCode("X");
   TEST_EXCEPTION(Exception::InvalidValue,res.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE));
   res.setOneLetterCode("");

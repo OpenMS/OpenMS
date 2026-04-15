@@ -47,7 +47,8 @@ namespace OpenMS
       HOPP_WOODS = 2,
       BULL_BREESE = 3,
       BLACK_MOULD = 4,
-      GUY = 5
+      GUY = 5,
+      EISENBERG_CONSENSUS = 6
     }; 
 
 } // namespace OpenMS
