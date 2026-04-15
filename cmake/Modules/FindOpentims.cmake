@@ -27,7 +27,7 @@ if(opentims_FOUND)
   # configuration-specific locations before giving up.
   get_target_property(Opentims_LIBRARIES opentims::opentims_cpp IMPORTED_LOCATION)
   if(Opentims_LIBRARIES MATCHES "NOTFOUND")
-    foreach(_cfg Release Debug RelWithDebInfo MinSizeRel)
+    foreach(_cfg RELEASE DEBUG RELWITHDEBINFO MINSIZEREL)
       get_target_property(_loc opentims::opentims_cpp "IMPORTED_LOCATION_${_cfg}")
       if(_loc AND NOT _loc MATCHES "NOTFOUND")
         set(Opentims_LIBRARIES "${_loc}")
