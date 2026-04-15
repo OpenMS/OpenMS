@@ -238,14 +238,19 @@ namespace OpenSwath
     void MRMScoring::initializeXCorrPrecursorContrastMatrix(const std::vector< std::vector< double > >& data_precursor, const std::vector< std::vector< double > >& data_fragments)
     {
       xcorr_precursor_contrast_matrix_.resize(data_precursor.size(), data_fragments.size());
-      std::vector< std::vector< double > > tmp_data_precursor = data_precursor;
-      std::vector< std::vector< double > > tmp_data_fragments = data_fragments;
-      for (std::size_t i = 0; i < tmp_data_precursor.size(); i++)
+      // reuse thread-local pools to hold temp copies (preserve capacity)
+      mrm_poolA.ensure_size(data_precursor.size());
+      std::vector<std::vector<double>>& tmp_data_precursor = mrm_poolA.vv;
+      for (std::size_t i = 0; i < data_precursor.size(); ++i)
       {
+        tmp_data_precursor[i] = data_precursor[i];
         Scoring::standardize_data(tmp_data_precursor[i]);
       }
-      for (std::size_t i = 0; i < tmp_data_fragments.size(); i++)
+      mrm_poolB.ensure_size(data_fragments.size());
+      std::vector<std::vector<double>>& tmp_data_fragments = mrm_poolB.vv;
+      for (std::size_t i = 0; i < data_fragments.size(); ++i)
       {
+        tmp_data_fragments[i] = data_fragments[i];
         Scoring::standardize_data(tmp_data_fragments[i]);
       }
 
@@ -271,28 +276,23 @@ namespace OpenSwath
       mrm_poolB.ensure_size(native_ids.size());
       std::vector<std::vector<double>>& intensityj = mrm_poolB.vv;
       fillIntensityFromFeature(mrmfeature, native_ids, intensityj);
-      std::vector<std::vector<double>> combined_intensity;
-      combined_intensity.reserve(intensityi.size() + intensityj.size());
-      for (std::size_t i = 0; i < intensityi.size(); i++)
-      {
-        combined_intensity.push_back(intensityi[i]);
-      }
-      for (std::size_t j = 0; j < intensityj.size(); j++)
-      {
-        combined_intensity.push_back(intensityj[j]);
-      }
-      for (std::size_t i = 0; i < combined_intensity.size(); i++)
-      {
-        Scoring::standardize_data(combined_intensity[i]);
-      }
+      // avoid allocating a combined vector by indexing into the two pooled buffers
+      const std::size_t ni = intensityi.size();
+      const std::size_t nj = intensityj.size();
+      const std::size_t combined_size = ni + nj;
 
-      xcorr_precursor_combined_matrix_.resize(combined_intensity.size(), combined_intensity.size());
-      for (std::size_t i = 0; i < combined_intensity.size(); i++)
+      // standardize in-place for both pools
+      for (std::size_t i = 0; i < ni; ++i) Scoring::standardize_data(intensityi[i]);
+      for (std::size_t j = 0; j < nj; ++j) Scoring::standardize_data(intensityj[j]);
+
+      xcorr_precursor_combined_matrix_.resize(combined_size, combined_size);
+      for (std::size_t ii = 0; ii < combined_size; ++ii)
       {
-        for (std::size_t j = i; j < combined_intensity.size(); j++)
+        const std::vector<double>& vi = (ii < ni) ? intensityi[ii] : intensityj[ii - ni];
+        for (std::size_t jj = ii; jj < combined_size; ++jj)
         {
-          // compute normalized cross correlation
-          xcorr_precursor_combined_matrix_(i, j) = Scoring::normalizedCrossCorrelationPost(combined_intensity[i], combined_intensity[j], std::min(XCORR_MAX_DELAY, static_cast<int>(combined_intensity[i].size())), 1);
+          const std::vector<double>& vj = (jj < ni) ? intensityi[jj] : intensityj[jj - ni];
+          xcorr_precursor_combined_matrix_(ii, jj) = Scoring::normalizedCrossCorrelationPost(vi, vj, std::min(XCORR_MAX_DELAY, static_cast<int>(vi.size())), 1);
         }
       }
     }
@@ -572,6 +572,8 @@ namespace OpenSwath
     {
       std::vector<double> library_intensity;
       std::vector<double> experimental_intensity;
+      library_intensity.reserve(transitions.size());
+      experimental_intensity.reserve(transitions.size());
       std::string native_id;
 
       for (std::size_t k = 0; k < transitions.size(); k++)
