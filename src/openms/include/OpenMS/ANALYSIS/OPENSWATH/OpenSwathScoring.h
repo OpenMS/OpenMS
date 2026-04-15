@@ -196,6 +196,7 @@ namespace OpenMS
     */
   void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
               const std::vector<TransitionType>& transitions,
+              const std::vector<double>& normalized_library_intensity,
               const std::vector<OpenSwath::SwathMap>& swath_maps,
               const OpenSwath::SpectrumAccessPtr& ms1_map,
               const OpenMS::DIAScoring& diascoring,

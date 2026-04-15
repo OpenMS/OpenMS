@@ -795,6 +795,7 @@ namespace OpenMS
           std::vector<double> masserror_ppm;
           scorer.calculateDIAScores(&imrmfeature,
                                     transition_group_detection.getTransitions(),
+                                    tg_cache.normalized_library_intensity,
                                     swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm,
                                     drift_target, im_range, mobilogram_consumer, feature_id);
           mrmfeature.setMetaValue("masserror_ppm", masserror_ppm);

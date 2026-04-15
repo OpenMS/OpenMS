@@ -91,6 +91,7 @@ namespace OpenMS
 
   void OpenSwathScoring::calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
                                             const std::vector<TransitionType>& transitions,
+                                            const std::vector<double>& normalized_library_intensity,
                                             const std::vector<OpenSwath::SwathMap>& swath_maps,
                                             const OpenSwath::SpectrumAccessPtr& ms1_map,
                                             const OpenMS::DIAScoring& diascoring,
@@ -106,8 +107,7 @@ namespace OpenMS
     OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
 
-    std::vector<double> normalized_library_intensity;
-    getNormalized_library_intensities_(transitions, normalized_library_intensity);
+    // normalized_library_intensity is passed in to avoid per-call allocation
 
     // automatically compute the amount of spectra to add based on the fraction of the retention time peak width, or add a fixed number of spectra
     int n_merge_spectra = 1;
