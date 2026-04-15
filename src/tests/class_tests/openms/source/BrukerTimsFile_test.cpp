@@ -1002,6 +1002,214 @@ START_SECTION(DIA MS1 aggregation test)
 }
 END_SECTION
 
+START_SECTION(DIA MS1 aggregation with centroiding test)
+{
+  BrukerTimsFile f;
+
+  // Aggregated, no centroiding (baseline)
+  BrukerTimsFile::Config cfg_profile;
+  cfg_profile.ms1_n_neighbors = 1;
+  MSExperiment exp_profile;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_profile, cfg_profile);
+
+  // Aggregated + within-frame centroiding
+  BrukerTimsFile::Config cfg_centroid;
+  cfg_centroid.ms1_n_neighbors = 1;
+  cfg_centroid.ms1_centroid_mz_ppm = 5.0f;
+  cfg_centroid.ms1_centroid_im_pct = 3.0f;
+  MSExperiment exp_centroid;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_centroid, cfg_centroid);
+
+  auto count_ms1 = [](const MSExperiment& e, Size& n_spectra, Size& n_peaks, double& total_intensity)
+  {
+    n_spectra = 0; n_peaks = 0; total_intensity = 0.0;
+    for (const auto& s : e)
+      if (s.getMSLevel() == 1)
+      {
+        ++n_spectra;
+        n_peaks += s.size();
+        for (const auto& p : s) total_intensity += p.getIntensity();
+      }
+  };
+
+  Size profile_n, profile_p, centroid_n, centroid_p;
+  double profile_i, centroid_i;
+  count_ms1(exp_profile, profile_n, profile_p, profile_i);
+  count_ms1(exp_centroid, centroid_n, centroid_p, centroid_i);
+
+  TEST_NOT_EQUAL(centroid_n, 0);
+
+  // Same spectrum count (centroiding doesn't drop spectra)
+  TEST_EQUAL(centroid_n, profile_n);
+
+  // Centroiding collapses IM-adjacent peaks AND caps output at
+  // MAX_CENTROID_PEAKS=10000 per frame → far fewer peaks than profile.
+  TEST_EQUAL(centroid_p < profile_p, true);
+
+  // FrameCentroider::centroid() is top-N intensity-capped (MAX_CENTROID_PEAKS
+  // = 10000 per frame). On dense MS1 surveys the profile has ~600k aggregated
+  // peaks per frame, so centroided output retains only the top 10k — these
+  // carry ≈0.3 of the total profile intensity (long-tail distribution).
+  // We assert a meaningful fraction survives (not near-zero) and it's capped
+  // below 1.0 (centroider never invents intensity).
+  const double ratio = centroid_i / profile_i;
+  TEST_EQUAL(ratio > 0.1, true);
+  TEST_EQUAL(ratio <= 1.0, true);
+
+  // Output shape
+  for (const auto& spec : exp_centroid)
+  {
+    if (spec.getMSLevel() == 1 && !spec.empty())
+    {
+      TEST_EQUAL(spec.containsIMData(), true);
+      TEST_EQUAL(spec.getIMPeakType() == IMPeakType::IM_CENTROIDED, true);
+      TEST_EQUAL(spec.getType() == SpectrumSettings::SpectrumType::CENTROID, true);
+      TEST_EQUAL(spec.getPrecursors().empty(), true);
+      break;
+    }
+  }
+
+  STATUS("DIA MS1 aggregation+centroid: profile peaks=" << profile_p
+         << " centroid peaks=" << centroid_p
+         << " ratio=" << (static_cast<double>(centroid_p) / profile_p)
+         << " intensity_ratio=" << ratio);
+}
+END_SECTION
+
+START_SECTION(DIA MS1 aggregation min_support test)
+{
+  BrukerTimsFile f;
+
+  // No denoise (baseline from DIA MS1 aggregation test: intensity ratio ≈ 3.0)
+  BrukerTimsFile::Config cfg_no_denoise;
+  cfg_no_denoise.ms1_n_neighbors = 1;
+  cfg_no_denoise.ms1_min_support = 0;
+  MSExperiment exp_no_denoise;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_no_denoise, cfg_no_denoise);
+
+  // With denoise
+  BrukerTimsFile::Config cfg_denoise;
+  cfg_denoise.ms1_n_neighbors = 1;
+  cfg_denoise.ms1_min_support = 1;
+  MSExperiment exp_denoise;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_denoise, cfg_denoise);
+
+  Size no_denoise_peaks = 0, denoise_peaks = 0;
+  double no_denoise_intensity = 0.0, denoise_intensity = 0.0;
+  for (const auto& s : exp_no_denoise)
+    if (s.getMSLevel() == 1)
+    {
+      no_denoise_peaks += s.size();
+      for (const auto& p : s) no_denoise_intensity += p.getIntensity();
+    }
+  for (const auto& s : exp_denoise)
+    if (s.getMSLevel() == 1)
+    {
+      denoise_peaks += s.size();
+      for (const auto& p : s) denoise_intensity += p.getIntensity();
+    }
+
+  TEST_NOT_EQUAL(no_denoise_peaks, 0);
+  TEST_NOT_EQUAL(denoise_peaks, 0);
+
+  // Denoise drops peaks. Conservative lower bound: ≥10% drop; MS1 surveys
+  // often have many low-intensity isolated cells that the 3x3 filter culls.
+  TEST_EQUAL(denoise_peaks < no_denoise_peaks, true);
+  const double drop_frac = 1.0 - static_cast<double>(denoise_peaks) / no_denoise_peaks;
+  TEST_EQUAL(drop_frac >= 0.10, true);
+
+  // Intensity boost still present after denoise (signal peaks survive).
+  MSExperiment exp_raw;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_raw);
+  double raw_intensity = 0.0;
+  for (const auto& s : exp_raw)
+    if (s.getMSLevel() == 1)
+      for (const auto& p : s) raw_intensity += p.getIntensity();
+  TEST_EQUAL(denoise_intensity > raw_intensity, true);
+
+  STATUS("DIA MS1 min_support: no_denoise_peaks=" << no_denoise_peaks
+         << " denoise_peaks=" << denoise_peaks
+         << " drop_frac=" << drop_frac
+         << " denoise_intensity/raw=" << (denoise_intensity / raw_intensity));
+}
+END_SECTION
+
+START_SECTION(DIA MS1 RT cap test)
+{
+  BrukerTimsFile f;
+
+  // Uncapped reference: ms1_n_neighbors=2 gives a wider window for the cap
+  // to bite into.
+  BrukerTimsFile::Config cfg_uncapped;
+  cfg_uncapped.ms1_n_neighbors = 2;
+  cfg_uncapped.ms1_max_rt_distance_sec = 0.0;
+  MSExperiment exp_uncapped;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_uncapped, cfg_uncapped);
+
+  // Tight cap: 0.5s (DIA MS1 cadence ~1.5s, so N=2 reaches ~3s total span;
+  // the 0.5s cap should truncate aggressively).
+  BrukerTimsFile::Config cfg_capped;
+  cfg_capped.ms1_n_neighbors = 2;
+  cfg_capped.ms1_max_rt_distance_sec = 0.5;
+  MSExperiment exp_capped;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_capped, cfg_capped);
+
+  auto total_ms1_intensity = [](const MSExperiment& e)
+  {
+    double s = 0.0;
+    for (const auto& spec : e)
+      if (spec.getMSLevel() == 1)
+        for (const auto& p : spec) s += p.getIntensity();
+    return s;
+  };
+
+  double uncapped_i = total_ms1_intensity(exp_uncapped);
+  double capped_i = total_ms1_intensity(exp_capped);
+
+  TEST_EQUAL(uncapped_i > 0.0, true);
+  TEST_EQUAL(capped_i > 0.0, true);
+  TEST_EQUAL(capped_i < uncapped_i, true);
+
+  STATUS("DIA MS1 RT cap: uncapped=" << uncapped_i
+         << " capped(0.5s, N=2)=" << capped_i
+         << " reduction=" << (1.0 - capped_i / uncapped_i));
+}
+END_SECTION
+
+START_SECTION(FRAME mode ignores ms1_n_neighbors test)
+{
+  BrukerTimsFile f;
+
+  // Reference: raw FRAME export with defaults
+  BrukerTimsFile::Config cfg_ref;
+  cfg_ref.export_mode = BrukerTimsFile::Config::FRAME;
+  MSExperiment exp_ref;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_ref, cfg_ref);
+
+  // Same load but with aggregation knob set — must be ignored
+  BrukerTimsFile::Config cfg_agg;
+  cfg_agg.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_agg.ms1_n_neighbors = 1;
+  MSExperiment exp_agg;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_agg, cfg_agg);
+
+  Size ref_ms1 = 0, agg_ms1 = 0;
+  for (const auto& s : exp_ref)
+    if (s.getMSLevel() == 1) ++ref_ms1;
+  for (const auto& s : exp_agg)
+    if (s.getMSLevel() == 1) ++agg_ms1;
+
+  TEST_NOT_EQUAL(ref_ms1, 0);
+  // FRAME mode must emit one spectrum per raw MS1 frame regardless of
+  // ms1_n_neighbors — aggregation is ignored.
+  TEST_EQUAL(agg_ms1, ref_ms1);
+
+  // Warning emission is not asserted here — the test framework has no
+  // log-capture helper at present. Manual verification: the test output
+  // should show the "Warning: ms1_n_neighbors ... ignored" line.
+}
+END_SECTION
+
 START_SECTION(DIA readDIAMetadata test)
 {
   BrukerTimsFile f;
