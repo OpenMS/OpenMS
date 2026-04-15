@@ -480,8 +480,7 @@ namespace OpenMS
     bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
     if (swath_present && su_.use_dia_scores_ && !native_ids_identification.empty())
     {
-      std::vector<double> ind_isotope_correlation, ind_isotope_overlap, ind_massdev_score, ind_im_drift, ind_im_drift_left, ind_im_drift_right, ind_im_delta, ind_im_delta_score, ind_im_log_intensity;
-      std::vector<double> ind_im_contrast_coelution, ind_im_contrast_shape, ind_im_sum_contrast_coelution, ind_im_sum_contrast_shape;
+      // Directly populate the pooled idscores_out vectors to avoid per-call temporaries
       for (size_t i = 0; i < native_ids_identification.size(); i++)
       {
         OpenSwath_Scores tmp_scores;
@@ -491,36 +490,22 @@ namespace OpenMS
                                     trgr_detect,
                                     swath_maps, im_range, diascoring_, tmp_scores, drift_target, mobilogram_consumer, feature_id);
 
-        ind_isotope_correlation.push_back(tmp_scores.isotope_correlation);
-        ind_isotope_overlap.push_back(tmp_scores.isotope_overlap);
-        ind_massdev_score.push_back(tmp_scores.massdev_score);
+        idscores_out.ind_isotope_correlation.push_back(tmp_scores.isotope_correlation);
+        idscores_out.ind_isotope_overlap.push_back(tmp_scores.isotope_overlap);
+        idscores_out.ind_massdev_score.push_back(tmp_scores.massdev_score);
 
         // Ion mobility scores
-        ind_im_drift.push_back(tmp_scores.im_drift);
-        ind_im_drift_left.push_back(tmp_scores.im_drift_left);
-        ind_im_drift_right.push_back(tmp_scores.im_drift_right);
-        ind_im_delta.push_back(tmp_scores.im_delta);
-        ind_im_delta_score.push_back(tmp_scores.im_delta_score);
-        ind_im_log_intensity.push_back(tmp_scores.im_log_intensity);
-        ind_im_contrast_coelution.push_back(tmp_scores.im_ind_contrast_coelution);
-        ind_im_contrast_shape.push_back(tmp_scores.im_ind_contrast_shape);
-        ind_im_sum_contrast_coelution.push_back(tmp_scores.im_ind_sum_contrast_coelution);
-        ind_im_sum_contrast_shape.push_back(tmp_scores.im_ind_sum_contrast_shape);
+        idscores_out.ind_im_drift.push_back(tmp_scores.im_drift);
+        idscores_out.ind_im_drift_left.push_back(tmp_scores.im_drift_left);
+        idscores_out.ind_im_drift_right.push_back(tmp_scores.im_drift_right);
+        idscores_out.ind_im_delta.push_back(tmp_scores.im_delta);
+        idscores_out.ind_im_delta_score.push_back(tmp_scores.im_delta_score);
+        idscores_out.ind_im_log_intensity.push_back(tmp_scores.im_log_intensity);
+        idscores_out.ind_im_contrast_coelution.push_back(tmp_scores.im_ind_contrast_coelution);
+        idscores_out.ind_im_contrast_shape.push_back(tmp_scores.im_ind_contrast_shape);
+        idscores_out.ind_im_sum_contrast_coelution.push_back(tmp_scores.im_ind_sum_contrast_coelution);
+        idscores_out.ind_im_sum_contrast_shape.push_back(tmp_scores.im_ind_sum_contrast_shape);
       }
-      idscores_out.ind_isotope_correlation = ind_isotope_correlation;
-      idscores_out.ind_isotope_overlap = ind_isotope_overlap;
-      idscores_out.ind_massdev_score = ind_massdev_score;
-
-      idscores_out.ind_im_drift = ind_im_drift;
-      idscores_out.ind_im_drift_left = ind_im_drift_left;
-      idscores_out.ind_im_drift_right = ind_im_drift_right;
-      idscores_out.ind_im_delta = ind_im_delta;
-      idscores_out.ind_im_delta_score = ind_im_delta_score;
-      idscores_out.ind_im_log_intensity = ind_im_log_intensity;
-      idscores_out.ind_im_contrast_coelution = ind_im_contrast_coelution;
-      idscores_out.ind_im_contrast_shape = ind_im_contrast_shape;
-      idscores_out.ind_im_sum_contrast_coelution = ind_im_sum_contrast_coelution;
-      idscores_out.ind_im_sum_contrast_shape = ind_im_sum_contrast_shape;
     }
   }
 
@@ -792,7 +777,8 @@ namespace OpenMS
         if (swath_present && su_.use_dia_scores_)
         {
           feature_phase_start = scoringProfileStart(profile);
-          std::vector<double> masserror_ppm;
+          thread_local std::vector<double> masserror_ppm;
+          masserror_ppm.clear();
           scorer.calculateDIAScores(&imrmfeature,
                                     transition_group_detection.getTransitions(),
                                     tg_cache.normalized_library_intensity,
