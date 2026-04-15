@@ -20,6 +20,20 @@
 
 namespace OpenSwath
 {
+  namespace
+  {
+    struct MRMScoringPool
+    {
+      std::vector<std::vector<double>> vv;
+      void ensure_size(std::size_t outer)
+      {
+        if (vv.size() < outer) vv.resize(outer);
+        for (std::size_t i = 0; i < outer; ++i) vv[i].clear();
+      }
+    };
+    thread_local MRMScoringPool mrm_poolA;
+    thread_local MRMScoringPool mrm_poolB;
+  }
     // Maximum lag (in data points) for cross-correlation computation.
     // Lags beyond this range are physically meaningless for coelution scoring
     // and computing them wastes O(N) work per lag per pair.
@@ -112,9 +126,10 @@ namespace OpenSwath
 
     void MRMScoring::initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& native_ids)
     {
-      std::vector<std::vector<double>> intensity;
+      mrm_poolA.ensure_size(native_ids.size());
+      std::vector<std::vector<double>>& intensity = mrm_poolA.vv;
       fillIntensityFromFeature(mrmfeature, native_ids, intensity);
-      for (std::size_t i = 0; i < intensity.size(); i++)
+      for (std::size_t i = 0; i < native_ids.size(); i++)
       {
         Scoring::standardize_data(intensity[i]);
       }
@@ -138,14 +153,19 @@ namespace OpenSwath
 
     void MRMScoring::initializeXCorrContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& native_ids_set1, const std::vector<std::string>& native_ids_set2)
     {
-      std::vector<std::vector<double>> intensityi, intensityj;
+      mrm_poolA.ensure_size(native_ids_set1.size());
+      std::vector<std::vector<double>>& intensityi = mrm_poolA.vv;
+      mrm_poolB.ensure_size(native_ids_set2.size());
+      std::vector<std::vector<double>>& intensityj = mrm_poolB.vv;
       fillIntensityFromFeature(mrmfeature, native_ids_set1, intensityi);
-      for (std::size_t i = 0; i < intensityi.size(); i++)
+      for (std::size_t i = 0; i < native_ids_set1.size(); i++)
       {
         Scoring::standardize_data(intensityi[i]);
       }
+      // place intensityj after intensityi in the same pool to avoid extra allocation
+      mrm_pool.ensure_size(native_ids_set2.size());
       fillIntensityFromFeature(mrmfeature, native_ids_set2, intensityj);
-      for (std::size_t i = 0; i < intensityj.size(); i++)
+      for (std::size_t i = 0; i < native_ids_set2.size(); i++)
       {
         Scoring::standardize_data(intensityj[i]);
       }
@@ -167,9 +187,10 @@ namespace OpenSwath
 
     void MRMScoring::initializeXCorrPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids)
     {
-      std::vector<std::vector<double>> intensity;
+      mrm_poolA.ensure_size(precursor_ids.size());
+      std::vector<std::vector<double>>& intensity = mrm_poolA.vv;
       fillIntensityFromPrecursorFeature(mrmfeature, precursor_ids, intensity);
-      for (std::size_t i = 0; i < intensity.size(); i++)
+      for (std::size_t i = 0; i < precursor_ids.size(); i++)
       {
         Scoring::standardize_data(intensity[i]);
       }
@@ -187,14 +208,18 @@ namespace OpenSwath
 
     void MRMScoring::initializeXCorrPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids)
     {
-      std::vector<std::vector<double>> intensityi, intensityj;
+      mrm_poolA.ensure_size(precursor_ids.size());
+      std::vector<std::vector<double>>& intensityi = mrm_poolA.vv;
+      mrm_poolB.ensure_size(native_ids.size());
+      std::vector<std::vector<double>>& intensityj = mrm_poolB.vv; // reuse pool
       fillIntensityFromPrecursorFeature(mrmfeature, precursor_ids, intensityi);
-      for (std::size_t i = 0; i < intensityi.size(); i++)
+      for (std::size_t i = 0; i < precursor_ids.size(); i++)
       {
         Scoring::standardize_data(intensityi[i]);
       }
+      mrm_pool.ensure_size(native_ids.size());
       fillIntensityFromFeature(mrmfeature, native_ids, intensityj);
-      for (std::size_t i = 0; i < intensityj.size(); i++)
+      for (std::size_t i = 0; i < native_ids.size(); i++)
       {
         Scoring::standardize_data(intensityj[i]);
       }
@@ -239,10 +264,15 @@ namespace OpenSwath
 
     void MRMScoring::initializeXCorrPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids)
     {
-      std::vector<std::vector<double>> intensityi, intensityj;
+      // use separate pools for precursor and fragment intensity buffers
+      mrm_poolA.ensure_size(precursor_ids.size());
+      std::vector<std::vector<double>>& intensityi = mrm_poolA.vv;
       fillIntensityFromPrecursorFeature(mrmfeature, precursor_ids, intensityi);
+      mrm_poolB.ensure_size(native_ids.size());
+      std::vector<std::vector<double>>& intensityj = mrm_poolB.vv;
       fillIntensityFromFeature(mrmfeature, native_ids, intensityj);
       std::vector<std::vector<double>> combined_intensity;
+      combined_intensity.reserve(intensityi.size() + intensityj.size());
       for (std::size_t i = 0; i < intensityi.size(); i++)
       {
         combined_intensity.push_back(intensityi[i]);
@@ -670,7 +700,8 @@ namespace OpenSwath
 
     void MRMScoring::initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& native_ids)
     {
-      std::vector<std::vector<double>> intensity;
+      mrm_poolA.ensure_size(native_ids.size());
+      std::vector<std::vector<double>>& intensity = mrm_poolA.vv;
       std::vector<std::vector<unsigned int>> rank_vec{};
       fillIntensityFromFeature(mrmfeature, native_ids, intensity);
       std::vector<unsigned int> max_rank_vec = Scoring::computeRankVector(intensity, rank_vec);
@@ -689,7 +720,10 @@ namespace OpenSwath
 
     void MRMScoring::initializeMIContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& native_ids_set1, const std::vector<std::string>& native_ids_set2)
     { 
-      std::vector<std::vector<double>> intensityi, intensityj;
+      mrm_poolA.ensure_size(native_ids_set1.size());
+      mrm_poolB.ensure_size(native_ids_set2.size());
+      std::vector<std::vector<double>>& intensityi = mrm_poolA.vv;
+      std::vector<std::vector<double>>& intensityj = mrm_poolB.vv;
       std::vector<std::vector<unsigned int>> rank_vec1{}, rank_vec2{};
       fillIntensityFromFeature(mrmfeature, native_ids_set1, intensityi);
       fillIntensityFromFeature(mrmfeature, native_ids_set2, intensityj);
@@ -709,7 +743,8 @@ namespace OpenSwath
 
     void MRMScoring::initializeMIPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids)
     {
-      std::vector<std::vector<double>> intensity;
+      mrm_poolA.ensure_size(precursor_ids.size());
+      std::vector<std::vector<double>>& intensity = mrm_poolA.vv;
       std::vector<std::vector<unsigned int>> rank_vec;
       fillIntensityFromPrecursorFeature(mrmfeature, precursor_ids, intensity);
       std::vector<unsigned int> max_rank_vec = Scoring::computeRankVector(intensity, rank_vec);
@@ -729,7 +764,10 @@ namespace OpenSwath
 
     void MRMScoring::initializeMIPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids)
     {
-      std::vector<std::vector<double>> intensityi, intensityj;
+      mrm_poolA.ensure_size(precursor_ids.size());
+      mrm_poolB.ensure_size(native_ids.size());
+      std::vector<std::vector<double>>& intensityi = mrm_poolA.vv;
+      std::vector<std::vector<double>>& intensityj = mrm_poolB.vv;
       std::vector<std::vector<unsigned int>> rank_vec1{}, rank_vec2{};
       fillIntensityFromPrecursorFeature(mrmfeature, precursor_ids, intensityi);
       fillIntensityFromFeature(mrmfeature, native_ids, intensityj);
@@ -750,10 +788,14 @@ namespace OpenSwath
     void MRMScoring::initializeMIPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids)
     {
       std::vector<std::vector<unsigned int>> rank_vec{};
-      std::vector<std::vector<double>> intensity;
+      // reuse pool sequentially for precursor then fragment
+      mrm_poolA.ensure_size(precursor_ids.size());
+      std::vector<std::vector<double>>& intensity = mrm_poolA.vv;
       fillIntensityFromPrecursorFeature(mrmfeature, precursor_ids, intensity);
       std::vector<unsigned int> max_rank_vec = Scoring::computeRankVector(intensity, rank_vec);
+      // now reuse same buffer for native_ids
       intensity.clear();
+      mrm_poolA.ensure_size(native_ids.size());
       fillIntensityFromFeature(mrmfeature, native_ids, intensity);
       std::vector<unsigned int> max_rank_vec_tmp = Scoring::computeRankVector(intensity, rank_vec);
       max_rank_vec.reserve(max_rank_vec.size() + native_ids.size());
