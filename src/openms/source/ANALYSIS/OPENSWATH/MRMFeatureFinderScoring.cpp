@@ -639,8 +639,8 @@ namespace OpenMS
 
     // Populate a TransitionGroupCache once per group to avoid per-feature recomputation
     TransitionGroupCache tg_cache;
-    transition_group_detection.getLibraryIntensity(tg_cache.normalized_library_intensity);
-    OpenSwath::Scoring::normalize_sum(tg_cache.normalized_library_intensity.data(), static_cast<unsigned int>(tg_cache.normalized_library_intensity.size()));
+    // Use per-thread pooled normalized library intensities to avoid per-group allocations
+    tg_cache.normalized_library_intensity = scorer.getNormalized_library_intensities_pooled(transition_group_detection.getTransitions());
 
     const auto& transitions = transition_group_detection.getTransitions();
     tg_cache.transition_native_ids.resize(transitions.size());
