@@ -33,6 +33,40 @@
 namespace OpenMS
 {
 
+  // Shared thread-local pools used by MRMTransitionGroupPicker to avoid
+  // repeated allocations across nested helpers (pickTransitionGroup, computeQuality_)
+  struct PickerPoolShared
+  {
+    std::vector<MSChromatogram> picked_chroms;
+    std::vector<MSChromatogram> smoothed_chroms;
+    std::vector<MRMFeature> features;
+    std::vector<double> left_edges;
+    std::vector<double> right_edges;
+    std::vector<std::vector<double>> all_ints;
+    std::vector<double> mean_shapes;
+    std::vector<double> mean_coel;
+    std::vector<double> left_borders;
+    std::vector<double> right_borders;
+
+    void reset()
+    {
+      picked_chroms.clear();
+      smoothed_chroms.clear();
+      features.clear();
+      left_edges.clear();
+      right_edges.clear();
+      all_ints.clear();
+      mean_shapes.clear();
+      mean_coel.clear();
+      left_borders.clear();
+      right_borders.clear();
+    }
+  };
+
+  // Per-thread instances of the shared pools
+  inline thread_local PickerPoolShared g_picker_pool_shared;
+
+
   /**
 
     @brief The MRMTransitionGroupPicker finds peaks in chromatograms that belong to the same precursors.
@@ -96,34 +130,10 @@ public:
 
       // Reuse thread-local pools for large temporary containers to avoid
       // per-call allocations in multi-threaded runs.
-      struct PickerPoolLocal
-      {
-        std::vector<MSChromatogram> picked_chroms;
-        std::vector<MSChromatogram> smoothed_chroms;
-        std::vector<MRMFeature> features;
-        std::vector<double> left_edges;
-        std::vector<double> right_edges;
-        std::vector<std::vector<double>> all_ints;
-        std::vector<double> mean_shapes;
-        std::vector<double> mean_coel;
-        std::vector<double> left_borders;
-        std::vector<double> right_borders;
-
-        void reset()
-        {
-          picked_chroms.clear();
-          smoothed_chroms.clear();
-          features.clear();
-          left_edges.clear();
-          right_edges.clear();
-          all_ints.clear();
-          mean_shapes.clear();
-          mean_coel.clear();
-          left_borders.clear();
-          right_borders.clear();
-        }
-      };
-      thread_local PickerPoolLocal picker_pool;
+      // Use shared per-thread pool declared at file scope to allow nested
+      // helpers (computeQuality_, pickFragmentChromatograms, ...) to reuse
+      // the same buffers and avoid repeated allocations.
+      auto &picker_pool = g_picker_pool_shared;
       picker_pool.reset();
       auto &picked_chroms = picker_pool.picked_chroms;
       auto &smoothed_chroms = picker_pool.smoothed_chroms;
@@ -899,26 +909,8 @@ protected:
       SpectrumT master_peak_container;
       const SpectrumT& ref_chromatogram = selectChromHelper_(transition_group, picked_chroms[chr_idx].getNativeID());
       prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
-      // Pool frequently used numeric containers to avoid repeated allocations
-      struct ComputeQualityPool
-      {
-        std::vector<std::vector<double>> all_ints;
-        std::vector<double> mean_shapes;
-        std::vector<double> mean_coel;
-        std::vector<double> left_borders;
-        std::vector<double> right_borders;
-        void reset()
-        {
-          all_ints.clear();
-          mean_shapes.clear();
-          mean_coel.clear();
-          left_borders.clear();
-          right_borders.clear();
-        }
-      };
-      thread_local ComputeQualityPool quality_pool;
-      quality_pool.reset();
-      auto &all_ints = quality_pool.all_ints;
+      // Reuse the shared per-thread pool's containers for quality computation
+      auto &all_ints = g_picker_pool_shared.all_ints;
       for (Size k = 0; k < picked_chroms.size(); k++)
       {
         const SpectrumT& chromatogram = selectChromHelper_(transition_group, picked_chroms[k].getNativeID());
@@ -933,8 +925,8 @@ protected:
       }
 
       // Compute the cross-correlation for the collected intensities
-      auto &mean_shapes = quality_pool.mean_shapes;
-      auto &mean_coel = quality_pool.mean_coel;
+      auto &mean_shapes = g_picker_pool_shared.mean_shapes;
+      auto &mean_coel = g_picker_pool_shared.mean_coel;
       for (Size k = 0; k < all_ints.size(); k++)
       {
         std::vector<double> shapes;
@@ -978,8 +970,8 @@ protected:
       int multiple_peaks = 0;
 
       // collect all seeds that lie within the current seed
-      auto &left_borders = quality_pool.left_borders;
-      auto &right_borders = quality_pool.right_borders;
+      auto &left_borders = g_picker_pool_shared.left_borders;
+      auto &right_borders = g_picker_pool_shared.right_borders;
       for (Size k = 0; k < picked_chroms.size(); k++)
       {
         double l_tmp;

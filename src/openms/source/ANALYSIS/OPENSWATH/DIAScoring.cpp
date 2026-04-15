@@ -52,6 +52,9 @@ namespace OpenMS
       }
     };
     thread_local DIAScoringPool dias_pool;
+    // thread-local map for temporary transition intensities to avoid
+    // constructing a fresh unordered_map on every call to dia_isotope_scores
+    thread_local std::unordered_map<std::string, double> dias_intensity_map;
     struct AveragineIsotopeDistributionKey
     {
       double neutral_mass;
@@ -165,7 +168,8 @@ namespace OpenMS
     isotope_corr = 0;
     isotope_overlap = 0;
     // first compute a map of relative intensities from the feature, then compute the score
-    std::unordered_map<std::string, double> intensities;
+    auto &intensities = dias_intensity_map;
+    intensities.clear();
     intensities.reserve(transitions.size());
     getFirstIsotopeRelativeIntensities_(transitions, mrmfeature, intensities);
     // reuse pooled temporary vectors
