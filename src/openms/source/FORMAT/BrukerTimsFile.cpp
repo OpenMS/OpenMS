@@ -911,6 +911,9 @@ namespace OpenMS
     spec.setRT(frame.time);
     spec.setMSLevel(ms_level);
     spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    // TDF peaks are detector-centroided in m/z (peak-list format); label as
+    // centroid so downstream tools (e.g. CometAdapter) don't reject as profile.
+    spec.setType(SpectrumSettings::SpectrumType::CENTROID);
     spec.setNativeID("frame=" + String(frame.id));
 
     if (frame.num_peaks == 0) return;
@@ -1203,6 +1206,7 @@ namespace OpenMS
           spec.setRT(frame.time);
           spec.setMSLevel(2);
           spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+          spec.setType(SpectrumSettings::SpectrumType::CENTROID);
           spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win->window_group) + " scan=" + String(win->scan_begin));
 
           Precursor prec;
@@ -1699,6 +1703,7 @@ namespace OpenMS
       spec.setMSLevel(2);
       spec.setDriftTime(scalar_im);
       spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+      spec.setType(SpectrumSettings::SpectrumType::CENTROID);
       spec.setNativeID("scan=" + String(prec_id));
 
       // Copy sorted peak data
@@ -1873,6 +1878,7 @@ namespace OpenMS
             spec.setRT(center_frame.time);
             spec.setMSLevel(2);
             spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+            spec.setType(SpectrumSettings::SpectrumType::CENTROID);
             spec.setNativeID("frame=" + String(center_frame.id) + " windowGroup=" + String(win->window_group) + " scan=" + String(win->scan_begin));
 
             Precursor prec;
@@ -1937,6 +1943,7 @@ namespace OpenMS
             spec.setRT(frame.time);
             spec.setMSLevel(2);
             spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+            spec.setType(SpectrumSettings::SpectrumType::CENTROID);
             spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win->window_group) + " scan=" + String(win->scan_begin));
 
             Precursor prec;
