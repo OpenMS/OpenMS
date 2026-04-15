@@ -376,7 +376,7 @@ if (WITH_OPENTIMS)
     # conservatively inject sqlite3 because we cannot know how it was built.
     get_target_property(_opentims_defs opentims::opentims_cpp INTERFACE_COMPILE_DEFINITIONS)
     if(_opentims_defs MATCHES "OPENTIMS_LINK_SQLITE_STATICALLY"
-       OR (_opentims_defs MATCHES "NOTFOUND" AND NOT opentims_FOUND))
+       OR ((_opentims_defs MATCHES "NOTFOUND" OR _opentims_defs STREQUAL "") AND NOT opentims_FOUND))
       target_include_directories(opentims::opentims_cpp INTERFACE
         "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
       target_link_libraries(opentims::opentims_cpp INTERFACE sqlite3)
