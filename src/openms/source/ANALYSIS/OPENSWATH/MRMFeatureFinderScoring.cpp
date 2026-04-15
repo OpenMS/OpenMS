@@ -340,18 +340,19 @@ namespace OpenMS
     transition_group_identification_decoy = transition_group.subsetDependent(identifying_transitions_decoy);
   }
 
-  OpenSwath_Ind_Scores MRMFeatureFinderScoring::scoreIdentification_(MRMTransitionGroupType& trgr_ident,
-                                                                     MRMTransitionGroupType& trgr_detect,
-                                                                     OpenSwathScoring& scorer,
-                                                                     const size_t feature_idx,
-                                                                     const Int64 feature_id,
-                                                                     const std::vector<std::string>& native_ids_detection,
-                                                                     const double det_intensity_ratio_score,
-                                                                     const double det_mi_ratio_score,
-                                                                     const std::vector<OpenSwath::SwathMap>& swath_maps,
-                                                                     const double drift_target,
-                                                                     RangeMobility& im_range,
-                                                                     MobilogramParquetConsumer* mobilogram_consumer) const
+  void MRMFeatureFinderScoring::scoreIdentification_(MRMTransitionGroupType& trgr_ident,
+                                                    MRMTransitionGroupType& trgr_detect,
+                                                    OpenSwathScoring& scorer,
+                                                    const size_t feature_idx,
+                                                    const Int64 feature_id,
+                                                    const std::vector<std::string>& native_ids_detection,
+                                                    const double det_intensity_ratio_score,
+                                                    const double det_mi_ratio_score,
+                                                    const std::vector<OpenSwath::SwathMap>& swath_maps,
+                                                    const double drift_target,
+                                                    RangeMobility& im_range,
+                                                    MRMFeatureFinderScoring::OpenSwath_Ind_Scores_Pooled& idscores_out,
+                                                    MobilogramParquetConsumer* mobilogram_consumer) const
   {
     MRMFeature idmrmfeature = trgr_ident.getFeaturesMuteable()[feature_idx];
     MRMFeatureOpenMS idimrmfeature(idmrmfeature);
@@ -372,24 +373,25 @@ namespace OpenMS
       }
     }
 
-    OpenSwath_Ind_Scores idscores;
+    idscores_out.ind_num_transitions = 0; // reset count; vectors are cleared by caller
     if (!native_ids_identification.empty())
     {
+      // Fill chrom ID scores into the provided pooled idscores
       scorer.calculateChromatographicIdScores(&idimrmfeature,
                                               native_ids_identification,
                                               native_ids_detection,
                                               signal_noise_estimators_identification,
-                                              idscores);
+                                              idscores_out);
 
       std::vector<double> ind_mi_score;
       if (su_.use_mi_score_)
       {
-        ind_mi_score = idscores.ind_mi_score;
+        ind_mi_score = idscores_out.ind_mi_score;
       }
 
       for (size_t i = 0; i < native_ids_identification.size(); i++)
       {
-        idscores.ind_transition_names.emplace_back(native_ids_identification[i]);
+        idscores_out.ind_transition_names.emplace_back(native_ids_identification[i]);
         if (idmrmfeature.getFeature(native_ids_identification[i]).getIntensity() > 0)
         {
           double intensity_score = double(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity()) / double(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic"));
@@ -411,65 +413,65 @@ namespace OpenMS
             if (mi_ratio > 1) { mi_ratio = 1 / mi_ratio; }
           }
 
-          idscores.ind_area_intensity.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity());
-          idscores.ind_total_area_intensity.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic"));
-          idscores.ind_intensity_score.push_back(intensity_score);
-          idscores.ind_apex_intensity.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("peak_apex_int"));
-          idscores.ind_apex_position.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("peak_apex_position"));
-          idscores.ind_fwhm.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("width_at_50"));
-          idscores.ind_total_mi .push_back(total_mi);
-          idscores.ind_log_intensity.push_back(std::log(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity()));
-          idscores.ind_intensity_ratio.push_back(intensity_ratio);
-          idscores.ind_mi_ratio.push_back(mi_ratio);
+          idscores_out.ind_area_intensity.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity());
+          idscores_out.ind_total_area_intensity.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic"));
+          idscores_out.ind_intensity_score.push_back(intensity_score);
+          idscores_out.ind_apex_intensity.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("peak_apex_int"));
+          idscores_out.ind_apex_position.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("peak_apex_position"));
+          idscores_out.ind_fwhm.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("width_at_50"));
+          idscores_out.ind_total_mi .push_back(total_mi);
+          idscores_out.ind_log_intensity.push_back(std::log(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity()));
+          idscores_out.ind_intensity_ratio.push_back(intensity_ratio);
+          idscores_out.ind_mi_ratio.push_back(mi_ratio);
 
           if (su_.use_peak_shape_metrics)
           {
-            idscores.ind_start_position_at_5.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("start_position_at_5"));
-            idscores.ind_end_position_at_5.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("end_position_at_5"));
-            idscores.ind_start_position_at_10.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("start_position_at_10"));
-            idscores.ind_end_position_at_10.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("end_position_at_10"));
-            idscores.ind_start_position_at_50.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("start_position_at_50"));
-            idscores.ind_end_position_at_50.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("end_position_at_50"));
-            idscores.ind_total_width.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_width"));
-            idscores.ind_tailing_factor.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("tailing_factor"));
-            idscores.ind_asymmetry_factor.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("asymmetry_factor"));
-            idscores.ind_slope_of_baseline.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("slope_of_baseline"));
-            idscores.ind_baseline_delta_2_height.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("baseline_delta_2_height"));
-            idscores.ind_points_across_baseline.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("points_across_baseline"));
-            idscores.ind_points_across_half_height.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("points_across_half_height"));
+            idscores_out.ind_start_position_at_5.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("start_position_at_5"));
+            idscores_out.ind_end_position_at_5.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("end_position_at_5"));
+            idscores_out.ind_start_position_at_10.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("start_position_at_10"));
+            idscores_out.ind_end_position_at_10.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("end_position_at_10"));
+            idscores_out.ind_start_position_at_50.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("start_position_at_50"));
+            idscores_out.ind_end_position_at_50.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("end_position_at_50"));
+            idscores_out.ind_total_width.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_width"));
+            idscores_out.ind_tailing_factor.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("tailing_factor"));
+            idscores_out.ind_asymmetry_factor.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("asymmetry_factor"));
+            idscores_out.ind_slope_of_baseline.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("slope_of_baseline"));
+            idscores_out.ind_baseline_delta_2_height.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("baseline_delta_2_height"));
+            idscores_out.ind_points_across_baseline.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("points_across_baseline"));
+            idscores_out.ind_points_across_half_height.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("points_across_half_height"));
           }
         }
         else
         {
-          idscores.ind_area_intensity.push_back(0);
-          idscores.ind_total_area_intensity.push_back(0);
-          idscores.ind_intensity_score.push_back(0);
-          idscores.ind_apex_intensity.push_back(0);
-          idscores.ind_apex_position.push_back(0);
-          idscores.ind_fwhm.push_back(0);
-          idscores.ind_total_mi.push_back(0);
-          idscores.ind_log_intensity.push_back(0);
-          idscores.ind_intensity_ratio.push_back(0);
-          idscores.ind_mi_ratio.push_back(0);
+          idscores_out.ind_area_intensity.push_back(0);
+          idscores_out.ind_total_area_intensity.push_back(0);
+          idscores_out.ind_intensity_score.push_back(0);
+          idscores_out.ind_apex_intensity.push_back(0);
+          idscores_out.ind_apex_position.push_back(0);
+          idscores_out.ind_fwhm.push_back(0);
+          idscores_out.ind_total_mi.push_back(0);
+          idscores_out.ind_log_intensity.push_back(0);
+          idscores_out.ind_intensity_ratio.push_back(0);
+          idscores_out.ind_mi_ratio.push_back(0);
 
           if (su_.use_peak_shape_metrics)
           {
-            idscores.ind_start_position_at_5.push_back(0);
-            idscores.ind_end_position_at_5.push_back(0);
-            idscores.ind_start_position_at_10.push_back(0);
-            idscores.ind_end_position_at_10.push_back(0);
-            idscores.ind_start_position_at_50.push_back(0);
-            idscores.ind_end_position_at_50.push_back(0);
-            idscores.ind_total_width.push_back(0);
-            idscores.ind_tailing_factor.push_back(0);
-            idscores.ind_asymmetry_factor.push_back(0);
-            idscores.ind_slope_of_baseline.push_back(0);
-            idscores.ind_baseline_delta_2_height.push_back(0);
-            idscores.ind_points_across_baseline.push_back(0);
-            idscores.ind_points_across_half_height.push_back(0);
+            idscores_out.ind_start_position_at_5.push_back(0);
+            idscores_out.ind_end_position_at_5.push_back(0);
+            idscores_out.ind_start_position_at_10.push_back(0);
+            idscores_out.ind_end_position_at_10.push_back(0);
+            idscores_out.ind_start_position_at_50.push_back(0);
+            idscores_out.ind_end_position_at_50.push_back(0);
+            idscores_out.ind_total_width.push_back(0);
+            idscores_out.ind_tailing_factor.push_back(0);
+            idscores_out.ind_asymmetry_factor.push_back(0);
+            idscores_out.ind_slope_of_baseline.push_back(0);
+            idscores_out.ind_baseline_delta_2_height.push_back(0);
+            idscores_out.ind_points_across_baseline.push_back(0);
+            idscores_out.ind_points_across_half_height.push_back(0);
           }
         }
-      idscores.ind_num_transitions = native_ids_identification.size();
+      idscores_out.ind_num_transitions = native_ids_identification.size();
 
       }
     }
@@ -505,22 +507,21 @@ namespace OpenMS
         ind_im_sum_contrast_coelution.push_back(tmp_scores.im_ind_sum_contrast_coelution);
         ind_im_sum_contrast_shape.push_back(tmp_scores.im_ind_sum_contrast_shape);
       }
-      idscores.ind_isotope_correlation = ind_isotope_correlation;
-      idscores.ind_isotope_overlap = ind_isotope_overlap;
-      idscores.ind_massdev_score = ind_massdev_score;
+      idscores_out.ind_isotope_correlation = ind_isotope_correlation;
+      idscores_out.ind_isotope_overlap = ind_isotope_overlap;
+      idscores_out.ind_massdev_score = ind_massdev_score;
 
-      idscores.ind_im_drift = ind_im_drift;
-      idscores.ind_im_drift_left = ind_im_drift_left;
-      idscores.ind_im_drift_right = ind_im_drift_right;
-      idscores.ind_im_delta = ind_im_delta;
-      idscores.ind_im_delta_score = ind_im_delta_score;
-      idscores.ind_im_log_intensity = ind_im_log_intensity;
-      idscores.ind_im_contrast_coelution = ind_im_contrast_coelution;
-      idscores.ind_im_contrast_shape = ind_im_contrast_shape;
-      idscores.ind_im_sum_contrast_coelution = ind_im_sum_contrast_coelution;
-      idscores.ind_im_sum_contrast_shape = ind_im_sum_contrast_shape;
+      idscores_out.ind_im_drift = ind_im_drift;
+      idscores_out.ind_im_drift_left = ind_im_drift_left;
+      idscores_out.ind_im_drift_right = ind_im_drift_right;
+      idscores_out.ind_im_delta = ind_im_delta;
+      idscores_out.ind_im_delta_score = ind_im_delta_score;
+      idscores_out.ind_im_log_intensity = ind_im_log_intensity;
+      idscores_out.ind_im_contrast_coelution = ind_im_contrast_coelution;
+      idscores_out.ind_im_contrast_shape = ind_im_contrast_shape;
+      idscores_out.ind_im_sum_contrast_coelution = ind_im_sum_contrast_coelution;
+      idscores_out.ind_im_sum_contrast_shape = ind_im_sum_contrast_shape;
     }
-    return idscores;
   }
 
   void MRMFeatureFinderScoring::scorePeakgroups(MRMTransitionGroupType& transition_group,
@@ -680,6 +681,11 @@ namespace OpenMS
       auto& mrmfeature = mrmfeatures[feature_idx];
       mrmfeature.ensureUniqueId();
       MRMFeatureOpenMS imrmfeature(mrmfeature);
+
+      // thread-local pooled idscores to avoid per-feature vector allocations
+      static thread_local MRMFeatureFinderScoring::OpenSwath_Ind_Scores_Pooled idscores_pool;
+      idscores_pool.reset();
+      idscores_pool.preallocate(std::max<Size>(transitions.size(), static_cast<Size>(16)));
       const Int64 feature_id = mrmfeature.hasValidUniqueId() ? static_cast<Int64>(Internal::SqliteHelper::clearSignBit(mrmfeature.getUniqueId())) : -1;
 
       OPENMS_LOG_DEBUG << "Scoring feature " << (mrmfeature) << " == " << mrmfeature.getMetaValue("PeptideRef") <<
@@ -812,19 +818,19 @@ namespace OpenMS
           feature_phase_start = scoringProfileStart(profile);
           if (!transition_group_identification.getTransitions().empty())
           {
-            OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification, transition_group_detection, scorer, feature_idx,
-                                                                 feature_id,
-                                                                 native_ids_detection, det_intensity_ratio_score,
-                                                                 det_mi_ratio_score, swath_maps,drift_target, im_range, mobilogram_consumer);
-            mrmfeature.IDScoresAsMetaValue(false, idscores);
+            scoreIdentification_(transition_group_identification, transition_group_detection, scorer, feature_idx,
+                                 feature_id,
+                                 native_ids_detection, det_intensity_ratio_score,
+                                 det_mi_ratio_score, swath_maps,drift_target, im_range, idscores_pool, mobilogram_consumer);
+            mrmfeature.IDScoresAsMetaValue(false, idscores_pool);
           }
           if (!transition_group_identification_decoy.getTransitions().empty())
           {
-            OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification_decoy, transition_group_detection, scorer, feature_idx,
-                                                                 feature_id,
-                                                                 native_ids_detection, det_intensity_ratio_score,
-                                                                 det_mi_ratio_score, swath_maps, drift_target, im_range, mobilogram_consumer);
-            mrmfeature.IDScoresAsMetaValue(true, idscores);
+            scoreIdentification_(transition_group_identification_decoy, transition_group_detection, scorer, feature_idx,
+                                 feature_id,
+                                 native_ids_detection, det_intensity_ratio_score,
+                                 det_mi_ratio_score, swath_maps, drift_target, im_range, idscores_pool, mobilogram_consumer);
+            mrmfeature.IDScoresAsMetaValue(true, idscores_pool);
           }
           if (profile)
           {

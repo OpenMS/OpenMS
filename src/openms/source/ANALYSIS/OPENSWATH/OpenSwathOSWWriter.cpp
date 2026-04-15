@@ -1016,9 +1016,17 @@ namespace OpenMS
     }
     else
     {
-      rows.feature_transition_rows.reserve(rows.feature_transition_rows.size() + transition_row_estimate);
+      // Avoid overly aggressive reservation when downstream filtering reduces actual output.
+      // Cap additional reservation to at most 10% of the estimate or a minimum of 1000 rows.
+      Size add_cap = 0;
+      if (transition_row_estimate > 0)
+      {
+        add_cap = std::min(transition_row_estimate, std::max<Size>(transition_row_estimate / 10, 1000));
+      }
+      rows.feature_transition_rows.reserve(rows.feature_transition_rows.size() + add_cap);
     }
-    uis_transition_rows.reserve(transition_row_estimate);
+    // Reserve for UIS transition rows conservatively as well
+    uis_transition_rows.reserve(std::min(transition_row_estimate, static_cast<Size>(std::max<Size>(transition_row_estimate / 10, 1000))));
 
     for (const auto& feature_it : output)
     {
