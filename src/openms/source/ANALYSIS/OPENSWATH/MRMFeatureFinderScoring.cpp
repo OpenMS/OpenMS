@@ -383,10 +383,10 @@ namespace OpenMS
                                               signal_noise_estimators_identification,
                                               idscores_out);
 
-      std::vector<double> ind_mi_score;
+      const std::vector<double>* ind_mi_score_ptr = nullptr;
       if (su_.use_mi_score_)
       {
-        ind_mi_score = idscores_out.ind_mi_score;
+        ind_mi_score_ptr = &idscores_out.ind_mi_score;
       }
 
       for (size_t i = 0; i < native_ids_identification.size(); i++)
@@ -407,11 +407,11 @@ namespace OpenMS
           }
 
           double mi_ratio = 0;
-          if (su_.use_mi_score_ && su_.use_total_mi_score_)
-          {
-            if (det_mi_ratio_score > 0) { mi_ratio = (ind_mi_score[i] / total_mi) / det_mi_ratio_score; }
-            if (mi_ratio > 1) { mi_ratio = 1 / mi_ratio; }
-          }
+            if (su_.use_mi_score_ && su_.use_total_mi_score_ && ind_mi_score_ptr != nullptr)
+            {
+              if (det_mi_ratio_score > 0) { mi_ratio = ((*ind_mi_score_ptr)[i] / total_mi) / det_mi_ratio_score; }
+              if (mi_ratio > 1) { mi_ratio = 1 / mi_ratio; }
+            }
 
           idscores_out.ind_area_intensity.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity());
           idscores_out.ind_total_area_intensity.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic"));
