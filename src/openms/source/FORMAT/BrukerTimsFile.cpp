@@ -31,6 +31,7 @@
 #include <map>
 #include <set>
 #include <unordered_map>
+#include <optional>
 
 namespace OpenMS
 {
@@ -346,6 +347,18 @@ namespace OpenMS
         uint32_t scan_id;  // native scan index (for IM conversion)
       };
 
+      /// Returns the grid key of the neighbor cell at signed (dm, ds) offset.
+      /// Returns std::nullopt when the offset would wrap past 0 on either axis.
+      static inline std::optional<uint64_t>
+      neighborKey(uint32_t mz_bin, uint32_t scan_id, int dm, int ds)
+      {
+        if (dm < 0 && mz_bin < static_cast<uint32_t>(-dm)) return std::nullopt;
+        if (ds < 0 && scan_id < static_cast<uint32_t>(-ds)) return std::nullopt;
+        uint32_t new_mz = mz_bin + static_cast<uint32_t>(dm);
+        uint32_t new_scan = scan_id + static_cast<uint32_t>(ds);
+        return (static_cast<uint64_t>(new_mz) << 32) | new_scan;
+      }
+
       /// Add a peak to the grid. Call for every peak from every neighbor frame.
       void addPeak(double mz, uint32_t intensity, uint32_t scan_id)
       {
@@ -380,9 +393,10 @@ namespace OpenMS
               for (int ds = -1; ds <= 1; ++ds)
               {
                 if (dm == 0 && ds == 0) continue;
-                uint64_t nkey = (static_cast<uint64_t>(static_cast<uint32_t>(mz_bin + dm)) << 32)
-                              | (scan_id + ds);
-                if (grid_.count(nkey)) ++neighbors;
+                if (auto nkey = neighborKey(mz_bin, scan_id, dm, ds))
+                {
+                  if (grid_.count(*nkey)) ++neighbors;
+                }
               }
             }
 
@@ -420,9 +434,10 @@ namespace OpenMS
               for (int ds = -1; ds <= 1; ++ds)
               {
                 if (dm == 0 && ds == 0) continue;
-                uint64_t nkey = (static_cast<uint64_t>(static_cast<uint32_t>(mz_bin + dm)) << 32)
-                              | (scan_id + ds);
-                if (grid_.count(nkey)) ++neighbors;
+                if (auto nkey = neighborKey(mz_bin, scan_id, dm, ds))
+                {
+                  if (grid_.count(*nkey)) ++neighbors;
+                }
               }
             }
             if (neighbors < min_support) continue;
@@ -449,12 +464,13 @@ namespace OpenMS
           {
             for (int ds = -2; ds <= 2; ++ds)
             {
-              uint64_t nkey = (static_cast<uint64_t>(static_cast<uint32_t>(mz_bin + dm)) << 32)
-                            | (scan_id + ds);
-              auto it = denoised.find(nkey);
-              if (it != denoised.end())
+              if (auto nkey = neighborKey(mz_bin, scan_id, dm, ds))
               {
-                weighted_sum += it->second.intensity_sum * kernel[dm + 2][ds + 2];
+                auto it = denoised.find(*nkey);
+                if (it != denoised.end())
+                {
+                  weighted_sum += it->second.intensity_sum * kernel[dm + 2][ds + 2];
+                }
               }
             }
           }
@@ -473,10 +489,11 @@ namespace OpenMS
             for (int ds = -1; ds <= 1 && is_max; ++ds)
             {
               if (dm == 0 && ds == 0) continue;
-              uint64_t nkey = (static_cast<uint64_t>(static_cast<uint32_t>(mz_bin + dm)) << 32)
-                            | (scan_id + ds);
-              auto it = smoothed.find(nkey);
-              if (it != smoothed.end() && it->second > val) is_max = false;
+              if (auto nkey = neighborKey(mz_bin, scan_id, dm, ds))
+              {
+                auto it = smoothed.find(*nkey);
+                if (it != smoothed.end() && it->second > val) is_max = false;
+              }
             }
           }
           if (is_max) maxima.push_back(key);
@@ -498,16 +515,17 @@ namespace OpenMS
           {
             for (int ds = -2; ds <= 2; ++ds)
             {
-              uint64_t nkey = (static_cast<uint64_t>(static_cast<uint32_t>(center_mz_bin + dm)) << 32)
-                            | (center_scan + ds);
-              auto it = denoised.find(nkey);
-              if (it != denoised.end())
+              if (auto nkey = neighborKey(center_mz_bin, center_scan, dm, ds))
               {
-                double int_val = it->second.intensity_sum;
-                double mz_val = it->second.mz_weighted_sum / it->second.intensity_sum;
-                total_intensity += int_val;
-                mz_weighted += mz_val * int_val;
-                scan_weighted += static_cast<double>(static_cast<uint32_t>(nkey & 0xFFFFFFFF)) * int_val;
+                auto it = denoised.find(*nkey);
+                if (it != denoised.end())
+                {
+                  double int_val = it->second.intensity_sum;
+                  double mz_val = it->second.mz_weighted_sum / it->second.intensity_sum;
+                  total_intensity += int_val;
+                  mz_weighted += mz_val * int_val;
+                  scan_weighted += static_cast<double>(static_cast<uint32_t>(*nkey & 0xFFFFFFFF)) * int_val;
+                }
               }
             }
           }
