@@ -321,6 +321,32 @@ namespace OpenMS
     return has_mz && has_im;
   }
 
+  // Emit one-shot partial-config warnings for the MS1 aggregation knobs.
+  // Called once per top-level load path, after ms1_frame_ids is populated.
+  static void warnPartialMS1AggregationConfig(const BrukerTimsFile::Config& config,
+                                               size_t ms1_frame_count)
+  {
+    if (config.ms1_min_support > 0 && config.ms1_n_neighbors == 0)
+    {
+      OPENMS_LOG_WARN << "Warning: ms1_min_support (=" << config.ms1_min_support
+                      << ") ignored: ms1_n_neighbors=0 disables aggregation." << std::endl;
+    }
+    if (config.ms1_max_rt_distance_sec > 0.0 && config.ms1_n_neighbors == 0)
+    {
+      OPENMS_LOG_WARN << "Warning: ms1_max_rt_distance_sec (="
+                      << config.ms1_max_rt_distance_sec
+                      << ") ignored: ms1_n_neighbors=0 disables aggregation." << std::endl;
+    }
+    if (config.ms1_n_neighbors > 0 && ms1_frame_count > 0 &&
+        static_cast<size_t>(2 * config.ms1_n_neighbors + 1) > ms1_frame_count)
+    {
+      OPENMS_LOG_WARN << "Warning: ms1_n_neighbors (=" << config.ms1_n_neighbors
+                      << ") exceeds half the run's MS1 frame count (="
+                      << ms1_frame_count << "); effective window will be clamped "
+                      << "at run edges." << std::endl;
+    }
+  }
+
   // =====================================================================
   // TdfMetadataReader: private helper functions for SQL-based metadata
   // =====================================================================
@@ -1321,6 +1347,7 @@ namespace OpenMS
       if (handle->has_frame(fid) && handle->get_frame(fid).msms_type == 0)
         ms1_frame_ids.push_back(fid);
     }
+    warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
     if (config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
 
     startProgress(0, ms1_frame_ids.size(), "Streaming DIA-PASEF MS1 frames");
@@ -1567,6 +1594,7 @@ namespace OpenMS
       else
         ms2_frame_ids.push_back(fid);
     }
+    warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
 
     // Read DDA precursors from SQL
     std::vector<DDAPrecursorInfo> precursor_entries = readDDAPrecursors(db);
@@ -1967,6 +1995,7 @@ namespace OpenMS
       if (frame.msms_type == 0)
         ms1_frame_ids.push_back(fid);
     }
+    warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
 
     // --- MS1 frames ---
     FrameCentroider centroider;
@@ -2204,6 +2233,16 @@ namespace OpenMS
   // =====================================================================
   void BrukerTimsFile::loadFrames_(TimsDataHandle& handle, MSExperiment& exp, const Config& config)
   {
+    // FRAME mode returns raw per-frame spectra; MS1 aggregation would break that
+    // contract, so warn and ignore the knob.
+    if (config.ms1_n_neighbors > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: ms1_n_neighbors (=" << config.ms1_n_neighbors
+                      << ") is ignored when export_mode=FRAME because FRAME mode returns "
+                      << "raw frames. Set export_mode=AUTO or SPECTRUM to enable MS1 "
+                      << "frame aggregation." << std::endl;
+    }
+
     // Iterate all frames at each MS level
     for (int level = 1; level <= 2; ++level)
     {
