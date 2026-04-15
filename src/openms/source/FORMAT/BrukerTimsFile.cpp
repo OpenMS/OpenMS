@@ -197,6 +197,32 @@ namespace OpenMS
                 });
     }
 
+    // Overload: accepts double* intensities (from FrameAggregator::finalize() output,
+    // where summed intensities across aggregated frames can exceed uint32_t range).
+    void loadFrame(const double* mz_values, const double* intensities,
+                   const double* im_values, uint32_t count)
+    {
+      clear();
+      peaks.reserve(count);
+      for (uint32_t i = 0; i < count; ++i)
+      {
+        peaks.push_back({static_cast<float>(mz_values[i]),
+                         static_cast<float>(intensities[i]),
+                         static_cast<float>(im_values[i])});
+      }
+
+      std::sort(peaks.begin(), peaks.end(),
+                [](const ImsPeak& a, const ImsPeak& b) { return a.mz < b.mz; });
+
+      order.resize(count);
+      std::iota(order.begin(), order.end(), size_t(0));
+      std::sort(order.begin(), order.end(),
+                [this](size_t a, size_t b)
+                {
+                  return peaks[b].intensity < peaks[a].intensity;
+                });
+    }
+
     // Centroid the loaded frame by collapsing the IM dimension.
     // Iterates peaks in descending intensity order. For each apex peak, aggregates
     // all unconsumed neighbors within m/z (ppm) and IM (percent) tolerances.
