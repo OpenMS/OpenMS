@@ -1860,14 +1860,14 @@ namespace OpenMS
               }
             }
 
-            // Denoise (skip if only 1 frame in range)
+            // Denoise (skip if only 1 frame in range, or caller disabled it via min_support <= 0)
             // TODO: This checks the index range, not the actual number of neighbor
             // frames that contributed peaks to the grid. If neighbor frames exist
             // but have zero peaks passing the IM filter for this window, the grid
             // contains only single-frame data yet denoising still runs — which may
             // remove valid isolated peaks. Consider counting actual contributing
             // frames if this becomes an issue in practice.
-            bool skip_denoise = (hi - lo) < 1;
+            bool skip_denoise = (hi - lo) < 1 || config.dia_ms2_min_support <= 0;
             auto peaks = config.dia_ms2_centroid
               ? aggregator.finalizeCentroided(config.dia_ms2_min_support, skip_denoise)
               : aggregator.finalize(config.dia_ms2_min_support, skip_denoise);
