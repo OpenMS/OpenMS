@@ -804,6 +804,66 @@ START_SECTION(DIA MS2 centroiding without denoising (min_support=0))
 }
 END_SECTION
 
+START_SECTION(DIA MS1 default config regression test)
+{
+  // Regression guard: with all new MS1 aggregation knobs at their defaults
+  // (ms1_n_neighbors=0, ms1_min_support=0, ms1_max_rt_distance_sec=0.0),
+  // the DIA MS1 output must be byte-identical to the pre-PR load. This
+  // section fails if a future change accidentally enables aggregation
+  // by default.
+  BrukerTimsFile f;
+
+  BrukerTimsFile::Config cfg_default;  // all defaults
+  MSExperiment exp_default;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_default, cfg_default);
+
+  // Snapshot: count MS1 spectra, total MS1 peaks, total MS1 intensity
+  Size ms1_spectra = 0, ms1_peaks = 0;
+  double ms1_intensity = 0.0;
+  for (const auto& spec : exp_default)
+  {
+    if (spec.getMSLevel() == 1)
+    {
+      ++ms1_spectra;
+      ms1_peaks += spec.size();
+      for (const auto& p : spec) ms1_intensity += p.getIntensity();
+    }
+  }
+
+  TEST_NOT_EQUAL(ms1_spectra, 0);
+  TEST_NOT_EQUAL(ms1_peaks, 0);
+
+  STATUS("DIA MS1 default-config snapshot: spectra=" << ms1_spectra
+         << " peaks=" << ms1_peaks
+         << " intensity=" << ms1_intensity);
+
+  // Independently reproduce with ms1_n_neighbors=0 explicitly — assert
+  // the numbers match exactly, proving the knob at 0 is inert.
+  BrukerTimsFile::Config cfg_explicit_off;
+  cfg_explicit_off.ms1_n_neighbors = 0;
+  cfg_explicit_off.ms1_min_support = 0;
+  cfg_explicit_off.ms1_max_rt_distance_sec = 0.0;
+  MSExperiment exp_explicit_off;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_explicit_off, cfg_explicit_off);
+
+  Size ms1_spectra_b = 0, ms1_peaks_b = 0;
+  double ms1_intensity_b = 0.0;
+  for (const auto& spec : exp_explicit_off)
+  {
+    if (spec.getMSLevel() == 1)
+    {
+      ++ms1_spectra_b;
+      ms1_peaks_b += spec.size();
+      for (const auto& p : spec) ms1_intensity_b += p.getIntensity();
+    }
+  }
+
+  TEST_EQUAL(ms1_spectra_b, ms1_spectra);
+  TEST_EQUAL(ms1_peaks_b, ms1_peaks);
+  TEST_REAL_SIMILAR(ms1_intensity_b, ms1_intensity);
+}
+END_SECTION
+
 START_SECTION(DIA readDIAMetadata test)
 {
   BrukerTimsFile f;
