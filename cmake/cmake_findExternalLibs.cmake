@@ -427,6 +427,12 @@ if (WITH_OPENTIMS)
     # opentims::opentims_cpp regardless of how the library was obtained.
     add_library(opentims::opentims_cpp ALIAS opentims_cpp)
 
+    # Add opentims_cpp to the OpenMSTargets export set (same as Evergreen,
+    # SQLiteCpp, and other bundled deps).  CMake requires all targets linked
+    # by an exported target to be either imported or in an export set — even
+    # for PRIVATE deps of a shared library.
+    install_library(opentims_cpp)
+
     message(STATUS "opentims: built from source (${opentims_SOURCE_DIR})")
   endif()
 endif()
