@@ -94,8 +94,39 @@ public:
       static const UInt meta_right_width = MetaInfo::registry().registerName("rightWidth");
       static const UInt meta_total_xic = MetaInfo::registry().registerName("total_xic");
 
-      std::vector<MSChromatogram > picked_chroms;
-      std::vector<MSChromatogram > smoothed_chroms;
+      // Reuse thread-local pools for large temporary containers to avoid
+      // per-call allocations in multi-threaded runs.
+      struct PickerPoolLocal
+      {
+        std::vector<MSChromatogram> picked_chroms;
+        std::vector<MSChromatogram> smoothed_chroms;
+        std::vector<MRMFeature> features;
+        std::vector<double> left_edges;
+        std::vector<double> right_edges;
+        std::vector<std::vector<double>> all_ints;
+        std::vector<double> mean_shapes;
+        std::vector<double> mean_coel;
+        std::vector<double> left_borders;
+        std::vector<double> right_borders;
+
+        void reset()
+        {
+          picked_chroms.clear();
+          smoothed_chroms.clear();
+          features.clear();
+          left_edges.clear();
+          right_edges.clear();
+          all_ints.clear();
+          mean_shapes.clear();
+          mean_coel.clear();
+          left_borders.clear();
+          right_borders.clear();
+        }
+      };
+      thread_local PickerPoolLocal picker_pool;
+      picker_pool.reset();
+      auto &picked_chroms = picker_pool.picked_chroms;
+      auto &smoothed_chroms = picker_pool.smoothed_chroms;
 
       // Pick fragment ion chromatograms
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
@@ -139,7 +170,7 @@ public:
       // a feature. Whenever we run out of peaks, we will get -1 back as index
       // and terminate.
       int chr_idx, peak_idx, cnt = 0;
-      std::vector<MRMFeature> features;
+      auto &features = picker_pool.features;
       while (true)
       {
         chr_idx = -1; peak_idx = -1;
@@ -240,8 +271,18 @@ public:
         }
       }
 
-      std::vector< double > left_edges;
-      std::vector< double > right_edges;
+      // Use a small thread-local pool for these per-feature vectors to avoid
+      // frequent allocations when called repeatedly.
+      struct CreateFeaturePool
+      {
+        std::vector<double> left_edges;
+        std::vector<double> right_edges;
+        void reset() { left_edges.clear(); right_edges.clear(); }
+      };
+      thread_local CreateFeaturePool create_feat_pool;
+      create_feat_pool.reset();
+      auto &left_edges = create_feat_pool.left_edges;
+      auto &right_edges = create_feat_pool.right_edges;
       double min_left = best_left;
       double max_right = best_right;
       if (use_consensus_)
@@ -854,7 +895,26 @@ protected:
       SpectrumT master_peak_container;
       const SpectrumT& ref_chromatogram = selectChromHelper_(transition_group, picked_chroms[chr_idx].getNativeID());
       prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
-      std::vector<std::vector<double> > all_ints;
+      // Pool frequently used numeric containers to avoid repeated allocations
+      struct ComputeQualityPool
+      {
+        std::vector<std::vector<double>> all_ints;
+        std::vector<double> mean_shapes;
+        std::vector<double> mean_coel;
+        std::vector<double> left_borders;
+        std::vector<double> right_borders;
+        void reset()
+        {
+          all_ints.clear();
+          mean_shapes.clear();
+          mean_coel.clear();
+          left_borders.clear();
+          right_borders.clear();
+        }
+      };
+      thread_local ComputeQualityPool quality_pool;
+      quality_pool.reset();
+      auto &all_ints = quality_pool.all_ints;
       for (Size k = 0; k < picked_chroms.size(); k++)
       {
         const SpectrumT& chromatogram = selectChromHelper_(transition_group, picked_chroms[k].getNativeID());
@@ -869,8 +929,8 @@ protected:
       }
 
       // Compute the cross-correlation for the collected intensities
-      std::vector<double> mean_shapes;
-      std::vector<double> mean_coel;
+      auto &mean_shapes = quality_pool.mean_shapes;
+      auto &mean_coel = quality_pool.mean_coel;
       for (Size k = 0; k < all_ints.size(); k++)
       {
         std::vector<double> shapes;
@@ -914,8 +974,8 @@ protected:
       int multiple_peaks = 0;
 
       // collect all seeds that lie within the current seed
-      std::vector<double> left_borders;
-      std::vector<double> right_borders;
+      auto &left_borders = quality_pool.left_borders;
+      auto &right_borders = quality_pool.right_borders;
       for (Size k = 0; k < picked_chroms.size(); k++)
       {
         double l_tmp;
