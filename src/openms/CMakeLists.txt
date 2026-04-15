@@ -97,7 +97,7 @@ if (OPENMS_ARROW_DATASET_TARGET)
 endif()
 
 if (WITH_OPENTIMS)
-  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES opentims_cpp)
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES opentims::opentims_cpp)
 endif()
 
 if (ENABLE_TDL)
