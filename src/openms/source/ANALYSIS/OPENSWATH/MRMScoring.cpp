@@ -162,8 +162,8 @@ namespace OpenSwath
       {
         Scoring::standardize_data(intensityi[i]);
       }
-      // place intensityj after intensityi in the same pool to avoid extra allocation
-      mrm_pool.ensure_size(native_ids_set2.size());
+      // ensure pool for intensityj
+      mrm_poolB.ensure_size(native_ids_set2.size());
       fillIntensityFromFeature(mrmfeature, native_ids_set2, intensityj);
       for (std::size_t i = 0; i < native_ids_set2.size(); i++)
       {
@@ -217,7 +217,7 @@ namespace OpenSwath
       {
         Scoring::standardize_data(intensityi[i]);
       }
-      mrm_pool.ensure_size(native_ids.size());
+      mrm_poolB.ensure_size(native_ids.size());
       fillIntensityFromFeature(mrmfeature, native_ids, intensityj);
       for (std::size_t i = 0; i < native_ids.size(); i++)
       {
