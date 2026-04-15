@@ -43,6 +43,18 @@ namespace OpenMS
       }
     };
     thread_local DIAScoresPool dias_pool;
+    
+    struct ChromScoresPool
+    {
+      std::vector<OpenSwath::LightTransition> transition_vector;
+      std::vector<double> tmp_norm_lib; // reused normalized library intensities if needed
+      void reset()
+      {
+        transition_vector.clear();
+        tmp_norm_lib.clear();
+      }
+    };
+    thread_local ChromScoresPool chrom_pool;
   }
 
   /// Constructor
@@ -388,6 +400,8 @@ namespace OpenMS
         OpenSwath_Scores & scores) const
   {
     OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
+    // reuse small chroma-related temporaries
+    chrom_pool.reset();
     thread_local OpenSwath::MRMScoring mrmscore_;
     if (su_.use_coelution_score_ || su_.use_shape_score_ || (!imrmfeature->getPrecursorIDs().empty() && su_.use_ms1_correlation))
       mrmscore_.initializeXCorrMatrix(imrmfeature, native_ids);

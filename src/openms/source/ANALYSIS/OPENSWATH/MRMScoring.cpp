@@ -25,10 +25,20 @@ namespace OpenSwath
     struct MRMScoringPool
     {
       std::vector<std::vector<double>> vv;
+      // small 1-D temporaries reused across calls to avoid frequent heap allocs
+      std::vector<double> tmp_double_a;
+      std::vector<double> tmp_double_b;
       void ensure_size(std::size_t outer)
       {
         if (vv.size() < outer) vv.resize(outer);
         for (std::size_t i = 0; i < outer; ++i) vv[i].clear();
+      }
+      void ensure_1d_capacity(std::size_t n)
+      {
+        tmp_double_a.clear();
+        tmp_double_b.clear();
+        tmp_double_a.reserve(n);
+        tmp_double_b.reserve(n);
       }
     };
     thread_local MRMScoringPool mrm_poolA;
@@ -570,8 +580,13 @@ namespace OpenSwath
     void MRMScoring::calcLibraryScore(OpenSwath::IMRMFeature* mrmfeature, const std::vector<TransitionType>& transitions,
                                       double& correlation, double& norm_manhattan, double& manhattan, double& dotprod, double& spectral_angle, double& rmsd)
     {
-      std::vector<double> library_intensity;
-      std::vector<double> experimental_intensity;
+      // reuse small 1-D temporaries from thread-local pool to avoid allocations
+      mrm_poolA.ensure_1d_capacity(transitions.size());
+      std::vector<double>& library_intensity = mrm_poolA.tmp_double_a;
+      std::vector<double>& experimental_intensity = mrm_poolA.tmp_double_b;
+      // ensure requested capacity
+      library_intensity.clear();
+      experimental_intensity.clear();
       library_intensity.reserve(transitions.size());
       experimental_intensity.reserve(transitions.size());
       std::string native_id;
