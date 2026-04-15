@@ -997,6 +997,19 @@ namespace OpenMS
   }
 
   // =====================================================================
+  // Helper: build one MS1 spectrum from a frame, with optional IM centroiding
+  // =====================================================================
+  static void loadMS1Spectrum(TimsFrame& frame, MSSpectrum& spec,
+                              const BrukerTimsFile::Config& config,
+                              FrameCentroider& centroider)
+  {
+    if (isCentroidingEnabled(config))
+      centroidMS1Frame(frame, spec, config, centroider);
+    else
+      frameToSpectrum(frame, spec, 1);
+  }
+
+  // =====================================================================
   // isDIA_: detect DDA vs DIA by querying for SWATH window tables
   // =====================================================================
   bool BrukerTimsFile::isDIA_(const String& tdf_path) const
@@ -1111,7 +1124,6 @@ namespace OpenMS
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
     // --- MS1 frames ---
-    bool do_centroid = isCentroidingEnabled(config);
     FrameCentroider centroider;
 
     std::vector<uint32_t> ms1_frame_ids;
@@ -1126,10 +1138,7 @@ namespace OpenMS
     {
       TimsFrame& frame = handle->get_frame(ms1_frame_ids[i]);
       MSSpectrum spec;
-      if (do_centroid)
-        centroidMS1Frame(frame, spec, config, centroider);
-      else
-        frameToSpectrum(frame, spec, 1);
+      loadMS1Spectrum(frame, spec, config, centroider);
       // Sort peaks by m/z (and the associated IM float data array alongside).
       // TIMS save_to_buffs returns peaks in (scan_id, m/z-within-scan) order,
       // which is NOT globally m/z-sorted. Downstream consumers
@@ -1376,20 +1385,12 @@ namespace OpenMS
     startProgress(0, ms1_frame_ids.size() + num_ms2, "Loading DDA-PASEF data");
 
     // --- MS1 frames ---
-    bool do_centroid = isCentroidingEnabled(config);
     FrameCentroider centroider;
     for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
     {
       TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
       MSSpectrum spec;
-      if (do_centroid)
-      {
-        centroidMS1Frame(frame, spec, config, centroider);
-      }
-      else
-      {
-        frameToSpectrum(frame, spec, 1);
-      }
+      loadMS1Spectrum(frame, spec, config, centroider);
       exp.addSpectrum(std::move(spec));
       setProgress(i);
     }
@@ -1758,21 +1759,13 @@ namespace OpenMS
     }
 
     // --- MS1 frames ---
-    bool do_centroid = isCentroidingEnabled(config);
     FrameCentroider centroider;
     startProgress(0, ms1_frame_ids.size(), "Loading DIA-PASEF MS1 frames");
     for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
     {
       TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
       MSSpectrum spec;
-      if (do_centroid)
-      {
-        centroidMS1Frame(frame, spec, config, centroider);
-      }
-      else
-      {
-        frameToSpectrum(frame, spec, 1);
-      }
+      loadMS1Spectrum(frame, spec, config, centroider);
       exp.addSpectrum(std::move(spec));
       setProgress(i);
     }
@@ -2011,21 +2004,16 @@ namespace OpenMS
         continue;
       }
 
-      bool do_centroid = (level == 1) && isCentroidingEnabled(config);
       FrameCentroider centroider;
       startProgress(0, frame_ids.size(), String("Loading MS") + String(level) + " frames");
       for (size_t i = 0; i < frame_ids.size(); ++i)
       {
         TimsFrame& frame = handle.get_frame(frame_ids[i]);
         MSSpectrum spec;
-        if (do_centroid)
-        {
-          centroidMS1Frame(frame, spec, config, centroider);
-        }
+        if (level == 1)
+          loadMS1Spectrum(frame, spec, config, centroider);
         else
-        {
           frameToSpectrum(frame, spec, level);
-        }
         exp.addSpectrum(std::move(spec));
         setProgress(i);
       }
