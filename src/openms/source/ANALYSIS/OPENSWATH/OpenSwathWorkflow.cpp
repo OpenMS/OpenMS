@@ -947,6 +947,20 @@ namespace OpenMS
         }
       }
 
+      // Sort score jobs by compound count in descending order to balance thread load
+      // Larger jobs process first, reducing idle time while smaller jobs finish
+      if (profile)
+      {
+        OPENMS_LOG_DEBUG << "Sorting " << score_jobs.size() << " score jobs by compound count for load balancing" << std::endl;
+      }
+      std::sort(score_jobs.begin(), score_jobs.end(), 
+        [&contexts](const SwathScoreJob& a, const SwathScoreJob& b) 
+        {
+          const Size compounds_a = contexts[a.context_index].transition_exp_used_all.getCompounds().size();
+          const Size compounds_b = contexts[b.context_index].transition_exp_used_all.getCompounds().size();
+          return compounds_a > compounds_b;  // Descending order
+        });
+
       auto finalize_context = [&](const Size context_index)
       {
         SwathSchedulerContext& context = contexts[context_index];
