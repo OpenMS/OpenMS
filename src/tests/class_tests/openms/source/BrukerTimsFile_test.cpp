@@ -1097,6 +1097,40 @@ START_SECTION(DIA loadDIAStreaming test)
 }
 END_SECTION
 
+START_SECTION(DIA MS1 streaming aggregation test)
+{
+  BrukerTimsFile f;
+
+  ExperimentalSettings settings;
+  auto meta = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings);
+
+  RegularSwathFileConsumer consumer(meta.boundaries);
+  consumer.setExperimentalSettings(settings);
+
+  BrukerTimsFile::Config cfg;
+  cfg.ms1_n_neighbors = 1;
+
+  f.loadDIAStreaming(OPENTIMS_DIA_TEST_DATA, consumer, cfg);
+
+  std::vector<OpenSwath::SwathMap> swath_maps;
+  consumer.retrieveSwathMaps(swath_maps);
+
+  // First SwathMap is the MS1 map. Assert it exists and carries the
+  // per-center-frame cadence.
+  TEST_NOT_EQUAL(swath_maps.size(), 0);
+  const auto& ms1_map = swath_maps.front();
+  TEST_EQUAL(ms1_map.ms1, true);
+
+  // MS1 spectrum count should equal the raw MS1 frame count (cadence
+  // invariant — aggregation never drops a center frame).
+  TEST_EQUAL(ms1_map.sptr->getNrSpectra(),
+             static_cast<unsigned>(meta.nr_ms1_spectra));
+
+  STATUS("DIA MS1 streaming aggregation: " << ms1_map.sptr->getNrSpectra()
+         << " MS1 spectra delivered (expected " << meta.nr_ms1_spectra << ")");
+}
+END_SECTION
+
 #endif // OPENTIMS_DIA_TEST_DATA
 
 END_TEST

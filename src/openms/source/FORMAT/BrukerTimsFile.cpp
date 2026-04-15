@@ -1313,6 +1313,7 @@ namespace OpenMS
 
     // --- MS1 frames ---
     FrameCentroider centroider;
+    FrameAggregator ms1_aggregator(0.01);
 
     std::vector<uint32_t> ms1_frame_ids;
     for (uint32_t fid = handle->min_frame_id(); fid <= handle->max_frame_id(); ++fid)
@@ -1320,13 +1321,22 @@ namespace OpenMS
       if (handle->has_frame(fid) && handle->get_frame(fid).msms_type == 0)
         ms1_frame_ids.push_back(fid);
     }
+    if (config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
 
     startProgress(0, ms1_frame_ids.size(), "Streaming DIA-PASEF MS1 frames");
     for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
     {
-      TimsFrame& frame = handle->get_frame(ms1_frame_ids[i]);
       MSSpectrum spec;
-      loadMS1Spectrum(frame, spec, config, centroider);
+      if (config.ms1_n_neighbors > 0)
+      {
+        loadAggregatedMS1Spectrum(*handle, ms1_frame_ids, i, config,
+                                  ms1_aggregator, centroider, spec);
+      }
+      else
+      {
+        TimsFrame& frame = handle->get_frame(ms1_frame_ids[i]);
+        loadMS1Spectrum(frame, spec, config, centroider);
+      }
       // Sort peaks by m/z (and the associated IM float data array alongside).
       // TIMS save_to_buffs returns peaks in (scan_id, m/z-within-scan) order,
       // which is NOT globally m/z-sorted. Downstream consumers
