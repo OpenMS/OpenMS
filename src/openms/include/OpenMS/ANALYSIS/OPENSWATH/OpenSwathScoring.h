@@ -267,6 +267,17 @@ namespace OpenMS
     void getNormalized_library_intensities_(const std::vector<TransitionType> & transitions,
                                             std::vector<double>& normalized_library_intensity);
 
+    /** @brief Return pooled normalized library intensities (uses internal pool)
+     *
+     * Fills and returns a reference to an internal thread-local buffer. Callers
+     * that want to avoid per-call allocations can use this to obtain a
+     * reference to pooled normalized intensities.
+     *
+     * @param[in] transitions The library transition to score the feature against
+     * @return const reference to pooled normalized library intensities
+     */
+    const std::vector<double>& getNormalized_library_intensities_pooled(const std::vector<TransitionType> & transitions);
+
     /** @brief Prepares a spectrum for DIA analysis (single map)
      *
      * This function will fetch a vector of spectrum pointers to be used in DIA analysis.

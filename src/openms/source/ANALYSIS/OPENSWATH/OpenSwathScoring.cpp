@@ -567,6 +567,25 @@ namespace OpenMS
     OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
   }
 
+  const std::vector<double>& OpenSwathScoring::getNormalized_library_intensities_pooled(const std::vector<TransitionType> & transitions)
+  {
+    chrom_pool.tmp_norm_lib.clear();
+    chrom_pool.tmp_norm_lib.reserve(transitions.size());
+    for (Size i = 0; i < transitions.size(); i++)
+    {
+      chrom_pool.tmp_norm_lib.push_back(transitions[i].getLibraryIntensity());
+    }
+    for (Size i = 0; i < chrom_pool.tmp_norm_lib.size(); i++)
+    {
+      if (chrom_pool.tmp_norm_lib[i] < 0.0) { chrom_pool.tmp_norm_lib[i] = 0.0; }
+    }
+    if (!chrom_pool.tmp_norm_lib.empty())
+    {
+      OpenSwath::Scoring::normalize_sum(&chrom_pool.tmp_norm_lib[0], boost::numeric_cast<int>(chrom_pool.tmp_norm_lib.size()));
+    }
+    return chrom_pool.tmp_norm_lib;
+  }
+
   SpectrumSequence OpenSwathScoring::fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swathmap, double RT, int nr_spectra_to_add, const RangeMobility& im_range)
   {
 
