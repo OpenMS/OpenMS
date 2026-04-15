@@ -36,6 +36,22 @@ namespace OpenMS
 {
   namespace
   {
+    struct DIAScoringPool
+    {
+      std::vector<double> isotopes_int;
+      std::vector<double> exp_isotopes_int;
+      std::vector<double> bseries;
+      std::vector<double> yseries;
+
+      void reset()
+      {
+        isotopes_int.clear();
+        exp_isotopes_int.clear();
+        bseries.clear();
+        yseries.clear();
+      }
+    };
+    thread_local DIAScoringPool dias_pool;
     struct AveragineIsotopeDistributionKey
     {
       double neutral_mass;
@@ -152,6 +168,8 @@ namespace OpenMS
     std::unordered_map<std::string, double> intensities;
     intensities.reserve(transitions.size());
     getFirstIsotopeRelativeIntensities_(transitions, mrmfeature, intensities);
+    // reuse pooled temporary vectors
+    dias_pool.isotopes_int.clear();
     diaIsotopeScoresSub_(transitions, spectrum, intensities, im_range, isotope_corr, isotope_overlap);
   }
 
@@ -229,16 +247,15 @@ namespace OpenMS
     // although precursor_mz can be received from the empirical formula (if non-empty), the actual precursor could be
     // slightly different. And also for compounds, usually the neutral sum_formula without adducts is given.
     // Therefore calculate the isotopes based on the formula but place them at precursor_mz
-    std::vector<double> isotopes_int;
-    getIsotopeIntysFromExpSpec_(precursor_mz, spectrum, sum_formula.getCharge(), im_range, isotopes_int);
-
+    dias_pool.exp_isotopes_int.clear();
+    getIsotopeIntysFromExpSpec_(precursor_mz, spectrum, sum_formula.getCharge(), im_range, dias_pool.exp_isotopes_int);
     double max_ratio = 0;
     int nr_occurrences = 0;
 
     // calculate the scores:
     // isotope correlation (forward) and the isotope overlap (backward) scores
-    isotope_corr = scoreIsotopePattern_(isotopes_int, sum_formula);
-    largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, isotopes_int[0], nr_occurrences, max_ratio, im_range);
+    isotope_corr = scoreIsotopePattern_(dias_pool.exp_isotopes_int, sum_formula);
+    largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, dias_pool.exp_isotopes_int[0], nr_occurrences, max_ratio, im_range);
     isotope_overlap = max_ratio;
   }
 
@@ -259,8 +276,8 @@ namespace OpenMS
   void DIAScoring::dia_ms1_isotope_scores_averagine(double precursor_mz, const SpectrumSequence& spectrum, int charge_state, RangeMobility& im_range,
                                                     double& isotope_corr, double& isotope_overlap) const
   {
-    std::vector<double> exp_isotopes_int;
-    getIsotopeIntysFromExpSpec_(precursor_mz, spectrum, charge_state, im_range, exp_isotopes_int);
+    dias_pool.exp_isotopes_int.clear();
+    getIsotopeIntysFromExpSpec_(precursor_mz, spectrum, charge_state, im_range, dias_pool.exp_isotopes_int);
     // NOTE: this is a rough estimate of the neutral mz value since we would not know the charge carrier for negative ions
     const IsotopeDistribution& isotope_dist = getCachedAveragineIsotopeDistribution(
       std::fabs(precursor_mz * charge_state),
@@ -270,8 +287,8 @@ namespace OpenMS
     int nr_occurrences;
     // calculate the scores:
     // isotope correlation (forward) and the isotope overlap (backward) scores
-    isotope_corr = scoreIsotopePattern_(exp_isotopes_int, isotope_dist);
-    largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, exp_isotopes_int[0], nr_occurrences, max_ratio, im_range);
+    isotope_corr = scoreIsotopePattern_(dias_pool.exp_isotopes_int, isotope_dist);
+    largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, dias_pool.exp_isotopes_int[0], nr_occurrences, max_ratio, im_range);
     isotope_overlap = max_ratio;
   }
 
@@ -284,9 +301,10 @@ namespace OpenMS
     OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer"); // for peptides, charge should be positive
 
     double mz, intensity, im;
-    std::vector<double> yseries, bseries;
-    OpenMS::DIAHelpers::getBYSeries(sequence, bseries, yseries, generator, charge);
-    for (const auto& b_ion_mz : bseries)
+    dias_pool.bseries.clear();
+    dias_pool.yseries.clear();
+    OpenMS::DIAHelpers::getBYSeries(sequence, dias_pool.bseries, dias_pool.yseries, generator, charge);
+    for (const auto& b_ion_mz : dias_pool.bseries)
     {
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(b_ion_mz, dia_extract_window_, dia_extraction_ppm_);
 
@@ -297,7 +315,7 @@ namespace OpenMS
         bseries_score++;
       }
     }
-    for (const auto& y_ion_mz : yseries)
+    for (const auto& y_ion_mz : dias_pool.yseries)
     {
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(y_ion_mz, dia_extract_window_, dia_extraction_ppm_);
 
@@ -338,7 +356,8 @@ namespace OpenMS
                                         double& isotope_corr,
                                         double& isotope_overlap) const
   {
-    std::vector<double> isotopes_int;
+    dias_pool.isotopes_int.clear();
+    std::vector<double>& isotopes_int = dias_pool.isotopes_int;
     double max_ratio;
     int nr_occurences;
     for (Size k = 0; k < transitions.size(); k++)
