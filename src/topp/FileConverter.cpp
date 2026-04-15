@@ -203,8 +203,9 @@ protected:
     setMinInt_("bruker:dia_ms2_n_neighbors", 0);
     registerIntOption_("bruker:dia_ms2_min_support", "<int>", 1,
       "DIA MS2 denoising: minimum occupied neighbor cells in a 3x3 (m/z x IM) grid to keep a point "
-      "(center cell excluded from count). Applied after frame aggregation. Only effective when dia_ms2_n_neighbors > 0.", false, true);
-    setMinInt_("bruker:dia_ms2_min_support", 1);
+      "(center cell excluded from count). Applied after frame aggregation. Only effective when dia_ms2_n_neighbors > 0. "
+      "Set to 0 to disable denoising (useful for pure centroiding without noise filtering).", false, true);
+    setMinInt_("bruker:dia_ms2_min_support", 0);
     registerStringOption_("bruker:dia_ms2_centroid", "<toggle>", "false",
       "Apply 2D Gaussian smoothing + local maxima peak picking to the denoised DIA MS2 grid. "
       "Produces IM_CENTROIDED spectra with sub-bin (m/z, IM) precision. Only effective when dia_ms2_n_neighbors > 0.", false, true);

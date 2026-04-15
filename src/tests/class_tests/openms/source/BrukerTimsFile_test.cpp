@@ -736,6 +736,67 @@ START_SECTION(DIA MS2 centroiding test)
 }
 END_SECTION
 
+START_SECTION(DIA MS2 centroiding without denoising (min_support=0))
+{
+  // Regression guard for the "centroid without noise filter" path exposed via
+  // Config::dia_ms2_min_support = 0. With min_support=0 the 3x3 neighbor filter
+  // in DIAFrameAggregator::finalize{,Centroided} is a no-op (`neighbors < 0` is
+  // always false), so every populated grid cell survives the denoise step.
+  // Under centroiding that means more local maxima → strictly more output peaks
+  // than the denoised (min_support=1) path, because denoising preferentially
+  // removes isolated cells that would otherwise become their own centroid.
+  BrukerTimsFile f;
+
+  BrukerTimsFile::Config cfg_denoise;
+  cfg_denoise.dia_ms2_n_neighbors = 1;
+  cfg_denoise.dia_ms2_min_support = 1;
+  cfg_denoise.dia_ms2_centroid = true;
+  MSExperiment exp_denoise;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_denoise, cfg_denoise);
+
+  BrukerTimsFile::Config cfg_no_denoise;
+  cfg_no_denoise.dia_ms2_n_neighbors = 1;
+  cfg_no_denoise.dia_ms2_min_support = 0;
+  cfg_no_denoise.dia_ms2_centroid = true;
+  MSExperiment exp_no_denoise;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_no_denoise, cfg_no_denoise);
+
+  Size denoise_peaks = 0, no_denoise_peaks = 0;
+  Size denoise_spectra = 0, no_denoise_spectra = 0;
+  for (const auto& spec : exp_denoise)
+    if (spec.getMSLevel() == 2) { ++denoise_spectra; denoise_peaks += spec.size(); }
+  for (const auto& spec : exp_no_denoise)
+    if (spec.getMSLevel() == 2) { ++no_denoise_spectra; no_denoise_peaks += spec.size(); }
+
+  // Without denoising, a few spectra that would become empty after denoising
+  // (and are dropped by the `if (peaks.empty()) continue;` guard in the
+  // BrukerTimsFile loader) are now retained. Count is >= denoised count.
+  TEST_EQUAL(no_denoise_spectra >= denoise_spectra, true);
+
+  // Without denoising the centroided output contains strictly more peaks:
+  // every populated grid cell becomes a centroid candidate instead of being
+  // dropped when isolated.
+  TEST_NOT_EQUAL(no_denoise_peaks, 0);
+  TEST_EQUAL(no_denoise_peaks > denoise_peaks, true);
+
+  // Output is still centroided in the IM dimension.
+  for (const auto& spec : exp_no_denoise)
+  {
+    if (spec.getMSLevel() == 2 && !spec.empty())
+    {
+      TEST_EQUAL(spec.containsIMData(), true);
+      TEST_EQUAL(spec.getIMPeakType() == IMPeakType::IM_CENTROIDED, true);
+      TEST_NOT_EQUAL(spec.getPrecursors().size(), 0);
+      break;
+    }
+  }
+
+  STATUS("DIA centroiding (no denoise): MS2 peaks=" << no_denoise_peaks
+         << " vs denoised=" << denoise_peaks
+         << " ratio=" << (static_cast<double>(no_denoise_peaks) / denoise_peaks));
+}
+END_SECTION
+
 START_SECTION(DIA readDIAMetadata test)
 {
   BrukerTimsFile f;
