@@ -43,6 +43,8 @@ namespace OpenMS
       }
     };
     thread_local DIAScoresPool dias_pool;
+    // temporary buffer reused by fetchSpectrumSwath to avoid per-call allocations
+    thread_local SpectrumSequence fetch_spectrum_tmp;
     
     struct ChromScoresPool
     {
@@ -596,10 +598,9 @@ namespace OpenMS
     }
     else // (spectra_addition_method_ == SpectrumAdditionMethod::RESAMPLE)
     {
-      std::vector<OpenSwath::SpectrumPtr> spectrum_out;
-      //added_spec = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
-      spectrum_out.push_back(SpectrumAddition::addUpSpectra(all_spectra, im_range, spacing_for_spectra_resampling_, true));
-      return spectrum_out;
+      fetch_spectrum_tmp.clear();
+      fetch_spectrum_tmp.push_back(SpectrumAddition::addUpSpectra(all_spectra, im_range, spacing_for_spectra_resampling_, true));
+      return fetch_spectrum_tmp;
     }
   }
 
@@ -636,7 +637,9 @@ namespace OpenMS
             all_spectra.push_back(SpectrumAddition::addUpSpectra(spectrumSequence, spacing_for_spectra_resampling_, true));
           }
         }
-        return { SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true) };
+        fetch_spectrum_tmp.clear();
+        fetch_spectrum_tmp.push_back(SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true));
+        return fetch_spectrum_tmp;
       }
       else // im_range.isEmpty()
       {
@@ -659,7 +662,9 @@ namespace OpenMS
             all_spectra.push_back(SpectrumAddition::addUpSpectra(spectrumSequence, spacing_for_spectra_resampling_, true));
           }
         }
-        return { SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true) };
+        fetch_spectrum_tmp.clear();
+        fetch_spectrum_tmp.push_back(SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true));
+        return fetch_spectrum_tmp;
       }
     }
 
@@ -729,7 +734,9 @@ namespace OpenMS
       }
       if (!out.empty())
       {
-        out = { SpectrumAddition::addUpSpectra(out, spacing_for_spectra_resampling_, true) };
+        fetch_spectrum_tmp.clear();
+        fetch_spectrum_tmp.push_back(SpectrumAddition::addUpSpectra(out, spacing_for_spectra_resampling_, true));
+        out = std::move(fetch_spectrum_tmp);
       }
       return;
     }
@@ -743,7 +750,9 @@ namespace OpenMS
       }
       if (!out.empty())
       {
-        out = { SpectrumAddition::addUpSpectra(out, spacing_for_spectra_resampling_, true) };
+        fetch_spectrum_tmp.clear();
+        fetch_spectrum_tmp.push_back(SpectrumAddition::addUpSpectra(out, spacing_for_spectra_resampling_, true));
+        out = std::move(fetch_spectrum_tmp);
       }
       return;
     }

@@ -500,8 +500,12 @@ public:
         double transition_total_mi = 0;
         if (compute_total_mi_)
         {
-          std::vector<unsigned int> chrom_vect_id_ranked, chrom_vect_det_ranked;
-          std::vector<double> chrom_vect_id, chrom_vect_det;
+          // reuse thread-local temporaries to avoid repeated allocations
+          thread_local std::vector<unsigned int> chrom_vect_id_ranked;
+          thread_local std::vector<unsigned int> chrom_vect_det_ranked;
+          thread_local std::vector<double> chrom_vect_id;
+          thread_local std::vector<double> chrom_vect_det;
+          chrom_vect_id.clear(); chrom_vect_det.clear(); chrom_vect_id_ranked.clear(); chrom_vect_det_ranked.clear();
           for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
           {
             chrom_vect_id.push_back(it->getIntensity());
