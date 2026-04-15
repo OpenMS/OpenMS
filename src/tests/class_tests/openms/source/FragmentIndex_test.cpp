@@ -251,6 +251,119 @@ START_SECTION(build())
 }
 END_SECTION
 
+// Verify that the new 'peptide:enzyme_specificity' parameter changes digestion behavior.
+// Three modes are tested:
+//   - "full" (default): both termini must be enzyme-specific (canonical, e.g. tryptic)
+//   - "semi": one terminus may be non-enzyme-specific (semi-tryptic)
+//   - "none": every substring of length [min,max] is enumerated, regardless of enzyme
+//             (the canonical immunopeptidomics path, e.g. HLA-I 8..12mers)
+START_SECTION([EXTRA] peptide:enzyme_specificity (full / semi / none))
+{
+  // 18-aa "protein" with two internal trypsin cuts (after K at pos 1, after R at pos 7).
+  // Sequence has no B/X/Z (which FragmentIndex filters out as ambiguous AAs).
+  // Tryptic products: "AK" (0..1), "ACDEFGR" (2..8), "HILMNPQSTV" (9..18).
+  const std::vector<FASTAFile::FASTAEntry> entries{
+    {"t", "t", "AKACDEFGRHILMNPQSTV"}};
+  // sanity: 19 aa total, no B/X/Z
+
+  // ---------- full (default): only fully-tryptic products ----------
+  {
+    FragmentIndex_test fi_full;
+    auto p = fi_full.getParameters();
+    p.setValue("enzyme", "Trypsin");
+    p.setValue("peptide:missed_cleavages", 0);
+    p.setValue("peptide:enzyme_specificity", "full");
+    p.setValue("peptide:min_size", 2);
+    p.setValue("peptide:max_size", 100);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("modifications:variable", std::vector<std::string>{});
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    fi_full.setParameters(p);
+    fi_full.build(entries);
+    // 3 fully-tryptic products of length >= 2
+    TEST_EQUAL(fi_full.getPeptides().size(), 3)
+  }
+
+  // ---------- semi: fully-tryptic + semi-tryptic variants ----------
+  {
+    FragmentIndex_test fi_semi;
+    auto p = fi_semi.getParameters();
+    p.setValue("enzyme", "Trypsin");
+    p.setValue("peptide:missed_cleavages", 0);
+    p.setValue("peptide:enzyme_specificity", "semi");
+    p.setValue("peptide:min_size", 2);
+    p.setValue("peptide:max_size", 100);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("modifications:variable", std::vector<std::string>{});
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    fi_semi.setParameters(p);
+    fi_semi.build(entries);
+    // semi must yield strictly more peptides than full (semi = full + semi-specific extras)
+    TEST_EQUAL(fi_semi.getPeptides().size() > 3, true)
+  }
+
+  // ---------- none (immunopeptidomics): all substrings of [min,max] ----------
+  // For 8..12mers from a 19-aa sequence: 8mers=12, 9mers=11, 10mers=10, 11mers=9, 12mers=8 → 50.
+  {
+    FragmentIndex_test fi_none;
+    auto p = fi_none.getParameters();
+    p.setValue("enzyme", "Trypsin"); // enzyme is irrelevant under specificity=none
+    p.setValue("peptide:missed_cleavages", 0);
+    p.setValue("peptide:enzyme_specificity", "none");
+    p.setValue("peptide:min_size", 8);
+    p.setValue("peptide:max_size", 12);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("modifications:variable", std::vector<std::string>{});
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    fi_none.setParameters(p);
+    fi_none.build(entries);
+    TEST_EQUAL(fi_none.getPeptides().size(), 50)
+  }
+
+  // ---------- none > semi when using same length window ----------
+  {
+    // Use same 8..12 window for both modes so the comparison is fair.
+    FragmentIndex_test fi_semi_8_12;
+    auto p = fi_semi_8_12.getParameters();
+    p.setValue("enzyme", "Trypsin");
+    p.setValue("peptide:missed_cleavages", 0);
+    p.setValue("peptide:enzyme_specificity", "semi");
+    p.setValue("peptide:min_size", 8);
+    p.setValue("peptide:max_size", 12);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("modifications:variable", std::vector<std::string>{});
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    fi_semi_8_12.setParameters(p);
+    fi_semi_8_12.build(entries);
+    // none (50 substrings) must exceed semi with the same length window
+    TEST_EQUAL(50 > fi_semi_8_12.getPeptides().size(), true)
+  }
+
+  // ---------- none with very short protein: must not crash ----------
+  // FASTA databases often contain very short entries; pre-fix this would underflow.
+  {
+    const std::vector<FASTAFile::FASTAEntry> tiny{{"t", "t", "ABC"}}; // shorter than min_size
+    FragmentIndex_test fi_tiny;
+    auto p = fi_tiny.getParameters();
+    p.setValue("enzyme", "Trypsin");
+    p.setValue("peptide:enzyme_specificity", "none");
+    p.setValue("peptide:min_size", 8);
+    p.setValue("peptide:max_size", 12);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("modifications:variable", std::vector<std::string>{});
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    fi_tiny.setParameters(p);
+    fi_tiny.build(tiny); // must not crash
+    TEST_EQUAL(fi_tiny.getPeptides().size(), 0)
+  }
+}
+END_SECTION
+
 // Verify that clear() resets the internal peptide container.
 START_SECTION(clear())
 {
@@ -376,7 +489,8 @@ START_SECTION(tolerance)
   params.setValue("fragment:min_ion_index", 0); // index all ions to verify all theoretical peaks match
   params.setValue("fragment:mass_tolerance", 0.05);
   params.setValue("fragment:mass_tolerance_unit", "Da");
-  params.setValue("precursor:mass_tolerance", 2.0);
+  params.setValue("precursor:mass_tolerance_lower", 2.0);
+  params.setValue("precursor:mass_tolerance_upper", 2.0);
   params.setValue("precursor:mass_tolerance_unit", "Da");
   params.setValue("modifications:variable", std::vector<std::string> {});
   params.setValue("modifications:fixed", std::vector<std::string> {});
@@ -700,6 +814,422 @@ START_SECTION(cross_validate_vs_ModifiedPeptideGenerator)
       TEST_EQUAL(fi[i].second, mpg[i].second)
     }
   }
+}
+END_SECTION
+
+// --- Asymmetric precursor window: Task 8 tests 1-3 ---
+
+START_SECTION((pair<size_t, size_t> getPeptidesInMassWindow(float, const pair<float, float>&) const))
+{
+  // Symmetric default [20, 20] ppm — each peptide retrieves itself within its own mass window.
+  // Uses the high-level self-hit helper `testQuery`, which is the behavioural equivalent of
+  // a getPeptidesInMassWindow round-trip (peptide -> theoretical spectrum -> back to peptide_idx).
+  FragmentIndex_test fi;
+  Param p = fi.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  // include all fragment ions so testQuery's `num_matched >= spec.size()` can be satisfied
+  p.setValue("fragment:min_ion_index", 0);
+  // restrict to iso=0 so the test isolates the symmetric-window self-hit semantics
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  fi.setParameters(p);
+
+  // Build a small fixture
+  vector<FASTAFile::FASTAEntry> entries;
+  FASTAFile::FASTAEntry e;
+  e.identifier = "TEST1";
+  e.sequence = "PEPTIDER";
+  entries.push_back(e);
+  fi.build(entries);
+
+  TEST_EQUAL(fi.testQuery(2, true, entries), true);
+}
+END_SECTION
+
+START_SECTION((asymmetric window compensates precursor calibration offset))
+{
+  // Instrument reads precursor m/z +8 ppm high. A symmetric [5, 5] ppm window misses the peptide
+  // at iso=0, because the observed mass sits 8 ppm ABOVE the peptide — outside [-5, +5] ppm.
+  // Compensating asymmetrically by widening the LOWER side ([15, 5] ppm) shifts the window
+  // down to cover the peptide: [-15, +5] ppm around the observed mass includes the true mass.
+  //
+  // Isotope iteration is collapsed to [0, 0] so the test observes *only* the window behaviour
+  // under investigation (iso=±1 would otherwise reshape the effective window by ±1.003 Da).
+  FragmentIndex_test fi;
+  Param p = fi.getParameters();
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+
+  vector<FASTAFile::FASTAEntry> entries;
+  FASTAFile::FASTAEntry e;
+  e.identifier = "TEST";
+  e.sequence = "PEPTIDER";
+  entries.push_back(e);
+
+  // First run: symmetric tight — should NOT find
+  p.setValue("precursor:mass_tolerance_lower", 5.0);
+  p.setValue("precursor:mass_tolerance_upper", 5.0);
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Construct a query spectrum whose precursor is shifted +8 ppm
+  AASequence seq = AASequence::fromString("PEPTIDER");
+  MSSpectrum spec;
+  Precursor prec;
+  const double true_mz = seq.getMZ(2);
+  prec.setMZ(true_mz * (1.0 + 8e-6));   // +8 ppm
+  prec.setCharge(2);
+  spec.getPrecursors().push_back(prec);
+  spec.setMSLevel(2);
+
+  // Build a minimal theoretical spectrum for the query (all b/y ions, charge 1)
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum theo;
+  tsg.getSpectrum(theo, seq, 1, 1);
+  for (const auto& peak : theo) spec.push_back(peak);
+  spec.sortByPosition();
+
+  FragmentIndex::SpectrumMatchesTopN sms_tight;
+  fi.querySpectrum(spec, sms_tight);
+  TEST_EQUAL(sms_tight.hits_.empty(), true);
+
+  // Second run: asymmetric [15, 5] ppm — widen the LOWER side to compensate the +8 ppm bias
+  p.setValue("precursor:mass_tolerance_lower", 15.0);
+  p.setValue("precursor:mass_tolerance_upper", 5.0);
+  fi.setParameters(p);
+
+  FragmentIndex::SpectrumMatchesTopN sms_asym;
+  fi.querySpectrum(spec, sms_asym);
+  TEST_NOT_EQUAL(sms_asym.hits_.size(), 0);
+}
+END_SECTION
+
+START_SECTION((static bool isOpenSearchMode(double, double, bool)))
+{
+  // Strict > threshold. 1000 ppm stays closed.
+  TEST_EQUAL(FragmentIndex::isOpenSearchMode(500.0,  1500.0, true), true);
+  TEST_EQUAL(FragmentIndex::isOpenSearchMode(999.0,   999.0, true), false);
+  TEST_EQUAL(FragmentIndex::isOpenSearchMode(1000.0, 1000.0, true), false);
+  TEST_EQUAL(FragmentIndex::isOpenSearchMode(1000.0001, 1000.0, true), true);
+
+  // Da unit — threshold 1.0
+  TEST_EQUAL(FragmentIndex::isOpenSearchMode(0.9, 0.9, false), false);
+  TEST_EQUAL(FragmentIndex::isOpenSearchMode(1.0, 1.0, false), false);
+  TEST_EQUAL(FragmentIndex::isOpenSearchMode(1.1, 0.5, false), true);
+}
+END_SECTION
+
+// --- Asymmetric precursor window: Task 9 observable-proxy isotope tests ---
+
+START_SECTION((open-mode forces isotope_error iteration to [0,0]))
+{
+  // Observable-proxy: under open mode, a fixture with isotope_error_range [-2, +2]
+  // produces the same PSM set as [0, 0] — proving iteration collapsed.
+  vector<FASTAFile::FASTAEntry> entries;
+  FASTAFile::FASTAEntry e;
+  e.identifier = "TEST";
+  e.sequence = "PEPTIDER";
+  entries.push_back(e);
+
+  // Run 1: open mode with user iso range [-2, +2]
+  FragmentIndex_test fi_a;
+  Param p_a = fi_a.getParameters();
+  p_a.setValue("precursor:mass_tolerance_lower", 0.5);
+  p_a.setValue("precursor:mass_tolerance_upper", 1.5);  // 1.5 Da > 1.0 → open mode
+  p_a.setValue("precursor:mass_tolerance_unit", "Da");
+  p_a.setValue("precursor:isotope_error_min", -2);
+  p_a.setValue("precursor:isotope_error_max", +2);
+  fi_a.setParameters(p_a);
+  fi_a.build(entries);
+
+  // Run 2: open mode with iso range [0, 0]
+  FragmentIndex_test fi_b;
+  Param p_b = fi_b.getParameters();
+  p_b.setValue("precursor:mass_tolerance_lower", 0.5);
+  p_b.setValue("precursor:mass_tolerance_upper", 1.5);
+  p_b.setValue("precursor:mass_tolerance_unit", "Da");
+  p_b.setValue("precursor:isotope_error_min", 0);
+  p_b.setValue("precursor:isotope_error_max", 0);
+  fi_b.setParameters(p_b);
+  fi_b.build(entries);
+
+  // Construct identical query spectrum for both
+  AASequence seq = AASequence::fromString("PEPTIDER");
+  MSSpectrum spec;
+  Precursor prec;
+  prec.setMZ(seq.getMZ(2));
+  prec.setCharge(2);
+  spec.getPrecursors().push_back(prec);
+  spec.setMSLevel(2);
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum theo;
+  tsg.getSpectrum(theo, seq, 1, 1);
+  for (const auto& peak : theo) spec.push_back(peak);
+  spec.sortByPosition();
+
+  FragmentIndex::SpectrumMatchesTopN sms_a, sms_b;
+  fi_a.querySpectrum(spec, sms_a);
+  fi_b.querySpectrum(spec, sms_b);
+
+  // Equal PSM set sizes → iteration collapsed (the [-2,+2] config did NOT produce more hits)
+  TEST_EQUAL(sms_a.hits_.size(), sms_b.hits_.size());
+}
+END_SECTION
+
+START_SECTION((asymmetric closed window interacts with isotope_error iteration))
+{
+  // [5, 15] ppm + isotope_error [-1, +2]. A multi-peptide fixture covered by a closed-mode
+  // asymmetric window; each peptide self-hits under testQuery (observable proxy for the
+  // combined window + iso_error iteration path).
+  // Use 'no cleavage' so the full fasta sequences become distinct peptides with distinct masses.
+  vector<FASTAFile::FASTAEntry> entries;
+  FASTAFile::FASTAEntry e1, e2, e3;
+  e1.identifier = "P1"; e1.sequence = "PEPTIDER";      // mass m0
+  e2.identifier = "P2"; e2.sequence = "PEPTIDERG";     // mass ~m0+57 Da (G = 57.02)
+  e3.identifier = "P3"; e3.sequence = "PEPTIDERA";     // mass ~m0+71 Da (A = 71.04)
+  entries = {e1, e2, e3};
+
+  FragmentIndex_test fi;
+  Param p = fi.getParameters();
+  p.setValue("enzyme", "no cleavage");
+  p.setValue("precursor:mass_tolerance_lower", 5.0);
+  p.setValue("precursor:mass_tolerance_upper", 15.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("precursor:isotope_error_min", -1);
+  p.setValue("precursor:isotope_error_max", +2);
+  // Include all fragment peaks (low-mz + low-index) so testQuery can satisfy num_matched >= spec.size()
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("fragment:max_mz", 50000);
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Query each peptide's own theoretical spectrum and verify self-hit via testQuery
+  TEST_EQUAL(fi.testQuery(2, true, entries), true);
+}
+END_SECTION
+
+// --- Task 10: parameter validation throws ---
+
+START_SECTION((validation: negative magnitude rejected))
+{
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", -5.0);  // invalid: below setMinFloat(0.0)
+  p.setValue("precursor:mass_tolerance_upper", 10.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  // checkDefaults_ fires from setParameters via the min-float check
+  TEST_EXCEPTION(Exception::InvalidParameter, fi.setParameters(p));
+}
+END_SECTION
+
+START_SECTION((validation: zero-width window rejected))
+{
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 0.0);
+  p.setValue("precursor:mass_tolerance_upper", 0.0);   // sum == 0 → rejected
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  TEST_EXCEPTION(Exception::InvalidParameter, fi.setParameters(p));
+}
+END_SECTION
+
+START_SECTION((validation: NaN rejected))
+{
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 10.0);
+  p.setValue("precursor:mass_tolerance_upper", std::numeric_limits<double>::quiet_NaN());
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  TEST_EXCEPTION(Exception::InvalidParameter, fi.setParameters(p));
+}
+END_SECTION
+
+// ---------------------------------------------------------------------------
+// Half-open vs closed-closed peptide_idx_range contract
+// ---------------------------------------------------------------------------
+// getPeptidesInMassWindow returns a HALF-OPEN [first, second) index range.
+// Previously the callers (searchDifferentPrecursorRanges and
+// FragmentIndex::query()) treated the range as closed-closed, spuriously
+// including the peptide at index `second` — a peptide whose precursor_mz is
+// strictly greater than the window's upper bound. The tests below pin the
+// half-open contract and guard against a regression of the callers.
+
+START_SECTION((getPeptidesInMassWindow half-open contract))
+{
+  // Build an index with 5 well-separated peptide masses. peptide:enzyme=no cleavage
+  // makes each FASTA entry one peptide with a predictable mass.
+  FragmentIndex_test fi;
+  Param p = fi.getParameters();
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("precursor:mass_tolerance_lower", 1000.0);   // wide at build time — the
+  p.setValue("precursor:mass_tolerance_upper", 1000.0);   // window we test with is passed
+                                                           // directly to getPeptidesInMassWindow,
+                                                           // not derived from these params.
+  p.setValue("enzyme", "no cleavage");
+  p.setValue("peptide:min_size", 1);
+  fi.setParameters(p);
+
+  std::vector<FASTAFile::FASTAEntry> entries;
+  FASTAFile::FASTAEntry e1, e2, e3, e4, e5;
+  e1.identifier = "P1"; e1.sequence = "AAAK";        // ~ 388 Da
+  e2.identifier = "P2"; e2.sequence = "AAAAK";       // ~ 459 Da
+  e3.identifier = "P3"; e3.sequence = "AAAAAK";      // ~ 530 Da
+  e4.identifier = "P4"; e4.sequence = "AAAAAAK";     // ~ 601 Da
+  e5.identifier = "P5"; e5.sequence = "AAAAAAAK";    // ~ 672 Da
+  entries = {e1, e2, e3, e4, e5};
+  fi.build(entries);
+
+  const auto& peptides = fi.getPeptides();
+  TEST_EQUAL(peptides.size(), 5u);
+  // Peptides are sorted ascending by precursor_mz_ after build().
+  TEST_EQUAL(peptides[0].precursor_mz_ < peptides[1].precursor_mz_, true);
+  TEST_EQUAL(peptides[3].precursor_mz_ < peptides[4].precursor_mz_, true);
+
+  // Case 1: narrow window at a middle peptide excludes both neighbours.
+  const float p2_mass = peptides[2].precursor_mz_;
+  auto r1 = fi.getPeptidesInMassWindow(p2_mass, {-10.0f, 10.0f});
+  TEST_EQUAL(r1.first, 2u);
+  TEST_EQUAL(r1.second, 3u);   // HALF-OPEN: [2, 3) — only peptide 2
+  // peptide at index r1.second (== 3) must have mass STRICTLY GREATER than the
+  // window's upper bound. This is the half-open invariant the callers must respect.
+  TEST_EQUAL(peptides[r1.second].precursor_mz_ > p2_mass + 10.0f, true);
+
+  // Case 2: window at the last peptide — second == size() is the half-open sentinel.
+  const float p5_mass = peptides[4].precursor_mz_;
+  auto r2 = fi.getPeptidesInMassWindow(p5_mass, {-10.0f, 10.0f});
+  TEST_EQUAL(r2.first, 4u);
+  TEST_EQUAL(r2.second, 5u);   // [4, 5) == [4, size())
+
+  // Case 3: window at the first peptide.
+  const float p1_mass = peptides[0].precursor_mz_;
+  auto r3 = fi.getPeptidesInMassWindow(p1_mass, {-10.0f, 10.0f});
+  TEST_EQUAL(r3.first, 0u);
+  TEST_EQUAL(r3.second, 1u);
+
+  // Case 4: empty window in the gap between two peptides.
+  const float gap_mass = (peptides[1].precursor_mz_ + peptides[2].precursor_mz_) * 0.5f;
+  const float gap_tol = (peptides[2].precursor_mz_ - peptides[1].precursor_mz_) * 0.25f;
+  auto r4 = fi.getPeptidesInMassWindow(gap_mass, {-gap_tol, gap_tol});
+  TEST_EQUAL(r4.first, r4.second);   // empty range (first == second)
+
+  // Case 5: window entirely below all peptides.
+  auto r5 = fi.getPeptidesInMassWindow(100.0f, {-10.0f, 10.0f});
+  TEST_EQUAL(r5.first, 0u);
+  TEST_EQUAL(r5.second, 0u);   // empty at the beginning
+
+  // Case 6: window entirely above all peptides.
+  auto r6 = fi.getPeptidesInMassWindow(10000.0f, {-10.0f, 10.0f});
+  TEST_EQUAL(r6.first, 5u);
+  TEST_EQUAL(r6.second, 5u);   // empty at the end (first == size == second)
+
+  // Case 7: wide window covering all peptides — second == size() signals "no peptide past end".
+  auto r7 = fi.getPeptidesInMassWindow(peptides[2].precursor_mz_, {-10000.0f, 10000.0f});
+  TEST_EQUAL(r7.first, 0u);
+  TEST_EQUAL(r7.second, 5u);
+
+  // Case 8: upper bound EXACTLY at a peptide's mass. upper_bound returns the first
+  // iterator strictly greater than the bound, so a peptide whose mass equals the bound
+  // IS included in the half-open range.
+  const float lo_mass = peptides[1].precursor_mz_;
+  const float hi_mass = peptides[2].precursor_mz_;
+  const float upper_offset = hi_mass - lo_mass;   // so lo_mass + upper_offset == hi_mass
+  auto r8 = fi.getPeptidesInMassWindow(lo_mass, {0.0f, upper_offset});
+  TEST_EQUAL(r8.first, 1u);
+  // peptide 2 (mass == upper bound) IS included; peptide 3 is not.
+  TEST_EQUAL(r8.second, 3u);   // [1, 3) contains peptides 1 and 2
+}
+END_SECTION
+
+START_SECTION((FragmentIndex does not score the peptide at range.second (closed-closed regression guard)))
+{
+  // Regression guard: before fixing the callers, FragmentIndex::query() used strict `>`
+  // to decide loop termination (treating range.second as inclusive) and
+  // searchDifferentPrecursorRanges sized candidates_iso_error.hits_ with `second - first + 1`,
+  // creating a spurious slot for the out-of-window neighbour peptide. queryPeaks would then
+  // write that neighbour's fragment matches into the spurious slot, making it appear in the
+  // PSM output even though its precursor mass was strictly outside the user's window.
+  //
+  // Fixture: two peptides A (light) and B (heavy, +71 Da outside). Query uses A's precursor
+  // mass but B's theoretical fragment peaks — so if the old closed-closed iteration is still
+  // active, B scores perfectly as a spurious hit. With the half-open fix, B is excluded from
+  // the candidate range and never written into hits.
+
+  FragmentIndex_test fi;
+  Param p = fi.getParameters();
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("precursor:mass_tolerance_lower", 5.0);
+  p.setValue("precursor:mass_tolerance_upper", 5.0);
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("enzyme", "no cleavage");
+  p.setValue("peptide:min_size", 1);
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("fragment:max_mz", 50000);
+  fi.setParameters(p);
+
+  std::vector<FASTAFile::FASTAEntry> entries;
+  FASTAFile::FASTAEntry eA, eB;
+  eA.identifier = "A"; eA.sequence = "PEPTIDER";      // ~ 957 Da
+  eB.identifier = "B"; eB.sequence = "PEPTIDERA";     // ~ 957 + 71 = 1028 Da (well outside 10 Da window)
+  entries = {eA, eB};
+  fi.build(entries);
+
+  const auto& peptides = fi.getPeptides();
+  TEST_EQUAL(peptides.size(), 2u);
+  // Lighter (A) sorts to index 0, heavier (B) to index 1.
+  TEST_EQUAL(peptides[0].precursor_mz_ < peptides[1].precursor_mz_, true);
+  const size_t idx_A = 0u;
+  const size_t idx_B = 1u;
+  // Confirm B is genuinely outside A's window.
+  TEST_EQUAL(peptides[idx_B].precursor_mz_ > peptides[idx_A].precursor_mz_ + 5.0f, true);
+
+  // Confirm getPeptidesInMassWindow returns the half-open single-peptide range [0, 1).
+  auto range = fi.getPeptidesInMassWindow(peptides[idx_A].precursor_mz_, {-5.0f, 5.0f});
+  TEST_EQUAL(range.first, idx_A);
+  TEST_EQUAL(range.second, idx_A + 1);  // points past A but BEFORE B
+
+  // Construct a query spectrum: precursor m/z is A's, fragment peaks are B's theoretical fragments.
+  // If the pre-fix closed-closed iteration were still active, B would be processed and its
+  // fragment matches would be written via (peptide_idx - first) into a spurious slot.
+  AASequence seqB = AASequence::fromString(eB.sequence);
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_params = tsg.getParameters();
+  tsg_params.setValue("add_first_prefix_ion", "true");
+  tsg.setParameters(tsg_params);
+  PeakSpectrum theoB;
+  tsg.getSpectrum(theoB, seqB, 1, 1);
+
+  MSSpectrum spec;
+  for (const auto& peak : theoB) spec.push_back(peak);
+  spec.sortByPosition();
+  Precursor prec;
+  prec.setMZ(peptides[idx_A].precursor_mz_);
+  prec.setCharge(1);
+  spec.getPrecursors().push_back(prec);
+  spec.setMSLevel(2);
+
+  FragmentIndex::SpectrumMatchesTopN sms;
+  fi.querySpectrum(spec, sms);
+
+  // Post-fix expectation: peptide B is never scored, because its index (1) is the `second`
+  // bound of the half-open range and the query loop stops strictly before it. No hit in
+  // sms.hits_ should reference idx_B.
+  bool found_B_hit = false;
+  for (const auto& hit : sms.hits_)
+  {
+    if (hit.peptide_idx_ == idx_B && hit.num_matched_ > 0)
+    {
+      found_B_hit = true;
+      break;
+    }
+  }
+  TEST_EQUAL(found_B_hit, false);
 }
 END_SECTION
 

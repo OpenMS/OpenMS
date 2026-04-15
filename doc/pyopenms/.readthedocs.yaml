@@ -1,0 +1,20 @@
+version: 2
+
+# Build from the docs/ directory with Sphinx
+sphinx:
+  configuration: doc/pyopenms/docs/source/conf.py
+
+build:
+  os: ubuntu-24.04
+  tools:
+    python: "3.13"
+  jobs:
+    post_checkout:
+      # Debug: print the git identifier for troubleshooting RTD builds
+      - echo "READTHEDOCS_GIT_IDENTIFIER=$READTHEDOCS_GIT_IDENTIFIER"
+    post_install:
+      - python doc/pyopenms/docs/install_pyopenms.py
+
+python:
+  install:
+    - requirements: doc/pyopenms/docs/requirements.txt

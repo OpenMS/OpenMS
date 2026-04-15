@@ -39,7 +39,7 @@ MorpheusScore.cpp
 NeighborSeq.cpp
 OpenSearchModificationAnalysis.cpp
 PeptideProteinResolution.cpp
-PeptideSearchEngineFIAlgorithm.cpp
+ProSEAlgorithm.cpp
 PeptideIndexing.cpp
 PercolatorFeatureSetHelper.cpp
 PrecursorPurity.cpp

@@ -196,6 +196,20 @@ protected:
       "MS1 frame IM-centroiding ion mobility tolerance in percent. Both this and ms1_centroid_mz_ppm "
       "must be > 0 to enable. Suggested value: 3.0.", false, true);
     setMinFloat_("bruker:ms1_centroid_im_pct", 0.0);
+    registerIntOption_("bruker:dia_ms2_n_neighbors", "<int>", 0,
+      "DIA MS2 frame aggregation: number of adjacent frames on each side to sum per SWATH window. "
+      "0 = disabled (raw export), 1 = 3-frame sum, 2 = 5-frame sum. "
+      "Boosts signal by summing intensity across neighboring RT frames, then removes isolated noise.", false, true);
+    setMinInt_("bruker:dia_ms2_n_neighbors", 0);
+    registerIntOption_("bruker:dia_ms2_min_support", "<int>", 1,
+      "DIA MS2 denoising: minimum occupied neighbor cells in a 3x3 (m/z x IM) grid to keep a point "
+      "(center cell excluded from count). Applied after frame aggregation. Only effective when dia_ms2_n_neighbors > 0. "
+      "Set to 0 to disable denoising (useful for pure centroiding without noise filtering).", false, true);
+    setMinInt_("bruker:dia_ms2_min_support", 0);
+    registerStringOption_("bruker:dia_ms2_centroid", "<toggle>", "false",
+      "Apply 2D Gaussian smoothing + local maxima peak picking to the denoised DIA MS2 grid. "
+      "Produces IM_CENTROIDED spectra with sub-bin (m/z, IM) precision. Only effective when dia_ms2_n_neighbors > 0.", false, true);
+    setValidStrings_("bruker:dia_ms2_centroid", {"true", "false"});
 #endif
 
     registerTOPPSubsection_("RawToMzML", "Options for converting raw files to mzML (uses ThermoRawFileParser)");
@@ -229,6 +243,9 @@ protected:
     else c.export_mode = BrukerTimsFile::Config::AUTO;
     c.ms1_centroid_mz_ppm = static_cast<float>(getDoubleOption_("bruker:ms1_centroid_mz_ppm"));
     c.ms1_centroid_im_pct = static_cast<float>(getDoubleOption_("bruker:ms1_centroid_im_pct"));
+    c.dia_ms2_n_neighbors = getIntOption_("bruker:dia_ms2_n_neighbors");
+    c.dia_ms2_min_support = getIntOption_("bruker:dia_ms2_min_support");
+    c.dia_ms2_centroid = (getStringOption_("bruker:dia_ms2_centroid") == "true");
     return c;
   }
 #endif

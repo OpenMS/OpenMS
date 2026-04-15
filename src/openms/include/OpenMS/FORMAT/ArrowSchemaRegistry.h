@@ -192,6 +192,10 @@ namespace OpenMS
     static constexpr const char* PSM_METAVALUES = "psm_metavalues";
     static constexpr const char* SPECTRUM_METAVALUES = "spectrum_metavalues";
     static constexpr const char* RUN_IDENTIFIER = "run_identifier";
+    static constexpr const char* MZ_ARRAY = "mz_array";
+    static constexpr const char* INTENSITY_ARRAY = "intensity_array";
+    static constexpr const char* CHARGE_ARRAY = "charge_array";
+    static constexpr const char* ION_TYPE_ARRAY = "ion_type_array";
 
     static std::shared_ptr<arrow::DataType> modificationsType();
     static std::shared_ptr<arrow::DataType> additionalScoresType();
@@ -295,6 +299,52 @@ namespace OpenMS
     /// @brief Arrow type for protein group positions: list<struct{protein_accession, start, end}>
     static std::shared_ptr<arrow::DataType> pgPositionsType();
     /// @brief Complete Arrow schema for QPX feature table (31 fields)
+    static std::shared_ptr<arrow::Schema> schema();
+  };
+
+  /// @brief Schema for QPX protein group export (quantms Parquet eXchange format, pg table)
+  ///
+  /// Defines column names, nested Arrow types, and the complete schema for
+  /// protein group data in the QPX format. Supports both quantified (ConsensusMap)
+  /// and identification-only (search engine) output — quantification columns are nullable.
+  struct OPENMS_DLLAPI QPXPgSchema
+  {
+    static constexpr const char* PG_ACCESSIONS = "pg_accessions";
+    static constexpr const char* PG_NAMES = "pg_names";
+    static constexpr const char* GG_ACCESSIONS = "gg_accessions";
+    static constexpr const char* GG_NAMES = "gg_names";
+    static constexpr const char* GG_QVALUE = "gg_qvalue";
+    static constexpr const char* ANCHOR_PROTEIN = "anchor_protein";
+    static constexpr const char* RUN_FILE_NAME = "run_file_name";
+    static constexpr const char* GLOBAL_QVALUE = "global_qvalue";
+    static constexpr const char* PG_QVALUE = "pg_qvalue";
+    static constexpr const char* INTENSITIES = "intensities";
+    static constexpr const char* ADDITIONAL_INTENSITIES = "additional_intensities";
+    static constexpr const char* IS_DECOY = "is_decoy";
+    static constexpr const char* CONTAMINANT = "contaminant";
+    static constexpr const char* PEPTIDES = "peptides";
+    static constexpr const char* PEPTIDE_COUNTS = "peptide_counts";
+    static constexpr const char* FEATURE_COUNTS = "feature_counts";
+    static constexpr const char* SEQUENCE_COVERAGE = "sequence_coverage";
+    static constexpr const char* MOLECULAR_WEIGHT = "molecular_weight";
+    static constexpr const char* ADDITIONAL_SCORES = "additional_scores";
+    static constexpr const char* CV_PARAMS = "cv_params";
+
+    /// @brief Arrow type for intensities: list<struct{label, intensity}> (nullable for search-engine output)
+    static std::shared_ptr<arrow::DataType> intensitiesType();
+    /// @brief Arrow type for additional intensities: list<struct{label, intensities: list<struct{...}>}>
+    static std::shared_ptr<arrow::DataType> additionalIntensitiesType();
+    /// @brief Arrow type for peptides: list<struct{protein_name, peptide_count}>
+    static std::shared_ptr<arrow::DataType> peptidesType();
+    /// @brief Arrow type for peptide_counts: struct{unique_sequences, total_sequences}
+    static std::shared_ptr<arrow::DataType> peptideCountsType();
+    /// @brief Arrow type for feature_counts: struct{unique_features, total_features}
+    static std::shared_ptr<arrow::DataType> featureCountsType();
+    /// @brief Arrow type for additional scores (delegates to QPXPSMSchema::additionalScoresType)
+    static std::shared_ptr<arrow::DataType> additionalScoresType();
+    /// @brief Arrow type for CV params (delegates to QPXPSMSchema::cvParamsType)
+    static std::shared_ptr<arrow::DataType> cvParamsType();
+    /// @brief Complete Arrow schema for QPX pg table (20 fields)
     static std::shared_ptr<arrow::Schema> schema();
   };
 
