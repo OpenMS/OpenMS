@@ -593,7 +593,7 @@ START_SECTION(DIA MS2 aggregation test)
 
   // Count MS2 spectra, total MS2 peaks, and cumulative MS2 intensity in both.
   //
-  // DIAFrameAggregator (BrukerTimsFile.cpp) is a two-stage operation on a
+  // FrameAggregator (BrukerTimsFile.cpp) is a two-stage operation on a
   // sparse 2D grid keyed by (mz_bin, scan_id) — NOT (mz_bin, scan_id, frame_id):
   //
   //   1. SUM stage: for each (center_frame_i, window) position, accumulate
@@ -747,7 +747,7 @@ START_SECTION(DIA MS2 centroiding without denoising (min_support=0))
 {
   // Regression guard for the "centroid without noise filter" path exposed via
   // Config::dia_ms2_min_support = 0. With min_support=0 the 3x3 neighbor filter
-  // in DIAFrameAggregator::finalize{,Centroided} is a no-op (`neighbors < 0` is
+  // in FrameAggregator::finalize{,Centroided} is a no-op (`neighbors < 0` is
   // always false), so every populated grid cell survives the denoise step.
   // Under centroiding that means more local maxima → strictly more output peaks
   // than the denoised (min_support=1) path, because denoising preferentially

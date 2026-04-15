@@ -330,10 +330,10 @@ namespace OpenMS
       return false;
     }
 
-    /// Helper for DIA MS2 frame aggregation and denoising.
-    /// Bins peaks from multiple frames onto a sparse (mz_bin, scan_id) grid,
-    /// applies spatial denoising, and outputs the surviving peaks.
-    class DIAFrameAggregator
+    /// Grid-based aggregator for stacking peaks from adjacent frames into a sparse
+    /// (mz_bin, scan_id) grid, with optional 3x3 spatial denoising. Used by both
+    /// DIA MS2 aggregation and MS1 aggregation (with different bin widths).
+    class FrameAggregator
     {
     public:
       static constexpr double MZ_BIN_WIDTH = 0.02; // Da — absorbs frame-to-frame m/z jitter
@@ -1816,7 +1816,7 @@ namespace OpenMS
       Size progress_count = 0;
 
       const int N = config.dia_ms2_n_neighbors;
-      DIAFrameAggregator aggregator;
+      FrameAggregator aggregator;
 
       for (const auto& [group, frame_ids] : group_to_frames)
       {
