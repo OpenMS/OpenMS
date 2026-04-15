@@ -264,40 +264,15 @@ namespace OpenMS
       ScoreValueList() = default;
 
       ScoreValueList(const Feature& feature, const std::string& score_name)
+        : feature_(&feature)
       {
-        const UInt score_index = cachedMetaInfoIndex(score_name);
-        if (score_index == UInt(-1))
-        {
-          return;
-        }
-
-        const DataValue& dv = feature.getMetaValue(score_index);
-        if (dv.isEmpty())
-        {
-          return;
-        }
-
-        type_ = dv.valueType();
-        if (type_ == DataValue::STRING_LIST)
-        {
-          string_values_ = dv.toStringList();
-        }
-        else if (type_ == DataValue::INT_LIST)
-        {
-          int_values_ = dv.toIntList();
-        }
-        else if (type_ == DataValue::DOUBLE_LIST)
-        {
-          double_values_ = dv.toDoubleList();
-        }
-        else
-        {
-          single_value_ = oswValue(dv);
-        }
+        score_index_ = cachedMetaInfoIndex(score_name);
+        // don't materialize here - lazy conversion in size()/at()
       }
 
       Size size() const
       {
+        ensureConverted();
         if (type_ == DataValue::STRING_LIST)
         {
           return string_values_.size();
@@ -320,6 +295,7 @@ namespace OpenMS
 
       OpenSwathOSWWriter::OSWValue at(Size index) const
       {
+        ensureConverted();
         if (index >= size())
         {
           return OpenSwathOSWWriter::OSWValue::null();
@@ -341,11 +317,58 @@ namespace OpenMS
       }
 
     private:
-      DataValue::DataType type_ = DataValue::EMPTY_VALUE;
-      StringList string_values_;
-      IntList int_values_;
-      DoubleList double_values_;
-      OpenSwathOSWWriter::OSWValue single_value_;
+      void ensureConverted() const
+      {
+        if (converted_) return;
+        converted_ = true;
+        if (feature_ == nullptr) {
+          type_ = DataValue::EMPTY_VALUE;
+          return;
+        }
+        if (score_index_ == UInt(-1))
+        {
+          type_ = DataValue::EMPTY_VALUE;
+          return;
+        }
+        if (!feature_->metaValueExists(score_index_))
+        {
+          type_ = DataValue::EMPTY_VALUE;
+          return;
+        }
+        const DataValue& dv = feature_->getMetaValue(score_index_);
+        if (dv.isEmpty())
+        {
+          type_ = DataValue::EMPTY_VALUE;
+          return;
+        }
+
+        type_ = dv.valueType();
+        if (type_ == DataValue::STRING_LIST)
+        {
+          string_values_ = dv.toStringList();
+        }
+        else if (type_ == DataValue::INT_LIST)
+        {
+          int_values_ = dv.toIntList();
+        }
+        else if (type_ == DataValue::DOUBLE_LIST)
+        {
+          double_values_ = dv.toDoubleList();
+        }
+        else
+        {
+          single_value_ = oswValue(dv);
+        }
+      }
+
+      const Feature* feature_ = nullptr;
+      UInt score_index_ = UInt(-1);
+      mutable bool converted_ = false;
+      mutable DataValue::DataType type_ = DataValue::EMPTY_VALUE;
+      mutable StringList string_values_;
+      mutable IntList int_values_;
+      mutable DoubleList double_values_;
+      mutable OpenSwathOSWWriter::OSWValue single_value_;
     };
 
     OpenSwathOSWWriter::OSWValue oswValueAt(const ScoreValueList& values, Size index)
