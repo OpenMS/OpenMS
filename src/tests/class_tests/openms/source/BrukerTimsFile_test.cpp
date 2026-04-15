@@ -491,6 +491,62 @@ START_SECTION(DDA search engine IM annotation integration test)
 }
 END_SECTION
 
+START_SECTION(DDA MS1 aggregation with RT cap test)
+{
+  BrukerTimsFile f;
+
+  // Baseline: raw DDA MS1
+  MSExperiment exp_raw;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_raw);
+
+  // Aggregated: ms1_n_neighbors=1 uncapped
+  BrukerTimsFile::Config cfg_uncapped;
+  cfg_uncapped.ms1_n_neighbors = 1;
+  cfg_uncapped.ms1_max_rt_distance_sec = 0.0;
+  MSExperiment exp_uncapped;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_uncapped, cfg_uncapped);
+
+  // Aggregated: tight 1.0s RT cap (may be inert if fixture MS1 cadence is tight)
+  BrukerTimsFile::Config cfg_capped;
+  cfg_capped.ms1_n_neighbors = 1;
+  cfg_capped.ms1_max_rt_distance_sec = 1.0;
+  MSExperiment exp_capped;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_capped, cfg_capped);
+
+  auto count_ms1 = [](const MSExperiment& e, Size& n_spectra, double& total_intensity)
+  {
+    n_spectra = 0; total_intensity = 0.0;
+    for (const auto& s : e)
+      if (s.getMSLevel() == 1)
+      {
+        ++n_spectra;
+        for (const auto& p : s) total_intensity += p.getIntensity();
+      }
+  };
+
+  Size raw_n, uncapped_n, capped_n;
+  double raw_i, uncapped_i, capped_i;
+  count_ms1(exp_raw, raw_n, raw_i);
+  count_ms1(exp_uncapped, uncapped_n, uncapped_i);
+  count_ms1(exp_capped, capped_n, capped_i);
+
+  TEST_NOT_EQUAL(raw_n, 0);
+  TEST_NOT_EQUAL(uncapped_n, 0);
+  TEST_NOT_EQUAL(capped_n, 0);
+
+  // Uncapped aggregation boosts intensity over raw
+  TEST_EQUAL(uncapped_i > raw_i, true);
+
+  // Capped aggregation ≤ uncapped (cap can only exclude neighbors, never add)
+  TEST_EQUAL(capped_i <= uncapped_i, true);
+
+  STATUS("DDA MS1 aggregation: raw intensity=" << raw_i
+         << " uncapped=" << uncapped_i
+         << " capped(1.0s)=" << capped_i
+         << " cap_reduction=" << (1.0 - capped_i / uncapped_i));
+}
+END_SECTION
+
 #endif // OPENTIMS_DDA_TEST_DATA
 
 #ifdef OPENTIMS_DIA_TEST_DATA

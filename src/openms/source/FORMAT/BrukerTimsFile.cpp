@@ -1575,11 +1575,21 @@ namespace OpenMS
 
     // --- MS1 frames ---
     FrameCentroider centroider;
+    FrameAggregator ms1_aggregator(0.01);
+    if (config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
     for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
     {
-      TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
       MSSpectrum spec;
-      loadMS1Spectrum(frame, spec, config, centroider);
+      if (config.ms1_n_neighbors > 0)
+      {
+        loadAggregatedMS1Spectrum(handle, ms1_frame_ids, i, config,
+                                  ms1_aggregator, centroider, spec);
+      }
+      else
+      {
+        TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
+        loadMS1Spectrum(frame, spec, config, centroider);
+      }
       exp.addSpectrum(std::move(spec));
       setProgress(i);
     }
