@@ -17,6 +17,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <fstream>
+#include <functional>
 
 namespace OpenMS
 {
@@ -110,7 +111,10 @@ public:
 
     void setSeeds(const FeatureMap& seeds);
 
-    void setData(MSExperiment& map, FeatureMap& features);
+private:
+    void setData(MSExperiment&& map, FeatureMap& features);
+
+public:
 
     /**
       @brief Main method of the FeatureFinderAlgorithmPicked.
@@ -121,7 +125,7 @@ public:
 
       @note: The algorithm will not work on data with negative m/z values and throw an exception.
 
-      @note: the input data is modified internally (no memory overhead from copying).
+      @note: the input data is moved internally (no copying overhead).
 
       @param[in] input_map The input map of centroided spectra with MS level 1.
       @param[out] features The output feature map.
@@ -134,17 +138,18 @@ public:
       const Param& param, 
       const FeatureMap& seeds);
 
-    virtual Param getDefaultParameters() const
+    Param getDefaultParameters() const
     {
       return defaults_;
     }
 protected:
     void run();
 
-    /// pointer to the editable map
-    MapType* map_;
+    /// the editable map (moved from input)
+    MapType map_;
 
-    FeatureMap* features_;
+    /// pointer to the output feature map
+    FeatureMap* features_{nullptr};
 
     /// Output stream for log/debug info
     mutable std::ofstream log_;
@@ -361,4 +366,3 @@ private:
   };
 
 } // namespace OpenMS
-

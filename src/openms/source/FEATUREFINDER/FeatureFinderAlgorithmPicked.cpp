@@ -131,9 +131,9 @@ namespace OpenMS
     seeds_ = seeds;
   }
 
-  void FeatureFinderAlgorithmPicked::setData(MSExperiment& map, FeatureMap& features)
+  void FeatureFinderAlgorithmPicked::setData(MSExperiment&& map, FeatureMap& features)
   {
-    map_ = &map;
+    map_ = std::move(map);
     features_ = &features;
   }
 
@@ -198,7 +198,7 @@ namespace OpenMS
 
     //reserve space for calculated scores
     UInt charge_count = charge_high - charge_low + 1;
-    for (auto& s : (*map_))
+    for (auto& s : map_)
     {
       Size scan_size = s.size();
       s.getFloatDataArrays().resize(3 + 2 * charge_count);
@@ -242,10 +242,10 @@ namespace OpenMS
     //new scope to make local variables disappear
     {
       startProgress(0, intensity_bins_ * intensity_bins_, "Precalculating intensity scores");
-      double rt_start = map_->spectrumRanges().byMSLevel(1).getMinRT();
-      double mz_start = map_->spectrumRanges().byMSLevel(1).getMinMZ();
-      intensity_rt_step_ = (map_->spectrumRanges().byMSLevel(1).getMaxRT() - rt_start) / (double)intensity_bins_;
-      intensity_mz_step_ = (map_->spectrumRanges().byMSLevel(1).getMaxMZ() - mz_start) / (double)intensity_bins_;
+      double rt_start = map_.spectrumRanges().byMSLevel(1).getMinRT();
+      double mz_start = map_.spectrumRanges().byMSLevel(1).getMinMZ();
+      intensity_rt_step_ = (map_.spectrumRanges().byMSLevel(1).getMaxRT() - rt_start) / (double)intensity_bins_;
+      intensity_mz_step_ = (map_.spectrumRanges().byMSLevel(1).getMaxMZ() - mz_start) / (double)intensity_bins_;
       intensity_thresholds_.resize(intensity_bins_);
       for (Size rt = 0; rt < intensity_bins_; ++rt)
       {
@@ -261,7 +261,7 @@ namespace OpenMS
           //std::cout << "rt range: " << min_rt << " - " << max_rt << '\n';
           //std::cout << "mz range: " << min_mz << " - " << max_mz << '\n';
           tmp.clear();
-          for (MapType::ConstAreaIterator it = map_->areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != map_->areaEndConst(); ++it)
+          for (MapType::ConstAreaIterator it = map_.areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != map_.areaEndConst(); ++it)
           {
             tmp.push_back(it->getIntensity());
           }
@@ -281,11 +281,11 @@ namespace OpenMS
       }
 
       //store intensity score in PeakInfo
-      for (Size s = 0; s < map_->size(); ++s)
+      for (Size s = 0; s < map_.size(); ++s)
       {
-        for (Size p = 0; p < (*map_)[s].size(); ++p)
+        for (Size p = 0; p < map_[s].size(); ++p)
         {
-          (*map_)[s].getFloatDataArrays()[1][p] = intensityScore_(s, p);
+          map_[s].getFloatDataArrays()[1][p] = intensityScore_(s, p);
         }
       }
       endProgress();
@@ -297,13 +297,13 @@ namespace OpenMS
     //---------------------------------------------------------------------------
     //new scope to make local variables disappear
     {
-      Size end_iteration = map_->size() - std::min((Size)min_spectra_, map_->size());
+      Size end_iteration = map_.size() - std::min((Size)min_spectra_, map_.size());
       startProgress(min_spectra_, end_iteration, "Precalculating mass trace scores");
       // skip first and last scans since we cannot extend the mass traces there
       for (Size s = min_spectra_; s < end_iteration; ++s)
       {
         setProgress(s);
-        SpectrumType& spectrum = (*map_)[s];
+        SpectrumType& spectrum = map_[s];
         //iterate over all peaks of the scan
         for (Size p = 0; p < spectrum.size(); ++p)
         {
@@ -316,7 +316,7 @@ namespace OpenMS
           bool is_max_peak = true; // checking the maximum intensity peaks -> use them later as feature seeds.
           for (Size i = 1; i <= min_spectra_; ++i)
           {
-            SpectrumType& next_spectrum = (*map_)[s + i];
+            SpectrumType& next_spectrum = map_[s + i];
             if (!next_spectrum.empty()) // There are peaks in the spectrum
             {
               Size spec_index = next_spectrum.findNearest(pos);
@@ -327,7 +327,7 @@ namespace OpenMS
           }
           for (Size i = 1; i <= min_spectra_; ++i)
           {
-            SpectrumType& next_spectrum = (*map_)[s - i];
+            const SpectrumType& next_spectrum = map_[s - i];
             if (!next_spectrum.empty()) // There are peaks in the spectrum
             {
               Size spec_index = next_spectrum.findNearest(pos);
@@ -356,7 +356,7 @@ namespace OpenMS
     //---------------------------------------------------------------------------
     //new scope to make local variables disappear
     {
-      double max_mass = map_->spectrumRanges().byMSLevel(1).getMaxMZ() * charge_high;
+      double max_mass = map_.spectrumRanges().byMSLevel(1).getMaxMZ() * charge_high;
       Size num_isotopes = std::ceil(max_mass / mass_window_width_) + 1;
       startProgress(0, num_isotopes, "Precalculating isotope distributions");
 
@@ -449,11 +449,11 @@ namespace OpenMS
       //-----------------------------------------------------------
       // Step 3.1: Precalculate IsotopePattern score
       //-----------------------------------------------------------
-      startProgress(0, map_->size(), String("Calculating isotope pattern scores for charge ") + String(c));
-      for (Size s = 0; s < map_->size(); ++s)
+      startProgress(0, map_.size(), String("Calculating isotope pattern scores for charge ") + String(c));
+      for (Size s = 0; s < map_.size(); ++s)
       {
         setProgress(s);
-        const SpectrumType& spectrum = (*map_)[s];
+        const SpectrumType& spectrum = map_[s];
         for (Size p = 0; p < spectrum.size(); ++p)
         {
           double mz = spectrum[p].getMZ();
@@ -479,9 +479,9 @@ namespace OpenMS
           {
             for (Size i = 0; i < pattern.peak.size(); ++i)
             {
-              if (pattern.peak[i] >= 0 && pattern_score > (*map_)[pattern.spectrum[i]].getFloatDataArrays()[meta_index_isotope][pattern.peak[i]])
+              if (pattern.peak[i] >= 0 && pattern_score > map_[pattern.spectrum[i]].getFloatDataArrays()[meta_index_isotope][pattern.peak[i]])
               {
-                (*map_)[pattern.spectrum[i]].getFloatDataArrays()[meta_index_isotope][pattern.peak[i]] = pattern_score;
+                map_[pattern.spectrum[i]].getFloatDataArrays()[meta_index_isotope][pattern.peak[i]] = pattern_score;
               }
             }
           }
@@ -492,7 +492,7 @@ namespace OpenMS
       // Step 3.2:
       // Find seeds for this charge
       //-----------------------------------------------------------
-      Size end_of_iteration = map_->size() - std::min((Size)min_spectra_, map_->size());
+      Size end_of_iteration = map_.size() - std::min((Size)min_spectra_, map_.size());
       startProgress(min_spectra_, end_of_iteration, String("Finding seeds for charge ") + String(c));
 
       double min_seed_score = param_.getValue("seed:min_score");
@@ -502,9 +502,9 @@ namespace OpenMS
         setProgress(s);
 
         //iterate over peaks
-        for (Size p = 0; p < (*map_)[s].size(); ++p)
+        for (Size p = 0; p < map_[s].size(); ++p)
         {
-          FloatDataArrays& meta = (*map_)[s].getFloatDataArrays();
+          FloatDataArrays& meta = map_[s].getFloatDataArrays();
           double overall_score = std::pow(meta[0][p] * meta[1][p] * meta[meta_index_isotope][p], 1.0f / 3.0f);
           meta[meta_index_overall][p] = overall_score;
 
@@ -517,7 +517,7 @@ namespace OpenMS
               Seed seed;
               seed.spectrum = s;
               seed.peak = p;
-              seed.intensity = (*map_)[s][p].getIntensity();
+              seed.intensity = map_[s][p].getIntensity();
               seeds.push_back(seed);
             }
             //user-specified seeds: overall score greater than USER min seed score
@@ -525,19 +525,19 @@ namespace OpenMS
             {
               //only consider seeds, if they are near a user-specified seed
               Feature tmp;
-              tmp.setMZ((*map_)[s][p].getMZ() - user_mz_tol);
+              tmp.setMZ(map_[s][p].getMZ() - user_mz_tol);
               for (FeatureMap::const_iterator it = std::lower_bound(seeds_.begin(), seeds_.end(), tmp, Feature::MZLess()); it < seeds_.end(); ++it)
               {
-                if (it->getMZ() > (*map_)[s][p].getMZ() + user_mz_tol)
+                if (it->getMZ() > map_[s][p].getMZ() + user_mz_tol)
                 {
                   break;
                 }
-                if (fabs(it->getMZ() - (*map_)[s][p].getMZ()) < user_mz_tol && fabs(it->getRT() - (*map_)[s].getRT()) < user_rt_tol)
+                if (fabs(it->getMZ() - map_[s][p].getMZ()) < user_mz_tol && fabs(it->getRT() - map_[s].getRT()) < user_rt_tol)
                 {
                   Seed seed;
                   seed.spectrum = s;
                   seed.peak = p;
-                  seed.intensity = (*map_)[s][p].getIntensity();
+                  seed.intensity = map_[s][p].getIntensity();
                   seeds.push_back(seed);
                   break;
                 }
@@ -558,12 +558,12 @@ namespace OpenMS
         {
           Size spectrum = seed.spectrum;
           Size peak = seed.peak;
-          const FloatDataArrays& meta = (*map_)[spectrum].getFloatDataArrays();
+          const FloatDataArrays& meta = map_[spectrum].getFloatDataArrays();
           Feature tmp;
           tmp.setIntensity(seed.intensity);
           tmp.setOverallQuality(meta[meta_index_overall][peak]);
-          tmp.setRT((*map_)[spectrum].getRT());
-          tmp.setMZ((*map_)[spectrum][peak].getMZ());
+          tmp.setRT(map_[spectrum].getRT());
+          tmp.setMZ(map_[spectrum][peak].getMZ());
           tmp.setMetaValue("intensity_score", meta[1][peak]);
           tmp.setMetaValue("pattern_score", meta[meta_index_isotope][peak]);
           tmp.setMetaValue("trace_score", meta[0][peak]);
@@ -602,7 +602,7 @@ namespace OpenMS
         // Extend all mass traces
         //------------------------------------------------------------------
 
-        const SpectrumType& spectrum = (*map_)[seeds[i].spectrum];
+        const SpectrumType& spectrum = map_[seeds[i].spectrum];
         const PeakType& peak = spectrum[seeds[i].peak];
 
         IF_MASTERTHREAD
@@ -635,7 +635,7 @@ namespace OpenMS
         extendMassTraces_(best_pattern, traces, meta_index_overall);
 
         //check if the traces are still valid
-        double seed_mz = (*map_)[seeds[i].spectrum][seeds[i].peak].getMZ();
+        double seed_mz = map_[seeds[i].spectrum][seeds[i].peak].getMZ();
 
         if (!traces.isValid(seed_mz, trace_tolerance_))
         {
@@ -807,8 +807,8 @@ namespace OpenMS
         DBoundingBox<2> bb = f.getConvexHull().getBoundingBox();
         for (Size j = i + 1; j < seeds.size(); ++j)
         {
-          double rt = (*map_)[seeds[j].spectrum].getRT();
-          double mz = (*map_)[seeds[j].spectrum][seeds[j].peak].getMZ();
+          double rt = map_[seeds[j].spectrum].getRT();
+          double mz = map_[seeds[j].spectrum][seeds[j].peak].getMZ();
           if (bb.encloses(rt, mz) && f.encloses(rt, mz))
           {
 #pragma omp critical(FeatureFinderAlgorithmPicked_SEEDSINFEATURES)
@@ -843,7 +843,7 @@ namespace OpenMS
           //re-set label
           f.second.setMetaValue(3, feature_nr_global);
           ++feature_nr_global;
-          features_->push_back(f.second);
+          (*features_).push_back(f.second);
 
           std::vector<Size> curr_seed = seeds_in_features[seed_nr];
           for (Size k : curr_seed)
@@ -862,15 +862,15 @@ namespace OpenMS
     //Step 4:
     //Resolve contradicting and overlapping features
     //------------------------------------------------------------------
-    startProgress(0, features_->size() * features_->size(), "Resolving overlapping features");
-    if (debug_) log_ << "Resolving intersecting features (" << features_->size() << " candidates)\n";
+    startProgress(0, (*features_).size() * (*features_).size(), "Resolving overlapping features");
+    if (debug_) log_ << "Resolving intersecting features (" << (*features_).size() << " candidates)\n";
     //sort features according to m/z in order to speed up the resolution
-    features_->sortByMZ();
+    (*features_).sortByMZ();
     //precalculate BBs and maximum mz span
-    std::vector<DBoundingBox<2> > bbs(features_->size());
+    std::vector<DBoundingBox<2> > bbs((*features_).size());
     double max_mz_span = 0.0;
 
-    for (Size i = 0; i < features_->size(); ++i)
+    for (Size i = 0; i < (*features_).size(); ++i)
     {
       bbs[i] = (*features_)[i].getConvexHull().getBoundingBox();
       if (bbs[i].height() > max_mz_span)
@@ -881,12 +881,12 @@ namespace OpenMS
 
     Size removed(0);
     //intersect
-    for (Size i = 0; i < features_->size(); ++i)
+    for (Size i = 0; i < (*features_).size(); ++i)
     {
       Feature& f1((*features_)[i]);
-      for (Size j = i + 1; j < features_->size(); ++j)
+      for (Size j = i + 1; j < (*features_).size(); ++j)
       {
-        setProgress(i * features_->size() + j);
+        setProgress(i * (*features_).size() + j);
         Feature& f2((*features_)[j]);
         //features that are more than 2 times the maximum m/z span apart do not overlap => abort
         if (f2.getMZ() - f1.getMZ() > 2.0 * max_mz_span)
@@ -980,17 +980,17 @@ namespace OpenMS
     OPENMS_LOG_INFO << "Removed " << removed << " overlapping features.\n";
     // finally remove features with intensity 0
     FeatureMap tmp;
-    tmp.reserve(features_->size());
-    for (Size i = 0; i < features_->size(); ++i)
+    tmp.reserve((*features_).size());
+    for (Size i = 0; i < (*features_).size(); ++i)
     {
-      if (features_->operator[](i).getIntensity() != 0.0)
+      if ((*features_).operator[](i).getIntensity() != 0.0)
       {
-        tmp.push_back(features_->operator[](i));
+        tmp.push_back((*features_).operator[](i));
       }
     }
     tmp.swapFeaturesOnly(*features_);
     // sort features by intensity
-    features_->sortByIntensity(true);
+    (*features_).sortByIntensity(true);
     endProgress();
 
     // Abort reasons
@@ -1001,7 +1001,7 @@ namespace OpenMS
       OPENMS_LOG_INFO << " - " << reason.first << ": " << reason.second << " times\n";
     }
 
-    OPENMS_LOG_INFO << "\n" << features_->size() << " features found.\n";
+    OPENMS_LOG_INFO << "\n" << (*features_).size() << " features found.\n";
 
     if (debug_)
     {
@@ -1012,9 +1012,9 @@ namespace OpenMS
       for (std::map<Seed, String>::iterator it2 = abort_reasons_.begin(); it2 != abort_reasons_.end(); ++it2, ++counter)
       {
         Feature f;
-        f.setRT((*map_)[it2->first.spectrum].getRT());
-        f.setMZ((*map_)[it2->first.spectrum][it2->first.peak].getMZ());
-        f.setIntensity((*map_)[it2->first.spectrum][it2->first.peak].getIntensity());
+        f.setRT(map_[it2->first.spectrum].getRT());
+        f.setMZ(map_[it2->first.spectrum][it2->first.peak].getMZ());
+        f.setIntensity(map_[it2->first.spectrum][it2->first.peak].getIntensity());
         f.setMetaValue("label", it2->second);
         f.setUniqueId(counter); // ID = index
         abort_map.push_back(f);
@@ -1023,11 +1023,11 @@ namespace OpenMS
       FileHandler().storeFeatures("debug/abort_reasons.featureXML", abort_map);
 
       //store input map with calculated scores (without overall score)
-      for (auto& s : (*map_))
+      for (auto& s : map_)
       {
         s.getFloatDataArrays().erase(s.getFloatDataArrays().begin() + 2);
       }
-      FileHandler().storeExperiment("debug/input.mzML", (*map_), {FileTypes::MZML});
+      FileHandler().storeExperiment("debug/input.mzML", map_, {FileTypes::MZML});
     }
 
   }
@@ -1078,27 +1078,35 @@ namespace OpenMS
 
     // do the work
     setParameters(param);
-    setData(input_map, features);
+    setData(std::move(input_map), features);
     setSeeds(seeds);
     run();
 
-    //report RT apex spectrum index and native ID for each feature
+    // report RT apex spectrum index and native ID for each feature
+    // NOTE: use map_ (internal map) here, since input_map was moved in setData().
+    Size invalid_apex_index_count = 0;
     for (Size i = 0; i < features.size(); ++i)
     {
       //index
-      Size spectrum_index = input_map.RTBegin(features[i].getRT()) - input_map.begin();
+      Size spectrum_index = map_.RTBegin(features[i].getRT()) - map_.begin();
       features[i].setMetaValue("spectrum_index", spectrum_index);
       //native id
-      if (spectrum_index < input_map.size())
+      if (spectrum_index < map_.size())
       {
-        String native_id = input_map[spectrum_index].getNativeID();
+        String native_id = map_[spectrum_index].getNativeID();
         features[i].setMetaValue("spectrum_native_id", native_id);
       }
       else
       {
         /// @todo that happens sometimes using IsotopeWaveletFeatureFinder (Rene, Marc, Andreas, Clemens)
-        std::cerr << "FeatureFinderAlgorithm_impl, line=" << __LINE__ << "; FixMe this cannot be, but happens" << std::endl;
+        ++invalid_apex_index_count;
       }
+    }
+
+    if (invalid_apex_index_count > 0)
+    {
+      OPENMS_LOG_WARN << "Could not assign 'spectrum_native_id' for " << invalid_apex_index_count
+                      << " feature(s), because the computed apex spectrum index was out of range.\n";
     }
   }
 
@@ -1211,7 +1219,7 @@ namespace OpenMS
     {
       log_ << "Testing isotope patterns for charge " << charge << ": \n";
     }
-    const SpectrumType& spectrum = (*map_)[center.spectrum];
+    const SpectrumType& spectrum = map_[center.spectrum];
     const TheoreticalIsotopePattern& isotopes = getIsotopeDistribution_(spectrum[center.peak].getMZ() * charge);
     if (debug_)
     {
@@ -1334,25 +1342,25 @@ namespace OpenMS
       {
         continue; //skip missing and removed traces
       }
-      if ((*map_)[pattern.spectrum[p]][pattern.peak[p]].getIntensity() > max_int)
+      if (map_[pattern.spectrum[p]][pattern.peak[p]].getIntensity() > max_int)
       {
-        max_int = (*map_)[pattern.spectrum[p]][pattern.peak[p]].getIntensity();
+        max_int = map_[pattern.spectrum[p]][pattern.peak[p]].getIntensity();
         max_trace_index = p;
       }
     }
 
     //extend the maximum intensity trace to determine the boundaries in RT dimension
     Size start_index = pattern.spectrum[max_trace_index];
-    const PeakType* start_peak = &((*map_)[pattern.spectrum[max_trace_index]][pattern.peak[max_trace_index]]);
+    const PeakType* start_peak = &(map_[pattern.spectrum[max_trace_index]][pattern.peak[max_trace_index]]);
     double start_mz = start_peak->getMZ();
-    double start_rt = (*map_)[start_index].getRT();
+    double start_rt = map_[start_index].getRT();
     if (debug_)
     {
       log_ << " - Trace " << max_trace_index << " (maximum intensity)\n";
     }
     if (debug_)
     {
-      log_ << "   - extending from: " << (*map_)[start_index].getRT() << " / " << start_mz << " (int: " << start_peak->getIntensity() << ")\n";
+      log_ << "   - extending from: " << map_[start_index].getRT() << " / " << start_mz << " (int: " << start_peak->getIntensity() << ")\n";
     }
     //initialize the trace and extend
     MassTrace max_trace;
@@ -1411,26 +1419,26 @@ namespace OpenMS
         }
         continue;
       }
-      starting_peak.intensity = (*map_)[starting_peak.spectrum][starting_peak.peak].getIntensity();
-      if (debug_) log_ << "   - trace seed: " << (*map_)[starting_peak.spectrum].getRT() << " / " << (*map_)[starting_peak.spectrum][starting_peak.peak].getMZ() << " (int: " << (*map_)[starting_peak.spectrum][starting_peak.peak].getIntensity() << ")\n";
+      starting_peak.intensity = map_[starting_peak.spectrum][starting_peak.peak].getIntensity();
+      if (debug_) log_ << "   - trace seed: " << map_[starting_peak.spectrum].getRT() << " / " << map_[starting_peak.spectrum][starting_peak.peak].getMZ() << " (int: " << map_[starting_peak.spectrum][starting_peak.peak].getIntensity() << ")\n";
 
       //search for nearby maximum of the mass trace as the extension assumes that it starts at the maximum
       Size begin = std::max((Size)0, starting_peak.spectrum - min_spectra_);
-      Size end = std::min(starting_peak.spectrum + min_spectra_, (Size)map_->size());
-      double mz = (*map_)[starting_peak.spectrum][starting_peak.peak].getMZ();
-      double inte = (*map_)[starting_peak.spectrum][starting_peak.peak].getIntensity();
+      Size end = std::min(starting_peak.spectrum + min_spectra_, (Size)map_.size());
+      double mz = map_[starting_peak.spectrum][starting_peak.peak].getMZ();
+      double inte = map_[starting_peak.spectrum][starting_peak.peak].getIntensity();
       for (Size spectrum_index = begin; spectrum_index < end; ++spectrum_index)
       {
         //find better seeds (no-empty scan/low mz diff/higher intensity)
         SignedSize peak_index = -1;
-        if (!(*map_)[spectrum_index].empty())
+        if (!map_[spectrum_index].empty())
         {
-          peak_index = (*map_)[spectrum_index].findNearest((*map_)[starting_peak.spectrum][starting_peak.peak].getMZ());
+          peak_index = map_[spectrum_index].findNearest(map_[starting_peak.spectrum][starting_peak.peak].getMZ());
         }
 
         if (peak_index < 0 ||
-            (*map_)[spectrum_index][peak_index].getIntensity() <= inte ||
-            std::fabs(mz - (*map_)[spectrum_index][peak_index].getMZ()) >= pattern_tolerance_
+            map_[spectrum_index][peak_index].getIntensity() <= inte ||
+            std::fabs(mz - map_[spectrum_index][peak_index].getMZ()) >= pattern_tolerance_
             )
         {
           continue;
@@ -1438,18 +1446,18 @@ namespace OpenMS
 
         starting_peak.spectrum = spectrum_index;
         starting_peak.peak = peak_index;
-        inte = (*map_)[spectrum_index][peak_index].getIntensity();
+        inte = map_[spectrum_index][peak_index].getIntensity();
       }
       if (debug_)
       {
-        log_ << "   - extending from: " << (*map_)[starting_peak.spectrum].getRT() << " / " << (*map_)[starting_peak.spectrum][starting_peak.peak].getMZ() << " (int: " << (*map_)[starting_peak.spectrum][starting_peak.peak].getIntensity() << ")\n";
+        log_ << "   - extending from: " << map_[starting_peak.spectrum].getRT() << " / " << map_[starting_peak.spectrum][starting_peak.peak].getMZ() << " (int: " << map_[starting_peak.spectrum][starting_peak.peak].getIntensity() << ")\n";
       }
       //------------------------------------------------------------------
       //Extend seed to a mass trace
       MassTrace trace;
-      const PeakType* seed = &((*map_)[starting_peak.spectrum][starting_peak.peak]);
+      const PeakType* seed = &(map_[starting_peak.spectrum][starting_peak.peak]);
       //initialize trace with seed data and extend
-      trace.peaks.emplace_back((*map_)[starting_peak.spectrum].getRT(), seed);
+      trace.peaks.emplace_back(map_[starting_peak.spectrum].getRT(), seed);
       extendMassTrace_(trace, starting_peak.spectrum, seed->getMZ(), false, meta_index_overall, rt_min, rt_max);
       extendMassTrace_(trace, starting_peak.spectrum, seed->getMZ(), true, meta_index_overall, rt_min, rt_max);
 
@@ -1508,11 +1516,11 @@ namespace OpenMS
     Size peaks_before_extension = trace.peaks.size();
     String abort_reason = "";
 
-    while ((!increase_rt && spectrum_index >= 0) || (increase_rt && spectrum_index < (SignedSize)map_->size()))
+    while ((!increase_rt && spectrum_index >= 0) || (increase_rt && spectrum_index < (SignedSize)map_.size()))
     {
       if (boundaries &&
-          ((!increase_rt && (*map_)[spectrum_index].getRT() < min_rt) ||
-           (increase_rt && (*map_)[spectrum_index].getRT() > max_rt))
+          ((!increase_rt && map_[spectrum_index].getRT() < min_rt) ||
+           (increase_rt && map_[spectrum_index].getRT() > max_rt))
           )
       {
         abort_reason = "Hit upper/lower boundary";
@@ -1521,16 +1529,16 @@ namespace OpenMS
 
       SignedSize peak_index = -1;
 
-      if (!(*map_)[spectrum_index].empty())
+      if (!map_[spectrum_index].empty())
       {
-        peak_index = (*map_)[spectrum_index].findNearest(mz);
+        peak_index = map_[spectrum_index].findNearest(mz);
       }
 
       // check if the peak is "missing"
       if (
         peak_index < 0 // no peak found
-         || (*map_)[spectrum_index].getFloatDataArrays()[meta_index_overall][peak_index] < 0.01 // overall score is to low
-         || positionScore_(mz, (*map_)[spectrum_index][peak_index].getMZ(), trace_tolerance_) == 0.0 // deviation of mz is too big
+         || map_[spectrum_index].getFloatDataArrays()[meta_index_overall][peak_index] < 0.01 // overall score is to low
+         || positionScore_(mz, map_[spectrum_index][peak_index].getMZ(), trace_tolerance_) == 0.0 // deviation of mz is too big
         )
       {
         ++missing_peaks;
@@ -1546,11 +1554,11 @@ namespace OpenMS
         missing_peaks = 0;
 
         //add found peak to trace
-        trace.peaks.emplace_back((*map_)[spectrum_index].getRT(), &((*map_)[spectrum_index][peak_index]));
+        trace.peaks.emplace_back(map_[spectrum_index].getRT(), &(map_[spectrum_index][peak_index]));
 
         //update deltas and intensities
-        deltas.push_back(((*map_)[spectrum_index][peak_index].getIntensity() - last_observed_intensity) / last_observed_intensity);
-        last_observed_intensity = (*map_)[spectrum_index][peak_index].getIntensity();
+        deltas.push_back((map_[spectrum_index][peak_index].getIntensity() - last_observed_intensity) / last_observed_intensity);
+        last_observed_intensity = map_[spectrum_index][peak_index].getIntensity();
 
         //Abort if the average delta is too big (as intensity increases then)
         double average_delta = std::accumulate(deltas.end() - delta_count, deltas.end(), 0.0) / (double)delta_count;
@@ -1613,7 +1621,7 @@ namespace OpenMS
     UInt matches = 0;
 
     //search in the center spectrum
-    const SpectrumType& spectrum = (*map_)[spectrum_index];
+    const SpectrumType& spectrum = map_[spectrum_index];
     peak_index = nearest_(pos, spectrum, peak_index);
     double this_mz_score = positionScore_(pos, spectrum[peak_index].getMZ(), pattern_tolerance_);
     pattern.theoretical_mz[pattern_index] = pos;
@@ -1632,9 +1640,9 @@ namespace OpenMS
     }
 
     //previous spectrum
-    if (spectrum_index != 0 && !(*map_)[spectrum_index - 1].empty())
+    if (spectrum_index != 0 && !map_[spectrum_index - 1].empty())
     {
-      const SpectrumType& spectrum_before = (*map_)[spectrum_index - 1];
+      const SpectrumType& spectrum_before = map_[spectrum_index - 1];
       Size index_before = spectrum_before.findNearest(pos);
       double mz_score = positionScore_(pos, spectrum_before[index_before].getMZ(), pattern_tolerance_);
       if (mz_score != 0.0)
@@ -1653,9 +1661,9 @@ namespace OpenMS
     }
 
     //next spectrum
-    if (spectrum_index != map_->size() - 1 && !(*map_)[spectrum_index + 1].empty())
+    if (spectrum_index != map_.size() - 1 && !map_[spectrum_index + 1].empty())
     {
-      const SpectrumType& spectrum_after = (*map_)[spectrum_index + 1];
+      const SpectrumType& spectrum_after = map_[spectrum_index + 1];
       Size index_after = spectrum_after.findNearest(pos);
       double mz_score = positionScore_(pos, spectrum_after[index_after].getMZ(), pattern_tolerance_);
       if (mz_score != 0.0)
@@ -1826,11 +1834,11 @@ namespace OpenMS
   double FeatureFinderAlgorithmPicked::intensityScore_(Size spectrum, Size peak) const
   {
     // calculate (half) bin numbers
-    double intensity  = (*map_)[spectrum][peak].getIntensity();
-    double rt = (*map_)[spectrum].getRT();
-    double mz = (*map_)[spectrum][peak].getMZ();
-    double rt_min = map_->spectrumRanges().byMSLevel(1).getMinRT();
-    double mz_min = map_->spectrumRanges().byMSLevel(1).getMinMZ();
+    double intensity  = map_[spectrum][peak].getIntensity();
+    double rt = map_[spectrum].getRT();
+    double mz = map_[spectrum][peak].getMZ();
+    double rt_min = map_.spectrumRanges().byMSLevel(1).getMinRT();
+    double mz_min = map_.spectrumRanges().byMSLevel(1).getMinMZ();
     UInt rt_bin = std::min(2 * intensity_bins_ - 1, (UInt) std::floor((rt - rt_min) / intensity_rt_step_ * 2.0));
     UInt mz_bin = std::min(2 * intensity_bins_ - 1, (UInt) std::floor((mz - mz_min) / intensity_mz_step_ * 2.0));
     // determine mz bins
@@ -2170,7 +2178,7 @@ namespace OpenMS
         }
         else
         {
-          script = script + (features_->size() + 1) + " (score: " +  String::number(final_score, 3) + ")";
+          script = script + ((*features_).size() + 1) + " (score: " +  String::number(final_score, 3) + ")";
         }
         script = script + "' with points 3";
       }
