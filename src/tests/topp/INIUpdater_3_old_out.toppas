@@ -30,7 +30,7 @@
         <ITEM name="faims_merge_features" value="true" type="string" description="For FAIMS data with multiple compensation voltages: Merge features representing the same analyte detected at different CV values into a single feature. Only features with DIFFERENT FAIMS CV values are merged (same CV = different analytes). Has no effect on non-FAIMS data." required="false" advanced="false" restrictions="true,false" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
-        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores)" required="false" advanced="false" />
         <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
         <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
         <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
@@ -112,7 +112,7 @@
         <ITEM name="ignore_charge" value="false" type="bool" description="For feature/consensus maps: Assign an ID independently of whether its charge state matches that of the (consensus) feature." required="false" advanced="true" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
-        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores)" required="false" advanced="false" />
         <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
         <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
         <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
@@ -144,7 +144,7 @@
         <ITEM name="keep_subelements" value="false" type="bool" description="For consensusXML input only: If set, the sub-features of the inputs are transferred to the output." required="false" advanced="false" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
-        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores)" required="false" advanced="false" />
         <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
         <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
         <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />

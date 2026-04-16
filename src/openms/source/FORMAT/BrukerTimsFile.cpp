@@ -6,6 +6,7 @@
 #ifdef WITH_OPENTIMS
 
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
+#include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
@@ -30,6 +31,7 @@
 #include <map>
 #include <set>
 #include <unordered_map>
+#include <optional>
 
 namespace OpenMS
 {
@@ -147,7 +149,12 @@ namespace OpenMS
     float im;
   };
 
-  static constexpr size_t MAX_CENTROID_PEAKS = 10000;
+  // Default cap on the number of centroided peaks per frame. Overridable via
+  // BrukerTimsFile::Config::ms1_centroid_max_peaks. For per-frame MS1 (~200k
+  // peaks) the 10k default covers the top-intensity peaks well; for aggregated
+  // MS1 where the frame-stacked grid can exceed 600k peaks, users should raise
+  // this (100k is the new CLI default).
+  static constexpr size_t DEFAULT_CENTROID_MAX_PEAKS = 10000;
 
   // Reusable buffer for IM-dimension centroiding of a single frame.
   // Translated from Sage's PeakBuffer (Lazear 2023, doi:10.1021/acs.jproteome.3c00486).
@@ -157,6 +164,12 @@ namespace OpenMS
     std::vector<ImsPeak> peaks;
     std::vector<size_t> order;       // indices sorted by descending intensity
     std::vector<ImsPeak> agg_buff;   // centroided output
+
+    // Cap-hit tracking across frames within one load() call. Emitted as a
+    // single summary line at the end of the load via reportCapSummary().
+    size_t cap_hits_ = 0;
+    size_t total_calls_ = 0;
+    float  max_dropped_intensity_ = 0.0f;
 
     void clear()
     {
@@ -195,17 +208,46 @@ namespace OpenMS
                 });
     }
 
+    // Overload: accepts double* intensities (from FrameAggregator::finalize() output,
+    // where summed intensities across aggregated frames can exceed uint32_t range).
+    void loadFrame(const double* mz_values, const double* intensities,
+                   const double* im_values, uint32_t count)
+    {
+      clear();
+      peaks.reserve(count);
+      for (uint32_t i = 0; i < count; ++i)
+      {
+        peaks.push_back({static_cast<float>(mz_values[i]),
+                         static_cast<float>(intensities[i]),
+                         static_cast<float>(im_values[i])});
+      }
+
+      std::sort(peaks.begin(), peaks.end(),
+                [](const ImsPeak& a, const ImsPeak& b) { return a.mz < b.mz; });
+
+      order.resize(count);
+      std::iota(order.begin(), order.end(), size_t(0));
+      std::sort(order.begin(), order.end(),
+                [this](size_t a, size_t b)
+                {
+                  return peaks[b].intensity < peaks[a].intensity;
+                });
+    }
+
     // Centroid the loaded frame by collapsing the IM dimension.
     // Iterates peaks in descending intensity order. For each apex peak, aggregates
     // all unconsumed neighbors within m/z (ppm) and IM (percent) tolerances.
-    // Output is capped at MAX_CENTROID_PEAKS entries.
+    // Output is capped at max_peaks entries (dropped peaks logged at WARN level
+    // when high-intensity, at DEBUG otherwise).
     void centroid(float mz_ppm, float im_pct,
                   std::vector<double>& out_mz,
                   std::vector<double>& out_intensity,
-                  std::vector<float>& out_im)
+                  std::vector<float>& out_im,
+                  size_t max_peaks = DEFAULT_CENTROID_MAX_PEAKS)
     {
       agg_buff.clear();
-      agg_buff.reserve(std::min(peaks.size(), MAX_CENTROID_PEAKS + 1));
+      agg_buff.reserve(std::min(peaks.size(), max_peaks + 1));
+      ++total_calls_;
 
       const float utol = mz_ppm / 1e6f;
       const float im_tol_frac = im_pct / 100.0f;
@@ -215,13 +257,16 @@ namespace OpenMS
       {
         if (peaks[idx].intensity <= 0.0f) continue;  // already consumed
 
-        if (agg_buff.size() > MAX_CENTROID_PEAKS)
+        if (agg_buff.size() > max_peaks)
         {
+          // Only count as a "real" cap hit if the next dropped peak is above
+          // the noise floor (~200 counts on timsTOF). Dropping noise-floor
+          // peaks is the expected behavior of the cap and not worth reporting.
           if (peaks[idx].intensity > 200.0f)
           {
-            OPENMS_LOG_DEBUG << "FrameCentroider: reached MAX_CENTROID_PEAKS at index "
-                             << idx << "/" << peaks.size()
-                             << " intensity=" << peaks[idx].intensity << std::endl;
+            ++cap_hits_;
+            if (peaks[idx].intensity > max_dropped_intensity_)
+              max_dropped_intensity_ = peaks[idx].intensity;
           }
           break;
         }
@@ -277,6 +322,25 @@ namespace OpenMS
         out_im[i] = agg_buff[i].im;
       }
     }
+
+    // Emit one summary WARN if the cap fired on any frames during this load()
+    // call. Called by each top-level load path (loadDIA_, loadDDA_,
+    // loadDIAStreaming, loadFrames_) after all centroiding is done.
+    void reportCapSummary(size_t max_peaks)
+    {
+      if (cap_hits_ == 0) return;
+      OPENMS_LOG_WARN << "Warning: MS1 centroiding hit ms1_centroid_max_peaks (="
+                      << max_peaks << ") on " << cap_hits_ << " of "
+                      << total_calls_ << " spectra; highest dropped-peak "
+                      << "intensity was " << max_dropped_intensity_
+                      << ". Consider raising -bruker:ms1_centroid_max_peaks "
+                      << "to retain more peaks." << std::endl;
+      // Reset so successive load() calls on the same instance don't carry
+      // state forward.
+      cap_hits_ = 0;
+      total_calls_ = 0;
+      max_dropped_intensity_ = 0.0f;
+    }
   };
 
   // Helper: check if MS1 centroiding is enabled, warn on partial config
@@ -291,6 +355,32 @@ namespace OpenMS
       return false;
     }
     return has_mz && has_im;
+  }
+
+  // Emit one-shot partial-config warnings for the MS1 aggregation knobs.
+  // Called once per top-level load path, after ms1_frame_ids is populated.
+  static void warnPartialMS1AggregationConfig(const BrukerTimsFile::Config& config,
+                                               size_t ms1_frame_count)
+  {
+    if (config.ms1_min_support > 0 && config.ms1_n_neighbors == 0)
+    {
+      OPENMS_LOG_WARN << "Warning: ms1_min_support (=" << config.ms1_min_support
+                      << ") ignored: ms1_n_neighbors=0 disables aggregation." << std::endl;
+    }
+    if (config.ms1_max_rt_distance_sec > 0.0 && config.ms1_n_neighbors == 0)
+    {
+      OPENMS_LOG_WARN << "Warning: ms1_max_rt_distance_sec (="
+                      << config.ms1_max_rt_distance_sec
+                      << ") ignored: ms1_n_neighbors=0 disables aggregation." << std::endl;
+    }
+    if (config.ms1_n_neighbors > 0 && ms1_frame_count > 0 &&
+        static_cast<size_t>(2 * config.ms1_n_neighbors + 1) > ms1_frame_count)
+    {
+      OPENMS_LOG_WARN << "Warning: ms1_n_neighbors (=" << config.ms1_n_neighbors
+                      << ") exceeds half the run's MS1 frame count (="
+                      << ms1_frame_count << "); effective window will be clamped "
+                      << "at run edges." << std::endl;
+    }
   }
 
   // =====================================================================
@@ -329,6 +419,233 @@ namespace OpenMS
       return false;
     }
 
+    /// Grid-based aggregator for stacking peaks from adjacent frames into a sparse
+    /// (mz_bin, scan_id) grid, with optional 3x3 spatial denoising. Used by both
+    /// DIA MS2 aggregation and MS1 aggregation (with different bin widths).
+    class FrameAggregator
+    {
+    public:
+      explicit FrameAggregator(double mz_bin_width = 0.02)
+        : mz_bin_width_(mz_bin_width) {}
+
+      struct OutputPeak
+      {
+        double mz;        // intensity-weighted mean m/z
+        double intensity;  // summed intensity
+        uint32_t scan_id;  // native scan index (for IM conversion)
+      };
+
+      /// Returns the grid key of the neighbor cell at signed (dm, ds) offset.
+      /// Returns std::nullopt when the offset would wrap past 0 on either axis.
+      static inline std::optional<uint64_t>
+      neighborKey(uint32_t mz_bin, uint32_t scan_id, int dm, int ds)
+      {
+        if (dm < 0 && mz_bin < static_cast<uint32_t>(-dm)) return std::nullopt;
+        if (ds < 0 && scan_id < static_cast<uint32_t>(-ds)) return std::nullopt;
+        uint32_t new_mz = mz_bin + static_cast<uint32_t>(dm);
+        uint32_t new_scan = scan_id + static_cast<uint32_t>(ds);
+        return (static_cast<uint64_t>(new_mz) << 32) | new_scan;
+      }
+
+      /// Add a peak to the grid. Call for every peak from every neighbor frame.
+      void addPeak(double mz, uint32_t intensity, uint32_t scan_id)
+      {
+        int64_t mz_bin = static_cast<int64_t>(std::round(mz / mz_bin_width_));
+        uint64_t key = (static_cast<uint64_t>(static_cast<uint32_t>(mz_bin)) << 32) | scan_id;
+
+        auto& cell = grid_[key];
+        double int_d = static_cast<double>(intensity);
+        cell.intensity_sum += int_d;
+        cell.mz_weighted_sum += mz * int_d;
+      }
+
+      /// Apply spatial denoising and return surviving peaks.
+      /// min_support: minimum occupied neighbors in 3x3 grid (center excluded).
+      /// If skip_denoise is true (e.g., only 1 frame), return all peaks without filtering.
+      std::vector<OutputPeak> finalize(int min_support, bool skip_denoise) const
+      {
+        std::vector<OutputPeak> result;
+        result.reserve(grid_.size());
+
+        for (const auto& [key, cell] : grid_)
+        {
+          if (!skip_denoise)
+          {
+            int neighbors = 0;
+            uint32_t scan_id = static_cast<uint32_t>(key & 0xFFFFFFFF);
+            uint32_t mz_bin = static_cast<uint32_t>(key >> 32);
+
+            // Check 3x3 neighborhood (center excluded)
+            for (int dm = -1; dm <= 1; ++dm)
+            {
+              for (int ds = -1; ds <= 1; ++ds)
+              {
+                if (dm == 0 && ds == 0) continue;
+                if (auto nkey = neighborKey(mz_bin, scan_id, dm, ds))
+                {
+                  if (grid_.count(*nkey)) ++neighbors;
+                }
+              }
+            }
+
+            if (neighbors < min_support) continue;
+          }
+
+          uint32_t scan_id = static_cast<uint32_t>(key & 0xFFFFFFFF);
+          double mz = cell.mz_weighted_sum / cell.intensity_sum;
+
+          result.push_back({mz, cell.intensity_sum, scan_id});
+        }
+
+        // Sort by m/z for spectrum output
+        std::sort(result.begin(), result.end(),
+          [](const OutputPeak& a, const OutputPeak& b) { return a.mz < b.mz; });
+
+        return result;
+      }
+
+      /// Apply 2D Gaussian smoothing + local maxima peak picking to the denoised grid.
+      /// Returns centroided peaks with sub-bin (m/z, scan_id) precision.
+      std::vector<OutputPeak> finalizeCentroided(int min_support, bool skip_denoise) const
+      {
+        // Step 1: Denoise (same as finalize)
+        std::unordered_map<uint64_t, Cell> denoised;
+        for (const auto& [key, cell] : grid_)
+        {
+          if (!skip_denoise)
+          {
+            int neighbors = 0;
+            uint32_t scan_id = static_cast<uint32_t>(key & 0xFFFFFFFF);
+            uint32_t mz_bin = static_cast<uint32_t>(key >> 32);
+            for (int dm = -1; dm <= 1; ++dm)
+            {
+              for (int ds = -1; ds <= 1; ++ds)
+              {
+                if (dm == 0 && ds == 0) continue;
+                if (auto nkey = neighborKey(mz_bin, scan_id, dm, ds))
+                {
+                  if (grid_.count(*nkey)) ++neighbors;
+                }
+              }
+            }
+            if (neighbors < min_support) continue;
+          }
+          denoised[key] = cell;
+        }
+
+        // Step 2: Gaussian smooth (sigma=1 bin, 5x5 support)
+        static const double kernel[5][5] = {
+          {0.003, 0.013, 0.022, 0.013, 0.003},
+          {0.013, 0.059, 0.097, 0.059, 0.013},
+          {0.022, 0.097, 0.159, 0.097, 0.022},
+          {0.013, 0.059, 0.097, 0.059, 0.013},
+          {0.003, 0.013, 0.022, 0.013, 0.003}
+        };
+
+        std::unordered_map<uint64_t, double> smoothed;
+        for (const auto& [key, cell] : denoised)
+        {
+          uint32_t scan_id = static_cast<uint32_t>(key & 0xFFFFFFFF);
+          uint32_t mz_bin = static_cast<uint32_t>(key >> 32);
+          double weighted_sum = 0.0;
+          for (int dm = -2; dm <= 2; ++dm)
+          {
+            for (int ds = -2; ds <= 2; ++ds)
+            {
+              if (auto nkey = neighborKey(mz_bin, scan_id, dm, ds))
+              {
+                auto it = denoised.find(*nkey);
+                if (it != denoised.end())
+                {
+                  weighted_sum += it->second.intensity_sum * kernel[dm + 2][ds + 2];
+                }
+              }
+            }
+          }
+          smoothed[key] = weighted_sum;
+        }
+
+        // Step 3: Find local maxima in smoothed grid
+        std::vector<uint64_t> maxima;
+        for (const auto& [key, val] : smoothed)
+        {
+          uint32_t scan_id = static_cast<uint32_t>(key & 0xFFFFFFFF);
+          uint32_t mz_bin = static_cast<uint32_t>(key >> 32);
+          bool is_max = true;
+          for (int dm = -1; dm <= 1 && is_max; ++dm)
+          {
+            for (int ds = -1; ds <= 1 && is_max; ++ds)
+            {
+              if (dm == 0 && ds == 0) continue;
+              if (auto nkey = neighborKey(mz_bin, scan_id, dm, ds))
+              {
+                auto it = smoothed.find(*nkey);
+                if (it != smoothed.end() && it->second > val) is_max = false;
+              }
+            }
+          }
+          if (is_max) maxima.push_back(key);
+        }
+
+        // Step 4: Centroid each maximum from original denoised cells within ±2 radius
+        std::vector<OutputPeak> result;
+        result.reserve(maxima.size());
+        for (uint64_t max_key : maxima)
+        {
+          uint32_t center_scan = static_cast<uint32_t>(max_key & 0xFFFFFFFF);
+          uint32_t center_mz_bin = static_cast<uint32_t>(max_key >> 32);
+
+          double total_intensity = 0.0;
+          double mz_weighted = 0.0;
+          double scan_weighted = 0.0;
+
+          for (int dm = -2; dm <= 2; ++dm)
+          {
+            for (int ds = -2; ds <= 2; ++ds)
+            {
+              if (auto nkey = neighborKey(center_mz_bin, center_scan, dm, ds))
+              {
+                auto it = denoised.find(*nkey);
+                if (it != denoised.end())
+                {
+                  double int_val = it->second.intensity_sum;
+                  double mz_val = it->second.mz_weighted_sum / it->second.intensity_sum;
+                  total_intensity += int_val;
+                  mz_weighted += mz_val * int_val;
+                  scan_weighted += static_cast<double>(static_cast<uint32_t>(*nkey & 0xFFFFFFFF)) * int_val;
+                }
+              }
+            }
+          }
+
+          double centroid_mz = mz_weighted / total_intensity;
+          uint32_t centroid_scan = static_cast<uint32_t>(std::round(scan_weighted / total_intensity));
+          result.push_back({centroid_mz, total_intensity, centroid_scan});
+        }
+
+        std::sort(result.begin(), result.end(),
+          [](const OutputPeak& a, const OutputPeak& b) { return a.mz < b.mz; });
+        return result;
+      }
+
+      /// Clear grid for reuse
+      void clear() { grid_.clear(); }
+
+      /// Pre-reserve bucket space for N cells. Call once before a hot loop
+      /// to avoid rehash cascades. Safe to over-allocate — clear() preserves
+      /// the bucket array across center frames.
+      void reserve(size_t n) { grid_.reserve(n); }
+
+    private:
+      double mz_bin_width_;
+      struct Cell
+      {
+        double intensity_sum = 0.0;
+        double mz_weighted_sum = 0.0;
+      };
+      std::unordered_map<uint64_t, Cell> grid_;
+    };
+
     // SWATH window descriptor
     struct DIAWindow
     {
@@ -337,6 +654,8 @@ namespace OpenMS
       double mz_width;
       double im_lower;  // 1/K0 lower bound
       double im_upper;  // 1/K0 upper bound
+      uint32_t scan_begin;  // raw scan index lower bound (for grid-based IM filtering)
+      uint32_t scan_end;    // raw scan index upper bound
     };
 
     // Read DIA SWATH windows from SQL, converting scan bounds to IM
@@ -367,6 +686,8 @@ namespace OpenMS
           w.window_group = q.getColumn(0).getInt();
           uint32_t scan_begin = static_cast<uint32_t>(q.getColumn(1).getInt());
           uint32_t scan_end   = static_cast<uint32_t>(q.getColumn(2).getInt());
+          w.scan_begin = scan_begin;
+          w.scan_end = scan_end;
           w.mz_center = q.getColumn(3).getDouble();
           w.mz_width  = q.getColumn(4).getDouble();
 
@@ -395,6 +716,8 @@ namespace OpenMS
           w.window_group = group_id++;
           uint32_t scan_begin = static_cast<uint32_t>(q.getColumn(0).getInt());
           uint32_t scan_end   = static_cast<uint32_t>(q.getColumn(1).getInt());
+          w.scan_begin = scan_begin;
+          w.scan_end = scan_end;
           w.mz_center = q.getColumn(2).getDouble();
           w.mz_width  = q.getColumn(3).getDouble();
 
@@ -409,6 +732,84 @@ namespace OpenMS
       }
 
       return windows;
+    }
+
+    // Build frame_id -> WindowGroup mapping from SQL.
+    // Returns map<window_group, vector<frame_id>> sorted by frame_id within each group.
+    std::map<int, std::vector<uint32_t>> readFrameToWindowGroupMapping(
+      SQLite::Database& db,
+      const std::vector<DIAWindow>& windows)
+    {
+      std::map<int, std::vector<uint32_t>> mapping;
+
+      // Try DiaFrameMsMsInfo with WindowGroup column first (newer format)
+      bool has_window_group_column = false;
+      try
+      {
+        SQLite::Statement check(db,
+          "SELECT WindowGroup FROM DiaFrameMsMsInfo LIMIT 1");
+        if (check.executeStep()) has_window_group_column = true;
+      }
+      catch (const SQLite::Exception&) {}
+
+      if (has_window_group_column)
+      {
+        SQLite::Statement q(db,
+          "SELECT DISTINCT Frame, WindowGroup FROM DiaFrameMsMsInfo ORDER BY Frame");
+        while (q.executeStep())
+        {
+          uint32_t frame_id = static_cast<uint32_t>(q.getColumn(0).getInt());
+          int group = q.getColumn(1).getInt();
+          mapping[group].push_back(frame_id);
+        }
+      }
+      else
+      {
+        // Older format: DiaFrameMsMsInfo has (Frame, ScanNumBegin, ScanNumEnd, IsolationMz, IsolationWidth)
+        // but no WindowGroup column. Match each frame's geometry to the synthetic group IDs
+        // assigned by readDIAWindows().
+        struct WindowKey
+        {
+          double mz; double width; uint32_t sb; uint32_t se;
+          bool operator<(const WindowKey& o) const
+          {
+            if (mz != o.mz) return mz < o.mz;
+            if (width != o.width) return width < o.width;
+            if (sb != o.sb) return sb < o.sb;
+            return se < o.se;
+          }
+        };
+        std::map<WindowKey, int> key_to_group;
+        for (const auto& w : windows)
+        {
+          key_to_group[{w.mz_center, w.mz_width, w.scan_begin, w.scan_end}] = w.window_group;
+        }
+
+        SQLite::Statement q(db,
+          "SELECT Frame, IsolationMz, IsolationWidth, ScanNumBegin, ScanNumEnd "
+          "FROM DiaFrameMsMsInfo ORDER BY Frame");
+        while (q.executeStep())
+        {
+          uint32_t frame_id = static_cast<uint32_t>(q.getColumn(0).getInt());
+          WindowKey key{
+            q.getColumn(1).getDouble(),
+            q.getColumn(2).getDouble(),
+            static_cast<uint32_t>(q.getColumn(3).getInt()),
+            static_cast<uint32_t>(q.getColumn(4).getInt())
+          };
+          auto it = key_to_group.find(key);
+          if (it != key_to_group.end())
+          {
+            auto& frames = mapping[it->second];
+            if (frames.empty() || frames.back() != frame_id)
+            {
+              frames.push_back(frame_id);
+            }
+          }
+        }
+      }
+
+      return mapping;
     }
 
     // DDA precursor info (joined from Precursors + PasefFrameMsMsInfo)
@@ -623,6 +1024,9 @@ namespace OpenMS
     spec.setRT(frame.time);
     spec.setMSLevel(ms_level);
     spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    // TDF peaks are detector-centroided in m/z (peak-list format); label as
+    // centroid so downstream tools (e.g. CometAdapter) don't reject as profile.
+    spec.setType(SpectrumSettings::SpectrumType::CENTROID);
     spec.setNativeID("frame=" + String(frame.id));
 
     if (frame.num_peaks == 0) return;
@@ -688,7 +1092,8 @@ namespace OpenMS
     std::vector<double> cent_mz, cent_intensity;
     std::vector<float> cent_im;
     centroider.centroid(config.ms1_centroid_mz_ppm, config.ms1_centroid_im_pct,
-                        cent_mz, cent_intensity, cent_im);
+                        cent_mz, cent_intensity, cent_im,
+                        static_cast<size_t>(config.ms1_centroid_max_peaks));
 
     // Build MSSpectrum from centroided output
     spec.reserve(cent_mz.size());
@@ -709,6 +1114,154 @@ namespace OpenMS
   }
 
   // =====================================================================
+  // Helper: build one MS1 spectrum from a frame, with optional IM centroiding
+  // =====================================================================
+  static void loadMS1Spectrum(TimsFrame& frame, MSSpectrum& spec,
+                              const BrukerTimsFile::Config& config,
+                              FrameCentroider& centroider)
+  {
+    if (isCentroidingEnabled(config))
+      centroidMS1Frame(frame, spec, config, centroider);
+    else
+      frameToSpectrum(frame, spec, 1);
+  }
+
+  // =====================================================================
+  // Helper: build one aggregated MS1 spectrum from a sliding window of
+  // adjacent MS1 frames. Composes with within-frame IM centroiding
+  // (FrameCentroider) when ms1_centroid_mz_ppm/pct are set.
+  //
+  // Pre: center_idx is the output-emitting frame; N and RT cap come from
+  // config. Post: spec is populated with center-frame metadata and
+  // per-peak IM data. IMPeakType is IM_PROFILE or IM_CENTROIDED based on
+  // isCentroidingEnabled(config).
+  // =====================================================================
+  static void loadAggregatedMS1Spectrum(
+      TimsDataHandle& handle,
+      const std::vector<uint32_t>& ms1_frame_ids,
+      size_t center_idx,
+      const BrukerTimsFile::Config& config,
+      FrameAggregator& aggregator,
+      FrameCentroider& centroider,
+      MSSpectrum& spec)
+  {
+    const int N = config.ms1_n_neighbors;
+    const size_t size = ms1_frame_ids.size();
+    const size_t lo = (static_cast<size_t>(N) > center_idx) ? 0 : center_idx - N;
+    const size_t hi = std::min(center_idx + static_cast<size_t>(N), size - 1);
+
+    TimsFrame& center_frame = handle.get_frame(ms1_frame_ids[center_idx]);
+
+    aggregator.clear();
+    size_t contributing_frames = 0;
+
+    for (size_t ni = lo; ni <= hi; ++ni)
+    {
+      TimsFrame& nframe = handle.get_frame(ms1_frame_ids[ni]);
+
+      // Center is always included regardless of RT cap; neighbors are capped.
+      const bool is_center = (ni == center_idx);
+      if (!is_center && config.ms1_max_rt_distance_sec > 0.0 &&
+          std::abs(nframe.time - center_frame.time) > config.ms1_max_rt_distance_sec)
+      {
+        continue;
+      }
+
+      if (nframe.num_peaks == 0) continue;
+
+      std::vector<uint32_t> scan_ids(nframe.num_peaks);
+      std::vector<uint32_t> intensities(nframe.num_peaks);
+      std::vector<double> mzs(nframe.num_peaks);
+
+      nframe.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
+                           mzs.data(), nullptr, nullptr);
+
+      bool frame_contributed = false;
+      for (uint32_t p = 0; p < nframe.num_peaks; ++p)
+      {
+        aggregator.addPeak(mzs[p], intensities[p], scan_ids[p]);
+        frame_contributed = true;
+      }
+      if (frame_contributed) ++contributing_frames;
+    }
+
+    const bool skip_denoise = (contributing_frames <= 1) || (config.ms1_min_support <= 0);
+    auto peaks = aggregator.finalize(config.ms1_min_support, skip_denoise);
+
+    // Populate center-frame metadata regardless of whether peaks is empty —
+    // preserves the per-center-frame cadence invariant for streaming consumers.
+    spec.clear(true);
+    spec.setRT(center_frame.time);
+    spec.setMSLevel(1);
+    spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    spec.setNativeID("frame=" + String(center_frame.id));
+
+    DataArrays::FloatDataArray im_array;
+    IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+
+    if (peaks.empty())
+    {
+      spec.getFloatDataArrays().push_back(std::move(im_array));
+      spec.setIMPeakType(IMPeakType::IM_PROFILE);
+      return;
+    }
+
+    if (isCentroidingEnabled(config))
+    {
+      // Unpack aggregator output into parallel arrays for FrameCentroider.
+      std::vector<double> cent_mzs(peaks.size());
+      std::vector<double> cent_intensities(peaks.size());
+      std::vector<double> cent_ims(peaks.size());
+      for (size_t i = 0; i < peaks.size(); ++i)
+      {
+        cent_mzs[i] = peaks[i].mz;
+        cent_intensities[i] = peaks[i].intensity;
+        double im_val = 0.0;
+        handle.scan2inv_ion_mobility_converter->convert(
+          center_frame.id, &im_val, &peaks[i].scan_id, 1);
+        cent_ims[i] = im_val;
+      }
+
+      centroider.loadFrame(cent_mzs.data(), cent_intensities.data(),
+                           cent_ims.data(), static_cast<uint32_t>(peaks.size()));
+
+      std::vector<double> out_mz, out_intensity;
+      std::vector<float> out_im;
+      centroider.centroid(config.ms1_centroid_mz_ppm, config.ms1_centroid_im_pct,
+                          out_mz, out_intensity, out_im,
+                          static_cast<size_t>(config.ms1_centroid_max_peaks));
+
+      spec.reserve(out_mz.size());
+      for (size_t i = 0; i < out_mz.size(); ++i)
+      {
+        Peak1D peak;
+        peak.setMZ(out_mz[i]);
+        peak.setIntensity(static_cast<float>(out_intensity[i]));
+        spec.push_back(peak);
+      }
+      im_array.assign(out_im.begin(), out_im.end());
+      spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+      spec.setIMPeakType(IMPeakType::IM_CENTROIDED);
+    }
+    else
+    {
+      spec.reserve(peaks.size());
+      im_array.reserve(peaks.size());
+      for (const auto& peak : peaks)
+      {
+        spec.emplace_back(peak.mz, static_cast<float>(peak.intensity));
+        double im_val = 0.0;
+        handle.scan2inv_ion_mobility_converter->convert(
+          center_frame.id, &im_val, &peak.scan_id, 1);
+        im_array.push_back(static_cast<float>(im_val));
+      }
+      spec.setIMPeakType(IMPeakType::IM_PROFILE);
+    }
+
+    spec.getFloatDataArrays().push_back(std::move(im_array));
+  }
+
+  // =====================================================================
   // isDIA_: detect DDA vs DIA by querying for SWATH window tables
   // =====================================================================
   bool BrukerTimsFile::isDIA_(const String& tdf_path) const
@@ -724,6 +1277,238 @@ namespace OpenMS
                       << ": " << e.what() << std::endl;
       return false;
     }
+  }
+
+  // =====================================================================
+  // loadExperimentalSettings_: populate SourceFile metadata
+  // =====================================================================
+  void BrukerTimsFile::loadExperimentalSettings_(const String& path, ExperimentalSettings& settings)
+  {
+    SourceFile sf;
+    sf.setNameOfFile(File::basename(path));
+    sf.setPathToFile(File::path(path));
+    sf.setFileType("Bruker TDF");
+    sf.setNativeIDType("Bruker TDF nativeID format");
+    sf.setNativeIDTypeAccession("MS:1002818");
+    settings.getSourceFiles().push_back(sf);
+  }
+
+  // =====================================================================
+  // readDIAMetadata: SQL-only boundary and count extraction
+  // =====================================================================
+  BrukerTimsFile::DIAStreamingMetadata BrukerTimsFile::readDIAMetadata(
+      const String& path, ExperimentalSettings& exp_settings)
+  {
+    return readDIAMetadata(path, exp_settings, Config());
+  }
+
+  BrukerTimsFile::DIAStreamingMetadata BrukerTimsFile::readDIAMetadata(
+      const String& path, ExperimentalSettings& exp_settings, const Config& config)
+  {
+    auto handle = openTimsDataHandle(path, config);
+    String tdf_path = path + "/analysis.tdf";
+    SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
+
+    if (!isDIA(db))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "readDIAMetadata() requires a DIA dataset, but '" + path + "' appears to be DDA.");
+    }
+
+    loadExperimentalSettings_(path, exp_settings);
+
+    // Read DIA windows (with IM conversion via handle's calibration)
+    auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
+
+    DIAStreamingMetadata meta;
+    if (windows.empty())
+    {
+      OPENMS_LOG_WARN << "Warning: DIA dataset detected but no SWATH windows found in '" << path << "'" << std::endl;
+      return meta;
+    }
+
+    // Build SwathMap boundaries from DIAWindow structs
+    meta.boundaries.reserve(windows.size());
+    for (const auto& w : windows)
+    {
+      meta.boundaries.emplace_back(
+        w.mz_center - w.mz_width / 2.0,  // lower
+        w.mz_center + w.mz_width / 2.0,  // upper
+        w.mz_center,                       // center
+        w.im_lower,                        // imLower
+        w.im_upper,                        // imUpper
+        false);                            // ms1 = false
+    }
+
+    // Count MS1 frames
+    for (uint32_t fid = handle->min_frame_id(); fid <= handle->max_frame_id(); ++fid)
+    {
+      if (handle->has_frame(fid) && handle->get_frame(fid).msms_type == 0)
+        ++meta.nr_ms1_spectra;
+    }
+
+    // Count MS2 spectra per window (= frames per WindowGroup)
+    auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+    meta.nr_ms2_spectra.reserve(windows.size());
+    for (const auto& w : windows)
+    {
+      auto it = group_to_frames.find(w.window_group);
+      meta.nr_ms2_spectra.push_back(
+        it != group_to_frames.end() ? static_cast<int>(it->second.size()) : 0);
+    }
+
+    return meta;
+  }
+
+  // =====================================================================
+  // loadDIAStreaming: stream DIA spectra to consumer one-at-a-time
+  // =====================================================================
+  void BrukerTimsFile::loadDIAStreaming(const String& path, FullSwathFileConsumer& consumer)
+  {
+    loadDIAStreaming(path, consumer, Config());
+  }
+
+  void BrukerTimsFile::loadDIAStreaming(
+      const String& path, FullSwathFileConsumer& consumer, const Config& config)
+  {
+    auto handle = openTimsDataHandle(path, config);
+    String tdf_path = handle->get_tims_dir_path() + "/analysis.tdf";
+    SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
+
+    // --- MS1 frames ---
+    FrameCentroider centroider;
+    FrameAggregator ms1_aggregator(0.01);
+
+    std::vector<uint32_t> ms1_frame_ids;
+    for (uint32_t fid = handle->min_frame_id(); fid <= handle->max_frame_id(); ++fid)
+    {
+      if (handle->has_frame(fid) && handle->get_frame(fid).msms_type == 0)
+        ms1_frame_ids.push_back(fid);
+    }
+    warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
+    if (config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
+
+    startProgress(0, ms1_frame_ids.size(), "Streaming DIA-PASEF MS1 frames");
+    for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
+    {
+      MSSpectrum spec;
+      if (config.ms1_n_neighbors > 0)
+      {
+        loadAggregatedMS1Spectrum(*handle, ms1_frame_ids, i, config,
+                                  ms1_aggregator, centroider, spec);
+      }
+      else
+      {
+        TimsFrame& frame = handle->get_frame(ms1_frame_ids[i]);
+        loadMS1Spectrum(frame, spec, config, centroider);
+      }
+      // Sort peaks by m/z (and the associated IM float data array alongside).
+      // TIMS save_to_buffs returns peaks in (scan_id, m/z-within-scan) order,
+      // which is NOT globally m/z-sorted. Downstream consumers
+      // (OpenSwath's chromatogram extraction) assume sorted m/z for lower_bound /
+      // upper_bound range queries; without this sort, queries silently miss
+      // peaks, producing empty chromatograms and breaking iRT calibration.
+      // The non-streaming load() path gets this sort for free via exp.sortSpectra(true).
+      spec.sortByPosition();
+      consumer.consumeSpectrum(spec);
+      setProgress(i);
+    }
+    endProgress();
+    centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
+
+    // --- MS2 frames: raw per-WindowGroup iteration (no aggregation) ---
+    auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
+    if (windows.empty())
+    {
+      OPENMS_LOG_WARN << "Warning: DIA dataset detected but no SWATH windows found" << std::endl;
+      return;
+    }
+
+    auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+
+    std::map<int, std::vector<const DIAWindow*>> group_to_windows;
+    for (const auto& w : windows)
+      group_to_windows[w.window_group].push_back(&w);
+
+    Size total_work = 0;
+    for (const auto& [group, frames] : group_to_frames)
+    {
+      auto wit = group_to_windows.find(group);
+      if (wit != group_to_windows.end())
+        total_work += frames.size() * wit->second.size();
+    }
+
+    startProgress(0, total_work, "Streaming DIA-PASEF MS2 frames");
+    Size progress_count = 0;
+
+    for (const auto& [group, frame_ids] : group_to_frames)
+    {
+      auto wit = group_to_windows.find(group);
+      if (wit == group_to_windows.end()) continue;
+      const auto& dia_windows = wit->second;
+
+      for (const DIAWindow* win : dia_windows)
+      {
+        for (size_t i = 0; i < frame_ids.size(); ++i)
+        {
+          setProgress(progress_count++);
+          TimsFrame& frame = handle->get_frame(frame_ids[i]);
+          if (frame.num_peaks == 0) continue;
+
+          std::vector<uint32_t> scan_ids(frame.num_peaks);
+          std::vector<uint32_t> intensities(frame.num_peaks);
+          std::vector<double> mzs(frame.num_peaks);
+          std::vector<double> inv_ion_mobilities(frame.num_peaks);
+
+          frame.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
+                              mzs.data(), inv_ion_mobilities.data(), nullptr);
+
+          MSSpectrum spec;
+          spec.setRT(frame.time);
+          spec.setMSLevel(2);
+          spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+          spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+          spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win->window_group) + " scan=" + String(win->scan_begin));
+
+          Precursor prec;
+          prec.setMZ(win->mz_center);
+          prec.setIsolationWindowLowerOffset(win->mz_width / 2.0);
+          prec.setIsolationWindowUpperOffset(win->mz_width / 2.0);
+          spec.setPrecursors({prec});
+
+          spec.setMetaValue("ion mobility lower limit", win->im_lower);
+          spec.setMetaValue("ion mobility upper limit", win->im_upper);
+
+          DataArrays::FloatDataArray im_array;
+          IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+
+          for (uint32_t p = 0; p < frame.num_peaks; ++p)
+          {
+            if (inv_ion_mobilities[p] >= win->im_lower && inv_ion_mobilities[p] <= win->im_upper)
+            {
+              Peak1D peak;
+              peak.setMZ(mzs[p]);
+              peak.setIntensity(static_cast<double>(intensities[p]));
+              spec.push_back(peak);
+              im_array.push_back(static_cast<float>(inv_ion_mobilities[p]));
+            }
+          }
+
+          if (!spec.empty())
+          {
+            spec.getFloatDataArrays().push_back(std::move(im_array));
+            spec.setIMPeakType(IMPeakType::IM_PROFILE);
+            // Sort peaks by m/z (and the IM float data array alongside).
+            // See the matching comment in the MS1 loop above — TIMS save_to_buffs
+            // returns peaks in (scan_id, m/z-within-scan) order; OpenSwath's
+            // chromatogram extraction assumes globally m/z-sorted input.
+            spec.sortByPosition();
+            consumer.consumeSpectrum(spec);
+          }
+        }
+      }
+    }
+    endProgress();
   }
 
   // =====================================================================
@@ -756,17 +1541,7 @@ namespace OpenMS
       loadDIA_(*handle, exp, config);
     }
 
-    // Populate source file metadata
-    SourceFile sf;
-    sf.setNameOfFile(File::basename(path));
-    sf.setPathToFile(File::path(path));
-    sf.setFileType("Bruker TDF");
-    // TODO: MS:1000776 ("scan number only nativeID format") expects "scan=NUMBER" IDs,
-    // but MS1/DIA spectra use "frame=..." and DIA MS2 uses "frame=... windowGroup=...".
-    // There is no standard CV term for Bruker frame-based native IDs yet.
-    sf.setNativeIDType("scan number only nativeID format");
-    sf.setNativeIDTypeAccession("MS:1000776");
-    exp.getSourceFiles().push_back(sf);
+    loadExperimentalSettings_(path, exp);
 
     // Sort by RT, interleaved across MS levels
     exp.sortSpectra(true);
@@ -815,15 +1590,7 @@ namespace OpenMS
 
     // Populate source file metadata (same as load())
     ExperimentalSettings settings;
-    SourceFile sf;
-    sf.setNameOfFile(File::basename(path));
-    sf.setPathToFile(File::path(path));
-    sf.setFileType("Bruker TDF");
-    // TODO: MS:1000776 ("scan number only nativeID format") expects "scan=NUMBER" IDs,
-    // but MS1/DIA spectra use "frame=..." and DIA MS2 uses "frame=... windowGroup=...".
-    sf.setNativeIDType("scan number only nativeID format");
-    sf.setNativeIDTypeAccession("MS:1000776");
-    settings.getSourceFiles().push_back(sf);
+    loadExperimentalSettings_(path, settings);
     consumer->setExperimentalSettings(settings);
 
     // NOTE: This loads into a temporary experiment then feeds to consumer.
@@ -866,6 +1633,7 @@ namespace OpenMS
       else
         ms2_frame_ids.push_back(fid);
     }
+    warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
 
     // Read DDA precursors from SQL
     std::vector<DDAPrecursorInfo> precursor_entries = readDDAPrecursors(db);
@@ -883,19 +1651,21 @@ namespace OpenMS
     startProgress(0, ms1_frame_ids.size() + num_ms2, "Loading DDA-PASEF data");
 
     // --- MS1 frames ---
-    bool do_centroid = isCentroidingEnabled(config);
     FrameCentroider centroider;
+    FrameAggregator ms1_aggregator(0.01);
+    if (config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
     for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
     {
-      TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
       MSSpectrum spec;
-      if (do_centroid)
+      if (config.ms1_n_neighbors > 0)
       {
-        centroidMS1Frame(frame, spec, config, centroider);
+        loadAggregatedMS1Spectrum(handle, ms1_frame_ids, i, config,
+                                  ms1_aggregator, centroider, spec);
       }
       else
       {
-        frameToSpectrum(frame, spec, 1);
+        TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
+        loadMS1Spectrum(frame, spec, config, centroider);
       }
       exp.addSpectrum(std::move(spec));
       setProgress(i);
@@ -1205,6 +1975,7 @@ namespace OpenMS
       spec.setMSLevel(2);
       spec.setDriftTime(scalar_im);
       spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+      spec.setType(SpectrumSettings::SpectrumType::CENTROID);
       spec.setNativeID("scan=" + String(prec_id));
 
       // Copy sorted peak data
@@ -1243,6 +2014,7 @@ namespace OpenMS
       setProgress(ms1_frame_ids.size() + precursor_idx);
     }
     endProgress();
+    centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
   }
 
   // =====================================================================
@@ -1253,9 +2025,8 @@ namespace OpenMS
     String tdf_path = handle.get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
-    // Collect frame IDs by MS level
+    // Collect MS1 frame IDs (MS2 frames are mapped via DiaFrameMsMsInfo below)
     std::vector<uint32_t> ms1_frame_ids;
-    std::vector<uint32_t> ms2_frame_ids;
 
     for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
     {
@@ -1263,30 +2034,32 @@ namespace OpenMS
       TimsFrame& frame = handle.get_frame(fid);
       if (frame.msms_type == 0)
         ms1_frame_ids.push_back(fid);
-      else
-        ms2_frame_ids.push_back(fid);
     }
+    warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
 
     // --- MS1 frames ---
-    bool do_centroid = isCentroidingEnabled(config);
     FrameCentroider centroider;
+    FrameAggregator ms1_aggregator(0.01);  // finer bin for MS1 (see design spec)
+    if (config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
     startProgress(0, ms1_frame_ids.size(), "Loading DIA-PASEF MS1 frames");
     for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
     {
-      TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
       MSSpectrum spec;
-      if (do_centroid)
+      if (config.ms1_n_neighbors > 0)
       {
-        centroidMS1Frame(frame, spec, config, centroider);
+        loadAggregatedMS1Spectrum(handle, ms1_frame_ids, i, config,
+                                  ms1_aggregator, centroider, spec);
       }
       else
       {
-        frameToSpectrum(frame, spec, 1);
+        TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
+        loadMS1Spectrum(frame, spec, config, centroider);
       }
       exp.addSpectrum(std::move(spec));
       setProgress(i);
     }
     endProgress();
+    centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
 
     // --- SWATH windows ---
     std::vector<DIAWindow> windows = readDIAWindows(db, *handle.scan2inv_ion_mobility_converter);
@@ -1298,71 +2071,202 @@ namespace OpenMS
     }
 
     // --- MS2 frames (split by SWATH window) ---
-    startProgress(0, ms2_frame_ids.size(), "Loading DIA-PASEF MS2 frames");
-    for (size_t fi = 0; fi < ms2_frame_ids.size(); ++fi)
+    // Use per-WindowGroup iteration for both paths: each diaPASEF frame belongs
+    // to exactly one WindowGroup, so we only produce spectra for valid
+    // frame/window combinations (not the brute-force frames × all_windows).
+    auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+
+    // Group DIAWindows by window_group
+    std::map<int, std::vector<const DIAWindow*>> group_to_windows;
+    for (const auto& w : windows)
     {
-      setProgress(fi);
-      TimsFrame& frame = handle.get_frame(ms2_frame_ids[fi]);
-      if (frame.num_peaks == 0) continue;
+      group_to_windows[w.window_group].push_back(&w);
+    }
 
-      // Extract all data from frame
-      std::vector<uint32_t> scan_ids(frame.num_peaks);
-      std::vector<uint32_t> intensities(frame.num_peaks);
-      std::vector<double> mzs(frame.num_peaks);
-      std::vector<double> inv_ion_mobilities(frame.num_peaks);
+    // Count total work units for progress (frames * windows-per-group)
+    Size total_work = 0;
+    for (const auto& [group, frames] : group_to_frames)
+    {
+      auto wit = group_to_windows.find(group);
+      if (wit != group_to_windows.end())
+        total_work += frames.size() * wit->second.size();
+    }
 
-      frame.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
-                          mzs.data(), inv_ion_mobilities.data(), nullptr);
+    const bool do_aggregate = config.dia_ms2_n_neighbors > 0;
 
-      // Split peaks by SWATH window IM bounds
-      for (size_t wi = 0; wi < windows.size(); ++wi)
+    if (do_aggregate)
+    {
+      // === Aggregated path: per-WindowGroup iteration with RT-neighbor summing ===
+      startProgress(0, total_work, "Loading DIA-PASEF MS2 frames (aggregated)");
+      Size progress_count = 0;
+
+      const int N = config.dia_ms2_n_neighbors;
+      FrameAggregator aggregator;
+
+      for (const auto& [group, frame_ids] : group_to_frames)
       {
-        const DIAWindow& win = windows[wi];
+        auto wit = group_to_windows.find(group);
+        if (wit == group_to_windows.end()) continue;
+        const auto& dia_windows = wit->second;
 
-        MSSpectrum spec;
-        spec.setRT(frame.time);
-        spec.setMSLevel(2);
-        spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-        spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win.window_group));
-
-        // Set isolation window
-        Precursor prec;
-        prec.setMZ(win.mz_center);
-        prec.setIsolationWindowLowerOffset(win.mz_width / 2.0);
-        prec.setIsolationWindowUpperOffset(win.mz_width / 2.0);
-        spec.setPrecursors({prec});
-
-        // Set ion mobility window bounds for PASEF window grouping
-        // (required by SwathFile/OpenSwath pipeline to distinguish windows
-        // sharing the same m/z range but differing in IM)
-        spec.setMetaValue("ion mobility lower limit", win.im_lower);
-        spec.setMetaValue("ion mobility upper limit", win.im_upper);
-
-        DataArrays::FloatDataArray im_array;
-        IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
-
-        for (uint32_t p = 0; p < frame.num_peaks; ++p)
+        for (const DIAWindow* win : dia_windows)
         {
-          // Check if peak falls within this window's IM bounds
-          if (inv_ion_mobilities[p] >= win.im_lower && inv_ion_mobilities[p] <= win.im_upper)
+          for (size_t i = 0; i < frame_ids.size(); ++i)
           {
-            Peak1D peak;
-            peak.setMZ(mzs[p]);
-            peak.setIntensity(static_cast<double>(intensities[p]));
-            spec.push_back(peak);
-            im_array.push_back(static_cast<float>(inv_ion_mobilities[p]));
+            setProgress(progress_count++);
+            aggregator.clear();
+            size_t contributing_frames = 0;
+
+            // Determine neighbor range
+            size_t lo = (i >= static_cast<size_t>(N)) ? i - N : 0;
+            size_t hi = std::min(i + N, frame_ids.size() - 1);
+
+            // Aggregate peaks from all neighbor frames
+            for (size_t ni = lo; ni <= hi; ++ni)
+            {
+              TimsFrame& nframe = handle.get_frame(frame_ids[ni]);
+              if (nframe.num_peaks == 0) continue;
+
+              std::vector<uint32_t> scan_ids(nframe.num_peaks);
+              std::vector<uint32_t> intensities(nframe.num_peaks);
+              std::vector<double> mzs(nframe.num_peaks);
+
+              nframe.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
+                                   mzs.data(), nullptr, nullptr);
+
+              bool frame_contributed = false;
+              for (uint32_t p = 0; p < nframe.num_peaks; ++p)
+              {
+                // Filter by scan bounds (integer comparison, no IM conversion needed)
+                if (scan_ids[p] >= win->scan_begin && scan_ids[p] <= win->scan_end)
+                {
+                  aggregator.addPeak(mzs[p], intensities[p], scan_ids[p]);
+                  frame_contributed = true;
+                }
+              }
+              if (frame_contributed) ++contributing_frames;
+            }
+
+            // Denoise skipped when the grid was populated from a single frame (or none),
+            // because spatial denoising requires neighbor context that only cross-frame
+            // aggregation provides. Also skipped when min_support <= 0 (user explicitly
+            // disabled the filter).
+            bool skip_denoise = (contributing_frames <= 1) || config.dia_ms2_min_support <= 0;
+            auto peaks = config.dia_ms2_centroid
+              ? aggregator.finalizeCentroided(config.dia_ms2_min_support, skip_denoise)
+              : aggregator.finalize(config.dia_ms2_min_support, skip_denoise);
+
+            if (peaks.empty()) continue;
+
+            // Build spectrum from center frame metadata
+            TimsFrame& center_frame = handle.get_frame(frame_ids[i]);
+            MSSpectrum spec;
+            spec.setRT(center_frame.time);
+            spec.setMSLevel(2);
+            spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+            spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+            spec.setNativeID("frame=" + String(center_frame.id) + " windowGroup=" + String(win->window_group) + " scan=" + String(win->scan_begin));
+
+            Precursor prec;
+            prec.setMZ(win->mz_center);
+            prec.setIsolationWindowLowerOffset(win->mz_width / 2.0);
+            prec.setIsolationWindowUpperOffset(win->mz_width / 2.0);
+            spec.setPrecursors({prec});
+
+            spec.setMetaValue("ion mobility lower limit", win->im_lower);
+            spec.setMetaValue("ion mobility upper limit", win->im_upper);
+
+            DataArrays::FloatDataArray im_array;
+            IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+
+            for (const auto& peak : peaks)
+            {
+              spec.emplace_back(peak.mz, peak.intensity);
+              // Convert scan_id → 1/K0 using center frame's calibration
+              double im_val = 0.0;
+              handle.scan2inv_ion_mobility_converter->convert(
+                center_frame.id, &im_val, &peak.scan_id, 1);
+              im_array.push_back(static_cast<float>(im_val));
+            }
+
+            spec.getFloatDataArrays().push_back(std::move(im_array));
+            spec.setIMPeakType(config.dia_ms2_centroid ? IMPeakType::IM_CENTROIDED : IMPeakType::IM_PROFILE);
+            exp.addSpectrum(std::move(spec));
           }
         }
+      }
+      endProgress();
+    }
+    else
+    {
+      // === Raw path: per-WindowGroup iteration (no aggregation) ===
+      startProgress(0, total_work, "Loading DIA-PASEF MS2 frames");
+      Size progress_count = 0;
 
-        if (!spec.empty())
+      for (const auto& [group, frame_ids] : group_to_frames)
+      {
+        auto wit = group_to_windows.find(group);
+        if (wit == group_to_windows.end()) continue;
+        const auto& dia_windows = wit->second;
+
+        for (const DIAWindow* win : dia_windows)
         {
-          spec.getFloatDataArrays().push_back(std::move(im_array));
-          spec.setIMPeakType(IMPeakType::IM_PROFILE);
-          exp.addSpectrum(std::move(spec));
+          for (size_t i = 0; i < frame_ids.size(); ++i)
+          {
+            setProgress(progress_count++);
+            TimsFrame& frame = handle.get_frame(frame_ids[i]);
+            if (frame.num_peaks == 0) continue;
+
+            std::vector<uint32_t> scan_ids(frame.num_peaks);
+            std::vector<uint32_t> intensities(frame.num_peaks);
+            std::vector<double> mzs(frame.num_peaks);
+            std::vector<double> inv_ion_mobilities(frame.num_peaks);
+
+            frame.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
+                                mzs.data(), inv_ion_mobilities.data(), nullptr);
+
+            MSSpectrum spec;
+            spec.setRT(frame.time);
+            spec.setMSLevel(2);
+            spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+            spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+            spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win->window_group) + " scan=" + String(win->scan_begin));
+
+            Precursor prec;
+            prec.setMZ(win->mz_center);
+            prec.setIsolationWindowLowerOffset(win->mz_width / 2.0);
+            prec.setIsolationWindowUpperOffset(win->mz_width / 2.0);
+            spec.setPrecursors({prec});
+
+            spec.setMetaValue("ion mobility lower limit", win->im_lower);
+            spec.setMetaValue("ion mobility upper limit", win->im_upper);
+
+            DataArrays::FloatDataArray im_array;
+            IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+
+            for (uint32_t p = 0; p < frame.num_peaks; ++p)
+            {
+              if (inv_ion_mobilities[p] >= win->im_lower && inv_ion_mobilities[p] <= win->im_upper)
+              {
+                Peak1D peak;
+                peak.setMZ(mzs[p]);
+                peak.setIntensity(static_cast<double>(intensities[p]));
+                spec.push_back(peak);
+                im_array.push_back(static_cast<float>(inv_ion_mobilities[p]));
+              }
+            }
+
+            if (!spec.empty())
+            {
+              spec.getFloatDataArrays().push_back(std::move(im_array));
+              spec.setIMPeakType(IMPeakType::IM_PROFILE);
+              exp.addSpectrum(std::move(spec));
+            }
+          }
         }
       }
+      endProgress();
     }
-    endProgress();
   }
 
   // =====================================================================
@@ -1370,6 +2274,16 @@ namespace OpenMS
   // =====================================================================
   void BrukerTimsFile::loadFrames_(TimsDataHandle& handle, MSExperiment& exp, const Config& config)
   {
+    // FRAME mode returns raw per-frame spectra; MS1 aggregation would break that
+    // contract, so warn and ignore the knob.
+    if (config.ms1_n_neighbors > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: ms1_n_neighbors (=" << config.ms1_n_neighbors
+                      << ") is ignored when export_mode=FRAME because FRAME mode returns "
+                      << "raw frames. Set export_mode=AUTO or SPECTRUM to enable MS1 "
+                      << "frame aggregation." << std::endl;
+    }
+
     // Iterate all frames at each MS level
     for (int level = 1; level <= 2; ++level)
     {
@@ -1393,25 +2307,22 @@ namespace OpenMS
         continue;
       }
 
-      bool do_centroid = (level == 1) && isCentroidingEnabled(config);
       FrameCentroider centroider;
       startProgress(0, frame_ids.size(), String("Loading MS") + String(level) + " frames");
       for (size_t i = 0; i < frame_ids.size(); ++i)
       {
         TimsFrame& frame = handle.get_frame(frame_ids[i]);
         MSSpectrum spec;
-        if (do_centroid)
-        {
-          centroidMS1Frame(frame, spec, config, centroider);
-        }
+        if (level == 1)
+          loadMS1Spectrum(frame, spec, config, centroider);
         else
-        {
           frameToSpectrum(frame, spec, level);
-        }
         exp.addSpectrum(std::move(spec));
         setProgress(i);
       }
       endProgress();
+      if (level == 1)
+        centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
     }
   }
 

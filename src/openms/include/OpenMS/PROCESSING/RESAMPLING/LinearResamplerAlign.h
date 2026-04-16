@@ -3,13 +3,18 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Authors: Hannes Roest, Luis Jacob Keller, Alen Saric$
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/PROCESSING/RESAMPLING/LinearResampler.h>
+#include <limits>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {
@@ -21,20 +26,24 @@ namespace OpenMS
     Therefore the intensity at every position x in the input raw data is spread to the two
     adjacent resampling points.
     This method preserves the area of the input signal and also the centroid position of a peak.
-    Therefore it is recommended for quantitation as well as for ProteinIdentification experiments.
 
-    In addition to the LinearResampler, this class also allows to fix the
+    This class also allows to fix the
     points at which resampling will occur. This is useful if the resampling
     points are known in advance, e.g. if one needs to resample a chromatogram
     at the positions of another chromatogram.
+    Therefore it is recommended for quantitation as well as for ProteinIdentification experiments.
+
+    @warning If the configured @p spacing is smaller than the minimal distance between two adjacent
+    input data points, intensity redistribution may produce spurious peaks. This can occur when
+    the sampling rate is finer than the detector's dead time.
   */
   class OPENMS_DLLAPI LinearResamplerAlign :
-    public LinearResampler
+    public DefaultParamHandler,
+    public ProgressLogger
   {
 
-public:
-
-    LinearResamplerAlign()
+  public:
+    LinearResamplerAlign() : DefaultParamHandler("LinearResamplerAlign")
     {
       defaults_.setValue("spacing", 0.05, "Spacing of the resampled output peaks.");
       defaults_.setValue("ppm", "false", "Whether spacing is in ppm or Th");
@@ -73,7 +82,6 @@ public:
 
     /**
         @brief Applies the resampling algorithm to a container (MSSpectrum or MSChromatogram) with fixed coordinates.
-
         The container will be resampled at equally spaced points between the
         supplied start and end positions. The resampling frequency can be
         controlled by the "spacing" parameter.
@@ -101,6 +109,8 @@ public:
 
       auto first = container.begin();
       auto last = container.end();
+
+      verifySpacing_(first, last, [](auto x){return x->getPos();});
 
       // get the iterators just before / after the two points start_pos / end_pos
       while (first != container.end() && (first)->getPos() < start_pos) {++first;}
@@ -142,6 +152,8 @@ public:
     {
       OPENMS_PRECONDITION(resampled_begin != resampled_end, "Output iterators cannot be identical") // as we use +1
       // OPENMS_PRECONDITION(raw_it != raw_end, "Input iterators cannot be identical")
+
+      verifySpacing_(raw_it, raw_end, [](auto x){return x->getPos();});
 
       PeakTypeIterator resample_start = resampled_begin;
 
@@ -220,6 +232,8 @@ public:
           "Raw m/z and intensity iterators need to cover the same distance")
       // OPENMS_PRECONDITION(raw_it != raw_end, "Input iterators cannot be identical")
 
+      verifySpacing_(mz_raw_it, mz_raw_end, [](auto x){return *x;});
+
       PeakTypeIterator mz_resample_start = mz_resample_it;
 
       // need to get the raw iterator between two resampled iterators of the raw data
@@ -287,6 +301,8 @@ public:
       // OPENMS_PRECONDITION(resampled_start != resampled_end, "Output iterators cannot be identical")
       OPENMS_PRECONDITION(raw_it != raw_end, "Input iterators cannot be identical") // as we use +1
 
+      verifySpacing_(raw_it, raw_end, [](PeakTypeIterator x){return x->getPos();});
+
       PeakTypeIterator raw_start = raw_it;
 
       // need to get the resampled iterator between two iterators of the raw data
@@ -309,9 +325,31 @@ public:
 
     }
 
+    /**
+        @brief Applies the resampling algorithm to all spectra of an MSExperiment.
+
+        Chromatograms stored in @p exp are not resampled.
+
+        @param[in,out] exp The experiment whose spectra will be resampled in place.
+    */
+    void rasterExperiment(PeakMap& exp)
+    {
+      startProgress(0, exp.size(), "resampling of data");
+      for (Size i = 0; i < exp.size(); ++i)
+      {
+        raster(exp[i]);
+        setProgress(i);
+      }
+      endProgress();
+    }
+
+
 protected:
 
     /// Spacing of the resampled data
+    double spacing_;
+
+    /// Whether spacing_ is interpreted in ppm (true) or Th (false)
     bool ppm_;
 
     void updateMembers_() override
@@ -352,8 +390,33 @@ protected:
         }
       }
     }
+
+
+    /// helper function to warn the user when the resampling rate is too high
+    template <typename PeakTypeIterator>
+    void verifySpacing_(PeakTypeIterator it, PeakTypeIterator end, auto access)
+    {
+      // ppm_ spacing is relative (parts-per-million) and cannot be compared
+      // directly against the absolute neighbour distance computed below.
+      if (ppm_) return;
+      if (it == end || std::next(it) == end) return;
+      double min_dist = std::numeric_limits<double>::infinity();
+      double current_dist{};
+
+      while (std::next(it) != end)
+      {
+        current_dist = (access(std::next(it)) - access(it));
+        if (min_dist > current_dist) min_dist = current_dist;
+        ++it;
+      }
+
+      if (spacing_ < min_dist)
+      {
+        OPENMS_LOG_WARN << "Resampling spacing (" << spacing_
+                        << ") is smaller than the smallest distance between data points ("
+                        << min_dist << "). This approximates the detector dead time and may produce spurious peaks.\n";
+      }
+    }
+
   };
-
 }
-
-

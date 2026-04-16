@@ -383,7 +383,7 @@ protected:
     map<UInt64, String> design_filenames;
     for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
     {
-      const String fn = FileHandler::stripExtension(File::basename(f.path));      
+      const String fn = File::stemName(f.path);      
       design_filenames[f.fraction_group] = fn;
     }
     
@@ -568,7 +568,7 @@ protected:
     UInt64 n_files = 0;
     for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
     {
-      const String fn = FileHandler::stripExtension(File::basename(f.path));
+      const String fn = File::stemName(f.path);
       design_group_fraction_filename[f.fraction_group][f.fraction] = fn;
       n_files++;
     }
@@ -631,7 +631,7 @@ protected:
           {
             // Process each filename within the fraction group
             // important: strip file extension and path to find the entry
-            design_filename = FileHandler::stripExtension(File::basename(design_filename));
+            design_filename = File::stemName(design_filename);
             
             #ifdef DEBUG_PROTEINQUANTIFIER
             std::cout 
@@ -770,7 +770,7 @@ protected:
       map<String, String> sample_id_to_filename;
       for (const auto& e : ms_section)
       {
-        String ed_filename = FileHandler::stripExtension(File::basename(e.path));
+        String ed_filename = File::stemName(e.path);
         String ed_label = e.label;
         String ed_sample = e.sample;
         sample_id_to_filename[e.sample] = ed_filename; // should be 0,...,n_samples-1

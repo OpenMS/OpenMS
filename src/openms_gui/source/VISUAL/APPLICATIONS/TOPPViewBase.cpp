@@ -729,7 +729,7 @@ namespace OpenMS
     // try to add the data
     if (caption == "")
     {
-      caption = FileHandler::stripExtension(File::basename(abs_filename));
+      caption = File::stemName(abs_filename);
     }
     else
     {

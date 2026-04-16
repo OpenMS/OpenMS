@@ -393,6 +393,10 @@ namespace OpenMS
       arrow::field(PSM_METAVALUES, metavaluesType()),
       arrow::field(SPECTRUM_METAVALUES, metavaluesType()),
       arrow::field(RUN_IDENTIFIER, arrow::utf8()),
+      arrow::field(MZ_ARRAY, arrow::list(arrow::float32())),
+      arrow::field(INTENSITY_ARRAY, arrow::list(arrow::float32())),
+      arrow::field(CHARGE_ARRAY, arrow::list(arrow::int32())),
+      arrow::field(ION_TYPE_ARRAY, arrow::list(arrow::utf8())),
     });
   }
 
@@ -475,6 +479,88 @@ namespace OpenMS
       arrow::field(CHARGE_ARRAY, arrow::list(arrow::int32())),
       arrow::field(ION_TYPE_ARRAY, arrow::list(arrow::utf8())),
       arrow::field(ION_MOBILITY_ARRAY, arrow::list(arrow::float32())),
+    });
+  }
+
+  // -- QPXPgSchema (quantms Parquet eXchange format, protein group table) --
+
+  std::shared_ptr<arrow::DataType> QPXPgSchema::intensitiesType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("label", arrow::utf8(), /*nullable=*/false),
+      arrow::field("intensity", arrow::float32(), /*nullable=*/false)
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> QPXPgSchema::additionalIntensitiesType()
+  {
+    auto int_pair_type = arrow::struct_({
+      arrow::field("intensity_name", arrow::utf8(), /*nullable=*/false),
+      arrow::field("intensity_value", arrow::float32(), /*nullable=*/false)
+    });
+    return arrow::list(arrow::struct_({
+      arrow::field("label", arrow::utf8(), /*nullable=*/false),
+      arrow::field("intensities", arrow::list(int_pair_type), /*nullable=*/false)
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> QPXPgSchema::peptidesType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("protein_name", arrow::utf8(), /*nullable=*/false),
+      arrow::field("peptide_count", arrow::int32(), /*nullable=*/false)
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> QPXPgSchema::peptideCountsType()
+  {
+    return arrow::struct_({
+      arrow::field("unique_sequences", arrow::int32(), /*nullable=*/false),
+      arrow::field("total_sequences", arrow::int32(), /*nullable=*/false)
+    });
+  }
+
+  std::shared_ptr<arrow::DataType> QPXPgSchema::featureCountsType()
+  {
+    return arrow::struct_({
+      arrow::field("unique_features", arrow::int32(), /*nullable=*/false),
+      arrow::field("total_features", arrow::int32(), /*nullable=*/false)
+    });
+  }
+
+  std::shared_ptr<arrow::DataType> QPXPgSchema::additionalScoresType()
+  {
+    return QPXPSMSchema::additionalScoresType();
+  }
+
+  std::shared_ptr<arrow::DataType> QPXPgSchema::cvParamsType()
+  {
+    return QPXPSMSchema::cvParamsType();
+  }
+
+  std::shared_ptr<arrow::Schema> QPXPgSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(PG_ACCESSIONS, arrow::list(arrow::utf8()), /*nullable=*/false),
+      arrow::field(PG_NAMES, arrow::list(arrow::utf8())),
+      arrow::field(GG_ACCESSIONS, arrow::list(arrow::utf8())),
+      arrow::field(GG_NAMES, arrow::list(arrow::utf8())),
+      arrow::field(GG_QVALUE, arrow::float64()),
+      arrow::field(ANCHOR_PROTEIN, arrow::utf8(), /*nullable=*/false),
+      arrow::field(RUN_FILE_NAME, arrow::utf8(), /*nullable=*/false),
+      arrow::field(GLOBAL_QVALUE, arrow::float64()),
+      arrow::field(PG_QVALUE, arrow::float64()),
+      arrow::field(INTENSITIES, intensitiesType()),
+      arrow::field(ADDITIONAL_INTENSITIES, additionalIntensitiesType()),
+      arrow::field(IS_DECOY, arrow::boolean(), /*nullable=*/false),
+      arrow::field(CONTAMINANT, arrow::boolean()),
+      arrow::field(PEPTIDES, peptidesType(), /*nullable=*/false),
+      arrow::field(PEPTIDE_COUNTS, peptideCountsType()),
+      arrow::field(FEATURE_COUNTS, featureCountsType()),
+      arrow::field(SEQUENCE_COVERAGE, arrow::float32()),
+      arrow::field(MOLECULAR_WEIGHT, arrow::float32()),
+      arrow::field(ADDITIONAL_SCORES, additionalScoresType()),
+      arrow::field(CV_PARAMS, cvParamsType()),
     });
   }
 

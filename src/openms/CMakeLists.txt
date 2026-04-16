@@ -97,7 +97,7 @@ if (OPENMS_ARROW_DATASET_TARGET)
 endif()
 
 if (WITH_OPENTIMS)
-  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES opentims_cpp)
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES opentims::opentims_cpp)
 endif()
 
 if (ENABLE_TDL)
@@ -163,6 +163,7 @@ if (ENABLE_TDL)
 endif()
 
 # Use std::filesystem instead of boost::filesystem in boost::process (avoids linking boost_filesystem)
+# Requires Boost >= 1.81 (BOOST_PROCESS_USE_STD_FS was introduced in 1.78)
 target_compile_definitions(OpenMS PRIVATE BOOST_PROCESS_USE_STD_FS)
 
 if (WITH_OPENTIMS)
