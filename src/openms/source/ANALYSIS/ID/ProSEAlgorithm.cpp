@@ -1660,12 +1660,16 @@ namespace OpenMS
 
     if (!result.extreme_bias)
     {
-      // Map signed window [shift - spread, shift + spread] to positive magnitudes:
-      //   -cal_lower = shift - spread  ->  cal_lower = spread - shift
-      //   +cal_upper = shift + spread  ->  cal_upper = spread + shift
+      // Map signed window [shift - spread, shift + spread] to the positive-magnitude
+      // (lower, upper) schema. Per the convention established above (lines ~1615-1617),
+      // a (lower, upper) pair means theoretical ∈ [observed - lower, observed + upper],
+      // equivalently the signed error e = observed - theoretical lies in [-upper, +lower].
+      // Matching [shift - spread, shift + spread] against [-upper, +lower] gives:
+      //   -cal_upper = shift - spread  ->  cal_upper = spread - shift
+      //   +cal_lower = shift + spread  ->  cal_lower = spread + shift
       // Both are non-negative when |shift| < spread.
-      const double cal_lower_raw = result.precursor_spread - prec_shift;
-      const double cal_upper_raw = result.precursor_spread + prec_shift;
+      const double cal_lower_raw = result.precursor_spread + prec_shift;
+      const double cal_upper_raw = result.precursor_spread - prec_shift;
       // Only tighten - cap against user-configured bounds.
       result.cal_lower = std::min(cal_lower_raw, precursor_mass_tolerance_lower_);
       result.cal_upper = std::min(cal_upper_raw, precursor_mass_tolerance_upper_);

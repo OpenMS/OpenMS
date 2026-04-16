@@ -3000,6 +3000,15 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -protein false)
   set_tests_properties("TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA" PROPERTIES DEPENDS "TOPP_SimpleSearchEngine_DDA")
 
+  # Floor-only PSM-count regression tripwire. Current yield on this fixture is
+  # ~4187; floor set ~5% below to absorb small algorithmic drift while catching
+  # real regressions (e.g., silent native-ID or IM-annotation breakage).
+  add_test(NAME "TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA_psm_count"
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/check_psm_floor.cmake
+      ${TESTS_TEMP_DIR}/SimpleSearchEngine_DDA_fdr.tmp.idXML 3900)
+  set_tests_properties("TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA_psm_count"
+    PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA")
+
   add_test("TOPP_ProSE_DDA" ${TOPP_BIN_PATH}/ProSE -test
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
@@ -3020,6 +3029,13 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -FDR:PSM 0.01
     -protein false)
   set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA" PROPERTIES DEPENDS "TOPP_ProSE_DDA")
+
+  # Floor: ~4373 current; guard at ~5% below.
+  add_test(NAME "TOPP_FalseDiscoveryRate_ProSEDDA_psm_count"
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/check_psm_floor.cmake
+      ${TESTS_TEMP_DIR}/ProSE_DDA_fdr.tmp.idXML 4100)
+  set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_psm_count"
+    PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_ProSEDDA")
 
   # Same DDA search with automatic calibration enabled
   add_test("TOPP_ProSE_DDA_calibrated" ${TOPP_BIN_PATH}/ProSE -test
@@ -3043,6 +3059,16 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -FDR:PSM 0.01
     -protein false)
   set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_calibrated" PROPERTIES DEPENDS "TOPP_ProSE_DDA_calibrated")
+
+  # Floor: ~4537 current (calibration should legitimately EXCEED uncalibrated yield);
+  # guard at ~5% below. This test also protects the sign-convention fix in
+  # ProSEAlgorithm::runCalibrationPass_ — a regression of the swap would drop
+  # this count back to ~1441.
+  add_test(NAME "TOPP_FalseDiscoveryRate_ProSEDDA_calibrated_psm_count"
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/check_psm_floor.cmake
+      ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_fdr.tmp.idXML 4300)
+  set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_calibrated_psm_count"
+    PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_ProSEDDA_calibrated")
 
   # Generate target-decoy database (shared by CometAdapter and SageAdapter DDA tests)
   add_test("TOPP_DecoyDatabase_DDA" ${TOPP_BIN_PATH}/DecoyDatabase -test
