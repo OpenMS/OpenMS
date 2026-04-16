@@ -184,6 +184,10 @@ protected:
     setMinFloat_("bruker:calibration_tolerance", 0.0);
     registerStringOption_("bruker:calibrate", "<toggle>", "false", "Enable m/z recalibration (may fail on some datasets)", false, true);
     setValidStrings_("bruker:calibrate", {"true", "false"});
+    registerStringOption_("bruker:load_ms1", "<toggle>", "true",
+      "Load MS1 spectra. Disable for MS2-only workflows (peptide database search) "
+      "where MS1 surveys are not needed — substantially cuts memory and time. Affects all export modes.", false, true);
+    setValidStrings_("bruker:load_ms1", {"true", "false"});
     registerStringOption_("bruker:export_mode", "<mode>", "auto", "Export mode: 'auto' detects DDA/DIA acquisition type, "
       "'spectrum' forces per-precursor MS2 spectra (DDA-style), 'frame' returns raw 4D frames without signal processing.", false, true);
     setValidStrings_("bruker:export_mode", {"auto", "spectrum", "frame"});
@@ -266,6 +270,7 @@ protected:
     BrukerTimsFile::Config c;
     c.calibration_tolerance = getDoubleOption_("bruker:calibration_tolerance");
     c.calibrate = (getStringOption_("bruker:calibrate") == "true");
+    c.load_ms1 = (getStringOption_("bruker:load_ms1") == "true");
     String mode = getStringOption_("bruker:export_mode");
     if (mode == "spectrum") c.export_mode = BrukerTimsFile::Config::SPECTRUM;
     else if (mode == "frame") c.export_mode = BrukerTimsFile::Config::FRAME;

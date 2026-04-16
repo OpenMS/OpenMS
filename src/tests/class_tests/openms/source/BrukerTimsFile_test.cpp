@@ -260,6 +260,111 @@ START_SECTION(DDA loading integration test)
 }
 END_SECTION
 
+START_SECTION(DDA native ID format test)
+{
+  // Contract: MS2 native IDs must carry all three Bruker identifiers
+  // (frame, TIMS scan index, Precursors.Id) using the convention
+  // "frame=F scan=S precursor=P". The "scan=S" part is the TIMS isolation-
+  // window scan_begin, NOT the SQL precursor key, so it overlaps with DIA's
+  // convention and stays physically meaningful.
+  BrukerTimsFile f;
+  MSExperiment exp;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp);
+
+  // Find a non-empty MS2 spectrum
+  const MSSpectrum* ms2 = nullptr;
+  for (const auto& spec : exp)
+  {
+    if (spec.getMSLevel() == 2 && !spec.empty())
+    {
+      ms2 = &spec;
+      break;
+    }
+  }
+  TEST_NOT_EQUAL(ms2, nullptr);
+
+  const String& id = ms2->getNativeID();
+  // All three components must be present
+  TEST_EQUAL(id.hasSubstring("frame="), true);
+  TEST_EQUAL(id.hasSubstring("scan="), true);
+  TEST_EQUAL(id.hasSubstring("precursor="), true);
+  // Order: frame first (prefix), precursor last
+  TEST_EQUAL(id.hasPrefix("frame="), true);
+
+  STATUS("DDA MS2 native ID sample: " << id);
+}
+END_SECTION
+
+START_SECTION(Bruker load_ms1=false test)
+{
+  BrukerTimsFile f;
+
+  // Baseline: default config loads both MS1 and MS2
+  MSExperiment exp_both;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_both);
+  Size raw_ms1 = 0, raw_ms2 = 0;
+  for (const auto& s : exp_both)
+  {
+    if (s.getMSLevel() == 1) ++raw_ms1;
+    else if (s.getMSLevel() == 2) ++raw_ms2;
+  }
+  TEST_NOT_EQUAL(raw_ms1, 0);
+  TEST_NOT_EQUAL(raw_ms2, 0);
+
+  // load_ms1=false: zero MS1, MS2 count unchanged
+  BrukerTimsFile::Config cfg;
+  cfg.load_ms1 = false;
+  MSExperiment exp_ms2_only;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_ms2_only, cfg);
+  Size skip_ms1 = 0, skip_ms2 = 0;
+  for (const auto& s : exp_ms2_only)
+  {
+    if (s.getMSLevel() == 1) ++skip_ms1;
+    else if (s.getMSLevel() == 2) ++skip_ms2;
+  }
+  TEST_EQUAL(skip_ms1, 0);
+  TEST_EQUAL(skip_ms2, raw_ms2);
+
+  STATUS("DDA load_ms1=false: raw MS1=" << raw_ms1 << " MS2=" << raw_ms2
+         << " | skipped MS1=" << skip_ms1 << " MS2=" << skip_ms2);
+
+#ifdef OPENTIMS_DIA_TEST_DATA
+  // Same invariant on DIA
+  MSExperiment exp_dia_both;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_dia_both);
+  Size dia_raw_ms1 = 0, dia_raw_ms2 = 0;
+  for (const auto& s : exp_dia_both)
+  {
+    if (s.getMSLevel() == 1) ++dia_raw_ms1;
+    else if (s.getMSLevel() == 2) ++dia_raw_ms2;
+  }
+
+  BrukerTimsFile::Config cfg_dia;
+  cfg_dia.load_ms1 = false;
+  MSExperiment exp_dia_skip;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_dia_skip, cfg_dia);
+  Size dia_skip_ms1 = 0, dia_skip_ms2 = 0;
+  for (const auto& s : exp_dia_skip)
+  {
+    if (s.getMSLevel() == 1) ++dia_skip_ms1;
+    else if (s.getMSLevel() == 2) ++dia_skip_ms2;
+  }
+  TEST_EQUAL(dia_skip_ms1, 0);
+  TEST_EQUAL(dia_skip_ms2, dia_raw_ms2);
+
+  // FRAME export mode must also honor load_ms1 (skips level==1 loop)
+  BrukerTimsFile::Config cfg_frame;
+  cfg_frame.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_frame.load_ms1 = false;
+  MSExperiment exp_frame;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_frame, cfg_frame);
+  Size frame_ms1 = 0;
+  for (const auto& s : exp_frame) if (s.getMSLevel() == 1) ++frame_ms1;
+  TEST_EQUAL(frame_ms1, 0);
+#endif
+}
+END_SECTION
+
 START_SECTION(DDA round-trip test: load .d -> write mzML -> reload -> verify)
 {
   // Load from .d

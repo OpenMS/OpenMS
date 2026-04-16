@@ -381,6 +381,12 @@ namespace OpenMS
                       << ms1_frame_count << "); effective window will be clamped "
                       << "at run edges." << std::endl;
     }
+    if (!config.load_ms1 && config.ms1_n_neighbors > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: ms1_n_neighbors (=" << config.ms1_n_neighbors
+                      << ") ignored: load_ms1=false disables MS1 loading entirely."
+                      << std::endl;
+    }
   }
 
   // =====================================================================
@@ -1388,8 +1394,9 @@ namespace OpenMS
     warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
     if (config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
 
-    startProgress(0, ms1_frame_ids.size(), "Streaming DIA-PASEF MS1 frames");
-    for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
+    const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
+    startProgress(0, ms1_to_emit, "Streaming DIA-PASEF MS1 frames");
+    for (size_t i = 0; i < ms1_to_emit; ++i)
     {
       MSSpectrum spec;
       if (config.ms1_n_neighbors > 0)
@@ -1646,15 +1653,16 @@ namespace OpenMS
     }
 
     uint32_t num_ms2 = static_cast<uint32_t>(precursor_groups.size());
-    exp.reserveSpaceSpectra(static_cast<unsigned int>(ms1_frame_ids.size()) + num_ms2);
+    const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
+    exp.reserveSpaceSpectra(static_cast<unsigned int>(ms1_to_emit) + num_ms2);
 
-    startProgress(0, ms1_frame_ids.size() + num_ms2, "Loading DDA-PASEF data");
+    startProgress(0, ms1_to_emit + num_ms2, "Loading DDA-PASEF data");
 
     // --- MS1 frames ---
     FrameCentroider centroider;
     FrameAggregator ms1_aggregator(0.01);
-    if (config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
-    for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
+    if (config.load_ms1 && config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
+    for (size_t i = 0; i < ms1_to_emit; ++i)
     {
       MSSpectrum spec;
       if (config.ms1_n_neighbors > 0)
@@ -1866,7 +1874,7 @@ namespace OpenMS
       if (all_tofs.empty())
       {
         ++precursor_idx;
-        setProgress(ms1_frame_ids.size() + precursor_idx);
+        setProgress(ms1_to_emit + precursor_idx);
         continue;
       }
 
@@ -1946,7 +1954,7 @@ namespace OpenMS
       if (all_mz.empty())
       {
         ++precursor_idx;
-        setProgress(ms1_frame_ids.size() + precursor_idx);
+        setProgress(ms1_to_emit + precursor_idx);
         continue;
       }
 
@@ -1976,7 +1984,13 @@ namespace OpenMS
       spec.setDriftTime(scalar_im);
       spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
       spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-      spec.setNativeID("scan=" + String(prec_id));
+      // Native ID carries all three Bruker-side identifiers for downstream
+      // cross-reference: source frame, TIMS scan index (precursor isolation
+      // start), and the Bruker Precursors.Id SQL key. Matches the DIA MS2
+      // convention (frame=F windowGroup=G scan=S).
+      spec.setNativeID("frame=" + String(first_entry->frame_id)
+                       + " scan=" + String(first_entry->scan_begin)
+                       + " precursor=" + String(prec_id));
 
       // Copy sorted peak data
       spec.reserve(all_mz.size());
@@ -2011,7 +2025,7 @@ namespace OpenMS
 
       exp.addSpectrum(std::move(spec));
       ++precursor_idx;
-      setProgress(ms1_frame_ids.size() + precursor_idx);
+      setProgress(ms1_to_emit + precursor_idx);
     }
     endProgress();
     centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
@@ -2040,9 +2054,10 @@ namespace OpenMS
     // --- MS1 frames ---
     FrameCentroider centroider;
     FrameAggregator ms1_aggregator(0.01);  // finer bin for MS1 (see design spec)
-    if (config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
-    startProgress(0, ms1_frame_ids.size(), "Loading DIA-PASEF MS1 frames");
-    for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
+    const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
+    if (config.load_ms1 && config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
+    startProgress(0, ms1_to_emit, "Loading DIA-PASEF MS1 frames");
+    for (size_t i = 0; i < ms1_to_emit; ++i)
     {
       MSSpectrum spec;
       if (config.ms1_n_neighbors > 0)
@@ -2059,7 +2074,8 @@ namespace OpenMS
       setProgress(i);
     }
     endProgress();
-    centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
+    if (config.load_ms1)
+      centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
 
     // --- SWATH windows ---
     std::vector<DIAWindow> windows = readDIAWindows(db, *handle.scan2inv_ion_mobility_converter);
@@ -2287,6 +2303,9 @@ namespace OpenMS
     // Iterate all frames at each MS level
     for (int level = 1; level <= 2; ++level)
     {
+      // Honor load_ms1: skip level==1 entirely when the user opts out of MS1.
+      if (level == 1 && !config.load_ms1) continue;
+
       // Collect frame IDs at this level
       std::vector<uint32_t> frame_ids;
       for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
