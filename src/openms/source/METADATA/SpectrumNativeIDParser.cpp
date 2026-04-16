@@ -21,7 +21,8 @@ namespace OpenMS
   {
     return id.hasPrefix("scan=") || id.hasPrefix("scanId=") || id.hasPrefix("scanID=")
         || id.hasPrefix("controllerType=") || id.hasPrefix("function=") || id.hasPrefix("sample=")
-        || id.hasPrefix("index=") || id.hasPrefix("spectrum=") || id.hasPrefix("file=");
+        || id.hasPrefix("index=") || id.hasPrefix("spectrum=") || id.hasPrefix("file=")
+        || id.hasPrefix("frame=");
   }
 
   std::string SpectrumNativeIDParser::getRegExFromNativeID(const String& id)
@@ -29,9 +30,15 @@ namespace OpenMS
     // "scan=NUMBER" e.g. Bruker/Agilent
     // "controllerType=0 controllerNumber=1 scan=NUMBER" for Thermo
     // "function= process= scan=NUMBER" for Waters
+    // "frame=FRAME_ID scan=SCAN_ID [precursor=PREC_ID]" for Bruker TDF
+    //   (MS:1002818). Extra trailing tokens (precursor=, windowGroup=,
+    //   scanStart=, scanEnd=, merged=) are used by OpenMS DDA/DIA PASEF
+    //   and pwiz combined mode; the regex targets the "scan=<int>" token
+    //   which remains the most meaningful scan-number proxy.
     if (id.hasPrefix("scan=")
      || id.hasPrefix("controllerType=")
-     || id.hasPrefix("function=")) return std::string(R"(scan=(?<GROUP>\d+))");
+     || id.hasPrefix("function=")
+     || id.hasPrefix("frame=")) return std::string(R"(scan=(?<GROUP>\d+))");
 
     // "index=NUMBER"
     if (id.hasPrefix("index=")) return std::string(R"(index=(?<GROUP>\d+))");
@@ -83,8 +90,13 @@ namespace OpenMS
   {
     // check accession for data type to extract (e.g. MS:1000768 - Thermo nativeID format - scan=xsd:positiveInteger)
     boost::regex regexp;
-    // list of CV accessions with native id format "scan=NUMBER"
-    std::vector<String> scan = {"MS:1000768","MS:1000769","MS:1000771","MS:1000772","MS:1000776"};
+    // list of CV accessions with native id format "scan=NUMBER".
+    // MS:1002818 = "Bruker TDF nativeID format" (pattern "frame=<int> scan=<int>",
+    // we extend it with a trailing "precursor=<int>" for aggregated DDA
+    // output — see BrukerTimsFile::loadDDA_ for the rationale). The regex
+    // targets the "scan=<int>" token in all cases; trailing tokens are
+    // ignored.
+    std::vector<String> scan = {"MS:1000768","MS:1000769","MS:1000771","MS:1000772","MS:1000776","MS:1002818"};
     // list of CV accession with native id format "file=NUMBER"
     std::vector<String> file = {"MS:1000773","MS:1000775"};
     // expected number of subgroups

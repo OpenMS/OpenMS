@@ -260,6 +260,131 @@ START_SECTION(DDA loading integration test)
 }
 END_SECTION
 
+START_SECTION(DDA native ID format test)
+{
+  // Contract: DDA MS2 native IDs are "frame=<F> scan=<S> precursor=<P>".
+  // This extends the MS:1002818 pattern with a trailing "precursor=<P>"
+  // token because OpenMS aggregates all PasefFrameMsMsInfo entries sharing
+  // the same Precursors.Id into ONE spectrum (pwiz emits per-mobility-scan,
+  // so its (frame, scan_begin) pairs are inherently unique — ours are not).
+  // The Precursors.Id is ALSO duplicated as MetaValue "bruker_precursor_id"
+  // for typed programmatic access.
+  BrukerTimsFile f;
+  MSExperiment exp;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp);
+
+  // Find a non-empty MS2 spectrum
+  const MSSpectrum* ms2 = nullptr;
+  for (const auto& spec : exp)
+  {
+    if (spec.getMSLevel() == 2 && !spec.empty())
+    {
+      ms2 = &spec;
+      break;
+    }
+  }
+  TEST_NOT_EQUAL(ms2, nullptr);
+
+  const String& id = ms2->getNativeID();
+  TEST_EQUAL(id.hasPrefix("frame="), true);
+  TEST_EQUAL(id.hasSubstring(" scan="), true);
+  TEST_EQUAL(id.hasSubstring(" precursor="), true);
+
+  // Precursors.Id must ALSO be stored as a typed MetaValue.
+  TEST_EQUAL(ms2->metaValueExists("bruker_precursor_id"), true);
+
+  // All DDA MS2 native IDs must be unique inside the run (XSD-level mzML
+  // requirement). This is what the "precursor=<P>" disambiguator buys us.
+  std::set<String> ms2_ids;
+  Size ms2_count = 0;
+  for (const auto& spec : exp)
+  {
+    if (spec.getMSLevel() == 2)
+    {
+      ms2_ids.insert(spec.getNativeID());
+      ++ms2_count;
+    }
+  }
+  TEST_EQUAL(ms2_ids.size(), ms2_count);
+
+  STATUS("DDA MS2 native ID sample: " << id
+         << " bruker_precursor_id=" << ms2->getMetaValue("bruker_precursor_id").toString());
+}
+END_SECTION
+
+START_SECTION(Bruker load_ms1=false test)
+{
+  BrukerTimsFile f;
+
+  // Baseline: default config loads both MS1 and MS2
+  MSExperiment exp_both;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_both);
+  Size raw_ms1 = 0, raw_ms2 = 0;
+  for (const auto& s : exp_both)
+  {
+    if (s.getMSLevel() == 1) ++raw_ms1;
+    else if (s.getMSLevel() == 2) ++raw_ms2;
+  }
+  TEST_NOT_EQUAL(raw_ms1, 0);
+  TEST_NOT_EQUAL(raw_ms2, 0);
+
+  // load_ms1=false: zero MS1, MS2 count unchanged
+  BrukerTimsFile::Config cfg;
+  cfg.load_ms1 = false;
+  MSExperiment exp_ms2_only;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_ms2_only, cfg);
+  Size skip_ms1 = 0, skip_ms2 = 0;
+  for (const auto& s : exp_ms2_only)
+  {
+    if (s.getMSLevel() == 1) ++skip_ms1;
+    else if (s.getMSLevel() == 2) ++skip_ms2;
+  }
+  TEST_EQUAL(skip_ms1, 0);
+  TEST_EQUAL(skip_ms2, raw_ms2);
+
+  STATUS("DDA load_ms1=false: raw MS1=" << raw_ms1 << " MS2=" << raw_ms2
+         << " | skipped MS1=" << skip_ms1 << " MS2=" << skip_ms2);
+
+#ifdef OPENTIMS_DIA_TEST_DATA
+  // Same invariant on DIA
+  MSExperiment exp_dia_both;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_dia_both);
+  Size dia_raw_ms1 = 0, dia_raw_ms2 = 0;
+  for (const auto& s : exp_dia_both)
+  {
+    if (s.getMSLevel() == 1) ++dia_raw_ms1;
+    else if (s.getMSLevel() == 2) ++dia_raw_ms2;
+  }
+
+  BrukerTimsFile::Config cfg_dia;
+  cfg_dia.load_ms1 = false;
+  MSExperiment exp_dia_skip;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_dia_skip, cfg_dia);
+  Size dia_skip_ms1 = 0, dia_skip_ms2 = 0;
+  for (const auto& s : exp_dia_skip)
+  {
+    if (s.getMSLevel() == 1) ++dia_skip_ms1;
+    else if (s.getMSLevel() == 2) ++dia_skip_ms2;
+  }
+  TEST_EQUAL(dia_skip_ms1, 0);
+  TEST_EQUAL(dia_skip_ms2, dia_raw_ms2);
+
+  // FRAME export mode must also honor load_ms1 (skips level==1 loop)
+  BrukerTimsFile::Config cfg_frame;
+  cfg_frame.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_frame.load_ms1 = false;
+  MSExperiment exp_frame;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_frame, cfg_frame);
+  Size frame_ms1 = 0;
+  for (const auto& s : exp_frame)
+  {
+    if (s.getMSLevel() == 1) ++frame_ms1;
+  }
+  TEST_EQUAL(frame_ms1, 0);
+#endif
+}
+END_SECTION
+
 START_SECTION(DDA round-trip test: load .d -> write mzML -> reload -> verify)
 {
   // Load from .d
