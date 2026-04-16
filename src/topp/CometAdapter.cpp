@@ -32,6 +32,8 @@
 
 #include <OpenMS/ANALYSIS/ID/CometModification.h>
 
+#include <unordered_map>
+
 #ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #endif
@@ -697,13 +699,18 @@ protected:
     const bool is_bruker_d = (FileHandler::getType(inputfile_name) == FileTypes::BRUKER_TDF);
     if (is_bruker_d)
     {
-      // Load .d via BrukerTimsFile
+      // Load .d via BrukerTimsFile. Default MS2-only (load_ms1=false) since
+      // Comet only searches MS2 — cuts load time substantially. Can be overridden
+      // via -bruker:load_ms1=true if the caller wants MS1 retained in `exp`.
       auto bruker_config = getBrukerConfig_();
+      if (ms_level == 2)
+        bruker_config.load_ms1 = false;
       BrukerTimsFile tims_file;
       tims_file.setLogType(log_type_);
       tims_file.load(inputfile_name, exp, bruker_config);
 
-      // Filter to target MS level only (Comet only needs MS2)
+      // Filter to target MS level only (Comet only needs MS2). Redundant when
+      // load_ms1=false for MS2 searches but kept for safety / MS1 searches.
       std::erase_if(exp.getSpectra(), [&](const MSSpectrum& s) { return s.getMSLevel() != static_cast<UInt>(ms_level); });
 
       OPENMS_LOG_INFO << "Loaded " << exp.size() << " MS" << ms_level << " spectra from Bruker .d directory." << std::endl;
@@ -712,6 +719,27 @@ protected:
       {
         writeDebug_("First native ID from .d: " + exp[0].getNativeID(), 2);
         writeDebug_("Last native ID from .d: " + exp[exp.size() - 1].getNativeID(), 2);
+      }
+
+      // Rewrite native IDs to "index=N" (monotonic) before the temp-mzML write.
+      //
+      // Bruker .d DDA native IDs are of the form "frame=F scan=S precursor=P".
+      // Comet's bundled mzParser (MSToolkit/saxmzmlhandler.cpp) greps for "scan="
+      // anywhere in the id and uses atoi of the following digits as its sort
+      // key. Because `scan=S` here is the TIMS isolation-window start (not a
+      // monotonic counter), mzParser detects "unsorted" scans and falls into
+      // a std::sort with a strict-weak-ordering-violating comparator
+      // (cindex::compare returns true for equal values) → undefined behavior
+      // → segfault in std::string shuffling.
+      //
+      // Workaround: rewrite native IDs to `index=N` (counter path, no atoi
+      // on scan=) before handing the mzML to Comet. Preserve the original
+      // native ID on each spectrum so post-Comet PSMs can be translated back.
+      size_t idx = 0;
+      for (auto& spec : exp.getSpectra())
+      {
+        spec.setMetaValue("original_native_id", spec.getNativeID());
+        spec.setNativeID("index=" + String(idx++));
       }
 
       // Write to temporary indexed mzML for Comet
@@ -820,9 +848,32 @@ protected:
     // Parse FAIMS compensation voltage if present
     SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_identifications, exp);
 
+#ifdef WITH_OPENTIMS
+    // Translate PSM spectrum references back from "index=N" (the rewritten form
+    // we handed to Comet to work around the mzParser sort bug) to the original
+    // Bruker native ID ("frame=F scan=S precursor=P"). Only the Bruker branch
+    // set original_native_id; the mzML branch has no-op for this loop.
+    if (is_bruker_d && !exp.empty() && exp[0].metaValueExists("original_native_id"))
+    {
+      // Build rewritten-id → original-id map once (O(N) vs O(N*M) linear scan).
+      std::unordered_map<String, String> id_map;
+      id_map.reserve(exp.size());
+      for (const auto& spec : exp.getSpectra())
+      {
+        if (spec.metaValueExists("original_native_id"))
+          id_map.emplace(spec.getNativeID(), spec.getMetaValue("original_native_id").toString());
+      }
+      for (auto& pid : peptide_identifications)
+      {
+        auto it = id_map.find(pid.getSpectrumReference());
+        if (it != id_map.end()) pid.setSpectrumReference(it->second);
+      }
+    }
+#endif
+
     // remove base_name meta value from peptide identifications
     for (auto& peptide_identification : peptide_identifications)
-    {      
+    {
       peptide_identification.removeMetaValue("base_name");
     }
 
