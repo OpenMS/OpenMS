@@ -1250,8 +1250,11 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   // cal_lower/cal_upper should be tightened from [20, 30] but retain asymmetry.
   TEST_EQUAL(cal.cal_lower < 20.0, true)
   TEST_EQUAL(cal.cal_upper < 30.0, true)
-  // And remain asymmetric — the positive bias means cal_upper > cal_lower.
-  TEST_EQUAL(cal.cal_upper > cal.cal_lower, true)
+  // Remain asymmetric. Under the (lower, upper) convention where the signed
+  // error e = observed - theoretical lies in [-upper, +lower], a POSITIVE
+  // precursor bias (observed > theoretical) widens the +lower side of the
+  // accepted window and tightens the -upper side, so cal_lower > cal_upper.
+  TEST_EQUAL(cal.cal_lower > cal.cal_upper, true)
   // Post-search, the tolerance members have been RESTORED to the user-configured
   // values to avoid per-file state leaks in the multi-file wrapper (which reuses a
   // single ProSEAlgorithm instance across files). The calibrated
