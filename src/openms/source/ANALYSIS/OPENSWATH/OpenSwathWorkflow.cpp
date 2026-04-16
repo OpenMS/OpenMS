@@ -33,6 +33,8 @@
 #include <thread>
 #include <unordered_map>
 #include <utility>
+#include <queue>
+#include <atomic>
 
 
 // OpenSwathWorkflow
@@ -99,6 +101,47 @@ namespace OpenMS
         feature_count += rhs.feature_count;
       }
     };
+
+    // --- Dynamic batching helpers ---
+    UInt64 calculateAvailableMemoryForScoring(UInt64 osw_buffer_bytes = 2ULL * 1024ULL * 1024ULL * 1024ULL)
+    {
+      // Prefer free system memory (returns KB)
+      size_t available_kb = 0;
+      if (!SysInfo::getFreeSystemMemory(available_kb))
+      {
+        return 0ULL;
+      }
+      UInt64 available_bytes = static_cast<UInt64>(available_kb) * 1024ULL;
+      const UInt64 os_reserved = 2ULL * 1024ULL * 1024ULL * 1024ULL; // 2 GB
+      const UInt64 io_buffer = 500ULL * 1024ULL * 1024ULL; // 500 MB
+      if (available_bytes <= os_reserved + io_buffer + osw_buffer_bytes) return 0ULL;
+      UInt64 available = available_bytes - os_reserved - io_buffer - osw_buffer_bytes;
+      // safety margin
+      return static_cast<UInt64>(available * 0.75);
+    }
+
+    Size estimateFeatureMemoryPerCompound()
+    {
+      // Conservative estimate in bytes per compound (features + temporaries)
+      return static_cast<Size>(2 * 1024); // 2 KB
+    }
+
+    Size calculateInnerBatchSize(Size total_compounds, int user_innerBatchSize = -1)
+    {
+      if (user_innerBatchSize > 0)
+      {
+        return static_cast<Size>(std::min<Size>(static_cast<Size>(user_innerBatchSize), total_compounds));
+      }
+      const UInt64 safe_mem = calculateAvailableMemoryForScoring();
+      if (safe_mem == 0) return std::min<Size>(static_cast<Size>(5000), total_compounds);
+      // use 5% of available memory for feature batch buffer
+      UInt64 feature_buffer_safe = safe_mem / 20ULL;
+      Size bytes_per_compound = estimateFeatureMemoryPerCompound();
+      Size inner = static_cast<Size>(feature_buffer_safe / bytes_per_compound);
+      // clamp
+      inner = std::max<Size>(2000, std::min<Size>(10000, inner));
+      return std::min<Size>(inner, total_compounds);
+    }
 
     String formatProfileSeconds(double seconds)
     {
@@ -761,6 +804,73 @@ namespace OpenMS
         buffered_osw_writer = std::make_unique<OSWBufferedWriter>(osw_writer, osw_buffer_bytes, profile);
       }
 
+      // Define outer pool and inner job queue structures early so we can limit
+      // concurrent SWATH loading during the following extraction loop.
+      class OuterBatchingPool
+      {
+      private:
+        Size max_concurrent_;
+        std::atomic<Size> active_count_{0};
+        std::mutex pool_mutex_;
+        std::condition_variable pool_cv_;
+      public:
+        OuterBatchingPool(Size max_concurrent) : max_concurrent_(max_concurrent) {}
+        void acquireSlot()
+        {
+          std::unique_lock<std::mutex> lock(pool_mutex_);
+          pool_cv_.wait(lock, [this]() { return active_count_.load() < max_concurrent_; });
+          active_count_.fetch_add(1);
+        }
+        void releaseSlot()
+        {
+          {
+            std::lock_guard<std::mutex> lock(pool_mutex_);
+            active_count_.fetch_sub(1);
+          }
+          pool_cv_.notify_one();
+        }
+        Size getActive() const { return active_count_.load(); }
+        Size getMax() const { return max_concurrent_; }
+      };
+
+      struct InnerBatchScoringJob
+      {
+        Size context_index = 0;
+        Size batch_index = 0;
+        long long created_time_ms = 0;
+      };
+
+      std::deque<InnerBatchScoringJob> inner_batch_queue;
+      std::mutex inner_queue_mutex;
+      std::atomic<Size> total_inner_batches_created{0};
+      std::atomic<Size> total_inner_batches_completed{0};
+
+      // Compute an initial conservative max_concurrent_swaths based on swath_maps
+      UInt64 safe_mem_initial = calculateAvailableMemoryForScoring();
+      UInt64 total_spectra_initial = 0;
+      Size swath_count_initial = 0;
+      for (const auto &sm : swath_maps)
+      {
+        if (sm.sptr) { total_spectra_initial += sm.sptr->getNrSpectra(); ++swath_count_initial; }
+      }
+      Size avg_spectra_initial = swath_count_initial ? static_cast<Size>(total_spectra_initial / swath_count_initial) : 800;
+      const UInt64 bytes_per_spectrum = 600ULL * 1024ULL;
+      UInt64 per_swath_initial = static_cast<UInt64>(avg_spectra_initial) * bytes_per_spectrum + (100ULL * 1024ULL * 1024ULL);
+      Size max_concurrent_swaths_initial = 1;
+            if (safe_mem_initial > per_swath_initial)
+            {
+        max_concurrent_swaths_initial = static_cast<Size>(safe_mem_initial / per_swath_initial);
+      #ifdef _OPENMP
+        max_concurrent_swaths_initial = std::min<Size>(max_concurrent_swaths_initial, static_cast<Size>(omp_get_max_threads()));
+      #else
+        max_concurrent_swaths_initial = std::min<Size>(max_concurrent_swaths_initial, static_cast<Size>(1));
+      #endif
+        max_concurrent_swaths_initial = std::max<Size>(1, max_concurrent_swaths_initial);
+            }
+      OPENMS_LOG_INFO << "Initial dynamic outer limit: max_concurrent_swaths=" << max_concurrent_swaths_initial << " (avg_spectra=" << avg_spectra_initial << ")" << std::endl;
+
+      OuterBatchingPool outer_pool(max_concurrent_swaths_initial);
+
 #ifdef _OPENMP
       OPENMS_LOG_INFO << "Use SWATH assay-range scheduler with " << omp_get_max_threads()
                       << " threads." << std::endl;
@@ -838,6 +948,8 @@ namespace OpenMS
         }
 
         phase_start = profileStart(profile);
+        // Acquire outer pool slot before loading SWATH into memory to limit concurrent memory usage
+        outer_pool.acquireSlot();
         context.current_swath_map = swath_maps[swath_index].sptr;
         context.current_swath_map = std::shared_ptr<SpectrumAccessOpenMSInMemory>(
           new SpectrumAccessOpenMSInMemory(*context.current_swath_map));
@@ -919,6 +1031,9 @@ namespace OpenMS
       OPENMS_LOG_INFO << "Use " << score_job_compound_count
                       << " compounds per scoring job." << std::endl;
 
+      // Outer pool and inner batch job queue were defined earlier to limit SWATH loading
+
+
       for (Size context_index = 0; context_index < contexts.size(); ++context_index)
       {
         SwathSchedulerContext& context = contexts[context_index];
@@ -944,6 +1059,31 @@ namespace OpenMS
         for (SignedSize range_index = 0; range_index < context.nr_score_jobs; ++range_index)
         {
           score_jobs.push_back({context_index, range_index});
+        }
+      }
+
+      // Enqueue inner batching jobs per SWATH (used by the new inner batch processor)
+      for (Size context_index = 0; context_index < contexts.size(); ++context_index)
+      {
+        SwathSchedulerContext& context = contexts[context_index];
+        if (!context.active) continue;
+        const Size n_compounds = context.transition_exp_used_all.getCompounds().size();
+        Size inner_batch = calculateInnerBatchSize(n_compounds, -1);
+        Size n_batches = inner_batch > 0 ? static_cast<Size>((n_compounds + inner_batch - 1) / inner_batch) : 0;
+        // override nr_score_jobs to reflect inner batches
+        context.nr_score_jobs = static_cast<SignedSize>(n_batches);
+        context.remaining_score_jobs = context.nr_score_jobs;
+        for (Size b = 0; b < n_batches; ++b)
+        {
+          InnerBatchScoringJob jb;
+          jb.context_index = context_index;
+          jb.batch_index = b;
+          jb.created_time_ms = static_cast<long long>(std::chrono::system_clock::now().time_since_epoch().count() / 1000000);
+          {
+            std::lock_guard<std::mutex> lock(inner_queue_mutex);
+            inner_batch_queue.push_back(jb);
+            total_inner_batches_created.fetch_add(1);
+          }
         }
       }
 
@@ -1008,6 +1148,10 @@ namespace OpenMS
         }
 
         context.finalized = true;
+        if (context.current_swath_map)
+        {
+          outer_pool.releaseSlot();
+        }
 #ifdef _OPENMP
 #pragma omp critical (progress)
 #endif
@@ -1017,93 +1161,103 @@ namespace OpenMS
       };
 
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic,1)
+#pragma omp parallel
 #endif
-      for (SignedSize job_index = 0; job_index < boost::numeric_cast<SignedSize>(score_jobs.size()); ++job_index)
       {
-        const SwathScoreJob& job = score_jobs[job_index];
-        SwathSchedulerContext& context = contexts[job.context_index];
-
-        OpenSwathWorkflowPhaseTiming batch_timing;
-        const auto batch_profile_start = profileStart(profile);
-        batch_timing.batch_count = 1;
-
-        auto batch_phase_start = profileStart(profile);
-        OpenSwath::LightTargetedExperiment transition_exp_used;
-        selectCompoundsForBatch_(context.transition_exp_used_all, transition_exp_used, context.score_job_size, job.range_index);
-        if (profile)
+        while (true)
         {
-          batch_timing.batch_selection = elapsedProfileSeconds(batch_phase_start);
-          batch_timing.compound_count = transition_exp_used.getCompounds().size();
-          batch_timing.transition_count = transition_exp_used.getTransitions().size();
-        }
+          InnerBatchScoringJob job;
+          {
+            std::lock_guard<std::mutex> lock(inner_queue_mutex);
+            if (inner_batch_queue.empty()) break;
+            job = inner_batch_queue.front();
+            inner_batch_queue.pop_front();
+          }
 
-        batch_phase_start = profileStart(profile);
-        FeatureMap featureFile;
-        std::vector<OpenSwath::SwathMap> tmp = {swath_maps[context.swath_index]};
-        tmp.back().sptr = context.current_swath_map->lightClone();
-        OpenSwathScoringPhaseTiming scoring_profile;
-        OpenSwathOSWWriter::OSWData job_osw_output;
-        scoreAllChromatograms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms, tmp, transition_exp_used,
-          feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false,
-          mobilogram_consumer, profile ? &scoring_profile : nullptr, &job_osw_output);
-        if (profile)
-        {
-          batch_timing.scoring = elapsedProfileSeconds(batch_phase_start);
-          batch_timing.feature_count = featureFile.size();
-        }
+          SwathSchedulerContext& context = contexts[job.context_index];
+          OpenSwathWorkflowPhaseTiming batch_timing;
+          const auto batch_profile_start = profileStart(profile);
+          batch_timing.batch_count = 1;
 
-        double job_osw_wait_seconds = 0.0;
-        if (osw_writer.isActive() && !job_osw_output.empty())
-        {
-          OSWBufferedWriter::EnqueueProfile osw_enqueue_profile =
-            buffered_osw_writer->enqueue(std::move(job_osw_output));
+          auto batch_phase_start = profileStart(profile);
+          OpenSwath::LightTargetedExperiment transition_exp_used;
+          const Size n_compounds = context.transition_exp_used_all.getCompounds().size();
+          Size inner_batch = calculateInnerBatchSize(n_compounds, -1);
+          selectCompoundsForBatch_(context.transition_exp_used_all, transition_exp_used, inner_batch, static_cast<SignedSize>(job.batch_index));
           if (profile)
           {
-            job_osw_wait_seconds = osw_enqueue_profile.wait_seconds;
-            scoring_profile.osw_write_wait += job_osw_wait_seconds;
-            scoring_profile.osw_write += job_osw_wait_seconds;
+            batch_timing.batch_selection = elapsedProfileSeconds(batch_phase_start);
+            batch_timing.compound_count = transition_exp_used.getCompounds().size();
+            batch_timing.transition_count = transition_exp_used.getTransitions().size();
           }
-        }
 
-        if (profile)
-        {
-          batch_timing.writing += job_osw_wait_seconds;
-          batch_timing.scoring_breakdown.add(scoring_profile);
-          batch_timing.total = elapsedProfileSeconds(batch_profile_start);
-        }
+          batch_phase_start = profileStart(profile);
+          FeatureMap featureFile;
+          std::vector<OpenSwath::SwathMap> tmp = {swath_maps[context.swath_index]};
+          tmp.back().sptr = context.current_swath_map->lightClone();
+          OpenSwathScoringPhaseTiming scoring_profile;
+          OpenSwathOSWWriter::OSWData job_osw_output;
+          scoreAllChromatograms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms, tmp, transition_exp_used,
+            feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false,
+            mobilogram_consumer, profile ? &scoring_profile : nullptr, &job_osw_output);
+          if (profile)
+          {
+            batch_timing.scoring = elapsedProfileSeconds(batch_phase_start);
+            batch_timing.feature_count = featureFile.size();
+          }
 
-        bool context_ready_to_finalize = false;
+          double job_osw_wait_seconds = 0.0;
+          if (osw_writer.isActive() && !job_osw_output.empty())
+          {
+            OSWBufferedWriter::EnqueueProfile osw_enqueue_profile =
+              buffered_osw_writer->enqueue(std::move(job_osw_output));
+            if (profile)
+            {
+              job_osw_wait_seconds = osw_enqueue_profile.wait_seconds;
+              scoring_profile.osw_write_wait += job_osw_wait_seconds;
+              scoring_profile.osw_write += job_osw_wait_seconds;
+            }
+          }
+
+          if (profile)
+          {
+            batch_timing.writing += job_osw_wait_seconds;
+            batch_timing.scoring_breakdown.add(scoring_profile);
+            batch_timing.total = elapsedProfileSeconds(batch_profile_start);
+          }
+
+          bool context_ready_to_finalize = false;
 #ifdef _OPENMP
 #pragma omp critical (osw_scheduler_context)
 #endif
-        {
-          if (!osw_writer.isActive() && store_features)
           {
-            for (FeatureMap::const_iterator feature_it = featureFile.begin(); feature_it != featureFile.end(); ++feature_it)
+            if (!osw_writer.isActive() && store_features)
             {
-              context.feature_file.push_back(*feature_it);
+              for (FeatureMap::const_iterator feature_it = featureFile.begin(); feature_it != featureFile.end(); ++feature_it)
+              {
+                context.feature_file.push_back(*feature_it);
+              }
+              for (std::vector<ProteinIdentification>::const_iterator protid_it = featureFile.getProteinIdentifications().begin();
+                   protid_it != featureFile.getProteinIdentifications().end(); ++protid_it)
+              {
+                context.feature_file.getProteinIdentifications().push_back(*protid_it);
+              }
             }
-            for (std::vector<ProteinIdentification>::const_iterator protid_it = featureFile.getProteinIdentifications().begin();
-                 protid_it != featureFile.getProteinIdentifications().end(); ++protid_it)
+
+            if (profile)
             {
-              context.feature_file.getProteinIdentifications().push_back(*protid_it);
+              context.swath_timing.add(batch_timing);
+              logBatchProfile(context.swath_index, static_cast<SignedSize>(job.batch_index), context.nr_score_jobs, batch_timing);
             }
+
+            --context.remaining_score_jobs;
+            context_ready_to_finalize = context.remaining_score_jobs == 0;
           }
 
-          if (profile)
+          if (context_ready_to_finalize)
           {
-            context.swath_timing.add(batch_timing);
-            logBatchProfile(context.swath_index, job.range_index, context.nr_score_jobs, batch_timing);
+            finalize_context(job.context_index);
           }
-
-          --context.remaining_score_jobs;
-          context_ready_to_finalize = context.remaining_score_jobs == 0;
-        }
-
-        if (context_ready_to_finalize)
-        {
-          finalize_context(job.context_index);
         }
       }
 
@@ -1243,16 +1397,23 @@ namespace OpenMS
           }
 
           int batch_size;
-          if (batchSize <= 0 || batchSize >= (int)transition_exp_used_all.getCompounds().size())
+          const Size n_compounds = transition_exp_used_all.getCompounds().size();
+          if (batchSize <= 0)
           {
-            batch_size = transition_exp_used_all.getCompounds().size();
+            // Auto-calculate an inner batch size to bound memory when using the range scheduler
+            Size inner = calculateInnerBatchSize(n_compounds, -1);
+            batch_size = static_cast<int>(std::max<Size>(1, inner));
+            OPENMS_LOG_INFO << "Auto-calculated inner batch size: " << batch_size << " (total compounds: " << n_compounds << ")" << std::endl;
+          }
+          else if (batchSize >= (int)n_compounds)
+          {
+            batch_size = static_cast<int>(n_compounds);
           }
           else
           {
             batch_size = batchSize;
           }
-
-          const Size n_compounds = transition_exp_used_all.getCompounds().size();
+          
           SignedSize nr_batches = 0;
           if (batch_size > 0)
           {
