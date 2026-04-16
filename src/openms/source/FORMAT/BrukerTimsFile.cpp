@@ -1573,24 +1573,26 @@ namespace OpenMS
     bool is_dia = isDIA(db);
     Config::ExportMode mode = config.export_mode;
 
-    // Compute expected size for consumer
+    // Compute expected size for consumer. Must mirror what loadFrames_/loadDIA_/
+    // loadDDA_ actually emit, which skip MS1 entirely when load_ms1=false.
     FrameCounts counts = readFrameCounts(db);
+    const size_t ms1_emitted = config.load_ms1 ? counts.ms1 : 0;
     size_t expected = 0;
     if (mode == Config::FRAME)
     {
-      expected = counts.total;
+      expected = ms1_emitted + counts.ms2;
     }
     else if (is_dia && mode != Config::SPECTRUM)
     {
       // DIA: MS1 frames + MS2 frames * windows
       auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
-      expected = counts.ms1 + static_cast<size_t>(counts.ms2) * windows.size();
+      expected = ms1_emitted + static_cast<size_t>(counts.ms2) * windows.size();
     }
     else
     {
       // DDA: MS1 frames + per-precursor MS2 spectra
       uint32_t num_precursors = countDDAPrecursors(db);
-      expected = counts.ms1 + num_precursors;
+      expected = ms1_emitted + num_precursors;
     }
 
     consumer->setExpectedSize(expected, 0);

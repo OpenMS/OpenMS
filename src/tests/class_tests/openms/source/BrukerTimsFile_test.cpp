@@ -361,7 +361,10 @@ START_SECTION(Bruker load_ms1=false test)
   MSExperiment exp_frame;
   f.load(OPENTIMS_DIA_TEST_DATA, exp_frame, cfg_frame);
   Size frame_ms1 = 0;
-  for (const auto& s : exp_frame) if (s.getMSLevel() == 1) ++frame_ms1;
+  for (const auto& s : exp_frame)
+  {
+    if (s.getMSLevel() == 1) ++frame_ms1;
+  }
   TEST_EQUAL(frame_ms1, 0);
 #endif
 }

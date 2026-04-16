@@ -699,9 +699,8 @@ protected:
     const bool is_bruker_d = (FileHandler::getType(inputfile_name) == FileTypes::BRUKER_TDF);
     if (is_bruker_d)
     {
-      // Load .d via BrukerTimsFile. Default MS2-only (load_ms1=false) since
-      // Comet only searches MS2 — cuts load time substantially. Can be overridden
-      // via -bruker:load_ms1=true if the caller wants MS1 retained in `exp`.
+      // Load .d via BrukerTimsFile. Skip MS1 loading for MS2 searches since
+      // Comet only searches MS2 — cuts load time substantially.
       auto bruker_config = getBrukerConfig_();
       if (ms_level == 2)
         bruker_config.load_ms1 = false;
