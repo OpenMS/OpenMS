@@ -16,16 +16,16 @@ namespace OpenMS
 {
   double HydrophobicityProfile::computeGRAVY(const AASequence& seq)
   {
-    if(seq.empty())
+    if (seq.empty())
     {
-      return 0;
-    }      
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Can not compute GRAVY score of an empty sequence", "");
+    }  
     double sum = 0;
-    for (const auto& residue : seq) //std accumulate
+    for (const auto& residue : seq)
     {     
       sum += residue.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE);
     }
-    return sum/seq.size(); 
+    return sum / seq.size(); 
   }
 
   std::vector<double> HydrophobicityProfile::computeProfile
@@ -53,29 +53,33 @@ namespace OpenMS
     const HydrophobicityScaleMethod scale
   )
   {
-    if (window_size>seq.size())
-    {
-      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,window_size, "Window size can not be larger than the sequence");
-    }
     if (seq.empty())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Can not compute profile of an empty sequence", "");
     }
+    if (window_size<=0)
+    {
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,window_size,"window size can not be 0");
+    }
+    if (window_size>seq.size())
+    {
+      OPENMS_LOG_WARN << "Warning: window size is larger than sequence size. Using seequence size as window size: " << seq.size() << "\n";
+    }
     std::vector<double> profile;
-    AASequence subsequence = seq.getSubsequence(0,window_size);
+    AASequence subsequence = seq.getSubsequence(0, std::min(window_size, seq.size())); // first window
     double sum = 0;
-    for (const auto& residue : subsequence)
+    for (const auto& residue : subsequence) // calculate score for first window
     {
       sum += residue.getHydrophobicity(scale);
     }
-    profile.push_back(sum / window_size);
-    double prev_value = seq[0].getHydrophobicity(scale);
-    for (auto i = window_size; i < seq.size(); i++)
+    profile.push_back(sum / std::min(window_size, seq.size()));
+    double prev_value = seq[0].getHydrophobicity(scale); // value for amino acid that gets removed from next window
+    for (auto i = std::min(window_size, seq.size()); i < seq.size(); i++) // window slides by one amino acid in each iteration
     {
       sum -= prev_value;
-      sum += seq[i].getHydrophobicity(scale);
-      profile.push_back(sum / window_size);
-      prev_value = seq[i - window_size + 1].getHydrophobicity(scale);
+      sum += seq[i].getHydrophobicity(scale); // value for new amino acid gets added
+      profile.push_back(sum / std::min(window_size, seq.size()));
+      prev_value = seq[i - std::min(window_size, seq.size()) + 1].getHydrophobicity(scale);
     }
     return profile;
   }
@@ -87,48 +91,35 @@ namespace OpenMS
     double angle  
   )
   {
-    if (window_size>seq.size())
-    {
-      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,window_size, "Window size can not be larger than the sequence");
-    }
     if (seq.empty())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Can not compute profile of an empty sequence", "");
     }
-    std::vector<double> profile;
-    for (auto i = 0; i <= seq.size()-window_size; i++)
+    if (window_size<=0)
     {
-      std::cout << "Fenster: " << i << std::endl;
-      AASequence subsequence = seq.getSubsequence(i,window_size);
-      double sum_1 = 0;
-      double sum_2 = 0;
-      double j = 1;
-      for (const auto& residue : subsequence)
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,window_size,"window size can not be 0");
+    }
+    if (window_size>seq.size())
+    {
+      OPENMS_LOG_WARN << "Warning: window size is larger than sequence size. Setting window size to sequence size: " << seq.size() << "\n";
+    }
+    std::vector<double> profile;
+    for (auto i = 0; i <= seq.size() - std::min(window_size, seq.size()); i++) // window slides by one amino acid in each iteration
+    {
+      AASequence subsequence = seq.getSubsequence(i, std::min(window_size, seq.size()));
+      double sum_sin = 0;
+      double sum_cos = 0;
+      double curr_position = 0; // position in window
+      for (const auto& residue : subsequence) // sum the values in the window
       {
-        std::cout << "durchlauf: " << j << std::endl;
-        sum_1 += residue.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG)*std::sin((100*j*3.14159)/180);
-        std::cout << "sum1: " << sum_1 << std::endl;
-        sum_2 += residue.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG)*std::cos((100*j*3.14159)/180);
-        std::cout << "sum2: " << sum_2 << std::endl;
-        j++;
+        sum_sin += residue.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG)*std::sin((angle*curr_position*3.14159265359)/180);
+        sum_cos += residue.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG)*std::cos((angle*curr_position*3.14159265359)/180);
+        curr_position++;
       }
-      sum_1 = std::pow(sum_1,2);
-      std::cout << "sum1 nach hoch 2: " << sum_1 << std::endl;
-      sum_2 = std::pow(sum_2,2);
-      std::cout << "sum2 nach hoch 2: " << sum_2 << std::endl;
-      profile.push_back(std::pow(sum_1+sum_2,0.5)/window_size);
-      std::cout << "profile wert:" << std::pow(sum_1+sum_2,0.5)/window_size<< std::endl;
+      sum_sin = std::pow(sum_sin,2);
+      sum_cos = std::pow(sum_cos,2);
+      profile.push_back(std::pow(sum_sin+sum_cos,0.5) / std::min(window_size, seq.size()));
     }
     return profile;
   }
-
-
-  
-      
-  int HydrophobicityProfile::testfunktion()
-  {
-    Residue res;
-    res.setOneLetterCode("A");
-    return 1;
-  } 
 } // namespace OpenMS
