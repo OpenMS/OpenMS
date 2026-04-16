@@ -35,9 +35,8 @@ https://openms.readthedocs.io/en/latest/manual/develop.html
 Before you open the pull request, make sure you
  - adhere to [our coding conventions](https://openms.readthedocs.io/en/latest/manual/develop.html#coding-conventions)
  - have [unit tests and functional tests](https://openms.readthedocs.io/en/latest/manual/develop.html#automated-unit-tests) - see also [this example](https://github.com/OpenMS/OpenMS/blob/develop/src/tests/class_tests/openms/source/MSNumpressCoder_test.cpp)
- - Have [proper documentation](https://openms.readthedocs.io/en/latest/manual/develop/developer-faq.html#doxygen-documentation) - see also [this example](https://github.com/OpenMS/OpenMS/blob/develop/src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h) 
+ - Have [proper documentation](https://openms.readthedocs.io/en/latest/manual/develop/developer-faq.html#doxygen-documentation) - see also [this example](https://github.com/OpenMS/OpenMS/blob/develop/src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h)
  - have Python bindings — nanobind binding files are in `src/pyOpenMS/bindings/`; see `src/pyOpenMS/CLAUDE.md` for wrapping instructions
- 
 A core developer will review your changes to the main development branch (develop) and approve them (or ask for modifications). You may indicate the prefered reviewer(s) by adding links to them in a comment section (e.g., @cbielow @hendrikweisser @hroest @jpfeuffer @timosachsenberg)
 
 Also consider getting in contact with the core developers early. They might provide additional guidance and valuable information on how your specific aim is achieved. This might give you a head start in, for example, developing novel tools or algorithms.
