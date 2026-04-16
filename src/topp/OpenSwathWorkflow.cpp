@@ -329,6 +329,10 @@ protected:
 
     registerIntOption_("batchSize", "<number>", 1000, "The batch size of chromatograms to process (0 means to only have one batch, sensible values are around 250-1000)", false, true);
     setMinInt_("batchSize", 0);
+    registerIntOption_("innerBatchSize", "<number>", -1, "Inner batch size for scoring (<=0 enables auto compute based on input and memory)", false, true);
+    setMinInt_("innerBatchSize", -1);
+    registerIntOption_("maxConcurrentSwaths", "<number>", -1, "Maximum concurrent SWATHs to keep in memory (-1 auto compute based on free memory)", false, true);
+    setMinInt_("maxConcurrentSwaths", -1);
     registerIntOption_("outer_loop_threads", "<number>", -1, "How many threads should be used for the outer loop (-1 use all threads, use 4 to analyze 4 SWATH windows in memory at once).", false, true);
 
     registerIntOption_("ms1_isotopes", "<number>", 3, "The number of MS1 isotopes used for extraction", false, true);
@@ -632,6 +636,8 @@ protected:
     int batchSize = (int)getIntOption_("batchSize");
     int outer_loop_threads = (int)getIntOption_("outer_loop_threads");
     int ms1_isotopes = (int)getIntOption_("ms1_isotopes");
+    int innerBatchSize = (int)getIntOption_("innerBatchSize");
+    int maxConcurrentSwaths = (int)getIntOption_("maxConcurrentSwaths");
     Size debug_level = (Size)getIntOption_("debug");
 
     Param debug_params = getParam_().copy("Debugging:", true);
@@ -1357,7 +1363,7 @@ protected:
 
     // perform extraction for this file's swath maps
     wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run, transition_exp,
-             active_feature_map, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param, mobilogramConsumer.get());
+         active_feature_map, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param, mobilogramConsumer.get(), innerBatchSize, maxConcurrentSwaths);
 
     if (mobilogramConsumer)
     {

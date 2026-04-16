@@ -258,24 +258,15 @@ namespace OpenMS
         profile_(profile)
       {
         stats_.buffer_budget_bytes = buffer_budget_bytes_;
-        worker_ = std::thread(&OSWBufferedWriter::writerLoop_, this);
+        worker_ = std::thread([this]() { writerLoop_(); });
       }
-
-      OSWBufferedWriter(const OSWBufferedWriter&) = delete;
-      OSWBufferedWriter& operator=(const OSWBufferedWriter&) = delete;
 
       ~OSWBufferedWriter()
       {
-        try
-        {
-          finish();
-        }
-        catch (...)
-        {
-        }
+        try { finish(); } catch (...) {}
       }
 
-      EnqueueProfile enqueue(OpenSwathOSWWriter::OSWData&& rows)
+      EnqueueProfile enqueue(OpenSwathOSWWriter::OSWData rows)
       {
         EnqueueProfile profile;
         if (rows.empty())
@@ -320,6 +311,25 @@ namespace OpenMS
         lock.unlock();
         cv_.notify_all();
         return profile;
+      }
+
+      /// Non-blocking capacity check: return true if the given byte_count can be
+      /// accepted immediately without waiting. This allows callers to avoid
+      /// blocking on `enqueue()` by deferring rows to a background enqueuer.
+      bool canAccept(UInt64 byte_count) const
+      {
+        std::lock_guard<std::mutex> lock(mutex_);
+        checkExceptionLocked_();
+        if (finish_requested_)
+        {
+          return false;
+        }
+        if ((buffered_bytes_ <= buffer_budget_bytes_ && byte_count <= buffer_budget_bytes_ - buffered_bytes_) ||
+            (buffered_bytes_ == 0 && queue_.empty()))
+        {
+          return true;
+        }
+        return false;
       }
 
       void finish()
@@ -601,8 +611,13 @@ namespace OpenMS
     int ms1_isotopes,
     bool load_into_memory,
     const Param & mrm_mapping_param,
-    MobilogramParquetConsumer * mobilogram_consumer)
+    MobilogramParquetConsumer * mobilogram_consumer,
+    int innerBatchSize,
+    int maxConcurrentSwaths)
   {
+    // user-controllable overrides for inner batching and outer concurrency
+    const int user_inner_batch_size = innerBatchSize;
+    const int user_max_concurrent_swaths = maxConcurrentSwaths;
     bool ms1_only = (swath_maps.size() == 1 && swath_maps[0].ms1);
 
     if (mrm_)
@@ -804,6 +819,36 @@ namespace OpenMS
         buffered_osw_writer = std::make_unique<OSWBufferedWriter>(osw_writer, osw_buffer_bytes, profile);
       }
 
+      // Deferred OSW enqueue queue and background enqueuer thread.
+      std::deque<OpenSwathOSWWriter::OSWData> deferred_osw_queue;
+      std::mutex deferred_osw_mutex;
+      std::condition_variable deferred_osw_cv;
+      bool deferred_enqueuer_running = false;
+      std::thread deferred_enqueuer_thread;
+      if (buffered_osw_writer != nullptr)
+      {
+        deferred_enqueuer_running = true;
+        deferred_enqueuer_thread = std::thread([&]() {
+          while (deferred_enqueuer_running || !deferred_osw_queue.empty())
+          {
+            OpenSwathOSWWriter::OSWData work;
+            {
+              std::unique_lock<std::mutex> lock(deferred_osw_mutex);
+              deferred_osw_cv.wait(lock, [&]() { return !deferred_enqueuer_running || !deferred_osw_queue.empty(); });
+              if (deferred_osw_queue.empty()) continue;
+              work = std::move(deferred_osw_queue.front());
+              deferred_osw_queue.pop_front();
+            }
+            try
+            {
+              // This may block if writer buffer is full; done in background thread
+              buffered_osw_writer->enqueue(std::move(work));
+            }
+            catch (...) { /* propagate via buffered writer internal exception handling */ }
+          }
+        });
+      }
+
       // Define outer pool and inner job queue structures early so we can limit
       // concurrent SWATH loading during the following extraction loop.
       class OuterBatchingPool
@@ -861,7 +906,18 @@ namespace OpenMS
             {
         max_concurrent_swaths_initial = static_cast<Size>(safe_mem_initial / per_swath_initial);
       #ifdef _OPENMP
-        max_concurrent_swaths_initial = std::min<Size>(max_concurrent_swaths_initial, static_cast<Size>(omp_get_max_threads()));
+        if (user_max_concurrent_swaths > 0)
+        {
+          max_concurrent_swaths_initial = std::min<Size>(max_concurrent_swaths_initial, static_cast<Size>(user_max_concurrent_swaths));
+        }
+        else
+        {
+      #ifdef _OPENMP
+          max_concurrent_swaths_initial = std::min<Size>(max_concurrent_swaths_initial, static_cast<Size>(omp_get_max_threads()));
+      #else
+          max_concurrent_swaths_initial = std::min<Size>(max_concurrent_swaths_initial, static_cast<Size>(1));
+      #endif
+        }
       #else
         max_concurrent_swaths_initial = std::min<Size>(max_concurrent_swaths_initial, static_cast<Size>(1));
       #endif
@@ -1068,7 +1124,7 @@ namespace OpenMS
         SwathSchedulerContext& context = contexts[context_index];
         if (!context.active) continue;
         const Size n_compounds = context.transition_exp_used_all.getCompounds().size();
-        Size inner_batch = calculateInnerBatchSize(n_compounds, -1);
+        Size inner_batch = calculateInnerBatchSize(n_compounds, user_inner_batch_size);
         Size n_batches = inner_batch > 0 ? static_cast<Size>((n_compounds + inner_batch - 1) / inner_batch) : 0;
         // override nr_score_jobs to reflect inner batches
         context.nr_score_jobs = static_cast<SignedSize>(n_batches);
@@ -1182,7 +1238,7 @@ namespace OpenMS
           auto batch_phase_start = profileStart(profile);
           OpenSwath::LightTargetedExperiment transition_exp_used;
           const Size n_compounds = context.transition_exp_used_all.getCompounds().size();
-          Size inner_batch = calculateInnerBatchSize(n_compounds, -1);
+          Size inner_batch = calculateInnerBatchSize(n_compounds, user_inner_batch_size);
           selectCompoundsForBatch_(context.transition_exp_used_all, transition_exp_used, inner_batch, static_cast<SignedSize>(job.batch_index));
           if (profile)
           {
@@ -1209,13 +1265,50 @@ namespace OpenMS
           double job_osw_wait_seconds = 0.0;
           if (osw_writer.isActive() && !job_osw_output.empty())
           {
-            OSWBufferedWriter::EnqueueProfile osw_enqueue_profile =
-              buffered_osw_writer->enqueue(std::move(job_osw_output));
-            if (profile)
+            // Estimate bytes and try to avoid blocking the scoring worker.
+            const UInt64 bytes = std::max<UInt64>(job_osw_output.estimateMemoryUsage(), 1ull);
+            bool accepted_now = false;
+            if (buffered_osw_writer != nullptr && buffered_osw_writer->canAccept(bytes))
             {
-              job_osw_wait_seconds = osw_enqueue_profile.wait_seconds;
-              scoring_profile.osw_write_wait += job_osw_wait_seconds;
-              scoring_profile.osw_write += job_osw_wait_seconds;
+              OSWBufferedWriter::EnqueueProfile osw_enqueue_profile =
+                buffered_osw_writer->enqueue(std::move(job_osw_output));
+              accepted_now = true;
+              if (profile)
+              {
+                job_osw_wait_seconds = osw_enqueue_profile.wait_seconds;
+                scoring_profile.osw_write_wait += job_osw_wait_seconds;
+                scoring_profile.osw_write += job_osw_wait_seconds;
+              }
+            }
+
+            if (!accepted_now)
+            {
+              // Defer the enqueue to the background enqueuer to avoid blocking
+              if (buffered_osw_writer != nullptr)
+              {
+                std::lock_guard<std::mutex> lock(deferred_osw_mutex);
+                deferred_osw_queue.push_back(std::move(job_osw_output));
+                deferred_osw_cv.notify_one();
+              }
+              else
+              {
+                // Fallback: if buffered writer not available, write directly (may block)
+                {
+                  const auto write_start = profileStart(profile);
+#ifdef _OPENMP
+#pragma omp critical (osw_write_out)
+#endif
+                  {
+                    osw_writer.writeRows(job_osw_output);
+                  }
+                  if (profile)
+                  {
+                    job_osw_wait_seconds = elapsedProfileSeconds(write_start);
+                    scoring_profile.osw_write_wait += job_osw_wait_seconds;
+                    scoring_profile.osw_write += job_osw_wait_seconds;
+                  }
+                }
+              }
             }
           }
 
@@ -1276,6 +1369,17 @@ namespace OpenMS
 
       if (buffered_osw_writer != nullptr)
       {
+        // First, stop the deferred enqueuer and join it after it has drained
+        if (deferred_enqueuer_running)
+        {
+          {
+            std::lock_guard<std::mutex> lock(deferred_osw_mutex);
+            deferred_enqueuer_running = false;
+          }
+          deferred_osw_cv.notify_all();
+          if (deferred_enqueuer_thread.joinable()) deferred_enqueuer_thread.join();
+        }
+
         buffered_osw_writer->finish();
         if (profile)
         {
@@ -1401,7 +1505,7 @@ namespace OpenMS
           if (batchSize <= 0)
           {
             // Auto-calculate an inner batch size to bound memory when using the range scheduler
-            Size inner = calculateInnerBatchSize(n_compounds, -1);
+            Size inner = calculateInnerBatchSize(n_compounds, user_inner_batch_size);
             batch_size = static_cast<int>(std::max<Size>(1, inner));
             OPENMS_LOG_INFO << "Auto-calculated inner batch size: " << batch_size << " (total compounds: " << n_compounds << ")" << std::endl;
           }

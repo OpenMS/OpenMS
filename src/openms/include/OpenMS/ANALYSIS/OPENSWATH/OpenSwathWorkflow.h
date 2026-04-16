@@ -346,7 +346,9 @@ protected:
                int ms1_isotopes,
                bool load_into_memory,
               const Param & mrm_mapping_param = Param(),
-              class MobilogramParquetConsumer * mobilogram_consumer = nullptr);
+              class MobilogramParquetConsumer * mobilogram_consumer = nullptr,
+              int innerBatchSize = -1,
+              int maxConcurrentSwaths = -1);
 
   protected:
 
