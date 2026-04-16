@@ -149,7 +149,12 @@ namespace OpenMS
     float im;
   };
 
-  static constexpr size_t MAX_CENTROID_PEAKS = 10000;
+  // Default cap on the number of centroided peaks per frame. Overridable via
+  // BrukerTimsFile::Config::ms1_centroid_max_peaks. For per-frame MS1 (~200k
+  // peaks) the 10k default covers the top-intensity peaks well; for aggregated
+  // MS1 where the frame-stacked grid can exceed 600k peaks, users should raise
+  // this (100k is the new CLI default).
+  static constexpr size_t DEFAULT_CENTROID_MAX_PEAKS = 10000;
 
   // Reusable buffer for IM-dimension centroiding of a single frame.
   // Translated from Sage's PeakBuffer (Lazear 2023, doi:10.1021/acs.jproteome.3c00486).
@@ -159,6 +164,12 @@ namespace OpenMS
     std::vector<ImsPeak> peaks;
     std::vector<size_t> order;       // indices sorted by descending intensity
     std::vector<ImsPeak> agg_buff;   // centroided output
+
+    // Cap-hit tracking across frames within one load() call. Emitted as a
+    // single summary line at the end of the load via reportCapSummary().
+    size_t cap_hits_ = 0;
+    size_t total_calls_ = 0;
+    float  max_dropped_intensity_ = 0.0f;
 
     void clear()
     {
@@ -226,14 +237,17 @@ namespace OpenMS
     // Centroid the loaded frame by collapsing the IM dimension.
     // Iterates peaks in descending intensity order. For each apex peak, aggregates
     // all unconsumed neighbors within m/z (ppm) and IM (percent) tolerances.
-    // Output is capped at MAX_CENTROID_PEAKS entries.
+    // Output is capped at max_peaks entries (dropped peaks logged at WARN level
+    // when high-intensity, at DEBUG otherwise).
     void centroid(float mz_ppm, float im_pct,
                   std::vector<double>& out_mz,
                   std::vector<double>& out_intensity,
-                  std::vector<float>& out_im)
+                  std::vector<float>& out_im,
+                  size_t max_peaks = DEFAULT_CENTROID_MAX_PEAKS)
     {
       agg_buff.clear();
-      agg_buff.reserve(std::min(peaks.size(), MAX_CENTROID_PEAKS + 1));
+      agg_buff.reserve(std::min(peaks.size(), max_peaks + 1));
+      ++total_calls_;
 
       const float utol = mz_ppm / 1e6f;
       const float im_tol_frac = im_pct / 100.0f;
@@ -243,13 +257,16 @@ namespace OpenMS
       {
         if (peaks[idx].intensity <= 0.0f) continue;  // already consumed
 
-        if (agg_buff.size() > MAX_CENTROID_PEAKS)
+        if (agg_buff.size() > max_peaks)
         {
+          // Only count as a "real" cap hit if the next dropped peak is above
+          // the noise floor (~200 counts on timsTOF). Dropping noise-floor
+          // peaks is the expected behavior of the cap and not worth reporting.
           if (peaks[idx].intensity > 200.0f)
           {
-            OPENMS_LOG_DEBUG << "FrameCentroider: reached MAX_CENTROID_PEAKS at index "
-                             << idx << "/" << peaks.size()
-                             << " intensity=" << peaks[idx].intensity << std::endl;
+            ++cap_hits_;
+            if (peaks[idx].intensity > max_dropped_intensity_)
+              max_dropped_intensity_ = peaks[idx].intensity;
           }
           break;
         }
@@ -304,6 +321,25 @@ namespace OpenMS
         out_intensity[i] = static_cast<double>(agg_buff[i].intensity);
         out_im[i] = agg_buff[i].im;
       }
+    }
+
+    // Emit one summary WARN if the cap fired on any frames during this load()
+    // call. Called by each top-level load path (loadDIA_, loadDDA_,
+    // loadDIAStreaming, loadFrames_) after all centroiding is done.
+    void reportCapSummary(size_t max_peaks)
+    {
+      if (cap_hits_ == 0) return;
+      OPENMS_LOG_WARN << "Warning: MS1 centroiding hit ms1_centroid_max_peaks (="
+                      << max_peaks << ") on " << cap_hits_ << " of "
+                      << total_calls_ << " spectra; highest dropped-peak "
+                      << "intensity was " << max_dropped_intensity_
+                      << ". Consider raising -bruker:ms1_centroid_max_peaks "
+                      << "to retain more peaks." << std::endl;
+      // Reset so successive load() calls on the same instance don't carry
+      // state forward.
+      cap_hits_ = 0;
+      total_calls_ = 0;
+      max_dropped_intensity_ = 0.0f;
     }
   };
 
@@ -1056,7 +1092,8 @@ namespace OpenMS
     std::vector<double> cent_mz, cent_intensity;
     std::vector<float> cent_im;
     centroider.centroid(config.ms1_centroid_mz_ppm, config.ms1_centroid_im_pct,
-                        cent_mz, cent_intensity, cent_im);
+                        cent_mz, cent_intensity, cent_im,
+                        static_cast<size_t>(config.ms1_centroid_max_peaks));
 
     // Build MSSpectrum from centroided output
     spec.reserve(cent_mz.size());
@@ -1191,7 +1228,8 @@ namespace OpenMS
       std::vector<double> out_mz, out_intensity;
       std::vector<float> out_im;
       centroider.centroid(config.ms1_centroid_mz_ppm, config.ms1_centroid_im_pct,
-                          out_mz, out_intensity, out_im);
+                          out_mz, out_intensity, out_im,
+                          static_cast<size_t>(config.ms1_centroid_max_peaks));
 
       spec.reserve(out_mz.size());
       for (size_t i = 0; i < out_mz.size(); ++i)
@@ -1376,6 +1414,7 @@ namespace OpenMS
       setProgress(i);
     }
     endProgress();
+    centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
 
     // --- MS2 frames: raw per-WindowGroup iteration (no aggregation) ---
     auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
@@ -1975,6 +2014,7 @@ namespace OpenMS
       setProgress(ms1_frame_ids.size() + precursor_idx);
     }
     endProgress();
+    centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
   }
 
   // =====================================================================
@@ -2019,6 +2059,7 @@ namespace OpenMS
       setProgress(i);
     }
     endProgress();
+    centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
 
     // --- SWATH windows ---
     std::vector<DIAWindow> windows = readDIAWindows(db, *handle.scan2inv_ion_mobility_converter);
@@ -2280,6 +2321,8 @@ namespace OpenMS
         setProgress(i);
       }
       endProgress();
+      if (level == 1)
+        centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
     }
   }
 

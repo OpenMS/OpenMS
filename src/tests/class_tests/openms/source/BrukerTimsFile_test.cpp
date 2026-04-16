@@ -962,10 +962,11 @@ START_SECTION(DIA MS1 aggregation test)
   TEST_NOT_EQUAL(raw_ms1_spectra, 0);
   TEST_NOT_EQUAL(agg_ms1_spectra, 0);
 
-  // Spectrum count: aggregated path keeps per-center-frame cadence; allow
-  // ±2% for edge truncation (MS2 aggregation test uses 2% as well).
-  TEST_EQUAL(agg_ms1_spectra <= raw_ms1_spectra, true);
-  TEST_EQUAL(agg_ms1_spectra >= raw_ms1_spectra * 98 / 100, true);
+  // Spectrum count: aggregated MS1 path emits exactly one spectrum per center
+  // frame (empty spectra emitted when all peaks filter out — see the empty-
+  // spectrum contract in loadAggregatedMS1Spectrum). Unlike the MS2 path,
+  // this is a hard equality: MS1 never drops spectra.
+  TEST_EQUAL(agg_ms1_spectra, raw_ms1_spectra);
 
   // Intensity boost: aggregation sums intensity across 2*N+1 = 3 frames.
   // MS1 fixture shows ratio ≈ 2.99 (empirical) — much higher than MS2's ≈1.28
@@ -1042,18 +1043,15 @@ START_SECTION(DIA MS1 aggregation with centroiding test)
   // Same spectrum count (centroiding doesn't drop spectra)
   TEST_EQUAL(centroid_n, profile_n);
 
-  // Centroiding collapses IM-adjacent peaks AND caps output at
-  // MAX_CENTROID_PEAKS=10000 per frame → far fewer peaks than profile.
+  // Centroiding collapses IM-adjacent peaks → fewer peaks than profile.
   TEST_EQUAL(centroid_p < profile_p, true);
 
-  // FrameCentroider::centroid() is top-N intensity-capped (MAX_CENTROID_PEAKS
-  // = 10000 per frame). On dense MS1 surveys the profile has ~600k aggregated
-  // peaks per frame, so centroided output retains only the top 10k — these
-  // carry ≈0.3 of the total profile intensity (long-tail distribution).
-  // We assert a meaningful fraction survives (not near-zero) and it's capped
-  // below 1.0 (centroider never invents intensity).
+  // Intensity conservation: with the default ms1_centroid_max_peaks=100000
+  // the cap rarely fires on typical aggregated MS1 surveys (top 100k peaks
+  // out of ~600k carry >80% of total intensity). Allow [0.5, 1.0] to cover
+  // dense fixtures where a noticeable long-tail still gets dropped.
   const double ratio = centroid_i / profile_i;
-  TEST_EQUAL(ratio > 0.1, true);
+  TEST_EQUAL(ratio > 0.5, true);
   TEST_EQUAL(ratio <= 1.0, true);
 
   // Output shape
@@ -1170,6 +1168,20 @@ START_SECTION(DIA MS1 RT cap test)
   TEST_EQUAL(capped_i > 0.0, true);
   TEST_EQUAL(capped_i < uncapped_i, true);
 
+  // Cadence invariant: RT cap must never drop a center frame. Both runs emit
+  // exactly one MS1 spectrum per raw MS1 frame regardless of the cap.
+  auto count_ms1_spectra = [](const MSExperiment& e)
+  {
+    Size n = 0;
+    for (const auto& s : e) if (s.getMSLevel() == 1) ++n;
+    return n;
+  };
+  MSExperiment exp_raw;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_raw);
+  const Size raw_ms1 = count_ms1_spectra(exp_raw);
+  TEST_EQUAL(count_ms1_spectra(exp_uncapped), raw_ms1);
+  TEST_EQUAL(count_ms1_spectra(exp_capped), raw_ms1);
+
   STATUS("DIA MS1 RT cap: uncapped=" << uncapped_i
          << " capped(0.5s, N=2)=" << capped_i
          << " reduction=" << (1.0 - capped_i / uncapped_i));
@@ -1194,15 +1206,32 @@ START_SECTION(FRAME mode ignores ms1_n_neighbors test)
   f.load(OPENTIMS_DIA_TEST_DATA, exp_agg, cfg_agg);
 
   Size ref_ms1 = 0, agg_ms1 = 0;
+  Size ref_peaks = 0, agg_peaks = 0;
+  double ref_intensity = 0.0, agg_intensity = 0.0;
   for (const auto& s : exp_ref)
-    if (s.getMSLevel() == 1) ++ref_ms1;
+    if (s.getMSLevel() == 1)
+    {
+      ++ref_ms1;
+      ref_peaks += s.size();
+      for (const auto& p : s) ref_intensity += p.getIntensity();
+    }
   for (const auto& s : exp_agg)
-    if (s.getMSLevel() == 1) ++agg_ms1;
+    if (s.getMSLevel() == 1)
+    {
+      ++agg_ms1;
+      agg_peaks += s.size();
+      for (const auto& p : s) agg_intensity += p.getIntensity();
+    }
 
   TEST_NOT_EQUAL(ref_ms1, 0);
   // FRAME mode must emit one spectrum per raw MS1 frame regardless of
   // ms1_n_neighbors — aggregation is ignored.
   TEST_EQUAL(agg_ms1, ref_ms1);
+  // Stronger: content must be identical too. Aggregation would inflate both
+  // peak count and cumulative intensity; FRAME mode's "raw frames" contract
+  // requires bit-for-bit behavior regardless of the ms1_n_neighbors knob.
+  TEST_EQUAL(agg_peaks, ref_peaks);
+  TEST_REAL_SIMILAR(agg_intensity, ref_intensity);
 
   // Warning emission is not asserted here — the test framework has no
   // log-capture helper at present. Manual verification: the test output
@@ -1309,33 +1338,60 @@ START_SECTION(DIA MS1 streaming aggregation test)
 {
   BrukerTimsFile f;
 
-  ExperimentalSettings settings;
-  auto meta = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings);
+  // Baseline: streaming with defaults (no aggregation)
+  ExperimentalSettings settings_ref;
+  auto meta_ref = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings_ref);
+  RegularSwathFileConsumer consumer_ref(meta_ref.boundaries);
+  consumer_ref.setExperimentalSettings(settings_ref);
+  f.loadDIAStreaming(OPENTIMS_DIA_TEST_DATA, consumer_ref);
+  std::vector<OpenSwath::SwathMap> maps_ref;
+  consumer_ref.retrieveSwathMaps(maps_ref);
 
-  RegularSwathFileConsumer consumer(meta.boundaries);
-  consumer.setExperimentalSettings(settings);
-
+  // Aggregated streaming (ms1_n_neighbors=1)
+  ExperimentalSettings settings_agg;
+  auto meta_agg = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings_agg);
+  RegularSwathFileConsumer consumer_agg(meta_agg.boundaries);
+  consumer_agg.setExperimentalSettings(settings_agg);
   BrukerTimsFile::Config cfg;
   cfg.ms1_n_neighbors = 1;
+  f.loadDIAStreaming(OPENTIMS_DIA_TEST_DATA, consumer_agg, cfg);
+  std::vector<OpenSwath::SwathMap> maps_agg;
+  consumer_agg.retrieveSwathMaps(maps_agg);
 
-  f.loadDIAStreaming(OPENTIMS_DIA_TEST_DATA, consumer, cfg);
+  // Locate each run's MS1 map by its ms1 flag (not by position).
+  auto find_ms1_map = [](const std::vector<OpenSwath::SwathMap>& maps)
+    -> const OpenSwath::SwathMap* {
+    for (const auto& m : maps) if (m.ms1) return &m;
+    return nullptr;
+  };
+  const auto* ms1_ref = find_ms1_map(maps_ref);
+  const auto* ms1_agg = find_ms1_map(maps_agg);
+  TEST_NOT_EQUAL(ms1_ref, nullptr);
+  TEST_NOT_EQUAL(ms1_agg, nullptr);
 
-  std::vector<OpenSwath::SwathMap> swath_maps;
-  consumer.retrieveSwathMaps(swath_maps);
+  // Cadence invariant: both paths deliver one spectrum per raw MS1 frame.
+  TEST_EQUAL(ms1_ref->sptr->getNrSpectra(),
+             static_cast<unsigned>(meta_ref.nr_ms1_spectra));
+  TEST_EQUAL(ms1_agg->sptr->getNrSpectra(),
+             static_cast<unsigned>(meta_agg.nr_ms1_spectra));
 
-  // First SwathMap is the MS1 map. Assert it exists and carries the
-  // per-center-frame cadence.
-  TEST_NOT_EQUAL(swath_maps.size(), 0);
-  const auto& ms1_map = swath_maps.front();
-  TEST_EQUAL(ms1_map.ms1, true);
+  // Proof that aggregation actually ran: total MS1 peak count must be
+  // strictly higher in the aggregated path (stacked 2*N+1=3 frames of raw
+  // peaks into each output spectrum). If ms1_n_neighbors were silently
+  // ignored in loadDIAStreaming, the counts would be equal.
+  auto total_peaks = [](const OpenSwath::SwathMap& m) -> Size {
+    Size n = 0;
+    for (Size i = 0; i < m.sptr->getNrSpectra(); ++i)
+      n += m.sptr->getSpectrumById(i)->getMZArray()->data.size();
+    return n;
+  };
+  const Size peaks_ref = total_peaks(*ms1_ref);
+  const Size peaks_agg = total_peaks(*ms1_agg);
+  TEST_EQUAL(peaks_agg > peaks_ref, true);
 
-  // MS1 spectrum count should equal the raw MS1 frame count (cadence
-  // invariant — aggregation never drops a center frame).
-  TEST_EQUAL(ms1_map.sptr->getNrSpectra(),
-             static_cast<unsigned>(meta.nr_ms1_spectra));
-
-  STATUS("DIA MS1 streaming aggregation: " << ms1_map.sptr->getNrSpectra()
-         << " MS1 spectra delivered (expected " << meta.nr_ms1_spectra << ")");
+  STATUS("DIA MS1 streaming aggregation: ref peaks=" << peaks_ref
+         << " agg peaks=" << peaks_agg
+         << " ratio=" << (static_cast<double>(peaks_agg) / peaks_ref));
 }
 END_SECTION
 
