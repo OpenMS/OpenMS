@@ -44,30 +44,6 @@ Dependencies:
     - Qt6::Core removed from libOpenMS PUBLIC CMake link dependencies; downstream CMake targets must link Qt6::Core directly if they use Qt (#8965)
   - boost-process added as a header-only dependency for cross-platform subprocess management (#8939)
 
-TOPP tools:
-  Changes:
-    all:
-      - BREAKING: Command-line duplicate parameter behavior changed (#8670, fixes #5345)
-        When a parameter is specified multiple times on the command line, the LAST occurrence now wins
-        (previously, the FIRST occurrence was used). This enables the nextflow pattern of using ${ext.args}
-        at the end of commands to override hardcoded defaults. A warning is issued when duplicates are detected.
-        Example: tool -param default -param override  # Now uses 'override' (previously used 'default')
-      - Improved error messages for command-line parameter errors (#8670)
-    CometAdapter:
-      - Merges compatible variable modifications for improved search performance (3x+ speedup) (#8407)
-    PeptideDataBaseSearchFI:
-      - Expanded fragment index open search with modification discovery and FDR filtering (#8414)
-    ProteomicsLFQ:
-      - Removed unnecessary group reindexing, added stricter validation (#8752)
-      - Arrow/DataFrame/Parquet export for ConsensusMap (#8729)
-      - Added -in_feat parameter to accept pre-computed featureXML files, bypassing internal feature finding (#8796)
-      - BREAKING: -out_feature_qpx (single file) replaced with -out_qpx (directory); exports quantms.feature.parquet, quantms.psm.parquet, and quantms.pg.parquet following the QPX/quantms schema (#8973, #8974)
-    MetaProSIP:
-      - Added detailed documentation of CSV output column formats (#4400)
-        Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
-    FeatureFinderCentroided:
-      - Reworked the underlying algorithm to omit a RAM-costly copy statement. RAM usage is now significantly reduced.
-
 PyOpenMS:
   - BREAKING: Binding backend replaced from Autowrap/Cython to hand-maintained nanobind C++ bindings (#8699)
     - Python-level API is backward compatible (same class names, method signatures, return types)
@@ -136,6 +112,27 @@ PyOpenMS:
 
 TOPP tools:
   Changes:
+    all:
+      - BREAKING: Command-line duplicate parameter behavior changed (#8670, fixes #5345)
+        When a parameter is specified multiple times on the command line, the LAST occurrence now wins
+        (previously, the FIRST occurrence was used). This enables the nextflow pattern of using ${ext.args}
+        at the end of commands to override hardcoded defaults. A warning is issued when duplicates are detected.
+        Example: tool -param default -param override  # Now uses 'override' (previously used 'default')
+      - Improved error messages for command-line parameter errors (#8670)
+    CometAdapter:
+      - Merges compatible variable modifications for improved search performance (3x+ speedup) (#8407)
+    PeptideDataBaseSearchFI:
+      - Expanded fragment index open search with modification discovery and FDR filtering (#8414)
+    ProteomicsLFQ:
+      - Removed unnecessary group reindexing, added stricter validation (#8752)
+      - Arrow/DataFrame/Parquet export for ConsensusMap (#8729)
+      - Added -in_feat parameter to accept pre-computed featureXML files, bypassing internal feature finding (#8796)
+      - BREAKING: -out_feature_qpx (single file) replaced with -out_qpx (directory); exports quantms.feature.parquet, quantms.psm.parquet, and quantms.pg.parquet following the QPX/quantms schema (#8973, #8974)
+    MetaProSIP:
+      - Added detailed documentation of CSV output column formats (#4400)
+        Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
+    FeatureFinderCentroided:
+      - Reworked the underlying algorithm to omit a RAM-costly copy statement. RAM usage is now reduced by around 20%.
     MapAlignerIdentification, MapAlignerPoseClustering, MapAlignerTreeGuided:
       - Added optional spectra file transformation (-in_spectra_files, -out_spectra_files) to transform mzML files along with alignment (#8536)
     FileInfo:
