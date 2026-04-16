@@ -1,151 +1,105 @@
-# vcpkg Integration Verification (Windows)
+# vcpkg Integration Verification
 
+## Verified Findings
 
+### Toolchain path handling on Windows
 
-## Environment
+Using a relative toolchain path such as:
 
-
-
-* OS: Windows 11
-
-* Compiler: MSVC (Visual Studio 2022 Build Tools)
-
-* CMake: 4.3.1
-
-* vcpkg: b5d1a94fb7f88fd835e360fd23a45a09ceedbf48
-
-
-
-## Steps Performed
-
-
-
-1. Installed dependencies using `vcpkg.json`
-
-2. Configured OpenMS using CMake with vcpkg toolchain
-
-3. Built OpenMS successfully
-
-
-
-
-
-## Issues Encountered
-
-
-
-### 1. Toolchain Not Applied (Observed Case)
-
-When using a relative path:
-
-```bash
--DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake
+```powershell
+-DCMAKE_TOOLCHAIN_FILE=..\vcpkg\scripts\buildsystems\vcpkg.cmake
 ```
 
-CMake may fail to load the vcpkg toolchain in certain environments (e.g., Visual Studio generator on Windows).
+can lead to a silent misconfiguration on Windows generators. In that case CMake
+continues, but the vcpkg toolchain is not actually active.
 
-#### How to detect this issue
-
-* `CMakeCache.txt` does not contain correct `CMAKE_TOOLCHAIN_FILE`
-* No references to `vcpkg.cmake` in:
-
-  * `CMakeFiles/CMakeOutput.log`
-* Dependencies like `XercesC` are not found
-* No `vcpkg_installed` paths used
-
-#### How to verify successful toolchain usage
-
-* Output shows:
-
-  ```text
-  -- Running vcpkg install
-  ```
-* `CMakeCache.txt` contains:
-
-  ```text
-  CMAKE_TOOLCHAIN_FILE:FILEPATH=...
-  ```
-* Dependencies resolved from:
-
-  ```text
-  vcpkg_installed/x64-windows
-  ```
-
-#### Fix
-
-Use absolute path:
+Use an absolute path instead:
 
 ```powershell
 -DCMAKE_TOOLCHAIN_FILE="C:\absolute\path\to\vcpkg\scripts\buildsystems\vcpkg.cmake"
 ```
 
+Indicators that the toolchain was applied correctly:
 
+* CMake output contains `-- Running vcpkg install`
+* `CMakeCache.txt` records the expected `CMAKE_TOOLCHAIN_FILE`
+* Dependencies resolve from `vcpkg_installed/<triplet>`
 
-### 2. Silent Failure (Observed Behavior)
+### Windows build environment requirement
 
-When the toolchain is not loaded correctly, CMake may continue configuration without an explicit error.
+On Windows the build fails if MSVC command-line tools such as `dumpbin.exe` are
+not available in `PATH`.
 
-#### Indicators of this issue
+Use the Visual Studio Developer Command Prompt, for example:
 
-* External dependencies (e.g., `XercesC`) are not found
-* No references to `vcpkg` appear in CMake output
-* Build fails later due to missing libraries
+```text
+x64 Native Tools Command Prompt for VS 2022
+```
 
-This behavior can make the root cause (toolchain not applied) difficult to identify.
+### Root cause of unnecessary Qt installs
 
+The previous `vcpkg.json` listed `qtbase` and `qtsvg` as unconditional
+dependencies. vcpkg therefore resolved Qt even for CLI-only configurations where
+OpenMS was configured with `-DWITH_GUI=OFF`.
 
+That meant the dependency graph was decided before CMake reached the existing
+`WITH_GUI` checks in `cmake/cmake_findExternalLibs.cmake`.
 
-### 3. Missing dumpbin.exe (Windows-specific)
+## Fix Applied
 
+The manifest and top-level CMake configuration now split GUI dependencies from
+core dependencies:
 
+* `vcpkg.json` declares `gui` as the manifest default feature for normal builds
+* `vcpkg.json` keeps only core packages in the default dependency set
+* Qt packages moved into a new manifest feature: `gui`
+* `CMakeLists.txt` now defines `WITH_GUI` before the first `project()` call
+* When `WITH_GUI=ON`, OpenMS automatically requests the vcpkg manifest feature
+  `gui`
+* When `WITH_GUI=OFF`, OpenMS requests no GUI manifest feature and sets
+  `VCPKG_MANIFEST_NO_DEFAULT_FEATURES=ON`, so Qt is not part of the dependency
+  solve
 
-Error:
+This preserves the default GUI-enabled behavior while allowing a true CLI-only
+manifest install.
 
+If vcpkg is invoked manually instead of through CMake, GUI builds must request
+the `gui` manifest feature explicitly, and CLI-only builds must disable the
+manifest default features.
 
+## Validation Notes
 
-Could not find 'dumpbin.exe'
+Expected behavior after this change:
 
+* Default configure path keeps GUI builds working and still pulls Qt through the
+  `gui` manifest default feature
+* `-DWITH_GUI=OFF` sets `VCPKG_MANIFEST_NO_DEFAULT_FEATURES=ON`
+* `-DWITH_GUI=OFF` no longer requests `qtbase` or `qtsvg`
+* CLI-only environments avoid the large Qt dependency build, reducing install
+  time and resource usage
 
+When switching between GUI and CLI-only builds, prefer a fresh build directory
+so the CMake cache and manifest-installed dependency set stay in sync.
 
-Cause:
+## Recommended Checks
 
+For GUI-enabled validation:
 
+```powershell
+cmake -S . -B build-gui `
+  -DCMAKE_TOOLCHAIN_FILE="C:\absolute\path\to\vcpkg\scripts\buildsystems\vcpkg.cmake" `
+  -DWITH_GUI=ON
+```
 
-* MSVC tools not in PATH
+For CLI-only validation:
 
+```powershell
+cmake -S . -B build-cli `
+  -DCMAKE_TOOLCHAIN_FILE="C:\absolute\path\to\vcpkg\scripts\buildsystems\vcpkg.cmake" `
+  -DWITH_GUI=OFF
+```
 
-
-Fix:
-
-
-
-* Use "x64 Native Tools Command Prompt for VS 2022"
-
-
-
-
-
-## Final Result
-
-
-
-* All dependencies installed successfully
-
-* OpenMS builds successfully using vcpkg
-
-* Verified working configuration on Windows
-
-
-
-## Suggestions
-
-
-
-* Recommend absolute toolchain path in documentation
-
-* Add warning when toolchain is ignored
-
-* Document requirement of VS Developer Command Prompt on Windows
+The CLI-only configure should not install or reference Qt packages.
 
 
 

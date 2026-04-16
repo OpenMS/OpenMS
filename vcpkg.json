@@ -1,6 +1,7 @@
 {
   "name": "openms",
   "version-string": "3.6.0",
+  "default-features": [],
   "dependencies": [
     "boost-core",
     "boost-math",
@@ -34,9 +35,7 @@
     "boost-typeof",
     "boost-process",
     "xerces-c",
-    "qtbase",
     "libsvm",
-    "qtsvg",
     "zlib",
     "curl",
     "coin-or-cgl",
@@ -47,5 +46,14 @@
     "bzip2",
     "arrow",
     "libzip"
-  ]
+  ],
+  "features": {
+    "gui": {
+      "description": "Install Qt dependencies required for OpenMS GUI components.",
+      "dependencies": [
+        "qtbase",
+        "qtsvg"
+      ]
+    }
+  }
 }
