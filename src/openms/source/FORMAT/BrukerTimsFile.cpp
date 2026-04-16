@@ -1584,9 +1584,23 @@ namespace OpenMS
     }
     else if (is_dia && mode != Config::SPECTRUM)
     {
-      // DIA: MS1 frames + MS2 frames * windows
+      // DIA: each MS2 frame belongs to exactly ONE WindowGroup and only
+      // produces spectra for that group's windows. So the emit count is
+      //   Σ_group (frames_in_group × windows_in_group)
+      // — NOT frames × all_windows. Mirrors the total_work computation in
+      // loadDIA_.
       auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
-      expected = ms1_emitted + static_cast<size_t>(counts.ms2) * windows.size();
+      auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+      std::map<int, size_t> group_window_count;
+      for (const auto& w : windows) ++group_window_count[w.window_group];
+      size_t dia_ms2_spectra = 0;
+      for (const auto& [group, frames] : group_to_frames)
+      {
+        auto wit = group_window_count.find(group);
+        if (wit != group_window_count.end())
+          dia_ms2_spectra += frames.size() * wit->second;
+      }
+      expected = ms1_emitted + dia_ms2_spectra;
     }
     else
     {
@@ -1986,13 +2000,41 @@ namespace OpenMS
       spec.setDriftTime(scalar_im);
       spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
       spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-      // Native ID conforms to the PSI-MS CV term MS:1002818 ("Bruker TDF
-      // nativeID format", pattern: "frame=<FRAME_ID> scan=<SCAN_ID>").
-      // The scan here is the TIMS isolation-window start (scan_begin), NOT
-      // the Bruker Precursors.Id — the SQL key is stored as a MetaValue on
-      // the spectrum so it stays accessible without violating the CV pattern.
+      // Native ID: "frame=<F> scan=<S> precursor=<P>".
+      //
+      // This extends the PSI-MS MS:1002818 "Bruker TDF nativeID format"
+      // pattern ("frame=<FRAME_ID> scan=<SCAN_ID>") with a trailing
+      // "precursor=<Precursors.Id>" token. The extension is REQUIRED for
+      // uniqueness under OpenMS's per-precursor aggregation:
+      //
+      //   - Unlike pwiz/msconvert (which emits one MS2 spectrum per
+      //     Bruker PASEF mobility-scan row, where (frame, scan_begin) is
+      //     inherently unique), this reader ports timsrust's strategy of
+      //     merging all PasefFrameMsMsInfo entries sharing the same
+      //     Precursors.Id (potentially across multiple frames) into ONE
+      //     aggregated MS2 spectrum — see the loop above and commit
+      //     41ce6cfeb (PR #8975). first_entry->(frame_id, scan_begin) is
+      //     just the min-ordered row of that group and is NOT guaranteed
+      //     unique across distinct precursors (PASEF can co-isolate
+      //     multiple precursors in the same (Frame, ScanNumBegin) mobility
+      //     window differing only by IsolationMz; multi-cycle precursors
+      //     can also collide on their first entry).
+      //
+      //   - Strict MS:1002818 validators may flag the trailing token, but
+      //     the ecosystem convention (pwiz combined mode uses
+      //     "merged=N frame=F scanStart=A scanEnd=B" under the SAME
+      //     MS:1002818 accession; our own DIA path emits
+      //     "frame=F windowGroup=G scan=S") is that vendor-specific
+      //     disambiguators are added while keeping MS:1002818. Comet and
+      //     Sage dispatch on nativeID content, not the CV accession, so
+      //     compatibility is preserved in practice.
+      //
+      //   - Bruker Precursors.Id is also duplicated as a typed MetaValue
+      //     "bruker_precursor_id" for direct programmatic lookup without
+      //     parsing the nativeID string.
       spec.setNativeID("frame=" + String(first_entry->frame_id)
-                       + " scan=" + String(first_entry->scan_begin));
+                       + " scan=" + String(first_entry->scan_begin)
+                       + " precursor=" + String(prec_id));
       spec.setMetaValue("bruker_precursor_id", static_cast<int>(prec_id));
 
       // Copy sorted peak data

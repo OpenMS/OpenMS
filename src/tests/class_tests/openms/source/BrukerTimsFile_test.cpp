@@ -262,11 +262,13 @@ END_SECTION
 
 START_SECTION(DDA native ID format test)
 {
-  // Contract: MS2 native IDs match the PSI-MS CV term MS:1002818
-  // ("Bruker TDF nativeID format") pattern: "frame=<FRAME_ID> scan=<SCAN_ID>".
-  // The scan here is the TIMS isolation-window scan_begin. The Bruker
-  // Precursors.Id SQL key is stored as a MetaValue so it remains accessible
-  // without violating the CV pattern.
+  // Contract: DDA MS2 native IDs are "frame=<F> scan=<S> precursor=<P>".
+  // This extends the MS:1002818 pattern with a trailing "precursor=<P>"
+  // token because OpenMS aggregates all PasefFrameMsMsInfo entries sharing
+  // the same Precursors.Id into ONE spectrum (pwiz emits per-mobility-scan,
+  // so its (frame, scan_begin) pairs are inherently unique — ours are not).
+  // The Precursors.Id is ALSO duplicated as MetaValue "bruker_precursor_id"
+  // for typed programmatic access.
   BrukerTimsFile f;
   MSExperiment exp;
   f.load(OPENTIMS_DDA_TEST_DATA, exp);
@@ -284,13 +286,26 @@ START_SECTION(DDA native ID format test)
   TEST_NOT_EQUAL(ms2, nullptr);
 
   const String& id = ms2->getNativeID();
-  // CV-compliant: exactly "frame=<F> scan=<S>", nothing extra.
   TEST_EQUAL(id.hasPrefix("frame="), true);
   TEST_EQUAL(id.hasSubstring(" scan="), true);
-  TEST_EQUAL(id.hasSubstring("precursor="), false);  // must NOT be in nativeID
+  TEST_EQUAL(id.hasSubstring(" precursor="), true);
 
-  // Precursors.Id must be stored as a MetaValue for downstream cross-reference.
+  // Precursors.Id must ALSO be stored as a typed MetaValue.
   TEST_EQUAL(ms2->metaValueExists("bruker_precursor_id"), true);
+
+  // All DDA MS2 native IDs must be unique inside the run (XSD-level mzML
+  // requirement). This is what the "precursor=<P>" disambiguator buys us.
+  std::set<String> ms2_ids;
+  Size ms2_count = 0;
+  for (const auto& spec : exp)
+  {
+    if (spec.getMSLevel() == 2)
+    {
+      ms2_ids.insert(spec.getNativeID());
+      ++ms2_count;
+    }
+  }
+  TEST_EQUAL(ms2_ids.size(), ms2_count);
 
   STATUS("DDA MS2 native ID sample: " << id
          << " bruker_precursor_id=" << ms2->getMetaValue("bruker_precursor_id").toString());
