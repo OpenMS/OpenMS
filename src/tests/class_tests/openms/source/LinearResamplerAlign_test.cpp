@@ -3,18 +3,19 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Authors: Hannes Roest, Luis Jacob Keller, Alen Saric$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
 
-#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
+
+#include <OpenMS/test_config.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -54,6 +55,19 @@ input_spectrum[3].setMZ(1.6);
 input_spectrum[3].setIntensity(2.0f);
 input_spectrum[4].setMZ(1.8);
 input_spectrum[4].setIntensity(1.0f);
+
+START_SECTION(LinearResamplerAlign())
+{
+  LinearResamplerAlign lr;
+  TEST_NOT_EQUAL(&lr, static_cast<LinearResamplerAlign*>(nullptr));
+}
+END_SECTION
+
+START_SECTION((~LinearResamplerAlign()))
+{
+  LinearResamplerAlign lr;
+}
+END_SECTION
 
 // A spacing of 0.75 will lead to a recalculation of intensities, each
 // resampled point gets intensities from raw data points that are at most +/-
@@ -112,7 +126,46 @@ START_SECTION([EXTRA] test_linear_res_chromat)
 }
 END_SECTION
 
-START_SECTION(( void raster(ConstPeakTypeIterator raw_it, ConstPeakTypeIterator raw_end, PeakTypeIterator resample_it, PeakTypeIterator resample_end)))
+START_SECTION(( template <typename PeakType > void rasterExperiment(MSExperiment<PeakType>& exp)))
+{
+  MSSpectrum spec;
+  spec.resize(5);
+  spec[0].setMZ(0);
+  spec[0].setIntensity(3.0f);
+  spec[1].setMZ(0.5);
+  spec[1].setIntensity(6.0f);
+  spec[2].setMZ(1.);
+  spec[2].setIntensity(8.0f);
+  spec[3].setMZ(1.6);
+  spec[3].setIntensity(2.0f);
+  spec[4].setMZ(1.8);
+  spec[4].setIntensity(1.0f);
+
+  PeakMap exp;
+  exp.addSpectrum(spec);
+  exp.addSpectrum(spec);
+
+  LinearResamplerAlign lr;
+  Param param;
+  param.setValue("spacing",0.5);
+  lr.setParameters(param);
+  lr.rasterExperiment(exp);
+
+
+  for (Size s=0; s<exp.size(); ++s)
+  {
+    double sum = 0.0;
+    for (Size i=0; i<exp[s].size(); ++i)
+    {
+      sum += exp[s][i].getIntensity();
+    }
+    TEST_REAL_SIMILAR(sum, 20);
+  }
+
+}
+END_SECTION
+
+START_SECTION(( void raster(ConstPeakTypeIterator raw_it, ConstPeakTypeIterator raw_end, PeakTypeIterator resample_it, PeakTypeIterator resample_end) ))
 {
 
   MSSpectrum spec = input_spectrum;

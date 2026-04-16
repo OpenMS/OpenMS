@@ -295,6 +295,7 @@ OpenMS Library:
     - BREAKING: PeptideAndProteinQuant channel identifiers changed from Int to UInt (#8516)
     - BREAKING: Plain enums migrated to enum class (Sample::SampleState, OpenMS_OS, etc.) (#8622)
     - ILPDCWrapper: Performance improvement using std::unordered_map (~3.5x speedup) (#8618)
+    - DELETION: deleted Class LinearResampler and refactored functionality into LinearResamplerAlign (#9153)
     - OpenSwath: Use unordered_map for O(1) lookups, improving performance (#8651)
     - DataValue: Enhanced conversion error messages with type and value context (#8572)
     - BayesianProteinInferenceAlgorithm: Now requires single merged ProteinIdentification run (#8480)
