@@ -1439,38 +1439,58 @@ namespace OpenMS
       return;
     }
 
-    SqliteConnector conn(output_filename_);
-    conn.executeStatement("BEGIN TRANSACTION");
+    std::lock_guard<std::mutex> lock(conn_mutex_);
+    if (!conn_)
+    {
+      conn_ = std::make_unique<SqliteConnector>(output_filename_);
+      // improve write throughput: enable WAL and reduce synchronous flushes
+      try
+      {
+        conn_->executeStatement("PRAGMA journal_mode=WAL");
+        conn_->executeStatement("PRAGMA synchronous=OFF");
+      }
+      catch (...) {}
+    }
+
+    conn_->executeStatement("BEGIN TRANSACTION");
     try
     {
-      writeTableRows(conn.getDB(), "FEATURE", featureColumns(), osw_output.feature_rows);
-      writeTableRows(conn.getDB(), "FEATURE_MS1", featureMS1Columns(), osw_output.feature_ms1_rows);
-      writeTableRows(conn.getDB(), "FEATURE_PRECURSOR", featurePrecursorColumns(), osw_output.feature_precursor_rows);
-      writeTableRows(conn.getDB(), "FEATURE_MS2", featureMS2Columns(), osw_output.feature_ms2_rows);
-      writeTableRows(conn.getDB(), "FEATURE_TRANSITION", featureTransitionColumns(), osw_output.feature_transition_rows);
+      writeTableRows(conn_->getDB(), "FEATURE", featureColumns(), osw_output.feature_rows);
+      writeTableRows(conn_->getDB(), "FEATURE_MS1", featureMS1Columns(), osw_output.feature_ms1_rows);
+      writeTableRows(conn_->getDB(), "FEATURE_PRECURSOR", featurePrecursorColumns(), osw_output.feature_precursor_rows);
+      writeTableRows(conn_->getDB(), "FEATURE_MS2", featureMS2Columns(), osw_output.feature_ms2_rows);
+      writeTableRows(conn_->getDB(), "FEATURE_TRANSITION", featureTransitionColumns(), osw_output.feature_transition_rows);
     }
     catch (...)
     {
       try
       {
-        conn.executeStatement("ROLLBACK TRANSACTION");
+        conn_->executeStatement("ROLLBACK TRANSACTION");
       }
-      catch (...)
-      {
-      }
+      catch (...) {}
       throw;
     }
-    conn.executeStatement("END TRANSACTION");
+    conn_->executeStatement("END TRANSACTION");
   }
 
   void OpenSwathOSWWriter::writeLines(const std::vector<String>& to_osw_output)
   {
-    SqliteConnector conn(output_filename_);
-    conn.executeStatement("BEGIN TRANSACTION");
+    std::lock_guard<std::mutex> lock(conn_mutex_);
+    if (!conn_)
+    {
+      conn_ = std::make_unique<SqliteConnector>(output_filename_);
+      try
+      {
+        conn_->executeStatement("PRAGMA journal_mode=WAL");
+        conn_->executeStatement("PRAGMA synchronous=OFF");
+      }
+      catch (...) {}
+    }
+    conn_->executeStatement("BEGIN TRANSACTION");
     for (Size i = 0; i < to_osw_output.size(); i++)
     {
-      conn.executeStatement(to_osw_output[i]);
+      conn_->executeStatement(to_osw_output[i]);
     }
-    conn.executeStatement("END TRANSACTION");
+    conn_->executeStatement("END TRANSACTION");
   }
 }

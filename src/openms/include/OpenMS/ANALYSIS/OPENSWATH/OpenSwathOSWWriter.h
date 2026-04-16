@@ -14,12 +14,15 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
 
 #include <array>
 #include <cstddef>
 #include <fstream>
 #include <string>
 #include <vector>
+#include <memory>
+#include <mutex>
 
 namespace OpenMS
 {
@@ -96,6 +99,9 @@ namespace OpenMS
     OpenMS::UInt64 run_id_ = 0;
     bool doWrite_;
     bool enable_uis_scoring_;
+    // persistent sqlite connector to avoid reopening DB on each write
+    mutable std::unique_ptr<SqliteConnector> conn_;
+    mutable std::mutex conn_mutex_;
 
   public:
     /// Typed OSW cell value used for direct SQLite binding.
@@ -329,5 +335,6 @@ namespace OpenMS
     void writeLines(const std::vector<String>& to_osw_output);
 
   };
+
 
 }
