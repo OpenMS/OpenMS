@@ -1984,13 +1984,14 @@ namespace OpenMS
       spec.setDriftTime(scalar_im);
       spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
       spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-      // Native ID carries all three Bruker-side identifiers for downstream
-      // cross-reference: source frame, TIMS scan index (precursor isolation
-      // start), and the Bruker Precursors.Id SQL key. Matches the DIA MS2
-      // convention (frame=F windowGroup=G scan=S).
+      // Native ID conforms to the PSI-MS CV term MS:1002818 ("Bruker TDF
+      // nativeID format", pattern: "frame=<FRAME_ID> scan=<SCAN_ID>").
+      // The scan here is the TIMS isolation-window start (scan_begin), NOT
+      // the Bruker Precursors.Id — the SQL key is stored as a MetaValue on
+      // the spectrum so it stays accessible without violating the CV pattern.
       spec.setNativeID("frame=" + String(first_entry->frame_id)
-                       + " scan=" + String(first_entry->scan_begin)
-                       + " precursor=" + String(prec_id));
+                       + " scan=" + String(first_entry->scan_begin));
+      spec.setMetaValue("bruker_precursor_id", static_cast<int>(prec_id));
 
       // Copy sorted peak data
       spec.reserve(all_mz.size());

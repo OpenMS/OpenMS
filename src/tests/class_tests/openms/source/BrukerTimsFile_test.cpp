@@ -262,11 +262,11 @@ END_SECTION
 
 START_SECTION(DDA native ID format test)
 {
-  // Contract: MS2 native IDs must carry all three Bruker identifiers
-  // (frame, TIMS scan index, Precursors.Id) using the convention
-  // "frame=F scan=S precursor=P". The "scan=S" part is the TIMS isolation-
-  // window scan_begin, NOT the SQL precursor key, so it overlaps with DIA's
-  // convention and stays physically meaningful.
+  // Contract: MS2 native IDs match the PSI-MS CV term MS:1002818
+  // ("Bruker TDF nativeID format") pattern: "frame=<FRAME_ID> scan=<SCAN_ID>".
+  // The scan here is the TIMS isolation-window scan_begin. The Bruker
+  // Precursors.Id SQL key is stored as a MetaValue so it remains accessible
+  // without violating the CV pattern.
   BrukerTimsFile f;
   MSExperiment exp;
   f.load(OPENTIMS_DDA_TEST_DATA, exp);
@@ -284,14 +284,16 @@ START_SECTION(DDA native ID format test)
   TEST_NOT_EQUAL(ms2, nullptr);
 
   const String& id = ms2->getNativeID();
-  // All three components must be present
-  TEST_EQUAL(id.hasSubstring("frame="), true);
-  TEST_EQUAL(id.hasSubstring("scan="), true);
-  TEST_EQUAL(id.hasSubstring("precursor="), true);
-  // Order: frame first (prefix), precursor last
+  // CV-compliant: exactly "frame=<F> scan=<S>", nothing extra.
   TEST_EQUAL(id.hasPrefix("frame="), true);
+  TEST_EQUAL(id.hasSubstring(" scan="), true);
+  TEST_EQUAL(id.hasSubstring("precursor="), false);  // must NOT be in nativeID
 
-  STATUS("DDA MS2 native ID sample: " << id);
+  // Precursors.Id must be stored as a MetaValue for downstream cross-reference.
+  TEST_EQUAL(ms2->metaValueExists("bruker_precursor_id"), true);
+
+  STATUS("DDA MS2 native ID sample: " << id
+         << " bruker_precursor_id=" << ms2->getMetaValue("bruker_precursor_id").toString());
 }
 END_SECTION
 
