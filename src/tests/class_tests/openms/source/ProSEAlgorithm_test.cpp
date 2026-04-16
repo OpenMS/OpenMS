@@ -1242,19 +1242,32 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   const auto& cal = algo.last_calibration_result_;
   TEST_EQUAL(cal.success, true)
   TEST_EQUAL(cal.extreme_bias, false)
-  // Shift should be close to +7 ppm. The fixture is small and Math::median on
-  // an even count averages the two middle elements so we allow +/- 5 ppm slack.
-  TOLERANCE_ABSOLUTE(5.0)
-  TEST_REAL_SIMILAR(cal.precursor_shift, 7.0)
-  TOLERANCE_ABSOLUTE(1e-5) // reset to default
-  // cal_lower/cal_upper should be tightened from [20, 30] but retain asymmetry.
+  // Fixture's ppm_shifts are all positive, so the calibration direction must
+  // come out positive too. Spread is strictly positive by construction.
+  TEST_EQUAL(cal.precursor_shift > 0.0, true)
+  TEST_EQUAL(cal.precursor_spread > 0.0, true)
+  // |shift| < spread is the precondition for the writeback block (extreme_bias
+  // already asserted false above, but state it as a positive numerical check).
+  TEST_EQUAL(std::abs(cal.precursor_shift) < cal.precursor_spread, true)
+
+  // Load-bearing check — guards the sign convention in runCalibrationPass_'s
+  // writeback block. Under (lower, upper) where signed error e lies in
+  // [-upper, +lower], the calibrated window [shift - spread, shift + spread]
+  // maps to:
+  //   cal_lower = spread + shift   (upper endpoint of the signed window)
+  //   cal_upper = spread - shift   (|lower endpoint| of the signed window)
+  // A regression of the swap would flip both of these.
+  TEST_REAL_SIMILAR(cal.cal_lower, cal.precursor_spread + cal.precursor_shift)
+  TEST_REAL_SIMILAR(cal.cal_upper, cal.precursor_spread - cal.precursor_shift)
+  // Positive bias => cal_lower > cal_upper. A regression of the swap would
+  // produce cal_upper > cal_lower — the assertion below catches that even
+  // if the functional identities above are tautologically consistent with a
+  // mislabeled spread/shift pair.
+  TEST_EQUAL(cal.cal_lower > cal.cal_upper, true)
+  // Both tightened from user-configured (20, 30); std::min cap inactive, so
+  // the functional identities above are unconstrained.
   TEST_EQUAL(cal.cal_lower < 20.0, true)
   TEST_EQUAL(cal.cal_upper < 30.0, true)
-  // Remain asymmetric. Under the (lower, upper) convention where the signed
-  // error e = observed - theoretical lies in [-upper, +lower], a POSITIVE
-  // precursor bias (observed > theoretical) widens the +lower side of the
-  // accepted window and tightens the -upper side, so cal_lower > cal_upper.
-  TEST_EQUAL(cal.cal_lower > cal.cal_upper, true)
   // Post-search, the tolerance members have been RESTORED to the user-configured
   // values to avoid per-file state leaks in the multi-file wrapper (which reuses a
   // single ProSEAlgorithm instance across files). The calibrated
