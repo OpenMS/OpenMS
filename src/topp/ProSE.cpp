@@ -24,6 +24,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/FORMAT/PercolatorInfile.h>
 
 #include <arrow/table.h>  // only for std::shared_ptr<arrow::Table> declarations
 
@@ -102,6 +103,9 @@ class ProSE :
       registerOutputFile_("out_merged", "<file>", "", "Optional merged output file containing all PSMs pooled across input files with cross-file protein inference (BasicProteinInferenceAlgorithm) and optional picked-protein FDR (FDR:protein). Per-file outputs (-out_idxml / -out_qpx / -out_parquet) retain run-level information. Only useful with multiple -in files.", false);
       setValidFormats_("out_merged", ListUtils::create<String>("idXML"));
 
+      registerOutputFileList_("out_pin", "<files>", StringList(), "Output Percolator input (.pin/.tsv) file(s) for external rescoring. Must have the same number of entries as -in. Written independently of -percolator_executable (i.e. you can produce .pin files without running Percolator).", false, true);
+      setValidFormats_("out_pin", ListUtils::create<String>("tsv"));
+
       registerOutputDir_("out_mod_analysis_dir", "<dir>", "", "Optional directory to write modification-analysis tables (delta-mass, PTM stats) when running in open-search mode. When set, per-file tables are written using each input file's basename and an additional aggregate table is written across all input files. Has no effect in closed-search mode.", false, true);
 
       registerInputFile_("percolator_executable", "<executable>",
@@ -123,6 +127,7 @@ class ProSE :
       const StringList in_list = getStringList_("in");
       const String database = getStringOption_("database");
       const StringList out_idxml_list = getStringList_("out_idxml");
+      const StringList out_pin_list = getStringList_("out_pin");
       const String out_merged = getStringOption_("out_merged");
       const String out_qpx_dir = getOutputDirOption("out_qpx");
       const String out_parquet_dir = getOutputDirOption("out_parquet");
@@ -136,9 +141,9 @@ class ProSE :
       }
 
       // At least one output must be specified
-      if (out_idxml_list.empty() && out_qpx_dir.empty() && out_parquet_dir.empty())
+      if (out_idxml_list.empty() && out_pin_list.empty() && out_qpx_dir.empty() && out_parquet_dir.empty())
       {
-        OPENMS_LOG_ERROR << "No output specified. Provide at least one of -out_idxml, -out_qpx, or -out_parquet." << endl;
+        OPENMS_LOG_ERROR << "No output specified. Provide at least one of -out_idxml, -out_pin, -out_qpx, or -out_parquet." << endl;
         return ILLEGAL_PARAMETERS;
       }
 
@@ -146,6 +151,14 @@ class ProSE :
       if (!out_idxml_list.empty() && in_list.size() != out_idxml_list.size())
       {
         OPENMS_LOG_ERROR << "Number of output files (-out_idxml, " << out_idxml_list.size()
+                         << ") must match number of input files (-in, " << in_list.size() << ")." << endl;
+        return ILLEGAL_PARAMETERS;
+      }
+
+      // -out_pin count must match -in count
+      if (!out_pin_list.empty() && in_list.size() != out_pin_list.size())
+      {
+        OPENMS_LOG_ERROR << "Number of output files (-out_pin, " << out_pin_list.size()
                          << ") must match number of input files (-in, " << in_list.size() << ")." << endl;
         return ILLEGAL_PARAMETERS;
       }
@@ -431,6 +444,51 @@ class ProSE :
           {
             OPENMS_LOG_ERROR << "Failed to write idXML output for " << in_file
                              << " -> " << out_idxml_list[i] << ": " << e.what() << endl;
+            input_failed = true;
+          }
+        }
+
+        // -- Percolator .pin output --
+        if (!out_pin_list.empty())
+        {
+          try
+          {
+            if (result.protein_ids.empty())
+            {
+              OPENMS_LOG_ERROR << "Cannot write .pin for " << in_file
+                               << ": no ProteinIdentification/search parameters available." << endl;
+              input_failed = true;
+            }
+            else
+            {
+              const auto& sp = result.protein_ids.front().getSearchParameters();
+              StringList feature_set;
+              if (sp.metaValueExists("extra_features"))
+              {
+                feature_set = ListUtils::create<String>(sp.getMetaValue("extra_features").toString());
+              }
+              if (std::find(feature_set.begin(), feature_set.end(), "score") == feature_set.end())
+              {
+                feature_set.insert(feature_set.begin(), "score");
+              }
+              feature_set.push_back("Peptide");
+              feature_set.push_back("Proteins");
+              const String enz_str = sp.digestion_enzyme.getName();
+              const auto colon = sp.charges.find(':');
+              const int min_charge = (colon != String::npos)
+                                       ? String(sp.charges.substr(0, colon)).toInt()
+                                       : String(sp.charges).toInt();
+              const int max_charge = (colon != String::npos)
+                                       ? String(sp.charges.substr(colon + 1)).toInt()
+                                       : min_charge;
+              PercolatorInfile::store(out_pin_list[i], result.peptide_ids,
+                                     feature_set, enz_str, min_charge, max_charge);
+            }
+          }
+          catch (const Exception::BaseException& e)
+          {
+            OPENMS_LOG_ERROR << "Failed to write .pin output for " << in_file
+                             << " -> " << out_pin_list[i] << ": " << e.what() << endl;
             input_failed = true;
           }
         }
