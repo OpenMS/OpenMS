@@ -25,8 +25,6 @@ namespace OpenMS
 {
   class ResidueModification;
 
-  
-
   /**
       @ingroup Chemistry
 

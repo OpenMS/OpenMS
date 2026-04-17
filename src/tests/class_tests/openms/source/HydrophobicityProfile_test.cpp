@@ -11,7 +11,6 @@
 ///////////////////////////
 #include <OpenMS/CHEMISTRY/HydrophobicityProfile.h>
 
-
 ///////////////////////////
 
 using namespace OpenMS;
@@ -57,10 +56,11 @@ START_SECTION(std::vector<double> computeProfile(const AASequence& seq, const Hy
   AASequence seq("ACDE");
   AASequence seq_2;
   AASequence seq_3("XXX");
-  TEST_REAL_SIMILAR(profile.computeProfile(seq,HydrophobicityScaleMethod::KYTE_DOOLITTLE)[0],1.8);
-  TEST_REAL_SIMILAR(profile.computeProfile(seq,HydrophobicityScaleMethod::KYTE_DOOLITTLE)[1],2.5);
-  TEST_REAL_SIMILAR(profile.computeProfile(seq,HydrophobicityScaleMethod::KYTE_DOOLITTLE)[2],-3.5);
-  TEST_REAL_SIMILAR(profile.computeProfile(seq,HydrophobicityScaleMethod::KYTE_DOOLITTLE)[3],-3.5); 
+  std::vector<double> vec = profile.computeProfile(seq,HydrophobicityScaleMethod::KYTE_DOOLITTLE);
+  TEST_REAL_SIMILAR(vec[0],1.8);
+  TEST_REAL_SIMILAR(vec[1],2.5);
+  TEST_REAL_SIMILAR(vec[2],-3.5);
+  TEST_REAL_SIMILAR(vec[3],-3.5); 
   TEST_REAL_SIMILAR(profile.computeProfile(seq,HydrophobicityScaleMethod::EISENBERG)[0],0.62);
   TEST_EXCEPTION(Exception::InvalidValue,profile.computeProfile(seq_3,HydrophobicityScaleMethod::EISENBERG))
 }
@@ -71,9 +71,10 @@ START_SECTION(computeWindowedProfile)
   HydrophobicityProfile profile;
   AASequence seq("ACDEF");
   AASequence seq_2;
-  TEST_REAL_SIMILAR(profile.computeWindowedProfile(seq,3)[0],0.266666666666667);
-  TEST_REAL_SIMILAR(profile.computeWindowedProfile(seq,3)[1],-1.5);
-  TEST_REAL_SIMILAR(profile.computeWindowedProfile(seq,3)[2],-1.4);
+  std::vector<double> vec = profile.computeWindowedProfile(seq,3);
+  TEST_REAL_SIMILAR(vec[0],0.266666666666667);
+  TEST_REAL_SIMILAR(vec[1],-1.5);
+  TEST_REAL_SIMILAR(vec[2],-1.4);
   TEST_REAL_SIMILAR(profile.computeWindowedProfile(seq,6)[0],0.02);
   TEST_EXCEPTION(Exception::InvalidSize,profile.computeWindowedProfile(seq,0));
   TEST_EXCEPTION(Exception::InvalidValue,profile.computeWindowedProfile(seq_2,3));
@@ -83,15 +84,14 @@ END_SECTION
 START_SECTION(computeHydrophobicMoment)
 {
   HydrophobicityProfile profile;
-  AASequence seq("A");
-  AASequence seq_2("ACDEF");
-  AASequence seq_3;
-  TEST_REAL_SIMILAR(profile.computeHydrophobicMoment(seq,1,100)[0],0.62);
-  TEST_REAL_SIMILAR(profile.computeHydrophobicMoment(seq_2,3,100)[0],0.511576803);
-  TEST_REAL_SIMILAR(profile.computeHydrophobicMoment(seq_2,3,100)[1],0.4600520621);
-  TEST_REAL_SIMILAR(profile.computeHydrophobicMoment(seq_2,3,100)[2],0.748853208);
-  TEST_EXCEPTION(Exception::InvalidSize,profile.computeHydrophobicMoment(seq,0));
-  TEST_EXCEPTION(Exception::InvalidValue,profile.computeHydrophobicMoment(seq_3,3));
+  AASequence seq_1("ACDEF");
+  AASequence seq_2;
+  std::vector<double> vec = profile.computeHydrophobicMoment(seq_1,3,100);
+  TEST_REAL_SIMILAR(vec[0],0.511576803);
+  TEST_REAL_SIMILAR(vec[1],0.4600520621);
+  TEST_REAL_SIMILAR(vec[2],0.748853208);
+  TEST_EXCEPTION(Exception::InvalidSize,profile.computeHydrophobicMoment(seq_1,0));
+  TEST_EXCEPTION(Exception::InvalidValue,profile.computeHydrophobicMoment(seq_2,3));
 }
 END_SECTION
 

@@ -6,11 +6,9 @@
 // $Authors: Markus Apel, Nora Heese $
 // --------------------------------------------------------------------------
  
-/// @todo make the calculation of average hydrophobicity reusable
-/// hydrophobic moment explainnnnn
-
-#include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/CHEMISTRY/HydrophobicityProfile.h>
+#include <OpenMS/KERNEL/DPeak.h>
+
 
 namespace OpenMS
 {
