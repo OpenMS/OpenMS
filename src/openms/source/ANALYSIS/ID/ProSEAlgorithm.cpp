@@ -452,7 +452,11 @@ namespace OpenMS
           ph.setScore(ah.score);
           ph.setSequence(ah.sequence);
 
-          // Generate theoretical spectrum + alignment for annotations that need it
+          // Generate theoretical spectrum + alignment for annotations that need it.
+          // The alignment tolerance mirrors the search's fragment tolerance so the
+          // reported FRAGMENT_ERROR_MEDIAN_PPM is not polluted by far-off spurious
+          // matches — SpectrumAlignment's default is 0.3 Da absolute, which is ~30×
+          // looser than a typical 20 ppm search.
           std::vector<std::pair<Size, Size>> alignment;
           MSSpectrum theoretical_spec;
           if (need_alignment)
@@ -466,6 +470,10 @@ namespace OpenMS
             const int max_frag_z = (charge >= 2) ? std::min<int>(charge - 1, 2) : 1;
             tsg.getSpectrum(theoretical_spec, ah.sequence, 1, max_frag_z);
             SpectrumAlignment sa;
+            Param sa_param(sa.getParameters());
+            sa_param.setValue("tolerance", fragment_mass_tolerance);
+            sa_param.setValue("is_relative_tolerance", fragment_mass_tolerance_unit_ppm == "ppm" ? "true" : "false");
+            sa.setParameters(sa_param);
             sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
           }
 
@@ -484,8 +492,16 @@ namespace OpenMS
 
           if (annotation_precursor_error_ppm)
           {
+            // Subtract out the isotope offset FI matched at — FragmentIndex searches
+            // shifted_mass = precursor_mass + isotope_error * C13C12, so M_theo ≈ N_obs
+            // + isotope_error * C13C12, and the observed-to-monoiso correction in m/z is
+            //   corrected_mz = observed_mz + isotope_error * C13C12 / charge
+            // Without this, a ±1 Da FI match reports ~1000 ppm / charge for the Percolator
+            // feature, corrupting target/decoy discrimination.
+            const double corrected_mz = mz
+              + static_cast<double>(ah.isotope_error) * Constants::C13C12_MASSDIFF_U / used_charge;
             double theo_mz = ah.sequence.getMZ(used_charge);
-            double ppm_difference = Math::getPPM(mz, theo_mz);
+            double ppm_difference = Math::getPPM(corrected_mz, theo_mz);
             ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, ppm_difference);
           }
 
@@ -2200,39 +2216,32 @@ namespace OpenMS
     // --- Compute calibrated tolerances ---
     const double min_tolerance = 1e-6; // avoid non-positive tolerances
 
-    // Signed median gives the calibration bias; spread is median(|e - shift|) + 3*MAD(|e - shift|),
-    // i.e., the same "typical residual + 3*scale" shape as the pre-refactor formula, just applied
-    // to residuals around the signed center instead of raw errors. Zero-centered distributions
-    // get identical spread; biased distributions correctly separate shift from spread.
-    const double prec_shift = Math::median(precursor_errors.begin(), precursor_errors.end());
-
-    std::vector<double> residuals;
-    residuals.reserve(precursor_errors.size());
-    for (double e : precursor_errors) { residuals.push_back(std::abs(e - prec_shift)); }
-    const double res_median = Math::median(residuals.begin(), residuals.end());
-    const double res_mad    = Math::MAD(residuals.begin(), residuals.end(), res_median);
-
-    result.precursor_shift  = prec_shift;
-    result.precursor_spread = std::max(min_tolerance, res_median + 3.0 * res_mad);
-    // Strict `>`: at |shift| == spread the signed window is exactly [0, 2*spread] or
-    // [-2*spread, 0] — both expressible in the positive-magnitude schema (one side == 0
-    // is legal and a well-defined half-line window). Only |shift| strictly greater
-    // than spread requires discarding the calibration result.
-    result.extreme_bias     = std::abs(prec_shift) > result.precursor_spread;
-
+    // Signed precursor errors: 0.5% and 99.5% empirical quantiles give a distribution-free
+    // 99% window (same approach as NuXL autotune, OpenNuXL.cpp:4939-4941). Asymmetric by
+    // construction, no Gaussian assumption required — heavy tails and biased distributions
+    // are handled correctly. We previously used residual_median + 3*residual_MAD which
+    // captures only ~94% coverage on a Gaussian and less on heavy-tailed data; the
+    // quantile method consistently produces more realistic windows.
+    std::vector<double> sorted_errs = precursor_errors;
+    std::sort(sorted_errs.begin(), sorted_errs.end());
+    const size_t n = sorted_errs.size();
+    const double lo = sorted_errs[static_cast<size_t>(n * 0.005)];                   // ~most negative
+    const double hi = sorted_errs[std::min(n - 1, static_cast<size_t>(n * 0.995))];  // ~most positive
+    // Convention (see lines 2193-2197): signed error e = observed - theoretical lies in
+    // [-cal_upper, +cal_lower]. Matching the observed [lo, hi] against that gives:
+    //   -cal_upper = lo  →  cal_upper = -lo
+    //   +cal_lower = hi  →  cal_lower =  hi
+    const double cal_lower_raw = std::max(min_tolerance, hi);
+    const double cal_upper_raw = std::max(min_tolerance, -lo);
+    // With a very biased distribution both quantiles can land on the same side of zero,
+    // making one of the raw bounds <= 0. That's not representable in the positive-magnitude
+    // (lower, upper) schema — discard the precursor calibration; fragment calibration still
+    // applies. The prec_shift field stays populated for diagnostics.
+    result.extreme_bias = (hi <= 0.0) || (lo >= 0.0);
+    result.precursor_spread = std::max(cal_lower_raw, cal_upper_raw);  // diagnostic only
     if (!result.extreme_bias)
     {
-      // Map signed window [shift - spread, shift + spread] to the positive-magnitude
-      // (lower, upper) schema. Per the convention established above (lines ~1615-1617),
-      // a (lower, upper) pair means theoretical ∈ [observed - lower, observed + upper],
-      // equivalently the signed error e = observed - theoretical lies in [-upper, +lower].
-      // Matching [shift - spread, shift + spread] against [-upper, +lower] gives:
-      //   -cal_upper = shift - spread  ->  cal_upper = spread - shift
-      //   +cal_lower = shift + spread  ->  cal_lower = spread + shift
-      // Both are non-negative when |shift| < spread.
-      const double cal_lower_raw = result.precursor_spread + prec_shift;
-      const double cal_upper_raw = result.precursor_spread - prec_shift;
-      // Only tighten - cap against user-configured bounds.
+      // Only tighten — cap against user-configured bounds.
       result.cal_lower = std::min(cal_lower_raw, precursor_mass_tolerance_lower_);
       result.cal_upper = std::min(cal_upper_raw, precursor_mass_tolerance_upper_);
     }
@@ -2263,8 +2272,7 @@ namespace OpenMS
 
     OPENMS_LOG_INFO << "[ProSE] Calibration: " << precursor_errors.size() << " PSMs used (top "
                     << static_cast<int>(100.0 * precursor_errors.size() / cal_hits_total) << "% by score)" << std::endl;
-    OPENMS_LOG_INFO << "[ProSE]   Precursor signed: shift=" << std::fixed << std::setprecision(2) << prec_shift
-                    << ", residual median=" << res_median << ", residual MAD=" << res_mad
+    OPENMS_LOG_INFO << "[ProSE]   Precursor signed: shift=" << std::fixed << std::setprecision(2) << result.precursor_shift
                     << " " << precursor_mass_tolerance_unit_ << std::endl;
     OPENMS_LOG_INFO << "[ProSE]   Precursor spread: -> " << result.precursor_spread
                     << " " << precursor_mass_tolerance_unit_
