@@ -177,7 +177,7 @@ TOPP tools:
       - Added peptide:enzyme_specificity parameter (full/semi/none) to enable semi-tryptic and non-specific searches (#9112)
       - New annotate:PSM options: num_matched_peaks, matched_b_ions, matched_y_ions, longest_peptide_ion_sequence, fragment_annotation (#9117)
     FeatureFinderCentroided:
-      - Reworked the underlying algorithm to omit a RAM-costly copy statement. RAM usage is now reduced by around 20%.
+      - Reworked the underlying algorithm to omit a RAM-costly copy statement. RAM usage is now reduced by around 20% (#9159)
     MapAlignerIdentification, MapAlignerPoseClustering, MapAlignerTreeGuided:
       - Added optional spectra file transformation (-in_spectra_files, -out_spectra_files) to transform mzML files along with alignment (#8536)
     FileInfo:
