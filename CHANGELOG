@@ -55,6 +55,7 @@ Dependencies:
   - ENABLE_TDL CMake option (required for CWL/Common Workflow Language file support) now defaults to OFF; set -DENABLE_TDL=ON to re-enable (#9067)
   - Boost minimum version requirement raised from 1.78 to 1.81 (#9095)
   - opentims: CMake now searches for a system-installed opentims_cpp via FindOpentims.cmake before falling back to a FetchContent git clone; packagers and users with opentims already installed can set opentims_DIR or opentims_ROOT to skip the download (#9147, #9148)
+  - contrib: the contrib directory is now a git submodule; developers and packagers building from a git clone must run `git submodule update --init` (or clone with `--recurse-submodules`) to obtain the vendored third-party libraries (#9155)
 
 TOPP tools:
   Changes:
