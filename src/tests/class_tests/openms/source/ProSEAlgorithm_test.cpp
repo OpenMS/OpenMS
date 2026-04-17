@@ -1174,22 +1174,39 @@ START_SECTION(([EXTRA] PSM annotations - matched ion counts, longest run, fragme
 
   // Verify matched ion count annotations exist and are positive
   TEST_EQUAL(hit.metaValueExists(Constants::UserParam::NUM_MATCHED_PEAKS), true)
-  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MATCHED_B_IONS), true)
-  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MATCHED_Y_IONS), true)
+  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MATCHED_PREFIX_IONS), true)
+  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MATCHED_SUFFIX_IONS), true)
   TEST_EQUAL(hit.metaValueExists(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE), true)
 
   int num_matched = hit.getMetaValue(Constants::UserParam::NUM_MATCHED_PEAKS);
-  int b_ions = hit.getMetaValue(Constants::UserParam::MATCHED_B_IONS);
-  int y_ions = hit.getMetaValue(Constants::UserParam::MATCHED_Y_IONS);
+  int prefix_ions = hit.getMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS);
+  int suffix_ions = hit.getMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS);
   int longest_run = hit.getMetaValue(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE);
 
   TEST_EQUAL(num_matched > 0, true)
-  TEST_EQUAL(num_matched, b_ions + y_ions)
-  TEST_EQUAL(b_ions > 0, true)
-  TEST_EQUAL(y_ions > 0, true)
+  TEST_EQUAL(num_matched, prefix_ions + suffix_ions)
+  TEST_EQUAL(prefix_ions > 0, true)
+  TEST_EQUAL(suffix_ions > 0, true)
 
   // Perfect match: longest run should be substantial (peptide length - 1 for one series)
   TEST_EQUAL(longest_run >= 3, true)
+
+  // Delta score is emitted on every retained hit. With a single database peptide,
+  // there is no competing candidate, so delta = full score (same "no competition
+  // = maximum delta" convention as Sage/MSFragger).
+  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::DELTA_SCORE), true)
+  double delta = hit.getMetaValue(Constants::UserParam::DELTA_SCORE);
+  TEST_REAL_SIMILAR(delta, hit.getScore())
+
+  // MIC = sum of experimental intensities over matched peaks. The synthetic
+  // spectrum copies theoretical peaks into the experimental one, so MIC should
+  // equal the sum of theoretical peak intensities. Verifies the MIC code
+  // accumulates exactly once per matched peak (no double-counting).
+  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MATCHED_ION_CURRENT), true)
+  double expected_mic = 0.0;
+  for (const auto& p : theo) { expected_mic += p.getIntensity(); }
+  double mic = hit.getMetaValue(Constants::UserParam::MATCHED_ION_CURRENT);
+  TEST_REAL_SIMILAR(mic, expected_mic)
 
   // Verify fragment annotations
   const auto& annotations = hit.getPeakAnnotations();

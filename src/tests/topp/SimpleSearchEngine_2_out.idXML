@@ -17,7 +17,7 @@
 				<UserParam type="string" name="PeptideIndexer:missing_decoy_action" value="silent"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2026-04-09T11:18:58" search_engine="SimpleSearchEngine" search_engine_version="3.6.0-pre-feat-num-matched-peaks-2026-04-09" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2026-04-17T14:55:15" search_engine="SimpleSearchEngine" search_engine_version="3.6.0-pre-feat-prose-percolator-features-2026-04-17" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
 			<ProteinHit id="PH_0" accession="test2_rev" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -37,11 +37,12 @@
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.731785331544976"/>
 				<UserParam type="float" name="precursor_mz_error_ppm" value="-1.415652739967919"/>
-				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.142857142857143"/>
-				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.714285714285714"/>
+				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.142857149243355"/>
+				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.714285731315613"/>
 				<UserParam type="int" name="num_matched_peaks" value="12"/>
-				<UserParam type="int" name="matched_b_ions" value="2"/>
-				<UserParam type="int" name="matched_y_ions" value="10"/>
+				<UserParam type="int" name="matched_prefix_ions" value="2"/>
+				<UserParam type="int" name="matched_suffix_ions" value="10"/>
+				<UserParam type="float" name="matched_ion_current" value="2.41169178346172"/>
 				<UserParam type="int" name="longest_peptide_ion_sequence" value="12"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -54,11 +55,12 @@
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.303180368382511"/>
 				<UserParam type="float" name="precursor_mz_error_ppm" value="0.532776127422444"/>
-				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.392857142857143"/>
-				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.464285714285714"/>
+				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.392857134342194"/>
+				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.46428570151329"/>
 				<UserParam type="int" name="num_matched_peaks" value="24"/>
-				<UserParam type="int" name="matched_b_ions" value="11"/>
-				<UserParam type="int" name="matched_y_ions" value="13"/>
+				<UserParam type="int" name="matched_prefix_ions" value="11"/>
+				<UserParam type="int" name="matched_suffix_ions" value="13"/>
+				<UserParam type="float" name="matched_ion_current" value="9.078604371286929"/>
 				<UserParam type="int" name="longest_peptide_ion_sequence" value="12"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -71,11 +73,12 @@
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.389253520212976"/>
 				<UserParam type="float" name="precursor_mz_error_ppm" value="2.251259146760969"/>
-				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.391304347826087"/>
-				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.521739130434783"/>
+				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.391304343938828"/>
+				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.52173912525177"/>
 				<UserParam type="int" name="num_matched_peaks" value="21"/>
-				<UserParam type="int" name="matched_b_ions" value="9"/>
-				<UserParam type="int" name="matched_y_ions" value="12"/>
+				<UserParam type="int" name="matched_prefix_ions" value="9"/>
+				<UserParam type="int" name="matched_suffix_ions" value="12"/>
+				<UserParam type="float" name="matched_ion_current" value="8.528975328430533"/>
 				<UserParam type="int" name="longest_peptide_ion_sequence" value="12"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>

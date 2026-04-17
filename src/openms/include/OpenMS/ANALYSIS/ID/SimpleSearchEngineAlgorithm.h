@@ -52,12 +52,12 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       SignedSize peptide_mod_index; ///< enumeration index of the non-RNA peptide modification
       // Layout: doubles first, then floats, then int, then uint16_t — minimizes padding
       double score = 0; ///< main score
-      float prefix_fraction = 0; ///< fraction of annotated b-ions
-      float suffix_fraction = 0; ///< fraction of annotated y-ions
+      float prefix_fraction = 0; ///< fraction of annotated prefix ions (a/b/c)
+      float suffix_fraction = 0; ///< fraction of annotated suffix ions (x/y/z)
       float mean_error = 0.0f; ///< mean absolute fragment mass error
       int isotope_error = 0;
-      uint16_t matched_b_ions = 0; ///< number of matched b-ions
-      uint16_t matched_y_ions = 0; ///< number of matched y-ions
+      uint16_t matched_prefix_ions = 0; ///< number of matched prefix ions (a/b/c)
+      uint16_t matched_suffix_ions = 0; ///< number of matched suffix ions (x/y/z)
 
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {
