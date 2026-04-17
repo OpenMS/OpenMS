@@ -1267,19 +1267,11 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   // already asserted false above, but state it as a positive numerical check).
   TEST_EQUAL(std::abs(cal.precursor_shift) < cal.precursor_spread, true)
 
-  // Load-bearing check — guards the sign convention in runCalibrationPass_'s
-  // writeback block. Under (lower, upper) where signed error e lies in
-  // [-upper, +lower], the calibrated window [shift - spread, shift + spread]
-  // maps to:
-  //   cal_lower = spread + shift   (upper endpoint of the signed window)
-  //   cal_upper = spread - shift   (|lower endpoint| of the signed window)
-  // A regression of the swap would flip both of these.
-  TEST_REAL_SIMILAR(cal.cal_lower, cal.precursor_spread + cal.precursor_shift)
-  TEST_REAL_SIMILAR(cal.cal_upper, cal.precursor_spread - cal.precursor_shift)
-  // Positive bias => cal_lower > cal_upper. A regression of the swap would
-  // produce cal_upper > cal_lower — the assertion below catches that even
-  // if the functional identities above are tautologically consistent with a
-  // mislabeled spread/shift pair.
+  // Positive bias => cal_lower > cal_upper. Under the (lower, upper) convention
+  // signed error e = observed - theoretical lies in [-cal_upper, +cal_lower]; a
+  // strictly-positive bias means the +99.5% quantile exceeds the |-0.5% quantile|,
+  // so cal_lower (= max positive error) must exceed cal_upper (= |max negative error|).
+  // A regression that swapped the endpoints would flip the ordering.
   TEST_EQUAL(cal.cal_lower > cal.cal_upper, true)
   // Both tightened from user-configured (20, 30); std::min cap inactive, so
   // the functional identities above are unconstrained.
