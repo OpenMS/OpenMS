@@ -79,6 +79,14 @@ namespace OpenMS
 
   const std::string user_section = "preferences:user:";
 
+  namespace
+  {
+    String getDefaultPluginPath_()
+    {
+      return File::getExecutablePath() + "OpenMS_Plugins";
+    }
+  } // namespace
+
   /// supported types which can be opened with File-->Open
   const FileTypeList supported_types({ FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::SQMASS,
                                        FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
@@ -437,7 +445,7 @@ namespace OpenMS
     defaults_.setValue(user_section + "default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue(user_section + "default_path_current", "true", "If the current path is preferred over the default path.");
     defaults_.setValidStrings(user_section + "default_path_current", {"true","false"});
-    defaults_.setValue(user_section + "plugins_path", File::getUserDirectory() + "OpenMS_Plugins", "Default path for loading Plugins");
+    defaults_.setValue(user_section + "plugins_path", getDefaultPluginPath_(), "Default path for loading Plugins");
     defaults_.setValue(user_section + "intensity_cutoff", "off", "Low intensity cutoff for maps.");
     defaults_.setValidStrings(user_section + "intensity_cutoff", {"on","off"});
     defaults_.setValue(user_section + "on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
@@ -1542,7 +1550,7 @@ namespace OpenMS
         if (!tool_scanner_.setPluginPath(param_.getValue(user_section + "plugins_path").toString()))
         {
           // reset it to the default
-          param_.setValue(user_section + "plugins_path", File::getUserDirectory() + "OpenMS_Plugins");
+          param_.setValue(user_section + "plugins_path", getDefaultPluginPath_());
         }
       }
     }
@@ -1580,7 +1588,7 @@ namespace OpenMS
     if (!tool_scanner_.setPluginPath(param_.getValue(user_section + "plugins_path").toString()))
     {
       // reset if it does not
-      param_.setValue(user_section + "plugins_path", tool_scanner_.getPluginPath());
+      param_.setValue(user_section + "plugins_path", getDefaultPluginPath_());
     }
 
     // save only the subsection that begins with "preferences:" and all tool params ("tool_params:")
