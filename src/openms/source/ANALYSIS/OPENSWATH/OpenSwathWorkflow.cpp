@@ -834,10 +834,10 @@ namespace OpenMS
         const OpenSwathWorkflowScheduler::Wave& wave = swath_waves[wave_index];
         inner_batch_queue.clear();
 
-        OPENMS_LOG_INFO << "Process SWATH wave " << (wave_index + 1) << "/"
-                        << swath_waves.size() << " with "
-                        << wave.swath_indices.size() << " SWATHs (estimated "
-                        << bytesToHumanReadable(wave.estimated_bytes) << ")." << std::endl;
+        OPENMS_LOG_DEBUG << "Process SWATH wave " << (wave_index + 1) << "/"
+                         << swath_waves.size() << " with "
+                         << wave.swath_indices.size() << " SWATHs (estimated "
+                         << bytesToHumanReadable(wave.estimated_bytes) << ")." << std::endl;
 
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1)
@@ -927,7 +927,7 @@ namespace OpenMS
 #pragma omp critical (osw_write_stdout)
 #endif
         {
-          OPENMS_LOG_INFO << "Thread " <<
+          OPENMS_LOG_DEBUG << "Thread " <<
 #ifdef _OPENMP
             omp_get_thread_num() << "_0 " <<
 #else
@@ -1003,10 +1003,10 @@ namespace OpenMS
         wave_compounds, active_swaths, scoring_threads, user_inner_batch_size, scheduler_options);
       if (wave_inner_batch > 0)
       {
-        OPENMS_LOG_INFO << "Use " << wave_inner_batch
-                        << " compounds per scoring job for wave " << (wave_index + 1)
-                        << " (" << wave_compounds << " compounds, "
-                        << active_swaths << " active SWATHs)." << std::endl;
+        OPENMS_LOG_DEBUG << "Use " << wave_inner_batch
+                         << " compounds per scoring job for wave " << (wave_index + 1)
+                         << " (" << wave_compounds << " compounds, "
+                         << active_swaths << " active SWATHs)." << std::endl;
       }
 
       for (Size swath_index : wave.swath_indices)
@@ -1027,12 +1027,12 @@ namespace OpenMS
           context.remaining_score_jobs = context.nr_score_jobs;
         }
 
-        OPENMS_LOG_INFO << "SWATH " << context.swath_index
-                        << " will score " << context.transition_exp_used_all.getCompounds().size()
-                        << " compounds and " << context.transition_exp_used_all.getTransitions().size()
-                        << " transitions in " << context.nr_score_jobs
-                        << " scoring jobs with " << context.score_job_size
-                        << " compounds per job" << std::endl;
+        OPENMS_LOG_DEBUG << "SWATH " << context.swath_index
+                         << " will score " << context.transition_exp_used_all.getCompounds().size()
+                         << " compounds and " << context.transition_exp_used_all.getTransitions().size()
+                         << " transitions in " << context.nr_score_jobs
+                         << " scoring jobs with " << context.score_job_size
+                         << " compounds per job" << std::endl;
 
         for (SignedSize batch_index = 0; batch_index < context.nr_score_jobs; ++batch_index)
         {
