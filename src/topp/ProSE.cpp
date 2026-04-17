@@ -453,24 +453,37 @@ class ProSE :
         {
           try
           {
-            const auto& sp = result.protein_ids.front().getSearchParameters();
-            StringList feature_set = {"score"};
-            if (sp.metaValueExists("extra_features"))
+            if (result.protein_ids.empty())
             {
-              StringList ef = ListUtils::create<String>(sp.getMetaValue("extra_features").toString());
-              feature_set.insert(feature_set.end(), ef.begin(), ef.end());
+              OPENMS_LOG_ERROR << "Cannot write .pin for " << in_file
+                               << ": no ProteinIdentification/search parameters available." << endl;
+              input_failed = true;
             }
-            feature_set.push_back("Peptide");
-            feature_set.push_back("Proteins");
-            const String enz_str = sp.digestion_enzyme.getName();
-            const int min_charge = String(sp.charges).toInt();
-            const int max_charge = [&]()
+            else
             {
-              auto pos = sp.charges.find(':');
-              return (pos != String::npos) ? String(sp.charges.substr(pos + 1)).toInt() : min_charge;
-            }();
-            PercolatorInfile::store(out_pin_list[i], result.peptide_ids,
-                                   feature_set, enz_str, min_charge, max_charge);
+              const auto& sp = result.protein_ids.front().getSearchParameters();
+              StringList feature_set;
+              if (sp.metaValueExists("extra_features"))
+              {
+                feature_set = ListUtils::create<String>(sp.getMetaValue("extra_features").toString());
+              }
+              if (std::find(feature_set.begin(), feature_set.end(), "score") == feature_set.end())
+              {
+                feature_set.insert(feature_set.begin(), "score");
+              }
+              feature_set.push_back("Peptide");
+              feature_set.push_back("Proteins");
+              const String enz_str = sp.digestion_enzyme.getName();
+              const auto colon = sp.charges.find(':');
+              const int min_charge = (colon != String::npos)
+                                       ? String(sp.charges.substr(0, colon)).toInt()
+                                       : String(sp.charges).toInt();
+              const int max_charge = (colon != String::npos)
+                                       ? String(sp.charges.substr(colon + 1)).toInt()
+                                       : min_charge;
+              PercolatorInfile::store(out_pin_list[i], result.peptide_ids,
+                                     feature_set, enz_str, min_charge, max_charge);
+            }
           }
           catch (const Exception::BaseException& e)
           {
