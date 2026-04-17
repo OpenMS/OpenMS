@@ -53,13 +53,13 @@ namespace OpenSwath
     template <typename MatrixType>
     static double weightedTriangularSum(const MatrixType& mat, const std::vector<double>& w)
     {
-      OPENSWATH_PRECONDITION(mat.rows() == mat.cols() && static_cast<size_t>(mat.rows()) == w.size(), "Matrix must be square and match weight vector size");
+      OPENSWATH_PRECONDITION(mat.rows() == mat.cols() && static_cast<std::size_t>(mat.rows()) == w.size(), "Matrix must be square and match weight vector size");
       double weighted_sum = 0.0;
-      for (Size i = 0; i < w.size(); ++i)
+      for (std::size_t i = 0; i < w.size(); ++i)
       {
         const double wi = w[i];
         weighted_sum += wi * wi * static_cast<double>(mat(i, i));
-        for (Size j = i + 1; j < w.size(); ++j)
+        for (std::size_t j = i + 1; j < w.size(); ++j)
         {
           weighted_sum += 2.0 * wi * w[j] * static_cast<double>(mat(i, j));
         }
@@ -70,9 +70,9 @@ namespace OpenSwath
     static double meanStdevUpperTriangle(const OpenMS::Matrix<int>& mat)
     {
       OpenSwath::mean_and_stddev msc;
-      for (Size i = 0; i < mat.rows(); ++i)
+      for (std::size_t i = 0; i < mat.rows(); ++i)
       {
-        for (Size j = i; j < mat.cols(); ++j)
+        for (std::size_t j = i; j < mat.cols(); ++j)
         {
           msc(mat(i, j));
         }
@@ -83,9 +83,9 @@ namespace OpenSwath
     static double meanStdevAll(const OpenMS::Matrix<int>& mat)
     {
       OpenSwath::mean_and_stddev msc;
-      const Size n_entries = mat.size();
+      const std::size_t n_entries = mat.size();
       const int* data = mat.data();
-      for (Size i = 0; i < n_entries; ++i)
+      for (std::size_t i = 0; i < n_entries; ++i)
       {
         msc(data[i]);
       }
@@ -95,10 +95,10 @@ namespace OpenSwath
     static double meanUpperTriangle(const OpenMS::Matrix<double>& mat)
     {
       double sum = 0.0;
-      Size n_entries = 0;
-      for (Size i = 0; i < mat.rows(); ++i)
+      std::size_t n_entries = 0;
+      for (std::size_t i = 0; i < mat.rows(); ++i)
       {
-        for (Size j = i; j < mat.cols(); ++j)
+        for (std::size_t j = i; j < mat.cols(); ++j)
         {
           sum += mat(i, j);
           ++n_entries;
@@ -396,10 +396,10 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(xcorr_contrast_matrix_max_peak_.rows() > 0 && xcorr_contrast_matrix_max_peak_.cols() > 1, "Expect cross-correlation matrix of at least 1x2");
 
       std::vector<double > deltas;
-      for (Size i = 0; i < xcorr_contrast_matrix_max_peak_.rows(); i++)
+      for (std::size_t i = 0; i < xcorr_contrast_matrix_max_peak_.rows(); ++i)
       {
         double deltas_id = 0;
-        for (Size j = 0; j < xcorr_contrast_matrix_max_peak_.cols(); j++)
+        for (std::size_t j = 0; j < xcorr_contrast_matrix_max_peak_.cols(); ++j)
         {
           deltas_id += xcorr_contrast_matrix_max_peak_(i, j);
 #ifdef MRMSCORING_TESTING
