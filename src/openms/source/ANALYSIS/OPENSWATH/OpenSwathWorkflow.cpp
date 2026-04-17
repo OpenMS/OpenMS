@@ -796,6 +796,8 @@ namespace OpenMS
       {
         Size context_index = 0;
         Size batch_index = 0;
+        Size estimated_compounds = 0;
+        Size estimated_transitions = 0;
       };
 
       std::deque<InnerBatchScoringJob> inner_batch_queue;
@@ -1037,11 +1039,38 @@ namespace OpenMS
           InnerBatchScoringJob job;
           job.context_index = context_index;
           job.batch_index = static_cast<Size>(batch_index);
+          const Size batch_start = job.batch_index * static_cast<Size>(context.score_job_size);
+          job.estimated_compounds = batch_start < n_compounds ?
+            std::min<Size>(static_cast<Size>(context.score_job_size), n_compounds - batch_start) :
+            0;
+          if (n_compounds > 0)
+          {
+            job.estimated_transitions =
+              (job.estimated_compounds * context.transition_exp_used_all.getTransitions().size() +
+               n_compounds - 1) / n_compounds;
+          }
           {
             std::lock_guard<std::mutex> lock(inner_queue_mutex);
             inner_batch_queue.push_back(job);
           }
         }
+      }
+
+      {
+        std::lock_guard<std::mutex> lock(inner_queue_mutex);
+        std::sort(inner_batch_queue.begin(), inner_batch_queue.end(),
+          [](const InnerBatchScoringJob& lhs, const InnerBatchScoringJob& rhs)
+          {
+            if (lhs.estimated_transitions != rhs.estimated_transitions)
+            {
+              return lhs.estimated_transitions > rhs.estimated_transitions;
+            }
+            if (lhs.estimated_compounds != rhs.estimated_compounds)
+            {
+              return lhs.estimated_compounds > rhs.estimated_compounds;
+            }
+            return lhs.context_index < rhs.context_index;
+          });
       }
 
       auto finalize_context = [&](const Size context_index)
