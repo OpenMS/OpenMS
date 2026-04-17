@@ -1069,6 +1069,10 @@ namespace OpenMS
             {
               return lhs.estimated_compounds > rhs.estimated_compounds;
             }
+            if (lhs.batch_index != rhs.batch_index)
+            {
+              return lhs.batch_index < rhs.batch_index;
+            }
             return lhs.context_index < rhs.context_index;
           });
       }
