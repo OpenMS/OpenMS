@@ -819,8 +819,11 @@ namespace OpenMS
       }
 
 #ifdef _OPENMP
-      OPENMS_LOG_INFO << "Use SWATH wave scheduler with " << omp_get_max_threads()
+      const Size scoring_threads = static_cast<Size>(std::max(1, omp_get_max_threads()));
+      OPENMS_LOG_INFO << "Use SWATH wave scheduler with " << scoring_threads
                       << " scoring threads." << std::endl;
+#else
+      const Size scoring_threads = 1;
 #endif
 
       for (Size wave_index = 0; wave_index < swath_waves.size(); ++wave_index)
@@ -979,6 +982,30 @@ namespace OpenMS
       // Create inner scoring jobs for all active SWATHs. The assay-range scheduler
       // has already extracted chromatograms per SWATH, so these jobs only score
       // sub-ranges of the extracted assay set.
+      Size wave_compounds = 0;
+      Size active_swaths = 0;
+      for (Size swath_index : wave.swath_indices)
+      {
+        SwathSchedulerContext& context = contexts[swath_index];
+        if (!context.active)
+        {
+          continue;
+        }
+
+        wave_compounds += context.transition_exp_used_all.getCompounds().size();
+        ++active_swaths;
+      }
+
+      const Size wave_inner_batch = OpenSwathWorkflowScheduler::chooseInnerBatchSize(
+        wave_compounds, active_swaths, scoring_threads, user_inner_batch_size, scheduler_options);
+      if (wave_inner_batch > 0)
+      {
+        OPENMS_LOG_INFO << "Use " << wave_inner_batch
+                        << " compounds per scoring job for wave " << (wave_index + 1)
+                        << " (" << wave_compounds << " compounds, "
+                        << active_swaths << " active SWATHs)." << std::endl;
+      }
+
       for (Size swath_index : wave.swath_indices)
       {
         const Size context_index = swath_index;
@@ -989,7 +1016,7 @@ namespace OpenMS
         }
 
         const Size n_compounds = context.transition_exp_used_all.getCompounds().size();
-        const Size inner_batch = calculateInnerBatchSize(n_compounds, user_inner_batch_size);
+        const Size inner_batch = std::min<Size>(wave_inner_batch, n_compounds);
         context.score_job_size = boost::numeric_cast<int>(inner_batch);
         if (context.score_job_size > 0)
         {
@@ -1093,7 +1120,8 @@ namespace OpenMS
           auto batch_phase_start = profileStart(profile);
           OpenSwath::LightTargetedExperiment transition_exp_used;
           const Size n_compounds = context.transition_exp_used_all.getCompounds().size();
-          Size inner_batch = calculateInnerBatchSize(n_compounds, user_inner_batch_size);
+          const Size inner_batch = std::min<Size>(
+            static_cast<Size>(context.score_job_size), n_compounds);
           selectCompoundsForBatch_(context.transition_exp_used_all, transition_exp_used, inner_batch, static_cast<SignedSize>(job.batch_index));
           if (profile)
           {

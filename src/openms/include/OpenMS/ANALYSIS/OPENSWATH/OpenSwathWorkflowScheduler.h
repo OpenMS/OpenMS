@@ -42,6 +42,12 @@ namespace OpenMS
       UInt64 per_swath_overhead_bytes = 100ULL * 1024ULL * 1024ULL;
       /// User override for concurrent SWATHs; <= 0 enables memory-based planning.
       int max_concurrent_swaths = -1;
+      /// Smallest automatically selected scoring batch size.
+      Size min_inner_batch_size = 2000;
+      /// Largest automatically selected scoring batch size.
+      Size max_inner_batch_size = 10000;
+      /// Target number of queued scoring jobs per worker thread.
+      Size target_jobs_per_thread = 3;
     };
 
     /// Derived scheduler limits for one extraction/scoring run.
@@ -74,6 +80,14 @@ namespace OpenMS
       const std::vector<OpenSwath::SwathMap>& swath_maps,
       const Options& options,
       const ConcurrencyEstimate& estimate);
+
+    /// Choose a scoring batch size that keeps the worker pool occupied.
+    static Size chooseInnerBatchSize(
+      Size total_compounds,
+      Size active_swaths,
+      Size scoring_threads,
+      int user_inner_batch_size,
+      const Options& options);
 
     /// Simple blocking limiter for paths that still stream one SWATH per worker.
     class OPENMS_DLLAPI ConcurrencyLimiter

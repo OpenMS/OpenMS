@@ -142,6 +142,36 @@ namespace OpenMS
     return waves;
   }
 
+  Size OpenSwathWorkflowScheduler::chooseInnerBatchSize(
+    Size total_compounds,
+    Size active_swaths,
+    Size scoring_threads,
+    int user_inner_batch_size,
+    const Options& options)
+  {
+    if (total_compounds == 0)
+    {
+      return 0;
+    }
+
+    if (user_inner_batch_size > 0)
+    {
+      return std::min<Size>(static_cast<Size>(user_inner_batch_size), total_compounds);
+    }
+
+    const Size workers = std::max<Size>(1, scoring_threads);
+    const Size active_jobs = std::max<Size>(1, active_swaths);
+    const Size jobs_per_thread = std::max<Size>(1, options.target_jobs_per_thread);
+    const Size target_jobs = std::max<Size>(active_jobs, workers * jobs_per_thread);
+    Size batch_size = (total_compounds + target_jobs - 1) / target_jobs;
+
+    const Size min_batch = std::max<Size>(1, options.min_inner_batch_size);
+    const Size max_batch = std::max<Size>(min_batch, options.max_inner_batch_size);
+    batch_size = std::clamp(batch_size, min_batch, max_batch);
+
+    return std::min<Size>(batch_size, total_compounds);
+  }
+
   OpenSwathWorkflowScheduler::ConcurrencyLimiter::ConcurrencyLimiter(Size max_concurrent_swaths) :
     max_concurrent_swaths_(std::max<Size>(1, max_concurrent_swaths))
   {
