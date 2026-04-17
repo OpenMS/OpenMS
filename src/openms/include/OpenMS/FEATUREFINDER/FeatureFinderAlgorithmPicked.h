@@ -112,7 +112,7 @@ public:
     void setSeeds(const FeatureMap& seeds);
 
 private:
-    void setData(MSExperiment&& map, FeatureMap& features);
+    void setData_(MSExperiment&& map, FeatureMap& features);
 
 public:
 
@@ -143,7 +143,7 @@ public:
       return defaults_;
     }
 protected:
-    void run();
+    void run_();
 
     /// the editable map (moved from input)
     MapType map_;

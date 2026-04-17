@@ -131,13 +131,13 @@ namespace OpenMS
     seeds_ = seeds;
   }
 
-  void FeatureFinderAlgorithmPicked::setData(MSExperiment&& map, FeatureMap& features)
+  void FeatureFinderAlgorithmPicked::setData_(MSExperiment&& map, FeatureMap& features)
   {
     map_ = std::move(map);
     features_ = &features;
   }
 
-  void FeatureFinderAlgorithmPicked::run()
+  void FeatureFinderAlgorithmPicked::run_()
   {
     //-------------------------------------------------------------------------
     // General initialization
@@ -993,6 +993,30 @@ namespace OpenMS
     (*features_).sortByIntensity(true);
     endProgress();
 
+    // report RT apex spectrum index and native ID for each feature
+    Size invalid_apex_index_count = 0;
+    for (Size i = 0; i < (*features_).size(); ++i)
+    {
+      // index
+      Size spectrum_index = map_.RTBegin((*features_)[i].getRT()) - map_.begin();
+      (*features_)[i].setMetaValue("spectrum_index", spectrum_index);
+      // native id
+      if (spectrum_index < map_.size())
+      {
+        String native_id = map_[spectrum_index].getNativeID();
+        (*features_)[i].setMetaValue("spectrum_native_id", native_id);
+      }
+      else
+      {
+        ++invalid_apex_index_count;
+      }
+    }
+    if (invalid_apex_index_count > 0)
+    {
+      OPENMS_LOG_WARN << "Could not assign 'spectrum_native_id' for " << invalid_apex_index_count
+                      << " feature(s), because the computed apex spectrum index was out of range.\n";
+    }
+
     // Abort reasons
     OPENMS_LOG_INFO << '\n';
     OPENMS_LOG_INFO << "Info: reasons for not finalizing a feature during its construction:\n";
@@ -1078,36 +1102,9 @@ namespace OpenMS
 
     // do the work
     setParameters(param);
-    setData(std::move(input_map), features);
+    setData_(std::move(input_map), features);
     setSeeds(seeds);
-    run();
-
-    // report RT apex spectrum index and native ID for each feature
-    // NOTE: use map_ (internal map) here, since input_map was moved in setData().
-    Size invalid_apex_index_count = 0;
-    for (Size i = 0; i < features.size(); ++i)
-    {
-      //index
-      Size spectrum_index = map_.RTBegin(features[i].getRT()) - map_.begin();
-      features[i].setMetaValue("spectrum_index", spectrum_index);
-      //native id
-      if (spectrum_index < map_.size())
-      {
-        String native_id = map_[spectrum_index].getNativeID();
-        features[i].setMetaValue("spectrum_native_id", native_id);
-      }
-      else
-      {
-        /// @todo that happens sometimes using IsotopeWaveletFeatureFinder (Rene, Marc, Andreas, Clemens)
-        ++invalid_apex_index_count;
-      }
-    }
-
-    if (invalid_apex_index_count > 0)
-    {
-      OPENMS_LOG_WARN << "Could not assign 'spectrum_native_id' for " << invalid_apex_index_count
-                      << " feature(s), because the computed apex spectrum index was out of range.\n";
-    }
+    run_();
   }
 
   void FeatureFinderAlgorithmPicked::updateMembers_()
