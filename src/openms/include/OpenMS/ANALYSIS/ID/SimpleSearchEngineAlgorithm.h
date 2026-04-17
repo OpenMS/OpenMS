@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
@@ -49,18 +50,18 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
     {
       StringView sequence;
       SignedSize peptide_mod_index; ///< enumeration index of the non-RNA peptide modification
+      // Layout: doubles first, then floats, then int, then uint16_t — minimizes padding
       double score = 0; ///< main score
-      double prefix_fraction = 0; ///< fraction of annotated b-ions
-      double suffix_fraction = 0; ///< fraction of annotated y-ions
-      double mean_error = 0.0; ///< mean absolute fragment mass error
+      float prefix_fraction = 0; ///< fraction of annotated b-ions
+      float suffix_fraction = 0; ///< fraction of annotated y-ions
+      float mean_error = 0.0f; ///< mean absolute fragment mass error
       int isotope_error = 0;
-      std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
+      uint16_t matched_b_ions = 0; ///< number of matched b-ions
+      uint16_t matched_y_ions = 0; ///< number of matched y-ions
 
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {
         if (a.score != b.score) return a.score > b.score;
-        // compare the mod_index first, as it is cheaper than the strncmp() of the sequences
-        // there doesn't have to be a certain ordering (that makes sense), we just need it to be thread-safe
         if (b.peptide_mod_index != a.peptide_mod_index) return a.peptide_mod_index < b.peptide_mod_index;
         return a.sequence < b.sequence;
       }
@@ -120,6 +121,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
     Size peptide_min_size_;
     Size peptide_max_size_;
     Size peptide_missed_cleavages_;
+    EnzymaticDigestion::Specificity peptide_enzyme_specificity_{EnzymaticDigestion::SPEC_FULL};
 
     String peptide_motif_;
 

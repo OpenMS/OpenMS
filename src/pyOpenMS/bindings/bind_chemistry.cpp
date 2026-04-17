@@ -91,8 +91,6 @@ Representation of a peptide/protein sequence
 This class represents amino acid sequences in OpenMS. An AASequence
 instance primarily contains a sequence of residues.
 )doc")
-        .def(nb::init<OpenMS::String>())
-        .def(nb::init<OpenMS::String, bool>())
         .def("empty", [](const OpenMS::AASequence& self) { return self.empty(); }, "Check if sequence is empty")
         .def("toString", [](const OpenMS::AASequence& self) { return self.toString(); }, "Returns the peptide as string with modifications embedded in brackets")
         .def("toUnmodifiedString", [](const OpenMS::AASequence& self) { return self.toUnmodifiedString(); }, "Returns the peptide as string without any modifications")
@@ -150,6 +148,8 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
         .def("__init__", [](OpenMS::AASequence* self, const std::string& s) {
             new (self) OpenMS::AASequence(OpenMS::String(s));
         }, "sequence"_a, "Create AASequence from string (e.g., 'PEPTIDE')")
+        .def(nb::init<OpenMS::String>())
+        .def(nb::init<OpenMS::String, bool>())
 
         .def_static("fromString", [](const std::string& s) {
             return OpenMS::AASequence::fromString(OpenMS::String(s));
@@ -205,7 +205,7 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
             oss << ")";
             return oss.str();
         })
-        .def("__str__", [](const OpenMS::AASequence& self) { return nb::cast(self).attr("__repr__")(); })
+        .def("__str__", [](const OpenMS::AASequence& self) { return std::string(self.toString()); })
         ;
 
     // -----------------------------------------------------------------------
@@ -1838,8 +1838,8 @@ Modified residues get created and added if getModifiedResidue is called.
     // -----------------------------------------------------------------------
     auto ribonucleotide_class = nb::class_<OpenMS::Ribonucleotide>(m, "Ribonucleotide", "Ribonucleotide")
         .def(nb::init<>())
-        .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::EmpiricalFormula, char, double, double, OpenMS::Ribonucleotide::TermSpecificityNuc, OpenMS::EmpiricalFormula>())
         .def(nb::init<const OpenMS::Ribonucleotide &>())
+        .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::EmpiricalFormula, char, double, double, OpenMS::Ribonucleotide::TermSpecificityNuc, OpenMS::EmpiricalFormula>())
         .def("__copy__", [](const OpenMS::Ribonucleotide& self) { return OpenMS::Ribonucleotide(self); })
         .def("__deepcopy__", [](const OpenMS::Ribonucleotide& self, nb::dict) { return OpenMS::Ribonucleotide(self); }, "memo"_a)
         .def(nb::self == nb::self)

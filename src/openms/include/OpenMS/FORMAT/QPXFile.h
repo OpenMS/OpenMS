@@ -87,6 +87,24 @@ public:
     const String& filename,
     bool export_all_psms = false,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
+
+  /**
+    @brief Write a pre-built QPX PSM Arrow table to a Parquet file
+
+    The table is expected to follow QPXPSMSchema (e.g., from exportPSMsToQPXArrow).
+    Attaches QPX file metadata (qpx_version, file_type="psm", UUID, creation_date)
+    before writing. Use this overload when the caller already has the table built
+    (e.g., for merged output) to avoid rebuilding it.
+
+    @param[in] table QPX PSM Arrow table (must not be null)
+    @param[in] filename Output file path
+    @param[in] config Parquet writing options
+    @return true on success, false on error
+  */
+  static bool exportToParquet(
+    const std::shared_ptr<arrow::Table>& table,
+    const String& filename,
+    const ParquetWriteConfig& config = ParquetWriteConfig{});
 };
 
 } // namespace OpenMS

@@ -90,7 +90,6 @@
 #include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/PROCESSING/SMOOTHING/LowessSmoothing.h>
 #include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/PROCESSING/RESAMPLING/LinearResampler.h>
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
@@ -390,7 +389,6 @@ int main(int argc, char** argv)
   DOCME(ItraqEightPlexQuantitationMethod);
   DOCME(ItraqFourPlexQuantitationMethod);
   DOCME(LabeledPairFinder);
-  DOCME(LinearResampler);
   DOCME(MSPFile);
   DOCME(MapAlignmentAlgorithmPoseClustering);
   DOCME(SpectrumAnnotator);

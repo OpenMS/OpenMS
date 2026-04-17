@@ -1,0 +1,36 @@
+name: Check AUTHORS File
+run-name: Checking if ${{ github.actor }} is in the AUTHORS file
+on:
+  pull_request_target:
+    types: [ "opened" ]
+    branches: [ "develop" ]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Clone PR Repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Clone OpenMS CI Tools Repository
+        uses: actions/checkout@v6
+        with:
+          repository: OpenMS/ci-tools
+          path: ci-tools
+      - name: Check the AUTHORS File
+        run: |
+          exit_code=0
+          ci-tools/scripts/authors.sh "$GITHUB_BASE_REF" "HEAD" || exit_code=$?
+
+          if [ "$exit_code" -eq 100 ]; then
+            ci-tools/scripts/authors.sh -p "$ACTOR" "$GITHUB_BASE_REF" "HEAD" |
+              gh pr comment "$PR" --body-file -
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.html_url }}
+          ACTOR: ${{ github.actor }}

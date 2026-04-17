@@ -12,7 +12,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
-#include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 
@@ -120,7 +119,7 @@ protected:
     resampler_param.setValue("spacing", sampling_rate);
     resampler_param.setValue("ppm", ppm ? "true" : "false");
 
-    LinearResamplerAlign lin_resampler; // LinearResampler does not know about ppm!
+    LinearResamplerAlign lin_resampler;
     lin_resampler.setParameters(resampler_param);
     if (!align_sampling)
     {

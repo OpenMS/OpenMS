@@ -1,0 +1,15 @@
+furo
+linkify-it-py
+myst-parser
+pygments
+readthedocs-sphinx-search
+docutils<0.19,>=0.15
+sphinx
+sphinxcontrib-images
+sphinx-copybutton
+sphinx-design
+sphinx-notfound-page
+sphinx-inline-tabs
+sphinx-hoverxref
+# Dependency of Sphinx, the 3.0 release breaks it (currently)
+snowballstemmer<3

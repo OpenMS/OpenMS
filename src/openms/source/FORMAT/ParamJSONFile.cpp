@@ -321,6 +321,8 @@ namespace OpenMS
 
     os << jsonDoc.dump(2);
 #else
+    (void)os_ptr;
+    (void)param;
     throw std::runtime_error{"TDL support is not available. Rebuild with -DENABLE_TDL=ON to enable this feature."};
 #endif
   }

@@ -481,8 +481,8 @@ Constructors
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::FIAMSScheduler>(m, "FIAMSScheduler", "Scheduler for FIA-MS data processing")
         .def(nb::init<>())
-        .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, bool>())
         .def(nb::init<const OpenMS::FIAMSScheduler &>())
+        .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, bool>())
         .def("__copy__", [](const OpenMS::FIAMSScheduler& self) { return OpenMS::FIAMSScheduler(self); })
         .def("__deepcopy__", [](const OpenMS::FIAMSScheduler& self, nb::dict) { return OpenMS::FIAMSScheduler(self); }, "memo"_a)
         .def("run", [](OpenMS::FIAMSScheduler& self) { return self.run(); }, "Run the FIA-MS data analysis for the batch defined in the @filename_")
