@@ -2162,6 +2162,13 @@ namespace OpenMS
 
       if (best_score == 0 || best_seq.empty()) continue;
 
+      // Skip PSMs matched at a non-zero isotope offset. Their precursor m/z carries
+      // an extra source of uncertainty (the +1/+2 isotope peak can be ambiguous in
+      // the MS1 precursor picking), which inflates the variance of the calibration
+      // quantile estimate. iso_err=0 PSMs are the gold-standard "true monoisotopic
+      // peak picked" subset — the right population for estimating instrument bias.
+      if (best_isotope_error != 0) continue;
+
       // Compute precursor error (signed), isotope-corrected. FragmentIndex searches
       // shifted_mass = precursor_mass + isotope_error * C13C12, so M_theo ≈ N_obs +
       // isotope_error * C13C12; the observed-to-monoiso m/z correction is
