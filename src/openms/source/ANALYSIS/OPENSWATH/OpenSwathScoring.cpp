@@ -446,7 +446,8 @@ namespace OpenMS
     // reuse small chroma-related temporaries
     chrom_pool.reset();
     thread_local OpenSwath::MRMScoring mrmscore_;
-    if (su_.use_coelution_score_ || su_.use_shape_score_ || (!imrmfeature->getPrecursorIDs().empty() && su_.use_ms1_correlation))
+    const bool has_precursor_features = !precursor_ids.empty();
+    if (su_.use_coelution_score_ || su_.use_shape_score_ || (has_precursor_features && su_.use_ms1_correlation))
       mrmscore_.initializeXCorrMatrix(imrmfeature, native_ids);
 
     // XCorr score (coelution)
@@ -467,7 +468,7 @@ namespace OpenMS
     }
 
     // check that the MS1 feature is present and that the MS1 correlation should be calculated
-    if (!imrmfeature->getPrecursorIDs().empty() && su_.use_ms1_correlation)
+    if (has_precursor_features && su_.use_ms1_correlation)
     {
       // we need at least two precursor isotopes
       if (precursor_ids.size() > 1)
@@ -514,7 +515,7 @@ namespace OpenMS
     }
 
     // check that the MS1 feature is present and that the MS1 MI should be calculated
-    if (!imrmfeature->getPrecursorIDs().empty() && su_.use_ms1_mi)
+    if (has_precursor_features && su_.use_ms1_mi)
     {
       // we need at least two precursor isotopes
       if (precursor_ids.size() > 1)

@@ -19,18 +19,48 @@ namespace OpenMS
   {
     std::vector<String> ids;
     mrmfeature.getFeatureIDs(ids);
+    features_ = std::make_shared<FeatureWrapperList_>();
+    features_->reserve(ids.size());
+    feature_index_.reserve(ids.size());
     for (std::vector<String>::iterator it = ids.begin(); it != ids.end(); ++it)
     {
-      std::shared_ptr<FeatureOpenMS> ptr = std::shared_ptr<FeatureOpenMS>(new FeatureOpenMS(mrmfeature.getFeature(*it)));
-      features_[*it] = ptr;
+      feature_index_.emplace_back(*it, features_->size());
+      features_->emplace_back(mrmfeature.getFeature(*it));
     }
 
     std::vector<String> p_ids;
     mrmfeature.getPrecursorFeatureIDs(p_ids);
+    precursor_features_ = std::make_shared<FeatureWrapperList_>();
+    precursor_features_->reserve(p_ids.size());
+    precursor_feature_index_.reserve(p_ids.size());
     for (std::vector<String>::iterator it = p_ids.begin(); it != p_ids.end(); ++it)
     {
-      std::shared_ptr<FeatureOpenMS> ptr = std::shared_ptr<FeatureOpenMS>(new FeatureOpenMS(mrmfeature.getPrecursorFeature(*it)));
-      precursor_features_[*it] = ptr;
+      precursor_feature_index_.emplace_back(*it, precursor_features_->size());
+      precursor_features_->emplace_back(mrmfeature.getPrecursorFeature(*it));
+    }
+  }
+
+  MRMFeatureOpenMS::MRMFeatureOpenMS(MRMFeature& mrmfeature,
+                                     const std::vector<std::string>& feature_ids,
+                                     const std::vector<std::string>& precursor_feature_ids) :
+    mrmfeature_(mrmfeature)
+  {
+    features_ = std::make_shared<FeatureWrapperList_>();
+    features_->reserve(feature_ids.size());
+    feature_index_.reserve(feature_ids.size());
+    for (const std::string& id : feature_ids)
+    {
+      feature_index_.emplace_back(id, features_->size());
+      features_->emplace_back(mrmfeature.getFeature(String(id)));
+    }
+
+    precursor_features_ = std::make_shared<FeatureWrapperList_>();
+    precursor_features_->reserve(precursor_feature_ids.size());
+    precursor_feature_index_.reserve(precursor_feature_ids.size());
+    for (const std::string& id : precursor_feature_ids)
+    {
+      precursor_feature_index_.emplace_back(id, precursor_features_->size());
+      precursor_features_->emplace_back(mrmfeature.getPrecursorFeature(String(id)));
     }
   }
 
@@ -44,8 +74,9 @@ namespace OpenMS
   void FeatureOpenMS::getRT(std::vector<double>& rt) const
   {
     OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
-    ConvexHull2D::PointArrayType data_points = feature_->getConvexHulls()[0].getHullPoints();
-    for (ConvexHull2D::PointArrayType::iterator it = data_points.begin(); it != data_points.end(); ++it)
+    const ConvexHull2D::PointArrayType& data_points = feature_->getConvexHulls()[0].getHullPoints();
+    rt.reserve(rt.size() + data_points.size());
+    for (ConvexHull2D::PointArrayType::const_iterator it = data_points.begin(); it != data_points.end(); ++it)
     {
       rt.push_back(it->getX());
     }
@@ -54,8 +85,9 @@ namespace OpenMS
   void FeatureOpenMS::getIntensity(std::vector<double>& intens) const
   {
     OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
-    ConvexHull2D::PointArrayType data_points = feature_->getConvexHulls()[0].getHullPoints();
-    for (ConvexHull2D::PointArrayType::iterator it = data_points.begin(); it != data_points.end(); ++it)
+    const ConvexHull2D::PointArrayType& data_points = feature_->getConvexHulls()[0].getHullPoints();
+    intens.reserve(intens.size() + data_points.size());
+    for (ConvexHull2D::PointArrayType::const_iterator it = data_points.begin(); it != data_points.end(); ++it)
     {
       intens.push_back(it->getY());
     }
@@ -75,22 +107,37 @@ namespace OpenMS
 
   std::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getFeature(std::string nativeID)
   {
-    OPENMS_PRECONDITION(features_.find(nativeID) != features_.end(), "Feature needs to exist");
-    return std::static_pointer_cast<OpenSwath::IFeature>(features_[nativeID]);
+    for (const auto& entry : feature_index_)
+    {
+      if (entry.first == nativeID)
+      {
+        return std::shared_ptr<OpenSwath::IFeature>(features_, &(*features_)[entry.second]);
+      }
+    }
+    OPENMS_PRECONDITION(false, "Feature needs to exist");
+    return {};
   }
 
   std::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getPrecursorFeature(std::string nativeID)
   {
-    OPENMS_PRECONDITION(precursor_features_.find(nativeID) != precursor_features_.end(), "Precursor feature needs to exist");
-    return std::static_pointer_cast<OpenSwath::IFeature>(precursor_features_[nativeID]);
+    for (const auto& entry : precursor_feature_index_)
+    {
+      if (entry.first == nativeID)
+      {
+        return std::shared_ptr<OpenSwath::IFeature>(precursor_features_, &(*precursor_features_)[entry.second]);
+      }
+    }
+    OPENMS_PRECONDITION(false, "Precursor feature needs to exist");
+    return {};
   }
 
   std::vector<std::string> MRMFeatureOpenMS::getNativeIDs() const
   {
     std::vector<std::string> v;
-    for (std::map<std::string, std::shared_ptr<FeatureOpenMS> >::const_iterator it = features_.begin(); it != features_.end(); ++it)
+    v.reserve(feature_index_.size());
+    for (const auto& entry : feature_index_)
     {
-      v.push_back(it->first);
+      v.push_back(entry.first);
     }
     return v;
   }
@@ -98,9 +145,10 @@ namespace OpenMS
   std::vector<std::string> MRMFeatureOpenMS::getPrecursorIDs() const
   {
     std::vector<std::string> v;
-    for (std::map<std::string, std::shared_ptr<FeatureOpenMS> >::const_iterator it = precursor_features_.begin(); it != precursor_features_.end(); ++it) 
+    v.reserve(precursor_feature_index_.size());
+    for (const auto& entry : precursor_feature_index_)
     {
-      v.push_back(it->first);
+      v.push_back(entry.first);
     }
     return v;
   }
@@ -122,7 +170,7 @@ namespace OpenMS
 
   size_t MRMFeatureOpenMS::size() const
   {
-    return features_.size();
+    return feature_index_.size();
   }
 
   // default instances
@@ -135,4 +183,3 @@ namespace OpenMS
   TransitionGroupOpenMS<MSSpectrum, ReactionMonitoringTransition> default_transition_group_openms(trgroup);
 
 } //end namespace OpenMS
-

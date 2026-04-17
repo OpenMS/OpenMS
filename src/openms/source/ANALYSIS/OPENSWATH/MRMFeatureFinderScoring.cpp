@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <chrono>
 #include <memory>
+#include <optional>
 #include <boost/foreach.hpp>
 #include <unordered_map>
 
@@ -675,7 +676,16 @@ namespace OpenMS
       OpenSwathScoringPhaseTiming feature_profile;
       auto& mrmfeature = mrmfeatures[feature_idx];
       mrmfeature.ensureUniqueId();
-      MRMFeatureOpenMS imrmfeature(mrmfeature);
+      std::optional<MRMFeatureOpenMS> imrmfeature_storage;
+      if (ms1only)
+      {
+        imrmfeature_storage.emplace(mrmfeature);
+      }
+      else
+      {
+        imrmfeature_storage.emplace(mrmfeature, tg_cache.transition_native_ids, tg_cache.precursor_ids);
+      }
+      MRMFeatureOpenMS& imrmfeature = *imrmfeature_storage;
 
       // thread-local pooled idscores to avoid per-feature vector allocations
       static thread_local MRMFeatureFinderScoring::OpenSwath_Ind_Scores_Pooled idscores_pool;

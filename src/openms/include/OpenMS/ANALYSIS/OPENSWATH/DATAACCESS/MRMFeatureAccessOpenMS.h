@@ -15,7 +15,11 @@
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 
+#include <cstddef>
 #include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 // These classes are minimal implementations of the interfaces defined in ITransition:
 //  - IFeature
@@ -61,6 +65,10 @@ public:
 
     explicit MRMFeatureOpenMS(MRMFeature& mrmfeature);
 
+    MRMFeatureOpenMS(MRMFeature& mrmfeature,
+                     const std::vector<std::string>& feature_ids,
+                     const std::vector<std::string>& precursor_feature_ids);
+
     ~MRMFeatureOpenMS() override;
 
     std::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID) override;
@@ -80,9 +88,14 @@ public:
     size_t size() const override;
 
 private:
+    using FeatureWrapperList_ = std::vector<FeatureOpenMS>;
+    using FeatureIndexList_ = std::vector<std::pair<std::string, std::size_t>>;
+
     const MRMFeature& mrmfeature_;
-    std::map<std::string, std::shared_ptr<FeatureOpenMS> > features_;
-    std::map<std::string, std::shared_ptr<FeatureOpenMS> > precursor_features_;
+    std::shared_ptr<FeatureWrapperList_> features_;
+    std::shared_ptr<FeatureWrapperList_> precursor_features_;
+    FeatureIndexList_ feature_index_;
+    FeatureIndexList_ precursor_feature_index_;
   };
 
   /**
@@ -199,5 +212,3 @@ private:
   };
 
 }
-
-
