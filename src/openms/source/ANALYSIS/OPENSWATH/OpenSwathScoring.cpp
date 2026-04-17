@@ -56,6 +56,25 @@ namespace OpenMS
       }
     };
     thread_local ChromScoresPool chrom_pool;
+
+    struct PrecursorFormulaCache
+    {
+      std::string sequence;
+      int charge = 0;
+      bool valid = false;
+      EmpiricalFormula formula;
+    };
+    thread_local PrecursorFormulaCache peptide_formula_cache;
+    thread_local PrecursorFormulaCache compound_formula_cache;
+
+    struct AASequenceThreadCache
+    {
+      std::string sequence;
+      std::vector<OpenSwath::LightModification> modifications;
+      bool valid = false;
+      AASequence aa_sequence;
+    };
+    thread_local AASequenceThreadCache aa_sequence_cache;
   }
 
   /// Constructor
@@ -165,10 +184,8 @@ namespace OpenMS
     fetchSpectrumSwath(swath_maps, imrmfeature->getRT(), n_merge_spectra, im_range, dias_pool.spectra);
     std::vector<OpenSwath::SpectrumPtr>& spectra = dias_pool.spectra;
 
-    // set the DIA parameters
-    // TODO Cache these parameters
-    double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
-    bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
+    const double dia_extract_window_ = diascoring.getDIAExtractionWindow();
+    const bool dia_extraction_ppm_ = diascoring.isDIAExtractionPPM();
 
     // score drift time dimension
     if ( su_.use_im_scores)
@@ -203,10 +220,17 @@ namespace OpenMS
     if (compound.isPeptide() && !compound.sequence.empty() && su_.use_ionseries_scores)
     {
       // Presence of b/y series score
-      OpenMS::AASequence aas;
+      if (!aa_sequence_cache.valid ||
+          aa_sequence_cache.sequence != compound.sequence ||
+          aa_sequence_cache.modifications != compound.modifications)
+      {
+        OpenSwathDataAccessHelper::convertPeptideToAASequence(compound, aa_sequence_cache.aa_sequence);
+        aa_sequence_cache.sequence = compound.sequence;
+        aa_sequence_cache.modifications = compound.modifications;
+        aa_sequence_cache.valid = true;
+      }
       int by_charge_state = 1; // for which charge states should we check b/y series
-      OpenSwathDataAccessHelper::convertPeptideToAASequence(compound, aas);
-      diascoring.dia_by_ion_score(spectra, aas, by_charge_state, im_range, scores.bseries_score, scores.yseries_score);
+      diascoring.dia_by_ion_score(spectra, aa_sequence_cache.aa_sequence, by_charge_state, im_range, scores.bseries_score, scores.yseries_score);
     }
 
 
@@ -283,9 +307,18 @@ namespace OpenMS
       {
         if (!compound.sequence.empty())
         {
+          if (!peptide_formula_cache.valid ||
+              peptide_formula_cache.sequence != compound.sequence ||
+              peptide_formula_cache.charge != precursor_charge)
+          {
+            peptide_formula_cache.sequence = compound.sequence;
+            peptide_formula_cache.charge = precursor_charge;
+            peptide_formula_cache.formula = AASequence::fromString(compound.sequence).getFormula(Residue::Full, precursor_charge);
+            peptide_formula_cache.valid = true;
+          }
           diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum, im_range, scores.ms1_isotope_correlation,
                                             scores.ms1_isotope_overlap,
-                                            AASequence::fromString(compound.sequence).getFormula(Residue::Full, precursor_charge));
+                                            peptide_formula_cache.formula);
         }
         else
         {
@@ -298,15 +331,21 @@ namespace OpenMS
       {
         if (!compound.sequence.empty())
         {
-          EmpiricalFormula empf{compound.sequence};
-          //Note: this only sets the charge to be extracted again in the following function.
-          // It is not really used in EmpiricalFormula. Also the m/z of the formula is not used since
-          // it is shadowed by the exact precursor_mz.
-          //TODO check if charges are the same (in case the charge was actually present in the sum_formula?)
-          empf.setCharge(precursor_charge);
+          if (!compound_formula_cache.valid ||
+              compound_formula_cache.sequence != compound.sequence ||
+              compound_formula_cache.charge != precursor_charge)
+          {
+            compound_formula_cache.sequence = compound.sequence;
+            compound_formula_cache.charge = precursor_charge;
+            compound_formula_cache.formula = EmpiricalFormula{compound.sequence};
+            // Note: the charge is extracted again in the isotope scoring function.
+            // The exact precursor m/z still comes from the feature, not the formula.
+            compound_formula_cache.formula.setCharge(precursor_charge);
+            compound_formula_cache.valid = true;
+          }
           diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum, im_range, scores.ms1_isotope_correlation,
                                             scores.ms1_isotope_overlap,
-                                            empf);
+                                            compound_formula_cache.formula);
         }
         else
         {
@@ -385,8 +424,8 @@ namespace OpenMS
       dias_pool.transition_vector.clear();
       dias_pool.transition_vector.push_back(transition);
 
-      double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
-      bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
+      const double dia_extract_window_ = diascoring.getDIAExtractionWindow();
+      const bool dia_extraction_ppm_ = diascoring.isDIAExtractionPPM();
 
       IonMobilityScoring::driftIdScoring(spectrum, dias_pool.transition_vector, trgr_detect, scores,
                                        drift_target, im_range,
