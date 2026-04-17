@@ -270,6 +270,13 @@ namespace OpenMS
 
     // Open search mode is automatically determined based on precursor tolerance in isOpenSearchMode_()
 
+    add_a_ions_ = param_.getValue("ions:add_a_ions").toBool();
+    add_b_ions_ = param_.getValue("ions:add_b_ions").toBool();
+    add_c_ions_ = param_.getValue("ions:add_c_ions").toBool();
+    add_x_ions_ = param_.getValue("ions:add_x_ions").toBool();
+    add_y_ions_ = param_.getValue("ions:add_y_ions").toBool();
+    add_z_ions_ = param_.getValue("ions:add_z_ions").toBool();
+
     calibration_enabled_ = param_.getValue("calibration:enabled") == "true";
     calibration_subset_ratio_ = param_.getValue("calibration:subset_ratio");
     calibration_min_psms_ = param_.getValue("calibration:min_psms");
@@ -824,11 +831,19 @@ namespace OpenMS
     // call sites below read from this field instead of re-computing.
     last_mod_match_tolerance_used_ = computeModMatchTolerance_();
 
-    // create spectrum generator
+    // create spectrum generator — forward the ion-series toggles so scoring
+    // uses the same ion types as the FragmentIndex (which already reads them
+    // via setParameters in prepareContext).
     TheoreticalSpectrumGenerator spectrum_generator;
     Param param(spectrum_generator.getParameters());
     param.setValue("add_first_prefix_ion", "true");
     param.setValue("add_metainfo", "true");
+    param.setValue("add_a_ions", add_a_ions_ ? "true" : "false");
+    param.setValue("add_b_ions", add_b_ions_ ? "true" : "false");
+    param.setValue("add_c_ions", add_c_ions_ ? "true" : "false");
+    param.setValue("add_x_ions", add_x_ions_ ? "true" : "false");
+    param.setValue("add_y_ions", add_y_ions_ ? "true" : "false");
+    param.setValue("add_z_ions", add_z_ions_ ? "true" : "false");
     spectrum_generator.setParameters(param);
 
     // preallocate storage for PSMs

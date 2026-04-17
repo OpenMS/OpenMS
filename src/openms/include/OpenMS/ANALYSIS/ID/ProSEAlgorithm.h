@@ -436,6 +436,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     Size report_top_hits_;
 
+    bool add_a_ions_{false};
+    bool add_b_ions_{true};
+    bool add_c_ions_{false};
+    bool add_x_ions_{false};
+    bool add_y_ions_{true};
+    bool add_z_ions_{false};
+
     bool calibration_enabled_{false};
     double calibration_subset_ratio_{0.1};
     Size calibration_min_psms_{50};
