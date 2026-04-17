@@ -652,9 +652,6 @@ namespace OpenMS
     std::transform(precursor_chroms.begin(), precursor_chroms.end(), tg_cache.precursor_ids.begin(),
                    [](const auto& ch) { return ch.getNativeID(); });
 
-    // Cache the swath maps and trafo for read-only access in the feature loop
-    tg_cache.swath_cache = swath_maps;
-    tg_cache.trafo_cache = trafo;
     if (profile)
     {
       scoring_profile_.score_setup += elapsedScoringProfileSeconds(profile_phase_start);

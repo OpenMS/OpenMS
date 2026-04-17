@@ -295,8 +295,6 @@ private:
       std::vector<double> normalized_library_intensity;
       std::vector<std::string> transition_native_ids;
       std::vector<std::string> precursor_ids;
-      std::vector<OpenSwath::SwathMap> swath_cache;
-      TransformationDescription trafo_cache;
     };
 
     /**

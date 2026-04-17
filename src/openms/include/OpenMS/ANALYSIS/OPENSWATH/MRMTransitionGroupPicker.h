@@ -47,6 +47,8 @@ namespace OpenMS
     std::vector<double> mean_coel;
     std::vector<double> left_borders;
     std::vector<double> right_borders;
+    std::vector<int> largest_peak_indices;
+    std::vector<double> transition_total_xics;
 
     void reset()
     {
@@ -60,6 +62,8 @@ namespace OpenMS
       mean_coel.clear();
       left_borders.clear();
       right_borders.clear();
+      largest_peak_indices.clear();
+      transition_total_xics.clear();
     }
   };
 
@@ -137,6 +141,10 @@ public:
       picker_pool.reset();
       auto &picked_chroms = picker_pool.picked_chroms;
       auto &smoothed_chroms = picker_pool.smoothed_chroms;
+      const Size expected_chrom_count = transition_group.getChromatograms().size() +
+        (use_precursors_ ? transition_group.getPrecursorChromatograms().size() : 0);
+      picked_chroms.reserve(expected_chrom_count);
+      smoothed_chroms.reserve(expected_chrom_count);
 
       // Pick fragment ion chromatograms
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
@@ -170,8 +178,36 @@ public:
 
           picker_.pickChromatogram(chromatogram, picked_chrom, smoothed_chrom);
           picked_chrom.sortByIntensity();
-          picked_chroms.push_back(picked_chrom);
-          smoothed_chroms.push_back(smoothed_chrom);
+          picked_chroms.push_back(std::move(picked_chrom));
+          smoothed_chroms.push_back(std::move(smoothed_chrom));
+        }
+      }
+
+      auto& transition_total_xics = picker_pool.transition_total_xics;
+      transition_total_xics.reserve(transition_group.getTransitions().size());
+      double detecting_total_xic = 0.0;
+      for (const TransitionT& transition : transition_group.getTransitions())
+      {
+        const SpectrumT& chromatogram = selectChromHelper_(transition_group, transition.getNativeID());
+        const double transition_total_xic = std::accumulate(chromatogram.begin(), chromatogram.end(), 0.0,
+                                                            [](double total, const auto& peak)
+                                                            {
+                                                              return total + peak.getIntensity();
+                                                            });
+        transition_total_xics.push_back(transition_total_xic);
+        if (transition.isDetectingTransition())
+        {
+          detecting_total_xic += transition_total_xic;
+        }
+      }
+
+      auto& largest_peak_indices = picker_pool.largest_peak_indices;
+      if (boundary_selection_method_ == "largest")
+      {
+        largest_peak_indices.reserve(picked_chroms.size());
+        for (const SpectrumT& chromatogram : picked_chroms)
+        {
+          largest_peak_indices.push_back(chromatogram.empty() ? -1 : static_cast<int>(chromatogram.size() - 1));
         }
       }
 
@@ -187,7 +223,7 @@ public:
 
         if (boundary_selection_method_ == "largest")
         {
-          findLargestPeak(picked_chroms, chr_idx, peak_idx);
+          findLargestPeakCached_(picked_chroms, largest_peak_indices, chr_idx, peak_idx);
         }
         else if (boundary_selection_method_ == "widest")
         {
@@ -201,7 +237,9 @@ public:
         }
 
         // Compute a feature from the individual chromatograms and add non-zero features
-        MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
+        MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms, smoothed_chroms,
+                                                  transition_total_xics, detecting_total_xic,
+                                                  chr_idx, peak_idx);
         double total_xic = 0;
         double intensity = mrm_feature.getIntensity();
         if (intensity > 0)
@@ -246,6 +284,8 @@ public:
     MRMFeature createMRMFeature(const MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
                                 std::vector<SpectrumT>& picked_chroms,
                                 const std::vector<SpectrumT>& smoothed_chroms,
+                                const std::vector<double>& transition_total_xics,
+                                double detecting_total_xic,
                                 const int chr_idx,
                                 const int peak_idx)
     {
@@ -348,6 +388,7 @@ public:
                                 best_left, best_right, use_consensus_,
                                 total_intensity, total_xic, total_mi, total_peak_apices,
                                 master_peak_container, left_edges, right_edges,
+                                transition_total_xics, detecting_total_xic,
                                 chr_idx, peak_idx);
 
       // Also pick the precursor chromatogram(s); note total_xic is not
@@ -441,6 +482,8 @@ public:
                                     const SpectrumT & master_peak_container,
                                     const std::vector< double > & left_edges,
                                     const std::vector< double > & right_edges,
+                                    const std::vector<double>& transition_total_xics,
+                                    double detecting_total_xic,
                                     const int chr_idx,
                                     const int peak_idx)
     {
@@ -470,6 +513,7 @@ public:
       static const UInt meta_width_at_10 = MetaInfo::registry().registerName("width_at_10");
       static const UInt meta_width_at_50 = MetaInfo::registry().registerName("width_at_50");
 
+      total_xic += detecting_total_xic;
       for (Size k = 0; k < transition_group.getTransitions().size(); k++)
       {
 
@@ -490,21 +534,9 @@ public:
         }
 
         const SpectrumT& chromatogram = selectChromHelper_(transition_group, transition_group.getTransitions()[k].getNativeID()); 
-        if (transition_group.getTransitions()[k].isDetectingTransition())
-        {
-          for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
-          {
-            total_xic += it->getIntensity();
-          }
-        }
 
         // Compute total intensity on transition-level
-        double transition_total_xic = 0; 
-
-        for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
-        {
-          transition_total_xic += it->getIntensity();
-        }
+        const double transition_total_xic = transition_total_xics[k];
 
         // Compute total mutual information on transition-level.
         double transition_total_mi = 0;
@@ -839,6 +871,35 @@ public:
 
     /// Find largest peak in a vector of chromatograms
     void findLargestPeak(const std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx);
+
+    template <typename SpectrumT>
+    void findLargestPeakCached_(const std::vector<SpectrumT>& picked_chroms,
+                                std::vector<int>& largest_peak_indices,
+                                int& chr_idx,
+                                int& peak_idx) const
+    {
+      double largest = 0.0;
+      for (Size k = 0; k < picked_chroms.size(); k++)
+      {
+        int candidate_idx = largest_peak_indices[k];
+        while (candidate_idx >= 0 && picked_chroms[k][candidate_idx].getIntensity() <= 0.0)
+        {
+          --candidate_idx;
+        }
+        largest_peak_indices[k] = candidate_idx;
+        if (candidate_idx < 0)
+        {
+          continue;
+        }
+        const double intensity = picked_chroms[k][candidate_idx].getIntensity();
+        if (intensity > largest)
+        {
+          largest = intensity;
+          chr_idx = static_cast<int>(k);
+          peak_idx = candidate_idx;
+        }
+      }
+    }
 
     /**
       @brief Given a vector of chromatograms, find the indices of the chromatogram
