@@ -33,6 +33,7 @@
 #include <sstream>
 #include <thread>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 
@@ -2160,9 +2161,17 @@ namespace OpenMS
     }
 
     // Create the new, batch-size transition experiment
+    const Size compound_count = end - start;
     transition_exp_used.proteins = transition_exp_used_all.proteins;
+    transition_exp_used.compounds.reserve(compound_count);
     transition_exp_used.compounds.insert(transition_exp_used.compounds.end(),
         transition_exp_used_all.compounds.begin() + start, transition_exp_used_all.compounds.begin() + end);
+    if (!transition_exp_used_all.compounds.empty())
+    {
+      const Size transitions_per_compound =
+        std::max<Size>(1, transition_exp_used_all.transitions.size() / transition_exp_used_all.compounds.size());
+      transition_exp_used.transitions.reserve(compound_count * transitions_per_compound);
+    }
     copyBatchTransitions_(transition_exp_used.compounds, transition_exp_used_all.transitions, transition_exp_used.transitions);
   }
 
@@ -2170,7 +2179,8 @@ namespace OpenMS
     const std::vector<OpenSwath::LightTransition>& all_transitions,
     std::vector<OpenSwath::LightTransition>& output)
   {
-    std::set<std::string> selected_compounds;
+    std::unordered_set<std::string> selected_compounds;
+    selected_compounds.reserve(used_compounds.size());
     for (Size i = 0; i < used_compounds.size(); i++)
     {
       selected_compounds.insert(used_compounds[i].id);
