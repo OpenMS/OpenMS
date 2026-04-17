@@ -2904,7 +2904,7 @@ add_test("TOPP_ProSE_1" ${TOPP_BIN_PATH}/ProSE -test
 -ini ${DATA_DIR_TOPP}/ProSE_1.ini -in
 ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML
 -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
-add_test("TOPP_ProSE_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+add_test("TOPP_ProSE_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_1_out" PROPERTIES DEPENDS
 "TOPP_ProSE_1")
 
@@ -2912,7 +2912,7 @@ add_test("TOPP_ProSE_2" ${TOPP_BIN_PATH}/ProSE -test
 -ini ${DATA_DIR_TOPP}/ProSE_2.ini -in
 ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML
 -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
-add_test("TOPP_ProSE_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+add_test("TOPP_ProSE_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_2_out" PROPERTIES DEPENDS
 "TOPP_ProSE_2")
 
@@ -2925,7 +2925,7 @@ add_test("TOPP_ProSE_3_multi" ${TOPP_BIN_PATH}/ProSE -test
 add_test("TOPP_ProSE_3_multi_idXML_out" ${DIFF}
   -in1 ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML
   -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML
-  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_3_multi_idXML_out" PROPERTIES DEPENDS "TOPP_ProSE_3_multi")
 
 # Test 3b: QPX directory output (smoke test — check files exist)
@@ -2964,7 +2964,7 @@ add_test("TOPP_ProSE_4" ${TOPP_BIN_PATH}/ProSE -test
 add_test("TOPP_ProSE_4_out" ${DIFF}
   -in1 ${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
   -in2 ${DATA_DIR_TOPP}/ProSE_4_out.idXML
-  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version"
+  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "name=\"fragment_annotation\""
   -ratio 1.2 -absdiff 2.0)
 set_tests_properties("TOPP_ProSE_4_out" PROPERTIES DEPENDS
   "TOPP_ProSE_4")
@@ -2980,7 +2980,7 @@ add_test("TOPP_ProSE_5_chunked" ${TOPP_BIN_PATH}/ProSE -test
 add_test("TOPP_ProSE_5_chunked_out" ${DIFF}
   -in1 ${TESTS_TEMP_DIR}/ProSE_5_chunked_out.tmp.idXML
   -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML
-  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_5_chunked_out" PROPERTIES DEPENDS
   "TOPP_ProSE_5_chunked")
 

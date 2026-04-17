@@ -2225,6 +2225,10 @@ namespace OpenMS
     std::vector<double> sorted_errs = precursor_errors;
     std::sort(sorted_errs.begin(), sorted_errs.end());
     const size_t n = sorted_errs.size();
+    // Bias estimate — median of the signed errors. Kept as a diagnostic field; the
+    // quantile bounds below don't use it directly (they already encode the bias via
+    // the asymmetry of [lo, hi]), but callers log it and tests assert on it.
+    result.precursor_shift = Math::median(sorted_errs.begin(), sorted_errs.end(), /*sorted=*/true);
     const double lo = sorted_errs[static_cast<size_t>(n * 0.005)];                   // ~most negative
     const double hi = sorted_errs[std::min(n - 1, static_cast<size_t>(n * 0.995))];  // ~most positive
     // Convention (see lines 2193-2197): signed error e = observed - theoretical lies in
@@ -2237,7 +2241,13 @@ namespace OpenMS
     // making one of the raw bounds <= 0. That's not representable in the positive-magnitude
     // (lower, upper) schema — discard the precursor calibration; fragment calibration still
     // applies. The prec_shift field stays populated for diagnostics.
-    result.extreme_bias = (hi <= 0.0) || (lo >= 0.0);
+    // "Extreme" here means the quantiles can't produce a usefully-informative window.
+    // A distribution strictly on one side of zero is still informative (we build a
+    // half-line window and clamp the opposite side to min_tolerance), so we only flag
+    // extreme when hi - lo collapses — i.e., every error has the same value, typically
+    // because calibration saw a degenerate fixture or a pure-systematic-shift case
+    // that has no residual spread to estimate from.
+    result.extreme_bias = (hi - lo) < min_tolerance;
     result.precursor_spread = std::max(cal_lower_raw, cal_upper_raw);  // diagnostic only
     if (!result.extreme_bias)
     {
