@@ -1,0 +1,22 @@
+OpenMS Installation Guide
+=========================
+
+If you want to install or build OpenMS, start with these entry points:
+
+- Binary installers and packages: see the "Installation" section in the main README and the platform-specific guides in `doc/openms/docs/about/installation/`.
+- Build from source on GNU/Linux: `doc/openms/docs/about/installation/installation-on-gnu-linux.md`
+- Build from source on macOS: `doc/openms/docs/about/installation/installation-on-macos.md`
+- Build from source on Windows: `doc/openms/docs/about/installation/installation-on-windows.md`
+- Build and development notes: `doc/openms/docs/manual/develop.md`
+
+Online documentation:
+
+- Stable documentation: https://openms.readthedocs.io/en/latest/
+- Development documentation: https://openms.readthedocs.io/en/develop/
+
+Quick links:
+
+- Installation overview: https://openms.readthedocs.io/en/latest/about/installation.html
+- GNU/Linux build instructions: https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_linux.html
+- macOS build instructions: https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_mac.html
+- Windows build instructions: https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_win.html
