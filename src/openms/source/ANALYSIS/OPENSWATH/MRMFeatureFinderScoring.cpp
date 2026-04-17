@@ -636,6 +636,13 @@ namespace OpenMS
     const bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
     const double detection_precursor_mz = !transition_group_detection.getTransitions().empty() ?
       transition_group_detection.getTransitions()[0].getPrecursorMZ() : -1.0;
+    const int group_size = boost::numeric_cast<int>(transition_group_detection.size());
+    if (group_size == 0 && !ms1only)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Error: Transition group " + transition_group_detection.getTransitionGroupID() +
+                                       " has no chromatograms.");
+    }
 
     // Populate a TransitionGroupCache once per group to avoid per-feature recomputation
     TransitionGroupCache tg_cache;
@@ -651,6 +658,7 @@ namespace OpenMS
     tg_cache.precursor_ids.resize(precursor_chroms.size());
     std::transform(precursor_chroms.begin(), precursor_chroms.end(), tg_cache.precursor_ids.begin(),
                    [](const auto& ch) { return ch.getNativeID(); });
+    const Size idscores_needed_capacity = std::max<Size>(transitions.size(), static_cast<Size>(16));
 
     if (profile)
     {
@@ -673,25 +681,17 @@ namespace OpenMS
       static thread_local MRMFeatureFinderScoring::OpenSwath_Ind_Scores_Pooled idscores_pool;
       idscores_pool.reset();
       // Only preallocate once per thread or if capacity is too small
-      Size needed_capacity = std::max<Size>(transitions.size(), static_cast<Size>(16));
-      if (idscores_pool.ind_transition_names.capacity() < needed_capacity)
+      if (idscores_pool.ind_transition_names.capacity() < idscores_needed_capacity)
       {
-        idscores_pool.preallocate(needed_capacity);
+        idscores_pool.preallocate(idscores_needed_capacity);
       }
       const Int64 feature_id = mrmfeature.hasValidUniqueId() ? static_cast<Int64>(Internal::SqliteHelper::clearSignBit(mrmfeature.getUniqueId())) : -1;
 
       OPENMS_LOG_DEBUG << "Scoring feature " << (mrmfeature) << " == " << mrmfeature.getMetaValue("PeptideRef") <<
         " [ expected RT " << PeptideRefMap_.at(mrmfeature.getMetaValue("PeptideRef"))->rt << " / " << expected_rt << " ]" <<
-        " with " << transition_group_detection.size()  << " transitions and " <<
+        " with " << group_size  << " transitions and " <<
         transition_group_detection.getChromatograms().size() << " chromatograms" << std::endl;
 
-      int group_size = boost::numeric_cast<int>(transition_group_detection.size());
-      if (group_size == 0 && !ms1only)
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Error: Transition group " + transition_group_detection.getTransitionGroupID() +
-                                         " has no chromatograms.");
-      }
       double xx_lda_prescore;
       double precursor_mz(-1);
 
@@ -763,7 +763,7 @@ namespace OpenMS
 
         double normalized_experimental_rt = trafo.apply(imrmfeature.getRT());
         feature_phase_start = scoringProfileStart(profile);
-        scorer.calculateLibraryScores(&imrmfeature, transition_group_detection.getTransitions(), *pep, normalized_experimental_rt, scores);
+        scorer.calculateLibraryScores(&imrmfeature, transitions, *pep, normalized_experimental_rt, scores);
         if (profile)
         {
           feature_profile.library_scores += elapsedScoringProfileSeconds(feature_phase_start);
@@ -777,7 +777,7 @@ namespace OpenMS
           thread_local std::vector<double> masserror_ppm;
           masserror_ppm.clear();
           scorer.calculateDIAScores(&imrmfeature,
-                                    transition_group_detection.getTransitions(),
+                                    transitions,
                                     tg_cache.normalized_library_intensity,
                                     swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm,
                                     drift_target, im_range, mobilogram_consumer, feature_id);
@@ -789,9 +789,10 @@ namespace OpenMS
         }
         
         double det_intensity_ratio_score = 0;
-        if ((double)mrmfeature.getMetaValue("total_xic") > 0)
+        const double total_xic = static_cast<double>(mrmfeature.getMetaValue("total_xic"));
+        if (total_xic > 0)
         {
-          det_intensity_ratio_score = mrmfeature.getIntensity() / (double)mrmfeature.getMetaValue("total_xic");
+          det_intensity_ratio_score = mrmfeature.getIntensity() / total_xic;
         }
 
         ///////////////////////////////////
@@ -799,9 +800,10 @@ namespace OpenMS
         double det_mi_ratio_score = 0;
         if (su_.use_mi_score_ && su_.use_total_mi_score_)
         {
-          if ((double)mrmfeature.getMetaValue("total_mi") > 0)
+          const double total_mi = static_cast<double>(mrmfeature.getMetaValue("total_mi"));
+          if (total_mi > 0)
           {
-            det_mi_ratio_score = scores.mi_score / (double)mrmfeature.getMetaValue("total_mi");
+            det_mi_ratio_score = scores.mi_score / total_mi;
           }
         }
 
