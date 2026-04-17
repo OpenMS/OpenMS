@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflowScheduler.h>
 #include <OpenMS/ANALYSIS/TARGETED/IChromatogramHandler.h>
 #include <OpenMS/ANALYSIS/TARGETED/ChromatogramProcessor.h>
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
@@ -101,23 +102,6 @@ namespace OpenMS
     };
 
     // --- Dynamic batching helpers ---
-    UInt64 calculateAvailableMemoryForScoring(UInt64 osw_buffer_bytes = 2ULL * 1024ULL * 1024ULL * 1024ULL)
-    {
-      // Prefer free system memory (returns KB)
-      size_t available_kb = 0;
-      if (!SysInfo::getFreeSystemMemory(available_kb))
-      {
-        return 0ULL;
-      }
-      UInt64 available_bytes = static_cast<UInt64>(available_kb) * 1024ULL;
-      const UInt64 os_reserved = 2ULL * 1024ULL * 1024ULL * 1024ULL; // 2 GB
-      const UInt64 io_buffer = 500ULL * 1024ULL * 1024ULL; // 500 MB
-      if (available_bytes <= os_reserved + io_buffer + osw_buffer_bytes) return 0ULL;
-      UInt64 available = available_bytes - os_reserved - io_buffer - osw_buffer_bytes;
-      // safety margin
-      return static_cast<UInt64>(available * 0.75);
-    }
-
     Size estimateFeatureMemoryPerCompound()
     {
       // Conservative estimate in bytes per compound (features + temporaries)
@@ -130,7 +114,8 @@ namespace OpenMS
       {
         return static_cast<Size>(std::min<Size>(static_cast<Size>(user_innerBatchSize), total_compounds));
       }
-      const UInt64 safe_mem = calculateAvailableMemoryForScoring();
+      const UInt64 safe_mem = OpenSwathWorkflowScheduler::estimateAvailableMemoryForScoring(
+        OpenSwathWorkflowScheduler::Options());
       if (safe_mem == 0) return std::min<Size>(static_cast<Size>(5000), total_compounds);
       // use 5% of available memory for feature batch buffer
       UInt64 feature_buffer_safe = safe_mem / 20ULL;
@@ -140,131 +125,6 @@ namespace OpenMS
       inner = std::max<Size>(2000, std::min<Size>(10000, inner));
       return std::min<Size>(inner, total_compounds);
     }
-
-    struct SwathConcurrencyEstimate
-    {
-      Size non_ms1_swath_count = 0;
-      Size avg_spectra_per_swath = 0;
-      Size max_concurrent_swaths = 1;
-    };
-
-    SwathConcurrencyEstimate estimateSwathConcurrency(
-      const std::vector<OpenSwath::SwathMap>& swath_maps,
-      int user_max_concurrent_swaths)
-    {
-      SwathConcurrencyEstimate estimate;
-      UInt64 total_spectra = 0;
-
-      for (const OpenSwath::SwathMap& swath_map : swath_maps)
-      {
-        if (!swath_map.ms1 && swath_map.sptr)
-        {
-          total_spectra += swath_map.sptr->getNrSpectra();
-          ++estimate.non_ms1_swath_count;
-        }
-      }
-
-      if (estimate.non_ms1_swath_count == 0)
-      {
-        return estimate;
-      }
-
-      estimate.avg_spectra_per_swath =
-        static_cast<Size>(total_spectra / estimate.non_ms1_swath_count);
-
-      const UInt64 safe_mem = calculateAvailableMemoryForScoring();
-      const UInt64 bytes_per_spectrum = 600ULL * 1024ULL;
-      const UInt64 per_swath_estimate =
-        static_cast<UInt64>(estimate.avg_spectra_per_swath) * bytes_per_spectrum +
-        (100ULL * 1024ULL * 1024ULL);
-
-      Size max_concurrent_swaths = 1;
-      if (safe_mem > per_swath_estimate)
-      {
-        max_concurrent_swaths = static_cast<Size>(safe_mem / per_swath_estimate);
-      }
-
-#ifdef _OPENMP
-      if (user_max_concurrent_swaths > 0)
-      {
-        max_concurrent_swaths = std::min<Size>(
-          max_concurrent_swaths,
-          static_cast<Size>(user_max_concurrent_swaths));
-      }
-      else
-      {
-        max_concurrent_swaths = std::min<Size>(
-          max_concurrent_swaths,
-          static_cast<Size>(omp_get_max_threads()));
-      }
-#else
-      max_concurrent_swaths = 1;
-#endif
-
-      estimate.max_concurrent_swaths = std::max<Size>(1, max_concurrent_swaths);
-      return estimate;
-    }
-
-    class SwathConcurrencyLimiter
-    {
-    public:
-      explicit SwathConcurrencyLimiter(Size max_concurrent_swaths) :
-        max_concurrent_swaths_(std::max<Size>(1, max_concurrent_swaths))
-      {
-      }
-
-      void acquireSlot()
-      {
-        std::unique_lock<std::mutex> lock(mutex_);
-        cv_.wait(lock, [this]() { return active_swaths_ < max_concurrent_swaths_; });
-        ++active_swaths_;
-      }
-
-      void releaseSlot()
-      {
-        {
-          std::lock_guard<std::mutex> lock(mutex_);
-          if (active_swaths_ > 0)
-          {
-            --active_swaths_;
-          }
-        }
-        cv_.notify_one();
-      }
-
-    private:
-      Size max_concurrent_swaths_;
-      Size active_swaths_ = 0;
-      std::mutex mutex_;
-      std::condition_variable cv_;
-    };
-
-    class ScopedSwathConcurrencySlot
-    {
-    public:
-      explicit ScopedSwathConcurrencySlot(SwathConcurrencyLimiter* limiter) :
-        limiter_(limiter)
-      {
-        if (limiter_ != nullptr)
-        {
-          limiter_->acquireSlot();
-        }
-      }
-
-      ~ScopedSwathConcurrencySlot()
-      {
-        if (limiter_ != nullptr)
-        {
-          limiter_->releaseSlot();
-        }
-      }
-
-      ScopedSwathConcurrencySlot(const ScopedSwathConcurrencySlot&) = delete;
-      ScopedSwathConcurrencySlot& operator=(const ScopedSwathConcurrencySlot&) = delete;
-
-    private:
-      SwathConcurrencyLimiter* limiter_;
-    };
 
     String formatProfileSeconds(double seconds)
     {
@@ -849,8 +709,18 @@ namespace OpenMS
       profile_total.window_mapping = elapsedProfileSeconds(profile_phase_start);
     }
 
-    const SwathConcurrencyEstimate swath_concurrency_estimate =
-      estimateSwathConcurrency(swath_maps, user_max_concurrent_swaths);
+    OpenSwathWorkflowScheduler::Options scheduler_options;
+    scheduler_options.max_concurrent_swaths = user_max_concurrent_swaths;
+    if (osw_writer.isActive())
+    {
+      scheduler_options.osw_buffer_bytes = determineOSWWriteBufferBytes();
+    }
+    else
+    {
+      scheduler_options.osw_buffer_bytes = 0ULL;
+    }
+    const OpenSwathWorkflowScheduler::ConcurrencyEstimate swath_concurrency_estimate =
+      OpenSwathWorkflowScheduler::estimateConcurrency(swath_maps, scheduler_options);
 
 #ifdef _OPENMP
 #ifdef MT_ENABLE_NESTED_OPENMP
@@ -858,24 +728,11 @@ namespace OpenMS
 #else
     const bool nested_scheduler_requested = false;
 #endif
-    const bool swath_range_scheduler_candidate = batchSize <= 0 && load_into_memory && !ms1_only &&
-                                                mobilogram_consumer == nullptr && !nested_scheduler_requested;
-    const bool use_swath_range_scheduler = swath_range_scheduler_candidate &&
-                                          swath_concurrency_estimate.non_ms1_swath_count <=
-                                          swath_concurrency_estimate.max_concurrent_swaths;
+    const bool use_swath_range_scheduler = batchSize <= 0 && load_into_memory && !ms1_only &&
+                                          mobilogram_consumer == nullptr && !nested_scheduler_requested;
 #else
-    const bool swath_range_scheduler_candidate = false;
     const bool use_swath_range_scheduler = false;
 #endif
-    if (swath_range_scheduler_candidate && !use_swath_range_scheduler)
-    {
-      OPENMS_LOG_INFO << "Use streaming SWATH scheduler because the assay-range scheduler would need to keep "
-                      << swath_concurrency_estimate.non_ms1_swath_count
-                      << " SWATHs resident, exceeding the concurrent SWATH limit of "
-                      << swath_concurrency_estimate.max_concurrent_swaths
-                      << " (avg_spectra=" << swath_concurrency_estimate.avg_spectra_per_swath
-                      << ")." << std::endl;
-    }
     if (use_swath_range_scheduler)
     {
       struct SwathSchedulerContext
@@ -898,11 +755,10 @@ namespace OpenMS
       std::unique_ptr<OSWBufferedWriter> buffered_osw_writer;
       if (osw_writer.isActive())
       {
-        const UInt64 osw_buffer_bytes = determineOSWWriteBufferBytes();
         OPENMS_LOG_INFO << "Use buffered OSW writer with "
-                        << bytesToHumanReadable(osw_buffer_bytes)
+                        << bytesToHumanReadable(scheduler_options.osw_buffer_bytes)
                         << " queue budget and a single writer thread." << std::endl;
-        buffered_osw_writer = std::make_unique<OSWBufferedWriter>(osw_writer, osw_buffer_bytes, profile);
+        buffered_osw_writer = std::make_unique<OSWBufferedWriter>(osw_writer, scheduler_options.osw_buffer_bytes, profile);
       }
 
       // Deferred OSW enqueue queue and background enqueuer thread.
@@ -944,20 +800,45 @@ namespace OpenMS
       std::deque<InnerBatchScoringJob> inner_batch_queue;
       std::mutex inner_queue_mutex;
 
-      OPENMS_LOG_INFO << "Initial dynamic outer limit: max_concurrent_swaths="
-                      << swath_concurrency_estimate.max_concurrent_swaths
-                      << " (avg_spectra=" << swath_concurrency_estimate.avg_spectra_per_swath
-                      << ")" << std::endl;
+      const std::vector<OpenSwathWorkflowScheduler::Wave> swath_waves =
+        OpenSwathWorkflowScheduler::planWaves(swath_maps, scheduler_options, swath_concurrency_estimate);
 
-      SwathConcurrencyLimiter outer_pool(swath_concurrency_estimate.max_concurrent_swaths);
+      OPENMS_LOG_INFO << "Use SWATH wave scheduler with "
+                      << swath_waves.size() << " waves, max_concurrent_swaths="
+                      << swath_concurrency_estimate.max_concurrent_swaths
+                      << ", memory_budget=" << bytesToHumanReadable(swath_concurrency_estimate.memory_budget_bytes)
+                      << ", avg_spectra=" << swath_concurrency_estimate.avg_spectra_per_swath
+                      << "." << std::endl;
+
+      for (Size swath_index = 0; swath_index < swath_maps.size(); ++swath_index)
+      {
+        if (swath_maps[swath_index].ms1)
+        {
+          this->setProgress(++progress);
+        }
+      }
 
 #ifdef _OPENMP
-      OPENMS_LOG_INFO << "Use SWATH assay-range scheduler with " << omp_get_max_threads()
-                      << " threads." << std::endl;
+      OPENMS_LOG_INFO << "Use SWATH wave scheduler with " << omp_get_max_threads()
+                      << " scoring threads." << std::endl;
+#endif
+
+      for (Size wave_index = 0; wave_index < swath_waves.size(); ++wave_index)
+      {
+        const OpenSwathWorkflowScheduler::Wave& wave = swath_waves[wave_index];
+        inner_batch_queue.clear();
+
+        OPENMS_LOG_INFO << "Process SWATH wave " << (wave_index + 1) << "/"
+                        << swath_waves.size() << " with "
+                        << wave.swath_indices.size() << " SWATHs (estimated "
+                        << bytesToHumanReadable(wave.estimated_bytes) << ")." << std::endl;
+
+#ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1)
 #endif
-      for (SignedSize swath_index = 0; swath_index < boost::numeric_cast<SignedSize>(swath_maps.size()); ++swath_index)
+      for (SignedSize wave_pos = 0; wave_pos < boost::numeric_cast<SignedSize>(wave.swath_indices.size()); ++wave_pos)
       {
+        const SignedSize swath_index = boost::numeric_cast<SignedSize>(wave.swath_indices[wave_pos]);
         SwathSchedulerContext& context = contexts[swath_index];
         context.swath_index = swath_index;
 
@@ -1028,8 +909,6 @@ namespace OpenMS
         }
 
         phase_start = profileStart(profile);
-        // Acquire outer pool slot before loading SWATH into memory to limit concurrent memory usage
-        outer_pool.acquireSlot();
         context.current_swath_map = swath_maps[swath_index].sptr;
         context.current_swath_map = std::shared_ptr<SpectrumAccessOpenMSInMemory>(
           new SpectrumAccessOpenMSInMemory(*context.current_swath_map));
@@ -1100,8 +979,9 @@ namespace OpenMS
       // Create inner scoring jobs for all active SWATHs. The assay-range scheduler
       // has already extracted chromatograms per SWATH, so these jobs only score
       // sub-ranges of the extracted assay set.
-      for (Size context_index = 0; context_index < contexts.size(); ++context_index)
+      for (Size swath_index : wave.swath_indices)
       {
+        const Size context_index = swath_index;
         SwathSchedulerContext& context = contexts[context_index];
         if (!context.active)
         {
@@ -1183,10 +1063,6 @@ namespace OpenMS
         }
 
         context.finalized = true;
-        if (context.current_swath_map)
-        {
-          outer_pool.releaseSlot();
-        }
 #ifdef _OPENMP
 #pragma omp critical (progress)
 #endif
@@ -1333,8 +1209,9 @@ namespace OpenMS
         }
       }
 
-      for (Size context_index = 0; context_index < contexts.size(); ++context_index)
+      for (Size swath_index : wave.swath_indices)
       {
+        const Size context_index = swath_index;
         SwathSchedulerContext& context = contexts[context_index];
         if (context.active && !context.finalized)
         {
@@ -1344,6 +1221,20 @@ namespace OpenMS
         {
           this->setProgress(++progress);
         }
+      }
+
+      for (Size swath_index : wave.swath_indices)
+      {
+        SwathSchedulerContext& context = contexts[swath_index];
+        context.transition_exp_used_all = OpenSwath::LightTargetedExperiment();
+        context.current_swath_map.reset();
+        context.ms1_chromatograms.clear();
+        context.ms1_chromatograms.shrink_to_fit();
+        context.chrom_exp = PeakMap();
+        context.feature_file = FeatureMap();
+        context.active = false;
+        context.finalized = true;
+      }
       }
 
       if (buffered_osw_writer != nullptr)
@@ -1383,11 +1274,11 @@ namespace OpenMS
     // We set dynamic scheduling such that the maps are worked on in the order
     // in which they were given to the program / acquired. This gives much
     // better load balancing than static allocation.
-    std::unique_ptr<SwathConcurrencyLimiter> swath_load_limiter;
+    std::unique_ptr<OpenSwathWorkflowScheduler::ConcurrencyLimiter> swath_load_limiter;
     if (load_into_memory && !ms1_only &&
         swath_concurrency_estimate.non_ms1_swath_count > swath_concurrency_estimate.max_concurrent_swaths)
     {
-      swath_load_limiter = std::make_unique<SwathConcurrencyLimiter>(
+      swath_load_limiter = std::make_unique<OpenSwathWorkflowScheduler::ConcurrencyLimiter>(
         swath_concurrency_estimate.max_concurrent_swaths);
       OPENMS_LOG_INFO << "Limit concurrently loaded SWATHs to "
                       << swath_concurrency_estimate.max_concurrent_swaths
@@ -1477,7 +1368,7 @@ namespace OpenMS
 
         if (!transition_exp_used_all.getTransitions().empty()) // skip if no transitions found
         {
-          ScopedSwathConcurrencySlot swath_slot(swath_load_limiter.get());
+          OpenSwathWorkflowScheduler::ScopedSlot swath_slot(swath_load_limiter.get());
 
           phase_start = profileStart(profile);
           OpenSwath::SpectrumAccessPtr current_swath_map = swath_maps[i].sptr;
