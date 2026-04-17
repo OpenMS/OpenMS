@@ -113,8 +113,8 @@ namespace OpenMS
         Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION,
         Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION,
         Constants::UserParam::NUM_MATCHED_PEAKS,
-        Constants::UserParam::MATCHED_B_IONS,
-        Constants::UserParam::MATCHED_Y_IONS,
+        Constants::UserParam::MATCHED_PREFIX_IONS,
+        Constants::UserParam::MATCHED_SUFFIX_IONS,
         Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE,
         Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM}
       );
@@ -278,8 +278,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     bool annotation_prefix_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION) != annotate_psm_.end();
     bool annotation_suffix_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION) != annotate_psm_.end();
     bool annotation_num_matched_peaks = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::NUM_MATCHED_PEAKS) != annotate_psm_.end();
-    bool annotation_matched_b_ions = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_B_IONS) != annotate_psm_.end();
-    bool annotation_matched_y_ions = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_Y_IONS) != annotate_psm_.end();
+    bool annotation_matched_prefix_ions = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_PREFIX_IONS) != annotate_psm_.end();
+    bool annotation_matched_suffix_ions = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_SUFFIX_IONS) != annotate_psm_.end();
     bool annotation_longest_ion_run = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE) != annotate_psm_.end();
     bool annotation_fragment_annotations = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM) != annotate_psm_.end();
 
@@ -291,8 +291,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       annotation_prefix_fraction = true;
       annotation_suffix_fraction = true;
       annotation_num_matched_peaks = true;
-      annotation_matched_b_ions = true;
-      annotation_matched_y_ions = true;
+      annotation_matched_prefix_ions = true;
+      annotation_matched_suffix_ions = true;
       annotation_longest_ion_run = true;
       annotation_fragment_annotations = true;
     }
@@ -395,15 +395,15 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           // Matched ion counts (from scoring, no alignment needed)
           if (annotation_num_matched_peaks)
           {
-            ph.setMetaValue(Constants::UserParam::NUM_MATCHED_PEAKS, static_cast<int>(ah.matched_b_ions + ah.matched_y_ions));
+            ph.setMetaValue(Constants::UserParam::NUM_MATCHED_PEAKS, static_cast<int>(ah.matched_prefix_ions + ah.matched_suffix_ions));
           }
-          if (annotation_matched_b_ions)
+          if (annotation_matched_prefix_ions)
           {
-            ph.setMetaValue(Constants::UserParam::MATCHED_B_IONS, static_cast<int>(ah.matched_b_ions));
+            ph.setMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS, static_cast<int>(ah.matched_prefix_ions));
           }
-          if (annotation_matched_y_ions)
+          if (annotation_matched_suffix_ions)
           {
-            ph.setMetaValue(Constants::UserParam::MATCHED_Y_IONS, static_cast<int>(ah.matched_y_ions));
+            ph.setMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS, static_cast<int>(ah.matched_suffix_ions));
           }
 
           // Fragment annotations and longest ion run (both need alignment + ion names)
@@ -795,11 +795,11 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             ah.sequence = c;
             ah.peptide_mod_index = mod_pep_idx;
             ah.score = score;
-            ah.prefix_fraction = static_cast<float>((double)detail.matched_b_ions / (double)c.size());
-            ah.suffix_fraction = static_cast<float>((double)detail.matched_y_ions / (double)c.size());
+            ah.prefix_fraction = static_cast<float>((double)detail.matched_prefix_ions / (double)c.size());
+            ah.suffix_fraction = static_cast<float>((double)detail.matched_suffix_ions / (double)c.size());
             ah.mean_error = static_cast<float>(detail.mean_error);
-            ah.matched_b_ions = static_cast<uint16_t>(detail.matched_b_ions);
-            ah.matched_y_ions = static_cast<uint16_t>(detail.matched_y_ions);
+            ah.matched_prefix_ions = static_cast<uint16_t>(detail.matched_prefix_ions);
+            ah.matched_suffix_ions = static_cast<uint16_t>(detail.matched_suffix_ions);
             ah.isotope_error = low_it->second.second;
 
 #ifdef _OPENMP

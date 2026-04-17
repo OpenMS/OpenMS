@@ -39,8 +39,8 @@
 				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.214285714285714"/>
 				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.571428571428571"/>
 				<UserParam type="int" name="num_matched_peaks" value="11"/>
-				<UserParam type="int" name="matched_b_ions" value="3"/>
-				<UserParam type="int" name="matched_y_ions" value="8"/>
+				<UserParam type="int" name="matched_prefix_ions" value="3"/>
+				<UserParam type="int" name="matched_suffix_ions" value="8"/>
 				<UserParam type="int" name="longest_peptide_ion_sequence" value="10"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -56,8 +56,8 @@
 				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.464285714285714"/>
 				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.464285714285714"/>
 				<UserParam type="int" name="num_matched_peaks" value="26"/>
-				<UserParam type="int" name="matched_b_ions" value="13"/>
-				<UserParam type="int" name="matched_y_ions" value="13"/>
+				<UserParam type="int" name="matched_prefix_ions" value="13"/>
+				<UserParam type="int" name="matched_suffix_ions" value="13"/>
 				<UserParam type="int" name="longest_peptide_ion_sequence" value="11"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -73,8 +73,8 @@
 				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.521739130434783"/>
 				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.521739130434783"/>
 				<UserParam type="int" name="num_matched_peaks" value="24"/>
-				<UserParam type="int" name="matched_b_ions" value="12"/>
-				<UserParam type="int" name="matched_y_ions" value="12"/>
+				<UserParam type="int" name="matched_prefix_ions" value="12"/>
+				<UserParam type="int" name="matched_suffix_ions" value="12"/>
 				<UserParam type="int" name="longest_peptide_ion_sequence" value="12"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>

@@ -1174,19 +1174,19 @@ START_SECTION(([EXTRA] PSM annotations - matched ion counts, longest run, fragme
 
   // Verify matched ion count annotations exist and are positive
   TEST_EQUAL(hit.metaValueExists(Constants::UserParam::NUM_MATCHED_PEAKS), true)
-  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MATCHED_B_IONS), true)
-  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MATCHED_Y_IONS), true)
+  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MATCHED_PREFIX_IONS), true)
+  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MATCHED_SUFFIX_IONS), true)
   TEST_EQUAL(hit.metaValueExists(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE), true)
 
   int num_matched = hit.getMetaValue(Constants::UserParam::NUM_MATCHED_PEAKS);
-  int b_ions = hit.getMetaValue(Constants::UserParam::MATCHED_B_IONS);
-  int y_ions = hit.getMetaValue(Constants::UserParam::MATCHED_Y_IONS);
+  int prefix_ions = hit.getMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS);
+  int suffix_ions = hit.getMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS);
   int longest_run = hit.getMetaValue(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE);
 
   TEST_EQUAL(num_matched > 0, true)
-  TEST_EQUAL(num_matched, b_ions + y_ions)
-  TEST_EQUAL(b_ions > 0, true)
-  TEST_EQUAL(y_ions > 0, true)
+  TEST_EQUAL(num_matched, prefix_ions + suffix_ions)
+  TEST_EQUAL(prefix_ions > 0, true)
+  TEST_EQUAL(suffix_ions > 0, true)
 
   // Perfect match: longest run should be substantial (peptide length - 1 for one series)
   TEST_EQUAL(longest_run >= 3, true)

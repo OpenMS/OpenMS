@@ -341,8 +341,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       float mean_error = 0.0f; ///< mean absolute fragment mass error
       int isotope_error = 0; ///< isotope offset used for this PSM
       uint16_t applied_charge = 0; ///< precursor charge used for this PSM
-      uint16_t matched_b_ions = 0; ///< number of matched b-ions
-      uint16_t matched_y_ions = 0; ///< number of matched y-ions
+      uint16_t matched_prefix_ions = 0; ///< number of matched prefix ions (a/b/c)
+      uint16_t matched_suffix_ions = 0; ///< number of matched suffix ions (x/y/z)
 
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {

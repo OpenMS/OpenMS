@@ -56,8 +56,8 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       float suffix_fraction = 0; ///< fraction of annotated y-ions
       float mean_error = 0.0f; ///< mean absolute fragment mass error
       int isotope_error = 0;
-      uint16_t matched_b_ions = 0; ///< number of matched b-ions
-      uint16_t matched_y_ions = 0; ///< number of matched y-ions
+      uint16_t matched_prefix_ions = 0; ///< number of matched b-ions
+      uint16_t matched_suffix_ions = 0; ///< number of matched y-ions
 
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {
