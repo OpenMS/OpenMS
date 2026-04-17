@@ -217,8 +217,9 @@ namespace OpenMS
       "building. 0 = disabled (load entire database at once). Enable for very large databases "
       "(e.g. MHC-II immunopeptidomics with variants) that exceed available memory. Each chunk "
       "builds its own fragment index; results are merged across chunks before post-processing. "
-      "Calibration is skipped in chunked mode. In multi-file mode (-in a.mzML b.mzML), each "
-      "file is searched independently per chunk (no shared index across files).");
+      "Calibration (when enabled) runs on the first chunk only. In multi-file mode "
+      "(-in a.mzML b.mzML), the chunk-major path builds each chunk's fragment index once and "
+      "scores all files against it before moving to the next chunk.");
     defaults_.setMinInt("database:chunk_size", 0);
 
     defaults_.setSectionDescription("calibration",
@@ -2161,10 +2162,14 @@ namespace OpenMS
 
       if (best_score == 0 || best_seq.empty()) continue;
 
-      // Compute precursor error (signed)
+      // Compute precursor error (signed), isotope-corrected. FragmentIndex searches
+      // shifted_mass = precursor_mass + isotope_error * C13C12, so M_theo ≈ N_obs +
+      // isotope_error * C13C12; the observed-to-monoiso m/z correction is
+      //   corrected_mz = observed_mz + isotope_error * C13C12 / charge
+      // Matches the sign used by postProcessHits_'s PRECURSOR_ERROR_PPM annotation.
       double exp_mz = spec.getPrecursors()[0].getMZ();
       double theo_mz = best_seq.getMZ(best_charge);
-      double corrected_exp_mz = exp_mz - static_cast<double>(best_isotope_error)
+      double corrected_exp_mz = exp_mz + static_cast<double>(best_isotope_error)
                                           * Constants::C13C12_MASSDIFF_U / best_charge;
       double prec_err = (precursor_mass_tolerance_unit_ == "ppm")
                           ? Math::getPPM(corrected_exp_mz, theo_mz)
@@ -2237,17 +2242,16 @@ namespace OpenMS
     //   +cal_lower = hi  →  cal_lower =  hi
     const double cal_lower_raw = std::max(min_tolerance, hi);
     const double cal_upper_raw = std::max(min_tolerance, -lo);
-    // With a very biased distribution both quantiles can land on the same side of zero,
-    // making one of the raw bounds <= 0. That's not representable in the positive-magnitude
-    // (lower, upper) schema — discard the precursor calibration; fragment calibration still
-    // applies. The prec_shift field stays populated for diagnostics.
-    // "Extreme" here means the quantiles can't produce a usefully-informative window.
-    // A distribution strictly on one side of zero is still informative (we build a
-    // half-line window and clamp the opposite side to min_tolerance), so we only flag
-    // extreme when hi - lo collapses — i.e., every error has the same value, typically
-    // because calibration saw a degenerate fixture or a pure-systematic-shift case
-    // that has no residual spread to estimate from.
-    result.extreme_bias = (hi - lo) < min_tolerance;
+    // "Extreme" guards the degenerate case where the signed-error distribution
+    // has essentially zero spread — e.g. a pure uniform shift fixture or a
+    // single-peptide corner case — and the quantile bounds can't usefully inform
+    // a calibrated window. In that case the precursor calibration is discarded;
+    // fragment calibration still applies. A distribution strictly on one side of
+    // zero is NOT extreme by this definition: we emit a legal half-line window
+    // (cal_upper or cal_lower clamped to min_tolerance). Threshold kept at 1 ppm
+    // so realistic proteomics-scale fixtures never trip it.
+    const double extreme_bias_threshold_ppm = 1.0;
+    result.extreme_bias = (hi - lo) < extreme_bias_threshold_ppm;
     result.precursor_spread = std::max(cal_lower_raw, cal_upper_raw);  // diagnostic only
     if (!result.extreme_bias)
     {

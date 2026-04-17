@@ -3077,13 +3077,13 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -protein false)
   set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_calibrated" PROPERTIES DEPENDS "TOPP_ProSE_DDA_calibrated")
 
-  # Floor: 4471 current (calibration should legitimately EXCEED uncalibrated yield);
+  # Floor: 4433 current (calibration should legitimately EXCEED uncalibrated yield);
   # guard ~0.5% below. This test also protects the sign-convention fix in
   # ProSEAlgorithm::runCalibrationPass_ — a regression of the swap would drop
   # this count back to ~1441.
   add_test(NAME "TOPP_FalseDiscoveryRate_ProSEDDA_calibrated_psm_count"
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/check_psm_floor.cmake
-      ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_fdr.tmp.idXML 4450)
+      ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_fdr.tmp.idXML 4410)
   set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_calibrated_psm_count"
     PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_ProSEDDA_calibrated")
 
