@@ -26,6 +26,8 @@
 namespace OpenMS
 {
 
+class TheoreticalSpectrumGenerator;
+
 /**
   @brief Fragment-index-based peptide database search algorithm (experimental).
 
@@ -354,6 +356,33 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// @brief filter, deisotope, decharge spectra
     static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm);
 
+    /// Build a decoy-augmented copy of the input FASTA (no FragmentIndex).
+    /// Used by prepareContext() and the chunked search path.
+    std::vector<FASTAFile::FASTAEntry> buildDecoyAugmentedDB_(
+        const std::vector<FASTAFile::FASTAEntry>& fasta_db) const;
+
+    /// Chunked search: score spectra against chunks of a pre-built full_db.
+    /// full_db must already contain decoys if decoys_ is true. Takes non-const
+    /// ref because PeptideIndexing::run() requires it.
+    ExitCodes searchChunked_(
+        PeakMap& spectra,
+        std::vector<FASTAFile::FASTAEntry>& full_db,
+        std::vector<ProteinIdentification>& protein_ids,
+        PeptideIdentificationList& peptide_ids) const;
+
+    /// Score all spectra against a FragmentIndex, appending hits to annotated_hits.
+    /// Shared by both the non-chunked and chunked search paths.
+    void scoreSpectraAgainstIndex_(
+        const PeakMap& spectra,
+        FragmentIndex& fi,
+        const std::vector<FASTAFile::FASTAEntry>& db,
+        const TheoreticalSpectrumGenerator& spectrum_generator,
+        double effective_fragment_tol,
+        bool fragment_mass_tolerance_unit_ppm,
+        bool open_search_mode,
+        std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
+        const String& progress_label) const;
+
     /**
      * @brief Filter and annotate search results.
      *
@@ -442,6 +471,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool add_x_ions_{false};
     bool add_y_ions_{true};
     bool add_z_ions_{false};
+
+    Size database_chunk_size_{0};  ///< 0 = disabled; >0 = chunk DB into groups of this many proteins
 
     bool calibration_enabled_{false};
     double calibration_subset_ratio_{0.1};

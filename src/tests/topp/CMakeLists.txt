@@ -2969,6 +2969,21 @@ add_test("TOPP_ProSE_4_out" ${DIFF}
 set_tests_properties("TOPP_ProSE_4_out" PROPERTIES DEPENDS
   "TOPP_ProSE_4")
 
+# Test 5: Database chunking — same inputs as test 1 but with chunk_size=5.
+# 11 proteins (decoys=false in ProSE_1.ini) → 3 chunks (5+5+1). Output
+# must match test 1 exactly (chunking must not change identification results).
+add_test("TOPP_ProSE_5_chunked" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini -in
+  ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_5_chunked_out.tmp.idXML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+  -Search:database:chunk_size 5)
+add_test("TOPP_ProSE_5_chunked_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_5_chunked_out.tmp.idXML
+  -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML
+  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+set_tests_properties("TOPP_ProSE_5_chunked_out" PROPERTIES DEPENDS
+  "TOPP_ProSE_5_chunked")
+
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   # Create a symlink with .d suffix so FileHandler recognizes the format
