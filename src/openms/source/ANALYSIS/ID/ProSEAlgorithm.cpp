@@ -134,6 +134,7 @@ namespace OpenMS
         Constants::UserParam::MATCHED_PREFIX_IONS,
         Constants::UserParam::MATCHED_SUFFIX_IONS,
         Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE,
+        Constants::UserParam::MATCHED_ION_CURRENT,
         Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM}
       );
 
@@ -376,6 +377,7 @@ namespace OpenMS
     bool annotation_matched_prefix_ions = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_PREFIX_IONS) != annotate_psm_.end();
     bool annotation_matched_suffix_ions = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_SUFFIX_IONS) != annotate_psm_.end();
     bool annotation_longest_ion_run = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE) != annotate_psm_.end();
+    bool annotation_matched_ion_current = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_ION_CURRENT) != annotate_psm_.end();
     bool annotation_fragment_annotations = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM) != annotate_psm_.end();
 
     // "ALL" adds all annotations
@@ -389,11 +391,12 @@ namespace OpenMS
       annotation_matched_prefix_ions = true;
       annotation_matched_suffix_ions = true;
       annotation_longest_ion_run = true;
+      annotation_matched_ion_current = true;
       annotation_fragment_annotations = true;
     }
 
-    // Alignment is needed for fragment error, fragment annotations, and longest ion run
-    const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run;
+    // Alignment is needed for fragment error, fragment annotations, longest ion run, and MIC
+    const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current;
 
 #pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
@@ -493,15 +496,20 @@ namespace OpenMS
 
           ph.setMetaValue(Constants::UserParam::DELTA_SCORE, delta_scores[scan_index]);
 
-          // Fragment annotations and longest ion run (both need alignment + ion names)
-          if (annotation_fragment_annotations || annotation_longest_ion_run)
+          // Fragment annotations, longest ion run, and MIC all iterate the alignment + ion names
+          if (annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current)
           {
             const auto& ion_names = theoretical_spec.getStringDataArrays()[0];
             const auto& ion_charges = theoretical_spec.getIntegerDataArrays()[0];
 
-            // Build PeakAnnotation vector + collect ion ordinals for longest run
+            // Build PeakAnnotation vector + collect ion ordinals for longest run.
+            // Prefix = a/b/c (N-terminal), suffix = x/y/z (C-terminal). Ordinals
+            // for different ion types at the same cleavage position (e.g. a3 + b3)
+            // are merged via std::unique below — each ordinal is a backbone
+            // position, not an ion-type-specific identifier.
             std::vector<PeptideHit::PeakAnnotation> peak_annotations;
-            std::vector<int> b_ordinals, y_ordinals;
+            std::vector<int> prefix_ordinals, suffix_ordinals;
+            double matched_ion_current = 0.0;
             peak_annotations.reserve(alignment.size());
 
             for (const auto& [theo_idx, exp_idx] : alignment)
@@ -516,19 +524,30 @@ namespace OpenMS
                 peak_annotations.push_back(pa);
               }
 
-              if (annotation_longest_ion_run)
+              if (annotation_matched_ion_current)
+              {
+                // Safe: SpectrumAlignment's default Da path returns 1-to-1
+                // matches, so each exp_idx appears at most once. If ppm mode
+                // ever gets enabled here, one exp peak could match multiple
+                // theo peaks and this would double-count — revisit then.
+                matched_ion_current += spec[exp_idx].getIntensity();
+              }
+
+              if (annotation_longest_ion_run && ion_names[theo_idx].size() >= 2)
               {
                 const String& name = ion_names[theo_idx];
-                if (name.size() >= 2 && (name[0] == 'b' || name[0] == 'y'))
+                const char c = name[0];
+                const bool is_prefix = (c == 'a' || c == 'b' || c == 'c');
+                const bool is_suffix = (c == 'x' || c == 'y' || c == 'z');
+                if (is_prefix || is_suffix)
                 {
-                  // Extract ordinal: "b5", "y3-H2O1+", "b12++" -> 5, 3, 12
+                  // Extract ordinal: "b5", "y3-H2O1+", "c12++" -> 5, 3, 12
                   Size pos = 1;
                   while (pos < name.size() && name[pos] >= '0' && name[pos] <= '9') ++pos;
                   if (pos > 1)
                   {
                     int ordinal = String(name.substr(1, pos - 1)).toInt();
-                    if (name[0] == 'b') b_ordinals.push_back(ordinal);
-                    else y_ordinals.push_back(ordinal);
+                    (is_prefix ? prefix_ordinals : suffix_ordinals).push_back(ordinal);
                   }
                 }
               }
@@ -539,9 +558,14 @@ namespace OpenMS
               ph.setPeakAnnotations(std::move(peak_annotations));
             }
 
+            if (annotation_matched_ion_current)
+            {
+              ph.setMetaValue(Constants::UserParam::MATCHED_ION_CURRENT, matched_ion_current);
+            }
+
             if (annotation_longest_ion_run)
             {
-              // Compute longest consecutive run across b and y series
+              // Compute longest consecutive run across prefix and suffix series
               auto longestRun = [](std::vector<int>& v) -> int {
                 if (v.empty()) return 0;
                 std::sort(v.begin(), v.end());
@@ -554,7 +578,7 @@ namespace OpenMS
                 }
                 return best;
               };
-              int longest = std::max(longestRun(b_ordinals), longestRun(y_ordinals));
+              int longest = std::max(longestRun(prefix_ordinals), longestRun(suffix_ordinals));
               ph.setMetaValue(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE, longest);
             }
           }
@@ -646,6 +670,7 @@ namespace OpenMS
     if (annotation_longest_ion_run) feature_set.push_back(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE);
     if (annotation_matched_prefix_ions) feature_set.push_back(Constants::UserParam::MATCHED_PREFIX_IONS);
     if (annotation_matched_suffix_ions) feature_set.push_back(Constants::UserParam::MATCHED_SUFFIX_IONS);
+    if (annotation_matched_ion_current) feature_set.push_back(Constants::UserParam::MATCHED_ION_CURRENT);
     feature_set.push_back(Constants::UserParam::DELTA_SCORE);
     // note: precursor error is calculated by percolator itself
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));

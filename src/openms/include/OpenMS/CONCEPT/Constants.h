@@ -356,6 +356,10 @@ namespace OpenMS
       // User parameter name for the longest consecutive b- or y-ion series
       inline const std::string LONGEST_PEPTIDE_ION_SEQUENCE = "longest_peptide_ion_sequence";
 
+      // User parameter name for the matched ion current (sum of experimental
+      // intensities over all matched fragment peaks, raw — not log-transformed)
+      inline const std::string MATCHED_ION_CURRENT = "matched_ion_current";
+
       /** User parameter name for the spectrum reference in PeptideIdentification (it is not yet treated as a class attribute)
               String
       */

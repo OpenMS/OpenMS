@@ -1191,6 +1191,23 @@ START_SECTION(([EXTRA] PSM annotations - matched ion counts, longest run, fragme
   // Perfect match: longest run should be substantial (peptide length - 1 for one series)
   TEST_EQUAL(longest_run >= 3, true)
 
+  // Delta score is emitted on every retained hit. With a single database peptide,
+  // there is no competing candidate, so delta = full score (same "no competition
+  // = maximum delta" convention as Sage/MSFragger).
+  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::DELTA_SCORE), true)
+  double delta = hit.getMetaValue(Constants::UserParam::DELTA_SCORE);
+  TEST_REAL_SIMILAR(delta, hit.getScore())
+
+  // MIC = sum of experimental intensities over matched peaks. The synthetic
+  // spectrum copies theoretical peaks into the experimental one, so MIC should
+  // equal the sum of theoretical peak intensities. Verifies the MIC code
+  // accumulates exactly once per matched peak (no double-counting).
+  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MATCHED_ION_CURRENT), true)
+  double expected_mic = 0.0;
+  for (const auto& p : theo) { expected_mic += p.getIntensity(); }
+  double mic = hit.getMetaValue(Constants::UserParam::MATCHED_ION_CURRENT);
+  TEST_REAL_SIMILAR(mic, expected_mic)
+
   // Verify fragment annotations
   const auto& annotations = hit.getPeakAnnotations();
   TEST_EQUAL(annotations.empty(), false)
