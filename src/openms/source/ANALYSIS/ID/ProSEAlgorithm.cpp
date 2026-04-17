@@ -1507,7 +1507,6 @@ namespace OpenMS
       auto full_db = buildDecoyAugmentedDB_(fasta_db);
       const bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
       const bool open_search_mode = isOpenSearchMode_();
-      const double effective_fragment_tol = fragment_mass_tolerance_;
 
       OPENMS_LOG_INFO << "[ProSE] open_search=" << (open_search_mode ? "true" : "false")
                       << " (precursor tolerance [-" << precursor_mass_tolerance_lower_
