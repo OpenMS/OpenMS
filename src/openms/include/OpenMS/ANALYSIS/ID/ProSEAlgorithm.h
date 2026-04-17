@@ -336,8 +336,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       // Layout: doubles first, then floats, then int, then uint16_t — minimizes padding (40 bytes excluding AASequence)
       double score = 0; ///< main score
       double delta_mass = 0.0; ///< mass difference for open search (Da)
-      float prefix_fraction = 0; ///< fraction of annotated b-ions
-      float suffix_fraction = 0; ///< fraction of annotated y-ions
+      float prefix_fraction = 0; ///< fraction of annotated prefix ions (a/b/c)
+      float suffix_fraction = 0; ///< fraction of annotated suffix ions (x/y/z)
       float mean_error = 0.0f; ///< mean absolute fragment mass error
       int isotope_error = 0; ///< isotope offset used for this PSM
       uint16_t applied_charge = 0; ///< precursor charge used for this PSM
