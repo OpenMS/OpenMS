@@ -667,9 +667,10 @@ namespace OpenSwath
         return 0;
       }
 
+      const double feature_rt = mrmfeature->getRT();
       for (std::size_t k = 0; k < signal_noise_estimators.size(); k++)
       {
-        sn_score += signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT());
+        sn_score += signal_noise_estimators[k]->getValueAtRT(feature_rt);
       }
       return sn_score / signal_noise_estimators.size();
     }
@@ -683,17 +684,20 @@ namespace OpenSwath
       {
         return {};
       }
+      sn_scores.reserve(signal_noise_estimators.size());
 
+      const double feature_rt = mrmfeature->getRT();
       for (std::size_t k = 0; k < signal_noise_estimators.size(); k++)
       {
-        if (signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT()) < 1)
+        const double sn_score = signal_noise_estimators[k]->getValueAtRT(feature_rt);
+        if (sn_score < 1)
           // everything below S/N 1 can be set to zero (and the log safely applied)
         {
           sn_scores.push_back(0);
         }
         else
         {
-          sn_scores.push_back(std::log(signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT())));
+          sn_scores.push_back(std::log(sn_score));
         }
       }
 
