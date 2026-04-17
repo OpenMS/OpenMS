@@ -38,6 +38,17 @@ namespace OpenMS
     int nr_isotopes_;
     int nr_charges_;
 public:
+    /// Transition-group-specific theoretical spectrum used by the DIA prescore.
+    struct PreparedSpectrum
+    {
+      std::vector<double> mz_theor;
+      std::vector<double> int_theor;
+      std::vector<double> int_theor_neg;
+      double neg_val = 0.0;
+      double pos_val = 0.0;
+
+      void clear();
+    };
 
     DiaPrescore();
 
@@ -61,6 +72,35 @@ public:
                double& manhattan) const;
 
     /**
+      @brief Prepare the theoretical DIA isotope spectrum for repeated scoring.
+
+      The prepared spectrum depends only on the transition group and DiaPrescore
+      parameters, not on the observed spectrum.
+
+      @param[in] lt Library transitions for the transition group
+      @param[out] prepared Precomputed theoretical spectrum
+    */
+    void prepare(const std::vector<OpenSwath::LightTransition>& lt,
+                 PreparedSpectrum& prepared) const;
+
+    /**
+      @brief Score an observed spectrum against a precomputed theoretical DIA spectrum.
+
+      @param[in] spec Observed spectra around the feature apex
+      @param[in] prepared Precomputed theoretical spectrum
+      @param[in] dia_extract_window DIA extraction window in Th
+      @param[in] im_range Ion mobility extraction range
+      @param[out] dotprod Dot product score
+      @param[out] manhattan Manhattan distance score
+    */
+    static void scorePrepared(const SpectrumSequence& spec,
+                              const PreparedSpectrum& prepared,
+                              double dia_extract_window,
+                              const RangeMobility& im_range,
+                              double& dotprod,
+                              double& manhattan);
+
+    /**
       @brief Compute manhattan and dotprod score for all spectra which can be accessed by
       the SpectrumAccessPtr for all transitions groups in the LightTargetedExperiment.
     */
@@ -71,4 +111,3 @@ public:
 
 
 }
-

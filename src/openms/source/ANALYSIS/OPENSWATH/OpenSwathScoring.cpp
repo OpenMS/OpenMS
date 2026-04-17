@@ -10,7 +10,6 @@
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 
 // scoring
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h>
@@ -25,7 +24,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 
 #include <utility>
-#include <chrono>
 namespace OpenMS
 {
   namespace
@@ -58,21 +56,6 @@ namespace OpenMS
       }
     };
     thread_local ChromScoresPool chrom_pool;
-    // Timing accumulators for DIAS internals (per-thread)
-    struct DIASTiming
-    {
-      double t_fetch{0.0};
-      double t_drift{0.0};
-      double t_massdiff{0.0};
-      double t_isotopes{0.0};
-      double t_by_ion{0.0};
-      double t_precursor_ms1{0.0};
-      void reset()
-      {
-        t_fetch = t_drift = t_massdiff = t_isotopes = t_by_ion = t_precursor_ms1 = 0.0;
-      }
-    };
-    thread_local DIASTiming dias_timing;
   }
 
   /// Constructor
@@ -179,11 +162,7 @@ namespace OpenMS
     // find spectrum that is closest to the apex of the peak using binary search
     // reuse thread-local pool to avoid per-feature allocations
     dias_pool.reset();
-    {
-      auto t0 = std::chrono::steady_clock::now();
-      fetchSpectrumSwath(swath_maps, imrmfeature->getRT(), n_merge_spectra, im_range, dias_pool.spectra);
-      dias_timing.t_fetch += std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
-    }
+    fetchSpectrumSwath(swath_maps, imrmfeature->getRT(), n_merge_spectra, im_range, dias_pool.spectra);
     std::vector<OpenSwath::SpectrumPtr>& spectra = dias_pool.spectra;
 
     // set the DIA parameters
@@ -194,29 +173,21 @@ namespace OpenMS
     // score drift time dimension
     if ( su_.use_im_scores)
     {
-      auto t0 = std::chrono::steady_clock::now();
       IonMobilityScoring::driftScoring(spectra, transitions, scores,
                                        drift_target, im_range,
                                        dia_extract_window_, dia_extraction_ppm_,
                                        im_drift_extra_pcnt_, apply_im_peak_picking_, mobilogram_consumer, imrmfeature->getRT(), feature_id);
-      dias_timing.t_drift += std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
     }
 
 
     // Mass deviation score
-    {
-      auto t0 = std::chrono::steady_clock::now();
-      diascoring.dia_massdiff_score(transitions, spectra, normalized_library_intensity, im_range, scores.massdev_score, scores.weighted_massdev_score, masserror_ppm);
-      dias_timing.t_massdiff += std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
-    }
+    diascoring.dia_massdiff_score(transitions, spectra, normalized_library_intensity, im_range, scores.massdev_score, scores.weighted_massdev_score, masserror_ppm);
 
     //TODO this score and the next, both rely on the CoarseIsotope of the PeptideAveragine. Maybe we could
     // DIA dotproduct and manhattan score based on library intensity and sum formula if present
     if (su_.use_ms2_isotope_scores)
     {
-      auto t0 = std::chrono::steady_clock::now();
       diascoring.score_with_isotopes(spectra, transitions, im_range, scores.dotprod_score_dia, scores.manhatt_score_dia);
-      dias_timing.t_isotopes += std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
 
       // Isotope correlation / overlap score: Is this peak part of an
       // isotopic pattern or is it the monoisotopic peak in an isotopic
@@ -224,9 +195,7 @@ namespace OpenMS
       // Currently this is computed for an averagine model of a peptide so its
       // not optimal for metabolites - but better than nothing, given that for
       // most fragments we don't really know their composition
-      auto t1 = std::chrono::steady_clock::now();
       diascoring.dia_isotope_scores(transitions, spectra, imrmfeature, im_range, scores.isotope_correlation, scores.isotope_overlap);
-      dias_timing.t_isotopes += std::chrono::duration<double>(std::chrono::steady_clock::now() - t1).count();
     }
 
     // Peptide-specific scores (only useful, when product transitions are REAL fragments, e.g. not in FFID)
@@ -237,11 +206,7 @@ namespace OpenMS
       OpenMS::AASequence aas;
       int by_charge_state = 1; // for which charge states should we check b/y series
       OpenSwathDataAccessHelper::convertPeptideToAASequence(compound, aas);
-      {
-        auto t0 = std::chrono::steady_clock::now();
-        diascoring.dia_by_ion_score(spectra, aas, by_charge_state, im_range, scores.bseries_score, scores.yseries_score);
-        dias_timing.t_by_ion += std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
-      }
+      diascoring.dia_by_ion_score(spectra, aas, by_charge_state, im_range, scores.bseries_score, scores.yseries_score);
     }
 
 
@@ -255,29 +220,25 @@ namespace OpenMS
       im_range_ms1 = RangeMobility();
     }
 
-    if (ms1_map && ms1_map->getNrSpectra() > 0)
+    const bool has_ms1_spectra = ms1_map && ms1_map->getNrSpectra() > 0;
+    bool can_reuse_precursor_ms1_spectrum = false;
+    if (has_ms1_spectra)
     {
       double precursor_mz = transitions[0].precursor_mz;
       double rt = imrmfeature->getRT();
 
-      {
-        auto t0 = std::chrono::steady_clock::now();
-        calculatePrecursorDIAScores(ms1_map, diascoring, precursor_mz, rt, compound, im_range_ms1, scores);
-        dias_timing.t_precursor_ms1 += std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
-      }
+      calculatePrecursorDIAScores(ms1_map, diascoring, precursor_mz, rt, compound, im_range_ms1, scores);
+      can_reuse_precursor_ms1_spectrum = n_merge_spectra == add_up_spectra_;
     }
 
 
-    if ( (ms1_map && ms1_map->getNrSpectra() > 0) && ( su_.use_im_scores) )  // IM MS1 scores
+    if (has_ms1_spectra && su_.use_im_scores)  // IM MS1 scores
     {
-        double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
-        bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
         double rt = imrmfeature->getRT();
 
+        if (!can_reuse_precursor_ms1_spectrum)
         {
-          auto t0 = std::chrono::steady_clock::now();
           fetchSpectrumSwath(ms1_map, rt, n_merge_spectra, im_range_ms1, dias_pool.ms1_spectrum);
-          dias_timing.t_fetch += std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
         }
         std::vector<OpenSwath::SpectrumPtr>& ms1_spectrum = dias_pool.ms1_spectrum;
         IonMobilityScoring::driftScoringMS1(ms1_spectrum,
@@ -286,15 +247,6 @@ namespace OpenMS
         IonMobilityScoring::driftScoringMS1Contrast(spectra, ms1_spectrum,
           transitions, scores, im_range_ms1, dia_extract_window_, dia_extraction_ppm_, im_drift_extra_pcnt_, mobilogram_consumer, rt, feature_id);
     }
-    // Debug: report per-call DIAS timing if debug logging is enabled
-    OPENMS_LOG_DEBUG << "DIAS timing (sec) - fetch:" << dias_timing.t_fetch
-                    << " drift:" << dias_timing.t_drift
-                    << " massdiff:" << dias_timing.t_massdiff
-                    << " isotopes:" << dias_timing.t_isotopes
-                    << " by_ion:" << dias_timing.t_by_ion
-                    << " precursor_ms1:" << dias_timing.t_precursor_ms1 << std::endl;
-    // reset accumulators for next call
-    dias_timing.reset();
   }
 
   void OpenSwathScoring::calculatePrecursorDIAScores(const OpenSwath::SpectrumAccessPtr& ms1_map,

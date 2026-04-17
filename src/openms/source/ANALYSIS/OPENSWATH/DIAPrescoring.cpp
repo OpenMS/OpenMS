@@ -22,6 +22,24 @@
 
 namespace OpenMS
 {
+  namespace
+  {
+    struct DiaPrescoreScorePool
+    {
+      std::vector<double> int_exp;
+      std::vector<double> mz_exp;
+      std::vector<double> im_exp;
+
+      void reset()
+      {
+        int_exp.clear();
+        mz_exp.clear();
+        im_exp.clear();
+      }
+    };
+
+    thread_local DiaPrescoreScorePool dia_prescore_score_pool;
+  }
 
   void getNormalizedLibraryIntensities(
     const std::vector<OpenSwath::LightTransition>& transitions,
@@ -114,9 +132,28 @@ namespace OpenMS
                           double& dotprod,
                           double& manhattan) const
   {
+    PreparedSpectrum prepared;
+    prepare(lt, prepared);
+    scorePrepared(spec, prepared, dia_extract_window_, im_range, dotprod, manhattan);
+  }
+
+  void DiaPrescore::PreparedSpectrum::clear()
+  {
+    mz_theor.clear();
+    int_theor.clear();
+    int_theor_neg.clear();
+    neg_val = 0.0;
+    pos_val = 0.0;
+  }
+
+  void DiaPrescore::prepare(const std::vector<OpenSwath::LightTransition>& lt,
+                            PreparedSpectrum& prepared) const
+  {
     std::vector<std::pair<double, double> > spectrumWIso, spectrumWIsoNegPreIso;
     UInt nrNegPeaks = 2;
     const Size nr_isotopes = nr_isotopes_ > 0 ? static_cast<Size>(nr_isotopes_) : 0;
+
+    prepared.clear();
     spectrumWIso.reserve(lt.size() * (nr_isotopes + nrNegPeaks));
     spectrumWIsoNegPreIso.reserve(lt.size() * (nr_isotopes + nrNegPeaks));
 
@@ -158,55 +195,34 @@ namespace OpenMS
     DIAHelpers::sortByFirst(spectrumWIsoNegPreIso);
 
     // compare against the spectrum with 0 weight preIsotope peaks
-    std::vector<double> mzTheor, intTheor;
-    DIAHelpers::extractFirst(spectrumWIso, mzTheor);
-    DIAHelpers::extractSecond(spectrumWIso, intTheor);
-    std::vector<double> intExp, mzExp, imExp;
-    DIAHelpers::integrateWindows(spec, mzTheor, dia_extract_window_, intExp, mzExp, imExp, im_range);
-    std::transform(intExp.cbegin(), intExp.cend(), intExp.begin(), [](double val){return std::sqrt(val);});
-    std::transform(intTheor.cbegin(), intTheor.cend(), intTheor.begin(), [](double val){return std::sqrt(val);});
+    DIAHelpers::extractFirst(spectrumWIso, prepared.mz_theor);
+    DIAHelpers::extractSecond(spectrumWIso, prepared.int_theor);
+    std::transform(prepared.int_theor.cbegin(), prepared.int_theor.cend(), prepared.int_theor.begin(), [](double val){return std::sqrt(val);});
 
     // get sum for normalization. All entries in both should be positive
-    double intExpTotal = std::accumulate(intExp.cbegin(), intExp.cend(), 0.0);
-    double intTheorTotal = std::accumulate(intTheor.cbegin(), intTheor.cend(), 0.0);
+    double intTheorTotal = std::accumulate(prepared.int_theor.cbegin(), prepared.int_theor.cend(), 0.0);
 
-    OpenSwath::normalize(intExp, intExpTotal, intExp);
-    OpenSwath::normalize(intTheor, intTheorTotal, intTheor);
-
-    //TODO think about normalizing the distance by dividing by the max value 2.
-    // Generally I think a combined manhattan distance is not the best feature here, since because of normalization,
-    // different transitions affect each other (e.g. if one transition is missing, the other(s) get a much higher
-    // normalized value and the whole distance is "penalized twice")
-    // Maybe we could use two features, one for the average manhattan distance and one for matching of the total intensities to the
-    // library intensities. Also maybe normalising by the max-value or the monoisotope (instead of the total sum) helps?
-    manhattan = OpenSwath::manhattanDist(intExp.cbegin(), intExp.cend(), intTheor.cbegin());
+    OpenSwath::normalize(prepared.int_theor, intTheorTotal, prepared.int_theor);
 
     // compare against the spectrum with negative weight preIsotope peaks
-    std::vector<double> intTheorNeg;
-    intTheorNeg.reserve(spectrumWIsoNegPreIso.size());
+    prepared.int_theor_neg.reserve(spectrumWIsoNegPreIso.size());
     // WARNING: This was spectrumWIso and therefore with 0 preIso weights in earlier versions! Was this a bug?
     // Otherwise, we don't need the second spectrum at all.
-    DIAHelpers::extractSecond(spectrumWIsoNegPreIso, intTheorNeg);
+    DIAHelpers::extractSecond(spectrumWIsoNegPreIso, prepared.int_theor_neg);
 
     // Sqrt does not work if we actually have negative values
     //std::transform(intTheorNeg.begin(), intTheorNeg.end(), intTheorNeg.begin(), OpenSwath::mySqrt());
-    double intTheorNegEuclidNorm = OpenSwath::norm(intTheorNeg.cbegin(), intTheorNeg.cend()); // use Euclidean norm since we have negative values
-    OpenSwath::normalize(intTheorNeg, intTheorNegEuclidNorm, intTheorNeg);
-
-    // intExp is normalized already, but we can normalize again with euclidean norm to have the same norm (not sure if it makes much of a difference)
-    double intExpEuclidNorm = OpenSwath::norm(intExp.cbegin(), intExp.cend());
-    double intTheorEuclidNorm = OpenSwath::norm(intTheor.cbegin(), intTheor.cend());
-    OpenSwath::normalize(intExp, intExpEuclidNorm, intExp);
-    OpenSwath::normalize(intTheor, intTheorEuclidNorm, intTheor);
+    double intTheorNegEuclidNorm = OpenSwath::norm(prepared.int_theor_neg.cbegin(), prepared.int_theor_neg.cend()); // use Euclidean norm since we have negative values
+    OpenSwath::normalize(prepared.int_theor_neg, intTheorNegEuclidNorm, prepared.int_theor_neg);
 
     //calculate maximum possible value and maximum negative value to rescale
     // depends on the amount of relative weight is negative
     // TODO check if it is the same amount for every spectrum, then we could leave it out.
-    double negVal = (-negWeight/intTheorNegEuclidNorm) * sqrt(nrNegPeaks*lt.size());
+    prepared.neg_val = (-negWeight/intTheorNegEuclidNorm) * sqrt(nrNegPeaks*lt.size());
 
     std::vector<double> intTheorNegBest;
-    intTheorNegBest.resize(intTheorNeg.size());
-    std::transform(intTheorNeg.begin(), intTheorNeg.end(), intTheorNegBest.begin(),
+    intTheorNegBest.resize(prepared.int_theor_neg.size());
+    std::transform(prepared.int_theor_neg.begin(), prepared.int_theor_neg.end(), intTheorNegBest.begin(),
                    [&](double val){
                    if (val > 0.)
                    {
@@ -221,11 +237,39 @@ namespace OpenMS
     double intTheorNegBestEuclidNorm = OpenSwath::norm(intTheorNegBest.cbegin(), intTheorNegBest.cend());
 
     OpenSwath::normalize(intTheorNegBest, intTheorNegBestEuclidNorm, intTheorNegBest);
-    double posVal = OpenSwath::dotProd(intTheorNegBest.cbegin(), intTheorNegBest.cend(), intTheorNeg.cbegin());
+    prepared.pos_val = OpenSwath::dotProd(intTheorNegBest.cbegin(), intTheorNegBest.cend(), prepared.int_theor_neg.cbegin());
+  }
 
-    dotprod = OpenSwath::dotProd(intExp.cbegin(), intExp.cend(), intTheorNeg.cbegin());
+  void DiaPrescore::scorePrepared(const SpectrumSequence& spec,
+                                  const PreparedSpectrum& prepared,
+                                  double dia_extract_window,
+                                  const RangeMobility& im_range,
+                                  double& dotprod,
+                                  double& manhattan)
+  {
+    auto& pool = dia_prescore_score_pool;
+    pool.reset();
+    DIAHelpers::integrateWindows(spec, prepared.mz_theor, dia_extract_window, pool.int_exp, pool.mz_exp, pool.im_exp, im_range);
+    std::transform(pool.int_exp.cbegin(), pool.int_exp.cend(), pool.int_exp.begin(), [](double val){return std::sqrt(val);});
+
+    double intExpTotal = std::accumulate(pool.int_exp.cbegin(), pool.int_exp.cend(), 0.0);
+    OpenSwath::normalize(pool.int_exp, intExpTotal, pool.int_exp);
+
+    //TODO think about normalizing the distance by dividing by the max value 2.
+    // Generally I think a combined manhattan distance is not the best feature here, since because of normalization,
+    // different transitions affect each other (e.g. if one transition is missing, the other(s) get a much higher
+    // normalized value and the whole distance is "penalized twice")
+    // Maybe we could use two features, one for the average manhattan distance and one for matching of the total intensities to the
+    // library intensities. Also maybe normalising by the max-value or the monoisotope (instead of the total sum) helps?
+    manhattan = OpenSwath::manhattanDist(pool.int_exp.cbegin(), pool.int_exp.cend(), prepared.int_theor.cbegin());
+
+    // intExp is normalized already, but we can normalize again with euclidean norm to have the same norm (not sure if it makes much of a difference)
+    double intExpEuclidNorm = OpenSwath::norm(pool.int_exp.cbegin(), pool.int_exp.cend());
+    OpenSwath::normalize(pool.int_exp, intExpEuclidNorm, pool.int_exp);
+
+    dotprod = OpenSwath::dotProd(pool.int_exp.cbegin(), pool.int_exp.cend(), prepared.int_theor_neg.cbegin());
     //simplified: dotprod = (((dotprod - negVal) * (1. - -1.)) / (posVal - negVal)) + -1.;
-    dotprod = (((dotprod - negVal) * 2.) / (posVal - negVal)) - 1.;
+    dotprod = (((dotprod - prepared.neg_val) * 2.) / (prepared.pos_val - prepared.neg_val)) - 1.;
   }
 
   void DiaPrescore::updateMembers_()

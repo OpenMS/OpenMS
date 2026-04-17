@@ -55,6 +55,71 @@ namespace OpenMS
     // thread-local map for temporary transition intensities to avoid
     // constructing a fresh unordered_map on every call to dia_isotope_scores
     thread_local std::unordered_map<std::string, double> dias_intensity_map;
+    struct DiaPrescoreThreadCache
+    {
+      std::vector<double> product_mz;
+      std::vector<double> library_intensity;
+      std::vector<int> fragment_charge;
+      double dia_extract_window = 0.0;
+      int nr_isotopes = 0;
+      int nr_charges = 0;
+      bool valid = false;
+      DiaPrescore::PreparedSpectrum prepared;
+    };
+    thread_local DiaPrescoreThreadCache dia_prescore_cache;
+
+    bool diaPrescoreCacheMatches(const DiaPrescoreThreadCache& cache,
+                                 const std::vector<OpenSwath::LightTransition>& transitions,
+                                 double dia_extract_window,
+                                 int nr_isotopes,
+                                 int nr_charges)
+    {
+      if (!cache.valid ||
+          cache.dia_extract_window != dia_extract_window ||
+          cache.nr_isotopes != nr_isotopes ||
+          cache.nr_charges != nr_charges ||
+          cache.product_mz.size() != transitions.size())
+      {
+        return false;
+      }
+
+      for (Size i = 0; i < transitions.size(); ++i)
+      {
+        if (cache.product_mz[i] != transitions[i].getProductMZ() ||
+            cache.library_intensity[i] != transitions[i].getLibraryIntensity() ||
+            cache.fragment_charge[i] != transitions[i].fragment_charge)
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    void updateDiaPrescoreCacheKey(DiaPrescoreThreadCache& cache,
+                                   const std::vector<OpenSwath::LightTransition>& transitions,
+                                   double dia_extract_window,
+                                   int nr_isotopes,
+                                   int nr_charges)
+    {
+      cache.valid = false;
+      cache.product_mz.clear();
+      cache.library_intensity.clear();
+      cache.fragment_charge.clear();
+      cache.product_mz.reserve(transitions.size());
+      cache.library_intensity.reserve(transitions.size());
+      cache.fragment_charge.reserve(transitions.size());
+      for (const OpenSwath::LightTransition& transition : transitions)
+      {
+        cache.product_mz.push_back(transition.getProductMZ());
+        cache.library_intensity.push_back(transition.getLibraryIntensity());
+        cache.fragment_charge.push_back(transition.fragment_charge);
+      }
+      cache.dia_extract_window = dia_extract_window;
+      cache.nr_isotopes = nr_isotopes;
+      cache.nr_charges = nr_charges;
+      cache.valid = true;
+    }
+
     struct AveragineIsotopeDistributionKey
     {
       double neutral_mass;
@@ -334,8 +399,14 @@ namespace OpenMS
 
   void DIAScoring::score_with_isotopes(SpectrumSequence& spectrum, const std::vector<TransitionType>& transitions, const RangeMobility& im_range, double& dotprod, double& manhattan) const
   {
-    OpenMS::DiaPrescore dp(dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_);
-    dp.score(spectrum, transitions, im_range, dotprod, manhattan);
+    DiaPrescoreThreadCache& cache = dia_prescore_cache;
+    if (!diaPrescoreCacheMatches(cache, transitions, dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_))
+    {
+      OpenMS::DiaPrescore dp(dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_);
+      dp.prepare(transitions, cache.prepared);
+      updateDiaPrescoreCacheKey(cache, transitions, dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_);
+    }
+    OpenMS::DiaPrescore::scorePrepared(spectrum, cache.prepared, dia_extract_window_, im_range, dotprod, manhattan);
   }
 
   ///////////////////////////////////////////////////////////////////////////
