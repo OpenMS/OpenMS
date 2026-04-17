@@ -114,7 +114,8 @@ To use {term}`TOPP` as regular app in the shell, add the following lines to the 
 
 ## Build OpenMS from source
 
-To build OpenMS from source, follow the build instructions for [macOS](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_mac.html).
+Before configuring a source build, make sure CMake 3.21 or newer is installed and that your compiler toolchain provides C++20 support.
 
+To build OpenMS from source, follow the build instructions for [macOS](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_mac.html).
 
 

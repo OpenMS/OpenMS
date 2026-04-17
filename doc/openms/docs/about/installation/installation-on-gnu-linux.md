@@ -72,4 +72,6 @@ If you encounter errors with unavailable packages, troubleshoot using the follow
 
 ## Build OpenMS from source
 
+Before configuring a source build, make sure CMake 3.21 or newer is installed and that your GCC or Clang toolchain provides C++20 support.
+
 To build OpenMS from source, follow the build instructions for [Linux](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_linux.html).
