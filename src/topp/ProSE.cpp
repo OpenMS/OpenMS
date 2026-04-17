@@ -103,7 +103,7 @@ class ProSE :
       registerOutputFile_("out_merged", "<file>", "", "Optional merged output file containing all PSMs pooled across input files with cross-file protein inference (BasicProteinInferenceAlgorithm) and optional picked-protein FDR (FDR:protein). Per-file outputs (-out_idxml / -out_qpx / -out_parquet) retain run-level information. Only useful with multiple -in files.", false);
       setValidFormats_("out_merged", ListUtils::create<String>("idXML"));
 
-      registerOutputFileList_("out_pin", "<files>", StringList(), "Output Percolator input (.pin/.tsv) file(s) for external rescoring. Must have the same number of entries as -in. Written independently of -percolator_executable (i.e. you can produce .pin files without running Percolator).", false);
+      registerOutputFileList_("out_pin", "<files>", StringList(), "Output Percolator input (.pin/.tsv) file(s) for external rescoring. Must have the same number of entries as -in. Written independently of -percolator_executable (i.e. you can produce .pin files without running Percolator).", false, true);
       setValidFormats_("out_pin", ListUtils::create<String>("tsv"));
 
       registerOutputDir_("out_mod_analysis_dir", "<dir>", "", "Optional directory to write modification-analysis tables (delta-mass, PTM stats) when running in open-search mode. When set, per-file tables are written using each input file's basename and an additional aggregate table is written across all input files. Has no effect in closed-search mode.", false, true);
