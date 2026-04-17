@@ -59,7 +59,7 @@ namespace OpenMS
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,window_size,"window size can not be 0");
     }
-    if (window_size>seq.size())
+    if (window_size > seq.size())
     {
       OPENMS_LOG_WARN << "Warning: window size is larger than sequence size. Using seequence size as window size: " << seq.size() << "\n";
     }
@@ -97,7 +97,7 @@ namespace OpenMS
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,window_size,"window size can not be 0");
     }
-    if (window_size>seq.size())
+    if (window_size > seq.size())
     {
       OPENMS_LOG_WARN << "Warning: window size is larger than sequence size. Setting window size to sequence size: " << seq.size() << "\n";
     }
