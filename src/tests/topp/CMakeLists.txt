@@ -3140,7 +3140,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
       "-variable_modifications" "Oxidation (M)" "Acetyl (Protein N-term)"
       -chimera false
       -predict_rt false
-      -deisotope false
+      -deisotope true
       -min_ion_index 2)
     set_tests_properties("TOPP_SageAdapter_DDA" PROPERTIES DEPENDS "TOPP_DecoyDatabase_DDA")
 
