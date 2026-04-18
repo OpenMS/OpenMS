@@ -26,28 +26,12 @@
 
 #include <boost/range/adaptor/map.hpp>
 #include <algorithm>
-#include <chrono>
 #include <memory>
 #include <optional>
 #include <boost/foreach.hpp>
 #include <unordered_map>
 
 #define run_identifier "unique_run_identifier"
-
-namespace
-{
-  using ScoringProfileClock = std::chrono::steady_clock;
-
-  ScoringProfileClock::time_point scoringProfileStart(bool enabled)
-  {
-    return enabled ? ScoringProfileClock::now() : ScoringProfileClock::time_point();
-  }
-
-  double elapsedScoringProfileSeconds(const ScoringProfileClock::time_point& start)
-  {
-    return std::chrono::duration<double>(ScoringProfileClock::now() - start).count();
-  }
-}
 
 bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std::pair<double, double>& right)
 {
@@ -347,6 +331,7 @@ namespace OpenMS
                                                     const size_t feature_idx,
                                                     const Int64 feature_id,
                                                     const std::vector<std::string>& native_ids_detection,
+                                                    const std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators_identification,
                                                     const double det_intensity_ratio_score,
                                                     const double det_mi_ratio_score,
                                                     const std::vector<OpenSwath::SwathMap>& swath_maps,
@@ -359,18 +344,26 @@ namespace OpenMS
     MRMFeatureOpenMS idimrmfeature(idmrmfeature);
 
     std::vector<std::string> native_ids_identification;
-    std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators_identification;
+    native_ids_identification.reserve(trgr_ident.size());
+    std::vector<OpenSwath::ISignalToNoisePtr> selected_signal_noise_estimators_identification;
+    selected_signal_noise_estimators_identification.reserve(trgr_ident.size());
 
-    for (Size i = 0; i < trgr_ident.size(); i++)
+    const auto& transitions_identification = trgr_ident.getTransitions();
+    if (signal_noise_estimators_identification.size() != transitions_identification.size())
     {
-      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram >(
-            trgr_ident.getChromatogram(trgr_ident.getTransitions()[i].getNativeID()),
-            sn_win_len_, sn_bin_count_, write_log_messages_));
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Error: Identification signal-to-noise estimators do not match the transition group.");
+    }
+
+    for (Size i = 0; i < transitions_identification.size(); i++)
+    {
+      const std::string& native_id = transitions_identification[i].getNativeID();
+      const OpenSwath::ISignalToNoisePtr& snptr = signal_noise_estimators_identification[i];
       if (  (snptr->getValueAtRT(idmrmfeature.getRT()) > uis_threshold_sn_)
-            && (idmrmfeature.getFeature(trgr_ident.getTransitions()[i].getNativeID()).getIntensity() > uis_threshold_peak_area_))
+            && (idmrmfeature.getFeature(native_id).getIntensity() > uis_threshold_peak_area_))
       {
-        signal_noise_estimators_identification.push_back(snptr);
-        native_ids_identification.push_back(trgr_ident.getTransitions()[i].getNativeID());
+        selected_signal_noise_estimators_identification.push_back(snptr);
+        native_ids_identification.push_back(native_id);
       }
     }
 
@@ -381,7 +374,7 @@ namespace OpenMS
       scorer.calculateChromatographicIdScores(&idimrmfeature,
                                               native_ids_identification,
                                               native_ids_detection,
-                                              signal_noise_estimators_identification,
+                                              selected_signal_noise_estimators_identification,
                                               idscores_out);
 
       const std::vector<double>* ind_mi_score_ptr = nullptr;
@@ -408,11 +401,11 @@ namespace OpenMS
           }
 
           double mi_ratio = 0;
-            if (su_.use_mi_score_ && su_.use_total_mi_score_ && ind_mi_score_ptr != nullptr)
-            {
-              if (det_mi_ratio_score > 0) { mi_ratio = ((*ind_mi_score_ptr)[i] / total_mi) / det_mi_ratio_score; }
-              if (mi_ratio > 1) { mi_ratio = 1 / mi_ratio; }
-            }
+          if (su_.use_mi_score_ && su_.use_total_mi_score_ && ind_mi_score_ptr != nullptr)
+          {
+            if (det_mi_ratio_score > 0 && total_mi > 0) { mi_ratio = ((*ind_mi_score_ptr)[i] / total_mi) / det_mi_ratio_score; }
+            if (mi_ratio > 1) { mi_ratio = 1 / mi_ratio; }
+          }
 
           idscores_out.ind_area_intensity.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity());
           idscores_out.ind_total_area_intensity.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic"));
@@ -472,9 +465,8 @@ namespace OpenMS
             idscores_out.ind_points_across_half_height.push_back(0);
           }
         }
-      idscores_out.ind_num_transitions = native_ids_identification.size();
-
       }
+      idscores_out.ind_num_transitions = native_ids_identification.size();
     }
 
     // Compute DIA scores only on the identification transitions
@@ -517,9 +509,6 @@ namespace OpenMS
                                                 bool ms1only,
                                                 MobilogramParquetConsumer* mobilogram_consumer) const
   {
-    const bool profile = scoring_profiling_enabled_;
-    auto profile_phase_start = scoringProfileStart(profile);
-
     if (PeptideRefMap_.empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -536,10 +525,6 @@ namespace OpenMS
     if (su_.use_uis_scores)
     {
       splitTransitionGroupsIdentification_(transition_group, transition_group_identification, transition_group_identification_decoy);
-    }
-    if (profile)
-    {
-      scoring_profile_.score_setup += elapsedScoringProfileSeconds(profile_phase_start);
     }
 
     std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
@@ -575,7 +560,6 @@ namespace OpenMS
     }
 
     // currently we cannot do much about the log messages and they mostly occur in decoy transition signals
-    profile_phase_start = scoringProfileStart(profile);
     for (Size k = 0; k < transition_group_detection.getChromatograms().size(); k++)
     {
       OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram >(
@@ -594,13 +578,8 @@ namespace OpenMS
         ms1_signal_noise_estimators.push_back(snptr);
       }
     }
-    if (profile)
-    {
-      scoring_profile_.signal_to_noise_setup += elapsedScoringProfileSeconds(profile_phase_start);
-    }
 
     // get the expected rt value for this compound
-    profile_phase_start = scoringProfileStart(profile);
     const PeptideType* pep = PeptideRefMap_.at(transition_group_detection.getTransitionGroupID());
     double expected_rt = pep->rt;
     TransformationDescription newtr = trafo;
@@ -665,11 +644,30 @@ namespace OpenMS
     {
       tg_cache.precursor_ids_openms.emplace_back(id);
     }
-    const Size idscores_needed_capacity = std::max<Size>(transitions.size(), static_cast<Size>(16));
 
-    if (profile)
+    auto buildIdentificationSignalNoiseEstimators = [this](const MRMTransitionGroupType& group)
     {
-      scoring_profile_.score_setup += elapsedScoringProfileSeconds(profile_phase_start);
+      std::vector<OpenSwath::ISignalToNoisePtr> estimators;
+      estimators.reserve(group.getTransitions().size());
+      for (const TransitionType& transition : group.getTransitions())
+      {
+        estimators.emplace_back(new OpenMS::SignalToNoiseOpenMS<MSChromatogram>(
+          group.getChromatogram(transition.getNativeID()), sn_win_len_, sn_bin_count_, write_log_messages_));
+      }
+      return estimators;
+    };
+
+    std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators_identification;
+    std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators_identification_decoy;
+    Size idscores_needed_capacity = std::max<Size>(transitions.size(), static_cast<Size>(16));
+    if (su_.use_uis_scores)
+    {
+      // The estimators are chromatogram-local and feature-independent. Building
+      // them once per transition group avoids repeated allocations in IPF mode.
+      signal_noise_estimators_identification = buildIdentificationSignalNoiseEstimators(transition_group_identification);
+      signal_noise_estimators_identification_decoy = buildIdentificationSignalNoiseEstimators(transition_group_identification_decoy);
+      idscores_needed_capacity = std::max(idscores_needed_capacity, transition_group_identification.getTransitions().size());
+      idscores_needed_capacity = std::max(idscores_needed_capacity, transition_group_identification_decoy.getTransitions().size());
     }
 
     // Go through all peak groups (found MRM features) and score them
@@ -683,7 +681,6 @@ namespace OpenMS
       scoring_thread_count = static_cast<Size>(omp_get_max_threads());
     }
     #endif
-    std::vector<OpenSwathScoringPhaseTiming> thread_scoring_profiles(profile ? scoring_thread_count : 0);
     std::vector<std::vector<SignedSize>> thread_scored_feature_indices(defer_feature_output ? scoring_thread_count : 0);
     if (defer_feature_output)
     {
@@ -702,7 +699,6 @@ namespace OpenMS
       #ifdef _OPENMP
       thread_index = static_cast<Size>(omp_get_thread_num());
       #endif
-      OpenSwathScoringPhaseTiming thread_profile;
       std::vector<SignedSize>* local_scored_feature_indices = defer_feature_output ? &thread_scored_feature_indices[thread_index] : nullptr;
 
       #ifdef _OPENMP
@@ -710,7 +706,6 @@ namespace OpenMS
       #endif
       for (SignedSize feature_idx = 0; feature_idx < (SignedSize) mrmfeatures.size(); ++feature_idx)
       {
-        OpenSwathScoringPhaseTiming feature_profile;
         auto& mrmfeature = mrmfeatures[feature_idx];
         mrmfeature.ensureUniqueId();
         std::optional<MRMFeatureOpenMS> imrmfeature_storage;
@@ -728,10 +723,9 @@ namespace OpenMS
         }
         MRMFeatureOpenMS& imrmfeature = *imrmfeature_storage;
 
-        // thread-local pooled idscores to avoid per-feature vector allocations
+        // Reuse the large IPF score vectors per worker thread. The pool is
+        // cleared immediately before each target or decoy identification pass.
         static thread_local MRMFeatureFinderScoring::OpenSwath_Ind_Scores_Pooled idscores_pool;
-        idscores_pool.reset();
-        // Only preallocate once per thread or if capacity is too small
         if (idscores_pool.ind_transition_names.capacity() < idscores_needed_capacity)
         {
           idscores_pool.preallocate(idscores_needed_capacity);
@@ -748,7 +742,6 @@ namespace OpenMS
 
         if (ms1only)
         {
-          auto feature_phase_start = scoringProfileStart(profile);
           ///////////////////////////////////
           // Call the scoring for MS1 only
           ///////////////////////////////////
@@ -789,10 +782,6 @@ namespace OpenMS
             xx_lda_prescore = -scores.calculate_lda_single_transition(scores);
           }
           mrmfeature.setOverallQuality(xx_lda_prescore);
-          if (profile)
-          {
-            feature_profile.ms1_scores += elapsedScoringProfileSeconds(feature_phase_start);
-          }
         }
         else //!ms1only
         {
@@ -804,27 +793,16 @@ namespace OpenMS
           ///////////////////////////////////
           // Library and chromatographic scores
           OpenSwath_Scores& scores = mrmfeature.getScores();
-          auto feature_phase_start = scoringProfileStart(profile);
           scorer.calculateChromatographicScores(&imrmfeature, tg_cache.transition_native_ids, tg_cache.precursor_ids, tg_cache.normalized_library_intensity,
                         signal_noise_estimators, scores);
-          if (profile)
-          {
-            feature_profile.chrom_scores += elapsedScoringProfileSeconds(feature_phase_start);
-          }
 
           double normalized_experimental_rt = trafo.apply(imrmfeature.getRT());
-          feature_phase_start = scoringProfileStart(profile);
           scorer.calculateLibraryScores(&imrmfeature, transitions, *pep, normalized_experimental_rt, scores);
-          if (profile)
-          {
-            feature_profile.library_scores += elapsedScoringProfileSeconds(feature_phase_start);
-          }
 
           ///////////////////////////////////
           // DIA scores
           if (swath_present && su_.use_dia_scores_)
           {
-            feature_phase_start = scoringProfileStart(profile);
             thread_local std::vector<double> masserror_ppm;
             masserror_ppm.clear();
             scorer.calculateDIAScores(&imrmfeature,
@@ -833,10 +811,6 @@ namespace OpenMS
                                       swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm,
                                       drift_target, im_range, mobilogram_consumer, feature_id);
             mrmfeature.setMetaValue("masserror_ppm", masserror_ppm);
-            if (profile)
-            {
-              feature_profile.dia_scores += elapsedScoringProfileSeconds(feature_phase_start);
-            }
           }
 
           double det_intensity_ratio_score = 0;
@@ -862,30 +836,26 @@ namespace OpenMS
           // Unique Ion Signature (UIS) scores
           if (su_.use_uis_scores)
           {
-            feature_phase_start = scoringProfileStart(profile);
             if (!transition_group_identification.getTransitions().empty())
             {
+              idscores_pool.reset();
               scoreIdentification_(transition_group_identification, transition_group_detection, scorer, feature_idx,
                                   feature_id,
-                                  tg_cache.transition_native_ids, det_intensity_ratio_score,
-                                  det_mi_ratio_score, swath_maps,drift_target, im_range, idscores_pool, mobilogram_consumer);
+                                  tg_cache.transition_native_ids, signal_noise_estimators_identification, det_intensity_ratio_score,
+                                  det_mi_ratio_score, swath_maps, drift_target, im_range, idscores_pool, mobilogram_consumer);
               mrmfeature.IDScoresAsMetaValue(false, idscores_pool);
             }
             if (!transition_group_identification_decoy.getTransitions().empty())
             {
+              idscores_pool.reset();
               scoreIdentification_(transition_group_identification_decoy, transition_group_detection, scorer, feature_idx,
                                   feature_id,
-                                  tg_cache.transition_native_ids, det_intensity_ratio_score,
+                                  tg_cache.transition_native_ids, signal_noise_estimators_identification_decoy, det_intensity_ratio_score,
                                   det_mi_ratio_score, swath_maps, drift_target, im_range, idscores_pool, mobilogram_consumer);
               mrmfeature.IDScoresAsMetaValue(true, idscores_pool);
             }
-            if (profile)
-            {
-              feature_profile.uis_scores += elapsedScoringProfileSeconds(feature_phase_start);
-            }
           }
 
-          feature_phase_start = scoringProfileStart(profile);
           // TODO get it working with imrmfeature
           if (su_.use_elution_model_score_)
           {
@@ -906,10 +876,6 @@ namespace OpenMS
             double xx_swath_prescore = -scores.calculate_swath_lda_prescore(scores);
             mrmfeature.setOverallQuality(xx_swath_prescore);
           }
-          if (profile)
-          {
-            feature_profile.score_output += elapsedScoringProfileSeconds(feature_phase_start);
-          }
 
           precursor_mz = detection_precursor_mz;
 
@@ -924,7 +890,6 @@ namespace OpenMS
           ///////////////////////////////////////////////////////////////////////////
           // add the peptide hit information to the feature
           ///////////////////////////////////////////////////////////////////////////
-          auto feature_output_start = scoringProfileStart(profile);
           addScoreMetaValues_(mrmfeature, transition_group_detection, signal_noise_estimators, ms1_signal_noise_estimators,
                               expected_rt, swath_present, ms1only);
           prepareScoredFeatureOutput_(mrmfeature, *pep, pd, swath_present, precursor_mz, ms1only);
@@ -934,21 +899,7 @@ namespace OpenMS
           {
             feature_list.push_back(mrmfeature);
           }
-          if (profile)
-          {
-            feature_profile.score_output += elapsedScoringProfileSeconds(feature_output_start);
-          }
         }
-        if (profile)
-        {
-          feature_profile.scored_feature_count = 1;
-          thread_profile.add(feature_profile);
-        }
-      }
-
-      if (profile)
-      {
-        thread_scoring_profiles[thread_index].add(thread_profile);
       }
     }
 
@@ -965,15 +916,7 @@ namespace OpenMS
         scored_feature_indices.insert(scored_feature_indices.end(), indices.begin(), indices.end());
       }
     }
-    if (profile)
-    {
-      for (const OpenSwathScoringPhaseTiming& thread_profile : thread_scoring_profiles)
-      {
-        scoring_profile_.add(thread_profile);
-      }
-    }
 
-    profile_phase_start = scoringProfileStart(profile);
     if (defer_feature_output)
     {
       // Order by quality before expensive feature output preparation. In the
@@ -997,24 +940,14 @@ namespace OpenMS
       {
         std::sort(scored_feature_indices.begin(), scored_feature_indices.end(), quality_greater);
       }
-      if (profile)
-      {
-        scoring_profile_.feature_sort_output += elapsedScoringProfileSeconds(profile_phase_start);
-      }
-
       for (Size i = 0; i < report_count; ++i)
       {
-        auto feature_output_start = scoringProfileStart(profile);
         MRMFeature& selected_feature = mrmfeatures[scored_feature_indices[i]];
         const double selected_precursor_mz = ms1only ? selected_feature.getMZ() : detection_precursor_mz;
         addScoreMetaValues_(selected_feature, transition_group_detection, signal_noise_estimators, ms1_signal_noise_estimators,
                             expected_rt, swath_present, ms1only);
         prepareScoredFeatureOutput_(selected_feature, *pep, pd, swath_present, selected_precursor_mz, ms1only);
         output.push_back(selected_feature);
-        if (profile)
-        {
-          scoring_profile_.score_output += elapsedScoringProfileSeconds(feature_output_start);
-        }
       }
     }
     else
@@ -1025,10 +958,6 @@ namespace OpenMS
       for (Size i = 0; i < feature_list.size(); i++)
       {
         output.push_back(feature_list[i]);
-      }
-      if (profile)
-      {
-        scoring_profile_.feature_sort_output += elapsedScoringProfileSeconds(profile_phase_start);
       }
     }
 

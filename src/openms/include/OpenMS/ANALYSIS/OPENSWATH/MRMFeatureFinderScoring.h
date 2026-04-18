@@ -42,63 +42,6 @@ namespace OpenMS
   class MobilogramParquetConsumer;
   class ProteaseDigestion;
 
-  /**
-    @brief Aggregated timing counters for OpenSWATH scoring diagnostics.
-
-    These counters are only populated when explicit profiling is enabled by the
-    caller. They are intentionally coarse and cumulative so profiling large
-    transition lists does not produce one log line per assay or peakgroup.
-  */
-  struct OPENMS_DLLAPI OpenSwathScoringPhaseTiming
-  {
-    double map_setup = 0.0;
-    double assay_setup = 0.0;
-    double transition_group_picker = 0.0;
-    double score_peakgroups = 0.0;
-    double score_setup = 0.0;
-    double signal_to_noise_setup = 0.0;
-    double chrom_scores = 0.0;
-    double library_scores = 0.0;
-    double dia_scores = 0.0;
-    double ms1_scores = 0.0;
-    double uis_scores = 0.0;
-    double score_output = 0.0;
-    double feature_sort_output = 0.0;
-    double osw_prepare = 0.0;
-    double osw_write = 0.0;
-    double osw_write_wait = 0.0;
-    double osw_write_hold = 0.0;
-    Size assay_count = 0;
-    Size scored_assay_count = 0;
-    Size skipped_assay_count = 0;
-    Size scored_feature_count = 0;
-
-    void add(const OpenSwathScoringPhaseTiming& rhs)
-    {
-      map_setup += rhs.map_setup;
-      assay_setup += rhs.assay_setup;
-      transition_group_picker += rhs.transition_group_picker;
-      score_peakgroups += rhs.score_peakgroups;
-      score_setup += rhs.score_setup;
-      signal_to_noise_setup += rhs.signal_to_noise_setup;
-      chrom_scores += rhs.chrom_scores;
-      library_scores += rhs.library_scores;
-      dia_scores += rhs.dia_scores;
-      ms1_scores += rhs.ms1_scores;
-      uis_scores += rhs.uis_scores;
-      score_output += rhs.score_output;
-      feature_sort_output += rhs.feature_sort_output;
-      osw_prepare += rhs.osw_prepare;
-      osw_write += rhs.osw_write;
-      osw_write_wait += rhs.osw_write_wait;
-      osw_write_hold += rhs.osw_write_hold;
-      assay_count += rhs.assay_count;
-      scored_assay_count += rhs.scored_assay_count;
-      skipped_assay_count += rhs.skipped_assay_count;
-      scored_feature_count += rhs.scored_feature_count;
-    }
-  };
-
 
   /**
   @brief The MRMFeatureFinder finds and scores peaks of transitions that co-elute.
@@ -247,24 +190,6 @@ public:
       ms1_map_ = ms1_map;
     }
 
-    /// Enable or disable detailed scoring phase timing.
-    void setScoringProfiling(bool enabled)
-    {
-      scoring_profiling_enabled_ = enabled;
-    }
-
-    /// Reset accumulated detailed scoring phase timing.
-    void resetScoringProfile()
-    {
-      scoring_profile_ = OpenSwathScoringPhaseTiming();
-    }
-
-    /// Return accumulated detailed scoring phase timing.
-    const OpenSwathScoringPhaseTiming& getScoringProfile() const
-    {
-      return scoring_profile_;
-    }
-
     /** @brief Map the chromatograms to the transitions.
      *
      * Map an input chromatogram experiment (mzML) and transition list (TraML)
@@ -304,6 +229,7 @@ private:
      */
     struct OpenSwath_Ind_Scores_Pooled : public OpenSwath_Ind_Scores
     {
+      /// Reserve storage for all identification score vectors.
       void preallocate(Size capacity)
       {
         ind_transition_names.reserve(capacity);
@@ -349,8 +275,10 @@ private:
         ind_points_across_half_height.reserve(capacity);
       }
 
+      /// Clear all identification scores while preserving allocated capacity.
       void reset()
       {
+        ind_num_transitions = 0;
         ind_transition_names.clear();
         ind_isotope_correlation.clear();
         ind_isotope_overlap.clear();
@@ -400,7 +328,7 @@ private:
      * For standard assays, transition_group_detection is identical to transition_group and the others are empty.
      *
      * @param[in] transition_group Containing all detecting, identifying transitions
-     * @param[in] transition_group_detection To be filled with detecting transitions
+     * @param[out] transition_group_detection To be filled with detecting transitions
     */
     void splitTransitionGroupsDetection_(const MRMTransitionGroupType& transition_group,
                                          MRMTransitionGroupType& transition_group_detection) const;
@@ -411,7 +339,7 @@ private:
      * is enabled, it contains the corresponding identification transitions.
      *
      * @param[in] transition_group Containing all detecting, identifying transitions
-     * @param[in] transition_group_identification To be filled with identifying transitions
+     * @param[out] transition_group_identification To be filled with identifying transitions
      * @param[out] transition_group_identification_decoy To be filled with identifying decoy transitions
     */
     void splitTransitionGroupsIdentification_(const MRMTransitionGroupType& transition_group,
@@ -423,35 +351,37 @@ private:
      * The function is used twice, for target and decoy identification transitions. The results are
      * reported analogously to the ones for detecting transitions but must be stored separately.
      *
-     * @param[out] transition_group_identification Containing all detecting and identifying transitions
-     * @param[out] transition_group_detection Containing all detecting transitions
+     * @param[in,out] transition_group_identification Containing all detecting and identifying transitions
+     * @param[in,out] transition_group_detection Containing all detecting transitions
      * @param[in] scorer An instance of OpenSwathScoring
      * @param[in] feature_idx The index of the current feature
      * @param[in] feature_id The id of the current feature
      * @param[in] native_ids_detection The native IDs of the detecting transitions
+     * @param[in] signal_noise_estimators_identification Precomputed signal-to-noise estimators for the identification transitions
      * @param[in] det_intensity_ratio_score The intensity score of the detection transitions for normalization
      * @param[in] det_mi_ratio_score The MI score of the detection transitions for normalization
      * @param[in] swath_maps Optional SWATH-MS (DIA) map corresponding from which
      *                  the chromatograms were extracted. Use empty map if no
      *                  data is available.
-     * @param[out] drift_target The target drift value
+     * @param[in] drift_target The target drift value
      * @param[in] im_range Ion mobility subrange to consider (used as filter); can be empty (i.e. no IM filtering). If scoring non-IMS data, this should be empty, otherwise a missing information exception is thrown when integrating spectra for scoring.
+     * @param[out] idscores_out Reused output vectors for target or decoy identification scores
      * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
-     * @return a struct of type OpenSwath_Ind_Scores containing either target or decoy values
     */
     void scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
-                  MRMTransitionGroupType& transition_group_detection,
-                  OpenSwathScoring& scorer,
-                  const size_t feature_idx,
-                  const Int64 feature_id,
-                  const std::vector<std::string> & native_ids_detection,
-                  const double det_intensity_ratio_score,
-                  const double det_mi_ratio_score,
-                  const std::vector<OpenSwath::SwathMap>& swath_maps,
-                  const double drift_target,
-                  RangeMobility& im_range,
-                  OpenSwath_Ind_Scores_Pooled & idscores_out,
-                  MobilogramParquetConsumer* mobilogram_consumer = nullptr) const;
+                              MRMTransitionGroupType& transition_group_detection,
+                              OpenSwathScoring& scorer,
+                              const size_t feature_idx,
+                              const Int64 feature_id,
+                              const std::vector<std::string>& native_ids_detection,
+                              const std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators_identification,
+                              const double det_intensity_ratio_score,
+                              const double det_mi_ratio_score,
+                              const std::vector<OpenSwath::SwathMap>& swath_maps,
+                              const double drift_target,
+                              RangeMobility& im_range,
+                              OpenSwath_Ind_Scores_Pooled& idscores_out,
+                              MobilogramParquetConsumer* mobilogram_consumer = nullptr) const;
 
     void prepareScoredFeatureOutput_(OpenMS::MRMFeature& mrmfeature,
                                      const PeptideType& pep,
@@ -507,8 +437,6 @@ private:
 
     // data
     OpenSwath::SpectrumAccessPtr ms1_map_;
-    bool scoring_profiling_enabled_ = false;
-    mutable OpenSwathScoringPhaseTiming scoring_profile_;
 
   };
 }
