@@ -42,6 +42,8 @@ namespace OpenMS
       UInt64 per_swath_overhead_bytes = 100ULL * 1024ULL * 1024ULL;
       /// User override for concurrent SWATHs; <= 0 enables memory-based planning.
       int max_concurrent_swaths = -1;
+      /// Number of scoring worker threads available; auto SWATH concurrency should not exceed this.
+      Size scoring_threads = 1;
       /// Smallest automatically selected scoring batch size.
       Size min_inner_batch_size = 2000;
       /// Largest automatically selected scoring batch size.

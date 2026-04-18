@@ -710,8 +710,15 @@ namespace OpenMS
       profile_total.window_mapping = elapsedProfileSeconds(profile_phase_start);
     }
 
+#ifdef _OPENMP
+    const Size scoring_threads = static_cast<Size>(std::max(1, omp_get_max_threads()));
+#else
+    const Size scoring_threads = 1;
+#endif
+
     OpenSwathWorkflowScheduler::Options scheduler_options;
     scheduler_options.max_concurrent_swaths = user_max_concurrent_swaths;
+    scheduler_options.scoring_threads = scoring_threads;
     if (osw_writer.isActive())
     {
       scheduler_options.osw_buffer_bytes = determineOSWWriteBufferBytes();
@@ -821,13 +828,8 @@ namespace OpenMS
         }
       }
 
-#ifdef _OPENMP
-      const Size scoring_threads = static_cast<Size>(std::max(1, omp_get_max_threads()));
       OPENMS_LOG_INFO << "Use SWATH wave scheduler with " << scoring_threads
                       << " scoring threads." << std::endl;
-#else
-      const Size scoring_threads = 1;
-#endif
 
       for (Size wave_index = 0; wave_index < swath_waves.size(); ++wave_index)
       {

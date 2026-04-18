@@ -88,6 +88,12 @@ namespace OpenMS
         max_concurrent_swaths,
         static_cast<Size>(options.max_concurrent_swaths));
     }
+    else
+    {
+      max_concurrent_swaths = std::min<Size>(
+        max_concurrent_swaths,
+        std::max<Size>(1, options.scoring_threads));
+    }
 
     estimate.max_concurrent_swaths = std::max<Size>(
       1,
