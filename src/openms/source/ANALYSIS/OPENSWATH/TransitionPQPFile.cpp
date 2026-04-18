@@ -35,8 +35,7 @@ namespace OpenMS
     {
       sqlite3_stmt* stmt = nullptr;
       SqliteConnector::prepareStatement(db, &stmt, "SELECT 1 FROM " + table_name + " LIMIT 1;");
-      sqlite3_step(stmt);
-      const bool has_rows = sqlite3_column_type(stmt, 0) != SQLITE_NULL;
+      const bool has_rows = sqlite3_step(stmt) == SQLITE_ROW;
       sqlite3_finalize(stmt);
       return has_rows;
     }
@@ -256,9 +255,9 @@ namespace OpenMS
     // Count transitions
     SqliteConnector::prepareStatement(db, &cntstmt, "SELECT COUNT(*) FROM TRANSITION;");
     sqlite3_step( cntstmt );
-    int num_transitions = sqlite3_column_int(cntstmt, 0);
+    const Size num_transitions = static_cast<Size>(sqlite3_column_int64(cntstmt, 0));
     sqlite3_finalize(cntstmt);
-    transition_list.reserve(static_cast<Size>(num_transitions));
+    transition_list.reserve(num_transitions);
 
     // Build SQL query using shared helper
     PQPSqlQueryInfo query_info = buildPQPSelectQuery_(db, legacy_traml_id);
@@ -340,9 +339,9 @@ namespace OpenMS
     // Count transitions
     SqliteConnector::prepareStatement(db, &cntstmt, "SELECT COUNT(*) FROM TRANSITION;");
     sqlite3_step( cntstmt );
-    int num_transitions = sqlite3_column_int(cntstmt, 0);
+    const Size num_transitions = static_cast<Size>(sqlite3_column_int64(cntstmt, 0));
     sqlite3_finalize(cntstmt);
-    exp.transitions.reserve(static_cast<Size>(num_transitions));
+    exp.transitions.reserve(num_transitions);
     if (SqliteConnector::tableExists(db, "PRECURSOR"))
     {
       const Size precursor_count = countRows_(db, "PRECURSOR");
