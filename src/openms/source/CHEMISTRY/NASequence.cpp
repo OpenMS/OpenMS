@@ -132,6 +132,139 @@ namespace OpenMS
     return NASequence({it, it + length}, five_prime, three_prime);
   }
 
+  NASequence NASequence::getReversed(bool keep_five_prime, bool keep_three_prime) const
+  {
+    if (seq_.size() <= 1)
+    {
+      return *this; // nothing to reverse
+    }
+
+    vector<const Ribonucleotide*> reversed_seq = seq_;
+
+    // Determine range to reverse (optionally preserving terminal nucleotides)
+    size_t start = keep_five_prime ? 1 : 0;
+    size_t end = keep_three_prime ? reversed_seq.size() - 1 : reversed_seq.size();
+
+    if (start < end)
+    {
+      reverse(reversed_seq.begin() + start, reversed_seq.begin() + end);
+    }
+
+    return NASequence(std::move(reversed_seq), five_prime_, three_prime_);
+  }
+
+  float NASequence::getSequenceIdentity(const NASequence& other) const
+  {
+    OPENMS_PRECONDITION(seq_.size() == other.seq_.size(),
+      "Cannot compare two NASequences of unequal length");
+
+    if (seq_.empty())
+    {
+      return 1.0f;
+    }
+
+    int matching = 0;
+    for (size_t i = 0; i < seq_.size(); ++i)
+    {
+      if (seq_[i] == other.seq_[i])
+      {
+        ++matching;
+      }
+    }
+    return static_cast<float>(matching) / static_cast<float>(seq_.size());
+  }
+
+  NASequence NASequence::getShuffled(Math::RandomShuffler& shuffler, double identity_threshold,
+                                     int max_attempts,
+                                     bool keep_five_prime, bool keep_three_prime) const
+  {
+    if (seq_.size() <= 2)
+    {
+      return *this; // too short to shuffle meaningfully
+    }
+
+    // The four standard unmodified ribonucleotides for mutation fallback
+    static RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
+    static const Ribonucleotide* standard_ribos[] = {
+      rdb->getRibonucleotide("A"),
+      rdb->getRibonucleotide("C"),
+      rdb->getRibonucleotide("G"),
+      rdb->getRibonucleotide("U")
+    };
+    constexpr int num_standard = 4;
+
+    // Determine which positions are free to shuffle
+    size_t start = keep_five_prime ? 1 : 0;
+    size_t end = keep_three_prime ? seq_.size() - 1 : seq_.size();
+
+    // Working copy of the sequence used for each shuffle attempt
+    vector<const Ribonucleotide*> shuffled_seq = seq_;
+
+    int attempts = 0;
+    NASequence shuffled_result(shuffled_seq, five_prime_, three_prime_);
+
+    while (getSequenceIdentity(shuffled_result) > identity_threshold && attempts < max_attempts)
+    {
+      shuffled_seq = seq_;
+
+      // Build index of shufflable positions
+      vector<size_t> free_indices;
+      for (size_t i = start; i < end; ++i)
+      {
+        free_indices.push_back(i);
+      }
+
+      // Fisher-Yates shuffle on the free positions
+      if (free_indices.size() > 1)
+      {
+        // Extract the elements at free positions
+        vector<const Ribonucleotide*> free_elements;
+        free_elements.reserve(free_indices.size());
+        for (size_t idx : free_indices)
+        {
+          free_elements.push_back(shuffled_seq[idx]);
+        }
+        shuffler.portable_random_shuffle(free_elements.begin(), free_elements.end());
+        // Put them back
+        for (size_t i = 0; i < free_indices.size(); ++i)
+        {
+          shuffled_seq[free_indices[i]] = free_elements[i];
+        }
+      }
+
+      shuffled_result = NASequence(shuffled_seq, five_prime_, three_prime_);
+      ++attempts;
+
+      // If we're stuck after all attempts, mutate individual nucleotides
+      if (getSequenceIdentity(shuffled_result) > identity_threshold && attempts >= max_attempts)
+      {
+        OPENMS_LOG_DEBUG << "[NASequence::getShuffled] Shuffling failed to reach identity threshold "
+                        << identity_threshold << " after " << max_attempts << " attempts for sequence '"
+                        << toString() << "' (current identity: " << getSequenceIdentity(shuffled_result)
+                        << "). Falling back to nucleotide mutation." << std::endl;
+        // Mutate positions where the current shuffled candidate still matches the original
+        for (size_t i = start; i < end; ++i)
+        {
+          if (shuffled_seq[i] == seq_[i]) // this shuffled position still matches original
+          {
+            // Pick a different standard nucleotide
+            for (int j = 0; j < num_standard; ++j)
+            {
+              if (standard_ribos[j] != seq_[i])
+              {
+                shuffled_seq[i] = standard_ribos[j];
+                break;
+              }
+            }
+          }
+        }
+        shuffled_result = NASequence(shuffled_seq, five_prime_, three_prime_);
+      }
+    }
+
+    return shuffled_result;
+  }
+
   EmpiricalFormula NASequence::getFormula(NASFragmentType type, Int charge) const
   {
     static const EmpiricalFormula H_form = EmpiricalFormula::hydrogen();

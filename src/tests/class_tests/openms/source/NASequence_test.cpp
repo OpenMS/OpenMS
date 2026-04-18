@@ -841,6 +841,116 @@ START_SECTION(([EXTRA] std::hash<NASequence>))
 }
 END_SECTION
 
+START_SECTION(NASequence getReversed(bool keep_five_prime, bool keep_three_prime) const)
+{
+  // Simple reversal
+  NASequence seq = NASequence::fromString("AUGCAUGC");
+  NASequence rev = seq.getReversed();
+  TEST_EQUAL(rev.toString(), "CGUACGUA")
+
+  // Keep 5' terminal nucleotide
+  NASequence rev_keep5 = seq.getReversed(true, false);
+  TEST_EQUAL(rev_keep5.toString(), "ACGUACGU")
+
+  // Keep 3' terminal nucleotide
+  NASequence rev_keep3 = seq.getReversed(false, true);
+  TEST_EQUAL(rev_keep3.toString(), "GUACGUAC")
+
+  // Keep both terminals
+  NASequence rev_keepboth = seq.getReversed(true, true);
+  TEST_EQUAL(rev_keepboth.toString(), "AGUACGUC")
+
+  // With 5' and 3' terminal modifications - they should be preserved automatically
+  NASequence seq_mods = NASequence::fromString("pAUGCp");
+  NASequence rev_mods = seq_mods.getReversed();
+  // Internal sequence reversed, terminal mods stay in position
+  TEST_EQUAL(rev_mods.toString(), "pCGUAp")
+
+  // With modifications and keep_terminal_nucleotides
+  NASequence rev_mods_keep = seq_mods.getReversed(true, true);
+  // A and C preserved at terminals, UG reversed to GU in middle
+  TEST_EQUAL(rev_mods_keep.toString(), "pAGUCp")
+
+  // Single nucleotide - nothing to reverse
+  NASequence single = NASequence::fromString("A");
+  NASequence single_rev = single.getReversed();
+  TEST_EQUAL(single_rev.toString(), "A")
+
+  // With modified ribonucleotide
+  NASequence seq_with_mod = NASequence::fromString("AUG[Um]C");
+  NASequence rev_with_mod = seq_with_mod.getReversed();
+  TEST_EQUAL(rev_with_mod.toString(), "C[Um]GUA")
+}
+END_SECTION
+
+START_SECTION(float getSequenceIdentity(const NASequence& other) const)
+{
+  NASequence seq1 = NASequence::fromString("AUGCAUGC");
+  NASequence seq2 = NASequence::fromString("AUGCAUGC");
+
+  // Identical sequences
+  TEST_REAL_SIMILAR(seq1.getSequenceIdentity(seq2), 1.0)
+
+  // Completely different
+  NASequence seq3 = NASequence::fromString("CUAGCUAG");
+  float identity = seq1.getSequenceIdentity(seq3);
+  TEST_EQUAL(identity < 1.0, true)
+
+  // Reversed sequence
+  NASequence rev = seq1.getReversed();
+  float rev_identity = seq1.getSequenceIdentity(rev);
+  TEST_EQUAL(rev_identity < 1.0, true)
+
+  // Empty sequences
+  NASequence empty1, empty2;
+  TEST_REAL_SIMILAR(empty1.getSequenceIdentity(empty2), 1.0)
+}
+END_SECTION
+
+START_SECTION(NASequence getShuffled(Math::RandomShuffler& shuffler, double identity_threshold, int max_attempts, bool keep_five_prime, bool keep_three_prime) const)
+{
+  // Basic shuffle should produce a different sequence
+  NASequence seq = NASequence::fromString("AUGCAUGCAUGCAUGC");
+  Math::RandomShuffler shuffler(42);
+  NASequence shuffled = seq.getShuffled(shuffler, 0.5, 30);
+  // Must not be identical
+  TEST_EQUAL(seq != shuffled, true)
+  // Must have same length
+  TEST_EQUAL(seq.size(), shuffled.size())
+  // Identity should be below threshold
+  TEST_EQUAL(seq.getSequenceIdentity(shuffled) <= 0.5, true)
+
+  // With keep_five_prime: first nucleotide preserved
+  Math::RandomShuffler shuffler2(42);
+  NASequence shuffled_keep5 = seq.getShuffled(shuffler2, 0.5, 30, true, false);
+  TEST_EQUAL(shuffled_keep5[0] == seq[0], true)
+
+  // With keep_three_prime: last nucleotide preserved
+  Math::RandomShuffler shuffler3(42);
+  NASequence shuffled_keep3 = seq.getShuffled(shuffler3, 0.5, 30, false, true);
+  TEST_EQUAL(shuffled_keep3[shuffled_keep3.size() - 1] == seq[seq.size() - 1], true)
+
+  // With keep both terminals
+  Math::RandomShuffler shuffler4(42);
+  NASequence shuffled_keepboth = seq.getShuffled(shuffler4, 0.5, 30, true, true);
+  TEST_EQUAL(shuffled_keepboth[0] == seq[0], true)
+  TEST_EQUAL(shuffled_keepboth[shuffled_keepboth.size() - 1] == seq[seq.size() - 1], true)
+
+  // Terminal modifications preserved
+  NASequence seq_mods = NASequence::fromString("pAUGCAUGCAUGCAUGCp");
+  Math::RandomShuffler shuffler5(42);
+  NASequence shuffled_mods = seq_mods.getShuffled(shuffler5, 0.5, 30);
+  TEST_EQUAL(shuffled_mods.hasFivePrimeMod(), true)
+  TEST_EQUAL(shuffled_mods.hasThreePrimeMod(), true)
+
+  // Short sequence (<=2) stays unchanged
+  NASequence short_seq = NASequence::fromString("AU");
+  Math::RandomShuffler shuffler6(42);
+  NASequence shuffled_short = short_seq.getShuffled(shuffler6, 0.5, 30);
+  TEST_EQUAL(short_seq == shuffled_short, true)
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

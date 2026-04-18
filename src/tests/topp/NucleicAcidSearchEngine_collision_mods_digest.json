@@ -81,12 +81,12 @@
     "ID_DBSearchParam": [
         {
             "charges": "-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2",
-            "database": "src/tests/topp/NucleicAcidSearchEngine_collision_mods.fasta",
+            "database": "/workspaces/OpenMS/src/tests/topp/NucleicAcidSearchEngine_collision_mods.fasta",
             "database_version": "",
             "digestion_enzyme": "RNase_T1",
             "enzyme_term_specificity": "unknown",
             "fixed_mods": "",
-            "fragment_mass_tolerance": 5,
+            "fragment_mass_tolerance": 5.0,
             "fragment_tolerance_ppm": 1,
             "id": 1,
             "mass_type_average": 0,
@@ -94,7 +94,7 @@
             "min_length": 1,
             "missed_cleavages": 22,
             "molecule_type_id": 3,
-            "precursor_mass_tolerance": 5,
+            "precursor_mass_tolerance": 5.0,
             "precursor_tolerance_ppm": 1,
             "taxonomy": "",
             "variable_mods": "m22G"
@@ -203,14 +203,6 @@
             "end_pos": 1,
             "left_neighbor": "G",
             "molecule_id": 1,
-            "parent_id": 1,
-            "right_neighbor": "]",
-            "start_pos": 1
-        },
-        {
-            "end_pos": 1,
-            "left_neighbor": "G",
-            "molecule_id": 1,
             "parent_id": 2,
             "right_neighbor": "]",
             "start_pos": 1
@@ -222,14 +214,6 @@
             "parent_id": 3,
             "right_neighbor": "]",
             "start_pos": 1
-        },
-        {
-            "end_pos": 0,
-            "left_neighbor": "[",
-            "molecule_id": 2,
-            "parent_id": 1,
-            "right_neighbor": "A",
-            "start_pos": 0
         },
         {
             "end_pos": 0,
@@ -299,7 +283,7 @@
     "ID_ParentSequence": [
         {
             "accession": "DECOY_collision",
-            "coverage": 0,
+            "coverage": 0.0,
             "description": "",
             "id": 1,
             "is_decoy": 1,
@@ -308,7 +292,7 @@
         },
         {
             "accession": "target_collision",
-            "coverage": 0,
+            "coverage": 0.0,
             "description": "",
             "id": 2,
             "is_decoy": 0,
@@ -317,7 +301,7 @@
         },
         {
             "accession": "target_sensitive",
-            "coverage": 0,
+            "coverage": 0.0,
             "description": "",
             "id": 3,
             "is_decoy": 0,
@@ -369,7 +353,7 @@
     ],
     "ID_ProcessingStep": [
         {
-            "date_time": "2026-03-17 17:34:00",
+            "date_time": "2026-04-14 09:46:10",
             "id": 1,
             "search_param_id": 1,
             "software_id": 1
@@ -396,9 +380,9 @@
     "version": [
         {
             "OMSFile": 5,
-            "OpenMS": "3.6.0-pre-add-bedrmod-2026-03-16",
-            "build_date": "Mar 17 2026, 17:33:24",
-            "date": "2026-03-17 17:34:00"
+            "OpenMS": "3.6.0-pre-add-bedrmod-2026-04-14",
+            "build_date": "Apr 14 2026, 09:41:46",
+            "date": "2026-04-14 09:46:10"
         }
     ]
 }
