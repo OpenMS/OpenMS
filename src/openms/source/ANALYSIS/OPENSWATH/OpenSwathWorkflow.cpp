@@ -468,6 +468,18 @@ namespace OpenMS
     OpenSwathWorkflowScheduler::Options scheduler_options;
     scheduler_options.max_concurrent_swaths = user_max_concurrent_swaths;
     scheduler_options.scoring_threads = scoring_threads;
+    const Size non_ms1_swath_count = std::count_if(swath_maps.begin(), swath_maps.end(),
+      [](const OpenSwath::SwathMap& swath_map)
+      {
+        return !swath_map.ms1;
+      });
+    if (non_ms1_swath_count > 0)
+    {
+      // Extracted chromatogram storage dominates memory for very large
+      // predicted libraries, so use transition density in the wave estimate.
+      scheduler_options.avg_transitions_per_swath =
+        (transition_exp.transitions.size() + non_ms1_swath_count - 1) / non_ms1_swath_count;
+    }
     if (osw_writer.isActive())
     {
       scheduler_options.osw_buffer_bytes = determineOSWWriteBufferBytes();
@@ -566,6 +578,8 @@ namespace OpenMS
                       << swath_concurrency_estimate.max_concurrent_swaths
                       << ", memory_budget=" << bytesToHumanReadable(swath_concurrency_estimate.memory_budget_bytes)
                       << ", avg_spectra=" << swath_concurrency_estimate.avg_spectra_per_swath
+                      << ", avg_transitions=" << scheduler_options.avg_transitions_per_swath
+                      << ", estimated_swath=" << bytesToHumanReadable(swath_concurrency_estimate.estimated_bytes_per_swath)
                       << "." << std::endl;
 
       for (Size swath_index = 0; swath_index < swath_maps.size(); ++swath_index)
