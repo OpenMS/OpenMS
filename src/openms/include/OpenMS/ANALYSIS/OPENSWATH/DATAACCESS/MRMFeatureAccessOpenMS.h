@@ -186,7 +186,7 @@ private:
   {
 public:
 
-    SignalToNoiseOpenMS(ContainerT& chromat,
+    SignalToNoiseOpenMS(const ContainerT& chromat,
                         double sn_win_len_, unsigned int sn_bin_count_, bool write_log_messages) :
       chromatogram_(chromat), sn_()
     {
