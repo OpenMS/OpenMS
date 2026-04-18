@@ -956,7 +956,12 @@ namespace OpenMS
       ts = tw->getScene();
     }
 
-    QList<QAction*> actions = this->findChildren<QAction*>("");
+    // Pass a null (default) QString so Qt6 returns ALL QAction children
+    // regardless of object name.  An empty-string literal "" matches only
+    // children whose objectName() is empty, and in Qt6 the name-based tree
+    // traversal with "" can recurse infinitely when the object hierarchy is
+    // in a partially-destroyed state.
+    QList<QAction*> actions = this->findChildren<QAction*>();
     for (int i = 0; i < actions.count(); ++i)
     {
       QString text = actions[i]->text();

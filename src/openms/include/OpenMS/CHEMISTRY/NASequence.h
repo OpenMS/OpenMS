@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <functional>
 #include <iosfwd>
 #include <vector>
@@ -472,6 +473,61 @@ namespace OpenMS
      * @return NASequence
      */
     NASequence getSubsequence(Size start = 0, Size length = Size(-1)) const;
+
+    /**
+       @brief Return a reversed copy of this sequence
+
+       Reverses the internal ribonucleotide sequence while preserving 5' and 3'
+       terminal modifications in their original positions.
+
+       @param[in] keep_five_prime If true, preserve the first (5') nucleotide position
+       @param[in] keep_three_prime If true, preserve the last (3') nucleotide position
+
+       @return NASequence with reversed internal sequence
+
+       @note Terminal modifications (5' and 3' chain ends) are always preserved.
+             The keep parameters control whether the first/last nucleotides in the
+             internal sequence are kept in place (useful for maintaining RNase
+             cleavage site characteristics in decoy generation).
+    */
+    NASequence getReversed(bool keep_five_prime = false, bool keep_three_prime = false) const;
+
+    /**
+       @brief Return a shuffled copy of this sequence with identity quality control
+
+       Shuffles the internal ribonucleotide sequence while optionally preserving
+       terminal nucleotides. Repeatedly attempts shuffling until the sequence identity
+       with the original falls below the threshold or max_attempts is reached.
+       If max_attempts is exhausted, individual nucleotides are mutated to force
+       a different sequence.
+
+       @param[in] shuffler Random shuffler to use (seeded externally for reproducibility)
+       @param[in] identity_threshold Maximum allowed sequence identity with original (0.0-1.0)
+       @param[in] max_attempts Maximum number of shuffle attempts before mutating
+       @param[in] keep_five_prime If true, preserve the first (5') nucleotide position
+       @param[in] keep_three_prime If true, preserve the last (3') nucleotide position
+
+       @return NASequence with shuffled internal sequence
+
+       @note Terminal modifications (5' and 3' chain ends) are always preserved.
+    */
+    NASequence getShuffled(Math::RandomShuffler& shuffler, double identity_threshold = 0.5,
+                           int max_attempts = 30,
+                           bool keep_five_prime = false, bool keep_three_prime = false) const;
+
+    /**
+       @brief Calculate sequence identity between this and another NASequence
+
+       Compares ribonucleotide codes position-by-position. Only considers the internal
+       sequence (ignores 5' and 3' terminal modifications).
+
+       @param[in] other Sequence to compare against
+
+       @return Sequence identity as a fraction (0.0-1.0), where 1.0 means identical
+
+       @pre Both sequences must have the same length (asserted).
+    */
+    float getSequenceIdentity(const NASequence& other) const;
 
     /**
        @brief create NASequence object by parsing an OpenMS string

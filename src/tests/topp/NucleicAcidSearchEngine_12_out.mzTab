@@ -14,4 +14,4 @@ OLH	sequence	accession	unique	search_engine	modifications	retention_time	retenti
 OLI	UGAGGUAGUAGGUUGUAUAG[Um]	dme-let-7-5p-methyl	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	21
 
 OSH	sequence	search_engine	search_engine_score[1]	search_engine_score[2]	modifications	retention_time	charge	exp_mass_to_charge	calc_mass_to_charge	spectra_ref	opt_isotope_offset
-OSM	UGAGGUAGUAGGUUGUAUAG[Um]	[, , NucleicAcidSearchEngine, test]	201.134726834601935	0.0	null	2553.394859999999881	-8	850.104797363281023	849.730776882916871	ms_run[1]:controllerType=0 controllerNumber=1 scan=7444	3
+OSM	UGAGGUAGUAGGUUGUAUAG[Um]	[, , NucleicAcidSearchEngine, test]	260.713559609816059	0.0	null	2553.394859999999881	-8	850.104797363281023	849.730776882916871	ms_run[1]:controllerType=0 controllerNumber=1 scan=7444	3

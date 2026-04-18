@@ -2878,6 +2878,14 @@ set_tests_properties("TOPP_DecoyDatabase_8_out" PROPERTIES DEPENDS "TOPP_DecoyDa
 # ... test that shuffle_decoy_ratio with reverse method fails
 add_test("TOPP_DecoyDatabase_9" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_9.tmp.fasta -method reverse -shuffle_decoy_ratio 2)
 set_tests_properties("TOPP_DecoyDatabase_9" PROPERTIES WILL_FAIL 1)
+# ... RNA reverse with keep_terminal_nucleotides
+add_test("TOPP_DecoyDatabase_10" ${TOPP_BIN_PATH}/DecoyDatabase -test -type RNA -in ${DATA_DIR_TOPP}/DecoyDatabase_4.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_10.tmp.fasta -decoy_string "DECOY_SEQ_" -decoy_string_position "prefix" -method reverse -seed 42 -keep_terminal_nucleotides)
+add_test("TOPP_DecoyDatabase_10_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DecoyDatabase_10.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_10_out.fasta )
+set_tests_properties("TOPP_DecoyDatabase_10_out" PROPERTIES DEPENDS "TOPP_DecoyDatabase_10")
+# ... RNA reverse with RNase_T1 digestion
+add_test("TOPP_DecoyDatabase_11" ${TOPP_BIN_PATH}/DecoyDatabase -test -type RNA -in ${DATA_DIR_TOPP}/DecoyDatabase_4.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_11.tmp.fasta -decoy_string "DECOY_SEQ_" -decoy_string_position "prefix" -method reverse -seed 42 -rnase RNase_T1)
+add_test("TOPP_DecoyDatabase_11_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DecoyDatabase_11.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_11_out.fasta )
+set_tests_properties("TOPP_DecoyDatabase_11_out" PROPERTIES DEPENDS "TOPP_DecoyDatabase_11")
 
 
 # SimpleSearchEngine:
@@ -3680,12 +3688,17 @@ add_test("TOPP_NucleicAcidSearchEngine_3" ${TOPP_BIN_PATH}/NucleicAcidSearchEngi
          -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_32_out.tmp.mzTab
          -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_31_out.tmp.idXML
          -db_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_33_out.tmp.oms
+         -bedrmod_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_34_out.tmp.bed
          -digest_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_3_digest.tmp.oms
          -fdr:decoy_pattern DECOY_
          -oligo:enzyme RNase_T1
          -oligo:min_size 1
          -modifications:variable m22G
          -modifications:variable_max_per_oligo 1)
+add_test("TOPP_NucleicAcidSearchEngine_34_out" ${DIFF}
+         -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_34_out.tmp.bed
+         -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_34_out.bed)
+set_tests_properties("TOPP_NucleicAcidSearchEngine_34_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_3")
 add_test("TOPP_NucleicAcidSearchEngine_3_json" ${TOPP_BIN_PATH}/JSONExporter
          -test
          -in ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_3_digest.tmp.oms

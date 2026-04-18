@@ -961,6 +961,10 @@ protected:
     IdentificationData::InputFileRef file_ref = id_data.getInputFiles().begin();
     IdentificationData::ScoreTypeRef score_ref =
       id_data.getScoreTypes().begin();
+    // Get q-value ref so we can initialise it to -1 per match (sentinel for
+    // "FDR not yet calculated"). BedRModFile uses >= 0 to detect real q-values.
+    IdentificationData::ScoreTypeRef qvalue_ref =
+      id_data.findScoreType("PSM-level q-value");
 
 // @TODO: change OpenMP schedule from default ("static") to "dynamic"/"guided"?
 #pragma omp parallel for
@@ -1003,6 +1007,11 @@ protected:
         if ((charge > 0) && negative_mode) charge = -charge;
         IdentificationData::ObservationMatch match(oligo_ref, obs_ref, charge);
         match.addScore(score_ref, score, id_data.getCurrentProcessingStep());
+        // Initialise q-value to -1 so BedRModFile can detect "FDR not run"
+        if (qvalue_ref != id_data.getScoreTypes().end())
+        {
+          match.addScore(qvalue_ref, -1.0, id_data.getCurrentProcessingStep());
+        }
         match.peak_annotations[id_data.getCurrentProcessingStep()] =
           hit.annotations;
         // @TODO: add a field for this to "IdentificationData::ObservationMatch"?

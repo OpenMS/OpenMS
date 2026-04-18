@@ -237,8 +237,8 @@ namespace OpenMS
                           const String& chebi_mapping_file) const
   {
     const auto chebi_mapping = readChebiMapping_(chebi_mapping_file);
-    const auto hyperscore_ref = id_data.findScoreType("hyperscore");
     const auto& score_types = id_data.getScoreTypes();
+    const auto qvalue_ref = id_data.findScoreType("PSM-level q-value");
 
     std::vector<BedRow> rows;
     std::set<String> missing_mods;
@@ -261,7 +261,23 @@ namespace OpenMS
         continue;
       }
 
-      const double score = getScore_(match, hyperscore_ref, score_types);
+      // Only output matches for which a q-value has been determined (i.e. FDR
+      // was run). The sentinel value -1 means "FDR not yet calculated"; skip
+      // those matches entirely rather than falling back to the raw hyperscore,
+      // which would mix apples and oranges in the score column.
+      double score = std::numeric_limits<double>::quiet_NaN();
+      if (qvalue_ref != score_types.end())
+      {
+        auto [qval, found] = match.getScore(qvalue_ref);
+        if (found && std::isfinite(qval) && qval >= 0.0)
+        {
+          score = qval;
+        }
+      }
+      if (std::isnan(score))
+      {
+        continue; // no valid q-value — skip this match
+      }
       const Int coverage = getCoverage_(match.observation_ref);
       const bool unique_mapping = (countParentMatches_(oligo.parent_matches) == 1);
 
