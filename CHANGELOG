@@ -69,6 +69,7 @@ TOPP tools:
     CometAdapter:
       - Merges compatible variable modifications for improved search performance (3x+ speedup) (#8407)
       - Added Bruker TimsTOF .d DDA-PASEF input support; .d directories are converted to mzML on-the-fly via BrukerTimsFile before search; requires WITH_TIMSRUST=ON (#9126)
+      - Fix: Bruker native-ID rewrite (index=N workaround for Comet's mzParser) now also applied when the input is an mzML file previously converted from a .d directory; detects "frame=" in spectrum native IDs and rewrites them to monotonic index=N before handing to Comet (#9168)
     ProSE:
       - BREAKING: renamed from PeptideDataBaseSearchFI to ProSE; the old executable name is no longer available (#9137)
       - BREAKING: precursor tolerance schema changed to asymmetric positive-magnitude pair (#9108, #9132)
@@ -93,6 +94,11 @@ TOPP tools:
       - Runtime search diagnostics: after every search a summary (matched spectra count, MS2 ID rate, unique peptides/proteins, missed cleavage distribution) and per-run tolerance estimation (median ± MAD of precursor/fragment errors with recommended tolerances) are logged (#9121)
       - Automatic mass accuracy calibration (two-pass search): optional Search:calibration:enabled parameter runs a fast first-pass search on a subset of spectra (default: top 10% by TIC) to estimate tighter precursor and fragment tolerances; tolerances are applied without rebuilding the index (#9122)
       - Protein-level FDR: new FDR:protein parameter applies picked-protein FDR (Savitski 2015) after PSM-level FDR using BasicProteinInferenceAlgorithm for score aggregation; supported in both single-file and multi-file search modes (#9123)
+      - New -out_pin parameter writes Percolator input (.pin/.tsv) files for external rescoring without requiring a -percolator_executable; works independently and in parallel with -out_idxml/-out_qpx/-out_parquet (#9166)
+      - Fix: ions:add_a/b/c/x/y/z_ions parameters now correctly forwarded to TheoreticalSpectrumGenerator in the scoring path; previously the fragment index and scorer were inconsistent (e.g. c/z ions were indexed but not scored), breaking ETD/EThcD searches (#9167)
+      - BREAKING: PSM annotation UserParams matched_b_ions/matched_y_ions renamed to matched_prefix_ions/matched_suffix_ions to reflect that all a/b/c and x/y/z ion series are counted, not just b/y; delta_score (best minus second-best PSM score per spectrum) and matched_ion_current (sum of matched peak intensities) added to PSM annotations and Percolator features; Fix: HyperScore factorial boost now counts all prefix/suffix ions (not just b/y), improving ETD/EThcD scoring (#9175)
+      - Database chunking for large FASTA inputs: new -Search:database:chunk_size parameter (default 0 = disabled) splits the protein database into chunks, each building its own FragmentIndex and scoring all spectra, then accumulating hits before a single FDR pass; designed for MHC-II immunopeptidomics and variant-heavy searches where the full index exceeds available memory; calibration is skipped in chunked mode (#9177)
+      - Fix: precursor_mz_error_ppm Percolator feature now subtracts the matched isotope offset; SpectrumAlignment for fragment-error Percolator features now runs at the actual fragment tolerance instead of the 0.3 Da default; calibration pass switched from median ± 3×MAD to 0.5%/99.5% empirical quantiles for more robust tolerance estimation (#9177)
     SimpleSearchEngine:
       - Added peptide:enzyme_specificity parameter (full/semi/none) to enable semi-tryptic and non-specific searches (#9112)
       - New annotate:PSM options: num_matched_peaks, matched_b_ions, matched_y_ions, longest_peptide_ion_sequence, fragment_annotation (#9117)
