@@ -331,7 +331,9 @@ protected:
     setMinInt_("batchSize", 0);
     registerIntOption_("innerBatchSize", "<number>", -1, "Inner batch size for scoring (<=0 enables auto compute based on input and memory)", false, true);
     setMinInt_("innerBatchSize", -1);
-    registerIntOption_("maxConcurrentSwaths", "<number>", -1, "Maximum concurrent SWATHs to keep in memory (-1 auto compute based on free memory)", false, true);
+    registerIntOption_("maxConcurrentSwaths", "<number>", -1,
+                       "Maximum concurrent SWATHs to keep in memory (-1 auto compute based on free memory and transition density)",
+                       false, true);
     setMinInt_("maxConcurrentSwaths", -1);
     registerIntOption_("outer_loop_threads", "<number>", -1, "How many threads should be used for the outer loop (-1 use all threads, use 4 to analyze 4 SWATH windows in memory at once).", false, true);
 
@@ -986,9 +988,10 @@ protected:
     ///////////////////////////////////
 
     // Set up shared output objects that persist across files
-    FeatureMap out_featureFile;  // accumulates features across all files
+    FeatureMap out_featureFile;  // only featureXML output accumulates features across files
     const bool write_osw = (out_features_type == FileTypes::OSW);
     const bool write_parquet = (out_features_type == FileTypes::OSWPQ);
+    const bool write_featurexml = (out_features_type == FileTypes::FEATUREXML);
     String osw_out_filename = write_osw ? out_features : "";
     OpenSwathOSWWriter oswwriter(osw_out_filename, enable_uis_scoring);
 
@@ -1353,14 +1356,22 @@ protected:
     }
 
     FeatureMap run_featureFile;
-    FeatureMap& active_feature_map = write_parquet ? run_featureFile : out_featureFile;
+    FeatureMap& active_feature_map = write_featurexml ? out_featureFile : run_featureFile;
+    const bool store_features_in_feature_file = write_featurexml || write_parquet;
 
-    OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
-    wf.setLogType(log_type_);
+    {
+      OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
+      wf.setLogType(log_type_);
 
-    // perform extraction for this file's swath maps
-    wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run, transition_exp,
-         active_feature_map, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param, mobilogramConsumer.get(), innerBatchSize, maxConcurrentSwaths);
+      // OSW output is streamed by the writer during extraction. Avoid retaining
+      // the same peak groups in a FeatureMap across runs.
+      wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run, transition_exp,
+           active_feature_map, store_features_in_feature_file, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes,
+           load_into_memory, mrm_map_param, mobilogramConsumer.get(), innerBatchSize, maxConcurrentSwaths);
+    }
+
+    swath_maps.clear();
+    swath_maps.shrink_to_fit();
 
     if (mobilogramConsumer)
     {
