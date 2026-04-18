@@ -15,6 +15,7 @@
 #include <boost/range/algorithm.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
 
+#include <algorithm>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
@@ -31,6 +32,14 @@ namespace OpenMS
 
   namespace
   {
+    constexpr Size default_transitions_per_precursor = 6;
+    constexpr Size max_protein_reserve = 100000;
+
+    Size estimatePrecursorCountFromTransitions_(Size num_transitions)
+    {
+      return num_transitions / default_transitions_per_precursor + 1;
+    }
+
     bool tableHasRows_(sqlite3* db, const String& table_name)
     {
       sqlite3_stmt* stmt = nullptr;
@@ -40,18 +49,13 @@ namespace OpenMS
       return has_rows;
     }
 
-    Size countRows_(sqlite3* db, const String& table_name)
-    {
-      sqlite3_stmt* stmt = nullptr;
-      SqliteConnector::prepareStatement(db, &stmt, "SELECT COUNT(*) FROM " + table_name + ";");
-      sqlite3_step(stmt);
-      const Size rows = static_cast<Size>(sqlite3_column_int64(stmt, 0));
-      sqlite3_finalize(stmt);
-      return rows;
-    }
-
     void configurePQPReadConnection_(sqlite3* db)
     {
+      // Large PQP libraries are streamed once from a read-only connection. A bounded
+      // SQLite page cache and mmap window reduce cold-cache wall time without
+      // materializing the database or changing file contents.
+      SqliteConnector::executeStatement(db, "PRAGMA cache_size = -524288;");
+      SqliteConnector::executeStatement(db, "PRAGMA mmap_size = 8589934592;");
       SqliteConnector::executeStatement(db, "PRAGMA query_only = ON;");
 #ifdef _OPENMP
       int sqlite_threads = omp_get_max_threads();
@@ -94,14 +98,9 @@ namespace OpenMS
     info.gene_exists = SqliteConnector::tableExists(db, "GENE");
     if (info.gene_exists)
     {
-      // Check if the GENE table actually has any data (issue #8687)
-      // An empty GENE table with INNER JOIN would return zero rows
-      sqlite3_stmt* gene_count_stmt;
-      SqliteConnector::prepareStatement(db, &gene_count_stmt, "SELECT COUNT(*) FROM GENE;");
-      sqlite3_step(gene_count_stmt);
-      int gene_count = sqlite3_column_int(gene_count_stmt, 0);
-      sqlite3_finalize(gene_count_stmt);
-      info.gene_exists = (gene_count > 0);
+      // Check if the GENE table actually has any data (issue #8687).
+      // An empty GENE table with INNER JOIN would return zero rows.
+      info.gene_exists = tableHasRows_(db, "GENE");
     }
     if (info.gene_exists)
     {
@@ -342,17 +341,21 @@ namespace OpenMS
     const Size num_transitions = static_cast<Size>(sqlite3_column_int64(cntstmt, 0));
     sqlite3_finalize(cntstmt);
     exp.transitions.reserve(num_transitions);
+
+    // Avoid full PRECURSOR/PROTEIN scans just for reserve sizes. The main
+    // streaming query will read those tables once; reserve from the transition
+    // count keeps allocation churn low without extra cold-cache I/O.
+    const Size estimated_precursor_count = estimatePrecursorCountFromTransitions_(num_transitions);
     if (SqliteConnector::tableExists(db, "PRECURSOR"))
     {
-      const Size precursor_count = countRows_(db, "PRECURSOR");
-      exp.compounds.reserve(precursor_count);
-      compound_seen.reserve(precursor_count);
+      exp.compounds.reserve(estimated_precursor_count);
+      compound_seen.reserve(estimated_precursor_count);
     }
     if (SqliteConnector::tableExists(db, "PROTEIN"))
     {
-      const Size protein_count = countRows_(db, "PROTEIN");
-      exp.proteins.reserve(protein_count);
-      protein_seen.reserve(protein_count);
+      const Size estimated_protein_count = std::min(estimated_precursor_count, max_protein_reserve);
+      exp.proteins.reserve(estimated_protein_count);
+      protein_seen.reserve(estimated_protein_count);
     }
 
     // Build SQL query using shared helper
