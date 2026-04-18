@@ -356,34 +356,58 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// @brief filter, deisotope, decharge spectra
     static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm);
 
-    /// Build a decoy-augmented copy of the input FASTA (no FragmentIndex).
-    /// Used by prepareContext() and the chunked search path.
+    /**
+     * @brief Build a decoy-augmented copy of the input FASTA.
+     *
+     * Used by prepareContext() and the chunked search path. Produces FASTA
+     * entries only — does not construct a FragmentIndex. If decoys_ is false
+     * the input is returned unchanged.
+     */
     std::vector<FASTAFile::FASTAEntry> buildDecoyAugmentedDB_(
         const std::vector<FASTAFile::FASTAEntry>& fasta_db) const;
 
-    /// Build a strided sample of the (already-decoy-augmented) full DB for
-    /// calibration. Sample size is tied to database_chunk_size_ so the
-    /// calibration FI never exceeds the user's declared memory budget. Crucial
-    /// for immunopeptidomics (non-specific digestion) where a fixed-size
-    /// 5000-protein sample would generate tens of GB of fragment index.
-    /// Strided rather than first-N so small chunk_size values don't starve
-    /// the calibration pool (#9182). Note: very small chunk_size may still
-    /// produce a calibration pool below calibration_min_psms_; calibration
-    /// then no-ops silently (follow-up issue: pool PSMs across first-K chunks).
+    /**
+     * @brief Build a strided protein sample for chunked calibration.
+     *
+     * Sample size is tied to database_chunk_size_ so the calibration FI never
+     * exceeds the user's declared memory budget. Crucial for immunopeptidomics
+     * (non-specific digestion) where a fixed-size 5000-protein sample would
+     * generate tens of GB of fragment index. Strided rather than first-N so
+     * small chunk_size values don't starve the calibration pool (#9182).
+     *
+     * Note: very small chunk_size may still produce a calibration pool below
+     * calibration_min_psms_; calibration then no-ops silently (follow-up
+     * issue: pool PSMs across first-K chunks of the main search loop).
+     */
     std::vector<FASTAFile::FASTAEntry> buildCalibrationSample_(
         const std::vector<FASTAFile::FASTAEntry>& full_db) const;
 
-    /// Chunked search: score spectra against chunks of a pre-built full_db.
-    /// full_db must already contain decoys if decoys_ is true. Takes non-const
-    /// ref because PeptideIndexing::run() requires it.
+    /**
+     * @brief Chunked database search implementation.
+     *
+     * Splits full_db into chunks of database_chunk_size_ proteins, builds a
+     * FragmentIndex per chunk, scores all spectra against each chunk, and
+     * accumulates hits before a single post-processing pass. full_db must
+     * already contain decoys if decoys_ is true. Taken by non-const reference
+     * because PeptideIndexing::run() mutates it.
+     *
+     * @return EXECUTION_OK on success; INPUT_FILE_EMPTY / UNEXPECTED_RESULT /
+     *         UNKNOWN_ERROR on PeptideIndexing failure.
+     */
     ExitCodes searchChunked_(
         PeakMap& spectra,
         std::vector<FASTAFile::FASTAEntry>& full_db,
         std::vector<ProteinIdentification>& protein_ids,
         PeptideIdentificationList& peptide_ids) const;
 
-    /// Score all spectra against a FragmentIndex, appending hits to annotated_hits.
-    /// Shared by both the non-chunked and chunked search paths.
+    /**
+     * @brief Score all spectra against one FragmentIndex.
+     *
+     * Shared by the non-chunked and chunked search paths. Appends per-scan
+     * AnnotatedHit_ entries to annotated_hits; does not prune or sort. Expects
+     * a pre-built FragmentIndex whose parameters already reflect any
+     * calibrated tolerances the caller wants to apply.
+     */
     void scoreSpectraAgainstIndex_(
         const PeakMap& spectra,
         FragmentIndex& fi,

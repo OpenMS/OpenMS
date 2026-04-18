@@ -217,9 +217,11 @@ namespace OpenMS
       "building. 0 = disabled (load entire database at once). Enable for very large databases "
       "(e.g. MHC-II immunopeptidomics with variants) that exceed available memory. Each chunk "
       "builds its own fragment index; results are merged across chunks before post-processing. "
-      "Calibration (when enabled) runs on the first chunk only. In multi-file mode "
-      "(-in a.mzML b.mzML), the chunk-major path builds each chunk's fragment index once and "
-      "scores all files against it before moving to the next chunk.");
+      "Calibration (when enabled) runs on a strided, size-bounded sample of the full "
+      "decoy-augmented database — sample size is tied to chunk_size so calibration memory "
+      "respects the same budget as main-search chunks. In multi-file mode (-in a.mzML b.mzML), "
+      "the chunk-major path builds each chunk's fragment index once and scores all files "
+      "against it before moving to the next chunk.");
     defaults_.setMinInt("database:chunk_size", 0);
 
     defaults_.setSectionDescription("calibration",
@@ -546,6 +548,12 @@ namespace OpenMS
             std::vector<PeptideHit::PeakAnnotation> peak_annotations;
             std::vector<int> prefix_ordinals, suffix_ordinals;
             double matched_ion_current = 0.0;
+            // Dedup guard for MIC: in ppm-alignment mode a single experimental
+            // peak can match multiple theoretical peaks (e.g. b-ion and near
+            // isotope), so we must sum each exp_idx at most once. Sized only
+            // when MIC is actually requested.
+            std::vector<char> counted_exp_peaks(
+                annotation_matched_ion_current ? spec.size() : 0, 0);
             peak_annotations.reserve(alignment.size());
 
             for (const auto& [theo_idx, exp_idx] : alignment)
@@ -560,13 +568,10 @@ namespace OpenMS
                 peak_annotations.push_back(pa);
               }
 
-              if (annotation_matched_ion_current)
+              if (annotation_matched_ion_current && !counted_exp_peaks[exp_idx])
               {
-                // Safe: SpectrumAlignment's default Da path returns 1-to-1
-                // matches, so each exp_idx appears at most once. If ppm mode
-                // ever gets enabled here, one exp peak could match multiple
-                // theo peaks and this would double-count — revisit then.
                 matched_ion_current += spec[exp_idx].getIntensity();
+                counted_exp_peaks[exp_idx] = 1;
               }
 
               if (annotation_longest_ion_run && ion_names[theo_idx].size() >= 2)
@@ -925,15 +930,32 @@ namespace OpenMS
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
-    // Non-chunked path: single context (existing behavior).
-    if (database_chunk_size_ == 0 || fasta_db.size() <= database_chunk_size_)
+    // Chunking disabled → take the existing single-context path (decoys built
+    // lazily by prepareContext).
+    if (database_chunk_size_ == 0)
     {
       SearchContext ctx = prepareContext(fasta_db);
       return search(spectra, ctx, protein_ids, peptide_ids);
     }
 
-    // Chunked path: build decoy-augmented DB once, then delegate.
+    // Chunking configured: build the decoy-augmented DB once up-front, then
+    // decide based on the AUGMENTED size. If the target DB is 3000 proteins
+    // and chunk_size is 5000 with decoys enabled, the augmented DB (6000)
+    // still exceeds chunk_size — decide-before-augment would have skipped
+    // chunking and built a full FI 2× the user's declared memory budget.
     auto full_db = buildDecoyAugmentedDB_(fasta_db);
+    if (full_db.size() <= database_chunk_size_)
+    {
+      // Augmented DB fits in one chunk — use the single-context path but skip
+      // prepareContext's internal decoy re-generation by building ctx inline.
+      SearchContext ctx;
+      ctx.db = std::move(full_db);
+      startProgress(0, 1, "Building fragment index...");
+      ctx.fragment_index.setParameters(getParameters());
+      ctx.fragment_index.build(ctx.db);
+      endProgress();
+      return search(spectra, ctx, protein_ids, peptide_ids);
+    }
     return searchChunked_(spectra, full_db, protein_ids, peptide_ids);
   }
 
@@ -1576,7 +1598,17 @@ namespace OpenMS
       return mfres;
     }
 
-    const bool use_chunked = (database_chunk_size_ > 0 && fasta_db.size() > database_chunk_size_);
+    // Decide chunking on the decoy-augmented DB size (#9180): if decoys_ doubles
+    // the target DB, a 3000-protein target against chunk_size=5000 should still
+    // chunk because the augmented DB is 6000 — otherwise the resulting FI would
+    // exceed the user's memory budget by 2×.
+    std::vector<FASTAFile::FASTAEntry> full_db;
+    bool use_chunked = false;
+    if (database_chunk_size_ > 0)
+    {
+      full_db = buildDecoyAugmentedDB_(fasta_db);
+      use_chunked = (full_db.size() > database_chunk_size_);
+    }
 
     if (use_chunked)
     {
@@ -1585,7 +1617,7 @@ namespace OpenMS
       // FragmentIndex ONCE and score ALL files against it before moving
       // to the next chunk. This gives C FI builds instead of N×C.
       // ================================================================
-      auto full_db = buildDecoyAugmentedDB_(fasta_db);
+      // full_db already built above.
       const bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
       const bool open_search_mode = isOpenSearchMode_();
 
@@ -1805,7 +1837,23 @@ namespace OpenMS
                           EnzymaticDigestion::NamesOfSpecificity[peptide_enzyme_specificity_]);
         param_pi.setValue("missing_decoy_action", "silent");
         indexer.setParameters(param_pi);
-        indexer.run(full_db, result.protein_ids, result.peptide_ids);
+        PeptideIndexing::ExitCodes indexer_exit =
+            indexer.run(full_db, result.protein_ids, result.peptide_ids);
+        if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
+            (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
+        {
+          OPENMS_LOG_WARN << "[ProSE] PeptideIndexing failed for " << in_spectra
+                          << " (exit code " << static_cast<int>(indexer_exit)
+                          << "). Skipping this file." << std::endl;
+          if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY)
+            result.exit_code = ExitCodes::INPUT_FILE_EMPTY;
+          else if (indexer_exit == PeptideIndexing::ExitCodes::UNEXPECTED_RESULT)
+            result.exit_code = ExitCodes::UNEXPECTED_RESULT;
+          else
+            result.exit_code = ExitCodes::UNKNOWN_ERROR;
+          mfres.per_file.push_back(std::move(result));
+          continue;
+        }
 
         // PSM-level FDR only (matching non-chunked search semantics).
         bool has_decoys = std::any_of(full_db.begin(), full_db.end(),
@@ -1849,7 +1897,22 @@ namespace OpenMS
       // ================================================================
       // Non-chunked multi-file: shared SearchContext (existing path).
       // ================================================================
-      SearchContext ctx = prepareContext(fasta_db);
+      SearchContext ctx;
+      if (!full_db.empty())
+      {
+        // chunk_size was set but augmented DB fits in one chunk — reuse the
+        // already-built decoy-augmented DB instead of re-augmenting inside
+        // prepareContext.
+        ctx.db = std::move(full_db);
+        startProgress(0, 1, "Building fragment index...");
+        ctx.fragment_index.setParameters(getParameters());
+        ctx.fragment_index.build(ctx.db);
+        endProgress();
+      }
+      else
+      {
+        ctx = prepareContext(fasta_db);
+      }
 
       mfres.per_file.reserve(in_spectra_files.size());
 
@@ -2333,13 +2396,18 @@ namespace OpenMS
     // "Extreme" guards the degenerate case where the signed-error distribution
     // has essentially zero spread — e.g. a pure uniform shift fixture or a
     // single-peptide corner case — and the quantile bounds can't usefully inform
-    // a calibrated window. In that case the precursor calibration is discarded;
-    // fragment calibration still applies. A distribution strictly on one side of
-    // zero is NOT extreme by this definition: we emit a legal half-line window
-    // (cal_upper or cal_lower clamped to min_tolerance). Threshold kept at 1 ppm
-    // so realistic proteomics-scale fixtures never trip it.
-    const double extreme_bias_threshold_ppm = 1.0;
-    result.extreme_bias = (hi - lo) < extreme_bias_threshold_ppm;
+    // a calibrated window. Precursor calibration is then discarded; fragment
+    // calibration still applies. A distribution strictly on one side of zero is
+    // NOT extreme by this definition: we emit a legal half-line window
+    // (cal_upper or cal_lower clamped to min_tolerance).
+    //
+    // Unit-aware threshold: 1 ppm is the right floor for ppm tolerances —
+    // realistic proteomics-scale fixtures never trip it. In Da mode, 1.0 Da
+    // would flag every realistic calibration (spreads are <0.05 Da), so fall
+    // back to min_tolerance.
+    const double extreme_bias_threshold =
+        (precursor_mass_tolerance_unit_ == "ppm") ? 1.0 : min_tolerance;
+    result.extreme_bias = (hi - lo) < extreme_bias_threshold;
     result.precursor_spread = std::max(cal_lower_raw, cal_upper_raw);  // diagnostic only
     if (!result.extreme_bias)
     {
