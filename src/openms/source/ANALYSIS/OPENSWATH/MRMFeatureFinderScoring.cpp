@@ -624,11 +624,7 @@ namespace OpenMS
     auto& mrmfeatures = transition_group_detection.getFeaturesMuteable();
     const bool defer_feature_output = has_feature_report_limit &&
       static_cast<Size>(stop_report_after_feature_) < mrmfeatures.size();
-    if (defer_feature_output)
-    {
-      scored_feature_indices.reserve(mrmfeatures.size());
-    }
-    else
+    if (!defer_feature_output)
     {
       feature_list.reserve(mrmfeatures.size());
     }
@@ -670,248 +666,296 @@ namespace OpenMS
     #ifdef _OPENMP
     int in_parallel = omp_in_parallel();
     #endif
-    #pragma omp parallel for if (in_parallel == 0)
-    for (SignedSize feature_idx = 0; feature_idx < (SignedSize) mrmfeatures.size(); ++feature_idx)
+    Size scoring_thread_count = 1;
+    #ifdef _OPENMP
+    if (in_parallel == 0)
     {
-      OpenSwathScoringPhaseTiming feature_profile;
-      auto& mrmfeature = mrmfeatures[feature_idx];
-      mrmfeature.ensureUniqueId();
-      std::optional<MRMFeatureOpenMS> imrmfeature_storage;
-      if (ms1only)
+      scoring_thread_count = static_cast<Size>(omp_get_max_threads());
+    }
+    #endif
+    std::vector<OpenSwathScoringPhaseTiming> thread_scoring_profiles(profile ? scoring_thread_count : 0);
+    std::vector<std::vector<SignedSize>> thread_scored_feature_indices(defer_feature_output ? scoring_thread_count : 0);
+    if (defer_feature_output)
+    {
+      const Size reserve_per_thread = mrmfeatures.empty() ? 0 : (mrmfeatures.size() / scoring_thread_count) + 1;
+      for (std::vector<SignedSize>& indices : thread_scored_feature_indices)
       {
-        imrmfeature_storage.emplace(mrmfeature);
+        indices.reserve(reserve_per_thread);
       }
-      else
+    }
+
+    #ifdef _OPENMP
+    #pragma omp parallel if (in_parallel == 0)
+    #endif
+    {
+      Size thread_index = 0;
+      #ifdef _OPENMP
+      thread_index = static_cast<Size>(omp_get_thread_num());
+      #endif
+      OpenSwathScoringPhaseTiming thread_profile;
+      std::vector<SignedSize>* local_scored_feature_indices = defer_feature_output ? &thread_scored_feature_indices[thread_index] : nullptr;
+
+      #ifdef _OPENMP
+      #pragma omp for
+      #endif
+      for (SignedSize feature_idx = 0; feature_idx < (SignedSize) mrmfeatures.size(); ++feature_idx)
       {
-        imrmfeature_storage.emplace(mrmfeature, tg_cache.transition_native_ids, tg_cache.precursor_ids);
-      }
-      MRMFeatureOpenMS& imrmfeature = *imrmfeature_storage;
-
-      // thread-local pooled idscores to avoid per-feature vector allocations
-      static thread_local MRMFeatureFinderScoring::OpenSwath_Ind_Scores_Pooled idscores_pool;
-      idscores_pool.reset();
-      // Only preallocate once per thread or if capacity is too small
-      if (idscores_pool.ind_transition_names.capacity() < idscores_needed_capacity)
-      {
-        idscores_pool.preallocate(idscores_needed_capacity);
-      }
-      const Int64 feature_id = mrmfeature.hasValidUniqueId() ? static_cast<Int64>(Internal::SqliteHelper::clearSignBit(mrmfeature.getUniqueId())) : -1;
-
-      OPENMS_LOG_DEBUG << "Scoring feature " << (mrmfeature) << " == " << mrmfeature.getMetaValue("PeptideRef") <<
-        " [ expected RT " << PeptideRefMap_.at(mrmfeature.getMetaValue("PeptideRef"))->rt << " / " << expected_rt << " ]" <<
-        " with " << group_size  << " transitions and " <<
-        transition_group_detection.getChromatograms().size() << " chromatograms" << std::endl;
-
-      double xx_lda_prescore;
-      double precursor_mz(-1);
-
-      if (ms1only)
-      {
-        auto feature_phase_start = scoringProfileStart(profile);
-        ///////////////////////////////////
-        // Call the scoring for MS1 only
-        ///////////////////////////////////
-
-        OpenSwath_Scores& scores = mrmfeature.getScores();
-        precursor_mz = mrmfeature.getMZ();
-
-        // S/N scores
-        OpenSwath::MRMScoring mrmscore_;
-        scores.sn_ratio = mrmscore_.calcSNScore(&imrmfeature, ms1_signal_noise_estimators);
-        // everything below S/N 1 can be set to zero (and the log safely applied)
-        if (scores.sn_ratio < 1)
+        OpenSwathScoringPhaseTiming feature_profile;
+        auto& mrmfeature = mrmfeatures[feature_idx];
+        mrmfeature.ensureUniqueId();
+        std::optional<MRMFeatureOpenMS> imrmfeature_storage;
+        if (ms1only)
         {
-          scores.log_sn_score = 0;
+          imrmfeature_storage.emplace(mrmfeature);
         }
         else
         {
-          scores.log_sn_score = std::log(scores.sn_ratio);
+          imrmfeature_storage.emplace(mrmfeature, tg_cache.transition_native_ids, tg_cache.precursor_ids);
         }
-        // RT scores
-        double normalized_experimental_rt = trafo.apply(imrmfeature.getRT());
-        {
-          // rt score is delta iRT
-          double rt_score = mrmscore_.calcRTScore(*pep, normalized_experimental_rt);
+        MRMFeatureOpenMS& imrmfeature = *imrmfeature_storage;
 
-          scores.normalized_experimental_rt = normalized_experimental_rt;
-          scores.raw_rt_score = rt_score;
-          scores.norm_rt_score = rt_score / rt_normalization_factor_;
-        }
-        // full spectra scores
-        if (ms1_map_ && ms1_map_->getNrSpectra() > 0 && mrmfeature.getMZ() > 0)
+        // thread-local pooled idscores to avoid per-feature vector allocations
+        static thread_local MRMFeatureFinderScoring::OpenSwath_Ind_Scores_Pooled idscores_pool;
+        idscores_pool.reset();
+        // Only preallocate once per thread or if capacity is too small
+        if (idscores_pool.ind_transition_names.capacity() < idscores_needed_capacity)
         {
-          scorer.calculatePrecursorDIAScores(ms1_map_, diascoring_, precursor_mz, imrmfeature.getRT(), *pep, im_range, scores);
+          idscores_pool.preallocate(idscores_needed_capacity);
         }
-        xx_lda_prescore = -scores.calculate_lda_prescore(scores);
-        if (scoring_model_ == "single_transition")
-        {
-          xx_lda_prescore = -scores.calculate_lda_single_transition(scores);
-        }
-        mrmfeature.setOverallQuality(xx_lda_prescore);
-        if (profile)
-        {
-          feature_profile.ms1_scores += elapsedScoringProfileSeconds(feature_phase_start);
-        }
-      }
-      else //!ms1only
-      {
+        const Int64 feature_id = mrmfeature.hasValidUniqueId() ? static_cast<Int64>(Internal::SqliteHelper::clearSignBit(mrmfeature.getUniqueId())) : -1;
 
-        ///////////////////////////////////
-        // Call the scoring for fragment ions
-        ///////////////////////////////////
+        OPENMS_LOG_DEBUG << "Scoring feature " << (mrmfeature) << " == " << mrmfeature.getMetaValue("PeptideRef") <<
+          " [ expected RT " << PeptideRefMap_.at(mrmfeature.getMetaValue("PeptideRef"))->rt << " / " << expected_rt << " ]" <<
+          " with " << group_size  << " transitions and " <<
+          transition_group_detection.getChromatograms().size() << " chromatograms" << std::endl;
 
-        ///////////////////////////////////
-        // Library and chromatographic scores
-        OpenSwath_Scores& scores = mrmfeature.getScores();
-        auto feature_phase_start = scoringProfileStart(profile);
-        scorer.calculateChromatographicScores(&imrmfeature, tg_cache.transition_native_ids, tg_cache.precursor_ids, tg_cache.normalized_library_intensity,
-                      signal_noise_estimators, scores);
-        if (profile)
-        {
-          feature_profile.chrom_scores += elapsedScoringProfileSeconds(feature_phase_start);
-        }
+        double xx_lda_prescore;
+        double precursor_mz(-1);
 
-        double normalized_experimental_rt = trafo.apply(imrmfeature.getRT());
-        feature_phase_start = scoringProfileStart(profile);
-        scorer.calculateLibraryScores(&imrmfeature, transitions, *pep, normalized_experimental_rt, scores);
-        if (profile)
+        if (ms1only)
         {
-          feature_profile.library_scores += elapsedScoringProfileSeconds(feature_phase_start);
-        }
+          auto feature_phase_start = scoringProfileStart(profile);
+          ///////////////////////////////////
+          // Call the scoring for MS1 only
+          ///////////////////////////////////
 
-        ///////////////////////////////////
-        // DIA scores
-        if (swath_present && su_.use_dia_scores_)
-        {
-          feature_phase_start = scoringProfileStart(profile);
-          thread_local std::vector<double> masserror_ppm;
-          masserror_ppm.clear();
-          scorer.calculateDIAScores(&imrmfeature,
-                                    transitions,
-                                    tg_cache.normalized_library_intensity,
-                                    swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm,
-                                    drift_target, im_range, mobilogram_consumer, feature_id);
-          mrmfeature.setMetaValue("masserror_ppm", masserror_ppm);
+          OpenSwath_Scores& scores = mrmfeature.getScores();
+          precursor_mz = mrmfeature.getMZ();
+
+          // S/N scores
+          OpenSwath::MRMScoring mrmscore_;
+          scores.sn_ratio = mrmscore_.calcSNScore(&imrmfeature, ms1_signal_noise_estimators);
+          // everything below S/N 1 can be set to zero (and the log safely applied)
+          if (scores.sn_ratio < 1)
+          {
+            scores.log_sn_score = 0;
+          }
+          else
+          {
+            scores.log_sn_score = std::log(scores.sn_ratio);
+          }
+          // RT scores
+          double normalized_experimental_rt = trafo.apply(imrmfeature.getRT());
+          {
+            // rt score is delta iRT
+            double rt_score = mrmscore_.calcRTScore(*pep, normalized_experimental_rt);
+
+            scores.normalized_experimental_rt = normalized_experimental_rt;
+            scores.raw_rt_score = rt_score;
+            scores.norm_rt_score = rt_score / rt_normalization_factor_;
+          }
+          // full spectra scores
+          if (ms1_map_ && ms1_map_->getNrSpectra() > 0 && mrmfeature.getMZ() > 0)
+          {
+            scorer.calculatePrecursorDIAScores(ms1_map_, diascoring_, precursor_mz, imrmfeature.getRT(), *pep, im_range, scores);
+          }
+          xx_lda_prescore = -scores.calculate_lda_prescore(scores);
+          if (scoring_model_ == "single_transition")
+          {
+            xx_lda_prescore = -scores.calculate_lda_single_transition(scores);
+          }
+          mrmfeature.setOverallQuality(xx_lda_prescore);
           if (profile)
           {
-            feature_profile.dia_scores += elapsedScoringProfileSeconds(feature_phase_start);
+            feature_profile.ms1_scores += elapsedScoringProfileSeconds(feature_phase_start);
           }
         }
-        
-        double det_intensity_ratio_score = 0;
-        const double total_xic = static_cast<double>(mrmfeature.getMetaValue("total_xic"));
-        if (total_xic > 0)
+        else //!ms1only
         {
-          det_intensity_ratio_score = mrmfeature.getIntensity() / total_xic;
-        }
 
-        ///////////////////////////////////
-        // Mutual Information scores
-        double det_mi_ratio_score = 0;
-        if (su_.use_mi_score_ && su_.use_total_mi_score_)
-        {
-          const double total_mi = static_cast<double>(mrmfeature.getMetaValue("total_mi"));
-          if (total_mi > 0)
+          ///////////////////////////////////
+          // Call the scoring for fragment ions
+          ///////////////////////////////////
+
+          ///////////////////////////////////
+          // Library and chromatographic scores
+          OpenSwath_Scores& scores = mrmfeature.getScores();
+          auto feature_phase_start = scoringProfileStart(profile);
+          scorer.calculateChromatographicScores(&imrmfeature, tg_cache.transition_native_ids, tg_cache.precursor_ids, tg_cache.normalized_library_intensity,
+                        signal_noise_estimators, scores);
+          if (profile)
           {
-            det_mi_ratio_score = scores.mi_score / total_mi;
+            feature_profile.chrom_scores += elapsedScoringProfileSeconds(feature_phase_start);
           }
-        }
 
-        ///////////////////////////////////
-        // Unique Ion Signature (UIS) scores
-        if (su_.use_uis_scores)
-        {
+          double normalized_experimental_rt = trafo.apply(imrmfeature.getRT());
           feature_phase_start = scoringProfileStart(profile);
-          if (!transition_group_identification.getTransitions().empty())
+          scorer.calculateLibraryScores(&imrmfeature, transitions, *pep, normalized_experimental_rt, scores);
+          if (profile)
           {
-            scoreIdentification_(transition_group_identification, transition_group_detection, scorer, feature_idx,
-                                 feature_id,
-                                 tg_cache.transition_native_ids, det_intensity_ratio_score,
-                                 det_mi_ratio_score, swath_maps,drift_target, im_range, idscores_pool, mobilogram_consumer);
-            mrmfeature.IDScoresAsMetaValue(false, idscores_pool);
+            feature_profile.library_scores += elapsedScoringProfileSeconds(feature_phase_start);
           }
-          if (!transition_group_identification_decoy.getTransitions().empty())
+
+          ///////////////////////////////////
+          // DIA scores
+          if (swath_present && su_.use_dia_scores_)
           {
-            scoreIdentification_(transition_group_identification_decoy, transition_group_detection, scorer, feature_idx,
-                                 feature_id,
-                                 tg_cache.transition_native_ids, det_intensity_ratio_score,
-                                 det_mi_ratio_score, swath_maps, drift_target, im_range, idscores_pool, mobilogram_consumer);
-            mrmfeature.IDScoresAsMetaValue(true, idscores_pool);
+            feature_phase_start = scoringProfileStart(profile);
+            thread_local std::vector<double> masserror_ppm;
+            masserror_ppm.clear();
+            scorer.calculateDIAScores(&imrmfeature,
+                                      transitions,
+                                      tg_cache.normalized_library_intensity,
+                                      swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm,
+                                      drift_target, im_range, mobilogram_consumer, feature_id);
+            mrmfeature.setMetaValue("masserror_ppm", masserror_ppm);
+            if (profile)
+            {
+              feature_profile.dia_scores += elapsedScoringProfileSeconds(feature_phase_start);
+            }
+          }
+
+          double det_intensity_ratio_score = 0;
+          const double total_xic = static_cast<double>(mrmfeature.getMetaValue("total_xic"));
+          if (total_xic > 0)
+          {
+            det_intensity_ratio_score = mrmfeature.getIntensity() / total_xic;
+          }
+
+          ///////////////////////////////////
+          // Mutual Information scores
+          double det_mi_ratio_score = 0;
+          if (su_.use_mi_score_ && su_.use_total_mi_score_)
+          {
+            const double total_mi = static_cast<double>(mrmfeature.getMetaValue("total_mi"));
+            if (total_mi > 0)
+            {
+              det_mi_ratio_score = scores.mi_score / total_mi;
+            }
+          }
+
+          ///////////////////////////////////
+          // Unique Ion Signature (UIS) scores
+          if (su_.use_uis_scores)
+          {
+            feature_phase_start = scoringProfileStart(profile);
+            if (!transition_group_identification.getTransitions().empty())
+            {
+              scoreIdentification_(transition_group_identification, transition_group_detection, scorer, feature_idx,
+                                  feature_id,
+                                  tg_cache.transition_native_ids, det_intensity_ratio_score,
+                                  det_mi_ratio_score, swath_maps,drift_target, im_range, idscores_pool, mobilogram_consumer);
+              mrmfeature.IDScoresAsMetaValue(false, idscores_pool);
+            }
+            if (!transition_group_identification_decoy.getTransitions().empty())
+            {
+              scoreIdentification_(transition_group_identification_decoy, transition_group_detection, scorer, feature_idx,
+                                  feature_id,
+                                  tg_cache.transition_native_ids, det_intensity_ratio_score,
+                                  det_mi_ratio_score, swath_maps, drift_target, im_range, idscores_pool, mobilogram_consumer);
+              mrmfeature.IDScoresAsMetaValue(true, idscores_pool);
+            }
+            if (profile)
+            {
+              feature_profile.uis_scores += elapsedScoringProfileSeconds(feature_phase_start);
+            }
+          }
+
+          feature_phase_start = scoringProfileStart(profile);
+          // TODO get it working with imrmfeature
+          if (su_.use_elution_model_score_)
+          {
+            //TODO wouldn't a weighted elution model score be much better? lower intensity traces usually will not have
+            // a nice profile
+            scores.elution_model_fit_score = emgscoring_.calcElutionFitScore(mrmfeature, transition_group_detection);
+          }
+          xx_lda_prescore = -scores.calculate_lda_prescore(scores);
+          if (scoring_model_ == "single_transition")
+          {
+            xx_lda_prescore = -scores.calculate_lda_single_transition(scores);
+          }
+          mrmfeature.setOverallQuality(xx_lda_prescore);
+
+          // Add the DIA scores and ion mobility scores
+          if (swath_present && su_.use_dia_scores_)
+          {
+            double xx_swath_prescore = -scores.calculate_swath_lda_prescore(scores);
+            mrmfeature.setOverallQuality(xx_swath_prescore);
           }
           if (profile)
           {
-            feature_profile.uis_scores += elapsedScoringProfileSeconds(feature_phase_start);
+            feature_profile.score_output += elapsedScoringProfileSeconds(feature_phase_start);
+          }
+
+          precursor_mz = detection_precursor_mz;
+
+        }
+
+        if (defer_feature_output)
+        {
+          local_scored_feature_indices->push_back(feature_idx);
+        }
+        else
+        {
+          ///////////////////////////////////////////////////////////////////////////
+          // add the peptide hit information to the feature
+          ///////////////////////////////////////////////////////////////////////////
+          auto feature_output_start = scoringProfileStart(profile);
+          addScoreMetaValues_(mrmfeature, transition_group_detection, signal_noise_estimators, ms1_signal_noise_estimators,
+                              expected_rt, swath_present, ms1only);
+          prepareScoredFeatureOutput_(mrmfeature, *pep, pd, swath_present, precursor_mz, ms1only);
+          #ifdef _OPENMP
+          #pragma omp critical (openswath_feature_output_list)
+          #endif
+          {
+            feature_list.push_back(mrmfeature);
+          }
+          if (profile)
+          {
+            feature_profile.score_output += elapsedScoringProfileSeconds(feature_output_start);
           }
         }
-
-        feature_phase_start = scoringProfileStart(profile);
-        // TODO get it working with imrmfeature
-        if (su_.use_elution_model_score_)
-        {
-          //TODO wouldn't a weighted elution model score be much better? lower intensity traces usually will not have
-          // a nice profile
-          scores.elution_model_fit_score = emgscoring_.calcElutionFitScore(mrmfeature, transition_group_detection);
-        }
-        xx_lda_prescore = -scores.calculate_lda_prescore(scores);
-        if (scoring_model_ == "single_transition")
-        {
-          xx_lda_prescore = -scores.calculate_lda_single_transition(scores);
-        }
-        mrmfeature.setOverallQuality(xx_lda_prescore);
-
-        // Add the DIA scores and ion mobility scores 
-        if (swath_present && su_.use_dia_scores_)
-        {
-          double xx_swath_prescore = -scores.calculate_swath_lda_prescore(scores);
-          mrmfeature.setOverallQuality(xx_swath_prescore);
-        }
         if (profile)
         {
-          feature_profile.score_output += elapsedScoringProfileSeconds(feature_phase_start);
-        }
-
-        precursor_mz = detection_precursor_mz;
-
-      }
-
-      if (defer_feature_output)
-      {
-#ifdef _OPENMP
-#pragma omp critical (openswath_scored_feature_indices)
-#endif
-        {
-          scored_feature_indices.push_back(feature_idx);
+          feature_profile.scored_feature_count = 1;
+          thread_profile.add(feature_profile);
         }
       }
-      else
-      {
-        ///////////////////////////////////////////////////////////////////////////
-        // add the peptide hit information to the feature
-        ///////////////////////////////////////////////////////////////////////////
-        auto feature_output_start = scoringProfileStart(profile);
-        addScoreMetaValues_(mrmfeature, transition_group_detection, signal_noise_estimators, ms1_signal_noise_estimators,
-                            expected_rt, swath_present, ms1only);
-        prepareScoredFeatureOutput_(mrmfeature, *pep, pd, swath_present, precursor_mz, ms1only);
-#ifdef _OPENMP
-#pragma omp critical (openswath_feature_output_list)
-#endif
-        {
-          feature_list.push_back(mrmfeature);
-        }
-        if (profile)
-        {
-          feature_profile.score_output += elapsedScoringProfileSeconds(feature_output_start);
-        }
-      }
+
       if (profile)
       {
-        feature_profile.scored_feature_count = 1;
-#ifdef _OPENMP
-#pragma omp critical (openswath_scoring_profile)
-#endif
-        {
-          scoring_profile_.add(feature_profile);
-        }
+        thread_scoring_profiles[thread_index].add(thread_profile);
+      }
+    }
+
+    if (defer_feature_output)
+    {
+      Size scored_feature_count = 0;
+      for (const std::vector<SignedSize>& indices : thread_scored_feature_indices)
+      {
+        scored_feature_count += indices.size();
+      }
+      scored_feature_indices.reserve(scored_feature_count);
+      for (std::vector<SignedSize>& indices : thread_scored_feature_indices)
+      {
+        scored_feature_indices.insert(scored_feature_indices.end(), indices.begin(), indices.end());
+      }
+    }
+    if (profile)
+    {
+      for (const OpenSwathScoringPhaseTiming& thread_profile : thread_scoring_profiles)
+      {
+        scoring_profile_.add(thread_profile);
       }
     }
 
