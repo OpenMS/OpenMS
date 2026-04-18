@@ -39,6 +39,8 @@ namespace OpenMS
   {
     std::vector<MSChromatogram> picked_chroms;
     std::vector<MSChromatogram> smoothed_chroms;
+    std::vector<const MSChromatogram*> picked_input_chromatograms;
+    std::vector<const MSChromatogram*> transition_chromatograms;
     std::vector<MRMFeature> features;
     std::vector<double> left_edges;
     std::vector<double> right_edges;
@@ -54,6 +56,8 @@ namespace OpenMS
     {
       picked_chroms.clear();
       smoothed_chroms.clear();
+      picked_input_chromatograms.clear();
+      transition_chromatograms.clear();
       features.clear();
       left_edges.clear();
       right_edges.clear();
@@ -141,10 +145,12 @@ public:
       picker_pool.reset();
       auto &picked_chroms = picker_pool.picked_chroms;
       auto &smoothed_chroms = picker_pool.smoothed_chroms;
+      auto &picked_input_chromatograms = picker_pool.picked_input_chromatograms;
       const Size expected_chrom_count = transition_group.getChromatograms().size() +
         (use_precursors_ ? transition_group.getPrecursorChromatograms().size() : 0);
       picked_chroms.reserve(expected_chrom_count);
       smoothed_chroms.reserve(expected_chrom_count);
+      picked_input_chromatograms.reserve(expected_chrom_count);
 
       // Pick fragment ion chromatograms
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
@@ -164,6 +170,7 @@ public:
         smoothed_chrom.setNativeID(native_id);
         picker_.pickChromatogram(chromatogram, picked_chrom, smoothed_chrom);
         picked_chrom.sortByIntensity();
+        picked_input_chromatograms.push_back(&chromatogram);
         picked_chroms.push_back(std::move(picked_chrom));
         smoothed_chroms.push_back(std::move(smoothed_chrom));
       }
@@ -178,6 +185,7 @@ public:
 
           picker_.pickChromatogram(chromatogram, picked_chrom, smoothed_chrom);
           picked_chrom.sortByIntensity();
+          picked_input_chromatograms.push_back(&chromatogram);
           picked_chroms.push_back(std::move(picked_chrom));
           smoothed_chroms.push_back(std::move(smoothed_chrom));
         }
@@ -185,10 +193,13 @@ public:
 
       auto& transition_total_xics = picker_pool.transition_total_xics;
       transition_total_xics.reserve(transition_group.getTransitions().size());
+      auto& transition_chromatograms = picker_pool.transition_chromatograms;
+      transition_chromatograms.reserve(transition_group.getTransitions().size());
       double detecting_total_xic = 0.0;
       for (const TransitionT& transition : transition_group.getTransitions())
       {
         const SpectrumT& chromatogram = selectChromHelper_(transition_group, transition.getNativeID());
+        transition_chromatograms.push_back(&chromatogram);
         const double transition_total_xic = std::accumulate(chromatogram.begin(), chromatogram.end(), 0.0,
                                                             [](double total, const auto& peak)
                                                             {
@@ -239,6 +250,8 @@ public:
         // Compute a feature from the individual chromatograms and add non-zero features
         MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms, smoothed_chroms,
                                                   transition_total_xics, detecting_total_xic,
+                                                  transition_chromatograms,
+                                                  picked_input_chromatograms,
                                                   chr_idx, peak_idx);
         double total_xic = 0;
         double intensity = mrm_feature.getIntensity();
@@ -286,6 +299,8 @@ public:
                                 const std::vector<SpectrumT>& smoothed_chroms,
                                 const std::vector<double>& transition_total_xics,
                                 double detecting_total_xic,
+                                const std::vector<const SpectrumT*>& transition_chromatograms,
+                                const std::vector<const SpectrumT*>& picked_input_chromatograms,
                                 const int chr_idx,
                                 const int peak_idx)
     {
@@ -361,7 +376,8 @@ public:
         if (compute_peak_quality_)
         {
           String outlier = "none";
-          double qual = computeQuality_(transition_group, picked_chroms, chr_idx, best_left, best_right, outlier);
+          double qual = computeQuality_(transition_group, picked_chroms, picked_input_chromatograms,
+                                        chr_idx, best_left, best_right, outlier);
           if (qual < min_qual_) 
           {
             return mrmFeature;
@@ -377,7 +393,7 @@ public:
       // reference chromatogram. We use the overall minimal left boundary and
       // maximal right boundary to prepare the container.
       SpectrumT master_peak_container;
-      const SpectrumT& ref_chromatogram = selectChromHelper_(transition_group, picked_chroms[chr_idx].getNativeID());
+      const SpectrumT& ref_chromatogram = *picked_input_chromatograms[chr_idx];
       prepareMasterContainer_(ref_chromatogram, master_peak_container, min_left, max_right);
 
       // Iterate over initial transitions / chromatograms (note that we may
@@ -389,6 +405,7 @@ public:
                                 total_intensity, total_xic, total_mi, total_peak_apices,
                                 master_peak_container, left_edges, right_edges,
                                 transition_total_xics, detecting_total_xic,
+                                transition_chromatograms,
                                 chr_idx, peak_idx);
 
       // Also pick the precursor chromatogram(s); note total_xic is not
@@ -484,6 +501,7 @@ public:
                                     const std::vector< double > & right_edges,
                                     const std::vector<double>& transition_total_xics,
                                     double detecting_total_xic,
+                                    const std::vector<const SpectrumT*>& transition_chromatograms,
                                     const int chr_idx,
                                     const int peak_idx)
     {
@@ -533,7 +551,7 @@ public:
           local_right = right_edges[k];
         }
 
-        const SpectrumT& chromatogram = selectChromHelper_(transition_group, transition_group.getTransitions()[k].getNativeID()); 
+        const SpectrumT& chromatogram = *transition_chromatograms[k];
 
         // Compute total intensity on transition-level
         const double transition_total_xic = transition_total_xics[k];
@@ -559,7 +577,7 @@ public:
           {
             if (transition_group.getTransitions()[m].isDetectingTransition())
             {
-              const SpectrumT& chromatogram_det = selectChromHelper_(transition_group, transition_group.getTransitions()[m].getNativeID());
+              const SpectrumT& chromatogram_det = *transition_chromatograms[m];
               chrom_vect_det.clear();
               for (typename SpectrumT::const_iterator it = chromatogram_det.begin(); it != chromatogram_det.end(); it++)
               {
@@ -956,8 +974,9 @@ protected:
 
     */
     template <typename SpectrumT, typename TransitionT>
-    double computeQuality_(const MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
+    double computeQuality_(const MRMTransitionGroup<SpectrumT, TransitionT>&,
                            const std::vector<SpectrumT>& picked_chroms,
+                           const std::vector<const SpectrumT*>& picked_input_chromatograms,
                            const int chr_idx,
                            const double best_left,
                            const double best_right,
@@ -968,13 +987,13 @@ protected:
       // side to correctly identify shoulders etc.
       double resample_boundary = resample_boundary_; // sample 15 seconds more on each side
       SpectrumT master_peak_container;
-      const SpectrumT& ref_chromatogram = selectChromHelper_(transition_group, picked_chroms[chr_idx].getNativeID());
+      const SpectrumT& ref_chromatogram = *picked_input_chromatograms[chr_idx];
       prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
       // Reuse the shared per-thread pool's containers for quality computation
       auto &all_ints = g_picker_pool_shared.all_ints;
       for (Size k = 0; k < picked_chroms.size(); k++)
       {
-        const SpectrumT& chromatogram = selectChromHelper_(transition_group, picked_chroms[k].getNativeID());
+        const SpectrumT& chromatogram = *picked_input_chromatograms[k];
         const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, 
             master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
 
