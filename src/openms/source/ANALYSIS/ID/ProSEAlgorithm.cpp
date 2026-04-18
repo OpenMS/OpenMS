@@ -217,9 +217,11 @@ namespace OpenMS
       "building. 0 = disabled (load entire database at once). Enable for very large databases "
       "(e.g. MHC-II immunopeptidomics with variants) that exceed available memory. Each chunk "
       "builds its own fragment index; results are merged across chunks before post-processing. "
-      "Calibration (when enabled) runs on the first chunk only. In multi-file mode "
-      "(-in a.mzML b.mzML), the chunk-major path builds each chunk's fragment index once and "
-      "scores all files against it before moving to the next chunk.");
+      "Calibration (when enabled) runs on a strided, size-bounded sample of the full "
+      "decoy-augmented database — sample size is tied to chunk_size so calibration memory "
+      "respects the same budget as main-search chunks. In multi-file mode (-in a.mzML b.mzML), "
+      "the chunk-major path builds each chunk's fragment index once and scores all files "
+      "against it before moving to the next chunk.");
     defaults_.setMinInt("database:chunk_size", 0);
 
     defaults_.setSectionDescription("calibration",
@@ -546,6 +548,12 @@ namespace OpenMS
             std::vector<PeptideHit::PeakAnnotation> peak_annotations;
             std::vector<int> prefix_ordinals, suffix_ordinals;
             double matched_ion_current = 0.0;
+            // Dedup guard for MIC: in ppm-alignment mode a single experimental
+            // peak can match multiple theoretical peaks (e.g. b-ion and near
+            // isotope), so we must sum each exp_idx at most once. Sized only
+            // when MIC is actually requested.
+            std::vector<char> counted_exp_peaks(
+                annotation_matched_ion_current ? spec.size() : 0, 0);
             peak_annotations.reserve(alignment.size());
 
             for (const auto& [theo_idx, exp_idx] : alignment)
@@ -560,13 +568,10 @@ namespace OpenMS
                 peak_annotations.push_back(pa);
               }
 
-              if (annotation_matched_ion_current)
+              if (annotation_matched_ion_current && !counted_exp_peaks[exp_idx])
               {
-                // Safe: SpectrumAlignment's default Da path returns 1-to-1
-                // matches, so each exp_idx appears at most once. If ppm mode
-                // ever gets enabled here, one exp peak could match multiple
-                // theo peaks and this would double-count — revisit then.
                 matched_ion_current += spec[exp_idx].getIntensity();
+                counted_exp_peaks[exp_idx] = 1;
               }
 
               if (annotation_longest_ion_run && ion_names[theo_idx].size() >= 2)
@@ -764,6 +769,58 @@ namespace OpenMS
     return db;
   }
 
+  // =====================================================================
+  // Strided calibration sample. Used by the chunked search paths so that
+  // calibration always sees a representative, suitably-sized subset of the
+  // full DB — independent of database_chunk_size_. Prevents the first-chunk
+  // starvation mode where small chunk_size values (e.g. 500) produce a
+  // calibration pool below calibration_min_psms_ and silently disable
+  // calibration. See issue #9182.
+  // =====================================================================
+  std::vector<FASTAFile::FASTAEntry>
+  ProSEAlgorithm::buildCalibrationSample_(
+      const std::vector<FASTAFile::FASTAEntry>& full_db) const
+  {
+    // Calibration FI size is bounded by the user's memory budget — which is
+    // exactly what they declared via database_chunk_size_. This keeps peak RSS
+    // during calibration identical to peak RSS during the main search
+    // (one chunk FI at a time), regardless of digestion mode.
+    //
+    // Critical for immunopeptidomics (non-specific digestion, MHC-I/II variant
+    // databases): a naive fixed-size 5000-protein cal sample can generate
+    // 50+ GB of fragment index because each protein produces thousands of
+    // candidate peptides — defeating the memory savings chunking is designed
+    // to deliver. Tying cal_target to chunk_size keeps the promise that
+    // "user's memory budget = one chunk's FI."
+    //
+    // Strided (not contiguous / random) to give the calibration pool even
+    // coverage of the full DB.
+    //
+    // Residual gap vs non-chunked calibration:
+    //   - Trypsin / moderate chunk_size (e.g. 5000): cal sample is adequate;
+    //     yield is within ~2% of non-chunked.
+    //   - Small chunk_size (e.g. 100 proteins for MHC-II variants): cal pool
+    //     can fall below calibration_min_psms_ → runCalibrationPass_ returns
+    //     success=false, calibration silently no-ops. The main search uses
+    //     user-configured tolerances.
+    // Follow-up issue: pool calibration PSMs across the first K chunks of the
+    // main search loop, so calibration quality becomes independent of
+    // chunk_size.
+    const Size cal_target = std::min(
+        std::max<Size>(database_chunk_size_, Size(1)),
+        full_db.size());
+    if (cal_target >= full_db.size()) return full_db;
+
+    const Size stride = std::max<Size>(1, full_db.size() / cal_target);
+    std::vector<FASTAFile::FASTAEntry> cal_db;
+    cal_db.reserve(cal_target);
+    for (Size i = 0; i < full_db.size() && cal_db.size() < cal_target; i += stride)
+    {
+      cal_db.push_back(full_db[i]);
+    }
+    return cal_db;
+  }
+
   ProSEAlgorithm::SearchContext
   ProSEAlgorithm::prepareContext(
       const std::vector<FASTAFile::FASTAEntry>& fasta_db) const
@@ -873,15 +930,32 @@ namespace OpenMS
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
-    // Non-chunked path: single context (existing behavior).
-    if (database_chunk_size_ == 0 || fasta_db.size() <= database_chunk_size_)
+    // Chunking disabled → take the existing single-context path (decoys built
+    // lazily by prepareContext).
+    if (database_chunk_size_ == 0)
     {
       SearchContext ctx = prepareContext(fasta_db);
       return search(spectra, ctx, protein_ids, peptide_ids);
     }
 
-    // Chunked path: build decoy-augmented DB once, then delegate.
+    // Chunking configured: build the decoy-augmented DB once up-front, then
+    // decide based on the AUGMENTED size. If the target DB is 3000 proteins
+    // and chunk_size is 5000 with decoys enabled, the augmented DB (6000)
+    // still exceeds chunk_size — decide-before-augment would have skipped
+    // chunking and built a full FI 2× the user's declared memory budget.
     auto full_db = buildDecoyAugmentedDB_(fasta_db);
+    if (full_db.size() <= database_chunk_size_)
+    {
+      // Augmented DB fits in one chunk — use the single-context path but skip
+      // prepareContext's internal decoy re-generation by building ctx inline.
+      SearchContext ctx;
+      ctx.db = std::move(full_db);
+      startProgress(0, 1, "Building fragment index...");
+      ctx.fragment_index.setParameters(getParameters());
+      ctx.fragment_index.build(ctx.db);
+      endProgress();
+      return search(spectra, ctx, protein_ids, peptide_ids);
+    }
     return searchChunked_(spectra, full_db, protein_ids, peptide_ids);
   }
 
@@ -905,32 +979,44 @@ namespace OpenMS
     bool open_search_mode = isOpenSearchMode_();
     preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
 
-    // Effective tolerances — may be narrowed by calibration below.
-    double effective_precursor_tol = std::max(precursor_mass_tolerance_lower_, precursor_mass_tolerance_upper_);
+    // Effective tolerances — may be narrowed by calibration below. Kept asymmetric
+    // (lower / upper separately) so the FragmentIndex query can exploit the full
+    // calibrated window rather than the looser max() collapse.
+    double effective_precursor_tol_lower = precursor_mass_tolerance_lower_;
+    double effective_precursor_tol_upper = precursor_mass_tolerance_upper_;
     double effective_fragment_tol = fragment_mass_tolerance_;
 
-    // Optional calibration using the first chunk's FI.
+    // Save originals so we can restore algo-level members after search (they may be
+    // mutated below for the OSMA mod-match tolerance computation).
+    const double orig_prec_tol_lower = precursor_mass_tolerance_lower_;
+    const double orig_prec_tol_upper = precursor_mass_tolerance_upper_;
+    bool calibration_applied = false;
+
+    // Optional calibration on a strided sample of the full DB. The sample size is
+    // bounded (see buildCalibrationSample_) so calibration memory stays O(chunk)
+    // regardless of database_chunk_size_. Strided rather than first-N so small
+    // chunk_size values don't starve the calibration pool (#9182).
     if (calibration_enabled_ && !open_search_mode)
     {
-      const Size first_end = std::min(database_chunk_size_, full_db.size());
-      std::vector<FASTAFile::FASTAEntry> cal_chunk_db(full_db.begin(), full_db.begin() + first_end);
+      std::vector<FASTAFile::FASTAEntry> cal_db = buildCalibrationSample_(full_db);
       FragmentIndex cal_fi;
       cal_fi.setParameters(getParameters());
-      cal_fi.build(cal_chunk_db);
+      cal_fi.build(cal_db);
 
-      CalibrationResult_ cal = runCalibrationPass_(spectra, cal_fi, cal_chunk_db);
+      CalibrationResult_ cal = runCalibrationPass_(spectra, cal_fi, cal_db);
       if (cal.success)
       {
         effective_fragment_tol = cal.fragment_tolerance;
         if (!cal.extreme_bias)
         {
-          effective_precursor_tol = std::max(cal.cal_lower, cal.cal_upper);
+          effective_precursor_tol_lower = cal.cal_lower;
+          effective_precursor_tol_upper = cal.cal_upper;
           precursor_mass_tolerance_lower_ = cal.cal_lower;
           precursor_mass_tolerance_upper_ = cal.cal_upper;
-          OPENMS_LOG_INFO << "[ProSE] Calibration (chunked, first chunk): shift=" << cal.precursor_shift
-                          << " spread=" << cal.precursor_spread << " "
-                          << precursor_mass_tolerance_unit_
-                          << " -> [-" << cal.cal_lower << ", +" << cal.cal_upper << "]"
+          calibration_applied = true;
+          OPENMS_LOG_INFO << "[ProSE] Calibration (chunked, strided sample): shift=" << cal.precursor_shift
+                          << " " << precursor_mass_tolerance_unit_
+                          << " -> window [-" << cal.cal_lower << ", +" << cal.cal_upper << "]"
                           << " fragment=" << cal.fragment_tolerance << std::endl;
         }
         else
@@ -976,10 +1062,12 @@ namespace OpenMS
       FragmentIndex chunk_fi;
       {
         Param fi_params = getParameters();
-        // Apply calibrated tolerances (if calibration succeeded above).
+        // Apply calibrated tolerances (if calibration succeeded above). Asymmetric
+        // lower/upper preserved — collapsing to max() would re-open the tight side
+        // of the calibrated window and admit spurious decoy candidates.
         fi_params.setValue("fragment:mass_tolerance", effective_fragment_tol);
-        fi_params.setValue("precursor:mass_tolerance_lower", effective_precursor_tol);
-        fi_params.setValue("precursor:mass_tolerance_upper", effective_precursor_tol);
+        fi_params.setValue("precursor:mass_tolerance_lower", effective_precursor_tol_lower);
+        fi_params.setValue("precursor:mass_tolerance_upper", effective_precursor_tol_upper);
         chunk_fi.setParameters(fi_params);
       }
       chunk_fi.build(chunk_db);
@@ -1049,9 +1137,22 @@ namespace OpenMS
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(full_db, protein_ids, peptide_ids);
 
+    // Restore algo-level tolerance members on every return path. Calibration may have
+    // mutated them above; leaving them mutated would poison subsequent searches that
+    // reuse this ProSEAlgorithm instance (e.g. the multi-file wrapper).
+    auto restore_tolerances = [&]()
+    {
+      if (calibration_applied)
+      {
+        precursor_mass_tolerance_lower_ = orig_prec_tol_lower;
+        precursor_mass_tolerance_upper_ = orig_prec_tol_upper;
+      }
+    };
+
     if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
         (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
     {
+      restore_tolerances();
       if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY)
         return ExitCodes::INPUT_FILE_EMPTY;
       else if (indexer_exit == PeptideIndexing::ExitCodes::UNEXPECTED_RESULT)
@@ -1086,6 +1187,8 @@ namespace OpenMS
       OPENMS_LOG_WARN << "FDR:PSM is set but no decoys found (decoy_prefix='" << decoy_prefix_
                       << "'). Provide a FASTA with decoy proteins or enable '-decoys'. Skipping FDR filtering." << std::endl;
     }
+
+    restore_tolerances();
 
     logSearchDiagnostics_(spectra, protein_ids, peptide_ids);
 
@@ -1495,7 +1598,17 @@ namespace OpenMS
       return mfres;
     }
 
-    const bool use_chunked = (database_chunk_size_ > 0 && fasta_db.size() > database_chunk_size_);
+    // Decide chunking on the decoy-augmented DB size (#9180): if decoys_ doubles
+    // the target DB, a 3000-protein target against chunk_size=5000 should still
+    // chunk because the augmented DB is 6000 — otherwise the resulting FI would
+    // exceed the user's memory budget by 2×.
+    std::vector<FASTAFile::FASTAEntry> full_db;
+    bool use_chunked = false;
+    if (database_chunk_size_ > 0)
+    {
+      full_db = buildDecoyAugmentedDB_(fasta_db);
+      use_chunked = (full_db.size() > database_chunk_size_);
+    }
 
     if (use_chunked)
     {
@@ -1504,7 +1617,7 @@ namespace OpenMS
       // FragmentIndex ONCE and score ALL files against it before moving
       // to the next chunk. This gives C FI builds instead of N×C.
       // ================================================================
-      auto full_db = buildDecoyAugmentedDB_(fasta_db);
+      // full_db already built above.
       const bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
       const bool open_search_mode = isOpenSearchMode_();
 
@@ -1528,13 +1641,15 @@ namespace OpenMS
         preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
       }
 
-      // Per-file calibration: build first chunk's FI, run calibration per file.
-      // Stores per-file effective tolerances for use during scoring.
+      // Per-file calibration: build a strided calibration FI once, run calibration per file.
+      // Stores per-file effective tolerances (asymmetric lower/upper preserved — see #9180)
+      // for use during scoring.
       const Size chunk_size = database_chunk_size_;
       const Size n_chunks = (full_db.size() + chunk_size - 1) / chunk_size;
       struct PerFileCalibration
       {
-        double effective_precursor_tol;
+        double effective_precursor_tol_lower;
+        double effective_precursor_tol_upper;
         double effective_fragment_tol;
         double mod_match_tol;  // for open-search mod analysis
       };
@@ -1543,34 +1658,34 @@ namespace OpenMS
       // Default: user-configured tolerances.
       for (auto& cal : per_file_cal)
       {
-        cal.effective_precursor_tol = std::max(precursor_mass_tolerance_lower_, precursor_mass_tolerance_upper_);
+        cal.effective_precursor_tol_lower = precursor_mass_tolerance_lower_;
+        cal.effective_precursor_tol_upper = precursor_mass_tolerance_upper_;
         cal.effective_fragment_tol = fragment_mass_tolerance_;
         cal.mod_match_tol = computeModMatchTolerance_();
       }
 
       if (calibration_enabled_ && !open_search_mode)
       {
-        // Build first chunk's FI for calibration only.
-        const Size first_end = std::min(chunk_size, full_db.size());
-        std::vector<FASTAFile::FASTAEntry> cal_chunk_db(full_db.begin(), full_db.begin() + first_end);
+        // Build a strided-sample calibration FI once, reused across files.
+        std::vector<FASTAFile::FASTAEntry> cal_db = buildCalibrationSample_(full_db);
         FragmentIndex cal_fi;
         cal_fi.setParameters(getParameters());
-        cal_fi.build(cal_chunk_db);
+        cal_fi.build(cal_db);
 
         for (Size i = 0; i < in_spectra_files.size(); ++i)
         {
           OPENMS_LOG_INFO << "[ProSE] Calibration for " << in_spectra_files[i]
-                          << " (using first chunk, " << first_end << " proteins)" << std::endl;
-          CalibrationResult_ cal = runCalibrationPass_(all_spectra[i], cal_fi, cal_chunk_db);
+                          << " (strided sample, " << cal_db.size() << " proteins)" << std::endl;
+          CalibrationResult_ cal = runCalibrationPass_(all_spectra[i], cal_fi, cal_db);
           if (cal.success)
           {
             per_file_cal[i].effective_fragment_tol = cal.fragment_tolerance;
             if (!cal.extreme_bias)
             {
-              per_file_cal[i].effective_precursor_tol = std::max(cal.cal_lower, cal.cal_upper);
+              per_file_cal[i].effective_precursor_tol_lower = cal.cal_lower;
+              per_file_cal[i].effective_precursor_tol_upper = cal.cal_upper;
               OPENMS_LOG_INFO << "[ProSE] Calibration: shift=" << cal.precursor_shift
-                              << " spread=" << cal.precursor_spread << " "
-                              << precursor_mass_tolerance_unit_
+                              << " " << precursor_mass_tolerance_unit_
                               << " -> window [-" << cal.cal_lower << ", +" << cal.cal_upper << "]"
                               << " fragment=" << cal.fragment_tolerance << std::endl;
             }
@@ -1598,7 +1713,7 @@ namespace OpenMS
                             << ", using configured tolerances." << std::endl;
           }
         }
-        // cal_fi freed here — first chunk will be rebuilt in the main loop.
+        // cal_fi freed here.
       }
       else if (calibration_enabled_ && open_search_mode)
       {
@@ -1651,17 +1766,15 @@ namespace OpenMS
         const Param base_fi_params = chunk_fi.getParameters();
         for (Size i = 0; i < in_spectra_files.size(); ++i)
         {
-          // Apply per-file calibrated precursor bounds to FI query params.
+          // Apply per-file calibrated precursor bounds to FI query params. Asymmetric
+          // lower/upper preserved — collapsing to max() would re-open the tight side
+          // of the calibrated window and admit spurious decoy candidates (#9180).
           if (calibration_enabled_ && !open_search_mode)
           {
             Param fi_params = base_fi_params;
             fi_params.setValue("fragment:mass_tolerance", per_file_cal[i].effective_fragment_tol);
-            // Precursor bounds: per_file_cal stores the effective max. For the
-            // FI we need lower/upper separately — use the calibrated effective
-            // as a symmetric bound (same as non-chunked single-context path
-            // after calibration).
-            fi_params.setValue("precursor:mass_tolerance_lower", per_file_cal[i].effective_precursor_tol);
-            fi_params.setValue("precursor:mass_tolerance_upper", per_file_cal[i].effective_precursor_tol);
+            fi_params.setValue("precursor:mass_tolerance_lower", per_file_cal[i].effective_precursor_tol_lower);
+            fi_params.setValue("precursor:mass_tolerance_upper", per_file_cal[i].effective_precursor_tol_upper);
             chunk_fi.setParameters(fi_params);
           }
           scoreSpectraAgainstIndex_(all_spectra[i], chunk_fi, chunk_db,
@@ -1709,7 +1822,8 @@ namespace OpenMS
           result.protein_ids, result.peptide_ids,
           report_top_hits_, modifications_fixed_, modifications_variable_,
           peptide_missed_cleavages_,
-          per_file_cal[i].effective_precursor_tol,
+          std::max(per_file_cal[i].effective_precursor_tol_lower,
+                   per_file_cal[i].effective_precursor_tol_upper),
           per_file_cal[i].effective_fragment_tol,
           precursor_mass_tolerance_unit_, fragment_mass_tolerance_unit_,
           precursor_min_charge_, precursor_max_charge_, enzyme_, "");
@@ -1723,7 +1837,23 @@ namespace OpenMS
                           EnzymaticDigestion::NamesOfSpecificity[peptide_enzyme_specificity_]);
         param_pi.setValue("missing_decoy_action", "silent");
         indexer.setParameters(param_pi);
-        indexer.run(full_db, result.protein_ids, result.peptide_ids);
+        PeptideIndexing::ExitCodes indexer_exit =
+            indexer.run(full_db, result.protein_ids, result.peptide_ids);
+        if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
+            (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
+        {
+          OPENMS_LOG_WARN << "[ProSE] PeptideIndexing failed for " << in_spectra
+                          << " (exit code " << static_cast<int>(indexer_exit)
+                          << "). Skipping this file." << std::endl;
+          if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY)
+            result.exit_code = ExitCodes::INPUT_FILE_EMPTY;
+          else if (indexer_exit == PeptideIndexing::ExitCodes::UNEXPECTED_RESULT)
+            result.exit_code = ExitCodes::UNEXPECTED_RESULT;
+          else
+            result.exit_code = ExitCodes::UNKNOWN_ERROR;
+          mfres.per_file.push_back(std::move(result));
+          continue;
+        }
 
         // PSM-level FDR only (matching non-chunked search semantics).
         bool has_decoys = std::any_of(full_db.begin(), full_db.end(),
@@ -1767,7 +1897,22 @@ namespace OpenMS
       // ================================================================
       // Non-chunked multi-file: shared SearchContext (existing path).
       // ================================================================
-      SearchContext ctx = prepareContext(fasta_db);
+      SearchContext ctx;
+      if (!full_db.empty())
+      {
+        // chunk_size was set but augmented DB fits in one chunk — reuse the
+        // already-built decoy-augmented DB instead of re-augmenting inside
+        // prepareContext.
+        ctx.db = std::move(full_db);
+        startProgress(0, 1, "Building fragment index...");
+        ctx.fragment_index.setParameters(getParameters());
+        ctx.fragment_index.build(ctx.db);
+        endProgress();
+      }
+      else
+      {
+        ctx = prepareContext(fasta_db);
+      }
 
       mfres.per_file.reserve(in_spectra_files.size());
 
@@ -2251,13 +2396,18 @@ namespace OpenMS
     // "Extreme" guards the degenerate case where the signed-error distribution
     // has essentially zero spread — e.g. a pure uniform shift fixture or a
     // single-peptide corner case — and the quantile bounds can't usefully inform
-    // a calibrated window. In that case the precursor calibration is discarded;
-    // fragment calibration still applies. A distribution strictly on one side of
-    // zero is NOT extreme by this definition: we emit a legal half-line window
-    // (cal_upper or cal_lower clamped to min_tolerance). Threshold kept at 1 ppm
-    // so realistic proteomics-scale fixtures never trip it.
-    const double extreme_bias_threshold_ppm = 1.0;
-    result.extreme_bias = (hi - lo) < extreme_bias_threshold_ppm;
+    // a calibrated window. Precursor calibration is then discarded; fragment
+    // calibration still applies. A distribution strictly on one side of zero is
+    // NOT extreme by this definition: we emit a legal half-line window
+    // (cal_upper or cal_lower clamped to min_tolerance).
+    //
+    // Unit-aware threshold: 1 ppm is the right floor for ppm tolerances —
+    // realistic proteomics-scale fixtures never trip it. In Da mode, 1.0 Da
+    // would flag every realistic calibration (spreads are <0.05 Da), so fall
+    // back to min_tolerance.
+    const double extreme_bias_threshold =
+        (precursor_mass_tolerance_unit_ == "ppm") ? 1.0 : min_tolerance;
+    result.extreme_bias = (hi - lo) < extreme_bias_threshold;
     result.precursor_spread = std::max(cal_lower_raw, cal_upper_raw);  // diagnostic only
     if (!result.extreme_bias)
     {

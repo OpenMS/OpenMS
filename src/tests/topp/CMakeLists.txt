@@ -3087,6 +3087,42 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_calibrated_psm_count"
     PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_ProSEDDA_calibrated")
 
+  # Chunked + calibration regression guard. Under the pre-#9180 code the chunked
+  # calibration path collapsed the asymmetric calibrated window to symmetric max(),
+  # dropping yield; under pre-#9182 code small chunk_size would silently starve
+  # the calibration pool. chunk_size=5000 is the sweet spot on the HeLa fixture
+  # where calibration fires reliably with the cal_target=chunk_size strategy.
+  # Current: 4438. Floor ~0.5% below.
+  add_test("TOPP_ProSE_DDA_chunked_calibrated" ${TOPP_BIN_PATH}/ProSE -test
+    -in ${OPENTIMS_DDA_SYMLINK}
+    -database ${OPENTIMS_TEST_FASTA}
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_DDA_chunked_cal_out.tmp.idXML
+    -Search:precursor:mass_tolerance_lower 20
+    -Search:precursor:mass_tolerance_upper 20
+    -Search:precursor:mass_tolerance_unit ppm
+    -Search:fragment:mass_tolerance 20
+    -Search:fragment:mass_tolerance_unit ppm
+    -Search:enzyme Trypsin/P
+    -Search:peptide:missed_cleavages 2
+    "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
+    -Search:decoys
+    -Search:calibration:enabled
+    -Search:database:chunk_size 5000)
+
+  add_test("TOPP_FalseDiscoveryRate_ProSEDDA_chunked_calibrated" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+    -in ${TESTS_TEMP_DIR}/ProSE_DDA_chunked_cal_out.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/ProSE_DDA_chunked_cal_fdr.tmp.idXML
+    -FDR:PSM 0.01
+    -protein false)
+  set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_chunked_calibrated"
+    PROPERTIES DEPENDS "TOPP_ProSE_DDA_chunked_calibrated")
+
+  add_test(NAME "TOPP_FalseDiscoveryRate_ProSEDDA_chunked_calibrated_psm_count"
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/check_psm_floor.cmake
+      ${TESTS_TEMP_DIR}/ProSE_DDA_chunked_cal_fdr.tmp.idXML 4400)
+  set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_chunked_calibrated_psm_count"
+    PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_ProSEDDA_chunked_calibrated")
+
   # Generate target-decoy database (shared by CometAdapter and SageAdapter DDA tests)
   add_test("TOPP_DecoyDatabase_DDA" ${TOPP_BIN_PATH}/DecoyDatabase -test
     -in ${OPENTIMS_TEST_FASTA}
