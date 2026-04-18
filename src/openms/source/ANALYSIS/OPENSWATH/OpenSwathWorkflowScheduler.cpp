@@ -16,6 +16,33 @@
 
 namespace OpenMS
 {
+  namespace
+  {
+    UInt64 saturatingMultiply(UInt64 lhs, UInt64 rhs)
+    {
+      if (lhs != 0ULL && rhs > std::numeric_limits<UInt64>::max() / lhs)
+      {
+        return std::numeric_limits<UInt64>::max();
+      }
+      return lhs * rhs;
+    }
+
+    UInt64 estimateTransitionChromatogramBytes(
+      UInt64 spectra_count,
+      Size avg_transitions_per_swath,
+      UInt64 bytes_per_chromatogram_point)
+    {
+      if (avg_transitions_per_swath == 0 || bytes_per_chromatogram_point == 0ULL)
+      {
+        return 0ULL;
+      }
+
+      const UInt64 transition_points = saturatingMultiply(
+        spectra_count, static_cast<UInt64>(avg_transitions_per_swath));
+      return saturatingMultiply(transition_points, bytes_per_chromatogram_point);
+    }
+  }
+
   UInt64 OpenSwathWorkflowScheduler::estimateAvailableMemoryForScoring(const Options& options)
   {
     size_t available_kb = 0;
@@ -73,7 +100,11 @@ namespace OpenMS
       static_cast<Size>(total_spectra / estimate.non_ms1_swath_count);
     estimate.estimated_bytes_per_swath =
       static_cast<UInt64>(estimate.avg_spectra_per_swath) * options.bytes_per_spectrum +
-      options.per_swath_overhead_bytes;
+      options.per_swath_overhead_bytes +
+      estimateTransitionChromatogramBytes(
+        static_cast<UInt64>(estimate.avg_spectra_per_swath),
+        options.avg_transitions_per_swath,
+        options.bytes_per_chromatogram_point);
 
     Size max_concurrent_swaths = 1;
     if (estimate.memory_budget_bytes > estimate.estimated_bytes_per_swath)
@@ -124,7 +155,12 @@ namespace OpenMS
 
       const UInt64 spectra_count = swath_map.sptr ? swath_map.sptr->getNrSpectra() : estimate.avg_spectra_per_swath;
       const UInt64 swath_bytes =
-        spectra_count * options.bytes_per_spectrum + options.per_swath_overhead_bytes;
+        spectra_count * options.bytes_per_spectrum +
+        options.per_swath_overhead_bytes +
+        estimateTransitionChromatogramBytes(
+          spectra_count,
+          options.avg_transitions_per_swath,
+          options.bytes_per_chromatogram_point);
 
       const bool wave_full_by_count = current_wave.swath_indices.size() >= max_concurrent_swaths;
       const bool wave_full_by_memory =

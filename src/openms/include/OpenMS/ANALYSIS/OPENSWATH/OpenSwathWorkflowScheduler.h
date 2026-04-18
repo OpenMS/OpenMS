@@ -40,6 +40,10 @@ namespace OpenMS
       UInt64 bytes_per_spectrum = 600ULL * 1024ULL;
       /// Fixed estimated overhead per loaded SWATH.
       UInt64 per_swath_overhead_bytes = 100ULL * 1024ULL * 1024ULL;
+      /// Average number of chromatograms extracted per non-MS1 SWATH; 0 disables transition-density accounting.
+      Size avg_transitions_per_swath = 0;
+      /// Estimated bytes retained per extracted chromatogram point.
+      UInt64 bytes_per_chromatogram_point = 64ULL;
       /// User override for concurrent SWATHs; <= 0 enables memory-based planning.
       int max_concurrent_swaths = -1;
       /// Number of scoring worker threads available; auto SWATH concurrency should not exceed this.
