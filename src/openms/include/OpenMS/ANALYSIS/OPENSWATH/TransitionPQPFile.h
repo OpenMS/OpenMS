@@ -201,6 +201,8 @@ private:
       std::string select_sql;      ///< The complete SQL SELECT query
       bool drift_time_exists;      ///< Whether LIBRARY_DRIFT_TIME column exists
       bool gene_exists;            ///< Whether GENE table exists
+      bool compound_exists;        ///< Whether compound mappings exist
+      bool peptidoforms_exists;    ///< Whether transition-to-peptide mappings exist
     };
 
     /** @brief Build the SQL query for reading PQP transitions
