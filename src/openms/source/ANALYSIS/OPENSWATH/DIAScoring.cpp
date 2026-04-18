@@ -10,7 +10,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
@@ -44,125 +43,10 @@ namespace OpenMS
       seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
 
-    struct IntegratedDIAWindow
-    {
-      double mz = -1.0;
-      double im = -1.0;
-      double intensity = 0.0;
-      bool found = false;
-    };
-
-    struct DIAWindowKey
-    {
-      double mz_min = 0.0;
-      double mz_max = 0.0;
-
-      bool operator==(const DIAWindowKey& rhs) const
-      {
-        return mz_min == rhs.mz_min &&
-               mz_max == rhs.mz_max;
-      }
-    };
-
-    struct DIAWindowKeyHash
-    {
-      std::size_t operator()(const DIAWindowKey& key) const
-      {
-        std::size_t seed = std::hash<double>{}(key.mz_min);
-        hashCombine(seed, std::hash<double>{}(key.mz_max));
-        return seed;
-      }
-    };
-
-    struct DIAIntegrationCache
-    {
-      std::vector<const OpenSwath::Spectrum*> spectra_key;
-      std::unordered_map<DIAWindowKey, IntegratedDIAWindow, DIAWindowKeyHash> windows;
-      bool valid = false;
-      bool im_empty = true;
-      double im_min = 0.0;
-      double im_max = 0.0;
-      bool centroided = false;
-
-      bool matches(const SpectrumSequence& spectrum, const RangeMobility& im_range, bool centroided_in) const
-      {
-        if (!valid || centroided != centroided_in || im_empty != im_range.isEmpty() || spectra_key.size() != spectrum.size())
-        {
-          return false;
-        }
-        if (!im_empty && (im_min != im_range.getMin() || im_max != im_range.getMax()))
-        {
-          return false;
-        }
-        for (Size i = 0; i < spectrum.size(); ++i)
-        {
-          if (spectra_key[i] != spectrum[i].get())
-          {
-            return false;
-          }
-        }
-        return true;
-      }
-
-      void begin(const SpectrumSequence& spectrum, const RangeMobility& im_range, bool centroided_in, bool clear_windows)
-      {
-        if (matches(spectrum, im_range, centroided_in))
-        {
-          if (clear_windows)
-          {
-            windows.clear();
-          }
-          return;
-        }
-
-        spectra_key.clear();
-        spectra_key.reserve(spectrum.size());
-        for (const OpenSwath::SpectrumPtr& spec : spectrum)
-        {
-          spectra_key.push_back(spec.get());
-        }
-        im_empty = im_range.isEmpty();
-        if (!im_empty)
-        {
-          im_min = im_range.getMin();
-          im_max = im_range.getMax();
-        }
-        else
-        {
-          im_min = 0.0;
-          im_max = 0.0;
-        }
-        centroided = centroided_in;
-        windows.clear();
-        valid = true;
-      }
-
-      const IntegratedDIAWindow& integrate(const SpectrumSequence& spectrum,
-                                           const RangeMZ& mz_range,
-                                           const RangeMobility& im_range,
-                                           bool centroided_in)
-      {
-        begin(spectrum, im_range, centroided_in, false);
-        const DIAWindowKey key{mz_range.getMin(), mz_range.getMax()};
-        auto cached = windows.find(key);
-        if (cached != windows.end())
-        {
-          return cached->second;
-        }
-
-        IntegratedDIAWindow result;
-        result.found = DIAHelpers::integrateWindow(spectrum, result.mz, result.im, result.intensity, mz_range, im_range, centroided_in);
-        return windows.emplace(key, result).first->second;
-      }
-    };
-
-    thread_local DIAIntegrationCache dia_integration_cache;
-
     struct DIAScoringPool
     {
       std::vector<double> isotopes_int;
       std::vector<double> exp_isotopes_int;
-      std::vector<double> prescore_int_exp;
       std::vector<double> bseries;
       std::vector<double> yseries;
       std::string byseries_sequence;
@@ -173,49 +57,9 @@ namespace OpenMS
       {
         isotopes_int.clear();
         exp_isotopes_int.clear();
-        prescore_int_exp.clear();
       }
     };
     thread_local DIAScoringPool dias_pool;
-
-    void scorePreparedCached(const SpectrumSequence& spec,
-                             const DiaPrescore::PreparedSpectrum& prepared,
-                             double dia_extract_window,
-                             const RangeMobility& im_range,
-                             double& dotprod,
-                             double& manhattan)
-    {
-      std::vector<double>& int_exp = dias_pool.prescore_int_exp;
-      int_exp.clear();
-      if (prepared.mz_theor.empty())
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No windows supplied!");
-      }
-      if (!spec.empty())
-      {
-        int_exp.reserve(prepared.mz_theor.size());
-        for (double mz_theor : prepared.mz_theor)
-        {
-          RangeMZ mz_range(mz_theor);
-          mz_range.minSpanIfSingular(dia_extract_window);
-          const IntegratedDIAWindow& window = dia_integration_cache.integrate(spec, mz_range, im_range, false);
-          int_exp.push_back(window.found ? window.intensity : 0.0);
-        }
-      }
-
-      std::transform(int_exp.cbegin(), int_exp.cend(), int_exp.begin(), [](double val) { return std::sqrt(val); });
-
-      double int_exp_total = std::accumulate(int_exp.cbegin(), int_exp.cend(), 0.0);
-      OpenSwath::normalize(int_exp, int_exp_total, int_exp);
-
-      manhattan = OpenSwath::manhattanDist(int_exp.cbegin(), int_exp.cend(), prepared.int_theor.cbegin());
-
-      double int_exp_euclid_norm = OpenSwath::norm(int_exp.cbegin(), int_exp.cend());
-      OpenSwath::normalize(int_exp, int_exp_euclid_norm, int_exp);
-
-      dotprod = OpenSwath::dotProd(int_exp.cbegin(), int_exp.cend(), prepared.int_theor_neg.cbegin());
-      dotprod = (((dotprod - prepared.neg_val) * 2.) / (prepared.pos_val - prepared.neg_val)) - 1.;
-    }
 
     struct DiaPrescoreThreadCache
     {
@@ -404,29 +248,29 @@ namespace OpenMS
     ppm_score = 0;
     ppm_score_weighted = 0;
     diff_ppm.clear();
-    dia_integration_cache.begin(spectrum, im_range, dia_centroided_, true);
     size_t n_observed = 0;
     for (std::size_t k = 0; k < transitions.size(); k++)
     {
       const TransitionType& transition = transitions[k];
 
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(transition.getProductMZ(), dia_extract_window_, dia_extraction_ppm_);
-      const IntegratedDIAWindow& window = dia_integration_cache.integrate(spectrum, mz_range, im_range, dia_centroided_);
+      double mz, intensity, im;
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
       // Continue if no signal was found - we therefore don't make a statement
       // about the mass difference if no signal is present.
-      if (!window.found)
+      if (!signalFound)
       {
         diff_ppm.push_back(-1); // if no signal is found than we set the ppm to -1
         continue;
       }
 
       ++n_observed;
-      double ppm = Math::getPPM(window.mz, transition.getProductMZ());
+      double ppm = Math::getPPM(mz, transition.getProductMZ());
       diff_ppm.push_back(ppm);
       ppm_score += std::fabs(ppm);
       ppm_score_weighted += std::fabs(ppm) * normalized_library_intensity[k];
 #ifdef MRMSCORING_TESTING
-      std::cout << " weighted int of the peak is " << window.mz << " diff is in ppm " << ppm
+      std::cout << " weighted int of the peak is " << mz << " diff is in ppm " << ppm
                 << " thus append " << ppm * ppm << " or weighted " << ppm * normalized_library_intensity[k] << '\n';
 #endif
     }
@@ -439,22 +283,22 @@ namespace OpenMS
                                           const RangeMobility& im_range, double& ppm_score) const
   {
     ppm_score = -1;
+    double mz, intensity, im;
     {
       // Calculate the difference of the theoretical mass and the actually measured mass
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(precursor_mz, dia_extract_window_, dia_extraction_ppm_);
-      dia_integration_cache.begin(spectrum, im_range, dia_centroided_, true);
-      const IntegratedDIAWindow& window = dia_integration_cache.integrate(spectrum, mz_range, im_range, dia_centroided_);
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
 
       // Catch if no signal was found and replace it with the most extreme
       // value. Otherwise, calculate the difference in ppm.
-      if (!window.found)
+      if (!signalFound)
       {
         ppm_score = Math::getPPMAbs(precursor_mz + mz_range.getSpan(), precursor_mz);
         return false;
       }
       else
       {
-        ppm_score = Math::getPPMAbs(window.mz, precursor_mz);
+        ppm_score = Math::getPPMAbs(mz, precursor_mz);
         return true;
       }
     }
@@ -464,7 +308,6 @@ namespace OpenMS
   void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum,
                                           RangeMobility& im_range, double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula) const
   {
-    dia_integration_cache.begin(spectrum, im_range, dia_centroided_, true);
     // although precursor_mz can be received from the empirical formula (if non-empty), the actual precursor could be
     // slightly different. And also for compounds, usually the neutral sum_formula without adducts is given.
     // Therefore calculate the isotopes based on the formula but place them at precursor_mz
@@ -487,15 +330,16 @@ namespace OpenMS
     for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
     {
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(precursor_mz + iso * C13C12_MASSDIFF_U / abs_charge, dia_extract_window_, dia_extraction_ppm_);
-      const IntegratedDIAWindow& window = dia_integration_cache.integrate(spectrum, mz_range, im_range, dia_centroided_);
-      isotopes_int.push_back(window.intensity);
+      double mz, intensity, im;
+
+      DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
+      isotopes_int.push_back(intensity);
     }
   }
 
   void DIAScoring::dia_ms1_isotope_scores_averagine(double precursor_mz, const SpectrumSequence& spectrum, int charge_state, RangeMobility& im_range,
                                                     double& isotope_corr, double& isotope_overlap) const
   {
-    dia_integration_cache.begin(spectrum, im_range, dia_centroided_, true);
     dias_pool.exp_isotopes_int.clear();
     getIsotopeIntysFromExpSpec_(precursor_mz, spectrum, charge_state, im_range, dias_pool.exp_isotopes_int);
     // NOTE: this is a rough estimate of the neutral mz value since we would not know the charge carrier for negative ions
@@ -520,6 +364,7 @@ namespace OpenMS
     yseries_score = 0;
     OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer"); // for peptides, charge should be positive
 
+    double mz, intensity, im;
     const std::string sequence_key = sequence.toString();
     if (!dias_pool.byseries_valid ||
         dias_pool.byseries_charge != charge ||
@@ -536,9 +381,9 @@ namespace OpenMS
     {
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(b_ion_mz, dia_extract_window_, dia_extraction_ppm_);
 
-      const IntegratedDIAWindow& window = dia_integration_cache.integrate(spectrum, mz_range, im_range, dia_centroided_);
-      double ppmdiff = Math::getPPMAbs(window.mz, b_ion_mz);
-      if (window.found && ppmdiff < dia_byseries_ppm_diff_ && window.intensity > dia_byseries_intensity_min_)
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
+      double ppmdiff = Math::getPPMAbs(mz, b_ion_mz);
+      if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
         bseries_score++;
       }
@@ -547,9 +392,9 @@ namespace OpenMS
     {
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(y_ion_mz, dia_extract_window_, dia_extraction_ppm_);
 
-      const IntegratedDIAWindow& window = dia_integration_cache.integrate(spectrum, mz_range, im_range, dia_centroided_);
-      double ppmdiff = Math::getPPMAbs(window.mz, y_ion_mz);
-      if (window.found && ppmdiff < dia_byseries_ppm_diff_ && window.intensity > dia_byseries_intensity_min_)
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
+      double ppmdiff = Math::getPPMAbs(mz, y_ion_mz);
+      if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
         yseries_score++;
       }
@@ -565,7 +410,7 @@ namespace OpenMS
       dp.prepare(transitions, cache.prepared);
       updateDiaPrescoreCacheKey(cache, transitions, dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_);
     }
-    scorePreparedCached(spectrum, cache.prepared, dia_extract_window_, im_range, dotprod, manhattan);
+    OpenMS::DiaPrescore::scorePrepared(spectrum, cache.prepared, dia_extract_window_, im_range, dotprod, manhattan);
   }
 
   ///////////////////////////////////////////////////////////////////////////
@@ -615,8 +460,9 @@ namespace OpenMS
       for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
       {
         RangeMZ mz_range = DIAHelpers::createMZRangePPM(transition.getProductMZ() + iso * C13C12_MASSDIFF_U / abs_charge, dia_extract_window_, dia_extraction_ppm_);
-        const IntegratedDIAWindow& window = dia_integration_cache.integrate(spectrum, mz_range, im_range, dia_centroided_);
-        isotopes_int.push_back(window.intensity);
+        double mz, intensity, im;
+        DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
+        isotopes_int.push_back(intensity);
       }
 
       // calculate the scores:
@@ -630,6 +476,7 @@ namespace OpenMS
 
   void DIAScoring::largePeaksBeforeFirstIsotope_(const SpectrumSequence& spectrum, double mono_mz, double mono_int, int& nr_occurences, double& max_ratio, const RangeMobility& im_range) const
   {
+    double mz, intensity, im;
     nr_occurences = 0;
     max_ratio = 0.0;
 
@@ -638,10 +485,10 @@ namespace OpenMS
       double center = mono_mz - C13C12_MASSDIFF_U / (double) ch;
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(center, dia_extract_window_, dia_extraction_ppm_);
 
-      const IntegratedDIAWindow& window = dia_integration_cache.integrate(spectrum, mz_range, im_range, dia_centroided_);
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
       // Continue if no signal was found - we therefore don't make a statement
       // about the mass difference if no signal is present.
-      if (!window.found)
+      if (!signalFound)
       {
         continue;
       }
@@ -650,7 +497,7 @@ namespace OpenMS
       double ratio;
       if (mono_int != 0)
       {
-        ratio = window.intensity / mono_int;
+        ratio = intensity / mono_int;
       }
       else
       {
@@ -658,7 +505,7 @@ namespace OpenMS
       }
       if (ratio > max_ratio) {max_ratio = ratio;}
 
-      double ddiff_ppm = std::fabs(window.mz - center) * 1e6 / center;
+      double ddiff_ppm = std::fabs(mz - center) * 1e6 / center;
 
       // FEATURE we should fit a theoretical distribution to see whether we really are a secondary peak
       if (ratio > 1 && ddiff_ppm < peak_before_mono_max_ppm_diff_)
