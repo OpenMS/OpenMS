@@ -19,9 +19,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
-#include <OpenMS/SYSTEM/StopWatch.h>
 #include <algorithm>
-#include <chrono>
 #include <cmath>
 #include <condition_variable>
 #include <deque>
@@ -30,7 +28,6 @@
 #include <limits>
 #include <memory>
 #include <mutex>
-#include <sstream>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
@@ -42,66 +39,6 @@ namespace OpenMS
 {
   namespace
   {
-    using ProfileClock = std::chrono::steady_clock;
-
-    double elapsedProfileSeconds(const ProfileClock::time_point& start)
-    {
-      return std::chrono::duration<double>(ProfileClock::now() - start).count();
-    }
-
-    ProfileClock::time_point profileStart(bool enabled)
-    {
-      return enabled ? ProfileClock::now() : ProfileClock::time_point();
-    }
-
-    struct OpenSwathWorkflowPhaseTiming
-    {
-      double ms1_map_loading = 0.0;
-      double window_mapping = 0.0;
-      double transition_selection = 0.0;
-      double swath_loading = 0.0;
-      double batch_selection = 0.0;
-      double ms1_extraction = 0.0;
-      double coordinate_preparation = 0.0;
-      double ms2_extraction = 0.0;
-      double chromatogram_conversion = 0.0;
-      double scoring = 0.0;
-      double writing = 0.0;
-      double total = 0.0;
-      OpenSwathScoringPhaseTiming scoring_breakdown;
-      Size swath_count = 0;
-      Size batch_count = 0;
-      Size compound_count = 0;
-      Size transition_count = 0;
-      Size ms1_chromatogram_count = 0;
-      Size ms2_chromatogram_count = 0;
-      Size feature_count = 0;
-
-      void add(const OpenSwathWorkflowPhaseTiming& rhs)
-      {
-        ms1_map_loading += rhs.ms1_map_loading;
-        window_mapping += rhs.window_mapping;
-        transition_selection += rhs.transition_selection;
-        swath_loading += rhs.swath_loading;
-        batch_selection += rhs.batch_selection;
-        ms1_extraction += rhs.ms1_extraction;
-        coordinate_preparation += rhs.coordinate_preparation;
-        ms2_extraction += rhs.ms2_extraction;
-        chromatogram_conversion += rhs.chromatogram_conversion;
-        scoring += rhs.scoring;
-        writing += rhs.writing;
-        total += rhs.total;
-        scoring_breakdown.add(rhs.scoring_breakdown);
-        swath_count += rhs.swath_count;
-        batch_count += rhs.batch_count;
-        compound_count += rhs.compound_count;
-        transition_count += rhs.transition_count;
-        ms1_chromatogram_count += rhs.ms1_chromatogram_count;
-        ms2_chromatogram_count += rhs.ms2_chromatogram_count;
-        feature_count += rhs.feature_count;
-      }
-    };
-
     // --- Dynamic batching helpers ---
     Size estimateFeatureMemoryPerCompound()
     {
@@ -125,11 +62,6 @@ namespace OpenMS
       // clamp
       inner = std::max<Size>(2000, std::min<Size>(10000, inner));
       return std::min<Size>(inner, total_compounds);
-    }
-
-    String formatProfileSeconds(double seconds)
-    {
-      return StopWatch::toString(seconds);
     }
 
     constexpr UInt64 OSW_MIN_WRITE_BUFFER_BYTES = 64ull * 1024ull * 1024ull;
@@ -167,34 +99,10 @@ namespace OpenMS
     class OSWBufferedWriter
     {
     public:
-      struct EnqueueProfile
-      {
-        double wait_seconds = 0.0;
-        Size row_count = 0;
-        UInt64 byte_count = 0;
-      };
-
-      struct Stats
-      {
-        double enqueue_wait = 0.0;
-        double write_hold = 0.0;
-        double finish_wait = 0.0;
-        Size queued_jobs = 0;
-        Size flush_count = 0;
-        Size queued_rows = 0;
-        Size written_rows = 0;
-        UInt64 queued_bytes = 0;
-        UInt64 written_bytes = 0;
-        UInt64 max_buffered_bytes = 0;
-        UInt64 buffer_budget_bytes = 0;
-      };
-
-      OSWBufferedWriter(OpenSwathOSWWriter& writer, UInt64 buffer_budget_bytes, bool profile) :
+      OSWBufferedWriter(OpenSwathOSWWriter& writer, UInt64 buffer_budget_bytes) :
         writer_(writer),
-        buffer_budget_bytes_(std::max(buffer_budget_bytes, OSW_MIN_WRITE_BUFFER_BYTES)),
-        profile_(profile)
+        buffer_budget_bytes_(std::max(buffer_budget_bytes, OSW_MIN_WRITE_BUFFER_BYTES))
       {
-        stats_.buffer_budget_bytes = buffer_budget_bytes_;
         worker_ = std::thread([this]() { writerLoop_(); });
       }
 
@@ -203,17 +111,14 @@ namespace OpenMS
         try { finish(); } catch (...) {}
       }
 
-      EnqueueProfile enqueue(OpenSwathOSWWriter::OSWData rows)
+      void enqueue(OpenSwathOSWWriter::OSWData rows)
       {
-        EnqueueProfile profile;
         if (rows.empty())
         {
-          return profile;
+          return;
         }
 
-        profile.row_count = rows.rowCount();
-        profile.byte_count = std::max<UInt64>(rows.estimateMemoryUsage(), 1ull);
-        const auto wait_start = profileStart(profile_);
+        const UInt64 byte_count = std::max<UInt64>(rows.estimateMemoryUsage(), 1ull);
 
         std::unique_lock<std::mutex> lock(mutex_);
         checkExceptionLocked_();
@@ -222,7 +127,7 @@ namespace OpenMS
           return exception_ != nullptr ||
                  finish_requested_ ||
                  (buffered_bytes_ <= buffer_budget_bytes_ &&
-                  profile.byte_count <= buffer_budget_bytes_ - buffered_bytes_) ||
+                  byte_count <= buffer_budget_bytes_ - buffered_bytes_) ||
                  (buffered_bytes_ == 0 && queue_.empty());
         });
         checkExceptionLocked_();
@@ -232,22 +137,11 @@ namespace OpenMS
             "Cannot enqueue OSW rows after the buffered writer was finished.");
         }
 
-        if (profile_)
-        {
-          profile.wait_seconds = elapsedProfileSeconds(wait_start);
-        }
-
-        queue_.push_back({std::move(rows), profile.byte_count, profile.row_count});
-        buffered_bytes_ += profile.byte_count;
-        stats_.enqueue_wait += profile.wait_seconds;
-        stats_.queued_jobs += 1;
-        stats_.queued_rows += profile.row_count;
-        stats_.queued_bytes += profile.byte_count;
-        stats_.max_buffered_bytes = std::max(stats_.max_buffered_bytes, buffered_bytes_);
+        queue_.push_back({std::move(rows), byte_count});
+        buffered_bytes_ += byte_count;
 
         lock.unlock();
         cv_.notify_all();
-        return profile;
       }
 
       /// Non-blocking capacity check: return true if the given byte_count can be
@@ -282,23 +176,14 @@ namespace OpenMS
         }
         cv_.notify_all();
 
-        const auto finish_wait_start = profileStart(profile_);
         if (worker_.joinable())
         {
           worker_.join();
         }
-        const double finish_wait = profile_ ? elapsedProfileSeconds(finish_wait_start) : 0.0;
 
         std::lock_guard<std::mutex> lock(mutex_);
-        stats_.finish_wait += finish_wait;
         finished_ = true;
         checkExceptionLocked_();
-      }
-
-      Stats stats() const
-      {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return stats_;
       }
 
     private:
@@ -306,7 +191,6 @@ namespace OpenMS
       {
         OpenSwathOSWWriter::OSWData rows;
         UInt64 byte_count = 0;
-        Size row_count = 0;
       };
 
       void checkExceptionLocked_() const
@@ -325,7 +209,6 @@ namespace OpenMS
           {
             OpenSwathOSWWriter::OSWData batch;
             UInt64 batch_bytes = 0;
-            Size batch_rows = 0;
 
             {
               std::unique_lock<std::mutex> lock(mutex_);
@@ -354,22 +237,15 @@ namespace OpenMS
                 QueueItem item = std::move(queue_.front());
                 queue_.pop_front();
                 batch_bytes += item.byte_count;
-                batch_rows += item.row_count;
                 batch.append(std::move(item.rows));
               }
             }
 
             if (!batch.empty())
             {
-              const auto write_start = profileStart(profile_);
               writer_.writeRows(batch);
-              const double write_hold = profile_ ? elapsedProfileSeconds(write_start) : 0.0;
 
               std::lock_guard<std::mutex> lock(mutex_);
-              stats_.write_hold += write_hold;
-              stats_.flush_count += 1;
-              stats_.written_rows += batch_rows;
-              stats_.written_bytes += batch_bytes;
               buffered_bytes_ -= batch_bytes;
               cv_.notify_all();
             }
@@ -387,7 +263,6 @@ namespace OpenMS
 
       OpenSwathOSWWriter& writer_;
       UInt64 buffer_budget_bytes_ = OSW_FALLBACK_WRITE_BUFFER_BYTES;
-      bool profile_ = false;
       mutable std::mutex mutex_;
       std::condition_variable cv_;
       std::deque<QueueItem> queue_;
@@ -395,119 +270,8 @@ namespace OpenMS
       bool finish_requested_ = false;
       bool finished_ = false;
       std::exception_ptr exception_;
-      Stats stats_;
       std::thread worker_;
     };
-
-    void logOSWBufferedWriterProfile(const OSWBufferedWriter::Stats& stats)
-    {
-      OPENMS_LOG_INFO << "[OpenSwathWorkflow profile] OSW writer queue: "
-                      << "wait=" << formatProfileSeconds(stats.enqueue_wait)
-                      << ", write_hold=" << formatProfileSeconds(stats.write_hold)
-                      << ", finish_wait=" << formatProfileSeconds(stats.finish_wait)
-                      << ", flushes=" << stats.flush_count
-                      << ", jobs=" << stats.queued_jobs
-                      << ", rows=" << stats.written_rows
-                      << ", budget=" << bytesToHumanReadable(stats.buffer_budget_bytes)
-                      << ", max_buffered=" << bytesToHumanReadable(stats.max_buffered_bytes)
-                      << ", queued=" << bytesToHumanReadable(stats.queued_bytes)
-                      << ", written=" << bytesToHumanReadable(stats.written_bytes)
-                      << std::endl;
-    }
-
-    String formatScoringBreakdown(const OpenSwathScoringPhaseTiming& timing)
-    {
-      std::ostringstream os;
-      os << "score_detail=(map_setup=" << formatProfileSeconds(timing.map_setup)
-         << ", assay_setup=" << formatProfileSeconds(timing.assay_setup)
-         << ", picker=" << formatProfileSeconds(timing.transition_group_picker)
-         << ", score_peakgroups=" << formatProfileSeconds(timing.score_peakgroups)
-         << ", score_setup=" << formatProfileSeconds(timing.score_setup)
-         << ", sn_setup=" << formatProfileSeconds(timing.signal_to_noise_setup)
-         << ", chrom=" << formatProfileSeconds(timing.chrom_scores)
-         << ", library=" << formatProfileSeconds(timing.library_scores)
-         << ", dia=" << formatProfileSeconds(timing.dia_scores)
-         << ", ms1=" << formatProfileSeconds(timing.ms1_scores)
-         << ", uis=" << formatProfileSeconds(timing.uis_scores)
-         << ", score_output=" << formatProfileSeconds(timing.score_output)
-         << ", feature_sort_output=" << formatProfileSeconds(timing.feature_sort_output)
-         << ", osw_prepare=" << formatProfileSeconds(timing.osw_prepare)
-         << ", osw_write=" << formatProfileSeconds(timing.osw_write)
-         << ", osw_write_wait=" << formatProfileSeconds(timing.osw_write_wait)
-         << ", osw_write_hold=" << formatProfileSeconds(timing.osw_write_hold)
-         << "; assays=" << timing.assay_count
-         << ", scored_assays=" << timing.scored_assay_count
-         << ", skipped_assays=" << timing.skipped_assay_count
-         << ", scored_features=" << timing.scored_feature_count
-         << ")";
-      return String(os.str());
-    }
-
-    void logBatchProfile(SignedSize swath_index, SignedSize batch_index, SignedSize nr_batches, const OpenSwathWorkflowPhaseTiming& timing)
-    {
-      OPENMS_LOG_INFO << "[OpenSwathWorkflow profile] SWATH " << swath_index
-                      << " batch " << batch_index << "/" << nr_batches
-                      << ": total=" << formatProfileSeconds(timing.total)
-                      << " (batch_select=" << formatProfileSeconds(timing.batch_selection)
-                      << ", ms1_extract=" << formatProfileSeconds(timing.ms1_extraction)
-                      << ", prepare=" << formatProfileSeconds(timing.coordinate_preparation)
-                      << ", ms2_extract=" << formatProfileSeconds(timing.ms2_extraction)
-                      << ", convert=" << formatProfileSeconds(timing.chromatogram_conversion)
-                      << ", score=" << formatProfileSeconds(timing.scoring)
-                      << ", write=" << formatProfileSeconds(timing.writing)
-                      << "); compounds=" << timing.compound_count
-                      << ", transitions=" << timing.transition_count
-                      << ", ms1_chromatograms=" << timing.ms1_chromatogram_count
-                      << ", ms2_chromatograms=" << timing.ms2_chromatogram_count
-                      << ", features=" << timing.feature_count
-                      << "; " << formatScoringBreakdown(timing.scoring_breakdown) << std::endl;
-    }
-
-    void logSwathProfile(SignedSize swath_index, const OpenSwathWorkflowPhaseTiming& timing)
-    {
-      OPENMS_LOG_INFO << "[OpenSwathWorkflow profile] SWATH " << swath_index
-                      << " total=" << formatProfileSeconds(timing.total)
-                      << " (transition_select=" << formatProfileSeconds(timing.transition_selection)
-                      << ", swath_load=" << formatProfileSeconds(timing.swath_loading)
-                      << ", batch_select=" << formatProfileSeconds(timing.batch_selection)
-                      << ", ms1_extract=" << formatProfileSeconds(timing.ms1_extraction)
-                      << ", prepare=" << formatProfileSeconds(timing.coordinate_preparation)
-                      << ", ms2_extract=" << formatProfileSeconds(timing.ms2_extraction)
-                      << ", convert=" << formatProfileSeconds(timing.chromatogram_conversion)
-                      << ", score=" << formatProfileSeconds(timing.scoring)
-                      << ", write=" << formatProfileSeconds(timing.writing)
-                      << "); batches=" << timing.batch_count
-                      << ", compounds=" << timing.compound_count
-                      << ", transitions=" << timing.transition_count
-                      << "; " << formatScoringBreakdown(timing.scoring_breakdown) << std::endl;
-    }
-
-    void logWorkflowProfileSummary(double workflow_wall_time, const OpenSwathWorkflowPhaseTiming& timing)
-    {
-      OPENMS_LOG_INFO << "[OpenSwathWorkflow profile] Workflow wall="
-                      << formatProfileSeconds(workflow_wall_time)
-                      << "; summed worker phases="
-                      << "ms1_map_load=" << formatProfileSeconds(timing.ms1_map_loading)
-                      << ", window_map=" << formatProfileSeconds(timing.window_mapping)
-                      << ", transition_select=" << formatProfileSeconds(timing.transition_selection)
-                      << ", swath_load=" << formatProfileSeconds(timing.swath_loading)
-                      << ", batch_select=" << formatProfileSeconds(timing.batch_selection)
-                      << ", ms1_extract=" << formatProfileSeconds(timing.ms1_extraction)
-                      << ", prepare=" << formatProfileSeconds(timing.coordinate_preparation)
-                      << ", ms2_extract=" << formatProfileSeconds(timing.ms2_extraction)
-                      << ", convert=" << formatProfileSeconds(timing.chromatogram_conversion)
-                      << ", score=" << formatProfileSeconds(timing.scoring)
-                      << ", write=" << formatProfileSeconds(timing.writing)
-                      << ", swath_total=" << formatProfileSeconds(timing.total)
-                      << "; swaths=" << timing.swath_count
-                      << ", batches=" << timing.batch_count
-                      << ", compounds=" << timing.compound_count
-                      << ", transitions=" << timing.transition_count
-                      << ", ms1_chromatograms=" << timing.ms1_chromatogram_count
-                      << ", ms2_chromatograms=" << timing.ms2_chromatogram_count
-                      << ", features=" << timing.feature_count
-                      << "; " << formatScoringBreakdown(timing.scoring_breakdown) << std::endl;
-    }
   }
 
   // Helper: load MS1 map (returns first swath map marked as ms1)
@@ -574,10 +338,6 @@ namespace OpenMS
       return;
     }
 
-    const bool profile = phase_profiling_enabled_;
-    const auto profile_workflow_start = profileStart(profile);
-    OpenSwathWorkflowPhaseTiming profile_total;
-
     // Compute inversion of the transformation
     TransformationDescription trafo_inverse = trafo;
     trafo_inverse.invert();
@@ -595,12 +355,7 @@ namespace OpenMS
           "Error, you need to enable use_ms1_traces when run in MS1 mode." );
     }
 
-    ProfileClock::time_point profile_phase_start = profileStart(profile);
     if (use_ms1_traces_) ms1_map_ = loadMS1Map(swath_maps, load_into_memory);
-    if (profile)
-    {
-      profile_total.ms1_map_loading = elapsedProfileSeconds(profile_phase_start);
-    }
 
     // (ii) Precursor extraction only
     if (ms1_only)
@@ -625,7 +380,6 @@ namespace OpenMS
     // (iii) map transitions to individual DIA windows for cases where this is
     // non-trivial (e.g. when there is m/z overlap and a transition could be
     // extracted from more than one window
-    profile_phase_start = profileStart(profile);
     std::vector<int> tr_win_map; // maps transition k to dia map i from which it should be extracted
     //
     // currently not supported to do PASEF and PRM
@@ -705,11 +459,6 @@ namespace OpenMS
     }
     else {
     };
-    if (profile)
-    {
-      profile_total.window_mapping = elapsedProfileSeconds(profile_phase_start);
-    }
-
 #ifdef _OPENMP
     const Size scoring_threads = static_cast<Size>(std::max(1, omp_get_max_threads()));
 #else
@@ -751,7 +500,6 @@ namespace OpenMS
         SignedSize nr_score_jobs = 0;
         SignedSize remaining_score_jobs = 0;
         bool finalized = false;
-        OpenSwathWorkflowPhaseTiming swath_timing;
         OpenSwath::LightTargetedExperiment transition_exp_used_all;
         OpenSwath::SpectrumAccessPtr current_swath_map;
         std::vector<MSChromatogram> ms1_chromatograms;
@@ -766,7 +514,7 @@ namespace OpenMS
         OPENMS_LOG_INFO << "Use buffered OSW writer with "
                         << bytesToHumanReadable(scheduler_options.osw_buffer_bytes)
                         << " queue budget and a single writer thread." << std::endl;
-        buffered_osw_writer = std::make_unique<OSWBufferedWriter>(osw_writer, scheduler_options.osw_buffer_bytes, profile);
+        buffered_osw_writer = std::make_unique<OSWBufferedWriter>(osw_writer, scheduler_options.osw_buffer_bytes);
       }
 
       // Deferred OSW enqueue queue and background enqueuer thread.
@@ -855,7 +603,6 @@ namespace OpenMS
           continue;
         }
 
-        auto phase_start = profileStart(profile);
         if (!(prm_ || pasef_))
         {
           OpenSwathHelper::selectSwathTransitions(transition_exp, context.transition_exp_used_all,
@@ -901,29 +648,14 @@ namespace OpenMS
             }
           }
         }
-        if (profile)
-        {
-          context.swath_timing.transition_selection = elapsedProfileSeconds(phase_start);
-          if (context.transition_exp_used_all.getTransitions().empty())
-          {
-            context.swath_timing.compound_count = context.transition_exp_used_all.getCompounds().size();
-            context.swath_timing.transition_count = context.transition_exp_used_all.getTransitions().size();
-          }
-        }
-
         if (context.transition_exp_used_all.getTransitions().empty())
         {
           continue;
         }
 
-        phase_start = profileStart(profile);
         context.current_swath_map = swath_maps[swath_index].sptr;
         context.current_swath_map = std::shared_ptr<SpectrumAccessOpenMSInMemory>(
           new SpectrumAccessOpenMSInMemory(*context.current_swath_map));
-        if (profile)
-        {
-          context.swath_timing.swath_loading = elapsedProfileSeconds(phase_start);
-        }
 
 #ifdef _OPENMP
 #pragma omp critical (osw_write_stdout)
@@ -940,46 +672,24 @@ namespace OpenMS
                             << "from SWATH " << swath_index << std::endl;
         }
 
-        phase_start = profileStart(profile);
         if (ms1_map_ != nullptr)
         {
           OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
           MS1Extraction_(threadsafe_ms1, swath_maps, context.ms1_chromatograms, ms1_cp,
               context.transition_exp_used_all, trafo_inverse, ms1_only, ms1_isotopes);
         }
-        if (profile)
-        {
-          context.swath_timing.ms1_extraction = elapsedProfileSeconds(phase_start);
-          context.swath_timing.ms1_chromatogram_count = context.ms1_chromatograms.size();
-        }
 
         ChromatogramExtractor extractor;
         std::vector<OpenSwath::ChromatogramPtr> chrom_list;
         std::vector<ChromatogramExtractor::ExtractionCoordinates> coordinates;
 
-        phase_start = profileStart(profile);
         prepareExtractionCoordinates_(chrom_list, coordinates, context.transition_exp_used_all, trafo_inverse, cp);
-        if (profile)
-        {
-          context.swath_timing.coordinate_preparation = elapsedProfileSeconds(phase_start);
-        }
 
-        phase_start = profileStart(profile);
         extractor.extractChromatograms(context.current_swath_map, chrom_list, coordinates, cp.mz_extraction_window,
             cp.ppm, cp.im_extraction_window, cp.extraction_function);
-        if (profile)
-        {
-          context.swath_timing.ms2_extraction = elapsedProfileSeconds(phase_start);
-        }
 
-        phase_start = profileStart(profile);
         extractor.return_chromatogram(chrom_list, coordinates, context.transition_exp_used_all, SpectrumSettings(),
                                       context.chrom_exp.getChromatograms(), false, cp.im_extraction_window);
-        if (profile)
-        {
-          context.swath_timing.chromatogram_conversion = elapsedProfileSeconds(phase_start);
-          context.swath_timing.ms2_chromatogram_count = context.chrom_exp.getChromatograms().size();
-        }
 
         context.active = true;
       }
@@ -1087,42 +797,12 @@ namespace OpenMS
           return;
         }
 
-        double writing_seconds = 0.0;
 #ifdef _OPENMP
 #pragma omp critical (osw_write_out)
 #endif
         {
-          auto write_start = profileStart(profile);
           writeOutFeaturesAndChroms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms,
               context.feature_file, out_featureFile, store_features, chromConsumer);
-          if (profile)
-          {
-            writing_seconds = elapsedProfileSeconds(write_start);
-          }
-        }
-        if (profile)
-        {
-          context.swath_timing.writing += writing_seconds;
-          if (!swath_maps[context_index].ms1)
-          {
-            context.swath_timing.swath_count = 1;
-            context.swath_timing.total = context.swath_timing.transition_selection +
-                                         context.swath_timing.swath_loading +
-                                         context.swath_timing.batch_selection +
-                                         context.swath_timing.ms1_extraction +
-                                         context.swath_timing.coordinate_preparation +
-                                         context.swath_timing.ms2_extraction +
-                                         context.swath_timing.chromatogram_conversion +
-                                         context.swath_timing.scoring +
-                                         context.swath_timing.writing;
-#ifdef _OPENMP
-#pragma omp critical (osw_scheduler_profile)
-#endif
-            {
-              logSwathProfile(context.swath_index, context.swath_timing);
-              profile_total.add(context.swath_timing);
-            }
-          }
         }
 
         context.finalized = true;
@@ -1149,39 +829,20 @@ namespace OpenMS
           }
 
           SwathSchedulerContext& context = contexts[job.context_index];
-          OpenSwathWorkflowPhaseTiming batch_timing;
-          const auto batch_profile_start = profileStart(profile);
-          batch_timing.batch_count = 1;
-
-          auto batch_phase_start = profileStart(profile);
           OpenSwath::LightTargetedExperiment transition_exp_used;
           const Size n_compounds = context.transition_exp_used_all.getCompounds().size();
           const Size inner_batch = std::min<Size>(
             static_cast<Size>(context.score_job_size), n_compounds);
           selectCompoundsForBatch_(context.transition_exp_used_all, transition_exp_used, inner_batch, static_cast<SignedSize>(job.batch_index));
-          if (profile)
-          {
-            batch_timing.batch_selection = elapsedProfileSeconds(batch_phase_start);
-            batch_timing.compound_count = transition_exp_used.getCompounds().size();
-            batch_timing.transition_count = transition_exp_used.getTransitions().size();
-          }
 
-          batch_phase_start = profileStart(profile);
           FeatureMap featureFile;
           std::vector<OpenSwath::SwathMap> tmp = {swath_maps[context.swath_index]};
           tmp.back().sptr = context.current_swath_map->lightClone();
-          OpenSwathScoringPhaseTiming scoring_profile;
           OpenSwathOSWWriter::OSWData job_osw_output;
           scoreAllChromatograms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms, tmp, transition_exp_used,
             feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false,
-            mobilogram_consumer, profile ? &scoring_profile : nullptr, &job_osw_output);
-          if (profile)
-          {
-            batch_timing.scoring = elapsedProfileSeconds(batch_phase_start);
-            batch_timing.feature_count = featureFile.size();
-          }
+            mobilogram_consumer, &job_osw_output);
 
-          double job_osw_wait_seconds = 0.0;
           if (osw_writer.isActive() && !job_osw_output.empty())
           {
             // Estimate bytes and try to avoid blocking the scoring worker.
@@ -1189,15 +850,8 @@ namespace OpenMS
             bool accepted_now = false;
             if (buffered_osw_writer != nullptr && buffered_osw_writer->canAccept(bytes))
             {
-              OSWBufferedWriter::EnqueueProfile osw_enqueue_profile =
-                buffered_osw_writer->enqueue(std::move(job_osw_output));
+              buffered_osw_writer->enqueue(std::move(job_osw_output));
               accepted_now = true;
-              if (profile)
-              {
-                job_osw_wait_seconds = osw_enqueue_profile.wait_seconds;
-                scoring_profile.osw_write_wait += job_osw_wait_seconds;
-                scoring_profile.osw_write += job_osw_wait_seconds;
-              }
             }
 
             if (!accepted_now)
@@ -1213,29 +867,15 @@ namespace OpenMS
               {
                 // Fallback: if buffered writer not available, write directly (may block)
                 {
-                  const auto write_start = profileStart(profile);
 #ifdef _OPENMP
 #pragma omp critical (osw_write_out)
 #endif
                   {
                     osw_writer.writeRows(job_osw_output);
                   }
-                  if (profile)
-                  {
-                    job_osw_wait_seconds = elapsedProfileSeconds(write_start);
-                    scoring_profile.osw_write_wait += job_osw_wait_seconds;
-                    scoring_profile.osw_write += job_osw_wait_seconds;
-                  }
                 }
               }
             }
-          }
-
-          if (profile)
-          {
-            batch_timing.writing += job_osw_wait_seconds;
-            batch_timing.scoring_breakdown.add(scoring_profile);
-            batch_timing.total = elapsedProfileSeconds(batch_profile_start);
           }
 
           bool context_ready_to_finalize = false;
@@ -1254,12 +894,6 @@ namespace OpenMS
               {
                 context.feature_file.getProteinIdentifications().push_back(*protid_it);
               }
-            }
-
-            if (profile)
-            {
-              context.swath_timing.add(batch_timing);
-              logBatchProfile(context.swath_index, static_cast<SignedSize>(job.batch_index), context.nr_score_jobs, batch_timing);
             }
 
             --context.remaining_score_jobs;
@@ -1315,22 +949,8 @@ namespace OpenMS
         }
 
         buffered_osw_writer->finish();
-        if (profile)
-        {
-          const OSWBufferedWriter::Stats osw_writer_stats = buffered_osw_writer->stats();
-          profile_total.scoring_breakdown.osw_write_hold += osw_writer_stats.write_hold;
-          profile_total.scoring_breakdown.osw_write_wait += osw_writer_stats.finish_wait;
-          profile_total.scoring_breakdown.osw_write += osw_writer_stats.write_hold;
-          profile_total.scoring_breakdown.osw_write += osw_writer_stats.finish_wait;
-          logOSWBufferedWriterProfile(osw_writer_stats);
-        }
       }
       this->endProgress();
-
-      if (profile)
-      {
-        logWorkflowProfileSummary(elapsedProfileSeconds(profile_workflow_start), profile_total);
-      }
       return;
     }
 
@@ -1368,16 +988,9 @@ namespace OpenMS
 #endif
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
     {
-      OpenSwathWorkflowPhaseTiming swath_timing;
-      const auto swath_profile_start = profileStart(profile);
-      bool profile_swath = false;
-
       if (!swath_maps[i].ms1) // skip MS1
       {
-        profile_swath = true;
-
         // Step 1: select which transitions to extract (proceed in batches)
-        auto phase_start = profileStart(profile);
         OpenSwath::LightTargetedExperiment transition_exp_used_all;
         if (!(prm_ || pasef_))
         {
@@ -1420,30 +1033,15 @@ namespace OpenMS
             }
           }
         }
-        if (profile)
-        {
-          swath_timing.transition_selection = elapsedProfileSeconds(phase_start);
-          if (transition_exp_used_all.getTransitions().empty())
-          {
-            swath_timing.compound_count = transition_exp_used_all.getCompounds().size();
-            swath_timing.transition_count = transition_exp_used_all.getTransitions().size();
-          }
-        }
-
         if (!transition_exp_used_all.getTransitions().empty()) // skip if no transitions found
         {
           OpenSwathWorkflowScheduler::ScopedSlot swath_slot(swath_load_limiter.get());
 
-          phase_start = profileStart(profile);
           OpenSwath::SpectrumAccessPtr current_swath_map = swath_maps[i].sptr;
           if (load_into_memory)
           {
             // This creates an InMemory object that keeps all data in memory
             current_swath_map = std::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*current_swath_map) );
-          }
-          if (profile)
-          {
-            swath_timing.swath_loading = elapsedProfileSeconds(phase_start);
           }
 
           int batch_size;
@@ -1487,9 +1085,6 @@ namespace OpenMS
 #endif
           for (SignedSize pep_idx = 0; pep_idx < nr_batches; ++pep_idx)
           {
-            OpenSwathWorkflowPhaseTiming batch_timing;
-            const auto batch_profile_start = profileStart(profile);
-            batch_timing.batch_count = 1;
             OpenSwath::SpectrumAccessPtr current_swath_map_inner = current_swath_map;
 
 #ifdef _OPENMP
@@ -1521,29 +1116,16 @@ namespace OpenMS
             }
 
             // Create the new, batch-size transition experiment
-            auto batch_phase_start = profileStart(profile);
             OpenSwath::LightTargetedExperiment transition_exp_used;
             selectCompoundsForBatch_(transition_exp_used_all, transition_exp_used, batch_size, pep_idx);
-            if (profile)
-            {
-              batch_timing.batch_selection = elapsedProfileSeconds(batch_phase_start);
-              batch_timing.compound_count = transition_exp_used.getCompounds().size();
-              batch_timing.transition_count = transition_exp_used.getTransitions().size();
-            }
 
             // Extract MS1 chromatograms for this batch
-            batch_phase_start = profileStart(profile);
             std::vector< MSChromatogram > ms1_chromatograms;
             if (ms1_map_ != nullptr)
             {
               OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
               MS1Extraction_(threadsafe_ms1, swath_maps, ms1_chromatograms, ms1_cp,
                   transition_exp_used, trafo_inverse, ms1_only, ms1_isotopes);
-            }
-            if (profile)
-            {
-              batch_timing.ms1_extraction = elapsedProfileSeconds(batch_phase_start);
-              batch_timing.ms1_chromatogram_count = ms1_chromatograms.size();
             }
 
             // Step 2.1: extract these transitions
@@ -1553,101 +1135,42 @@ namespace OpenMS
 
             // Step 2.2: prepare the extraction coordinates and extract chromatograms
             // chrom_list contains one entry for each fragment ion (transition) in transition_exp_used
-            batch_phase_start = profileStart(profile);
             prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, trafo_inverse, cp);
-            if (profile)
-            {
-              batch_timing.coordinate_preparation = elapsedProfileSeconds(batch_phase_start);
-            }
 
-            batch_phase_start = profileStart(profile);
             extractor.extractChromatograms(current_swath_map_inner, chrom_list, coordinates, cp.mz_extraction_window,
                 cp.ppm, cp.im_extraction_window, cp.extraction_function);
-            if (profile)
-            {
-              batch_timing.ms2_extraction = elapsedProfileSeconds(batch_phase_start);
-            }
 
             // Step 2.3: convert chromatograms back to OpenMS::MSChromatogram and write to output
-            batch_phase_start = profileStart(profile);
             PeakMap chrom_exp;
             extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,  SpectrumSettings(),
                                           chrom_exp.getChromatograms(), false, cp.im_extraction_window);
-            if (profile)
-            {
-              batch_timing.chromatogram_conversion = elapsedProfileSeconds(batch_phase_start);
-              batch_timing.ms2_chromatogram_count = chrom_exp.getChromatograms().size();
-            }
 
 
             // Step 3: score these extracted transitions
-            batch_phase_start = profileStart(profile);
             FeatureMap featureFile;
             std::vector< OpenSwath::SwathMap > tmp = {swath_maps[i]};
             tmp.back().sptr = current_swath_map_inner;
-            OpenSwathScoringPhaseTiming scoring_profile;
             scoreAllChromatograms_(chrom_exp.getChromatograms(), ms1_chromatograms, tmp, transition_exp_used,
               feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false,
-              mobilogram_consumer, profile ? &scoring_profile : nullptr);
-            if (profile)
-            {
-              batch_timing.scoring = elapsedProfileSeconds(batch_phase_start);
-              batch_timing.feature_count = featureFile.size();
-              batch_timing.scoring_breakdown.add(scoring_profile);
-            }
+              mobilogram_consumer);
 
             // Step 4: write all chromatograms and features out into an output object / file
             // (this needs to be done in a critical section since we only have one
             // output file and one output map).
             #pragma omp critical (osw_write_out)
             {
-              batch_phase_start = profileStart(profile);
               writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
-              if (profile)
-              {
-                batch_timing.writing = elapsedProfileSeconds(batch_phase_start);
-              }
-            }
-
-            if (profile)
-            {
-              batch_timing.total = elapsedProfileSeconds(batch_profile_start);
-#ifdef _OPENMP
-#pragma omp critical (osw_profile_stdout)
-#endif
-              {
-                swath_timing.add(batch_timing);
-                logBatchProfile(i, pep_idx, nr_batches, batch_timing);
-              }
             }
           }
 
         } // continue 2 (no continue due to OpenMP)
       } // continue 1 (no continue due to OpenMP)
 
-      if (profile && profile_swath)
-      {
-        swath_timing.total = elapsedProfileSeconds(swath_profile_start);
-        swath_timing.swath_count = 1;
-#ifdef _OPENMP
-#pragma omp critical (osw_profile_stdout)
-#endif
-        {
-          logSwathProfile(i, swath_timing);
-          profile_total.add(swath_timing);
-        }
-      }
-
       #pragma omp critical (progress)
       this->setProgress(++progress);
 
     }
     this->endProgress();
-
-    if (profile)
-    {
-      logWorkflowProfileSummary(elapsedProfileSeconds(profile_workflow_start), profile_total);
-    }
 
 #ifdef _OPENMP
 #ifdef MT_ENABLE_NESTED_OPENMP
@@ -1738,16 +1261,8 @@ namespace OpenMS
     int nr_ms1_isotopes,
     bool ms1only,
     MobilogramParquetConsumer* mobilogram_consumer,
-    OpenSwathScoringPhaseTiming* scoring_profile,
     OpenSwathOSWWriter::OSWData* deferred_osw_output) const
   {
-    const bool profile = scoring_profile != nullptr;
-    if (profile)
-    {
-      *scoring_profile = OpenSwathScoringPhaseTiming();
-    }
-
-    auto profile_phase_start = profileStart(profile);
     TransformationDescription trafo_inv = trafo;
     trafo_inv.invert();
 
@@ -1776,8 +1291,6 @@ namespace OpenMS
     trgroup_picker.setParameters(trgroup_picker_param);
 
     featureFinder.setParameters(feature_finder_param);
-    featureFinder.setScoringProfiling(profile);
-    featureFinder.resetScoringProfile();
     featureFinder.prepareProteinPeptideMaps_(transition_exp);
 
     std::unordered_map<String, int> ms1_chromatogram_map;
@@ -1814,11 +1327,6 @@ namespace OpenMS
     {
       assay_map[transition_exp.getTransitions()[i].getPeptideRef()].push_back(&transition_exp.getTransitions()[i]);
     }
-    if (profile)
-    {
-      scoring_profile->map_setup += elapsedProfileSeconds(profile_phase_start);
-    }
-
     OpenSwathOSWWriter::OSWData to_osw_output;
     if (osw_writer.isActive())
     {
@@ -1836,21 +1344,6 @@ namespace OpenMS
     ///////////////////////////////////
     for (AssayMapT::iterator assay_it = assay_map.begin(); assay_it != assay_map.end(); ++assay_it)
     {
-      auto assay_setup_start = profileStart(profile);
-      bool assay_setup_recorded = false;
-      auto recordAssaySetup = [&]()
-      {
-        if (profile && !assay_setup_recorded)
-        {
-          scoring_profile->assay_setup += elapsedProfileSeconds(assay_setup_start);
-          assay_setup_recorded = true;
-        }
-      };
-      if (profile)
-      {
-        ++scoring_profile->assay_count;
-      }
-
       // Create new MRMTransitionGroup
       String id = assay_it->first;
       MRMTransitionGroupType transition_group;
@@ -1936,11 +1429,6 @@ namespace OpenMS
       if (transition_group.getChromatograms().empty() && transition_group.getPrecursorChromatograms().empty())
       {
         OPENMS_LOG_DEBUG << "No chromatograms present for assay " << id << "; skipping scoring." << std::endl;
-        recordAssaySetup();
-        if (profile)
-        {
-          ++scoring_profile->skipped_assay_count;
-        }
         continue;
       }
 
@@ -1972,11 +1460,6 @@ namespace OpenMS
         {
           OPENMS_LOG_DEBUG << "No detecting chromatograms for assay " << id
                            << "; skipping this assay." << std::endl;
-          recordAssaySetup();
-          if (profile)
-          {
-            ++scoring_profile->skipped_assay_count;
-          }
           continue;
         }
         else
@@ -1986,25 +1469,12 @@ namespace OpenMS
         }
       }
 
-      recordAssaySetup();
-      auto picker_profile_start = profileStart(profile);
-      bool picker_profile_recorded = false;
-      auto recordPickerProfile = [&]()
-      {
-        if (profile && !picker_profile_recorded)
-        {
-          scoring_profile->transition_group_picker += elapsedProfileSeconds(picker_profile_start);
-          picker_profile_recorded = true;
-        }
-      };
       try
       {
         trgroup_picker.pickTransitionGroup(transition_group);
-        recordPickerProfile();
       }
       catch (const Exception::InvalidRange & e)
       {
-        recordPickerProfile();
         // In SRM/MRM mode extraction/mapping failures are common for noisy or
         // partially-mapped chromatograms -> log and continue. In DIA mode an
         // InvalidRange usually indicates a real extraction/mapping bug and
@@ -2018,15 +1488,10 @@ namespace OpenMS
                          << ", chroms=" << transition_group.getChromatograms().size()
                          << ", prec_chroms=" << transition_group.getPrecursorChromatograms().size()
                          << ": " << e.getMessage() << " - skipping assay." << std::endl;
-        if (profile)
-        {
-          ++scoring_profile->skipped_assay_count;
-        }
         continue;
       }
       catch (const Exception::IllegalArgument & e)
       {
-        recordPickerProfile();
         // IllegalArgument may be thrown when mapping fails (e.g. no matching
         // chromatograms). Treat mode-specifically similar to InvalidRange.
         if (!mrm_)
@@ -2035,46 +1500,21 @@ namespace OpenMS
         }
         OPENMS_LOG_ERROR << "IllegalArgument while picking transition group for assay " << id
                          << ": " << e.getMessage() << " - skipping assay." << std::endl;
-        if (profile)
-        {
-          ++scoring_profile->skipped_assay_count;
-        }
         continue;
       }
       catch (const std::exception & e)
       {
-        recordPickerProfile();
         OPENMS_LOG_ERROR << "Exception while picking transition group for assay " << id
                          << ": " << e.what() << " - skipping assay." << std::endl;
-        if (profile)
-        {
-          ++scoring_profile->skipped_assay_count;
-        }
         continue;
       }
 
-      auto score_profile_start = profileStart(profile);
-      bool score_profile_recorded = false;
-      auto recordScoreProfile = [&]()
-      {
-        if (profile && !score_profile_recorded)
-        {
-          scoring_profile->score_peakgroups += elapsedProfileSeconds(score_profile_start);
-          score_profile_recorded = true;
-        }
-      };
       try
       {
         featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only, mobilogram_consumer);
-        recordScoreProfile();
-        if (profile)
-        {
-          ++scoring_profile->scored_assay_count;
-        }
       }
       catch (const Exception::InvalidRange & e)
       {
-        recordScoreProfile();
         if (!mrm_)
         {
           throw;
@@ -2084,36 +1524,22 @@ namespace OpenMS
                          << ", chroms=" << transition_group.getChromatograms().size()
                          << ", prec_chroms=" << transition_group.getPrecursorChromatograms().size()
                          << ": " << e.getMessage() << " - skipping assay." << std::endl;
-        if (profile)
-        {
-          ++scoring_profile->skipped_assay_count;
-        }
         continue;
       }
       catch (const Exception::IllegalArgument & e)
       {
-        recordScoreProfile();
         if (!mrm_)
         {
           throw;
         }
         OPENMS_LOG_ERROR << "IllegalArgument while scoring transition group for assay " << id
                          << ": " << e.getMessage() << " - skipping assay." << std::endl;
-        if (profile)
-        {
-          ++scoring_profile->skipped_assay_count;
-        }
         continue;
       }
       catch (const std::exception & e)
       {
-        recordScoreProfile();
         OPENMS_LOG_ERROR << "Exception while scoring transition group for assay " << id
                          << ": " << e.what() << " - skipping assay." << std::endl;
-        if (profile)
-        {
-          ++scoring_profile->skipped_assay_count;
-        }
         continue;
       }
 
@@ -2127,23 +1553,13 @@ namespace OpenMS
       // 5. Add to the output osw if given
       if (osw_writer.isActive() && !output.empty()) // implies that detection_assay_it was set
       {
-        auto osw_prepare_start = profileStart(profile);
         // Compound and transition are currently unused by the OSW row writer.
         osw_writer.prepareRowsInto(to_osw_output,
                                    OpenSwath::LightCompound(),
                                    nullptr,
                                    output,
                                    id);
-        if (profile)
-        {
-          scoring_profile->osw_prepare += elapsedProfileSeconds(osw_prepare_start);
-        }
       }
-    }
-
-    if (profile)
-    {
-      scoring_profile->add(featureFinder.getScoringProfile());
     }
 
     // Only write at the very end since this is a step that needs a barrier.
@@ -2156,29 +1572,11 @@ namespace OpenMS
         return;
       }
 
-      double osw_write_wait = 0.0;
-      double osw_write_hold = 0.0;
-      const auto osw_write_wait_start = profileStart(profile);
 #ifdef _OPENMP
 #pragma omp critical (osw_write_tsv)
 #endif
       {
-        if (profile)
-        {
-          osw_write_wait = elapsedProfileSeconds(osw_write_wait_start);
-        }
-        auto osw_write_start = profileStart(profile);
         osw_writer.writeRows(to_osw_output);
-        if (profile)
-        {
-          osw_write_hold = elapsedProfileSeconds(osw_write_start);
-        }
-      }
-      if (profile)
-      {
-        scoring_profile->osw_write_wait += osw_write_wait;
-        scoring_profile->osw_write_hold += osw_write_hold;
-        scoring_profile->osw_write += osw_write_wait + osw_write_hold;
       }
     }
   }

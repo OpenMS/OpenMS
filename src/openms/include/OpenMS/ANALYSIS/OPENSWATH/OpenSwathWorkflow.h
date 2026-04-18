@@ -85,8 +85,7 @@ protected:
       prm_(false),
       pasef_(false),
       mrm_(false),
-      threads_outer_loop_(-1),
-      phase_profiling_enabled_(false)
+      threads_outer_loop_(-1)
     {
     }
 
@@ -112,8 +111,7 @@ protected:
       prm_(prm),
       pasef_(pasef),
       mrm_(mrm),
-      threads_outer_loop_(threads_outer_loop),
-      phase_profiling_enabled_(false)
+      threads_outer_loop_(threads_outer_loop)
     {
     }
 
@@ -218,9 +216,6 @@ protected:
      **/
     int threads_outer_loop_;
 
-    /// Whether to log detailed OpenSwathWorkflow phase timings
-    bool phase_profiling_enabled_;
-
 };
 
   /**
@@ -280,19 +275,6 @@ protected:
     {
     }
 
-    /**
-      @brief Enable detailed phase timing logs.
-
-      When enabled, performExtraction() writes per-batch, per-SWATH, and final
-      summed phase timings to OPENMS_LOG_INFO for performance diagnostics.
-
-      @param[in] enabled Whether phase profiling should be logged
-    */
-    void setPhaseProfiling(bool enabled)
-    {
-      phase_profiling_enabled_ = enabled;
-    }
-
     /** @brief Load MS1 SpectrumAccessPtr from given swath maps.
      *
      * Searches through the provided swath maps and returns a SpectrumAccessPtr
@@ -317,17 +299,20 @@ protected:
      * @param[in] feature_finder_param Parameter set for the feature finding in chromatographic dimension
      * @param[in] assay_library The set of assays to be extracted and scored
      * @param[out] result_featureFile Output feature map to store identified features
-     * @param[out] store_features_in_featureFile Whether features should be appended to the output feature map (if this is false, then out_featureFile will be empty)
-     * @param[out] result_osw OSW Writer object to store identified features in SQLite format (set store_features to false if using this option)
-     * @param[out] result_chromatograms Chromatogram consumer object to store the extracted chromatograms
+     * @param[in] store_features_in_featureFile Whether features should be appended to the output feature map (if this is false, then out_featureFile will be empty)
+     * @param[in,out] result_osw OSW Writer object to store identified features in SQLite format (set store_features to false if using this option)
+     * @param[in,out] result_chromatograms Chromatogram consumer object to store the extracted chromatograms
      * @param[in] batchSize Size of the batches which should be extracted and scored
      * @param[in] ms1_isotopes Number of MS1 isotopes to extract (zero means only monoisotopic peak)
      * @param[in] load_into_memory Whether to cache the current SWATH map in memory
      * @param[in] mrm_mapping_param Parameter for mapping chromatograms to transitions (MRMMapping)
      * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
+     * @param[in] innerBatchSize Inner scoring batch size; values <= 0 enable automatic wave-aware sizing
+     * @param[in] maxConcurrentSwaths Maximum non-MS1 SWATH maps to keep resident; values <= 0 enable memory-aware planning
      *
-     * @note Speed and memory performance can be influenced by \p batchSize and
-     * \p load_into_memory where larger batch sizes increase memory and
+     * @note Speed and memory performance can be influenced by \p batchSize,
+     * \p innerBatchSize, \p maxConcurrentSwaths, and \p load_into_memory where
+     * larger batch sizes or concurrent SWATH counts increase memory and
      * potentially decrease the utility of parallelization while loading data
      * into memory will increase memory usage but decrease execution time.
      *
@@ -410,7 +395,6 @@ protected:
      * @param[in] nr_ms1_isotopes Consider this many MS1 isotopes for precursor chromatograms
      * @param[in] ms1only If true, will only score on MS1 level and ignore MS2 level
      * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
-     * @param[out] scoring_profile Optional detailed scoring phase timings
      * @param[out] deferred_osw_output Optional buffer for OSW output rows, deferring writer access to the caller
      *
     */
@@ -427,7 +411,6 @@ protected:
         int nr_ms1_isotopes = 0,
         bool ms1only = false,
         class MobilogramParquetConsumer * mobilogram_consumer = nullptr,
-        OpenSwathScoringPhaseTiming* scoring_profile = nullptr,
         OpenSwathOSWWriter::OSWData* deferred_osw_output = nullptr) const;
 
     /** @brief Select which compounds to analyze in the next batch (and copy to output)
