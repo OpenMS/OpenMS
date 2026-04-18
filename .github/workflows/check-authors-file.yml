@@ -29,6 +29,8 @@ jobs:
           if [ "$exit_code" -eq 100 ]; then
             ci-tools/scripts/authors.sh -p "$ACTOR" "$GITHUB_BASE_REF" "HEAD" |
               gh pr comment "$PR" --body-file -
+          elif [ "$exit_code" -ne 0 ]; then
+            exit "$exit_code"
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
