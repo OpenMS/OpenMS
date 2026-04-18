@@ -361,6 +361,18 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::vector<FASTAFile::FASTAEntry> buildDecoyAugmentedDB_(
         const std::vector<FASTAFile::FASTAEntry>& fasta_db) const;
 
+    /// Build a strided sample of the (already-decoy-augmented) full DB for
+    /// calibration. Sample size is tied to database_chunk_size_ so the
+    /// calibration FI never exceeds the user's declared memory budget. Crucial
+    /// for immunopeptidomics (non-specific digestion) where a fixed-size
+    /// 5000-protein sample would generate tens of GB of fragment index.
+    /// Strided rather than first-N so small chunk_size values don't starve
+    /// the calibration pool (#9182). Note: very small chunk_size may still
+    /// produce a calibration pool below calibration_min_psms_; calibration
+    /// then no-ops silently (follow-up issue: pool PSMs across first-K chunks).
+    std::vector<FASTAFile::FASTAEntry> buildCalibrationSample_(
+        const std::vector<FASTAFile::FASTAEntry>& full_db) const;
+
     /// Chunked search: score spectra against chunks of a pre-built full_db.
     /// full_db must already contain decoys if decoys_ is true. Takes non-const
     /// ref because PeptideIndexing::run() requires it.
