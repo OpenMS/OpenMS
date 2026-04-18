@@ -295,6 +295,8 @@ private:
       std::vector<double> normalized_library_intensity;
       std::vector<std::string> transition_native_ids;
       std::vector<std::string> precursor_ids;
+      std::vector<String> transition_native_ids_openms;
+      std::vector<String> precursor_ids_openms;
     };
 
     /**

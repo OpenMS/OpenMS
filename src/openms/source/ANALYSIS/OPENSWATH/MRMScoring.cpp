@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/DATASTRUCTURES/MatrixEigen.h>
@@ -157,6 +158,11 @@ namespace OpenSwath
 
     void fillIntensityFromFeature(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& ids, std::vector<std::vector<double>>& intensity)
     {
+      if (const auto* openms_feature = dynamic_cast<const OpenMS::MRMFeatureOpenMS*>(mrmfeature))
+      {
+        openms_feature->getFeatureIntensities(ids, intensity);
+        return;
+      }
       intensity.resize(ids.size());
       for (std::size_t i = 0; i < intensity.size(); i++)
       {
@@ -167,6 +173,11 @@ namespace OpenSwath
 
     void fillIntensityFromPrecursorFeature(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& ids, std::vector<std::vector<double>>& intensity)
     {
+      if (const auto* openms_feature = dynamic_cast<const OpenMS::MRMFeatureOpenMS*>(mrmfeature))
+      {
+        openms_feature->getPrecursorFeatureIntensities(ids, intensity);
+        return;
+      }
       intensity.resize(ids.size());
       for (std::size_t i = 0; i < intensity.size(); i++)
       {
@@ -510,6 +521,7 @@ namespace OpenSwath
       library_intensity.reserve(transitions.size());
       experimental_intensity.reserve(transitions.size());
       std::string native_id;
+      const auto* openms_feature = dynamic_cast<const OpenMS::MRMFeatureOpenMS*>(mrmfeature);
 
       for (std::size_t k = 0; k < transitions.size(); k++)
       {
@@ -520,7 +532,9 @@ namespace OpenSwath
         {
           intensity = 0.0;
         }
-        experimental_intensity.push_back(static_cast<double>(mrmfeature->getFeature(native_id)->getIntensity()));
+        experimental_intensity.push_back(openms_feature != nullptr ?
+          static_cast<double>(openms_feature->getFeatureIntensity(native_id, k)) :
+          static_cast<double>(mrmfeature->getFeature(native_id)->getIntensity()));
         library_intensity.push_back(intensity);
       }
 

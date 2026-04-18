@@ -650,11 +650,21 @@ namespace OpenMS
     tg_cache.transition_native_ids.resize(transitions.size());
     std::transform(transitions.begin(), transitions.end(), tg_cache.transition_native_ids.begin(),
                    [](const auto& tr) { return tr.getNativeID(); });
+    tg_cache.transition_native_ids_openms.reserve(tg_cache.transition_native_ids.size());
+    for (const std::string& id : tg_cache.transition_native_ids)
+    {
+      tg_cache.transition_native_ids_openms.emplace_back(id);
+    }
 
     const auto& precursor_chroms = transition_group_detection.getPrecursorChromatograms();
     tg_cache.precursor_ids.resize(precursor_chroms.size());
     std::transform(precursor_chroms.begin(), precursor_chroms.end(), tg_cache.precursor_ids.begin(),
                    [](const auto& ch) { return ch.getNativeID(); });
+    tg_cache.precursor_ids_openms.reserve(tg_cache.precursor_ids.size());
+    for (const std::string& id : tg_cache.precursor_ids)
+    {
+      tg_cache.precursor_ids_openms.emplace_back(id);
+    }
     const Size idscores_needed_capacity = std::max<Size>(transitions.size(), static_cast<Size>(16));
 
     if (profile)
@@ -710,7 +720,11 @@ namespace OpenMS
         }
         else
         {
-          imrmfeature_storage.emplace(mrmfeature, tg_cache.transition_native_ids, tg_cache.precursor_ids);
+          imrmfeature_storage.emplace(mrmfeature,
+                                      tg_cache.transition_native_ids,
+                                      tg_cache.precursor_ids,
+                                      tg_cache.transition_native_ids_openms,
+                                      tg_cache.precursor_ids_openms);
         }
         MRMFeatureOpenMS& imrmfeature = *imrmfeature_storage;
 

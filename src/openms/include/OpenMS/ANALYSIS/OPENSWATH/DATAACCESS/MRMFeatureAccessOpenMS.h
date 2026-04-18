@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <cstddef>
 #include <memory>
@@ -69,6 +70,12 @@ public:
                      const std::vector<std::string>& feature_ids,
                      const std::vector<std::string>& precursor_feature_ids);
 
+    MRMFeatureOpenMS(MRMFeature& mrmfeature,
+                     const std::vector<std::string>& feature_ids,
+                     const std::vector<std::string>& precursor_feature_ids,
+                     const std::vector<String>& feature_lookup_ids,
+                     const std::vector<String>& precursor_feature_lookup_ids);
+
     ~MRMFeatureOpenMS() override;
 
     std::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID) override;
@@ -87,15 +94,29 @@ public:
 
     size_t size() const override;
 
+    void getFeatureIntensities(const std::vector<std::string>& native_ids, std::vector<std::vector<double>>& intensities) const;
+
+    void getPrecursorFeatureIntensities(const std::vector<std::string>& native_ids, std::vector<std::vector<double>>& intensities) const;
+
+    float getFeatureIntensity(const std::string& native_id) const;
+
+    float getFeatureIntensity(const std::string& native_id, std::size_t expected_index) const;
+
 private:
     using FeatureWrapperList_ = std::vector<FeatureOpenMS>;
     using FeatureIndexList_ = std::vector<std::pair<std::string, std::size_t>>;
+
+    std::size_t findFeatureIndex_(const std::string& native_id) const;
+
+    std::size_t findPrecursorFeatureIndex_(const std::string& native_id) const;
 
     const MRMFeature& mrmfeature_;
     std::shared_ptr<FeatureWrapperList_> features_;
     std::shared_ptr<FeatureWrapperList_> precursor_features_;
     FeatureIndexList_ feature_index_;
     FeatureIndexList_ precursor_feature_index_;
+    const std::vector<std::string>* feature_ids_ = nullptr;
+    const std::vector<std::string>* precursor_feature_ids_ = nullptr;
   };
 
   /**

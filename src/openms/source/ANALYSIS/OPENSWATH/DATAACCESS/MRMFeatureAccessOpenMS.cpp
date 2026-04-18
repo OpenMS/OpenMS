@@ -64,6 +64,35 @@ namespace OpenMS
     }
   }
 
+  MRMFeatureOpenMS::MRMFeatureOpenMS(MRMFeature& mrmfeature,
+                                     const std::vector<std::string>& feature_ids,
+                                     const std::vector<std::string>& precursor_feature_ids,
+                                     const std::vector<String>& feature_lookup_ids,
+                                     const std::vector<String>& precursor_feature_lookup_ids) :
+    mrmfeature_(mrmfeature),
+    feature_ids_(&feature_ids),
+    precursor_feature_ids_(&precursor_feature_ids)
+  {
+    OPENMS_PRECONDITION(feature_ids.size() == feature_lookup_ids.size(),
+                        "Feature id cache needs to match feature lookup id cache.");
+    OPENMS_PRECONDITION(precursor_feature_ids.size() == precursor_feature_lookup_ids.size(),
+                        "Precursor feature id cache needs to match precursor feature lookup id cache.");
+
+    features_ = std::make_shared<FeatureWrapperList_>();
+    features_->reserve(feature_lookup_ids.size());
+    for (const String& id : feature_lookup_ids)
+    {
+      features_->emplace_back(mrmfeature.getFeature(id));
+    }
+
+    precursor_features_ = std::make_shared<FeatureWrapperList_>();
+    precursor_features_->reserve(precursor_feature_lookup_ids.size());
+    for (const String& id : precursor_feature_lookup_ids)
+    {
+      precursor_features_->emplace_back(mrmfeature.getPrecursorFeature(id));
+    }
+  }
+
   FeatureOpenMS::FeatureOpenMS(Feature& feature)
   {
     feature_ = &feature; // store raw ptr to the feature
@@ -107,32 +136,22 @@ namespace OpenMS
 
   std::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getFeature(std::string nativeID)
   {
-    for (const auto& entry : feature_index_)
-    {
-      if (entry.first == nativeID)
-      {
-        return std::shared_ptr<OpenSwath::IFeature>(features_, &(*features_)[entry.second]);
-      }
-    }
-    OPENMS_PRECONDITION(false, "Feature needs to exist");
-    return {};
+    const std::size_t index = findFeatureIndex_(nativeID);
+    return std::shared_ptr<OpenSwath::IFeature>(features_, &(*features_)[index]);
   }
 
   std::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getPrecursorFeature(std::string nativeID)
   {
-    for (const auto& entry : precursor_feature_index_)
-    {
-      if (entry.first == nativeID)
-      {
-        return std::shared_ptr<OpenSwath::IFeature>(precursor_features_, &(*precursor_features_)[entry.second]);
-      }
-    }
-    OPENMS_PRECONDITION(false, "Precursor feature needs to exist");
-    return {};
+    const std::size_t index = findPrecursorFeatureIndex_(nativeID);
+    return std::shared_ptr<OpenSwath::IFeature>(precursor_features_, &(*precursor_features_)[index]);
   }
 
   std::vector<std::string> MRMFeatureOpenMS::getNativeIDs() const
   {
+    if (feature_ids_ != nullptr)
+    {
+      return *feature_ids_;
+    }
     std::vector<std::string> v;
     v.reserve(feature_index_.size());
     for (const auto& entry : feature_index_)
@@ -144,6 +163,10 @@ namespace OpenMS
 
   std::vector<std::string> MRMFeatureOpenMS::getPrecursorIDs() const
   {
+    if (precursor_feature_ids_ != nullptr)
+    {
+      return *precursor_feature_ids_;
+    }
     std::vector<std::string> v;
     v.reserve(precursor_feature_index_.size());
     for (const auto& entry : precursor_feature_index_)
@@ -170,7 +193,111 @@ namespace OpenMS
 
   size_t MRMFeatureOpenMS::size() const
   {
-    return feature_index_.size();
+    return feature_ids_ != nullptr ? feature_ids_->size() : feature_index_.size();
+  }
+
+  void MRMFeatureOpenMS::getFeatureIntensities(const std::vector<std::string>& native_ids, std::vector<std::vector<double>>& intensities) const
+  {
+    intensities.resize(native_ids.size());
+    if (feature_ids_ == &native_ids)
+    {
+      for (std::size_t i = 0; i < intensities.size(); ++i)
+      {
+        intensities[i].clear();
+        (*features_)[i].getIntensity(intensities[i]);
+      }
+      return;
+    }
+    for (std::size_t i = 0; i < intensities.size(); ++i)
+    {
+      intensities[i].clear();
+      (*features_)[findFeatureIndex_(native_ids[i])].getIntensity(intensities[i]);
+    }
+  }
+
+  void MRMFeatureOpenMS::getPrecursorFeatureIntensities(const std::vector<std::string>& native_ids, std::vector<std::vector<double>>& intensities) const
+  {
+    intensities.resize(native_ids.size());
+    if (precursor_feature_ids_ == &native_ids)
+    {
+      for (std::size_t i = 0; i < intensities.size(); ++i)
+      {
+        intensities[i].clear();
+        (*precursor_features_)[i].getIntensity(intensities[i]);
+      }
+      return;
+    }
+    for (std::size_t i = 0; i < intensities.size(); ++i)
+    {
+      intensities[i].clear();
+      (*precursor_features_)[findPrecursorFeatureIndex_(native_ids[i])].getIntensity(intensities[i]);
+    }
+  }
+
+  float MRMFeatureOpenMS::getFeatureIntensity(const std::string& native_id) const
+  {
+    return (*features_)[findFeatureIndex_(native_id)].getIntensity();
+  }
+
+  float MRMFeatureOpenMS::getFeatureIntensity(const std::string& native_id, std::size_t expected_index) const
+  {
+    if (feature_ids_ != nullptr && expected_index < feature_ids_->size() && (*feature_ids_)[expected_index] == native_id)
+    {
+      return (*features_)[expected_index].getIntensity();
+    }
+    return getFeatureIntensity(native_id);
+  }
+
+  std::size_t MRMFeatureOpenMS::findFeatureIndex_(const std::string& native_id) const
+  {
+    if (feature_ids_ != nullptr)
+    {
+      for (std::size_t i = 0; i < feature_ids_->size(); ++i)
+      {
+        if ((*feature_ids_)[i] == native_id)
+        {
+          return i;
+        }
+      }
+    }
+    else
+    {
+      for (const auto& entry : feature_index_)
+      {
+        if (entry.first == native_id)
+        {
+          return entry.second;
+        }
+      }
+    }
+    OPENMS_PRECONDITION(false, "Feature needs to exist");
+    return 0;
+  }
+
+  std::size_t MRMFeatureOpenMS::findPrecursorFeatureIndex_(const std::string& native_id) const
+  {
+    if (precursor_feature_ids_ != nullptr)
+    {
+      for (std::size_t i = 0; i < precursor_feature_ids_->size(); ++i)
+      {
+        if ((*precursor_feature_ids_)[i] == native_id)
+        {
+          return i;
+        }
+      }
+    }
+    else
+    {
+      for (const auto& entry : precursor_feature_index_)
+      {
+        if (entry.first == native_id)
+        {
+          return entry.second;
+        }
+      }
+    }
+    OPENMS_PRECONDITION(false, "Precursor feature needs to exist");
+    return 0;
   }
 
   // default instances
