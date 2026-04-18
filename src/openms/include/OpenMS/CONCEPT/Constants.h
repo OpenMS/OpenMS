@@ -255,6 +255,13 @@ namespace OpenMS
        */
       inline const std::string INVERSE_REDUCED_ION_MOBILITY = "inverse reduced ion mobility";
 
+      /** Alternative MetaValue key for ion mobility data (inverse reduced ion mobility).
+       * Some files store ion mobility data with this prefix instead of "Ion Mobility".
+       * Unit is typically volt-seconds per square centimeter (Vs/cm^2) also known as 1/k0.
+       * CV Term MS:1003006
+       */
+      inline const std::string MEAN_INVERSE_REDUCED_ION_MOBILITY_ARRAY = "mean inverse reduced ion mobility array";
+
       /** MetaValue key for centroided ion mobility data output by PeakPickerIM and MassTraceDetection.
        * PeakPickerIM outputs centroided peaks with this array name.
        * MassTraceDetection computes intensity-weighted ion mobility average of connected centroided peaks.
