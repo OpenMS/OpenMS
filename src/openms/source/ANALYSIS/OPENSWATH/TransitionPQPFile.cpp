@@ -108,8 +108,8 @@ namespace OpenMS
     {
       select_gene = ", GENE_AGGREGATED.GENE_NAME AS gene_name ";
       select_gene_null = ", 'NA' AS gene_name ";
-      join_gene = "INNER JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " \
-                  "INNER JOIN " \
+      // Join only the per-peptide aggregate; the raw mapping table would duplicate transitions for multi-gene peptides.
+      join_gene = "INNER JOIN " \
                   "(SELECT PEPTIDE_ID, GROUP_CONCAT(GENE_NAME,';') AS GENE_NAME " \
                   "FROM GENE " \
                   "INNER JOIN PEPTIDE_GENE_MAPPING ON GENE.ID = PEPTIDE_GENE_MAPPING.GENE_ID "\
