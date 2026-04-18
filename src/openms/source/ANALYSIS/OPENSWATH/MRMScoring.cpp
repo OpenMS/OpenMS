@@ -520,21 +520,28 @@ namespace OpenSwath
       experimental_intensity.clear();
       library_intensity.reserve(transitions.size());
       experimental_intensity.reserve(transitions.size());
-      std::string native_id;
       const auto* openms_feature = dynamic_cast<const OpenMS::MRMFeatureOpenMS*>(mrmfeature);
+      const bool use_openms_index = openms_feature != nullptr && openms_feature->hasCachedFeatureIds();
 
       for (std::size_t k = 0; k < transitions.size(); k++)
       {
-        native_id = transitions[k].getNativeID();
         double intensity = transitions[k].getLibraryIntensity();
         // the library intensity should never be below zero
         if (intensity < 0.0)
         {
           intensity = 0.0;
         }
-        experimental_intensity.push_back(openms_feature != nullptr ?
-          static_cast<double>(openms_feature->getFeatureIntensity(native_id, k)) :
-          static_cast<double>(mrmfeature->getFeature(native_id)->getIntensity()));
+        if (use_openms_index)
+        {
+          experimental_intensity.push_back(static_cast<double>(openms_feature->getFeatureIntensity(k)));
+        }
+        else
+        {
+          const std::string native_id = transitions[k].getNativeID();
+          experimental_intensity.push_back(openms_feature != nullptr ?
+            static_cast<double>(openms_feature->getFeatureIntensity(native_id, k)) :
+            static_cast<double>(mrmfeature->getFeature(native_id)->getIntensity()));
+        }
         library_intensity.push_back(intensity);
       }
 

@@ -39,7 +39,7 @@ namespace OpenMS
   {
 public:
 
-    explicit FeatureOpenMS(Feature& feature);
+    explicit FeatureOpenMS(const Feature& feature);
 
     ~FeatureOpenMS() override;
 
@@ -52,7 +52,7 @@ public:
     double getRT() const override;
 
 private:
-    Feature* feature_;
+    const Feature* feature_;
   };
 
   /**
@@ -102,17 +102,31 @@ public:
 
     float getFeatureIntensity(const std::string& native_id, std::size_t expected_index) const;
 
+    float getFeatureIntensity(std::size_t index) const;
+
+    bool hasCachedFeatureIds() const;
+
 private:
     using FeatureWrapperList_ = std::vector<FeatureOpenMS>;
+    using FeaturePointerList_ = std::vector<const Feature*>;
     using FeatureIndexList_ = std::vector<std::pair<std::string, std::size_t>>;
 
     std::size_t findFeatureIndex_(const std::string& native_id) const;
 
     std::size_t findPrecursorFeatureIndex_(const std::string& native_id) const;
 
+    const Feature& getFeatureByIndex_(std::size_t index) const;
+
+    void ensureFeatureWrappers_();
+
+    void ensurePrecursorFeatureWrappers_();
+
     const MRMFeature& mrmfeature_;
     std::shared_ptr<FeatureWrapperList_> features_;
     std::shared_ptr<FeatureWrapperList_> precursor_features_;
+    const std::vector<Feature>* direct_features_ = nullptr;
+    FeaturePointerList_ feature_ptrs_;
+    FeaturePointerList_ precursor_feature_ptrs_;
     FeatureIndexList_ feature_index_;
     FeatureIndexList_ precursor_feature_index_;
     const std::vector<std::string>* feature_ids_ = nullptr;

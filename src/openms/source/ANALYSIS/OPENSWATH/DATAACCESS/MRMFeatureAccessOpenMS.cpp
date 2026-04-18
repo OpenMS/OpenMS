@@ -13,30 +13,54 @@
 
 namespace OpenMS
 {
+  namespace
+  {
+    void appendRT_(const Feature& feature, std::vector<double>& rt)
+    {
+      OPENMS_PRECONDITION(feature.getConvexHulls().size() == 1,
+                          "There needs to exactly one convex hull per feature.");
+      const ConvexHull2D::PointArrayType& data_points = feature.getConvexHulls()[0].getHullPoints();
+      rt.reserve(rt.size() + data_points.size());
+      for (ConvexHull2D::PointArrayType::const_iterator it = data_points.begin(); it != data_points.end(); ++it)
+      {
+        rt.push_back(it->getX());
+      }
+    }
+
+    void appendIntensity_(const Feature& feature, std::vector<double>& intens)
+    {
+      OPENMS_PRECONDITION(feature.getConvexHulls().size() == 1,
+                          "There needs to exactly one convex hull per feature.");
+      const ConvexHull2D::PointArrayType& data_points = feature.getConvexHulls()[0].getHullPoints();
+      intens.reserve(intens.size() + data_points.size());
+      for (ConvexHull2D::PointArrayType::const_iterator it = data_points.begin(); it != data_points.end(); ++it)
+      {
+        intens.push_back(it->getY());
+      }
+    }
+  }
 
   MRMFeatureOpenMS::MRMFeatureOpenMS(MRMFeature& mrmfeature) :
     mrmfeature_(mrmfeature)
   {
     std::vector<String> ids;
     mrmfeature.getFeatureIDs(ids);
-    features_ = std::make_shared<FeatureWrapperList_>();
-    features_->reserve(ids.size());
+    feature_ptrs_.reserve(ids.size());
     feature_index_.reserve(ids.size());
     for (std::vector<String>::iterator it = ids.begin(); it != ids.end(); ++it)
     {
-      feature_index_.emplace_back(*it, features_->size());
-      features_->emplace_back(mrmfeature.getFeature(*it));
+      feature_index_.emplace_back(*it, feature_ptrs_.size());
+      feature_ptrs_.push_back(&mrmfeature.getFeature(*it));
     }
 
     std::vector<String> p_ids;
     mrmfeature.getPrecursorFeatureIDs(p_ids);
-    precursor_features_ = std::make_shared<FeatureWrapperList_>();
-    precursor_features_->reserve(p_ids.size());
+    precursor_feature_ptrs_.reserve(p_ids.size());
     precursor_feature_index_.reserve(p_ids.size());
     for (std::vector<String>::iterator it = p_ids.begin(); it != p_ids.end(); ++it)
     {
-      precursor_feature_index_.emplace_back(*it, precursor_features_->size());
-      precursor_features_->emplace_back(mrmfeature.getPrecursorFeature(*it));
+      precursor_feature_index_.emplace_back(*it, precursor_feature_ptrs_.size());
+      precursor_feature_ptrs_.push_back(&mrmfeature.getPrecursorFeature(*it));
     }
   }
 
@@ -45,22 +69,20 @@ namespace OpenMS
                                      const std::vector<std::string>& precursor_feature_ids) :
     mrmfeature_(mrmfeature)
   {
-    features_ = std::make_shared<FeatureWrapperList_>();
-    features_->reserve(feature_ids.size());
+    feature_ptrs_.reserve(feature_ids.size());
     feature_index_.reserve(feature_ids.size());
     for (const std::string& id : feature_ids)
     {
-      feature_index_.emplace_back(id, features_->size());
-      features_->emplace_back(mrmfeature.getFeature(String(id)));
+      feature_index_.emplace_back(id, feature_ptrs_.size());
+      feature_ptrs_.push_back(&mrmfeature.getFeature(String(id)));
     }
 
-    precursor_features_ = std::make_shared<FeatureWrapperList_>();
-    precursor_features_->reserve(precursor_feature_ids.size());
+    precursor_feature_ptrs_.reserve(precursor_feature_ids.size());
     precursor_feature_index_.reserve(precursor_feature_ids.size());
     for (const std::string& id : precursor_feature_ids)
     {
-      precursor_feature_index_.emplace_back(id, precursor_features_->size());
-      precursor_features_->emplace_back(mrmfeature.getPrecursorFeature(String(id)));
+      precursor_feature_index_.emplace_back(id, precursor_feature_ptrs_.size());
+      precursor_feature_ptrs_.push_back(&mrmfeature.getPrecursorFeature(String(id)));
     }
   }
 
@@ -78,48 +100,33 @@ namespace OpenMS
     OPENMS_PRECONDITION(precursor_feature_ids.size() == precursor_feature_lookup_ids.size(),
                         "Precursor feature id cache needs to match precursor feature lookup id cache.");
 
-    features_ = std::make_shared<FeatureWrapperList_>();
-    features_->reserve(feature_lookup_ids.size());
-    for (const String& id : feature_lookup_ids)
-    {
-      features_->emplace_back(mrmfeature.getFeature(id));
-    }
+    const std::vector<Feature>& fragment_features = mrmfeature.getFeatures();
+    OPENMS_PRECONDITION(fragment_features.size() == feature_lookup_ids.size(),
+                        "Feature storage needs to match feature lookup id cache.");
+    direct_features_ = &fragment_features;
 
-    precursor_features_ = std::make_shared<FeatureWrapperList_>();
-    precursor_features_->reserve(precursor_feature_lookup_ids.size());
+    precursor_feature_ptrs_.reserve(precursor_feature_lookup_ids.size());
     for (const String& id : precursor_feature_lookup_ids)
     {
-      precursor_features_->emplace_back(mrmfeature.getPrecursorFeature(id));
+      precursor_feature_ptrs_.push_back(&mrmfeature.getPrecursorFeature(id));
     }
   }
 
-  FeatureOpenMS::FeatureOpenMS(Feature& feature)
+  FeatureOpenMS::FeatureOpenMS(const Feature& feature) :
+    feature_(&feature)
   {
-    feature_ = &feature; // store raw ptr to the feature
   }
 
   FeatureOpenMS::~FeatureOpenMS() = default;
 
   void FeatureOpenMS::getRT(std::vector<double>& rt) const
   {
-    OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
-    const ConvexHull2D::PointArrayType& data_points = feature_->getConvexHulls()[0].getHullPoints();
-    rt.reserve(rt.size() + data_points.size());
-    for (ConvexHull2D::PointArrayType::const_iterator it = data_points.begin(); it != data_points.end(); ++it)
-    {
-      rt.push_back(it->getX());
-    }
+    appendRT_(*feature_, rt);
   }
 
   void FeatureOpenMS::getIntensity(std::vector<double>& intens) const
   {
-    OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
-    const ConvexHull2D::PointArrayType& data_points = feature_->getConvexHulls()[0].getHullPoints();
-    intens.reserve(intens.size() + data_points.size());
-    for (ConvexHull2D::PointArrayType::const_iterator it = data_points.begin(); it != data_points.end(); ++it)
-    {
-      intens.push_back(it->getY());
-    }
+    appendIntensity_(*feature_, intens);
   }
 
   float FeatureOpenMS::getIntensity() const
@@ -137,12 +144,14 @@ namespace OpenMS
   std::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getFeature(std::string nativeID)
   {
     const std::size_t index = findFeatureIndex_(nativeID);
+    ensureFeatureWrappers_();
     return std::shared_ptr<OpenSwath::IFeature>(features_, &(*features_)[index]);
   }
 
   std::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getPrecursorFeature(std::string nativeID)
   {
     const std::size_t index = findPrecursorFeatureIndex_(nativeID);
+    ensurePrecursorFeatureWrappers_();
     return std::shared_ptr<OpenSwath::IFeature>(precursor_features_, &(*precursor_features_)[index]);
   }
 
@@ -193,7 +202,7 @@ namespace OpenMS
 
   size_t MRMFeatureOpenMS::size() const
   {
-    return feature_ids_ != nullptr ? feature_ids_->size() : feature_index_.size();
+    return feature_ids_ != nullptr ? feature_ids_->size() : feature_ptrs_.size();
   }
 
   void MRMFeatureOpenMS::getFeatureIntensities(const std::vector<std::string>& native_ids, std::vector<std::vector<double>>& intensities) const
@@ -204,14 +213,14 @@ namespace OpenMS
       for (std::size_t i = 0; i < intensities.size(); ++i)
       {
         intensities[i].clear();
-        (*features_)[i].getIntensity(intensities[i]);
+        appendIntensity_(getFeatureByIndex_(i), intensities[i]);
       }
       return;
     }
     for (std::size_t i = 0; i < intensities.size(); ++i)
     {
       intensities[i].clear();
-      (*features_)[findFeatureIndex_(native_ids[i])].getIntensity(intensities[i]);
+      appendIntensity_(getFeatureByIndex_(findFeatureIndex_(native_ids[i])), intensities[i]);
     }
   }
 
@@ -223,29 +232,81 @@ namespace OpenMS
       for (std::size_t i = 0; i < intensities.size(); ++i)
       {
         intensities[i].clear();
-        (*precursor_features_)[i].getIntensity(intensities[i]);
+        appendIntensity_(*precursor_feature_ptrs_[i], intensities[i]);
       }
       return;
     }
     for (std::size_t i = 0; i < intensities.size(); ++i)
     {
       intensities[i].clear();
-      (*precursor_features_)[findPrecursorFeatureIndex_(native_ids[i])].getIntensity(intensities[i]);
+      appendIntensity_(*precursor_feature_ptrs_[findPrecursorFeatureIndex_(native_ids[i])], intensities[i]);
     }
   }
 
   float MRMFeatureOpenMS::getFeatureIntensity(const std::string& native_id) const
   {
-    return (*features_)[findFeatureIndex_(native_id)].getIntensity();
+    return getFeatureByIndex_(findFeatureIndex_(native_id)).getIntensity();
   }
 
   float MRMFeatureOpenMS::getFeatureIntensity(const std::string& native_id, std::size_t expected_index) const
   {
     if (feature_ids_ != nullptr && expected_index < feature_ids_->size() && (*feature_ids_)[expected_index] == native_id)
     {
-      return (*features_)[expected_index].getIntensity();
+      return getFeatureByIndex_(expected_index).getIntensity();
     }
     return getFeatureIntensity(native_id);
+  }
+
+  float MRMFeatureOpenMS::getFeatureIntensity(std::size_t index) const
+  {
+    return getFeatureByIndex_(index).getIntensity();
+  }
+
+  bool MRMFeatureOpenMS::hasCachedFeatureIds() const
+  {
+    return feature_ids_ != nullptr;
+  }
+
+  const Feature& MRMFeatureOpenMS::getFeatureByIndex_(std::size_t index) const
+  {
+    return direct_features_ != nullptr ? (*direct_features_)[index] : *feature_ptrs_[index];
+  }
+
+  void MRMFeatureOpenMS::ensureFeatureWrappers_()
+  {
+    if (features_ != nullptr)
+    {
+      return;
+    }
+    features_ = std::make_shared<FeatureWrapperList_>();
+    if (direct_features_ != nullptr)
+    {
+      features_->reserve(direct_features_->size());
+      for (const Feature& feature : *direct_features_)
+      {
+        features_->emplace_back(feature);
+      }
+      return;
+    }
+    features_->reserve(feature_ptrs_.size());
+    for (const Feature* feature : feature_ptrs_)
+    {
+      features_->emplace_back(*feature);
+    }
+  }
+
+  void MRMFeatureOpenMS::ensurePrecursorFeatureWrappers_()
+  {
+    if (precursor_features_ != nullptr)
+    {
+      return;
+    }
+    precursor_features_ = std::make_shared<FeatureWrapperList_>();
+    precursor_features_->reserve(precursor_feature_ptrs_.size());
+    for (const Feature* feature : precursor_feature_ptrs_)
+    {
+      precursor_features_->emplace_back(*feature);
+    }
   }
 
   std::size_t MRMFeatureOpenMS::findFeatureIndex_(const std::string& native_id) const
