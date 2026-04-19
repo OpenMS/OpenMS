@@ -255,25 +255,6 @@ namespace OpenMS
     /// without the flag produce the same fragment index as the pre-SNES code path.
     bool isSnesMode() const noexcept { return is_snes_mode_; }
 
-    /** @brief One-sided candidate lookup for SNES mothers.
-     *
-     * In SNES mode, every Single-N / Single-C mother can realize sub-peptides whose
-     * precursor mass ranges from roughly (min_peptide_length * residue mass + water)
-     * up to the mother's own mass. A mother is therefore a candidate for observed
-     * precursor mass @p precursor_mass iff @c mother_mass >= precursor_mass - tol.
-     * This method binary-searches @c fi_peptides_ (sorted by @c precursor_mz_) for
-     * the range of mothers satisfying that lower bound.
-     *
-     * The upper bound (mother is too small) is implicit in the sort. The candidate
-     * range is still wide relative to non-SNES closed search; post-filter false
-     * positives are removed by the ProSEAlgorithm realization step.
-     *
-     * Must not be called on a non-SNES index.
-     *
-     * @param[in] precursor_mass  Observed monoisotopic (M+H)+ precursor mass.
-     * @return [begin_idx, end_idx) half-open range into @c fi_peptides_.
-     */
-    std::pair<size_t, size_t> getSNESCandidatesForMass(float precursor_mass) const;
 
     /**
      * A match between a single query peak and a database fragment
@@ -567,6 +548,46 @@ protected:
     bool fragment_mz_tolerance_unit_ppm_{true};    
 private:
 
+
+    /**
+     * @brief SNES-mode spectrum query (MetaMorpheus-style: byte-count + b-ion filter).
+     *
+     * Implements the Rolfs/Smith 2020 inverted-index search strategy as executed in
+     * MetaMorpheus's @c NonSpecificEnzymeSearchEngine. Replaces the pre-SNES
+     * @c searchDifferentPrecursorRanges flow with a two-phase design:
+     *
+     *  1. **Byte-count pass**: for every experimental peak, walk the fragment-mz
+     *     buckets within fragment tolerance and increment a per-thread byte score
+     *     table indexed by @em global mother peptide id. No precursor-mass filter
+     *     at this stage — every mother that has a fragment matching any peak is
+     *     counted. This is the critical departure from the v1 design, which
+     *     pre-filtered mothers by @c mother_mass >= P - tol and admitted the top
+     *     half of the index as candidates.
+     *
+     *  2. **Candidate collection**: for each (precursor charge, isotope error),
+     *     walk fragment buckets at the target m/z that a realized sub-peptide's
+     *     terminal ion would occupy:
+     *       - Single-N mother / b-ion index: target m/z = (M+H)+ − water
+     *         (relation @c M_sub+H+ = b_k + water, so the mother's b_k ion falls
+     *         at @c M_obs+H+ − water when the realized length matches).
+     *       - Single-C mother / y-ion index: target m/z = (M+H)+ directly
+     *         (@c M_sub+H+ = y_k exactly).
+     *     Every mother with a fragment in the target bin that has the correct
+     *     kind (Single-N vs Single-C) and whose byte-score meets
+     *     @c fragment:min_matched_ions is emitted as a candidate.
+     *
+     * This design produces a candidate set sized like a single fragment-bin
+     * lookup (dozens, not thousands), matching MetaMorpheus's algorithmic
+     * scalability. The byte table is reused across calls via @c thread_local.
+     *
+     * Only called when @ref isSnesMode is true; otherwise the pre-SNES
+     * @c searchDifferentPrecursorRanges path is used.
+     *
+     * @param[in]  spectrum Experimental spectrum with a single precursor.
+     * @param[out] sms Accumulated candidate matches, ordered by insertion
+     *             (caller runs full-score and top-N selection downstream).
+     */
+    void querySpectrumSNES_(const MSSpectrum& spectrum, SpectrumMatchesTopN& sms);
 
     /**
      * @brief queries peaks for a given experimental spectrum with a set range of potential peptides, isotope error and precursor charge. Hits are transferred into a PSM list.

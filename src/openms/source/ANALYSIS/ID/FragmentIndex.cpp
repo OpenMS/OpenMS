@@ -1133,26 +1133,6 @@ namespace OpenMS
                           std::distance(fi_peptides_.begin(), right_it));
   }
 
-  std::pair<size_t, size_t> FragmentIndex::getSNESCandidatesForMass(float precursor_mass) const
-  {
-    // SNES one-sided filter: a mother with mother_mass >= observed_P - tol is a
-    // candidate because some sub-peptide of it could realize the observed precursor
-    // (the realization step in ProSEAlgorithm does the exact match). Conversely, a
-    // mother with mother_mass < observed_P - tol is guaranteed to have no realizable
-    // sub-peptide at this mass, so can be pruned.
-    //
-    // The existing computeMassWindow_() returns a signed {lower, upper} pair where
-    // `lower <= 0` represents the "observed lower tolerance" bound. We reuse it here
-    // and interpret `precursor_mass + window.first` as the floor mother mass.
-    const auto window = computeMassWindow_(precursor_mass);
-    const float floor_mass = precursor_mass + window.first; // window.first <= 0
-
-    auto left_it = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
-                                    floor_mass,
-                                    [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
-    return std::make_pair(std::distance(fi_peptides_.begin(), left_it), fi_peptides_.size());
-  }
-
   std::pair<float, float> FragmentIndex::computeMassWindow_(float precursor_mass) const
   {
     if (precursor_mass_tolerance_unit_ppm_)
@@ -1326,24 +1306,17 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     const int16_t iso_lo = open_mode ? 0 : min_isotope_error_;
     const int16_t iso_hi = open_mode ? 0 : max_isotope_error_;
 
+    // SNES mode uses querySpectrumSNES_ directly (dispatched in querySpectrum);
+    // this function is only reached for non-SNES searches.
     for (int16_t isotope_error = iso_lo; isotope_error <= iso_hi; ++isotope_error)
     {
       const float shifted_mass = precursor_mass
         + static_cast<float>(isotope_error) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
 
+      const auto window = computeMassWindow_(shifted_mass);
+
       SpectrumMatchesTopN candidates_iso_error;
-      // SNES mode uses a one-sided "mother_mass >= observed - tol" filter; non-SNES
-      // uses the standard two-sided precursor window. Same queryPeaks call below.
-      std::pair<size_t, size_t> candidates_range;
-      if (is_snes_mode_)
-      {
-        candidates_range = getSNESCandidatesForMass(shifted_mass);
-      }
-      else
-      {
-        const auto window = computeMassWindow_(shifted_mass);
-        candidates_range = getPeptidesInMassWindow(shifted_mass, window);
-      }
+      auto candidates_range = getPeptidesInMassWindow(shifted_mass, window);
       // candidates_range is half-open [first, second) — size the hits vector exactly for
       // (second - first) entries. queryPeaks indexes via (peptide_idx - first), and the
       // loop in FragmentIndex::query() stops strictly before peptide_idx == second.
@@ -1352,6 +1325,175 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       queryPeaks(candidates_iso_error, spectrum, candidates_range, isotope_error, charge);
 
       sms += candidates_iso_error;
+    }
+  }
+
+  void FragmentIndex::querySpectrumSNES_(const MSSpectrum& spectrum,
+                                          SpectrumMatchesTopN& sms)
+  {
+    // Preconditions checked by the public entry point querySpectrum.
+
+    const auto& precursor = spectrum.getPrecursors()[0];
+    vector<uint16_t> charges;
+    if (precursor.getCharge())
+    {
+      charges.push_back(static_cast<uint16_t>(precursor.getCharge()));
+    }
+    else
+    {
+      for (uint16_t z = min_precursor_charge_; z <= max_precursor_charge_; ++z)
+      {
+        charges.push_back(z);
+      }
+    }
+
+    // Phase 1 — byte-count scoring across ALL mothers.
+    //
+    // Thread-local buffer reused across calls; sized to fi_peptides_.size() and
+    // zeroed via .assign. Avoids per-spectrum allocation and keeps the table hot
+    // in cache for large indices. Saturates at UINT16_MAX (far above any realistic
+    // matched-peak count) to protect against pathological inputs without branch-on-overflow.
+    thread_local std::vector<uint16_t> score_table;
+    score_table.assign(fi_peptides_.size(), 0);
+
+    for (const Peak1D& peak : spectrum)
+    {
+      // Walk each peak at every plausible fragment charge (same policy as query()).
+      const uint16_t actual_max_charge = std::min<uint16_t>(max_precursor_charge_, max_fragment_charge_);
+      for (uint16_t frag_charge = 1; frag_charge <= actual_max_charge; ++frag_charge)
+      {
+        const float adjusted_mass = static_cast<float>(peak.getMZ()) * frag_charge
+          - (frag_charge - 1) * static_cast<float>(Constants::PROTON_MASS_U);
+        const float frag_tol = fragment_mz_tolerance_unit_ppm_
+          ? Math::ppmToMass<float>(static_cast<float>(fragment_mz_tolerance_), adjusted_mass)
+          : static_cast<float>(fragment_mz_tolerance_);
+
+        // Bucket-range lookup mirrors query(): bucket_min_mz_ holds the smallest
+        // fragment_mz of each bucket, so a peak with mz ∈ [bucket_min, next_bucket_min)
+        // falls inside the bucket starting at bucket_min.
+        auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(),
+                                        adjusted_mass - frag_tol);
+        auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(),
+                                         adjusted_mass + frag_tol);
+        if (left_it != bucket_min_mz_.begin()) --left_it;
+
+        const size_t bucket_begin = std::distance(bucket_min_mz_.begin(), left_it);
+        const size_t bucket_end = std::distance(bucket_min_mz_.begin(), right_it);
+
+        for (size_t j = bucket_begin; j < bucket_end; ++j)
+        {
+          const auto slice_begin = fi_fragments_.begin() + (j * bucketsize_);
+          const auto slice_end = ((j + 1) * bucketsize_) >= fi_fragments_.size()
+            ? fi_fragments_.end()
+            : (fi_fragments_.begin() + ((j + 1) * bucketsize_));
+
+          // No peptide_idx pre-filter: every peptide in the bucket is a potential
+          // match regardless of its mother mass. The precursor filter is applied
+          // downstream via the fragment-bin-as-precursor trick.
+          for (auto it = slice_begin; it != slice_end; ++it)
+          {
+            if (adjusted_mass >= it->fragment_mz_ - frag_tol
+                && adjusted_mass <= it->fragment_mz_ + frag_tol)
+            {
+              auto& cell = score_table[it->peptide_idx_];
+              if (cell < std::numeric_limits<uint16_t>::max()) ++cell;
+            }
+          }
+        }
+      }
+    }
+
+    // Phase 2 — candidate collection via the fragment-index-as-precursor-filter trick.
+    //
+    // A Single-N mother of any realized length k has b_k m/z = (M_sub)+H+ − water.
+    // A Single-C mother of any realized length k has y_k m/z = (M_sub)+H+ directly.
+    // So mothers that could realize the observed precursor mass are exactly the
+    // ones with an indexed fragment in a narrow m/z window around those targets.
+    //
+    // We walk the fragment buckets at each target once per (charge, iso_err) and
+    // emit the dedup'd set of matching mother ids whose phase-1 byte score meets
+    // the minimum-matched-peaks threshold.
+    static const double water = Residue::getInternalToFull().getMonoWeight();
+
+    // Dedup guard per (charge, iso_err) iteration so a mother with multiple
+    // terminal fragments in the target bin doesn't produce duplicate hits.
+    thread_local std::vector<uint8_t> emitted;
+    emitted.assign(fi_peptides_.size(), 0);
+
+    auto collect_candidates =
+      [&](float target_mz, float tol, bool expect_single_c, int16_t iso_err, uint16_t charge)
+    {
+      auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(),
+                                      target_mz - tol);
+      auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(),
+                                       target_mz + tol);
+      if (left_it != bucket_min_mz_.begin()) --left_it;
+
+      const size_t bucket_begin = std::distance(bucket_min_mz_.begin(), left_it);
+      const size_t bucket_end = std::distance(bucket_min_mz_.begin(), right_it);
+
+      for (size_t j = bucket_begin; j < bucket_end; ++j)
+      {
+        const auto slice_begin = fi_fragments_.begin() + (j * bucketsize_);
+        const auto slice_end = ((j + 1) * bucketsize_) >= fi_fragments_.size()
+          ? fi_fragments_.end()
+          : (fi_fragments_.begin() + ((j + 1) * bucketsize_));
+
+        for (auto it = slice_begin; it != slice_end; ++it)
+        {
+          if (target_mz < it->fragment_mz_ - tol || target_mz > it->fragment_mz_ + tol)
+            continue;
+
+          const UInt32 id = it->peptide_idx_;
+          if (emitted[id]) continue;
+
+          const auto& mother = fi_peptides_[id];
+          if (isSingleCMother(mother.mod_bitmask_) != expect_single_c) continue;
+          if (score_table[id] < min_matched_peaks_) continue;
+
+          emitted[id] = 1;
+          SpectrumMatch sm;
+          sm.peptide_idx_ = id;
+          sm.num_matched_ = score_table[id];
+          sm.isotope_error_ = iso_err;
+          sm.precursor_charge_ = charge;
+          sms.hits_.push_back(sm);
+        }
+      }
+    };
+
+    for (uint16_t charge : charges)
+    {
+      const float mh_plus = static_cast<float>(precursor.getMZ()) * charge
+        - (charge - 1) * static_cast<float>(Constants::PROTON_MASS_U);
+
+      for (int16_t iso_err = min_isotope_error_; iso_err <= max_isotope_error_; ++iso_err)
+      {
+        const float shifted_mh = mh_plus
+          + static_cast<float>(iso_err) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
+
+        // Precursor tolerance for the bin walk. Use the wider of the two
+        // asymmetric bounds so no candidate is missed — realization downstream
+        // will exactly re-match the observed precursor.
+        const float prec_tol_ref_mz = shifted_mh;
+        const float prec_tol = precursor_mass_tolerance_unit_ppm_
+          ? Math::ppmToMass<float>(
+              static_cast<float>(std::max(precursor_mass_tolerance_lower_,
+                                          precursor_mass_tolerance_upper_)),
+              prec_tol_ref_mz)
+          : static_cast<float>(std::max(precursor_mass_tolerance_lower_,
+                                        precursor_mass_tolerance_upper_));
+
+        // Reset the dedup guard for this (charge, iso_err) combo.
+        std::fill(emitted.begin(), emitted.end(), 0);
+
+        // Single-N mothers: b-ion target = (M+H)+ − water.
+        collect_candidates(shifted_mh - static_cast<float>(water), prec_tol,
+                           /*expect_single_c=*/false, iso_err, charge);
+        // Single-C mothers: y-ion target = (M+H)+.
+        collect_candidates(shifted_mh, prec_tol,
+                           /*expect_single_c=*/true, iso_err, charge);
+      }
     }
   }
 
@@ -1373,6 +1515,12 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       if (precursor.size() != 1)
       {
         OPENMS_LOG_WARN << "Number of precursors is not equal 1 \n";
+        return;
+      }
+
+      if (is_snes_mode_)
+      {
+        querySpectrumSNES_(spectrum, sms);
         return;
       }
 
