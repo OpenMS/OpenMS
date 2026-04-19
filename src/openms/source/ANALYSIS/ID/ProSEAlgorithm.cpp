@@ -870,8 +870,11 @@ namespace OpenMS
     startProgress(0, spectra.size(), progress_label);
     size_t count_spectra{};
     const double proton_mass_u = Constants::PROTON_MASS_U;
+    // Hoisted out of the omp parallel block: clang with `default(none)` forbids
+    // referencing namespace-scope constants inside the loop without explicit sharing.
+    const double c13c12_massdiff_u = Constants::C13C12_MASSDIFF_U;
 
-#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fi, spectrum_generator, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, effective_fragment_tol)
+#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fi, spectrum_generator, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
       #pragma omp atomic
@@ -904,7 +907,7 @@ namespace OpenMS
           const double observed_mh_plus =
               exp_mz * sms.precursor_charge_ - (sms.precursor_charge_ - 1) * proton_mass_u;
           const double iso_shifted_target = observed_mh_plus
-              + static_cast<double>(sms.isotope_error_) * Constants::C13C12_MASSDIFF_U;
+              + static_cast<double>(sms.isotope_error_) * c13c12_massdiff_u;
           const int realized_len = fi.realizeSNESLength(
               sms_pep, db, iso_shifted_target, snes_realize_tol, prec_tol_ppm);
           if (realized_len < 0) continue; // no realizable length within tolerance
