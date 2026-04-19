@@ -567,10 +567,9 @@ namespace OpenMS
       // (for Single-N) or N-terminus (for Single-C), which is only resolved in the
       // realization step; tracking per-length slot masks would negate the SNES size
       // win. Terminal + internal variable-mod support is earmarked for v2.
+      std::string ignored = ListUtils::concatenate(modifications_variable_, ", ");
       OPENMS_LOG_WARN << "[FragmentIndex] SNES mode v1: variable modifications are disabled on "
-                      << "mother peptides. Configured variable mods will be ignored: ";
-      for (const auto& m : modifications_variable_) OPENMS_LOG_WARN << m << " ";
-      OPENMS_LOG_WARN << std::endl;
+                      << "mother peptides; ignoring: " << ignored << std::endl;
     }
 
     std::atomic<size_t> skipped_peptides{0};
@@ -588,20 +587,21 @@ namespace OpenMS
         (fasta_entries.size() * 2 * std::max<size_t>(peptide_max_length_, 20)) / num_threads + 1;
     for (int t = 0; t < num_threads; ++t) thread_peptides[t].reserve(est_per_thread);
 
-    // Precursor-mass upper bound used for both mother types.
     // Mother mass = water + proton + sum(residue_masses + fixed residue-mod deltas)
     //             + fixed_nterm_delta + fixed_cterm_delta
-    // This is an upper bound on any realized sub-peptide of the mother: for a Single-N
-    // mother a realized sub-peptide has a different C-terminus (so cterm_delta may not
-    // apply to it literally) but its mass is still <= mother_mass. That guarantees the
-    // one-sided precursor filter `mother_mass >= observed_P - tol` admits every
-    // realizable candidate — the ProSEAlgorithm realization step exactly rematches the
-    // observed precursor and removes the false positives.
+    //
+    // This is always an upper bound on the realized sub-peptide mass (trimming
+    // residues off one end only removes mass; fixed terminal mods either apply to
+    // the realized peptide too or are absent — they never add mass to the realization
+    // that wasn't in the mother). The one-sided precursor filter
+    // `mother_mass >= observed_P - tol` therefore admits every realizable candidate;
+    // the ProSEAlgorithm realization step exactly rematches the observed precursor
+    // and removes the false positives that survived the filter.
     static const double water = Residue::getInternalToFull().getMonoWeight();
     const double base_sum_constants = water + Constants::PROTON_MASS_U
                                       + fixed_nterm_delta_ + fixed_cterm_delta_;
 
-    #pragma omp parallel for schedule(dynamic, 8)
+    #pragma omp parallel for
     for (SignedSize protein_idx = 0; protein_idx < (SignedSize)fasta_entries.size(); ++protein_idx)
     {
 #ifdef _OPENMP
@@ -614,6 +614,14 @@ namespace OpenMS
       const size_t L = seq.size();
       if (L < peptide_min_length_) continue;
 
+      // Fast path: for the overwhelmingly common case of a protein with no
+      // ambiguous residues, a single linear scan tells us we can skip the per-
+      // mother X/B/Z check entirely. For the rare protein with X/B/Z, we fall
+      // back to checking only the next-bad-position via std::string::find_first_of
+      // starting from the mother's start index — still O(length) in the worst
+      // case, but only if the mother actually overlaps a bad region.
+      const bool protein_has_ambiguous = seq.find_first_of("XBZ") != std::string::npos;
+
       auto emitMother = [&](size_t start, size_t length, bool is_single_c)
       {
         if (length < peptide_min_length_) return;
@@ -621,10 +629,14 @@ namespace OpenMS
 
         // Reject mothers containing ambiguous codes — any realized sub-peptide
         // spanning an X/B/Z would fail AASequence::fromString downstream.
-        for (size_t k = 0; k < length; ++k)
+        if (protein_has_ambiguous)
         {
-          const char c = seq_ptr[k];
-          if (c == 'X' || c == 'B' || c == 'Z') { skipped_peptides.fetch_add(1); return; }
+          const size_t bad = seq.find_first_of("XBZ", start);
+          if (bad != std::string::npos && bad < start + length)
+          {
+            skipped_peptides.fetch_add(1);
+            return;
+          }
         }
 
         double mass = base_sum_constants;

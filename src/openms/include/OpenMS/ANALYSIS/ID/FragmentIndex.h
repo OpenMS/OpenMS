@@ -248,10 +248,11 @@ namespace OpenMS
       return (mod_bitmask & SNES_KIND_BIT_MASK) == 0;
     }
 
-    /// @return true if the index was built in SNES mode (auto-enabled when
-    /// @c enzyme_specificity=none and the @c snes_enabled parameter is left on).
-    /// When false, all other SNES helpers and code paths are inactive and the index
-    /// behaves identically to the pre-SNES implementation.
+    /// @return true if the index was built in SNES mode.
+    /// SNES activates when @em both @c snes_enabled is set to true and
+    /// @c peptide:enzyme_specificity is @c none. @c snes_enabled defaults to false
+    /// in v1 (opt-in), so specific/semi-specific searches and non-specific searches
+    /// without the flag produce the same fragment index as the pre-SNES code path.
     bool isSnesMode() const noexcept { return is_snes_mode_; }
 
     /** @brief One-sided candidate lookup for SNES mothers.
@@ -530,7 +531,12 @@ protected:
     /// @c generateFragmentsLightweight_ forwards to this function after packing the
     /// class flags; both share a single implementation.
     ///
-    /// @param[in] add_b/a/c/y/x/z  Explicit per-call series selection.
+    /// @param[in] add_b Emit b-ions (prefix).
+    /// @param[in] add_a Emit a-ions (prefix).
+    /// @param[in] add_c Emit c-ions (prefix).
+    /// @param[in] add_y Emit y-ions (suffix).
+    /// @param[in] add_x Emit x-ions (suffix).
+    /// @param[in] add_z Emit z-ions (suffix).
     void generateFragmentsForSeries_(
       std::vector<Fragment>& fragments,
       const char* sequence,
