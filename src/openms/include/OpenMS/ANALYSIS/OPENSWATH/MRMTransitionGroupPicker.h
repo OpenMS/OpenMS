@@ -74,6 +74,183 @@ namespace OpenMS
   // Per-thread instances of the shared pools
   inline thread_local PickerPoolShared g_picker_pool_shared;
 
+  namespace MRMTransitionGroupPickerMeta
+  {
+    inline UInt areaBackgroundLevel()
+    {
+      static const UInt id = MetaInfo::registry().registerName("area_background_level");
+      return id;
+    }
+
+    inline UInt asymmetryFactor()
+    {
+      static const UInt id = MetaInfo::registry().registerName("asymmetry_factor");
+      return id;
+    }
+
+    inline UInt baselineDelta2Height()
+    {
+      static const UInt id = MetaInfo::registry().registerName("baseline_delta_2_height");
+      return id;
+    }
+
+    inline UInt endPositionAt5()
+    {
+      static const UInt id = MetaInfo::registry().registerName("end_position_at_5");
+      return id;
+    }
+
+    inline UInt endPositionAt10()
+    {
+      static const UInt id = MetaInfo::registry().registerName("end_position_at_10");
+      return id;
+    }
+
+    inline UInt endPositionAt50()
+    {
+      static const UInt id = MetaInfo::registry().registerName("end_position_at_50");
+      return id;
+    }
+
+    inline UInt initialPeakQuality()
+    {
+      static const UInt id = MetaInfo::registry().registerName("initialPeakQuality");
+      return id;
+    }
+
+    inline UInt leftWidth()
+    {
+      static const UInt id = MetaInfo::registry().registerName("leftWidth");
+      return id;
+    }
+
+    inline UInt nativeID()
+    {
+      static const UInt id = MetaInfo::registry().registerName("native_id");
+      return id;
+    }
+
+    inline UInt noiseBackgroundLevel()
+    {
+      static const UInt id = MetaInfo::registry().registerName("noise_background_level");
+      return id;
+    }
+
+    inline UInt peakApexInt()
+    {
+      static const UInt id = MetaInfo::registry().registerName("peak_apex_int");
+      return id;
+    }
+
+    inline UInt peakApexPosition()
+    {
+      static const UInt id = MetaInfo::registry().registerName("peak_apex_position");
+      return id;
+    }
+
+    inline UInt peakApicesSum()
+    {
+      static const UInt id = MetaInfo::registry().registerName("peak_apices_sum");
+      return id;
+    }
+
+    inline UInt peptideRef()
+    {
+      static const UInt id = MetaInfo::registry().registerName("PeptideRef");
+      return id;
+    }
+
+    inline UInt pointsAcrossBaseline()
+    {
+      static const UInt id = MetaInfo::registry().registerName("points_across_baseline");
+      return id;
+    }
+
+    inline UInt pointsAcrossHalfHeight()
+    {
+      static const UInt id = MetaInfo::registry().registerName("points_across_half_height");
+      return id;
+    }
+
+    inline UInt potentialOutlier()
+    {
+      static const UInt id = MetaInfo::registry().registerName("potentialOutlier");
+      return id;
+    }
+
+    inline UInt rightWidth()
+    {
+      static const UInt id = MetaInfo::registry().registerName("rightWidth");
+      return id;
+    }
+
+    inline UInt slopeOfBaseline()
+    {
+      static const UInt id = MetaInfo::registry().registerName("slope_of_baseline");
+      return id;
+    }
+
+    inline UInt startPositionAt5()
+    {
+      static const UInt id = MetaInfo::registry().registerName("start_position_at_5");
+      return id;
+    }
+
+    inline UInt startPositionAt10()
+    {
+      static const UInt id = MetaInfo::registry().registerName("start_position_at_10");
+      return id;
+    }
+
+    inline UInt startPositionAt50()
+    {
+      static const UInt id = MetaInfo::registry().registerName("start_position_at_50");
+      return id;
+    }
+
+    inline UInt tailingFactor()
+    {
+      static const UInt id = MetaInfo::registry().registerName("tailing_factor");
+      return id;
+    }
+
+    inline UInt totalMI()
+    {
+      static const UInt id = MetaInfo::registry().registerName("total_mi");
+      return id;
+    }
+
+    inline UInt totalWidth()
+    {
+      static const UInt id = MetaInfo::registry().registerName("total_width");
+      return id;
+    }
+
+    inline UInt totalXIC()
+    {
+      static const UInt id = MetaInfo::registry().registerName("total_xic");
+      return id;
+    }
+
+    inline UInt widthAt5()
+    {
+      static const UInt id = MetaInfo::registry().registerName("width_at_5");
+      return id;
+    }
+
+    inline UInt widthAt10()
+    {
+      static const UInt id = MetaInfo::registry().registerName("width_at_10");
+      return id;
+    }
+
+    inline UInt widthAt50()
+    {
+      static const UInt id = MetaInfo::registry().registerName("width_at_50");
+      return id;
+    }
+  }
+
 
   /**
 
@@ -253,7 +430,7 @@ public:
         double intensity = mrm_feature.getIntensity();
         if (intensity > 0)
         {
-          total_xic = mrm_feature.getMetaValue("total_xic");
+          total_xic = mrm_feature.getMetaValue(MRMTransitionGroupPickerMeta::totalXIC());
           features.push_back(std::move(mrm_feature));
           cnt++;
         }
@@ -276,8 +453,8 @@ public:
         bool skip = false;
         for (Size j = 0; j < i; j++)
         {
-          if ((double)mrm_feature.getMetaValue("leftWidth") >=  (double)features[j].getMetaValue("leftWidth") &&
-              (double)mrm_feature.getMetaValue("rightWidth") <= (double)features[j].getMetaValue("rightWidth"))
+          if ((double)mrm_feature.getMetaValue(MRMTransitionGroupPickerMeta::leftWidth()) >=  (double)features[j].getMetaValue(MRMTransitionGroupPickerMeta::leftWidth()) &&
+              (double)mrm_feature.getMetaValue(MRMTransitionGroupPickerMeta::rightWidth()) <= (double)features[j].getMetaValue(MRMTransitionGroupPickerMeta::rightWidth()))
           { skip = true; }
         }
         if (mrm_feature.getIntensity() > 0 && !skip)
@@ -445,8 +622,8 @@ public:
           {
             return mrmFeature;
           }
-          mrmFeature.setMetaValue("potentialOutlier", outlier);
-          mrmFeature.setMetaValue("initialPeakQuality", qual);
+          mrmFeature.setMetaValue(MRMTransitionGroupPickerMeta::potentialOutlier(), outlier);
+          mrmFeature.setMetaValue(MRMTransitionGroupPickerMeta::initialPeakQuality(), qual);
           mrmFeature.setOverallQuality(qual);
         }
       }
@@ -481,15 +658,15 @@ public:
 
       mrmFeature.setRT(peak_apex);
       mrmFeature.setIntensity(total_intensity);
-      mrmFeature.setMetaValue("PeptideRef", transition_group.getTransitionGroupID());
-      mrmFeature.setMetaValue("leftWidth", best_left);
-      mrmFeature.setMetaValue("rightWidth", best_right);
-      mrmFeature.setMetaValue("total_xic", total_xic);
+      mrmFeature.setMetaValue(MRMTransitionGroupPickerMeta::peptideRef(), transition_group.getTransitionGroupID());
+      mrmFeature.setMetaValue(MRMTransitionGroupPickerMeta::leftWidth(), best_left);
+      mrmFeature.setMetaValue(MRMTransitionGroupPickerMeta::rightWidth(), best_right);
+      mrmFeature.setMetaValue(MRMTransitionGroupPickerMeta::totalXIC(), total_xic);
       if (compute_total_mi_)
       {
-        mrmFeature.setMetaValue("total_mi", total_mi);
+        mrmFeature.setMetaValue(MRMTransitionGroupPickerMeta::totalMI(), total_mi);
       }
-      mrmFeature.setMetaValue("peak_apices_sum", total_peak_apices);
+      mrmFeature.setMetaValue(MRMTransitionGroupPickerMeta::peakApicesSum(), total_peak_apices);
 
       mrmFeature.ensureUniqueId();
       return mrmFeature;
@@ -663,7 +840,7 @@ public:
         PeakIntegrator::PeakArea pa = pi_.integratePeak(used_chromatogram, local_left, local_right);
         double peak_integral = pa.area;
         double peak_apex_int = pa.height;
-        f.setMetaValue("peak_apex_position", pa.apex_pos);
+        f.setMetaValue(MRMTransitionGroupPickerMeta::peakApexPosition(), pa.apex_pos);
         if (background_subtraction_ != "none")
         {
           double background{0};
@@ -687,8 +864,8 @@ public:
           if (peak_integral < 0) {peak_integral = 0;}
           if (peak_apex_int < 0) {peak_apex_int = 0;}
 
-          f.setMetaValue("area_background_level", background);
-          f.setMetaValue("noise_background_level", avg_noise_level);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::areaBackgroundLevel(), background);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::noiseBackgroundLevel(), avg_noise_level);
         } // end background
 
         f.setRT(picked_chroms[chr_idx][peak_idx].getPos());
@@ -706,12 +883,12 @@ public:
           f.setMZ(chromatogram.getMetaValue("product_mz"));
         }
 
-        f.setMetaValue("native_id", chromatogram.getNativeID());
-        f.setMetaValue("peak_apex_int", peak_apex_int);
-        f.setMetaValue("total_xic", transition_total_xic);
+        f.setMetaValue(MRMTransitionGroupPickerMeta::nativeID(), chromatogram.getNativeID());
+        f.setMetaValue(MRMTransitionGroupPickerMeta::peakApexInt(), peak_apex_int);
+        f.setMetaValue(MRMTransitionGroupPickerMeta::totalXIC(), transition_total_xic);
         if (compute_total_mi_)
         {
-          f.setMetaValue("total_mi", transition_total_mi);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::totalMI(), transition_total_mi);
         }
 
         if (transition_group.getTransitions()[k].isQuantifyingTransition())
@@ -723,24 +900,24 @@ public:
         // for backwards compatibility with TOPP tests
         // Calculate peak shape metrics that will be used for later QC
         PeakIntegrator::PeakShapeMetrics psm = pi_.calculatePeakShapeMetrics(used_chromatogram, local_left, local_right, peak_apex_int, pa.apex_pos);
-        f.setMetaValue("width_at_50", psm.width_at_50);
+        f.setMetaValue(MRMTransitionGroupPickerMeta::widthAt50(), psm.width_at_50);
         if (compute_peak_shape_metrics_)
         {
-          f.setMetaValue("width_at_5", psm.width_at_5);
-          f.setMetaValue("width_at_10", psm.width_at_10);
-          f.setMetaValue("start_position_at_5", psm.start_position_at_5);
-          f.setMetaValue("start_position_at_10", psm.start_position_at_10);
-          f.setMetaValue("start_position_at_50", psm.start_position_at_50);
-          f.setMetaValue("end_position_at_5", psm.end_position_at_5);
-          f.setMetaValue("end_position_at_10", psm.end_position_at_10);
-          f.setMetaValue("end_position_at_50", psm.end_position_at_50);
-          f.setMetaValue("total_width", psm.total_width);
-          f.setMetaValue("tailing_factor", psm.tailing_factor);
-          f.setMetaValue("asymmetry_factor", psm.asymmetry_factor);
-          f.setMetaValue("slope_of_baseline", psm.slope_of_baseline);
-          f.setMetaValue("baseline_delta_2_height", psm.baseline_delta_2_height);
-          f.setMetaValue("points_across_baseline", psm.points_across_baseline);
-          f.setMetaValue("points_across_half_height", psm.points_across_half_height);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::widthAt5(), psm.width_at_5);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::widthAt10(), psm.width_at_10);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::startPositionAt5(), psm.start_position_at_5);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::startPositionAt10(), psm.start_position_at_10);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::startPositionAt50(), psm.start_position_at_50);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::endPositionAt5(), psm.end_position_at_5);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::endPositionAt10(), psm.end_position_at_10);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::endPositionAt50(), psm.end_position_at_50);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::totalWidth(), psm.total_width);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::tailingFactor(), psm.tailing_factor);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::asymmetryFactor(), psm.asymmetry_factor);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::slopeOfBaseline(), psm.slope_of_baseline);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::baselineDelta2Height(), psm.baseline_delta_2_height);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::pointsAcrossBaseline(), psm.points_across_baseline);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::pointsAcrossHalfHeight(), psm.points_across_half_height);
         }
 
         mrmFeature.addFeature(f, chromatogram.getNativeID()); //map index and feature
@@ -836,8 +1013,8 @@ public:
           if (peak_integral < 0) {peak_integral = 0;}
           if (peak_apex_int < 0) {peak_apex_int = 0;}
 
-          f.setMetaValue("area_background_level", background);
-          f.setMetaValue("noise_background_level", avg_noise_level);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::areaBackgroundLevel(), background);
+          f.setMetaValue(MRMTransitionGroupPickerMeta::noiseBackgroundLevel(), avg_noise_level);
         }
 
         f.setMZ(chromatogram.getPrecursor().getMZ());
@@ -854,8 +1031,8 @@ public:
         ConvexHull2D hull;
         hull.setHullPoints(pa.hull_points);
         f.getConvexHulls().push_back(hull);
-        f.setMetaValue("native_id", chromatogram.getNativeID());
-        f.setMetaValue("peak_apex_int", peak_apex_int);
+        f.setMetaValue(MRMTransitionGroupPickerMeta::nativeID(), chromatogram.getNativeID());
+        f.setMetaValue(MRMTransitionGroupPickerMeta::peakApexInt(), peak_apex_int);
 
         if (use_precursors_ && transition_group.getTransitions().empty())
         {
