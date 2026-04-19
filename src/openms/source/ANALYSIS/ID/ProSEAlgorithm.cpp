@@ -624,8 +624,8 @@ namespace OpenMS
             }
           }
 
-          // Add isotope error metavalue (always)
-          ph.setMetaValue("isotope_error", ah.isotope_error);
+          // Add isotope error metavalue (always; exposed as Percolator feature)
+          ph.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, ah.isotope_error);
 
           // Add delta mass metavalue for open search
           if (isOpenSearchMode_())
@@ -655,7 +655,7 @@ namespace OpenMS
           OPENMS_LOG_DEBUG << "[ProSE] scan_index=" << scan_index
                            << " top_ln(hyperscore)=" << top_hit.getScore()
                            << " top_charge=" << top_hit.getCharge()
-                           << " top_isotope_error=" << (int)top_hit.getMetaValue("isotope_error")
+                           << " top_isotope_error=" << (int)top_hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR)
                            << std::endl;
         }
 #pragma omp critical (peptide_ids_access)
@@ -713,6 +713,7 @@ namespace OpenMS
     if (annotation_matched_suffix_ions) feature_set.push_back(Constants::UserParam::MATCHED_SUFFIX_IONS);
     if (annotation_matched_ion_current) feature_set.push_back(Constants::UserParam::MATCHED_ION_CURRENT);
     feature_set.push_back(Constants::UserParam::DELTA_SCORE);
+    feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
     // note: precursor error is calculated by percolator itself
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
     // record whether open-search mode was used
