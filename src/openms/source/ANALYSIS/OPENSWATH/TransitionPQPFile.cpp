@@ -34,6 +34,7 @@ namespace OpenMS
   {
     constexpr Size default_transitions_per_precursor = 6;
     constexpr Size max_protein_reserve = 100000;
+    constexpr Size stable_stream_order_transition_limit = 100000;
 
     Size estimatePrecursorCountFromTransitions_(Size num_transitions)
     {
@@ -75,7 +76,7 @@ namespace OpenMS
 
   TransitionPQPFile::~TransitionPQPFile() = default;
 
-  TransitionPQPFile::PQPSqlQueryInfo TransitionPQPFile::buildPQPSelectQuery_(sqlite3* db, bool legacy_traml_id) const
+  TransitionPQPFile::PQPSqlQueryInfo TransitionPQPFile::buildPQPSelectQuery_(sqlite3* db, bool legacy_traml_id, bool stable_order) const
   {
     PQPSqlQueryInfo info;
 
@@ -228,12 +229,17 @@ namespace OpenMS
                   "INNER JOIN TRANSITION_PRECURSOR_MAPPING ON PRECURSOR.ID = TRANSITION_PRECURSOR_MAPPING.PRECURSOR_ID " \
                   "INNER JOIN TRANSITION ON TRANSITION_PRECURSOR_MAPPING.TRANSITION_ID = TRANSITION.ID " \
                   "INNER JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID " \
-                  "INNER JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID; ";
+                  "INNER JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID ";
     }
-    else
+
+    if (stable_order)
     {
-      info.select_sql += "; ";
+      // TargetedFileConverter and small TOPP round-trip tests historically saw the
+      // implicit UNION ordering. Keep that deterministic order explicit while the
+      // large-library streaming path can still avoid a global sort.
+      info.select_sql += "ORDER BY precursor, product, rt_calibrated, transition_name, group_id ";
     }
+    info.select_sql += "; ";
 
     return info;
   }
@@ -259,7 +265,7 @@ namespace OpenMS
     transition_list.reserve(num_transitions);
 
     // Build SQL query using shared helper
-    PQPSqlQueryInfo query_info = buildPQPSelectQuery_(db, legacy_traml_id);
+    PQPSqlQueryInfo query_info = buildPQPSelectQuery_(db, legacy_traml_id, true);
 
     // Execute SQL select statement
     SqliteConnector::prepareStatement(db, &stmt, query_info.select_sql);
@@ -359,7 +365,8 @@ namespace OpenMS
     }
 
     // Build SQL query using shared helper
-    PQPSqlQueryInfo query_info = buildPQPSelectQuery_(db, legacy_traml_id);
+    const bool stable_order = num_transitions <= stable_stream_order_transition_limit;
+    PQPSqlQueryInfo query_info = buildPQPSelectQuery_(db, legacy_traml_id, stable_order);
 
     // Execute SQL select statement
     SqliteConnector::prepareStatement(db, &stmt, query_info.select_sql);
@@ -868,10 +875,17 @@ namespace OpenMS
     }
     // OpenSWATH: Prepare gene inserts
     std::stringstream insert_gene_sql;
+    std::vector<std::string> gene_vec;
+    gene_vec.reserve(gene_map.size());
     for (const auto& it : gene_map)
     {
+      gene_vec.push_back(it.first);
+    }
+    boost::sort(gene_vec);
+    for (const auto& gene_name : gene_vec)
+    {
       insert_gene_sql << "INSERT INTO GENE (ID, GENE_NAME, DECOY) VALUES (" <<
-        it.second << ",'" << it.first << "'," << 0 << "); ";
+        gene_map[gene_name] << ",'" << gene_name << "'," << 0 << "); ";
     }
 
     // OpenSWATH: Prepare peptide-protein mapping inserts
@@ -884,29 +898,29 @@ namespace OpenMS
 
     // OpenSWATH: Prepare protein inserts
     std::stringstream insert_protein_sql;
-    for (const auto& it : protein_map)
+    for (const auto& protein_id : protein_vec)
     {
       insert_protein_sql << "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION, DECOY) VALUES (" <<
-        it.second << ",'" << it.first << "'," << 0 << "); ";
+        protein_map[protein_id] << ",'" << protein_id << "'," << 0 << "); ";
     }
 
     // OpenSWATH: Prepare peptide inserts
     std::stringstream insert_peptide_sql;
-    for (const auto& it : peptide_map)
+    for (const auto& peptide_sequence : peptide_vec)
     {
       insert_peptide_sql << "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (" <<
-        it.second << ",'" <<
-        AASequence::fromString(it.first).toUnmodifiedString() << "','" <<
-        it.first << "'," << 0 << "); ";
+        peptide_map[peptide_sequence] << ",'" <<
+        AASequence::fromString(peptide_sequence).toUnmodifiedString() << "','" <<
+        peptide_sequence << "'," << 0 << "); ";
     }
 
     // OpenSWATH: Prepare compound inserts
     std::stringstream insert_compound_sql;
-    for (const auto& it : compound_map)
+    for (const auto& compound_id : compound_vec)
     {
       String adducts;
       String compound_name;
-      const auto& compound = targeted_exp.getCompoundByRef(it.first);
+      const auto& compound = targeted_exp.getCompoundByRef(compound_id);
       if (compound.metaValueExists("Adducts"))
       {
         adducts = compound.getMetaValue("Adducts");
@@ -920,7 +934,7 @@ namespace OpenMS
         compound_name = compound.id;
       }
       insert_compound_sql << "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, ADDUCTS, DECOY) VALUES (" <<
-        it.second << ",'" <<
+        compound_map[compound_id] << ",'" <<
         compound_name << "','" <<
         compound.molecular_formula << "','" <<
         compound.smiles_string << "','" <<
@@ -1350,10 +1364,17 @@ namespace OpenMS
 
     // Prepare gene inserts
     std::stringstream insert_gene_sql;
+    std::vector<std::string> gene_vec;
+    gene_vec.reserve(gene_map.size());
     for (const auto& it : gene_map)
     {
+      gene_vec.push_back(it.first);
+    }
+    boost::sort(gene_vec);
+    for (const auto& gene_name : gene_vec)
+    {
       insert_gene_sql << "INSERT INTO GENE (ID, GENE_NAME, DECOY) VALUES (" <<
-        it.second << ",'" << it.first << "'," << 0 << "); ";
+        gene_map[gene_name] << ",'" << gene_name << "'," << 0 << "); ";
     }
 
     // Prepare peptide-protein mapping inserts
@@ -1366,49 +1387,49 @@ namespace OpenMS
 
     // Prepare protein inserts
     std::stringstream insert_protein_sql;
-    for (const auto& it : protein_map)
+    for (const auto& protein_id : protein_vec)
     {
       insert_protein_sql << "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION, DECOY) VALUES (" <<
-        it.second << ",'" << it.first << "'," << 0 << "); ";
+        protein_map[protein_id] << ",'" << protein_id << "'," << 0 << "); ";
     }
 
     // Prepare peptide inserts
     std::stringstream insert_peptide_sql;
-    for (const auto& it : peptide_map)
+    for (const auto& peptide_sequence : peptide_vec)
     {
       std::string unmodified_seq;
       try
       {
-        unmodified_seq = AASequence::fromString(it.first).toUnmodifiedString();
+        unmodified_seq = AASequence::fromString(peptide_sequence).toUnmodifiedString();
       }
       catch (Exception::InvalidValue&)
       {
-        unmodified_seq = it.first;
+        unmodified_seq = peptide_sequence;
       }
       insert_peptide_sql << "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (" <<
-        it.second << ",'" <<
+        peptide_map[peptide_sequence] << ",'" <<
         unmodified_seq << "','" <<
-        it.first << "'," << 0 << "); ";
+        peptide_sequence << "'," << 0 << "); ";
     }
 
     // Prepare compound inserts
     std::stringstream insert_compound_sql;
-    for (const auto& it : compound_map)
+    for (const auto& compound_id : compound_vec)
     {
-      auto comp_it = compound_lookup.find(it.first);
-      std::string compound_name = it.first;
+      auto comp_it = compound_lookup.find(compound_id);
+      std::string compound_name = compound_id;
       std::string sum_formula;
       std::string smiles;
       std::string adducts;
       if (comp_it != compound_lookup.end())
       {
-        compound_name = comp_it->second->compound_name.empty() ? it.first : comp_it->second->compound_name;
+        compound_name = comp_it->second->compound_name.empty() ? compound_id : comp_it->second->compound_name;
         sum_formula = comp_it->second->sum_formula;
         smiles = comp_it->second->smiles;
         adducts = comp_it->second->adducts;
       }
       insert_compound_sql << "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, ADDUCTS, DECOY) VALUES (" <<
-        it.second << ",'" <<
+        compound_map[compound_id] << ",'" <<
         compound_name << "','" <<
         sum_formula << "','" <<
         smiles << "','" <<
