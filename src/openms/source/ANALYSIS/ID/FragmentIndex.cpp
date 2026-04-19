@@ -248,13 +248,35 @@ namespace OpenMS
     double c_term_mod_mass,
     const double* residue_mod_masses) const
   {
+    // Thin wrapper: forward class flags to the series-explicit implementation.
+    generateFragmentsForSeries_(fragments, sequence, seq_len, peptide_idx,
+                                n_term_mod_mass, c_term_mod_mass, residue_mod_masses,
+                                add_b_ions_, add_a_ions_, add_c_ions_,
+                                add_y_ions_, add_x_ions_, add_z_ions_);
+  }
+
+  void FragmentIndex::generateFragmentsForSeries_(
+    std::vector<Fragment>& fragments,
+    const char* sequence,
+    size_t seq_len,
+    UInt32 peptide_idx,
+    double n_term_mod_mass,
+    double c_term_mod_mass,
+    const double* residue_mod_masses,
+    bool add_b,
+    bool add_a,
+    bool add_c,
+    bool add_y,
+    bool add_x,
+    bool add_z) const
+  {
     const double proton = Constants::PROTON_MASS_U;
     const auto& table = residue_mass_table_;
 
     // Generate prefix ions (b, a, c) - left to right cumulative sum
     // Fragment charge is always 1 for the index (matching original TSG call)
     // Ion index is 1-based: i=0 produces ion 1 (b1/a1/c1), so skip when (i+1) <= min_ion_index_
-    if (add_b_ions_ || add_a_ions_ || add_c_ions_)
+    if (add_b || add_a || add_c)
     {
       {
         constexpr int z = 1;
@@ -269,19 +291,19 @@ namespace OpenMS
 
           if (i + 1 <= min_ion_index_) continue; // skip ions below min_ion_index
 
-          if (add_b_ions_)
+          if (add_b)
           {
             float mz = static_cast<float>((cumulative + ion_offsets_.b_offset) / z);
             if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
               fragments.emplace_back(peptide_idx, mz);
           }
-          if (add_a_ions_)
+          if (add_a)
           {
             float mz = static_cast<float>((cumulative + ion_offsets_.a_offset) / z);
             if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
               fragments.emplace_back(peptide_idx, mz);
           }
-          if (add_c_ions_)
+          if (add_c)
           {
             float mz = static_cast<float>((cumulative + ion_offsets_.c_offset) / z);
             if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
@@ -293,7 +315,7 @@ namespace OpenMS
 
     // Generate suffix ions (y, x, z) - right to left cumulative sum
     // Suffix ion index: first iteration produces y1, second y2, etc.
-    if (add_y_ions_ || add_x_ions_ || add_z_ions_)
+    if (add_y || add_x || add_z)
     {
       {
         constexpr int z = 1;
@@ -310,19 +332,19 @@ namespace OpenMS
 
           if (suffix_ion_num <= min_ion_index_) continue; // skip ions below min_ion_index
 
-          if (add_y_ions_)
+          if (add_y)
           {
             float mz = static_cast<float>((cumulative + ion_offsets_.y_offset) / z);
             if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
               fragments.emplace_back(peptide_idx, mz);
           }
-          if (add_x_ions_)
+          if (add_x)
           {
             float mz = static_cast<float>((cumulative + ion_offsets_.x_offset) / z);
             if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
               fragments.emplace_back(peptide_idx, mz);
           }
-          if (add_z_ions_)
+          if (add_z)
           {
             float mz = static_cast<float>((cumulative + ion_offsets_.z_offset) / z);
             if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
@@ -422,6 +444,95 @@ namespace OpenMS
     return seq;
   }
 
+  int FragmentIndex::realizeSNESLength(const Peptide& mother,
+                                       const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                       double target_mh_plus,
+                                       double tolerance_magnitude,
+                                       bool tolerance_ppm) const
+  {
+    if (!is_snes_mode_) return -1;
+
+    const std::string& protein_seq = fasta_entries[mother.protein_idx].sequence;
+    const bool is_single_c = isSingleCMother(mother.mod_bitmask_);
+    const size_t mother_start = mother.sequence_.first;
+    const size_t mother_length = mother.sequence_.second;
+
+    static const double water = Residue::getInternalToFull().getMonoWeight();
+    const double base = water + Constants::PROTON_MASS_U
+                        + fixed_nterm_delta_ + fixed_cterm_delta_;
+    const double tol_da = tolerance_ppm
+      ? (tolerance_magnitude * std::max(target_mh_plus, 0.0) * 1e-6)
+      : tolerance_magnitude;
+
+    // Scan residues from the anchored terminus outward, accumulating the
+    // residue-mass sum incrementally. Single-N scans left-to-right (the first
+    // residue is mother_start); Single-C scans right-to-left (the first residue
+    // is mother_start + mother_length - 1). At each prefix length k in
+    // [peptide_min_length_, mother_length], the corresponding realized sub-peptide
+    // has mass (base + cumulative). Pick the length whose mass is closest to
+    // the target and within tol_da.
+    double cumulative = 0.0;
+    double best_abs_delta = std::numeric_limits<double>::max();
+    int best_length = -1;
+    for (size_t k = 0; k < mother_length; ++k)
+    {
+      const size_t res_idx = is_single_c
+        ? mother_start + (mother_length - 1 - k)
+        : mother_start + k;
+      const unsigned char aa = static_cast<unsigned char>(protein_seq[res_idx]);
+      cumulative += residue_mass_table_[aa] + fixed_mod_deltas_[aa];
+
+      const size_t length = k + 1;
+      if (length < peptide_min_length_) continue;
+
+      const double realized_mass = base + cumulative;
+      const double delta = std::abs(realized_mass - target_mh_plus);
+      if (delta <= tol_da && delta < best_abs_delta)
+      {
+        best_abs_delta = delta;
+        best_length = static_cast<int>(length);
+      }
+    }
+    return best_length;
+  }
+
+  AASequence FragmentIndex::reconstructRealizedSubSequence(
+      const Peptide& mother,
+      const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+      size_t realized_length) const
+  {
+    const std::string& protein_seq = fasta_entries[mother.protein_idx].sequence;
+    const bool is_single_c = isSingleCMother(mother.mod_bitmask_);
+    const size_t mother_start = mother.sequence_.first;
+    const size_t mother_length = mother.sequence_.second;
+
+    // Single-N: realized = [mother_start, mother_start + realized_length)
+    // Single-C: realized = [mother_start + mother_length - realized_length, mother_start + mother_length)
+    const size_t realized_start = is_single_c
+      ? mother_start + mother_length - realized_length
+      : mother_start;
+
+    AASequence seq = AASequence::fromString(protein_seq.substr(realized_start, realized_length));
+
+    const bool has_mods = !(modifications_fixed_.empty() && modifications_variable_.empty());
+    if (!has_mods) return seq;
+
+    // Fixed residue mods — applied to every residue of the realized sub-peptide.
+    for (size_t i = 0; i < seq.size(); ++i)
+    {
+      const unsigned char aa = static_cast<unsigned char>(protein_seq[realized_start + i]);
+      if (fixed_mod_ptrs_[aa] != nullptr)
+      {
+        seq.setModification(i, fixed_mod_ptrs_[aa]);
+      }
+    }
+    if (fixed_nterm_mod_ptr_ != nullptr) seq.setNTerminalModification(fixed_nterm_mod_ptr_);
+    if (fixed_cterm_mod_ptr_ != nullptr) seq.setCTerminalModification(fixed_cterm_mod_ptr_);
+
+    // Variable mods are disabled on SNES mothers in v1 — see generateSNESMothers_.
+    return seq;
+  }
+
 
   /// Compute precursor m/z at charge 1 (M+H)+ directly from amino acid chars.
   /// Formula: (sum_of_internal_masses + H2O + proton) / 1
@@ -437,9 +548,156 @@ namespace OpenMS
     return static_cast<float>(mass);
   }
 
+  void FragmentIndex::generateSNESMothers_(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
+  {
+    // Residue-mass table already initialized by the caller (generatePeptides).
+    // Still need the modification tables for fixed-mod deltas.
+    const bool has_modifications = !(modifications_fixed_.empty() && modifications_variable_.empty());
+    const bool has_variable_mods = !modifications_variable_.empty();
+
+    if (has_modifications)
+    {
+      initModificationTables_();
+    }
+
+    if (has_variable_mods)
+    {
+      // SNES v1 restriction: variable modifications are not enumerated on mother
+      // peptides. Rationale: which slots survive realization depends on the C-terminus
+      // (for Single-N) or N-terminus (for Single-C), which is only resolved in the
+      // realization step; tracking per-length slot masks would negate the SNES size
+      // win. Terminal + internal variable-mod support is earmarked for v2.
+      OPENMS_LOG_WARN << "[FragmentIndex] SNES mode v1: variable modifications are disabled on "
+                      << "mother peptides. Configured variable mods will be ignored: ";
+      for (const auto& m : modifications_variable_) OPENMS_LOG_WARN << m << " ";
+      OPENMS_LOG_WARN << std::endl;
+    }
+
+    std::atomic<size_t> skipped_peptides{0};
+
+    OPENMS_LOG_INFO << "Generating SNES mother peptides..." << std::endl;
+
+#ifdef _OPENMP
+    const int num_threads = omp_get_max_threads();
+#else
+    const int num_threads = 1;
+#endif
+    vector<vector<Peptide>> thread_peptides(num_threads);
+    // Heuristic reserve: ~2 * avg_protein_length mothers per protein (Single-N + Single-C).
+    const size_t est_per_thread =
+        (fasta_entries.size() * 2 * std::max<size_t>(peptide_max_length_, 20)) / num_threads + 1;
+    for (int t = 0; t < num_threads; ++t) thread_peptides[t].reserve(est_per_thread);
+
+    // Precursor-mass upper bound used for both mother types.
+    // Mother mass = water + proton + sum(residue_masses + fixed residue-mod deltas)
+    //             + fixed_nterm_delta + fixed_cterm_delta
+    // This is an upper bound on any realized sub-peptide of the mother: for a Single-N
+    // mother a realized sub-peptide has a different C-terminus (so cterm_delta may not
+    // apply to it literally) but its mass is still <= mother_mass. That guarantees the
+    // one-sided precursor filter `mother_mass >= observed_P - tol` admits every
+    // realizable candidate — the ProSEAlgorithm realization step exactly rematches the
+    // observed precursor and removes the false positives.
+    static const double water = Residue::getInternalToFull().getMonoWeight();
+    const double base_sum_constants = water + Constants::PROTON_MASS_U
+                                      + fixed_nterm_delta_ + fixed_cterm_delta_;
+
+    #pragma omp parallel for schedule(dynamic, 8)
+    for (SignedSize protein_idx = 0; protein_idx < (SignedSize)fasta_entries.size(); ++protein_idx)
+    {
+#ifdef _OPENMP
+      const int tid = omp_get_thread_num();
+#else
+      const int tid = 0;
+#endif
+      const FASTAFile::FASTAEntry& protein = fasta_entries[protein_idx];
+      const std::string& seq = protein.sequence;
+      const size_t L = seq.size();
+      if (L < peptide_min_length_) continue;
+
+      auto emitMother = [&](size_t start, size_t length, bool is_single_c)
+      {
+        if (length < peptide_min_length_) return;
+        const char* seq_ptr = seq.c_str() + start;
+
+        // Reject mothers containing ambiguous codes — any realized sub-peptide
+        // spanning an X/B/Z would fail AASequence::fromString downstream.
+        for (size_t k = 0; k < length; ++k)
+        {
+          const char c = seq_ptr[k];
+          if (c == 'X' || c == 'B' || c == 'Z') { skipped_peptides.fetch_add(1); return; }
+        }
+
+        double mass = base_sum_constants;
+        for (size_t k = 0; k < length; ++k)
+        {
+          const unsigned char aa = static_cast<unsigned char>(seq_ptr[k]);
+          mass += residue_mass_table_[aa] + fixed_mod_deltas_[aa];
+        }
+        const float mz = static_cast<float>(mass);
+        if (mz < peptide_min_mass_ || mz > peptide_max_mass_) return;
+
+        const uint32_t kind_bits = is_single_c ? SNES_KIND_BIT_MASK : 0u;
+        thread_peptides[tid].emplace_back(
+            static_cast<UInt32>(protein_idx),
+            kind_bits,
+            std::make_pair(static_cast<uint16_t>(start), static_cast<uint16_t>(length)),
+            mz);
+      };
+
+      // Single-N mothers: anchored at position i, span the longest possible peptide
+      // starting there (capped at peptide_max_length_). i sweeps [0, L - min_length].
+      for (size_t i = 0; i + peptide_min_length_ <= L; ++i)
+      {
+        const size_t length = std::min<size_t>(peptide_max_length_, L - i);
+        emitMother(i, length, /*is_single_c=*/false);
+      }
+
+      // Single-C mothers: anchored at position j (last residue), span the longest
+      // possible peptide ending there. j sweeps [min_length - 1, L - 1].
+      // When j + 1 <= max_length the mother happens to coincide with a Single-N
+      // mother at position 0 — that's harmless redundancy: both emit a different ion
+      // series into the index, so there's no duplicate fragment.
+      for (size_t j = peptide_min_length_ - 1; j < L; ++j)
+      {
+        const size_t length = std::min<size_t>(peptide_max_length_, j + 1);
+        const size_t start = j + 1 - length;
+        emitMother(start, length, /*is_single_c=*/true);
+      }
+    }
+
+    // Merge per-thread buckets (same shape as generatePeptides).
+    size_t total = 0;
+    for (int t = 0; t < num_threads; ++t) total += thread_peptides[t].size();
+    fi_peptides_.reserve(total);
+    for (int t = 0; t < num_threads; ++t)
+    {
+      fi_peptides_.insert(fi_peptides_.end(), thread_peptides[t].begin(), thread_peptides[t].end());
+      vector<Peptide>().swap(thread_peptides[t]);
+    }
+
+    OPENMS_LOG_INFO << "Sorting SNES mother peptides..." << std::endl;
+    sort(fi_peptides_.begin(), fi_peptides_.end(), [](const Peptide& a, const Peptide& b)
+    {
+      return std::tie(a.precursor_mz_, a.protein_idx) < std::tie(b.precursor_mz_, b.protein_idx);
+    });
+
+    OPENMS_LOG_INFO << "Generated " << fi_peptides_.size() << " SNES mothers ("
+                    << skipped_peptides.load() << " skipped due to ambiguous residues or mass filter)." << std::endl;
+  }
+
   void FragmentIndex::generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
       initResidueMassTable_();
+
+      // SNES mode dispatch: for non-specific searches with snes_enabled, switch to
+      // mother-peptide indexing instead of the O(L^2) sub-peptide enumeration below.
+      // The SNES path has its own mod-table init; everything else (fragment emission,
+      // query layer, build-level bucketing) reads the populated fi_peptides_ uniformly.
+      if (is_snes_mode_)
+      {
+        generateSNESMothers_(fasta_entries);
+        return;
+      }
 
       const bool has_modifications = !(modifications_fixed_.empty() && modifications_variable_.empty());
       const bool has_variable_mods = !modifications_variable_.empty();
@@ -668,7 +926,43 @@ namespace OpenMS
         const char* seq_ptr = fasta_entries[pep.protein_idx].sequence.c_str() + pep.sequence_.first;
         size_t seq_len = pep.sequence_.second;
 
-        if (!has_modifications || pep.mod_bitmask_ == 0)
+        if (is_snes_mode_)
+        {
+          // SNES mother: emit a single ion series determined by bit 31 of mod_bitmask_.
+          // Variable modifications are disabled in SNES v1 (see generateSNESMothers_);
+          // only fixed residue/terminal modifications are applied. The "free" terminus
+          // (C-term for Single-N, N-term for Single-C) does not receive its fixed
+          // terminal modification at index time — the fragment series we emit doesn't
+          // reach that terminus, and the sub-peptide mass is recomputed at realization.
+          const bool is_single_c = isSingleCMother(pep.mod_bitmask_);
+
+          vector<double> mod_masses(seq_len, 0.0);
+          bool has_residue_mods = false;
+          for (size_t i = 0; i < seq_len; ++i)
+          {
+            const double delta = fixed_mod_deltas_[static_cast<unsigned char>(seq_ptr[i])];
+            if (delta != 0.0)
+            {
+              mod_masses[i] = delta;
+              has_residue_mods = true;
+            }
+          }
+
+          const double n_term_mod = is_single_c ? 0.0 : fixed_nterm_delta_;
+          const double c_term_mod = is_single_c ? fixed_cterm_delta_ : 0.0;
+
+          generateFragmentsForSeries_(
+            thread_fragments[tid], seq_ptr, seq_len, static_cast<UInt32>(peptide_idx),
+            n_term_mod, c_term_mod,
+            has_residue_mods ? mod_masses.data() : nullptr,
+            /*add_b=*/!is_single_c && add_b_ions_,
+            /*add_a=*/!is_single_c && add_a_ions_,
+            /*add_c=*/!is_single_c && add_c_ions_,
+            /*add_y=*/ is_single_c && add_y_ions_,
+            /*add_x=*/ is_single_c && add_x_ions_,
+            /*add_z=*/ is_single_c && add_z_ions_);
+        }
+        else if (!has_modifications || pep.mod_bitmask_ == 0)
         {
           // No modifications or unmodified variant: just fixed mod deltas (if any)
           if (!has_modifications)
@@ -825,6 +1119,26 @@ namespace OpenMS
                                      [](float b, const Peptide& a) { return b < a.precursor_mz_; });
     return std::make_pair(std::distance(fi_peptides_.begin(), left_it),
                           std::distance(fi_peptides_.begin(), right_it));
+  }
+
+  std::pair<size_t, size_t> FragmentIndex::getSNESCandidatesForMass(float precursor_mass) const
+  {
+    // SNES one-sided filter: a mother with mother_mass >= observed_P - tol is a
+    // candidate because some sub-peptide of it could realize the observed precursor
+    // (the realization step in ProSEAlgorithm does the exact match). Conversely, a
+    // mother with mother_mass < observed_P - tol is guaranteed to have no realizable
+    // sub-peptide at this mass, so can be pruned.
+    //
+    // The existing computeMassWindow_() returns a signed {lower, upper} pair where
+    // `lower <= 0` represents the "observed lower tolerance" bound. We reuse it here
+    // and interpret `precursor_mass + window.first` as the floor mother mass.
+    const auto window = computeMassWindow_(precursor_mass);
+    const float floor_mass = precursor_mass + window.first; // window.first <= 0
+
+    auto left_it = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
+                                    floor_mass,
+                                    [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
+    return std::make_pair(std::distance(fi_peptides_.begin(), left_it), fi_peptides_.size());
   }
 
   std::pair<float, float> FragmentIndex::computeMassWindow_(float precursor_mass) const
@@ -1005,10 +1319,19 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       const float shifted_mass = precursor_mass
         + static_cast<float>(isotope_error) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
 
-      const auto window = computeMassWindow_(shifted_mass);
-
       SpectrumMatchesTopN candidates_iso_error;
-      auto candidates_range = getPeptidesInMassWindow(shifted_mass, window);
+      // SNES mode uses a one-sided "mother_mass >= observed - tol" filter; non-SNES
+      // uses the standard two-sided precursor window. Same queryPeaks call below.
+      std::pair<size_t, size_t> candidates_range;
+      if (is_snes_mode_)
+      {
+        candidates_range = getSNESCandidatesForMass(shifted_mass);
+      }
+      else
+      {
+        const auto window = computeMassWindow_(shifted_mass);
+        candidates_range = getPeptidesInMassWindow(shifted_mass, window);
+      }
       // candidates_range is half-open [first, second) — size the hits vector exactly for
       // (second - first) entries. queryPeaks indexes via (peptide_idx - first), and the
       // loop in FragmentIndex::query() stops strictly before peptide_idx == second.
@@ -1165,6 +1488,19 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     // rare downward mispick. Matches MetaMorpheus/MSFragger defaults.
     defaults_.setValue("precursor:isotope_error_min", 0, "Minimum allowed precursor isotope error");
     defaults_.setValue("precursor:isotope_error_max", 2, "Maximum allowed precursor isotope error");
+
+    // SNES (Speedy Non-specific Enzyme Search): only takes effect when
+    // peptide:enzyme_specificity is "none". For full/semi tryptic searches this flag
+    // has no effect — the standard digestion + precursor-window lookup is always used.
+    // v1 ships opt-in (default false); will flip to default true once external
+    // workloads are validated end-to-end.
+    defaults_.setValue("snes_enabled", "false",
+      "[experimental, v1 opt-in] When peptide:enzyme_specificity=none, use mother-"
+      "peptide indexing (Single-N + Single-C) instead of naïve O(L^2) sub-peptide "
+      "enumeration. Orders-of-magnitude smaller index and faster search on "
+      "non-specific workloads (immunopeptidomics). Ignored for specific/semi-"
+      "specific enzymes. Variable modifications are not supported on mothers in v1.");
+    defaults_.setValidStrings("snes_enabled", {"true", "false"});
     
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
@@ -1244,6 +1580,14 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     max_precursor_charge_ = param_.getValue("precursor:max_charge");
     max_fragment_charge_ = param_.getValue("fragment:max_charge");
     max_processed_hits_ = param_.getValue("scoring:max_candidates_per_spectrum");
+
+    // Derive SNES mode: snes_enabled switch AND enzyme_specificity == SPEC_NONE.
+    // snes_enabled is a no-op for specific/semi-specific searches — its only purpose
+    // is to provide a debug escape hatch for regression-testing the legacy
+    // non-specific enumeration path. Keep snes_enabled_ stored raw so callers can
+    // distinguish "SNES turned off" from "SNES not applicable for this enzyme".
+    snes_enabled_ = param_.getValue("snes_enabled").toString() == "true";
+    is_snes_mode_ = snes_enabled_ && (enzyme_specificity_ == EnzymaticDigestion::SPEC_NONE);
 
     if (isOpenSearchMode_())
     {

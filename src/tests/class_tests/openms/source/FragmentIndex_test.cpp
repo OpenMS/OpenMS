@@ -1233,4 +1233,232 @@ START_SECTION((FragmentIndex does not score the peptide at range.second (closed-
 }
 END_SECTION
 
+// ============================================================================
+// SNES (Speedy Non-specific Enzyme Search) — mother-peptide indexing
+// ============================================================================
+
+START_SECTION((SNES mother enumeration on a small protein))
+{
+  // 19-aa protein, length window [8, 12]. Naive SPEC_NONE enumeration produces 50
+  // sub-peptides (see "peptide:enzyme_specificity" section above). SNES replaces
+  // that with mother-peptide indexing:
+  //   Single-N anchors i in [0, L - min_length] = [0, 11]  →  12 mothers
+  //   Single-C anchors j in [min_length - 1, L - 1] = [7, 18]  →  12 mothers
+  //   Total: 24 mothers.
+  // Every sub-peptide remains reachable via realization in ProSEAlgorithm — this
+  // test only checks the index's mother enumeration.
+  const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKACDEFGRHILMNPQSTV"}};
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 12);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  fi.setParameters(p);
+  fi.build(entries);
+
+  TEST_EQUAL(fi.isSnesMode(), true)
+  TEST_EQUAL(fi.getPeptides().size(), 24u)
+
+  // Bit 31 of mod_bitmask_ tags Single-C; clear bit is Single-N.
+  size_t n_count = 0, c_count = 0;
+  for (const auto& pep : fi.getPeptides())
+  {
+    if (FragmentIndex::isSingleCMother(pep.mod_bitmask_)) ++c_count;
+    else ++n_count;
+  }
+  TEST_EQUAL(n_count, 12u)
+  TEST_EQUAL(c_count, 12u)
+}
+END_SECTION
+
+START_SECTION((SNES is skipped when enzyme_specificity != none))
+{
+  // snes_enabled=true only takes effect under SPEC_NONE. For SPEC_FULL the flag is
+  // ignored and the standard tryptic digestion path runs.
+  const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKACDEFGRHILMNPQSTV"}};
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("enzyme", "Trypsin");
+  p.setValue("peptide:enzyme_specificity", "full");
+  p.setValue("peptide:missed_cleavages", 0);
+  p.setValue("peptide:min_size", 2);
+  p.setValue("peptide:max_size", 100);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  fi.setParameters(p);
+  fi.build(entries);
+
+  TEST_EQUAL(fi.isSnesMode(), false)
+  // 3 fully-tryptic products (same result as the specificity=full test above).
+  TEST_EQUAL(fi.getPeptides().size(), 3u)
+}
+END_SECTION
+
+START_SECTION((realizeSNESLength locates the correct sub-peptide length))
+{
+  // Build a SNES index on a 19-aa protein, compute the exact mass of a known
+  // sub-peptide (first 10 residues, N-anchored), and verify the realization step
+  // picks up that length when given the exact target mass.
+  const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKACDEFGRHILMNPQSTV"}};
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 12);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Target: the 10-residue N-anchored sub-peptide "AKACDEFGRH", (M+H)+.
+  AASequence known = AASequence::fromString("AKACDEFGRH");
+  const double target_mh_plus = known.getMonoWeight() + Constants::PROTON_MASS_U;
+
+  // Find the Single-N mother anchored at position 0 of protein 0.
+  const auto& peptides = fi.getPeptides();
+  size_t mother_idx = peptides.size();
+  for (size_t i = 0; i < peptides.size(); ++i)
+  {
+    if (!FragmentIndex::isSingleCMother(peptides[i].mod_bitmask_)
+        && peptides[i].protein_idx == 0
+        && peptides[i].sequence_.first == 0)
+    {
+      mother_idx = i;
+      break;
+    }
+  }
+  TEST_NOT_EQUAL(mother_idx, peptides.size())
+
+  // 10 ppm tolerance is ample for an exact-mass lookup.
+  const int realized = fi.realizeSNESLength(peptides[mother_idx], entries,
+                                            target_mh_plus, 10.0, /*ppm=*/true);
+  TEST_EQUAL(realized, 10)
+
+  AASequence realized_seq = fi.reconstructRealizedSubSequence(
+      peptides[mother_idx], entries, static_cast<size_t>(realized));
+  TEST_EQUAL(realized_seq.toUnmodifiedString(), "AKACDEFGRH")
+}
+END_SECTION
+
+START_SECTION((realizeSNESLength handles Single-C realization))
+{
+  // Symmetric check on the Single-C side: trim from the N-end until mass matches.
+  const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKACDEFGRHILMNPQSTV"}};
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 12);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Target: the 9-residue C-anchored sub-peptide (last 9 of the protein) = "LMNPQSTV" + one more.
+  // Protein L=19, so last 9 = protein[10..19) = "ILMNPQSTV".
+  AASequence known = AASequence::fromString("ILMNPQSTV");
+  const double target_mh_plus = known.getMonoWeight() + Constants::PROTON_MASS_U;
+
+  // Find the Single-C mother anchored at j = L - 1 = 18 of protein 0.
+  const auto& peptides = fi.getPeptides();
+  size_t mother_idx = peptides.size();
+  for (size_t i = 0; i < peptides.size(); ++i)
+  {
+    if (FragmentIndex::isSingleCMother(peptides[i].mod_bitmask_)
+        && peptides[i].protein_idx == 0
+        && static_cast<size_t>(peptides[i].sequence_.first + peptides[i].sequence_.second) == 19u)
+    {
+      mother_idx = i;
+      break;
+    }
+  }
+  TEST_NOT_EQUAL(mother_idx, peptides.size())
+
+  const int realized = fi.realizeSNESLength(peptides[mother_idx], entries,
+                                            target_mh_plus, 10.0, /*ppm=*/true);
+  TEST_EQUAL(realized, 9)
+
+  AASequence realized_seq = fi.reconstructRealizedSubSequence(
+      peptides[mother_idx], entries, static_cast<size_t>(realized));
+  TEST_EQUAL(realized_seq.toUnmodifiedString(), "ILMNPQSTV")
+}
+END_SECTION
+
+START_SECTION((SNES index admits a candidate whose sub-peptide matches an observed precursor))
+{
+  // End-to-end sanity: build a SNES index, synthesize a spectrum from a known
+  // sub-peptide's b/y ions, query it, and verify at least one candidate hits the
+  // mother containing that sub-peptide.
+  const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKACDEFGRHILMNPQSTV"}};
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 12);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  p.setValue("fragment:min_matched_ions", 3);
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Synthesize b/y ions of "ACDEFGRHIL" (starts at protein pos 2, length 10 — realizable
+  // from either the Single-N mother anchored at pos 2 or a Single-C mother ending at pos 11).
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_p = tsg.getParameters();
+  tsg_p.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_p);
+
+  AASequence target = AASequence::fromString("ACDEFGRHIL");
+  PeakSpectrum theo;
+  tsg.getSpectrum(theo, target, 1, 1);
+  theo.sortByPosition();
+
+  MSSpectrum spec;
+  for (const auto& peak : theo) spec.push_back(peak);
+  Precursor prec;
+  prec.setMZ(target.getMonoWeight() + Constants::PROTON_MASS_U); // (M+H)+ as charge-1 m/z
+  prec.setCharge(1);
+  spec.getPrecursors().push_back(prec);
+  spec.setMSLevel(2);
+
+  FragmentIndex::SpectrumMatchesTopN sms;
+  fi.querySpectrum(spec, sms);
+
+  // At least one of the returned candidates must correspond to a mother whose
+  // protein contains "ACDEFGRHIL" as a sub-sequence — trivially true here.
+  bool any_matched = false;
+  for (const auto& hit : sms.hits_)
+  {
+    if (hit.num_matched_ >= 3u) { any_matched = true; break; }
+  }
+  TEST_EQUAL(any_matched, true)
+}
+END_SECTION
+
 END_TEST

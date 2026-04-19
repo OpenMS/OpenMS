@@ -155,6 +155,16 @@ namespace OpenMS
     defaults_.setValue("peptide:motif", "", "If set, only peptides that contain this motif (provided as RegEx) will be considered.");
     defaults_.setSectionDescription("peptide", "Peptide Options");
 
+    // SNES (Speedy Non-specific Enzyme Search): forwarded to FragmentIndex. Only
+    // takes effect when peptide:enzyme_specificity=none. v1 opt-in (default false).
+    defaults_.setValue("snes_enabled", "false",
+      "[experimental, v1 opt-in] When peptide:enzyme_specificity=none, use mother-"
+      "peptide indexing (Single-N + Single-C, one ion series per mother) instead of "
+      "naïve O(L^2) sub-peptide enumeration. Much smaller index and faster search on "
+      "non-specific workloads (immunopeptidomics). Ignored for specific/semi-"
+      "specific enzymes. Variable modifications on mothers are not supported in v1.");
+    defaults_.setValidStrings("snes_enabled", {"true", "false"});
+
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
 
@@ -873,10 +883,37 @@ namespace OpenMS
       FragmentIndex::SpectrumMatchesTopN top_sms;
       fi.querySpectrum(exp_spectrum, top_sms);
 
+      const bool snes_mode = fi.isSnesMode();
+      const bool prec_tol_ppm = precursor_mass_tolerance_unit_ == "ppm";
+      // For SNES realization we use the wider of the two asymmetric bounds — the
+      // FragmentIndex candidate filter admitted mothers to the floor of the window,
+      // so realization must be at least that permissive to not drop real matches.
+      const double snes_realize_tol =
+          std::max(precursor_mass_tolerance_lower_, precursor_mass_tolerance_upper_);
+
       for (const auto& sms : top_sms.hits_)
       {
         const FragmentIndex::Peptide& sms_pep = fi.getPeptides()[sms.peptide_idx_];
-        AASequence mod_candidate = fi.reconstructModifiedSequence(sms_pep, db);
+
+        AASequence mod_candidate;
+        if (snes_mode)
+        {
+          // Realize the sub-peptide at the length whose mass best matches the
+          // observed precursor (iso-corrected per the FI's shifted-mass convention).
+          const double exp_mz = exp_spectrum.getPrecursors()[0].getMZ();
+          const double observed_mh_plus =
+              exp_mz * sms.precursor_charge_ - (sms.precursor_charge_ - 1) * proton_mass_u;
+          const double iso_shifted_target = observed_mh_plus
+              + static_cast<double>(sms.isotope_error_) * Constants::C13C12_MASSDIFF_U;
+          const int realized_len = fi.realizeSNESLength(
+              sms_pep, db, iso_shifted_target, snes_realize_tol, prec_tol_ppm);
+          if (realized_len < 0) continue; // no realizable length within tolerance
+          mod_candidate = fi.reconstructRealizedSubSequence(sms_pep, db, static_cast<size_t>(realized_len));
+        }
+        else
+        {
+          mod_candidate = fi.reconstructModifiedSequence(sms_pep, db);
+        }
 
         PeakSpectrum theo_spectrum;
         spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, 1);
@@ -2239,6 +2276,20 @@ namespace OpenMS
       const std::vector<FASTAFile::FASTAEntry>& db) const
   {
     CalibrationResult_ result;
+
+    // Calibration queries the FI and reconstructs candidate peptides to measure the
+    // precursor mass error distribution. In SNES mode, a candidate is a *mother* whose
+    // realized sub-peptide depends on the observed precursor — baking in a circular
+    // dependency with the calibration target. v1 disables calibration in SNES mode;
+    // users who need calibrated tolerances should pre-calibrate spectra upstream
+    // (e.g. with InternalCalibration) before running ProSE with SNES.
+    if (fragment_index.isSnesMode())
+    {
+      OPENMS_LOG_WARN << "[ProSE] Calibration is not supported in SNES mode (v1). "
+                      << "Using configured precursor tolerance unchanged." << std::endl;
+      return result; // success=false, tolerances untouched
+    }
+
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
 
     // Select subset by TIC (highest-quality spectra first)
