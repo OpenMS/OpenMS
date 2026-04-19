@@ -182,6 +182,7 @@ namespace OpenMS
      *
      * @param[in] imrmfeature The feature to be scored
      * @param[in] transitions The library transition to score the feature against
+     * @param[in] normalized_library_intensity Normalized library intensities aligned to @p transitions
      * @param[in] swath_maps The SWATH-MS (DIA) maps from which to retrieve full MS/MS spectra at the chromatographic peak apices
      * @param[in] ms1_map The corresponding MS1 (precursor ion map) from which the precursor spectra can be retrieved (optional, may be NULL)
      * @param[in] diascoring DIA Scoring object to use for scoring
