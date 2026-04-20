@@ -1732,7 +1732,7 @@ START_SECTION((reconstructModifiedSequence masks SNES_KIND_BIT_MASK from bitmask
   // variable modifications applied (since none are configured). It must NOT
   // throw, assert, or produce a bitmask-out-of-range interpretation.
   AASequence seq = fi.reconstructModifiedSequence(peptides[single_c_idx], entries);
-  TEST_EQUAL(seq.size() > 0, true)
+  TEST_EQUAL(seq.size(), peptides[single_c_idx].sequence_.second)
   TEST_EQUAL(seq.toUnmodifiedString().size(), peptides[single_c_idx].sequence_.second)
 }
 END_SECTION

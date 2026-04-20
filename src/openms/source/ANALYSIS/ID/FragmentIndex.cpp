@@ -415,8 +415,9 @@ namespace OpenMS
     // Apply variable modifications from bitmask.
     // SNES defensive masking: bit 31 (SNES_KIND_BIT_MASK) encodes Single-C-ness,
     // not a slot. Mask it off before iterating slot bits so the loop remains
-    // correct even when n_slots > 30 in future extensions. No-op in non-SNES
-    // mode where bit 31 is never set.
+    // correct when a SNES mother reaches this function. In non-SNES mode
+    // mod_bitmask_ is never written with bit 31, so masking is a zero-cost
+    // no-op there.
     const uint32_t slot_bits = peptide.mod_bitmask_ & SNES_SLOT_MASK;
     if (slot_bits != 0)
     {
@@ -1052,7 +1053,15 @@ namespace OpenMS
             }
           }
 
-          // Rebuild mod slots and apply variable mods from bitmask
+          // Rebuild mod slots and apply variable mods from bitmask.
+          // SNES defensive masking: bit 31 (SNES_KIND_BIT_MASK) encodes
+          // Single-C-ness, not a slot. SNES mothers go through a different
+          // branch above, so masking is a no-op in current code, but applying
+          // it here makes the invariant self-documenting and prevents a latent
+          // bug if a future refactor routes an SNES-kind-marked peptide through
+          // this path. In non-SNES mode mod_bitmask_ is never written with bit
+          // 31, so masking is zero-cost.
+          const uint32_t slot_bits = pep.mod_bitmask_ & SNES_SLOT_MASK;
           const string& prot_seq = fasta_entries[pep.protein_idx].sequence;
           bool is_prot_nterm = (pep.sequence_.first == 0);
           bool is_prot_cterm = (pep.sequence_.first + seq_len == prot_seq.size());
@@ -1060,7 +1069,7 @@ namespace OpenMS
           size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm);
           for (size_t s = 0; s < n_slots; ++s)
           {
-            if (!(pep.mod_bitmask_ & (1u << s))) continue;
+            if (!(slot_bits & (1u << s))) continue;
 
             if (slots[s].position == ModSlot::NTERM_SLOT)
             {
