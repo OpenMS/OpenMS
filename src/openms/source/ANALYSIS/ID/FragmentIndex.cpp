@@ -685,8 +685,9 @@ namespace OpenMS
       // realization step; tracking per-length slot masks would negate the SNES size
       // win. Terminal + internal variable-mod support is earmarked for v2.
       std::string ignored = ListUtils::concatenate(modifications_variable_, ", ");
-      OPENMS_LOG_WARN << "[FragmentIndex] SNES mode v1: variable modifications are disabled on "
-                      << "mother peptides; ignoring: " << ignored << std::endl;
+      OPENMS_LOG_WARN << "[FragmentIndex] SNES v1.1: variable modifications are not enumerated on mother peptides "
+                      << "(mother index stores unmodified mothers); query-time subset enumeration "
+                      << "applies them to realized sub-peptides using configured mods: " << ignored << std::endl;
     }
 
     std::atomic<size_t> skipped_peptides{0};
@@ -1888,8 +1889,14 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         //   - Σ_subset ≈ sigma_delta_ within 1e-6 Da
         // Cap: ≤ 16 subsets per mother (across all k, Σ tuples in this query).
         if (n_slots == 0) continue;
-        const uint32_t max_bitmask = (n_slots >= 31) ? 0xFFFFFFFFu : (1u << n_slots);
-        for (uint32_t bm = 1; bm < max_bitmask; ++bm)
+        // Enumerate all non-empty bitmasks in [1, 2^n_slots - 1]. Use uint64_t for
+        // the upper bound to avoid (1u << 32) UB at n_slots=32, and to include
+        // bitmask 0xFFFFFFFF at that boundary. The iteration variable is still
+        // uint32_t since n_slots ≤ 32 (bounded by MAX_MOD_SLOTS).
+        const uint64_t max_bitmask64 = (n_slots >= 32)
+            ? (uint64_t{1} << 32)
+            : (uint64_t{1} << n_slots);
+        for (uint32_t bm = 1; static_cast<uint64_t>(bm) < max_bitmask64; ++bm)
         {
           if (static_cast<size_t>(std::popcount(bm)) > max_variable_mods_per_peptide_) continue;
 
@@ -2101,7 +2108,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       "peptide indexing (Single-N + Single-C) instead of naïve O(L^2) sub-peptide "
       "enumeration. Orders-of-magnitude smaller index and faster search on "
       "non-specific workloads (immunopeptidomics). Ignored for specific/semi-"
-      "specific enzymes. Variable modifications are not supported on mothers in v1.");
+      "specific enzymes. Variable modifications are applied via query-time subset enumeration (v1.1).");
     defaults_.setValidStrings("snes_enabled", {"true", "false"});
     
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");

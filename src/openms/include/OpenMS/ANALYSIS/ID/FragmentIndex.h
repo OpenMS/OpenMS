@@ -183,7 +183,13 @@ namespace OpenMS
      * by their own mass. Next they are placed in buckets. The min-fragment mass is stored for each bucket, whereupon
      * the fragments are sorted within the buckets by their originating precursor mass.
      *
-     * @param[in] fasta_entries
+     * @param[in] fasta_entries The FASTA entries used to build the index.
+     *
+     * @note In SNES mode, a pointer to @p fasta_entries is cached for the
+     * lifetime of subsequent querySpectrum calls. The caller MUST keep the
+     * original vector alive until all queries complete, or until build() is
+     * called again with a different vector. Calling querySpectrum with a
+     * stale pointer produces undefined behavior.
      */
     void build(const std::vector<FASTAFile::FASTAEntry> & fasta_entries);
 
@@ -580,6 +586,9 @@ protected:
     /// SNES v1.1: pointer to the fasta entries passed to build(), cached so that
     /// querySpectrumSNES_ can realize sub-peptides and apply variable mods
     /// without re-threading fasta_entries through the query interface.
+    /// LIFETIME: the caller must keep the vector passed to build() alive for
+    /// the duration of subsequent querySpectrum calls. Dangling if the caller
+    /// drops the vector.
     const std::vector<FASTAFile::FASTAEntry>* fasta_entries_ptr_for_snes_{nullptr};
 
     float fragment_min_mz_;  ///< smallest fragment mz
