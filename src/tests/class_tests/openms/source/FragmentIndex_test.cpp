@@ -2416,4 +2416,181 @@ START_SECTION((SNES query-path rejects position-conflicting subsets))
 }
 END_SECTION
 
+START_SECTION((SNES mother generation rejects ambiguous residue spans (X/B/Z)))
+{
+  // Protein contains an X in the middle. Mothers whose span covers the X must
+  // be skipped (AASequence::fromString would fail at realization). Mothers in
+  // the unambiguous prefix (before X) or suffix (after X) must still be kept.
+  const std::vector<FASTAFile::FASTAEntry> entries{
+      {"p", "p", "ACDEFGHIXKLMNPQSTVWY"}}; // X at 0-based position 8
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 8);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // No mother's span [start, start+8) may include the X at position 8.
+  // For Single-N: valid start positions are 0 (span [0,8) — just before X)
+  // and 9,10,11,12 (spans in the post-X region). Starts 1..8 would span the X.
+  // For Single-C: symmetric — ends at 7..19 translate to starts 0..12.
+  // Starts that include X: mothers whose span covers position 8.
+  for (const auto& mother : fi.getPeptides())
+  {
+    const size_t start = mother.sequence_.first;
+    const size_t end = start + mother.sequence_.second;
+    // None of the kept mothers can span the X at position 8.
+    TEST_EQUAL(start > 8u || end <= 8u, true)
+  }
+
+  // Positive-existence assertion: at least one mother from the unambiguous
+  // prefix (start == 0, length 8) must have been kept.
+  bool found_prefix = false;
+  for (const auto& mother : fi.getPeptides())
+  {
+    if (mother.sequence_.first == 0 && mother.sequence_.second == 8) { found_prefix = true; break; }
+  }
+  TEST_EQUAL(found_prefix, true)
+}
+END_SECTION
+
+START_SECTION((SNES full-length realization hits via supplementary precursor lookup))
+{
+  // When the observed precursor equals the full mother mass, the realized
+  // length == mother length. The fragment index only stores b_1..b_{L-1}
+  // and y_1..y_{L-1}, so the supplementary direct-precursor binary search
+  // on fi_peptides_ is the path that admits this candidate. Construct a
+  // protein of length equal to min=max, so every mother is also the full
+  // peptide, then query with the peptide's (M+H)+.
+  const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "ACDEFGHIK"}}; // 9 AA
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 9);
+  p.setValue("peptide:max_size", 9);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  // Minimum 1 matched ion — this path's admission is precursor-only, not
+  // fragment-count-driven, and we want the supplementary lookup to fire.
+  p.setValue("fragment:min_matched_ions", 1);
+  fi.setParameters(p);
+  fi.build(entries);
+
+  AASequence target = AASequence::fromString("ACDEFGHIK");
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_p = tsg.getParameters();
+  tsg_p.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_p);
+  PeakSpectrum theo;
+  tsg.getSpectrum(theo, target, 1, 1);
+  theo.sortByPosition();
+
+  MSSpectrum spec;
+  for (const auto& peak : theo) spec.push_back(peak);
+  Precursor prec;
+  prec.setMZ(target.getMonoWeight() + Constants::PROTON_MASS_U);
+  prec.setCharge(1);
+  spec.getPrecursors().push_back(prec);
+  spec.setMSLevel(2);
+
+  FragmentIndex::SpectrumMatchesTopN sms;
+  fi.querySpectrum(spec, entries, sms);
+
+  // At least one full-length mother must have been admitted. With L=9 mother
+  // length and realized length = 9, this hit comes via the supplementary
+  // precursor-index path, not the b/y fragment bin walk.
+  TEST_EQUAL(sms.hits_.empty(), false)
+}
+END_SECTION
+
+START_SECTION((SNES query honors multi-charge precursor when charge is unset))
+{
+  // A spectrum whose precursor has charge == 0 should trigger iteration
+  // across [min_precursor_charge_, max_precursor_charge_]. Synthesize a
+  // 2+ precursor spectrum, clear the stored charge, and assert the
+  // candidate is still found via the 2+ arm of the charge loop.
+  const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKACDEFGRHILMNPQSTV"}};
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 12);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("precursor:min_charge", 2);
+  p.setValue("precursor:max_charge", 3);
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  p.setValue("fragment:min_matched_ions", 3);
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Target = 10-AA sub-peptide at protein positions 2..11.
+  AASequence target = AASequence::fromString("ACDEFGRHIL");
+  const double target_mh_plus = target.getMonoWeight() + Constants::PROTON_MASS_U;
+  const double target_mz_2plus = (target_mh_plus + Constants::PROTON_MASS_U) / 2.0;
+
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_p = tsg.getParameters();
+  tsg_p.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_p);
+  PeakSpectrum theo;
+  tsg.getSpectrum(theo, target, 1, 1);
+  theo.sortByPosition();
+
+  MSSpectrum spec;
+  for (const auto& peak : theo) spec.push_back(peak);
+  Precursor prec;
+  prec.setMZ(target_mz_2plus);
+  prec.setCharge(0); // unset — exercises the multi-charge iteration path
+  spec.getPrecursors().push_back(prec);
+  spec.setMSLevel(2);
+
+  FragmentIndex::SpectrumMatchesTopN sms;
+  fi.querySpectrum(spec, entries, sms);
+
+  // Expect at least one hit at charge 2 or 3 — the multi-charge query
+  // iterates [min_precursor_charge_, max_precursor_charge_] when the
+  // spectrum's declared charge is 0. Main invariant: the query does NOT
+  // abort on the unset charge.
+  bool found_multi_charge = false;
+  for (const auto& hit : sms.hits_)
+  {
+    if (hit.precursor_charge_ == 2u || hit.precursor_charge_ == 3u)
+    {
+      found_multi_charge = true;
+      break;
+    }
+  }
+  TEST_EQUAL(found_multi_charge, true)
+}
+END_SECTION
+
 END_TEST
