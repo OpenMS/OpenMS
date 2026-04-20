@@ -48,14 +48,14 @@ namespace OpenMS
     struct ChromScoresPool
     {
       std::vector<OpenSwath::LightTransition> transition_vector;
-      std::vector<double> tmp_norm_lib; // reused normalized library intensities if needed
       void reset()
       {
         transition_vector.clear();
-        tmp_norm_lib.clear();
       }
     };
     thread_local ChromScoresPool chrom_pool;
+    // Separate pooled normalized library intensities to avoid clearing them with transitions
+    thread_local std::vector<double> normalized_library_intensity_pool;
 
     struct PrecursorFormulaCache
     {
@@ -657,21 +657,21 @@ namespace OpenMS
 
   const std::vector<double>& OpenSwathScoring::getNormalized_library_intensities_pooled(const std::vector<TransitionType> & transitions)
   {
-    chrom_pool.tmp_norm_lib.clear();
-    chrom_pool.tmp_norm_lib.reserve(transitions.size());
+    normalized_library_intensity_pool.clear();
+    normalized_library_intensity_pool.reserve(transitions.size());
     for (Size i = 0; i < transitions.size(); i++)
     {
-      chrom_pool.tmp_norm_lib.push_back(transitions[i].getLibraryIntensity());
+      normalized_library_intensity_pool.push_back(transitions[i].getLibraryIntensity());
     }
-    for (Size i = 0; i < chrom_pool.tmp_norm_lib.size(); i++)
+    for (Size i = 0; i < normalized_library_intensity_pool.size(); i++)
     {
-      if (chrom_pool.tmp_norm_lib[i] < 0.0) { chrom_pool.tmp_norm_lib[i] = 0.0; }
+      if (normalized_library_intensity_pool[i] < 0.0) { normalized_library_intensity_pool[i] = 0.0; }
     }
-    if (!chrom_pool.tmp_norm_lib.empty())
+    if (!normalized_library_intensity_pool.empty())
     {
-      OpenSwath::Scoring::normalize_sum(&chrom_pool.tmp_norm_lib[0], boost::numeric_cast<int>(chrom_pool.tmp_norm_lib.size()));
+      OpenSwath::Scoring::normalize_sum(&normalized_library_intensity_pool[0], boost::numeric_cast<int>(normalized_library_intensity_pool.size()));
     }
-    return chrom_pool.tmp_norm_lib;
+    return normalized_library_intensity_pool;
   }
 
   SpectrumSequence OpenSwathScoring::fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swathmap, double RT, int nr_spectra_to_add, const RangeMobility& im_range)
