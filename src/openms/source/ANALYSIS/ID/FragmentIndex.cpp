@@ -1159,8 +1159,12 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     //Search-related params
 
     defaults_.setValue("fragment:min_matched_ions", 5, "Minimal number of matched ions to report a PSM");
-    defaults_.setValue("precursor:isotope_error_min", -1, "Minimum allowed precursor isotope error");
-    defaults_.setValue("precursor:isotope_error_max", 1, "Maximum allowed precursor isotope error");
+    // Default iso range [0, +2]: Orbitrap/QExactive/tims monoisotopic peak picking
+    // fails predominantly *upward* (picks the +1 or +2 isotope instead of the true
+    // monoisotopic). Symmetric ranges like [-1, +1] waste a query slot on the
+    // rare downward mispick. Matches MetaMorpheus/MSFragger defaults.
+    defaults_.setValue("precursor:isotope_error_min", 0, "Minimum allowed precursor isotope error");
+    defaults_.setValue("precursor:isotope_error_max", 2, "Maximum allowed precursor isotope error");
     
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
