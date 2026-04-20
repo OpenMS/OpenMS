@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 
@@ -95,14 +96,23 @@ namespace OpenMS
     feature_ids_(&feature_ids),
     precursor_feature_ids_(&precursor_feature_ids)
   {
-    OPENMS_PRECONDITION(feature_ids.size() == feature_lookup_ids.size(),
-                        "Feature id cache needs to match feature lookup id cache.");
-    OPENMS_PRECONDITION(precursor_feature_ids.size() == precursor_feature_lookup_ids.size(),
-                        "Precursor feature id cache needs to match precursor feature lookup id cache.");
+    if (feature_ids.size() != feature_lookup_ids.size())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Feature id cache needs to match feature lookup id cache.");
+    }
+    if (precursor_feature_ids.size() != precursor_feature_lookup_ids.size())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Precursor feature id cache needs to match precursor feature lookup id cache.");
+    }
 
     const std::vector<Feature>& fragment_features = mrmfeature.getFeatures();
-    OPENMS_PRECONDITION(fragment_features.size() == feature_lookup_ids.size(),
-                        "Feature storage needs to match feature lookup id cache.");
+    if (fragment_features.size() != feature_lookup_ids.size())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Feature storage needs to match feature lookup id cache.");
+    }
     direct_features_ = &fragment_features;
 
     precursor_feature_ptrs_.reserve(precursor_feature_lookup_ids.size());
@@ -331,8 +341,7 @@ namespace OpenMS
         }
       }
     }
-    OPENMS_PRECONDITION(false, "Feature needs to exist");
-    return 0;
+    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, native_id);
   }
 
   std::size_t MRMFeatureOpenMS::findPrecursorFeatureIndex_(const std::string& native_id) const
@@ -357,8 +366,7 @@ namespace OpenMS
         }
       }
     }
-    OPENMS_PRECONDITION(false, "Precursor feature needs to exist");
-    return 0;
+    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, native_id);
   }
 
   // default instances
