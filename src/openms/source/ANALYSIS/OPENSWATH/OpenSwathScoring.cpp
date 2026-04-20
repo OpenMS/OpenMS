@@ -680,7 +680,9 @@ namespace OpenMS
           }
         }
         fetch_spectrum_tmp.clear();
-        fetch_spectrum_tmp.push_back(SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true));
+        // The spectra are already resampled per SWATH map. Concatenate here to
+        // preserve one-spectrum output without resampling the sparse non-zero grid again.
+        fetch_spectrum_tmp.push_back(SpectrumAddition::concatenateSpectra(all_spectra));
         return fetch_spectrum_tmp;
       }
       else // im_range.isEmpty()
@@ -764,7 +766,9 @@ namespace OpenMS
         }
         if (!resampled_spectra.empty())
         {
-          out.push_back(SpectrumAddition::addUpSpectra(resampled_spectra, spacing_for_spectra_resampling_, true));
+          // The spectra are already resampled per SWATH map. Concatenate here to
+          // preserve one-spectrum output without resampling the sparse non-zero grid again.
+          out.push_back(SpectrumAddition::concatenateSpectra(resampled_spectra));
         }
       }
       return;
