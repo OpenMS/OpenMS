@@ -129,6 +129,8 @@ private:
     FeaturePointerList_ precursor_feature_ptrs_;
     FeatureIndexList_ feature_index_;
     FeatureIndexList_ precursor_feature_index_;
+    std::vector<std::string> feature_ids_storage_;
+    std::vector<std::string> precursor_feature_ids_storage_;
     const std::vector<std::string>* feature_ids_ = nullptr;
     const std::vector<std::string>* precursor_feature_ids_ = nullptr;
   };
