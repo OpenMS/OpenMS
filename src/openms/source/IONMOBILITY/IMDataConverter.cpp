@@ -331,9 +331,10 @@ namespace OpenMS
   {
     const auto& cv = ControlledVocabulary::getPSIMSCV();
     if (fda.getName().hasPrefix(Constants::UserParam::ION_MOBILITY) ||
-        fda.getName().hasPrefix(Constants::UserParam::INVERSE_REDUCED_ION_MOBILITY))
-    { // fallback for non-standard IM arrays (as created by Mobi-DIK, "Ion Mobility Centroid" from PeakPickerIM, or "inverse reduced ion mobility" from MSConvert)
-      if (fda.getName().hasSubstring("MS:1002815"))
+        fda.getName().hasPrefix(Constants::UserParam::INVERSE_REDUCED_ION_MOBILITY) ||
+        fda.getName().hasPrefix(Constants::UserParam::MEAN_INVERSE_REDUCED_ION_MOBILITY_ARRAY))
+    { // fallback for non-standard IM arrays (as created by Mobi-DIK, "Ion Mobility Centroid" from PeakPickerIM, "inverse reduced ion mobility" from MSConvert, or "mean inverse reduced ion mobility array" from Bruker)
+      if (fda.getName().hasSubstring("MS:1002815") || fda.getName().hasSubstring("MS:1003006"))
       {
         unit = DriftTimeUnit::VSSC;
       }

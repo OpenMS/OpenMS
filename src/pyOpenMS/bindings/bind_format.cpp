@@ -2283,7 +2283,12 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
     nb::class_<OpenMS::QPXFile>(m, "QPXFile",
         "Export PSM data to Apache Arrow/Parquet format following QPX PSM schema")
         .def(nb::init<>())
-        .def_static("exportToParquet", &OpenMS::QPXFile::exportToParquet,
+        .def_static("exportToParquet",
+            static_cast<bool (*)(const std::vector<OpenMS::ProteinIdentification>&,
+                                 const OpenMS::PeptideIdentificationList&,
+                                 const OpenMS::String&,
+                                 bool,
+                                 const OpenMS::ParquetWriteConfig&)>(&OpenMS::QPXFile::exportToParquet),
             "protein_identifications"_a, "peptide_identifications"_a,
             "filename"_a, "export_all_psms"_a = false,
             "config"_a = OpenMS::ParquetWriteConfig{},

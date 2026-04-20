@@ -166,7 +166,6 @@
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 #include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
-#include <OpenMS/PROCESSING/RESAMPLING/LinearResampler.h>
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 #include <OpenMS/PROCESSING/SCALING/RankScaler.h>
@@ -2642,32 +2641,23 @@ BaseGroupFinder
     def_ProgressLogger<OpenMS::LabeledPairFinder>(labeledpairfinder_class);
 
     // -----------------------------------------------------------------------
-    // LinearResampler
-    // -----------------------------------------------------------------------
-    auto linearresampler_class = nb::class_<OpenMS::LinearResampler, OpenMS::DefaultParamHandler>(m, "LinearResampler", 
-        R"doc(
-DefaultParamHandler
-ProgressLogger
-
-Annotates and filters transitions in a TargetedExperiment
-:param exp: The input, unfiltered transitions
-)doc")
-        .def(nb::init<>())
-        .def("raster", [](const OpenMS::LinearResampler& self, OpenMS::MSSpectrum& spectrum) { return self.raster(spectrum); }, "spectrum"_a, "Applies the resampling algorithm to an MSSpectrum")
-        .def("rasterExperiment", [](OpenMS::LinearResampler& self, OpenMS::MSExperiment& exp) { return self.rasterExperiment(exp); }, "exp"_a, "Resamples the data in an MSExperiment")
-        ;
-    def_ProgressLogger<OpenMS::LinearResampler>(linearresampler_class);
-
-    // -----------------------------------------------------------------------
     // LinearResamplerAlign
     // -----------------------------------------------------------------------
-    auto linearresampleralign_class = nb::class_<OpenMS::LinearResamplerAlign, OpenMS::LinearResampler>(m, "LinearResamplerAlign", 
+    auto linearresampleralign_class = nb::class_<OpenMS::LinearResamplerAlign, OpenMS::DefaultParamHandler>(m, "LinearResamplerAlign",
         R"doc(
 Linear Resampling of raw data with alignment
-LinearResampler
+DefaultParamHandler
+ProgressLogger
 )doc")
         .def(nb::init<>())
-        .def("rasterExperiment", [](OpenMS::LinearResamplerAlign& self, OpenMS::MSExperiment& exp) { return self.rasterExperiment(exp); }, "exp"_a, "Resamples the data in an MSExperiment")
+        .def(nb::init<const OpenMS::LinearResamplerAlign &>())
+        .def("__copy__", [](const OpenMS::LinearResamplerAlign& self) { return OpenMS::LinearResamplerAlign(self); })
+        .def("__deepcopy__", [](const OpenMS::LinearResamplerAlign& self, nb::dict) { return OpenMS::LinearResamplerAlign(self); }, "memo"_a)
+        .def("raster", [](OpenMS::LinearResamplerAlign& self, OpenMS::MSSpectrum& spectrum) { return self.raster(spectrum); }, "spectrum"_a, "Applies the resampling algorithm to an MSSpectrum")
+        .def("raster", [](OpenMS::LinearResamplerAlign& self, OpenMS::MSChromatogram& chromatogram) { return self.raster(chromatogram); }, "chromatogram"_a, "Applies the resampling algorithm to an MSChromatogram")
+        .def("raster_align", [](OpenMS::LinearResamplerAlign& self, OpenMS::MSSpectrum& spectrum, double start_pos, double end_pos) { return self.raster_align(spectrum, start_pos, end_pos); }, "spectrum"_a, "start_pos"_a, "end_pos"_a, "Resamples an MSSpectrum onto an explicit raster [start_pos, end_pos]")
+        .def("raster_align", [](OpenMS::LinearResamplerAlign& self, OpenMS::MSChromatogram& chromatogram, double start_pos, double end_pos) { return self.raster_align(chromatogram, start_pos, end_pos); }, "chromatogram"_a, "start_pos"_a, "end_pos"_a, "Resamples an MSChromatogram onto an explicit raster [start_pos, end_pos]")
+        .def("rasterExperiment", [](OpenMS::LinearResamplerAlign& self, OpenMS::MSExperiment& exp) { return self.rasterExperiment(exp); }, "exp"_a, "Resamples all spectra in an MSExperiment")
         ;
     def_ProgressLogger<OpenMS::LinearResamplerAlign>(linearresampleralign_class);
 

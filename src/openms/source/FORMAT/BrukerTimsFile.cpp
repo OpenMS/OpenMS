@@ -31,6 +31,7 @@
 #include <map>
 #include <set>
 #include <unordered_map>
+#include <optional>
 
 namespace OpenMS
 {
@@ -148,7 +149,12 @@ namespace OpenMS
     float im;
   };
 
-  static constexpr size_t MAX_CENTROID_PEAKS = 10000;
+  // Default cap on the number of centroided peaks per frame. Overridable via
+  // BrukerTimsFile::Config::ms1_centroid_max_peaks. For per-frame MS1 (~200k
+  // peaks) the 10k default covers the top-intensity peaks well; for aggregated
+  // MS1 where the frame-stacked grid can exceed 600k peaks, users should raise
+  // this (100k is the new CLI default).
+  static constexpr size_t DEFAULT_CENTROID_MAX_PEAKS = 10000;
 
   // Reusable buffer for IM-dimension centroiding of a single frame.
   // Translated from Sage's PeakBuffer (Lazear 2023, doi:10.1021/acs.jproteome.3c00486).
@@ -158,6 +164,12 @@ namespace OpenMS
     std::vector<ImsPeak> peaks;
     std::vector<size_t> order;       // indices sorted by descending intensity
     std::vector<ImsPeak> agg_buff;   // centroided output
+
+    // Cap-hit tracking across frames within one load() call. Emitted as a
+    // single summary line at the end of the load via reportCapSummary().
+    size_t cap_hits_ = 0;
+    size_t total_calls_ = 0;
+    float  max_dropped_intensity_ = 0.0f;
 
     void clear()
     {
@@ -196,17 +208,46 @@ namespace OpenMS
                 });
     }
 
+    // Overload: accepts double* intensities (from FrameAggregator::finalize() output,
+    // where summed intensities across aggregated frames can exceed uint32_t range).
+    void loadFrame(const double* mz_values, const double* intensities,
+                   const double* im_values, uint32_t count)
+    {
+      clear();
+      peaks.reserve(count);
+      for (uint32_t i = 0; i < count; ++i)
+      {
+        peaks.push_back({static_cast<float>(mz_values[i]),
+                         static_cast<float>(intensities[i]),
+                         static_cast<float>(im_values[i])});
+      }
+
+      std::sort(peaks.begin(), peaks.end(),
+                [](const ImsPeak& a, const ImsPeak& b) { return a.mz < b.mz; });
+
+      order.resize(count);
+      std::iota(order.begin(), order.end(), size_t(0));
+      std::sort(order.begin(), order.end(),
+                [this](size_t a, size_t b)
+                {
+                  return peaks[b].intensity < peaks[a].intensity;
+                });
+    }
+
     // Centroid the loaded frame by collapsing the IM dimension.
     // Iterates peaks in descending intensity order. For each apex peak, aggregates
     // all unconsumed neighbors within m/z (ppm) and IM (percent) tolerances.
-    // Output is capped at MAX_CENTROID_PEAKS entries.
+    // Output is capped at max_peaks entries (dropped peaks logged at WARN level
+    // when high-intensity, at DEBUG otherwise).
     void centroid(float mz_ppm, float im_pct,
                   std::vector<double>& out_mz,
                   std::vector<double>& out_intensity,
-                  std::vector<float>& out_im)
+                  std::vector<float>& out_im,
+                  size_t max_peaks = DEFAULT_CENTROID_MAX_PEAKS)
     {
       agg_buff.clear();
-      agg_buff.reserve(std::min(peaks.size(), MAX_CENTROID_PEAKS + 1));
+      agg_buff.reserve(std::min(peaks.size(), max_peaks + 1));
+      ++total_calls_;
 
       const float utol = mz_ppm / 1e6f;
       const float im_tol_frac = im_pct / 100.0f;
@@ -216,13 +257,16 @@ namespace OpenMS
       {
         if (peaks[idx].intensity <= 0.0f) continue;  // already consumed
 
-        if (agg_buff.size() > MAX_CENTROID_PEAKS)
+        if (agg_buff.size() > max_peaks)
         {
+          // Only count as a "real" cap hit if the next dropped peak is above
+          // the noise floor (~200 counts on timsTOF). Dropping noise-floor
+          // peaks is the expected behavior of the cap and not worth reporting.
           if (peaks[idx].intensity > 200.0f)
           {
-            OPENMS_LOG_DEBUG << "FrameCentroider: reached MAX_CENTROID_PEAKS at index "
-                             << idx << "/" << peaks.size()
-                             << " intensity=" << peaks[idx].intensity << std::endl;
+            ++cap_hits_;
+            if (peaks[idx].intensity > max_dropped_intensity_)
+              max_dropped_intensity_ = peaks[idx].intensity;
           }
           break;
         }
@@ -278,6 +322,25 @@ namespace OpenMS
         out_im[i] = agg_buff[i].im;
       }
     }
+
+    // Emit one summary WARN if the cap fired on any frames during this load()
+    // call. Called by each top-level load path (loadDIA_, loadDDA_,
+    // loadDIAStreaming, loadFrames_) after all centroiding is done.
+    void reportCapSummary(size_t max_peaks)
+    {
+      if (cap_hits_ == 0) return;
+      OPENMS_LOG_WARN << "Warning: MS1 centroiding hit ms1_centroid_max_peaks (="
+                      << max_peaks << ") on " << cap_hits_ << " of "
+                      << total_calls_ << " spectra; highest dropped-peak "
+                      << "intensity was " << max_dropped_intensity_
+                      << ". Consider raising -bruker:ms1_centroid_max_peaks "
+                      << "to retain more peaks." << std::endl;
+      // Reset so successive load() calls on the same instance don't carry
+      // state forward.
+      cap_hits_ = 0;
+      total_calls_ = 0;
+      max_dropped_intensity_ = 0.0f;
+    }
   };
 
   // Helper: check if MS1 centroiding is enabled, warn on partial config
@@ -292,6 +355,38 @@ namespace OpenMS
       return false;
     }
     return has_mz && has_im;
+  }
+
+  // Emit one-shot partial-config warnings for the MS1 aggregation knobs.
+  // Called once per top-level load path, after ms1_frame_ids is populated.
+  static void warnPartialMS1AggregationConfig(const BrukerTimsFile::Config& config,
+                                               size_t ms1_frame_count)
+  {
+    if (config.ms1_min_support > 0 && config.ms1_n_neighbors == 0)
+    {
+      OPENMS_LOG_WARN << "Warning: ms1_min_support (=" << config.ms1_min_support
+                      << ") ignored: ms1_n_neighbors=0 disables aggregation." << std::endl;
+    }
+    if (config.ms1_max_rt_distance_sec > 0.0 && config.ms1_n_neighbors == 0)
+    {
+      OPENMS_LOG_WARN << "Warning: ms1_max_rt_distance_sec (="
+                      << config.ms1_max_rt_distance_sec
+                      << ") ignored: ms1_n_neighbors=0 disables aggregation." << std::endl;
+    }
+    if (config.ms1_n_neighbors > 0 && ms1_frame_count > 0 &&
+        static_cast<size_t>(2 * config.ms1_n_neighbors + 1) > ms1_frame_count)
+    {
+      OPENMS_LOG_WARN << "Warning: ms1_n_neighbors (=" << config.ms1_n_neighbors
+                      << ") exceeds half the run's MS1 frame count (="
+                      << ms1_frame_count << "); effective window will be clamped "
+                      << "at run edges." << std::endl;
+    }
+    if (!config.load_ms1 && config.ms1_n_neighbors > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: ms1_n_neighbors (=" << config.ms1_n_neighbors
+                      << ") ignored: load_ms1=false disables MS1 loading entirely."
+                      << std::endl;
+    }
   }
 
   // =====================================================================
@@ -330,13 +425,14 @@ namespace OpenMS
       return false;
     }
 
-    /// Helper for DIA MS2 frame aggregation and denoising.
-    /// Bins peaks from multiple frames onto a sparse (mz_bin, scan_id) grid,
-    /// applies spatial denoising, and outputs the surviving peaks.
-    class DIAFrameAggregator
+    /// Grid-based aggregator for stacking peaks from adjacent frames into a sparse
+    /// (mz_bin, scan_id) grid, with optional 3x3 spatial denoising. Used by both
+    /// DIA MS2 aggregation and MS1 aggregation (with different bin widths).
+    class FrameAggregator
     {
     public:
-      static constexpr double MZ_BIN_WIDTH = 0.02; // Da — absorbs frame-to-frame m/z jitter
+      explicit FrameAggregator(double mz_bin_width = 0.02)
+        : mz_bin_width_(mz_bin_width) {}
 
       struct OutputPeak
       {
@@ -345,10 +441,22 @@ namespace OpenMS
         uint32_t scan_id;  // native scan index (for IM conversion)
       };
 
+      /// Returns the grid key of the neighbor cell at signed (dm, ds) offset.
+      /// Returns std::nullopt when the offset would wrap past 0 on either axis.
+      static inline std::optional<uint64_t>
+      neighborKey(uint32_t mz_bin, uint32_t scan_id, int dm, int ds)
+      {
+        if (dm < 0 && mz_bin < static_cast<uint32_t>(-dm)) return std::nullopt;
+        if (ds < 0 && scan_id < static_cast<uint32_t>(-ds)) return std::nullopt;
+        uint32_t new_mz = mz_bin + static_cast<uint32_t>(dm);
+        uint32_t new_scan = scan_id + static_cast<uint32_t>(ds);
+        return (static_cast<uint64_t>(new_mz) << 32) | new_scan;
+      }
+
       /// Add a peak to the grid. Call for every peak from every neighbor frame.
       void addPeak(double mz, uint32_t intensity, uint32_t scan_id)
       {
-        int64_t mz_bin = static_cast<int64_t>(std::round(mz / MZ_BIN_WIDTH));
+        int64_t mz_bin = static_cast<int64_t>(std::round(mz / mz_bin_width_));
         uint64_t key = (static_cast<uint64_t>(static_cast<uint32_t>(mz_bin)) << 32) | scan_id;
 
         auto& cell = grid_[key];
@@ -379,9 +487,10 @@ namespace OpenMS
               for (int ds = -1; ds <= 1; ++ds)
               {
                 if (dm == 0 && ds == 0) continue;
-                uint64_t nkey = (static_cast<uint64_t>(static_cast<uint32_t>(mz_bin + dm)) << 32)
-                              | (scan_id + ds);
-                if (grid_.count(nkey)) ++neighbors;
+                if (auto nkey = neighborKey(mz_bin, scan_id, dm, ds))
+                {
+                  if (grid_.count(*nkey)) ++neighbors;
+                }
               }
             }
 
@@ -419,9 +528,10 @@ namespace OpenMS
               for (int ds = -1; ds <= 1; ++ds)
               {
                 if (dm == 0 && ds == 0) continue;
-                uint64_t nkey = (static_cast<uint64_t>(static_cast<uint32_t>(mz_bin + dm)) << 32)
-                              | (scan_id + ds);
-                if (grid_.count(nkey)) ++neighbors;
+                if (auto nkey = neighborKey(mz_bin, scan_id, dm, ds))
+                {
+                  if (grid_.count(*nkey)) ++neighbors;
+                }
               }
             }
             if (neighbors < min_support) continue;
@@ -448,12 +558,13 @@ namespace OpenMS
           {
             for (int ds = -2; ds <= 2; ++ds)
             {
-              uint64_t nkey = (static_cast<uint64_t>(static_cast<uint32_t>(mz_bin + dm)) << 32)
-                            | (scan_id + ds);
-              auto it = denoised.find(nkey);
-              if (it != denoised.end())
+              if (auto nkey = neighborKey(mz_bin, scan_id, dm, ds))
               {
-                weighted_sum += it->second.intensity_sum * kernel[dm + 2][ds + 2];
+                auto it = denoised.find(*nkey);
+                if (it != denoised.end())
+                {
+                  weighted_sum += it->second.intensity_sum * kernel[dm + 2][ds + 2];
+                }
               }
             }
           }
@@ -472,10 +583,11 @@ namespace OpenMS
             for (int ds = -1; ds <= 1 && is_max; ++ds)
             {
               if (dm == 0 && ds == 0) continue;
-              uint64_t nkey = (static_cast<uint64_t>(static_cast<uint32_t>(mz_bin + dm)) << 32)
-                            | (scan_id + ds);
-              auto it = smoothed.find(nkey);
-              if (it != smoothed.end() && it->second > val) is_max = false;
+              if (auto nkey = neighborKey(mz_bin, scan_id, dm, ds))
+              {
+                auto it = smoothed.find(*nkey);
+                if (it != smoothed.end() && it->second > val) is_max = false;
+              }
             }
           }
           if (is_max) maxima.push_back(key);
@@ -497,16 +609,17 @@ namespace OpenMS
           {
             for (int ds = -2; ds <= 2; ++ds)
             {
-              uint64_t nkey = (static_cast<uint64_t>(static_cast<uint32_t>(center_mz_bin + dm)) << 32)
-                            | (center_scan + ds);
-              auto it = denoised.find(nkey);
-              if (it != denoised.end())
+              if (auto nkey = neighborKey(center_mz_bin, center_scan, dm, ds))
               {
-                double int_val = it->second.intensity_sum;
-                double mz_val = it->second.mz_weighted_sum / it->second.intensity_sum;
-                total_intensity += int_val;
-                mz_weighted += mz_val * int_val;
-                scan_weighted += static_cast<double>(static_cast<uint32_t>(nkey & 0xFFFFFFFF)) * int_val;
+                auto it = denoised.find(*nkey);
+                if (it != denoised.end())
+                {
+                  double int_val = it->second.intensity_sum;
+                  double mz_val = it->second.mz_weighted_sum / it->second.intensity_sum;
+                  total_intensity += int_val;
+                  mz_weighted += mz_val * int_val;
+                  scan_weighted += static_cast<double>(static_cast<uint32_t>(*nkey & 0xFFFFFFFF)) * int_val;
+                }
               }
             }
           }
@@ -524,7 +637,13 @@ namespace OpenMS
       /// Clear grid for reuse
       void clear() { grid_.clear(); }
 
+      /// Pre-reserve bucket space for N cells. Call once before a hot loop
+      /// to avoid rehash cascades. Safe to over-allocate — clear() preserves
+      /// the bucket array across center frames.
+      void reserve(size_t n) { grid_.reserve(n); }
+
     private:
+      double mz_bin_width_;
       struct Cell
       {
         double intensity_sum = 0.0;
@@ -911,6 +1030,9 @@ namespace OpenMS
     spec.setRT(frame.time);
     spec.setMSLevel(ms_level);
     spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    // TDF peaks are detector-centroided in m/z (peak-list format); label as
+    // centroid so downstream tools (e.g. CometAdapter) don't reject as profile.
+    spec.setType(SpectrumSettings::SpectrumType::CENTROID);
     spec.setNativeID("frame=" + String(frame.id));
 
     if (frame.num_peaks == 0) return;
@@ -976,7 +1098,8 @@ namespace OpenMS
     std::vector<double> cent_mz, cent_intensity;
     std::vector<float> cent_im;
     centroider.centroid(config.ms1_centroid_mz_ppm, config.ms1_centroid_im_pct,
-                        cent_mz, cent_intensity, cent_im);
+                        cent_mz, cent_intensity, cent_im,
+                        static_cast<size_t>(config.ms1_centroid_max_peaks));
 
     // Build MSSpectrum from centroided output
     spec.reserve(cent_mz.size());
@@ -994,6 +1117,154 @@ namespace OpenMS
     IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
     spec.getFloatDataArrays().push_back(std::move(im_array));
     spec.setIMPeakType(IMPeakType::IM_CENTROIDED);
+  }
+
+  // =====================================================================
+  // Helper: build one MS1 spectrum from a frame, with optional IM centroiding
+  // =====================================================================
+  static void loadMS1Spectrum(TimsFrame& frame, MSSpectrum& spec,
+                              const BrukerTimsFile::Config& config,
+                              FrameCentroider& centroider)
+  {
+    if (isCentroidingEnabled(config))
+      centroidMS1Frame(frame, spec, config, centroider);
+    else
+      frameToSpectrum(frame, spec, 1);
+  }
+
+  // =====================================================================
+  // Helper: build one aggregated MS1 spectrum from a sliding window of
+  // adjacent MS1 frames. Composes with within-frame IM centroiding
+  // (FrameCentroider) when ms1_centroid_mz_ppm/pct are set.
+  //
+  // Pre: center_idx is the output-emitting frame; N and RT cap come from
+  // config. Post: spec is populated with center-frame metadata and
+  // per-peak IM data. IMPeakType is IM_PROFILE or IM_CENTROIDED based on
+  // isCentroidingEnabled(config).
+  // =====================================================================
+  static void loadAggregatedMS1Spectrum(
+      TimsDataHandle& handle,
+      const std::vector<uint32_t>& ms1_frame_ids,
+      size_t center_idx,
+      const BrukerTimsFile::Config& config,
+      FrameAggregator& aggregator,
+      FrameCentroider& centroider,
+      MSSpectrum& spec)
+  {
+    const int N = config.ms1_n_neighbors;
+    const size_t size = ms1_frame_ids.size();
+    const size_t lo = (static_cast<size_t>(N) > center_idx) ? 0 : center_idx - N;
+    const size_t hi = std::min(center_idx + static_cast<size_t>(N), size - 1);
+
+    TimsFrame& center_frame = handle.get_frame(ms1_frame_ids[center_idx]);
+
+    aggregator.clear();
+    size_t contributing_frames = 0;
+
+    for (size_t ni = lo; ni <= hi; ++ni)
+    {
+      TimsFrame& nframe = handle.get_frame(ms1_frame_ids[ni]);
+
+      // Center is always included regardless of RT cap; neighbors are capped.
+      const bool is_center = (ni == center_idx);
+      if (!is_center && config.ms1_max_rt_distance_sec > 0.0 &&
+          std::abs(nframe.time - center_frame.time) > config.ms1_max_rt_distance_sec)
+      {
+        continue;
+      }
+
+      if (nframe.num_peaks == 0) continue;
+
+      std::vector<uint32_t> scan_ids(nframe.num_peaks);
+      std::vector<uint32_t> intensities(nframe.num_peaks);
+      std::vector<double> mzs(nframe.num_peaks);
+
+      nframe.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
+                           mzs.data(), nullptr, nullptr);
+
+      bool frame_contributed = false;
+      for (uint32_t p = 0; p < nframe.num_peaks; ++p)
+      {
+        aggregator.addPeak(mzs[p], intensities[p], scan_ids[p]);
+        frame_contributed = true;
+      }
+      if (frame_contributed) ++contributing_frames;
+    }
+
+    const bool skip_denoise = (contributing_frames <= 1) || (config.ms1_min_support <= 0);
+    auto peaks = aggregator.finalize(config.ms1_min_support, skip_denoise);
+
+    // Populate center-frame metadata regardless of whether peaks is empty —
+    // preserves the per-center-frame cadence invariant for streaming consumers.
+    spec.clear(true);
+    spec.setRT(center_frame.time);
+    spec.setMSLevel(1);
+    spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    spec.setNativeID("frame=" + String(center_frame.id));
+
+    DataArrays::FloatDataArray im_array;
+    IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+
+    if (peaks.empty())
+    {
+      spec.getFloatDataArrays().push_back(std::move(im_array));
+      spec.setIMPeakType(IMPeakType::IM_PROFILE);
+      return;
+    }
+
+    if (isCentroidingEnabled(config))
+    {
+      // Unpack aggregator output into parallel arrays for FrameCentroider.
+      std::vector<double> cent_mzs(peaks.size());
+      std::vector<double> cent_intensities(peaks.size());
+      std::vector<double> cent_ims(peaks.size());
+      for (size_t i = 0; i < peaks.size(); ++i)
+      {
+        cent_mzs[i] = peaks[i].mz;
+        cent_intensities[i] = peaks[i].intensity;
+        double im_val = 0.0;
+        handle.scan2inv_ion_mobility_converter->convert(
+          center_frame.id, &im_val, &peaks[i].scan_id, 1);
+        cent_ims[i] = im_val;
+      }
+
+      centroider.loadFrame(cent_mzs.data(), cent_intensities.data(),
+                           cent_ims.data(), static_cast<uint32_t>(peaks.size()));
+
+      std::vector<double> out_mz, out_intensity;
+      std::vector<float> out_im;
+      centroider.centroid(config.ms1_centroid_mz_ppm, config.ms1_centroid_im_pct,
+                          out_mz, out_intensity, out_im,
+                          static_cast<size_t>(config.ms1_centroid_max_peaks));
+
+      spec.reserve(out_mz.size());
+      for (size_t i = 0; i < out_mz.size(); ++i)
+      {
+        Peak1D peak;
+        peak.setMZ(out_mz[i]);
+        peak.setIntensity(static_cast<float>(out_intensity[i]));
+        spec.push_back(peak);
+      }
+      im_array.assign(out_im.begin(), out_im.end());
+      spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+      spec.setIMPeakType(IMPeakType::IM_CENTROIDED);
+    }
+    else
+    {
+      spec.reserve(peaks.size());
+      im_array.reserve(peaks.size());
+      for (const auto& peak : peaks)
+      {
+        spec.emplace_back(peak.mz, static_cast<float>(peak.intensity));
+        double im_val = 0.0;
+        handle.scan2inv_ion_mobility_converter->convert(
+          center_frame.id, &im_val, &peak.scan_id, 1);
+        im_array.push_back(static_cast<float>(im_val));
+      }
+      spec.setIMPeakType(IMPeakType::IM_PROFILE);
+    }
+
+    spec.getFloatDataArrays().push_back(std::move(im_array));
   }
 
   // =====================================================================
@@ -1111,8 +1382,8 @@ namespace OpenMS
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
     // --- MS1 frames ---
-    bool do_centroid = isCentroidingEnabled(config);
     FrameCentroider centroider;
+    FrameAggregator ms1_aggregator(0.01);
 
     std::vector<uint32_t> ms1_frame_ids;
     for (uint32_t fid = handle->min_frame_id(); fid <= handle->max_frame_id(); ++fid)
@@ -1120,16 +1391,24 @@ namespace OpenMS
       if (handle->has_frame(fid) && handle->get_frame(fid).msms_type == 0)
         ms1_frame_ids.push_back(fid);
     }
+    warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
+    if (config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
 
-    startProgress(0, ms1_frame_ids.size(), "Streaming DIA-PASEF MS1 frames");
-    for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
+    const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
+    startProgress(0, ms1_to_emit, "Streaming DIA-PASEF MS1 frames");
+    for (size_t i = 0; i < ms1_to_emit; ++i)
     {
-      TimsFrame& frame = handle->get_frame(ms1_frame_ids[i]);
       MSSpectrum spec;
-      if (do_centroid)
-        centroidMS1Frame(frame, spec, config, centroider);
+      if (config.ms1_n_neighbors > 0)
+      {
+        loadAggregatedMS1Spectrum(*handle, ms1_frame_ids, i, config,
+                                  ms1_aggregator, centroider, spec);
+      }
       else
-        frameToSpectrum(frame, spec, 1);
+      {
+        TimsFrame& frame = handle->get_frame(ms1_frame_ids[i]);
+        loadMS1Spectrum(frame, spec, config, centroider);
+      }
       // Sort peaks by m/z (and the associated IM float data array alongside).
       // TIMS save_to_buffs returns peaks in (scan_id, m/z-within-scan) order,
       // which is NOT globally m/z-sorted. Downstream consumers
@@ -1142,6 +1421,7 @@ namespace OpenMS
       setProgress(i);
     }
     endProgress();
+    centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
 
     // --- MS2 frames: raw per-WindowGroup iteration (no aggregation) ---
     auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
@@ -1194,6 +1474,7 @@ namespace OpenMS
           spec.setRT(frame.time);
           spec.setMSLevel(2);
           spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+          spec.setType(SpectrumSettings::SpectrumType::CENTROID);
           spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win->window_group) + " scan=" + String(win->scan_begin));
 
           Precursor prec;
@@ -1292,24 +1573,40 @@ namespace OpenMS
     bool is_dia = isDIA(db);
     Config::ExportMode mode = config.export_mode;
 
-    // Compute expected size for consumer
+    // Compute expected size for consumer. Must mirror what loadFrames_/loadDIA_/
+    // loadDDA_ actually emit, which skip MS1 entirely when load_ms1=false.
     FrameCounts counts = readFrameCounts(db);
+    const size_t ms1_emitted = config.load_ms1 ? counts.ms1 : 0;
     size_t expected = 0;
     if (mode == Config::FRAME)
     {
-      expected = counts.total;
+      expected = ms1_emitted + counts.ms2;
     }
     else if (is_dia && mode != Config::SPECTRUM)
     {
-      // DIA: MS1 frames + MS2 frames * windows
+      // DIA: each MS2 frame belongs to exactly ONE WindowGroup and only
+      // produces spectra for that group's windows. So the emit count is
+      //   Σ_group (frames_in_group × windows_in_group)
+      // — NOT frames × all_windows. Mirrors the total_work computation in
+      // loadDIA_.
       auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
-      expected = counts.ms1 + static_cast<size_t>(counts.ms2) * windows.size();
+      auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+      std::map<int, size_t> group_window_count;
+      for (const auto& w : windows) ++group_window_count[w.window_group];
+      size_t dia_ms2_spectra = 0;
+      for (const auto& [group, frames] : group_to_frames)
+      {
+        auto wit = group_window_count.find(group);
+        if (wit != group_window_count.end())
+          dia_ms2_spectra += frames.size() * wit->second;
+      }
+      expected = ms1_emitted + dia_ms2_spectra;
     }
     else
     {
       // DDA: MS1 frames + per-precursor MS2 spectra
       uint32_t num_precursors = countDDAPrecursors(db);
-      expected = counts.ms1 + num_precursors;
+      expected = ms1_emitted + num_precursors;
     }
 
     consumer->setExpectedSize(expected, 0);
@@ -1359,6 +1656,7 @@ namespace OpenMS
       else
         ms2_frame_ids.push_back(fid);
     }
+    warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
 
     // Read DDA precursors from SQL
     std::vector<DDAPrecursorInfo> precursor_entries = readDDAPrecursors(db);
@@ -1371,24 +1669,27 @@ namespace OpenMS
     }
 
     uint32_t num_ms2 = static_cast<uint32_t>(precursor_groups.size());
-    exp.reserveSpaceSpectra(static_cast<unsigned int>(ms1_frame_ids.size()) + num_ms2);
+    const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
+    exp.reserveSpaceSpectra(static_cast<unsigned int>(ms1_to_emit) + num_ms2);
 
-    startProgress(0, ms1_frame_ids.size() + num_ms2, "Loading DDA-PASEF data");
+    startProgress(0, ms1_to_emit + num_ms2, "Loading DDA-PASEF data");
 
     // --- MS1 frames ---
-    bool do_centroid = isCentroidingEnabled(config);
     FrameCentroider centroider;
-    for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
+    FrameAggregator ms1_aggregator(0.01);
+    if (config.load_ms1 && config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
+    for (size_t i = 0; i < ms1_to_emit; ++i)
     {
-      TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
       MSSpectrum spec;
-      if (do_centroid)
+      if (config.ms1_n_neighbors > 0)
       {
-        centroidMS1Frame(frame, spec, config, centroider);
+        loadAggregatedMS1Spectrum(handle, ms1_frame_ids, i, config,
+                                  ms1_aggregator, centroider, spec);
       }
       else
       {
-        frameToSpectrum(frame, spec, 1);
+        TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
+        loadMS1Spectrum(frame, spec, config, centroider);
       }
       exp.addSpectrum(std::move(spec));
       setProgress(i);
@@ -1589,7 +1890,7 @@ namespace OpenMS
       if (all_tofs.empty())
       {
         ++precursor_idx;
-        setProgress(ms1_frame_ids.size() + precursor_idx);
+        setProgress(ms1_to_emit + precursor_idx);
         continue;
       }
 
@@ -1669,7 +1970,7 @@ namespace OpenMS
       if (all_mz.empty())
       {
         ++precursor_idx;
-        setProgress(ms1_frame_ids.size() + precursor_idx);
+        setProgress(ms1_to_emit + precursor_idx);
         continue;
       }
 
@@ -1698,7 +1999,43 @@ namespace OpenMS
       spec.setMSLevel(2);
       spec.setDriftTime(scalar_im);
       spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-      spec.setNativeID("scan=" + String(prec_id));
+      spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+      // Native ID: "frame=<F> scan=<S> precursor=<P>".
+      //
+      // This extends the PSI-MS MS:1002818 "Bruker TDF nativeID format"
+      // pattern ("frame=<FRAME_ID> scan=<SCAN_ID>") with a trailing
+      // "precursor=<Precursors.Id>" token. The extension is REQUIRED for
+      // uniqueness under OpenMS's per-precursor aggregation:
+      //
+      //   - Unlike pwiz/msconvert (which emits one MS2 spectrum per
+      //     Bruker PASEF mobility-scan row, where (frame, scan_begin) is
+      //     inherently unique), this reader ports timsrust's strategy of
+      //     merging all PasefFrameMsMsInfo entries sharing the same
+      //     Precursors.Id (potentially across multiple frames) into ONE
+      //     aggregated MS2 spectrum — see the loop above and commit
+      //     41ce6cfeb (PR #8975). first_entry->(frame_id, scan_begin) is
+      //     just the min-ordered row of that group and is NOT guaranteed
+      //     unique across distinct precursors (PASEF can co-isolate
+      //     multiple precursors in the same (Frame, ScanNumBegin) mobility
+      //     window differing only by IsolationMz; multi-cycle precursors
+      //     can also collide on their first entry).
+      //
+      //   - Strict MS:1002818 validators may flag the trailing token, but
+      //     the ecosystem convention (pwiz combined mode uses
+      //     "merged=N frame=F scanStart=A scanEnd=B" under the SAME
+      //     MS:1002818 accession; our own DIA path emits
+      //     "frame=F windowGroup=G scan=S") is that vendor-specific
+      //     disambiguators are added while keeping MS:1002818. Comet and
+      //     Sage dispatch on nativeID content, not the CV accession, so
+      //     compatibility is preserved in practice.
+      //
+      //   - Bruker Precursors.Id is also duplicated as a typed MetaValue
+      //     "bruker_precursor_id" for direct programmatic lookup without
+      //     parsing the nativeID string.
+      spec.setNativeID("frame=" + String(first_entry->frame_id)
+                       + " scan=" + String(first_entry->scan_begin)
+                       + " precursor=" + String(prec_id));
+      spec.setMetaValue("bruker_precursor_id", static_cast<int>(prec_id));
 
       // Copy sorted peak data
       spec.reserve(all_mz.size());
@@ -1733,9 +2070,10 @@ namespace OpenMS
 
       exp.addSpectrum(std::move(spec));
       ++precursor_idx;
-      setProgress(ms1_frame_ids.size() + precursor_idx);
+      setProgress(ms1_to_emit + precursor_idx);
     }
     endProgress();
+    centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
   }
 
   // =====================================================================
@@ -1756,27 +2094,33 @@ namespace OpenMS
       if (frame.msms_type == 0)
         ms1_frame_ids.push_back(fid);
     }
+    warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
 
     // --- MS1 frames ---
-    bool do_centroid = isCentroidingEnabled(config);
     FrameCentroider centroider;
-    startProgress(0, ms1_frame_ids.size(), "Loading DIA-PASEF MS1 frames");
-    for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
+    FrameAggregator ms1_aggregator(0.01);  // finer bin for MS1 (see design spec)
+    const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
+    if (config.load_ms1 && config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
+    startProgress(0, ms1_to_emit, "Loading DIA-PASEF MS1 frames");
+    for (size_t i = 0; i < ms1_to_emit; ++i)
     {
-      TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
       MSSpectrum spec;
-      if (do_centroid)
+      if (config.ms1_n_neighbors > 0)
       {
-        centroidMS1Frame(frame, spec, config, centroider);
+        loadAggregatedMS1Spectrum(handle, ms1_frame_ids, i, config,
+                                  ms1_aggregator, centroider, spec);
       }
       else
       {
-        frameToSpectrum(frame, spec, 1);
+        TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
+        loadMS1Spectrum(frame, spec, config, centroider);
       }
       exp.addSpectrum(std::move(spec));
       setProgress(i);
     }
     endProgress();
+    if (config.load_ms1)
+      centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
 
     // --- SWATH windows ---
     std::vector<DIAWindow> windows = readDIAWindows(db, *handle.scan2inv_ion_mobility_converter);
@@ -1818,7 +2162,7 @@ namespace OpenMS
       Size progress_count = 0;
 
       const int N = config.dia_ms2_n_neighbors;
-      DIAFrameAggregator aggregator;
+      FrameAggregator aggregator;
 
       for (const auto& [group, frame_ids] : group_to_frames)
       {
@@ -1832,6 +2176,7 @@ namespace OpenMS
           {
             setProgress(progress_count++);
             aggregator.clear();
+            size_t contributing_frames = 0;
 
             // Determine neighbor range
             size_t lo = (i >= static_cast<size_t>(N)) ? i - N : 0;
@@ -1850,24 +2195,24 @@ namespace OpenMS
               nframe.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
                                    mzs.data(), nullptr, nullptr);
 
+              bool frame_contributed = false;
               for (uint32_t p = 0; p < nframe.num_peaks; ++p)
               {
                 // Filter by scan bounds (integer comparison, no IM conversion needed)
                 if (scan_ids[p] >= win->scan_begin && scan_ids[p] <= win->scan_end)
                 {
                   aggregator.addPeak(mzs[p], intensities[p], scan_ids[p]);
+                  frame_contributed = true;
                 }
               }
+              if (frame_contributed) ++contributing_frames;
             }
 
-            // Denoise (skip if only 1 frame in range)
-            // TODO: This checks the index range, not the actual number of neighbor
-            // frames that contributed peaks to the grid. If neighbor frames exist
-            // but have zero peaks passing the IM filter for this window, the grid
-            // contains only single-frame data yet denoising still runs — which may
-            // remove valid isolated peaks. Consider counting actual contributing
-            // frames if this becomes an issue in practice.
-            bool skip_denoise = (hi - lo) < 1;
+            // Denoise skipped when the grid was populated from a single frame (or none),
+            // because spatial denoising requires neighbor context that only cross-frame
+            // aggregation provides. Also skipped when min_support <= 0 (user explicitly
+            // disabled the filter).
+            bool skip_denoise = (contributing_frames <= 1) || config.dia_ms2_min_support <= 0;
             auto peaks = config.dia_ms2_centroid
               ? aggregator.finalizeCentroided(config.dia_ms2_min_support, skip_denoise)
               : aggregator.finalize(config.dia_ms2_min_support, skip_denoise);
@@ -1880,6 +2225,7 @@ namespace OpenMS
             spec.setRT(center_frame.time);
             spec.setMSLevel(2);
             spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+            spec.setType(SpectrumSettings::SpectrumType::CENTROID);
             spec.setNativeID("frame=" + String(center_frame.id) + " windowGroup=" + String(win->window_group) + " scan=" + String(win->scan_begin));
 
             Precursor prec;
@@ -1944,6 +2290,7 @@ namespace OpenMS
             spec.setRT(frame.time);
             spec.setMSLevel(2);
             spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+            spec.setType(SpectrumSettings::SpectrumType::CENTROID);
             spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(win->window_group) + " scan=" + String(win->scan_begin));
 
             Precursor prec;
@@ -1988,9 +2335,22 @@ namespace OpenMS
   // =====================================================================
   void BrukerTimsFile::loadFrames_(TimsDataHandle& handle, MSExperiment& exp, const Config& config)
   {
+    // FRAME mode returns raw per-frame spectra; MS1 aggregation would break that
+    // contract, so warn and ignore the knob.
+    if (config.ms1_n_neighbors > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: ms1_n_neighbors (=" << config.ms1_n_neighbors
+                      << ") is ignored when export_mode=FRAME because FRAME mode returns "
+                      << "raw frames. Set export_mode=AUTO or SPECTRUM to enable MS1 "
+                      << "frame aggregation." << std::endl;
+    }
+
     // Iterate all frames at each MS level
     for (int level = 1; level <= 2; ++level)
     {
+      // Honor load_ms1: skip level==1 entirely when the user opts out of MS1.
+      if (level == 1 && !config.load_ms1) continue;
+
       // Collect frame IDs at this level
       std::vector<uint32_t> frame_ids;
       for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
@@ -2011,25 +2371,22 @@ namespace OpenMS
         continue;
       }
 
-      bool do_centroid = (level == 1) && isCentroidingEnabled(config);
       FrameCentroider centroider;
       startProgress(0, frame_ids.size(), String("Loading MS") + String(level) + " frames");
       for (size_t i = 0; i < frame_ids.size(); ++i)
       {
         TimsFrame& frame = handle.get_frame(frame_ids[i]);
         MSSpectrum spec;
-        if (do_centroid)
-        {
-          centroidMS1Frame(frame, spec, config, centroider);
-        }
+        if (level == 1)
+          loadMS1Spectrum(frame, spec, config, centroider);
         else
-        {
           frameToSpectrum(frame, spec, level);
-        }
         exp.addSpectrum(std::move(spec));
         setProgress(i);
       }
       endProgress();
+      if (level == 1)
+        centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
     }
   }
 

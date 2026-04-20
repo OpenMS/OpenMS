@@ -109,7 +109,7 @@ workflow systems designed to make workflow creation and maintenance more fun:
         :class-img-top: halfwidth
         :columns: 12
 
-        The Common Workflow Language standards are automatically supported by every OpenMS tool from version 3.2 and onwards.
+        OpenMS tools can self-generate CWL tool descriptions. As of OpenMS 3.6, TDL support is disabled by default; official binary releases include it. Rebuild with ``-DENABLE_TDL=ON`` to enable CWL generation.
 
     .. grid-item-card:: CWL
         :img-top: /_images/introduction/CWL-4K.png
@@ -119,7 +119,7 @@ workflow systems designed to make workflow creation and maintenance more fun:
         :class-img-top: halfwidth
         :columns: 12
 
-        The Common Workflow Language standards are automatically supported by every OpenMS tool from version 3.2 and onwards.
+        OpenMS tools can self-generate CWL tool descriptions. As of OpenMS 3.6, TDL support is disabled by default; official binary releases include it. Rebuild with ``-DENABLE_TDL=ON`` to enable CWL generation.
 
 .. toctree::
     :maxdepth: 1

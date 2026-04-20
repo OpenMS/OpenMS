@@ -2902,34 +2902,50 @@ set_tests_properties("TOPP_SimpleSearchEngine_2_out" PROPERTIES DEPENDS
 # ProSE:
 add_test("TOPP_ProSE_1" ${TOPP_BIN_PATH}/ProSE -test
 -ini ${DATA_DIR_TOPP}/ProSE_1.ini -in
-${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML
 -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
-add_test("TOPP_ProSE_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+add_test("TOPP_ProSE_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_1_out" PROPERTIES DEPENDS
 "TOPP_ProSE_1")
 
 add_test("TOPP_ProSE_2" ${TOPP_BIN_PATH}/ProSE -test
 -ini ${DATA_DIR_TOPP}/ProSE_2.ini -in
-${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML
 -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
-add_test("TOPP_ProSE_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+add_test("TOPP_ProSE_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_2_out" PROPERTIES DEPENDS
 "TOPP_ProSE_2")
 
-# Multi-file test: search two mzML inputs (here the same file twice for simplicity)
-# against the same FASTA in a single invocation. The fragment index is built once
-# and reused. The first output is idXML (compared against the _1 reference), the
-# second output is QPX PSM parquet (smoke-tested via sha256sum which fails if the
-# file does not exist).
+# Multi-file test: single-file idXML output
 add_test("TOPP_ProSE_3_multi" ${TOPP_BIN_PATH}/ProSE -test
--ini ${DATA_DIR_TOPP}/ProSE_1.ini
--in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
--out ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_3_multi_b.tmp.parquet
--database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
-add_test("TOPP_ProSE_3_multi_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+add_test("TOPP_ProSE_3_multi_idXML_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML
+  -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML
+  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_3_multi_idXML_out" PROPERTIES DEPENDS "TOPP_ProSE_3_multi")
-add_test(NAME "TOPP_ProSE_3_multi_parquet_out" COMMAND ${CMAKE_COMMAND} -E sha256sum ${TESTS_TEMP_DIR}/ProSE_3_multi_b.tmp.parquet)
-set_tests_properties("TOPP_ProSE_3_multi_parquet_out" PROPERTIES DEPENDS "TOPP_ProSE_3_multi")
+
+# Test 3b: QPX directory output (smoke test — check files exist)
+add_test("TOPP_ProSE_3_qpx" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  -out_qpx ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+add_test(NAME "TOPP_ProSE_3_qpx_psm_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
+  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.psm.parquet)
+set_tests_properties("TOPP_ProSE_3_qpx_psm_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
+add_test(NAME "TOPP_ProSE_3_qpx_pg_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
+  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.pg.parquet)
+set_tests_properties("TOPP_ProSE_3_qpx_pg_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
+add_test(NAME "TOPP_ProSE_3_qpx_merged_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
+  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.psm.parquet)
+set_tests_properties("TOPP_ProSE_3_qpx_merged_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
+add_test(NAME "TOPP_ProSE_3_qpx_merged_pg_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
+  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.pg.parquet)
+set_tests_properties("TOPP_ProSE_3_qpx_merged_pg_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
 
 # Asymmetric precursor window + calibration bias preservation end-to-end test.
 # Uses SimpleSearchEngine_1_shifted_7ppm.mzML (all MS2 precursors multiplied by
@@ -2943,15 +2959,30 @@ set_tests_properties("TOPP_ProSE_3_multi_parquet_out" PROPERTIES DEPENDS "TOPP_P
 add_test("TOPP_ProSE_4" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_4.ini
   -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1_shifted_7ppm.mzML
-  -out ${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
 add_test("TOPP_ProSE_4_out" ${DIFF}
   -in1 ${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
   -in2 ${DATA_DIR_TOPP}/ProSE_4_out.idXML
-  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version"
+  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "name=\"fragment_annotation\""
   -ratio 1.2 -absdiff 2.0)
 set_tests_properties("TOPP_ProSE_4_out" PROPERTIES DEPENDS
   "TOPP_ProSE_4")
+
+# Test 5: Database chunking — same inputs as test 1 but with chunk_size=5.
+# 11 proteins (decoys=false in ProSE_1.ini) → 3 chunks (5+5+1). Output
+# must match test 1 exactly (chunking must not change identification results).
+add_test("TOPP_ProSE_5_chunked" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini -in
+  ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_5_chunked_out.tmp.idXML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+  -Search:database:chunk_size 5)
+add_test("TOPP_ProSE_5_chunked_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_5_chunked_out.tmp.idXML
+  -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML
+  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
+set_tests_properties("TOPP_ProSE_5_chunked_out" PROPERTIES DEPENDS
+  "TOPP_ProSE_5_chunked")
 
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
@@ -2984,10 +3015,21 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -protein false)
   set_tests_properties("TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA" PROPERTIES DEPENDS "TOPP_SimpleSearchEngine_DDA")
 
+  # Floor-only PSM-count regression tripwire. Current yield on this fixture is
+  # 4187; floor set ~0.5% below so tiny tie-breaking jitter is absorbed but any
+  # real regression (silent native-ID or IM-annotation breakage, thirdparty
+  # algorithm drift) trips the check. If a legitimate improvement raises yield,
+  # raise the floor in the same commit.
+  add_test(NAME "TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA_psm_count"
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/check_psm_floor.cmake
+      ${TESTS_TEMP_DIR}/SimpleSearchEngine_DDA_fdr.tmp.idXML 4170)
+  set_tests_properties("TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA_psm_count"
+    PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA")
+
   add_test("TOPP_ProSE_DDA" ${TOPP_BIN_PATH}/ProSE -test
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
-    -out ${TESTS_TEMP_DIR}/ProSE_DDA_out.tmp.idXML
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_DDA_out.tmp.idXML
     -Search:precursor:mass_tolerance_lower 20
     -Search:precursor:mass_tolerance_upper 20
     -Search:precursor:mass_tolerance_unit ppm
@@ -3005,11 +3047,18 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -protein false)
   set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA" PROPERTIES DEPENDS "TOPP_ProSE_DDA")
 
+  # Floor: 4373 current; guard ~0.5% below.
+  add_test(NAME "TOPP_FalseDiscoveryRate_ProSEDDA_psm_count"
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/check_psm_floor.cmake
+      ${TESTS_TEMP_DIR}/ProSE_DDA_fdr.tmp.idXML 4350)
+  set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_psm_count"
+    PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_ProSEDDA")
+
   # Same DDA search with automatic calibration enabled
   add_test("TOPP_ProSE_DDA_calibrated" ${TOPP_BIN_PATH}/ProSE -test
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
-    -out ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_out.tmp.idXML
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_out.tmp.idXML
     -Search:precursor:mass_tolerance_lower 20
     -Search:precursor:mass_tolerance_upper 20
     -Search:precursor:mass_tolerance_unit ppm
@@ -3027,6 +3076,52 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -FDR:PSM 0.01
     -protein false)
   set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_calibrated" PROPERTIES DEPENDS "TOPP_ProSE_DDA_calibrated")
+
+  # Floor: 4681 current (calibration should legitimately EXCEED uncalibrated yield);
+  # guard ~0.5% below. This test also protects the sign-convention fix in
+  # ProSEAlgorithm::runCalibrationPass_ — a regression of the swap would drop
+  # this count back to ~1441.
+  add_test(NAME "TOPP_FalseDiscoveryRate_ProSEDDA_calibrated_psm_count"
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/check_psm_floor.cmake
+      ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_fdr.tmp.idXML 4650)
+  set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_calibrated_psm_count"
+    PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_ProSEDDA_calibrated")
+
+  # Chunked + calibration regression guard. Under the pre-#9180 code the chunked
+  # calibration path collapsed the asymmetric calibrated window to symmetric max(),
+  # dropping yield; under pre-#9182 code small chunk_size would silently starve
+  # the calibration pool. chunk_size=5000 is the sweet spot on the HeLa fixture
+  # where calibration fires reliably with the cal_target=chunk_size strategy.
+  # Current: 4438. Floor ~0.5% below.
+  add_test("TOPP_ProSE_DDA_chunked_calibrated" ${TOPP_BIN_PATH}/ProSE -test
+    -in ${OPENTIMS_DDA_SYMLINK}
+    -database ${OPENTIMS_TEST_FASTA}
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_DDA_chunked_cal_out.tmp.idXML
+    -Search:precursor:mass_tolerance_lower 20
+    -Search:precursor:mass_tolerance_upper 20
+    -Search:precursor:mass_tolerance_unit ppm
+    -Search:fragment:mass_tolerance 20
+    -Search:fragment:mass_tolerance_unit ppm
+    -Search:enzyme Trypsin/P
+    -Search:peptide:missed_cleavages 2
+    "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
+    -Search:decoys
+    -Search:calibration:enabled
+    -Search:database:chunk_size 5000)
+
+  add_test("TOPP_FalseDiscoveryRate_ProSEDDA_chunked_calibrated" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+    -in ${TESTS_TEMP_DIR}/ProSE_DDA_chunked_cal_out.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/ProSE_DDA_chunked_cal_fdr.tmp.idXML
+    -FDR:PSM 0.01
+    -protein false)
+  set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_chunked_calibrated"
+    PROPERTIES DEPENDS "TOPP_ProSE_DDA_chunked_calibrated")
+
+  add_test(NAME "TOPP_FalseDiscoveryRate_ProSEDDA_chunked_calibrated_psm_count"
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/check_psm_floor.cmake
+      ${TESTS_TEMP_DIR}/ProSE_DDA_chunked_cal_fdr.tmp.idXML 4400)
+  set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_chunked_calibrated_psm_count"
+    PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_ProSEDDA_chunked_calibrated")
 
   # Generate target-decoy database (shared by CometAdapter and SageAdapter DDA tests)
   add_test("TOPP_DecoyDatabase_DDA" ${TOPP_BIN_PATH}/DecoyDatabase -test
@@ -3081,7 +3176,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
       "-variable_modifications" "Oxidation (M)" "Acetyl (Protein N-term)"
       -chimera false
       -predict_rt false
-      -deisotope false
+      -deisotope true
       -min_ion_index 2)
     set_tests_properties("TOPP_SageAdapter_DDA" PROPERTIES DEPENDS "TOPP_DecoyDatabase_DDA")
 

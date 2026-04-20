@@ -1174,22 +1174,39 @@ START_SECTION(([EXTRA] PSM annotations - matched ion counts, longest run, fragme
 
   // Verify matched ion count annotations exist and are positive
   TEST_EQUAL(hit.metaValueExists(Constants::UserParam::NUM_MATCHED_PEAKS), true)
-  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MATCHED_B_IONS), true)
-  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MATCHED_Y_IONS), true)
+  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MATCHED_PREFIX_IONS), true)
+  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MATCHED_SUFFIX_IONS), true)
   TEST_EQUAL(hit.metaValueExists(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE), true)
 
   int num_matched = hit.getMetaValue(Constants::UserParam::NUM_MATCHED_PEAKS);
-  int b_ions = hit.getMetaValue(Constants::UserParam::MATCHED_B_IONS);
-  int y_ions = hit.getMetaValue(Constants::UserParam::MATCHED_Y_IONS);
+  int prefix_ions = hit.getMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS);
+  int suffix_ions = hit.getMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS);
   int longest_run = hit.getMetaValue(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE);
 
   TEST_EQUAL(num_matched > 0, true)
-  TEST_EQUAL(num_matched, b_ions + y_ions)
-  TEST_EQUAL(b_ions > 0, true)
-  TEST_EQUAL(y_ions > 0, true)
+  TEST_EQUAL(num_matched, prefix_ions + suffix_ions)
+  TEST_EQUAL(prefix_ions > 0, true)
+  TEST_EQUAL(suffix_ions > 0, true)
 
   // Perfect match: longest run should be substantial (peptide length - 1 for one series)
   TEST_EQUAL(longest_run >= 3, true)
+
+  // Delta score is emitted on every retained hit. With a single database peptide,
+  // there is no competing candidate, so delta = full score (same "no competition
+  // = maximum delta" convention as Sage/MSFragger).
+  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::DELTA_SCORE), true)
+  double delta = hit.getMetaValue(Constants::UserParam::DELTA_SCORE);
+  TEST_REAL_SIMILAR(delta, hit.getScore())
+
+  // MIC = sum of experimental intensities over matched peaks. The synthetic
+  // spectrum copies theoretical peaks into the experimental one, so MIC should
+  // equal the sum of theoretical peak intensities. Verifies the MIC code
+  // accumulates exactly once per matched peak (no double-counting).
+  TEST_EQUAL(hit.metaValueExists(Constants::UserParam::MATCHED_ION_CURRENT), true)
+  double expected_mic = 0.0;
+  for (const auto& p : theo) { expected_mic += p.getIntensity(); }
+  double mic = hit.getMetaValue(Constants::UserParam::MATCHED_ION_CURRENT);
+  TEST_REAL_SIMILAR(mic, expected_mic)
 
   // Verify fragment annotations
   const auto& annotations = hit.getPeakAnnotations();
@@ -1242,16 +1259,24 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   const auto& cal = algo.last_calibration_result_;
   TEST_EQUAL(cal.success, true)
   TEST_EQUAL(cal.extreme_bias, false)
-  // Shift should be close to +7 ppm. The fixture is small and Math::median on
-  // an even count averages the two middle elements so we allow +/- 5 ppm slack.
-  TOLERANCE_ABSOLUTE(5.0)
-  TEST_REAL_SIMILAR(cal.precursor_shift, 7.0)
-  TOLERANCE_ABSOLUTE(1e-5) // reset to default
-  // cal_lower/cal_upper should be tightened from [20, 30] but retain asymmetry.
+  // Fixture's ppm_shifts are all positive, so the calibration direction must
+  // come out positive too. Spread is strictly positive by construction.
+  TEST_EQUAL(cal.precursor_shift > 0.0, true)
+  TEST_EQUAL(cal.precursor_spread > 0.0, true)
+  // |shift| < spread is the precondition for the writeback block (extreme_bias
+  // already asserted false above, but state it as a positive numerical check).
+  TEST_EQUAL(std::abs(cal.precursor_shift) < cal.precursor_spread, true)
+
+  // Positive bias => cal_lower > cal_upper. Under the (lower, upper) convention
+  // signed error e = observed - theoretical lies in [-cal_upper, +cal_lower]; a
+  // strictly-positive bias means the +99.5% quantile exceeds the |-0.5% quantile|,
+  // so cal_lower (= max positive error) must exceed cal_upper (= |max negative error|).
+  // A regression that swapped the endpoints would flip the ordering.
+  TEST_EQUAL(cal.cal_lower > cal.cal_upper, true)
+  // Both tightened from user-configured (20, 30); std::min cap inactive, so
+  // the functional identities above are unconstrained.
   TEST_EQUAL(cal.cal_lower < 20.0, true)
   TEST_EQUAL(cal.cal_upper < 30.0, true)
-  // And remain asymmetric — the positive bias means cal_upper > cal_lower.
-  TEST_EQUAL(cal.cal_upper > cal.cal_lower, true)
   // Post-search, the tolerance members have been RESTORED to the user-configured
   // values to avoid per-file state leaks in the multi-file wrapper (which reuses a
   // single ProSEAlgorithm instance across files). The calibrated

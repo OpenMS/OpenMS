@@ -1853,17 +1853,17 @@ def testItraqConstants():
 
 @report
 
-def testLinearResampler():
+def testLinearResamplerAlign():
     """
-    @tests: LinearResampler
-     LinearResampler.__init__
+    @tests: LinearResamplerAlign
+     LinearResamplerAlign.__init__
     """
-    ff = pyopenms.LinearResampler()
+    ff = pyopenms.LinearResamplerAlign()
     p = ff.getDefaults()
     _testParam(p)
 
-    assert pyopenms.LinearResampler().raster is not None
-    assert pyopenms.LinearResampler().rasterExperiment is not None
+    assert pyopenms.LinearResamplerAlign().raster is not None
+    assert pyopenms.LinearResamplerAlign().rasterExperiment is not None
 
 @report
 def testPeptideAndProteinQuant():
