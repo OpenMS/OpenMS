@@ -100,22 +100,22 @@ public:
 
     float getFeatureIntensity(const std::string& native_id) const;
 
-    float getFeatureIntensity(const std::string& native_id, std::size_t expected_index) const;
+    float getFeatureIntensity(const std::string& native_id, Size expected_index) const;
 
-    float getFeatureIntensity(std::size_t index) const;
+    float getFeatureIntensity(Size index) const;
 
     bool hasCachedFeatureIds() const;
 
 private:
     using FeatureWrapperList_ = std::vector<FeatureOpenMS>;
     using FeaturePointerList_ = std::vector<const Feature*>;
-    using FeatureIndexList_ = std::vector<std::pair<std::string, std::size_t>>;
+    using FeatureIndexList_ = std::vector<std::pair<std::string, Size>>;
 
-    std::size_t findFeatureIndex_(const std::string& native_id) const;
+    Size findFeatureIndex_(const std::string& native_id) const;
 
-    std::size_t findPrecursorFeatureIndex_(const std::string& native_id) const;
+    Size findPrecursorFeatureIndex_(const std::string& native_id) const;
 
-    const Feature& getFeatureByIndex_(std::size_t index) const;
+    const Feature& getFeatureByIndex_(Size index) const;
 
     void ensureFeatureWrappers_();
 

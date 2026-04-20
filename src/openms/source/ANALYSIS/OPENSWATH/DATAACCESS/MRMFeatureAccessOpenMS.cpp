@@ -163,14 +163,14 @@ namespace OpenMS
 
   std::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getFeature(std::string nativeID)
   {
-    const std::size_t index = findFeatureIndex_(nativeID);
+    const Size index = findFeatureIndex_(nativeID);
     ensureFeatureWrappers_();
     return std::shared_ptr<OpenSwath::IFeature>(features_, &(*features_)[index]);
   }
 
   std::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getPrecursorFeature(std::string nativeID)
   {
-    const std::size_t index = findPrecursorFeatureIndex_(nativeID);
+    const Size index = findPrecursorFeatureIndex_(nativeID);
     ensurePrecursorFeatureWrappers_();
     return std::shared_ptr<OpenSwath::IFeature>(precursor_features_, &(*precursor_features_)[index]);
   }
@@ -230,14 +230,14 @@ namespace OpenMS
     intensities.resize(native_ids.size());
     if (feature_ids_ != nullptr && native_ids == *feature_ids_)
     {
-      for (std::size_t i = 0; i < intensities.size(); ++i)
+      for (Size i = 0; i < intensities.size(); ++i)
       {
         intensities[i].clear();
         appendIntensity_(getFeatureByIndex_(i), intensities[i]);
       }
       return;
     }
-    for (std::size_t i = 0; i < intensities.size(); ++i)
+    for (Size i = 0; i < intensities.size(); ++i)
     {
       intensities[i].clear();
       appendIntensity_(getFeatureByIndex_(findFeatureIndex_(native_ids[i])), intensities[i]);
@@ -249,14 +249,14 @@ namespace OpenMS
     intensities.resize(native_ids.size());
     if (precursor_feature_ids_ != nullptr && native_ids == *precursor_feature_ids_)
     {
-      for (std::size_t i = 0; i < intensities.size(); ++i)
+      for (Size i = 0; i < intensities.size(); ++i)
       {
         intensities[i].clear();
         appendIntensity_(*precursor_feature_ptrs_[i], intensities[i]);
       }
       return;
     }
-    for (std::size_t i = 0; i < intensities.size(); ++i)
+    for (Size i = 0; i < intensities.size(); ++i)
     {
       intensities[i].clear();
       appendIntensity_(*precursor_feature_ptrs_[findPrecursorFeatureIndex_(native_ids[i])], intensities[i]);
@@ -268,7 +268,7 @@ namespace OpenMS
     return getFeatureByIndex_(findFeatureIndex_(native_id)).getIntensity();
   }
 
-  float MRMFeatureOpenMS::getFeatureIntensity(const std::string& native_id, std::size_t expected_index) const
+  float MRMFeatureOpenMS::getFeatureIntensity(const std::string& native_id, Size expected_index) const
   {
     if (feature_ids_ != nullptr && expected_index < feature_ids_->size() && (*feature_ids_)[expected_index] == native_id)
     {
@@ -277,7 +277,7 @@ namespace OpenMS
     return getFeatureIntensity(native_id);
   }
 
-  float MRMFeatureOpenMS::getFeatureIntensity(std::size_t index) const
+  float MRMFeatureOpenMS::getFeatureIntensity(Size index) const
   {
     return getFeatureByIndex_(index).getIntensity();
   }
@@ -287,7 +287,7 @@ namespace OpenMS
     return feature_ids_ != nullptr;
   }
 
-  const Feature& MRMFeatureOpenMS::getFeatureByIndex_(std::size_t index) const
+  const Feature& MRMFeatureOpenMS::getFeatureByIndex_(Size index) const
   {
     return direct_features_ != nullptr ? (*direct_features_)[index] : *feature_ptrs_[index];
   }
@@ -332,11 +332,11 @@ namespace OpenMS
     precursor_features_ = std::move(precursor_features);
   }
 
-  std::size_t MRMFeatureOpenMS::findFeatureIndex_(const std::string& native_id) const
+  Size MRMFeatureOpenMS::findFeatureIndex_(const std::string& native_id) const
   {
     if (feature_ids_ != nullptr)
     {
-      for (std::size_t i = 0; i < feature_ids_->size(); ++i)
+      for (Size i = 0; i < feature_ids_->size(); ++i)
       {
         if ((*feature_ids_)[i] == native_id)
         {
@@ -357,11 +357,11 @@ namespace OpenMS
     throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, native_id);
   }
 
-  std::size_t MRMFeatureOpenMS::findPrecursorFeatureIndex_(const std::string& native_id) const
+  Size MRMFeatureOpenMS::findPrecursorFeatureIndex_(const std::string& native_id) const
   {
     if (precursor_feature_ids_ != nullptr)
     {
-      for (std::size_t i = 0; i < precursor_feature_ids_->size(); ++i)
+      for (Size i = 0; i < precursor_feature_ids_->size(); ++i)
       {
         if ((*precursor_feature_ids_)[i] == native_id)
         {
