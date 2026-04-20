@@ -67,7 +67,8 @@ START_SECTION([EXTRA] test reading PQP with empty GENE table (issue #8687))
   // Create a minimal PQP file with an empty GENE table
   // This tests the fix for issue #8687 where an empty GENE table caused
   // INNER JOIN to return zero rows
-  String temp_file = File::getTemporaryFile();
+  String temp_file;
+  NEW_TMP_FILE(temp_file);
 
   // Create the PQP database structure with empty GENE table
   {
@@ -137,14 +138,13 @@ START_SECTION([EXTRA] test reading PQP with empty GENE table (issue #8687))
   TEST_EQUAL(light_exp.compounds.size(), 1)
   TEST_EQUAL(light_exp.proteins.size(), 1)
 
-  // Clean up
-  File::remove(temp_file);
 }
 END_SECTION
 
 START_SECTION([EXTRA] test reading PQP with multiple gene mappings does not duplicate transitions)
 {
-  String temp_file = File::getTemporaryFile();
+  String temp_file;
+  NEW_TMP_FILE(temp_file);
 
   {
     SqliteConnector conn(temp_file);
@@ -192,13 +192,9 @@ START_SECTION([EXTRA] test reading PQP with multiple gene mappings does not dupl
   TEST_EQUAL(light_exp.transitions.size(), 1)
   TEST_EQUAL(light_exp.compounds.size(), 1)
   TEST_EQUAL(light_exp.proteins.size(), 1)
-
-  File::remove(temp_file);
 }
 END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
