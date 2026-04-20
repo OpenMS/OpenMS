@@ -1834,4 +1834,51 @@ START_SECTION((updateMembers_ populates the three SNES sigma_delta sets))
 }
 END_SECTION
 
+START_SECTION((reconstructRealizedSubSequence applies mods from subset_bitmask))
+{
+  // Build SNES index with Oxidation (M) variable mod. For a mother whose
+  // realized 5-mer contains M at position 2, subset_bitmask = 1 (slot 0
+  // active → the M slot) must produce AASequence with Oxidation applied.
+  const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKAMCDEFGR"}};
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 5);
+  p.setValue("peptide:max_size", 10);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
+  p.setValue("modifications:variable_max_per_peptide", 1);
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Find the Single-N mother anchored at position 1 of the protein (so
+  // realized 5-mer = "KAMCD", M at sub-peptide position 2).
+  const auto& peptides = fi.getPeptides();
+  size_t mother_idx = peptides.size();
+  for (size_t i = 0; i < peptides.size(); ++i)
+  {
+    if (!FragmentIndex::isSingleCMother(peptides[i].mod_bitmask_)
+        && peptides[i].protein_idx == 0
+        && peptides[i].sequence_.first == 1)
+    {
+      mother_idx = i;
+      break;
+    }
+  }
+  TEST_NOT_EQUAL(mother_idx, peptides.size())
+
+  // subset_bitmask = 0 → plain sub-sequence, no Oxidation.
+  AASequence unmod = fi.reconstructRealizedSubSequence(peptides[mother_idx], entries, 5u, 0u);
+  TEST_EQUAL(unmod.toString(), "KAMCD")
+
+  // subset_bitmask = 1 (slot 0 active → M slot) → Oxidation applied.
+  AASequence ox = fi.reconstructRealizedSubSequence(peptides[mother_idx], entries, 5u, 1u);
+  TEST_EQUAL(ox.toString(), "KAM(Oxidation)CD")
+}
+END_SECTION
+
 END_TEST

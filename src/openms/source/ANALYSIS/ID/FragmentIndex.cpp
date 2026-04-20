@@ -588,7 +588,8 @@ namespace OpenMS
   AASequence FragmentIndex::reconstructRealizedSubSequence(
       const Peptide& mother,
       const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
-      size_t realized_length) const
+      size_t realized_length,
+      uint32_t subset_bitmask) const
   {
     const std::string& protein_seq = fasta_entries[mother.protein_idx].sequence;
     const bool is_single_c = isSingleCMother(mother.mod_bitmask_);
@@ -618,7 +619,33 @@ namespace OpenMS
     if (fixed_nterm_mod_ptr_ != nullptr) seq.setNTerminalModification(fixed_nterm_mod_ptr_);
     if (fixed_cterm_mod_ptr_ != nullptr) seq.setCTerminalModification(fixed_cterm_mod_ptr_);
 
-    // Variable mods are disabled on SNES mothers in v1 — see generateSNESMothers_.
+    // SNES v1.1: apply variable mods from subset_bitmask.
+    if (subset_bitmask != 0)
+    {
+      const char* seq_ptr = protein_seq.c_str() + realized_start;
+      const bool is_prot_nterm = (realized_start == 0);
+      const bool is_prot_cterm = (realized_start + realized_length == protein_seq.size());
+      ModSlot slots[MAX_MOD_SLOTS];
+      size_t n_slots = buildModSlots_(seq_ptr, realized_length, slots, is_prot_nterm, is_prot_cterm);
+
+      for (size_t s = 0; s < n_slots; ++s)
+      {
+        if (!(subset_bitmask & (1u << s))) continue;
+        if (slots[s].position == ModSlot::NTERM_SLOT)
+        {
+          seq.setNTerminalModification(slots[s].mod_ptr);
+        }
+        else if (slots[s].position == ModSlot::CTERM_SLOT)
+        {
+          seq.setCTerminalModification(slots[s].mod_ptr);
+        }
+        else
+        {
+          seq.setModification(slots[s].position, slots[s].mod_ptr);
+        }
+      }
+    }
+
     return seq;
   }
 

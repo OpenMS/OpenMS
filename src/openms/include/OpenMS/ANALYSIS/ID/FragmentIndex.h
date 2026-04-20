@@ -329,21 +329,17 @@ namespace OpenMS
                           double tolerance_magnitude,
                           bool tolerance_ppm) const;
 
-    /** @brief Reconstruct the AASequence of a SNES mother's realized sub-peptide.
-     *
-     * Extracts @p realized_length residues from the appropriate end of the mother
-     * (N-terminal for Single-N, C-terminal for Single-C) and applies fixed
-     * modifications (residue and terminal). Variable modifications are not applied —
-     * SNES v1 does not enumerate variable mods on mothers.
-     *
-     * @param[in] mother A Peptide representing a Single-N or Single-C mother.
-     * @param[in] fasta_entries Source database.
-     * @param[in] realized_length Length returned by @ref realizeSNESLength.
-     * @return The realized sub-peptide with fixed modifications applied.
-     */
+    /// Reconstruct a realized SNES sub-peptide as an AASequence.
+    /// @param mother the SNES mother Peptide entry
+    /// @param fasta_entries the FASTA entries used to build the index
+    /// @param realized_length the length of the realized sub-peptide (from realizeSNESLength)
+    /// @param subset_bitmask SNES v1.1: active slots from buildModSlots_(seq_ptr, realized_length, ...)
+    ///        to apply as variable modifications. 0 = unmodified (backward compatible).
+    /// @return AASequence representing the realized sub-peptide with any variable mods from subset_bitmask applied
     AASequence reconstructRealizedSubSequence(const Peptide& mother,
                                               const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
-                                              size_t realized_length) const;
+                                              size_t realized_length,
+                                              uint32_t subset_bitmask = 0) const;
 
 protected:
 
