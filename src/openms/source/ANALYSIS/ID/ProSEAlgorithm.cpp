@@ -1014,10 +1014,12 @@ namespace OpenMS
       PeptideIdentificationList& peptide_ids) const
   {
     // Chunking disabled → take the existing single-context path (decoys built
-    // lazily by prepareContext).
+    // lazily by prepareContext). The ctx is locally owned and not reused,
+    // so opt in to eager FI release (M1) before PeptideIndexing.
     if (database_chunk_size_ == 0)
     {
       SearchContext ctx = prepareContext(fasta_db);
+      ctx.release_fragment_index_after_scoring = true;
       return search(spectra, ctx, protein_ids, peptide_ids);
     }
 
@@ -1033,6 +1035,7 @@ namespace OpenMS
       // prepareContext's internal decoy re-generation by building ctx inline.
       SearchContext ctx;
       ctx.db = std::move(full_db);
+      ctx.release_fragment_index_after_scoring = true; // single-use ctx (M1)
       startProgress(0, 1, "Building fragment index...");
       ctx.fragment_index.setParameters(getParameters());
       ctx.fragment_index.build(ctx.db);
@@ -1412,6 +1415,19 @@ namespace OpenMS
                               effective_fragment_tol, fragment_mass_tolerance_unit_ppm,
                               open_search_mode, annotated_hits,
                               "Scoring peptide models against spectra...");
+
+    // M1: release the fragment index eagerly when the caller opted in (single-
+    // use context). All downstream work (postProcessHits_, open-search mod
+    // analysis, PeptideIndexing) is FI-independent, and the subsequent
+    // Aho-Corasick pass inside PeptideIndexing::run() is the RSS high-water
+    // mark of the whole search on large databases. Freeing here cuts
+    // hundreds of MB of steady-state peak on human-proteome runs.
+    // Not unconditional: external callers building ctx via prepareContext()
+    // and calling search(spectra, ctx, ...) multiple times would break.
+    if (ctx.release_fragment_index_after_scoring)
+    {
+      fragment_index_.clear();
+    }
 
     startProgress(0, 1, "Post-processing PSMs...");
     ProSEAlgorithm::postProcessHits_(spectra,

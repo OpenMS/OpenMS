@@ -460,12 +460,18 @@ namespace OpenMS
 
   void FragmentIndex::clear()
   {
-    fi_fragments_.clear();
-    fi_peptides_.clear();
-    bucket_min_mz_.clear();
+    // swap-to-empty ensures the underlying heap capacity is actually released.
+    // std::vector::clear() alone only resets size; capacity stays resident, which
+    // defeats the M1 optimization of freeing the fragment index before downstream
+    // PeptideIndexing / Aho-Corasick peaks (fi_fragments_ alone is hundreds of MB
+    // on human-proteome builds). The swap idiom is the only portable way to force
+    // deallocation across libstdc++/libc++/MSVC.
+    std::vector<Fragment>().swap(fi_fragments_);
+    std::vector<Peptide>().swap(fi_peptides_);
+    std::vector<float>().swap(bucket_min_mz_);
+    std::vector<uint32_t>().swap(protein_lengths_);
     is_build_ = false;
     mod_tables_initialized_ = false;
-    protein_lengths_.clear();
   }
 
   AASequence FragmentIndex::reconstructModifiedSequence(
