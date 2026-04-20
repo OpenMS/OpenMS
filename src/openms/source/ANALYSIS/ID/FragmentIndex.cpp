@@ -1493,6 +1493,38 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         // Single-C mothers: y-ion target = (M+H)+.
         collect_candidates(shifted_mh, prec_tol,
                            /*expect_single_c=*/true, iso_err, charge);
+
+        // Supplementary lookup: full-length realization (realized length = mother
+        // length). b_L and y_L are NOT in the fragment index (the generation loop
+        // emits b_1..b_{L-1} and y_1..y_{L-1} only), so any realization where
+        // k == mother_length is missed by the two bin walks above. MetaMorpheus
+        // addresses this with a separate PrecursorIndex built from mother masses.
+        // ProSE already sorts fi_peptides_ by precursor_mz_, so a direct binary
+        // search recovers the same primitive at zero extra storage.
+        //
+        // This matters especially for (a) sub-peptides of length == max_length,
+        // which have no "longer-mother" partial-realization alternative, and
+        // (b) proteins shorter than max_length, where every mother is at full
+        // protein length.
+        auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
+                                    shifted_mh - prec_tol,
+                                    [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
+        auto ub = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(),
+                                    shifted_mh + prec_tol,
+                                    [](float b, const Peptide& a) { return b < a.precursor_mz_; });
+        for (auto it = lb; it != ub; ++it)
+        {
+          const UInt32 id = static_cast<UInt32>(std::distance(fi_peptides_.begin(), it));
+          if (emitted[id]) continue;
+          if (score_table[id] < min_matched_peaks_) continue;
+          emitted[id] = 1;
+          SpectrumMatch sm;
+          sm.peptide_idx_ = id;
+          sm.num_matched_ = score_table[id];
+          sm.isotope_error_ = iso_err;
+          sm.precursor_charge_ = charge;
+          sms.hits_.push_back(sm);
+        }
       }
     }
   }
