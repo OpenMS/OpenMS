@@ -106,8 +106,9 @@ namespace OpenMS
         options.avg_transitions_per_swath,
         options.bytes_per_chromatogram_point);
 
-    Size max_concurrent_swaths = 1;
-    if (estimate.memory_budget_bytes > estimate.estimated_bytes_per_swath)
+    Size max_concurrent_swaths = estimate.non_ms1_swath_count;
+    if (estimate.estimated_bytes_per_swath > 0 &&
+        estimate.memory_budget_bytes > estimate.estimated_bytes_per_swath)
     {
       max_concurrent_swaths =
         static_cast<Size>(estimate.memory_budget_bytes / estimate.estimated_bytes_per_swath);
