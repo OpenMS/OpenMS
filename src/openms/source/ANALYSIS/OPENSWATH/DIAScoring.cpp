@@ -432,6 +432,10 @@ namespace OpenMS
     double max_ratio;
     int nr_occurences;
     const double feature_intensity = mrmfeature->getIntensity();
+    if (!std::isfinite(feature_intensity) || feature_intensity <= 0.0)
+    {
+      return;
+    }
     const auto* openms_feature = dynamic_cast<const OpenMS::MRMFeatureOpenMS*>(mrmfeature);
     const bool use_openms_index = openms_feature != nullptr && openms_feature->hasCachedFeatureIds();
     for (Size k = 0; k < transitions.size(); k++)
