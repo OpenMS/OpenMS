@@ -302,8 +302,20 @@ namespace OpenMS
      *
     */
     SpectrumSequence fetchSpectrumSwath(const std::vector<OpenSwath::SwathMap>& swath_maps, double RT, int nr_spectra_to_add, const RangeMobility& im_range);
-    // Fill `out` with the fetched spectrum sequence to allow reuse of the container
-    void fetchSpectrumSwath(const std::vector<OpenSwath::SwathMap>& swath_maps, double RT, int nr_spectra_to_add, const RangeMobility& im_range, SpectrumSequence & out);
+
+    /**
+      @brief Fill a caller-provided spectrum sequence for DIA analysis.
+
+      Reuses @p out as storage for the fetched spectra and clears existing
+      entries before appending the selected or merged spectrum sequence.
+
+      @param[in] swath_maps The maps containing spectra
+      @param[in] RT The target retention time
+      @param[in] nr_spectra_to_add How many spectra to add up
+      @param[in] im_range Drift time lower and upper bounds
+      @param[out] out Spectrum sequence to fill
+    */
+    void fetchSpectrumSwath(const std::vector<OpenSwath::SwathMap>& swath_maps, double RT, int nr_spectra_to_add, const RangeMobility& im_range, SpectrumSequence& out);
 
 
    /** @brief Prepares a spectrum for DIA analysis (multiple map)
@@ -331,7 +343,19 @@ namespace OpenMS
      *
     */
     SpectrumSequence fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add, const RangeMobility& im_range);
-    // Fill `out` with the fetched spectrum sequence to allow reuse of the container
-    void fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add, const RangeMobility& im_range, SpectrumSequence & out);
+
+    /**
+      @brief Fill a caller-provided spectrum sequence for DIA analysis.
+
+      Reuses @p out as storage for the fetched spectra and clears existing
+      entries before appending the selected or merged spectrum sequence.
+
+      @param[in] swath_map The map containing spectra
+      @param[in] RT The target retention time
+      @param[in] nr_spectra_to_add How many spectra to add up
+      @param[in] im_range Mobility range, only used if resampling spectrum addition is selected
+      @param[out] out Spectrum sequence to fill
+    */
+    void fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add, const RangeMobility& im_range, SpectrumSequence& out);
   };
 }
