@@ -70,10 +70,12 @@ namespace OpenMS
      */
     struct SpectrumMatch
     {
-      uint32_t num_matched_{};      ///< Number of peaks-fragment hits
-      uint16_t precursor_charge_{};  ///< The precursor_charged used for the performed search
-      int16_t isotope_error_{};      /// < The isotope_error used for the performed search
-      size_t peptide_idx_{};         ///< The idx this struct belongs to
+      uint32_t num_matched_{};       ///< Number of peaks-fragment hits
+      uint32_t subset_bitmask_{};    ///< SNES v1.1: active slots in the slot list returned by buildModSlots_. 0 = unmodified. Ignored in non-SNES mode.
+      float    sigma_delta_{};       ///< SNES v1.1: Σ of variable-mod deltas for this match. 0 in non-SNES / unmodified SNES.
+      uint16_t precursor_charge_{};  ///< The precursor_charge used for the performed search
+      int16_t  isotope_error_{};     ///< The isotope_error used for the performed search
+      size_t   peptide_idx_{};       ///< The idx this struct belongs to
     };
 
 

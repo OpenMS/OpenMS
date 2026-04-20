@@ -1682,4 +1682,16 @@ START_SECTION((SNES rejects configuration with add_b_ions=false or add_y_ions=fa
 }
 END_SECTION
 
+START_SECTION((SpectrumMatch default-initializes subset_bitmask_ and sigma_delta_ to zero))
+{
+  FragmentIndex::SpectrumMatch sm;
+  TEST_EQUAL(sm.num_matched_, 0u)
+  TEST_EQUAL(sm.subset_bitmask_, 0u)
+  TEST_REAL_SIMILAR(sm.sigma_delta_, 0.0f)
+  TEST_EQUAL(sm.precursor_charge_, 0u)
+  TEST_EQUAL(sm.isotope_error_, 0)
+  TEST_EQUAL(sm.peptide_idx_, 0u)
+}
+END_SECTION
+
 END_TEST
