@@ -17,6 +17,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -261,6 +262,159 @@ START_SECTION((GNPS MGF file - 3-Des-Microcystein_LR))
     }
   }
   TEST_EQUAL(found_base_peak, true)
+}
+END_SECTION
+
+START_SECTION((SEQ sequence query field - single and multiple))
+{
+  // Single SEQ line: parsed, stored as StringList (always), round-tripped on write.
+  {
+    String mgf_content = "BEGIN IONS\n"
+                         "TITLE=seq_single\n"
+                         "PEPMASS=500.0\n"
+                         "CHARGE=2+\n"
+                         "SEQ=PEPTIDER\n"
+                         "100.0 1000.0\n"
+                         "200.0 2000.0\n"
+                         "END IONS\n";
+
+    String tmp_in("MascotGenericFile_SEQ_single_in.mgf");
+    NEW_TMP_FILE(tmp_in)
+    std::ofstream ofs(tmp_in.c_str());
+    ofs << mgf_content;
+    ofs.close();
+
+    PeakMap exp;
+    MascotGenericFile mgf_file;
+    mgf_file.load(tmp_in, exp);
+
+    TEST_EQUAL(exp.size(), 1)
+    TEST_TRUE(exp[0].metaValueExists("SEQ"))
+    StringList seqs = exp[0].getMetaValue("SEQ").toStringList();
+    TEST_EQUAL(seqs.size(), 1)
+    TEST_EQUAL(seqs[0], "PEPTIDER")
+
+    // Round-trip: write and re-load, SEQ must survive unchanged.
+    String tmp_out("MascotGenericFile_SEQ_single_out.mgf");
+    NEW_TMP_FILE(tmp_out)
+    mgf_file.store(tmp_out, exp);
+
+    PeakMap exp2;
+    mgf_file.load(tmp_out, exp2);
+    TEST_EQUAL(exp2.size(), 1)
+    TEST_TRUE(exp2[0].metaValueExists("SEQ"))
+    StringList seqs_rt = exp2[0].getMetaValue("SEQ").toStringList();
+    TEST_EQUAL(seqs_rt.size(), 1)
+    TEST_EQUAL(seqs_rt[0], "PEPTIDER")
+  }
+
+  // Multiple SEQ lines in one query: accumulated into a StringList.
+  {
+    String mgf_content = "BEGIN IONS\n"
+                         "TITLE=seq_multi\n"
+                         "PEPMASS=600.0\n"
+                         "CHARGE=2+\n"
+                         "SEQ=PEPTIDEA\n"
+                         "SEQ=PEPTIDEB\n"
+                         "SEQ=PEPTIDEC\n"
+                         "100.0 1000.0\n"
+                         "END IONS\n";
+
+    String tmp_in("MascotGenericFile_SEQ_multi_in.mgf");
+    NEW_TMP_FILE(tmp_in)
+    std::ofstream ofs(tmp_in.c_str());
+    ofs << mgf_content;
+    ofs.close();
+
+    PeakMap exp;
+    MascotGenericFile mgf_file;
+    mgf_file.load(tmp_in, exp);
+
+    TEST_EQUAL(exp.size(), 1)
+    TEST_TRUE(exp[0].metaValueExists("SEQ"))
+    StringList seqs = exp[0].getMetaValue("SEQ").toStringList();
+    TEST_EQUAL(seqs.size(), 3)
+    TEST_EQUAL(seqs[0], "PEPTIDEA")
+    TEST_EQUAL(seqs[1], "PEPTIDEB")
+    TEST_EQUAL(seqs[2], "PEPTIDEC")
+
+    // Round-trip preserves all three SEQ lines.
+    String tmp_out("MascotGenericFile_SEQ_multi_out.mgf");
+    NEW_TMP_FILE(tmp_out)
+    mgf_file.store(tmp_out, exp);
+
+    PeakMap exp2;
+    mgf_file.load(tmp_out, exp2);
+    TEST_EQUAL(exp2.size(), 1)
+    StringList seqs2 = exp2[0].getMetaValue("SEQ").toStringList();
+    TEST_EQUAL(seqs2.size(), 3)
+    TEST_EQUAL(seqs2[0], "PEPTIDEA")
+    TEST_EQUAL(seqs2[1], "PEPTIDEB")
+    TEST_EQUAL(seqs2[2], "PEPTIDEC")
+  }
+
+  // Writing: a user sets SEQ programmatically before export.
+  // Must work in both default and compact store modes.
+  {
+    MSSpectrum spec;
+    spec.setNativeID("index=0");
+    spec.setMSLevel(2);
+    spec.setRT(100.0);
+    Precursor prec;
+    prec.setMZ(500.0);
+    prec.setCharge(2);
+    spec.getPrecursors().push_back(prec);
+    Peak1D peak;
+    peak.setMZ(100.0);
+    peak.setIntensity(1000.0);
+    spec.push_back(peak);
+    spec.setMetaValue("SEQ", StringList{"PEPTIDER"});
+
+    PeakMap exp;
+    exp.addSpectrum(spec);
+
+    MascotGenericFile mgf_file;
+    stringstream ss;
+    mgf_file.store(ss, "test", exp);
+    TEST_TRUE(String(ss.str()).hasSubstring("SEQ=PEPTIDER"))
+
+    stringstream compact_ss;
+    mgf_file.store(compact_ss, "test", exp, true);
+    TEST_TRUE(String(compact_ss.str()).hasSubstring("SEQ=PEPTIDER"))
+  }
+
+  // SEQ must not bleed across spectra during sequential load.
+  {
+    String mgf_content = "BEGIN IONS\n"
+                         "TITLE=first\n"
+                         "PEPMASS=500.0\n"
+                         "SEQ=FIRSTONE\n"
+                         "100.0 1000.0\n"
+                         "END IONS\n"
+                         "BEGIN IONS\n"
+                         "TITLE=second\n"
+                         "PEPMASS=600.0\n"
+                         "200.0 2000.0\n"
+                         "END IONS\n";
+
+    String tmp_in("MascotGenericFile_SEQ_bleed.mgf");
+    NEW_TMP_FILE(tmp_in)
+    std::ofstream ofs(tmp_in.c_str());
+    ofs << mgf_content;
+    ofs.close();
+
+    PeakMap exp;
+    MascotGenericFile mgf_file;
+    mgf_file.load(tmp_in, exp);
+
+    TEST_EQUAL(exp.size(), 2)
+    TEST_TRUE(exp[0].metaValueExists("SEQ"))
+    StringList seqs_first = exp[0].getMetaValue("SEQ").toStringList();
+    TEST_EQUAL(seqs_first.size(), 1)
+    TEST_EQUAL(seqs_first[0], "FIRSTONE")
+    // second spectrum had no SEQ - must not inherit it from the first
+    TEST_FALSE(exp[1].metaValueExists("SEQ"))
+  }
 }
 END_SECTION
 
