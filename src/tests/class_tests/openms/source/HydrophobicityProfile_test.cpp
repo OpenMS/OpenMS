@@ -50,7 +50,7 @@ START_SECTION(double computeGRAVY(const AASequence& seq))
 }
 END_SECTION
 
-START_SECTION(std::vector<double> computeProfile(const AASequence& seq, const HydrophobicityScaleMethod scale))
+START_SECTION(std::vector<double> computeProfile(const AASequence& seq, const HydrophobicityScaleMethod scale) const)
 {
   HydrophobicityProfile profile;
   AASequence seq("ACDE");
@@ -66,7 +66,11 @@ START_SECTION(std::vector<double> computeProfile(const AASequence& seq, const Hy
 }
 END_SECTION
 
-START_SECTION(computeWindowedProfile)
+//,
+//      Size window_size = 7,
+//      const HydrophobicityScaleMethod scale = HydrophobicityScaleMethod::KYTE_DOOLITTLE
+
+START_SECTION(std::vector<double> computeWindowedProfile(const AASequence& seq, Size window_size, const HydrophobicityScaleMethod scale) const)
 {
   HydrophobicityProfile profile;
   AASequence seq("ACDEF");
@@ -81,7 +85,7 @@ START_SECTION(computeWindowedProfile)
 }
 END_SECTION
 
-START_SECTION(computeHydrophobicMoment)
+START_SECTION(std::vector<double> computeHydrophobicMoment(const AASequence& seq, Size window_size, double angle) const)
 {
   HydrophobicityProfile profile;
   AASequence seq_1("ACDEF");
@@ -94,8 +98,6 @@ START_SECTION(computeHydrophobicMoment)
   TEST_EXCEPTION(Exception::InvalidValue,profile.computeHydrophobicMoment(seq_2,3));
 }
 END_SECTION
-
-// Add more test sections for each method...
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

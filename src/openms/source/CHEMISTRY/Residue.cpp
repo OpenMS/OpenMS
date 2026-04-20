@@ -644,7 +644,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No hydrophobicity value known for this residue", one_letter_code_);
     }
-    double scales[7][26] = 
+    static const double scales[7][26] = 
     {
       // KyteDoolitlle scale
       {
@@ -696,7 +696,13 @@ namespace OpenMS
         -0.64,   999, -0.07, -0.69, -1.76, -0.26, -0.18,   999, 0.540, 0.370,   999, 0.020,   999
       }   
     };
-    double result = scales[int(scale)][amino_acid-65];
+    const int scale_idx = static_cast<int>(scale);
+    if (scale_idx < 0 || scale_idx >= 7)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown hydrophobicity scale", "");
+    }
+
+    const double result = scales[scale_idx][amino_acid - 'A'];
     if (result == 999)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No hydrophobicity value known for this residue", one_letter_code_);

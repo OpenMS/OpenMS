@@ -748,7 +748,7 @@ START_SECTION((static String getResidueTypeName(const ResidueType res_type)))
 }
 END_SECTION
 
-START_SECTION((double getHydrophobicity(const HydrophobicityScaleNumber scale) const))
+START_SECTION((double getHydrophobicity(const HydrophobicityScaleMethod scale) const))
 {
   Residue res;
   res.setOneLetterCode("A");

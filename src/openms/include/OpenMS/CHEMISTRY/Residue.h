@@ -439,9 +439,12 @@ public:
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
 
     /// @brief returns the hydrophobicity value of the residue
+
+    /// The sources for the hydrophobicity scales are here: @ref HydrophobicityProfile
+
     /// @param scale which scale to use for the hydrophobicity value
     /// @return hydrophobicity value of the residue
-    /// @throw this will throw an exception if the residue is not one of the 20 common amino acids
+    /// @throw Exception::InvalidValue Throws an exception if the residue is not one of the 20 common amino acids
     double getHydrophobicity(const HydrophobicityScaleMethod scale) const;
  
 protected:
