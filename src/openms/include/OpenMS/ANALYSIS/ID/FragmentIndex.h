@@ -221,9 +221,10 @@ namespace OpenMS
     /// represents a *mother peptide* — the longest peptide anchored at one terminus of
     /// the protein. Bit 31 of @c Peptide::mod_bitmask_ distinguishes Single-N mothers
     /// (N-terminus anchored, C-terminus free, b-ion series indexed) from Single-C
-    /// mothers (C-terminus anchored, N-terminus free, y-ion series indexed). The lower
-    /// 31 bits remain available for variable-modification slots (SNES v1 restricts
-    /// variable mods to peptide/protein termini, so 31 slots is ample).
+    /// mothers (C-terminus anchored, N-terminus free, y-ion series indexed). SNES v1
+    /// does not enumerate variable modifications on mothers, so the lower 31 bits are
+    /// currently unused (reserved for variable-mod-on-mother support in a future
+    /// version).
     ///
     /// When the index is built in the default (non-SNES) mode, @c mod_bitmask_ uses
     /// all 32 bits as variable-modification slots (existing semantics) and these
@@ -459,11 +460,11 @@ protected:
     /// precursor-window-based implementation.
     bool is_snes_mode_{false};
 
-    /// User-facing SNES opt-in switch (parameter "search:snes_enabled"). Only takes
-    /// effect when the configured enzyme specificity is @c SPEC_NONE — specific /
-    /// semi-specific searches ignore it. Exposed as a separate member so the
-    /// parameter can be set/queried independently of the derived @c is_snes_mode_
-    /// state (which captures the combined decision specificity && snes_enabled).
+    /// User-facing SNES opt-in switch (parameter "snes_enabled"). Only takes effect
+    /// when the configured enzyme specificity is @c SPEC_NONE — specific / semi-
+    /// specific searches ignore it. Exposed as a separate member so the parameter
+    /// can be set/queried independently of the derived @c is_snes_mode_ state
+    /// (which captures the combined decision specificity && snes_enabled).
     bool snes_enabled_{false};
 
     /// Precomputed residue mass lookup table: ASCII char -> internal monoisotopic mass (Da).

@@ -620,7 +620,18 @@ namespace OpenMS
       // back to checking only the next-bad-position via std::string::find_first_of
       // starting from the mother's start index — still O(length) in the worst
       // case, but only if the mother actually overlaps a bad region.
+      //
+      // Follow-up: a protein-wide skip here is overly conservative. A max-length
+      // mother spanning an `X` is discarded, but shorter realizations with the
+      // same anchor *not* covering the `X` could be valid. CodeRabbit #1.
+      // Correct fix: split the protein into contiguous unambiguous spans and
+      // generate mothers per-span. Deferred to v1.1.
       const bool protein_has_ambiguous = seq.find_first_of("XBZ") != std::string::npos;
+
+      // Honor peptide:max_size=0 as "no maximum" (the documented semantics of
+      // the non-SNES path). Using raw peptide_max_length_ in std::min would give
+      // length 0 and an empty SNES index.
+      const size_t effective_max_length = (peptide_max_length_ == 0) ? L : peptide_max_length_;
 
       auto emitMother = [&](size_t start, size_t length, bool is_single_c)
       {
@@ -646,7 +657,12 @@ namespace OpenMS
           mass += residue_mass_table_[aa] + fixed_mod_deltas_[aa];
         }
         const float mz = static_cast<float>(mass);
-        if (mz < peptide_min_mass_ || mz > peptide_max_mass_) return;
+        // Only the lower bound is safe at mother-generation time: shorter
+        // realizations of a mother whose total mass exceeds peptide_max_mass_
+        // can still fall within the user's configured mass range. Enforce the
+        // upper bound at realization time via the precursor-tolerance window
+        // (which is always <= peptide_max_mass_ for observed spectra). CodeRabbit #5.
+        if (mz < peptide_min_mass_) return;
 
         const uint32_t kind_bits = is_single_c ? SNES_KIND_BIT_MASK : 0u;
         thread_peptides[tid].emplace_back(
@@ -657,24 +673,24 @@ namespace OpenMS
       };
 
       // Single-N mothers: anchored at position i, span the longest possible peptide
-      // starting there (capped at peptide_max_length_). i sweeps [0, L - min_length].
+      // starting there (capped at effective_max_length). i sweeps [0, L - min_length].
       for (size_t i = 0; i + peptide_min_length_ <= L; ++i)
       {
-        const size_t length = std::min<size_t>(peptide_max_length_, L - i);
+        const size_t length = std::min<size_t>(effective_max_length, L - i);
         emitMother(i, length, /*is_single_c=*/false);
       }
 
       // Single-C mothers: anchored at position j (last residue), span the longest
       // possible peptide ending there. j sweeps [min_length - 1, L - 1].
-      // When j + 1 <= max_length the mother happens to coincide with a Single-N
-      // mother at position 0 — that's harmless redundancy: both emit a different ion
-      // series into the index, so there's no duplicate fragment.
+      // When j + 1 <= effective_max_length the mother happens to coincide with a
+      // Single-N mother at position 0 — that's harmless redundancy: both emit a
+      // different ion series into the index, so there's no duplicate fragment.
       // Guard against min_length=0: j would wrap to SIZE_MAX. Clamp to 1 locally;
       // this is the only code path sensitive to the min_length=0 edge case.
       const size_t snes_min_length = std::max<size_t>(1, peptide_min_length_);
       for (size_t j = snes_min_length - 1; j < L; ++j)
       {
-        const size_t length = std::min<size_t>(peptide_max_length_, j + 1);
+        const size_t length = std::min<size_t>(effective_max_length, j + 1);
         const size_t start = j + 1 - length;
         emitMother(start, length, /*is_single_c=*/true);
       }
@@ -966,16 +982,22 @@ namespace OpenMS
           const double n_term_mod = is_single_c ? 0.0 : fixed_nterm_delta_;
           const double c_term_mod = is_single_c ? fixed_cterm_delta_ : 0.0;
 
+          // SNES candidate lookup in querySpectrumSNES_ only targets b-ions (for
+          // Single-N mothers) and y-ions (for Single-C mothers) — the other ion
+          // series (a/c/x/z) are not targeted and indexing them would be wasted
+          // storage at best and source of silent data loss at worst if a user
+          // disabled the primary series via ion toggles. Force b-only/y-only
+          // regardless of the class add_*_ions_ flags. CodeRabbit #6.
           generateFragmentsForSeries_(
             thread_fragments[tid], seq_ptr, seq_len, static_cast<UInt32>(peptide_idx),
             n_term_mod, c_term_mod,
             has_residue_mods ? mod_masses.data() : nullptr,
-            /*add_b=*/!is_single_c && add_b_ions_,
-            /*add_a=*/!is_single_c && add_a_ions_,
-            /*add_c=*/!is_single_c && add_c_ions_,
-            /*add_y=*/ is_single_c && add_y_ions_,
-            /*add_x=*/ is_single_c && add_x_ions_,
-            /*add_z=*/ is_single_c && add_z_ions_);
+            /*add_b=*/!is_single_c,
+            /*add_a=*/false,
+            /*add_c=*/false,
+            /*add_y=*/ is_single_c,
+            /*add_x=*/false,
+            /*add_z=*/false);
         }
         else if (!has_modifications || pep.mod_bitmask_ == 0)
         {

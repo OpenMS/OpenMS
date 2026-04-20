@@ -2299,7 +2299,7 @@ namespace OpenMS
     if (fragment_index.isSnesMode())
     {
       OPENMS_LOG_WARN << "[ProSE] Calibration is not supported in SNES mode (v1). "
-                      << "Using configured precursor tolerance unchanged." << std::endl;
+                      << "Using configured precursor tolerance unchanged.\n";
       return result; // success=false, tolerances untouched
     }
 
