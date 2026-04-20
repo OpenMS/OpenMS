@@ -151,12 +151,17 @@ namespace OpenMS
     const IsotopeDistribution& getCachedAveragineIsotopeDistribution(double neutral_mass, int nr_isotopes)
     {
       static thread_local std::unordered_map<AveragineIsotopeDistributionKey, IsotopeDistribution, AveragineIsotopeDistributionKeyHash> isotope_cache;
+      static constexpr std::size_t MAX_AVERAGINE_CACHE_ENTRIES = 100000;
 
       const AveragineIsotopeDistributionKey key{neutral_mass, nr_isotopes};
       const auto cached = isotope_cache.find(key);
       if (cached != isotope_cache.end())
       {
         return cached->second;
+      }
+      if (isotope_cache.size() >= MAX_AVERAGINE_CACHE_ENTRIES)
+      {
+        isotope_cache.clear();
       }
 
       CoarseIsotopePatternGenerator solver(nr_isotopes);
