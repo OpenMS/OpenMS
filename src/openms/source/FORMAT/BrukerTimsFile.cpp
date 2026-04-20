@@ -381,6 +381,12 @@ namespace OpenMS
                       << ms1_frame_count << "); effective window will be clamped "
                       << "at run edges." << std::endl;
     }
+    if (!config.load_ms1 && config.ms1_n_neighbors > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: ms1_n_neighbors (=" << config.ms1_n_neighbors
+                      << ") ignored: load_ms1=false disables MS1 loading entirely."
+                      << std::endl;
+    }
   }
 
   // =====================================================================
@@ -1388,8 +1394,9 @@ namespace OpenMS
     warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
     if (config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
 
-    startProgress(0, ms1_frame_ids.size(), "Streaming DIA-PASEF MS1 frames");
-    for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
+    const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
+    startProgress(0, ms1_to_emit, "Streaming DIA-PASEF MS1 frames");
+    for (size_t i = 0; i < ms1_to_emit; ++i)
     {
       MSSpectrum spec;
       if (config.ms1_n_neighbors > 0)
@@ -1566,24 +1573,40 @@ namespace OpenMS
     bool is_dia = isDIA(db);
     Config::ExportMode mode = config.export_mode;
 
-    // Compute expected size for consumer
+    // Compute expected size for consumer. Must mirror what loadFrames_/loadDIA_/
+    // loadDDA_ actually emit, which skip MS1 entirely when load_ms1=false.
     FrameCounts counts = readFrameCounts(db);
+    const size_t ms1_emitted = config.load_ms1 ? counts.ms1 : 0;
     size_t expected = 0;
     if (mode == Config::FRAME)
     {
-      expected = counts.total;
+      expected = ms1_emitted + counts.ms2;
     }
     else if (is_dia && mode != Config::SPECTRUM)
     {
-      // DIA: MS1 frames + MS2 frames * windows
+      // DIA: each MS2 frame belongs to exactly ONE WindowGroup and only
+      // produces spectra for that group's windows. So the emit count is
+      //   Σ_group (frames_in_group × windows_in_group)
+      // — NOT frames × all_windows. Mirrors the total_work computation in
+      // loadDIA_.
       auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
-      expected = counts.ms1 + static_cast<size_t>(counts.ms2) * windows.size();
+      auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+      std::map<int, size_t> group_window_count;
+      for (const auto& w : windows) ++group_window_count[w.window_group];
+      size_t dia_ms2_spectra = 0;
+      for (const auto& [group, frames] : group_to_frames)
+      {
+        auto wit = group_window_count.find(group);
+        if (wit != group_window_count.end())
+          dia_ms2_spectra += frames.size() * wit->second;
+      }
+      expected = ms1_emitted + dia_ms2_spectra;
     }
     else
     {
       // DDA: MS1 frames + per-precursor MS2 spectra
       uint32_t num_precursors = countDDAPrecursors(db);
-      expected = counts.ms1 + num_precursors;
+      expected = ms1_emitted + num_precursors;
     }
 
     consumer->setExpectedSize(expected, 0);
@@ -1646,15 +1669,16 @@ namespace OpenMS
     }
 
     uint32_t num_ms2 = static_cast<uint32_t>(precursor_groups.size());
-    exp.reserveSpaceSpectra(static_cast<unsigned int>(ms1_frame_ids.size()) + num_ms2);
+    const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
+    exp.reserveSpaceSpectra(static_cast<unsigned int>(ms1_to_emit) + num_ms2);
 
-    startProgress(0, ms1_frame_ids.size() + num_ms2, "Loading DDA-PASEF data");
+    startProgress(0, ms1_to_emit + num_ms2, "Loading DDA-PASEF data");
 
     // --- MS1 frames ---
     FrameCentroider centroider;
     FrameAggregator ms1_aggregator(0.01);
-    if (config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
-    for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
+    if (config.load_ms1 && config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
+    for (size_t i = 0; i < ms1_to_emit; ++i)
     {
       MSSpectrum spec;
       if (config.ms1_n_neighbors > 0)
@@ -1866,7 +1890,7 @@ namespace OpenMS
       if (all_tofs.empty())
       {
         ++precursor_idx;
-        setProgress(ms1_frame_ids.size() + precursor_idx);
+        setProgress(ms1_to_emit + precursor_idx);
         continue;
       }
 
@@ -1946,7 +1970,7 @@ namespace OpenMS
       if (all_mz.empty())
       {
         ++precursor_idx;
-        setProgress(ms1_frame_ids.size() + precursor_idx);
+        setProgress(ms1_to_emit + precursor_idx);
         continue;
       }
 
@@ -1976,7 +2000,42 @@ namespace OpenMS
       spec.setDriftTime(scalar_im);
       spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
       spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-      spec.setNativeID("scan=" + String(prec_id));
+      // Native ID: "frame=<F> scan=<S> precursor=<P>".
+      //
+      // This extends the PSI-MS MS:1002818 "Bruker TDF nativeID format"
+      // pattern ("frame=<FRAME_ID> scan=<SCAN_ID>") with a trailing
+      // "precursor=<Precursors.Id>" token. The extension is REQUIRED for
+      // uniqueness under OpenMS's per-precursor aggregation:
+      //
+      //   - Unlike pwiz/msconvert (which emits one MS2 spectrum per
+      //     Bruker PASEF mobility-scan row, where (frame, scan_begin) is
+      //     inherently unique), this reader ports timsrust's strategy of
+      //     merging all PasefFrameMsMsInfo entries sharing the same
+      //     Precursors.Id (potentially across multiple frames) into ONE
+      //     aggregated MS2 spectrum — see the loop above and commit
+      //     41ce6cfeb (PR #8975). first_entry->(frame_id, scan_begin) is
+      //     just the min-ordered row of that group and is NOT guaranteed
+      //     unique across distinct precursors (PASEF can co-isolate
+      //     multiple precursors in the same (Frame, ScanNumBegin) mobility
+      //     window differing only by IsolationMz; multi-cycle precursors
+      //     can also collide on their first entry).
+      //
+      //   - Strict MS:1002818 validators may flag the trailing token, but
+      //     the ecosystem convention (pwiz combined mode uses
+      //     "merged=N frame=F scanStart=A scanEnd=B" under the SAME
+      //     MS:1002818 accession; our own DIA path emits
+      //     "frame=F windowGroup=G scan=S") is that vendor-specific
+      //     disambiguators are added while keeping MS:1002818. Comet and
+      //     Sage dispatch on nativeID content, not the CV accession, so
+      //     compatibility is preserved in practice.
+      //
+      //   - Bruker Precursors.Id is also duplicated as a typed MetaValue
+      //     "bruker_precursor_id" for direct programmatic lookup without
+      //     parsing the nativeID string.
+      spec.setNativeID("frame=" + String(first_entry->frame_id)
+                       + " scan=" + String(first_entry->scan_begin)
+                       + " precursor=" + String(prec_id));
+      spec.setMetaValue("bruker_precursor_id", static_cast<int>(prec_id));
 
       // Copy sorted peak data
       spec.reserve(all_mz.size());
@@ -2011,7 +2070,7 @@ namespace OpenMS
 
       exp.addSpectrum(std::move(spec));
       ++precursor_idx;
-      setProgress(ms1_frame_ids.size() + precursor_idx);
+      setProgress(ms1_to_emit + precursor_idx);
     }
     endProgress();
     centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
@@ -2040,9 +2099,10 @@ namespace OpenMS
     // --- MS1 frames ---
     FrameCentroider centroider;
     FrameAggregator ms1_aggregator(0.01);  // finer bin for MS1 (see design spec)
-    if (config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
-    startProgress(0, ms1_frame_ids.size(), "Loading DIA-PASEF MS1 frames");
-    for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
+    const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
+    if (config.load_ms1 && config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
+    startProgress(0, ms1_to_emit, "Loading DIA-PASEF MS1 frames");
+    for (size_t i = 0; i < ms1_to_emit; ++i)
     {
       MSSpectrum spec;
       if (config.ms1_n_neighbors > 0)
@@ -2059,7 +2119,8 @@ namespace OpenMS
       setProgress(i);
     }
     endProgress();
-    centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
+    if (config.load_ms1)
+      centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
 
     // --- SWATH windows ---
     std::vector<DIAWindow> windows = readDIAWindows(db, *handle.scan2inv_ion_mobility_converter);
@@ -2287,6 +2348,9 @@ namespace OpenMS
     // Iterate all frames at each MS level
     for (int level = 1; level <= 2; ++level)
     {
+      // Honor load_ms1: skip level==1 entirely when the user opts out of MS1.
+      if (level == 1 && !config.load_ms1) continue;
+
       // Collect frame IDs at this level
       std::vector<uint32_t> frame_ids;
       for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)

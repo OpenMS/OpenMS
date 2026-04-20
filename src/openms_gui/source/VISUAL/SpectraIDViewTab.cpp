@@ -300,7 +300,7 @@ namespace OpenMS
         QJsonArray peptides_data;
        
         //use data from the protein_to_peptide_id_map map and store the start/end position to the QJsonArray
-        for (auto pep_id_ptr : protein_to_peptide_id_map[current_accession])
+        for (auto pep_id_ptr : protein_to_peptide_id_map[current_accession.toStdString()])
         {
           const vector<PeptideHit>& pep_hits = pep_id_ptr->getHits();
 

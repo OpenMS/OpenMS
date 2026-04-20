@@ -52,6 +52,10 @@ namespace OpenMS
       double calibration_tolerance = 0.0;  ///< m/z recalibration tolerance in Da (0 = default 0.1 Da)
       bool calibrate = false;              ///< Enable m/z recalibration (off by default; may fail on some datasets)
 
+      bool load_ms1 = true;                ///< Load MS1 spectra. Disable (false) for MS2-only workflows
+                                           ///< (peptide database search) where MS1 surveys are not needed —
+                                           ///< cuts memory and time substantially. Affects all export modes.
+
       float ms1_centroid_mz_ppm = 0.0f; ///< MS1 IM-centroiding m/z tolerance in ppm (0 = disabled, suggested: 5.0). Adapted from Sage (Lazear 2023, doi:10.1021/acs.jproteome.3c00486).
       float ms1_centroid_im_pct = 0.0f;  ///< MS1 IM-centroiding ion mobility tolerance in percent (0 = disabled, suggested: 3.0)
       int   ms1_centroid_max_peaks = 100000; ///< Upper bound on centroided peaks per MS1 spectrum. Caps retention at the top-intensity peaks; low-intensity tail is dropped when the limit is hit (a warning is emitted at that point). Sized for aggregated MS1 where frame-stacked grids commonly exceed 200k peaks; per-frame MS1 rarely hits even 10k.

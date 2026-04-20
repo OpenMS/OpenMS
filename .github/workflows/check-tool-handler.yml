@@ -22,9 +22,14 @@ jobs:
           path: ci-tools
       - name: Check the ToolHandler.cpp file
         run: |
-          if ! ci-tools/scripts/check-tool-handler.sh "$GITHUB_BASE_REF" "HEAD"; then
+          exit_code=0
+          ci-tools/scripts/check-tool-handler.sh "$GITHUB_BASE_REF" "HEAD" || exit_code=$?
+
+          if [ "$exit_code" -eq 100 ]; then
             ci-tools/scripts/check-tool-handler.sh -p "$ACTOR" "$GITHUB_BASE_REF" "HEAD" |
               gh pr comment "$PR" --body-file -
+          elif [ "$exit_code" -ne 0 ]; then
+            exit "$exit_code"
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
