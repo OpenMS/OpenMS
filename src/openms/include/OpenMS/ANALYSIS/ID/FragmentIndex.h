@@ -239,6 +239,16 @@ namespace OpenMS
     static constexpr uint32_t SNES_KIND_BIT_MASK = 1u << 31;   ///< bit 31; set = Single-C mother
     static constexpr uint32_t SNES_SLOT_MASK = ~SNES_KIND_BIT_MASK; ///< bits 0..30 in SNES mode
 
+    /// SNES v1.1: constrain bin-walk hits to mothers with a specific protein
+    /// anchor. Used to gate walks that enumerate PROTEIN_N_TERM / PROTEIN_C_TERM
+    /// variable mods.
+    enum class SnesAnchor
+    {
+      NONE,        ///< no anchor restriction (baseline walks)
+      PROT_NTERM,  ///< mother must have sequence_.first == 0
+      PROT_CTERM   ///< mother must have sequence_.first + sequence_.second == protein length
+    };
+
     /// @return true iff the mother described by @p mod_bitmask is a Single-C (C-anchored) mother.
     /// Only meaningful for peptides from an SNES-built index.
     static bool isSingleCMother(uint32_t mod_bitmask) noexcept
@@ -562,6 +572,10 @@ protected:
 
     std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
     std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions)
+
+    /// Protein lengths indexed by protein_idx, populated at build() time.
+    /// Used by SNES v1.1 to gate PROTEIN_C_TERM variable-mod bin walks.
+    std::vector<uint32_t> protein_lengths_;
 
     float fragment_min_mz_;  ///< smallest fragment mz
     float fragment_max_mz_;  ///< largest fragment mz

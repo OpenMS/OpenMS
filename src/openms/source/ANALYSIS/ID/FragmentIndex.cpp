@@ -1038,6 +1038,13 @@ namespace OpenMS
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
+      protein_lengths_.clear();
+      protein_lengths_.reserve(fasta_entries.size());
+      for (const auto& e : fasta_entries)
+      {
+        protein_lengths_.push_back(static_cast<uint32_t>(e.sequence.size()));
+      }
+
       /// generate all Peptides (also initializes residue mass table and mod tables)
       generatePeptides(fasta_entries);
 
@@ -1578,7 +1585,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     emitted.assign(fi_peptides_.size(), 0);
 
     auto collect_candidates =
-      [&](float target_mz, float tol, bool expect_single_c, int16_t iso_err, uint16_t charge)
+      [&](float target_mz, float tol, bool expect_single_c, int16_t iso_err, uint16_t charge,
+          SnesAnchor require_anchor, float sigma_tag)
     {
       auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(),
                                       target_mz - tol);
@@ -1606,6 +1614,15 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
           const auto& mother = fi_peptides_[id];
           if (isSingleCMother(mother.mod_bitmask_) != expect_single_c) continue;
+
+          // SNES v1.1: anchor-specific filter for PROTEIN_N/C_TERM mod walks.
+          if (require_anchor == SnesAnchor::PROT_NTERM && mother.sequence_.first != 0) continue;
+          if (require_anchor == SnesAnchor::PROT_CTERM)
+          {
+            const uint32_t prot_len = protein_lengths_[mother.protein_idx];
+            if (mother.sequence_.first + mother.sequence_.second != prot_len) continue;
+          }
+
           if (score_table[id] < min_matched_peaks_) continue;
 
           emitted[id] = 1;
@@ -1614,6 +1631,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           sm.num_matched_ = score_table[id];
           sm.isotope_error_ = iso_err;
           sm.precursor_charge_ = charge;
+          sm.sigma_delta_ = sigma_tag;
           sms.hits_.push_back(sm);
         }
       }
@@ -1662,9 +1680,11 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         // configures Acetyl (N-term) / Amidated (C-term) / similar.
         collect_candidates(shifted_mh - static_cast<float>(water)
                                       - static_cast<float>(fixed_cterm_delta_),
-                           prec_tol, /*expect_single_c=*/false, iso_err, charge);
+                           prec_tol, /*expect_single_c=*/false, iso_err, charge,
+                           SnesAnchor::NONE, 0.0f);
         collect_candidates(shifted_mh - static_cast<float>(fixed_nterm_delta_),
-                           prec_tol, /*expect_single_c=*/true, iso_err, charge);
+                           prec_tol, /*expect_single_c=*/true, iso_err, charge,
+                           SnesAnchor::NONE, 0.0f);
 
         // Supplementary lookup: full-length realization (realized length = mother
         // length). b_L and y_L are NOT in the fragment index (the generation loop
