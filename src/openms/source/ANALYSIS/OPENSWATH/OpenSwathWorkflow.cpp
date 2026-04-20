@@ -144,25 +144,6 @@ namespace OpenMS
         cv_.notify_all();
       }
 
-      /// Non-blocking capacity check: return true if the given byte_count can be
-      /// accepted immediately without waiting. This allows callers to avoid
-      /// blocking on `enqueue()` by deferring rows to a background enqueuer.
-      bool canAccept(UInt64 byte_count) const
-      {
-        std::lock_guard<std::mutex> lock(mutex_);
-        checkExceptionLocked_();
-        if (finish_requested_)
-        {
-          return false;
-        }
-        if ((buffered_bytes_ <= buffer_budget_bytes_ && byte_count <= buffer_budget_bytes_ - buffered_bytes_) ||
-            (buffered_bytes_ == 0 && queue_.empty()))
-        {
-          return true;
-        }
-        return false;
-      }
-
       void finish()
       {
         {
@@ -529,36 +510,6 @@ namespace OpenMS
         buffered_osw_writer = std::make_unique<OSWBufferedWriter>(osw_writer, scheduler_options.osw_buffer_bytes);
       }
 
-      // Deferred OSW enqueue queue and background enqueuer thread.
-      std::deque<OpenSwathOSWWriter::OSWData> deferred_osw_queue;
-      std::mutex deferred_osw_mutex;
-      std::condition_variable deferred_osw_cv;
-      bool deferred_enqueuer_running = false;
-      std::thread deferred_enqueuer_thread;
-      if (buffered_osw_writer != nullptr)
-      {
-        deferred_enqueuer_running = true;
-        deferred_enqueuer_thread = std::thread([&]() {
-          while (deferred_enqueuer_running || !deferred_osw_queue.empty())
-          {
-            OpenSwathOSWWriter::OSWData work;
-            {
-              std::unique_lock<std::mutex> lock(deferred_osw_mutex);
-              deferred_osw_cv.wait(lock, [&]() { return !deferred_enqueuer_running || !deferred_osw_queue.empty(); });
-              if (deferred_osw_queue.empty()) continue;
-              work = std::move(deferred_osw_queue.front());
-              deferred_osw_queue.pop_front();
-            }
-            try
-            {
-              // This may block if writer buffer is full; done in background thread
-              buffered_osw_writer->enqueue(std::move(work));
-            }
-            catch (...) { /* propagate via buffered writer internal exception handling */ }
-          }
-        });
-      }
-
       struct InnerBatchScoringJob
       {
         Size context_index = 0;
@@ -569,6 +520,7 @@ namespace OpenMS
 
       std::deque<InnerBatchScoringJob> inner_batch_queue;
       std::mutex inner_queue_mutex;
+      std::exception_ptr scoring_exception;
 
       const std::vector<OpenSwathWorkflowScheduler::Wave> swath_waves =
         OpenSwathWorkflowScheduler::planWaves(swath_maps, scheduler_options, swath_concurrency_estimate);
@@ -837,88 +789,90 @@ namespace OpenMS
           InnerBatchScoringJob job;
           {
             std::lock_guard<std::mutex> lock(inner_queue_mutex);
+            if (scoring_exception != nullptr) break;
             if (inner_batch_queue.empty()) break;
             job = inner_batch_queue.front();
             inner_batch_queue.pop_front();
           }
 
-          SwathSchedulerContext& context = contexts[job.context_index];
-          OpenSwath::LightTargetedExperiment transition_exp_used;
-          const Size n_compounds = context.transition_exp_used_all.getCompounds().size();
-          const Size inner_batch = std::min<Size>(
-            static_cast<Size>(context.score_job_size), n_compounds);
-          selectCompoundsForBatch_(context.transition_exp_used_all, transition_exp_used, inner_batch, static_cast<SignedSize>(job.batch_index));
-
-          FeatureMap featureFile;
-          std::vector<OpenSwath::SwathMap> tmp = {swath_maps[context.swath_index]};
-          tmp.back().sptr = context.current_swath_map->lightClone();
-          OpenSwathOSWWriter::OSWData job_osw_output;
-          scoreAllChromatograms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms, tmp, transition_exp_used,
-            feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false,
-            mobilogram_consumer, &job_osw_output);
-
-          if (osw_writer.isActive() && !job_osw_output.empty())
+          try
           {
-            // Estimate bytes and try to avoid blocking the scoring worker.
-            const UInt64 bytes = std::max<UInt64>(job_osw_output.estimateMemoryUsage(), 1ull);
-            bool accepted_now = false;
-            if (buffered_osw_writer != nullptr && buffered_osw_writer->canAccept(bytes))
-            {
-              buffered_osw_writer->enqueue(std::move(job_osw_output));
-              accepted_now = true;
-            }
+            SwathSchedulerContext& context = contexts[job.context_index];
+            OpenSwath::LightTargetedExperiment transition_exp_used;
+            const Size n_compounds = context.transition_exp_used_all.getCompounds().size();
+            const Size inner_batch = std::min<Size>(
+              static_cast<Size>(context.score_job_size), n_compounds);
+            selectCompoundsForBatch_(context.transition_exp_used_all, transition_exp_used, inner_batch, static_cast<SignedSize>(job.batch_index));
 
-            if (!accepted_now)
+            FeatureMap featureFile;
+            std::vector<OpenSwath::SwathMap> tmp = {swath_maps[context.swath_index]};
+            tmp.back().sptr = context.current_swath_map->lightClone();
+            OpenSwathOSWWriter::OSWData job_osw_output;
+            scoreAllChromatograms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms, tmp, transition_exp_used,
+              feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false,
+              mobilogram_consumer, &job_osw_output);
+
+            if (osw_writer.isActive() && !job_osw_output.empty())
             {
-              // Defer the enqueue to the background enqueuer to avoid blocking
               if (buffered_osw_writer != nullptr)
               {
-                std::lock_guard<std::mutex> lock(deferred_osw_mutex);
-                deferred_osw_queue.push_back(std::move(job_osw_output));
-                deferred_osw_cv.notify_one();
+                buffered_osw_writer->enqueue(std::move(job_osw_output));
               }
               else
               {
-                // Fallback: if buffered writer not available, write directly (may block)
-                {
+                // Fallback: if buffered writer is not available, write directly.
 #ifdef _OPENMP
 #pragma omp critical (osw_write_out)
 #endif
-                  {
-                    osw_writer.writeRows(job_osw_output);
-                  }
+                {
+                  osw_writer.writeRows(job_osw_output);
                 }
               }
             }
-          }
 
-          bool context_ready_to_finalize = false;
+            bool context_ready_to_finalize = false;
 #ifdef _OPENMP
 #pragma omp critical (osw_scheduler_context)
 #endif
-          {
-            if (!osw_writer.isActive() && store_features)
             {
-              for (FeatureMap::const_iterator feature_it = featureFile.begin(); feature_it != featureFile.end(); ++feature_it)
+              if (!osw_writer.isActive() && store_features)
               {
-                context.feature_file.push_back(*feature_it);
+                for (FeatureMap::const_iterator feature_it = featureFile.begin(); feature_it != featureFile.end(); ++feature_it)
+                {
+                  context.feature_file.push_back(*feature_it);
+                }
+                for (std::vector<ProteinIdentification>::const_iterator protid_it = featureFile.getProteinIdentifications().begin();
+                     protid_it != featureFile.getProteinIdentifications().end(); ++protid_it)
+                {
+                  context.feature_file.getProteinIdentifications().push_back(*protid_it);
+                }
               }
-              for (std::vector<ProteinIdentification>::const_iterator protid_it = featureFile.getProteinIdentifications().begin();
-                   protid_it != featureFile.getProteinIdentifications().end(); ++protid_it)
-              {
-                context.feature_file.getProteinIdentifications().push_back(*protid_it);
-              }
+
+              --context.remaining_score_jobs;
+              context_ready_to_finalize = context.remaining_score_jobs == 0;
             }
 
-            --context.remaining_score_jobs;
-            context_ready_to_finalize = context.remaining_score_jobs == 0;
+            if (context_ready_to_finalize)
+            {
+              finalize_context(job.context_index);
+            }
           }
-
-          if (context_ready_to_finalize)
+          catch (...)
           {
-            finalize_context(job.context_index);
+            std::lock_guard<std::mutex> lock(inner_queue_mutex);
+            if (scoring_exception == nullptr)
+            {
+              scoring_exception = std::current_exception();
+            }
+            inner_batch_queue.clear();
+            break;
           }
         }
+      }
+
+      if (scoring_exception != nullptr)
+      {
+        std::rethrow_exception(scoring_exception);
       }
 
       for (Size swath_index : wave.swath_indices)
@@ -951,17 +905,6 @@ namespace OpenMS
 
       if (buffered_osw_writer != nullptr)
       {
-        // First, stop the deferred enqueuer and join it after it has drained
-        if (deferred_enqueuer_running)
-        {
-          {
-            std::lock_guard<std::mutex> lock(deferred_osw_mutex);
-            deferred_enqueuer_running = false;
-          }
-          deferred_osw_cv.notify_all();
-          if (deferred_enqueuer_thread.joinable()) deferred_enqueuer_thread.join();
-        }
-
         buffered_osw_writer->finish();
       }
       this->endProgress();
@@ -1577,7 +1520,7 @@ namespace OpenMS
     }
 
     // Only write at the very end since this is a step that needs a barrier.
-    // Schedulers can defer these rows to avoid blocking worker threads on the writer.
+    // Schedulers can batch these rows and pass them through the bounded writer.
     if (osw_writer.isActive())
     {
       if (deferred_osw_output != nullptr)
