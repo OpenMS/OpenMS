@@ -118,6 +118,17 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     {
       std::vector<FASTAFile::FASTAEntry> db;
       FragmentIndex fragment_index;
+
+      /// When true, the context-taking search() overload will release
+      /// `fragment_index` (via clear()) after scoreSpectraAgainstIndex_
+      /// returns, reclaiming its heap footprint before the PeptideIndexing
+      /// Aho-Corasick pass — which is otherwise the RSS high-water mark
+      /// on large databases. Set by single-use callers (e.g. the
+      /// internal search(spectra, fasta_db, ...) wrapper that creates
+      /// a throw-away ctx). Default false preserves the reuse contract
+      /// for callers that built ctx via prepareContext() and want to
+      /// run multiple search() calls against it.
+      bool release_fragment_index_after_scoring = false;
     };
 
     /**
