@@ -60,6 +60,7 @@ namespace OpenMS
     struct PrecursorFormulaCache
     {
       std::string sequence;
+      std::vector<OpenSwath::LightModification> modifications;
       int charge = 0;
       bool valid = false;
       EmpiricalFormula formula;
@@ -75,6 +76,45 @@ namespace OpenMS
       AASequence aa_sequence;
     };
     thread_local AASequenceThreadCache aa_sequence_cache;
+
+    bool containsDriftTimeData_(const SpectrumSequence& spectra)
+    {
+      for (const OpenSwath::SpectrumPtr& spectrum : spectra)
+      {
+        if (spectrum != nullptr && spectrum->getDriftTimeArray() != nullptr)
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    OpenSwath::SpectrumPtr concatenateDriftFilteredSpectra_(const SpectrumSequence& spectra,
+                                                            const RangeMobility& im_range)
+    {
+      SpectrumSequence filtered_spectra;
+      filtered_spectra.reserve(spectra.size());
+      for (const OpenSwath::SpectrumPtr& spectrum : spectra)
+      {
+        filtered_spectra.push_back(OpenSwath::ISpectrumAccess::filterByDrift(spectrum, im_range.getMin(), im_range.getMax()));
+      }
+      return SpectrumAddition::concatenateSpectra(filtered_spectra);
+    }
+
+    OpenSwath::SpectrumPtr mergeSpectraForScoring_(const SpectrumSequence& spectra,
+                                                   const RangeMobility& im_range,
+                                                   double sampling_rate)
+    {
+      if (!im_range.isEmpty())
+      {
+        return concatenateDriftFilteredSpectra_(spectra, im_range);
+      }
+      if (containsDriftTimeData_(spectra))
+      {
+        return spectra.size() == 1 ? spectra[0] : SpectrumAddition::concatenateSpectra(spectra);
+      }
+      return SpectrumAddition::addUpSpectra(spectra, sampling_rate, true);
+    }
   }
 
   /// Constructor
@@ -309,11 +349,15 @@ namespace OpenMS
         {
           if (!peptide_formula_cache.valid ||
               peptide_formula_cache.sequence != compound.sequence ||
+              peptide_formula_cache.modifications != compound.modifications ||
               peptide_formula_cache.charge != precursor_charge)
           {
+            AASequence aa_sequence;
+            OpenSwathDataAccessHelper::convertPeptideToAASequence(compound, aa_sequence);
             peptide_formula_cache.sequence = compound.sequence;
+            peptide_formula_cache.modifications = compound.modifications;
             peptide_formula_cache.charge = precursor_charge;
-            peptide_formula_cache.formula = AASequence::fromString(compound.sequence).getFormula(Residue::Full, precursor_charge);
+            peptide_formula_cache.formula = aa_sequence.getFormula(Residue::Full, precursor_charge);
             peptide_formula_cache.valid = true;
           }
           diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum, im_range, scores.ms1_isotope_correlation,
@@ -641,7 +685,7 @@ namespace OpenMS
     else // (spectra_addition_method_ == SpectrumAdditionMethod::RESAMPLE)
     {
       fetch_spectrum_tmp.clear();
-      fetch_spectrum_tmp.push_back(SpectrumAddition::addUpSpectra(all_spectra, im_range, spacing_for_spectra_resampling_, true));
+      fetch_spectrum_tmp.push_back(mergeSpectraForScoring_(all_spectra, im_range, spacing_for_spectra_resampling_));
       return fetch_spectrum_tmp;
     }
   }
@@ -669,6 +713,8 @@ namespace OpenMS
           for (size_t i = 0; i < swath_maps.size(); ++i)
           {
             SpectrumSequence spectrumSequence = swath_maps[i].sptr->getMultipleSpectra(RT, nr_spectra_to_add, im_range.getMin(), im_range.getMax());
+            if (spectrumSequence.empty()) continue;
+            all_spectra.push_back(SpectrumAddition::concatenateSpectra(spectrumSequence));
           }
         }
         else // (spectra_addition_method_ == SpectrumAdditionMethod::RESAMPLE)
@@ -676,13 +722,15 @@ namespace OpenMS
           for (size_t i = 0; i < swath_maps.size(); ++i)
           {
             SpectrumSequence spectrumSequence = swath_maps[i].sptr->getMultipleSpectra(RT, nr_spectra_to_add, im_range.getMin(), im_range.getMax());
-            all_spectra.push_back(SpectrumAddition::addUpSpectra(spectrumSequence, spacing_for_spectra_resampling_, true));
+            if (spectrumSequence.empty()) continue;
+            all_spectra.push_back(SpectrumAddition::concatenateSpectra(spectrumSequence));
           }
         }
         fetch_spectrum_tmp.clear();
-        // The spectra are already resampled per SWATH map. Concatenate here to
-        // preserve one-spectrum output without resampling the sparse non-zero grid again.
-        fetch_spectrum_tmp.push_back(SpectrumAddition::concatenateSpectra(all_spectra));
+        if (!all_spectra.empty())
+        {
+          fetch_spectrum_tmp.push_back(SpectrumAddition::concatenateSpectra(all_spectra));
+        }
         return fetch_spectrum_tmp;
       }
       else // im_range.isEmpty()
@@ -695,6 +743,7 @@ namespace OpenMS
           for (size_t i = 0; i < swath_maps.size(); ++i)
           {
             SpectrumSequence spectrumSequence = swath_maps[i].sptr->getMultipleSpectra(RT, nr_spectra_to_add);
+            if (spectrumSequence.empty()) continue;
             all_spectra.push_back(SpectrumAddition::concatenateSpectra(spectrumSequence));
           }
         }
@@ -703,11 +752,15 @@ namespace OpenMS
           for (size_t i = 0; i < swath_maps.size(); ++i)
           {
             SpectrumSequence spectrumSequence = swath_maps[i].sptr->getMultipleSpectra(RT, nr_spectra_to_add);
-            all_spectra.push_back(SpectrumAddition::addUpSpectra(spectrumSequence, spacing_for_spectra_resampling_, true));
+            if (spectrumSequence.empty()) continue;
+            all_spectra.push_back(mergeSpectraForScoring_(spectrumSequence, RangeMobility(), spacing_for_spectra_resampling_));
           }
         }
         fetch_spectrum_tmp.clear();
-        fetch_spectrum_tmp.push_back(SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true));
+        if (!all_spectra.empty())
+        {
+          fetch_spectrum_tmp.push_back(mergeSpectraForScoring_(all_spectra, RangeMobility(), spacing_for_spectra_resampling_));
+        }
         return fetch_spectrum_tmp;
       }
     }
@@ -726,7 +779,7 @@ namespace OpenMS
     }
     else
     {
-      out.push_back(SpectrumAddition::addUpSpectra(tmp, im_range, spacing_for_spectra_resampling_, true));
+      out.push_back(mergeSpectraForScoring_(tmp, im_range, spacing_for_spectra_resampling_));
     }
   }
 
@@ -753,22 +806,23 @@ namespace OpenMS
           if (spectrumSequence.empty()) continue;
           all_spectra.push_back(SpectrumAddition::concatenateSpectra(spectrumSequence));
         }
-        out.push_back(SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true));
+        if (!all_spectra.empty())
+        {
+          out.push_back(SpectrumAddition::concatenateSpectra(all_spectra));
+        }
       }
       else
       {
-        SpectrumSequence resampled_spectra;
+        SpectrumSequence merged_spectra;
         for (size_t i = 0; i < swath_maps.size(); ++i)
         {
           SpectrumSequence spectrumSequence = swath_maps[i].sptr->getMultipleSpectra(RT, nr_spectra_to_add, im_range.getMin(), im_range.getMax());
           if (spectrumSequence.empty()) continue;
-          resampled_spectra.push_back(SpectrumAddition::addUpSpectra(spectrumSequence, spacing_for_spectra_resampling_, true));
+          merged_spectra.push_back(SpectrumAddition::concatenateSpectra(spectrumSequence));
         }
-        if (!resampled_spectra.empty())
+        if (!merged_spectra.empty())
         {
-          // The spectra are already resampled per SWATH map. Concatenate here to
-          // preserve one-spectrum output without resampling the sparse non-zero grid again.
-          out.push_back(SpectrumAddition::concatenateSpectra(resampled_spectra));
+          out.push_back(SpectrumAddition::concatenateSpectra(merged_spectra));
         }
       }
       return;
@@ -786,7 +840,7 @@ namespace OpenMS
       if (!out.empty())
       {
         fetch_spectrum_tmp.clear();
-        fetch_spectrum_tmp.push_back(SpectrumAddition::addUpSpectra(out, spacing_for_spectra_resampling_, true));
+        fetch_spectrum_tmp.push_back(mergeSpectraForScoring_(out, RangeMobility(), spacing_for_spectra_resampling_));
         out = std::move(fetch_spectrum_tmp);
       }
       return;
@@ -797,12 +851,12 @@ namespace OpenMS
       {
         SpectrumSequence spectrumSequence = swath_maps[i].sptr->getMultipleSpectra(RT, nr_spectra_to_add);
         if (spectrumSequence.empty()) continue;
-        out.push_back(SpectrumAddition::addUpSpectra(spectrumSequence, spacing_for_spectra_resampling_, true));
+        out.push_back(mergeSpectraForScoring_(spectrumSequence, RangeMobility(), spacing_for_spectra_resampling_));
       }
       if (!out.empty())
       {
         fetch_spectrum_tmp.clear();
-        fetch_spectrum_tmp.push_back(SpectrumAddition::addUpSpectra(out, spacing_for_spectra_resampling_, true));
+        fetch_spectrum_tmp.push_back(mergeSpectraForScoring_(out, RangeMobility(), spacing_for_spectra_resampling_));
         out = std::move(fetch_spectrum_tmp);
       }
       return;
