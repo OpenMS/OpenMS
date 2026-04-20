@@ -1620,7 +1620,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           if (require_anchor == SnesAnchor::PROT_CTERM)
           {
             const uint32_t prot_len = protein_lengths_[mother.protein_idx];
-            if (mother.sequence_.first + mother.sequence_.second != prot_len) continue;
+            if (static_cast<uint32_t>(mother.sequence_.first) + mother.sequence_.second != prot_len) continue;
           }
 
           if (score_table[id] < min_matched_peaks_) continue;
@@ -1704,6 +1704,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         auto ub = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(),
                                     shifted_mh + prec_tol,
                                     [](float b, const Peptide& a) { return b < a.precursor_mz_; });
+        // TODO(Task 7): This supplementary full-length realization block currently
+        // runs once per (charge, iso_err) at Σ=0. v1.1 Task 7 needs to restructure
+        // it to participate in the Σ loop and tag emitted matches with the active
+        // Σ value (sm.sigma_delta_ = sigma).
         for (auto it = lb; it != ub; ++it)
         {
           const UInt32 id = static_cast<UInt32>(std::distance(fi_peptides_.begin(), it));
