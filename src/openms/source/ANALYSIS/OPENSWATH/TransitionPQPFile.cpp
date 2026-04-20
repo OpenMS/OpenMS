@@ -311,8 +311,15 @@ namespace OpenMS
       Sql::extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 27);
       if (Sql::extractValue<std::string>(&tmp_field, stmt, 28)) tmp_field.split('|', mytransition.peptidoforms);
       // optional attributes only present in newer file versions
-      if (query_info.drift_time_exists) Sql::extractValue<double>(&mytransition.drift_time, stmt, 29);
-      if (query_info.gene_exists) Sql::extractValue<std::string>(&mytransition.GeneName, stmt, 30);
+      int optional_col = 29;
+      if (query_info.drift_time_exists)
+      {
+        Sql::extractValue<double>(&mytransition.drift_time, stmt, optional_col++);
+      }
+      if (query_info.gene_exists)
+      {
+        Sql::extractValue<std::string>(&mytransition.GeneName, stmt, optional_col++);
+      }
 
       if (mytransition.GeneName == "NA") mytransition.GeneName = "";
 
@@ -419,10 +426,14 @@ namespace OpenMS
       Sql::extractValue<int>(&identifying, stmt, 26);
       Sql::extractValue<int>(&quantifying, stmt, 27);
       Sql::extractValue<String>(&peptidoforms_str, stmt, 28);
-      if (query_info.drift_time_exists) Sql::extractValue<double>(&drift_time, stmt, 29);
+      int optional_col = 29;
+      if (query_info.drift_time_exists)
+      {
+        Sql::extractValue<double>(&drift_time, stmt, optional_col++);
+      }
       if (query_info.gene_exists)
       {
-        Sql::extractValue<std::string>(&gene_name, stmt, 30);
+        Sql::extractValue<std::string>(&gene_name, stmt, optional_col++);
         if (gene_name == "NA") gene_name = "";
       }
 
