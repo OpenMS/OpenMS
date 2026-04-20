@@ -344,14 +344,18 @@ namespace OpenMS
      * @param[in] mother A Peptide representing a Single-N or Single-C mother.
      * @param[in] fasta_entries Source database (same one passed to build()).
      * @param[in] target_mh_plus Observed (M+H)+ mass after isotope-error correction.
-     * @param[in] tolerance_magnitude Positive tolerance value (ppm or Da).
-     * @param[in] tolerance_ppm True if @p tolerance_magnitude is in ppm.
+     * @param[in] tolerance_lower_magnitude Positive tolerance magnitude on the low side
+     *            (realized_mass - target >= -tolerance_lower_magnitude).
+     * @param[in] tolerance_upper_magnitude Positive tolerance magnitude on the high side
+     *            (realized_mass - target <= +tolerance_upper_magnitude).
+     * @param[in] tolerance_ppm True if the magnitudes are in ppm.
      * @return Realized length, or -1 on failure.
      */
     int realizeSNESLength(const Peptide& mother,
                           const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                           double target_mh_plus,
-                          double tolerance_magnitude,
+                          double tolerance_lower_magnitude,
+                          double tolerance_upper_magnitude,
                           bool tolerance_ppm) const;
 
     /// Reconstruct a realized SNES sub-peptide as an AASequence.

@@ -538,7 +538,8 @@ namespace OpenMS
   int FragmentIndex::realizeSNESLength(const Peptide& mother,
                                        const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                                        double target_mh_plus,
-                                       double tolerance_magnitude,
+                                       double tolerance_lower_magnitude,
+                                       double tolerance_upper_magnitude,
                                        bool tolerance_ppm) const
   {
     if (!is_snes_mode_) return -1;
@@ -551,17 +552,22 @@ namespace OpenMS
     static const double water = Residue::getInternalToFull().getMonoWeight();
     const double base = water + Constants::PROTON_MASS_U
                         + fixed_nterm_delta_ + fixed_cterm_delta_;
-    const double tol_da = tolerance_ppm
-      ? (tolerance_magnitude * std::max(target_mh_plus, 0.0) * 1e-6)
-      : tolerance_magnitude;
+    const double tol_lo_da = tolerance_ppm
+      ? (tolerance_lower_magnitude * std::max(target_mh_plus, 0.0) * 1e-6)
+      : tolerance_lower_magnitude;
+    const double tol_hi_da = tolerance_ppm
+      ? (tolerance_upper_magnitude * std::max(target_mh_plus, 0.0) * 1e-6)
+      : tolerance_upper_magnitude;
 
     // Scan residues from the anchored terminus outward, accumulating the
     // residue-mass sum incrementally. Single-N scans left-to-right (the first
     // residue is mother_start); Single-C scans right-to-left (the first residue
     // is mother_start + mother_length - 1). At each prefix length k in
     // [peptide_min_length_, mother_length], the corresponding realized sub-peptide
-    // has mass (base + cumulative). Pick the length whose mass is closest to
-    // the target and within tol_da.
+    // has mass (base + cumulative). Pick the length whose signed delta
+    // (realized_mass - target) falls in [-tol_lo_da, +tol_hi_da] and is closest
+    // to the target in magnitude. Asymmetric bounds preserve calibrated
+    // windows (e.g. [100 ppm, 5 ppm] after bias correction).
     double cumulative = 0.0;
     double best_abs_delta = std::numeric_limits<double>::max();
     int best_length = -1;
@@ -577,10 +583,12 @@ namespace OpenMS
       if (length < peptide_min_length_) continue;
 
       const double realized_mass = base + cumulative;
-      const double delta = std::abs(realized_mass - target_mh_plus);
-      if (delta <= tol_da && delta < best_abs_delta)
+      const double delta = realized_mass - target_mh_plus;        // signed
+      if (delta < -tol_lo_da || delta > tol_hi_da) continue;
+      const double abs_delta = std::abs(delta);
+      if (abs_delta < best_abs_delta)
       {
-        best_abs_delta = delta;
+        best_abs_delta = abs_delta;
         best_length = static_cast<int>(length);
       }
     }
@@ -1598,14 +1606,19 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       return mh_plus + static_cast<float>(iso_err) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
     };
 
+    // Asymmetric tolerance: tol_lo <= 0 (low-side magnitude, sign-flipped),
+    // tol_hi >= 0. A match requires (fragment_mz - target_mz) ∈ [tol_lo, tol_hi].
+    // Preserves calibrated windows like [100 ppm, 5 ppm] where the symmetric
+    // max-collapse over-admitted ~20× on the tighter side.
     auto collect_candidates =
-      [&](float target_mz, float tol, bool expect_single_c, int16_t iso_err, uint16_t charge,
+      [&](float target_mz, float tol_lo, float tol_hi, bool expect_single_c,
+          int16_t iso_err, uint16_t charge,
           SnesAnchor require_anchor, float sigma_tag)
     {
       auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(),
-                                      target_mz - tol);
+                                      target_mz + tol_lo);
       auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(),
-                                       target_mz + tol);
+                                       target_mz + tol_hi);
       if (left_it != bucket_min_mz_.begin()) --left_it;
 
       const size_t bucket_begin = std::distance(bucket_min_mz_.begin(), left_it);
@@ -1620,8 +1633,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
         for (auto it = slice_begin; it != slice_end; ++it)
         {
-          if (target_mz < it->fragment_mz_ - tol || target_mz > it->fragment_mz_ + tol)
-            continue;
+          const float delta = it->fragment_mz_ - target_mz;
+          if (delta < tol_lo || delta > tol_hi) continue;
 
           const UInt32 id = it->peptide_idx_;
           if (emitted[id]) continue;
@@ -1685,17 +1698,15 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         const float shifted_mh = mh_plus
           + static_cast<float>(iso_err) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
 
-        // Precursor tolerance for the bin walk. Use the wider of the two
-        // asymmetric bounds so no candidate is missed — realization downstream
-        // will exactly re-match the observed precursor.
-        const float prec_tol_ref_mz = shifted_mh;
-        const float prec_tol = precursor_mass_tolerance_unit_ppm_
-          ? Math::ppmToMass<float>(
-              static_cast<float>(std::max(precursor_mass_tolerance_lower_,
-                                          precursor_mass_tolerance_upper_)),
-              prec_tol_ref_mz)
-          : static_cast<float>(std::max(precursor_mass_tolerance_lower_,
-                                        precursor_mass_tolerance_upper_));
+        // Asymmetric precursor tolerance for the bin walk — use computeMassWindow_
+        // to get signed (lo <= 0, hi >= 0) Da bounds that respect calibrated
+        // asymmetric windows. Previously collapsed to max(lower, upper), which
+        // over-admitted by ~20× on the tighter side for calibrated configs
+        // like [100 ppm, 5 ppm]. Same reference m/z (shifted_mh) for all
+        // targets within this (charge, iso_err) iteration.
+        const auto prec_window = computeMassWindow_(shifted_mh);
+        const float prec_tol_lo = prec_window.first;   // <= 0
+        const float prec_tol_hi = prec_window.second;  // >= 0
 
         // Baseline Σ loop: walks every mother regardless of protein anchor.
         // Each (charge, iso_err, sigma) triple is independent — reset the dedup
@@ -1722,16 +1733,16 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           // configures Acetyl (N-term) / Amidated (C-term) / similar.
           collect_candidates(shifted_mh - static_cast<float>(water)
                                         - static_cast<float>(fixed_cterm_delta_) - s,
-                             prec_tol, /*expect_single_c=*/false, iso_err, charge,
+                             prec_tol_lo, prec_tol_hi, /*expect_single_c=*/false, iso_err, charge,
                              SnesAnchor::NONE, s);
           collect_candidates(shifted_mh - static_cast<float>(fixed_nterm_delta_) - s,
-                             prec_tol, /*expect_single_c=*/true, iso_err, charge,
+                             prec_tol_lo, prec_tol_hi, /*expect_single_c=*/true, iso_err, charge,
                              SnesAnchor::NONE, s);
 
           // Supplementary full-length realization at this Σ — recover b_L and y_L
           // cases that aren't in the fragment index (v1 indexes b_1..b_{L-1}
           // and y_1..y_{L-1} only). Match mothers whose precursor_mz_ equals
-          // shifted_mh - s within prec_tol.
+          // shifted_mh - s within the asymmetric prec tolerance.
           //
           // This matters especially for (a) sub-peptides of length == max_length,
           // which have no "longer-mother" partial-realization alternative, and
@@ -1740,10 +1751,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           {
             const float target = shifted_mh - s;
             auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
-                                        target - prec_tol,
+                                        target + prec_tol_lo,
                                         [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
             auto ub = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(),
-                                        target + prec_tol,
+                                        target + prec_tol_hi,
                                         [](float b, const Peptide& a) { return b < a.precursor_mz_; });
             for (auto it = lb; it != ub; ++it)
             {
@@ -1771,16 +1782,16 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           const float s = static_cast<float>(sigma);
           collect_candidates(shifted_mh - static_cast<float>(water)
                                         - static_cast<float>(fixed_cterm_delta_) - s,
-                             prec_tol, /*expect_single_c=*/false, iso_err, charge,
+                             prec_tol_lo, prec_tol_hi, /*expect_single_c=*/false, iso_err, charge,
                              SnesAnchor::PROT_NTERM, s);
           // Supplementary full-length at this Σ, PROT_NTERM-gated.
           {
             const float target = shifted_mh - s;
             auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
-                                        target - prec_tol,
+                                        target + prec_tol_lo,
                                         [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
             auto ub = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(),
-                                        target + prec_tol,
+                                        target + prec_tol_hi,
                                         [](float b, const Peptide& a) { return b < a.precursor_mz_; });
             for (auto it = lb; it != ub; ++it)
             {
@@ -1807,16 +1818,16 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           std::fill(emitted.begin(), emitted.end(), 0);
           const float s = static_cast<float>(sigma);
           collect_candidates(shifted_mh - static_cast<float>(fixed_nterm_delta_) - s,
-                             prec_tol, /*expect_single_c=*/true, iso_err, charge,
+                             prec_tol_lo, prec_tol_hi, /*expect_single_c=*/true, iso_err, charge,
                              SnesAnchor::PROT_CTERM, s);
           // Supplementary full-length at this Σ, PROT_CTERM-gated.
           {
             const float target = shifted_mh - s;
             auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
-                                        target - prec_tol,
+                                        target + prec_tol_lo,
                                         [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
             auto ub = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(),
-                                        target + prec_tol,
+                                        target + prec_tol_hi,
                                         [](float b, const Peptide& a) { return b < a.precursor_mz_; });
             for (auto it = lb; it != ub; ++it)
             {
@@ -1867,7 +1878,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
             - static_cast<double>(sm_raw.sigma_delta_);
         const int realized_len = realizeSNESLength(
             mother, fasta_entries_ref, iso_shifted_target,
-            std::max(precursor_mass_tolerance_lower_, precursor_mass_tolerance_upper_),
+            precursor_mass_tolerance_lower_,
+            precursor_mass_tolerance_upper_,
             precursor_mass_tolerance_unit_ppm_);
         if (realized_len < 0) continue;
 

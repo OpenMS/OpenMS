@@ -890,11 +890,12 @@ namespace OpenMS
 
       const bool snes_mode = fi.isSnesMode();
       const bool prec_tol_ppm = precursor_mass_tolerance_unit_ == "ppm";
-      // For SNES realization we use the wider of the two asymmetric bounds — the
-      // FragmentIndex candidate filter admitted mothers to the floor of the window,
-      // so realization must be at least that permissive to not drop real matches.
-      const double snes_realize_tol =
-          std::max(precursor_mass_tolerance_lower_, precursor_mass_tolerance_upper_);
+      // SNES realization uses the asymmetric precursor tolerance — same signed
+      // window the FragmentIndex candidate filter used at bin-walk time.
+      // Previously collapsed to max(lower, upper), which over-admitted by ~20×
+      // on calibrated asymmetric configs like [100 ppm, 5 ppm]. Review L3.
+      const double snes_realize_tol_lo = precursor_mass_tolerance_lower_;
+      const double snes_realize_tol_hi = precursor_mass_tolerance_upper_;
 
       // Reused across candidates of this spectrum. Avoids per-candidate heap
       // churn of a fresh PeakSpectrum + its DataArrays (TSG's add_metainfo fills
@@ -931,7 +932,8 @@ namespace OpenMS
               + static_cast<double>(sms.isotope_error_) * c13c12_massdiff_u
               - static_cast<double>(sms.sigma_delta_);
           const int realized_len = fi.realizeSNESLength(
-              sms_pep, db, iso_shifted_target, snes_realize_tol, prec_tol_ppm);
+              sms_pep, db, iso_shifted_target,
+              snes_realize_tol_lo, snes_realize_tol_hi, prec_tol_ppm);
           if (realized_len < 0) continue; // no realizable length within tolerance
 
           // L2 dedup: skip if this exact realization was already scored via

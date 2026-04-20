@@ -1351,9 +1351,9 @@ START_SECTION((realizeSNESLength locates the correct sub-peptide length))
   }
   TEST_NOT_EQUAL(mother_idx, peptides.size())
 
-  // 10 ppm tolerance is ample for an exact-mass lookup.
+  // 10 ppm symmetric tolerance is ample for an exact-mass lookup.
   const int realized = fi.realizeSNESLength(peptides[mother_idx], entries,
-                                            target_mh_plus, 10.0, /*ppm=*/true);
+                                            target_mh_plus, 10.0, 10.0, /*ppm=*/true);
   TEST_EQUAL(realized, 10)
 
   AASequence realized_seq = fi.reconstructRealizedSubSequence(
@@ -1400,8 +1400,24 @@ START_SECTION((realizeSNESLength handles Single-C realization))
   TEST_NOT_EQUAL(mother_idx, peptides.size())
 
   const int realized = fi.realizeSNESLength(peptides[mother_idx], entries,
-                                            target_mh_plus, 10.0, /*ppm=*/true);
+                                            target_mh_plus, 10.0, 10.0, /*ppm=*/true);
   TEST_EQUAL(realized, 9)
+
+  // Asymmetric-tolerance regression (review L3): shift the target ABOVE
+  // the true mass so realized_mass - shifted_target ≈ -50 mDa (negative).
+  // That delta is inside [-tol_lower, +tol_upper] only if tol_lower ≥ 50 mDa.
+  // A symmetric max(lower, upper) collapse would silently admit both cases
+  // below; the asymmetric implementation rejects the tight-lower config.
+  const double shifted_high = target_mh_plus + 0.05; // ~50 mDa ≈ 50 ppm at mass 1000
+  // Loose lower (500 ppm ≈ 500 mDa), tight upper (10 ppm ≈ 10 mDa): accept.
+  TEST_EQUAL(fi.realizeSNESLength(peptides[mother_idx], entries,
+                                   shifted_high,
+                                   /*lower=*/500.0, /*upper=*/10.0, /*ppm=*/true), 9)
+  // Tight lower (10 ppm), loose upper (500 ppm): reject (negative delta
+  // exceeds the tight lower bound; upper bound irrelevant here).
+  TEST_EQUAL(fi.realizeSNESLength(peptides[mother_idx], entries,
+                                   shifted_high,
+                                   /*lower=*/10.0, /*upper=*/500.0, /*ppm=*/true), -1)
 
   AASequence realized_seq = fi.reconstructRealizedSubSequence(
       peptides[mother_idx], entries, static_cast<size_t>(realized));
