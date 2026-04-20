@@ -1130,6 +1130,8 @@ public:
                                 int& chr_idx,
                                 int& peak_idx) const
     {
+      OPENMS_PRECONDITION(largest_peak_indices.size() == picked_chroms.size(),
+                          "Cached largest peak indices must match picked chromatogram count.");
       double largest = 0.0;
       for (Size k = 0; k < picked_chroms.size(); k++)
       {
