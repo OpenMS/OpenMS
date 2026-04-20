@@ -1579,8 +1579,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     // the minimum-matched-peaks threshold.
     static const double water = Residue::getInternalToFull().getMonoWeight();
 
-    // Dedup guard per (charge, iso_err) iteration so a mother with multiple
-    // terminal fragments in the target bin doesn't produce duplicate hits.
+    // Dedup guard (thread_local, sized once per query). The actual per-
+    // (charge, iso_err, sigma) reset happens inside the Σ loops below via
+    // std::fill — this assign() is only for size-safe initialization of
+    // the thread-local buffer when fi_peptides_.size() changes between calls.
     thread_local std::vector<uint8_t> emitted;
     emitted.assign(fi_peptides_.size(), 0);
 
