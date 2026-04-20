@@ -912,12 +912,17 @@ namespace OpenMS
           const double exp_mz = exp_spectrum.getPrecursors()[0].getMZ();
           const double observed_mh_plus =
               exp_mz * sms.precursor_charge_ - (sms.precursor_charge_ - 1) * proton_mass_u;
+          // SNES v1.1: subtract the variable-mod Σ from the realization target
+          // so realizeSNESLength compares against the *unmodified* realized mass.
+          // For v1 (unmodified) hits, sms.sigma_delta_ == 0 — same semantics as before.
           const double iso_shifted_target = observed_mh_plus
-              + static_cast<double>(sms.isotope_error_) * c13c12_massdiff_u;
+              + static_cast<double>(sms.isotope_error_) * c13c12_massdiff_u
+              - static_cast<double>(sms.sigma_delta_);
           const int realized_len = fi.realizeSNESLength(
               sms_pep, db, iso_shifted_target, snes_realize_tol, prec_tol_ppm);
           if (realized_len < 0) continue; // no realizable length within tolerance
-          mod_candidate = fi.reconstructRealizedSubSequence(sms_pep, db, static_cast<size_t>(realized_len));
+          mod_candidate = fi.reconstructRealizedSubSequence(
+              sms_pep, db, static_cast<size_t>(realized_len), sms.subset_bitmask_);
         }
         else
         {
