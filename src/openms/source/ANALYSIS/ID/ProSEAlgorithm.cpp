@@ -884,7 +884,7 @@ namespace OpenMS
 
       const MSSpectrum& exp_spectrum = spectra[scan_index];
       FragmentIndex::SpectrumMatchesTopN top_sms;
-      fi.querySpectrum(exp_spectrum, top_sms);
+      fi.querySpectrum(exp_spectrum, db, top_sms);
 
       const bool snes_mode = fi.isSnesMode();
       const bool prec_tol_ppm = precursor_mass_tolerance_unit_ == "ppm";

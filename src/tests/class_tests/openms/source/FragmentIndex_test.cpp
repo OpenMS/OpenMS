@@ -1557,7 +1557,7 @@ START_SECTION((SNES index admits a candidate whose sub-peptide matches an observ
   spec.setMSLevel(2);
 
   FragmentIndex::SpectrumMatchesTopN sms;
-  fi.querySpectrum(spec, sms);
+  fi.querySpectrum(spec, entries, sms);
 
   // At least one of the returned candidates must correspond to a mother whose
   // protein contains "ACDEFGRHIL" as a sub-sequence — trivially true here.
@@ -1631,7 +1631,7 @@ START_SECTION((SNES matches candidates when a fixed N-terminal modification is c
   spec.setMSLevel(2);
 
   FragmentIndex::SpectrumMatchesTopN sms;
-  fi.querySpectrum(spec, sms);
+  fi.querySpectrum(spec, entries, sms);
 
   bool any_matched = false;
   for (const auto& hit : sms.hits_)
@@ -1935,7 +1935,7 @@ START_SECTION((SNES query returns candidate with subset_bitmask for variable-mod
   spec.setMSLevel(2);
 
   FragmentIndex::SpectrumMatchesTopN sms;
-  fi.querySpectrum(spec, sms);
+  fi.querySpectrum(spec, entries, sms);
 
   bool found_modified = false;
   for (const auto& hit : sms.hits_)
@@ -2006,7 +2006,7 @@ START_SECTION((SNES emits one SpectrumMatch per valid subset at the same Σ (emi
   spec.setMSLevel(2);
 
   FragmentIndex::SpectrumMatchesTopN sms;
-  fi.querySpectrum(spec, sms);
+  fi.querySpectrum(spec, entries, sms);
 
   // Collect the subset_bitmask_ values of modified hits for any mother that
   // could realize "ACDEFMGMR".
@@ -2149,7 +2149,7 @@ START_SECTION((SNES handles identical-delta variable mods without collapsing sub
   spec.setMSLevel(2);
 
   FragmentIndex::SpectrumMatchesTopN sms;
-  fi.querySpectrum(spec, sms);
+  fi.querySpectrum(spec, entries, sms);
 
   std::set<uint32_t> modified_bitmasks;
   for (const auto& hit : sms.hits_)
@@ -2226,7 +2226,7 @@ START_SECTION((SNES query admits PROTEIN_N_TERM variable mod only for anchor-0 m
   spec.setMSLevel(2);
 
   FragmentIndex::SpectrumMatchesTopN sms;
-  fi.querySpectrum(spec, sms);
+  fi.querySpectrum(spec, entries, sms);
 
   // The match must come from the anchored protein (idx 0), not the
   // mid-protein one (idx 1). Verify via the mother's protein_idx.
@@ -2305,7 +2305,7 @@ START_SECTION((SNES query admits PROTEIN_C_TERM variable mod only for anchor-end
   spec.setMSLevel(2);
 
   FragmentIndex::SpectrumMatchesTopN sms;
-  fi.querySpectrum(spec, sms);
+  fi.querySpectrum(spec, entries, sms);
 
   // Amidated delta ≈ -0.984016. sigma_delta_ stores the raw Σ, which is
   // negative for mass-loss mods; the tolerance check handles this correctly.
@@ -2381,7 +2381,7 @@ START_SECTION((SNES query-path rejects position-conflicting subsets))
   spec.setMSLevel(2);
 
   FragmentIndex::SpectrumMatchesTopN sms;
-  fi.querySpectrum(spec, sms);
+  fi.querySpectrum(spec, entries, sms);
 
   // No hit should have sigma_delta_ ≈ 85.017 with subset_bitmask_ != 0,
   // because the only subset summing to that Σ requires two N-term mods

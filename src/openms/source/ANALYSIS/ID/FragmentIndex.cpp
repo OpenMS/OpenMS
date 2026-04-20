@@ -465,7 +465,6 @@ namespace OpenMS
     bucket_min_mz_.clear();
     is_build_ = false;
     mod_tables_initialized_ = false;
-    fasta_entries_ptr_for_snes_ = nullptr;
     protein_lengths_.clear();
   }
 
@@ -1048,7 +1047,6 @@ namespace OpenMS
       {
         protein_lengths_.push_back(static_cast<uint32_t>(e.sequence.size()));
       }
-      fasta_entries_ptr_for_snes_ = &fasta_entries;
 
       /// generate all Peptides (also initializes residue mass table and mod tables)
       generatePeptides(fasta_entries);
@@ -1490,6 +1488,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
   }
 
   void FragmentIndex::querySpectrumSNES_(const MSSpectrum& spectrum,
+                                          const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                                           SpectrumMatchesTopN& sms)
   {
     // Preconditions checked by the public entry point querySpectrum.
@@ -1851,7 +1850,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       expanded.reserve(sms.hits_.size());
       std::unordered_map<size_t, size_t> subsets_per_mother;
 
-      const auto& fasta_entries_ref = *fasta_entries_ptr_for_snes_;
+      const auto& fasta_entries_ref = fasta_entries;
 
       for (const SpectrumMatch& sm_raw : sms.hits_)
       {
@@ -1980,7 +1979,15 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
       if (is_snes_mode_)
       {
-        querySpectrumSNES_(spectrum, sms);
+        if (!modifications_variable_.empty())
+        {
+          OPENMS_LOG_ERROR << "[FragmentIndex] querySpectrum called without FASTA in SNES mode "
+                              "with variable modifications — results would be undefined. "
+                              "Use querySpectrum(spectrum, fasta_entries, sms) instead.\n";
+          return;
+        }
+        static const std::vector<FASTAFile::FASTAEntry> empty_fasta;
+        querySpectrumSNES_(spectrum, empty_fasta, sms);
         return;
       }
 
@@ -2002,6 +2009,61 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       // loop over all PRECURSOR-charges
 
 
+
+      for (uint16_t charge : charges)
+      {
+        SpectrumMatchesTopN candidates_charge;
+        float mz;
+        mz = (float)precursor[0].getMZ() * charge - ((charge-1) * Constants::PROTON_MASS_U);
+        searchDifferentPrecursorRanges(spectrum, mz, candidates_charge, charge);
+
+        sms += candidates_charge;
+      }
+      trimHits(sms);
+  }
+
+  void FragmentIndex::querySpectrum(const OpenMS::MSSpectrum& spectrum,
+                                    const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                    OpenMS::FragmentIndex::SpectrumMatchesTopN& sms)
+  {
+      if (!isBuild())
+      {
+        OPENMS_LOG_WARN << "FragmentIndex not yet build \n";
+        return;
+      }
+
+      if (spectrum.empty() || (spectrum.getMSLevel() != 2))
+      {
+        return;
+      }
+
+      const auto& precursor = spectrum.getPrecursors();
+      if (precursor.size() != 1)
+      {
+        OPENMS_LOG_WARN << "Number of precursors is not equal 1 \n";
+        return;
+      }
+
+      if (is_snes_mode_)
+      {
+        querySpectrumSNES_(spectrum, fasta_entries, sms);
+        return;
+      }
+
+      // Non-SNES path: fasta_entries not needed.
+      // two posible modes. Precursor has a charge or we test all possible charges
+      vector<size_t> charges;
+      if (precursor[0].getCharge())
+      {
+        charges.push_back(precursor[0].getCharge());
+      }
+      else
+      {
+        for (uint16_t i = min_precursor_charge_; i <= max_precursor_charge_; i++)
+        {
+          charges.push_back(i);
+        }
+      }
 
       for (uint16_t charge : charges)
       {

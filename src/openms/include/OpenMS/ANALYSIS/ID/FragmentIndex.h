@@ -184,12 +184,6 @@ namespace OpenMS
      * the fragments are sorted within the buckets by their originating precursor mass.
      *
      * @param[in] fasta_entries The FASTA entries used to build the index.
-     *
-     * @note In SNES mode, a pointer to @p fasta_entries is cached for the
-     * lifetime of subsequent querySpectrum calls. The caller MUST keep the
-     * original vector alive until all queries complete, or until build() is
-     * called again with a different vector. Calling querySpectrum with a
-     * stale pointer produces undefined behavior.
      */
     void build(const std::vector<FASTAFile::FASTAEntry> & fasta_entries);
 
@@ -306,6 +300,21 @@ namespace OpenMS
      * @param[out] sms The n best Spectrum matches
      */
     void querySpectrum(const MSSpectrum& spectrum,
+                       SpectrumMatchesTopN& sms);
+
+    /**
+     * @brief Query a spectrum against the fragment index with FASTA context.
+     *
+     * Required when FragmentIndex is in SNES mode with variable modifications;
+     * the FASTA is needed to realize sub-peptide sequences and apply variable mods.
+     * Non-SNES and SNES-without-var-mods paths ignore the @p fasta_entries argument.
+     *
+     * @param[in]  spectrum      Experimental spectrum with a single precursor.
+     * @param[in]  fasta_entries The FASTA database passed to build().
+     * @param[out] sms           Accumulated candidate matches.
+     */
+    void querySpectrum(const MSSpectrum& spectrum,
+                       const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                        SpectrumMatchesTopN& sms);
 
     /** @brief Reconstruct a fully modified AASequence from a Peptide's bitmask.
@@ -583,14 +592,6 @@ protected:
     /// Used by SNES v1.1 to gate PROTEIN_C_TERM variable-mod bin walks.
     std::vector<uint32_t> protein_lengths_;
 
-    /// SNES v1.1: pointer to the fasta entries passed to build(), cached so that
-    /// querySpectrumSNES_ can realize sub-peptides and apply variable mods
-    /// without re-threading fasta_entries through the query interface.
-    /// LIFETIME: the caller must keep the vector passed to build() alive for
-    /// the duration of subsequent querySpectrum calls. Dangling if the caller
-    /// drops the vector.
-    const std::vector<FASTAFile::FASTAEntry>* fasta_entries_ptr_for_snes_{nullptr};
-
     float fragment_min_mz_;  ///< smallest fragment mz
     float fragment_max_mz_;  ///< largest fragment mz
     size_t min_ion_index_{0}; ///< skip ions below this index (0=all, 2=skip b1/b2/y1/y2)
@@ -642,7 +643,9 @@ private:
      * @param[out] sms Accumulated candidate matches, ordered by insertion
      *             (caller runs full-score and top-N selection downstream).
      */
-    void querySpectrumSNES_(const MSSpectrum& spectrum, SpectrumMatchesTopN& sms);
+    void querySpectrumSNES_(const MSSpectrum& spectrum,
+                            const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                            SpectrumMatchesTopN& sms);
 
     /**
      * @brief queries peaks for a given experimental spectrum with a set range of potential peptides, isotope error and precursor charge. Hits are transferred into a PSM list.
