@@ -1058,6 +1058,12 @@ namespace OpenMS
 
   void FeatureFinderAlgorithmPicked::run(PeakMap& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds)
   {
+    PeakMap input_map_copy(input_map);
+    run(std::move(input_map_copy), features, param, seeds);
+  }
+
+  void FeatureFinderAlgorithmPicked::run(PeakMap&& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds)
+  {
     // Nothing to do if there is no data
     if (input_map.empty())
     {
