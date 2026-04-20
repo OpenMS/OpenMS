@@ -253,7 +253,7 @@ namespace OpenMS
     startProgress(0, 1, "reading PQP file (SQL warmup)");
 
     // Open database
-    SqliteConnector conn(filename, SqliteConnector::SqlOpenMode::READONLY);
+    SqliteConnector conn(filename, SqliteConnector::SqlOpenMode::READ_ONLY);
     db = conn.getDB();
     configurePQPReadConnection_(db);
 
@@ -337,7 +337,7 @@ namespace OpenMS
     startProgress(0, 1, "reading PQP file (SQL warmup)");
 
     // Open database
-    SqliteConnector conn(filename, SqliteConnector::SqlOpenMode::READONLY);
+    SqliteConnector conn(filename, SqliteConnector::SqlOpenMode::READ_ONLY);
     db = conn.getDB();
     configurePQPReadConnection_(db);
 
