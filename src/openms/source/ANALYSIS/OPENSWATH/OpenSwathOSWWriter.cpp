@@ -1487,10 +1487,22 @@ namespace OpenMS
       catch (...) {}
     }
     conn_->executeStatement("BEGIN TRANSACTION");
-    for (Size i = 0; i < to_osw_output.size(); i++)
+    try
     {
-      conn_->executeStatement(to_osw_output[i]);
+      for (Size i = 0; i < to_osw_output.size(); i++)
+      {
+        conn_->executeStatement(to_osw_output[i]);
+      }
+      conn_->executeStatement("END TRANSACTION");
     }
-    conn_->executeStatement("END TRANSACTION");
+    catch (...)
+    {
+      try
+      {
+        conn_->executeStatement("ROLLBACK TRANSACTION");
+      }
+      catch (...) {}
+      throw;
+    }
   }
 }
