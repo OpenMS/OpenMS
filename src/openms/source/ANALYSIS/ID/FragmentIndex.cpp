@@ -1637,6 +1637,30 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       }
     };
 
+    // SNES v1.1: precompute the set-difference Σ values that only appear in
+    // the protein-anchored-only sets. These drive extra bin walks gated by
+    // the SnesAnchor filter in collect_candidates. When no protein-term
+    // variable mods are configured, these vectors are empty and the extra
+    // walks are skipped entirely.
+    auto set_difference_tol = [](const std::vector<double>& A, const std::vector<double>& B) {
+      std::vector<double> out;
+      out.reserve(A.size());
+      for (double a : A)
+      {
+        bool found = false;
+        for (double b : B)
+        {
+          if (std::abs(a - b) < 1e-6) { found = true; break; }
+        }
+        if (!found) out.push_back(a);
+      }
+      return out;
+    };
+    const std::vector<double> prot_nterm_extra = set_difference_tol(
+        snes_sigma_delta_set_with_prot_nterm_, snes_sigma_delta_set_);
+    const std::vector<double> prot_cterm_extra = set_difference_tol(
+        snes_sigma_delta_set_with_prot_cterm_, snes_sigma_delta_set_);
+
     for (uint16_t charge : charges)
     {
       const float mh_plus = static_cast<float>(precursor.getMZ()) * charge
@@ -1659,67 +1683,146 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           : static_cast<float>(std::max(precursor_mass_tolerance_lower_,
                                         precursor_mass_tolerance_upper_));
 
-        // Reset the dedup guard for this (charge, iso_err) combo.
-        // INVARIANT: this reset MUST live inside the (charge, iso_err) loop —
-        // distinct (charge, iso_err) tuples produce independent candidate rows
-        // with their own isotope_error_ / precursor_charge_ fields, so they
-        // must be allowed to re-emit the same mother. Hoisting this above the
-        // loop would suppress valid candidates at iso_err != 0.
-        std::fill(emitted.begin(), emitted.end(), 0);
-
-        // Target m/z derivation, accounting for the fact that SNES fragment
-        // generation (build()) emits Single-N b-ions with c_term_mod = 0 and
-        // Single-C y-ions with n_term_mod = 0:
-        //   Realized (M+H)+ = water + proton + fixed_nterm + fixed_cterm + Σ_internal
-        //   b_k (Single-N)  = proton + fixed_nterm + Σ_internal
-        //                   => (M+H)+ − water − fixed_cterm
-        //   y_k (Single-C)  = water + proton + fixed_cterm + Σ_internal
-        //                   => (M+H)+ − fixed_nterm
-        // Missing the fixed-term offsets would shift the lookup target by the
-        // corresponding delta and silently miss all candidates when a user
-        // configures Acetyl (N-term) / Amidated (C-term) / similar.
-        collect_candidates(shifted_mh - static_cast<float>(water)
-                                      - static_cast<float>(fixed_cterm_delta_),
-                           prec_tol, /*expect_single_c=*/false, iso_err, charge,
-                           SnesAnchor::NONE, 0.0f);
-        collect_candidates(shifted_mh - static_cast<float>(fixed_nterm_delta_),
-                           prec_tol, /*expect_single_c=*/true, iso_err, charge,
-                           SnesAnchor::NONE, 0.0f);
-
-        // Supplementary lookup: full-length realization (realized length = mother
-        // length). b_L and y_L are NOT in the fragment index (the generation loop
-        // emits b_1..b_{L-1} and y_1..y_{L-1} only), so any realization where
-        // k == mother_length is missed by the two bin walks above. MetaMorpheus
-        // addresses this with a separate PrecursorIndex built from mother masses.
-        // ProSE already sorts fi_peptides_ by precursor_mz_, so a direct binary
-        // search recovers the same primitive at zero extra storage.
-        //
-        // This matters especially for (a) sub-peptides of length == max_length,
-        // which have no "longer-mother" partial-realization alternative, and
-        // (b) proteins shorter than max_length, where every mother is at full
-        // protein length.
-        auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
-                                    shifted_mh - prec_tol,
-                                    [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
-        auto ub = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(),
-                                    shifted_mh + prec_tol,
-                                    [](float b, const Peptide& a) { return b < a.precursor_mz_; });
-        // TODO(Task 7): This supplementary full-length realization block currently
-        // runs once per (charge, iso_err) at Σ=0. v1.1 Task 7 needs to restructure
-        // it to participate in the Σ loop and tag emitted matches with the active
-        // Σ value (sm.sigma_delta_ = sigma).
-        for (auto it = lb; it != ub; ++it)
+        // Baseline Σ loop: walks every mother regardless of protein anchor.
+        // Each (charge, iso_err, sigma) triple is independent — reset the dedup
+        // guard per iteration so the same mother can emit distinct matches at
+        // different Σ values (each represents a distinct variable-mod assignment).
+        for (double sigma : snes_sigma_delta_set_)
         {
-          const UInt32 id = static_cast<UInt32>(std::distance(fi_peptides_.begin(), it));
-          if (emitted[id]) continue;
-          if (score_table[id] < min_matched_peaks_) continue;
-          emitted[id] = 1;
-          SpectrumMatch sm;
-          sm.peptide_idx_ = id;
-          sm.num_matched_ = score_table[id];
-          sm.isotope_error_ = iso_err;
-          sm.precursor_charge_ = charge;
-          sms.hits_.push_back(sm);
+          // Reset dedup per (charge, iso_err, sigma) combo so the same mother
+          // can re-emit at distinct sigma values (each is a distinct match).
+          std::fill(emitted.begin(), emitted.end(), 0);
+
+          const float s = static_cast<float>(sigma);
+
+          // Target m/z derivation, accounting for the fact that SNES fragment
+          // generation (build()) emits Single-N b-ions with c_term_mod = 0 and
+          // Single-C y-ions with n_term_mod = 0:
+          //   Realized (M+H)+ = water + proton + fixed_nterm + fixed_cterm + Σ_internal
+          //   b_k (Single-N)  = proton + fixed_nterm + Σ_internal
+          //                   => (M+H)+ − water − fixed_cterm − Σ
+          //   y_k (Single-C)  = water + proton + fixed_cterm + Σ_internal
+          //                   => (M+H)+ − fixed_nterm − Σ
+          // Missing the fixed-term offsets would shift the lookup target by the
+          // corresponding delta and silently miss all candidates when a user
+          // configures Acetyl (N-term) / Amidated (C-term) / similar.
+          collect_candidates(shifted_mh - static_cast<float>(water)
+                                        - static_cast<float>(fixed_cterm_delta_) - s,
+                             prec_tol, /*expect_single_c=*/false, iso_err, charge,
+                             SnesAnchor::NONE, s);
+          collect_candidates(shifted_mh - static_cast<float>(fixed_nterm_delta_) - s,
+                             prec_tol, /*expect_single_c=*/true, iso_err, charge,
+                             SnesAnchor::NONE, s);
+
+          // Supplementary full-length realization at this Σ — recover b_L and y_L
+          // cases that aren't in the fragment index (v1 indexes b_1..b_{L-1}
+          // and y_1..y_{L-1} only). Match mothers whose precursor_mz_ equals
+          // shifted_mh - s within prec_tol.
+          //
+          // This matters especially for (a) sub-peptides of length == max_length,
+          // which have no "longer-mother" partial-realization alternative, and
+          // (b) proteins shorter than max_length, where every mother is at full
+          // protein length.
+          {
+            const float target = shifted_mh - s;
+            auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
+                                        target - prec_tol,
+                                        [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
+            auto ub = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(),
+                                        target + prec_tol,
+                                        [](float b, const Peptide& a) { return b < a.precursor_mz_; });
+            for (auto it = lb; it != ub; ++it)
+            {
+              const UInt32 id = static_cast<UInt32>(std::distance(fi_peptides_.begin(), it));
+              if (emitted[id]) continue;
+              if (score_table[id] < min_matched_peaks_) continue;
+              emitted[id] = 1;
+              SpectrumMatch sm;
+              sm.peptide_idx_ = id;
+              sm.num_matched_ = score_table[id];
+              sm.isotope_error_ = iso_err;
+              sm.precursor_charge_ = charge;
+              sm.sigma_delta_ = s;
+              sms.hits_.push_back(sm);
+            }
+          }
+        }
+
+        // Extra walks for PROTEIN_N_TERM-only Σ values (Single-N mothers at
+        // protein position 0 only). Empty when no PROTEIN_N_TERM variable mods
+        // are configured.
+        for (double sigma : prot_nterm_extra)
+        {
+          std::fill(emitted.begin(), emitted.end(), 0);
+          const float s = static_cast<float>(sigma);
+          collect_candidates(shifted_mh - static_cast<float>(water)
+                                        - static_cast<float>(fixed_cterm_delta_) - s,
+                             prec_tol, /*expect_single_c=*/false, iso_err, charge,
+                             SnesAnchor::PROT_NTERM, s);
+          // Supplementary full-length at this Σ, PROT_NTERM-gated.
+          {
+            const float target = shifted_mh - s;
+            auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
+                                        target - prec_tol,
+                                        [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
+            auto ub = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(),
+                                        target + prec_tol,
+                                        [](float b, const Peptide& a) { return b < a.precursor_mz_; });
+            for (auto it = lb; it != ub; ++it)
+            {
+              const UInt32 id = static_cast<UInt32>(std::distance(fi_peptides_.begin(), it));
+              if (emitted[id]) continue;
+              if (fi_peptides_[id].sequence_.first != 0) continue; // PROT_NTERM anchor
+              if (isSingleCMother(fi_peptides_[id].mod_bitmask_)) continue; // Single-N only
+              if (score_table[id] < min_matched_peaks_) continue;
+              emitted[id] = 1;
+              SpectrumMatch sm;
+              sm.peptide_idx_ = id;
+              sm.num_matched_ = score_table[id];
+              sm.isotope_error_ = iso_err;
+              sm.precursor_charge_ = charge;
+              sm.sigma_delta_ = s;
+              sms.hits_.push_back(sm);
+            }
+          }
+        }
+
+        // Extra walks for PROTEIN_C_TERM-only Σ values.
+        for (double sigma : prot_cterm_extra)
+        {
+          std::fill(emitted.begin(), emitted.end(), 0);
+          const float s = static_cast<float>(sigma);
+          collect_candidates(shifted_mh - static_cast<float>(fixed_nterm_delta_) - s,
+                             prec_tol, /*expect_single_c=*/true, iso_err, charge,
+                             SnesAnchor::PROT_CTERM, s);
+          // Supplementary full-length at this Σ, PROT_CTERM-gated.
+          {
+            const float target = shifted_mh - s;
+            auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
+                                        target - prec_tol,
+                                        [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
+            auto ub = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(),
+                                        target + prec_tol,
+                                        [](float b, const Peptide& a) { return b < a.precursor_mz_; });
+            for (auto it = lb; it != ub; ++it)
+            {
+              const UInt32 id = static_cast<UInt32>(std::distance(fi_peptides_.begin(), it));
+              if (emitted[id]) continue;
+              if (!isSingleCMother(fi_peptides_[id].mod_bitmask_)) continue; // Single-C only
+              const uint32_t prot_len = protein_lengths_[fi_peptides_[id].protein_idx];
+              if (static_cast<uint32_t>(fi_peptides_[id].sequence_.first)
+                  + fi_peptides_[id].sequence_.second != prot_len) continue;
+              if (score_table[id] < min_matched_peaks_) continue;
+              emitted[id] = 1;
+              SpectrumMatch sm;
+              sm.peptide_idx_ = id;
+              sm.num_matched_ = score_table[id];
+              sm.isotope_error_ = iso_err;
+              sm.precursor_charge_ = charge;
+              sm.sigma_delta_ = s;
+              sms.hits_.push_back(sm);
+            }
+          }
         }
       }
     }
