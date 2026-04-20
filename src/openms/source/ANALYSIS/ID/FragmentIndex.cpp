@@ -38,6 +38,7 @@
 #include <cmath>
 #include <functional>
 #include <mutex>
+#include <unordered_map>
 #include <boost/sort/sort.hpp>
 
 
@@ -1044,6 +1045,7 @@ namespace OpenMS
       {
         protein_lengths_.push_back(static_cast<uint32_t>(e.sequence.size()));
       }
+      fasta_entries_ptr_for_snes_ = &fasta_entries;
 
       /// generate all Peptides (also initializes residue mass table and mod tables)
       generatePeptides(fasta_entries);
@@ -1586,6 +1588,14 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     thread_local std::vector<uint8_t> emitted;
     emitted.assign(fi_peptides_.size(), 0);
 
+    // Helper: compute the iso-shifted observed (M+H)+ for a given (charge, iso_err).
+    // Used by the subset-enumeration post-pass to reconstruct the realization target.
+    auto shifted_mh_for = [&](uint16_t charge, int16_t iso_err) -> float {
+      const float mh_plus = static_cast<float>(precursor.getMZ()) * charge
+        - (charge - 1) * static_cast<float>(Constants::PROTON_MASS_U);
+      return mh_plus + static_cast<float>(iso_err) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
+    };
+
     auto collect_candidates =
       [&](float target_mz, float tol, bool expect_single_c, int16_t iso_err, uint16_t charge,
           SnesAnchor require_anchor, float sigma_tag)
@@ -1827,6 +1837,94 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           }
         }
       }
+    }
+
+    // SNES v1.1 subset enumeration: expand each (mother, Σ) hit in sms.hits_
+    // into one SpectrumMatch per valid variable-mod subset on the realized
+    // sub-peptide. Σ=0 hits pass through unchanged (bitmask=0). Per-mother
+    // cap of 16 subsets across all (k, Σ) tuples prevents degenerate blowup.
+    {
+      std::vector<SpectrumMatch> expanded;
+      expanded.reserve(sms.hits_.size());
+      std::unordered_map<size_t, size_t> subsets_per_mother;
+
+      const auto& fasta_entries_ref = *fasta_entries_ptr_for_snes_;
+
+      for (const SpectrumMatch& sm_raw : sms.hits_)
+      {
+        if (sm_raw.sigma_delta_ == 0.0f)
+        {
+          // No variable mods: pass through unchanged, bitmask already 0.
+          expanded.push_back(sm_raw);
+          continue;
+        }
+
+        const Peptide& mother = fi_peptides_[sm_raw.peptide_idx_];
+        const double iso_shifted_target =
+            static_cast<double>(shifted_mh_for(sm_raw.precursor_charge_, sm_raw.isotope_error_))
+            - static_cast<double>(sm_raw.sigma_delta_);
+        const int realized_len = realizeSNESLength(
+            mother, fasta_entries_ref, iso_shifted_target,
+            std::max(precursor_mass_tolerance_lower_, precursor_mass_tolerance_upper_),
+            precursor_mass_tolerance_unit_ppm_);
+        if (realized_len < 0) continue;
+
+        const std::string& protein_seq = fasta_entries_ref[mother.protein_idx].sequence;
+        const bool is_single_c = isSingleCMother(mother.mod_bitmask_);
+        const size_t sub_start = is_single_c
+            ? mother.sequence_.first + mother.sequence_.second - static_cast<size_t>(realized_len)
+            : mother.sequence_.first;
+        const size_t sub_len = static_cast<size_t>(realized_len);
+        const char* seq_ptr = protein_seq.c_str() + sub_start;
+        const bool is_prot_nterm = (sub_start == 0);
+        const bool is_prot_cterm = (sub_start + sub_len == protein_seq.size());
+
+        ModSlot slots[MAX_MOD_SLOTS];
+        const size_t n_slots = buildModSlots_(seq_ptr, sub_len, slots, is_prot_nterm, is_prot_cterm);
+
+        // Enumerate bitmask subsets 1..(2^n_slots - 1) with constraints:
+        //   - popcount ≤ max_variable_mods_per_peptide_
+        //   - no two active bits share a residue position
+        //   - Σ_subset ≈ sigma_delta_ within 1e-6 Da
+        // Cap: ≤ 16 subsets per mother (across all k, Σ tuples in this query).
+        if (n_slots == 0) continue;
+        const uint32_t max_bitmask = (n_slots >= 31) ? 0xFFFFFFFFu : (1u << n_slots);
+        for (uint32_t bm = 1; bm < max_bitmask; ++bm)
+        {
+          if (static_cast<size_t>(std::popcount(bm)) > max_variable_mods_per_peptide_) continue;
+
+          // Position-conflict check.
+          bool conflict = false;
+          for (size_t a = 0; a < n_slots && !conflict; ++a)
+          {
+            if (!(bm & (1u << a))) continue;
+            for (size_t b = a + 1; b < n_slots; ++b)
+            {
+              if (!(bm & (1u << b))) continue;
+              if (slots[a].position == slots[b].position) { conflict = true; break; }
+            }
+          }
+          if (conflict) continue;
+
+          // Σ match check.
+          double subset_sigma = 0.0;
+          for (size_t s = 0; s < n_slots; ++s)
+          {
+            if (bm & (1u << s)) subset_sigma += slots[s].delta_mass;
+          }
+          if (std::abs(subset_sigma - static_cast<double>(sm_raw.sigma_delta_)) >= 1e-6) continue;
+
+          // Per-mother cap.
+          size_t& count = subsets_per_mother[sm_raw.peptide_idx_];
+          if (count >= 16) break;
+
+          SpectrumMatch sm_variant = sm_raw;
+          sm_variant.subset_bitmask_ = bm;
+          expanded.push_back(sm_variant);
+          ++count;
+        }
+      }
+      sms.hits_ = std::move(expanded);
     }
 
     // Cap the candidate set at `max_processed_hits_` (same policy as the

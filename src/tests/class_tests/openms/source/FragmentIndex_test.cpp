@@ -1885,4 +1885,69 @@ START_SECTION((reconstructRealizedSubSequence applies mods from subset_bitmask))
 }
 END_SECTION
 
+START_SECTION((SNES query returns candidate with subset_bitmask for variable-mod spectrum))
+{
+  // Build SNES index with Oxidation (M) variable mod. Synthesize a spectrum
+  // from "ACDEFMGR" with Oxidation applied at the M residue (sub-peptide
+  // position 5, 0-based). Query → expect at least one hit with
+  // subset_bitmask_ != 0 and sigma_delta_ ≈ 15.995.
+  const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKACDEFMGRHILNPQSTV"}};
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 12);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
+  p.setValue("modifications:variable_max_per_peptide", 1);
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  p.setValue("fragment:min_matched_ions", 3);
+  fi.setParameters(p);
+  fi.build(entries);
+
+  AASequence target = AASequence::fromString("ACDEFMGR");
+  target.setModification(5, "Oxidation"); // M residue, 0-based position 5
+
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_p = tsg.getParameters();
+  tsg_p.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_p);
+  PeakSpectrum theo;
+  tsg.getSpectrum(theo, target, 1, 1);
+  theo.sortByPosition();
+
+  MSSpectrum spec;
+  for (const auto& peak : theo) spec.push_back(peak);
+  Precursor prec;
+  prec.setMZ(target.getMonoWeight() + Constants::PROTON_MASS_U);
+  prec.setCharge(1);
+  spec.getPrecursors().push_back(prec);
+  spec.setMSLevel(2);
+
+  FragmentIndex::SpectrumMatchesTopN sms;
+  fi.querySpectrum(spec, sms);
+
+  bool found_modified = false;
+  for (const auto& hit : sms.hits_)
+  {
+    if (hit.subset_bitmask_ != 0 && std::abs(hit.sigma_delta_ - 15.994915f) < 0.01f)
+    {
+      found_modified = true;
+      break;
+    }
+  }
+  TEST_EQUAL(found_modified, true)
+}
+END_SECTION
+
 END_TEST

@@ -577,6 +577,11 @@ protected:
     /// Used by SNES v1.1 to gate PROTEIN_C_TERM variable-mod bin walks.
     std::vector<uint32_t> protein_lengths_;
 
+    /// SNES v1.1: pointer to the fasta entries passed to build(), cached so that
+    /// querySpectrumSNES_ can realize sub-peptides and apply variable mods
+    /// without re-threading fasta_entries through the query interface.
+    const std::vector<FASTAFile::FASTAEntry>* fasta_entries_ptr_for_snes_{nullptr};
+
     float fragment_min_mz_;  ///< smallest fragment mz
     float fragment_max_mz_;  ///< largest fragment mz
     size_t min_ion_index_{0}; ///< skip ions below this index (0=all, 2=skip b1/b2/y1/y2)
