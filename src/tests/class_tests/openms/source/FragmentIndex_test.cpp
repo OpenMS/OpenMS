@@ -1694,4 +1694,47 @@ START_SECTION((SpectrumMatch default-initializes subset_bitmask_ and sigma_delta
 }
 END_SECTION
 
+START_SECTION((reconstructModifiedSequence masks SNES_KIND_BIT_MASK from bitmask iteration))
+{
+  // Construct a FragmentIndex configured for SNES but with no variable mods
+  // so n_slots == 0. Build a Single-C mother (bit 31 set). Verify that
+  // reconstructModifiedSequence does not misinterpret bit 31 as an active
+  // slot (which would produce a garbage modification or out-of-range access).
+  const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "ACDEFGHIK"}};
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 9);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Find any Single-C mother in the index.
+  const auto& peptides = fi.getPeptides();
+  size_t single_c_idx = peptides.size();
+  for (size_t i = 0; i < peptides.size(); ++i)
+  {
+    if (FragmentIndex::isSingleCMother(peptides[i].mod_bitmask_))
+    {
+      single_c_idx = i;
+      break;
+    }
+  }
+  TEST_NOT_EQUAL(single_c_idx, peptides.size())
+
+  // reconstructModifiedSequence must return the bare sub-sequence with no
+  // variable modifications applied (since none are configured). It must NOT
+  // throw, assert, or produce a bitmask-out-of-range interpretation.
+  AASequence seq = fi.reconstructModifiedSequence(peptides[single_c_idx], entries);
+  TEST_EQUAL(seq.size() > 0, true)
+  TEST_EQUAL(seq.toUnmodifiedString().size(), peptides[single_c_idx].sequence_.second)
+}
+END_SECTION
+
 END_TEST

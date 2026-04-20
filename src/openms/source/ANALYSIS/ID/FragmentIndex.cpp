@@ -412,8 +412,13 @@ namespace OpenMS
       seq.setCTerminalModification(fixed_cterm_mod_ptr_);
     }
 
-    // Apply variable modifications from bitmask
-    if (peptide.mod_bitmask_ != 0)
+    // Apply variable modifications from bitmask.
+    // SNES defensive masking: bit 31 (SNES_KIND_BIT_MASK) encodes Single-C-ness,
+    // not a slot. Mask it off before iterating slot bits so the loop remains
+    // correct even when n_slots > 30 in future extensions. No-op in non-SNES
+    // mode where bit 31 is never set.
+    const uint32_t slot_bits = peptide.mod_bitmask_ & SNES_SLOT_MASK;
+    if (slot_bits != 0)
     {
       const char* seq_ptr = protein_seq.c_str() + peptide.sequence_.first;
       size_t seq_len = peptide.sequence_.second;
@@ -424,7 +429,7 @@ namespace OpenMS
 
       for (size_t s = 0; s < n_slots; ++s)
       {
-        if (!(peptide.mod_bitmask_ & (1u << s))) continue;
+        if (!(slot_bits & (1u << s))) continue;
 
         if (slots[s].position == ModSlot::NTERM_SLOT)
         {
