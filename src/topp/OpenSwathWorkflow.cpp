@@ -327,15 +327,29 @@ protected:
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
     setValidStrings_("extraction_function", ListUtils::create<String>("tophat,bartlett"));
 
-    registerIntOption_("batchSize", "<number>", 1000, "The batch size of chromatograms to process (0 means to only have one batch, sensible values are around 250-1000)", false, true);
+    registerIntOption_("batchSize", "<number>", 0,
+                       "Compound batch size for the legacy per-SWATH extraction/scoring path. "
+                       "0 enables automatic scheduling: with in-memory reads (cacheWorkingInMemory or workingInMemory) "
+                       "this uses the SWATH wave scheduler; otherwise it uses automatic "
+                       "inner batches in the legacy path. Set a positive value to force the legacy batch scheduler "
+                       "(typical legacy values are 250-1000).",
+                       false, true);
     setMinInt_("batchSize", 0);
-    registerIntOption_("innerBatchSize", "<number>", -1, "Inner batch size for scoring (<=0 enables auto compute based on input and memory)", false, true);
+    registerIntOption_("innerBatchSize", "<number>", -1,
+                       "Inner scoring batch size for automatic/wave scheduling (<=0 enables automatic sizing based on input and memory).",
+                       false, true);
     setMinInt_("innerBatchSize", -1);
     registerIntOption_("maxConcurrentSwaths", "<number>", -1,
-                       "Maximum concurrent SWATHs to keep in memory (-1 auto compute based on free memory and transition density)",
+                       "Maximum concurrent non-MS1 SWATH maps to keep in memory for automatic/wave scheduling "
+                       "(-1 auto compute based on free memory and transition density).",
                        false, true);
     setMinInt_("maxConcurrentSwaths", -1);
-    registerIntOption_("outer_loop_threads", "<number>", -1, "How many threads should be used for the outer loop (-1 use all threads, use 4 to analyze 4 SWATH windows in memory at once).", false, true);
+    registerIntOption_("outer_loop_threads", "<number>", -1,
+                       "Legacy nested OpenMP outer-loop thread count. This is only relevant for the old per-SWATH "
+                       "parallel path and only when OpenMS was built with nested OpenMP support. Leave -1 to allow "
+                       "automatic scheduling; with batchSize 0 and in-memory reads this permits the SWATH wave scheduler. "
+                       "Setting this >=0 requests legacy outer-loop parallelism and disables the wave scheduler in nested OpenMP builds.",
+                       false, true);
 
     registerIntOption_("ms1_isotopes", "<number>", 3, "The number of MS1 isotopes used for extraction", false, true);
     setMinInt_("ms1_isotopes", 0);

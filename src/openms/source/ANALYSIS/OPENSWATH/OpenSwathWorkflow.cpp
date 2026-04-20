@@ -498,7 +498,7 @@ namespace OpenMS
     const bool nested_scheduler_requested = false;
 #endif
     const bool use_swath_range_scheduler = batchSize <= 0 && load_into_memory && !ms1_only &&
-                                          mobilogram_consumer == nullptr && !nested_scheduler_requested;
+                                          !nested_scheduler_requested;
 #else
     const bool use_swath_range_scheduler = false;
 #endif
