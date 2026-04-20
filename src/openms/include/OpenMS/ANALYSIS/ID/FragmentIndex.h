@@ -644,6 +644,9 @@ private:
      * @c searchDifferentPrecursorRanges path is used.
      *
      * @param[in]  spectrum Experimental spectrum with a single precursor.
+     * @param[in]  fasta_entries Source database passed to build(); required
+     *             for realizing sub-peptides and applying variable mods
+     *             inside the SNES v1.1 subset-enumeration post-pass.
      * @param[out] sms Accumulated candidate matches, ordered by insertion
      *             (caller runs full-score and top-N selection downstream).
      */
