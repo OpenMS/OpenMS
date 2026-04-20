@@ -1875,7 +1875,11 @@ START_SECTION((reconstructRealizedSubSequence applies mods from subset_bitmask))
   AASequence unmod = fi.reconstructRealizedSubSequence(peptides[mother_idx], entries, 5u, 0u);
   TEST_EQUAL(unmod.toString(), "KAMCD")
 
-  // subset_bitmask = 1 (slot 0 active → M slot) → Oxidation applied.
+  // Slot numbering: buildModSlots_ enumerates pure N-term mods first, then
+  // per-residue mods left-to-right, then pure C-term mods. With only
+  // `Oxidation (M)` configured (ANYWHERE specificity, residue-bound), there
+  // are no pure N-term mods, so the M at sub-peptide position 2 is slot 0.
+  // subset_bitmask = 1u = 1 << 0 → activate that single slot.
   AASequence ox = fi.reconstructRealizedSubSequence(peptides[mother_idx], entries, 5u, 1u);
   TEST_EQUAL(ox.toString(), "KAM(Oxidation)CD")
 }

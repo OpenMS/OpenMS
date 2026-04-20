@@ -605,7 +605,7 @@ namespace OpenMS
     AASequence seq = AASequence::fromString(protein_seq.substr(realized_start, realized_length));
 
     const bool has_mods = !(modifications_fixed_.empty() && modifications_variable_.empty());
-    if (!has_mods) return seq;
+    if (!has_mods && subset_bitmask == 0) return seq;
 
     // Fixed residue mods — applied to every residue of the realized sub-peptide.
     for (size_t i = 0; i < seq.size(); ++i)
