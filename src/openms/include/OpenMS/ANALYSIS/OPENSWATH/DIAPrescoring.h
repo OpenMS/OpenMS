@@ -38,8 +38,13 @@ namespace OpenMS
     int nr_isotopes_;
     int nr_charges_;
 public:
-    /// Transition-group-specific theoretical spectrum used by the DIA prescore.
-    struct PreparedSpectrum
+    /**
+      @brief Transition-group-specific theoretical spectrum used by the DIA prescore.
+
+      Stores precomputed theoretical m/z and intensity arrays plus rescaling
+      bounds for repeated scoring of the same transition group.
+    */
+    struct OPENMS_DLLAPI PreparedSpectrum
     {
       std::vector<double> mz_theor;
       std::vector<double> int_theor;
@@ -47,6 +52,11 @@ public:
       double neg_val = 0.0;
       double pos_val = 0.0;
 
+      /**
+        @brief Reset all cached spectrum data.
+
+        Clears the cached arrays and resets scaling values to zero.
+      */
       void clear();
     };
 

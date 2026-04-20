@@ -131,13 +131,21 @@ public:
                              double& dotprod,
                              double& manhattan) const;
 
-    /// DIA extraction window in Th or ppm.
+    /**
+      @brief Return the DIA extraction window.
+
+      The value is expressed in Thomson or ppm, depending on isDIAExtractionPPM().
+    */
     double getDIAExtractionWindow() const
     {
       return dia_extract_window_;
     }
 
-    /// Whether the DIA extraction window is interpreted in ppm.
+    /**
+      @brief Return whether the DIA extraction window is interpreted in ppm.
+
+      Returns false when the extraction window is interpreted in Thomson.
+    */
     bool isDIAExtractionPPM() const
     {
       return dia_extraction_ppm_;
