@@ -437,6 +437,17 @@ protected:
     size_t buildModSlots_(const char* sequence, size_t seq_len, ModSlot* out_slots,
                           bool is_protein_nterm = false, bool is_protein_cterm = false) const;
 
+    /// Enumerate distinct Σ values achievable by any subset of configured
+    /// variable mods with popcount ≤ max_variable_mods_per_peptide_.
+    /// Configuration-global; does not consider per-peptide residue inventory.
+    /// Per-peptide applicability is enforced at query-time subset enumeration.
+    ///
+    /// @param include_prot_nterm_mods include mods with PROTEIN_N_TERM specificity
+    /// @param include_prot_cterm_mods include mods with PROTEIN_C_TERM specificity
+    /// @return sorted ascending distinct Σ values; always includes 0.0
+    std::vector<double> computeSnesSigmaDeltaSet_(bool include_prot_nterm_mods,
+                                                   bool include_prot_cterm_mods);
+
     /// Per-AA fixed modification delta mass (0.0 if no fixed mod applies)
     std::array<double, 128> fixed_mod_deltas_{};
     /// Per-AA fixed modification pointer (nullptr if none)

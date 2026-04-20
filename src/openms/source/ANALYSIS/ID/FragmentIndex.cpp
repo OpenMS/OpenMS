@@ -172,6 +172,78 @@ namespace OpenMS
     mod_tables_initialized_ = true;
   }
 
+  std::vector<double> FragmentIndex::computeSnesSigmaDeltaSet_(bool include_prot_nterm_mods,
+                                                                bool include_prot_cterm_mods)
+  {
+    // Ensure modification tables are populated (lazy-initialize if not already done).
+    initModificationTables_();
+
+    // Collect all per-mod deltas that should participate in the enumeration.
+    // Respect term-specificity flags: PROTEIN_N_TERM and PROTEIN_C_TERM mods
+    // are gated by the caller.
+    std::vector<double> eligible_deltas;
+    auto collect = [&](const std::vector<VarModEntry>& entries, bool /*residue_bound*/)
+    {
+      for (const auto& e : entries)
+      {
+        if (e.term_spec == ResidueModification::PROTEIN_N_TERM && !include_prot_nterm_mods) continue;
+        if (e.term_spec == ResidueModification::PROTEIN_C_TERM && !include_prot_cterm_mods) continue;
+        eligible_deltas.push_back(e.delta_mass);
+      }
+    };
+    collect(variable_nterm_mods_, /*residue_bound=*/false);
+    collect(variable_cterm_mods_, /*residue_bound=*/false);
+    for (const auto& per_aa : variable_mod_table_)
+    {
+      collect(per_aa, /*residue_bound=*/true);
+    }
+
+    // Enumerate multisets of size 0..max_per_peptide with replacement from
+    // eligible_deltas. Store unique Σ values within a 1e-6 Da tolerance
+    // (absorbs FP error across ~16 summed deltas in double precision).
+    std::vector<double> result;
+    result.push_back(0.0);
+
+    if (eligible_deltas.empty() || max_variable_mods_per_peptide_ == 0)
+    {
+      return result;
+    }
+
+    // BFS: at level m, we have all Σ values reachable with exactly m mods.
+    // We iterate m = 1..max_per_peptide, extending each level by one delta.
+    std::vector<double> previous_level{0.0};
+    for (size_t m = 1; m <= max_variable_mods_per_peptide_; ++m)
+    {
+      std::vector<double> next_level;
+      next_level.reserve(previous_level.size() * eligible_deltas.size());
+      for (double prev : previous_level)
+      {
+        for (double d : eligible_deltas)
+        {
+          next_level.push_back(prev + d);
+        }
+      }
+      // Dedup within next_level and against result.
+      std::sort(next_level.begin(), next_level.end());
+      next_level.erase(
+          std::unique(next_level.begin(), next_level.end(),
+                      [](double a, double b) { return std::abs(a - b) < 1e-6; }),
+          next_level.end());
+      for (double v : next_level)
+      {
+        // Insert into result if not already present (within tolerance).
+        auto it = std::lower_bound(result.begin(), result.end(), v - 1e-6);
+        if (it == result.end() || std::abs(*it - v) >= 1e-6)
+        {
+          result.insert(it, v);
+        }
+      }
+      previous_level = std::move(next_level);
+    }
+
+    return result;
+  }
+
   size_t FragmentIndex::buildModSlots_(const char* sequence, size_t seq_len, ModSlot* out_slots,
                                        bool is_protein_nterm, bool is_protein_cterm) const
   {

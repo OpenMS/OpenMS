@@ -106,6 +106,12 @@ public:
 
   const std::vector<Fragment>& getFragments() const { return fi_fragments_; }
 
+  std::vector<double> exposeComputeSnesSigmaDeltaSet(bool include_prot_nterm_mods,
+                                                      bool include_prot_cterm_mods)
+  {
+    return computeSnesSigmaDeltaSet_(include_prot_nterm_mods, include_prot_cterm_mods);
+  }
+
   bool testQuery(const UInt32 charge, const bool precursor_mz_known, const std::vector<FASTAFile::FASTAEntry>& entries)
   {
     // Create theoretical spectra for different charges
@@ -1734,6 +1740,61 @@ START_SECTION((reconstructModifiedSequence masks SNES_KIND_BIT_MASK from bitmask
   AASequence seq = fi.reconstructModifiedSequence(peptides[single_c_idx], entries);
   TEST_EQUAL(seq.size(), peptides[single_c_idx].sequence_.second)
   TEST_EQUAL(seq.toUnmodifiedString().size(), peptides[single_c_idx].sequence_.second)
+}
+END_SECTION
+
+START_SECTION((computeSnesSigmaDeltaSet_ returns sorted distinct values for typical config))
+{
+  // Config: Oxidation (M) + Deamidated (N) + Deamidated (Q), max_per_peptide = 2.
+  // Both deamidation variants share the same delta (+0.984016 Da); deduplication
+  // collapses them into a single eligible delta for the enumeration.
+  // Expected Σ values (Unimod deltas):
+  //   0                        (no mods)
+  //   0.984016  (1 deamid)
+  //   1.968032  (2 deamid)
+  //   15.994915 (1 ox)
+  //   16.978931 (1 ox + 1 deamid)
+  //   31.989830 (2 ox)
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("modifications:variable",
+             std::vector<std::string>{"Oxidation (M)", "Deamidated (N)", "Deamidated (Q)"});
+  p.setValue("modifications:variable_max_per_peptide", 2);
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  fi.setParameters(p);
+
+  auto deltas = fi.exposeComputeSnesSigmaDeltaSet(false, false);
+
+  TEST_EQUAL(deltas.size(), 6u)
+  TEST_REAL_SIMILAR(deltas[0], 0.0)
+  TEST_REAL_SIMILAR(deltas[1], 0.984016)
+  TEST_REAL_SIMILAR(deltas[2], 1.968032)
+  TEST_REAL_SIMILAR(deltas[3], 15.994915)
+  TEST_REAL_SIMILAR(deltas[4], 16.978931)
+  TEST_REAL_SIMILAR(deltas[5], 31.989830)
+}
+END_SECTION
+
+START_SECTION((computeSnesSigmaDeltaSet_ honors include_prot_nterm_mods flag))
+{
+  // Config: Acetyl (Protein N-term) only. Without the flag, Σ_set should
+  // contain just {0}; with the flag, should contain {0, +42.010565}.
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("modifications:variable",
+             std::vector<std::string>{"Acetyl (Protein N-term)"});
+  p.setValue("modifications:variable_max_per_peptide", 1);
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  fi.setParameters(p);
+
+  auto deltas_without = fi.exposeComputeSnesSigmaDeltaSet(false, false);
+  TEST_EQUAL(deltas_without.size(), 1u)
+  TEST_REAL_SIMILAR(deltas_without[0], 0.0)
+
+  auto deltas_with = fi.exposeComputeSnesSigmaDeltaSet(true, false);
+  TEST_EQUAL(deltas_with.size(), 2u)
+  TEST_REAL_SIMILAR(deltas_with[0], 0.0)
+  TEST_REAL_SIMILAR(deltas_with[1], 42.010565)
 }
 END_SECTION
 
