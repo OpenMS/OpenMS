@@ -32,9 +32,9 @@ namespace OpenMS
 
     In addition to the core MGF fields (TITLE, PEPMASS, CHARGE, RTINSECONDS, SCANS, MSLEVEL)
     and the GNPS/metabolomics extensions (NAME, COMPOUND_NAME, INCHI, SMILES, IONMODE, ...),
-    this reader/writer also supports the sequence-query field SEQ. A SEQ line is exposed on
-    the MSSpectrum via the "SEQ" meta value; multiple SEQ lines per query are accumulated
-    into a StringList and written back out as one SEQ= line per entry.
+    this reader/writer also supports the sequence-query field SEQ. SEQ lines are exposed on
+    the MSSpectrum via the "SEQ" meta value as a StringList (always, even for a single SEQ)
+    and written back out as one SEQ= line per entry.
 
     @htmlinclude OpenMS_MascotGenericFile.parameters
 
@@ -378,29 +378,17 @@ protected:
             {
               // Mascot sequence-query field: peptide sequence in one-letter code.
               // Per spec, SEQ may appear multiple times per query (each entry is
-              // an independent sequence filter). A single SEQ is stored as a
-              // String meta value; multiple SEQ lines are accumulated into a
-              // StringList under the same "SEQ" key.
-              String tmp = line.substr(4);
-              if (!spectrum.metaValueExists("SEQ"))
+              // an independent sequence filter). Always stored as a StringList
+              // under the "SEQ" key for a stable interface regardless of how
+              // many SEQ lines were present.
+              String sequence = line.substr(4);
+              StringList sequences;
+              if (spectrum.metaValueExists("SEQ"))
               {
-                spectrum.setMetaValue("SEQ", tmp);
+                sequences = spectrum.getMetaValue("SEQ").toStringList();
               }
-              else
-              {
-                const DataValue& existing = spectrum.getMetaValue("SEQ");
-                StringList seqs;
-                if (existing.valueType() == DataValue::STRING_LIST)
-                {
-                  seqs = existing.toStringList();
-                }
-                else
-                {
-                  seqs.push_back(existing.toString());
-                }
-                seqs.push_back(tmp);
-                spectrum.setMetaValue("SEQ", seqs);
-              }
+              sequences.push_back(sequence);
+              spectrum.setMetaValue("SEQ", sequences);
             }
           }
         }

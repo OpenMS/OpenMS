@@ -381,20 +381,11 @@ namespace OpenMS
       }
 
       // Mascot sequence-query field: emit one SEQ= line per stored sequence.
-      // Accepts either a single String or a StringList in the "SEQ" meta value.
       if (spec.metaValueExists("SEQ"))
       {
-        const DataValue& seq_value = spec.getMetaValue("SEQ");
-        if (seq_value.valueType() == DataValue::STRING_LIST)
+        for (const String& sequence : spec.getMetaValue("SEQ").toStringList())
         {
-          for (const String& seq : seq_value.toStringList())
-          {
-            os << "SEQ=" << seq << "\n";
-          }
-        }
-        else
-        {
-          os << "SEQ=" << seq_value.toString() << "\n";
+          os << "SEQ=" << sequence << "\n";
         }
       }
 

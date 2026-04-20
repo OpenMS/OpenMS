@@ -267,7 +267,7 @@ END_SECTION
 
 START_SECTION((SEQ sequence query field - single and multiple))
 {
-  // Single SEQ line: parsed, stored as String, round-tripped on write.
+  // Single SEQ line: parsed, stored as StringList (always), round-tripped on write.
   {
     String mgf_content = "BEGIN IONS\n"
                          "TITLE=seq_single\n"
@@ -289,8 +289,10 @@ START_SECTION((SEQ sequence query field - single and multiple))
     mgf_file.load(tmp_in, exp);
 
     TEST_EQUAL(exp.size(), 1)
-    TEST_EQUAL(exp[0].metaValueExists("SEQ"), true)
-    TEST_EQUAL(String(exp[0].getMetaValue("SEQ")), "PEPTIDER")
+    TEST_TRUE(exp[0].metaValueExists("SEQ"))
+    StringList seqs = exp[0].getMetaValue("SEQ").toStringList();
+    TEST_EQUAL(seqs.size(), 1)
+    TEST_EQUAL(seqs[0], "PEPTIDER")
 
     // Round-trip: write and re-load, SEQ must survive unchanged.
     String tmp_out("MascotGenericFile_SEQ_single_out.mgf");
@@ -300,8 +302,10 @@ START_SECTION((SEQ sequence query field - single and multiple))
     PeakMap exp2;
     mgf_file.load(tmp_out, exp2);
     TEST_EQUAL(exp2.size(), 1)
-    TEST_EQUAL(exp2[0].metaValueExists("SEQ"), true)
-    TEST_EQUAL(String(exp2[0].getMetaValue("SEQ")), "PEPTIDER")
+    TEST_TRUE(exp2[0].metaValueExists("SEQ"))
+    StringList seqs_rt = exp2[0].getMetaValue("SEQ").toStringList();
+    TEST_EQUAL(seqs_rt.size(), 1)
+    TEST_EQUAL(seqs_rt[0], "PEPTIDER")
   }
 
   // Multiple SEQ lines in one query: accumulated into a StringList.
@@ -327,7 +331,7 @@ START_SECTION((SEQ sequence query field - single and multiple))
     mgf_file.load(tmp_in, exp);
 
     TEST_EQUAL(exp.size(), 1)
-    TEST_EQUAL(exp[0].metaValueExists("SEQ"), true)
+    TEST_TRUE(exp[0].metaValueExists("SEQ"))
     StringList seqs = exp[0].getMetaValue("SEQ").toStringList();
     TEST_EQUAL(seqs.size(), 3)
     TEST_EQUAL(seqs[0], "PEPTIDEA")
@@ -350,6 +354,7 @@ START_SECTION((SEQ sequence query field - single and multiple))
   }
 
   // Writing: a user sets SEQ programmatically before export.
+  // Must work in both default and compact store modes.
   {
     MSSpectrum spec;
     spec.setNativeID("index=0");
@@ -363,7 +368,7 @@ START_SECTION((SEQ sequence query field - single and multiple))
     peak.setMZ(100.0);
     peak.setIntensity(1000.0);
     spec.push_back(peak);
-    spec.setMetaValue("SEQ", "PEPTIDER");
+    spec.setMetaValue("SEQ", StringList{"PEPTIDER"});
 
     PeakMap exp;
     exp.addSpectrum(spec);
@@ -371,7 +376,11 @@ START_SECTION((SEQ sequence query field - single and multiple))
     MascotGenericFile mgf_file;
     stringstream ss;
     mgf_file.store(ss, "test", exp);
-    TEST_EQUAL(String(ss.str()).hasSubstring("SEQ=PEPTIDER"), true)
+    TEST_TRUE(String(ss.str()).hasSubstring("SEQ=PEPTIDER"))
+
+    stringstream compact_ss;
+    mgf_file.store(compact_ss, "test", exp, true);
+    TEST_TRUE(String(compact_ss.str()).hasSubstring("SEQ=PEPTIDER"))
   }
 
   // SEQ must not bleed across spectra during sequential load.
@@ -399,10 +408,12 @@ START_SECTION((SEQ sequence query field - single and multiple))
     mgf_file.load(tmp_in, exp);
 
     TEST_EQUAL(exp.size(), 2)
-    TEST_EQUAL(exp[0].metaValueExists("SEQ"), true)
-    TEST_EQUAL(String(exp[0].getMetaValue("SEQ")), "FIRSTONE")
+    TEST_TRUE(exp[0].metaValueExists("SEQ"))
+    StringList seqs_first = exp[0].getMetaValue("SEQ").toStringList();
+    TEST_EQUAL(seqs_first.size(), 1)
+    TEST_EQUAL(seqs_first[0], "FIRSTONE")
     // second spectrum had no SEQ - must not inherit it from the first
-    TEST_EQUAL(exp[1].metaValueExists("SEQ"), false)
+    TEST_FALSE(exp[1].metaValueExists("SEQ"))
   }
 }
 END_SECTION
