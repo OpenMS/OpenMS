@@ -17,7 +17,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <fstream>
-#include <functional>
 
 namespace OpenMS
 {

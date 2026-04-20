@@ -58,75 +58,6 @@ Dependencies:
   - opentims: CMake now searches for a system-installed opentims_cpp via FindOpentims.cmake before falling back to a FetchContent git clone; packagers and users with opentims already installed can set opentims_DIR or opentims_ROOT to skip the download (#9147, #9148)
   - contrib: the contrib directory is now a git submodule; developers and packagers building from a git clone must run `git submodule update --init` (or clone with `--recurse-submodules`) to obtain the vendored third-party libraries (#9155)
 
-TOPP tools:
-  Changes:
-    all:
-      - BREAKING: Command-line duplicate parameter behavior changed (#8670, fixes #5345)
-        When a parameter is specified multiple times on the command line, the LAST occurrence now wins
-        (previously, the FIRST occurrence was used). This enables the nextflow pattern of using ${ext.args}
-        at the end of commands to override hardcoded defaults. A warning is issued when duplicates are detected.
-        Example: tool -param default -param override  # Now uses 'override' (previously used 'default')
-      - Improved error messages for command-line parameter errors (#8670)
-    CometAdapter:
-      - Merges compatible variable modifications for improved search performance (3x+ speedup) (#8407)
-      - Added Bruker TimsTOF .d DDA-PASEF input support; .d directories are converted to mzML on-the-fly via BrukerTimsFile before search; requires WITH_TIMSRUST=ON (#9126)
-      - Fix: Bruker native-ID rewrite (index=N workaround for Comet's mzParser) now also applied when the input is an mzML file previously converted from a .d directory; detects "frame=" in spectrum native IDs and rewrites them to monotonic index=N before handing to Comet (#9168)
-    ProSE:
-      - BREAKING: renamed from PeptideDataBaseSearchFI to ProSE; the old executable name is no longer available (#9137)
-      - BREAKING: precursor tolerance schema changed to asymmetric positive-magnitude pair (#9108, #9132)
-        The scalar `precursor:mass_tolerance` and the `precursor:open_window_lower/_upper`
-        params are REMOVED and replaced by `precursor:mass_tolerance_lower` and
-        `precursor:mass_tolerance_upper`, both non-negative magnitudes applied internally as
-        `[-lower, +upper]` around the precursor mass. Matches MSFraggerAdapter convention.
-        Default widened from 10 to 20 ppm per side. The calibration pass now preserves signed
-        precursor bias (median of signed errors + MAD-of-residuals) instead of clobbering
-        asymmetric user bounds to symmetric; an extreme-bias guard (`|shift| >= spread`)
-        discards the calibration result and warns rather than silently loosening. Open-search
-        auto-detection trips when `max(lower, upper) > 1000 ppm` or `> 1 Da`. pyOpenMS users
-        setting `precursor:mass_tolerance` must migrate to the new param names. Fixes a latent
-        calibration-filter bug that flipped the signed-error band for asymmetric windows.
-      - Expanded fragment index open search with modification discovery and FDR filtering (#8414)
-      - FragmentIndex: default fragment:min_ion_index changed from 0 to 2, skipping b1/b2/y1/y2 ions by default (matches Sage behavior); improves PSM count, reduces memory and runtime; set fragment:min_ion_index=0 to include all ions (#9094)
-      - FragmentIndex: faster index build using bitmask-based modification enumeration and SoA memory layout with SIMD-accelerated query loop (#9088)
-      - Multi-file search: -in now accepts a file list; the fragment index is built once and reused across all inputs; new advanced -out_mod_analysis_dir parameter writes per-file and aggregate modification-analysis TSVs (#9109)
-      - BREAKING: -out replaced by three dedicated output parameters: -out_idxml (per-file idXML, must match -in count), -out_qpx (directory; writes per-file <basename>.psm.parquet and <basename>.pg.parquet in QPX exchange format plus a merged quantms.psm/pg.parquet), -out_parquet (directory; writes per-file and merged OpenMS-internal Parquet files including PSM, protein, protein-group, and search-params tables); unique input basenames are required for -out_qpx and -out_parquet to avoid collisions (#9146)
-      - Added peptide:enzyme_specificity parameter (full/semi/none) to enable semi-tryptic and non-specific (e.g. immunopeptidomics) searches; fixes EnzymaticDigestion underflow for very short peptides and FragmentIndex crash on empty search results (#9112)
-      - New annotate:PSM options: num_matched_peaks, matched_b_ions, matched_y_ions, longest_peptide_ion_sequence, fragment_annotation; matched ion counts and fragment annotations are also exported to PSM/QPX parquet output (#9117)
-      - Runtime search diagnostics: after every search a summary (matched spectra count, MS2 ID rate, unique peptides/proteins, missed cleavage distribution) and per-run tolerance estimation (median ± MAD of precursor/fragment errors with recommended tolerances) are logged (#9121)
-      - Automatic mass accuracy calibration (two-pass search): optional Search:calibration:enabled parameter runs a fast first-pass search on a subset of spectra (default: top 10% by TIC) to estimate tighter precursor and fragment tolerances; tolerances are applied without rebuilding the index (#9122)
-      - Protein-level FDR: new FDR:protein parameter applies picked-protein FDR (Savitski 2015) after PSM-level FDR using BasicProteinInferenceAlgorithm for score aggregation; supported in both single-file and multi-file search modes (#9123)
-      - New -out_pin parameter writes Percolator input (.pin/.tsv) files for external rescoring without requiring a -percolator_executable; works independently and in parallel with -out_idxml/-out_qpx/-out_parquet (#9166)
-      - Fix: ions:add_a/b/c/x/y/z_ions parameters now correctly forwarded to TheoreticalSpectrumGenerator in the scoring path; previously the fragment index and scorer were inconsistent (e.g. c/z ions were indexed but not scored), breaking ETD/EThcD searches (#9167)
-      - BREAKING: PSM annotation UserParams matched_b_ions/matched_y_ions renamed to matched_prefix_ions/matched_suffix_ions to reflect that all a/b/c and x/y/z ion series are counted, not just b/y; delta_score (best minus second-best PSM score per spectrum) and matched_ion_current (sum of matched peak intensities) added to PSM annotations and Percolator features; Fix: HyperScore factorial boost now counts all prefix/suffix ions (not just b/y), improving ETD/EThcD scoring (#9175)
-      - Database chunking for large FASTA inputs: new -Search:database:chunk_size parameter (default 0 = disabled) splits the protein database into chunks, each building its own FragmentIndex and scoring all spectra, then accumulating hits before a single FDR pass; designed for MHC-II immunopeptidomics and variant-heavy searches where the full index exceeds available memory (#9177)
-      - Fix: precursor_mz_error_ppm Percolator feature now subtracts the matched isotope offset; SpectrumAlignment for fragment-error Percolator features now runs at the actual fragment tolerance instead of the 0.3 Da default; calibration pass switched from median ± 3×MAD to 0.5%/99.5% empirical quantiles for more robust tolerance estimation (#9177)
-      - Fix: calibration in chunked search mode now uses a strided sample across the full database (instead of only the first chunk), preventing silent calibration no-ops when chunk_size is small; asymmetric calibrated precursor bounds are now correctly preserved through chunked and multi-file search paths instead of being collapsed to the symmetric max (#9185)
-    SimpleSearchEngine:
-      - Added peptide:enzyme_specificity parameter (full/semi/none) to enable semi-tryptic and non-specific searches (#9112)
-      - New annotate:PSM options: num_matched_peaks, matched_b_ions, matched_y_ions, longest_peptide_ion_sequence, fragment_annotation (#9117)
-    ProteomicsLFQ:
-      - Removed unnecessary group reindexing, added stricter validation (#8752)
-      - Arrow/DataFrame/Parquet export for ConsensusMap (#8729)
-      - Added -in_feat parameter to accept pre-computed featureXML files, bypassing internal feature finding (#8796)
-      - BREAKING: -out_feature_qpx (single file) replaced with -out_qpx (directory); exports quantms.feature.parquet, quantms.psm.parquet, and quantms.pg.parquet following the QPX/quantms schema (#8973, #8974)
-      - Added Bruker TimsTOF .d (BRUKER_TDF) input support with Biosaur2-based seed generation; IM_PEAK data path with automatic FWHM estimation and skip of PeakPickerHiRes/PrecursorCorrection; new Seeding:algorithm parameter (#9030)
-      - Added PeptideQuantification:seed_apex_rt_tolerance parameter (default 5.0 s, advanced) to FeatureFinderIdentificationAlgorithm; seed features whose detected apex RT deviates more than the tolerance from the seed apex are discarded, removing unreliable extractions (#9102)
-    MetaProSIP:
-      - Added detailed documentation of CSV output column formats (#4400)
-        Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
-    MSstatsConverter:
-      - Added -remove_shared_peptides parameter (default true) to explicitly control whether shared peptides
-        (mapping to multiple indistinguishable protein groups) are removed from MSstats output; previously
-        this filtering was silent and hardcoded; a warning is now emitted reporting how many hits were dropped (#9068)
-    OpenSwathWorkflow:
-      - Added cache file auto cleanup (#9029)
-      - MRMFeatureFinderScoring: enzyme used for missed cleavage counting is now configurable via new `enzyme` parameter (default: Trypsin) (#9077)
-      - Fix: OpenSwathOSWWriter::getScore() and getSeparateScore() now correctly handle all NaN variants ("NaN", "-NaN") and avoid redundant meta value lookups; double score values are written with full precision (#9047)
-      - Bruker DIA MS2 frame aggregation, denoising, and OpenSwath streaming: new BrukerTimsFile::Config fields (bruker:dia_ms2_n_neighbors, bruker:dia_ms2_min_support, bruker:dia_ms2_centroid) enable grid-based denoising and 2D peak picking of DIA MS2 frames; aggregated spectra can be streamed directly into the OpenSwath pipeline without prior mzML conversion; registered in FileConverter and PeakPickerIM; requires WITH_TIMSRUST=ON (#9129)
-      - Fix: BrukerTimsFile::loadDIAStreaming now sorts each spectrum's peaks by m/z before feeding them to the OpenSwath consumer; unsorted peaks (caused by TIMS scan ordering) silently produced empty chromatograms, breaking iRT calibration on .d DIA input (#9135)
-      - Fix: segfault when use_consensus=false; hull_points returned by PeakIntegrator::integratePeak varied in size per-transition, causing Eigen::Map to read past the end of the shorter vector in MRMScoring::initializeXCorrMatrix; fixed by padding hull_points to the full resampled chromatogram length in non-consensus mode (#9143)
-      - Allow Bruker DIA MS2 centroiding without denoising: bruker:dia_ms2_min_support can now be set to 0; with centroid=true and min_support=0 every populated grid cell is a centroid candidate, skipping the neighbor-support filter; useful for low-density data where the 3×3 denoising step discards real peaks (#9151)
-
 PyOpenMS:
   - BREAKING: Binding backend replaced from Autowrap/Cython to hand-maintained nanobind C++ bindings (#8699)
     - Python-level API is backward compatible (same class names, method signatures, return types)
@@ -208,6 +139,7 @@ TOPP tools:
     CometAdapter:
       - Merges compatible variable modifications for improved search performance (3x+ speedup) (#8407)
       - Added Bruker TimsTOF .d DDA-PASEF input support; .d directories are converted to mzML on-the-fly via BrukerTimsFile before search; requires WITH_TIMSRUST=ON (#9126)
+      - Fix: Bruker native-ID rewrite (index=N workaround for Comet's mzParser) now also applied when the input is an mzML file previously converted from a .d directory; detects "frame=" in spectrum native IDs and rewrites them to monotonic index=N before handing to Comet (#9168)
     ProSE:
       - BREAKING: renamed from PeptideDataBaseSearchFI to ProSE; the old executable name is no longer available (#9137)
       - BREAKING: precursor tolerance schema changed to asymmetric positive-magnitude pair (#9108, #9132)
@@ -232,6 +164,15 @@ TOPP tools:
       - Runtime search diagnostics: after every search a summary (matched spectra count, MS2 ID rate, unique peptides/proteins, missed cleavage distribution) and per-run tolerance estimation (median ± MAD of precursor/fragment errors with recommended tolerances) are logged (#9121)
       - Automatic mass accuracy calibration (two-pass search): optional Search:calibration:enabled parameter runs a fast first-pass search on a subset of spectra (default: top 10% by TIC) to estimate tighter precursor and fragment tolerances; tolerances are applied without rebuilding the index (#9122)
       - Protein-level FDR: new FDR:protein parameter applies picked-protein FDR (Savitski 2015) after PSM-level FDR using BasicProteinInferenceAlgorithm for score aggregation; supported in both single-file and multi-file search modes (#9123)
+      - New -out_pin parameter writes Percolator input (.pin/.tsv) files for external rescoring without requiring a -percolator_executable; works independently and in parallel with -out_idxml/-out_qpx/-out_parquet (#9166)
+      - Fix: ions:add_a/b/c/x/y/z_ions parameters now correctly forwarded to TheoreticalSpectrumGenerator in the scoring path; previously the fragment index and scorer were inconsistent (e.g. c/z ions were indexed but not scored), breaking ETD/EThcD searches (#9167)
+      - BREAKING: PSM annotation UserParams matched_b_ions/matched_y_ions renamed to matched_prefix_ions/matched_suffix_ions to reflect that all a/b/c and x/y/z ion series are counted, not just b/y; delta_score (best minus second-best PSM score per spectrum) and matched_ion_current (sum of matched peak intensities) added to PSM annotations and Percolator features; Fix: HyperScore factorial boost now counts all prefix/suffix ions (not just b/y), improving ETD/EThcD scoring (#9175)
+      - Database chunking for large FASTA inputs: new -Search:database:chunk_size parameter (default 0 = disabled) splits the protein database into chunks, each building its own FragmentIndex and scoring all spectra, then accumulating hits before a single FDR pass; designed for MHC-II immunopeptidomics and variant-heavy searches where the full index exceeds available memory (#9177)
+      - Fix: precursor_mz_error_ppm Percolator feature now subtracts the matched isotope offset; SpectrumAlignment for fragment-error Percolator features now runs at the actual fragment tolerance instead of the 0.3 Da default; calibration pass switched from median ± 3×MAD to 0.5%/99.5% empirical quantiles for more robust tolerance estimation (#9177)
+      - Fix: calibration in chunked search mode now uses a strided sample across the full database (instead of only the first chunk), preventing silent calibration no-ops when chunk_size is small; asymmetric calibrated precursor bounds are now correctly preserved through chunked and multi-file search paths instead of being collapsed to the symmetric max (#9185)
+    SimpleSearchEngine:
+      - Added peptide:enzyme_specificity parameter (full/semi/none) to enable semi-tryptic and non-specific searches (#9112)
+      - New annotate:PSM options: num_matched_peaks, matched_b_ions, matched_y_ions, longest_peptide_ion_sequence, fragment_annotation (#9117)
     ProteomicsLFQ:
       - Removed unnecessary group reindexing, added stricter validation (#8752)
       - Arrow/DataFrame/Parquet export for ConsensusMap (#8729)
@@ -239,18 +180,13 @@ TOPP tools:
       - BREAKING: -out_feature_qpx (single file) replaced with -out_qpx (directory); exports quantms.feature.parquet, quantms.psm.parquet, and quantms.pg.parquet following the QPX/quantms schema (#8973, #8974)
       - Added Bruker TimsTOF .d (BRUKER_TDF) input support with Biosaur2-based seed generation; IM_PEAK data path with automatic FWHM estimation and skip of PeakPickerHiRes/PrecursorCorrection; new Seeding:algorithm parameter (#9030)
       - Added PeptideQuantification:seed_apex_rt_tolerance parameter (default 5.0 s, advanced) to FeatureFinderIdentificationAlgorithm; seed features whose detected apex RT deviates more than the tolerance from the seed apex are discarded, removing unreliable extractions (#9102)
+    MetaProSIP:
+      - Added detailed documentation of CSV output column formats (#4400)
+        Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
     MSstatsConverter:
       - Added -remove_shared_peptides parameter (default true) to explicitly control whether shared peptides
         (mapping to multiple indistinguishable protein groups) are removed from MSstats output; previously
         this filtering was silent and hardcoded; a warning is now emitted reporting how many hits were dropped (#9068)
-    MetaProSIP:
-      - Added detailed documentation of CSV output column formats (#4400)
-        Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
-    SimpleSearchEngine:
-      - Added peptide:enzyme_specificity parameter (full/semi/none) to enable semi-tryptic and non-specific searches (#9112)
-      - New annotate:PSM options: num_matched_peaks, matched_b_ions, matched_y_ions, longest_peptide_ion_sequence, fragment_annotation (#9117)
-    FeatureFinderCentroided:
-      - Reworked the underlying algorithm to omit a RAM-costly copy statement. RAM usage is now reduced by around 20% (#9159)
     MapAlignerIdentification, MapAlignerPoseClustering, MapAlignerTreeGuided:
       - Added optional spectra file transformation (-in_spectra_files, -out_spectra_files) to transform mzML files along with alignment (#8536)
     FileInfo:
@@ -305,6 +241,8 @@ TOPP tools:
       - Added rank aggregation resolve method (--resolve_method rank_aggregation) for consensus replicate identifications (#8907)
     GenericWrapper:
       - BREAKING: GenericWrapper tool removed; migrate to direct TOPP tool invocations or TOPPAS workflows (#8981)
+    FeatureFinderCentroided:
+      - Reworked the underlying algorithm to omit a RAM-costly copy statement. RAM usage is now reduced by around 20% (#9159)
 
 OpenMS Library:
   Added:
