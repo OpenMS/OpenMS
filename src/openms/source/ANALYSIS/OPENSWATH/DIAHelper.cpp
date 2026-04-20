@@ -11,6 +11,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
@@ -62,12 +63,17 @@ namespace OpenMS::DIAHelpers
         int nr_isotopes)
       {
         static thread_local std::unordered_map<AveragineDistributionKey, std::vector<double>, AveragineDistributionKeyHash> isotope_cache;
+        static constexpr std::size_t MAX_AVERAGINE_CACHE_ENTRIES = 100000;
 
         const AveragineDistributionKey key{product_mz, charge, nr_isotopes};
         const auto cached = isotope_cache.find(key);
         if (cached != isotope_cache.end())
         {
           return cached->second;
+        }
+        if (isotope_cache.size() >= MAX_AVERAGINE_CACHE_ENTRIES)
+        {
+          isotope_cache.clear();
         }
 
         CoarseIsotopePatternGenerator solver(nr_isotopes);
@@ -445,6 +451,11 @@ namespace OpenMS::DIAHelpers
                                          const int nr_isotopes,
                                          const double mannmass)
     {
+      if (charge == 0)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Charge must be non-zero when generating averagine isotope distributions.");
+      }
       charge = std::abs(charge);
       // Note: this is a rough estimate of the weight, usually the protons should be deducted first,
       // left for backwards compatibility.
@@ -496,6 +507,11 @@ namespace OpenMS::DIAHelpers
                                     std::vector<std::pair<double, double>>& isotope_masses, //[out]
                                     Size nr_isotopes, int charge)
     {
+      if (charge == 0)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Charge must be non-zero when adding isotope peaks.");
+      }
       charge = std::abs(charge);
       const std::vector<double>& intensities = getCachedAveragineIntensities(mz, charge, static_cast<int>(nr_isotopes));
       double mass = mz;
@@ -513,6 +529,11 @@ namespace OpenMS::DIAHelpers
                               UInt nr_peaks, double pre_isotope_peaks_weight, // weight of pre isotope peaks
                               double mannmass, int charge)
     {
+      if (charge == 0)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Charge must be non-zero when adding pre-isotope peaks.");
+      }
       charge = std::abs(charge);
       for (std::size_t i = 0; i < first_isotope_masses.size(); ++i)
       {
