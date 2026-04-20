@@ -18,7 +18,7 @@
 				<UserParam type="string" name="PeptideIndexer:missing_decoy_action" value="silent"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2026-04-09T11:11:27" search_engine="PeptideDataBaseSearchFI" search_engine_version="3.6.0-pre-feat-num-matched-peaks-2026-04-09" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2026-04-09T11:11:27" search_engine="ProSE" search_engine_version="3.6.0-pre-feat-num-matched-peaks-2026-04-09" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
 			<ProteinHit id="PH_0" accession="test2_rev" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>

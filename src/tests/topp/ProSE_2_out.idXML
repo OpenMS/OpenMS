@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="/home/sachsenb/Development/OpenMS/src/tests/topp/SimpleSearchEngine_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.1" peak_mass_tolerance_ppm="false" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Oxidation (M)" />
+				<UserParam type="string" name="extra_features" value="score,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction"/>
+				<UserParam type="string" name="open_search" value="false"/>
+				<UserParam type="string" name="PeptideIndexer:decoy_string" value="DECOY_"/>
+				<UserParam type="string" name="PeptideIndexer:decoy_string_position" value="prefix"/>
+				<UserParam type="string" name="PeptideIndexer:enzyme" value="Trypsin"/>
+				<UserParam type="string" name="PeptideIndexer:enzyme_specificity" value="full"/>
+				<UserParam type="int" name="PeptideIndexer:aaa_max" value="3"/>
+				<UserParam type="int" name="PeptideIndexer:mismatches_max" value="0"/>
+				<UserParam type="string" name="PeptideIndexer:IL_equivalent" value="false"/>
+				<UserParam type="string" name="PeptideIndexer:allow_nterm_protein_cleavage" value="true"/>
+				<UserParam type="string" name="PeptideIndexer:unmatched_action" value="error"/>
+				<UserParam type="string" name="PeptideIndexer:missing_decoy_action" value="silent"/>
+				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
+	</SearchParameters>
+	<IdentificationRun date="2026-04-09T11:11:27" search_engine="ProSE" search_engine_version="3.6.0-pre-feat-num-matched-peaks-2026-04-09" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
+			<ProteinHit id="PH_0" accession="test2_rev" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="BSA2" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="BSA3" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data_raw" value="[file://./KKramer_150612_yeastTAP_4_120min.raw]"/>
+			<UserParam type="stringList" name="spectra_data" value="[file://SimpleSearchEngine_1.mzML]"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="ln(hyperscore)" higher_score_better="true" significance_threshold="0.0" MZ="520.262817382812045" RT="2655.095703125" spectrum_reference="spectrum=0" >
+			<PeptideHit score="13.195273686121649" sequence="DFASSGGYVLHLHR" charge="3" aa_before="[" aa_after="E" start="0" end="13" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="175.119094848632813,0.145235076546669,1,&quot;y1+&quot;|263.10302734375,0.269983410835266,1,&quot;b2+&quot;|281.664825439453125,0.045622423291206,2,&quot;y4++&quot;|334.140472412109375,0.038884554058313,1,&quot;b3+&quot;|338.206695556640625,0.036569740623236,2,&quot;y5++&quot;|387.74066162109375,0.041254211217165,2,&quot;y6++&quot;|425.263031005859375,0.154225364327431,1,&quot;y3+&quot;|469.2728271484375,0.031441166996956,2,&quot;y7++&quot;|497.783782958984375,0.041119836270809,2,&quot;y8++&quot;|526.29443359375,0.094272904098034,2,&quot;y9++&quot;|569.81048583984375,0.115230679512024,2,&quot;y10++&quot;|613.32598876953125,0.102093867957592,2,&quot;y11++&quot;|622.2730712890625,4.212265368551016e-03,1,&quot;b7+&quot;|648.84503173828125,0.051233120262623,2,&quot;y12++&quot;|675.40625,0.336008250713348,1,&quot;y5+&quot;|937.53729248046875,0.061362523585558,1,&quot;y7+&quot;|994.55938720703125,0.057263620197773,1,&quot;y8+&quot;|1051.580810546875,0.09991666674614,1,&quot;y9+&quot;|1138.6112060546875,0.048153448849916,1,&quot;y10+&quot;|1225.658935546875,7.874150760471821e-03,1,&quot;y11+&quot;"/>
+				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.809573809163447"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="-1.415652739967919"/>
+				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.214285714285714"/>
+				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.571428571428571"/>
+				<UserParam type="int" name="num_matched_peaks" value="11"/>
+				<UserParam type="int" name="matched_b_ions" value="3"/>
+				<UserParam type="int" name="matched_y_ions" value="8"/>
+				<UserParam type="int" name="longest_peptide_ion_sequence" value="10"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+			<UserParam type="int" name="scan_index" value="0"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="ln(hyperscore)" higher_score_better="true" significance_threshold="0.0" MZ="1063.209838867190001" RT="4587.6689453125" spectrum_reference="spectrum=1" >
+			<PeptideHit score="47.256181302684936" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="[" aa_after="E" start="0" end="27" protein_refs="PH_1" >
+				<UserParam type="string" name="fragment_annotation" value="147.112884521484375,0.073362722992897,1,&quot;y1+&quot;|149.436859130859375,0.012210736982524,2,&quot;b3++&quot;|185.128372192382813,0.304318636655808,1,&quot;b2+&quot;|294.18121337890625,0.199159145355225,1,&quot;y2+&quot;|298.212554931640625,0.030436070635915,1,&quot;b3+&quot;|426.25994873046875,0.053214963525534,2,&quot;b8++&quot;|604.2803955078125,0.367977857589722,1,&quot;y4+&quot;|638.34381103515625,0.023529993370175,1,&quot;b6+&quot;|675.31707763671875,0.364999026060104,1,&quot;y5+&quot;|681.91497802734375,0.018387651070952,2,&quot;b13++&quot;|746.35400390625,0.278303116559982,1,&quot;y6+&quot;|752.44500732421875,0.043161459267139,1,&quot;b7+&quot;|851.50775146484375,0.140275537967682,1,&quot;b8+&quot;|909.41217041015625,0.246380671858788,1,&quot;y7+&quot;|980.553148337916468,0.612667679786682,1,&quot;b9+&quot;|1079.6219482421875,1.0,1,&quot;b10+&quot;|1138.490478515625,0.284363687038422,1,&quot;y9+&quot;|1178.689378806666582,0.277622222900391,1,&quot;b11+&quot;|1221.7279052734375,0.205706641077995,2,&quot;b22++&quot;|1239.53515625,0.73640251159668,1,&quot;y10+&quot;|1249.726318359375,0.724085569381714,1,&quot;b12+&quot;|1292.7978515625,0.012267889454961,2,&quot;b24++&quot;|1352.6168212890625,0.234000310301781,1,&quot;y11+&quot;|1362.8125,0.279476225376129,1,&quot;b13+&quot;|1476.8531494140625,0.269533842802048,1,&quot;b14+&quot;|1499.689453125,0.080423474311829,1,&quot;y12+&quot;|1591.881591796875,0.727882027626038,1,&quot;b15+&quot;|1596.741455078125,0.219704270362854,1,&quot;y13+&quot;|1688.953905173854082,0.01809080503881,1,&quot;b16+&quot;|1711.765380859375,0.032515596598387,1,&quot;y14+&quot;|1825.8343505859375,0.032113555818796,1,&quot;y15+&quot;"/>
+				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.088843358789125"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="0.532776127422444"/>
+				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.464285714285714"/>
+				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.464285714285714"/>
+				<UserParam type="int" name="num_matched_peaks" value="26"/>
+				<UserParam type="int" name="matched_b_ions" value="13"/>
+				<UserParam type="int" name="matched_y_ions" value="13"/>
+				<UserParam type="int" name="longest_peptide_ion_sequence" value="11"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+			<UserParam type="int" name="scan_index" value="1"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="ln(hyperscore)" higher_score_better="true" significance_threshold="0.0" MZ="775.38720703125" RT="4923.77734375" spectrum_reference="spectrum=2" >
+			<PeptideHit score="42.152939453592808" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_before="[" aa_after="A" start="0" end="22" protein_refs="PH_2" >
+				<UserParam type="string" name="fragment_annotation" value="175.118865966796875,0.150531977415085,1,&quot;y1+&quot;|254.148391723632813,0.206978902220726,1,&quot;b2+&quot;|322.18890380859375,0.049145385622978,1,&quot;y2+&quot;|379.209442138671875,0.17941327393055,1,&quot;y3+&quot;|382.223785400390625,0.022014291957021,1,&quot;b4+&quot;|435.20831298828125,0.068259246647358,2,&quot;b9++&quot;|450.24664306640625,0.259074866771698,1,&quot;y4+&quot;|463.720184326171875,0.089691311120987,2,&quot;b10++&quot;|497.24560546875,0.120945297181606,1,&quot;b5+&quot;|537.2552490234375,0.10333526879549,2,&quot;b11++&quot;|565.7642822265625,0.180150553584099,2,&quot;b12++&quot;|578.30462646484375,0.339738875627518,1,&quot;y5+&quot;|594.27630615234375,0.12102073431015,2,&quot;b13++&quot;|649.341552734375,0.642973005771637,1,&quot;y6+&quot;|650.82373046875,0.047898273915052,2,&quot;b14++&quot;|699.30572509765625,0.504444420337677,1,&quot;b7+&quot;|762.42547607421875,0.540082812309265,1,&quot;y7+&quot;|812.39007568359375,0.212916702032089,1,&quot;b8+&quot;|813.406494140625,0.049756519496441,2,&quot;y16++&quot;|869.41009521484375,0.156664118170738,1,&quot;b9+&quot;|877.45343017578125,0.795250296592712,1,&quot;y8+&quot;|926.434326171875,0.743671417236328,1,&quot;b10+&quot;|1007.50408935546875,0.035724259912968,2,&quot;y20++&quot;|1024.5223388671875,1.0,1,&quot;y9+&quot;|1073.5008544921875,0.200163260102272,1,&quot;b11+&quot;|1130.526123046875,0.135533377528191,1,&quot;b12+&quot;|1137.608154296875,0.113550938665867,1,&quot;y10+&quot;|1187.544189453125,0.804915189743042,1,&quot;b13+&quot;|1194.62841796875,0.170546039938927,1,&quot;y11+&quot;|1251.6474609375,0.285297006368637,1,&quot;y12+&quot;|1300.6290283203125,0.159593641757965,1,&quot;b14+&quot;|1562.7510986328125,0.039694063365459,1,&quot;b16+&quot;"/>
+				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.389253520212976"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="2.251259146760969"/>
+				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.521739130434783"/>
+				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.521739130434783"/>
+				<UserParam type="int" name="num_matched_peaks" value="24"/>
+				<UserParam type="int" name="matched_b_ions" value="12"/>
+				<UserParam type="int" name="matched_y_ions" value="12"/>
+				<UserParam type="int" name="longest_peptide_ion_sequence" value="12"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+			<UserParam type="int" name="scan_index" value="2"/>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

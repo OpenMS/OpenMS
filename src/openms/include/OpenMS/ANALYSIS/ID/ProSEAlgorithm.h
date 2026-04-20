@@ -20,6 +20,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
+#include <algorithm>   // std::min (used by inline computeModMatchTolerance_)
 #include <vector>
 
 namespace OpenMS
@@ -36,15 +37,15 @@ namespace OpenMS
   - Intended for educational/prototyping use and to demonstrate FI-backed searching
 
   Notes:
-  - Used by the PeptideDataBaseSearchFI TOPP tool
+  - Used by the ProSE TOPP tool
   - Experimental; interfaces and behavior may change
 */
-class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
+class OPENMS_DLLAPI ProSEAlgorithm :
   public DefaultParamHandler,
   public ProgressLogger
 {
   public:
-    PeptideSearchEngineFIAlgorithm(); 
+    ProSEAlgorithm(); 
 
     /// Exit codes
     enum class ExitCodes
@@ -164,9 +165,10 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
      *
      * Example usage:
      * @code
-     * PeptideSearchEngineFIAlgorithm algo;
+     * ProSEAlgorithm algo;
      * Param p = algo.getParameters();
-     * p.setValue("precursor:mass_tolerance", 500.0);  // Open search
+     * p.setValue("precursor:mass_tolerance_lower", 500.0);  // Open search
+     * p.setValue("precursor:mass_tolerance_upper", 500.0);
      * p.setValue("precursor:mass_tolerance_unit", "Da");
      * algo.setParameters(p);
      *
@@ -377,7 +379,7 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
      * @param[out] database_name Database file name used for the search (stored in protein_ids).
      */
     void postProcessHits_(const PeakMap& exp,
-      std::vector<std::vector<PeptideSearchEngineFIAlgorithm::AnnotatedHit_> >& annotated_hits,
+      std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,
       std::vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids,
       Size top_hits,
@@ -393,8 +395,12 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
       const String& enzyme,
       const String& database_name) const;
 
-    double precursor_mass_tolerance_;
-    String precursor_mass_tolerance_unit_;
+    /// Calibration overwrites these with the calibrated magnitudes for the duration of
+    /// search(); pure runtime-state mutation that does not affect the logical const-ness
+    /// of search(), matching the `mutable` pattern used by last_calibration_result_.
+    mutable double precursor_mass_tolerance_lower_{20.0};   ///< positive magnitude
+    mutable double precursor_mass_tolerance_upper_{20.0};   ///< positive magnitude
+    String precursor_mass_tolerance_unit_{"ppm"};
 
     Size precursor_min_charge_;
     Size precursor_max_charge_;
@@ -443,11 +449,46 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
      */
     struct CalibrationResult_
     {
-      double precursor_tolerance{0}; ///< estimated precursor tolerance (same unit as configured)
+      double precursor_shift{0};     ///< signed median of precursor errors (calibration bias)
+      double precursor_spread{0};    ///< median(|e - shift|) + 3 * MAD(|e - shift|)
+      double cal_lower{0};           ///< calibrated lower magnitude (valid iff !extreme_bias && success)
+      double cal_upper{0};           ///< calibrated upper magnitude (valid iff !extreme_bias && success)
       double fragment_tolerance{0};  ///< estimated fragment tolerance (same unit as configured)
       double fragment_shift{0};      ///< reserved for future fragment m/z shift correction
+      bool extreme_bias{false};      ///< |shift| >= spread — writeback skipped (test observability)
       bool success{false};           ///< true if enough PSMs were found for reliable estimation
     };
+
+    /// Most recent calibration result (valid after any search that invoked runCalibrationPass_).
+    /// Stored for test observability and diagnostics. Marked `mutable` because it is pure
+    /// diagnostic/telemetry state that doesn't affect the logical const-ness of search().
+    mutable CalibrationResult_ last_calibration_result_;
+
+    /// Scalar tolerance passed to OpenSearchModificationAnalysis on the most recent
+    /// search() call. Stored for test observability: because the calibration writeback
+    /// restores the tolerance members on exit (to avoid per-file state leaks in the
+    /// multi-file wrapper), tests that want to verify "the mod analyzer received the
+    /// calibrated value, not the user-configured one" can't just read the members
+    /// post-search — they need to see what was actually passed to the analyzer.
+    /// Default -1.0 (sentinel: no search has run yet).
+    mutable double last_mod_match_tolerance_used_{-1.0};
+
+    /// Scalar tolerance passed to OpenSearchModificationAnalysis under asymmetric bounds.
+    /// Uses the tighter of the two positive magnitudes — semantically correct for
+    /// UniMod Δmass matching precision. OpenSearchModificationAnalysis internally clamps
+    /// this at MAX_MOD_MAPPING_TOL_ = 0.02 Da; see spec §7 for rationale.
+    ///
+    /// Zero on one side is a legal one-sided window (e.g., [0, 500] Da = "search only
+    /// positive mass shifts"). In that case std::min() would collapse to 0, passing
+    /// a useless zero tolerance into the mod analyzer — masked in ppm mode by the
+    /// internal clamp, but genuinely broken in Da mode. Fall back to the non-zero
+    /// side so the mod-matching precision reflects the configured tolerance.
+    double computeModMatchTolerance_() const
+    {
+      if (precursor_mass_tolerance_lower_ <= 0.0) return precursor_mass_tolerance_upper_;
+      if (precursor_mass_tolerance_upper_ <= 0.0) return precursor_mass_tolerance_lower_;
+      return std::min(precursor_mass_tolerance_lower_, precursor_mass_tolerance_upper_);
+    }
 
     /**
      * @brief Run a fast calibration pass on a subset of spectra to estimate mass accuracy.
@@ -477,9 +518,9 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
     /// Helper function to determine if open search should be used based on tolerance
     bool isOpenSearchMode_() const
     {
-      return precursor_mass_tolerance_unit_ == "ppm"
-               ? (precursor_mass_tolerance_ > 1000.0)
-               : (precursor_mass_tolerance_ > 1.0);
+      return FragmentIndex::isOpenSearchMode(precursor_mass_tolerance_lower_,
+                                             precursor_mass_tolerance_upper_,
+                                             precursor_mass_tolerance_unit_ == "ppm");
     }
 };
 

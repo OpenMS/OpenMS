@@ -21,6 +21,7 @@
 #include <mutex>
 #include <vector>
 #include <functional>
+#include <algorithm>   // std::max (used by inline static isOpenSearchMode)
 
 namespace OpenMS
 {
@@ -188,14 +189,31 @@ namespace OpenMS
     void clear();
 
 
-    /** Return index range of all possible Peptides/Proteins, such that a vector can be created fitting that range (safe some memory)
-     * @param[in] precursor_mass The mono-charged precursor mass (M+H)
-     * @param[in] window Defines the lower and upper bound for the precusor mass. For closed search it only contains the tolerance. In case of open search
-     *                  it contains both tolerance and open-search-window
-     * @return a pair of indexes defining all possible peptides which the current peak could hit
+    /** Return the [begin_idx, end_idx) peptide index range such that
+     * `fi_peptides_[i].precursor_mz_ ∈ [precursor_mass + window.first, precursor_mass + window.second]`
+     * for all i in the returned range.
+     *
+     * @param[in] precursor_mass The mono-charged precursor mass (M+H).
+     * @param[in] window Signed absolute offsets around the precursor mass. By convention
+     *                   `window.first` is <= 0 and `window.second` is >= 0 (produced by
+     *                   `computeMassWindow_`). A reversed window trivially returns an empty
+     *                   range; no diagnostic is emitted. No hidden tolerance is added.
+     * @return [begin_idx, end_idx) half-open index range into `fi_peptides_`.
      */
-    std::pair<size_t, size_t> getPeptidesInPrecursorRange(float precursor_mass,
-                                                          const std::pair<float, float>& window);
+    std::pair<size_t, size_t> getPeptidesInMassWindow(float precursor_mass,
+                                                      const std::pair<float, float>& window) const;
+
+    /// Shared auto-detection: open-search iff max(lower, upper) > threshold (1000 ppm or 1 Da).
+    /// Strict `>`: exactly 1000 ppm stays closed.
+    /// This is the single source of truth for the open-search auto-detection rule and is
+    /// reused by ProSEAlgorithm and the TOPP tool.
+    static bool isOpenSearchMode(double lower_magnitude,
+                                 double upper_magnitude,
+                                 bool unit_ppm) noexcept
+    {
+      const double threshold = unit_ppm ? 1000.0 : 1.0;
+      return std::max(lower_magnitude, upper_magnitude) > threshold;
+    }
 
     /**
      * A match between a single query peak and a database fragment
@@ -374,8 +392,9 @@ protected:
     size_t min_ion_index_{0}; ///< skip ions below this index (0=all, 2=skip b1/b2/y1/y2)
     size_t bucketsize_;       ///< number of fragments per outer node
     std::vector<float> bucket_min_mz_;  ///< vector of the smalles fragment mz of each bucket
-    float precursor_mz_tolerance_;
-    bool precursor_mz_tolerance_unit_ppm_{true};
+    double precursor_mass_tolerance_lower_{20.0};   ///< positive magnitude, effective lower bound is -lower
+    double precursor_mass_tolerance_upper_{20.0};   ///< positive magnitude, effective upper bound is +upper
+    bool precursor_mass_tolerance_unit_ppm_{true};
     float fragment_mz_tolerance_;
     bool fragment_mz_tolerance_unit_ppm_{true};    
 private:
@@ -445,16 +464,19 @@ private:
     uint16_t max_fragment_charge_;  ///< The maximal possible charge of the fragments
     uint32_t max_processed_hits_;   ///< The amount of PSM that will be used. the rest is filtered out
     
-    /// Helper function to determine if open search should be used based on tolerance
-    bool isOpenSearchMode_() const
+    /// Instance delegate — same rule, reads the member bounds.
+    bool isOpenSearchMode_() const noexcept
     {
-      return precursor_mz_tolerance_unit_ppm_
-               ? (precursor_mz_tolerance_ > 1000.0)
-               : (precursor_mz_tolerance_ > 1.0);
+      return isOpenSearchMode(precursor_mass_tolerance_lower_,
+                              precursor_mass_tolerance_upper_,
+                              precursor_mass_tolerance_unit_ppm_);
     }
-    
-    float open_precursor_window_lower_; ///< Defines the lower bound of the precursor-mass range
-    float open_precursor_window_upper_; ///< Defines the upper bound of the precursor-mass range
+
+    /** Compute the signed mass window {lo, hi} around a precursor_mass, converting ppm → Da
+     * if the unit is ppm. `lo` is negative (or zero), `hi` is positive (or zero). This is the
+     * only place where positive member magnitudes become signed offsets.
+     */
+    std::pair<float, float> computeMassWindow_(float precursor_mass) const;
 
 
   };

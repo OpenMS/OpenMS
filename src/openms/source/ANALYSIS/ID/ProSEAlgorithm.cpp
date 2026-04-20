@@ -6,7 +6,7 @@
 // $Authors: Raphael Förster $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -58,23 +58,27 @@ using namespace std;
 
 namespace OpenMS
 {
-  PeptideSearchEngineFIAlgorithm::PeptideSearchEngineFIAlgorithm() :
-    DefaultParamHandler("PeptideSearchEngineFIAlgorithm"),
+  ProSEAlgorithm::ProSEAlgorithm() :
+    DefaultParamHandler("ProSEAlgorithm"),
     ProgressLogger()
   {
-    defaults_.setValue("precursor:mass_tolerance", 10.0, "+/- tolerance for precursor mass.");
-
-    std::vector<std::string> precursor_mass_tolerance_unit_valid_strings;
-    precursor_mass_tolerance_unit_valid_strings.emplace_back("ppm");
-    precursor_mass_tolerance_unit_valid_strings.emplace_back("Da");
-
+    defaults_.setValue("precursor:mass_tolerance_lower", 20.0,
+                       "Lower-side precursor-mass tolerance (positive magnitude; effective window "
+                       "is [-lower, +upper] around the precursor). "
+                       "When strongly asymmetric, also review precursor:isotope_error_min.");
+    defaults_.setMinFloat("precursor:mass_tolerance_lower", 0.0);
+    defaults_.setValue("precursor:mass_tolerance_upper", 20.0,
+                       "Upper-side precursor-mass tolerance (positive magnitude).");
+    defaults_.setMinFloat("precursor:mass_tolerance_upper", 0.0);
     defaults_.setValue("precursor:mass_tolerance_unit", "ppm", "Unit of precursor mass tolerance.");
-    defaults_.setValidStrings("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_valid_strings);
+    defaults_.setValidStrings("precursor:mass_tolerance_unit", {"ppm", "Da"});
 
     defaults_.setValue("precursor:min_charge", 2, "Minimum precursor charge to be considered.");
     defaults_.setValue("precursor:max_charge", 5, "Maximum precursor charge to be considered.");
 
-    defaults_.setSectionDescription("precursor", "Precursor (Parent Ion) Options");
+    defaults_.setSectionDescription("precursor",
+      "Precursor (Parent Ion) Options. mass_tolerance_lower/_upper are positive magnitudes "
+      "applied as [-lower, +upper] around the precursor mass.");
 
     // consider one before annotated monoisotopic peak and the annotated one
     IntList isotopes = {0, 1};
@@ -177,10 +181,6 @@ namespace OpenMS
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
 
-    // Open search window bounds (used when tolerance > 1 Da or > 1000 ppm)
-    defaults_.setValue("precursor:open_window_lower", -100.0, "lower bound of the open precursor window");
-    defaults_.setValue("precursor:open_window_upper", 200.0, "upper bound of the open precursor window");
-
     // Ion series toggles
     defaults_.setValue("ions:add_y_ions", "true", "Add peaks of y-ions to the spectrum");
     defaults_.setValidStrings("ions:add_y_ions", {"true","false"});
@@ -218,9 +218,10 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void PeptideSearchEngineFIAlgorithm::updateMembers_()
+  void ProSEAlgorithm::updateMembers_()
   {
-    precursor_mass_tolerance_ = param_.getValue("precursor:mass_tolerance");
+    precursor_mass_tolerance_lower_ = param_.getValue("precursor:mass_tolerance_lower");
+    precursor_mass_tolerance_upper_ = param_.getValue("precursor:mass_tolerance_upper");
     precursor_mass_tolerance_unit_ = param_.getValue("precursor:mass_tolerance_unit").toString();
 
     precursor_min_charge_ = param_.getValue("precursor:min_charge");
@@ -275,7 +276,7 @@ namespace OpenMS
   }
 
   // static
-  void PeptideSearchEngineFIAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
+  void ProSEAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -321,8 +322,8 @@ namespace OpenMS
     }
   }
 
-  void PeptideSearchEngineFIAlgorithm::postProcessHits_(const PeakMap& exp,
-        std::vector<std::vector<PeptideSearchEngineFIAlgorithm::AnnotatedHit_> >& annotated_hits,
+  void ProSEAlgorithm::postProcessHits_(const PeakMap& exp,
+        std::vector<std::vector<ProSEAlgorithm::AnnotatedHit_> >& annotated_hits,
         std::vector<ProteinIdentification>& protein_ids,
         PeptideIdentificationList& peptide_ids,
         Size top_hits,
@@ -569,7 +570,7 @@ namespace OpenMS
         if (!pi.getHits().empty())
         {
           const PeptideHit& top_hit = pi.getHits().front();
-          OPENMS_LOG_DEBUG << "[PDBS-FI] scan_index=" << scan_index
+          OPENMS_LOG_DEBUG << "[ProSE] scan_index=" << scan_index
                            << " top_ln(hyperscore)=" << top_hit.getScore()
                            << " top_charge=" << top_hit.getCharge()
                            << " top_isotope_error=" << (int)top_hit.getMetaValue("isotope_error")
@@ -597,11 +598,11 @@ namespace OpenMS
     // protein identifications (leave as is...)
     protein_ids = vector<ProteinIdentification>(1);
     protein_ids[0].setDateTime(DateTime::now());
-    protein_ids[0].setSearchEngine("PeptideDataBaseSearchFI");
+    protein_ids[0].setSearchEngine("ProSE");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
 
     DateTime now = DateTime::now();
-    String identifier("PDBSFI_" + now.get());
+    String identifier("ProSE_" + now.get());
     protein_ids[0].setIdentifier(identifier);
     for (auto & pid : peptide_ids) { pid.setIdentifier(identifier); }
 
@@ -653,8 +654,8 @@ namespace OpenMS
   // Hoisted out of the in-memory search() body so callers can build the
   // index once and reuse it across many spectrum files.
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::SearchContext
-  PeptideSearchEngineFIAlgorithm::prepareContext(
+  ProSEAlgorithm::SearchContext
+  ProSEAlgorithm::prepareContext(
       const std::vector<FASTAFile::FASTAEntry>& fasta_db) const
   {
     SearchContext ctx;
@@ -704,7 +705,7 @@ namespace OpenMS
   // For repeated searches against the same database, prefer the
   // context-taking overload below.
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::ExitCodes PeptideSearchEngineFIAlgorithm::search(
+  ProSEAlgorithm::ExitCodes ProSEAlgorithm::search(
       PeakMap& spectra,
       const std::vector<FASTAFile::FASTAEntry>& fasta_db,
       vector<ProteinIdentification>& protein_ids,
@@ -720,27 +721,19 @@ namespace OpenMS
   // FragmentIndex::querySpectrum() and PeptideIndexing::run() APIs are both
   // non-const, even though neither conceptually mutates shared state.
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::ExitCodes PeptideSearchEngineFIAlgorithm::search(
+  ProSEAlgorithm::ExitCodes ProSEAlgorithm::search(
       PeakMap& spectra,
       SearchContext& ctx,
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
-    bool precursor_mass_tolerance_unit_ppm = (precursor_mass_tolerance_unit_ == "ppm");
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
 
-    // Debug: log effective precursor/fragment tolerances (value + unit)
-    OPENMS_LOG_INFO << "[PDBS-FI] fragment_tol="
-                      << fragment_mass_tolerance_ << " "
-                      << (fragment_mass_tolerance_unit_ppm ? "ppm" : "Da")
-                      << " | precursor_tol="
-                      << precursor_mass_tolerance_ << " "
-                      << (precursor_mass_tolerance_unit_ppm ? "ppm" : "Da")
-                      << std::endl;
-
     bool open_search = isOpenSearchMode_();
-    OPENMS_LOG_INFO << "[PDBS-FI] open_search=" << (open_search ? "true" : "false")
-                    << " (auto-determined from precursor tolerance)" << std::endl;
+    OPENMS_LOG_INFO << "[ProSE] open_search=" << (open_search ? "true" : "false")
+                    << " (precursor tolerance [-" << precursor_mass_tolerance_lower_
+                    << ", +" << precursor_mass_tolerance_upper_ << "] "
+                    << precursor_mass_tolerance_unit_ << ")" << std::endl;
 
     startProgress(0, 1, "Filtering spectra...");
     preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
@@ -751,35 +744,85 @@ namespace OpenMS
     FragmentIndex& fragment_index_ = ctx.fragment_index;
 
     // Effective tolerances: may be overridden by calibration pass below.
-    double effective_precursor_tol = precursor_mass_tolerance_;
+    // The precursor scalar passed to postProcessHits_ is the widest bound
+    // (legacy API); calibration may narrow it. Fragment tolerance is a
+    // single scalar throughout.
+    double effective_precursor_tol = std::max(precursor_mass_tolerance_lower_,
+                                              precursor_mass_tolerance_upper_);
     double effective_fragment_tol = fragment_mass_tolerance_;
 
-    // Save original FragmentIndex parameters so we can restore them after the
-    // search if calibration modifies query-time tolerances. This avoids
-    // persistent mutation of the shared SearchContext across multi-file calls.
+    // Save original FragmentIndex parameters AND algo-level tolerance members so we
+    // can restore them after the search if calibration modifies query-time tolerances.
+    // This avoids persistent mutation of the shared SearchContext and the algorithm
+    // instance across multi-file calls (the multi-file wrapper reuses a single
+    // ProSEAlgorithm instance, so member leaks corrupt later runs).
     const Param fi_params_original = fragment_index_.getParameters();
+    const double orig_precursor_mass_tolerance_lower = precursor_mass_tolerance_lower_;
+    const double orig_precursor_mass_tolerance_upper = precursor_mass_tolerance_upper_;
     bool fi_params_modified = false;
 
     // --- Optional calibration pass ---
     if (calibration_enabled_ && !open_search)
     {
       startProgress(0, 1, "Running calibration pass...");
-      CalibrationResult_ cal = runCalibrationPass_(spectra, fragment_index_, db);
+      last_calibration_result_ = runCalibrationPass_(spectra, fragment_index_, db);
+      const CalibrationResult_& cal = last_calibration_result_;
       endProgress();
 
       if (cal.success)
       {
-        effective_precursor_tol = cal.precursor_tolerance;
+        // Fragment-side calibration is independent of the precursor positive-magnitude
+        // representability check — always apply it when calibration succeeds.
+        Param fi_params = fi_params_original;
+        fi_params.setValue("fragment:mass_tolerance", cal.fragment_tolerance);
         effective_fragment_tol = cal.fragment_tolerance;
 
-        // Temporarily update the fragment index's query-time tolerances.
-        Param fi_params = fi_params_original;
-        fi_params.setValue("precursor:mass_tolerance", effective_precursor_tol);
-        fi_params.setValue("fragment:mass_tolerance", effective_fragment_tol);
+        if (!cal.extreme_bias)
+        {
+          // Precursor calibration is representable in the positive-magnitude schema —
+          // apply the calibrated bounds.
+          fi_params.setValue("precursor:mass_tolerance_lower", cal.cal_lower);
+          fi_params.setValue("precursor:mass_tolerance_upper", cal.cal_upper);
+
+          // Refresh algo-level member copies — OpenSearchModificationAnalysis reads them
+          // via computeModMatchTolerance_() and would otherwise see stale pre-calibration
+          // values. Restored to originals by restore_fi_params() below on return paths.
+          precursor_mass_tolerance_lower_ = cal.cal_lower;
+          precursor_mass_tolerance_upper_ = cal.cal_upper;
+          effective_precursor_tol = std::max(cal.cal_lower, cal.cal_upper);
+
+          OPENMS_LOG_INFO << "[ProSE] Calibration: shift=" << cal.precursor_shift
+                          << " spread=" << cal.precursor_spread << " "
+                          << precursor_mass_tolerance_unit_
+                          << " -> window [-" << cal.cal_lower << ", +" << cal.cal_upper << "]"
+                          << std::endl;
+        }
+        else
+        {
+          OPENMS_LOG_WARN << "[ProSE] Calibration: |shift|=" << std::abs(cal.precursor_shift)
+                          << " > spread=" << cal.precursor_spread << " "
+                          << precursor_mass_tolerance_unit_ << " - precursor calibration discarded. "
+                          << "The true signed window ["
+                          << (cal.precursor_shift - cal.precursor_spread) << ", "
+                          << (cal.precursor_shift + cal.precursor_spread)
+                          << "] lies entirely on one side of zero (not representable in the "
+                          << "positive-magnitude schema without loosening). Fragment calibration "
+                          << "still applied. Fix external calibration, or configure "
+                          << "mass_tolerance_lower/_upper manually." << std::endl;
+          // Precursor bounds unchanged; fragment_tolerance applied above.
+        }
+
         fragment_index_.setParameters(fi_params);
         fi_params_modified = true;
       }
     }
+
+    // Capture the mod-match tolerance reflecting the current (post-calibration)
+    // member state. This fires unconditionally — even for closed searches that
+    // won't invoke OpenSearchModificationAnalysis — so tests can observe whether
+    // calibration wiring reaches the helper regardless of search mode. The OSMA
+    // call sites below read from this field instead of re-computing.
+    last_mod_match_tolerance_used_ = computeModMatchTolerance_();
 
     // create spectrum generator
     TheoreticalSpectrumGenerator spectrum_generator;
@@ -798,7 +841,7 @@ namespace OpenMS
     bool open_search_mode = open_search;
     const double proton_mass_u = Constants::PROTON_MASS_U;
 
-#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fragment_index_, spectrum_generator, db, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, effective_fragment_tol)
+#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fragment_index_, spectrum_generator, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, effective_fragment_tol)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
 
@@ -860,7 +903,7 @@ namespace OpenMS
     endProgress();
 
     startProgress(0, 1, "Post-processing PSMs...");
-    PeptideSearchEngineFIAlgorithm::postProcessHits_(spectra,
+    ProSEAlgorithm::postProcessHits_(spectra,
       annotated_hits,
       protein_ids,
       peptide_ids,
@@ -882,19 +925,23 @@ namespace OpenMS
     // Perform modification analysis for open search results
     if (open_search)
     {
-      OPENMS_LOG_INFO << "[PDBS-FI] Performing open search modification analysis..." << std::endl;
+      OPENMS_LOG_INFO << "[ProSE] Performing open search modification analysis..." << std::endl;
       startProgress(0, 1, "Analyzing modification patterns...");
 
       OpenSearchModificationAnalysis mod_analyzer;
+      // Read from last_mod_match_tolerance_used_ (captured earlier post-calibration,
+      // pre-restoration) rather than re-computing: by now the restore_fi_params()
+      // call at the end of search() has already reset members to user-configured
+      // values, so computeModMatchTolerance_() would return the wrong value here.
       auto modification_summaries = mod_analyzer.analyzeModifications(
         peptide_ids,
-        precursor_mass_tolerance_,
+        last_mod_match_tolerance_used_,
         precursor_mass_tolerance_unit_ == "ppm",
         false, // no smoothing
         ""     // no output file for in-memory search
       );
 
-      OPENMS_LOG_INFO << "[PDBS-FI] Found " << modification_summaries.size()
+      OPENMS_LOG_INFO << "[ProSE] Found " << modification_summaries.size()
                       << " modification patterns in open search results." << std::endl;
 
       endProgress();
@@ -916,14 +963,17 @@ namespace OpenMS
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(db, protein_ids, peptide_ids);
 
-    // Helper lambda: restore FragmentIndex parameters before returning if
-    // calibration modified them, so the shared SearchContext is clean for
-    // subsequent per-file searches.
+    // Helper lambda: restore FragmentIndex parameters AND algo-level tolerance members
+    // before returning if calibration modified them, so the shared SearchContext and the
+    // algorithm instance are both clean for subsequent per-file searches in the
+    // multi-file wrapper.
     auto restore_fi_params = [&]()
     {
       if (fi_params_modified)
       {
         fragment_index_.setParameters(fi_params_original);
+        precursor_mass_tolerance_lower_ = orig_precursor_mass_tolerance_lower;
+        precursor_mass_tolerance_upper_ = orig_precursor_mass_tolerance_upper;
       }
     };
 
@@ -981,7 +1031,7 @@ namespace OpenMS
   // =====================================================================
   // File-based search: thin I/O wrapper that delegates to in-memory search
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::ExitCodes PeptideSearchEngineFIAlgorithm::search(
+  ProSEAlgorithm::ExitCodes ProSEAlgorithm::search(
       const String& in_spectra, const String& in_db,
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
@@ -1038,8 +1088,8 @@ namespace OpenMS
   // =====================================================================
   // In-memory searchWithModificationAnalysis
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::SearchResult
-  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(
+  ProSEAlgorithm::SearchResult
+  ProSEAlgorithm::searchWithModificationAnalysis(
       PeakMap& spectra,
       const std::vector<FASTAFile::FASTAEntry>& fasta_db,
       const String& output_base_name) const
@@ -1056,7 +1106,7 @@ namespace OpenMS
 
     if (result.is_open_search)
     {
-      OPENMS_LOG_INFO << "[PDBS-FI] Running detailed modification analysis for open search results..." << std::endl;
+      OPENMS_LOG_INFO << "[ProSE] Running detailed modification analysis for open search results..." << std::endl;
 
       OpenSearchModificationAnalysis mod_analyzer;
 
@@ -1066,9 +1116,12 @@ namespace OpenMS
         output_file = output_base_name + "_ModificationAnalysis.idXML";
       }
 
+      // Read the post-calibration value captured during the internal search()
+      // call. Do NOT re-compute here — by now search()'s restore_fi_params() has
+      // reset the tolerance members to user-configured values.
       result.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
         result.peptide_ids,
-        precursor_mass_tolerance_,
+        last_mod_match_tolerance_used_,
         precursor_mass_tolerance_unit_ == "ppm",
         false, // no smoothing
         output_file
@@ -1078,7 +1131,7 @@ namespace OpenMS
     }
     else
     {
-      OPENMS_LOG_INFO << "[PDBS-FI] Closed search mode - modification analysis skipped" << std::endl;
+      OPENMS_LOG_INFO << "[ProSE] Closed search mode - modification analysis skipped" << std::endl;
     }
 
     return result;
@@ -1093,8 +1146,8 @@ namespace OpenMS
   // computed by pooling all per-file PSMs and running modification analysis
   // once on the pooled set.
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::MultiFileSearchResult
-  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(
+  ProSEAlgorithm::MultiFileSearchResult
+  ProSEAlgorithm::searchWithModificationAnalysis(
       const std::vector<String>& in_spectra_files,
       const std::vector<FASTAFile::FASTAEntry>& fasta_db,
       const std::vector<String>& output_base_names,
@@ -1127,7 +1180,7 @@ namespace OpenMS
       const String& in_spectra = in_spectra_files[i];
       const String per_file_base = (i < output_base_names.size()) ? output_base_names[i] : String("");
 
-      OPENMS_LOG_INFO << "[PDBS-FI] [" << (i + 1) << "/" << in_spectra_files.size()
+      OPENMS_LOG_INFO << "[ProSE] [" << (i + 1) << "/" << in_spectra_files.size()
                       << "] Searching " << in_spectra << std::endl;
 
       // load MS2 map
@@ -1148,7 +1201,7 @@ namespace OpenMS
 
       if (result.exit_code != ExitCodes::EXECUTION_OK)
       {
-        OPENMS_LOG_WARN << "[PDBS-FI] Search failed for " << in_spectra
+        OPENMS_LOG_WARN << "[ProSE] Search failed for " << in_spectra
                         << " (exit code " << static_cast<int>(result.exit_code) << "). Continuing." << std::endl;
         mfres.per_file.push_back(std::move(result));
         continue;
@@ -1163,7 +1216,7 @@ namespace OpenMS
       // per-file modification analysis (only meaningful in open-search mode)
       if (result.is_open_search)
       {
-        OPENMS_LOG_INFO << "[PDBS-FI] Running detailed modification analysis for " << in_spectra << std::endl;
+        OPENMS_LOG_INFO << "[ProSE] Running detailed modification analysis for " << in_spectra << std::endl;
 
         OpenSearchModificationAnalysis mod_analyzer;
         String output_file = "";
@@ -1172,9 +1225,12 @@ namespace OpenMS
           output_file = per_file_base + "_ModificationAnalysis.idXML";
         }
 
+        // Read the post-calibration value captured during the internal search()
+        // call. Do NOT re-compute here — by now search()'s restore_fi_params() has
+        // reset the tolerance members to user-configured values.
         result.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
           result.peptide_ids,
-          precursor_mass_tolerance_,
+          last_mod_match_tolerance_used_,
           precursor_mass_tolerance_unit_ == "ppm",
           false, // no smoothing
           output_file
@@ -1184,7 +1240,7 @@ namespace OpenMS
       }
       else
       {
-        OPENMS_LOG_INFO << "[PDBS-FI] Closed search mode - per-file modification analysis skipped" << std::endl;
+        OPENMS_LOG_INFO << "[ProSE] Closed search mode - per-file modification analysis skipped" << std::endl;
       }
 
       mfres.per_file.push_back(std::move(result));
@@ -1250,7 +1306,7 @@ namespace OpenMS
     // Aggregate modification analysis on the pooled PSM set.
     if (mfres.aggregate.is_open_search && !mfres.aggregate.peptide_ids.empty())
     {
-      OPENMS_LOG_INFO << "[PDBS-FI] Running aggregate modification analysis on "
+      OPENMS_LOG_INFO << "[ProSE] Running aggregate modification analysis on "
                       << mfres.aggregate.peptide_ids.size() << " pooled PSM(s) from "
                       << in_spectra_files.size() << " input file(s)." << std::endl;
 
@@ -1263,7 +1319,7 @@ namespace OpenMS
 
       mfres.aggregate.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
         mfres.aggregate.peptide_ids,
-        precursor_mass_tolerance_,
+        computeModMatchTolerance_(),
         precursor_mass_tolerance_unit_ == "ppm",
         false, // no smoothing
         agg_output_file
@@ -1282,8 +1338,8 @@ namespace OpenMS
   // overload, and patches the database file path on each per-file (and the
   // aggregate) ProteinIdentification.
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::MultiFileSearchResult
-  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(
+  ProSEAlgorithm::MultiFileSearchResult
+  ProSEAlgorithm::searchWithModificationAnalysis(
       const std::vector<String>& in_spectra_files,
       const String& in_db,
       const std::vector<String>& output_base_names,
@@ -1316,8 +1372,8 @@ namespace OpenMS
   // File-based single-file searchWithModificationAnalysis: thin wrapper around
   // the multi-file overload using a single-element list.
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::SearchResult
-  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(const String& in_spectra,
+  ProSEAlgorithm::SearchResult
+  ProSEAlgorithm::searchWithModificationAnalysis(const String& in_spectra,
                                                                   const String& in_db,
                                                                   const String& output_base_name) const
   {
@@ -1340,7 +1396,7 @@ namespace OpenMS
   // =====================================================================
   // Helper: log search summary statistics and per-run tolerance estimation
   // =====================================================================
-  void PeptideSearchEngineFIAlgorithm::logSearchDiagnostics_(
+  void ProSEAlgorithm::logSearchDiagnostics_(
       const PeakMap& spectra,
       const std::vector<ProteinIdentification>& /*protein_ids*/,
       const PeptideIdentificationList& peptide_ids) const
@@ -1393,16 +1449,16 @@ namespace OpenMS
       mc_counts[digestor.countInternalCleavageSites(top.getSequence().toUnmodifiedString())]++;
     }
 
-    OPENMS_LOG_INFO << "\n[PDBS-FI] ============ Search Summary ============" << std::endl;
-    OPENMS_LOG_INFO << "[PDBS-FI]   MS2 spectra:          " << num_ms2 << std::endl;
-    OPENMS_LOG_INFO << "[PDBS-FI]   Matched spectra:      " << num_identified << std::endl;
+    OPENMS_LOG_INFO << "\n[ProSE] ============ Search Summary ============" << std::endl;
+    OPENMS_LOG_INFO << "[ProSE]   MS2 spectra:          " << num_ms2 << std::endl;
+    OPENMS_LOG_INFO << "[ProSE]   Matched spectra:      " << num_identified << std::endl;
     if (num_ms2 > 0)
     {
-      OPENMS_LOG_INFO << "[PDBS-FI]   MS2 ID rate:          "
+      OPENMS_LOG_INFO << "[ProSE]   MS2 ID rate:          "
                       << std::fixed << std::setprecision(1) << (100.0 * num_identified / num_ms2) << "%" << std::endl;
     }
-    OPENMS_LOG_INFO << "[PDBS-FI]   Unique peptides:      " << unique_peptides.size() << std::endl;
-    OPENMS_LOG_INFO << "[PDBS-FI]   Unique proteins:      " << unique_proteins.size() << std::endl;
+    OPENMS_LOG_INFO << "[ProSE]   Unique peptides:      " << unique_peptides.size() << std::endl;
+    OPENMS_LOG_INFO << "[ProSE]   Unique proteins:      " << unique_proteins.size() << std::endl;
 
     // Missed cleavages distribution
     if (!mc_counts.empty())
@@ -1413,14 +1469,14 @@ namespace OpenMS
         if (mc_oss.tellp() > 0) mc_oss << ", ";
         mc_oss << mc << ": " << count;
       }
-      OPENMS_LOG_INFO << "[PDBS-FI]   Missed cleavages:    " << mc_oss.str() << std::endl;
+      OPENMS_LOG_INFO << "[ProSE]   Missed cleavages:    " << mc_oss.str() << std::endl;
     }
 
     // -- Per-run tolerance estimation --
     const Size min_psms_for_estimation = 10;
     if (precursor_errors.size() >= min_psms_for_estimation || fragment_errors.size() >= min_psms_for_estimation)
     {
-      OPENMS_LOG_INFO << "[PDBS-FI] -------- Tolerance Estimation --------" << std::endl;
+      OPENMS_LOG_INFO << "[ProSE] -------- Tolerance Estimation --------" << std::endl;
     }
 
     if (precursor_errors.size() >= min_psms_for_estimation)
@@ -1428,7 +1484,7 @@ namespace OpenMS
       double med = Math::median(precursor_errors.begin(), precursor_errors.end());
       double mad = Math::MAD(precursor_errors.begin(), precursor_errors.end(), med);
       double recommended = std::ceil(med + 3.0 * mad);
-      OPENMS_LOG_INFO << "[PDBS-FI]   Precursor error: median=" << std::fixed << std::setprecision(2) << med
+      OPENMS_LOG_INFO << "[ProSE]   Precursor error: median=" << std::fixed << std::setprecision(2) << med
                       << " ppm, MAD=" << mad << " ppm"
                       << " -> recommended: " << static_cast<int>(recommended) << " ppm" << std::endl;
     }
@@ -1438,21 +1494,22 @@ namespace OpenMS
       double med = Math::median(fragment_errors.begin(), fragment_errors.end());
       double mad = Math::MAD(fragment_errors.begin(), fragment_errors.end(), med);
       double recommended = std::ceil(med + 3.0 * mad);
-      OPENMS_LOG_INFO << "[PDBS-FI]   Fragment error:  median=" << std::fixed << std::setprecision(2) << med
+      OPENMS_LOG_INFO << "[ProSE]   Fragment error:  median=" << std::fixed << std::setprecision(2) << med
                       << " ppm, MAD=" << mad << " ppm"
                       << " -> recommended: " << static_cast<int>(recommended) << " ppm" << std::endl;
     }
 
-    OPENMS_LOG_INFO << "[PDBS-FI]   (configured: precursor=" << precursor_mass_tolerance_ << " " << precursor_mass_tolerance_unit_
+    OPENMS_LOG_INFO << "[ProSE]   (configured: precursor=[-" << precursor_mass_tolerance_lower_
+                    << ", +" << precursor_mass_tolerance_upper_ << "] " << precursor_mass_tolerance_unit_
                     << ", fragment=" << fragment_mass_tolerance_ << " " << fragment_mass_tolerance_unit_ << ")" << std::endl;
-    OPENMS_LOG_INFO << "[PDBS-FI] ============================================\n" << std::endl;
+    OPENMS_LOG_INFO << "[ProSE] ============================================\n" << std::endl;
   }
 
   // =====================================================================
   // Helper: run calibration pass on a subset of spectra
   // =====================================================================
-  PeptideSearchEngineFIAlgorithm::CalibrationResult_
-  PeptideSearchEngineFIAlgorithm::runCalibrationPass_(
+  ProSEAlgorithm::CalibrationResult_
+  ProSEAlgorithm::runCalibrationPass_(
       PeakMap& spectra,
       FragmentIndex& fragment_index,
       const std::vector<FASTAFile::FASTAEntry>& db) const
@@ -1473,7 +1530,7 @@ namespace OpenMS
     Size subset_size = std::max<Size>(1, static_cast<Size>(spectra.size() * calibration_subset_ratio_));
     if (subset_size > tic_index.size()) subset_size = tic_index.size();
 
-    OPENMS_LOG_INFO << "[PDBS-FI] Calibration: scoring " << subset_size << " / " << spectra.size()
+    OPENMS_LOG_INFO << "[ProSE] Calibration: scoring " << subset_size << " / " << spectra.size()
                     << " spectra (top TIC)..." << std::endl;
 
     // Score subset and collect errors from the best hit per spectrum
@@ -1552,39 +1609,68 @@ namespace OpenMS
     }
 
     // Extract error vectors from filtered hits.
-    // Additionally discard PSMs with precursor error exceeding configured tolerance —
-    // these are definitionally wrong matches that would inflate the calibrated window.
-    double prec_tol_limit = precursor_mass_tolerance_;
+    // Additionally discard PSMs whose signed precursor error falls outside the band the
+    // FragmentIndex actually delivers. The mass-space window is [observed - lower, observed + upper];
+    // rewriting in terms of the signed error e = observed - theoretical:
+    //   theoretical in [observed - lower, observed + upper]
+    //     <=>  e in [-upper, +lower]
+    // So legitimate hits from FragmentIndex have e in [-upper, +lower], NOT [-lower, +upper].
+    // The bounds flip for asymmetric windows; matching on the wrong band silently drops
+    // real matches when the user has compensated an instrument bias.
     vector<double> precursor_errors;
     vector<double> fragment_errors_abs;
     for (const auto& h : cal_hits)
     {
-      if (std::abs(h.prec_error) > prec_tol_limit) continue; // wrong match
+      if (h.prec_error < -precursor_mass_tolerance_upper_ ||
+          h.prec_error > precursor_mass_tolerance_lower_) continue; // wrong match
       precursor_errors.push_back(h.prec_error);
       if (h.frag_error > 0) fragment_errors_abs.push_back(h.frag_error);
     }
 
     if (precursor_errors.size() < calibration_min_psms_)
     {
-      OPENMS_LOG_WARN << "[PDBS-FI] Calibration: insufficient PSMs (" << precursor_errors.size()
+      OPENMS_LOG_WARN << "[ProSE] Calibration: insufficient PSMs (" << precursor_errors.size()
                       << " < " << calibration_min_psms_
                       << "), using configured tolerances." << std::endl;
       return result; // success=false
     }
 
     // --- Compute calibrated tolerances ---
-    // Convert precursor errors to absolute values for robust estimation.
-    // Use median + 3*MAD (robust to outliers, follows InternalCalibration pattern).
-    vector<double> prec_abs_errors;
-    prec_abs_errors.reserve(precursor_errors.size());
-    for (double e : precursor_errors) { prec_abs_errors.push_back(std::abs(e)); }
-
     const double min_tolerance = 1e-6; // avoid non-positive tolerances
 
-    double prec_median = Math::median(prec_abs_errors.begin(), prec_abs_errors.end());
-    double prec_mad = Math::MAD(prec_abs_errors.begin(), prec_abs_errors.end(), prec_median);
-    result.precursor_tolerance = prec_median + 3.0 * prec_mad;
-    if (result.precursor_tolerance < min_tolerance) result.precursor_tolerance = min_tolerance;
+    // Signed median gives the calibration bias; spread is median(|e - shift|) + 3*MAD(|e - shift|),
+    // i.e., the same "typical residual + 3*scale" shape as the pre-refactor formula, just applied
+    // to residuals around the signed center instead of raw errors. Zero-centered distributions
+    // get identical spread; biased distributions correctly separate shift from spread.
+    const double prec_shift = Math::median(precursor_errors.begin(), precursor_errors.end());
+
+    std::vector<double> residuals;
+    residuals.reserve(precursor_errors.size());
+    for (double e : precursor_errors) { residuals.push_back(std::abs(e - prec_shift)); }
+    const double res_median = Math::median(residuals.begin(), residuals.end());
+    const double res_mad    = Math::MAD(residuals.begin(), residuals.end(), res_median);
+
+    result.precursor_shift  = prec_shift;
+    result.precursor_spread = std::max(min_tolerance, res_median + 3.0 * res_mad);
+    // Strict `>`: at |shift| == spread the signed window is exactly [0, 2*spread] or
+    // [-2*spread, 0] — both expressible in the positive-magnitude schema (one side == 0
+    // is legal and a well-defined half-line window). Only |shift| strictly greater
+    // than spread requires discarding the calibration result.
+    result.extreme_bias     = std::abs(prec_shift) > result.precursor_spread;
+
+    if (!result.extreme_bias)
+    {
+      // Map signed window [shift - spread, shift + spread] to positive magnitudes:
+      //   -cal_lower = shift - spread  ->  cal_lower = spread - shift
+      //   +cal_upper = shift + spread  ->  cal_upper = spread + shift
+      // Both are non-negative when |shift| < spread.
+      const double cal_lower_raw = result.precursor_spread - prec_shift;
+      const double cal_upper_raw = result.precursor_spread + prec_shift;
+      // Only tighten - cap against user-configured bounds.
+      result.cal_lower = std::min(cal_lower_raw, precursor_mass_tolerance_lower_);
+      result.cal_upper = std::min(cal_upper_raw, precursor_mass_tolerance_upper_);
+    }
+    // else: cal_lower/cal_upper stay at 0; writeback block skips the calibration result.
 
     // Fragment: 4 × 68th percentile (following NuXL / identipy convention).
     std::sort(fragment_errors_abs.begin(), fragment_errors_abs.end());
@@ -1601,11 +1687,7 @@ namespace OpenMS
 
     result.fragment_shift = 0.0;
 
-    // Don't widen beyond configured tolerance (only tighten)
-    if (result.precursor_tolerance > precursor_mass_tolerance_)
-    {
-      result.precursor_tolerance = precursor_mass_tolerance_;
-    }
+    // Don't widen beyond configured fragment tolerance (only tighten).
     if (result.fragment_tolerance > fragment_mass_tolerance_)
     {
       result.fragment_tolerance = fragment_mass_tolerance_;
@@ -1613,13 +1695,15 @@ namespace OpenMS
 
     result.success = true;
 
-    OPENMS_LOG_INFO << "[PDBS-FI] Calibration: " << precursor_errors.size() << " PSMs used (top "
+    OPENMS_LOG_INFO << "[ProSE] Calibration: " << precursor_errors.size() << " PSMs used (top "
                     << static_cast<int>(100.0 * precursor_errors.size() / cal_hits_total) << "% by score)" << std::endl;
-    OPENMS_LOG_INFO << "[PDBS-FI]   Precursor |error|: median=" << std::fixed << std::setprecision(2) << prec_median
-                    << ", MAD=" << prec_mad << " " << precursor_mass_tolerance_unit_ << std::endl;
-    OPENMS_LOG_INFO << "[PDBS-FI]   Precursor tolerance: " << precursor_mass_tolerance_
-                    << " -> " << result.precursor_tolerance << " " << precursor_mass_tolerance_unit_ << std::endl;
-    OPENMS_LOG_INFO << "[PDBS-FI]   Fragment tolerance:  " << fragment_mass_tolerance_
+    OPENMS_LOG_INFO << "[ProSE]   Precursor signed: shift=" << std::fixed << std::setprecision(2) << prec_shift
+                    << ", residual median=" << res_median << ", residual MAD=" << res_mad
+                    << " " << precursor_mass_tolerance_unit_ << std::endl;
+    OPENMS_LOG_INFO << "[ProSE]   Precursor spread: -> " << result.precursor_spread
+                    << " " << precursor_mass_tolerance_unit_
+                    << (result.extreme_bias ? " (extreme bias, discarded)" : "") << std::endl;
+    OPENMS_LOG_INFO << "[ProSE]   Fragment tolerance:  " << fragment_mass_tolerance_
                     << " -> " << result.fragment_tolerance << " " << fragment_mass_tolerance_unit_ << std::endl;
 
     return result;
@@ -1628,16 +1712,16 @@ namespace OpenMS
   // =====================================================================
   // Helper: log modification analysis summary
   // =====================================================================
-  void PeptideSearchEngineFIAlgorithm::logModificationAnalysisSummary_(
+  void ProSEAlgorithm::logModificationAnalysisSummary_(
       const SearchResult& result,
       const String& output_base_name) const
   {
-    OPENMS_LOG_INFO << "[PDBS-FI] ============================================" << std::endl;
-    OPENMS_LOG_INFO << "[PDBS-FI] MODIFICATION DISCOVERY SUMMARY" << std::endl;
-    OPENMS_LOG_INFO << "[PDBS-FI] ============================================" << std::endl;
+    OPENMS_LOG_INFO << "[ProSE] ============================================" << std::endl;
+    OPENMS_LOG_INFO << "[ProSE] MODIFICATION DISCOVERY SUMMARY" << std::endl;
+    OPENMS_LOG_INFO << "[ProSE] ============================================" << std::endl;
 
     const auto& dm_stats = result.modification_analysis.delta_mass_stats;
-    OPENMS_LOG_INFO << "[PDBS-FI] Delta Mass Analysis:" << std::endl;
+    OPENMS_LOG_INFO << "[ProSE] Delta Mass Analysis:" << std::endl;
     OPENMS_LOG_INFO << "  Total PSMs analyzed: " << dm_stats.total_psms << std::endl;
     OPENMS_LOG_INFO << "  Modified PSMs: " << dm_stats.modified_psms
                     << " (" << (dm_stats.total_psms > 0 ? (100.0 * dm_stats.modified_psms / dm_stats.total_psms) : 0.0)
@@ -1648,14 +1732,14 @@ namespace OpenMS
     OPENMS_LOG_INFO << "  Unique delta mass bins: " << dm_stats.entries.size() << std::endl;
 
     const auto& ptm_stats = result.modification_analysis.ptm_stats;
-    OPENMS_LOG_INFO << "[PDBS-FI] PTM Analysis:" << std::endl;
+    OPENMS_LOG_INFO << "[ProSE] PTM Analysis:" << std::endl;
     OPENMS_LOG_INFO << "  PSMs with known PTMs: " << ptm_stats.total_modified_psms << std::endl;
     OPENMS_LOG_INFO << "  PSMs with unknown modifications: " << ptm_stats.unknown_modification_psms << std::endl;
     OPENMS_LOG_INFO << "  Unique PTMs identified: " << ptm_stats.num_unique_modifications << std::endl;
 
     if (!ptm_stats.entries.empty())
     {
-      OPENMS_LOG_INFO << "[PDBS-FI] Top PTMs Discovered:" << std::endl;
+      OPENMS_LOG_INFO << "[ProSE] Top PTMs Discovered:" << std::endl;
       OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
       OPENMS_LOG_INFO << "  Rank | Name                            | Count | %     | Mass (Da)" << std::endl;
       OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
@@ -1689,7 +1773,7 @@ namespace OpenMS
 
     if (!unknown_dm.empty())
     {
-      OPENMS_LOG_INFO << "[PDBS-FI] Top Unknown Delta Masses (potential novel PTMs):" << std::endl;
+      OPENMS_LOG_INFO << "[ProSE] Top Unknown Delta Masses (potential novel PTMs):" << std::endl;
       OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
       OPENMS_LOG_INFO << "  Rank | Delta Mass (Da) | Count | Unique Peptides" << std::endl;
       OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
@@ -1708,11 +1792,11 @@ namespace OpenMS
       OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
     }
 
-    OPENMS_LOG_INFO << "[PDBS-FI] ============================================" << std::endl;
+    OPENMS_LOG_INFO << "[ProSE] ============================================" << std::endl;
 
     if (!output_base_name.empty())
     {
-      OPENMS_LOG_INFO << "[PDBS-FI] Statistics tables written to:" << std::endl;
+      OPENMS_LOG_INFO << "[ProSE] Statistics tables written to:" << std::endl;
       OPENMS_LOG_INFO << "  - " << output_base_name << "_ModificationAnalysis_DeltaMassStats.tsv" << std::endl;
       OPENMS_LOG_INFO << "  - " << output_base_name << "_ModificationAnalysis_PTMStats.tsv" << std::endl;
     }
