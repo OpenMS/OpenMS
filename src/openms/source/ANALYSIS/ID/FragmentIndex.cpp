@@ -669,7 +669,10 @@ namespace OpenMS
       // When j + 1 <= max_length the mother happens to coincide with a Single-N
       // mother at position 0 — that's harmless redundancy: both emit a different ion
       // series into the index, so there's no duplicate fragment.
-      for (size_t j = peptide_min_length_ - 1; j < L; ++j)
+      // Guard against min_length=0: j would wrap to SIZE_MAX. Clamp to 1 locally;
+      // this is the only code path sensitive to the min_length=0 edge case.
+      const size_t snes_min_length = std::max<size_t>(1, peptide_min_length_);
+      for (size_t j = snes_min_length - 1; j < L; ++j)
       {
         const size_t length = std::min<size_t>(peptide_max_length_, j + 1);
         const size_t start = j + 1 - length;
@@ -1356,11 +1359,19 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     thread_local std::vector<uint16_t> score_table;
     score_table.assign(fi_peptides_.size(), 0);
 
+    // Fragment-charge upper bound for the byte scan. Use the max charge in the
+    // `charges` list (the spectrum's known charge, or max_precursor_charge_ when
+    // unknown), capped by max_fragment_charge_. This matches the per-iteration
+    // `std::min(precursor_charge, max_fragment_charge_)` policy of non-SNES
+    // queryPeaks — using the static max_precursor_charge_ would inflate byte
+    // counts with matches at fragment charges above the actual precursor charge.
+    uint16_t byte_scan_max_frag_charge = 0;
+    for (uint16_t c : charges) byte_scan_max_frag_charge = std::max(byte_scan_max_frag_charge, c);
+    byte_scan_max_frag_charge = std::min(byte_scan_max_frag_charge, max_fragment_charge_);
+
     for (const Peak1D& peak : spectrum)
     {
-      // Walk each peak at every plausible fragment charge (same policy as query()).
-      const uint16_t actual_max_charge = std::min<uint16_t>(max_precursor_charge_, max_fragment_charge_);
-      for (uint16_t frag_charge = 1; frag_charge <= actual_max_charge; ++frag_charge)
+      for (uint16_t frag_charge = 1; frag_charge <= byte_scan_max_frag_charge; ++frag_charge)
       {
         const float adjusted_mass = static_cast<float>(peak.getMZ()) * frag_charge
           - (frag_charge - 1) * static_cast<float>(Constants::PROTON_MASS_U);
@@ -1487,12 +1498,22 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         // Reset the dedup guard for this (charge, iso_err) combo.
         std::fill(emitted.begin(), emitted.end(), 0);
 
-        // Single-N mothers: b-ion target = (M+H)+ − water.
-        collect_candidates(shifted_mh - static_cast<float>(water), prec_tol,
-                           /*expect_single_c=*/false, iso_err, charge);
-        // Single-C mothers: y-ion target = (M+H)+.
-        collect_candidates(shifted_mh, prec_tol,
-                           /*expect_single_c=*/true, iso_err, charge);
+        // Target m/z derivation, accounting for the fact that SNES fragment
+        // generation (build()) emits Single-N b-ions with c_term_mod = 0 and
+        // Single-C y-ions with n_term_mod = 0:
+        //   Realized (M+H)+ = water + proton + fixed_nterm + fixed_cterm + Σ_internal
+        //   b_k (Single-N)  = proton + fixed_nterm + Σ_internal
+        //                   => (M+H)+ − water − fixed_cterm
+        //   y_k (Single-C)  = water + proton + fixed_cterm + Σ_internal
+        //                   => (M+H)+ − fixed_nterm
+        // Missing the fixed-term offsets would shift the lookup target by the
+        // corresponding delta and silently miss all candidates when a user
+        // configures Acetyl (N-term) / Amidated (C-term) / similar.
+        collect_candidates(shifted_mh - static_cast<float>(water)
+                                      - static_cast<float>(fixed_cterm_delta_),
+                           prec_tol, /*expect_single_c=*/false, iso_err, charge);
+        collect_candidates(shifted_mh - static_cast<float>(fixed_nterm_delta_),
+                           prec_tol, /*expect_single_c=*/true, iso_err, charge);
 
         // Supplementary lookup: full-length realization (realized length = mother
         // length). b_L and y_L are NOT in the fragment index (the generation loop
@@ -1527,6 +1548,17 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         }
       }
     }
+
+    // Cap the candidate set at `max_processed_hits_` (same policy as the
+    // non-SNES path via queryPeaks→trimHits). Without this cap every candidate
+    // pays TSG + AASequence + HyperScore cost in scoreSpectraAgainstIndex_;
+    // ProSE's coarser fragment bucketing (sqrt(N) per bucket vs MetaMorpheus's
+    // 1-mDa fixed bins) admits more candidates per spectrum than MM's tight
+    // bin lookup, so the cap is necessary to keep per-spectrum work bounded.
+    // Top-K by num_matched is safe here because the fragment-index-as-precursor
+    // filter has already tightly constrained candidates to mothers compatible
+    // with the observed precursor — no length bias like in the v1 design.
+    trimHits(sms);
   }
 
   void FragmentIndex::querySpectrum(const OpenMS::MSSpectrum& spectrum,

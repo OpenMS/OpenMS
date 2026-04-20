@@ -894,6 +894,12 @@ namespace OpenMS
       const double snes_realize_tol =
           std::max(precursor_mass_tolerance_lower_, precursor_mass_tolerance_upper_);
 
+      // Reused across candidates of this spectrum. Avoids per-candidate heap
+      // churn of a fresh PeakSpectrum + its DataArrays (TSG's add_metainfo fills
+      // StringDataArrays with ion names — these are a notable allocation hot spot
+      // when the candidate count per spectrum is in the tens/hundreds).
+      PeakSpectrum theo_spectrum;
+
       for (const auto& sms : top_sms.hits_)
       {
         const FragmentIndex::Peptide& sms_pep = fi.getPeptides()[sms.peptide_idx_];
@@ -918,9 +924,13 @@ namespace OpenMS
           mod_candidate = fi.reconstructModifiedSequence(sms_pep, db);
         }
 
-        PeakSpectrum theo_spectrum;
+        // Clear peaks + data arrays (ion names / charges) before refilling for the
+        // next candidate; getSpectrum appends to whatever is there.
+        theo_spectrum.clear(true);
         spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, 1);
-        theo_spectrum.sortByPosition();
+        // Note: TSG emits sorted output when add_metainfo=true (see the
+        // sortByPositionPresorted() call at the tail of getSpectrum_); the extra
+        // sortByPosition() pass here was a redundant O(N) scan per candidate.
 
         HyperScore::PSMDetail detail;
         const double& score = HyperScore::computeWithDetail(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
