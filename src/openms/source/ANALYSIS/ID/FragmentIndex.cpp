@@ -1967,8 +1967,30 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     // Reset the guard so initModificationTables_() re-runs unconditionally.
     mod_tables_initialized_ = false;
     initModificationTables_();
+
+    // SNES v1.1: precompute Σ_delta enumeration for the query path.
+    // Three sets support anchor-dependent bin walks:
+    //   baseline:            ANYWHERE + N_TERM + C_TERM variable mods
+    //   with_prot_nterm:     baseline + PROTEIN_N_TERM variable mods
+    //   with_prot_cterm:     baseline + PROTEIN_C_TERM variable mods
+    // Non-SNES queries never consult these; populated unconditionally (cheap)
+    // so that toggling snes_enabled at runtime does not require a rebuild.
+    snes_sigma_delta_set_ = computeSnesSigmaDeltaSet_(false, false);
+    snes_sigma_delta_set_with_prot_nterm_ = computeSnesSigmaDeltaSet_(true, false);
+    snes_sigma_delta_set_with_prot_cterm_ = computeSnesSigmaDeltaSet_(false, true);
+
+    const size_t largest_set = std::max({snes_sigma_delta_set_.size(),
+                                          snes_sigma_delta_set_with_prot_nterm_.size(),
+                                          snes_sigma_delta_set_with_prot_cterm_.size()});
+    if (is_snes_mode_ && largest_set > 64)
+    {
+      OPENMS_LOG_WARN << "[FragmentIndex] SNES Σ_delta set has "
+                      << largest_set << " entries — query performance will "
+                      << "scale linearly with this. Consider reducing "
+                      << "modifications:variable or variable_max_per_peptide.\n";
+    }
   }
- 
+
   bool FragmentIndex::isBuild() const
   {
     return is_build_;

@@ -112,6 +112,10 @@ public:
     return computeSnesSigmaDeltaSet_(include_prot_nterm_mods, include_prot_cterm_mods);
   }
 
+  const std::vector<double>& getSnesSigmaDeltaSet() const { return snes_sigma_delta_set_; }
+  const std::vector<double>& getSnesSigmaDeltaSetProtNterm() const { return snes_sigma_delta_set_with_prot_nterm_; }
+  const std::vector<double>& getSnesSigmaDeltaSetProtCterm() const { return snes_sigma_delta_set_with_prot_cterm_; }
+
   bool testQuery(const UInt32 charge, const bool precursor_mz_known, const std::vector<FASTAFile::FASTAEntry>& entries)
   {
     // Create theoretical spectra for different charges
@@ -1795,6 +1799,38 @@ START_SECTION((computeSnesSigmaDeltaSet_ honors include_prot_nterm_mods flag))
   TEST_EQUAL(deltas_with.size(), 2u)
   TEST_REAL_SIMILAR(deltas_with[0], 0.0)
   TEST_REAL_SIMILAR(deltas_with[1], 42.010565)
+}
+END_SECTION
+
+START_SECTION((updateMembers_ populates the three SNES sigma_delta sets))
+{
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("modifications:variable",
+             std::vector<std::string>{"Oxidation (M)", "Acetyl (Protein N-term)"});
+  p.setValue("modifications:variable_max_per_peptide", 1);
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  fi.setParameters(p);
+
+  const auto& baseline = fi.getSnesSigmaDeltaSet();
+  const auto& with_nterm = fi.getSnesSigmaDeltaSetProtNterm();
+  const auto& with_cterm = fi.getSnesSigmaDeltaSetProtCterm();
+
+  // Baseline has {0, +15.995} — excludes Acetyl (Protein N-term).
+  TEST_EQUAL(baseline.size(), 2u)
+  TEST_REAL_SIMILAR(baseline[0], 0.0)
+  TEST_REAL_SIMILAR(baseline[1], 15.994915)
+
+  // With N-term extension: {0, +15.995, +42.011}.
+  TEST_EQUAL(with_nterm.size(), 3u)
+  TEST_REAL_SIMILAR(with_nterm[0], 0.0)
+  TEST_REAL_SIMILAR(with_nterm[1], 15.994915)
+  TEST_REAL_SIMILAR(with_nterm[2], 42.010565)
+
+  // With C-term extension: same as baseline (no protein C-term mod here).
+  TEST_EQUAL(with_cterm.size(), 2u)
 }
 END_SECTION
 

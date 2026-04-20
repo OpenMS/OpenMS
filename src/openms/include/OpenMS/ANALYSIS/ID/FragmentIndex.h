@@ -480,6 +480,16 @@ protected:
     /// (which captures the combined decision specificity && snes_enabled).
     bool snes_enabled_{false};
 
+    /// SNES v1.1: precomputed distinct Σ_delta values for bin-walk targets.
+    /// Baseline set excludes protein-term-only variable mods.
+    std::vector<double> snes_sigma_delta_set_;
+    /// SNES v1.1: Σ values including PROTEIN_N_TERM-only variable mods.
+    /// Used only for Single-N mothers anchored at protein position 0.
+    std::vector<double> snes_sigma_delta_set_with_prot_nterm_;
+    /// SNES v1.1: Σ values including PROTEIN_C_TERM-only variable mods.
+    /// Used only for Single-C mothers anchored at the protein C-terminus.
+    std::vector<double> snes_sigma_delta_set_with_prot_cterm_;
+
     /// Precomputed residue mass lookup table: ASCII char -> internal monoisotopic mass (Da).
     /// Indexed by single-letter amino acid code (e.g., 'A'=65). Entries for non-AA chars are 0.
     static std::array<double, 128> residue_mass_table_;
