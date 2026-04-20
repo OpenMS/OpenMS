@@ -2326,4 +2326,78 @@ START_SECTION((SNES query admits PROTEIN_C_TERM variable mod only for anchor-end
 }
 END_SECTION
 
+START_SECTION((SNES query-path rejects position-conflicting subsets))
+{
+  // Two N-term variable mods (Acetyl + Carbamyl, both N_TERM ANYWHERE) claim
+  // the peptide N-terminus. A subset that activates both has Σ=85.017 Da but
+  // is rejected at subset-enumeration due to position conflict. Synthesize a
+  // spectrum with (M+H)+ shifted by +85.017 and verify zero modified hits at
+  // that Σ (the only non-conflict way to reach Σ=85.017 is an invalid two-
+  // mod subset at position 0).
+  const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "ACDEFGHIJKLMNPQR"}};
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 12);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("modifications:variable",
+             std::vector<std::string>{"Acetyl (N-term)", "Carbamyl (N-term)"});
+  p.setValue("modifications:variable_max_per_peptide", 2);
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  p.setValue("fragment:min_matched_ions", 3);
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Synthesize an unmodified-fragment spectrum for "ACDEFGHI" with precursor
+  // shifted by +85.017 (Σ_acetyl + Σ_carbamyl).
+  AASequence target = AASequence::fromString("ACDEFGHI");
+
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_p = tsg.getParameters();
+  tsg_p.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_p);
+  PeakSpectrum theo;
+  tsg.getSpectrum(theo, target, 1, 1);
+  theo.sortByPosition();
+
+  MSSpectrum spec;
+  for (const auto& peak : theo) spec.push_back(peak);
+  Precursor prec;
+  // (M+H)+ shifted by conflict-sum Σ (42.010565 + 43.005814 = 85.016379).
+  prec.setMZ(target.getMonoWeight() + Constants::PROTON_MASS_U + 85.016379);
+  prec.setCharge(1);
+  spec.getPrecursors().push_back(prec);
+  spec.setMSLevel(2);
+
+  FragmentIndex::SpectrumMatchesTopN sms;
+  fi.querySpectrum(spec, sms);
+
+  // No hit should have sigma_delta_ ≈ 85.017 with subset_bitmask_ != 0,
+  // because the only subset summing to that Σ requires two N-term mods
+  // at the same position — rejected.
+  bool found_conflict_subset = false;
+  for (const auto& hit : sms.hits_)
+  {
+    if (hit.subset_bitmask_ != 0
+        && std::abs(hit.sigma_delta_ - 85.016379f) < 0.1f)
+    {
+      found_conflict_subset = true;
+      break;
+    }
+  }
+  TEST_EQUAL(found_conflict_subset, false)
+}
+END_SECTION
+
 END_TEST

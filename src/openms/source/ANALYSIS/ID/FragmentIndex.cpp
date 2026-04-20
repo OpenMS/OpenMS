@@ -465,6 +465,8 @@ namespace OpenMS
     bucket_min_mz_.clear();
     is_build_ = false;
     mod_tables_initialized_ = false;
+    fasta_entries_ptr_for_snes_ = nullptr;
+    protein_lengths_.clear();
   }
 
   AASequence FragmentIndex::reconstructModifiedSequence(
@@ -683,9 +685,9 @@ namespace OpenMS
       // peptides. Rationale: which slots survive realization depends on the C-terminus
       // (for Single-N) or N-terminus (for Single-C), which is only resolved in the
       // realization step; tracking per-length slot masks would negate the SNES size
-      // win. Terminal + internal variable-mod support is earmarked for v2.
+      // win. Terminal + internal variable-mod support is earmarked for v1.2+.
       std::string ignored = ListUtils::concatenate(modifications_variable_, ", ");
-      OPENMS_LOG_WARN << "[FragmentIndex] SNES v1.1: variable modifications are not enumerated on mother peptides "
+      OPENMS_LOG_INFO << "[FragmentIndex] SNES v1.1: variable modifications are not enumerated on mother peptides "
                       << "(mother index stores unmodified mothers); query-time subset enumeration "
                       << "applies them to realized sub-peptides using configured mods: " << ignored << std::endl;
     }
@@ -1926,7 +1928,13 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
           // Per-mother cap.
           size_t& count = subsets_per_mother[sm_raw.peptide_idx_];
-          if (count >= 16) break;
+          if (count >= 16)
+          {
+            OPENMS_LOG_DEBUG << "[FragmentIndex] SNES per-mother subset cap "
+                             << "hit for mother_idx=" << sm_raw.peptide_idx_
+                             << " at sigma_delta=" << sm_raw.sigma_delta_ << std::endl;
+            break;
+          }
 
           SpectrumMatch sm_variant = sm_raw;
           sm_variant.subset_bitmask_ = bm;
