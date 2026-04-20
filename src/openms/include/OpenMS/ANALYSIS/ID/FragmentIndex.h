@@ -446,7 +446,7 @@ protected:
     /// @param include_prot_cterm_mods include mods with PROTEIN_C_TERM specificity
     /// @return sorted ascending distinct Σ values; always includes 0.0
     std::vector<double> computeSnesSigmaDeltaSet_(bool include_prot_nterm_mods,
-                                                   bool include_prot_cterm_mods);
+                                                   bool include_prot_cterm_mods) const;
 
     /// Per-AA fixed modification delta mass (0.0 if no fixed mod applies)
     std::array<double, 128> fixed_mod_deltas_{};

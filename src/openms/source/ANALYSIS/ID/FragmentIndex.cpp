@@ -173,10 +173,12 @@ namespace OpenMS
   }
 
   std::vector<double> FragmentIndex::computeSnesSigmaDeltaSet_(bool include_prot_nterm_mods,
-                                                                bool include_prot_cterm_mods)
+                                                                bool include_prot_cterm_mods) const
   {
-    // Ensure modification tables are populated (lazy-initialize if not already done).
-    initModificationTables_();
+    // Precondition: initModificationTables_() has been called.
+    // updateMembers_() guarantees this: it resets mod_tables_initialized_ and
+    // calls initModificationTables_() at the end, so any setParameters() call
+    // will have populated the tables before this helper is invoked.
 
     // Collect all per-mod deltas that should participate in the enumeration.
     // Respect term-specificity flags: PROTEIN_N_TERM and PROTEIN_C_TERM mods
@@ -197,6 +199,15 @@ namespace OpenMS
     {
       collect(per_aa, /*residue_bound=*/true);
     }
+
+    // Dedup eligible_deltas: multiple mods sharing the same mass shift (e.g.
+    // Deamidated(N) and Deamidated(Q), both +0.984016 Da) produce identical
+    // BFS paths. Collapsing them to a single representative halves BFS work.
+    std::sort(eligible_deltas.begin(), eligible_deltas.end());
+    eligible_deltas.erase(
+        std::unique(eligible_deltas.begin(), eligible_deltas.end(),
+                    [](double a, double b) { return std::abs(a - b) < 1e-6; }),
+        eligible_deltas.end());
 
     // Enumerate multisets of size 0..max_per_peptide with replacement from
     // eligible_deltas. Store unique Σ values within a 1e-6 Da tolerance
@@ -1950,6 +1961,12 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
                       << " exceeds threshold. Isotope-error iteration collapses to [0, 0]."
                       << std::endl;
     }
+
+    // Re-initialize modification tables to reflect the current
+    // modifications_fixed_ / modifications_variable_ values.
+    // Reset the guard so initModificationTables_() re-runs unconditionally.
+    mod_tables_initialized_ = false;
+    initModificationTables_();
   }
  
   bool FragmentIndex::isBuild() const
