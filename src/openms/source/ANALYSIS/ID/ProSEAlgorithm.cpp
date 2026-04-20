@@ -158,13 +158,14 @@ namespace OpenMS
     defaults_.setSectionDescription("peptide", "Peptide Options");
 
     // SNES (Speedy Non-specific Enzyme Search): forwarded to FragmentIndex. Only
-    // takes effect when peptide:enzyme_specificity=none. v1 opt-in (default false).
+    // takes effect when peptide:enzyme_specificity=none. v1.1 opt-in (default false).
     defaults_.setValue("snes_enabled", "false",
-      "[experimental, v1 opt-in] When peptide:enzyme_specificity=none, use mother-"
+      "[experimental, v1.1 opt-in] When peptide:enzyme_specificity=none, use mother-"
       "peptide indexing (Single-N + Single-C, one ion series per mother) instead of "
       "naïve O(L^2) sub-peptide enumeration. Much smaller index and faster search on "
       "non-specific workloads (immunopeptidomics). Ignored for specific/semi-"
-      "specific enzymes. Variable modifications on mothers are not supported in v1.");
+      "specific enzymes. Variable modifications are supported in v1.1 via query-time "
+      "subset enumeration on the realized sub-peptide.");
     defaults_.setValidStrings("snes_enabled", {"true", "false"});
 
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
@@ -2346,7 +2347,7 @@ namespace OpenMS
     // (e.g. with InternalCalibration) before running ProSE with SNES.
     if (fragment_index.isSnesMode())
     {
-      OPENMS_LOG_WARN << "[ProSE] Calibration is not supported in SNES mode (v1). "
+      OPENMS_LOG_WARN << "[ProSE] Calibration is not supported in SNES mode (v1.1). "
                       << "Using configured precursor tolerance unchanged.\n";
       return result; // success=false, tolerances untouched
     }

@@ -1509,7 +1509,11 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
     const auto& precursor = spectrum.getPrecursors()[0];
     vector<uint16_t> charges;
-    if (precursor.getCharge())
+    // Precursor::getCharge() returns signed Int; treat non-positive (0 = unset,
+    // rare negative-mode encodings) as "unknown" and fall back to the
+    // configured min..max range. Without this guard, static_cast<uint16_t>(-1)
+    // would wrap to 65535 and be used as an actual charge downstream.
+    if (precursor.getCharge() > 0)
     {
       charges.push_back(static_cast<uint16_t>(precursor.getCharge()));
     }
@@ -1699,7 +1703,17 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       const float mh_plus = static_cast<float>(precursor.getMZ()) * charge
         - (charge - 1) * static_cast<float>(Constants::PROTON_MASS_U);
 
-      for (int16_t iso_err = min_isotope_error_; iso_err <= max_isotope_error_; ++iso_err)
+      // Open-search mode (very wide precursor tolerance auto-detected in
+      // isOpenSearchMode_()) collapses the isotope-error iteration to a
+      // single iso_err == 0 pass — at open-search windows, adding multiples
+      // of C13C12_MASSDIFF_U to the target is a no-op on candidate admission
+      // (the window already spans many isotope peaks) and just inflates the
+      // hit list with duplicate-labelled candidates. Mirrors the non-SNES
+      // `queryPeaks` path (FragmentIndex.cpp:1478-1480).
+      const bool open_mode = isOpenSearchMode_();
+      const int16_t iso_lo = open_mode ? 0 : min_isotope_error_;
+      const int16_t iso_hi = open_mode ? 0 : max_isotope_error_;
+      for (int16_t iso_err = iso_lo; iso_err <= iso_hi; ++iso_err)
       {
         const float shifted_mh = mh_plus
           + static_cast<float>(iso_err) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
@@ -1915,18 +1929,24 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         const uint64_t max_bitmask64 = (n_slots >= 32)
             ? (uint64_t{1} << 32)
             : (uint64_t{1} << n_slots);
-        for (uint32_t bm = 1; static_cast<uint64_t>(bm) < max_bitmask64; ++bm)
+        // bm is uint64_t so the terminating increment past UINT32_MAX doesn't
+        // wrap to 0 and re-enter the loop (n_slots == 32 isn't reachable in
+        // SNES mode — bit 31 is reserved for the kind flag — but the
+        // defensive width keeps the loop terminating cleanly on any
+        // future widening of MAX_MOD_SLOTS).
+        for (uint64_t bm = 1; bm < max_bitmask64; ++bm)
         {
           if (static_cast<size_t>(std::popcount(bm)) > max_variable_mods_per_peptide_) continue;
 
-          // Position-conflict check.
+          // Position-conflict check. Use 1ULL for the shift so n_slots up to
+          // 63 remain well-defined after the bm → uint64_t widening above.
           bool conflict = false;
           for (size_t a = 0; a < n_slots && !conflict; ++a)
           {
-            if (!(bm & (1u << a))) continue;
+            if (!(bm & (uint64_t{1} << a))) continue;
             for (size_t b = a + 1; b < n_slots; ++b)
             {
-              if (!(bm & (1u << b))) continue;
+              if (!(bm & (uint64_t{1} << b))) continue;
               if (slots[a].position == slots[b].position) { conflict = true; break; }
             }
           }
@@ -1939,7 +1959,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           double subset_sigma = 0.0;
           for (size_t s = 0; s < n_slots; ++s)
           {
-            if (bm & (1u << s)) subset_sigma += slots[s].delta_mass;
+            if (bm & (uint64_t{1} << s)) subset_sigma += slots[s].delta_mass;
           }
           if (std::abs(subset_sigma - static_cast<double>(sm_raw.sigma_delta_)) >= 1e-4) continue;
 
@@ -1954,7 +1974,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           }
 
           SpectrumMatch sm_variant = sm_raw;
-          sm_variant.subset_bitmask_ = bm;
+          // subset_bitmask_ is uint32_t; bm is uint64_t for termination safety
+          // but bm's value is always < 2^n_slots ≤ 2^32, so this narrowing is
+          // value-preserving.
+          sm_variant.subset_bitmask_ = static_cast<uint32_t>(bm);
           expanded.push_back(sm_variant);
           ++count;
         }
