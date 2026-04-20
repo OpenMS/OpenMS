@@ -48,7 +48,9 @@
 #include <algorithm>
 #include <iomanip>
 #include <map>
+#include <set>
 #include <sstream>
+#include <tuple>
 
 #ifdef _OPENMP
   #include <omp.h>
@@ -900,6 +902,16 @@ namespace OpenMS
       // when the candidate count per spectrum is in the tens/hundreds).
       PeakSpectrum theo_spectrum;
 
+      // SNES-mode dedup: a sub-peptide [i, i+k) can be produced by both a
+      // Single-N mother anchored at i and a Single-C mother ending at i+k-1.
+      // Both realize to the same AASequence (same protein, start, length,
+      // variable-mod subset). Without this guard, both are scored and land
+      // in annotated_hits, inflating the candidate list and biasing delta
+      // scores / Percolator features. Per-spectrum state — cheap, bounded
+      // by max_candidates_per_spectrum. Empty for non-SNES queries.
+      // Key: (protein_idx, realized_start, realized_length, subset_bitmask).
+      std::set<std::tuple<UInt32, uint16_t, uint16_t, uint32_t>> seen_realizations;
+
       for (const auto& sms : top_sms.hits_)
       {
         const FragmentIndex::Peptide& sms_pep = fi.getPeptides()[sms.peptide_idx_];
@@ -921,6 +933,19 @@ namespace OpenMS
           const int realized_len = fi.realizeSNESLength(
               sms_pep, db, iso_shifted_target, snes_realize_tol, prec_tol_ppm);
           if (realized_len < 0) continue; // no realizable length within tolerance
+
+          // L2 dedup: skip if this exact realization was already scored via
+          // the opposite-kind mother. Same protein + start + length + subset
+          // → same AASequence → same score, redundant work and inflated hits.
+          const uint16_t realized_start = FragmentIndex::isSingleCMother(sms_pep.mod_bitmask_)
+              ? static_cast<uint16_t>(sms_pep.sequence_.first + sms_pep.sequence_.second
+                                       - static_cast<uint16_t>(realized_len))
+              : sms_pep.sequence_.first;
+          const auto key = std::make_tuple(sms_pep.protein_idx, realized_start,
+                                            static_cast<uint16_t>(realized_len),
+                                            sms.subset_bitmask_);
+          if (!seen_realizations.insert(key).second) continue;
+
           mod_candidate = fi.reconstructRealizedSubSequence(
               sms_pep, db, static_cast<size_t>(realized_len), sms.subset_bitmask_);
         }
