@@ -513,6 +513,13 @@ protected:
     /// @c generateFragmentsLightweight_ forwards to this function after packing the
     /// class flags; both share a single implementation.
     ///
+    /// @param[out] fragments Output vector to append Fragment entries to
+    /// @param[in] sequence Raw amino acid string (no modifications)
+    /// @param[in] seq_len Length of sequence
+    /// @param[in] peptide_idx Index of this peptide in fi_peptides_
+    /// @param[in] n_term_mod_mass Mass delta from N-terminal modification (0 if none)
+    /// @param[in] c_term_mod_mass Mass delta from C-terminal modification (0 if none)
+    /// @param[in] residue_mod_masses Per-residue modification mass deltas (nullptr if none; array of seq_len doubles)
     /// @param[in] add_b Emit b-ions (prefix).
     /// @param[in] add_a Emit a-ions (prefix).
     /// @param[in] add_c Emit c-ions (prefix).
