@@ -1959,67 +1959,22 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
   void FragmentIndex::querySpectrum(const OpenMS::MSSpectrum& spectrum,
                                     OpenMS::FragmentIndex::SpectrumMatchesTopN& sms)
   {
-      if (!isBuild())
-      {
-        OPENMS_LOG_WARN << "FragmentIndex not yet build \n";
-        return;
-      }
-
-      if (spectrum.empty() || (spectrum.getMSLevel() != 2))
-      {
-        return;
-      }
-
-      const auto& precursor = spectrum.getPrecursors();
-      if (precursor.size() != 1)
-      {
-        OPENMS_LOG_WARN << "Number of precursors is not equal 1 \n";
-        return;
-      }
-
-      if (is_snes_mode_)
-      {
-        if (!modifications_variable_.empty())
-        {
-          OPENMS_LOG_ERROR << "[FragmentIndex] querySpectrum called without FASTA in SNES mode "
-                              "with variable modifications — results would be undefined. "
-                              "Use querySpectrum(spectrum, fasta_entries, sms) instead.\n";
-          return;
-        }
-        static const std::vector<FASTAFile::FASTAEntry> empty_fasta;
-        querySpectrumSNES_(spectrum, empty_fasta, sms);
-        return;
-      }
-
-      // two posible modes. Precursor has a charge or we test all possible charges
-      vector<size_t> charges;
-      //cout << "precursor charge = " << precursor[0].getCharge() << endl;
-      if (precursor[0].getCharge())
-      {
-        //cout << "precursor charge found" << endl;
-        charges.push_back(precursor[0].getCharge());
-      }
-      else
-      {
-        for (uint16_t i = min_precursor_charge_; i <= max_precursor_charge_; i++)
-        {
-          charges.push_back(i);
-        }
-      }
-      // loop over all PRECURSOR-charges
-
-
-
-      for (uint16_t charge : charges)
-      {
-        SpectrumMatchesTopN candidates_charge;
-        float mz;
-        mz = (float)precursor[0].getMZ() * charge - ((charge-1) * Constants::PROTON_MASS_U);
-        searchDifferentPrecursorRanges(spectrum, mz, candidates_charge, charge);
-
-        sms += candidates_charge;
-      }
-      trimHits(sms);
+    // Backward-compatible 2-arg overload. Delegates to the 3-arg overload
+    // with an empty FASTA. Safe for non-SNES and SNES-without-var-mods
+    // callers — the subset-enumeration block in querySpectrumSNES_ only
+    // dereferences fasta_entries when sm.sigma_delta_ != 0, which cannot
+    // occur when modifications_variable_ is empty. SNES + var-mods callers
+    // must use the 3-arg overload; this guard rejects them explicitly
+    // rather than producing undefined behavior.
+    if (is_snes_mode_ && !modifications_variable_.empty())
+    {
+      OPENMS_LOG_ERROR << "[FragmentIndex] querySpectrum called without FASTA in SNES mode "
+                          "with variable modifications — results would be undefined. "
+                          "Use querySpectrum(spectrum, fasta_entries, sms) instead.\n";
+      return;
+    }
+    static const std::vector<FASTAFile::FASTAEntry> empty_fasta;
+    querySpectrum(spectrum, empty_fasta, sms);
   }
 
   void FragmentIndex::querySpectrum(const OpenMS::MSSpectrum& spectrum,
