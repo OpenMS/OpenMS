@@ -1518,6 +1518,11 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
                                         precursor_mass_tolerance_upper_));
 
         // Reset the dedup guard for this (charge, iso_err) combo.
+        // INVARIANT: this reset MUST live inside the (charge, iso_err) loop —
+        // distinct (charge, iso_err) tuples produce independent candidate rows
+        // with their own isotope_error_ / precursor_charge_ fields, so they
+        // must be allowed to re-emit the same mother. Hoisting this above the
+        // loop would suppress valid candidates at iso_err != 0.
         std::fill(emitted.begin(), emitted.end(), 0);
 
         // Target m/z derivation, accounting for the fact that SNES fragment
@@ -1834,6 +1839,21 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     // distinguish "SNES turned off" from "SNES not applicable for this enzyme".
     snes_enabled_ = param_.getValue("snes_enabled").toString() == "true";
     is_snes_mode_ = snes_enabled_ && (enzyme_specificity_ == EnzymaticDigestion::SPEC_NONE);
+
+    // SNES v1 indexes b-ions for Single-N mothers and y-ions for Single-C mothers
+    // regardless of the user's ions:add_b_ions / ions:add_y_ions toggles (the
+    // candidate lookup in querySpectrumSNES_ hard-codes b/y precursor-equivalent
+    // targets). Downstream scoring (ProSEAlgorithm) does honor those toggles
+    // when building theoretical spectra, so turning b or y off leaves the SNES
+    // filter admitting candidates that cannot be scored well — silent quality
+    // degradation. Reject the configuration explicitly in v1.
+    if (is_snes_mode_ && (!add_b_ions_ || !add_y_ions_))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "SNES mode (snes_enabled=true with enzyme_specificity=none) requires both "
+        "ions:add_b_ions=true and ions:add_y_ions=true in v1. Additional ion "
+        "series (a/c/x/z) may be enabled freely for downstream scoring.");
+    }
 
     if (isOpenSearchMode_())
     {

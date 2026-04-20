@@ -1560,4 +1560,126 @@ START_SECTION((SNES index admits a candidate whose sub-peptide matches an observ
 }
 END_SECTION
 
+START_SECTION((SNES matches candidates when a fixed N-terminal modification is configured))
+{
+  // Build a SNES index with Acetyl (N-term) as a fixed modification and verify
+  // that a spectrum synthesized from a sub-peptide with the N-term acetyl applied
+  // is correctly matched. Exercises fixed_nterm_delta_ != 0 paths in both
+  // build-time fragment generation and query-time precursor-target derivation.
+  //
+  // Regression guard: the default Carbamidomethyl (C) fixture has
+  // fixed_nterm_delta_ == fixed_cterm_delta_ == 0, masking an earlier bug where
+  // the query target omitted the terminal delta. A non-default Carbamidomethyl
+  // on a non-C residue would be rejected at parameter parse time — Acetyl
+  // (N-term) is the minimal non-ANYWHERE fixed-mod that isolates the terminal
+  // delta.
+  const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKAGDEFGRHILMNPQSTV"}};
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 12);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  p.setValue("modifications:fixed", std::vector<std::string>{"Acetyl (N-term)"});
+  p.setValue("snes_enabled", "true");
+  p.setValue("fragment:min_matched_ions", 3);
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Target: "AGDEFGRHIL" (sub-peptide at protein pos 2..11) with fixed N-term acetyl.
+  AASequence target = AASequence::fromString("AGDEFGRHIL");
+  target.setNTerminalModification("Acetyl");
+  // Sanity: the modified target's mono weight must include the Acetyl delta.
+  TEST_REAL_SIMILAR(
+      target.getMonoWeight() - AASequence::fromString("AGDEFGRHIL").getMonoWeight(),
+      42.010565);
+
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_p = tsg.getParameters();
+  tsg_p.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_p);
+  PeakSpectrum theo;
+  tsg.getSpectrum(theo, target, 1, 1);
+  theo.sortByPosition();
+
+  MSSpectrum spec;
+  for (const auto& peak : theo) spec.push_back(peak);
+  Precursor prec;
+  prec.setMZ(target.getMonoWeight() + Constants::PROTON_MASS_U);
+  prec.setCharge(1);
+  spec.getPrecursors().push_back(prec);
+  spec.setMSLevel(2);
+
+  FragmentIndex::SpectrumMatchesTopN sms;
+  fi.querySpectrum(spec, sms);
+
+  bool any_matched = false;
+  for (const auto& hit : sms.hits_)
+  {
+    if (hit.num_matched_ >= 3u) { any_matched = true; break; }
+  }
+  TEST_EQUAL(any_matched, true)
+}
+END_SECTION
+
+START_SECTION((SNES rejects configuration with add_b_ions=false or add_y_ions=false))
+{
+  // The SNES fragment index hard-codes b-ions for Single-N mothers and y-ions
+  // for Single-C mothers; querySpectrumSNES_ looks up b/y precursor-equivalent
+  // targets. If the user disables either series the downstream scorer
+  // (ProSEAlgorithm) builds theoretical spectra without that series, which
+  // silently degrades score quality on admitted candidates. v1 rejects the
+  // configuration at updateMembers_ time.
+  const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKACDEFGRHILMNPQSTV"}};
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 12);
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  p.setValue("ions:add_b_ions", "false");
+
+  TEST_EXCEPTION(Exception::InvalidParameter, fi.setParameters(p))
+
+  // Symmetric: y-ions disabled.
+  auto p2 = fi.getParameters();
+  p2.setValue("peptide:enzyme_specificity", "none");
+  p2.setValue("peptide:min_size", 8);
+  p2.setValue("peptide:max_size", 12);
+  p2.setValue("modifications:variable", std::vector<std::string>{});
+  p2.setValue("modifications:fixed", std::vector<std::string>{});
+  p2.setValue("snes_enabled", "true");
+  p2.setValue("ions:add_b_ions", "true");
+  p2.setValue("ions:add_y_ions", "false");
+
+  TEST_EXCEPTION(Exception::InvalidParameter, fi.setParameters(p2))
+
+  // Non-SNES configuration (snes_enabled=false) accepts add_b_ions=false freely.
+  auto p3 = fi.getParameters();
+  p3.setValue("peptide:enzyme_specificity", "none");
+  p3.setValue("peptide:min_size", 8);
+  p3.setValue("peptide:max_size", 12);
+  p3.setValue("modifications:variable", std::vector<std::string>{});
+  p3.setValue("modifications:fixed", std::vector<std::string>{});
+  p3.setValue("snes_enabled", "false");
+  p3.setValue("ions:add_b_ions", "false");
+
+  fi.setParameters(p3); // expected to not throw
+  TEST_EQUAL(true, true) // reached only if setParameters did not throw
+}
+END_SECTION
+
 END_TEST
