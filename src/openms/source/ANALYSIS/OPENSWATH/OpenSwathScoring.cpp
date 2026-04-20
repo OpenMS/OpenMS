@@ -755,11 +755,16 @@ namespace OpenMS
       }
       else
       {
+        SpectrumSequence resampled_spectra;
         for (size_t i = 0; i < swath_maps.size(); ++i)
         {
           SpectrumSequence spectrumSequence = swath_maps[i].sptr->getMultipleSpectra(RT, nr_spectra_to_add, im_range.getMin(), im_range.getMax());
           if (spectrumSequence.empty()) continue;
-          out.push_back(SpectrumAddition::addUpSpectra(spectrumSequence, spacing_for_spectra_resampling_, true));
+          resampled_spectra.push_back(SpectrumAddition::addUpSpectra(spectrumSequence, spacing_for_spectra_resampling_, true));
+        }
+        if (!resampled_spectra.empty())
+        {
+          out.push_back(SpectrumAddition::addUpSpectra(resampled_spectra, spacing_for_spectra_resampling_, true));
         }
       }
       return;
