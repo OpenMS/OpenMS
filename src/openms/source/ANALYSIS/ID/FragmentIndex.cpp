@@ -1914,12 +1914,15 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           if (conflict) continue;
 
           // Σ match check.
+          // sigma_delta_ is stored as float; tolerate float→double rounding
+          // by using 1e-4 Da (~0.1 mDa) rather than 1e-6. Minimum modification
+          // delta separation in Unimod is ≥1 mDa, so 0.1 mDa is safe.
           double subset_sigma = 0.0;
           for (size_t s = 0; s < n_slots; ++s)
           {
             if (bm & (1u << s)) subset_sigma += slots[s].delta_mass;
           }
-          if (std::abs(subset_sigma - static_cast<double>(sm_raw.sigma_delta_)) >= 1e-6) continue;
+          if (std::abs(subset_sigma - static_cast<double>(sm_raw.sigma_delta_)) >= 1e-4) continue;
 
           // Per-mother cap.
           size_t& count = subsets_per_mother[sm_raw.peptide_idx_];

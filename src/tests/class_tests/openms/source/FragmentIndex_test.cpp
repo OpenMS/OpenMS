@@ -2164,4 +2164,166 @@ START_SECTION((SNES handles identical-delta variable mods without collapsing sub
 }
 END_SECTION
 
+START_SECTION((SNES query admits PROTEIN_N_TERM variable mod only for anchor-0 mothers))
+{
+  // Build SNES index with Acetyl (Protein N-term). Two proteins: one where
+  // the sub-peptide ACDEFGHI at protein position 0 is realizable from a
+  // Single-N mother anchored at 0; another where ACDEFGHI sits mid-protein.
+  //
+  // The query spectrum is generated from the UNMODIFIED peptide (b/y ions
+  // are unmodified), but the precursor m/z is shifted by the Acetyl delta
+  // (+42.010565 Da). SNES phase-1 fragment scoring then matches the
+  // unmodified b-ions to Single-N mothers; the PROT_NTERM precursor-filter
+  // walk (sigma=42.010565) admits only mothers with sequence_.first==0,
+  // gating out the mid-protein sub-peptide from protein idx 1.
+  const std::vector<FASTAFile::FASTAEntry> entries{
+      {"anchored", "anchored", "ACDEFGHIJKLMNPQR"},     // ACDEFGHI at pos 0
+      {"mid", "mid", "XXXACDEFGHIJKLMNPQR"}              // ACDEFGHI at pos 3
+  };
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 12);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("modifications:variable",
+             std::vector<std::string>{"Acetyl (Protein N-term)"});
+  p.setValue("modifications:variable_max_per_peptide", 1);
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  p.setValue("fragment:min_matched_ions", 3);
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Unmodified target for fragment generation; manually shift precursor by
+  // the Acetyl delta so the SNES PROT_NTERM walk (sigma=42.010565) fires.
+  AASequence unmod = AASequence::fromString("ACDEFGHI");
+  const double acetyl_delta = 42.010565;
+
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_p = tsg.getParameters();
+  tsg_p.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_p);
+  PeakSpectrum theo;
+  tsg.getSpectrum(theo, unmod, 1, 1);
+  theo.sortByPosition();
+
+  MSSpectrum spec;
+  for (const auto& peak : theo) spec.push_back(peak);
+  Precursor prec;
+  prec.setMZ(unmod.getMonoWeight() + acetyl_delta + Constants::PROTON_MASS_U);
+  prec.setCharge(1);
+  spec.getPrecursors().push_back(prec);
+  spec.setMSLevel(2);
+
+  FragmentIndex::SpectrumMatchesTopN sms;
+  fi.querySpectrum(spec, sms);
+
+  // The match must come from the anchored protein (idx 0), not the
+  // mid-protein one (idx 1). Verify via the mother's protein_idx.
+  bool found_anchored = false;
+  bool found_mid = false;
+  for (const auto& hit : sms.hits_)
+  {
+    if (hit.subset_bitmask_ == 0) continue;
+    if (std::abs(hit.sigma_delta_ - static_cast<float>(acetyl_delta)) > 0.1f) continue;
+    const auto& mother = fi.getPeptides()[hit.peptide_idx_];
+    if (mother.protein_idx == 0 && mother.sequence_.first == 0) found_anchored = true;
+    if (mother.protein_idx == 1 && mother.sequence_.first != 0) found_mid = true;
+  }
+  TEST_EQUAL(found_anchored, true)
+  TEST_EQUAL(found_mid, false)
+}
+END_SECTION
+
+START_SECTION((SNES query admits PROTEIN_C_TERM variable mod only for anchor-end mothers))
+{
+  // Symmetric to the N-term test: Amidated (Protein C-term) variable mod.
+  // Single-C mothers at the protein end admit; mid-protein sub-peptides
+  // with the same residues do not.
+  //
+  // The query spectrum is generated from the UNMODIFIED peptide (y-ions
+  // are unmodified), but the precursor m/z is shifted by the Amidated
+  // delta (-0.984016 Da). SNES phase-1 fragment scoring matches the
+  // unmodified y-ions to Single-C mothers; the PROT_CTERM precursor-filter
+  // walk (sigma=-0.984016) admits only mothers at the protein C-terminus.
+  const std::vector<FASTAFile::FASTAEntry> entries{
+      {"anchored", "anchored", "ACDEFGHIJKLMNPQR"},      // R at protein pos 15 (end)
+      {"mid", "mid", "ACDEFGHIJKLMNPQRXXX"}               // R is mid-protein (pos 15 of 19)
+  };
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 12);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("modifications:variable",
+             std::vector<std::string>{"Amidated (Protein C-term)"});
+  p.setValue("modifications:variable_max_per_peptide", 1);
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  p.setValue("fragment:min_matched_ions", 3);
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Unmodified target; precursor m/z shifted by Amidated delta.
+  AASequence unmod = AASequence::fromString("GHIJKLMNPQR");
+  const double amidated_delta = -0.984016;
+
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_p = tsg.getParameters();
+  tsg_p.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_p);
+  PeakSpectrum theo;
+  tsg.getSpectrum(theo, unmod, 1, 1);
+  theo.sortByPosition();
+
+  MSSpectrum spec;
+  for (const auto& peak : theo) spec.push_back(peak);
+  Precursor prec;
+  prec.setMZ(unmod.getMonoWeight() + amidated_delta + Constants::PROTON_MASS_U);
+  prec.setCharge(1);
+  spec.getPrecursors().push_back(prec);
+  spec.setMSLevel(2);
+
+  FragmentIndex::SpectrumMatchesTopN sms;
+  fi.querySpectrum(spec, sms);
+
+  // Amidated delta ≈ -0.984016. sigma_delta_ stores the raw Σ, which is
+  // negative for mass-loss mods; the tolerance check handles this correctly.
+  bool found_anchored = false;
+  bool found_mid = false;
+  const float amidated_delta_f = static_cast<float>(amidated_delta);
+  for (const auto& hit : sms.hits_)
+  {
+    if (hit.subset_bitmask_ == 0) continue;
+    if (std::abs(hit.sigma_delta_ - amidated_delta_f) > 0.1f) continue;
+    const auto& mother = fi.getPeptides()[hit.peptide_idx_];
+    const size_t prot_len = entries[mother.protein_idx].sequence.size();
+    if (mother.protein_idx == 0 && mother.sequence_.first + mother.sequence_.second == prot_len) found_anchored = true;
+    if (mother.protein_idx == 1 && mother.sequence_.first + mother.sequence_.second != prot_len) found_mid = true;
+  }
+  TEST_EQUAL(found_anchored, true)
+  TEST_EQUAL(found_mid, false)
+}
+END_SECTION
+
 END_TEST
