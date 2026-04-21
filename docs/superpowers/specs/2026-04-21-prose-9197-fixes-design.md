@@ -4,6 +4,8 @@
 **Scope:** `src/topp/ProSE.cpp` (per-file output sequencing, merged-write isolation,
 deferred FDR:PSM application, dangling protein reference cleanup).
 **Source issue:** [OpenMS#9197](https://github.com/OpenMS/OpenMS/issues/9197) items 1 and 3.
+**Related follow-up:** [OpenMS#9198](https://github.com/OpenMS/OpenMS/issues/9198) (internal PEP/FDR fallback when Percolator fails).
+**Note on line numbers:** all `ProSE.cpp:NNN` references in this spec point to the pre-patch state at branch `develop` HEAD; they will shift during implementation.
 
 ## Background
 
@@ -16,22 +18,34 @@ Two distinct ProSE bugs were observed in a multi-file MHC-I run:
    complete in memory.
 
 2. **The merged write itself crashed on `target+decoy` PSMs (item 1b).** Root
-   cause: `applyPickedProteinFDR` physically deletes decoy `ProteinHit`s from
-   the merged protein list, but `IDFilter::removeDecoyHits` tests
-   `target_decoy == "decoy"` exactly and so **keeps** PSMs annotated as
-   `target+decoy` (peptide sequences that map to both a target and a decoy
-   protein, common in short non-tryptic immunopeptidomics). Those kept PSMs
-   retain `PeptideEvidence` entries pointing to the now-deleted decoy proteins.
-   `IdXMLFile::store` validates every evidence accession against the protein
-   list and throws "Invalid protein reference 'DECOY_...'", causing the merged
-   write to fail at the same time as item 1a's data loss.
+   cause: in the merged path, `applyPickedProteinFDR` (with default
+   `add_decoy_proteins=false`, routing through `IDScoreGetterSetter::
+   setScoresAndRemoveDecoys_`) drops decoy `ProteinHit` entries while
+   reassigning q-value scores; `filterHitsByScore` immediately afterward drops
+   the remaining target proteins above the q-value cutoff. Net: decoy proteins
+   are gone from the merged protein list. But `IDFilter::removeDecoyHits` tests
+   `target_decoy == "decoy"` exactly via `HasDecoyAnnotation`, so it **keeps**
+   PSMs annotated as `target+decoy` (peptide sequences that map to both a
+   target and a decoy protein, common in short non-tryptic immunopeptidomics).
+   Those kept PSMs retain `PeptideEvidence` entries pointing to the
+   now-deleted decoy proteins. `IdXMLFile::store` validates every evidence
+   accession against the protein list and throws "Invalid protein reference
+   'DECOY_...'", causing the merged write to fail at the same time as item
+   1a's data loss. Bug only triggers when `FDR:protein > 0`; with
+   `FDR:protein == 0` no decoy proteins are removed and there's nothing to
+   dangle against.
 
-3. **`FDR:PSM` strips decoys before Percolator (item 3).** `ProSE.cpp:191-195`
-   defers only `FDR:protein` when `-percolator_executable` is set; `FDR:PSM` is
-   applied inside `ProSEAlgorithm::run()` before Percolator runs. With decoys
-   removed, `PercolatorAdapter` aborts with "No decoys found" and ProSE silently
-   falls back to raw HyperScore. The user only sees a generic "rescoring failed"
-   message and has to dig into stderr to find the cause.
+3. **`FDR:PSM` strips decoys before Percolator (item 3).** The wrapper at
+   `ProSE.cpp:191-195` zeros `FDR:protein` to 0 when `-percolator_executable`
+   is set but does NOT zero `FDR:PSM`. Inside `ProSEAlgorithm::run()`,
+   `removeDecoyHits` is called immediately after PSM-level FDR filtering,
+   conditionally on `fdr_protein_ == 0.0` (`ProSEAlgorithm.cpp:1264, 1538`).
+   The wrapper's zeroing of `FDR:protein` makes the algorithm see
+   `fdr_protein_ == 0.0` → it triggers `removeDecoyHits` after PSM FDR. With
+   `FDR:PSM > 0`, decoys are stripped from the algorithm's output before
+   Percolator runs. `PercolatorAdapter` then aborts with "No decoys found" and
+   ProSE silently falls back to raw HyperScore. The user only sees a generic
+   "rescoring failed" message and has to dig into stderr to find the cause.
 
 ## Goal
 
@@ -47,8 +61,11 @@ Percolator q-values. The merged-write protein-reference invariant is restored.
 - Item 4 (`.pin` missing standard columns) — independent fix; out of scope.
 - Reworking `ProSEAlgorithm` internals — all changes here are confined to
   `ProSE.cpp` (the TOPP wrapper).
-- Resolving "merged output mixes scoring scales when some Percolator runs fail
-  and others succeed" — pre-existing concern, flagged for follow-up.
+- Falling back to internal PEP/FDR when Percolator fails (or is skipped due to
+  no decoys for that file). The score-scale heterogeneity that results — merged
+  output mixing Percolator q-values and raw HyperScore PSMs across input files
+  when some Percolator runs fail — is a direct consequence of this PR's deferral
+  design, not a pre-existing concern. Tracked separately as #9198.
 
 ## Architecture
 
@@ -219,8 +236,18 @@ is also set — verify any existing test that sets both flags simultaneously.
   notice. Merged path runs on the raw per-file results.
 
 - **Some Percolator runs fail**: merged output mixes Percolator-q-value and
-  raw HyperScore PSMs across input files. Pre-existing concern (not introduced
-  by this PR); flagged for follow-up but out of scope here.
+  raw HyperScore PSMs across input files. **Direct consequence of the
+  deferral design** (raw-HyperScore files were never FDR-filtered). Tracked
+  for follow-up in #9198 (internal PEP/FDR fallback when Percolator fails).
+  This PR knowingly accepts this trade-off as part of fixing the silent
+  decoy-stripping bug.
+
+- **`has_decoys_for_percolator == false`** (Percolator skipped entirely
+  before per-file loop): with `FDR:PSM > 0`, the deferred PSM FDR is
+  silently never applied to ANY file. Raw HyperScore PSMs are written.
+  Surfaced via a new warning at the decoy-check site:
+  `"Percolator skipped (no decoys); deferred FDR:PSM=<X> was not applied
+  to any file."` Long-term fix tracked in #9198.
 
 - **`-out_pin` only, no `-percolator_executable`**: pin is written from raw
   result; no Percolator runs. Same as today minus the now-meaningless work of
@@ -229,6 +256,12 @@ is also set — verify any existing test that sets both flags simultaneously.
 - **`-out_pin` + `-percolator_executable`**: pin from raw HyperScore (NEW —
   was Percolator-rescored before); idXML/qpx/parquet from rescored, FDR-filtered
   result. Both outputs derived from the same input but at different stages.
+
+- **`-out_pin` only + `-percolator_executable` set + Percolator fails**:
+  pin file is written from raw result (step 1, before the Percolator attempt).
+  No idXML/qpx/parquet outputs are requested. User gets pin file as expected;
+  the per-file Percolator fallback warning is logged but no actionable
+  output is missing.
 
 ## Rollout
 
