@@ -109,7 +109,7 @@ namespace OpenMS
     std::vector<double> profile;
     Size effective_window = std::min(window_size, seq.size()); // size of the window
 
-    for (Size i = 0; i + effective_window <= seq.size(); i++) // window slides by one amino acid in each iteration // TODO: Wie fixen? Nur Size oder so wie der Code es angibt?
+    for (Size i = 0; i + effective_window <= seq.size(); i++) // window slides by one amino acid in each iteration
     {
       AASequence subsequence = seq.getSubsequence(i, effective_window);
       double sum_sin = 0;

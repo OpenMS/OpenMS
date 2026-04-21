@@ -17,6 +17,8 @@
 namespace OpenMS
 {
   /** 
+  @ingroup Chemistry
+  
   @brief This class is used for hydrophobicity profiling of peptides.
 
   References for the hydrophobicity scales:
@@ -39,7 +41,7 @@ namespace OpenMS
   
   Eisenberg D, Weiss RM, Terwilliger TC. The hydrophobic moment detects periodicity in protein hydrophobicity. Proc Natl Acad Sci U S A. 1984 Jan;81(1):140-4. doi: 10.1073/pnas.81.1.140. PMID: 6582470; PMCID: PMC344626.
 
-  Refernced code for calculating the hydrophobic moment of a windowed peptide
+  Referenced code for calculating the hydrophobic moment of a windowed peptide
   R package R.Peptides: https://github.com/dosorio/Peptides/blob/master/R/hmoment.R
 
   @ref HydrophobicityScaleMethod 

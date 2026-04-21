@@ -444,7 +444,7 @@ public:
 
     /// @param scale which scale to use for the hydrophobicity value
     /// @return hydrophobicity value of the residue
-    /// @throw Exception::InvalidValue Throws an exception if the residue is not one of the 20 common amino acids
+    /// @throw Exception::InvalidValue Throws an exception if the residue is not one of the 20 common amino acids or when an unknown scale is used
     double getHydrophobicity(const HydrophobicityScaleMethod scale) const;
  
 protected:

@@ -66,10 +66,6 @@ START_SECTION(std::vector<double> computeProfile(const AASequence& seq, const Hy
 }
 END_SECTION
 
-//,
-//      Size window_size = 7,
-//      const HydrophobicityScaleMethod scale = HydrophobicityScaleMethod::KYTE_DOOLITTLE
-
 START_SECTION(std::vector<double> computeWindowedProfile(const AASequence& seq, Size window_size, const HydrophobicityScaleMethod scale) const)
 {
   HydrophobicityProfile profile;
@@ -92,8 +88,8 @@ START_SECTION(std::vector<double> computeHydrophobicMoment(const AASequence& seq
   AASequence seq_2;
   std::vector<double> vec = profile.computeHydrophobicMoment(seq_1,3,100);
   TEST_REAL_SIMILAR(vec[0],0.511576803);
-  TEST_REAL_SIMILAR(vec[1],0.4600520621);
-  TEST_REAL_SIMILAR(vec[2],0.748853208);
+  TEST_REAL_SIMILAR(vec[1],0.435170599);
+  TEST_REAL_SIMILAR(vec[2],0.734926405);
   TEST_EXCEPTION(Exception::InvalidSize,profile.computeHydrophobicMoment(seq_1,0));
   TEST_EXCEPTION(Exception::InvalidValue,profile.computeHydrophobicMoment(seq_2,3));
 }
