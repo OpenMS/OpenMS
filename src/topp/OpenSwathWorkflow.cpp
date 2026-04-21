@@ -47,6 +47,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
@@ -574,6 +575,12 @@ protected:
 
   ExitCodes main_(int, const char **) override
   {
+    // Suppress resampling spacing warnings throughout entire workflow (calibration + extraction)
+    // The warning occurs repeatedly during spectrum resampling and is not actionable for typical
+    // ToF instrument data where fine resampling is expected. Suppression significantly improves
+    // performance by reducing console I/O overhead.
+    suppress_resampling_spacing_warning.store(true);
+    
     ///////////////////////////////////
     // Prepare Parameters
     ///////////////////////////////////
