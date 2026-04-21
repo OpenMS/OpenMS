@@ -278,13 +278,13 @@ class ProSE :
         return INTERNAL_ERROR;
       }
 
-      // Optional per-file Percolator rescoring (replaces HyperScore with
-      // Percolator q-values for downstream FDR / protein inference).
+      // Hoist the global decoy check for Percolator: rescoring requires at least
+      // one decoy ProteinHit in the per-file results. Done once across all files
+      // (not per-file) because absence of decoys is typically a database-config
+      // issue affecting the whole run.
+      bool has_decoys_for_percolator = false;
       if (!percolator_executable.empty())
       {
-        // Percolator requires decoys for target/decoy competition.
-        // Check per-file results for target_decoy annotations.
-        bool has_decoys_for_percolator = false;
         for (const auto& pf : mfres.per_file)
         {
           if (pf.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
@@ -304,55 +304,11 @@ class ProSE :
           OPENMS_LOG_WARN << "Percolator rescoring requires decoys but none found in results. "
                           << "Enable '-Search:decoys' or provide a FASTA with decoy proteins. "
                           << "Skipping rescoring." << endl;
-        }
-        else
-        for (Size i = 0; i < in_list.size(); ++i)
-        {
-          auto& result = mfres.per_file[i];
-          if (result.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
-          if (result.peptide_ids.size() < 100)
+          if (user_psm_fdr > 0.0)
           {
-            OPENMS_LOG_WARN << "Skipping Percolator rescoring for " << in_list[i]
-                            << " (only " << result.peptide_ids.size() << " PSMs, need >= 100)." << endl;
-            continue;
+            OPENMS_LOG_WARN << "Deferred FDR:PSM=" << user_psm_fdr
+                            << " was not applied to any file (Percolator skipped)." << endl;
           }
-
-          // Write intermediate idXML for PercolatorAdapter input
-          String tmp_in = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_in.idXML";
-          String tmp_out = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_out.idXML";
-          String tmp_weights = File::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc.weights";
-          FileHandler().storeIdentifications(tmp_in, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
-
-          std::vector<String> perc_params = {
-            "-in", tmp_in,
-            "-out", tmp_out,
-            "-percolator_executable", percolator_executable,
-            "-train_best_positive",
-            "-score_type", "q-value",
-            "-post_processing_tdc",
-            "-weights", tmp_weights
-          };
-
-          OPENMS_LOG_INFO << "[ProSE] Rescoring " << in_list[i] << " with Percolator..." << endl;
-          TOPPBase::ExitCodes perc_ec = runExternalProcess_(String("PercolatorAdapter"), perc_params);
-
-          if (perc_ec != EXECUTION_OK)
-          {
-            OPENMS_LOG_WARN << "Percolator rescoring failed for " << in_list[i]
-                            << ". Using original HyperScore results." << endl;
-          }
-          else
-          {
-            result.protein_ids.clear();
-            result.peptide_ids.clear();
-            FileHandler().loadIdentifications(tmp_out, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
-            IDFilter::keepNBestHits(result.peptide_ids, 1);
-          }
-
-          // Clean up temp files
-          File::remove(tmp_in);
-          File::remove(tmp_out);
-          File::remove(tmp_weights);
         }
       }
 
@@ -388,22 +344,7 @@ class ProSE :
         // failure to input_failed; the input counts as failed if any mode failed.
         bool input_failed = false;
 
-        // -- idXML output --
-        if (!out_idxml_list.empty())
-        {
-          try
-          {
-            FileHandler().storeIdentifications(out_idxml_list[i], result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
-          }
-          catch (const Exception::BaseException& e)
-          {
-            OPENMS_LOG_ERROR << "Failed to write idXML output for " << in_file
-                             << " -> " << out_idxml_list[i] << ": " << e.what() << endl;
-            input_failed = true;
-          }
-        }
-
-        // -- Percolator .pin output --
+        // -- Percolator .pin output (first — preserves "raw input for external rescoring" semantic) --
         if (!out_pin_list.empty())
         {
           try
@@ -444,6 +385,97 @@ class ProSE :
           {
             OPENMS_LOG_ERROR << "Failed to write .pin output for " << in_file
                              << " -> " << out_pin_list[i] << ": " << e.what() << endl;
+            input_failed = true;
+          }
+        }
+
+        // -- Percolator rescoring (per-file; mutates result.peptide_ids in place) --
+        bool percolator_succeeded = false;
+        if (!percolator_executable.empty() && has_decoys_for_percolator)
+        {
+          if (result.peptide_ids.size() < 100)
+          {
+            OPENMS_LOG_WARN << "Skipping Percolator rescoring for " << in_file
+                            << " (only " << result.peptide_ids.size() << " PSMs, need >= 100)." << endl;
+            if (user_psm_fdr > 0.0)
+            {
+              OPENMS_LOG_WARN << "Deferred FDR:PSM=" << user_psm_fdr
+                              << " was not applied for " << in_file
+                              << " (Percolator skipped, falling back to raw HyperScore)." << endl;
+            }
+          }
+          else
+          {
+            String tmp_in      = File::getTempDirectory() + "/" + File::stemName(in_file) + "_perc_in.idXML";
+            String tmp_out     = File::getTempDirectory() + "/" + File::stemName(in_file) + "_perc_out.idXML";
+            String tmp_weights = File::getTempDirectory() + "/" + File::stemName(in_file) + "_perc.weights";
+            FileHandler().storeIdentifications(tmp_in, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
+
+            std::vector<String> perc_params = {
+              "-in", tmp_in,
+              "-out", tmp_out,
+              "-percolator_executable", percolator_executable,
+              "-train_best_positive",
+              "-score_type", "q-value",
+              "-post_processing_tdc",
+              "-weights", tmp_weights
+            };
+
+            OPENMS_LOG_INFO << "[ProSE] Rescoring " << in_file << " with Percolator..." << endl;
+            TOPPBase::ExitCodes perc_ec = runExternalProcess_(String("PercolatorAdapter"), perc_params);
+
+            if (perc_ec != EXECUTION_OK)
+            {
+              OPENMS_LOG_WARN << "Percolator rescoring failed for " << in_file
+                              << ". Using original HyperScore results." << endl;
+              if (user_psm_fdr > 0.0)
+              {
+                OPENMS_LOG_WARN << "Deferred FDR:PSM=" << user_psm_fdr
+                                << " was not applied for " << in_file
+                                << " (Percolator failed, falling back to raw HyperScore)." << endl;
+              }
+            }
+            else
+            {
+              result.protein_ids.clear();
+              result.peptide_ids.clear();
+              FileHandler().loadIdentifications(tmp_out, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
+              IDFilter::keepNBestHits(result.peptide_ids, 1);
+              // Re-apply test-mode path setting (the pre-loop set was clobbered by reload)
+              if (getFlag_("test") && !result.protein_ids.empty())
+              {
+                result.protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in_file)});
+              }
+              percolator_succeeded = true;
+            }
+
+            File::remove(tmp_in);
+            File::remove(tmp_out);
+            File::remove(tmp_weights);
+          }
+        }
+
+        // -- Re-apply deferred PSM FDR using Percolator q-values (post-rescoring) --
+        if (percolator_succeeded && user_psm_fdr > 0.0)
+        {
+          IDFilter::filterHitsByScore(result.peptide_ids, user_psm_fdr);
+          IDFilter::removeEmptyIdentifications(result.peptide_ids);
+          OPENMS_LOG_INFO << "[ProSE] " << in_file
+                          << ": applied deferred FDR:PSM=" << user_psm_fdr
+                          << " using Percolator q-values." << endl;
+        }
+
+        // -- idXML output (after Percolator + deferred FDR) --
+        if (!out_idxml_list.empty())
+        {
+          try
+          {
+            FileHandler().storeIdentifications(out_idxml_list[i], result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
+          }
+          catch (const Exception::BaseException& e)
+          {
+            OPENMS_LOG_ERROR << "Failed to write idXML output for " << in_file
+                             << " -> " << out_idxml_list[i] << ": " << e.what() << endl;
             input_failed = true;
           }
         }
