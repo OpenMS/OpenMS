@@ -185,13 +185,24 @@ class ProSE :
       Param search_params = getParam_().copy("Search:", true);
       const String percolator_executable = getStringOption_("percolator_executable");
       const double user_protein_fdr = static_cast<double>(search_params.getValue("FDR:protein"));
+      const double user_psm_fdr     = static_cast<double>(search_params.getValue("FDR:PSM"));
 
-      // When Percolator rescoring is enabled, defer protein FDR to after rescoring
-      // so protein inference uses Percolator q-values, not raw HyperScores.
-      if (!percolator_executable.empty() && user_protein_fdr > 0.0)
+      // When Percolator rescoring is enabled, defer FDR application to after
+      // rescoring so filtering uses Percolator q-values, not raw HyperScores.
+      // FDR:protein deferral preserves protein-level inference; FDR:PSM deferral
+      // prevents decoys from being stripped before Percolator can use them.
+      if (!percolator_executable.empty())
       {
-        OPENMS_LOG_INFO << "[ProSE] Percolator rescoring enabled: deferring protein FDR to post-rescoring." << endl;
-        search_params.setValue("FDR:protein", 0.0);
+        if (user_protein_fdr > 0.0)
+        {
+          OPENMS_LOG_INFO << "[ProSE] Percolator rescoring enabled: deferring protein FDR to post-rescoring." << endl;
+          search_params.setValue("FDR:protein", 0.0);
+        }
+        if (user_psm_fdr > 0.0)
+        {
+          OPENMS_LOG_INFO << "[ProSE] Percolator rescoring enabled: deferring PSM FDR to post-rescoring." << endl;
+          search_params.setValue("FDR:PSM", 0.0);
+        }
       }
 
       ProSEAlgorithm sse;
