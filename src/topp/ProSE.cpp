@@ -439,6 +439,12 @@ class ProSE :
         IDFilter::removeDecoyHits(merged_peptides);
         IDFilter::removeEmptyIdentifications(merged_peptides);
         IDFilter::removeUnreferencedProteins(merged_protein_ids, merged_peptides);
+        // Strip PeptideEvidence entries pointing to proteins removed by decoy/FDR
+        // cleanup. Required because removeDecoyHits keeps target+decoy PSMs (their
+        // target_decoy meta is "target+decoy", not "decoy"), so those PSMs retain
+        // evidence pointing at decoy proteins that applyPickedProteinFDR already
+        // deleted from the protein list. IdXMLFile::store rejects dangling refs.
+        IDFilter::removeDanglingProteinReferences(merged_peptides, merged_protein_ids);
 
         if (getFlag_("test") && !merged_protein_ids.empty())
         {
