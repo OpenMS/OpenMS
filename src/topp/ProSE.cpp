@@ -398,68 +398,6 @@ class ProSE :
         }
       }
 
-      // Write merged output: pool all per-file PSMs (possibly Percolator-rescored),
-      // run cross-file protein inference + optional protein FDR, write to -out_merged.
-      // Per-file outputs (-out_idxml/-out_qpx/-out_parquet) are NOT modified — they retain run-level information.
-      if (!out_merged.empty() && in_list.size() > 1)
-      {
-        const String decoy_prefix = search_params.getValue("decoy_prefix").toString();
-
-        // Merge per-file results via IDMergerAlgorithm (accession dedup + identifier remap)
-        IDMergerAlgorithm merger;
-        for (const auto& pf : mfres.per_file)
-        {
-          if (pf.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
-          merger.insertRuns(pf.protein_ids, pf.peptide_ids);
-        }
-        ProteinIdentification merged_proteins;
-        PeptideIdentificationList merged_peptides;
-        merger.returnResultsAndClear(merged_proteins, merged_peptides);
-
-        vector<ProteinIdentification> merged_protein_ids = {std::move(merged_proteins)};
-        merged_protein_ids[0].setPrimaryMSRunPath(in_list);
-
-        // Protein inference: aggregate best PSM score per peptide per protein
-        BasicProteinInferenceAlgorithm bpia;
-        bpia.run(merged_peptides, merged_protein_ids);
-
-        // Optional picked-protein FDR
-        if (user_protein_fdr > 0.0)
-        {
-          FalseDiscoveryRate fdr;
-          fdr.applyPickedProteinFDR(merged_protein_ids[0], decoy_prefix, true);
-          IDFilter::filterHitsByScore(merged_protein_ids, user_protein_fdr);
-
-          OPENMS_LOG_INFO << "[ProSE] Merged protein inference + FDR: "
-                          << merged_protein_ids[0].getHits().size() << " proteins at "
-                          << user_protein_fdr * 100 << "% FDR" << endl;
-        }
-
-        // Clean up decoys in merged output
-        IDFilter::removeDecoyHits(merged_peptides);
-        IDFilter::removeEmptyIdentifications(merged_peptides);
-        IDFilter::removeUnreferencedProteins(merged_protein_ids, merged_peptides);
-        // Strip PeptideEvidence entries pointing to proteins removed by decoy/FDR
-        // cleanup. Required because removeDecoyHits keeps target+decoy PSMs (their
-        // target_decoy meta is "target+decoy", not "decoy"), so those PSMs retain
-        // evidence pointing at decoy proteins that applyPickedProteinFDR already
-        // deleted from the protein list. IdXMLFile::store rejects dangling refs.
-        IDFilter::removeDanglingProteinReferences(merged_peptides, merged_protein_ids);
-
-        if (getFlag_("test") && !merged_protein_ids.empty())
-        {
-          StringList basenames;
-          for (const auto& f : in_list) basenames.push_back("file://" + File::basename(f));
-          merged_protein_ids[0].setPrimaryMSRunPath(basenames);
-        }
-
-        FileHandler().storeIdentifications(out_merged, merged_protein_ids, merged_peptides, {FileTypes::IDXML});
-      }
-      else if (!out_merged.empty() && in_list.size() == 1)
-      {
-        OPENMS_LOG_WARN << "-out_merged is only useful with multiple -in files. Skipping merged output." << endl;
-      }
-
       // Write per-file outputs and track failures.
       // Accumulate Arrow tables for merged parquet output.
       std::vector<std::shared_ptr<arrow::Table>> qpx_psm_tables, qpx_pg_tables;
@@ -685,6 +623,79 @@ class ProSE :
         merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(oms_prot_tables, out_parquet_dir + "/openms.proteins.parquet")      && merged_ok;
         merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(oms_pg_tables,   out_parquet_dir + "/openms.pg.parquet")            && merged_ok;
         merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(oms_sp_tables,   out_parquet_dir + "/openms.search_params.parquet") && merged_ok;
+      }
+
+      // Write merged idXML (pool all per-file PSMs, possibly Percolator-rescored,
+      // and run cross-file protein inference + optional protein FDR). Wrapped in
+      // try/catch so any failure here does NOT discard per-file outputs that
+      // already completed above. Per-file outputs (-out_idxml / -out_qpx /
+      // -out_parquet) are not modified by this block — they retain run-level
+      // information.
+      if (!out_merged.empty() && in_list.size() > 1)
+      {
+        try
+        {
+          const String decoy_prefix = search_params.getValue("decoy_prefix").toString();
+
+          // Merge per-file results via IDMergerAlgorithm (accession dedup + identifier remap)
+          IDMergerAlgorithm merger;
+          for (const auto& pf : mfres.per_file)
+          {
+            if (pf.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
+            merger.insertRuns(pf.protein_ids, pf.peptide_ids);
+          }
+          ProteinIdentification merged_proteins;
+          PeptideIdentificationList merged_peptides;
+          merger.returnResultsAndClear(merged_proteins, merged_peptides);
+
+          vector<ProteinIdentification> merged_protein_ids = {std::move(merged_proteins)};
+          merged_protein_ids[0].setPrimaryMSRunPath(in_list);
+
+          // Protein inference: aggregate best PSM score per peptide per protein
+          BasicProteinInferenceAlgorithm bpia;
+          bpia.run(merged_peptides, merged_protein_ids);
+
+          // Optional picked-protein FDR
+          if (user_protein_fdr > 0.0)
+          {
+            FalseDiscoveryRate fdr;
+            fdr.applyPickedProteinFDR(merged_protein_ids[0], decoy_prefix, true);
+            IDFilter::filterHitsByScore(merged_protein_ids, user_protein_fdr);
+
+            OPENMS_LOG_INFO << "[ProSE] Merged protein inference + FDR: "
+                            << merged_protein_ids[0].getHits().size() << " proteins at "
+                            << user_protein_fdr * 100 << "% FDR" << endl;
+          }
+
+          // Clean up decoys in merged output
+          IDFilter::removeDecoyHits(merged_peptides);
+          IDFilter::removeEmptyIdentifications(merged_peptides);
+          IDFilter::removeUnreferencedProteins(merged_protein_ids, merged_peptides);
+          // Strip PeptideEvidence entries pointing to proteins removed by decoy/FDR
+          // cleanup (target+decoy PSMs kept by removeDecoyHits would otherwise leave
+          // dangling refs that IdXMLFile::store rejects).
+          IDFilter::removeDanglingProteinReferences(merged_peptides, merged_protein_ids);
+
+          if (getFlag_("test") && !merged_protein_ids.empty())
+          {
+            StringList basenames;
+            for (const auto& f : in_list) basenames.push_back("file://" + File::basename(f));
+            merged_protein_ids[0].setPrimaryMSRunPath(basenames);
+          }
+
+          FileHandler().storeIdentifications(out_merged, merged_protein_ids, merged_peptides, {FileTypes::IDXML});
+        }
+        catch (const Exception::BaseException& e)
+        {
+          OPENMS_LOG_ERROR << "Failed to write merged idXML output -> " << out_merged
+                           << ": " << e.what()
+                           << ". Per-file outputs above were written successfully." << endl;
+          // Do NOT propagate; per-file outputs are already on disk.
+        }
+      }
+      else if (!out_merged.empty() && in_list.size() == 1)
+      {
+        OPENMS_LOG_WARN << "-out_merged is only useful with multiple -in files. Skipping merged output." << endl;
       }
 
       if (failed_count > 0)
