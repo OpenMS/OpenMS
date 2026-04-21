@@ -19,6 +19,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <algorithm>
 #include <cmath>
 #include <condition_variable>
@@ -297,6 +298,11 @@ namespace OpenMS
     int innerBatchSize,
     int maxConcurrentSwaths)
   {
+    // Suppress resampling spacing warnings to reduce console I/O overhead.
+    // This warning occurs repeatedly during spectrum resampling and is not actionable
+    // for typical ToF instrument data where fine resampling is expected.
+    suppress_resampling_spacing_warning.store(true);
+    
     // user-controllable overrides for inner batching and outer concurrency
     const int user_inner_batch_size = innerBatchSize;
     const int user_max_concurrent_swaths = maxConcurrentSwaths;
