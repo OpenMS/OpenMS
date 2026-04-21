@@ -727,29 +727,13 @@ protected:
       // prepare pin
       //-------------------------------------------------------------
       
-      StringList feature_set;
-      feature_set.push_back("SpecId");
-      feature_set.push_back("Label");
-      feature_set.push_back("ScanNr");
+      StringList feature_set = PercolatorInfile::getStandardFeatureSet(min_charge, max_charge);
       if (description_of_correct != 0)
       {
         feature_set.push_back("retentiontime");
         feature_set.push_back("deltamass");
       }
-      feature_set.push_back("ExpMass");
-      feature_set.push_back("CalcMass");
-      feature_set.push_back("mass");
-      feature_set.push_back("peplen");
-      for (int i = min_charge; i <= max_charge; ++i)
-      {
-         feature_set.push_back("charge" + String(i));
-      }
-      feature_set.push_back("enzN");
-      feature_set.push_back("enzC");
-      feature_set.push_back("enzInt");
-      feature_set.push_back("dm");
-      feature_set.push_back("absdm");
-      
+
       ProteinIdentification::SearchParameters search_parameters = all_protein_ids.front().getSearchParameters();
       if (search_parameters.metaValueExists("extra_features"))
       {

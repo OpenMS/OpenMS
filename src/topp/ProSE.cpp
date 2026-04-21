@@ -185,12 +185,17 @@ class ProSE :
       Param search_params = getParam_().copy("Search:", true);
       const String percolator_executable = getStringOption_("percolator_executable");
       const double user_protein_fdr = static_cast<double>(search_params.getValue("FDR:protein"));
+      const double user_psm_fdr = static_cast<double>(search_params.getValue("FDR:PSM"));
 
-      // When Percolator rescoring is enabled, defer protein FDR to after rescoring
-      // so protein inference uses Percolator q-values, not raw HyperScores.
-      if (!percolator_executable.empty() && user_protein_fdr > 0.0)
+      // When Percolator rescoring is enabled, defer BOTH PSM and protein FDR to
+      // after rescoring. Applying FDR:PSM on raw HyperScores before Percolator
+      // would (a) filter on the wrong score (raw HyperScore q-values, not
+      // Percolator q-values) and (b) strip decoys, leaving Percolator with
+      // nothing for target/decoy competition ("No decoys found").
+      if (!percolator_executable.empty() && (user_protein_fdr > 0.0 || user_psm_fdr > 0.0))
       {
-        OPENMS_LOG_INFO << "[ProSE] Percolator rescoring enabled: deferring protein FDR to post-rescoring." << endl;
+        OPENMS_LOG_INFO << "[ProSE] Percolator rescoring enabled: deferring PSM/protein FDR to post-rescoring." << endl;
+        search_params.setValue("FDR:PSM", 0.0);
         search_params.setValue("FDR:protein", 0.0);
       }
 
@@ -269,6 +274,7 @@ class ProSE :
 
       // Optional per-file Percolator rescoring (replaces HyperScore with
       // Percolator q-values for downstream FDR / protein inference).
+      std::vector<bool> percolator_succeeded(in_list.size(), false);
       if (!percolator_executable.empty())
       {
         // Percolator requires decoys for target/decoy competition.
@@ -336,12 +342,59 @@ class ProSE :
             result.peptide_ids.clear();
             FileHandler().loadIdentifications(tmp_out, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
             IDFilter::keepNBestHits(result.peptide_ids, 1);
+            percolator_succeeded[i] = true;
           }
 
           // Clean up temp files
           File::remove(tmp_in);
           File::remove(tmp_out);
           File::remove(tmp_weights);
+        }
+
+        // Apply deferred PSM-level FDR filtering. For files rescored by Percolator,
+        // scores are already q-values (PercolatorAdapter was invoked with
+        // -score_type q-value). For files that fell back to HyperScores (Percolator
+        // skipped/failed), compute q-values via FalseDiscoveryRate first.
+        // Decoys are only removed here when protein FDR is disabled — otherwise
+        // they must survive for the merged picked-protein FDR step.
+        if (user_psm_fdr > 0.0)
+        {
+          for (Size i = 0; i < in_list.size(); ++i)
+          {
+            auto& result = mfres.per_file[i];
+            if (result.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
+            if (result.protein_ids.empty() || result.peptide_ids.empty()) continue;
+
+            if (!percolator_succeeded[i])
+            {
+              bool file_has_decoys = false;
+              for (const auto& ph : result.protein_ids[0].getHits())
+              {
+                if (ph.metaValueExists("target_decoy") && ph.getMetaValue("target_decoy").toString() == "decoy")
+                {
+                  file_has_decoys = true;
+                  break;
+                }
+              }
+              if (!file_has_decoys)
+              {
+                OPENMS_LOG_WARN << "FDR:PSM requested but no decoys available for " << in_list[i]
+                                << " — skipping PSM FDR filtering for this file." << endl;
+                continue;
+              }
+              FalseDiscoveryRate fdr;
+              fdr.apply(result.peptide_ids);
+            }
+
+            IDFilter::filterHitsByScore(result.peptide_ids, user_psm_fdr);
+
+            if (user_protein_fdr == 0.0)
+            {
+              IDFilter::removeDecoyHits(result.peptide_ids);
+              IDFilter::removeEmptyIdentifications(result.peptide_ids);
+              IDFilter::removeUnreferencedProteins(result.protein_ids, result.peptide_ids);
+            }
+          }
         }
       }
 
@@ -462,17 +515,6 @@ class ProSE :
             else
             {
               const auto& sp = result.protein_ids.front().getSearchParameters();
-              StringList feature_set;
-              if (sp.metaValueExists("extra_features"))
-              {
-                feature_set = ListUtils::create<String>(sp.getMetaValue("extra_features").toString());
-              }
-              if (std::find(feature_set.begin(), feature_set.end(), "score") == feature_set.end())
-              {
-                feature_set.insert(feature_set.begin(), "score");
-              }
-              feature_set.push_back("Peptide");
-              feature_set.push_back("Proteins");
               const String enz_str = sp.digestion_enzyme.getName();
               const auto colon = sp.charges.find(':');
               const int min_charge = (colon != String::npos)
@@ -481,6 +523,22 @@ class ProSE :
               const int max_charge = (colon != String::npos)
                                        ? String(sp.charges.substr(colon + 1)).toInt()
                                        : min_charge;
+
+              // Standard columns (SpecId/Label/ScanNr + mass/charge/enzyme features)
+              // come from the centralized helper so .pin output matches PercolatorAdapter
+              // and is directly consumable by the percolator CLI.
+              StringList feature_set = PercolatorInfile::getStandardFeatureSet(min_charge, max_charge);
+              if (sp.metaValueExists("extra_features"))
+              {
+                StringList extra = ListUtils::create<String>(sp.getMetaValue("extra_features").toString());
+                feature_set.insert(feature_set.end(), extra.begin(), extra.end());
+              }
+              if (std::find(feature_set.begin(), feature_set.end(), "score") == feature_set.end())
+              {
+                feature_set.push_back("score");
+              }
+              feature_set.push_back("Peptide");
+              feature_set.push_back("Proteins");
               PercolatorInfile::store(out_pin_list[i], result.peptide_ids,
                                      feature_set, enz_str, min_charge, max_charge);
             }
