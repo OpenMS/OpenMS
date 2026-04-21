@@ -52,12 +52,30 @@ namespace OpenMS
       double calibration_tolerance = 0.0;  ///< m/z recalibration tolerance in Da (0 = default 0.1 Da)
       bool calibrate = false;              ///< Enable m/z recalibration (off by default; may fail on some datasets)
 
+      bool load_ms1 = true;                ///< Load MS1 spectra. Disable (false) for MS2-only workflows
+                                           ///< (peptide database search) where MS1 surveys are not needed —
+                                           ///< cuts memory and time substantially. Affects all export modes.
+
       float ms1_centroid_mz_ppm = 0.0f; ///< MS1 IM-centroiding m/z tolerance in ppm (0 = disabled, suggested: 5.0). Adapted from Sage (Lazear 2023, doi:10.1021/acs.jproteome.3c00486).
       float ms1_centroid_im_pct = 0.0f;  ///< MS1 IM-centroiding ion mobility tolerance in percent (0 = disabled, suggested: 3.0)
+      int   ms1_centroid_max_peaks = 100000; ///< Upper bound on centroided peaks per MS1 spectrum. Caps retention at the top-intensity peaks; low-intensity tail is dropped when the limit is hit (a warning is emitted at that point). Sized for aggregated MS1 where frame-stacked grids commonly exceed 200k peaks; per-frame MS1 rarely hits even 10k.
 
       int dia_ms2_n_neighbors = 0;  ///< DIA MS2 frame aggregation: number of adjacent frames on each side (0 = disabled, 1 = 3-frame sum, 2 = 5-frame sum)
       int dia_ms2_min_support = 1;  ///< DIA MS2 denoising: minimum occupied neighbors in 3x3 (mz x IM) grid to retain a point (center excluded)
       bool dia_ms2_centroid = false; ///< DIA MS2 2D peak picking: apply Gaussian smoothing + local maxima detection to produce IM_CENTROIDED spectra
+
+      int    ms1_n_neighbors         = 0;    ///< MS1 frame aggregation: adjacent MS1 frames on each side
+                                             ///< (0 = disabled, 1 = 3-frame sum, 2 = 5-frame sum). Applies
+                                             ///< to both DIA and DDA; ignored in FRAME export mode.
+      int    ms1_min_support         = 0;    ///< MS1 denoising after aggregation: min occupied 3x3 neighbors
+                                             ///< (0 = disabled). Only effective when ms1_n_neighbors > 0.
+                                             ///< Differs from dia_ms2_min_support (default 1) to preserve
+                                             ///< zero-change defaults for the MS1 path.
+      double ms1_max_rt_distance_sec = 0.0;  ///< Advanced: cap the RT distance (seconds) between a neighbor
+                                             ///< MS1 frame and the center frame during aggregation
+                                             ///< (0.0 = no cap). The center frame is always included
+                                             ///< regardless of this cap. Recommended for DDA where MS1
+                                             ///< frame cadence is irregular.
 
       enum ExportMode { AUTO, SPECTRUM, FRAME };
       ExportMode export_mode = AUTO;       ///< AUTO detects DDA vs DIA; SPECTRUM forces per-precursor; FRAME returns raw 4D frames

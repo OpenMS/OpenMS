@@ -26,6 +26,8 @@
 namespace OpenMS
 {
 
+class TheoreticalSpectrumGenerator;
+
 /**
   @brief Fragment-index-based peptide database search algorithm (experimental).
 
@@ -116,6 +118,17 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     {
       std::vector<FASTAFile::FASTAEntry> db;
       FragmentIndex fragment_index;
+
+      /// When true, the context-taking search() overload will release
+      /// `fragment_index` (via clear()) after scoreSpectraAgainstIndex_
+      /// returns, reclaiming its heap footprint before the PeptideIndexing
+      /// Aho-Corasick pass — which is otherwise the RSS high-water mark
+      /// on large databases. Set by single-use callers (e.g. the
+      /// internal search(spectra, fasta_db, ...) wrapper that creates
+      /// a throw-away ctx). Default false preserves the reuse contract
+      /// for callers that built ctx via prepareContext() and want to
+      /// run multiple search() calls against it.
+      bool release_fragment_index_after_scoring = false;
     };
 
     /**
@@ -336,13 +349,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       // Layout: doubles first, then floats, then int, then uint16_t — minimizes padding (40 bytes excluding AASequence)
       double score = 0; ///< main score
       double delta_mass = 0.0; ///< mass difference for open search (Da)
-      float prefix_fraction = 0; ///< fraction of annotated b-ions
-      float suffix_fraction = 0; ///< fraction of annotated y-ions
+      float prefix_fraction = 0; ///< fraction of annotated prefix ions (a/b/c)
+      float suffix_fraction = 0; ///< fraction of annotated suffix ions (x/y/z)
       float mean_error = 0.0f; ///< mean absolute fragment mass error
       int isotope_error = 0; ///< isotope offset used for this PSM
       uint16_t applied_charge = 0; ///< precursor charge used for this PSM
-      uint16_t matched_b_ions = 0; ///< number of matched b-ions
-      uint16_t matched_y_ions = 0; ///< number of matched y-ions
+      uint16_t matched_prefix_ions = 0; ///< number of matched prefix ions (a/b/c)
+      uint16_t matched_suffix_ions = 0; ///< number of matched suffix ions (x/y/z)
 
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {
@@ -353,6 +366,69 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     /// @brief filter, deisotope, decharge spectra
     static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm);
+
+    /**
+     * @brief Build a decoy-augmented copy of the input FASTA.
+     *
+     * Used by prepareContext() and the chunked search path. Produces FASTA
+     * entries only — does not construct a FragmentIndex. If decoys_ is false
+     * the input is returned unchanged.
+     */
+    std::vector<FASTAFile::FASTAEntry> buildDecoyAugmentedDB_(
+        const std::vector<FASTAFile::FASTAEntry>& fasta_db) const;
+
+    /**
+     * @brief Build a strided protein sample for chunked calibration.
+     *
+     * Sample size is tied to database_chunk_size_ so the calibration FI never
+     * exceeds the user's declared memory budget. Crucial for immunopeptidomics
+     * (non-specific digestion) where a fixed-size 5000-protein sample would
+     * generate tens of GB of fragment index. Strided rather than first-N so
+     * small chunk_size values don't starve the calibration pool (#9182).
+     *
+     * Note: very small chunk_size may still produce a calibration pool below
+     * calibration_min_psms_; calibration then no-ops silently (follow-up
+     * issue: pool PSMs across first-K chunks of the main search loop).
+     */
+    std::vector<FASTAFile::FASTAEntry> buildCalibrationSample_(
+        const std::vector<FASTAFile::FASTAEntry>& full_db) const;
+
+    /**
+     * @brief Chunked database search implementation.
+     *
+     * Splits full_db into chunks of database_chunk_size_ proteins, builds a
+     * FragmentIndex per chunk, scores all spectra against each chunk, and
+     * accumulates hits before a single post-processing pass. full_db must
+     * already contain decoys if decoys_ is true. Taken by non-const reference
+     * because PeptideIndexing::run() mutates it.
+     *
+     * @return EXECUTION_OK on success; INPUT_FILE_EMPTY / UNEXPECTED_RESULT /
+     *         UNKNOWN_ERROR on PeptideIndexing failure.
+     */
+    ExitCodes searchChunked_(
+        PeakMap& spectra,
+        std::vector<FASTAFile::FASTAEntry>& full_db,
+        std::vector<ProteinIdentification>& protein_ids,
+        PeptideIdentificationList& peptide_ids) const;
+
+    /**
+     * @brief Score all spectra against one FragmentIndex.
+     *
+     * Shared by the non-chunked and chunked search paths. Appends per-scan
+     * AnnotatedHit_ entries to annotated_hits; does not prune or sort. Expects
+     * a pre-built FragmentIndex whose parameters already reflect any
+     * calibrated tolerances the caller wants to apply.
+     */
+    void scoreSpectraAgainstIndex_(
+        const PeakMap& spectra,
+        FragmentIndex& fi,
+        const std::vector<FASTAFile::FASTAEntry>& db,
+        const TheoreticalSpectrumGenerator& spectrum_generator,
+        double effective_fragment_tol,
+        bool fragment_mass_tolerance_unit_ppm,
+        bool open_search_mode,
+        std::vector<std::vector<AnnotatedHit_>>& annotated_hits,
+        const String& progress_label) const;
 
     /**
      * @brief Filter and annotate search results.
@@ -435,6 +511,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     String peptide_motif_;
 
     Size report_top_hits_;
+
+    bool add_a_ions_{false};
+    bool add_b_ions_{true};
+    bool add_c_ions_{false};
+    bool add_x_ions_{false};
+    bool add_y_ions_{true};
+    bool add_z_ions_{false};
+
+    Size database_chunk_size_{0};  ///< 0 = disabled; >0 = chunk DB into groups of this many proteins
 
     bool calibration_enabled_{false};
     double calibration_subset_ratio_{0.1};

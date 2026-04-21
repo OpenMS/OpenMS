@@ -380,6 +380,15 @@ namespace OpenMS
         }
       }
 
+      // Mascot sequence-query field: emit one SEQ= line per stored sequence.
+      if (spec.metaValueExists("SEQ"))
+      {
+        for (const String& sequence : spec.getMetaValue("SEQ").toStringList())
+        {
+          os << "SEQ=" << sequence << "\n";
+        }
+      }
+
       if (!store_compact_)
       {
         for (PeakSpectrum::const_iterator it = spec.begin(); it != spec.end(); ++it)

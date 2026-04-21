@@ -113,9 +113,10 @@ namespace OpenMS
         Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION,
         Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION,
         Constants::UserParam::NUM_MATCHED_PEAKS,
-        Constants::UserParam::MATCHED_B_IONS,
-        Constants::UserParam::MATCHED_Y_IONS,
+        Constants::UserParam::MATCHED_PREFIX_IONS,
+        Constants::UserParam::MATCHED_SUFFIX_IONS,
         Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE,
+        Constants::UserParam::MATCHED_ION_CURRENT,
         Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM}
       );
 
@@ -278,9 +279,10 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     bool annotation_prefix_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION) != annotate_psm_.end();
     bool annotation_suffix_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION) != annotate_psm_.end();
     bool annotation_num_matched_peaks = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::NUM_MATCHED_PEAKS) != annotate_psm_.end();
-    bool annotation_matched_b_ions = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_B_IONS) != annotate_psm_.end();
-    bool annotation_matched_y_ions = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_Y_IONS) != annotate_psm_.end();
+    bool annotation_matched_prefix_ions = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_PREFIX_IONS) != annotate_psm_.end();
+    bool annotation_matched_suffix_ions = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_SUFFIX_IONS) != annotate_psm_.end();
     bool annotation_longest_ion_run = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE) != annotate_psm_.end();
+    bool annotation_matched_ion_current = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_ION_CURRENT) != annotate_psm_.end();
     bool annotation_fragment_annotations = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM) != annotate_psm_.end();
 
     // "ALL" adds all annotations
@@ -291,14 +293,15 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       annotation_prefix_fraction = true;
       annotation_suffix_fraction = true;
       annotation_num_matched_peaks = true;
-      annotation_matched_b_ions = true;
-      annotation_matched_y_ions = true;
+      annotation_matched_prefix_ions = true;
+      annotation_matched_suffix_ions = true;
       annotation_longest_ion_run = true;
+      annotation_matched_ion_current = true;
       annotation_fragment_annotations = true;
     }
 
-    // Alignment is needed for fragment error, fragment annotations, and longest ion run
-    const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run;
+    // Alignment is needed for fragment error, fragment annotations, longest ion run, and MIC
+    const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current;
 
 #pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
@@ -395,26 +398,30 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           // Matched ion counts (from scoring, no alignment needed)
           if (annotation_num_matched_peaks)
           {
-            ph.setMetaValue(Constants::UserParam::NUM_MATCHED_PEAKS, static_cast<int>(ah.matched_b_ions + ah.matched_y_ions));
+            ph.setMetaValue(Constants::UserParam::NUM_MATCHED_PEAKS, static_cast<int>(ah.matched_prefix_ions + ah.matched_suffix_ions));
           }
-          if (annotation_matched_b_ions)
+          if (annotation_matched_prefix_ions)
           {
-            ph.setMetaValue(Constants::UserParam::MATCHED_B_IONS, static_cast<int>(ah.matched_b_ions));
+            ph.setMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS, static_cast<int>(ah.matched_prefix_ions));
           }
-          if (annotation_matched_y_ions)
+          if (annotation_matched_suffix_ions)
           {
-            ph.setMetaValue(Constants::UserParam::MATCHED_Y_IONS, static_cast<int>(ah.matched_y_ions));
+            ph.setMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS, static_cast<int>(ah.matched_suffix_ions));
           }
 
-          // Fragment annotations and longest ion run (both need alignment + ion names)
-          if (annotation_fragment_annotations || annotation_longest_ion_run)
+          // Fragment annotations, longest ion run, and MIC all iterate the alignment + ion names
+          if (annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current)
           {
             const auto& ion_names = theoretical_spec.getStringDataArrays()[0];
             const auto& ion_charges = theoretical_spec.getIntegerDataArrays()[0];
 
-            // Build PeakAnnotation vector + collect ion ordinals for longest run
+            // Build PeakAnnotation vector + collect ion ordinals for longest run.
+            // Prefix = a/b/c (N-terminal), suffix = x/y/z (C-terminal). Ordinals
+            // at the same backbone position across ion types (e.g. a3 + b3) are
+            // merged via std::unique below.
             std::vector<PeptideHit::PeakAnnotation> peak_annotations;
-            std::vector<int> b_ordinals, y_ordinals;
+            std::vector<int> prefix_ordinals, suffix_ordinals;
+            double matched_ion_current = 0.0;
             peak_annotations.reserve(alignment.size());
 
             for (const auto& [theo_idx, exp_idx] : alignment)
@@ -429,19 +436,27 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
                 peak_annotations.push_back(pa);
               }
 
-              if (annotation_longest_ion_run)
+              if (annotation_matched_ion_current)
+              {
+                // See ProSEAlgorithm.cpp for the 1-to-1 alignment assumption.
+                matched_ion_current += spec[exp_idx].getIntensity();
+              }
+
+              if (annotation_longest_ion_run && ion_names[theo_idx].size() >= 2)
               {
                 const String& name = ion_names[theo_idx];
-                if (name.size() >= 2 && (name[0] == 'b' || name[0] == 'y'))
+                const char c = name[0];
+                const bool is_prefix = (c == 'a' || c == 'b' || c == 'c');
+                const bool is_suffix = (c == 'x' || c == 'y' || c == 'z');
+                if (is_prefix || is_suffix)
                 {
-                  // Extract ordinal: "b5", "y3-H2O1+", "b12++" -> 5, 3, 12
+                  // Extract ordinal: "b5", "y3-H2O1+", "c12++" -> 5, 3, 12
                   Size pos = 1;
                   while (pos < name.size() && name[pos] >= '0' && name[pos] <= '9') ++pos;
                   if (pos > 1)
                   {
                     int ordinal = String(name.substr(1, pos - 1)).toInt();
-                    if (name[0] == 'b') b_ordinals.push_back(ordinal);
-                    else y_ordinals.push_back(ordinal);
+                    (is_prefix ? prefix_ordinals : suffix_ordinals).push_back(ordinal);
                   }
                 }
               }
@@ -452,9 +467,14 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
               ph.setPeakAnnotations(std::move(peak_annotations));
             }
 
+            if (annotation_matched_ion_current)
+            {
+              ph.setMetaValue(Constants::UserParam::MATCHED_ION_CURRENT, matched_ion_current);
+            }
+
             if (annotation_longest_ion_run)
             {
-              // Compute longest consecutive run across b and y series
+              // Compute longest consecutive run across prefix (a/b/c) and suffix (x/y/z) series
               auto longestRun = [](std::vector<int>& v) -> int {
                 if (v.empty()) return 0;
                 std::sort(v.begin(), v.end());
@@ -467,7 +487,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
                 }
                 return best;
               };
-              int longest = std::max(longestRun(b_ordinals), longestRun(y_ordinals));
+              int longest = std::max(longestRun(prefix_ordinals), longestRun(suffix_ordinals));
               ph.setMetaValue(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE, longest);
             }
           }
@@ -795,11 +815,11 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             ah.sequence = c;
             ah.peptide_mod_index = mod_pep_idx;
             ah.score = score;
-            ah.prefix_fraction = static_cast<float>((double)detail.matched_b_ions / (double)c.size());
-            ah.suffix_fraction = static_cast<float>((double)detail.matched_y_ions / (double)c.size());
+            ah.prefix_fraction = static_cast<float>((double)detail.matched_prefix_ions / (double)c.size());
+            ah.suffix_fraction = static_cast<float>((double)detail.matched_suffix_ions / (double)c.size());
             ah.mean_error = static_cast<float>(detail.mean_error);
-            ah.matched_b_ions = static_cast<uint16_t>(detail.matched_b_ions);
-            ah.matched_y_ions = static_cast<uint16_t>(detail.matched_y_ions);
+            ah.matched_prefix_ions = static_cast<uint16_t>(detail.matched_prefix_ions);
+            ah.matched_suffix_ions = static_cast<uint16_t>(detail.matched_suffix_ions);
             ah.isotope_error = low_it->second.second;
 
 #ifdef _OPENMP
