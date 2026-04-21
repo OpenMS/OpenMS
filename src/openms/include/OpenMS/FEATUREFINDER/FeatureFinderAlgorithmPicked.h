@@ -114,30 +114,6 @@ private:
     void setData_(MSExperiment&& map, FeatureMap& features);
 
 public:
-
-    /**
-      @brief Main method of the FeatureFinderAlgorithmPicked.
-
-      @note The input map has to be sorted by RT and m/z. If this is not the case, the algorithm will sort the input data internally.
-
-      @note The algorithm will not work on profile data and throw an exception.
-
-      @note: The algorithm will not work on data with negative m/z values and throw an exception.
-
-      @note This overload preserves @p input_map by copying it internally.
-            Use the rvalue overload with @c std::move(input_map) to avoid copying.
-
-      @param[in] input_map The input map of centroided spectra with MS level 1.
-      @param[out] features The output feature map.
-      @param[in] param The parameters for the algorithm.
-      @param[in] seeds The seeds that should be used for the feature finding. Provide an empty feature map if you want the algorithm to find seeds.
-
-    */
-    void run(PeakMap& input_map, 
-      FeatureMap& features, 
-      const Param& param, 
-      const FeatureMap& seeds);
-
     /**
       @brief Main method of the FeatureFinderAlgorithmPicked (explicit move overload).
 
@@ -147,7 +123,6 @@ public:
       @param[out] features The output feature map.
       @param[in] param The parameters for the algorithm.
       @param[in] seeds The seeds that should be used for the feature finding. Provide an empty feature map if you want the algorithm to find seeds.
-
     */
     void run(PeakMap&& input_map,
       FeatureMap& features,
@@ -158,6 +133,7 @@ public:
     {
       return defaults_;
     }
+
 protected:
     void run_();
 
