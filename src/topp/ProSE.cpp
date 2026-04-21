@@ -642,7 +642,7 @@ class ProSE :
         {
           OPENMS_LOG_ERROR << "Failed to write merged idXML output -> " << out_merged
                            << ": " << e.what()
-                           << ". Per-file outputs above were written successfully." << endl;
+                           << ". Per-file outputs were written (check above for any per-file errors)." << endl;
           // Do NOT propagate; per-file outputs are already on disk.
         }
       }
