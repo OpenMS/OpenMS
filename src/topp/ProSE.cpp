@@ -442,10 +442,15 @@ class ProSE :
               }
               else
               {
-                result.protein_ids.clear();
-                result.peptide_ids.clear();
-                FileHandler().loadIdentifications(tmp_out, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
-                IDFilter::keepNBestHits(result.peptide_ids, 1);
+                // Stage into temporaries; only swap into result on full success so that
+                // an exception during load/filter leaves the raw HyperScore result intact
+                // (catch block keeps the result, no silent data loss).
+                vector<ProteinIdentification> tmp_prot;
+                PeptideIdentificationList tmp_pep;
+                FileHandler().loadIdentifications(tmp_out, tmp_prot, tmp_pep, {FileTypes::IDXML});
+                IDFilter::keepNBestHits(tmp_pep, 1);
+                result.protein_ids = std::move(tmp_prot);
+                result.peptide_ids = std::move(tmp_pep);
                 // Re-apply test-mode path setting (the pre-loop set was clobbered by reload)
                 if (getFlag_("test") && !result.protein_ids.empty())
                 {
