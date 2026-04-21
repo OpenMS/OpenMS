@@ -64,6 +64,7 @@ OpenMS/
 - Out-of-tree build expected in `OpenMS-build/`; build in place for development (install prefixes are for system installs).
 - Use `CMAKE_BUILD_TYPE=Debug` for development to keep assertions/pre/post-conditions.
 - Dependencies via distro packages or the contrib tree; set `OPENMS_CONTRIB_LIBS` and `CMAKE_PREFIX_PATH` as needed (Qt, contrib).
+- **contrib is a git submodule**: run `git submodule update --init contrib` (or clone with `--recurse-submodules`) before building if you need the vendored third-party libraries.
 - pyOpenMS build deps: install via `uv sync --only-group build` or `pip install -e .[dev]` (see `src/pyOpenMS/pyproject.toml`); enable with `-DPYOPENMS=ON`.
 - Style checks: `ENABLE_STYLE_TESTING=ON` runs cpplint at `src/tests/coding/cpplint.py`.
 
