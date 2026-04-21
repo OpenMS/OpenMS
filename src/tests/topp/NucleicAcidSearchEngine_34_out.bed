@@ -1,0 +1,13 @@
+#fileformat=bedRModv2
+#organism=9606
+#modification_type=RNA
+#modification_names=
+#assembly=GRCh38
+#annotation_source=gtrnadb
+#annotation_version=2.0
+#sequencing_platform=ddMS2
+#basecalling=NASE
+#bioinformatics_workflow=NA
+#experiment=NA
+#external_source=NA
+#chrom chromStart chromEnd name score strand thickStart thickEnd itemRgb coverage frequency unique_mapping frag_start frag_end
