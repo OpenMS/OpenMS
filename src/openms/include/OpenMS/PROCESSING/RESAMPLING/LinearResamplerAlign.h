@@ -9,6 +9,7 @@
 #pragma once
 
 #include <limits>
+#include <atomic>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -18,6 +19,8 @@
 
 namespace OpenMS
 {
+  // Suppress resampling spacing warnings across all threads. During OpenSwathWorkflow extraction and scoring, the constant warning message causes 18x performance slowdown via stderr lock contention during scoring.
+  inline std::atomic<bool> suppress_resampling_spacing_warning{false};
 
   /**
     @brief Linear Resampling of raw data with alignment.
@@ -410,7 +413,7 @@ protected:
         ++it;
       }
 
-      if (spacing_ < min_dist)
+      if (spacing_ < min_dist && !suppress_resampling_spacing_warning.load())
       {
         OPENMS_LOG_WARN << "Resampling spacing (" << spacing_
                         << ") is smaller than the smallest distance between data points ("
