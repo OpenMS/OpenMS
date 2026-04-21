@@ -48,7 +48,9 @@
 #include <algorithm>
 #include <iomanip>
 #include <map>
+#include <set>
 #include <sstream>
+#include <tuple>
 
 #ifdef _OPENMP
   #include <omp.h>
@@ -154,6 +156,17 @@ namespace OpenMS
     defaults_.setValidStrings("peptide:enzyme_specificity", {"full", "semi", "none"});
     defaults_.setValue("peptide:motif", "", "If set, only peptides that contain this motif (provided as RegEx) will be considered.");
     defaults_.setSectionDescription("peptide", "Peptide Options");
+
+    // SNES (Speedy Non-specific Enzyme Search): forwarded to FragmentIndex. Only
+    // takes effect when peptide:enzyme_specificity=none. v1.1 opt-in (default false).
+    defaults_.setValue("snes_enabled", "false",
+      "[experimental, v1.1 opt-in] When peptide:enzyme_specificity=none, use mother-"
+      "peptide indexing (Single-N + Single-C, one ion series per mother) instead of "
+      "naïve O(L^2) sub-peptide enumeration. Much smaller index and faster search on "
+      "non-specific workloads (immunopeptidomics). Ignored for specific/semi-"
+      "specific enzymes. Variable modifications are supported in v1.1 via query-time "
+      "subset enumeration on the realized sub-peptide.");
+    defaults_.setValidStrings("snes_enabled", {"true", "false"});
 
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
@@ -860,8 +873,11 @@ namespace OpenMS
     startProgress(0, spectra.size(), progress_label);
     size_t count_spectra{};
     const double proton_mass_u = Constants::PROTON_MASS_U;
+    // Hoisted out of the omp parallel block: clang with `default(none)` forbids
+    // referencing namespace-scope constants inside the loop without explicit sharing.
+    const double c13c12_massdiff_u = Constants::C13C12_MASSDIFF_U;
 
-#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fi, spectrum_generator, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, effective_fragment_tol)
+#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fi, spectrum_generator, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
       #pragma omp atomic
@@ -871,16 +887,83 @@ namespace OpenMS
 
       const MSSpectrum& exp_spectrum = spectra[scan_index];
       FragmentIndex::SpectrumMatchesTopN top_sms;
-      fi.querySpectrum(exp_spectrum, top_sms);
+      fi.querySpectrum(exp_spectrum, db, top_sms);
+
+      const bool snes_mode = fi.isSnesMode();
+      const bool prec_tol_ppm = precursor_mass_tolerance_unit_ == "ppm";
+      // SNES realization uses the asymmetric precursor tolerance — same signed
+      // window the FragmentIndex candidate filter used at bin-walk time.
+      // Previously collapsed to max(lower, upper), which over-admitted by ~20×
+      // on calibrated asymmetric configs like [100 ppm, 5 ppm]. Review L3.
+      const double snes_realize_tol_lo = precursor_mass_tolerance_lower_;
+      const double snes_realize_tol_hi = precursor_mass_tolerance_upper_;
+
+      // Reused across candidates of this spectrum. Avoids per-candidate heap
+      // churn of a fresh PeakSpectrum + its DataArrays (TSG's add_metainfo fills
+      // StringDataArrays with ion names — these are a notable allocation hot spot
+      // when the candidate count per spectrum is in the tens/hundreds).
+      PeakSpectrum theo_spectrum;
+
+      // SNES-mode dedup: a sub-peptide [i, i+k) can be produced by both a
+      // Single-N mother anchored at i and a Single-C mother ending at i+k-1.
+      // Both realize to the same AASequence (same protein, start, length,
+      // variable-mod subset). Without this guard, both are scored and land
+      // in annotated_hits, inflating the candidate list and biasing delta
+      // scores / Percolator features. Per-spectrum state — cheap, bounded
+      // by max_candidates_per_spectrum. Empty for non-SNES queries.
+      // Key: (protein_idx, realized_start, realized_length, subset_bitmask).
+      std::set<std::tuple<UInt32, uint16_t, uint16_t, uint32_t>> seen_realizations;
 
       for (const auto& sms : top_sms.hits_)
       {
         const FragmentIndex::Peptide& sms_pep = fi.getPeptides()[sms.peptide_idx_];
-        AASequence mod_candidate = fi.reconstructModifiedSequence(sms_pep, db);
 
-        PeakSpectrum theo_spectrum;
+        AASequence mod_candidate;
+        if (snes_mode)
+        {
+          // Realize the sub-peptide at the length whose mass best matches the
+          // observed precursor (iso-corrected per the FI's shifted-mass convention).
+          const double exp_mz = exp_spectrum.getPrecursors()[0].getMZ();
+          const double observed_mh_plus =
+              exp_mz * sms.precursor_charge_ - (sms.precursor_charge_ - 1) * proton_mass_u;
+          // SNES v1.1: subtract the variable-mod Σ from the realization target
+          // so realizeSNESLength compares against the *unmodified* realized mass.
+          // For v1 (unmodified) hits, sms.sigma_delta_ == 0 — same semantics as before.
+          const double iso_shifted_target = observed_mh_plus
+              + static_cast<double>(sms.isotope_error_) * c13c12_massdiff_u
+              - static_cast<double>(sms.sigma_delta_);
+          const int realized_len = fi.realizeSNESLength(
+              sms_pep, db, iso_shifted_target,
+              snes_realize_tol_lo, snes_realize_tol_hi, prec_tol_ppm);
+          if (realized_len < 0) continue; // no realizable length within tolerance
+
+          // L2 dedup: skip if this exact realization was already scored via
+          // the opposite-kind mother. Same protein + start + length + subset
+          // → same AASequence → same score, redundant work and inflated hits.
+          const uint16_t realized_start = FragmentIndex::isSingleCMother(sms_pep.mod_bitmask_)
+              ? static_cast<uint16_t>(sms_pep.sequence_.first + sms_pep.sequence_.second
+                                       - static_cast<uint16_t>(realized_len))
+              : sms_pep.sequence_.first;
+          const auto key = std::make_tuple(sms_pep.protein_idx, realized_start,
+                                            static_cast<uint16_t>(realized_len),
+                                            sms.subset_bitmask_);
+          if (!seen_realizations.insert(key).second) continue;
+
+          mod_candidate = fi.reconstructRealizedSubSequence(
+              sms_pep, db, static_cast<size_t>(realized_len), sms.subset_bitmask_);
+        }
+        else
+        {
+          mod_candidate = fi.reconstructModifiedSequence(sms_pep, db);
+        }
+
+        // Clear peaks + data arrays (ion names / charges) before refilling for the
+        // next candidate; getSpectrum appends to whatever is there.
+        theo_spectrum.clear(true);
         spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, 1);
-        theo_spectrum.sortByPosition();
+        // Note: TSG emits sorted output when add_metainfo=true (see the
+        // sortByPositionPresorted() call at the tail of getSpectrum_); the extra
+        // sortByPosition() pass here was a redundant O(N) scan per candidate.
 
         HyperScore::PSMDetail detail;
         const double& score = HyperScore::computeWithDetail(effective_fragment_tol, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
@@ -932,10 +1015,12 @@ namespace OpenMS
       PeptideIdentificationList& peptide_ids) const
   {
     // Chunking disabled → take the existing single-context path (decoys built
-    // lazily by prepareContext).
+    // lazily by prepareContext). The ctx is locally owned and not reused,
+    // so opt in to eager FI release (M1) before PeptideIndexing.
     if (database_chunk_size_ == 0)
     {
       SearchContext ctx = prepareContext(fasta_db);
+      ctx.release_fragment_index_after_scoring = true;
       return search(spectra, ctx, protein_ids, peptide_ids);
     }
 
@@ -951,6 +1036,7 @@ namespace OpenMS
       // prepareContext's internal decoy re-generation by building ctx inline.
       SearchContext ctx;
       ctx.db = std::move(full_db);
+      ctx.release_fragment_index_after_scoring = true; // single-use ctx (M1)
       startProgress(0, 1, "Building fragment index...");
       ctx.fragment_index.setParameters(getParameters());
       ctx.fragment_index.build(ctx.db);
@@ -1330,6 +1416,19 @@ namespace OpenMS
                               effective_fragment_tol, fragment_mass_tolerance_unit_ppm,
                               open_search_mode, annotated_hits,
                               "Scoring peptide models against spectra...");
+
+    // M1: release the fragment index eagerly when the caller opted in (single-
+    // use context). All downstream work (postProcessHits_, open-search mod
+    // analysis, PeptideIndexing) is FI-independent, and the subsequent
+    // Aho-Corasick pass inside PeptideIndexing::run() is the RSS high-water
+    // mark of the whole search on large databases. Freeing here cuts
+    // hundreds of MB of steady-state peak on human-proteome runs.
+    // Not unconditional: external callers building ctx via prepareContext()
+    // and calling search(spectra, ctx, ...) multiple times would break.
+    if (ctx.release_fragment_index_after_scoring)
+    {
+      fragment_index_.clear();
+    }
 
     startProgress(0, 1, "Post-processing PSMs...");
     ProSEAlgorithm::postProcessHits_(spectra,
@@ -2239,6 +2338,20 @@ namespace OpenMS
       const std::vector<FASTAFile::FASTAEntry>& db) const
   {
     CalibrationResult_ result;
+
+    // Calibration queries the FI and reconstructs candidate peptides to measure the
+    // precursor mass error distribution. In SNES mode, a candidate is a *mother* whose
+    // realized sub-peptide depends on the observed precursor — baking in a circular
+    // dependency with the calibration target. v1 disables calibration in SNES mode;
+    // users who need calibrated tolerances should pre-calibrate spectra upstream
+    // (e.g. with InternalCalibration) before running ProSE with SNES.
+    if (fragment_index.isSnesMode())
+    {
+      OPENMS_LOG_WARN << "[ProSE] Calibration is not supported in SNES mode (v1.1). "
+                      << "Using configured precursor tolerance unchanged.\n";
+      return result; // success=false, tolerances untouched
+    }
+
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
 
     // Select subset by TIC (highest-quality spectra first)
