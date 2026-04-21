@@ -409,46 +409,60 @@ class ProSE :
             String tmp_in      = File::getTempDirectory() + "/" + File::stemName(in_file) + "_perc_in.idXML";
             String tmp_out     = File::getTempDirectory() + "/" + File::stemName(in_file) + "_perc_out.idXML";
             String tmp_weights = File::getTempDirectory() + "/" + File::stemName(in_file) + "_perc.weights";
-            FileHandler().storeIdentifications(tmp_in, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
 
-            std::vector<String> perc_params = {
-              "-in", tmp_in,
-              "-out", tmp_out,
-              "-percolator_executable", percolator_executable,
-              "-train_best_positive",
-              "-score_type", "q-value",
-              "-post_processing_tdc",
-              "-weights", tmp_weights
-            };
-
-            OPENMS_LOG_INFO << "[ProSE] Rescoring " << in_file << " with Percolator..." << endl;
-            TOPPBase::ExitCodes perc_ec = runExternalProcess_(String("PercolatorAdapter"), perc_params);
-
-            if (perc_ec != EXECUTION_OK)
+            try
             {
-              OPENMS_LOG_WARN << "Percolator rescoring failed for " << in_file
-                              << ". Using original HyperScore results." << endl;
-              if (user_psm_fdr > 0.0)
+              FileHandler().storeIdentifications(tmp_in, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
+
+              std::vector<String> perc_params = {
+                "-in", tmp_in,
+                "-out", tmp_out,
+                "-percolator_executable", percolator_executable,
+                "-train_best_positive",
+                "-score_type", "q-value",
+                "-post_processing_tdc",
+                "-weights", tmp_weights
+              };
+
+              OPENMS_LOG_INFO << "[ProSE] Rescoring " << in_file << " with Percolator..." << endl;
+              TOPPBase::ExitCodes perc_ec = runExternalProcess_(String("PercolatorAdapter"), perc_params);
+
+              // Percolator failure is a soft failure: result keeps raw HyperScore PSMs
+              // and downstream output still proceeds (input_failed not set).
+              if (perc_ec != EXECUTION_OK)
               {
-                OPENMS_LOG_WARN << "Deferred FDR:PSM=" << user_psm_fdr
-                                << " was not applied for " << in_file
-                                << " (Percolator failed, falling back to raw HyperScore)." << endl;
+                OPENMS_LOG_WARN << "Percolator rescoring failed for " << in_file
+                                << ". Using original HyperScore results." << endl;
+                if (user_psm_fdr > 0.0)
+                {
+                  OPENMS_LOG_WARN << "Deferred FDR:PSM=" << user_psm_fdr
+                                  << " was not applied for " << in_file
+                                  << " (Percolator failed, falling back to raw HyperScore)." << endl;
+                }
+              }
+              else
+              {
+                result.protein_ids.clear();
+                result.peptide_ids.clear();
+                FileHandler().loadIdentifications(tmp_out, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
+                IDFilter::keepNBestHits(result.peptide_ids, 1);
+                // Re-apply test-mode path setting (the pre-loop set was clobbered by reload)
+                if (getFlag_("test") && !result.protein_ids.empty())
+                {
+                  result.protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in_file)});
+                }
+                percolator_succeeded = true;
               }
             }
-            else
+            catch (const Exception::BaseException& e)
             {
-              result.protein_ids.clear();
-              result.peptide_ids.clear();
-              FileHandler().loadIdentifications(tmp_out, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
-              IDFilter::keepNBestHits(result.peptide_ids, 1);
-              // Re-apply test-mode path setting (the pre-loop set was clobbered by reload)
-              if (getFlag_("test") && !result.protein_ids.empty())
-              {
-                result.protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in_file)});
-              }
-              percolator_succeeded = true;
+              OPENMS_LOG_ERROR << "Percolator rescoring threw for " << in_file << ": " << e.what()
+                               << ". Continuing with raw HyperScore results." << endl;
+              input_failed = true;
             }
 
+            // Always attempt tmp cleanup, even when storeIdentifications/runExternalProcess threw.
+            // File::remove returns false silently when the file doesn't exist, so this is safe.
             File::remove(tmp_in);
             File::remove(tmp_out);
             File::remove(tmp_weights);
