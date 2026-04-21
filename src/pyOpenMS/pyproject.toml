@@ -72,8 +72,8 @@ Documentation = "https://pyopenms.readthedocs.io"
 
 [project.optional-dependencies]
 dataframes = ["pandas"]
-arrow = ["pyarrow"]
-all = ["pandas", "pyarrow"]
+arrow = ["pyarrow<24"]
+all = ["pandas", "pyarrow<24"]
 
 # Dependency groups (PEP 735) - installable with: uv sync --only-group <name>
 [dependency-groups]
@@ -90,7 +90,7 @@ test = [
     "pytest",
     "pytest-cov",
     "pandas",  # tests need pandas for DataFrame functionality
-    "pyarrow",  # tests need pyarrow for Arrow/Parquet export tests
+    "pyarrow<24",  # tests need pyarrow for Arrow/Parquet export tests; remove upper bound once pyarrow 24 publishes Linux/Windows wheels
 ]
 dev = [
     {include-group = "build"},
@@ -155,7 +155,7 @@ build = "cp310-* cp311-* cp312-* cp313-* cp314-*"
 skip = "*-win32 *-musllinux_* pp*"
 
 # Test the wheel after building
-test-requires = ["pytest", "numpy", "pandas", "pyarrow"]
+test-requires = ["pytest", "numpy", "pandas", "pyarrow<24"]  # remove upper bound once pyarrow 24 publishes Linux/Windows wheels
 test-command = "pytest \"{package}/tests\" --import-mode=importlib"
 build-verbosity = 1
 
