@@ -24,6 +24,7 @@
 #include <iostream>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 class FeatureMemoryPool {
  private:
    static const unsigned int kBlockSize = 65536; // in number of doubles, e.g. 0.5MB if sizeof(double) = 8

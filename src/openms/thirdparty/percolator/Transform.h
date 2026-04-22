@@ -21,6 +21,7 @@
 #include <cmath>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 class Transform {
   public:
     Transform(double deltL = 0.0, double deltH = 0.0, bool dLt = false,

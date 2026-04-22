@@ -24,6 +24,7 @@ using namespace std;
 #include "SanityCheck.h"
 #include "Globals.h"
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 // Class doing the sanity check for non SQT file condition
 // In most sence a place holder as very little logic is build-in in this case
 

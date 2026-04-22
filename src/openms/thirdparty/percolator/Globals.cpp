@@ -20,6 +20,7 @@
 #include <iostream>
 #include <cstdlib>
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 Globals* Globals::glob = 0;
 

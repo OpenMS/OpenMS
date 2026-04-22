@@ -22,6 +22,7 @@
 
 #include "Globals.h"
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 
 PSMDescription::PSMDescription() : features(NULL), expMass(0.), calcMass(0.), retentionTime_(nan("")), scan(0u), specFileNr(0u), id_(""), peptide("") {

@@ -3,6 +3,7 @@
 
 #include "Set.h"
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 void Set::add(int el) {
   #ifdef SAFE_ARRAYS

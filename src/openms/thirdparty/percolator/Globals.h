@@ -76,6 +76,7 @@ http://www.apache.org/licenses/LICENSE-2.0
 #include "MyException.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 #define VERB (Globals::getInstance()->getVerbose())
 #define NO_TERMINATE (Globals::getInstance()->getNoTerminate())

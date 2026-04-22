@@ -3,6 +3,7 @@
 
 #include "Vector.h"
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 Numerical Vector::sparseChecker(1e-15);
 Numerical Vector::comparator(1e-8);

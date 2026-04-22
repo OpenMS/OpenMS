@@ -30,6 +30,7 @@
 using namespace std;
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 class FeatureNames {
   public:
     FeatureNames();

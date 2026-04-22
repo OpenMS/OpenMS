@@ -3,6 +3,7 @@
 
 #include "Numerical.h"
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 bool Numerical::isPos(double d) {
   return d > epsilon;

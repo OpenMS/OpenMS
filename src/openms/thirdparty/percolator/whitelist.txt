@@ -50,6 +50,7 @@ Set.h
 SetHandler.cpp
 SetHandler.h
 StdvNormalizer.cpp
+TabReader.h
 StdvNormalizer.h
 Timer.cpp
 Timer.h

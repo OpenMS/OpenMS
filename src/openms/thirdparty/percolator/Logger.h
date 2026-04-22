@@ -1,41 +1,60 @@
-// src/openms/thirdparty/percolator/Logger.h  (OpenMS shim — original contents
-// replaced by patch 06-logger-bridge.patch)
-#ifndef LOGGER_H_
-#define LOGGER_H_
+/*******************************************************************************
+ Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <sstream>
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
 
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ *******************************************************************************/
+
+#ifndef LOGGER_H
+#define LOGGER_H
+#include <iostream>
+#include <fstream>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
-enum class LogLevel { INFO, DEBUG, WARN, ERROR };
 
-class Log
+using namespace std;
+
+class Logger
 {
-public:
-  Log(LogLevel lvl) : level_(lvl) {}
-  ~Log()
-  {
-    const std::string msg = buffer_.str();
-    switch (level_)
+  public:
+
+    Logger();
+    Logger(const char* file);
+    virtual ~Logger();
+
+    void attach_file(const char* file);
+    inline void activate_file_log(){file_log = true;}
+    inline void disactivate_file_log(){file_log = false;}
+
+    template<class T>
+    Logger& operator<<(const T& x)
     {
-      case LogLevel::INFO:  OPENMS_LOG_INFO  << "[percolator] " << msg << '\n'; break;
-      case LogLevel::DEBUG: OPENMS_LOG_DEBUG << "[percolator] " << msg << '\n'; break;
-      case LogLevel::WARN:  OPENMS_LOG_WARN  << "[percolator] " << msg << '\n'; break;
-      case LogLevel::ERROR: OPENMS_LOG_ERROR << "[percolator] " << msg << '\n'; break;
+       std::cerr << x;
+       if(file_log) std_log << x;
+       return *this;
     }
-  }
-  template<typename T> Log& operator<<(const T& v) { buffer_ << v; return *this; }
-private:
-  LogLevel level_;
-  std::ostringstream buffer_;
+
+    typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
+    typedef CoutType& (*StandardEndLine)(CoutType&);
+
+    Logger& operator<<(StandardEndLine manip)
+    {
+        manip(std::cerr);
+        if(file_log) manip(std_log);
+        return *this;
+    }
+
+  private:
+
+    bool file_log;
+    std::ofstream std_log;
+
 };
 
-// Legacy macros used by upstream Percolator code. Re-route to OpenMS log streams.
-#define LOG_INFO  ::OpenMS::Internal::Percolator::Log(::OpenMS::Internal::Percolator::LogLevel::INFO)
-#define LOG_DEBUG ::OpenMS::Internal::Percolator::Log(::OpenMS::Internal::Percolator::LogLevel::DEBUG)
-#define LOG_WARN  ::OpenMS::Internal::Percolator::Log(::OpenMS::Internal::Percolator::LogLevel::WARN)
-#define LOG_ERROR ::OpenMS::Internal::Percolator::Log(::OpenMS::Internal::Percolator::LogLevel::ERROR)
-
 }}}  // namespace OpenMS::Internal::Percolator
-#endif
+
+#endif // LOGGER_H

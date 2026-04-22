@@ -21,6 +21,7 @@
 #include <omp.h>
 #include <algorithm>
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 #endif
 // checks cross validation convergence in case of quickValidation_
 const double CrossValidation::requiredIncreaseOver2Iterations_ = 0.01;

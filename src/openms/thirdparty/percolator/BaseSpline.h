@@ -25,6 +25,7 @@
 #include "PackedMatrix.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 class BaseSpline {
   public:
     BaseSpline(){};

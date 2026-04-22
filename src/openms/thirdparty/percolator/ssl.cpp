@@ -26,6 +26,7 @@ using namespace std;
 #include <cstring>
 #include "Timer.h"
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 extern "C" {
   extern double dnrm2_(int *, double *, int *); // Return the Euclidian norm of a vector

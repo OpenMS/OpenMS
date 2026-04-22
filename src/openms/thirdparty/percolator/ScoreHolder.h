@@ -22,6 +22,7 @@
 #include "PSMDescription.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 class Scores;  // forward declaration
 
 /*

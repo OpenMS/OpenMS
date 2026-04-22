@@ -35,7 +35,9 @@ using namespace std;
 #include "PosteriorEstimator.h"
 #include "Transform.h"
 #include "Globals.h"
+#include "Version.h"
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 static int noIntervals = 500;
 static unsigned int numLambda = 100;

@@ -16,8 +16,10 @@
  *******************************************************************************/
 
 #include "DataSet.h"
+#include "TabReader.h"
 #include <cmath>
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 FeatureNames DataSet::featureNames_;
 bool DataSet::decoyWarningTripped_ = false;

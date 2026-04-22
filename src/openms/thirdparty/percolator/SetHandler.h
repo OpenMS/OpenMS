@@ -46,6 +46,7 @@
 using namespace std;
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 struct PSMDescriptionPriority {
   PSMDescription* psm;
   size_t priority;

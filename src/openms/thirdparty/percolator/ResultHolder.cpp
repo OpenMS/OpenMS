@@ -19,6 +19,7 @@
 using namespace std;
 #include "ResultHolder.h"
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 ResultHolder::ResultHolder() : score(0.0), q(1.0), posterior(1.0), pepSeq(""), prot(""), outputRT(false) {
 }

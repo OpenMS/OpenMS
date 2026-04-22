@@ -16,7 +16,9 @@
  *******************************************************************************/
 
 #include "SetHandler.h"
+#include "TabReader.h"
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 SetHandler::SetHandler(unsigned int maxPSMs) : maxPSMs_(maxPSMs) {}
 

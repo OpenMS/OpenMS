@@ -8,6 +8,7 @@
 #include "Array.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 class Set : public Array<int> {
  public:
   Set() {}

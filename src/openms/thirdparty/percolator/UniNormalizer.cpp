@@ -22,6 +22,7 @@ using namespace std;
 #include "Normalizer.h"
 #include "UniNormalizer.h"
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 UniNormalizer::UniNormalizer() {
 }

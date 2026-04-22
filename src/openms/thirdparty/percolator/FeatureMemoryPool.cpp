@@ -17,6 +17,7 @@
 
 #include "FeatureMemoryPool.h"
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 void FeatureMemoryPool::createPool(size_t numFeatures) {
   numFeatures_ = static_cast<unsigned int>(numFeatures);

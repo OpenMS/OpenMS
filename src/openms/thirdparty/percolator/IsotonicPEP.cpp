@@ -19,6 +19,7 @@
 #include <chrono>
 #include "IsotonicPEP.h"
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 
 /**

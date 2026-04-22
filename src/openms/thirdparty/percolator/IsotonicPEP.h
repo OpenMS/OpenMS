@@ -19,6 +19,7 @@
 
 // Constants for tuning (Point 7)
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 constexpr int DEFAULT_NUM_BINS = 10000;
 constexpr double DEFAULT_LAMBDA = 1e-6;
 constexpr int DEFAULT_NUM_KNOTS = 50;

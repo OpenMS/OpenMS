@@ -27,6 +27,7 @@ using namespace std;
 #include "FeatureNames.h"
 #include "Globals.h"
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 int Normalizer::subclass_type = STDV;
 Normalizer* Normalizer::theNormalizer = NULL;

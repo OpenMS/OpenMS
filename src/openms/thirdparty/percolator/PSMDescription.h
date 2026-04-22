@@ -17,6 +17,7 @@
 #ifndef PSMDESCRIPTION_H_
 #define PSMDESCRIPTION_H_
 
+#include <algorithm>
 #include <iostream>
 #include <map>
 #include <string>
@@ -30,6 +31,7 @@
  *
  */
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 class PSMDescription {
    public:
     PSMDescription();
@@ -128,13 +130,13 @@ class PSMDescription {
     std::string id_;
     std::string peptide;
     static std::string proteinNameSeparator_;
-    static vector<std::string> spectraFileNames_;
+    static std::vector<std::string> spectraFileNames_;
 };
 
 inline std::ostream& operator<<(std::ostream& out, PSMDescription& psm) {
-    out << "Peptide: " << psm.peptide << endl;
-    out << "Spectrum scan number: " << psm.scan << endl;
-    out << endl;
+    out << "Peptide: " << psm.peptide << std::endl;
+    out << "Spectrum scan number: " << psm.scan << std::endl;
+    out << std::endl;
     return out;
 }
 

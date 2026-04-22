@@ -21,6 +21,7 @@
 #include <iostream>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 enum class LabelType {
   DECOY = -1,
   UNDEFINED = 0,

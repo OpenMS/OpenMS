@@ -18,6 +18,7 @@ limitations under the License.
 #include "MyException.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 MyException::MyException(const string& ss)  : msg(ss)
 {

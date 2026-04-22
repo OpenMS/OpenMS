@@ -29,6 +29,7 @@
 *
 */
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 class PseudoRandom {
  public:
   inline static void setSeed(unsigned long s) { seed_ = s; }

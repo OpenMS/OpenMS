@@ -17,6 +17,7 @@
 
 #include "PseudoRandom.h"
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 uint64_t PseudoRandom::seed_ = 1u;
 

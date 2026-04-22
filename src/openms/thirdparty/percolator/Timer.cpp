@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 Timer::Timer(){
     reset();

@@ -23,6 +23,7 @@
 #include <iomanip>
 #include <regex>
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 bool operator>(const ScoreHolder& one, const ScoreHolder& other) {
   return (one.score > other.score) ||

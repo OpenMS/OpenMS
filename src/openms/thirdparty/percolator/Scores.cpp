@@ -38,6 +38,7 @@
 #include "ssl.h"
 #include "IsotonicPEP.h"
 namespace OpenMS { namespace Internal { namespace Percolator {
+using namespace std;
 
 void Scores::merge(std::vector<Scores>& sv,
                    double fdr,
