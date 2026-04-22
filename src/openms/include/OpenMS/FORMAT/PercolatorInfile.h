@@ -70,7 +70,20 @@ namespace OpenMS
 
       // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
       static String getScanIdentifier(const PeptideIdentification& pid, size_t index);
-      
+
+      /**
+       * @brief Returns the standard Percolator feature columns every .pin file should declare.
+       *
+       * The list contains the three mandatory header columns (SpecId, Label, ScanNr)
+       * followed by the standard per-PSM features that @ref preparePin_ computes and
+       * sets on every hit: ExpMass, CalcMass, mass, peplen, charge{min..max}, enzN,
+       * enzC, enzInt, dm, absdm. Callers should append their search-engine-specific
+       * extra_features (and finally Peptide, Proteins) to this list before calling @ref store.
+       * This is the single source of truth used by PercolatorAdapter and any other
+       * tool that emits .pin for external percolator consumption.
+       */
+      static StringList getStandardFeatureSet(int min_charge, int max_charge);
+
     protected:
 
       //id <tab> label <tab> scannr <tab> calcmass <tab> expmass <tab> feature1 <tab> ... <tab> featureN <tab> peptide <tab> proteinId1 <tab> .. <tab> proteinIdM

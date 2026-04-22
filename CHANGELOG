@@ -58,6 +58,7 @@ Dependencies:
   - Boost minimum version requirement raised from 1.78 to 1.81 (#9095)
   - opentims: CMake now searches for a system-installed opentims_cpp via FindOpentims.cmake before falling back to a FetchContent git clone; packagers and users with opentims already installed can set opentims_DIR or opentims_ROOT to skip the download (#9147, #9148)
   - contrib: the contrib directory is now a git submodule; developers and packagers building from a git clone must run `git submodule update --init` (or clone with `--recurse-submodules`) to obtain the vendored third-party libraries (#9155)
+  - Fix: CMake now accepts Arrow/Parquet 24.x and later; the find_package version argument was dropped and a VERSION_LESS guard enforces the >= 23 minimum, so any future Arrow major release is accepted without an explicit CMake update; pyOpenMS excludes pyarrow 24.0.0 (cp310-only wheels on PyPI) to ensure pyarrow installs correctly on Python 3.11/3.12/3.13 (#9196)
 
 PyOpenMS:
   - BREAKING: Binding backend replaced from Autowrap/Cython to hand-maintained nanobind C++ bindings (#8699)
@@ -393,6 +394,8 @@ Build System:
   - Minimum Boost version bumped to 1.81 (#9042, #9095)
   - Qt6 find_package guarded by WITH_GUI block; Qt is no longer needed for non-GUI TOPP tool builds (#9041)
   - yaml-cpp bumped to 0.9.0 in tool_description_lib; fixes broken hash/map type parsing in YAML CTD config files (#9056)
+  - Fix: Arrow/Parquet 24.x and later now accepted; Ubuntu 24.04 CI runners ship Arrow 24.0.0 which broke builds with the previous find_package(Arrow 23) version constraint (SameMajorVersion compatibility); constraint replaced with an explicit VERSION_LESS guard; pyarrow 24.0.0 excluded from pyOpenMS dependencies (cp310-only wheels on PyPI) (#9196)
+  - Fix: SpectraIDViewTab GUI compilation failure on macOS Apple Silicon (Tahoe); accession key lookup now converts to std::string matching the std::map key type after Qt string interop removal (#9174)
 
 
 ------------------------------------------------------------------------------------------
