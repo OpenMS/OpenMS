@@ -128,8 +128,27 @@ protected:
     MassTraceDetection mtdet;
     mtd_param.insert("", common_param);
     mtd_param.remove("chrom_fwhm");
+    mtd_param.remove("estimate_background_distribution");
     mtdet.setParameters(mtd_param);
     mtdet.run(ms_peakmap, m_traces);
+
+    //-------------------------------------------------------------
+    // optionally auto-estimate chromatographic FWHM from mass traces
+    //-------------------------------------------------------------
+    const bool estimate_fwhm = common_param.getValue("estimate_background_distribution").toBool();
+    double estimated_fwhm = 0.0;
+    if (estimate_fwhm)
+    {
+      estimated_fwhm = FeatureFindingMetabo::estimateFWHMFromMassTraces(m_traces);
+      if (estimated_fwhm > 0.0)
+      {
+        OPENMS_LOG_INFO << "Estimated chromatographic FWHM: " << estimated_fwhm << " seconds" << std::endl;
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "Could not estimate chromatographic FWHM from mass traces. Falling back to chrom_fwhm parameter." << std::endl;
+      }
+    }
 
     //-------------------------------------------------------------
     // configure and run elution peak detection
@@ -141,6 +160,11 @@ protected:
       epd_param.remove("enabled");
       epd_param.insert("", common_param);
       epd_param.remove("noise_threshold_int");
+      epd_param.remove("estimate_background_distribution");
+      if (estimate_fwhm && estimated_fwhm > 0.0)
+      {
+        epd_param.setValue("chrom_fwhm", estimated_fwhm);
+      }
       ElutionPeakDetection epdet;
       epdet.setParameters(epd_param);
       epdet.detectPeaks(m_traces, splitted_mtraces);
@@ -174,6 +198,11 @@ protected:
     ffm_param.insert("", common_param);
     ffm_param.remove("noise_threshold_int");
     ffm_param.remove("chrom_peak_snr");
+    ffm_param.remove("estimate_background_distribution");
+    if (estimate_fwhm && estimated_fwhm > 0.0)
+    {
+      ffm_param.setValue("chrom_fwhm", estimated_fwhm);
+    }
 
     FeatureFindingMetabo ffmet;
     ffmet.setParameters(ffm_param);
@@ -234,7 +263,9 @@ protected:
     Param p_com;
     p_com.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are regarded as noise.");
     p_com.setValue("chrom_peak_snr", 3.0, "Minimum signal-to-noise a mass trace should have.");
-    p_com.setValue("chrom_fwhm", 5.0, "Expected chromatographic peak width (in seconds).");
+    p_com.setValue("chrom_fwhm", 5.0, "Expected chromatographic peak width (in seconds). This parameter is used for smoothing in the Elution Peak Detection step. If 'estimate_background_distribution' is enabled, the value will be automatically estimated from the data and this parameter is ignored.");
+    p_com.setValue("estimate_background_distribution", "false", "Automatically estimate the chromatographic peak width (chrom_fwhm) from the mass trace data. When enabled, the chrom_fwhm parameter is ignored and the value is estimated as the median FWHM of all detected mass traces.");
+    p_com.setValidStrings("estimate_background_distribution", {"true", "false"});
     combined.insert("common:", p_com);
     combined.setSectionDescription("common", "Common parameters for all other subsections");
 

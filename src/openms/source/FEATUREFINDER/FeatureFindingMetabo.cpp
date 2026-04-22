@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
@@ -341,6 +342,25 @@ namespace OpenMS
     use_mz_scoring_by_element_range_ = param_.getValue("mz_scoring_by_elements").toBool();
     std::string elements_list_ = param_.getValue("elements");
     elements_ = elementsFromString_(elements_list_);
+  }
+
+  double FeatureFindingMetabo::estimateFWHMFromMassTraces(std::vector<MassTrace>& mass_traces)
+  {
+    std::vector<double> fwhm_values;
+    fwhm_values.reserve(mass_traces.size());
+    for (auto& mt : mass_traces)
+    {
+      double fwhm = mt.estimateFWHM(false);
+      if (fwhm > 0.0)
+      {
+        fwhm_values.push_back(fwhm);
+      }
+    }
+    if (fwhm_values.empty())
+    {
+      return 0.0;
+    }
+    return Math::median(fwhm_values.begin(), fwhm_values.end());
   }
 
 

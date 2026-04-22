@@ -175,6 +175,20 @@ START_SECTION(([EXTRA] run with ion mobility data))
 }
 END_SECTION
 
+START_SECTION((static double estimateFWHMFromMassTraces(std::vector<MassTrace>&)))
+{
+  // Test with empty vector
+  std::vector<MassTrace> empty_traces;
+  TEST_EQUAL(FeatureFindingMetabo::estimateFWHMFromMassTraces(empty_traces), 0.0)
+
+  // Test with raw mass traces (FWHM not yet estimated externally)
+  // output_mt was produced by MassTraceDetection and should yield a valid median FWHM
+  std::vector<MassTrace> test_traces = output_mt;
+  double estimated_fwhm = FeatureFindingMetabo::estimateFWHMFromMassTraces(test_traces);
+  TEST_EQUAL(estimated_fwhm > 0.0, true)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -168,6 +168,18 @@ public:
     /// main method of FeatureFindingMetabo
     void run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap, std::vector<std::vector< OpenMS::MSChromatogram > >& output_chromatograms);
 
+    /**
+     * @brief Estimate the median FWHM from a set of mass traces.
+     *
+     * Computes the FWHM for each mass trace using raw intensities and returns
+     * the median value. Useful for automatically determining the expected
+     * chromatographic peak width (chrom_fwhm) from the data.
+     *
+     * @param[in,out] mass_traces Input mass traces (FWHM is estimated internally for each trace)
+     * @return Median FWHM in seconds, or 0.0 if no valid FWHM could be estimated
+     */
+    static double estimateFWHMFromMassTraces(std::vector<MassTrace>& mass_traces);
+
 protected:
     void updateMembers_() override;
 
