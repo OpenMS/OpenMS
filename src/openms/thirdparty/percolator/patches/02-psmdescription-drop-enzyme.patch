@@ -1,0 +1,13 @@
+diff --git a/src/openms/thirdparty/percolator/PSMDescription.h b/src/openms/thirdparty/percolator/PSMDescription.h
+index b15cc4565e..cfae93e057 100644
+--- a/src/openms/thirdparty/percolator/PSMDescription.h
++++ b/src/openms/thirdparty/percolator/PSMDescription.h
+@@ -23,8 +23,6 @@ namespace OpenMS { namespace Internal { namespace Percolator {
+ #include <string>
+ #include <vector>
+ 
+-#include "Enzyme.h"
+-
+ /*
+  * PSMDescription
+  *

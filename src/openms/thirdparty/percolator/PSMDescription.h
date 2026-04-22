@@ -23,8 +23,6 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 #include <string>
 #include <vector>
 
-#include "Enzyme.h"
-
 /*
  * PSMDescription
  *
