@@ -166,8 +166,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   impl_->decoy_ds  = std::make_unique<P::DataSet>();
   impl_->target_ds->setLabel(P::LabelType::TARGET);
   impl_->decoy_ds->setLabel(P::LabelType::DECOY);
-  impl_->target_ds->initFeatureTables(static_cast<unsigned int>(n_feat));
-  impl_->decoy_ds->initFeatureTables(static_cast<unsigned int>(n_feat));
+  // DataSet::initFeatureTables is declared in DataSet.h but upstream never
+  // defines it. Not needed — feature storage comes from FeatureMemoryPool.
 
   // Populate rows.
   impl_->synthesized_ids.resize(n_rows);

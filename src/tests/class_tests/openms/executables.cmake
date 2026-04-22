@@ -245,6 +245,7 @@ set(format_executables_list
   PepNovoOutfile_test
   PepXMLFileMascot_test
   PepXMLFile_test
+  Percolator_test
   PercolatorInfile_test
   PercolatorOutfile_test
   ProtXMLFile_test
