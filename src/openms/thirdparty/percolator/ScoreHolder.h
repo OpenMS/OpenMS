@@ -17,6 +17,8 @@
 #ifndef SCORE_HOLDER_H_
 #define SCORE_HOLDER_H_
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include "LabelType.h"
 #include "PSMDescription.h"
 
@@ -193,5 +195,7 @@ struct UniqueScanLabel {
            (x.pPSM->scan == y.pPSM->scan) && (x.label == y.label);
   }
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /*SCORE_HOLDER_H_*/

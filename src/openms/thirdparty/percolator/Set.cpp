@@ -2,6 +2,7 @@
 // see license for more information
 
 #include "Set.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 void Set::add(int el) {
   #ifdef SAFE_ARRAYS
@@ -221,3 +222,5 @@ Set Set::FullSet(int low, int high) {
   return result;
 }
 
+
+}}}  // namespace OpenMS::Internal::Percolator

@@ -1,3 +1,4 @@
+namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -570,3 +571,5 @@ void BaseSpline::testPerformance(){
     cout << endl;
   }
 }
+
+}}}  // namespace OpenMS::Internal::Percolator

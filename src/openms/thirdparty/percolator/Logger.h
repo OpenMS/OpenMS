@@ -19,6 +19,8 @@
 
 #ifndef LOGGER_H
 #define LOGGER_H
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <iostream>
 #include <fstream>
 using namespace std;
@@ -64,6 +66,8 @@ class Logger
     std::ofstream std_log;
   
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif // LOGGER_H
 

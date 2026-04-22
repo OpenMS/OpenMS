@@ -18,6 +18,7 @@
 #include <Eigen/Sparse> 
 #include <chrono>
 #include "IsotonicPEP.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 
 /**
@@ -291,3 +292,5 @@ std::vector<double> InferPEP::tdc_to_pep(const std::vector<double>& is_decoy, co
 
     return pep_iso;
 }
+
+}}}  // namespace OpenMS::Internal::Percolator

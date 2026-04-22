@@ -17,6 +17,8 @@
 #ifndef SCORES_H_
 #define SCORES_H_
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #ifndef WIN32
 #include <stdint.h>
 #endif
@@ -166,5 +168,7 @@ class Scores {
   void checkSeparationAndSetPi0();
   bool is_output_rt_ = false;
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /*SCORES_H_*/

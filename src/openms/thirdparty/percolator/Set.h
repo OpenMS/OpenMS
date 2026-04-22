@@ -4,6 +4,8 @@
 #ifndef _Set_H
 #define _Set_H
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include "Array.h"
 
 class Set : public Array<int> {
@@ -59,6 +61,8 @@ class Set : public Array<int> {
 Set operator &(Set lhs, const Set & rhs); // intersection
 Set operator |(Set lhs, const Set & rhs); // union
 
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif
 

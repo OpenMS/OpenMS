@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <sstream>
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 Timer::Timer(){
     reset();
@@ -44,3 +45,5 @@ char* Timer::getStartTimeStr(){
     return ctime(&wallStartTime);
 }
 
+
+}}}  // namespace OpenMS::Internal::Percolator

@@ -4,6 +4,8 @@
 #ifndef _Numerical_H
 #define _Numerical_H
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <iostream>
 #include <cmath>
 #include <limits>
@@ -44,6 +46,8 @@ class Numerical {
     else return log2( 1 + pow(2, logB-logA) ) + logA;
   }
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif
 

@@ -17,6 +17,8 @@
 
 #ifndef POSTERIORESTIMATOR_H_
 #define POSTERIORESTIMATOR_H_
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <vector>
 #include <string>
 #include <utility>
@@ -78,5 +80,7 @@ class PosteriorEstimator {
   static bool reversed, pvalInput, includeNegativesInResult, competition, usePi0_;
   std::string resultFileName;
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /*POSTERIORESTIMATOR_H_*/

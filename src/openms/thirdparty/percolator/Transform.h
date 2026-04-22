@@ -17,6 +17,8 @@
 #ifndef TRANSFORM_H_
 #define TRANSFORM_H_
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <cmath>
 
 class Transform {
@@ -48,5 +50,7 @@ class Transform {
     double deltaLow, deltaHigh;
     bool doLogit, doLog;
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /*TRANSFORM_H_*/

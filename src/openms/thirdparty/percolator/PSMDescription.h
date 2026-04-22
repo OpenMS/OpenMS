@@ -16,6 +16,8 @@
  *******************************************************************************/
 #ifndef PSMDESCRIPTION_H_
 #define PSMDESCRIPTION_H_
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <iostream>
 #include <map>
 #include <string>
@@ -137,5 +139,7 @@ inline std::ostream& operator<<(std::ostream& out, PSMDescription& psm) {
     out << endl;
     return out;
 }
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /*PSMDESCRIPTION_H_*/

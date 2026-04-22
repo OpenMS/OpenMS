@@ -1,3 +1,4 @@
+namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -246,3 +247,5 @@ void ScoreHolder::printPepXML(ostream& os,
   os << "            </search_result>" << endl;
   os << "        </spectrum_query>" << endl;
 }
+
+}}}  // namespace OpenMS::Internal::Percolator

@@ -17,6 +17,8 @@
 #ifndef DATASET_H_
 #define DATASET_H_
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <string>
 #include <cassert>
 #include <cctype>
@@ -89,5 +91,7 @@ class DataSet {
   static FeatureNames featureNames_;
   static bool decoyWarningTripped_;
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /*DATASET_H_*/

@@ -1,6 +1,8 @@
 #ifndef ISOTONIC_REGRESSION_H_
 #define ISOTONIC_REGRESSION_H_
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include "Globals.h"
 #include <chrono>
 #include <iostream> // for std::cerr, std::endl
@@ -135,5 +137,7 @@ class InferPEP {
         std::vector<double> pep_iso;
         double epsilon_;
     };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
     #endif /* ISOTONICPEP_H_ */

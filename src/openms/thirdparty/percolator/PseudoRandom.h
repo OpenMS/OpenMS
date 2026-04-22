@@ -18,6 +18,8 @@
 #ifndef PSEUDO_RANDOM_H
 #define PSEUDO_RANDOM_H
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <stdint.h>
 
 /*
@@ -37,5 +39,7 @@ class PseudoRandom {
   static uint64_t seed_;
 };
 
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif // RANDOM_H

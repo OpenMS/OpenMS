@@ -11,6 +11,8 @@
  *******************************************************************************/
 #ifndef _svmlin_H
 #define _svmlin_H
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <vector>
 #include <ctime>
 
@@ -98,4 +100,6 @@ int L2_SVM_MFN(const AlgIn& set, options& Options,
 double line_search(double* w, double* w_bar, double lambda, double* o,
                          double* o_bar, const double* Y, int d, int l,
                           double cpos, double cneg);
+}}}  // namespace OpenMS::Internal::Percolator
+
 #endif

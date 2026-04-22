@@ -8,6 +8,8 @@
 #ifndef _PackedMatrix_H
 #define _PackedMatrix_H
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include "PackedVector.h"
 #include "Array.h"
 
@@ -58,5 +60,7 @@ class PackedMatrix
     int cols;
     Array<PackedVector> rows;
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif

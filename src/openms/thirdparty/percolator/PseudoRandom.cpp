@@ -1,3 +1,4 @@
+namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -30,3 +31,5 @@ unsigned long PseudoRandom::lcg_rand() {
 double PseudoRandom::lcg_uniform_rand() {
   return (double)PseudoRandom::lcg_rand() / ((double)PseudoRandom::kRandMax + (double)1);
 }
+
+}}}  // namespace OpenMS::Internal::Percolator

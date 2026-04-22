@@ -1,3 +1,4 @@
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
@@ -80,3 +81,5 @@ int FeatureNames::getFeatureNumber(const string& featureName) {
   }
   return 0;
 }
+
+}}}  // namespace OpenMS::Internal::Percolator

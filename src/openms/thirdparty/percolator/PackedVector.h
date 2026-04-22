@@ -9,6 +9,8 @@
 #ifndef _PackedVector_H
 #define _PackedVector_H
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #define PACK
 #define ALLOW_ZERO
 #include "Vector.h"
@@ -105,5 +107,7 @@ double packedNorm(const PackedVector& vec);
  * same indices
  */
 bool operator == (const PackedVector & lhs, const PackedVector & rhs);
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif

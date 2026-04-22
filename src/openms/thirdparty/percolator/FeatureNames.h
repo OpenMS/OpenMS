@@ -17,6 +17,8 @@
 #ifndef FEATURENAMES_H_
 #define FEATURENAMES_H_
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -92,5 +94,7 @@ class FeatureNames {
     int chargeFeatNum, enzFeatNum, numSPFeatNum, ptmFeatNum,
         intraSetFeatNum, quadraticFeatNum;
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /*FEATURENAMES_H_*/

@@ -17,6 +17,8 @@
 #ifndef MASSHANDLER_H_
 #define MASSHANDLER_H_
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include<string>
 using namespace std;
 
@@ -30,5 +32,7 @@ class MassHandler {
     static double massDiff(double observedMass, double calculatedMass, unsigned int charge);
     static bool monoisotopic;
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /*MASSHANDLER_H_*/

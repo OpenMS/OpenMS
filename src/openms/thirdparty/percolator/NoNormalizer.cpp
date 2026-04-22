@@ -1,3 +1,4 @@
+namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -74,3 +75,5 @@ void NoNormalizer::updateSet(vector<double*> & /* featuresV */, size_t /* offset
     div[ix] = 1.0;
   }
 }
+
+}}}  // namespace OpenMS::Internal::Percolator

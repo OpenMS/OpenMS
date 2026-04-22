@@ -1,3 +1,4 @@
+namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -51,3 +52,5 @@ ostream& operator<<(ostream& out, const ResultHolder& obj) {
     }
     return out;
 }
+
+}}}  // namespace OpenMS::Internal::Percolator

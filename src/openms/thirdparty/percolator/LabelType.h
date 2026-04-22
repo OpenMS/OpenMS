@@ -17,6 +17,8 @@
 #ifndef LABEL_TYPE_H_
 #define LABEL_TYPE_H_
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <iostream>
 
 enum class LabelType {
@@ -30,5 +32,7 @@ inline std::ostream& operator<<(std::ostream& os, LabelType label) {
   os << static_cast<int>(label);
   return os;
 }
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /*LABEL_TYPE_H_*/

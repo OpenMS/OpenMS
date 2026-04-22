@@ -1,3 +1,4 @@
+namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -801,3 +802,5 @@ unsigned Scores::getQvaluesBelowLevel(double level) {
 void Scores::setUsePi0(bool usePi0) {
   usePi0_ = usePi0;
 }
+
+}}}  // namespace OpenMS::Internal::Percolator

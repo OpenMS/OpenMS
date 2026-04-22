@@ -16,6 +16,8 @@
  *******************************************************************************/
 #ifndef NORMALIZER_H_
 #define NORMALIZER_H_
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <set>
 #include <vector>
 #include <iostream>
@@ -106,5 +108,7 @@ class Normalizer {
   vector<double> sub;
   vector<double> div;
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /*NORMALIZER_H_*/

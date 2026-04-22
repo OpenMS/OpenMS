@@ -1,3 +1,4 @@
+namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -252,3 +253,5 @@ void DataSet::registerPsm(PSMDescription* myPsm) {
   }
   psms_.push_back(myPsm);
 }
+
+}}}  // namespace OpenMS::Internal::Percolator

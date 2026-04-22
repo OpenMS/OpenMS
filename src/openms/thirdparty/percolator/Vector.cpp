@@ -2,6 +2,7 @@
 // see license for more information
 
 #include "Vector.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 Numerical Vector::sparseChecker(1e-15);
 Numerical Vector::comparator(1e-8);
@@ -566,3 +567,5 @@ double diffNormSquared(const Vector & u, const Vector & v)
     }
   return sqrt(res);
 }
+
+}}}  // namespace OpenMS::Internal::Percolator

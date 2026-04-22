@@ -18,6 +18,8 @@
 #ifndef LOGISTICREGRESSION_H_
 #define LOGISTICREGRESSION_H_
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <vector>
 
 #include "BaseSpline.h"
@@ -45,5 +47,7 @@ class LogisticRegression : public BaseSpline {
     static const double gRange;
     Array<double> p;
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /*LOGISTICREGRESSION_H_*/

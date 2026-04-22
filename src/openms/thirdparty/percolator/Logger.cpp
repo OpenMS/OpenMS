@@ -1,3 +1,4 @@
+namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -45,3 +46,5 @@ Logger::~Logger()
   std::cerr.flush();
   std_log.close();
 }
+
+}}}  // namespace OpenMS::Internal::Percolator

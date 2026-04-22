@@ -1,3 +1,4 @@
+namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -58,3 +59,5 @@ double* FeatureMemoryPool::allocate() {
 void FeatureMemoryPool::deallocate(double* p) {
   freeRows_.push_back(p);
 }
+
+}}}  // namespace OpenMS::Internal::Percolator

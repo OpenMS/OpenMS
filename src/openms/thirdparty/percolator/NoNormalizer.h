@@ -17,6 +17,8 @@
 #ifndef NONORMALIZER_H_
 #define NONORMALIZER_H_
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 class NoNormalizer : public Normalizer { // virtual Normalizer
  public:
   NoNormalizer();
@@ -29,5 +31,7 @@ class NoNormalizer : public Normalizer { // virtual Normalizer
   void unnormalizeweight(const vector<double>& in, vector<double>& out) const;
   void normalizeweight(const vector<double>& in, vector<double>& out) const;
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /*NONORMALIZER_H_*/

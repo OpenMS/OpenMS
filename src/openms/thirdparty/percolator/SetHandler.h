@@ -18,6 +18,8 @@
 #ifndef SETHANDLER_H_
 #define SETHANDLER_H_
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <assert.h>
 #include <iostream>
 #include <fstream>
@@ -132,5 +134,7 @@ class SetHandler {
     bool hasInitialValueRow, std::vector<OptionalField>& optionalFields, 
     std::vector<double>& rawWeights, Scores& allScores);
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /*SETHANDLER_H_*/

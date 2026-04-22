@@ -2,6 +2,8 @@
 #ifndef TIMER_H_
 #define TIMER_H_
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <string>
 #include <ctime>
 
@@ -23,6 +25,8 @@ private:
     clock_t cpuEndTime, cpuStartTime;
     std::string getTimeStr(double time, int numDecimals);
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif
 

@@ -25,6 +25,7 @@ using namespace std;
 #include <stdarg.h>
 #include <cstring>
 #include "Timer.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 extern "C" {
   extern double dnrm2_(int *, double *, int *); // Return the Euclidian norm of a vector
@@ -387,3 +388,5 @@ double line_search(double* w, double* w_bar, double lambda, double* o,
   return (-L / (R - L));
 }
 
+
+}}}  // namespace OpenMS::Internal::Percolator

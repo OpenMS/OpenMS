@@ -3,6 +3,8 @@
 
 #ifndef _Vector_H
 #define _Vector_H
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <cmath>
 #include "Set.h"
 #include "Numerical.h"
@@ -165,6 +167,8 @@ double norm(const Array<double> & vec);
 
 Array<double> operator -(const Array<double> & rhs);
 
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif
 

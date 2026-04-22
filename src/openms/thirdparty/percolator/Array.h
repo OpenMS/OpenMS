@@ -8,6 +8,8 @@
 #define _Array_H
 
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -419,6 +421,8 @@ template <typename T>
 std::vector<T> Array<T>::getVector() const {
   return this->data;
 }
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif
 

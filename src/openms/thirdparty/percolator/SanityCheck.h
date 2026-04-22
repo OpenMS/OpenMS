@@ -17,6 +17,8 @@
 #ifndef SANITYCHECK_H_
 #define SANITYCHECK_H_
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 class Scores;
 class Normalizer;
 
@@ -86,5 +88,7 @@ class SanityCheck {
   // input from concatenated search, i.e. not separate target and decoy searches
   bool concatenatedSearch_;
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /*SANITYCHECK_H_*/

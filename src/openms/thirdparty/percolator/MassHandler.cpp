@@ -1,3 +1,4 @@
+namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -42,3 +43,5 @@ double MassHandler::massDiff(double observedMass, double calculatedMass, unsigne
   }
   return dm / charge;
 }
+
+}}}  // namespace OpenMS::Internal::Percolator

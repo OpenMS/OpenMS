@@ -6,6 +6,7 @@
  */
 
 #include "PackedMatrix.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 PackedMatrix PackedMatrix::packedTranspose(const PackedMatrix& mat) {
   PackedMatrix res = PackedMatrix(mat.numCols(), mat.numRows());
@@ -89,3 +90,5 @@ void PackedMatrix::displayMatrix() const{
   }
   cerr << "}"<<endl;
 }
+
+}}}  // namespace OpenMS::Internal::Percolator

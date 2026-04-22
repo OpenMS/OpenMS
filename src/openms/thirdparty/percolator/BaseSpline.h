@@ -18,6 +18,8 @@
 #ifndef BASESPLINE_H_
 #define BASESPLINE_H_
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <assert.h>
 #include "Transform.h"
 #include "PackedVector.h"
@@ -70,5 +72,7 @@ class BaseSpline {
     PackedVector g, gamma;
     vector<double> x;
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /*BASESPLINE_H_*/

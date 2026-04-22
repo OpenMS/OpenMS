@@ -1,3 +1,4 @@
+namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -656,3 +657,5 @@ void CrossValidation::printAllRawWeightsColumns(ostream& weightStream,
   }
   printAllWeightsColumns(ww, weightStream);
 }
+
+}}}  // namespace OpenMS::Internal::Percolator

@@ -16,6 +16,8 @@
  *******************************************************************************/
 #ifndef RESULTHOLDER_H_
 #define RESULTHOLDER_H_
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <cmath>
 
 using namespace std;
@@ -35,5 +37,7 @@ class ResultHolder {
 bool operator>(const ResultHolder& one, const ResultHolder& other);
 bool operator<(const ResultHolder& one, const ResultHolder& other);
 ostream& operator<<(ostream& out, const ResultHolder& obj);
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /*RESULTHOLDER_H_*/

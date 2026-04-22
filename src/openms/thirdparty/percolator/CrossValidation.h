@@ -17,6 +17,8 @@
 #ifndef CROSSVALIDATION_H_
 #define CROSSVALIDATION_H_
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 #include <iomanip>
 #include <iostream>
 #include <vector>
@@ -146,5 +148,7 @@ class CrossValidation {
       std::vector<std::vector<double> > weightMatrix,
       ostream& weightStream);
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /*CROSSVALIDATION_H_*/

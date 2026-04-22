@@ -17,6 +17,8 @@
 #ifndef FEATURE_MEMORY_POOL_H_
 #define FEATURE_MEMORY_POOL_H_
 
+
+namespace OpenMS { namespace Internal { namespace Percolator {
 /* Adapted from https://www.thinkmind.org/download.php?articleid=computation_tools_2012_1_10_80006 */
 
 #include <vector>
@@ -46,5 +48,7 @@ class FeatureMemoryPool {
   double* allocate();
   void deallocate(double* p);
 };
+
+}}}  // namespace OpenMS::Internal::Percolator
 
 #endif /* FEATURE_MEMORY_POOL_H_ */
