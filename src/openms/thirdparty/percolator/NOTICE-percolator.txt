@@ -1,0 +1,22 @@
+Percolator
+Copyright 2006-present Lukas Käll and Percolator contributors
+https://github.com/percolator/percolator
+
+This product includes software developed by Percolator contributors.
+Licensed under the Apache License, Version 2.0 (see LICENSE-Apache-2.0.txt).
+
+Modifications from upstream:
+  - Stripped XML/pin, tab-file, CLI, and protein-inference code
+  - Wrapped all vendored declarations in OpenMS::Internal::Percolator::
+  - Replaced Logger.h with a shim that routes through OpenMS's OPENMS_LOG_*
+  - Removed CMake-generated config.h / Version.h in favor of in-tree stubs
+  - Added constructor extension on DataSet to accept externally-supplied
+    cross-validation grouping keys (for domain-agnostic use)
+
+Embedded SVMlin files (ssl.h, ssl.cpp, Timer.h, Timer.cpp):
+  Copyright (c) 2006 Vikas Sindhwani, University of Chicago.
+  Adapted to Percolator by Lukas Käll, University of Washington.
+  Speedup by John Halloran, UC Davis (J. Proteome Res. 2018, 17:5, 1978-1982).
+
+  The OpenMS maintainers obtained explicit relicensing of SVMlin for use
+  within OpenMS under Apache-2.0-compatible terms prior to inclusion.
