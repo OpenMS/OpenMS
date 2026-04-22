@@ -193,7 +193,7 @@ LabelType DataSet::readPsm(const std::string& line, const unsigned int lineNr,
     temp << "ERROR: Reading tab file, error reading PSM " << myPsm->getId() 
       << ". Check if a peptide and at least one protein are specified." << std::endl;
     throw MyException(temp.str());
-  } else if (ProteinProbEstimator::getCalcProteinLevelProb()) {
+  } else if (false) {   // OPENMS_MODIFIED: protein-inference dropped in vendored subset
     // MT: we only need the peptide sequences to be well formatted if protein inference is applied
     if (peptide_seq.size() < 5) {
       ostringstream temp;

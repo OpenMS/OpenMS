@@ -38,10 +38,6 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 #include "PSMDescription.h"
 #include "FeatureNames.h"
 #include "FeatureMemoryPool.h"
-#include "ProteinProbEstimator.h"
-#include "TabFileValidator.h"
-
-
 // Optional columns in tab delimited input
 enum OptionalField {
   SCANNR, EXPMASS, CALCMASS, RETTIME, DELTAMASS, FILENAME
