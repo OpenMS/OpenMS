@@ -8,9 +8,9 @@
 
 #pragma once
 
+#include "FeatureTypes.h"
 #include "GridWithStorage.h"
 #include "OpenMS/KERNEL/Feature.h"
-#include "PeakTypes.h"
 
 #include <memory>
 
@@ -31,15 +31,15 @@ public:
   /// Insert a donor peak.
   void insert(const Feature& feature, const std::size_t map_index)
   {
-    Peak peak(map_index, feature);
+    FeatureRef ref(map_index, feature);
 
     if (is_donor_feature(feature))
     {
-      donors.insert(std::make_shared<Donor>(peak));
+      donors.insert(std::make_shared<Donor>(ref));
     }
     else
     {
-      acceptors.insert(std::make_shared<Acceptor>(peak));
+      acceptors.insert(std::make_shared<Acceptor>(ref));
     }
   }
 

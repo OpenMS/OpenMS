@@ -8,9 +8,9 @@
 
 #pragma once
 
+#include "FeatureTypes.h"
 #include "GridWithStorage.h"
 #include "MzDiff.h"
-#include "PeakTypes.h"
 #include "Run.h"
 #include "RunStatistics.h"
 #include "Window.h"

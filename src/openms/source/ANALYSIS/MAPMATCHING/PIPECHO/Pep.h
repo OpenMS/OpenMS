@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "PeakTypes.h"
+#include "FeatureTypes.h"
 
 #include <functional>
 #include <memory>
@@ -22,7 +22,7 @@ public:
   /// Everything we need to know about an acceptor feature.
   struct acceptor_t
   {
-    acceptor_t(const Peak& acceptor,
+    acceptor_t(const FeatureRef& acceptor,
                const Acceptor::scored_t& scored,
                DonorType donor_type):
         acceptor(std::cref(acceptor)),
@@ -43,7 +43,7 @@ public:
       return score.mbr_score;
     };
 
-    std::reference_wrapper<const Peak> acceptor;
+    std::reference_wrapper<const FeatureRef> acceptor;
     std::string donor_ident;
     BaseFeature::ChargeType donor_charge;
     Score score;

@@ -6,11 +6,11 @@
 // $Authors: Peter J. Jones $
 // --------------------------------------------------------------------------
 
+#include "FeatureTypes.h"
 #include "Impl.h"
 #include "OpenMS/CONCEPT/Exception.h"
 #include "OpenMS/CONCEPT/ProgressLogger.h"
 #include "OpenMS/KERNEL/FeatureMap.h"
-#include "PeakTypes.h"
 #include "Pep.h"
 #include "Score.h"
 #include "Util.h"
@@ -267,13 +267,13 @@ Impl::find_random_donor(const DonorMap& donors,
 /******************************************************************************/
 void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
 {
-  using ident_val_t = std::set<Peak, PeakCmp>;
+  using ident_val_t = std::set<FeatureRef, FeatureRefCmp>;
   using ident_map_t = std::map<std::string, ident_val_t>;
 
   std::size_t acceptors_seen {}, decoys_seen {};
   ident_map_t ident_map;
 
-  auto insert = [&](const std::string key, const Peak& peak) {
+  auto insert = [&](const std::string key, const FeatureRef& peak) {
     auto [place, inserted]
       = ident_map.insert(std::make_pair(key, ident_val_t {peak}));
     if (! inserted) place->second.insert(peak);

@@ -25,23 +25,23 @@ namespace OpenMS::PipEcho
  * came from.  This is similar to a FeatureHandle but with
  * additional information.
  */
-struct Peak
+struct FeatureRef
 {
   const std::size_t map_index;
   const Feature& feature;
 
-  Peak(const std::size_t map_index, const Feature& feature):
+  FeatureRef(const std::size_t map_index, const Feature& feature):
       map_index(map_index),
       feature(feature) {};
 };
 
 /******************************************************************************/
 /**
- * Used for putting Peak objects in ordered containers.
+ * Used for putting FeatureRef objects in ordered containers.
  */
-struct PeakCmp
+struct FeatureRefCmp
 {
-  bool operator()(const Peak& lhs, const Peak& rhs) const
+  bool operator()(const FeatureRef& lhs, const FeatureRef& rhs) const
   {
     if (lhs.map_index == rhs.map_index)
     {
@@ -55,9 +55,9 @@ struct PeakCmp
 /**
  * A Feature that has been identified.
  */
-struct Donor : Peak
+struct Donor : FeatureRef
 {
-  Donor(const Peak& peak): Peak(peak.map_index, peak.feature) {};
+  Donor(const FeatureRef& peak): FeatureRef(peak.map_index, peak.feature) {};
 
   std::string ident() const
   {
@@ -87,7 +87,7 @@ enum class DonorType
  * A Feature that has no identification information and may match a
  * Donor.
  */
-struct Acceptor : Peak
+struct Acceptor : FeatureRef
 {
   /// A scored donor.
   using scored_t = std::pair<Score, std::shared_ptr<const Donor>>;
@@ -99,7 +99,7 @@ struct Acceptor : Peak
   std::optional<scored_t> decoy;
 
   /// Constructor.
-  Acceptor(const Peak& peak): Peak(peak.map_index, peak.feature) {};
+  Acceptor(const FeatureRef& peak): FeatureRef(peak.map_index, peak.feature) {};
 
   /// Check if a Donor matches this Acceptor.
   bool is_donor_compatible(const Donor&, const Window&) const;

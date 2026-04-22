@@ -6,7 +6,7 @@
 // $Authors: Peter J. Jones $
 // --------------------------------------------------------------------------
 
-#include "PeakTypes.h"
+#include "FeatureTypes.h"
 
 
 namespace OpenMS::PipEcho

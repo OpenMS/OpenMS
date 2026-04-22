@@ -30,7 +30,10 @@ public:
   double mz_diff(const double relative)
   {
     if (is_ppm) { return relative * 1e-6 * mz; }
-    else { return mz; }
+    else
+    {
+      return mz;
+    }
   };
 
 private:

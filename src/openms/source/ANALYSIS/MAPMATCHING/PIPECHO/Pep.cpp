@@ -9,7 +9,7 @@
 #include "OpenMS/CONCEPT/LogStream.h"
 #include "OpenMS/ML/SVM/SimpleSVM.h"
 #include "Pep.h"
-#include "source/ANALYSIS/MAPMATCHING/PIPECHO/Util.h"
+#include "Util.h"
 
 #include <numeric>
 #include <ranges>
