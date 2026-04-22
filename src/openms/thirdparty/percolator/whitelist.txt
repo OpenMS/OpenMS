@@ -19,6 +19,8 @@ LogisticRegression.cpp
 LogisticRegression.h
 MassHandler.cpp
 MassHandler.h
+MyException.cpp
+MyException.h
 NoNormalizer.cpp
 NoNormalizer.h
 Normalizer.cpp
