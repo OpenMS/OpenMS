@@ -54,6 +54,20 @@ include(${PROJECT_SOURCE_DIR}/configh.cmake)
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
+# Vendored, namespace-isolated Percolator subtree.
+include(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/percolator/sources.cmake)
+list(APPEND OpenMS_sources ${OpenMS_percolator_sources})
+
+# Suppress upstream-originated warnings on vendored files only.
+set_source_files_properties(${OpenMS_percolator_sources}
+  PROPERTIES
+    COMPILE_FLAGS "-Wno-sign-compare -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unused-variable -Wno-overloaded-virtual")
+if (NOT WIN32)
+  set_source_files_properties(${OpenMS_percolator_sources}
+    PROPERTIES COMPILE_OPTIONS "-fvisibility=hidden")
+endif()
+
+#------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
 set(OPENMS_DEP_LIBRARIES
   LibSVM::LibSVM
@@ -137,6 +151,10 @@ openms_add_library(TARGET_NAME  OpenMS
                                   ${OPENMS_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
+
+# Vendored percolator headers are resolved via #include "X.h" (no subdir) —
+# add the dir PRIVATE so it's visible only to libOpenMS's own TUs.
+target_include_directories(OpenMS PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/percolator)
 
 if (OPENMS_ARROW_DATASET_TARGET)
   target_compile_definitions(OpenMS PRIVATE WITH_ARROW_DATASET)
