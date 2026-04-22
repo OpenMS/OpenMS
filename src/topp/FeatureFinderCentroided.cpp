@@ -283,7 +283,7 @@ protected:
       FeatureMap features_cv;
 
       // Apply the feature finder
-      ff.run(faims_group, features_cv, feafi_param, seeds_cv);
+      ff.run(std::move(faims_group), features_cv, feafi_param, seeds_cv);
 
       // Annotate features with FAIMS CV (if FAIMS data) and add to results
       for (auto& feat : features_cv)
