@@ -18,7 +18,6 @@
 #ifndef POSTERIORESTIMATOR_H_
 #define POSTERIORESTIMATOR_H_
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include <vector>
 #include <string>
 #include <utility>
@@ -28,6 +27,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 #include "PseudoRandom.h"
 
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 class PosteriorEstimator {
  public:
   PosteriorEstimator(){};

@@ -18,7 +18,6 @@
 #define DATASET_H_
 
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include <string>
 #include <cassert>
 #include <cctype>
@@ -39,6 +38,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 #include "FeatureNames.h"
 #include "FeatureMemoryPool.h"
 // Optional columns in tab delimited input
+namespace OpenMS { namespace Internal { namespace Percolator {
 enum OptionalField {
   SCANNR, EXPMASS, CALCMASS, RETTIME, DELTAMASS, FILENAME
 };

@@ -17,7 +17,6 @@
 #ifndef PSMDESCRIPTION_H_
 #define PSMDESCRIPTION_H_
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include <iostream>
 #include <map>
 #include <string>
@@ -30,6 +29,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
  * PSM - Peptide Spectrum Match
  *
  */
+namespace OpenMS { namespace Internal { namespace Percolator {
 class PSMDescription {
    public:
     PSMDescription();

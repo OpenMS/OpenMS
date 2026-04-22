@@ -10,11 +10,11 @@
 #define _PackedVector_H
 
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #define PACK
 #define ALLOW_ZERO
 #include "Vector.h"
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 class PackedVector : public Vector
 {
   public:

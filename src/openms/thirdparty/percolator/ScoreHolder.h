@@ -18,10 +18,10 @@
 #define SCORE_HOLDER_H_
 
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include "LabelType.h"
 #include "PSMDescription.h"
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 class Scores;  // forward declaration
 
 /*

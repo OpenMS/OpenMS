@@ -18,12 +18,12 @@
 #define FEATURE_MEMORY_POOL_H_
 
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 /* Adapted from https://www.thinkmind.org/download.php?articleid=computation_tools_2012_1_10_80006 */
 
 #include <vector>
 #include <iostream>
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 class FeatureMemoryPool {
  private:
    static const unsigned int kBlockSize = 65536; // in number of doubles, e.g. 0.5MB if sizeof(double) = 8

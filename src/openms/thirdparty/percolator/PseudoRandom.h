@@ -19,7 +19,6 @@
 #define PSEUDO_RANDOM_H
 
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include <stdint.h>
 
 /*
@@ -29,6 +28,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 * LCG - Linear Congruential Generator
 *
 */
+namespace OpenMS { namespace Internal { namespace Percolator {
 class PseudoRandom {
  public:
   inline static void setSeed(unsigned long s) { seed_ = s; }

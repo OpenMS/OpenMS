@@ -4,12 +4,12 @@
 #ifndef _Vector_H
 #define _Vector_H
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include <cmath>
 #include "Set.h"
 #include "Numerical.h"
 #include "Array.h"
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 class Vector
 {
 public:

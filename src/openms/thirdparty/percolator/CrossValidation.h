@@ -18,7 +18,6 @@
 #define CROSSVALIDATION_H_
 
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include <iomanip>
 #include <iostream>
 #include <vector>
@@ -32,6 +31,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 #include "Scores.h"
 #include "ssl.h"
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 struct CandidateCposCfrac {
   double cpos;
   double cfrac;

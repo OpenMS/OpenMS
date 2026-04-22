@@ -17,11 +17,11 @@
 #ifndef RESULTHOLDER_H_
 #define RESULTHOLDER_H_
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include <cmath>
 
 using namespace std;
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 class ResultHolder {
    public:
     ResultHolder();

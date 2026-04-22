@@ -19,7 +19,6 @@
 #define SETHANDLER_H_
 
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include <assert.h>
 #include <iostream>
 #include <fstream>
@@ -46,6 +45,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 
 using namespace std;
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 struct PSMDescriptionPriority {
   PSMDescription* psm;
   size_t priority;

@@ -18,7 +18,6 @@
 #define FEATURENAMES_H_
 
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -30,6 +29,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 
 using namespace std;
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 class FeatureNames {
   public:
     FeatureNames();

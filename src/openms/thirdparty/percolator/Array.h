@@ -9,7 +9,6 @@
 
 
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -19,6 +18,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 #include <functional>
 
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 template <typename T>
 class Array 
 {

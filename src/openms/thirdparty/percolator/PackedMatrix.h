@@ -9,10 +9,10 @@
 #define _PackedMatrix_H
 
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include "PackedVector.h"
 #include "Array.h"
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 class PackedMatrix
 {
   public:

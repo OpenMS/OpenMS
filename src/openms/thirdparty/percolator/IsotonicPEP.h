@@ -2,7 +2,6 @@
 #define ISOTONIC_REGRESSION_H_
 
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include "Globals.h"
 #include <chrono>
 #include <iostream> // for std::cerr, std::endl
@@ -19,6 +18,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 #include <Eigen/Sparse> 
 
 // Constants for tuning (Point 7)
+namespace OpenMS { namespace Internal { namespace Percolator {
 constexpr int DEFAULT_NUM_BINS = 10000;
 constexpr double DEFAULT_LAMBDA = 1e-6;
 constexpr int DEFAULT_NUM_KNOTS = 50;

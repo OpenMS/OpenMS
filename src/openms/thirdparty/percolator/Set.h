@@ -5,9 +5,9 @@
 #define _Set_H
 
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include "Array.h"
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 class Set : public Array<int> {
  public:
   Set() {}

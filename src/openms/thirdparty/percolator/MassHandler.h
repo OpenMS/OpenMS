@@ -18,10 +18,10 @@
 #define MASSHANDLER_H_
 
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include<string>
 using namespace std;
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 class MassHandler {
   public:
     MassHandler();

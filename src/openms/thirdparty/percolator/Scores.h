@@ -18,7 +18,6 @@
 #define SCORES_H_
 
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #ifndef WIN32
 #include <stdint.h>
 #endif
@@ -40,6 +39,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 
 #include <boost/unordered/unordered_map.hpp>
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 class SetHandler;
 class AlgIn;
 

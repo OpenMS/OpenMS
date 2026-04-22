@@ -18,9 +18,9 @@
 #define LABEL_TYPE_H_
 
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include <iostream>
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 enum class LabelType {
   DECOY = -1,
   UNDEFINED = 0,

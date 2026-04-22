@@ -6,8 +6,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <sstream>
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 enum class LogLevel { INFO, DEBUG, WARN, ERROR };
 
 class Log

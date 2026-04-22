@@ -12,7 +12,6 @@
 #ifndef _svmlin_H
 #define _svmlin_H
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include <vector>
 #include <ctime>
 
@@ -28,6 +27,7 @@ using namespace std;
 
 #define VERBOSE_CGLS 0
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 class AlgIn {
   public:
     AlgIn(const unsigned int size, const int numFeat);

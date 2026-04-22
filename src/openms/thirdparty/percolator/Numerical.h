@@ -5,13 +5,13 @@
 #define _Numerical_H
 
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include <iostream>
 #include <cmath>
 #include <limits>
 
 using namespace std;
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 const double Pi = 3.14159;
 
 class Numerical {

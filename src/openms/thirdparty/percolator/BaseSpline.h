@@ -19,12 +19,12 @@
 #define BASESPLINE_H_
 
 
-namespace OpenMS { namespace Internal { namespace Percolator {
 #include <assert.h>
 #include "Transform.h"
 #include "PackedVector.h"
 #include "PackedMatrix.h"
 
+namespace OpenMS { namespace Internal { namespace Percolator {
 class BaseSpline {
   public:
     BaseSpline(){};
