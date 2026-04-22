@@ -201,6 +201,27 @@ namespace OpenMS
     // move the file to the actual destination:
     std::error_code rename_ec;
     fs::rename(to_path(from), to_path(to), rename_ec);
+
+    // Cross-device rename fails with EXDEV on POSIX. Qt's QFile::rename silently
+    // copied and removed in that case; preserve that so TOPP tools can move files
+    // out of a tmp dir into a bind-mounted output (common in containers).
+    if (rename_ec == std::errc::cross_device_link)
+    {
+      std::error_code copy_ec;
+      fs::copy_file(to_path(from), to_path(to),
+                    fs::copy_options::overwrite_existing, copy_ec);
+      if (!copy_ec)
+      {
+        std::error_code remove_ec;
+        fs::remove(to_path(from), remove_ec); // best-effort source cleanup
+        rename_ec.clear();
+      }
+      else
+      {
+        rename_ec = copy_ec;
+      }
+    }
+
     if (rename_ec)
     {
       if (verbose)
