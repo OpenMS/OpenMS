@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -22,6 +21,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 #include <cmath>
 
 #include "Globals.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 
 PSMDescription::PSMDescription() : features(NULL), expMass(0.), calcMass(0.), retentionTime_(nan("")), scan(0u), specFileNr(0u), id_(""), peptide("") {

@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -23,6 +22,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 #include <boost/algorithm/string/trim.hpp>
 #include <iomanip>
 #include <regex>
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 bool operator>(const ScoreHolder& one, const ScoreHolder& other) {
   return (one.score > other.score) ||

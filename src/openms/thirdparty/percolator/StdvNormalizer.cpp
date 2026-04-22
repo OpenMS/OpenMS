@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -29,6 +28,7 @@ using namespace std;
 #include "Normalizer.h"
 #include "StdvNormalizer.h"
 #include "Globals.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 
 StdvNormalizer::StdvNormalizer() {

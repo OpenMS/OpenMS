@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -20,6 +19,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 #include "Version.h"
 #include <iostream>
 #include <cstdlib>
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 Globals* Globals::glob = 0;
 

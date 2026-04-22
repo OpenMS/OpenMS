@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -36,6 +35,7 @@ using namespace std;
 #include "PosteriorEstimator.h"
 #include "Transform.h"
 #include "Globals.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 static int noIntervals = 500;
 static unsigned int numLambda = 100;

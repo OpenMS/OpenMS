@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -17,6 +16,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
  *******************************************************************************/
 
 #include "FeatureMemoryPool.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 void FeatureMemoryPool::createPool(size_t numFeatures) {
   numFeatures_ = static_cast<unsigned int>(numFeatures);

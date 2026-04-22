@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -26,6 +25,7 @@ using namespace std;
 
 #include "Globals.h"
 #include "LogisticRegression.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 const double LogisticRegression::gRange = 35.0;
 

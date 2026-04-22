@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -18,6 +17,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 #include <assert.h>
 #include <cmath>
 #include "MassHandler.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 MassHandler::MassHandler() {
 }

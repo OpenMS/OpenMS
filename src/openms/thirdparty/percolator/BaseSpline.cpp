@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -24,6 +23,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 #include<cmath>
 #include "BaseSpline.h"
 #include "Globals.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 using namespace std;
 

@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
@@ -19,6 +18,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 
 #include "FeatureNames.h"
 #include "Globals.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 size_t FeatureNames::numFeatures = 0;
 

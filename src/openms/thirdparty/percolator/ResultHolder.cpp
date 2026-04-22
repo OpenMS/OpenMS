@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -19,6 +18,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 #include <string>
 using namespace std;
 #include "ResultHolder.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 ResultHolder::ResultHolder() : score(0.0), q(1.0), posterior(1.0), pepSeq(""), prot(""), outputRT(false) {
 }

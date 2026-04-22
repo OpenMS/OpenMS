@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -17,6 +16,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
  *******************************************************************************/
 
 #include "SetHandler.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 SetHandler::SetHandler(unsigned int maxPSMs) : maxPSMs_(maxPSMs) {}
 

@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -21,6 +20,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 #ifdef _OPENMP
 #include <omp.h>
 #include <algorithm>
+namespace OpenMS { namespace Internal { namespace Percolator {
 #endif
 // checks cross validation convergence in case of quickValidation_
 const double CrossValidation::requiredIncreaseOver2Iterations_ = 0.01;

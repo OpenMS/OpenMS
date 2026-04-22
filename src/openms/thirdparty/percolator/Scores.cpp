@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -38,6 +37,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 #include "SetHandler.h"
 #include "ssl.h"
 #include "IsotonicPEP.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 void Scores::merge(std::vector<Scores>& sv,
                    double fdr,

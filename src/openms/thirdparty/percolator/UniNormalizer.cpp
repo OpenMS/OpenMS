@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -22,6 +21,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 using namespace std;
 #include "Normalizer.h"
 #include "UniNormalizer.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 UniNormalizer::UniNormalizer() {
 }

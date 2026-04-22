@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -17,6 +16,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
  *******************************************************************************/
 
 #include "PseudoRandom.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 uint64_t PseudoRandom::seed_ = 1u;
 

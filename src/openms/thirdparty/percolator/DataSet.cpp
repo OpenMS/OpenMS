@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -18,6 +17,7 @@ namespace OpenMS { namespace Internal { namespace Percolator {
 
 #include "DataSet.h"
 #include <cmath>
+namespace OpenMS { namespace Internal { namespace Percolator {
 
 FeatureNames DataSet::featureNames_;
 bool DataSet::decoyWarningTripped_ = false;

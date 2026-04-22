@@ -1,4 +1,3 @@
-namespace OpenMS { namespace Internal { namespace Percolator {
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -24,6 +23,7 @@ using namespace std;
 #include "Normalizer.h"
 #include "SanityCheck.h"
 #include "Globals.h"
+namespace OpenMS { namespace Internal { namespace Percolator {
 // Class doing the sanity check for non SQT file condition
 // In most sence a place holder as very little logic is build-in in this case
 
