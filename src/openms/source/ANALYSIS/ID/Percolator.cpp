@@ -264,6 +264,18 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     (void)first_positives;
     cv.train(normalizer);
     cv.postIterationProcessing(all_scores, sanity);
+    // Post-train PEP estimation: matches upstream Caller.cpp which calls
+    // calcPep after postIterationProcessing. Without this, every PEP stays
+    // at its default (uninitialized) value. Args match upstream defaults:
+    // non-IRLS (logistic regression), non-interpolating, non-PAVA.
+    if (impl_->pep_method == "isotonic")
+    {
+      all_scores.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/true);
+    }
+    else
+    {
+      all_scores.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/false);
+    }
   }
   catch (const std::exception& e)
   {

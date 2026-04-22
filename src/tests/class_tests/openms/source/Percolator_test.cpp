@@ -227,6 +227,129 @@ START_SECTION([EXTRA] missing target_decoy meta throws)
 }
 END_SECTION
 
+START_SECTION([EXTRA] output makes sense on a realistic-scale dataset)
+{
+  // Scale-up sanity check: 2000 PSMs (1000 targets + 1000 decoys) with a
+  // mildly informative 3-feature signal. Large enough that Percolator's
+  // SanityCheck should be satisfied by the training signal and NOT fall
+  // back to the default-direction reset path.
+  //
+  // Ground truth: true positives (first 500 targets) have
+  //     f0 = +2 + noise, f1 = +1 + noise, f2 = noise
+  // "hard" targets (next 500) have
+  //     f0 = +0.5 + noise (near decoy distribution)
+  // decoys have
+  //     f0 = 0 + noise, f1 = 0 + noise, f2 = noise
+  //
+  // Expected:
+  //   * mean target score > mean decoy score
+  //   * top-100 scoring rows: >= 80 are targets (easy-positive detection)
+  //   * bottom-100 scoring rows: >= 80 are decoys or hard-targets
+  //   * q-value at the easy-positive range: well below 0.05 for many rows
+  //   * all q-values, peps in [0, 1]
+  //   * at least some targets have q < 0.01 (Percolator actually "found" them)
+
+  std::srand(2026);
+  auto rand01 = []() { return static_cast<double>(std::rand()) / RAND_MAX; };
+  auto randn = [&]() {
+    // Box-Muller
+    double u1 = std::max(1e-9, rand01());
+    double u2 = rand01();
+    return std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * u2);
+  };
+
+  RescoreInput input;
+  input.feature_names = StringList{"f0", "f1", "noise"};
+  std::vector<bool> is_easy_target;  // ground-truth easy positives
+  const size_t n_easy = 500, n_hard = 500, n_dec = 1000;
+
+  for (size_t i = 0; i < n_easy; ++i)
+  {
+    input.features.push_back({+2.0 + 0.5 * randn(),
+                              +1.0 + 0.5 * randn(),
+                              randn()});
+    input.is_decoy.push_back(false);
+    is_easy_target.push_back(true);
+  }
+  for (size_t i = 0; i < n_hard; ++i)
+  {
+    input.features.push_back({+0.5 + 0.5 * randn(),
+                              +0.5 * randn(),
+                              randn()});
+    input.is_decoy.push_back(false);
+    is_easy_target.push_back(false);
+  }
+  for (size_t i = 0; i < n_dec; ++i)
+  {
+    input.features.push_back({+0.0 + 0.5 * randn(),
+                              +0.0 * randn(),
+                              randn()});
+    input.is_decoy.push_back(true);
+    is_easy_target.push_back(false);
+  }
+
+  Percolator p;
+  Param par = p.getDefaults();
+  par.setValue("seed", 2026);
+  p.setParameters(par);
+  RescoreOutput out = p.rescore(input);
+
+  const size_t n = input.features.size();
+  TEST_EQUAL(out.scores.size(), n)
+  TEST_EQUAL(out.q_values.size(), n)
+  TEST_EQUAL(out.peps.size(), n)
+
+  // All outputs in valid ranges
+  for (double q : out.q_values) TEST_TRUE(q >= 0.0 && q <= 1.0 + 1e-9)
+  for (double pep : out.peps)   TEST_TRUE(pep >= 0.0 && pep <= 1.0 + 1e-9)
+
+  // Sort indices by descending score
+  std::vector<size_t> idx(n);
+  std::iota(idx.begin(), idx.end(), 0);
+  std::sort(idx.begin(), idx.end(),
+    [&](size_t a, size_t b){ return out.scores[a] > out.scores[b]; });
+
+  // Top 100: should be dominated by easy targets (80+/100 is expected)
+  size_t top_targets = 0, top_easy = 0;
+  for (size_t k = 0; k < 100; ++k)
+  {
+    if (!input.is_decoy[idx[k]]) ++top_targets;
+    if (is_easy_target[idx[k]])  ++top_easy;
+  }
+  TEST_EQUAL(top_targets >= 80, true)
+  TEST_EQUAL(top_easy >= 60, true)
+
+  // Bottom 100: should be dominated by decoys (+ hard targets)
+  size_t bot_non_easy = 0;
+  for (size_t k = n - 100; k < n; ++k)
+  {
+    if (!is_easy_target[idx[k]]) ++bot_non_easy;
+  }
+  TEST_EQUAL(bot_non_easy >= 80, true)
+
+  // Percolator should find some confident targets: count rows with q < 0.01
+  size_t confident = 0;
+  for (size_t i = 0; i < n; ++i)
+  {
+    if (!input.is_decoy[i] && out.q_values[i] < 0.01) ++confident;
+  }
+  // On this dataset with ~500 easy positives, Percolator should identify
+  // at least 50 of them at q<0.01 when training succeeds. If the
+  // SanityCheck fallback kicks in this number would be 0 — which is also
+  // valid Percolator behavior on degenerate inputs but would indicate
+  // this test is no longer actually stressing the trained path.
+  TEST_EQUAL(confident >= 50, true)
+
+  // PEPs should anti-correlate with SVM scores (higher score → lower PEP).
+  // Spearman-style check: mean PEP of top-100 scored rows should be well
+  // below mean PEP of bottom-100 scored rows.
+  double top_pep_sum = 0, bot_pep_sum = 0;
+  for (size_t k = 0; k < 100; ++k) top_pep_sum += out.peps[idx[k]];
+  for (size_t k = n - 100; k < n; ++k) bot_pep_sum += out.peps[idx[k]];
+  TEST_EQUAL(top_pep_sum / 100.0 < bot_pep_sum / 100.0, true)
+}
+END_SECTION
+
 START_SECTION([EXTRA] malformed input throws InvalidValue)
 {
   // Empty input
