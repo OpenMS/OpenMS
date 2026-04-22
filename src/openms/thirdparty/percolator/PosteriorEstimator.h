@@ -32,7 +32,6 @@ class PosteriorEstimator {
  public:
   PosteriorEstimator(){};
   virtual ~PosteriorEstimator(){};
-  bool parseOptions(int argc, char** argv);
   string greeter();
   int run();
   static void estimatePEP(std::vector<std::pair<double, bool> >& combined,
