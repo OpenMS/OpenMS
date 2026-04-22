@@ -27,6 +27,15 @@ std::optional<PeptideHit> feature_hit(const Feature& feature)
   return {};
 }
 
+/******************************************************************************/
+bool feature_is_decoy(const Feature& feature)
+{
+  auto hit = feature_hit(feature);
+
+  return hit.has_value()
+         && hit->getTargetDecoyType() == PeptideHit::TargetDecoyType::DECOY;
+}
+
 /**************************************************************************/
 std::optional<double> feature_mass_error(const Feature& feature)
 {

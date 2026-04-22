@@ -153,6 +153,15 @@ const Pep::group_t& Pep::run(double fdr_cutoff)
     }
 
     // FIXME: Record the q-value.
+    //
+    // From Timo:
+    /*
+      cf.setMetaValue("mbr_transfer_map_indices", IntList{2, 5});   // acceptor
+      runs cf.setMetaValue("mbr_transfer_qvalues",     DoubleList{0.01, 0.03});
+      // parallel q-values
+      where the index is the one you get from the feature handle with
+      getMapIndex()
+     */
   }
 
   return acceptors_;
@@ -353,7 +362,8 @@ void Pep::compute_qvalues(bool pep_values_are_valid)
   {
     ++total_so_far;
 
-    bool is_peptide_decoy = false; // FIXME
+    bool is_peptide_decoy
+      = Util::feature_is_decoy(acceptor->acceptor.get().feature);
     bool is_mbr_decoy = ! acceptor->is_target();
 
     if (is_peptide_decoy && ! is_mbr_decoy) { ++decoy_peptide_count; }

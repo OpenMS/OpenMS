@@ -27,6 +27,13 @@ std::optional<PeptideHit> feature_hit(const Feature&);
 
 /******************************************************************************/
 /**
+ * Return `true` if the peptide hit referenced by the given feature is
+ * a decoy.
+ */
+bool feature_is_decoy(const Feature&);
+
+/******************************************************************************/
+/**
  * Compute the mass error in PPM for the given feature.
  */
 std::optional<double> feature_mass_error(const Feature&);
