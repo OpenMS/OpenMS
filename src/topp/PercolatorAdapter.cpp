@@ -836,31 +836,47 @@ protected:
         perc.rescore(all_peptide_ids.getData(), numeric_features);
 
         // Transfer percolator_* meta values into the canonical score fields
-        // expected by downstream idXML/mzid consumers.
+        // expected by downstream idXML/mzid consumers. Mirror the subprocess
+        // path's identifier normalization + meta-value stamps so the idXML
+        // writer's strict peptide↔protein identifier cross-check passes.
         const String score_type = getStringOption_("score_type");
+        const String run_identifier = all_protein_ids.front().getIdentifier();
         for (auto& pid : all_peptide_ids.getData())
         {
+          const String old_score_type = pid.getScoreType();
+          pid.setIdentifier(run_identifier);  // align with the (single) IdentificationRun
+          if (score_type == "pep")
+          {
+            pid.setScoreType("Posterior Error Probability");
+            pid.setHigherScoreBetter(false);
+          }
+          else if (score_type == "svm")
+          {
+            pid.setScoreType("svm");
+            pid.setHigherScoreBetter(true);
+          }
+          else // "q-value" (default)
+          {
+            pid.setScoreType("q-value");
+            pid.setHigherScoreBetter(false);
+          }
+
           for (auto& hit : pid.getHits())
           {
             if (!hit.metaValueExists("percolator_score")) continue;
-            if (score_type == "q-value")
-            {
-              hit.setScore(hit.getMetaValue("percolator_q_value"));
-              pid.setScoreType("q-value");
-              pid.setHigherScoreBetter(false);
-            }
-            else if (score_type == "pep")
-            {
-              hit.setScore(hit.getMetaValue("percolator_pep"));
-              pid.setScoreType("pep");
-              pid.setHigherScoreBetter(false);
-            }
-            else // "score" (SVM discriminant)
-            {
-              hit.setScore(hit.getMetaValue("percolator_score"));
-              pid.setScoreType("Percolator");
-              pid.setHigherScoreBetter(true);
-            }
+            const double svm  = hit.getMetaValue("percolator_score");
+            const double qval = hit.getMetaValue("percolator_q_value");
+            const double pep  = hit.getMetaValue("percolator_pep");
+
+            // Mirror subprocess path's PSI-MS CV meta values
+            hit.setMetaValue(old_score_type, hit.getScore());  // preserve original
+            hit.setMetaValue("MS:1001492", svm);    // percolator:score
+            hit.setMetaValue("MS:1001491", qval);   // percolator:PEP / q-value
+            hit.setMetaValue("MS:1001493", pep);    // PEP
+
+            if (score_type == "q-value")      hit.setScore(qval);
+            else if (score_type == "pep")     hit.setScore(pep);
+            else                              hit.setScore(svm);
           }
         }
 
