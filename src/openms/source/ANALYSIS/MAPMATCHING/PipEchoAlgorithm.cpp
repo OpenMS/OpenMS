@@ -59,6 +59,10 @@ PipEchoAlgorithm::PipEchoAlgorithm(): FeatureGroupingAlgorithm()
   defaults_.setValue("distance_MZ:unit", "Da", "Unit of the 'max_difference' parameter");
   defaults_.setValidStrings("distance_MZ:unit", {"Da", "ppm"});
 
+  defaults_.setValue("fdr", 0.05, "MBR FDR threshold (0.05=5%).");
+  defaults_.setMinFloat("fdr", 0.0);
+  defaults_.setMaxFloat("fdr", 1.0);
+
   defaultsToParam_();
 }
 

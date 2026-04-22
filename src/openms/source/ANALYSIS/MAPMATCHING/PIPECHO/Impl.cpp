@@ -70,12 +70,14 @@ void prepare_feature(Feature& feature)
 Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
     mz_max_diff(params),
     mz_grid_center(0.5),
-    rt_sec_max_window(params.getValue("distance_RT:max_difference"))
+    rt_sec_max_window(params.getValue("distance_RT:max_difference")),
+    mbr_fdr(params.getValue("fdr"))
 {
   OPENMS_LOG_INFO << "MBR via PIP-ECHO(" << mz_range.first << ", "
                   << mz_range.second << ", " << mz_grid_center << ", "
                   << mz_max_diff.mz_diff(mz_range.second - mz_range.first)
-                  << ", " << rt_sec_max_window << ")" << std::endl;
+                  << ", " << rt_sec_max_window << ", " << mbr_fdr << ")"
+                  << std::endl;
 }
 
 /******************************************************************************/
@@ -305,7 +307,7 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
   }
 
   PipEcho::Pep pep(all_acceptors);
-  const PipEcho::Pep::group_t& acceptors = pep.run(0.01); // FIXME
+  const PipEcho::Pep::group_t& acceptors = pep.run(mbr_fdr);
 
   // Put each acceptor into the correct feature bucket.
   for (auto& acceptor : acceptors)

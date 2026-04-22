@@ -70,6 +70,9 @@ public:
   /// Max allowed RT difference between donor and acceptor.
   double rt_sec_max_window;
 
+  /// The FDR to use for the MBR process.
+  double mbr_fdr;
+
 private:
   std::string path_from_feature_map(const FeatureMap&);
   bool is_donor_feature(const Feature&);
