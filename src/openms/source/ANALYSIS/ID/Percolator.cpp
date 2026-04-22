@@ -19,6 +19,8 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/PercolatorInfile.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <cstdio>
 #include <cstdlib>
@@ -82,11 +84,19 @@ void Percolator::updateMembers_()
   impl_->pep_method     = param_.getValue("pep_method").toString();
 }
 
+struct RowKeys
+{
+  int    scan;
+  int    spec_file;
+  double exp_mass;
+  double calc_mass;
+};
+
 // Populate a single PSMDescription from one row of RescoreInput. The row's
 // feature pointer comes from SetHandler's FeatureMemoryPool.
 static P::PSMDescription* makePSMFromRow(
   const std::vector<double>& feats,
-  int cv_key,
+  const RowKeys& keys,
   size_t row_index,
   std::string& synth_id,
   P::FeatureMemoryPool& pool)
@@ -98,10 +108,10 @@ static P::PSMDescription* makePSMFromRow(
   synth_id = buf;
   psm->setId(synth_id);
   psm->setPeptide(synth_id);
-  psm->scan        = static_cast<unsigned int>(cv_key);   // opaque CV grouping key
-  psm->specFileNr  = 0;
-  psm->expMass     = 0.0;
-  psm->calcMass    = 0.0;
+  psm->scan        = static_cast<unsigned int>(keys.scan);
+  psm->specFileNr  = static_cast<unsigned int>(keys.spec_file);
+  psm->expMass     = keys.exp_mass;
+  psm->calcMass    = keys.calc_mass;
   psm->retentionTime_ = 0.0;
 
   // Allocate feature row from the pool.
@@ -165,15 +175,37 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   // DataSet::initFeatureTables is declared in DataSet.h but upstream never
   // defines it. Not needed — feature storage comes from FeatureMemoryPool.
 
+  // Validate optional PIN-compat fields: each is either empty or length n_rows.
+  auto validate_opt = [&](const auto& v, const char* name)
+  {
+    if (!v.empty() && v.size() != n_rows)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        std::string(name) + " must be empty or match n_rows", "");
+    }
+  };
+  validate_opt(input.cv_group_keys,      "cv_group_keys");
+  validate_opt(input.scan_numbers,       "scan_numbers");
+  validate_opt(input.spec_file_numbers,  "spec_file_numbers");
+  validate_opt(input.exp_masses,         "exp_masses");
+  validate_opt(input.calc_masses,        "calc_masses");
+
   // Populate rows.
   impl_->synthesized_ids.resize(n_rows);
   impl_->owned_psms.reserve(n_rows);
   for (size_t i = 0; i < n_rows; ++i)
   {
-    const int cv_key = input.cv_group_keys.empty()
-      ? static_cast<int>(i)
-      : input.cv_group_keys[i];
-    auto* psm = makePSMFromRow(input.features[i], cv_key, i,
+    RowKeys keys;
+    // `scan` controls both CV grouping (via hash) AND OrderScanHash sort
+    // order. Precedence: scan_numbers > cv_group_keys > row_index.
+    if (!input.scan_numbers.empty())     keys.scan = input.scan_numbers[i];
+    else if (!input.cv_group_keys.empty()) keys.scan = input.cv_group_keys[i];
+    else                                   keys.scan = static_cast<int>(i);
+    keys.spec_file = input.spec_file_numbers.empty() ? 0 : input.spec_file_numbers[i];
+    keys.exp_mass  = input.exp_masses.empty()        ? 0.0 : input.exp_masses[i];
+    keys.calc_mass = input.calc_masses.empty()       ? 0.0 : input.calc_masses[i];
+
+    auto* psm = makePSMFromRow(input.features[i], keys, i,
                                impl_->synthesized_ids[i], pool);
     impl_->owned_psms.push_back(psm);
     if (input.is_decoy[i])
@@ -307,6 +339,90 @@ namespace
     }
     std::sort(out.begin(), out.end());
     return out;
+  }
+}
+
+void Percolator::fillPINCompatibleFields(
+    const std::vector<PeptideIdentification>& peptide_ids,
+    bool flatten_hits,
+    RescoreInput& input)
+{
+  if (peptide_ids.empty()) return;
+
+  // Count rows to pre-size the vectors — matches the high-level rescore's
+  // iteration pattern (one row per PeptideHit if flatten_hits, else one per
+  // pid using its first hit).
+  size_t n_rows = 0;
+  for (const auto& pid : peptide_ids)
+  {
+    if (pid.getHits().empty()) continue;
+    n_rows += flatten_hits ? pid.getHits().size() : 1;
+  }
+  input.scan_numbers.assign(n_rows, 0);
+  input.spec_file_numbers.assign(n_rows, 0);
+  input.exp_masses.assign(n_rows, 0.0);
+  input.calc_masses.assign(n_rows, 0.0);
+
+  // Build a lookup so spec_file numbers stay stable across invocations.
+  std::unordered_map<std::string, int> spec_file_to_idx;
+
+  // Spec-lookup regex is derived from the first pid's scan identifier (same
+  // as PercolatorInfile::preparePin_).
+  const String first_sid = PercolatorInfile::getScanIdentifier(peptide_ids.front(), 0);
+  const boost::regex scan_regex(
+    SpectrumLookup::getRegExFromNativeID(first_sid));
+
+  size_t row = 0;
+  size_t pid_index = 0;
+  for (const auto& pid : peptide_ids)
+  {
+    ++pid_index;
+    if (pid.getHits().empty()) continue;
+
+    const String scan_identifier = PercolatorInfile::getScanIdentifier(pid, pid_index);
+    const Int scan_number = SpectrumLookup::extractScanNumber(
+        scan_identifier, scan_regex, /*no_error=*/true);
+
+    const std::string file_key =
+      static_cast<std::string>(pid.getMetaValue("file_origin", String())) +
+      "|" +
+      static_cast<std::string>(pid.getMetaValue("id_merge_index", String()));
+
+    int spec_file = 0;
+    auto it = spec_file_to_idx.find(file_key);
+    if (it != spec_file_to_idx.end())
+    {
+      spec_file = it->second;
+    }
+    else
+    {
+      spec_file = static_cast<int>(spec_file_to_idx.size());
+      spec_file_to_idx[file_key] = spec_file;
+    }
+
+    const double exp_mass = pid.hasMZ() ? pid.getMZ() : 0.0;
+
+    const size_t hit_count = flatten_hits ? pid.getHits().size() : 1u;
+    for (size_t h = 0; h < hit_count; ++h)
+    {
+      const PeptideHit& hit = pid.getHits()[h];
+      double calc_mass = 0.0;
+      if (hit.metaValueExists("CalcMass"))
+      {
+        calc_mass = hit.getMetaValue("CalcMass");
+      }
+      else
+      {
+        try { calc_mass = hit.getSequence().getMonoWeight(); }
+        catch (...) { calc_mass = 0.0; }
+      }
+
+      input.scan_numbers[row]      = scan_number;
+      input.spec_file_numbers[row] = spec_file;
+      input.exp_masses[row]        = exp_mass;
+      input.calc_masses[row]       = calc_mass;
+      ++row;
+    }
   }
 }
 

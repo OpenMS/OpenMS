@@ -100,6 +100,44 @@ namespace OpenMS
     */
     RescoreOutput rescore(const RescoreInput& input);
 
+    /**
+      @brief Fill PIN-compatible optional fields on a RescoreInput.
+
+      Populates `input.scan_numbers`, `input.spec_file_numbers`,
+      `input.exp_masses`, and `input.calc_masses` from the given
+      PeptideIdentifications, using the same derivation that
+      PercolatorInfile::store would apply when writing a .pin file:
+
+      - scan: parsed via SpectrumLookup::extractScanNumber from the
+        PeptideIdentification's spectrum_reference (or `spectrum_id`
+        meta value, or fallback to 1-based index).
+      - spec_file: hashes `file_origin` + `id_merge_index` (same as the
+        PIN SpecId prefix). Zero when single-file / unset.
+      - exp_mass: `pid.getMZ()` (kept as m/z — Percolator doesn't convert
+        to neutral for the sort hash).
+      - calc_mass: from `hit.metaValueExists("CalcMass")` if present,
+        else `hit.getSequence().getMonoWeight()`.
+
+      Call this BEFORE rescore(input) if you need the in-process output to
+      match running the external percolator binary through the .pin / .pout
+      pipeline on the same inputs. Without it, rows get row_index as scan,
+      which produces a different CV fold split and therefore different
+      trained weights and final scores.
+
+      The helper must be called with a PeptideIdentifications vector that
+      parallels `input.features` (same ordering, one row per hit per pid).
+
+      @param peptide_ids Source of PIN-equivalent metadata.
+      @param flatten_hits If true, iterate all hits per PeptideIdentification
+             (matches high-level rescore row ordering). If false, use only
+             the first hit per pid.
+      @param input Output: the four PIN-compat fields are written here.
+    */
+    static void fillPINCompatibleFields(
+        const std::vector<PeptideIdentification>& peptide_ids,
+        bool flatten_hits,
+        RescoreInput& input);
+
   protected:
     void updateMembers_() override;
 

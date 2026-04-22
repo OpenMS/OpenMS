@@ -21,6 +21,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
+#include <boost/regex.hpp>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -822,6 +824,66 @@ protected:
                         << " PSMs in-process with " << numeric_features.size()
                         << " features (skipping external percolator binary)."
                         << std::endl;
+
+        // Build a RescoreInput manually with PIN-compatible fields so the
+        // in-process path mirrors the PSM sort order the subprocess path
+        // would produce. We do the derivation inline here so rows stay
+        // aligned when some hits get skipped (missing target_decoy, missing
+        // feature) — fillPINCompatibleFields doesn't know about those skips.
+        RescoreInput ri;
+        ri.feature_names = numeric_features;
+        std::vector<std::pair<size_t, size_t>> hit_locs;
+
+        const String first_sid =
+          PercolatorInfile::getScanIdentifier(all_peptide_ids.front(), 0);
+        const boost::regex scan_regex(
+          SpectrumLookup::getRegExFromNativeID(first_sid));
+        std::unordered_map<std::string, int> spec_file_to_idx;
+
+        for (size_t i = 0; i < all_peptide_ids.size(); ++i)
+        {
+          const auto& pid = all_peptide_ids[i];
+          if (pid.getHits().empty()) continue;
+
+          const String scan_ident = PercolatorInfile::getScanIdentifier(pid, i + 1);
+          const Int scan_num = SpectrumLookup::extractScanNumber(scan_ident, scan_regex, true);
+          const std::string file_key =
+            static_cast<std::string>(pid.getMetaValue("file_origin", String())) + "|" +
+            static_cast<std::string>(pid.getMetaValue("id_merge_index", String()));
+          int spec_file = 0;
+          auto sf = spec_file_to_idx.find(file_key);
+          if (sf != spec_file_to_idx.end()) spec_file = sf->second;
+          else { spec_file = (int)spec_file_to_idx.size(); spec_file_to_idx[file_key] = spec_file; }
+          const double exp_mass = pid.hasMZ() ? pid.getMZ() : 0.0;
+
+          for (size_t j = 0; j < pid.getHits().size(); ++j)
+          {
+            const PeptideHit& hit = pid.getHits()[j];
+            if (!hit.metaValueExists("target_decoy")) continue;
+            std::vector<double> row;
+            row.reserve(numeric_features.size());
+            bool ok = true;
+            for (const String& f : numeric_features)
+            {
+              if (!hit.metaValueExists(f)) { ok = false; break; }
+              row.push_back(static_cast<double>(hit.getMetaValue(f)));
+            }
+            if (!ok) continue;
+
+            double calc_mass = 0.0;
+            if (hit.metaValueExists("CalcMass")) calc_mass = hit.getMetaValue("CalcMass");
+            else try { calc_mass = hit.getSequence().getMonoWeight(); } catch (...) {}
+
+            ri.features.push_back(std::move(row));
+            ri.is_decoy.push_back(hit.getMetaValue("target_decoy").toString() == "decoy");
+            ri.scan_numbers.push_back(scan_num);
+            ri.spec_file_numbers.push_back(spec_file);
+            ri.exp_masses.push_back(exp_mass);
+            ri.calc_masses.push_back(calc_mass);
+            hit_locs.emplace_back(i, j);
+          }
+        }
+
         Percolator perc;
         Param pp = perc.getDefaults();
         if (getDoubleOption_("cpos") > 0.0)   pp.setValue("c_pos",    getDoubleOption_("cpos"));
@@ -831,9 +893,19 @@ protected:
         pp.setValue("num_iterations", getIntOption_("maxiter"));
         pp.setValue("seed",           getIntOption_("seed"));
         perc.setParameters(pp);
-        // all_peptide_ids is a PeptideIdentificationList (ExposedVector wrapper).
-        // Percolator::rescore takes std::vector<PeptideIdentification>&.
-        perc.rescore(all_peptide_ids.getData(), numeric_features);
+        // Call the low-level API so the PIN-compatible fields on `ri` are
+        // actually used (the high-level rescore(peptide_ids, …) ignores them).
+        RescoreOutput ro = perc.rescore(ri);
+
+        // Stamp percolator_* meta values back onto each hit from ro.
+        for (size_t row = 0; row < ro.scores.size(); ++row)
+        {
+          const auto [pid_i, hit_i] = hit_locs[row];
+          PeptideHit& hit = all_peptide_ids[pid_i].getHits()[hit_i];
+          hit.setMetaValue("percolator_score",   ro.scores[row]);
+          hit.setMetaValue("percolator_q_value", ro.q_values[row]);
+          hit.setMetaValue("percolator_pep",     ro.peps[row]);
+        }
 
         // Transfer percolator_* meta values into the canonical score fields
         // expected by downstream idXML/mzid consumers. Mirror the subprocess

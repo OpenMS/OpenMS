@@ -40,6 +40,29 @@ namespace OpenMS
     std::vector<bool> is_decoy;
     std::vector<int> cv_group_keys;
     StringList feature_names;
+
+    /**
+      @brief Optional per-row PIN-compatible fields.
+
+      When supplied, these override the synthetic defaults
+      (`scan = row_index`, `specFileNr = 0`, `expMass = calcMass = 0.0`) that
+      the wrapper uses internally. Set them to make the in-process output
+      bitwise-identical to running the external percolator binary on a .pin
+      file derived from the same PSMs — Percolator's internal PSM sort order
+      (OrderScanHash hashes `specFileNr` + `scan`) determines the CV fold
+      assignment, so scan/spec_file_numbers have to match the PIN path.
+
+      See Percolator::fillPINCompatibleFields() for a helper that populates
+      these from a vector of PeptideIdentifications the way PercolatorInfile
+      would write them.
+
+      Each vector is either empty (use default) or has exactly n_rows entries
+      (one per feature row).
+    */
+    std::vector<int>    scan_numbers;
+    std::vector<int>    spec_file_numbers;
+    std::vector<double> exp_masses;
+    std::vector<double> calc_masses;
   };
 
   /// Output from Percolator::rescore. Aligned 1:1 with RescoreInput::features.
