@@ -298,17 +298,17 @@ include(FetchContent)
 FetchContent_Declare(
   pylmcf
   GIT_REPOSITORY https://github.com/michalsta/pylmcf.git
-  GIT_TAG        v0.9.5
+  GIT_TAG        v0.9.7
 )
 FetchContent_Declare(
   wnet
   GIT_REPOSITORY https://github.com/michalsta/wnet.git
-  GIT_TAG        v0.9.9
+  GIT_TAG        v0.9.10
 )
 FetchContent_Declare(
   wnetalign
   GIT_REPOSITORY https://github.com/michalsta/wnetalign.git
-  GIT_TAG        963c1cf
+  GIT_TAG        v0.9.8
 )
 
 # Populate source dirs without running their CMakeLists.txt
