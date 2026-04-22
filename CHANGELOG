@@ -399,6 +399,8 @@ Build System:
   - Minimum Boost version bumped to 1.81 (#9042, #9095)
   - Qt6 find_package guarded by WITH_GUI block; Qt is no longer needed for non-GUI TOPP tool builds (#9041)
   - yaml-cpp bumped to 0.9.0 in tool_description_lib; fixes broken hash/map type parsing in YAML CTD config files (#9056)
+  - Fix: Arrow/Parquet 24.x and later now accepted; Ubuntu 24.04 CI runners ship Arrow 24.0.0 which broke builds with the previous find_package(Arrow 23) version constraint (SameMajorVersion compatibility); constraint replaced with an explicit VERSION_LESS guard; pyarrow 24.0.0 excluded from pyOpenMS dependencies (cp310-only wheels on PyPI) (#9196)
+  - Fix: SpectraIDViewTab GUI compilation failure on macOS Apple Silicon (Tahoe); accession key lookup now converts to std::string matching the std::map key type after Qt string interop removal (#9174)
 
 
 ------------------------------------------------------------------------------------------
