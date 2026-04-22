@@ -779,45 +779,37 @@ protected:
 
       if (in_process_ok)
       {
-        // feature_set is the full PIN header (incl. SpecId/Label/ScanNr metadata
-        // plus derived columns like CalcMass/mass/peplen that aren't meta values).
-        // Filter to columns that actually exist as numeric meta values on the
-        // first hit — only those will be usable for in-process training.
-        const std::set<String> pin_metadata {
-          "SpecId", "Label", "ScanNr", "ExpMass", "CalcMass",
-          "mass", "peplen", "Peptide", "Proteins",
-          "Charge1", "Charge2", "Charge3", "Charge4", "Charge5",
-          "Charge6", "Charge7", "Charge8", "Charge9", "Charge10",
-          "Charge11", "Charge12", "Charge13", "Charge14", "Charge15",
-          "enzN", "enzC", "enzInt", "dM", "absdM",
-          "retentiontime", "deltamass"
+        // Stamp PIN meta values on all hits — this mirrors what the subprocess
+        // path does at .pin write time. After this, every hit carries the
+        // full PIN feature set (CalcMass, ExpMass, mass, peplen, chargeN,
+        // enzN/enzC/enzInt, dm/absdm, score, etc.) plus any search-engine-
+        // specific extra_features already present. Training on this set
+        // matches the subprocess path's feature vectors row-for-row.
+        const auto skipped = PercolatorInfile::stampPinFeaturesOnHits(
+          all_peptide_ids, enz_str, min_charge, max_charge);
+        OPENMS_LOG_INFO << "Stamped PIN feature meta values; "
+                        << skipped.size() << " PSMs skipped (no evidence or unknown TD)."
+                        << std::endl;
+
+        // After stamping, feature_set entries SpecId/Label/Peptide/Proteins/ScanNr
+        // are either non-numeric (string) or bookkeeping metadata, not training
+        // features. ExpMass is a mass value Percolator uses for sort hashing,
+        // not a training feature either (it goes into RescoreInput.exp_masses).
+        // Filter feature_set to the numeric columns that actually discriminate.
+        const std::set<String> pin_metadata_not_feature {
+          "SpecId", "Label", "ScanNr", "ExpMass", "Peptide", "Proteins"
         };
         StringList numeric_features;
-        if (all_peptide_ids.empty() || all_peptide_ids.front().getHits().empty())
+        for (const String& f : feature_set)
         {
-          writeLogError_("No PSMs or no hits in input; falling back to subprocess.");
+          if (pin_metadata_not_feature.count(f)) continue;
+          numeric_features.push_back(f);
         }
-        else
+        if (all_peptide_ids.empty() || all_peptide_ids.front().getHits().empty()
+            || numeric_features.empty())
         {
-          const PeptideHit& probe = all_peptide_ids.front().getHits().front();
-          for (const String& f : feature_set)
-          {
-            if (pin_metadata.count(f)) continue;
-            if (probe.metaValueExists(f))
-            {
-              const DataValue& v = probe.getMetaValue(f);
-              if (v.valueType() == DataValue::DOUBLE_VALUE ||
-                  v.valueType() == DataValue::INT_VALUE)
-              {
-                numeric_features.push_back(f);
-              }
-            }
-          }
-        }
-        if (numeric_features.empty())
-        {
-          writeLogError_("No numeric-feature meta values found on PeptideHits. "
-                         "Run PSMFeatureExtractor first, or use -use_subprocess true.");
+          writeLogError_("No usable PSMs/features for in-process path; "
+                         "use -use_subprocess true.");
           return INCOMPATIBLE_INPUT_DATA;
         }
         OPENMS_LOG_INFO << "Rescoring " << all_peptide_ids.size()
@@ -834,32 +826,18 @@ protected:
         ri.feature_names = numeric_features;
         std::vector<std::pair<size_t, size_t>> hit_locs;
 
-        const String first_sid =
-          PercolatorInfile::getScanIdentifier(all_peptide_ids.front(), 0);
-        const boost::regex scan_regex(
-          SpectrumLookup::getRegExFromNativeID(first_sid));
-        std::unordered_map<std::string, int> spec_file_to_idx;
-
+        // After stamping, every kept hit carries ScanNr / ExpMass / CalcMass
+        // / Label meta values with PIN-equivalent derivations. Read them back
+        // out to build RescoreInput, and skip the same hits the stamp skipped.
         for (size_t i = 0; i < all_peptide_ids.size(); ++i)
         {
           const auto& pid = all_peptide_ids[i];
-          if (pid.getHits().empty()) continue;
-
-          const String scan_ident = PercolatorInfile::getScanIdentifier(pid, i + 1);
-          const Int scan_num = SpectrumLookup::extractScanNumber(scan_ident, scan_regex, true);
-          const std::string file_key =
-            static_cast<std::string>(pid.getMetaValue("file_origin", String())) + "|" +
-            static_cast<std::string>(pid.getMetaValue("id_merge_index", String()));
-          int spec_file = 0;
-          auto sf = spec_file_to_idx.find(file_key);
-          if (sf != spec_file_to_idx.end()) spec_file = sf->second;
-          else { spec_file = (int)spec_file_to_idx.size(); spec_file_to_idx[file_key] = spec_file; }
-          const double exp_mass = pid.hasMZ() ? pid.getMZ() : 0.0;
-
           for (size_t j = 0; j < pid.getHits().size(); ++j)
           {
+            if (skipped.count({i, j})) continue;
             const PeptideHit& hit = pid.getHits()[j];
-            if (!hit.metaValueExists("target_decoy")) continue;
+
+            // Build feature row from stamped meta values.
             std::vector<double> row;
             row.reserve(numeric_features.size());
             bool ok = true;
@@ -870,16 +848,17 @@ protected:
             }
             if (!ok) continue;
 
-            double calc_mass = 0.0;
-            if (hit.metaValueExists("CalcMass")) calc_mass = hit.getMetaValue("CalcMass");
-            else try { calc_mass = hit.getSequence().getMonoWeight(); } catch (...) {}
-
             ri.features.push_back(std::move(row));
-            ri.is_decoy.push_back(hit.getMetaValue("target_decoy").toString() == "decoy");
-            ri.scan_numbers.push_back(scan_num);
-            ri.spec_file_numbers.push_back(spec_file);
-            ri.exp_masses.push_back(exp_mass);
-            ri.calc_masses.push_back(calc_mass);
+            ri.is_decoy.push_back(hit.isDecoy());
+            ri.scan_numbers.push_back(
+              static_cast<int>(hit.getMetaValue("ScanNr")));
+            // Derive stable specFileNr from ScanNr (good enough for sort order
+            // since all hits with same scan share the same spec file).
+            ri.spec_file_numbers.push_back(0);
+            ri.exp_masses.push_back(
+              static_cast<double>(hit.getMetaValue("ExpMass")));
+            ri.calc_masses.push_back(
+              static_cast<double>(hit.getMetaValue("CalcMass")));
             hit_locs.emplace_back(i, j);
           }
         }
