@@ -12,6 +12,8 @@
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <algorithm>
 #include <cstdlib>
@@ -155,6 +157,73 @@ START_SECTION([EXTRA] q-values in expected range)
   mean_q_top /= window;
   mean_q_bot /= window;
   TEST_EQUAL(mean_q_top < mean_q_bot, true)
+}
+END_SECTION
+
+START_SECTION((void rescore(std::vector<PeptideIdentification>& peptide_ids, const StringList& feature_names)))
+{
+  // Build a set of PeptideIdentifications with target/decoy meta values and
+  // two numeric features; run rescore; verify percolator_score / _q_value /
+  // _pep meta values landed on each hit and the target mean score > decoy mean.
+  std::vector<PeptideIdentification> peps;
+  std::srand(7);
+  auto rand01 = []() { return static_cast<double>(std::rand()) / RAND_MAX; };
+
+  const size_t n = 800;
+  for (size_t i = 0; i < n; ++i)
+  {
+    const bool is_decoy = (i % 2 == 1);
+    PeptideIdentification pid;
+    pid.setRT(static_cast<double>(i) * 0.1);
+    pid.setIdentifier("run1");
+    PeptideHit hit;
+    hit.setScore(0.0);
+    hit.setMetaValue("target_decoy", is_decoy ? "decoy" : "target");
+    const double f = (is_decoy ? 0.0 : 1.0) + 0.6 * (rand01() - 0.5) * 2.0;
+    hit.setMetaValue("feat_sep", f);
+    hit.setMetaValue("feat_noise", rand01());
+    pid.insertHit(hit);
+    peps.push_back(pid);
+  }
+
+  Percolator p;
+  p.rescore(peps, StringList{"feat_sep", "feat_noise"});
+
+  // Every hit has the three new meta values.
+  double target_sum = 0, decoy_sum = 0;
+  size_t n_targets = 0, n_decoys = 0;
+  for (const auto& pid : peps)
+  {
+    TEST_EQUAL(pid.getHits().size(), 1)
+    const auto& hit = pid.getHits()[0];
+    TEST_TRUE(hit.metaValueExists("percolator_score"))
+    TEST_TRUE(hit.metaValueExists("percolator_q_value"))
+    TEST_TRUE(hit.metaValueExists("percolator_pep"))
+    const double s = hit.getMetaValue("percolator_score");
+    if (hit.getMetaValue("target_decoy").toString() == "decoy")
+    { decoy_sum += s; ++n_decoys; }
+    else
+    { target_sum += s; ++n_targets; }
+  }
+  TEST_EQUAL(n_targets > 0, true)
+  TEST_EQUAL(n_decoys > 0, true)
+  TEST_EQUAL(target_sum / n_targets > decoy_sum / n_decoys, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] missing target_decoy meta throws)
+{
+  std::vector<PeptideIdentification> peps;
+  for (size_t i = 0; i < 20; ++i)
+  {
+    PeptideIdentification pid;
+    PeptideHit h;
+    h.setMetaValue("feat_x", 1.0);
+    pid.insertHit(h);
+    peps.push_back(pid);
+  }
+  Percolator perc;
+  TEST_EXCEPTION(Exception::InvalidValue, perc.rescore(peps, StringList{"feat_x"}))
 }
 END_SECTION
 

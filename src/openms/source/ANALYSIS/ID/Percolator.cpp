@@ -263,11 +263,123 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   return out;
 }
 
-void Percolator::rescore(std::vector<PeptideIdentification>& /*peptide_ids*/,
-                         const StringList& /*feature_names*/)
+namespace
 {
-  // High-level PSM API: Phase B in the implementation plan. Not yet implemented.
-  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+  /// Numeric-feature auto-discovery from a PeptideHit's meta values.
+  /// Excludes: the target/decoy meta, OpenMS internal scoring keys, and
+  /// keys previously stamped by a Percolator run.
+  StringList discoverFeatureNames_(const PeptideHit& hit, const String& td_meta)
+  {
+    static const std::vector<String> blocklist {
+      "percolator_score", "percolator_q_value", "percolator_pep",
+      "q-value", "q-value_score", "score", "RT", "MZ",
+      "target_decoy", "isDecoy"
+    };
+    StringList out;
+    std::vector<String> keys;
+    hit.getKeys(keys);
+    for (const String& k : keys)
+    {
+      if (k == td_meta) continue;
+      bool skipped = false;
+      for (const String& b : blocklist)
+      {
+        if (k == b) { skipped = true; break; }
+      }
+      if (skipped) continue;
+      const DataValue& v = hit.getMetaValue(k);
+      if (v.valueType() == DataValue::DOUBLE_VALUE ||
+          v.valueType() == DataValue::INT_VALUE)
+      {
+        out.push_back(k);
+      }
+    }
+    std::sort(out.begin(), out.end());
+    return out;
+  }
+}
+
+void Percolator::rescore(std::vector<PeptideIdentification>& peptide_ids,
+                         const StringList& feature_names)
+{
+  if (peptide_ids.empty()) return;
+
+  const String td_meta = param_.getValue("target_decoy_metavalue").toString();
+
+  // Auto-discover features from first hit if not provided.
+  StringList features = feature_names;
+  if (features.empty())
+  {
+    const PeptideIdentification& first = peptide_ids.front();
+    if (first.getHits().empty())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "first PeptideIdentification has no hits", "");
+    }
+    features = discoverFeatureNames_(first.getHits().front(), td_meta);
+    if (features.empty())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "no numeric features found on first PeptideHit", "");
+    }
+  }
+
+  // Build RescoreInput. Each hit contributes one row.
+  RescoreInput ri;
+  ri.feature_names = features;
+  struct HitLoc { size_t pid_i; size_t hit_i; };
+  std::vector<HitLoc> hit_locs;
+  ri.features.reserve(peptide_ids.size());
+  ri.is_decoy.reserve(peptide_ids.size());
+  ri.cv_group_keys.reserve(peptide_ids.size());
+
+  std::hash<std::string> str_hash;
+  for (size_t i = 0; i < peptide_ids.size(); ++i)
+  {
+    auto& hits = peptide_ids[i].getHits();
+    for (size_t j = 0; j < hits.size(); ++j)
+    {
+      const PeptideHit& hit = hits[j];
+      if (!hit.metaValueExists(td_meta))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "PeptideHit missing target/decoy meta value", td_meta);
+      }
+
+      std::vector<double> row;
+      row.reserve(features.size());
+      for (const String& f : features)
+      {
+        if (!hit.metaValueExists(f))
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "PeptideHit missing feature meta value", f);
+        }
+        row.push_back(static_cast<double>(hit.getMetaValue(f)));
+      }
+      ri.features.push_back(std::move(row));
+      ri.is_decoy.push_back(hit.getMetaValue(td_meta).toString() == "decoy");
+
+      // CV group key: hash (identifier, rt).
+      std::string spec_key = peptide_ids[i].getIdentifier() + "|" +
+                             std::to_string(peptide_ids[i].getRT());
+      ri.cv_group_keys.push_back(static_cast<int>(str_hash(spec_key) & 0x7fffffff));
+
+      hit_locs.push_back({i, j});
+    }
+  }
+
+  RescoreOutput ro = rescore(ri);  // low-level
+
+  // Stamp back onto the hits.
+  for (size_t row = 0; row < ro.scores.size(); ++row)
+  {
+    const auto& loc = hit_locs[row];
+    PeptideHit& hit = peptide_ids[loc.pid_i].getHits()[loc.hit_i];
+    hit.setMetaValue("percolator_score",   ro.scores[row]);
+    hit.setMetaValue("percolator_q_value", ro.q_values[row]);
+    hit.setMetaValue("percolator_pep",     ro.peps[row]);
+  }
 }
 
 } // namespace OpenMS
