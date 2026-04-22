@@ -175,6 +175,9 @@ public:
      * the median value. Useful for automatically determining the expected
      * chromatographic peak width (chrom_fwhm) from the data.
      *
+     * @note The vector must be non-const because MassTrace::estimateFWHM() updates
+     *       the internal FWHM borders (fwhm_start_idx_, fwhm_end_idx_, fwhm_) on each trace.
+     *
      * @param[in,out] mass_traces Input mass traces (FWHM is estimated internally for each trace)
      * @return Median FWHM in seconds, or 0.0 if no valid FWHM could be estimated
      */
