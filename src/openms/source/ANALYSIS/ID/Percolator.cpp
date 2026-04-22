@@ -32,17 +32,13 @@ namespace P = OpenMS::Internal::Percolator;
 
 void Percolator::Impl::reset()
 {
-  // Delete owned PSMs before resetting containers. Percolator's DataSet holds
-  // raw pointers via push_back but doesn't free them.
-  for (auto* psm : owned_psms)
-  {
-    delete psm;
-  }
+  // PSM ownership lives with DataSet: DataSet::~DataSet() calls
+  // PSMDescription::deletePtr on each PSM. Don't double-free.
   owned_psms.clear();
   synthesized_ids.clear();
   target_ds.reset();
   decoy_ds.reset();
-  set_handler.reset();
+  set_handler.reset();  // destructor cascades into DataSet destructors → PSM deletion
 }
 
 Percolator::Percolator()
