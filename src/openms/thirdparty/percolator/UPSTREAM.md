@@ -2,7 +2,7 @@
 
 - **Upstream**: https://github.com/percolator/percolator
 - **Pinned at**: rel-3-08-01 (update via sync-from-upstream.sh)
-- **Commit SHA**: (will be filled by sync-from-upstream.sh)
+- **Commit SHA**: febeef346327ff3adaf6712c7b8b250499aecc63
 - **License**: Apache 2.0 (see LICENSE-Apache-2.0.txt) plus the embedded SVMlin files (see NOTICE-percolator.txt).
 
 ## What's here
