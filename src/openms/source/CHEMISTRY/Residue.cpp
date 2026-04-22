@@ -633,14 +633,15 @@ namespace OpenMS
   double Residue::getHydrophobicity(const HydrophobicityScaleMethod scale) const
   {     
     char amino_acid;
-    if (one_letter_code_.size()==1)
+    if (one_letter_code_.size() == 1)
     {
       amino_acid = one_letter_code_[0];
     }
-    else {
+    else 
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "One letter code for this residue is empty", "");
     }
-    if (amino_acid < 65 || amino_acid > 90) 
+    if (amino_acid < 'A' || amino_acid > 'Z') 
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No hydrophobicity value known for this residue", one_letter_code_);
     }
@@ -699,9 +700,8 @@ namespace OpenMS
     const int scale_idx = static_cast<int>(scale);
     if (scale_idx < 0 || scale_idx >= 7)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown hydrophobicity scale", "");
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown hydrophobicity scale", String(scale_idx));
     }
-
     const double result = scales[scale_idx][amino_acid - 'A'];
     if (result == 999)
     {

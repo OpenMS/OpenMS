@@ -39,11 +39,13 @@ namespace OpenMS
   };
   inline std::string_view MZ_UNIT_NAMES[(int)MZ_UNITS::SIZE_OF_MZ_UNITS] = {"Da", "ppm"};
 
-  /// @brief Enum for different hydrophobicity scales
+  /**
+  @brief Enum for different hydrophobicity scales
 
-  /// If a new scale is introduced, append it to the list below and assign it an enum value equal to the current maximum enum value plus one.
+  If a new scale is introduced, append it to the list below and assign it an enum value equal to the current maximum enum value plus one.
 
-  /// Add the data for this scale here: @ref Residue::getHydrophobicity
+  Add the data for this scale here: @ref Residue::getHydrophobicity
+  */
   enum class HydrophobicityScaleMethod 
     {
       KYTE_DOOLITTLE = 0,

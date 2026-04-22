@@ -49,7 +49,7 @@ namespace OpenMS
   std::vector<double> HydrophobicityProfile::computeWindowedProfile
   (
     const AASequence& seq,
-    Size window_size,
+    const Size window_size,
     const HydrophobicityScaleMethod scale
   )
   const
@@ -62,12 +62,13 @@ namespace OpenMS
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,window_size,"window size can not be 0");
     }
+    Size effective_window = window_size;
     if (window_size > seq.size())
     {
       OPENMS_LOG_WARN << "Warning: window size (" << window_size << ") is larger than sequence length. Window size clamped to sequence length: " << seq.size() << "\n";
+      effective_window = seq.size();
     }
     std::vector<double> profile;
-    Size effective_window = std::min(window_size, seq.size()); // size of the window
     AASequence subsequence = seq.getSubsequence(0, effective_window); // first window
     double sum = 0;
     for (const auto& residue : subsequence) // calculate score for first window
@@ -89,8 +90,8 @@ namespace OpenMS
   std::vector<double> HydrophobicityProfile::computeHydrophobicMoment
   (
     const AASequence& seq,
-    Size window_size,
-    double angle  
+    const Size window_size,
+    const double angle  
   )
   const
   {
@@ -102,13 +103,13 @@ namespace OpenMS
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,window_size,"window size can not be 0");
     }
+    Size effective_window = window_size;
     if (window_size > seq.size())
     {
       OPENMS_LOG_WARN << "Warning: window size (" << window_size << ") is larger than sequence length. Window size clamped to sequence length: " << seq.size() << "\n";
+      effective_window = seq.size();
     }
     std::vector<double> profile;
-    Size effective_window = std::min(window_size, seq.size()); // size of the window
-
     for (Size i = 0; i + effective_window <= seq.size(); i++) // window slides by one amino acid in each iteration
     {
       AASequence subsequence = seq.getSubsequence(i, effective_window);
@@ -123,9 +124,9 @@ namespace OpenMS
         sum_cos += hydrophobicity * std::cos(angle_rad * curr_position);
         curr_position++;
       }
-      sum_sin = std::pow(sum_sin,2);
-      sum_cos = std::pow(sum_cos,2);
-      profile.push_back(std::sqrt(sum_sin+sum_cos) / std::min(window_size, seq.size()));
+      sum_sin *= sum_sin; //square
+      sum_cos *= sum_cos; //square
+      profile.push_back(std::sqrt(sum_sin + sum_cos) / effective_window);
     }
     return profile;
   }
