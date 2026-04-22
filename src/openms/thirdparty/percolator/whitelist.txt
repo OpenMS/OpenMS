@@ -10,7 +10,6 @@ FeatureMemoryPool.h
 FeatureNames.cpp
 FeatureNames.h
 Globals.cpp
-Globals.h
 IsotonicPEP.cpp
 IsotonicPEP.h
 LabelType.h
