@@ -1257,8 +1257,11 @@ namespace OpenMS
         return;
       }
 
-      /// Calculate the bucket size
-      bucketsize_ = sqrt(fi_fragments_.size()); //Todo: MSFragger uses a different approach, which might be better
+      /// Bucket size chosen to approximate MSFragger's fixed ~0.02 Da fragment-bin density:
+      /// in the dense 500-1500 Da region a typical tryptic/immunopeptidomics index holds
+      /// ~4-8k fragments per 0.02 Da window, so a bucket covers roughly one query tolerance
+      /// window instead of the much wider sqrt(N) span.
+      bucketsize_ = 4096;
       OPENMS_LOG_INFO << "Creating DB with bucket_size " << bucketsize_ << endl;
 
       /// 2.) next sort after precursor mass and save the min_mz of each bucket
