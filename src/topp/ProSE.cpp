@@ -301,7 +301,24 @@ class ProSE :
                           << "Skipping rescoring." << endl;
         }
         else
-        for (Size i = 0; i < in_list.size(); ++i)
+        {
+          // Resolve the sibling PercolatorAdapter binary. runExternalProcess_ hands the
+          // executable to boost::process, which only searches PATH for bare names — in a
+          // dev build the OpenMS bin/ directory is typically not on PATH, so invoking
+          // "PercolatorAdapter" by name silently falls back to HyperScore. findSibling
+          // looks relative to the current (ProSE) executable.
+          String perc_adapter;
+          try
+          {
+            perc_adapter = File::findSiblingTOPPExecutable("PercolatorAdapter");
+          }
+          catch (const Exception::FileNotFound& e)
+          {
+            OPENMS_LOG_WARN << "Could not locate PercolatorAdapter (" << e.what()
+                            << "). Skipping Percolator rescoring — using original HyperScore results." << endl;
+          }
+          if (!perc_adapter.empty())
+          for (Size i = 0; i < in_list.size(); ++i)
         {
           auto& result = mfres.per_file[i];
           if (result.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
@@ -329,7 +346,7 @@ class ProSE :
           };
 
           OPENMS_LOG_INFO << "[ProSE] Rescoring " << in_list[i] << " with Percolator..." << endl;
-          TOPPBase::ExitCodes perc_ec = runExternalProcess_(String("PercolatorAdapter"), perc_params);
+          TOPPBase::ExitCodes perc_ec = runExternalProcess_(perc_adapter, perc_params);
 
           if (perc_ec != EXECUTION_OK)
           {
@@ -349,6 +366,7 @@ class ProSE :
           File::remove(tmp_in);
           File::remove(tmp_out);
           File::remove(tmp_weights);
+        }
         }
 
         // Apply deferred PSM-level FDR filtering. For files rescored by Percolator,
