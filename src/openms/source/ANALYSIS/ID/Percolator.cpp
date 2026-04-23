@@ -446,6 +446,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   int norm_type = P::Normalizer::STDV;
   if      (impl_->normalizer == "uni")  norm_type = P::Normalizer::UNI;
   else if (impl_->normalizer == "none") norm_type = P::Normalizer::NONORM;
+  P::Globals::getInstance()->setNoTerminate(true);
   P::Normalizer::resetNormalizer();
   P::Normalizer::setType(norm_type);
   P::Normalizer* normalizer = P::Normalizer::getNormalizer();
@@ -704,6 +705,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   int norm_type = P::Normalizer::STDV;
   if      (impl_->normalizer == "uni")  norm_type = P::Normalizer::UNI;
   else if (impl_->normalizer == "none") norm_type = P::Normalizer::NONORM;
+  P::Globals::getInstance()->setNoTerminate(true);
   P::Normalizer::resetNormalizer();
   P::Normalizer::setType(norm_type);
   P::Normalizer* normalizer = P::Normalizer::getNormalizer();
