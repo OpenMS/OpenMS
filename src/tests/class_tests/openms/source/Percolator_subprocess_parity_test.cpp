@@ -787,5 +787,117 @@ START_SECTION([EXTRA] parameter matrix: each flag flows through to the SVM)
 END_SECTION
 
 ///////////////////////////////////////////////////////////////////////////////
+// Test 5: SVM feature-weight parity.
+//
+// Subprocess percolator writes per-fold weights with `-w`. In-process exposes
+// `Percolator::getSvmWeights()`, which returns the across-fold average of the
+// raw (un-normalized) weights. Average the subprocess raw weights across its
+// 3 CV bins and compare the FEATURE coefficients element-wise.
+//
+// We deliberately exclude the trailing bias (m0) term from the assertion:
+// both paths pass the trained weights_ vector through score-normalization
+// (`Scores::normalizeScores` -> `Normalizer::endScoreNormalizeWeights` in
+// postIterationProcessing/merge), and the point at which `getAvgWeights` is
+// invoked relative to that step isn't identical between the in-process
+// wrapper and the standalone percolator writer — so the affine offset drifts
+// even though predictions (Test 2) agree to machine precision. Catching
+// feature-coefficient drift is the useful signal; bias drift isn't.
+///////////////////////////////////////////////////////////////////////////////
+
+START_SECTION([EXTRA] SVM weights match average of per-fold subprocess weights)
+{
+  const String bin = percolatorBinary();
+  if (bin.empty())
+  {
+    TEST_EQUAL(true, true);  // skip silently
+  }
+  else
+  {
+    std::mt19937 rng(2026);
+    RescoreInput ri;
+    generateSyntheticData(ri, rng);
+    const String pin_path = File::getTemporaryFile();
+    writePinFile(pin_path, ri);
+
+    // Ask percolator to dump weights.
+    const String wfile = File::getTemporaryFile();
+    SubprocessOut sub = runSubprocess(
+      bin, pin_path, "-S 1 -w \"" + wfile + "\"");
+    TEST_EQUAL(sub.exit_code, 0)
+
+    // Parse weights file. Format per CV bin:
+    //   <feature1>\t<feature2>\t...\t<featureN>\tm0
+    //   <norm_w1>\t...\t<norm_wN>\t<norm_bias>
+    //   <raw_w1>\t...\t<raw_wN>\t<raw_bias>
+    // Interleaved 3x. Plus 2 leading comment lines prefixed with '#'.
+    std::vector<std::vector<double>> raw_per_fold;
+    {
+      std::ifstream f(wfile.c_str());
+      String line;
+      size_t block_line = 0;  // 0=header, 1=normalized, 2=raw (mod 3)
+      while (std::getline(f, line))
+      {
+        if (line.empty() || line[0] == '#') continue;
+        if (block_line % 3 == 2)
+        {
+          std::vector<double> row;
+          std::istringstream ls(line);
+          double v;
+          while (ls >> v) row.push_back(v);
+          raw_per_fold.push_back(std::move(row));
+        }
+        block_line++;
+      }
+    }
+    TEST_EQUAL(raw_per_fold.size(), 3)  // 3 CV bins
+    TEST_TRUE(!raw_per_fold.empty() && raw_per_fold[0].size() ==
+              ri.feature_names.size() + 1)  // N features + bias
+
+    // Average across folds (matches Percolator::getAvgWeights semantics).
+    std::vector<double> sub_avg(ri.feature_names.size() + 1, 0.0);
+    for (const auto& fold : raw_per_fold)
+    {
+      for (size_t i = 0; i < fold.size() && i < sub_avg.size(); ++i)
+      {
+        sub_avg[i] += fold[i] / static_cast<double>(raw_per_fold.size());
+      }
+    }
+
+    // In-process.
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 1);
+    par.setValue("pep_method", "isotonic");
+    p.setParameters(par);
+    RescoreOutput out = p.rescore(ri);
+    (void)out;
+
+    const auto& in_weights = p.getSvmWeights();
+    TEST_TRUE(!in_weights.empty())
+    TEST_EQUAL(in_weights.front().size(), sub_avg.size())
+
+    // Feature-coefficient parity (excludes the trailing m0 bias term).
+    double max_abs = 0;
+    size_t arg_max = 0;
+    const size_t n_features = sub_avg.size() - 1;
+    for (size_t i = 0; i < n_features; ++i)
+    {
+      const double d = std::abs(in_weights.front()[i] - sub_avg[i]);
+      if (d > max_abs) { max_abs = d; arg_max = i; }
+    }
+    if (max_abs > 1e-3)
+    {
+      TEST_EQUAL(String("feature ") + ri.feature_names[arg_max]
+                 + " |dw| = " + String(max_abs)
+                 + " in=" + String(in_weights.front()[arg_max])
+                 + " sub_avg=" + String(sub_avg[arg_max]),
+                 String("weights match"))
+    }
+    TEST_TRUE(max_abs <= 1e-3)
+  }
+}
+END_SECTION
+
+///////////////////////////////////////////////////////////////////////////////
 
 END_TEST
