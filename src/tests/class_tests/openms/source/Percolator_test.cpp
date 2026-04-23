@@ -921,4 +921,34 @@ START_SECTION([EXTRA] score rejects empty feature_names on either side)
 }
 END_SECTION
 
+START_SECTION([EXTRA] same-instance consecutive calls are bit-identical)
+{
+  // Guards against persistent-RNG / leaked-global-state regressions: a
+  // second rescore() on the same instance must produce exactly the same
+  // output as the first.
+  RescoreInput input = makeModeratelySeparableInput_(500, 123);
+
+  Percolator p;
+  Param par = p.getDefaults();
+  par.setValue("seed", 123);
+  p.setParameters(par);
+
+  RescoreOutput out1 = p.rescore(input);
+  RescoreOutput out2 = p.rescore(input);
+
+  TEST_EQUAL(out1.scores.size(), out2.scores.size())
+  TEST_EQUAL(out1.q_values.size(), out2.q_values.size())
+  TEST_EQUAL(out1.peps.size(), out2.peps.size())
+
+  bool bit_identical = out1.scores.size() == out2.scores.size();
+  for (size_t i = 0; bit_identical && i < out1.scores.size(); ++i)
+  {
+    if (out1.scores[i]   != out2.scores[i])   bit_identical = false;
+    if (out1.q_values[i] != out2.q_values[i]) bit_identical = false;
+    if (out1.peps[i]     != out2.peps[i])     bit_identical = false;
+  }
+  TEST_EQUAL(bit_identical, true)
+}
+END_SECTION
+
 END_TEST
