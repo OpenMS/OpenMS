@@ -340,6 +340,8 @@ OpenMS Library:
     - BREAKING: IMFormat::MIXED removed; determineIMFormat(MSExperiment) replaced with determineIMFormat(MSExperiment, int ms_level) requiring explicit MS level for unambiguous format detection (#9011)
     - AccurateMassSearchEngine: Performance improvement when use_feature_adducts is set and a specific adduct is observed; only that adduct is evaluated instead of the full list (fixes #5867) (#8635)
     - BREAKING: Transitive Qt and other includes trimmed from core KERNEL and METADATA headers (ConsensusMap.h, FeatureMap.h, ProteinIdentification.h, SpectrumSettings.h, ExperimentalSettings.h); downstream code relying on these transitive includes must now include headers directly (#8946)
+    - Residue: added function that returns hydrophobicity (#9179)
+    - HydrophobicityProfile: added a class used for calculating hydrophobicity profiles of peptides and hydrophobic moments in peptides (#9179)
 
 Fixes:
   - Fix inverted use_all_hits logic causing NucleicAcidSearchEngine crash with multiple hits per spectrum (#8542)
