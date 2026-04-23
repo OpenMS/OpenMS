@@ -247,9 +247,9 @@
 		<offset idRef="controllerType=0 controllerNumber=1 scan=2136">12050</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="TIC">31826</offset>
+		<offset idRef="TIC">21994</offset>
 	</index>
 </indexList>
-<indexListOffset>33270</indexListOffset>
+<indexListOffset>23439</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
