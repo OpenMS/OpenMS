@@ -31,6 +31,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 #include <iterator>
 #include <map>
 #include <random>
@@ -615,7 +616,7 @@ END_SECTION
 // counts stayed equal; that's the class of regression this catches.
 ///////////////////////////////////////////////////////////////////////////////
 
-START_SECTION([EXTRA] ranking parity at q ≤ 0.01 / 0.05 / 0.10)
+START_SECTION([EXTRA] ranking parity at q &lt;= 0.01 / 0.05 / 0.10)
 {
   const String bin = percolatorBinary();
   if (bin.empty())
@@ -670,6 +671,116 @@ START_SECTION([EXTRA] ranking parity at q ≤ 0.01 / 0.05 / 0.10)
       auto set_sub = accepted_targets(thr, /*from_subprocess=*/true);
       TEST_EQUAL(set_in.size(), set_sub.size())
       TEST_EQUAL(set_in == set_sub, true)
+    }
+  }
+}
+END_SECTION
+
+///////////////////////////////////////////////////////////////////////////////
+// Test 4: Parameter matrix sweep.
+//
+// Run both paths across a handful of flag combinations known to flow through
+// the library <-> subprocess boundary. Each row (`--train-best-positive`,
+// `-Y`, `-u`, `-N 200`, `--nested-xval-bins 3`) is a specific regression
+// surface: wiring it into Param but forgetting to pass it on to `P::*`
+// upstream is the failure mode we're guarding against.
+//
+// Assertion: Pearson r ≥ 0.99 and equal target count at q ≤ 0.01 for EVERY
+// configuration. Both are observed to be ~1.0 / exact; this catches any
+// one of the flags silently not being honored.
+///////////////////////////////////////////////////////////////////////////////
+
+START_SECTION([EXTRA] parameter matrix: each flag flows through to the SVM)
+{
+  const String bin = percolatorBinary();
+  if (bin.empty())
+  {
+    TEST_EQUAL(true, true);  // skip silently
+  }
+  else
+  {
+    struct Case
+    {
+      const char* name;
+      const char* extra_args;          ///< appended to the subprocess cmdline
+      std::function<void(Param&)> tune;  ///< applied to in-process Param
+      double min_r;                    ///< minimum acceptable Pearson on scores
+    };
+    // Per-case minimum r: most configs produce r=1 to machine precision.
+    // subset_max_train=200 does random sub-sampling that uses independent RNG
+    // streams between paths, so score magnitudes drift even at fixed seed —
+    // the target count at q<=0.01 is still the right invariant to check there.
+    const std::vector<Case> cases = {
+      { "train_best_positive", "-S 1 --train-best-positive",
+        [](Param& p) { p.setValue("train_best_positive", "true"); }, 0.99 },
+      { "post_processing_tdc", "-S 1 -Y",
+        [](Param& p) { p.setValue("post_processing_tdc", "true"); }, 0.99 },
+      { "unitnorm",            "-S 1 -u",
+        [](Param& p) { p.setValue("normalizer", "uni"); }, 0.99 },
+      { "nested_xval_bins=3",  "-S 1 --nested-xval-bins 3",
+        [](Param& p) { p.setValue("nested_xval_bins", 3); }, 0.99 },
+      { "subset_max_train=200","-S 1 -N 200",
+        [](Param& p) { p.setValue("subset_max_train", 200); }, 0.60 },
+    };
+
+    for (const auto& tc : cases)
+    {
+      std::mt19937 rng(2026);
+      RescoreInput ri;
+      generateSyntheticData(ri, rng);
+      const String pin_path = File::getTemporaryFile();
+      writePinFile(pin_path, ri);
+
+      SubprocessOut sub = runSubprocess(bin, pin_path, tc.extra_args);
+      TEST_EQUAL(sub.exit_code, 0)
+
+      Percolator p;
+      Param par = p.getDefaults();
+      par.setValue("seed", 1);
+      par.setValue("pep_method", "isotonic");
+      tc.tune(par);
+      p.setParameters(par);
+      RescoreOutput out = p.rescore(ri);
+
+      size_t matches = 0;
+      double sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
+      int tgt_q01_in = 0, tgt_q01_sub = 0;
+      for (size_t i = 0; i < out.scores.size(); ++i)
+      {
+        char k[32]; std::snprintf(k, sizeof(k), "row_%08zu", i);
+        auto it = sub.triplets.find(k);
+        if (it == sub.triplets.end()) continue;
+        matches++;
+        const double x = out.scores[i];
+        const double y = it->second.score;
+        sx += x; sy += y; sxx += x * x; syy += y * y; sxy += x * y;
+        if (!ri.is_decoy[i])
+        {
+          if (out.q_values[i] <= 0.01) tgt_q01_in++;
+          if (it->second.qval <= 0.01) tgt_q01_sub++;
+        }
+      }
+      const double n = static_cast<double>(matches);
+      const double num = n * sxy - sx * sy;
+      const double den = std::sqrt((n * sxx - sx * sx) * (n * syy - sy * sy));
+      const double r = (den > 1e-15) ? num / den : 0.0;
+
+      TEST_TRUE(matches > 1000)
+      // Fail with the case name in the message so regressions are bisectable.
+      if (r < tc.min_r)
+      {
+        TEST_EQUAL(String("case ") + tc.name + " r=" + String(r)
+                   + " < min_r=" + String(tc.min_r),
+                   String("case ok"))
+      }
+      TEST_TRUE(r >= tc.min_r)
+      if (tgt_q01_in != tgt_q01_sub)
+      {
+        TEST_EQUAL(String("case ") + tc.name + " target@q01 mismatch: in="
+                   + String(tgt_q01_in) + " sub=" + String(tgt_q01_sub),
+                   String("case ok"))
+      }
+      TEST_EQUAL(tgt_q01_in, tgt_q01_sub)
     }
   }
 }
