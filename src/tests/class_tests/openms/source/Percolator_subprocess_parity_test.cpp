@@ -605,5 +605,76 @@ START_SECTION([EXTRA] scores and FDR-threshold counts match subprocess)
 END_SECTION
 
 ///////////////////////////////////////////////////////////////////////////////
+// Test 3: Ranking parity at FDR thresholds.
+//
+// Pearson-on-scores (Test 2) says the SVM is identical in aggregate, but what
+// matters downstream is *which* PSMs get accepted at q ≤ 0.01 / 0.05 / 0.10.
+// Assert the *set* of target rows passing each threshold agrees element-wise
+// between paths — not just the counts. A drift that shuffled tied scores
+// (e.g. a different tie-breaker) would flip set membership even though
+// counts stayed equal; that's the class of regression this catches.
+///////////////////////////////////////////////////////////////////////////////
+
+START_SECTION([EXTRA] ranking parity at q ≤ 0.01 / 0.05 / 0.10)
+{
+  const String bin = percolatorBinary();
+  if (bin.empty())
+  {
+    TEST_EQUAL(true, true);  // skip silently
+  }
+  else
+  {
+    std::mt19937 rng(2026);
+    RescoreInput ri;
+    generateSyntheticData(ri, rng);
+
+    const String pin_path = File::getTemporaryFile();
+    writePinFile(pin_path, ri);
+
+    SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1");
+    TEST_EQUAL(sub.exit_code, 0)
+
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 1);
+    par.setValue("pep_method", "isotonic");
+    p.setParameters(par);
+    RescoreOutput out = p.rescore(ri);
+
+    auto accepted_targets = [&](double threshold, bool from_subprocess) -> std::set<size_t>
+    {
+      std::set<size_t> s;
+      for (size_t i = 0; i < out.scores.size(); ++i)
+      {
+        if (ri.is_decoy[i]) continue;
+        double q = 1.0;
+        if (from_subprocess)
+        {
+          char k[32]; std::snprintf(k, sizeof(k), "row_%08zu", i);
+          auto it = sub.triplets.find(k);
+          if (it == sub.triplets.end()) continue;
+          q = it->second.qval;
+        }
+        else
+        {
+          q = out.q_values[i];
+        }
+        if (q <= threshold) s.insert(i);
+      }
+      return s;
+    };
+
+    for (double thr : {0.01, 0.05, 0.10})
+    {
+      auto set_in = accepted_targets(thr, /*from_subprocess=*/false);
+      auto set_sub = accepted_targets(thr, /*from_subprocess=*/true);
+      TEST_EQUAL(set_in.size(), set_sub.size())
+      TEST_EQUAL(set_in == set_sub, true)
+    }
+  }
+}
+END_SECTION
+
+///////////////////////////////////////////////////////////////////////////////
 
 END_TEST
