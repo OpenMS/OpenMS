@@ -146,11 +146,13 @@ Percolator::Percolator()
   defaults_.setValidStrings("report_as_main_score", {"none","q-value","pep","svm"});
 
   defaults_.setValue("use_pi0", "true",
-                     "Enable pi0 correction when computing q-values (default). "
-                     "When true, pi0 is estimated per CV fold via bootstrap spline fit on the "
-                     "target score distribution using decoys as the null — matches the subprocess "
-                     "percolator binary. Set to 'false' for pure target-decoy FDR (pi0=1.0, "
-                     "equivalent to 'percolator -Q 1.0').");
+                     "Enable pi0 correction when computing q-values and PEPs (default). "
+                     "When true, pi0 is estimated per CV fold via bootstrap spline fit on "
+                     "the target score distribution using decoys as the null. When false, "
+                     "pi0 is fixed at 1.0 (pure target-decoy FDR, no bootstrap estimation). "
+                     "Affects both Scores::calcQvals and Scores::calcPep. Upstream percolator "
+                     "has no CLI flag for this; the in-library Scores(bool usePi0) "
+                     "constructor is the only toggle, matched here.");
   defaults_.setValidStrings("use_pi0", {"true","false"});
 
   defaultsToParam_();

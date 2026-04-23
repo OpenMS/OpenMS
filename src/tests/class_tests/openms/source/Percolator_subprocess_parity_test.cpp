@@ -232,11 +232,23 @@ void generateSyntheticData(RescoreInput& ri, std::mt19937& rng)
     ri.is_decoy.push_back(true);
   }
 
-  // scan_numbers power the CV fold split via Percolator's scan-hash. The hash
-  // also includes exp_mass/calc_mass (see OrderScanHash), so these must match
-  // the values written in the .pin or folds will diverge between paths.
+  // Populate all four fields that feed P::OrderScanHash — the CV fold split
+  // diverges if either path defaults a field to a different value. Fields:
+  //
+  //   scan_numbers      — unique per row, so every PSM ends up in its own
+  //                       "spectrum" bucket (matches the writePinFile PIN).
+  //   exp_masses        — match the PIN's ExpMass column verbatim.
+  //   calc_masses       — match the PIN's CalcMass column verbatim.
+  //   spec_file_numbers — subprocess populates specFileNr from an optional
+  //                       `filename` / `spectrafile` PIN column (see
+  //                       SetHandler.cpp:110-111). writePinFile emits NO such
+  //                       column, so subprocess keeps specFileNr at its
+  //                       PSMDescription ctor default (0u). Explicitly
+  //                       assigning 0 here documents the contract and guards
+  //                       against a silent in-process default drift.
   const size_t n = ri.features.size();
   ri.scan_numbers.assign(n, 0);
+  ri.spec_file_numbers.assign(n, 0);
   ri.exp_masses.assign(n, 1000.0);
   ri.calc_masses.assign(n, 1000.0);
   for (size_t i = 0; i < n; ++i)
