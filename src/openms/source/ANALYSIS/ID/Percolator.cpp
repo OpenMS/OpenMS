@@ -58,7 +58,12 @@ Percolator::Percolator()
   defaults_.setMaxFloat("train_fdr",     1.0);
   defaults_.setValue("num_iterations",   10,   "Number of SVM training iterations.");
   defaults_.setMinInt("num_iterations",  1);
-  defaults_.setValue("initial_direction","",   "Feature name for initial scoring direction. Empty = auto.");
+  defaults_.setValue("initial_direction","",
+                     "Feature name to use as the initial scoring direction. "
+                     "Prefix with '-' if LOWER values are more target-like "
+                     "(e.g. 'COMET:lnExpect' means higher is better; '-COMET:lnExpect' means lower is better). "
+                     "Leave empty (default) to let Percolator auto-select by testing every feature "
+                     "in both directions and picking the one that separates the most targets at train_fdr.");
   defaults_.setValue("pep_method",       "logistic_regression",
                      "PEP estimator: 'logistic_regression' or 'isotonic'.");
   defaults_.setValidStrings("pep_method", {"logistic_regression","isotonic"});
@@ -112,6 +117,7 @@ void Percolator::updateMembers_()
   impl_->post_processing_tdc = (param_.getValue("post_processing_tdc").toString() == "true");
   impl_->nested_xval_bins    = static_cast<int>(param_.getValue("nested_xval_bins"));
   impl_->subset_max_train    = static_cast<int>(param_.getValue("subset_max_train"));
+  impl_->initial_direction   = param_.getValue("initial_direction").toString();
 }
 
 const std::vector<std::vector<double>>& Percolator::getSvmWeights() const
@@ -265,6 +271,11 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   P::Normalizer* normalizer = P::Normalizer::getNormalizer();
 
   // SanityCheck: "default" fingerprint → generic PSM-level sanity.
+  // Reset any prior static state (initial direction) so successive rescore()
+  // calls on the same instance don't leak configuration across calls.
+  P::SanityCheck::setInitDefaultDir(0);
+  P::SanityCheck::setInitDefaultDirName(impl_->initial_direction);
+
   P::SanityCheck* sanity = P::SanityCheck::initialize("");
   if (!sanity)
   {
