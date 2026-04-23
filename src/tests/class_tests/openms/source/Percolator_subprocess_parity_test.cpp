@@ -914,19 +914,24 @@ END_SECTION
 ///////////////////////////////////////////////////////////////////////////////
 // Test 6: Realistic-idXML library parity (P1.a).
 //
-// Feeds PercolatorAdapter_1.idXML through both paths at the library layer.
+// Feeds CometAdapter_4_out.idXML through both paths at the library layer.
 // The .pin is the single source of truth for row order: we write it via
 // PercolatorInfile::store, parse it back to build the RescoreInput, run
 // subprocess on the same .pin, and align by SpecId. Ensures the in-process
 // and subprocess paths see identical input.
 //
-// Fixture is small (40 hits). Uses test_fdr=train_fdr=0.5 (matching the
-// TOPP_PercolatorAdapter_1 reference ini) so percolator converges rather
-// than triggering the "Reset to default direction" fallback path (which
-// diverges between in-process and subprocess in the q-value and PEP
-// assignment). The assertions tolerate the statistical thinness of the
-// fixture by floor-gating `matches >= 20` and relying on Pearson r >= 0.99
-// for score parity; the accepted-target set equality is the sharper check.
+// Fixture: CometAdapter_4_out.idXML is Comet search output post-PSMFeatureExtractor
+// with 712 hits / 581 decoys and extra_features populated (9 COMET:* +
+// MS:1002252/55 + isotope_error). Rich enough that the SVM converges on the
+// initial direction with test_fdr=train_fdr=0.5 rather than triggering
+// percolator's "Reset to default direction" fallback path — that path
+// diverges between in-process and subprocess in the q-value / PEP assignment
+// and is therefore not useful as a parity regression target.
+//
+// The FDR=0.5 choice is about convergence, not about matching any particular
+// reference .ini. Smaller / weaker fixtures (PercolatorAdapter_1.idXML with
+// 40 hits, FalseDiscoveryRate_OMSSA.idXML, MzTabExporter_2_input.idXML) all
+// trigger the Reset path even at FDR=0.5 and were verified unsuitable.
 ///////////////////////////////////////////////////////////////////////////////
 
 START_SECTION([EXTRA] realistic idXML parity at library layer)
