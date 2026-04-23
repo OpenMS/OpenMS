@@ -47,8 +47,8 @@ namespace OpenMS
     int    seed = 1;
     std::string pep_method = "logistic_regression";
     std::string normalizer = "stdv";          ///< "stdv" | "uni" | "none"
-    bool   train_best_positive = false;
-    bool   post_processing_tdc = false;
+    bool   train_best_positive = true;
+    bool   post_processing_tdc = true;
     int    nested_xval_bins = 1;
     int    subset_max_train = 0;              ///< 0 = no cap
     std::string initial_direction;            ///< feature name; prefix "-" = lower is better; empty = auto
