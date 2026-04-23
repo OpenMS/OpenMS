@@ -75,10 +75,21 @@ find_program(PERCOLATOR_BINARY_FOR_TEST percolator
 if (PERCOLATOR_BINARY_FOR_TEST)
   set_tests_properties(Percolator_subprocess_parity_test PROPERTIES
     ENVIRONMENT "PERCOLATOR_BINARY=${PERCOLATOR_BINARY_FOR_TEST}")
+  # Compute PercolatorAdapter path at configure time.
+  # TOPP tools are placed in ${CMAKE_BINARY_DIR}/bin/ (the root build dir's bin/),
+  # which is the same directory that the top-level CMakeLists sets as
+  # CMAKE_RUNTIME_OUTPUT_DIRECTORY. Generator expressions like $<TARGET_FILE:...>
+  # cannot be evaluated in ENVIRONMENT properties across sub-project boundaries.
+  if (WIN32)
+    set(_percolator_adapter_suffix ".exe")
+  else()
+    set(_percolator_adapter_suffix "")
+  endif()
+  set(_percolator_adapter_path "${CMAKE_BINARY_DIR}/bin/PercolatorAdapter${_percolator_adapter_suffix}")
   set_tests_properties(PercolatorAdapter_parity_test PROPERTIES
-    ENVIRONMENT "PERCOLATOR_BINARY=${PERCOLATOR_BINARY_FOR_TEST};PERCOLATOR_ADAPTER_BINARY=$<TARGET_FILE:PercolatorAdapter>")
+    ENVIRONMENT "PERCOLATOR_BINARY=${PERCOLATOR_BINARY_FOR_TEST};PERCOLATOR_ADAPTER_BINARY=${_percolator_adapter_path}")
   message(STATUS "Percolator_subprocess_parity_test: enabled (found ${PERCOLATOR_BINARY_FOR_TEST})")
-  message(STATUS "PercolatorAdapter_parity_test: enabled (adapter via $<TARGET_FILE:PercolatorAdapter>)")
+  message(STATUS "PercolatorAdapter_parity_test: enabled (adapter at ${_percolator_adapter_path})")
 else()
   message(STATUS "Percolator_subprocess_parity_test: subprocess sections skipped (percolator binary not on PATH nor in THIRDPARTY)")
   message(STATUS "PercolatorAdapter_parity_test: subprocess sections skipped (percolator binary not on PATH nor in THIRDPARTY)")
