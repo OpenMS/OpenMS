@@ -77,12 +77,21 @@ Percolator::Percolator()
   defaults_.setValidStrings("normalizer", {"stdv","uni","none"});
 
   defaults_.setValue("train_best_positive", "false",
-                     "Train on best PSM per spectrum (mirrors Percolator -train_best_positive).");
+                     "During TRAINING, use only the best PSM per spectrum as a positive example. "
+                     "Mirrors Percolator -train_best_positive. Affects the SVM (weights change). "
+                     "Orthogonal to post_processing_tdc. Common pairing for multi-hit-per-spectrum "
+                     "inputs: enable both.");
   defaults_.setValidStrings("train_best_positive", {"true","false"});
 
   defaults_.setValue("post_processing_tdc", "false",
-                     "Apply Target-Decoy Competition (best PSM per spectrum) after training, "
-                     "before PEP/q-value calculation. Mirrors -post_processing_tdc.");
+                     "AFTER training, before PEP/q-value calculation, apply Target-Decoy "
+                     "Competition: keep only the highest-scoring PSM per (scan, mass, charge) "
+                     "and drop the rest from the score set. Mirrors -post_processing_tdc. "
+                     "Does NOT touch the SVM — only the score distribution used for FDR. "
+                     "Turn on when input has multiple hits per spectrum (e.g. top-N search "
+                     "engine output, OSW peak groups); otherwise q-values count every candidate "
+                     "as an independent 'chance' and drift. No-op when input is already one-hit-"
+                     "per-spectrum.");
   defaults_.setValidStrings("post_processing_tdc", {"true","false"});
 
   defaults_.setValue("nested_xval_bins", 1,
