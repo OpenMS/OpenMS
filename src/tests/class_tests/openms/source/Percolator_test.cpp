@@ -117,9 +117,10 @@ START_SECTION((RescoreOutput rescore(const RescoreInput& input)))
 }
 END_SECTION
 
-START_SECTION([EXTRA] reproducibility with fixed seed)
+START_SECTION([EXTRA] reproducibility with fixed seed is bit-identical)
 {
-  // Same input + same seed on two instances → identical scores.
+  // Cross-instance, same-seed invariance. Tightened from 1e-9 tolerance on
+  // scores only to strict equality on scores, q-values, and PEPs.
   RescoreInput input;
   input.feature_names = StringList{"f"};
   const size_t n = 400;
@@ -145,12 +146,17 @@ START_SECTION([EXTRA] reproducibility with fixed seed)
   RescoreOutput out2 = p2.rescore(input);
 
   TEST_EQUAL(out1.scores.size(), out2.scores.size())
-  bool all_equal = out1.scores.size() == out2.scores.size();
-  for (size_t i = 0; all_equal && i < out1.scores.size(); ++i)
+  TEST_EQUAL(out1.q_values.size(), out2.q_values.size())
+  TEST_EQUAL(out1.peps.size(), out2.peps.size())
+
+  bool bit_identical = out1.scores.size() == out2.scores.size();
+  for (size_t i = 0; bit_identical && i < out1.scores.size(); ++i)
   {
-    if (std::abs(out1.scores[i] - out2.scores[i]) > 1e-9) all_equal = false;
+    if (out1.scores[i]   != out2.scores[i])   bit_identical = false;
+    if (out1.q_values[i] != out2.q_values[i]) bit_identical = false;
+    if (out1.peps[i]     != out2.peps[i])     bit_identical = false;
   }
-  TEST_EQUAL(all_equal, true)
+  TEST_EQUAL(bit_identical, true)
 }
 END_SECTION
 
