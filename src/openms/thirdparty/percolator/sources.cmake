@@ -32,5 +32,11 @@ set(OpenMS_percolator_sources
   UniNormalizer.cpp
   Vector.cpp
   ssl.cpp
+
+  # OpenMS-local addition: reservoir-sampling helper derived from
+  # SetHandler::readPSMs, required by the in-process Percolator wrapper
+  # since we don't vendor Caller.cpp. Not in whitelist.txt — preserved
+  # across sync-from-upstream.sh runs. See InProcessSampler.h for details.
+  InProcessSampler.cpp
 )
 list(TRANSFORM OpenMS_percolator_sources PREPEND "${CMAKE_CURRENT_LIST_DIR}/")

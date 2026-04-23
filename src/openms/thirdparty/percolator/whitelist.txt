@@ -1,3 +1,12 @@
+# Files to copy verbatim from upstream Percolator on sync. Lines prefixed
+# with '#' are comments and skipped.
+#
+# Files present in this directory but NOT listed here are OpenMS-local
+# additions (e.g. InProcessSampler.{h,cpp}) or build-system scaffolding
+# (sources.cmake, patches/, sync-from-upstream.sh). They must be preserved
+# on sync — sync-from-upstream.sh only copies whitelisted paths, so the
+# default is safe, but be careful when adding new local files to ensure
+# they don't shadow upstream names.
 Array.h
 BaseSpline.cpp
 BaseSpline.h

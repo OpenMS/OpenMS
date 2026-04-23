@@ -18,6 +18,11 @@
 #include "PSMDescription.h"
 #include "FeatureNames.h"
 #include "PseudoRandom.h"
+// OpenMS-local: reservoir-sampling helper derived from SetHandler::readPSMs.
+// Needed because we don't vendor Caller.cpp (which orchestrates upstream's
+// subset-train + full-set-score flow). See InProcessSampler.h for upstream
+// line references and re-sync instructions.
+#include "InProcessSampler.h"
 
 #include <memory>
 #include <string>

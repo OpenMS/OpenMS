@@ -227,7 +227,7 @@ static P::PSMDescription* makePSMFromRow(
 
 // Build the RowKeys tuple for row `i`, applying the same precedence and
 // defaults used during PSM registration. Centralized so the reservoir-sampling
-// pass (key → (scan, expMass)) and the PSM-building pass use identical keys.
+// pass and the PSM-building pass use identical (scan, exp_mass) keys.
 static RowKeys makeRowKeys(const RescoreInput& input, size_t i)
 {
   RowKeys keys;
@@ -240,71 +240,24 @@ static RowKeys makeRowKeys(const RescoreInput& input, size_t i)
   return keys;
 }
 
-// Reservoir-sample a training subset of at most `max_train` row indices.
-// Mirrors P::SetHandler::readPSMs (SetHandler.cpp:234-278) exactly:
-//   - ScanId = (scan, exp_mass) → shared random priority per unique ScanId
-//     (keeps same-scan PSMs together in or out of the subset)
-//   - max-heap of (priority, row) capped at max_train
-//   - push a row iff the heap has room OR its priority is below upper_limit
-//   - on overflow, upper_limit = heap top priority, then pop
-// Uses P::PseudoRandom (seeded upstream in rescore()) — same generator the
-// subprocess percolator binary uses, so sampling is reproducible across paths.
-// Returns the sampled row indices in ascending order (deterministic
-// registration order). When subset_max_train ≤ 0 or ≥ n_rows, returns [0..n).
+// Materialize the (scan, exp_mass) arrays and hand off to the vendored
+// reservoir-sampling helper (thirdparty/percolator/InProcessSampler.cpp).
+// See that file's header for provenance and re-sync notes.
 static std::vector<size_t> selectTrainingSubset(
   const RescoreInput& input, size_t n_rows, int subset_max_train)
 {
-  std::vector<size_t> out;
-  if (subset_max_train <= 0
-      || static_cast<size_t>(subset_max_train) >= n_rows)
-  {
-    out.resize(n_rows);
-    std::iota(out.begin(), out.end(), size_t{0});
-    return out;
-  }
-  const size_t max_train = static_cast<size_t>(subset_max_train);
+  const size_t max_train = (subset_max_train <= 0)
+    ? 0u : static_cast<size_t>(subset_max_train);
 
-  using ScanId = std::pair<int, double>;
-  std::map<ScanId, size_t> scan_pri;
-  // (priority, row_idx) — default std::priority_queue is a max-heap by first.
-  std::priority_queue<std::pair<size_t, size_t>> heap;
-  size_t upper_limit = std::numeric_limits<size_t>::max();
-
+  std::vector<int> scans(n_rows);
+  std::vector<double> exp_masses(n_rows, 0.0);
   for (size_t i = 0; i < n_rows; ++i)
   {
     const RowKeys k = makeRowKeys(input, i);
-    const ScanId sid{k.scan, k.exp_mass};
-    size_t pri;
-    auto it = scan_pri.find(sid);
-    if (it != scan_pri.end())
-    {
-      pri = it->second;
-    }
-    else
-    {
-      pri = P::PseudoRandom::lcg_rand();
-      scan_pri.emplace(sid, pri);
-    }
-
-    if (heap.size() < max_train || pri < upper_limit)
-    {
-      heap.emplace(pri, i);
-      if (heap.size() > max_train)
-      {
-        upper_limit = heap.top().first;  // record dropped priority first
-        heap.pop();
-      }
-    }
+    scans[i]      = k.scan;
+    exp_masses[i] = k.exp_mass;
   }
-
-  out.reserve(heap.size());
-  while (!heap.empty())
-  {
-    out.push_back(heap.top().second);
-    heap.pop();
-  }
-  std::sort(out.begin(), out.end());
-  return out;
+  return P::sampleTrainingRowIndices(scans, exp_masses, max_train);
 }
 
 RescoreOutput Percolator::rescore(const RescoreInput& input)
