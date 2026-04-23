@@ -246,6 +246,7 @@ set(format_executables_list
   PepXMLFileMascot_test
   PepXMLFile_test
   Percolator_test
+  Percolator_subprocess_parity_test
   PercolatorInfile_test
   PercolatorOutfile_test
   ProtXMLFile_test
