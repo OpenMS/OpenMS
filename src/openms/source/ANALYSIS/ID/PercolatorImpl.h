@@ -53,6 +53,7 @@ namespace OpenMS
     int    subset_max_train = 100000;         ///< 0 = no cap; default 100k
     std::string initial_direction;            ///< feature name; prefix "-" = lower is better; empty = auto
     bool   use_pi0 = true;                    ///< pi0 correction on q-values; false = pure TDA (pi0=1)
+    std::string report_as_main_score = "none"; ///< "none"|"q-value"|"pep"|"svm" — which Percolator output to promote to hit.getScore()
 
     /// Per-fold, per-feature weights populated after rescore(). Read by
     /// Percolator::getSvmWeights(). Empty before the first rescore().

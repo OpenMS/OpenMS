@@ -26,6 +26,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <sstream>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -112,6 +114,19 @@ Percolator::Percolator()
                      "through to this param.");
   defaults_.setMinInt("subset_max_train", 0);
 
+  defaults_.setValue("report_as_main_score", "none",
+                     "Which Percolator output to stamp as the main PeptideHit score after rescoring. "
+                     "'none' (default) leaves hit.getScore() and the PeptideIdentification score_type "
+                     "untouched — callers who want the original search score preserved (or who run "
+                     "their own post-processing like PercolatorAdapter) rely on this. "
+                     "'q-value' sets main score to the PSM-level q-value and marks "
+                     "higher_score_better=false. "
+                     "'pep' sets main score to the PEP and marks higher_score_better=false. "
+                     "'svm' sets main score to the SVM discriminant and marks higher_score_better=true. "
+                     "All three Percolator outputs remain accessible as percolator_{score,q_value,pep} "
+                     "meta values regardless of this setting.");
+  defaults_.setValidStrings("report_as_main_score", {"none","q-value","pep","svm"});
+
   defaults_.setValue("use_pi0", "true",
                      "Enable pi0 correction when computing q-values (default). "
                      "When true, pi0 is estimated per CV fold via bootstrap spline fit on the "
@@ -144,6 +159,7 @@ void Percolator::updateMembers_()
   impl_->subset_max_train    = static_cast<int>(param_.getValue("subset_max_train"));
   impl_->initial_direction   = param_.getValue("initial_direction").toString();
   impl_->use_pi0             = (param_.getValue("use_pi0").toString() == "true");
+  impl_->report_as_main_score = param_.getValue("report_as_main_score").toString();
 }
 
 const std::vector<std::vector<double>>& Percolator::getSvmWeights() const
@@ -627,6 +643,53 @@ void Percolator::rescore(std::vector<PeptideIdentification>& peptide_ids,
     hit.setMetaValue("percolator_score",   ro.scores[row]);
     hit.setMetaValue("percolator_q_value", ro.q_values[row]);
     hit.setMetaValue("percolator_pep",     ro.peps[row]);
+  }
+
+  // Optional: promote one of the three Percolator outputs to the main hit score
+  // and update PeptideIdentification metadata accordingly.
+  const std::string& as_main = impl_->report_as_main_score;
+  if (as_main != "none")
+  {
+    // Track which pids we've updated so score_type/higher_score_better gets set
+    // exactly once even when a pid has multiple hits.
+    std::unordered_set<size_t> pids_touched;
+    pids_touched.reserve(peptide_ids.size());
+
+    for (size_t row = 0; row < ro.scores.size(); ++row)
+    {
+      const auto& loc = hit_locs[row];
+      PeptideIdentification& pid = peptide_ids[loc.pid_i];
+      PeptideHit& hit = pid.getHits()[loc.hit_i];
+
+      if (as_main == "q-value")   hit.setScore(ro.q_values[row]);
+      else if (as_main == "pep")  hit.setScore(ro.peps[row]);
+      else /* "svm" */            hit.setScore(ro.scores[row]);
+
+      if (pids_touched.insert(loc.pid_i).second)
+      {
+        if (as_main == "svm")
+        {
+          pid.setScoreType("svm");
+          pid.setHigherScoreBetter(true);
+        }
+        else if (as_main == "pep")
+        {
+          pid.setScoreType("Posterior Error Probability");
+          pid.setHigherScoreBetter(false);
+        }
+        else  // "q-value"
+        {
+          pid.setScoreType("q-value");
+          pid.setHigherScoreBetter(false);
+        }
+      }
+    }
+
+    // Re-rank hits within each touched pid under the new score orientation.
+    for (size_t i : pids_touched)
+    {
+      peptide_ids[i].sort();
+    }
   }
 }
 

@@ -11,6 +11,7 @@
 
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -347,6 +348,82 @@ START_SECTION([EXTRA] output makes sense on a realistic-scale dataset)
   for (size_t k = 0; k < 100; ++k) top_pep_sum += out.peps[idx[k]];
   for (size_t k = n - 100; k < n; ++k) bot_pep_sum += out.peps[idx[k]];
   TEST_EQUAL(top_pep_sum / 100.0 < bot_pep_sum / 100.0, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] report_as_main_score promotes a Percolator output to hit.getScore())
+{
+  // Build a small target/decoy set with a numeric meta feature and run the
+  // high-level PeptideIdentification API with report_as_main_score="q-value".
+  // Verify: hit.getScore() equals percolator_q_value, score_type is "q-value",
+  // higher_score_better=false, and hits are re-ranked accordingly.
+  // Build one shared dataset; both rescore runs consume an independent copy.
+  std::srand(3);
+  auto rand01 = []() { return static_cast<double>(std::rand()) / RAND_MAX; };
+  auto randn = [&]() {
+    double u1 = std::max(1e-9, rand01());
+    return std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * rand01());
+  };
+  std::vector<PeptideIdentification> source;
+  const size_t n = 800;
+  for (size_t i = 0; i < n; ++i)
+  {
+    const bool is_decoy = (i % 2 == 1);
+    PeptideIdentification pid;
+    pid.setIdentifier("run1");
+    pid.setRT(0.1 * i);
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPTIDER"));
+    hit.setCharge(2);
+    hit.setScore(42.0);                                // pre-rescore main score
+    hit.setMetaValue("target_decoy", is_decoy ? "decoy" : "target");
+    // Moderate overlap: clean enough to train, not so clean that percolator
+    // trips "too good separation" or the median-decoy rescale check.
+    hit.setMetaValue("f", (is_decoy ? 0.0 : 1.5) + 0.9 * randn());
+    pid.insertHit(hit);
+    source.push_back(std::move(pid));
+  }
+
+  // Run A: report_as_main_score="q-value" — hit score should end up == q-value.
+  std::vector<PeptideIdentification> peps_a = source;
+  {
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 3);
+    par.setValue("test_fdr",  0.1);
+    par.setValue("train_fdr", 0.1);
+    par.setValue("report_as_main_score", "q-value");
+    p.setParameters(par);
+    p.rescore(peps_a, StringList{"f"});
+  }
+
+  bool all_promoted = true;
+  for (const auto& pid : peps_a)
+  {
+    if (pid.getHits().empty()) continue;
+    if (pid.getScoreType() != "q-value") { all_promoted = false; break; }
+    if (pid.isHigherScoreBetter()) { all_promoted = false; break; }
+    const auto& hit = pid.getHits().front();
+    const double qv = hit.getMetaValue("percolator_q_value");
+    if (std::abs(hit.getScore() - qv) > 1e-12) { all_promoted = false; break; }
+  }
+  TEST_EQUAL(all_promoted, true)
+
+  // Run B: default report_as_main_score="none" — hit score unchanged, but
+  // percolator_* meta values still stamped.
+  std::vector<PeptideIdentification> peps_b = source;
+  {
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 3);
+    par.setValue("test_fdr",  0.1);
+    par.setValue("train_fdr", 0.1);
+    // report_as_main_score left at default "none"
+    p.setParameters(par);
+    p.rescore(peps_b, StringList{"f"});
+  }
+  TEST_EQUAL(peps_b.front().getHits().front().getScore(), 42.0)
+  TEST_TRUE(peps_b.front().getHits().front().metaValueExists("percolator_q_value"))
 }
 END_SECTION
 
