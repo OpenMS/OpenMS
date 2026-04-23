@@ -706,10 +706,11 @@ START_SECTION([EXTRA] parameter matrix: each flag flows through to the SVM)
       std::function<void(Param&)> tune;  ///< applied to in-process Param
       double min_r;                    ///< minimum acceptable Pearson on scores
     };
-    // Per-case minimum r: most configs produce r=1 to machine precision.
-    // subset_max_train=200 does random sub-sampling that uses independent RNG
-    // streams between paths, so score magnitudes drift even at fixed seed —
-    // the target count at q<=0.01 is still the right invariant to check there.
+    // Per-case minimum r: all configs should produce r very close to 1.
+    // subset_max_train=200 now uses the same vendored reservoir-sampling
+    // algorithm (scan-keyed priority via PseudoRandom::lcg_rand, same seed),
+    // so training subsets and weights match the subprocess to within a very
+    // small tolerance.
     const std::vector<Case> cases = {
       { "train_best_positive", "-S 1 --train-best-positive",
         [](Param& p) { p.setValue("train_best_positive", "true"); }, 0.99 },
@@ -720,7 +721,7 @@ START_SECTION([EXTRA] parameter matrix: each flag flows through to the SVM)
       { "nested_xval_bins=3",  "-S 1 --nested-xval-bins 3",
         [](Param& p) { p.setValue("nested_xval_bins", 3); }, 0.99 },
       { "subset_max_train=200","-S 1 -N 200",
-        [](Param& p) { p.setValue("subset_max_train", 200); }, 0.60 },
+        [](Param& p) { p.setValue("subset_max_train", 200); }, 0.99 },
     };
 
     for (const auto& tc : cases)

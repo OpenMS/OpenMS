@@ -25,9 +25,14 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <queue>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
 namespace OpenMS
 {
@@ -36,8 +41,18 @@ namespace P = OpenMS::Internal::Percolator;
 
 void Percolator::Impl::reset()
 {
-  // PSM ownership lives with DataSet: DataSet::~DataSet() calls
-  // PSMDescription::deletePtr on each PSM. Don't double-free.
+  // Second-pass PSMs are NOT owned by any DataSet — delete explicitly.
+  // Their feature slots were already deallocated by scoreAndAddPSM; we only
+  // need to free the PSMDescription objects.
+  for (auto* psm : second_pass_psms)
+  {
+    if (psm) P::PSMDescription::deletePtr(psm);
+  }
+  second_pass_psms.clear();
+  second_pass_pool.reset();
+
+  // First-pass (training) PSM ownership lives with DataSet: DataSet::~DataSet()
+  // calls PSMDescription::deletePtr on each PSM. Don't double-free.
   owned_psms.clear();
   synthesized_ids.clear();
   target_ds.reset();
@@ -106,12 +121,15 @@ Percolator::Percolator()
   defaults_.setMinInt("nested_xval_bins", 1);
 
   defaults_.setValue("subset_max_train", 100000,
-                     "Cap on number of training PSMs per CV fold (0 = use all). Default "
-                     "100000 bounds training time on very large inputs (>1M PSMs) at negligible "
-                     "quality loss; the trained model is always applied to ALL PSMs. "
-                     "Note: upstream percolator binary defaults this to 0 — PercolatorAdapter "
-                     "preserves the CLI contract by passing its own int option (CLI default 0) "
-                     "through to this param.");
+                     "Cap on the training set size (0 = use all). Default 100000 bounds training "
+                     "time on very large inputs (>1M PSMs) at negligible quality loss. Sampling "
+                     "is reservoir-based, keyed by (scan, exp_mass) so all PSMs sharing a "
+                     "spectrum travel together; the trained model is then applied to ALL input "
+                     "rows via a second scoring pass (matches upstream Caller.cpp behavior). "
+                     "Inert when the input size is at or below the cap. Note: upstream "
+                     "percolator binary defaults this to 0 — PercolatorAdapter preserves the "
+                     "CLI contract by passing its own int option (CLI default 0) through to "
+                     "this param.");
   defaults_.setMinInt("subset_max_train", 0);
 
   defaults_.setValue("report_as_main_score", "none",
@@ -207,6 +225,88 @@ static P::PSMDescription* makePSMFromRow(
   return psm;
 }
 
+// Build the RowKeys tuple for row `i`, applying the same precedence and
+// defaults used during PSM registration. Centralized so the reservoir-sampling
+// pass (key → (scan, expMass)) and the PSM-building pass use identical keys.
+static RowKeys makeRowKeys(const RescoreInput& input, size_t i)
+{
+  RowKeys keys;
+  if (!input.scan_numbers.empty())       keys.scan = input.scan_numbers[i];
+  else if (!input.cv_group_keys.empty()) keys.scan = input.cv_group_keys[i];
+  else                                   keys.scan = static_cast<int>(i);
+  keys.spec_file = input.spec_file_numbers.empty() ? 0 : input.spec_file_numbers[i];
+  keys.exp_mass  = input.exp_masses.empty()        ? 0.0 : input.exp_masses[i];
+  keys.calc_mass = input.calc_masses.empty()       ? 0.0 : input.calc_masses[i];
+  return keys;
+}
+
+// Reservoir-sample a training subset of at most `max_train` row indices.
+// Mirrors P::SetHandler::readPSMs (SetHandler.cpp:234-278) exactly:
+//   - ScanId = (scan, exp_mass) → shared random priority per unique ScanId
+//     (keeps same-scan PSMs together in or out of the subset)
+//   - max-heap of (priority, row) capped at max_train
+//   - push a row iff the heap has room OR its priority is below upper_limit
+//   - on overflow, upper_limit = heap top priority, then pop
+// Uses P::PseudoRandom (seeded upstream in rescore()) — same generator the
+// subprocess percolator binary uses, so sampling is reproducible across paths.
+// Returns the sampled row indices in ascending order (deterministic
+// registration order). When subset_max_train ≤ 0 or ≥ n_rows, returns [0..n).
+static std::vector<size_t> selectTrainingSubset(
+  const RescoreInput& input, size_t n_rows, int subset_max_train)
+{
+  std::vector<size_t> out;
+  if (subset_max_train <= 0
+      || static_cast<size_t>(subset_max_train) >= n_rows)
+  {
+    out.resize(n_rows);
+    std::iota(out.begin(), out.end(), size_t{0});
+    return out;
+  }
+  const size_t max_train = static_cast<size_t>(subset_max_train);
+
+  using ScanId = std::pair<int, double>;
+  std::map<ScanId, size_t> scan_pri;
+  // (priority, row_idx) — default std::priority_queue is a max-heap by first.
+  std::priority_queue<std::pair<size_t, size_t>> heap;
+  size_t upper_limit = std::numeric_limits<size_t>::max();
+
+  for (size_t i = 0; i < n_rows; ++i)
+  {
+    const RowKeys k = makeRowKeys(input, i);
+    const ScanId sid{k.scan, k.exp_mass};
+    size_t pri;
+    auto it = scan_pri.find(sid);
+    if (it != scan_pri.end())
+    {
+      pri = it->second;
+    }
+    else
+    {
+      pri = P::PseudoRandom::lcg_rand();
+      scan_pri.emplace(sid, pri);
+    }
+
+    if (heap.size() < max_train || pri < upper_limit)
+    {
+      heap.emplace(pri, i);
+      if (heap.size() > max_train)
+      {
+        upper_limit = heap.top().first;  // record dropped priority first
+        heap.pop();
+      }
+    }
+  }
+
+  out.reserve(heap.size());
+  while (!heap.empty())
+  {
+    out.push_back(heap.top().second);
+    heap.pop();
+  }
+  std::sort(out.begin(), out.end());
+  return out;
+}
+
 RescoreOutput Percolator::rescore(const RescoreInput& input)
 {
   if (input.features.empty())
@@ -233,9 +333,32 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   impl_->reset();
   P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
 
-  // Set up SetHandler + feature pool.
-  impl_->set_handler = std::make_unique<P::SetHandler>(
-    static_cast<unsigned int>(std::max(0, impl_->subset_max_train)));
+  // Validate optional PIN-compat fields up front (before sampling, which
+  // consults input.scan_numbers / exp_masses).
+  auto validate_opt = [&](const auto& v, const char* name)
+  {
+    if (!v.empty() && v.size() != n_rows)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        std::string(name) + " must be empty or match n_rows", "");
+    }
+  };
+  validate_opt(input.cv_group_keys,      "cv_group_keys");
+  validate_opt(input.scan_numbers,       "scan_numbers");
+  validate_opt(input.spec_file_numbers,  "spec_file_numbers");
+  validate_opt(input.exp_masses,         "exp_masses");
+  validate_opt(input.calc_masses,        "calc_masses");
+
+  // Reservoir-sample the training subset (upstream Caller.cpp pattern). When
+  // subset_max_train is 0 or >= n_rows, training_rows is the identity [0..n).
+  const std::vector<size_t> training_rows =
+    selectTrainingSubset(input, n_rows, impl_->subset_max_train);
+  const bool did_subsample = training_rows.size() < n_rows;
+
+  // Set up SetHandler + feature pool. Pass 0 for maxPSMs because sampling is
+  // already done above (the SetHandler cap only matters for its own readPSMs
+  // path, which we don't use).
+  impl_->set_handler = std::make_unique<P::SetHandler>(0);
   P::FeatureMemoryPool& pool = impl_->set_handler->getFeaturePool();
   pool.createPool(static_cast<size_t>(n_feat));
 
@@ -259,36 +382,13 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   // DataSet::initFeatureTables is declared in DataSet.h but upstream never
   // defines it. Not needed — feature storage comes from FeatureMemoryPool.
 
-  // Validate optional PIN-compat fields: each is either empty or length n_rows.
-  auto validate_opt = [&](const auto& v, const char* name)
-  {
-    if (!v.empty() && v.size() != n_rows)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        std::string(name) + " must be empty or match n_rows", "");
-    }
-  };
-  validate_opt(input.cv_group_keys,      "cv_group_keys");
-  validate_opt(input.scan_numbers,       "scan_numbers");
-  validate_opt(input.spec_file_numbers,  "spec_file_numbers");
-  validate_opt(input.exp_masses,         "exp_masses");
-  validate_opt(input.calc_masses,        "calc_masses");
-
-  // Populate rows.
+  // Populate rows (training subset only — the second pass below scores the
+  // full set using the trained model, mirroring upstream Caller.cpp flow).
   impl_->synthesized_ids.resize(n_rows);
-  impl_->owned_psms.reserve(n_rows);
-  for (size_t i = 0; i < n_rows; ++i)
+  impl_->owned_psms.reserve(training_rows.size());
+  for (size_t i : training_rows)
   {
-    RowKeys keys;
-    // `scan` controls both CV grouping (via hash) AND OrderScanHash sort
-    // order. Precedence: scan_numbers > cv_group_keys > row_index.
-    if (!input.scan_numbers.empty())     keys.scan = input.scan_numbers[i];
-    else if (!input.cv_group_keys.empty()) keys.scan = input.cv_group_keys[i];
-    else                                   keys.scan = static_cast<int>(i);
-    keys.spec_file = input.spec_file_numbers.empty() ? 0 : input.spec_file_numbers[i];
-    keys.exp_mass  = input.exp_masses.empty()        ? 0.0 : input.exp_masses[i];
-    keys.calc_mass = input.calc_masses.empty()       ? 0.0 : input.calc_masses[i];
-
+    const RowKeys keys = makeRowKeys(input, i);
     auto* psm = makePSMFromRow(input.features[i], keys, i,
                                impl_->synthesized_ids[i], pool);
     impl_->owned_psms.push_back(psm);
@@ -374,16 +474,56 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     // Capture average SVM weights per fold BEFORE the TDC weeding step
     // (weeding mutates all_scores and may invalidate per-fold weight meaning).
     // getAvgWeights returns un-normalized weights in raw feature space.
+    std::vector<double> avg_weights;
+    cv.getAvgWeights(avg_weights, normalizer);
+    impl_->svm_weights.clear();
+    if (!avg_weights.empty()) impl_->svm_weights.push_back(avg_weights);
+
+    // Second pass: when we subsampled for training, score the FULL input set
+    // using the trained weights. Mirrors upstream Caller.cpp (lines 1196-1236
+    // in rel-3-08-01): reset allScores, rebuild via readAndScoreTab, then
+    // postMergeStep + calcQvals + normalizeScores. This is what makes the
+    // subset_max_train docstring claim "trained model applied to ALL PSMs" true.
+    if (did_subsample)
     {
-      impl_->svm_weights.clear();
-      std::vector<double> avg_weights;
-      cv.getAvgWeights(avg_weights, normalizer);
-      if (!avg_weights.empty()) impl_->svm_weights.push_back(std::move(avg_weights));
+      // Fresh feature pool — the existing `pool` is in use by training PSMs.
+      impl_->second_pass_pool = std::make_unique<P::FeatureMemoryPool>();
+      impl_->second_pass_pool->createPool(static_cast<size_t>(n_feat));
+      P::FeatureMemoryPool& full_pool = *impl_->second_pass_pool;
+
+      // Rebuild all_scores from scratch on every row, scored via avg_weights.
+      // The training-set scores/q-values/PEPs produced by postIterationProcessing
+      // above are discarded — the full-set values supersede them.
+      all_scores = P::Scores(impl_->use_pi0);
+      impl_->second_pass_psms.reserve(n_rows);
+
+      for (size_t i = 0; i < n_rows; ++i)
+      {
+        const RowKeys keys = makeRowKeys(input, i);
+        auto* psm = makePSMFromRow(input.features[i], keys, i,
+                                   impl_->synthesized_ids[i], full_pool);
+        impl_->second_pass_psms.push_back(psm);
+
+        P::ScoreHolder sh;
+        sh.pPSM  = psm;
+        sh.label = input.is_decoy[i] ? P::LabelType::DECOY : P::LabelType::TARGET;
+        // scoreAndAddPSM computes sh.score = Σ feat[j]·w[j] + w[bias], pushes
+        // the ScoreHolder into all_scores, and deallocates feat back to the
+        // pool (one-way trip — features not needed again).
+        all_scores.scoreAndAddPSM(sh, avg_weights, full_pool);
+      }
+
+      // Sort + count + pi0 estimation on the full set.
+      all_scores.postMergeStep();
+      // Upstream sequence: calcQvals on full set, then normalizeScores rescales
+      // SVM scores so median-decoy maps to 0 and first-FDR-crossing maps to 1.
+      all_scores.calcQvals(impl_->test_fdr);
+      all_scores.normalizeScores(impl_->test_fdr, avg_weights);
     }
 
     // Optional Target-Decoy Competition: best PSM per spectrum by score.
-    // Must happen after postIterationProcessing (so final scores are set)
-    // but before calcPep (PEPs depend on the deduplicated score set).
+    // Must happen after postIterationProcessing / second pass (so final scores
+    // are set) but before calcPep (PEPs depend on the deduplicated score set).
     if (impl_->post_processing_tdc)
     {
       all_scores.weedOutRedundantTDC();

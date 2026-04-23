@@ -37,6 +37,12 @@ namespace OpenMS
     /// bookkeeping only (so we can count rows). Do NOT delete these pointers
     /// directly — DataSet::~DataSet will.
     std::vector<OpenMS::Internal::Percolator::PSMDescription*> owned_psms;
+    /// PSMs built for the "score the full set" second pass when subsampling is
+    /// active. Not owned by any DataSet — reset() must delete them manually.
+    std::vector<OpenMS::Internal::Percolator::PSMDescription*> second_pass_psms;
+    /// Fresh FeatureMemoryPool used by the second pass (feature slots are
+    /// deallocated by scoreAndAddPSM but the pool itself must outlive it).
+    std::unique_ptr<OpenMS::Internal::Percolator::FeatureMemoryPool> second_pass_pool;
 
     // Persisted params (mirrored from DefaultParamHandler param_).
     double c_pos = 0.1;
