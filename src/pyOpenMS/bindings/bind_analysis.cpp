@@ -2164,6 +2164,35 @@ and peptides), switching from one to the other in each step
                 "Per-row integer key to keep related rows in the same CV fold. Leave empty for no grouping.")
         .def_rw("feature_names",  &OpenMS::RescoreInput::feature_names,
                 "Names aligned 1:1 with feature columns; used for logging only.")
+
+        .def("set_features_np",
+             [](OpenMS::RescoreInput& self,
+                nb::ndarray<const double, nb::ndim<2>, nb::c_contig> arr) {
+               const size_t n_rows  = arr.shape(0);
+               const size_t n_feats = arr.shape(1);
+               self.features.assign(n_rows, std::vector<double>(n_feats));
+               const double* src = arr.data();
+               for (size_t i = 0; i < n_rows; ++i) {
+                 std::memcpy(self.features[i].data(),
+                             src + i * n_feats,
+                             n_feats * sizeof(double));
+               }
+             },
+             "features_2d"_a,
+             "Set the feature matrix from a contiguous 2D numpy array of shape (n_rows, n_features). "
+             "Much faster than assigning a Python list-of-lists for large inputs (single bulk memcpy "
+             "per row instead of per-element conversion).")
+
+        .def("set_is_decoy_np",
+             [](OpenMS::RescoreInput& self,
+                nb::ndarray<const uint8_t, nb::ndim<1>, nb::c_contig> arr) {
+               const size_t n = arr.shape(0);
+               self.is_decoy.resize(n);
+               const uint8_t* src = arr.data();
+               for (size_t i = 0; i < n; ++i) self.is_decoy[i] = (src[i] != 0);
+             },
+             "flags_1d"_a,
+             "Set the target/decoy labels from a 1D numpy uint8 array (non-zero = decoy).")
         ;
 
     nb::class_<OpenMS::RescoreOutput>(m, "RescoreOutput",
@@ -2175,6 +2204,32 @@ and peptides), switching from one to the other in each step
         .def_rw("scores",   &OpenMS::RescoreOutput::scores,   "SVM discriminant score per row")
         .def_rw("q_values", &OpenMS::RescoreOutput::q_values, "q-value per row")
         .def_rw("peps",     &OpenMS::RescoreOutput::peps,     "posterior error probability per row")
+
+        .def("scores_np",
+             [](nb::object self_obj) -> nb::object {
+               auto& self = nb::cast<OpenMS::RescoreOutput&>(self_obj);
+               double* p = self.scores.empty() ? nullptr : self.scores.data();
+               size_t shape[] = { self.scores.size() };
+               return nb::ndarray<nb::numpy, double>(p, 1, shape, self_obj).cast();
+             },
+             "Numpy array view over the internal scores vector (zero copy). "
+             "Invalidated if the RescoreOutput is destroyed or its scores are reassigned.")
+        .def("q_values_np",
+             [](nb::object self_obj) -> nb::object {
+               auto& self = nb::cast<OpenMS::RescoreOutput&>(self_obj);
+               double* p = self.q_values.empty() ? nullptr : self.q_values.data();
+               size_t shape[] = { self.q_values.size() };
+               return nb::ndarray<nb::numpy, double>(p, 1, shape, self_obj).cast();
+             },
+             "Numpy array view over the internal q_values vector (zero copy).")
+        .def("peps_np",
+             [](nb::object self_obj) -> nb::object {
+               auto& self = nb::cast<OpenMS::RescoreOutput&>(self_obj);
+               double* p = self.peps.empty() ? nullptr : self.peps.data();
+               size_t shape[] = { self.peps.size() };
+               return nb::ndarray<nb::numpy, double>(p, 1, shape, self_obj).cast();
+             },
+             "Numpy array view over the internal peps vector (zero copy).")
         ;
 
     // -----------------------------------------------------------------------
