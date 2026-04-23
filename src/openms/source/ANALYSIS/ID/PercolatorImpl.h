@@ -52,6 +52,7 @@ namespace OpenMS
     int    nested_xval_bins = 1;
     int    subset_max_train = 0;              ///< 0 = no cap
     std::string initial_direction;            ///< feature name; prefix "-" = lower is better; empty = auto
+    bool   use_pi0 = true;                    ///< pi0 correction on q-values; false = pure TDA (pi0=1)
 
     /// Per-fold, per-feature weights populated after rescore(). Read by
     /// Percolator::getSvmWeights(). Empty before the first rescore().

@@ -350,6 +350,74 @@ START_SECTION([EXTRA] output makes sense on a realistic-scale dataset)
 }
 END_SECTION
 
+START_SECTION([EXTRA] use_pi0=false disables pi0 correction)
+{
+  // Build a dataset where pi0 correction clearly matters: plenty of well-
+  // separated targets mixed with decoys. With usePi0=true (default) q-values
+  // get multiplied by a pi0 < 1 estimate, so turning pi0 off raises every
+  // q-value at a given rank. Asserting strict "all q_off >= q_on" is too
+  // brittle (Percolator's merge step can reshuffle ties), so instead check
+  // that the means diverge in the expected direction.
+  std::srand(11);
+  auto rand01 = []() { return static_cast<double>(std::rand()) / RAND_MAX; };
+  auto randn = [&]() {
+    double u1 = std::max(1e-9, rand01());
+    return std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * rand01());
+  };
+  // Moderate separation (targets ~1.5σ above decoys). Wide enough that
+  // median decoy < score at FDR (both settings train), narrow enough that
+  // pi0 bootstrap has real uncertainty to correct for.
+  RescoreInput input;
+  input.feature_names = StringList{"f0"};
+  for (size_t i = 0; i < 600; ++i)
+  {
+    input.features.push_back({+1.5 + 1.0 * randn()});
+    input.is_decoy.push_back(false);
+  }
+  for (size_t i = 0; i < 600; ++i)
+  {
+    input.features.push_back({0.0 + 1.0 * randn()});
+    input.is_decoy.push_back(true);
+  }
+
+  Percolator p_on, p_off;
+  for (auto* p : {&p_on, &p_off})
+  {
+    Param par = p->getDefaults();
+    par.setValue("seed", 17);
+    par.setValue("test_fdr",  0.05);
+    par.setValue("train_fdr", 0.05);
+    p->setParameters(par);
+  }
+  {
+    Param par = p_off.getParameters();
+    par.setValue("use_pi0", "false");
+    p_off.setParameters(par);
+  }
+
+  RescoreOutput out_on  = p_on.rescore(input);
+  RescoreOutput out_off = p_off.rescore(input);
+
+  // Mean target q over top-100 ranked targets should be strictly lower when
+  // pi0 is on (because q is scaled by pi0 < 1).
+  std::vector<size_t> idx(input.features.size());
+  std::iota(idx.begin(), idx.end(), 0);
+  std::sort(idx.begin(), idx.end(),
+    [&](size_t a, size_t b){ return out_on.scores[a] > out_on.scores[b]; });
+  double mean_on = 0, mean_off = 0;
+  size_t counted = 0;
+  for (size_t k = 0; k < idx.size() && counted < 100; ++k)
+  {
+    if (input.is_decoy[idx[k]]) continue;
+    mean_on  += out_on.q_values[idx[k]];
+    mean_off += out_off.q_values[idx[k]];
+    ++counted;
+  }
+  TEST_EQUAL(counted, 100)
+  TEST_TRUE(mean_on < mean_off)
+}
+END_SECTION
+
 START_SECTION([EXTRA] malformed input throws InvalidValue)
 {
   // Empty input

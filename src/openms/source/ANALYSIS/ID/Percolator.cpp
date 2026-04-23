@@ -95,6 +95,14 @@ Percolator::Percolator()
                      "Mirrors -subset_max_train; the trained model is applied to all PSMs.");
   defaults_.setMinInt("subset_max_train", 0);
 
+  defaults_.setValue("use_pi0", "true",
+                     "Enable pi0 correction when computing q-values (default). "
+                     "When true, pi0 is estimated per CV fold via bootstrap spline fit on the "
+                     "target score distribution using decoys as the null — matches the subprocess "
+                     "percolator binary. Set to 'false' for pure target-decoy FDR (pi0=1.0, "
+                     "equivalent to 'percolator -Q 1.0').");
+  defaults_.setValidStrings("use_pi0", {"true","false"});
+
   defaultsToParam_();
 }
 
@@ -118,6 +126,7 @@ void Percolator::updateMembers_()
   impl_->nested_xval_bins    = static_cast<int>(param_.getValue("nested_xval_bins"));
   impl_->subset_max_train    = static_cast<int>(param_.getValue("subset_max_train"));
   impl_->initial_direction   = param_.getValue("initial_direction").toString();
+  impl_->use_pi0             = (param_.getValue("use_pi0").toString() == "true");
 }
 
 const std::vector<std::vector<double>>& Percolator::getSvmWeights() const
@@ -300,7 +309,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   impl_->set_handler->normalizeFeatures(normalizer);
 
   // Build the full score set and populate from SetHandler.
-  P::Scores all_scores(/*usePi0=*/true);
+  P::Scores all_scores(/*usePi0=*/impl_->use_pi0);
   all_scores.populateWithPSMs(*impl_->set_handler);
 
   // Cross-validation setup and training.
@@ -313,7 +322,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     /*selectedCpos=*/impl_->c_pos,
     /*selectedCneg=*/impl_->c_neg,
     /*niter=*/static_cast<unsigned int>(impl_->num_iterations),
-    /*usePi0=*/true,
+    /*usePi0=*/impl_->use_pi0,
     /*nestedXvalBins=*/static_cast<unsigned int>(impl_->nested_xval_bins),
     /*trainBestPositive=*/impl_->train_best_positive,
     /*numThreads=*/1,
