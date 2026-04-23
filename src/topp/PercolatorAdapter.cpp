@@ -774,8 +774,7 @@ protected:
                                  && !protein_level_fdrs
                                  && !peptide_level_fdrs
                                  && description_of_correct == 0
-                                 && getStringOption_("init_weights").empty()
-                                 && getStringOption_("default_direction").empty();
+                                 && getStringOption_("init_weights").empty();
 
       if (in_process_ok)
       {
@@ -878,6 +877,7 @@ protected:
                     getFlag_("post_processing_tdc") ? "true" : "false");
         pp.setValue("nested_xval_bins", getIntOption_("nested_xval_bins"));
         pp.setValue("subset_max_train", getIntOption_("subset_max_train"));
+        pp.setValue("initial_direction", getStringOption_("default_direction"));
         perc.setParameters(pp);
         // Call the low-level API so the PIN-compatible fields on `ri` are
         // actually used (the high-level rescore(peptide_ids, …) ignores them).

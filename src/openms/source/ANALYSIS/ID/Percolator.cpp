@@ -282,6 +282,20 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
       "Could not initialize Percolator SanityCheck", "");
   }
+  // Resolve initial_direction name → feature index. In the subprocess path
+  // this is called from SetHandler::readPSMs (which we bypass). Must run
+  // after feature names are registered (above) and before preIterationSetup.
+  try
+  {
+    sanity->checkAndSetDefaultDir();
+  }
+  catch (const std::exception& e)
+  {
+    delete sanity;
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      std::string("initial_direction not resolved: ") + e.what(),
+      impl_->initial_direction);
+  }
 
   impl_->set_handler->normalizeFeatures(normalizer);
 
