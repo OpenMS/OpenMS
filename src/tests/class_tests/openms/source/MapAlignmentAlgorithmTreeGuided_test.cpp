@@ -12,6 +12,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 
+#include <algorithm>
+#include <cmath>
 #include <iostream>
 
 using namespace std;
@@ -116,17 +118,31 @@ START_SECTION((void computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_m
   aligner.computeTrafosByOriginalRT(maps_orig, map_transformed, trafos, trafo_order);
 
   TEST_EQUAL(trafos.size(), 3);
-
-  for (Size i = 0; i < maps.size(); ++i)
+  for (Size i = 0; i < trafos.size(); ++i)
   {
-    // first rt in trafo should be the same as in original map
-    Size j = 0;
-    for (auto feature_it = maps_orig[i].begin(); feature_it < maps_orig[i].end(); ++feature_it)
+    TEST_EQUAL(trafos[i].getDataPoints().empty(), false);
+  }
+
+  // data points are sequence-based matches to the final consensus RT scale:
+  StringList notes;
+  bool has_non_identity_shift = false;
+  for (const auto& point : trafos[1].getDataPoints())
+  {
+    notes.push_back(point.note);
+    if (std::fabs(point.first - point.second) > 1e-6)
     {
-      TEST_REAL_SIMILAR(trafos[i].getDataPoints()[j].first, feature_it->getRT());
-      ++j;
+      has_non_identity_shift = true;
     }
   }
+  std::sort(notes.begin(), notes.end());
+
+  const StringList expected_notes = ListUtils::create<String>("AAA,ABC,ACD,CAA,FBC");
+  TEST_EQUAL(notes.size(), expected_notes.size());
+  for (Size i = 0; i < notes.size(); ++i)
+  {
+    TEST_EQUAL(notes[i], expected_notes[i]);
+  }
+  TEST_EQUAL(has_non_identity_shift, true);
 }
 END_SECTION
 
