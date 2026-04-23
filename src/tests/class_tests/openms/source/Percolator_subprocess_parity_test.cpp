@@ -206,7 +206,8 @@ String percolatorBinary()
 /// Generate a realistic-scale synthetic dataset: 2000 PSMs with a mildly
 /// informative 3-feature signal, same shape as the "realistic" Percolator
 /// class test. Large enough to comfortably pass SanityCheck.
-void generateSyntheticData(RescoreInput& ri, std::mt19937& rng)
+void generateSyntheticData(RescoreInput& ri, std::mt19937& rng,
+                           double size_mult = 1.0)
 {
   ri.features.clear();
   ri.is_decoy.clear();
@@ -215,7 +216,9 @@ void generateSyntheticData(RescoreInput& ri, std::mt19937& rng)
   std::normal_distribution<double> noise(0.0, 0.5);
   std::normal_distribution<double> unit(0.0, 1.0);
 
-  const size_t n_easy = 500, n_hard = 500, n_dec = 1000;
+  const size_t n_easy = static_cast<size_t>(500 * size_mult);
+  const size_t n_hard = static_cast<size_t>(500 * size_mult);
+  const size_t n_dec  = static_cast<size_t>(1000 * size_mult);
   for (size_t i = 0; i < n_easy; ++i)
   {
     ri.features.push_back({+2.0 + noise(rng), +1.0 + noise(rng), unit(rng)});
@@ -1056,6 +1059,93 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
       }
       TEST_EQUAL(a_in == a_sub, true)
     }
+  }
+}
+END_SECTION
+
+///////////////////////////////////////////////////////////////////////////////
+// Test 7: Reservoir-sampling parity at larger scale (P1.b).
+//
+// 20 000 rows with subset_max_train=5000 forces the reservoir sampler on
+// both paths. Existing §4 case uses subset_max_train=200 on 2000 rows,
+// which is informative but below the natural scale where sampling matters.
+///////////////////////////////////////////////////////////////////////////////
+
+START_SECTION([EXTRA] reservoir-sampling parity at 20k rows)
+{
+  const String bin = percolatorBinary();
+  if (bin.empty())
+  {
+    TEST_EQUAL(true, true);  // skip
+  }
+  else
+  {
+    std::mt19937 rng(2026);
+    RescoreInput ri;
+    generateSyntheticData(ri, rng, /*size_mult=*/10.0);
+    TEST_EQUAL(ri.features.size(), 20000)
+
+    const String pin_path = File::getTemporaryFile();
+    writePinFile(pin_path, ri);
+
+    SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1 -N 5000");
+    TEST_EQUAL(sub.exit_code, 0)
+
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 1);
+    par.setValue("pep_method", "isotonic");
+    par.setValue("subset_max_train", 5000);
+    p.setParameters(par);
+    RescoreOutput out = p.rescore(ri);
+
+    double sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
+    size_t matches = 0;
+    int tgt_q01_in = 0, tgt_q01_sub = 0;
+    int tgt_q05_in = 0, tgt_q05_sub = 0;
+    for (size_t i = 0; i < out.scores.size(); ++i)
+    {
+      char k[32]; std::snprintf(k, sizeof(k), "row_%08zu", i);
+      auto it = sub.triplets.find(k);
+      if (it == sub.triplets.end()) continue;
+      matches++;
+      const double x = out.scores[i];
+      const double y = it->second.score;
+      sx += x; sy += y; sxx += x * x; syy += y * y; sxy += x * y;
+      if (!ri.is_decoy[i])
+      {
+        if (out.q_values[i]   <= 0.01) tgt_q01_in++;
+        if (it->second.qval <= 0.01) tgt_q01_sub++;
+        if (out.q_values[i]   <= 0.05) tgt_q05_in++;
+        if (it->second.qval <= 0.05) tgt_q05_sub++;
+      }
+    }
+    const double nf = static_cast<double>(matches);
+    const double num = nf * sxy - sx * sy;
+    const double den = std::sqrt((nf * sxx - sx * sx) * (nf * syy - sy * sy));
+    const double r = (den > 1e-15) ? num / den : 0.0;
+
+    TEST_TRUE(matches >= 18000)
+    TEST_TRUE(r >= 0.999)
+
+    // Count parity at q-thresholds: tolerance-based at 20k scale. The 5000-row
+    // reservoir-trained SVM slightly underperforms the initial direction on
+    // this fixture, which triggers percolator's Reset fallback; post-reset
+    // q-value assignment has tiny boundary sensitivity that flips ~5 rows
+    // across q=0.01 between paths even at r >= 0.999. Tolerance 0.5% is 7x
+    // the observed 0.07% drift — catches real regressions without being
+    // noise-sensitive at this scale.
+    const int maxc01 = std::max(tgt_q01_in, tgt_q01_sub);
+    const double ratio01 = (maxc01 > 0)
+      ? static_cast<double>(std::abs(tgt_q01_in - tgt_q01_sub)) / static_cast<double>(maxc01)
+      : 0.0;
+    TEST_TRUE(ratio01 <= 0.005)
+
+    const int maxc05 = std::max(tgt_q05_in, tgt_q05_sub);
+    const double ratio05 = (maxc05 > 0)
+      ? static_cast<double>(std::abs(tgt_q05_in - tgt_q05_sub)) / static_cast<double>(maxc05)
+      : 0.0;
+    TEST_TRUE(ratio05 <= 0.005)
   }
 }
 END_SECTION
