@@ -101,6 +101,18 @@ namespace OpenMS
     RescoreOutput rescore(const RescoreInput& input);
 
     /**
+      @brief SVM weights trained in the last rescore() call.
+
+      Per-fold vectors of per-feature weights (+1 bias at the end). Same
+      layout Percolator uses internally. Useful for diagnostics or to write
+      out a .weights file mimicking the subprocess path.
+
+      @return Outer size = num_folds (typically 3); inner size = num_features + 1.
+              Empty until rescore() has been called.
+    */
+    const std::vector<std::vector<double>>& getSvmWeights() const;
+
+    /**
       @brief Fill PIN-compatible optional fields on a RescoreInput.
 
       Populates `input.scan_numbers`, `input.spec_file_numbers`,

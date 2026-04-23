@@ -65,6 +65,31 @@ Percolator::Percolator()
   defaults_.setValue("seed",             1,    "Random seed for CV splitting.");
   defaults_.setValue("target_decoy_metavalue", "target_decoy",
                      "Meta-value on PeptideHit indicating target/decoy ('target'/'decoy').");
+
+  defaults_.setValue("normalizer", "stdv",
+                     "Feature normalizer: 'stdv' (zero-mean, unit-stdv, default), "
+                     "'uni' (min/max), or 'none' (no normalization).");
+  defaults_.setValidStrings("normalizer", {"stdv","uni","none"});
+
+  defaults_.setValue("train_best_positive", "false",
+                     "Train on best PSM per spectrum (mirrors Percolator -train_best_positive).");
+  defaults_.setValidStrings("train_best_positive", {"true","false"});
+
+  defaults_.setValue("post_processing_tdc", "false",
+                     "Apply Target-Decoy Competition (best PSM per spectrum) after training, "
+                     "before PEP/q-value calculation. Mirrors -post_processing_tdc.");
+  defaults_.setValidStrings("post_processing_tdc", {"true","false"});
+
+  defaults_.setValue("nested_xval_bins", 1,
+                     "Number of nested CV bins for grid search of Cpos/Cneg. "
+                     "Upstream default for cross validation is 3; 1 disables nested search.");
+  defaults_.setMinInt("nested_xval_bins", 1);
+
+  defaults_.setValue("subset_max_train", 0,
+                     "Cap on number of training PSMs (0 = use all). "
+                     "Mirrors -subset_max_train; the trained model is applied to all PSMs.");
+  defaults_.setMinInt("subset_max_train", 0);
+
   defaultsToParam_();
 }
 
@@ -82,6 +107,16 @@ void Percolator::updateMembers_()
   impl_->num_iterations = static_cast<int>(param_.getValue("num_iterations"));
   impl_->seed           = static_cast<int>(param_.getValue("seed"));
   impl_->pep_method     = param_.getValue("pep_method").toString();
+  impl_->normalizer     = param_.getValue("normalizer").toString();
+  impl_->train_best_positive = (param_.getValue("train_best_positive").toString() == "true");
+  impl_->post_processing_tdc = (param_.getValue("post_processing_tdc").toString() == "true");
+  impl_->nested_xval_bins    = static_cast<int>(param_.getValue("nested_xval_bins"));
+  impl_->subset_max_train    = static_cast<int>(param_.getValue("subset_max_train"));
+}
+
+const std::vector<std::vector<double>>& Percolator::getSvmWeights() const
+{
+  return impl_->svm_weights;
 }
 
 struct RowKeys
@@ -151,7 +186,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
 
   // Set up SetHandler + feature pool.
-  impl_->set_handler = std::make_unique<P::SetHandler>(0 /* maxPSMs, 0 = no cap */);
+  impl_->set_handler = std::make_unique<P::SetHandler>(
+    static_cast<unsigned int>(std::max(0, impl_->subset_max_train)));
   P::FeatureMemoryPool& pool = impl_->set_handler->getFeaturePool();
   pool.createPool(static_cast<size_t>(n_feat));
 
@@ -222,7 +258,10 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   impl_->set_handler->push_back_dataset(impl_->decoy_ds.release());
 
   // Normalizer.
-  P::Normalizer::setType(P::Normalizer::STDV);
+  int norm_type = P::Normalizer::STDV;
+  if      (impl_->normalizer == "uni")  norm_type = P::Normalizer::UNI;
+  else if (impl_->normalizer == "none") norm_type = P::Normalizer::NONORM;
+  P::Normalizer::setType(norm_type);
   P::Normalizer* normalizer = P::Normalizer::getNormalizer();
 
   // SanityCheck: "default" fingerprint → generic PSM-level sanity.
@@ -250,8 +289,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     /*selectedCneg=*/impl_->c_neg,
     /*niter=*/static_cast<unsigned int>(impl_->num_iterations),
     /*usePi0=*/true,
-    /*nestedXvalBins=*/1,
-    /*trainBestPositive=*/false,
+    /*nestedXvalBins=*/static_cast<unsigned int>(impl_->nested_xval_bins),
+    /*trainBestPositive=*/impl_->train_best_positive,
     /*numThreads=*/1,
     /*skipNormalizeScores=*/false,
     /*decoyFractionTraining=*/1.0,
@@ -264,6 +303,25 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     (void)first_positives;
     cv.train(normalizer);
     cv.postIterationProcessing(all_scores, sanity);
+
+    // Capture average SVM weights per fold BEFORE the TDC weeding step
+    // (weeding mutates all_scores and may invalidate per-fold weight meaning).
+    // getAvgWeights returns un-normalized weights in raw feature space.
+    {
+      impl_->svm_weights.clear();
+      std::vector<double> avg_weights;
+      cv.getAvgWeights(avg_weights, normalizer);
+      if (!avg_weights.empty()) impl_->svm_weights.push_back(std::move(avg_weights));
+    }
+
+    // Optional Target-Decoy Competition: best PSM per spectrum by score.
+    // Must happen after postIterationProcessing (so final scores are set)
+    // but before calcPep (PEPs depend on the deduplicated score set).
+    if (impl_->post_processing_tdc)
+    {
+      all_scores.weedOutRedundantTDC();
+    }
+
     // Post-train PEP estimation: matches upstream Caller.cpp which calls
     // calcPep after postIterationProcessing. Without this, every PEP stays
     // at its default (uninitialized) value. Args match upstream defaults:

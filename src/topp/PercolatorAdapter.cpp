@@ -871,6 +871,13 @@ protected:
         pp.setValue("train_fdr",      getDoubleOption_("trainFDR"));
         pp.setValue("num_iterations", getIntOption_("maxiter"));
         pp.setValue("seed",           getIntOption_("seed"));
+        pp.setValue("normalizer",     getFlag_("unitnorm") ? "uni" : "stdv");
+        pp.setValue("train_best_positive",
+                    getFlag_("train_best_positive") ? "true" : "false");
+        pp.setValue("post_processing_tdc",
+                    getFlag_("post_processing_tdc") ? "true" : "false");
+        pp.setValue("nested_xval_bins", getIntOption_("nested_xval_bins"));
+        pp.setValue("subset_max_train", getIntOption_("subset_max_train"));
         perc.setParameters(pp);
         // Call the low-level API so the PIN-compatible fields on `ri` are
         // actually used (the high-level rescore(peptide_ids, …) ignores them).

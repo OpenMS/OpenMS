@@ -46,6 +46,15 @@ namespace OpenMS
     int    num_iterations = 10;
     int    seed = 1;
     std::string pep_method = "logistic_regression";
+    std::string normalizer = "stdv";          ///< "stdv" | "uni" | "none"
+    bool   train_best_positive = false;
+    bool   post_processing_tdc = false;
+    int    nested_xval_bins = 1;
+    int    subset_max_train = 0;              ///< 0 = no cap
+
+    /// Per-fold, per-feature weights populated after rescore(). Read by
+    /// Percolator::getSvmWeights(). Empty before the first rescore().
+    std::vector<std::vector<double>> svm_weights;
 
     void reset();
   };
