@@ -94,7 +94,13 @@ Percolator::Percolator()
                      "Leave empty (default) to let Percolator auto-select by testing every feature "
                      "in both directions and picking the one that separates the most targets at train_fdr.");
   defaults_.setValue("pep_method",       "logistic_regression",
-                     "PEP estimator: 'logistic_regression' or 'isotonic'.");
+                     "PEP estimator: 'logistic_regression' (tdc-to-pep via InferPEP — "
+                     "legacy naming, not actually logistic regression) or 'isotonic' "
+                     "(target-q-to-pep via InferPEP; matches external percolator binary). "
+                     "The default is 'logistic_regression' for determinism on degenerate "
+                     "score distributions where isotonic is more tie-sensitive. "
+                     "Callers that need subprocess-matching PEPs should set 'isotonic' "
+                     "(as PercolatorAdapter does).");
   defaults_.setValidStrings("pep_method", {"logistic_regression","isotonic"});
   defaults_.setValue("seed",             1,    "Random seed for CV splitting.");
   defaults_.setValue("target_decoy_metavalue", "target_decoy",

@@ -878,6 +878,7 @@ protected:
         pp.setValue("nested_xval_bins", getIntOption_("nested_xval_bins"));
         pp.setValue("subset_max_train", getIntOption_("subset_max_train"));
         pp.setValue("initial_direction", getStringOption_("default_direction"));
+        pp.setValue("pep_method", "isotonic");  // match external percolator binary's behavior
         perc.setParameters(pp);
         // Call the low-level API so the PIN-compatible fields on `ri` are
         // actually used (the high-level rescore(peptide_ids, …) ignores them).

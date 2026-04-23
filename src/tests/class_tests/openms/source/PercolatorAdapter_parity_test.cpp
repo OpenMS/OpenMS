@@ -91,30 +91,28 @@ OutputTriplet extractTriplet(const PeptideIdentification& pid, const PeptideHit&
 }
 
 /// Invoke PercolatorAdapter on @p in_idxml, writing @p out_idxml.
-/// Uses PercolatorAdapter_1.ini (testFDR=trainFDR=0.5) to avoid the reset
-/// path on this small dataset, matching the existing TOPP_PercolatorAdapter_1
-/// test configuration.
+/// Passes extra_args verbatim (e.g. "-testFDR 0.5 -trainFDR 0.5") so the
+/// caller can match the FDR settings used by the TOPP_PercolatorAdapter_1 test.
 int runAdapter(const String& adapter_bin,
                const String& percolator_bin,
                bool use_subprocess,
                const String& in_idxml,
-               const String& out_idxml)
+               const String& out_idxml,
+               const std::string& extra_args = "")
 {
-  const String ini_file =
-    OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/PercolatorAdapter_1.ini");
   const String stdout_log = File::getTemporaryFile();
   const String stderr_log = File::getTemporaryFile();
 
   std::ostringstream cmd;
   cmd << "\"" << adapter_bin << "\""
       << " -test"
-      << " -ini \"" << ini_file << "\""
       << " -in \""           << in_idxml     << "\""
       << " -out \""          << out_idxml    << "\""
       << " -out_type idXML"
       << " -percolator_executable \"" << percolator_bin << "\""
-      << " -use_subprocess " << (use_subprocess ? "true" : "false")
-      << " > \"" << stdout_log << "\""
+      << " -use_subprocess " << (use_subprocess ? "true" : "false");
+  if (!extra_args.empty()) cmd << " " << extra_args;
+  cmd << " > \"" << stdout_log << "\""
       << " 2> \"" << stderr_log << "\"";
   return std::system(cmd.str().c_str());
 }
@@ -155,15 +153,17 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
     const String percolator_bin = String(perc);
     const String adapter_bin    = String(adap);
     const String in_idxml =
-      OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/PercolatorAdapter_1.idXML");
+      OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/CometAdapter_4_out.idXML");
 
     const String out_sub = File::getTemporaryFile() + ".idxml";
     const String out_inp = File::getTemporaryFile() + ".idxml";
 
     TEST_EQUAL(runAdapter(adapter_bin, percolator_bin, /*use_subprocess=*/true,
-                          in_idxml, out_sub), 0)
+                          in_idxml, out_sub,
+                          "-testFDR 0.5 -trainFDR 0.5"), 0)
     TEST_EQUAL(runAdapter(adapter_bin, percolator_bin, /*use_subprocess=*/false,
-                          in_idxml, out_inp), 0)
+                          in_idxml, out_inp,
+                          "-testFDR 0.5 -trainFDR 0.5"), 0)
 
     auto sub = loadTripletsByRowKey(out_sub);
     auto inp = loadTripletsByRowKey(out_inp);
