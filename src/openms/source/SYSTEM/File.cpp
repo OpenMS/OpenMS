@@ -58,6 +58,20 @@ namespace OpenMS
     fs::create_directories(to_path(temp_dir_));
   };
 
+  File::TempDir::TempDir(const String& base_dir, bool keep_dir)
+    : keep_dir_(keep_dir)
+  {
+    // Create a unique subdirectory under the provided base_dir
+    temp_dir_ = base_dir;
+    if (!temp_dir_.empty() && !temp_dir_.hasSuffix("/"))
+    {
+      temp_dir_ += "/";
+    }
+    temp_dir_ += "OpenMSTempDir_" + File::getUniqueName() + "/";
+    OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
+    fs::create_directories(to_path(temp_dir_));
+  };
+
   File::TempDir::~TempDir()
   {
     if (keep_dir_)
@@ -187,6 +201,27 @@ namespace OpenMS
     // move the file to the actual destination:
     std::error_code rename_ec;
     fs::rename(to_path(from), to_path(to), rename_ec);
+
+    // Cross-device rename fails with EXDEV on POSIX. Qt's QFile::rename silently
+    // copied and removed in that case; preserve that so TOPP tools can move files
+    // out of a tmp dir into a bind-mounted output (common in containers).
+    if (rename_ec == std::errc::cross_device_link)
+    {
+      std::error_code copy_ec;
+      fs::copy_file(to_path(from), to_path(to),
+                    fs::copy_options::overwrite_existing, copy_ec);
+      if (!copy_ec)
+      {
+        std::error_code remove_ec;
+        fs::remove(to_path(from), remove_ec); // best-effort source cleanup
+        rename_ec.clear();
+      }
+      else
+      {
+        rename_ec = copy_ec;
+      }
+    }
+
     if (rename_ec)
     {
       if (verbose)
@@ -330,6 +365,41 @@ namespace OpenMS
   String File::basename(const String& file)
   { // using well-defined overflow of unsigned ints here if path separator is not found
     return file.substr(file.find_last_of("\\/") + 1);
+  }
+
+  String File::stemName(const String& file)
+  {
+    return FileHandler::stripExtension(basename(file));
+  }
+
+  String File::extension(const String& file)
+  {
+    String base = basename(file);
+    String stem = FileHandler::stripExtension(base);
+    if (stem.size() >= base.size())
+    {
+      return ""; // no extension (stripExtension returned the same or longer string)
+    }
+    return base.substr(stem.size()); // everything after the stem, including leading '.'
+  }
+
+  StringList File::listDirectories(const String& dir)
+  {
+    StringList result;
+    auto dir_path = to_path(dir);
+    std::error_code ec;
+    if (!fs::is_directory(dir_path, ec)) return result;
+
+    for (fs::directory_iterator it(dir_path, ec), end; !ec && it != end; it.increment(ec))
+    {
+      if (it->is_directory(ec))
+      {
+        result.push_back(fs::absolute(it->path(), ec).generic_string());
+      }
+    }
+    if (ec) return {};
+    std::sort(result.begin(), result.end());
+    return result;
   }
 
   String File::path(const String& file)

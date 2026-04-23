@@ -15,7 +15,6 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 
-//~ #include <QIODevice>
 #include <algorithm>
 #include <fstream>
 #include <vector>

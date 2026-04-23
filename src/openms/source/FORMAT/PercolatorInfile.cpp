@@ -23,14 +23,28 @@ namespace OpenMS
   using namespace std;
 
   void PercolatorInfile::store(const String& pin_file,
-    const PeptideIdentificationList& peptide_ids, 
-    const StringList& feature_set, 
-    const std::string& enz, 
-    int min_charge, 
+    const PeptideIdentificationList& peptide_ids,
+    const StringList& feature_set,
+    const std::string& enz,
+    int min_charge,
     int max_charge)
   {
     TextFile txt = preparePin_(peptide_ids, feature_set, enz, min_charge, max_charge);
     txt.store(pin_file);
+  }
+
+  StringList PercolatorInfile::getStandardFeatureSet(int min_charge, int max_charge)
+  {
+    StringList fs = {
+      "SpecId", "Label", "ScanNr",
+      "ExpMass", "CalcMass", "mass", "peplen"
+    };
+    for (int c = min_charge; c <= max_charge; ++c)
+    {
+      fs.push_back("charge" + String(c));
+    }
+    fs.insert(fs.end(), {"enzN", "enzC", "enzInt", "dm", "absdm"});
+    return fs;
   }
 
   // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index

@@ -323,6 +323,9 @@ namespace OpenMS
 
     os << convertToCWL(tdl_tool_info) << "\n";
 #else
+    (void)os_ptr;
+    (void)param;
+    (void)tool_info;
     throw std::runtime_error{"TDL support is not available. Rebuild with -DENABLE_TDL=ON to enable this feature."};
 #endif
   }

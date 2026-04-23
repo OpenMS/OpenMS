@@ -684,7 +684,7 @@ protected:
             for (auto& f : original_files)
             {
               std::replace( f.begin(), f.end(), '\\', '/');
-              f = FileHandler::stripExtension(File::basename(f)); // some SE adapters write full paths, some may use raw
+              f = File::stemName(f); // some SE adapters write full paths, some may use raw
             }
             if (original_files.size() != 1)
             {
@@ -751,7 +751,7 @@ protected:
             for (auto& f : original_files)
             {
               std::replace( f.begin(), f.end(), '\\', '/');
-              f = FileHandler::stripExtension(File::basename(f)); // some SE adapters write full paths, some may use raw
+              f = File::stemName(f); // some SE adapters write full paths, some may use raw
             }
             String original_file = original_files[0];
             auto iter_inserted = grouping_per_file.emplace(original_file, unordered_map<String,PeptideIdentificationList>{});

@@ -27,7 +27,7 @@
 #include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
-#include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>
@@ -166,7 +166,6 @@
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 #include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
-#include <OpenMS/PROCESSING/RESAMPLING/LinearResampler.h>
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 #include <OpenMS/PROCESSING/SCALING/RankScaler.h>
@@ -245,8 +244,8 @@ NB_MODULE(_pyopenms_misc, m) {
     // DefaultParamHandler
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::DefaultParamHandler>(m, "DefaultParamHandler", "A base class for all classes handling default parameters")
-        .def(nb::init<OpenMS::String>())
         .def(nb::init<const OpenMS::DefaultParamHandler &>())
+        .def(nb::init<OpenMS::String>())
         .def("__copy__", [](const OpenMS::DefaultParamHandler& self) { return OpenMS::DefaultParamHandler(self); })
         .def("__deepcopy__", [](const OpenMS::DefaultParamHandler& self, nb::dict) { return OpenMS::DefaultParamHandler(self); }, "memo"_a)
         .def("setParameters", [](OpenMS::DefaultParamHandler& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
@@ -2443,7 +2442,7 @@ FeatureFinder algorithm for picked (centroided) data
 DefaultParamHandler
 )doc")
         .def(nb::init<>())
-        .def("run", [](OpenMS::FeatureFinderAlgorithmPicked& self, OpenMS::MSExperiment& input_map, OpenMS::FeatureMap& features, const OpenMS::Param& param, const OpenMS::FeatureMap& seeds) { nb::gil_scoped_release release; return self.run(input_map, features, param, seeds); }, "input_map"_a, "features"_a, "param"_a, "seeds"_a)
+        .def("run", [](OpenMS::FeatureFinderAlgorithmPicked& self, OpenMS::MSExperiment input_map, OpenMS::FeatureMap& features, const OpenMS::Param& param, const OpenMS::FeatureMap& seeds) { nb::gil_scoped_release release; return self.run(std::move(input_map), features, param, seeds); }, "input_map"_a, "features"_a, "param"_a, "seeds"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -2642,32 +2641,23 @@ BaseGroupFinder
     def_ProgressLogger<OpenMS::LabeledPairFinder>(labeledpairfinder_class);
 
     // -----------------------------------------------------------------------
-    // LinearResampler
-    // -----------------------------------------------------------------------
-    auto linearresampler_class = nb::class_<OpenMS::LinearResampler, OpenMS::DefaultParamHandler>(m, "LinearResampler", 
-        R"doc(
-DefaultParamHandler
-ProgressLogger
-
-Annotates and filters transitions in a TargetedExperiment
-:param exp: The input, unfiltered transitions
-)doc")
-        .def(nb::init<>())
-        .def("raster", [](const OpenMS::LinearResampler& self, OpenMS::MSSpectrum& spectrum) { return self.raster(spectrum); }, "spectrum"_a, "Applies the resampling algorithm to an MSSpectrum")
-        .def("rasterExperiment", [](OpenMS::LinearResampler& self, OpenMS::MSExperiment& exp) { return self.rasterExperiment(exp); }, "exp"_a, "Resamples the data in an MSExperiment")
-        ;
-    def_ProgressLogger<OpenMS::LinearResampler>(linearresampler_class);
-
-    // -----------------------------------------------------------------------
     // LinearResamplerAlign
     // -----------------------------------------------------------------------
-    auto linearresampleralign_class = nb::class_<OpenMS::LinearResamplerAlign, OpenMS::LinearResampler>(m, "LinearResamplerAlign", 
+    auto linearresampleralign_class = nb::class_<OpenMS::LinearResamplerAlign, OpenMS::DefaultParamHandler>(m, "LinearResamplerAlign",
         R"doc(
 Linear Resampling of raw data with alignment
-LinearResampler
+DefaultParamHandler
+ProgressLogger
 )doc")
         .def(nb::init<>())
-        .def("rasterExperiment", [](OpenMS::LinearResamplerAlign& self, OpenMS::MSExperiment& exp) { return self.rasterExperiment(exp); }, "exp"_a, "Resamples the data in an MSExperiment")
+        .def(nb::init<const OpenMS::LinearResamplerAlign &>())
+        .def("__copy__", [](const OpenMS::LinearResamplerAlign& self) { return OpenMS::LinearResamplerAlign(self); })
+        .def("__deepcopy__", [](const OpenMS::LinearResamplerAlign& self, nb::dict) { return OpenMS::LinearResamplerAlign(self); }, "memo"_a)
+        .def("raster", [](OpenMS::LinearResamplerAlign& self, OpenMS::MSSpectrum& spectrum) { return self.raster(spectrum); }, "spectrum"_a, "Applies the resampling algorithm to an MSSpectrum")
+        .def("raster", [](OpenMS::LinearResamplerAlign& self, OpenMS::MSChromatogram& chromatogram) { return self.raster(chromatogram); }, "chromatogram"_a, "Applies the resampling algorithm to an MSChromatogram")
+        .def("raster_align", [](OpenMS::LinearResamplerAlign& self, OpenMS::MSSpectrum& spectrum, double start_pos, double end_pos) { return self.raster_align(spectrum, start_pos, end_pos); }, "spectrum"_a, "start_pos"_a, "end_pos"_a, "Resamples an MSSpectrum onto an explicit raster [start_pos, end_pos]")
+        .def("raster_align", [](OpenMS::LinearResamplerAlign& self, OpenMS::MSChromatogram& chromatogram, double start_pos, double end_pos) { return self.raster_align(chromatogram, start_pos, end_pos); }, "chromatogram"_a, "start_pos"_a, "end_pos"_a, "Resamples an MSChromatogram onto an explicit raster [start_pos, end_pos]")
+        .def("rasterExperiment", [](OpenMS::LinearResamplerAlign& self, OpenMS::MSExperiment& exp) { return self.rasterExperiment(exp); }, "exp"_a, "Resamples all spectra in an MSExperiment")
         ;
     def_ProgressLogger<OpenMS::LinearResamplerAlign>(linearresampleralign_class);
 
@@ -3319,23 +3309,23 @@ only in decoy proteins, or in both. The target/decoy information is crucial for 
         ;
 
     // -----------------------------------------------------------------------
-    // PeptideSearchEngineFIAlgorithm
+    // ProSEAlgorithm
     // -----------------------------------------------------------------------
-    // SearchResult struct (nested in PeptideSearchEngineFIAlgorithm)
-    nb::class_<OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult>(m, "SearchResult",
+    // SearchResult struct (nested in ProSEAlgorithm)
+    nb::class_<OpenMS::ProSEAlgorithm::SearchResult>(m, "SearchResult",
         "Comprehensive search result including modification analysis")
         .def(nb::init<>())
-        .def(nb::init<const OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult&>())
-        .def("__copy__", [](const OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult& self) { return OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult(self); })
-        .def("__deepcopy__", [](const OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult& self, nb::dict) { return OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult(self); }, "memo"_a)
-        .def_rw("exit_code", &OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult::exit_code)
-        .def_rw("protein_ids", &OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult::protein_ids)
-        .def_rw("peptide_ids", &OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult::peptide_ids)
-        .def_rw("modification_analysis", &OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult::modification_analysis)
-        .def_rw("is_open_search", &OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult::is_open_search)
+        .def(nb::init<const OpenMS::ProSEAlgorithm::SearchResult&>())
+        .def("__copy__", [](const OpenMS::ProSEAlgorithm::SearchResult& self) { return OpenMS::ProSEAlgorithm::SearchResult(self); })
+        .def("__deepcopy__", [](const OpenMS::ProSEAlgorithm::SearchResult& self, nb::dict) { return OpenMS::ProSEAlgorithm::SearchResult(self); }, "memo"_a)
+        .def_rw("exit_code", &OpenMS::ProSEAlgorithm::SearchResult::exit_code)
+        .def_rw("protein_ids", &OpenMS::ProSEAlgorithm::SearchResult::protein_ids)
+        .def_rw("peptide_ids", &OpenMS::ProSEAlgorithm::SearchResult::peptide_ids)
+        .def_rw("modification_analysis", &OpenMS::ProSEAlgorithm::SearchResult::modification_analysis)
+        .def_rw("is_open_search", &OpenMS::ProSEAlgorithm::SearchResult::is_open_search)
         ;
 
-    auto peptidesearchenginefialgorithm_class = nb::class_<OpenMS::PeptideSearchEngineFIAlgorithm, OpenMS::DefaultParamHandler>(m, "PeptideSearchEngineFIAlgorithm",
+    auto prosealgorithm_class = nb::class_<OpenMS::ProSEAlgorithm, OpenMS::DefaultParamHandler>(m, "ProSEAlgorithm",
         R"doc(
 DefaultParamHandler
 ProgressLogger
@@ -3350,7 +3340,7 @@ outputs (ProteinIdentification and PeptideIdentificationList)
 )doc")
         .def(nb::init<>())
         // in-memory search with prot_ids output parameter (4-arg, most specific — must be first)
-        .def("search", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, OpenMS::PeakMap& spectra, const std::vector<OpenMS::FASTAFile::FASTAEntry>& fasta_db, nb::list prot_ids_out, OpenMS::PeptideIdentificationList& pep_ids) {
+        .def("search", [](const OpenMS::ProSEAlgorithm& self, OpenMS::PeakMap& spectra, const std::vector<OpenMS::FASTAFile::FASTAEntry>& fasta_db, nb::list prot_ids_out, OpenMS::PeptideIdentificationList& pep_ids) {
             std::vector<OpenMS::ProteinIdentification> prot_ids;
             auto result = self.search(spectra, fasta_db, prot_ids, pep_ids);
             for (auto& p : prot_ids) {
@@ -3360,14 +3350,14 @@ outputs (ProteinIdentification and PeptideIdentificationList)
         }, "spectra"_a, "fasta_db"_a, "prot_ids"_a, "pep_ids"_a,
            "In-memory search. Populates prot_ids list and returns ExitCodes")
         // in-memory search overload (PeakMap + FASTAEntry vector, 3-arg returns tuple)
-        .def("search", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, OpenMS::PeakMap& spectra, const std::vector<OpenMS::FASTAFile::FASTAEntry>& fasta_db, OpenMS::PeptideIdentificationList& pep_ids) {
+        .def("search", [](const OpenMS::ProSEAlgorithm& self, OpenMS::PeakMap& spectra, const std::vector<OpenMS::FASTAFile::FASTAEntry>& fasta_db, OpenMS::PeptideIdentificationList& pep_ids) {
             std::vector<OpenMS::ProteinIdentification> prot_ids;
             auto result = self.search(spectra, fasta_db, prot_ids, pep_ids);
             return nb::make_tuple(result, prot_ids);
         }, "spectra"_a, "fasta_db"_a, "pep_ids"_a,
            "In-memory search. Returns (ExitCodes, list[ProteinIdentification])")
         // file-based search with prot_ids output parameter (4-arg)
-        .def("search", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, nb::list prot_ids_out, OpenMS::PeptideIdentificationList& pep_ids) {
+        .def("search", [](const OpenMS::ProSEAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, nb::list prot_ids_out, OpenMS::PeptideIdentificationList& pep_ids) {
             std::vector<OpenMS::ProteinIdentification> prot_ids;
             auto result = self.search(in_mzML, in_db, prot_ids, pep_ids);
             for (auto& p : prot_ids) {
@@ -3377,7 +3367,7 @@ outputs (ProteinIdentification and PeptideIdentificationList)
         }, "in_mzML"_a, "in_db"_a, "prot_ids"_a, "pep_ids"_a,
            "File-based search. Populates prot_ids list and returns ExitCodes")
         // file-based search (3-arg returns tuple)
-        .def("search", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, OpenMS::PeptideIdentificationList& pep_ids) {
+        .def("search", [](const OpenMS::ProSEAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, OpenMS::PeptideIdentificationList& pep_ids) {
             std::vector<OpenMS::ProteinIdentification> prot_ids;
             auto result = self.search(in_mzML, in_db, prot_ids, pep_ids);
             return nb::make_tuple(result, prot_ids);
@@ -3385,25 +3375,25 @@ outputs (ProteinIdentification and PeptideIdentificationList)
            "File-based search. Returns (ExitCodes, list[ProteinIdentification])")
         // in-memory searchWithModificationAnalysis (more specific types — must be first)
         .def("searchWithModificationAnalysis",
-            static_cast<OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult (OpenMS::PeptideSearchEngineFIAlgorithm::*)(OpenMS::PeakMap&, const std::vector<OpenMS::FASTAFile::FASTAEntry>&, const OpenMS::String&) const>(
-                &OpenMS::PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis),
+            static_cast<OpenMS::ProSEAlgorithm::SearchResult (OpenMS::ProSEAlgorithm::*)(OpenMS::PeakMap&, const std::vector<OpenMS::FASTAFile::FASTAEntry>&, const OpenMS::String&) const>(
+                &OpenMS::ProSEAlgorithm::searchWithModificationAnalysis),
             "spectra"_a, "fasta_db"_a, "output_base_name"_a = OpenMS::String(""),
             "In-memory search with modification analysis. Returns SearchResult")
         // file-based searchWithModificationAnalysis
         .def("searchWithModificationAnalysis",
-            static_cast<OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult (OpenMS::PeptideSearchEngineFIAlgorithm::*)(const OpenMS::String&, const OpenMS::String&, const OpenMS::String&) const>(
-                &OpenMS::PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis),
+            static_cast<OpenMS::ProSEAlgorithm::SearchResult (OpenMS::ProSEAlgorithm::*)(const OpenMS::String&, const OpenMS::String&, const OpenMS::String&) const>(
+                &OpenMS::ProSEAlgorithm::searchWithModificationAnalysis),
             "in_mzML"_a, "in_db"_a, "output_base_name"_a = OpenMS::String(""),
             "File-based search with modification analysis. Returns SearchResult")
         ;
-    def_ProgressLogger<OpenMS::PeptideSearchEngineFIAlgorithm>(peptidesearchenginefialgorithm_class);
-    // PeptideSearchEngineFIAlgorithm_ExitCodes enum nested under PeptideSearchEngineFIAlgorithm
-    nb::enum_<OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes>(peptidesearchenginefialgorithm_class, "PeptideSearchEngineFIAlgorithm_ExitCodes", nb::is_arithmetic())
-        .value("EXECUTION_OK", OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK)
-        .value("INPUT_FILE_EMPTY", OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes::INPUT_FILE_EMPTY)
-        .value("UNEXPECTED_RESULT", OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes::UNEXPECTED_RESULT)
-        .value("UNKNOWN_ERROR", OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes::UNKNOWN_ERROR)
-        .value("ILLEGAL_PARAMETERS", OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes::ILLEGAL_PARAMETERS)
+    def_ProgressLogger<OpenMS::ProSEAlgorithm>(prosealgorithm_class);
+    // ProSEAlgorithm_ExitCodes enum nested under ProSEAlgorithm
+    nb::enum_<OpenMS::ProSEAlgorithm::ExitCodes>(prosealgorithm_class, "ProSEAlgorithm_ExitCodes", nb::is_arithmetic())
+        .value("EXECUTION_OK", OpenMS::ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+        .value("INPUT_FILE_EMPTY", OpenMS::ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY)
+        .value("UNEXPECTED_RESULT", OpenMS::ProSEAlgorithm::ExitCodes::UNEXPECTED_RESULT)
+        .value("UNKNOWN_ERROR", OpenMS::ProSEAlgorithm::ExitCodes::UNKNOWN_ERROR)
+        .value("ILLEGAL_PARAMETERS", OpenMS::ProSEAlgorithm::ExitCodes::ILLEGAL_PARAMETERS)
         .export_values();
 
     // -----------------------------------------------------------------------

@@ -169,8 +169,8 @@ An class that uses on-disk caching to read and write spectra and
 chromatograms
 )doc")
         .def(nb::init<>())
-        .def(nb::init<OpenMS::String>())
         .def(nb::init<const OpenMS::CachedmzML &>())
+        .def(nb::init<OpenMS::String>())
         .def("__copy__", [](const OpenMS::CachedmzML& self) { return OpenMS::CachedmzML(self); })
         .def("__deepcopy__", [](const OpenMS::CachedmzML& self, nb::dict) { return OpenMS::CachedmzML(self); }, "memo"_a)
         .def("getSpectrum", [](OpenMS::CachedmzML& self, size_t id) { return self.getSpectrum(id); }, "id"_a)
@@ -686,8 +686,8 @@ Tries to parse the file, success needs to be checked with the return value
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Internal::IndexedMzMLHandler>(m, "IndexedMzMLHandler", "A low-level class to read an indexedmzML file")
         .def(nb::init<>())
-        .def(nb::init<OpenMS::String>())
         .def(nb::init<const OpenMS::Internal::IndexedMzMLHandler &>())
+        .def(nb::init<OpenMS::String>())
         .def("__copy__", [](const OpenMS::Internal::IndexedMzMLHandler& self) { return OpenMS::Internal::IndexedMzMLHandler(self); })
         .def("__deepcopy__", [](const OpenMS::Internal::IndexedMzMLHandler& self, nb::dict) { return OpenMS::Internal::IndexedMzMLHandler(self); }, "memo"_a)
         .def("openFile", [](OpenMS::Internal::IndexedMzMLHandler& self, const OpenMS::String& filename) { return self.openFile(filename); }, "filename"_a)
@@ -900,8 +900,8 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::MSstatsFile& self) { return OpenMS::MSstatsFile(self); })
         .def("__deepcopy__", [](const OpenMS::MSstatsFile& self, nb::dict) { return OpenMS::MSstatsFile(self); }, "memo"_a)
-        .def("storeLFQ", [](OpenMS::MSstatsFile& self, const OpenMS::String& filename, const OpenMS::ConsensusMap& consensus_map, const OpenMS::ExperimentalDesign& design, const OpenMS::StringList& reannotate_filenames, const bool is_isotope_label_type, const OpenMS::String& bioreplicate, const OpenMS::String& condition, const OpenMS::String& retention_time_summarization_method) { self.storeLFQ(filename, consensus_map, design, reannotate_filenames, is_isotope_label_type, bioreplicate, condition, retention_time_summarization_method); }, "filename"_a, "consensus_map"_a, "design"_a, "reannotate_filenames"_a, "is_isotope_label_type"_a, "bioreplicate"_a, "condition"_a, "retention_time_summarization_method"_a)
-        .def("storeISO", [](OpenMS::MSstatsFile& self, const OpenMS::String& filename, const OpenMS::ConsensusMap& consensus_map, const OpenMS::ExperimentalDesign& design, const OpenMS::StringList& reannotate_filenames, const OpenMS::String& bioreplicate, const OpenMS::String& condition, const OpenMS::String& mixture, const OpenMS::String& retention_time_summarization_method) { self.storeISO(filename, consensus_map, design, reannotate_filenames, bioreplicate, condition, mixture, retention_time_summarization_method); }, "filename"_a, "consensus_map"_a, "design"_a, "reannotate_filenames"_a, "bioreplicate"_a, "condition"_a, "mixture"_a, "retention_time_summarization_method"_a)
+        .def("storeLFQ", [](OpenMS::MSstatsFile& self, const OpenMS::String& filename, const OpenMS::ConsensusMap& consensus_map, const OpenMS::ExperimentalDesign& design, const OpenMS::StringList& reannotate_filenames, const bool is_isotope_label_type, const OpenMS::String& bioreplicate, const OpenMS::String& condition, const OpenMS::String& retention_time_summarization_method, const bool remove_shared_peptides) { self.storeLFQ(filename, consensus_map, design, reannotate_filenames, is_isotope_label_type, bioreplicate, condition, retention_time_summarization_method, remove_shared_peptides); }, "filename"_a, "consensus_map"_a, "design"_a, "reannotate_filenames"_a, "is_isotope_label_type"_a, "bioreplicate"_a, "condition"_a, "retention_time_summarization_method"_a, "remove_shared_peptides"_a = true)
+        .def("storeISO", [](OpenMS::MSstatsFile& self, const OpenMS::String& filename, const OpenMS::ConsensusMap& consensus_map, const OpenMS::ExperimentalDesign& design, const OpenMS::StringList& reannotate_filenames, const OpenMS::String& bioreplicate, const OpenMS::String& condition, const OpenMS::String& mixture, const OpenMS::String& retention_time_summarization_method, const bool remove_shared_peptides) { self.storeISO(filename, consensus_map, design, reannotate_filenames, bioreplicate, condition, mixture, retention_time_summarization_method, remove_shared_peptides); }, "filename"_a, "consensus_map"_a, "design"_a, "reannotate_filenames"_a, "bioreplicate"_a, "condition"_a, "mixture"_a, "retention_time_summarization_method"_a, "remove_shared_peptides"_a = true)
         ;
 
     // -----------------------------------------------------------------------
@@ -1846,9 +1846,9 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
     // XICParquetFile
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::XICParquetFile>(m, "XICParquetFile", "OpenMS class XICParquetFile")
+        .def(nb::init<const OpenMS::XICParquetFile &>())
         .def(nb::init<OpenMS::String>())
         .def(nb::init<std::vector<OpenMS::String>>())
-        .def(nb::init<const OpenMS::XICParquetFile &>())
         .def("__copy__", [](const OpenMS::XICParquetFile& self) { return OpenMS::XICParquetFile(self); })
         .def("__deepcopy__", [](const OpenMS::XICParquetFile& self, nb::dict) { return OpenMS::XICParquetFile(self); }, "memo"_a)
         .def("getFilename", [](const OpenMS::XICParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH chromatogram Parquet files (.xic).")
@@ -2045,9 +2045,9 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
     // XIMParquetFile
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::XIMParquetFile>(m, "XIMParquetFile", "OpenMS class XIMParquetFile")
+        .def(nb::init<const OpenMS::XIMParquetFile &>())
         .def(nb::init<OpenMS::String>())
         .def(nb::init<std::vector<OpenMS::String>>())
-        .def(nb::init<const OpenMS::XIMParquetFile &>())
         .def("__copy__", [](const OpenMS::XIMParquetFile& self) { return OpenMS::XIMParquetFile(self); })
         .def("__deepcopy__", [](const OpenMS::XIMParquetFile& self, nb::dict) { return OpenMS::XIMParquetFile(self); }, "memo"_a)
         .def("getFilename", [](const OpenMS::XIMParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH mobilogram Parquet files (.xim).")
@@ -2283,7 +2283,12 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
     nb::class_<OpenMS::QPXFile>(m, "QPXFile",
         "Export PSM data to Apache Arrow/Parquet format following QPX PSM schema")
         .def(nb::init<>())
-        .def_static("exportToParquet", &OpenMS::QPXFile::exportToParquet,
+        .def_static("exportToParquet",
+            static_cast<bool (*)(const std::vector<OpenMS::ProteinIdentification>&,
+                                 const OpenMS::PeptideIdentificationList&,
+                                 const OpenMS::String&,
+                                 bool,
+                                 const OpenMS::ParquetWriteConfig&)>(&OpenMS::QPXFile::exportToParquet),
             "protein_identifications"_a, "peptide_identifications"_a,
             "filename"_a, "export_all_psms"_a = false,
             "config"_a = OpenMS::ParquetWriteConfig{},

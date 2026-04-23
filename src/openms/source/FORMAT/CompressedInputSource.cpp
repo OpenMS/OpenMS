@@ -10,6 +10,7 @@
 
 #include <OpenMS/FORMAT/GzipInputStream.h>
 #include <OpenMS/FORMAT/Bzip2InputStream.h>
+#include <OpenMS/FORMAT/ZipInputStream.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 #include <xercesc/util/XMLUniDefs.hpp>
@@ -118,6 +119,16 @@ namespace OpenMS
     if (head_[0] == 'B' && head_[1] == 'Z')
     {
       Bzip2InputStream * retStrm = new Bzip2InputStream(Internal::StringManager().convert(getSystemId()));
+      if (!retStrm->getIsOpen())
+      {
+        delete retStrm;
+        return nullptr;
+      }
+      return retStrm;
+    }
+    else if (head_[0] == 'P' && head_[1] == 'K')
+    {
+      ZipInputStream * retStrm = new ZipInputStream(Internal::StringManager().convert(getSystemId()));
       if (!retStrm->getIsOpen())
       {
         delete retStrm;

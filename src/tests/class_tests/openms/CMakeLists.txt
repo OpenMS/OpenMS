@@ -147,7 +147,7 @@ if (TARGET ArrowSchemaRegistry_test)
 endif()
 
 if (TARGET BrukerTimsFile_test AND WITH_OPENTIMS)
-  target_link_libraries(BrukerTimsFile_test opentims_cpp sqlite3)
+  target_link_libraries(BrukerTimsFile_test opentims::opentims_cpp sqlite3)
 endif()
 
 if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)
@@ -155,6 +155,9 @@ if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)
     OPENTIMS_DDA_TEST_DATA="${OPENTIMS_DDA_TEST_DATA}"
     OPENTIMS_DIA_TEST_DATA="${OPENTIMS_DIA_TEST_DATA}"
     OPENTIMS_TEST_FASTA="${OPENTIMS_TEST_FASTA}")
+  # This test loads real Bruker .d files (DDA + DIA) including frame aggregation
+  # and a peptide search engine run, so it needs a generous timeout.
+  set_tests_properties(BrukerTimsFile_test PROPERTIES TIMEOUT 1200)
 endif()
 
 #------------------------------------------------------------------------------
