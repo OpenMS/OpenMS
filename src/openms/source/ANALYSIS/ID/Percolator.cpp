@@ -94,14 +94,15 @@ Percolator::Percolator()
                      "Leave empty (default) to let Percolator auto-select by testing every feature "
                      "in both directions and picking the one that separates the most targets at train_fdr.");
   defaults_.setValue("pep_method",       "logistic_regression",
-                     "PEP estimator: 'logistic_regression' (tdc-to-pep via InferPEP — "
-                     "legacy naming, not actually logistic regression) or 'isotonic' "
-                     "(target-q-to-pep via InferPEP; matches external percolator binary). "
-                     "The default is 'logistic_regression' for determinism on degenerate "
-                     "score distributions where isotonic is more tie-sensitive. "
-                     "Callers that need subprocess-matching PEPs should set 'isotonic' "
-                     "(as PercolatorAdapter does).");
-  defaults_.setValidStrings("pep_method", {"logistic_regression","isotonic"});
+                     "PEP estimator. Three options:\n"
+                     " - 'logistic_regression' (default, library-callers): tdc-to-pep via "
+                     "InferPEP (legacy naming; not actually logistic regression). "
+                     "Deterministic on degenerate score distributions.\n"
+                     " - 'isotonic': target-q-to-pep via InferPEP. 3.08.01-era algorithm.\n"
+                     " - 'nonparametric': PosteriorEstimator::estimatePEP (non-parametric "
+                     "smoothing). Matches the external percolator 3.06 binary's PEP algorithm; "
+                     "used by PercolatorAdapter for subprocess parity.");
+  defaults_.setValidStrings("pep_method", {"logistic_regression","isotonic","nonparametric"});
   defaults_.setValue("seed",             1,    "Random seed for CV splitting.");
   defaults_.setValue("target_decoy_metavalue", "target_decoy",
                      "Meta-value on PeptideHit indicating target/decoy ('target'/'decoy').");
@@ -609,10 +610,17 @@ RescoreOutput Percolator::score(const RescoreInput& input,
 
     if (impl_->pep_method == "isotonic")
     {
+      // 3.08.01 InferPEP target-q-to-pep.
       all_scores.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/true);
+    }
+    else if (impl_->pep_method == "nonparametric")
+    {
+      // Matches 3.06 subprocess: PosteriorEstimator::estimatePEP (spline/kernel).
+      all_scores.calcPep(/*spline=*/true,  /*interp=*/false, /*pava=*/false);
     }
     else
     {
+      // "logistic_regression": 3.08.01 InferPEP tdc-to-pep (legacy naming).
       all_scores.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/false);
     }
   }
@@ -809,10 +817,17 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
     if (impl_->pep_method == "isotonic")
     {
+      // 3.08.01 InferPEP target-q-to-pep.
       all_scores.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/true);
+    }
+    else if (impl_->pep_method == "nonparametric")
+    {
+      // Matches 3.06 subprocess: PosteriorEstimator::estimatePEP (spline/kernel).
+      all_scores.calcPep(/*spline=*/true,  /*interp=*/false, /*pava=*/false);
     }
     else
     {
+      // "logistic_regression": 3.08.01 InferPEP tdc-to-pep (legacy naming).
       all_scores.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/false);
     }
   }
