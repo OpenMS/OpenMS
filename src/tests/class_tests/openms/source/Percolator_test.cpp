@@ -19,7 +19,10 @@
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
+#include <iterator>
 #include <numeric>
+#include <random>
+#include <set>
 
 using namespace OpenMS;
 using namespace std;
@@ -954,6 +957,98 @@ START_SECTION([EXTRA] same-instance consecutive calls are bit-identical)
     if (out1.peps[i]     != out2.peps[i])     bit_identical = false;
   }
   TEST_EQUAL(bit_identical, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] input-order invariance Jaccard characterization)
+{
+  // Documents the input-order dependence the docstring calls out. Asserts
+  // Pearson r >= 0.99 on scores (after un-permuting) and Jaccard >= 0.95
+  // on accepted-target sets at q <= 0.01.
+  //
+  // Prerequisite: populate stable scan_numbers on `base` BEFORE shuffling.
+  // The CV fold hash incorporates scan_numbers (defaults to row_index when
+  // empty). Without stable scans, shuffling reassigns CV folds, which
+  // dominates the measurement. Populating stable scans isolates the
+  // intrinsic algorithmic order-sensitivity we actually want to bound.
+  RescoreInput base = makeModeratelySeparableInput_(800, 456);
+  base.scan_numbers.resize(base.features.size());
+  for (size_t i = 0; i < base.scan_numbers.size(); ++i)
+  {
+    base.scan_numbers[i] = static_cast<int>(i + 1);
+  }
+
+  std::vector<size_t> perm(base.features.size());
+  std::iota(perm.begin(), perm.end(), 0);
+  std::mt19937 rng(456);
+  std::vector<size_t> perm_shuf = perm;
+  std::shuffle(perm_shuf.begin(), perm_shuf.end(), rng);
+
+  auto permuteInput = [](const RescoreInput& in, const std::vector<size_t>& p) {
+    RescoreInput out;
+    out.feature_names = in.feature_names;
+    out.features.reserve(p.size());
+    out.is_decoy.reserve(p.size());
+    out.scan_numbers.reserve(p.size());
+    for (size_t i : p)
+    {
+      out.features.push_back(in.features[i]);
+      out.is_decoy.push_back(in.is_decoy[i]);
+      out.scan_numbers.push_back(in.scan_numbers[i]);
+    }
+    return out;
+  };
+
+  Percolator p1, p2;
+  for (auto* p : {&p1, &p2})
+  {
+    Param par = p->getDefaults();
+    par.setValue("seed", 456);
+    p->setParameters(par);
+  }
+
+  RescoreOutput out1 = p1.rescore(permuteInput(base, perm));
+  RescoreOutput out2 = p2.rescore(permuteInput(base, perm_shuf));
+
+  // Un-permute out2 so row i refers to base row i.
+  const size_t n = out1.scores.size();
+  std::vector<double> scores2_aligned(n), qvals2_aligned(n);
+  for (size_t i = 0; i < perm_shuf.size(); ++i)
+  {
+    scores2_aligned[perm_shuf[i]] = out2.scores[i];
+    qvals2_aligned[perm_shuf[i]] = out2.q_values[i];
+  }
+
+  // Pearson r on aligned scores.
+  double sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
+  for (size_t i = 0; i < n; ++i)
+  {
+    const double x = out1.scores[i];
+    const double y = scores2_aligned[i];
+    sx += x; sy += y; sxx += x * x; syy += y * y; sxy += x * y;
+  }
+  const double nf = static_cast<double>(n);
+  const double num = nf * sxy - sx * sy;
+  const double den = std::sqrt((nf * sxx - sx * sx) * (nf * syy - sy * sy));
+  const double r = (den > 1e-15) ? num / den : 0.0;
+  TEST_TRUE(r >= 0.99)
+
+  // Jaccard on accepted-target set at q <= 0.01.
+  std::set<size_t> a, b;
+  for (size_t i = 0; i < n; ++i)
+  {
+    if (base.is_decoy[i]) continue;
+    if (out1.q_values[i]  <= 0.01) a.insert(i);
+    if (qvals2_aligned[i] <= 0.01) b.insert(i);
+  }
+  std::set<size_t> inter, uni;
+  std::set_intersection(a.begin(), a.end(), b.begin(), b.end(),
+                        std::inserter(inter, inter.begin()));
+  std::set_union(a.begin(), a.end(), b.begin(), b.end(),
+                 std::inserter(uni, uni.begin()));
+  const double jaccard = uni.empty() ? 1.0
+    : static_cast<double>(inter.size()) / static_cast<double>(uni.size());
+  TEST_TRUE(jaccard >= 0.95)
 }
 END_SECTION
 
