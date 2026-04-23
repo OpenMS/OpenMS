@@ -75,9 +75,13 @@ find_program(PERCOLATOR_BINARY_FOR_TEST percolator
 if (PERCOLATOR_BINARY_FOR_TEST)
   set_tests_properties(Percolator_subprocess_parity_test PROPERTIES
     ENVIRONMENT "PERCOLATOR_BINARY=${PERCOLATOR_BINARY_FOR_TEST}")
+  set_tests_properties(PercolatorAdapter_parity_test PROPERTIES
+    ENVIRONMENT "PERCOLATOR_BINARY=${PERCOLATOR_BINARY_FOR_TEST};PERCOLATOR_ADAPTER_BINARY=$<TARGET_FILE:PercolatorAdapter>")
   message(STATUS "Percolator_subprocess_parity_test: enabled (found ${PERCOLATOR_BINARY_FOR_TEST})")
+  message(STATUS "PercolatorAdapter_parity_test: enabled (adapter via $<TARGET_FILE:PercolatorAdapter>)")
 else()
   message(STATUS "Percolator_subprocess_parity_test: subprocess sections skipped (percolator binary not on PATH nor in THIRDPARTY)")
+  message(STATUS "PercolatorAdapter_parity_test: subprocess sections skipped (percolator binary not on PATH nor in THIRDPARTY)")
 endif()
 
 #------------------------------------------------------------------------------
