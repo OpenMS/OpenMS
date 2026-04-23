@@ -18,10 +18,54 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <fstream>
 #include <numeric>
 
 using namespace OpenMS;
 using namespace std;
+
+// Helper: build a moderately-separable dataset with @p n_per_class targets
+// and decoys, 2 features (signal + noise). Target signal ~N(+1.0, 0.6^2);
+// decoy signal ~N(0.0, 0.6^2). Not trivially separable — Percolator's
+// checkSeparationAndSetPi0 will not fire on this.
+static OpenMS::RescoreInput makeModeratelySeparableInput_(
+  std::size_t n_per_class, unsigned seed)
+{
+  std::srand(seed);
+  auto rand01 = []() { return static_cast<double>(std::rand()) / RAND_MAX; };
+  auto randn = [&]() {
+    double u1 = std::max(1e-9, rand01());
+    return std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * rand01());
+  };
+  OpenMS::RescoreInput input;
+  input.feature_names = OpenMS::StringList{"signal", "noise"};
+  input.features.reserve(2 * n_per_class);
+  input.is_decoy.reserve(2 * n_per_class);
+  for (std::size_t i = 0; i < n_per_class; ++i)
+  {
+    input.features.push_back({+1.0 + 0.6 * randn(), rand01()});
+    input.is_decoy.push_back(false);
+  }
+  for (std::size_t i = 0; i < n_per_class; ++i)
+  {
+    input.features.push_back({ 0.0 + 0.6 * randn(), rand01()});
+    input.is_decoy.push_back(true);
+  }
+  return input;
+}
+
+static bool medianTargetBeatsDecoy_(const OpenMS::RescoreOutput& out,
+                                    const OpenMS::RescoreInput& in)
+{
+  std::vector<double> tt, dd;
+  for (std::size_t i = 0; i < out.scores.size(); ++i)
+  {
+    (in.is_decoy[i] ? dd : tt).push_back(out.scores[i]);
+  }
+  std::sort(tt.begin(), tt.end());
+  std::sort(dd.begin(), dd.end());
+  return tt[tt.size() / 2] > dd[dd.size() / 2];
+}
 
 START_TEST(Percolator, "$Id$")
 
@@ -521,6 +565,358 @@ START_SECTION([EXTRA] malformed input throws InvalidValue)
     input.is_decoy.push_back(false);
     input.is_decoy.push_back(true);
     TEST_EXCEPTION(Exception::InvalidValue, p.rescore(input))
+  }
+}
+END_SECTION
+
+START_SECTION((PercolatorModel train(const RescoreInput& input)))
+{
+  RescoreInput input = makeModeratelySeparableInput_(300, 42);
+
+  Percolator p;
+  Param par = p.getDefaults();
+  par.setValue("seed", 17);
+  p.setParameters(par);
+
+  PercolatorModel model = p.train(input);
+
+  TEST_EQUAL(model.format_version, 1)
+  TEST_EQUAL(model.feature_names.size(), 2u)
+  TEST_EQUAL(model.feature_names[0], "signal")
+  TEST_EQUAL(model.feature_names[1], "noise")
+  TEST_EQUAL(model.weights.size(), 3u)  // 2 features + 1 bias
+  TEST_EQUAL(model.normalizer_type, "stdv")
+  TEST_EQUAL(model.seed, 17)
+  // Signal weight should be positive (targets have higher signal than decoys).
+  TEST_TRUE(model.weights[0] > 0.0)
+}
+END_SECTION
+
+START_SECTION((RescoreOutput score(const RescoreInput& input, const PercolatorModel& model)))
+{
+  // Train on A, score A. Target median score > decoy median score.
+  RescoreInput input = makeModeratelySeparableInput_(300, 42);
+  Percolator p;
+  Param par = p.getDefaults();
+  par.setValue("seed", 17);
+  p.setParameters(par);
+
+  PercolatorModel model = p.train(input);
+  RescoreOutput out = p.score(input, model);
+
+  TEST_EQUAL(out.scores.size(), input.features.size())
+  TEST_EQUAL(out.q_values.size(), input.features.size())
+  TEST_EQUAL(out.peps.size(), input.features.size())
+  TEST_TRUE(medianTargetBeatsDecoy_(out, input))
+}
+END_SECTION
+
+START_SECTION([EXTRA] train on A score disjoint B)
+{
+  // Independent datasets drawn from the same distribution.
+  RescoreInput A = makeModeratelySeparableInput_(300, 42);
+  RescoreInput B = makeModeratelySeparableInput_(300, 99);
+
+  Percolator p;
+  Param par = p.getDefaults();
+  par.setValue("seed", 17);
+  p.setParameters(par);
+
+  PercolatorModel model = p.train(A);
+  RescoreOutput out = p.score(B, model);
+
+  TEST_EQUAL(out.scores.size(), B.features.size())
+  TEST_TRUE(medianTargetBeatsDecoy_(out, B))
+}
+END_SECTION
+
+START_SECTION([EXTRA] train then score on same overlapping input)
+{
+  // Exercises the unified train+score path on data that is NOT trivially
+  // separable (significant target/decoy overlap). Confirms:
+  //  1. checkSeparationAndSetPi0 does NOT fire (scoring the training rows
+  //     with averaged weights is safe when class distributions overlap).
+  //  2. q-values and PEPs land in [0, 1].
+  //  3. Target median score still > decoy median.
+  //  4. Scores correlate with rescore()'s CV-merge output on the same input,
+  //     even though the two paths use different scoring policies (averaged
+  //     weights vs per-fold weights). We check Spearman-style agreement via
+  //     the fraction of concordant target/decoy pairs in the top decile —
+  //     both paths should rank targets above decoys with high probability.
+  RescoreInput input = makeModeratelySeparableInput_(400, 42);
+
+  Percolator p_tr, p_re;
+  for (auto* p : {&p_tr, &p_re})
+  {
+    Param par = p->getDefaults();
+    par.setValue("seed", 17);
+    p->setParameters(par);
+  }
+
+  PercolatorModel model = p_tr.train(input);
+  RescoreOutput out_ts = p_tr.score(input, model);  // train+score, avg-weights
+  RescoreOutput out_re = p_re.rescore(input);       // CV-merge
+
+  // (1) and (2): q-values / PEPs bounded
+  for (double q : out_ts.q_values) TEST_TRUE(q >= 0.0 && q <= 1.0 + 1e-9)
+  for (double p : out_ts.peps)     TEST_TRUE(p >= 0.0 && p <= 1.0 + 1e-9)
+
+  // (3): target median > decoy median for the train+score path
+  TEST_TRUE(medianTargetBeatsDecoy_(out_ts, input))
+
+  // (4): both paths rank targets above decoys with similar fidelity.
+  // Count concordant target/decoy pairs in the top 20% of each ranking.
+  auto concordantRate = [&](const RescoreOutput& o) {
+    std::vector<size_t> idx(o.scores.size());
+    std::iota(idx.begin(), idx.end(), 0);
+    std::sort(idx.begin(), idx.end(),
+      [&](size_t a, size_t b){ return o.scores[a] > o.scores[b]; });
+    const size_t top = idx.size() / 5;
+    size_t tgt = 0;
+    for (size_t k = 0; k < top; ++k) if (!input.is_decoy[idx[k]]) ++tgt;
+    return static_cast<double>(tgt) / static_cast<double>(top);
+  };
+  const double rate_ts = concordantRate(out_ts);
+  const double rate_re = concordantRate(out_re);
+  // Both should have >70% targets in the top 20% (moderate separation).
+  TEST_TRUE(rate_ts > 0.70)
+  TEST_TRUE(rate_re > 0.70)
+  // And they should agree closely — within 10 percentage points.
+  TEST_TRUE(std::abs(rate_ts - rate_re) < 0.10)
+}
+END_SECTION
+
+START_SECTION([EXTRA] score rejects feature-count mismatch)
+{
+  RescoreInput input = makeModeratelySeparableInput_(300, 42);
+  Percolator p;
+  PercolatorModel model = p.train(input);
+
+  // Drop one feature from each row, keep the same feature_names (mismatch on size).
+  RescoreInput bad = input;
+  for (auto& row : bad.features) row.pop_back();
+  bad.feature_names.pop_back();
+  TEST_EXCEPTION(Exception::InvalidValue, p.score(bad, model))
+}
+END_SECTION
+
+START_SECTION([EXTRA] score rejects feature-name mismatch)
+{
+  RescoreInput input = makeModeratelySeparableInput_(300, 42);
+  Percolator p;
+  PercolatorModel model = p.train(input);
+
+  // Swap feature_names — same count, different labels at same position.
+  RescoreInput bad = input;
+  bad.feature_names = StringList{"signal", "different_name"};
+  TEST_EXCEPTION(Exception::InvalidValue, p.score(bad, model))
+}
+END_SECTION
+
+START_SECTION((static void saveModel(const PercolatorModel& model, const String& filename)))
+{
+  RescoreInput input = makeModeratelySeparableInput_(300, 42);
+  Percolator p;
+  Param par = p.getDefaults();
+  par.setValue("seed", 17);
+  p.setParameters(par);
+
+  PercolatorModel model = p.train(input);
+
+  String tmp;
+  NEW_TMP_FILE(tmp);
+  Percolator::saveModel(model, tmp);
+
+  PercolatorModel loaded = Percolator::loadModel(tmp);
+  TEST_EQUAL(loaded.format_version, model.format_version)
+  TEST_EQUAL(loaded.normalizer_type, model.normalizer_type)
+  TEST_EQUAL(loaded.seed, model.seed)
+  TEST_EQUAL(loaded.feature_names.size(), model.feature_names.size())
+  for (size_t i = 0; i < model.feature_names.size(); ++i)
+  {
+    TEST_EQUAL(loaded.feature_names[i], model.feature_names[i])
+  }
+  TEST_EQUAL(loaded.weights.size(), model.weights.size())
+  for (size_t i = 0; i < model.weights.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(loaded.weights[i], model.weights[i])
+  }
+
+  // Round-trip scoring: loaded model produces identical scores.
+  RescoreOutput out_mem  = p.score(input, model);
+  RescoreOutput out_disk = p.score(input, loaded);
+  bool all_equal = out_mem.scores.size() == out_disk.scores.size();
+  for (size_t i = 0; all_equal && i < out_mem.scores.size(); ++i)
+  {
+    if (std::abs(out_mem.scores[i] - out_disk.scores[i]) > 1e-9) all_equal = false;
+  }
+  TEST_EQUAL(all_equal, true)
+}
+END_SECTION
+
+START_SECTION((static PercolatorModel loadModel(const String& filename)))
+{
+  // Covered by the save-model round-trip section above.
+  // Verify negative cases here: missing file and malformed content.
+  String nonexistent;
+  NEW_TMP_FILE(nonexistent);
+  std::remove(nonexistent.c_str());
+  TEST_EXCEPTION(Exception::FileNotFound, Percolator::loadModel(nonexistent))
+
+  auto writeModel = [](const String& path, const std::string& body) {
+    std::ofstream os(path.c_str());
+    os << body;
+  };
+
+  // Unsupported format_version
+  {
+    String tmp; NEW_TMP_FILE(tmp);
+    writeModel(tmp,
+      "format_version: 99\n"
+      "normalizer: stdv\n"
+      "seed: 1\n"
+      "n_features: 1\n"
+      "bias: 0.1\n"
+      "x\t0.5\n");
+    TEST_EXCEPTION(Exception::ParseError, Percolator::loadModel(tmp))
+  }
+
+  // Missing 'bias' header
+  {
+    String tmp; NEW_TMP_FILE(tmp);
+    writeModel(tmp,
+      "format_version: 1\n"
+      "normalizer: stdv\n"
+      "seed: 1\n"
+      "n_features: 1\n"
+      "x\t0.5\n");
+    TEST_EXCEPTION(Exception::ParseError, Percolator::loadModel(tmp))
+  }
+
+  // Unknown header key (typoed 'normalize:' instead of 'normalizer:')
+  {
+    String tmp; NEW_TMP_FILE(tmp);
+    writeModel(tmp,
+      "format_version: 1\n"
+      "normalize: stdv\n"
+      "normalizer: stdv\n"
+      "seed: 1\n"
+      "n_features: 1\n"
+      "bias: 0.1\n"
+      "x\t0.5\n");
+    TEST_EXCEPTION(Exception::ParseError, Percolator::loadModel(tmp))
+  }
+
+  // Invalid normalizer value
+  {
+    String tmp; NEW_TMP_FILE(tmp);
+    writeModel(tmp,
+      "format_version: 1\n"
+      "normalizer: bogus\n"
+      "seed: 1\n"
+      "n_features: 1\n"
+      "bias: 0.1\n"
+      "x\t0.5\n");
+    TEST_EXCEPTION(Exception::ParseError, Percolator::loadModel(tmp))
+  }
+
+  // Duplicate header key
+  {
+    String tmp; NEW_TMP_FILE(tmp);
+    writeModel(tmp,
+      "format_version: 1\n"
+      "format_version: 1\n"
+      "normalizer: stdv\n"
+      "seed: 1\n"
+      "n_features: 1\n"
+      "bias: 0.1\n"
+      "x\t0.5\n");
+    TEST_EXCEPTION(Exception::ParseError, Percolator::loadModel(tmp))
+  }
+
+  // Declared n_features does not match actual feature row count
+  {
+    String tmp; NEW_TMP_FILE(tmp);
+    writeModel(tmp,
+      "format_version: 1\n"
+      "normalizer: stdv\n"
+      "seed: 1\n"
+      "n_features: 2\n"  // claims 2 but only 1 row below
+      "bias: 0.1\n"
+      "x\t0.5\n");
+    TEST_EXCEPTION(Exception::ParseError, Percolator::loadModel(tmp))
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] feature named 'm0' round-trips through save/load)
+{
+  // Regression test: the earlier on-disk format reserved 'm0' as a bias-row
+  // sentinel, which would corrupt any model whose features happened to carry
+  // that name. Moving bias into the header makes feature names fully opaque.
+  RescoreInput input = makeModeratelySeparableInput_(300, 42);
+  // Rename the first feature to 'm0' on both the input and (implicitly) the
+  // trained model.
+  input.feature_names[0] = "m0";
+
+  Percolator p;
+  Param par = p.getDefaults();
+  par.setValue("seed", 17);
+  p.setParameters(par);
+
+  PercolatorModel model = p.train(input);
+  TEST_EQUAL(model.feature_names[0], "m0")
+
+  String tmp; NEW_TMP_FILE(tmp);
+  Percolator::saveModel(model, tmp);
+
+  PercolatorModel loaded = Percolator::loadModel(tmp);
+  TEST_EQUAL(loaded.feature_names.size(), model.feature_names.size())
+  TEST_EQUAL(loaded.feature_names[0], "m0")
+  TEST_EQUAL(loaded.feature_names[1], "noise")
+  TEST_EQUAL(loaded.weights.size(), model.weights.size())
+  for (size_t i = 0; i < model.weights.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(loaded.weights[i], model.weights[i])
+  }
+
+  // Scoring with the loaded model produces identical results.
+  RescoreOutput out_mem  = p.score(input, model);
+  RescoreOutput out_disk = p.score(input, loaded);
+  bool all_equal = out_mem.scores.size() == out_disk.scores.size();
+  for (size_t i = 0; all_equal && i < out_mem.scores.size(); ++i)
+  {
+    if (std::abs(out_mem.scores[i] - out_disk.scores[i]) > 1e-9) all_equal = false;
+  }
+  TEST_EQUAL(all_equal, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] score rejects empty feature_names on either side)
+{
+  RescoreInput input = makeModeratelySeparableInput_(300, 42);
+
+  Percolator p;
+  PercolatorModel model = p.train(input);
+  TEST_EQUAL(model.feature_names.empty(), false)
+
+  // Empty input feature_names — model has names, input doesn't.
+  {
+    RescoreInput no_names = input;
+    no_names.feature_names.clear();
+    TEST_EXCEPTION(Exception::InvalidValue, p.score(no_names, model))
+  }
+
+  // Empty model feature_names — constructed by hand to simulate a corrupted
+  // or partially-built model. Weight count must still satisfy the n_feat+1
+  // precondition so the mismatch is specifically about names.
+  {
+    PercolatorModel bad_model;
+    bad_model.format_version = 1;
+    bad_model.weights = std::vector<double>(input.features.front().size() + 1, 0.1);
+    bad_model.normalizer_type = "stdv";
+    // feature_names deliberately left empty
+    TEST_EXCEPTION(Exception::InvalidValue, p.score(input, bad_model))
   }
 }
 END_SECTION

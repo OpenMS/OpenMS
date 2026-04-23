@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <limits>
 #include <map>
 #include <numeric>
@@ -57,7 +58,18 @@ void Percolator::Impl::reset()
   synthesized_ids.clear();
   target_ds.reset();
   decoy_ds.reset();
-  set_handler.reset();  // destructor cascades into DataSet destructors → PSM deletion
+  // set_handler's destructor cascades: ~SetHandler → ~DataSet → PSM deletion,
+  // and ~SetHandler ALSO invokes DataSet::resetFeatureNames() which flips the
+  // process-global FeatureNames::numFeatures back to 0. The next train()/
+  // score()/rescore() call relies on that reset (see the resetFeatureNames
+  // calls at the top of each entry point). If a future change replaces
+  // SetHandler with something that doesn't cascade through, FeatureNames
+  // must be reset manually here.
+  set_handler.reset();
+
+  // svm_weights is intentionally NOT cleared here — getSvmWeights() is
+  // documented to retain the last training's weights across subsequent
+  // score() calls.
 }
 
 Percolator::Percolator()
@@ -262,7 +274,40 @@ static std::vector<size_t> selectTrainingSubset(
   return P::sampleTrainingRowIndices(scans, exp_masses, max_train);
 }
 
-RescoreOutput Percolator::rescore(const RescoreInput& input)
+// Build a new RescoreInput by selecting the given row indices. Preserves
+// the optional PIN-compat / cv_group_keys fields when they're populated.
+static RescoreInput makeSubsetInput_(
+  const RescoreInput& input, const std::vector<size_t>& indices)
+{
+  RescoreInput out;
+  out.feature_names = input.feature_names;
+  out.features.reserve(indices.size());
+  out.is_decoy.reserve(indices.size());
+  const bool has_cv       = !input.cv_group_keys.empty();
+  const bool has_scan     = !input.scan_numbers.empty();
+  const bool has_specfile = !input.spec_file_numbers.empty();
+  const bool has_exp      = !input.exp_masses.empty();
+  const bool has_calc     = !input.calc_masses.empty();
+  if (has_cv)       out.cv_group_keys.reserve(indices.size());
+  if (has_scan)     out.scan_numbers.reserve(indices.size());
+  if (has_specfile) out.spec_file_numbers.reserve(indices.size());
+  if (has_exp)      out.exp_masses.reserve(indices.size());
+  if (has_calc)     out.calc_masses.reserve(indices.size());
+  for (size_t i : indices)
+  {
+    out.features.push_back(input.features[i]);
+    out.is_decoy.push_back(input.is_decoy[i]);
+    if (has_cv)       out.cv_group_keys.push_back(input.cv_group_keys[i]);
+    if (has_scan)     out.scan_numbers.push_back(input.scan_numbers[i]);
+    if (has_specfile) out.spec_file_numbers.push_back(input.spec_file_numbers[i]);
+    if (has_exp)      out.exp_masses.push_back(input.exp_masses[i]);
+    if (has_calc)     out.calc_masses.push_back(input.calc_masses[i]);
+  }
+  return out;
+}
+
+// Dimension + optional-field checks shared by rescore/train/score entry points.
+static void validateRescoreInput_(const RescoreInput& input)
 {
   if (input.features.empty())
   {
@@ -284,12 +329,6 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
         "feature rows must all have the same length", "");
     }
   }
-
-  impl_->reset();
-  P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
-
-  // Validate optional PIN-compat fields up front (before sampling, which
-  // consults input.scan_numbers / exp_masses).
   auto validate_opt = [&](const auto& v, const char* name)
   {
     if (!v.empty() && v.size() != n_rows)
@@ -303,21 +342,75 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   validate_opt(input.spec_file_numbers,  "spec_file_numbers");
   validate_opt(input.exp_masses,         "exp_masses");
   validate_opt(input.calc_masses,        "calc_masses");
+}
 
-  // Reservoir-sample the training subset (upstream Caller.cpp pattern). When
-  // subset_max_train is 0 or >= n_rows, training_rows is the identity [0..n).
-  const std::vector<size_t> training_rows =
-    selectTrainingSubset(input, n_rows, impl_->subset_max_train);
-  const bool did_subsample = training_rows.size() < n_rows;
+// Feature-count + feature-names compatibility between a scoring input and a
+// trained model. BOTH sides must supply feature_names — skipping the check on
+// one-sided empty is a silent misalignment risk (the original guard was too
+// permissive; this enforces the precondition).
+static void validateModelCompat_(
+  const RescoreInput& input, const PercolatorModel& model)
+{
+  const size_t n_feat = input.features.front().size();
+  if (model.weights.size() != n_feat + 1)
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "PercolatorModel weight count does not match input feature count "
+      "(expected n_features + 1 for bias)",
+      std::to_string(model.weights.size()) + " vs " +
+      std::to_string(n_feat + 1));
+  }
+  if (model.feature_names.empty())
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "PercolatorModel has no feature_names — cannot validate input alignment",
+      "");
+  }
+  if (input.feature_names.empty())
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "RescoreInput.feature_names required when scoring against a trained model",
+      "");
+  }
+  if (model.feature_names.size() != input.feature_names.size())
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "PercolatorModel feature_names size mismatch with input",
+      std::to_string(model.feature_names.size()) + " vs " +
+      std::to_string(input.feature_names.size()));
+  }
+  for (size_t i = 0; i < model.feature_names.size(); ++i)
+  {
+    if (model.feature_names[i] != input.feature_names[i])
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "PercolatorModel feature_names differ from input at column " +
+        std::to_string(i),
+        static_cast<std::string>(model.feature_names[i]) + " != " +
+        static_cast<std::string>(input.feature_names[i]));
+    }
+  }
+}
 
-  // Set up SetHandler + feature pool. Pass 0 for maxPSMs because sampling is
-  // already done above (the SetHandler cap only matters for its own readPSMs
-  // path, which we don't use).
+PercolatorModel Percolator::train(const RescoreInput& input)
+{
+  validateRescoreInput_(input);
+
+  impl_->reset();
+  P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
+
+  const size_t n_rows = input.features.size();
+  const size_t n_feat = input.features.front().size();
+
+  // SetHandler + feature pool. maxPSMs=0 because we never use SetHandler's own
+  // readPSMs path (it's a file-level loader); we register rows directly.
   impl_->set_handler = std::make_unique<P::SetHandler>(0);
   P::FeatureMemoryPool& pool = impl_->set_handler->getFeaturePool();
   pool.createPool(static_cast<size_t>(n_feat));
 
-  // Register feature names (used only for logging).
+  // Register feature names. This ALSO sets the static FeatureNames::numFeatures
+  // that Scores::scoreAndAddPSM consults — i.e., it is NOT logging-only; wiring
+  // it here keeps training and (later) scoring on the same feature count.
   P::DataSet::resetFeatureNames();
   P::FeatureNames& fn = P::DataSet::getFeatureNames();
   for (size_t j = 0; j < n_feat; ++j)
@@ -329,59 +422,42 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   }
   fn.initFeatures();
 
-  // Create target + decoy DataSets.
   impl_->target_ds = std::make_unique<P::DataSet>();
   impl_->decoy_ds  = std::make_unique<P::DataSet>();
   impl_->target_ds->setLabel(P::LabelType::TARGET);
   impl_->decoy_ds->setLabel(P::LabelType::DECOY);
-  // DataSet::initFeatureTables is declared in DataSet.h but upstream never
-  // defines it. Not needed — feature storage comes from FeatureMemoryPool.
 
-  // Populate rows (training subset only — the second pass below scores the
-  // full set using the trained model, mirroring upstream Caller.cpp flow).
+  // Populate ALL rows of the training input (caller handles any subsetting).
   impl_->synthesized_ids.resize(n_rows);
-  impl_->owned_psms.reserve(training_rows.size());
-  for (size_t i : training_rows)
+  impl_->owned_psms.reserve(n_rows);
+  for (size_t i = 0; i < n_rows; ++i)
   {
     const RowKeys keys = makeRowKeys(input, i);
     auto* psm = makePSMFromRow(input.features[i], keys, i,
                                impl_->synthesized_ids[i], pool);
     impl_->owned_psms.push_back(psm);
-    if (input.is_decoy[i])
-    {
-      impl_->decoy_ds->registerPsm(psm);
-    }
-    else
-    {
-      impl_->target_ds->registerPsm(psm);
-    }
+    if (input.is_decoy[i]) impl_->decoy_ds->registerPsm(psm);
+    else                   impl_->target_ds->registerPsm(psm);
   }
 
   impl_->set_handler->push_back_dataset(impl_->target_ds.release());
   impl_->set_handler->push_back_dataset(impl_->decoy_ds.release());
 
-  // Normalizer.
   int norm_type = P::Normalizer::STDV;
   if      (impl_->normalizer == "uni")  norm_type = P::Normalizer::UNI;
   else if (impl_->normalizer == "none") norm_type = P::Normalizer::NONORM;
   P::Normalizer::setType(norm_type);
   P::Normalizer* normalizer = P::Normalizer::getNormalizer();
 
-  // SanityCheck: "default" fingerprint → generic PSM-level sanity.
-  // Reset any prior static state (initial direction) so successive rescore()
-  // calls on the same instance don't leak configuration across calls.
+  // SanityCheck: reset static state so successive calls don't leak configuration.
   P::SanityCheck::setInitDefaultDir(0);
   P::SanityCheck::setInitDefaultDirName(impl_->initial_direction);
-
   P::SanityCheck* sanity = P::SanityCheck::initialize("");
   if (!sanity)
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
       "Could not initialize Percolator SanityCheck", "");
   }
-  // Resolve initial_direction name → feature index. In the subprocess path
-  // this is called from SetHandler::readPSMs (which we bypass). Must run
-  // after feature names are registered (above) and before preIterationSetup.
   try
   {
     sanity->checkAndSetDefaultDir();
@@ -396,11 +472,265 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
   impl_->set_handler->normalizeFeatures(normalizer);
 
-  // Build the full score set and populate from SetHandler.
+  P::Scores train_scores(/*usePi0=*/impl_->use_pi0);
+  train_scores.populateWithPSMs(*impl_->set_handler);
+
+  P::CrossValidation cv(
+    /*quickValidation=*/false,
+    /*reportPerformanceEachIteration=*/false,
+    /*testFdr=*/impl_->test_fdr,
+    /*selectionFdr=*/impl_->train_fdr,
+    /*initialSelectionFdr=*/impl_->train_fdr,
+    /*selectedCpos=*/impl_->c_pos,
+    /*selectedCneg=*/impl_->c_neg,
+    /*niter=*/static_cast<unsigned int>(impl_->num_iterations),
+    /*usePi0=*/impl_->use_pi0,
+    /*nestedXvalBins=*/static_cast<unsigned int>(impl_->nested_xval_bins),
+    /*trainBestPositive=*/impl_->train_best_positive,
+    /*numThreads=*/1,
+    /*skipNormalizeScores=*/false,
+    /*decoyFractionTraining=*/1.0,
+    /*numFolds=*/3);
+
+  std::vector<double> avg_weights;
+  try
+  {
+    cv.preIterationSetup(train_scores, sanity, normalizer,
+                         impl_->set_handler->getFeaturePool());
+    cv.train(normalizer);
+    cv.postIterationProcessing(train_scores, sanity);
+    // getAvgWeights returns un-normalized (raw feature space) averaged weights:
+    // size = n_features + 1, bias last. This is what score() will use.
+    cv.getAvgWeights(avg_weights, normalizer);
+  }
+  catch (const std::exception& e)
+  {
+    delete sanity;
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      std::string("Percolator training failed: ") + e.what(), "");
+  }
+  delete sanity;
+
+  // Mirror into getSvmWeights() buffer for backward compatibility.
+  impl_->svm_weights.clear();
+  if (!avg_weights.empty()) impl_->svm_weights.push_back(avg_weights);
+
+  PercolatorModel model;
+  model.format_version  = 1;
+  model.feature_names   = input.feature_names;
+  if (model.feature_names.empty())
+  {
+    for (size_t j = 0; j < n_feat; ++j)
+    {
+      model.feature_names.push_back("feat_" + std::to_string(j));
+    }
+  }
+  model.weights         = std::move(avg_weights);
+  model.normalizer_type = impl_->normalizer;
+  model.seed            = impl_->seed;
+  return model;
+}
+
+RescoreOutput Percolator::score(const RescoreInput& input,
+                                const PercolatorModel& model)
+{
+  validateRescoreInput_(input);
+  validateModelCompat_(input, model);
+
+  impl_->reset();
+
+  const size_t n_rows = input.features.size();
+  const size_t n_feat = input.features.front().size();
+
+  // Fresh feature pool. Reuses the second_pass_* scratch fields in Impl so
+  // the next reset() cleans everything up via RAII.
+  impl_->second_pass_pool = std::make_unique<P::FeatureMemoryPool>();
+  impl_->second_pass_pool->createPool(static_cast<size_t>(n_feat));
+  P::FeatureMemoryPool& pool = *impl_->second_pass_pool;
+
+  // scoreAndAddPSM reads FeatureNames::getNumFeatures() internally. Register
+  // the names we know so that static state is consistent with this scoring.
+  P::DataSet::resetFeatureNames();
+  P::FeatureNames& fn = P::DataSet::getFeatureNames();
+  for (size_t j = 0; j < n_feat; ++j)
+  {
+    const std::string nm = (j < input.feature_names.size())
+      ? static_cast<std::string>(input.feature_names[j])
+      : "feat_" + std::to_string(j);
+    fn.insertFeature(nm);
+  }
+  fn.initFeatures();
+
+  P::Scores all_scores(/*usePi0=*/impl_->use_pi0);
+  impl_->synthesized_ids.resize(n_rows);
+  impl_->second_pass_psms.reserve(n_rows);
+
+  for (size_t i = 0; i < n_rows; ++i)
+  {
+    const RowKeys keys = makeRowKeys(input, i);
+    auto* psm = makePSMFromRow(input.features[i], keys, i,
+                               impl_->synthesized_ids[i], pool);
+    impl_->second_pass_psms.push_back(psm);
+
+    P::ScoreHolder sh;
+    sh.pPSM  = psm;
+    sh.label = input.is_decoy[i] ? P::LabelType::DECOY : P::LabelType::TARGET;
+    // score = Σ feat[j] * model.weights[j] + model.weights[n_feat]
+    // Raw features × raw weights — no normalizer at predict time.
+    all_scores.scoreAndAddPSM(sh, model.weights, pool);
+  }
+
+  // Scoring pipeline: any of these can throw MyException on pathological
+  // distributions (all-decoy, too-good-separation, median-decoy >= fdr-score).
+  // Wrap and rebrand as Exception::InvalidValue for API consistency with
+  // train()/rescore() — otherwise callers see raw upstream exceptions.
+  try
+  {
+    all_scores.postMergeStep();
+    all_scores.calcQvals(impl_->test_fdr);
+    // normalizeScores takes a non-const ref and rescales the weight vector in
+    // place (endScoreNormalizeWeights). Use a local copy so the caller's model
+    // is not mutated.
+    std::vector<double> weights_copy = model.weights;
+    all_scores.normalizeScores(impl_->test_fdr, weights_copy);
+
+    if (impl_->post_processing_tdc)
+    {
+      all_scores.weedOutRedundantTDC();
+    }
+
+    if (impl_->pep_method == "isotonic")
+    {
+      all_scores.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/true);
+    }
+    else
+    {
+      all_scores.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/false);
+    }
+  }
+  catch (const std::exception& e)
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      std::string("Percolator scoring failed: ") + e.what(), "");
+  }
+
+  RescoreOutput out;
+  out.scores.assign(n_rows, 0.0);
+  out.q_values.assign(n_rows, 1.0);
+  out.peps.assign(n_rows, 1.0);
+
+  size_t matched = 0;
+  double score_min = std::numeric_limits<double>::infinity();
+  double score_max = -std::numeric_limits<double>::infinity();
+  for (const auto& sh : all_scores)
+  {
+    if (sh.pPSM == nullptr) continue;
+    const std::string& id = sh.pPSM->getFullPeptide();
+    if (id.size() < 12 || id.compare(0, 4, "row_") != 0) continue;
+    char* end = nullptr;
+    const unsigned long row = std::strtoul(id.c_str() + 4, &end, 10);
+    if (row >= n_rows) continue;
+    out.scores[row]   = sh.score;
+    out.q_values[row] = sh.q;
+    out.peps[row]     = sh.pep;
+    ++matched;
+    if (sh.score < score_min) score_min = sh.score;
+    if (sh.score > score_max) score_max = sh.score;
+  }
+  OPENMS_LOG_DEBUG << "[Percolator::score] extracted " << matched << " / " << n_rows
+                   << " rows from all_scores (size=" << all_scores.size() << "); "
+                   << "score range [" << score_min << ", " << score_max << "]"
+                   << std::endl;
+
+  return out;
+}
+
+RescoreOutput Percolator::rescore(const RescoreInput& input)
+{
+  validateRescoreInput_(input);
+
+  const size_t n_rows = input.features.size();
+  const size_t n_feat = input.features.front().size();
+
+  impl_->reset();
+  P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
+
+  // Reservoir-sample the training subset. When subset_max_train is 0 or
+  // >= n_rows, training_rows is the identity [0..n).
+  const std::vector<size_t> training_rows =
+    selectTrainingSubset(input, n_rows, impl_->subset_max_train);
+  const bool did_subsample = training_rows.size() < n_rows;
+
+  impl_->set_handler = std::make_unique<P::SetHandler>(0);
+  P::FeatureMemoryPool& pool = impl_->set_handler->getFeaturePool();
+  pool.createPool(static_cast<size_t>(n_feat));
+
+  // Register feature names. Sets static FeatureNames::numFeatures used by
+  // Scores::scoreAndAddPSM in the second-pass branch below.
+  P::DataSet::resetFeatureNames();
+  P::FeatureNames& fn = P::DataSet::getFeatureNames();
+  for (size_t j = 0; j < n_feat; ++j)
+  {
+    const std::string nm = (j < input.feature_names.size())
+      ? static_cast<std::string>(input.feature_names[j])
+      : "feat_" + std::to_string(j);
+    fn.insertFeature(nm);
+  }
+  fn.initFeatures();
+
+  impl_->target_ds = std::make_unique<P::DataSet>();
+  impl_->decoy_ds  = std::make_unique<P::DataSet>();
+  impl_->target_ds->setLabel(P::LabelType::TARGET);
+  impl_->decoy_ds->setLabel(P::LabelType::DECOY);
+
+  // Populate rows (training subset only — the second pass below scores the
+  // full set using the trained model, mirroring upstream Caller.cpp flow).
+  impl_->synthesized_ids.resize(n_rows);
+  impl_->owned_psms.reserve(training_rows.size());
+  for (size_t i : training_rows)
+  {
+    const RowKeys keys = makeRowKeys(input, i);
+    auto* psm = makePSMFromRow(input.features[i], keys, i,
+                               impl_->synthesized_ids[i], pool);
+    impl_->owned_psms.push_back(psm);
+    if (input.is_decoy[i]) impl_->decoy_ds->registerPsm(psm);
+    else                   impl_->target_ds->registerPsm(psm);
+  }
+
+  impl_->set_handler->push_back_dataset(impl_->target_ds.release());
+  impl_->set_handler->push_back_dataset(impl_->decoy_ds.release());
+
+  int norm_type = P::Normalizer::STDV;
+  if      (impl_->normalizer == "uni")  norm_type = P::Normalizer::UNI;
+  else if (impl_->normalizer == "none") norm_type = P::Normalizer::NONORM;
+  P::Normalizer::setType(norm_type);
+  P::Normalizer* normalizer = P::Normalizer::getNormalizer();
+
+  P::SanityCheck::setInitDefaultDir(0);
+  P::SanityCheck::setInitDefaultDirName(impl_->initial_direction);
+  P::SanityCheck* sanity = P::SanityCheck::initialize("");
+  if (!sanity)
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "Could not initialize Percolator SanityCheck", "");
+  }
+  try
+  {
+    sanity->checkAndSetDefaultDir();
+  }
+  catch (const std::exception& e)
+  {
+    delete sanity;
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      std::string("initial_direction not resolved: ") + e.what(),
+      impl_->initial_direction);
+  }
+
+  impl_->set_handler->normalizeFeatures(normalizer);
+
   P::Scores all_scores(/*usePi0=*/impl_->use_pi0);
   all_scores.populateWithPSMs(*impl_->set_handler);
 
-  // Cross-validation setup and training.
   P::CrossValidation cv(
     /*quickValidation=*/false,
     /*reportPerformanceEachIteration=*/false,
@@ -420,35 +750,27 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
   try
   {
-    int first_positives = cv.preIterationSetup(
-      all_scores, sanity, normalizer, impl_->set_handler->getFeaturePool());
-    (void)first_positives;
+    cv.preIterationSetup(all_scores, sanity, normalizer,
+                         impl_->set_handler->getFeaturePool());
     cv.train(normalizer);
     cv.postIterationProcessing(all_scores, sanity);
 
-    // Capture average SVM weights per fold BEFORE the TDC weeding step
-    // (weeding mutates all_scores and may invalidate per-fold weight meaning).
-    // getAvgWeights returns un-normalized weights in raw feature space.
     std::vector<double> avg_weights;
     cv.getAvgWeights(avg_weights, normalizer);
     impl_->svm_weights.clear();
     if (!avg_weights.empty()) impl_->svm_weights.push_back(avg_weights);
 
     // Second pass: when we subsampled for training, score the FULL input set
-    // using the trained weights. Mirrors upstream Caller.cpp (lines 1196-1236
-    // in rel-3-08-01): reset allScores, rebuild via readAndScoreTab, then
-    // postMergeStep + calcQvals + normalizeScores. This is what makes the
-    // subset_max_train docstring claim "trained model applied to ALL PSMs" true.
+    // using the trained weights. Mirrors upstream Caller.cpp (rel-3-08-01
+    // lines 1196-1236): reset allScores, rebuild via readAndScoreTab, then
+    // postMergeStep + calcQvals + normalizeScores. Makes the subset_max_train
+    // docstring claim "trained model applied to ALL PSMs" true.
     if (did_subsample)
     {
-      // Fresh feature pool — the existing `pool` is in use by training PSMs.
       impl_->second_pass_pool = std::make_unique<P::FeatureMemoryPool>();
       impl_->second_pass_pool->createPool(static_cast<size_t>(n_feat));
       P::FeatureMemoryPool& full_pool = *impl_->second_pass_pool;
 
-      // Rebuild all_scores from scratch on every row, scored via avg_weights.
-      // The training-set scores/q-values/PEPs produced by postIterationProcessing
-      // above are discarded — the full-set values supersede them.
       all_scores = P::Scores(impl_->use_pi0);
       impl_->second_pass_psms.reserve(n_rows);
 
@@ -462,32 +784,19 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
         P::ScoreHolder sh;
         sh.pPSM  = psm;
         sh.label = input.is_decoy[i] ? P::LabelType::DECOY : P::LabelType::TARGET;
-        // scoreAndAddPSM computes sh.score = Σ feat[j]·w[j] + w[bias], pushes
-        // the ScoreHolder into all_scores, and deallocates feat back to the
-        // pool (one-way trip — features not needed again).
         all_scores.scoreAndAddPSM(sh, avg_weights, full_pool);
       }
 
-      // Sort + count + pi0 estimation on the full set.
       all_scores.postMergeStep();
-      // Upstream sequence: calcQvals on full set, then normalizeScores rescales
-      // SVM scores so median-decoy maps to 0 and first-FDR-crossing maps to 1.
       all_scores.calcQvals(impl_->test_fdr);
       all_scores.normalizeScores(impl_->test_fdr, avg_weights);
     }
 
-    // Optional Target-Decoy Competition: best PSM per spectrum by score.
-    // Must happen after postIterationProcessing / second pass (so final scores
-    // are set) but before calcPep (PEPs depend on the deduplicated score set).
     if (impl_->post_processing_tdc)
     {
       all_scores.weedOutRedundantTDC();
     }
 
-    // Post-train PEP estimation: matches upstream Caller.cpp which calls
-    // calcPep after postIterationProcessing. Without this, every PEP stays
-    // at its default (uninitialized) value. Args match upstream defaults:
-    // non-IRLS (logistic regression), non-interpolating, non-PAVA.
     if (impl_->pep_method == "isotonic")
     {
       all_scores.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/true);
@@ -505,7 +814,6 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   }
   delete sanity;
 
-  // Extract outputs. Each ScoreHolder's pPSM->peptide is the synthetic row ID.
   RescoreOutput out;
   out.scores.assign(n_rows, 0.0);
   out.q_values.assign(n_rows, 1.0);
@@ -518,7 +826,6 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   {
     if (sh.pPSM == nullptr) continue;
     const std::string& id = sh.pPSM->getFullPeptide();
-    // Parse "row_NNNNNNNN" → row index
     if (id.size() < 12 || id.compare(0, 4, "row_") != 0) continue;
     char* end = nullptr;
     const unsigned long row = std::strtoul(id.c_str() + 4, &end, 10);
@@ -656,6 +963,174 @@ void Percolator::fillPINCompatibleFields(
       ++row;
     }
   }
+}
+
+void Percolator::saveModel(const PercolatorModel& model, const String& filename)
+{
+  if (model.weights.size() != model.feature_names.size() + 1)
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "PercolatorModel invariant broken: weights.size() != feature_names.size()+1",
+      std::to_string(model.weights.size()) + " vs " +
+      std::to_string(model.feature_names.size() + 1));
+  }
+  std::ofstream os(filename.c_str());
+  if (!os)
+  {
+    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      filename);
+  }
+  os.precision(std::numeric_limits<double>::max_digits10);
+  os << "# OpenMS Percolator model file\n";
+  os << "format_version: " << model.format_version << '\n';
+  os << "normalizer: "     << model.normalizer_type << '\n';
+  os << "seed: "           << model.seed << '\n';
+  os << "n_features: "     << model.feature_names.size() << '\n';
+  os << "bias: "           << model.weights.back() << '\n';
+  os << "# features — one 'name<TAB>weight' per line\n";
+  for (size_t j = 0; j < model.feature_names.size(); ++j)
+  {
+    os << static_cast<std::string>(model.feature_names[j])
+       << '\t' << model.weights[j] << '\n';
+  }
+}
+
+PercolatorModel Percolator::loadModel(const String& filename)
+{
+  std::ifstream is(filename.c_str());
+  if (!is)
+  {
+    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+  }
+  PercolatorModel model;
+  model.format_version = 0;
+
+  // Track which required header keys have been observed. Duplicates are
+  // errors (not silent last-wins).
+  std::unordered_set<std::string> seen_keys;
+  long declared_n_features = -1;
+  double bias = 0.0;
+  bool bias_seen = false;
+  static const std::unordered_set<std::string> known_keys{
+    "format_version", "normalizer", "seed", "n_features", "bias"
+  };
+  static const std::unordered_set<std::string> known_normalizers{
+    "stdv", "uni", "none"
+  };
+
+  auto starts_with = [](const std::string& s, const std::string& pfx)
+  {
+    return s.size() >= pfx.size() && s.compare(0, pfx.size(), pfx) == 0;
+  };
+  auto trim = [](std::string s)
+  {
+    const size_t a = s.find_first_not_of(" \t\r\n");
+    if (a == std::string::npos) return std::string{};
+    const size_t b = s.find_last_not_of(" \t\r\n");
+    return s.substr(a, b - a + 1);
+  };
+
+  std::string line;
+  while (std::getline(is, line))
+  {
+    if (line.empty() || starts_with(line, "#")) continue;
+
+    // Header key/value lines have no TAB; data lines have a TAB separator
+    // between feature name and weight. A feature name cannot contain a ':'
+    // without a TAB (names are written as the left-hand side of TAB-split
+    // data rows), so checking for TAB first is unambiguous.
+    if (line.find('\t') == std::string::npos)
+    {
+      const size_t colon = line.find(':');
+      if (colon == std::string::npos)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          filename + ": expected 'key: value' or 'name<TAB>weight', got '" +
+          line + "'", line);
+      }
+      const std::string key = trim(line.substr(0, colon));
+      const std::string val = trim(line.substr(colon + 1));
+      if (known_keys.find(key) == known_keys.end())
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          filename + ": unknown header key '" + key + "'", line);
+      }
+      if (!seen_keys.insert(key).second)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          filename + ": duplicate header key '" + key + "'", line);
+      }
+      try
+      {
+        if      (key == "format_version") model.format_version = std::stoi(val);
+        else if (key == "seed")           model.seed = std::stoi(val);
+        else if (key == "n_features")     declared_n_features = std::stol(val);
+        else if (key == "bias")         { bias = std::stod(val); bias_seen = true; }
+        else if (key == "normalizer")
+        {
+          if (known_normalizers.find(val) == known_normalizers.end())
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              filename + ": invalid normalizer value (expected stdv|uni|none)",
+              val);
+          }
+          model.normalizer_type = val;
+        }
+      }
+      catch (const std::invalid_argument&)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          filename + ": cannot parse value for '" + key + "'", val);
+      }
+      continue;
+    }
+
+    // Data row: "<feature_name>\t<weight>"
+    const size_t tab = line.find('\t');
+    const std::string name = line.substr(0, tab);
+    double w;
+    try { w = std::stod(line.substr(tab + 1)); }
+    catch (const std::exception&)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        filename + ": cannot parse weight on line '" + line + "'", line);
+    }
+    model.feature_names.push_back(name);
+    model.weights.push_back(w);
+  }
+
+  // Required-key completeness.
+  for (const auto& required : known_keys)
+  {
+    if (seen_keys.find(required) == seen_keys.end())
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        filename + ": missing required header key '" + required + "'", "");
+    }
+  }
+  if (model.format_version != 1)
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      filename + ": unsupported format_version (expected 1)",
+      std::to_string(model.format_version));
+  }
+  if (declared_n_features < 0 ||
+      static_cast<size_t>(declared_n_features) != model.feature_names.size())
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      filename + ": declared n_features does not match feature row count",
+      std::to_string(declared_n_features) + " vs " +
+      std::to_string(model.feature_names.size()));
+  }
+  // Append bias to weights so the final layout matches what train() produces:
+  // weights.size() == feature_names.size() + 1, bias last.
+  if (!bias_seen)
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      filename + ": 'bias' header key not found", "");
+  }
+  model.weights.push_back(bias);
+  return model;
 }
 
 void Percolator::rescore(std::vector<PeptideIdentification>& peptide_ids,

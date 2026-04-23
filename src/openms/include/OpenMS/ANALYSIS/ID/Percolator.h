@@ -21,17 +21,28 @@ namespace OpenMS
     @brief In-process Percolator: semi-supervised target/decoy rescoring with q-values + PEPs.
 
     Wraps a stripped-down, vendored copy of Percolator (training + posterior
-    estimation). Provides two entry points:
+    estimation). Provides several entry points grouped into two flavors.
 
-    - High-level rescore(std::vector<PeptideIdentification>&, ...): PSM-specific sugar
+    Fused train+score (original semantics; CV-merge-per-fold scoring):
+    - rescore(std::vector<PeptideIdentification>&, ...) — PSM-specific sugar
       that stamps scores back onto PeptideHits as meta values.
+    - rescore(const RescoreInput&) — domain-agnostic. Accepts any (feature
+      matrix, target/decoy labels, optional grouping keys) triple. Suitable
+      for PSM rescoring, transition rescoring, peak-group rescoring, or any
+      other setting where a semi-supervised target/decoy classifier is
+      meaningful. The internal vendored types assume "PSM-shaped" data; the
+      wrapper synthesizes opaque row IDs to satisfy them, so callers never
+      see Percolator-native types.
 
-    - Low-level rescore(const RescoreInput&): domain-agnostic. Accepts any (feature
-      matrix, target/decoy labels, optional grouping keys) triple. Suitable for PSM
-      rescoring, transition rescoring, peak-group rescoring, or any other setting
-      where a semi-supervised target/decoy classifier is meaningful. The internal
-      vendored types assume "PSM-shaped" data; the wrapper synthesizes opaque row
-      IDs to satisfy them, so callers never see Percolator-native types.
+    Split train/score (for train-on-A / predict-on-B workflows; uses averaged
+    weights across folds):
+    - train(const RescoreInput&) → PercolatorModel — training only.
+    - score(const RescoreInput&, const PercolatorModel&) → RescoreOutput —
+      predict-only; applies raw weights × raw features + bias.
+    - saveModel / loadModel — plain-text model persistence.
+
+    rescore() and train()+score() produce scores on the same scale but not
+    bitwise equal on the same input; see score() for why.
 
     @section preconditions Preconditions
     - At least ~100 decoys and enough discriminable targets to pass SanityCheck,
@@ -44,6 +55,11 @@ namespace OpenMS
 
     @section thread_safety Thread safety
     A single instance is NOT concurrent-safe; construct one per worker.
+    Additionally, the vendored Percolator code relies on several process-wide
+    statics (FeatureNames::numFeatures, SanityCheck::initDefaultDir* etc.)
+    that are reset at the start of each rescore()/train()/score() call.
+    Concurrent calls across *different instances* therefore also race on
+    these globals — serialize at the call site if you need parallelism.
 
     @section reproducibility Reproducibility
     Reproducible given seed, thread count, and input ordering. Changing thread
@@ -95,22 +111,101 @@ namespace OpenMS
       @note No peptide-level roll-up is performed. If you need "best row per
             unique entity" aggregation, do it above this call.
 
+      @note Target-Decoy Competition (enabled by default via
+            `post_processing_tdc`) deduplicates PSMs by (scan, expMass) —
+            losing rows are dropped from the internal score set and come
+            back with `score = 0.0`, `q_value = 1.0`, `pep = 1.0`. Callers
+            that need to tell "weeded" rows from "genuinely bad" rows
+            should turn TDC off, or populate scan_numbers/exp_masses so
+            the deduplication key is meaningful.
+
       @throws Exception::InvalidValue if sanity checks fail (too few decoys, no
               discriminative feature, malformed input dimensions).
     */
     RescoreOutput rescore(const RescoreInput& input);
 
     /**
-      @brief SVM weights trained in the last rescore() call.
+      @brief SVM weights trained in the last rescore()/train() call.
 
-      Per-fold vectors of per-feature weights (+1 bias at the end). Same
-      layout Percolator uses internally. Useful for diagnostics or to write
-      out a .weights file mimicking the subprocess path.
+      Single averaged weight vector in raw feature space (+1 bias at the
+      end). Same content as PercolatorModel::weights wrapped in a 1-element
+      outer vector for compatibility with older call sites that expected
+      per-fold weights. Useful for diagnostics or to write out a pseudo
+      .weights file.
 
-      @return Outer size = num_folds (typically 3); inner size = num_features + 1.
-              Empty until rescore() has been called.
+      Updated by rescore() and train(). score() does NOT touch this buffer —
+      after a train()+score() sequence the weights reflect the train() call.
+      Loading a model via loadModel() + calling score() on it leaves the
+      buffer unchanged (empty if this instance never trained).
+
+      @return Outer size = 1 (averaged); inner size = num_features + 1.
+              Empty until rescore()/train() has been called on this instance.
     */
     const std::vector<std::vector<double>>& getSvmWeights() const;
+
+    /**
+      @brief Train a Percolator model on feature rows. No scoring.
+
+      Runs the full semi-supervised cross-validation training on @p input
+      (all rows used — no subset sampling; do that at the call site if
+      desired). The returned model holds raw-space averaged SVM weights
+      suitable for passing to score(), possibly on a different RescoreInput.
+
+      Side effect: mirrors the weights into getSvmWeights(). Resets per-call
+      scratch state in the wrapper.
+
+      @param input Training data. Target/decoy labels required; CV grouping
+                   and PIN-compat fields used if supplied.
+      @return PercolatorModel with feature_names, raw-space weights+bias,
+              recorded normalizer type and seed.
+      @throws Exception::InvalidValue on malformed input or training failure.
+    */
+    PercolatorModel train(const RescoreInput& input);
+
+    /**
+      @brief Score feature rows using a pre-trained model. No training.
+
+      Applies @p model.weights to @p input.features as-is: raw weights × raw
+      features + bias. Callers MUST NOT pre-normalize features — the
+      normalization transform is already baked into the raw weights by
+      Normalizer::unnormalizeweight() at train time. Doing it again
+      double-counts the transform.
+
+      The post-scoring pipeline (q-values, optional TDC, PEPs, SVM score
+      rescaling) runs on the input's own target/decoy distribution — q-values
+      and PEPs are always dataset-local, they do not carry over from the
+      training dataset. This is the scientifically correct behavior.
+
+      The returned `RescoreOutput.scores` are NOT raw dot products. Internally
+      we compute
+          raw_score(i) = Σ input.features[i][j] * model.weights[j]
+                       + model.weights[n_features]
+      and then `Scores::normalizeScores` rescales globally so the median
+      decoy score maps to 0 and the score at `test_fdr` maps to 1:
+          scores[i] = (raw_score(i) - fdrScore) / (fdrScore - medianDecoyScore)
+      (Note: rescore()'s CV-merge path rescales per fold rather than once
+      globally, so scores from rescore(X) vs. score(X, train(X)) live on the
+      same scale but are not bitwise equal.) If you need raw dot-product
+      values, compute them from model.weights directly.
+
+      Target-Decoy Competition (enabled by default via `post_processing_tdc`)
+      deduplicates rows by (scan, expMass); losing rows come back with the
+      defaults `score = 0.0`, `q_value = 1.0`, `pep = 1.0`. See the
+      rescore(RescoreInput) note for mitigation.
+
+      @param input Scoring data. Target/decoy labels required for q-value
+                   and PEP computation. feature_names must be populated.
+      @param model Model produced by train() (possibly from another
+                   Percolator instance, or loaded from disk). feature_names
+                   must be populated and match @p input.feature_names
+                   positionally; weight count must equal n_features+1.
+      @return Per-row SVM scores (rescaled per above), q-values, PEPs,
+              aligned 1:1 with @p input.features.
+      @throws Exception::InvalidValue on malformed input, model mismatch,
+              empty feature_names on either side, or pathological score
+              distributions that fail Percolator's sanity checks.
+    */
+    RescoreOutput score(const RescoreInput& input, const PercolatorModel& model);
 
     /**
       @brief Fill PIN-compatible optional fields on a RescoreInput.
@@ -149,6 +244,40 @@ namespace OpenMS
         const std::vector<PeptideIdentification>& peptide_ids,
         bool flatten_hits,
         RescoreInput& input);
+
+    /**
+      @brief Serialize a PercolatorModel to a plain-text file.
+
+      Writes a comment header line, then header keys `format_version`,
+      `normalizer`, `seed`, `n_features`, `bias` (one per line, format
+      `key: value`), then one `feature_name<TAB>weight` data row per
+      feature. The bias sits in the header — feature names are therefore
+      opaque strings with no reserved values. Intended to be human-readable
+      and diff-friendly; not interoperable with the external percolator
+      binary's multi-column .weights format.
+
+      Weights are written at `std::numeric_limits<double>::max_digits10`
+      precision so loadModel() round-trips losslessly.
+
+      @throws Exception::UnableToCreateFile if @p filename cannot be opened.
+      @throws Exception::InvalidValue if the model violates its internal
+              invariant (weights.size() == feature_names.size() + 1).
+    */
+    static void saveModel(const PercolatorModel& model, const String& filename);
+
+    /**
+      @brief Deserialize a PercolatorModel written by saveModel().
+
+      Strict reader: unknown header keys, duplicate keys, missing required
+      keys, invalid normalizer values, or a declared `n_features` that
+      does not match the feature row count are all rejected.
+
+      @throws Exception::FileNotFound if @p filename does not exist.
+      @throws Exception::ParseError on any format violation (unknown or
+              duplicate header key, missing required field, unsupported
+              format_version, invalid normalizer, or row/count mismatch).
+    */
+    static PercolatorModel loadModel(const String& filename);
 
   protected:
     void updateMembers_() override;

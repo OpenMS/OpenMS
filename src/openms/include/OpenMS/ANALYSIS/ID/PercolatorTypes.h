@@ -72,4 +72,44 @@ namespace OpenMS
     std::vector<double> q_values;   ///< q-value per row
     std::vector<double> peps;       ///< posterior error probability per row
   };
+
+  /**
+    @brief Trained Percolator model: averaged SVM weights in raw feature space.
+
+    Produced by Percolator::train, consumed by Percolator::score. The weights
+    are un-normalized (i.e., meant to multiply raw input features — the
+    normalization transform the SVM learned has already been folded into the
+    weights and bias by Normalizer::unnormalizeweight). Callers should never
+    normalize features before score() — do that and you double-count the
+    transform.
+
+    The raw SVM dot product for a row with feature vector f is:
+        raw = sum_j(f[j] * weights[j]) + weights[n_features]     // bias last
+    Percolator::score() applies a further FDR-based rescaling on top of that
+    to produce the final SVM discriminant reported in RescoreOutput.scores;
+    see Percolator::score for the exact formula.
+
+    @var format_version   Integer schema version for the on-disk format.
+    @var feature_names    Feature column names (must be non-empty and match
+                          RescoreInput::feature_names positionally at
+                          score time). Any string value is permitted —
+                          saveModel carries bias in the header, so feature
+                          names are opaque.
+    @var weights          Size = n_features + 1. Last entry is the bias.
+    @var normalizer_type  "stdv" | "uni" | "none" — the normalizer used
+                          during training. Informational; all three produce
+                          raw-space weights that score() can apply directly
+                          (the transform is already folded into the
+                          weights+bias). Recorded so reproducibility tools
+                          can see which learner policy produced the model.
+    @var seed             Random seed used during training. Informational.
+  */
+  struct OPENMS_DLLAPI PercolatorModel
+  {
+    int format_version = 1;
+    StringList feature_names;
+    std::vector<double> weights;
+    std::string normalizer_type;
+    int seed = 0;
+  };
 }
