@@ -90,7 +90,8 @@ public:
      * @param[in] feature_maps Vector of original input maps.
      * @param[out] map_transformed FeatureMap that contains all features of the final aligned map.
      * @param[in] transformations Vector to store transformation descriptions for each map. (output)
-     * @param[out] trafo_order Vector that contains the indices of aligned maps in order of alignment.
+     * @param[in] trafo_order Vector that contains the indices of aligned maps in order of alignment.
+     *   This parameter is kept for API compatibility but is not used anymore.
      */
     void computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_maps, FeatureMap& map_transformed,
                                     std::vector<TransformationDescription>& transformations, const std::vector<Size>& trafo_order);
