@@ -261,9 +261,17 @@ void generateSyntheticData(RescoreInput& ri, std::mt19937& rng,
 }
 
 /// Write a minimal .pin file that percolator's command-line tool will accept.
-/// Columns: SpecId, Label, ScanNr, ExpMass, CalcMass, <features>, Peptide, Proteins.
+/// Columns: SpecId, Label, ScanNr, ExpMass, CalcMass[, filename], <features>,
+///          Peptide, Proteins.
 /// Row ids `row_%08zu` so subprocess PSMId strings match in-process row indices.
-void writePinFile(const String& path, const RescoreInput& ri)
+/// When @p emit_filename is true, a `filename` column is inserted between
+/// CalcMass and the features (i.e. in the optional-fields section that
+/// SetHandler::getOptionalFields recognises before it hits the first unknown
+/// header token). DataSet::readPsm then calls setSpectrumFileName() which
+/// populates PSMDescription::specFileNr from the lookup table, matching the
+/// value we set in RescoreInput::spec_file_numbers for the in-process path.
+void writePinFile(const String& path, const RescoreInput& ri,
+                  bool emit_filename = false)
 {
   std::ofstream f(path.c_str());
   if (!f) throw std::runtime_error("cannot open pin file for writing");
@@ -271,6 +279,7 @@ void writePinFile(const String& path, const RescoreInput& ri)
   f.precision(17);
 
   f << "SpecId\tLabel\tScanNr\tExpMass\tCalcMass";
+  if (emit_filename) f << "\tfilename";
   for (const auto& fn : ri.feature_names) f << "\t" << fn;
   f << "\tPeptide\tProteins\n";
 
@@ -285,6 +294,12 @@ void writePinFile(const String& path, const RescoreInput& ri)
       : static_cast<int>(i + 1);
     f << row_id << "\t" << label << "\t" << scan
       << "\t" << 1000.0 << "\t" << 1000.0;
+    if (emit_filename)
+    {
+      const int fnr = (i < ri.spec_file_numbers.size())
+        ? ri.spec_file_numbers[i] : 0;
+      f << "\tfile_" << fnr;
+    }
     for (double v : ri.features[i]) f << "\t" << v;
     f << "\t-.PEPTIDE.-\t"
       << (ri.is_decoy[i] ? "decoy_protein" : "target_protein") << "\n";
@@ -327,15 +342,30 @@ SubprocessOut runSubprocess(const String& bin,
     std::ifstream f(path.c_str());
     String line;
     bool header_seen = false;
+    bool has_filename_col = false;  // true when pout has PSMId filename score ...
     while (std::getline(f, line))
     {
-      if (!header_seen) { header_seen = true; continue; }
+      if (!header_seen)
+      {
+        header_seen = true;
+        // Detect optional filename column: header is either
+        //   PSMId  score  q-value  ...       (no filename in input PIN)
+        // or
+        //   PSMId  filename  score  q-value  (filename column was in input PIN)
+        std::istringstream hs(line);
+        String col1, col2;
+        hs >> col1 >> col2;
+        has_filename_col = (col2 == "filename" || col2 == "spectrafile");
+        continue;
+      }
       if (line.empty()) continue;
-      // Fields: PSMId  score  q-value  posterior_error_prob  peptide  protein...
+      // Fields: PSMId  [filename]  score  q-value  posterior_error_prob  peptide  protein...
       std::istringstream ls(line);
       String psm_id;
       double score = 0, qval = 0, pep = 0;
-      ls >> psm_id >> score >> qval >> pep;
+      ls >> psm_id;
+      if (has_filename_col) { String skip_fn; ls >> skip_fn; }
+      ls >> score >> qval >> pep;
       if (!ls) continue;
       PercolatorTriplet t;
       t.score = score;
@@ -1146,6 +1176,84 @@ START_SECTION([EXTRA] reservoir-sampling parity at 20k rows)
       ? static_cast<double>(std::abs(tgt_q05_in - tgt_q05_sub)) / static_cast<double>(maxc05)
       : 0.0;
     TEST_TRUE(ratio05 <= 0.005)
+  }
+}
+END_SECTION
+
+///////////////////////////////////////////////////////////////////////////////
+// Test 8: Multi-file PIN parity (P1.c).
+//
+// Two sub-batches of synthetic rows with distinct specFileNr. The CV fold
+// hash (OrderScanHash) incorporates specFileNr; this section confirms it
+// agrees across paths when more than one file is present — a code path the
+// other library-layer tests don't exercise (they all use specFileNr=0).
+///////////////////////////////////////////////////////////////////////////////
+
+START_SECTION([EXTRA] multi-file PIN parity)
+{
+  const String bin = percolatorBinary();
+  if (bin.empty())
+  {
+    TEST_EQUAL(true, true);  // skip
+  }
+  else
+  {
+    std::mt19937 rng(2026);
+    RescoreInput ri;
+    generateSyntheticData(ri, rng);  // 2000 rows, specFileNr=0 by default
+
+    // Split into two "files": first half -> specFileNr=0, second -> specFileNr=1.
+    const size_t half = ri.features.size() / 2;
+    for (size_t i = 0; i < ri.features.size(); ++i)
+    {
+      ri.spec_file_numbers[i] = (i < half) ? 0 : 1;
+    }
+
+    const String pin_path = File::getTemporaryFile();
+    writePinFile(pin_path, ri, /*emit_filename=*/true);
+
+    SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1");
+    TEST_EQUAL(sub.exit_code, 0)
+
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 1);
+    par.setValue("pep_method", "isotonic");
+    p.setParameters(par);
+    RescoreOutput out = p.rescore(ri);
+
+    double sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
+    size_t matches = 0;
+    int tgt_q01_in = 0, tgt_q01_sub = 0;
+    int tgt_q05_in = 0, tgt_q05_sub = 0;
+    for (size_t i = 0; i < out.scores.size(); ++i)
+    {
+      char k[32]; std::snprintf(k, sizeof(k), "row_%08zu", i);
+      auto it = sub.triplets.find(k);
+      if (it == sub.triplets.end()) continue;
+      matches++;
+      sx += out.scores[i];
+      sy += it->second.score;
+      sxx += out.scores[i] * out.scores[i];
+      syy += it->second.score * it->second.score;
+      sxy += out.scores[i] * it->second.score;
+      if (!ri.is_decoy[i])
+      {
+        if (out.q_values[i] <= 0.01) ++tgt_q01_in;
+        if (it->second.qval <= 0.01) ++tgt_q01_sub;
+        if (out.q_values[i] <= 0.05) ++tgt_q05_in;
+        if (it->second.qval <= 0.05) ++tgt_q05_sub;
+      }
+    }
+    const double nf = static_cast<double>(matches);
+    const double num = nf * sxy - sx * sy;
+    const double den = std::sqrt((nf * sxx - sx * sx) * (nf * syy - sy * sy));
+    const double r = (den > 1e-15) ? num / den : 0.0;
+
+    TEST_TRUE(matches > 1000)
+    TEST_TRUE(r >= 0.999)
+    TEST_EQUAL(tgt_q01_in, tgt_q01_sub)
+    TEST_EQUAL(tgt_q05_in, tgt_q05_sub)
   }
 }
 END_SECTION
