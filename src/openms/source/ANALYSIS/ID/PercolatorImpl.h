@@ -50,7 +50,7 @@ namespace OpenMS
     bool   train_best_positive = true;
     bool   post_processing_tdc = true;
     int    nested_xval_bins = 1;
-    int    subset_max_train = 0;              ///< 0 = no cap
+    int    subset_max_train = 100000;         ///< 0 = no cap; default 100k
     std::string initial_direction;            ///< feature name; prefix "-" = lower is better; empty = auto
     bool   use_pi0 = true;                    ///< pi0 correction on q-values; false = pure TDA (pi0=1)
 

@@ -103,9 +103,13 @@ Percolator::Percolator()
                      "Upstream default for cross validation is 3; 1 disables nested search.");
   defaults_.setMinInt("nested_xval_bins", 1);
 
-  defaults_.setValue("subset_max_train", 0,
-                     "Cap on number of training PSMs (0 = use all). "
-                     "Mirrors -subset_max_train; the trained model is applied to all PSMs.");
+  defaults_.setValue("subset_max_train", 100000,
+                     "Cap on number of training PSMs per CV fold (0 = use all). Default "
+                     "100000 bounds training time on very large inputs (>1M PSMs) at negligible "
+                     "quality loss; the trained model is always applied to ALL PSMs. "
+                     "Note: upstream percolator binary defaults this to 0 — PercolatorAdapter "
+                     "preserves the CLI contract by passing its own int option (CLI default 0) "
+                     "through to this param.");
   defaults_.setMinInt("subset_max_train", 0);
 
   defaults_.setValue("use_pi0", "true",
