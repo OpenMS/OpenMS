@@ -55,6 +55,18 @@ endforeach(_class_test)
 # StopWatch_test needs to be run alone to avoid timing errors
 set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
 
+# Percolator_subprocess_parity_test runs side-by-side comparisons against the
+# external `percolator` binary. Tests that need it are gated via the
+# PERCOLATOR_BINARY environment variable and skip silently when unset.
+find_program(PERCOLATOR_BINARY_FOR_TEST percolator PATHS ENV PATH)
+if (PERCOLATOR_BINARY_FOR_TEST)
+  set_tests_properties(Percolator_subprocess_parity_test PROPERTIES
+    ENVIRONMENT "PERCOLATOR_BINARY=${PERCOLATOR_BINARY_FOR_TEST}")
+  message(STATUS "Percolator_subprocess_parity_test: enabled (found ${PERCOLATOR_BINARY_FOR_TEST})")
+else()
+  message(STATUS "Percolator_subprocess_parity_test: subprocess sections skipped (percolator binary not on PATH)")
+endif()
+
 #------------------------------------------------------------------------------
 # 2 - add link dependencies (TODO could be more finegrained for boost)
 foreach(t ${Boost_dependent_tests})
