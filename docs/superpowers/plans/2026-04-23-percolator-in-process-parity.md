@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Follow-up migration (done 2026-04-24):** the vendored percolator tree was bumped from `rel-3-08-01` to upstream eb157f7 in [`2026-04-24-percolator-eb157f7-migration.md`](2026-04-24-percolator-eb157f7-migration.md). All tolerances below remained valid — observed values bit-identical to pre-migration on the 5 gated sections. `pep_method="nonparametric"` path was confirmed algorithmically unchanged by eb157f7.
+
 **Goal:** Add three pillars of parity tests — data-diversity extensions at the library layer, a new TOPP-adapter-layer parity test, and four reproducibility invariants — that give high confidence the in-process Percolator matches the bundled `percolator` executable on workloads OpenMS users actually run.
 
 **Architecture:** Pure test additions — no production code is modified. Three files are touched: extend `Percolator_subprocess_parity_test.cpp` (P1.a/b/c), extend `Percolator_test.cpp` (P3.a/b/c/d), and create `PercolatorAdapter_parity_test.cpp` (P2). Subprocess-dependent tests skip silently when `PERCOLATOR_BINARY` (or `PERCOLATOR_ADAPTER_BINARY` for P2) is unset.

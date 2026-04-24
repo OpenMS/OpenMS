@@ -168,6 +168,27 @@ Run with seed 17 and seed 42. Assert:
 
 P1.a uses the looser `r ≥ 0.99` band because 3.06↔3.08 algorithmic drift is expected on real feature distributions. If observed drift is tighter in practice, we tighten the threshold in the next iteration.
 
+### Post-eb157f7 migration (2026-04-24)
+
+The vendored tree was bumped from `rel-3-08-01` (febeef3) to upstream eb157f7
+(PR #399 — TRR I-spline PEP calibration); see
+[`2026-04-24-percolator-eb157f7-migration.md`](../plans/2026-04-24-percolator-eb157f7-migration.md).
+Post-migration observed values on the tolerance-relevant sections:
+
+| Section | r (observed) | `max |Δ|` (observed) | Tolerance status |
+|---|---|---|---|
+| P1 existing §2 | 1.0 | max_rel_ds = 4.54e-6 | unchanged |
+| **P1.a new (real idXML)** | 1.0 | max_dpep = 0.10073 | unchanged; TODO(percolator-3.08-binary) still open |
+| **P1.b new (reservoir)** | 0.999998 | — | unchanged |
+| **P1.c new (multi-file)** | 1.0 | — | unchanged |
+| **P2 adapter parity** | 1.0 | max_dpep = 0.10073 | unchanged; TODO(percolator-3.08-binary) still open |
+
+All values bit-identical to the pre-migration baseline — upstream eb157f7 does
+not affect the `pep_method="nonparametric"` path the tests exercise. The
+`TODO(percolator-3.08-binary)` markers remain valid: they track the
+independent goal of upgrading the bundled subprocess `percolator` binary
+from 3.06 to 3.08.01, which is a separate task from the vendored-tree sync.
+
 ## Execution model
 
 - All P1 additions and P2 are CTest targets; gated on their respective env vars; green on systems without the binaries.
