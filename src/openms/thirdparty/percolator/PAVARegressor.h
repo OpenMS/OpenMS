@@ -1,3 +1,5 @@
+#pragma once
+
 #include "MonotoneRegressor.h"
 #include <algorithm>
 #include <cassert>

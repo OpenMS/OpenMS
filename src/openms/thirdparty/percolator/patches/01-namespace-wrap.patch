@@ -1,6 +1,5 @@
-diff -urN /tmp/percolator-preserved/Array.h src/openms/thirdparty/percolator/Array.h
---- /tmp/percolator-preserved/Array.h	2026-04-24 12:41:01.632200427 +0200
-+++ src/openms/thirdparty/percolator/Array.h	2026-04-24 12:40:37.903908608 +0200
+--- /tmp/percolator-preserved/Array.h
++++ src/openms/thirdparty/percolator/Array.h
 @@ -8,6 +8,7 @@
  #define _Array_H
  
@@ -25,9 +24,8 @@ diff -urN /tmp/percolator-preserved/Array.h src/openms/thirdparty/percolator/Arr
 +
  #endif
  
-diff -urN /tmp/percolator-preserved/BaseSpline.cpp src/openms/thirdparty/percolator/BaseSpline.cpp
---- /tmp/percolator-preserved/BaseSpline.cpp	2026-04-24 12:41:01.632200427 +0200
-+++ src/openms/thirdparty/percolator/BaseSpline.cpp	2026-04-24 12:40:37.903908608 +0200
+--- /tmp/percolator-preserved/BaseSpline.cpp
++++ src/openms/thirdparty/percolator/BaseSpline.cpp
 @@ -24,6 +24,8 @@
  #include "BaseSpline.h"
  #include "Globals.h"
@@ -43,9 +41,8 @@ diff -urN /tmp/percolator-preserved/BaseSpline.cpp src/openms/thirdparty/percola
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/BaseSpline.h src/openms/thirdparty/percolator/BaseSpline.h
---- /tmp/percolator-preserved/BaseSpline.h	2026-04-24 12:41:01.632200427 +0200
-+++ src/openms/thirdparty/percolator/BaseSpline.h	2026-04-24 12:40:37.903908608 +0200
+--- /tmp/percolator-preserved/BaseSpline.h
++++ src/openms/thirdparty/percolator/BaseSpline.h
 @@ -18,11 +18,14 @@
  #ifndef BASESPLINE_H_
  #define BASESPLINE_H_
@@ -68,9 +65,8 @@ diff -urN /tmp/percolator-preserved/BaseSpline.h src/openms/thirdparty/percolato
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*BASESPLINE_H_*/
-diff -urN /tmp/percolator-preserved/CrossValidation.cpp src/openms/thirdparty/percolator/CrossValidation.cpp
---- /tmp/percolator-preserved/CrossValidation.cpp	2026-04-24 12:41:01.632200427 +0200
-+++ src/openms/thirdparty/percolator/CrossValidation.cpp	2026-04-24 12:40:37.903908608 +0200
+--- /tmp/percolator-preserved/CrossValidation.cpp
++++ src/openms/thirdparty/percolator/CrossValidation.cpp
 @@ -21,6 +21,9 @@
  #include <omp.h>
  #include <algorithm>
@@ -87,9 +83,8 @@ diff -urN /tmp/percolator-preserved/CrossValidation.cpp src/openms/thirdparty/pe
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/CrossValidation.h src/openms/thirdparty/percolator/CrossValidation.h
---- /tmp/percolator-preserved/CrossValidation.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/CrossValidation.h	2026-04-24 12:40:37.903908608 +0200
+--- /tmp/percolator-preserved/CrossValidation.h
++++ src/openms/thirdparty/percolator/CrossValidation.h
 @@ -17,6 +17,7 @@
  #ifndef CROSSVALIDATION_H_
  #define CROSSVALIDATION_H_
@@ -114,9 +109,8 @@ diff -urN /tmp/percolator-preserved/CrossValidation.h src/openms/thirdparty/perc
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*CROSSVALIDATION_H_*/
-diff -urN /tmp/percolator-preserved/DataSet.cpp src/openms/thirdparty/percolator/DataSet.cpp
---- /tmp/percolator-preserved/DataSet.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/DataSet.cpp	2026-04-24 12:40:37.903908608 +0200
+--- /tmp/percolator-preserved/DataSet.cpp
++++ src/openms/thirdparty/percolator/DataSet.cpp
 @@ -16,8 +16,11 @@
   *******************************************************************************/
  
@@ -144,9 +138,8 @@ diff -urN /tmp/percolator-preserved/DataSet.cpp src/openms/thirdparty/percolator
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/DataSet.h src/openms/thirdparty/percolator/DataSet.h
---- /tmp/percolator-preserved/DataSet.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/DataSet.h	2026-04-24 12:40:37.903908608 +0200
+--- /tmp/percolator-preserved/DataSet.h
++++ src/openms/thirdparty/percolator/DataSet.h
 @@ -17,6 +17,7 @@
  #ifndef DATASET_H_
  #define DATASET_H_
@@ -173,9 +166,8 @@ diff -urN /tmp/percolator-preserved/DataSet.h src/openms/thirdparty/percolator/D
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*DATASET_H_*/
-diff -urN /tmp/percolator-preserved/FeatureMemoryPool.cpp src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
---- /tmp/percolator-preserved/FeatureMemoryPool.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/FeatureMemoryPool.cpp	2026-04-24 12:40:37.903908608 +0200
+--- /tmp/percolator-preserved/FeatureMemoryPool.cpp
++++ src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
 @@ -17,6 +17,8 @@
  
  #include "FeatureMemoryPool.h"
@@ -191,9 +183,8 @@ diff -urN /tmp/percolator-preserved/FeatureMemoryPool.cpp src/openms/thirdparty/
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/FeatureMemoryPool.h src/openms/thirdparty/percolator/FeatureMemoryPool.h
---- /tmp/percolator-preserved/FeatureMemoryPool.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/FeatureMemoryPool.h	2026-04-24 12:40:37.903908608 +0200
+--- /tmp/percolator-preserved/FeatureMemoryPool.h
++++ src/openms/thirdparty/percolator/FeatureMemoryPool.h
 @@ -17,11 +17,14 @@
  #ifndef FEATURE_MEMORY_POOL_H_
  #define FEATURE_MEMORY_POOL_H_
@@ -216,9 +207,8 @@ diff -urN /tmp/percolator-preserved/FeatureMemoryPool.h src/openms/thirdparty/pe
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /* FEATURE_MEMORY_POOL_H_ */
-diff -urN /tmp/percolator-preserved/FeatureNames.cpp src/openms/thirdparty/percolator/FeatureNames.cpp
---- /tmp/percolator-preserved/FeatureNames.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/FeatureNames.cpp	2026-04-24 12:40:37.903908608 +0200
+--- /tmp/percolator-preserved/FeatureNames.cpp
++++ src/openms/thirdparty/percolator/FeatureNames.cpp
 @@ -1,4 +1,3 @@
 -
  /*******************************************************************************
@@ -239,9 +229,8 @@ diff -urN /tmp/percolator-preserved/FeatureNames.cpp src/openms/thirdparty/perco
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/FeatureNames.h src/openms/thirdparty/percolator/FeatureNames.h
---- /tmp/percolator-preserved/FeatureNames.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/FeatureNames.h	2026-04-24 12:40:37.903908608 +0200
+--- /tmp/percolator-preserved/FeatureNames.h
++++ src/openms/thirdparty/percolator/FeatureNames.h
 @@ -17,6 +17,7 @@
  #ifndef FEATURENAMES_H_
  #define FEATURENAMES_H_
@@ -266,9 +255,8 @@ diff -urN /tmp/percolator-preserved/FeatureNames.h src/openms/thirdparty/percola
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*FEATURENAMES_H_*/
-diff -urN /tmp/percolator-preserved/Globals.cpp src/openms/thirdparty/percolator/Globals.cpp
---- /tmp/percolator-preserved/Globals.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/Globals.cpp	2026-04-24 12:40:37.903908608 +0200
+--- /tmp/percolator-preserved/Globals.cpp
++++ src/openms/thirdparty/percolator/Globals.cpp
 @@ -20,6 +20,8 @@
  #include <iostream>
  #include <cstdlib>
@@ -284,10 +272,15 @@ diff -urN /tmp/percolator-preserved/Globals.cpp src/openms/thirdparty/percolator
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/ISplineTRRRegressor.h src/openms/thirdparty/percolator/ISplineTRRRegressor.h
---- /tmp/percolator-preserved/ISplineTRRRegressor.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/ISplineTRRRegressor.h	2026-04-24 12:40:37.903908608 +0200
-@@ -5,6 +5,8 @@
+--- /tmp/percolator-preserved/ISplineTRRRegressor.h
++++ src/openms/thirdparty/percolator/ISplineTRRRegressor.h
+@@ -1,3 +1,5 @@
++#pragma once
++
+ #include "MonotoneRegressor.h"
+ #include <iostream> // for std::cerr, std::endl
+ #include <Eigen/Dense>
+@@ -5,6 +7,8 @@
  #include <numeric>
  #include <cassert>
  
@@ -296,15 +289,14 @@ diff -urN /tmp/percolator-preserved/ISplineTRRRegressor.h src/openms/thirdparty/
  using Eigen::MatrixXd;
  using Eigen::VectorXd;
  
-@@ -474,3 +476,5 @@
+@@ -474,3 +478,5 @@
    }
  
  };
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/IsotonicPEP.cpp src/openms/thirdparty/percolator/IsotonicPEP.cpp
---- /tmp/percolator-preserved/IsotonicPEP.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/IsotonicPEP.cpp	2026-04-24 12:40:37.903908608 +0200
+--- /tmp/percolator-preserved/IsotonicPEP.cpp
++++ src/openms/thirdparty/percolator/IsotonicPEP.cpp
 @@ -8,14 +8,17 @@
  #include <cassert>
  #include <iostream>
@@ -331,9 +323,8 @@ diff -urN /tmp/percolator-preserved/IsotonicPEP.cpp src/openms/thirdparty/percol
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/IsotonicPEP.h src/openms/thirdparty/percolator/IsotonicPEP.h
---- /tmp/percolator-preserved/IsotonicPEP.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/IsotonicPEP.h	2026-04-24 12:40:37.903908608 +0200
+--- /tmp/percolator-preserved/IsotonicPEP.h
++++ src/openms/thirdparty/percolator/IsotonicPEP.h
 @@ -8,6 +8,8 @@
  #include <cmath>
  #include "MonotoneRegressor.h"
@@ -350,9 +341,8 @@ diff -urN /tmp/percolator-preserved/IsotonicPEP.h src/openms/thirdparty/percolat
 +}}}  // namespace OpenMS::Internal::Percolator
 +
      #endif /* ISOTONICPEP_H_ */
-diff -urN /tmp/percolator-preserved/LabelType.h src/openms/thirdparty/percolator/LabelType.h
---- /tmp/percolator-preserved/LabelType.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/LabelType.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/LabelType.h
++++ src/openms/thirdparty/percolator/LabelType.h
 @@ -17,8 +17,11 @@
  #ifndef LABEL_TYPE_H_
  #define LABEL_TYPE_H_
@@ -369,15 +359,12 @@ diff -urN /tmp/percolator-preserved/LabelType.h src/openms/thirdparty/percolator
    return os;
  }
  
--#endif /*LABEL_TYPE_H_*/
-\ No newline at end of file
 +}}}  // namespace OpenMS::Internal::Percolator
 +
-+#endif /*LABEL_TYPE_H_*/
+ #endif /*LABEL_TYPE_H_*/
 \ No newline at end of file
-diff -urN /tmp/percolator-preserved/Logger.cpp src/openms/thirdparty/percolator/Logger.cpp
---- /tmp/percolator-preserved/Logger.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/Logger.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/Logger.cpp
++++ src/openms/thirdparty/percolator/Logger.cpp
 @@ -7,17 +7,14 @@
  
   http://www.apache.org/licenses/LICENSE-2.0
@@ -405,9 +392,8 @@ diff -urN /tmp/percolator-preserved/Logger.cpp src/openms/thirdparty/percolator/
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/Logger.h src/openms/thirdparty/percolator/Logger.h
---- /tmp/percolator-preserved/Logger.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/Logger.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/Logger.h
++++ src/openms/thirdparty/percolator/Logger.h
 @@ -7,63 +7,54 @@
  
   http://www.apache.org/licenses/LICENSE-2.0
@@ -485,9 +471,8 @@ diff -urN /tmp/percolator-preserved/Logger.h src/openms/thirdparty/percolator/Lo
 +}}}  // namespace OpenMS::Internal::Percolator
  
 +#endif // LOGGER_H
-diff -urN /tmp/percolator-preserved/LogisticRegression.cpp src/openms/thirdparty/percolator/LogisticRegression.cpp
---- /tmp/percolator-preserved/LogisticRegression.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/LogisticRegression.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/LogisticRegression.cpp
++++ src/openms/thirdparty/percolator/LogisticRegression.cpp
 @@ -21,11 +21,14 @@
  #include<functional>
  #include<fstream>
@@ -510,9 +495,8 @@ diff -urN /tmp/percolator-preserved/LogisticRegression.cpp src/openms/thirdparty
  
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/LogisticRegression.h src/openms/thirdparty/percolator/LogisticRegression.h
---- /tmp/percolator-preserved/LogisticRegression.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/LogisticRegression.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/LogisticRegression.h
++++ src/openms/thirdparty/percolator/LogisticRegression.h
 @@ -18,11 +18,14 @@
  #ifndef LOGISTICREGRESSION_H_
  #define LOGISTICREGRESSION_H_
@@ -535,9 +519,8 @@ diff -urN /tmp/percolator-preserved/LogisticRegression.h src/openms/thirdparty/p
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*LOGISTICREGRESSION_H_*/
-diff -urN /tmp/percolator-preserved/MassHandler.cpp src/openms/thirdparty/percolator/MassHandler.cpp
---- /tmp/percolator-preserved/MassHandler.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/MassHandler.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/MassHandler.cpp
++++ src/openms/thirdparty/percolator/MassHandler.cpp
 @@ -18,6 +18,8 @@
  #include <cmath>
  #include "MassHandler.h"
@@ -553,9 +536,8 @@ diff -urN /tmp/percolator-preserved/MassHandler.cpp src/openms/thirdparty/percol
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/MassHandler.h src/openms/thirdparty/percolator/MassHandler.h
---- /tmp/percolator-preserved/MassHandler.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/MassHandler.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/MassHandler.h
++++ src/openms/thirdparty/percolator/MassHandler.h
 @@ -17,7 +17,11 @@
  #ifndef MASSHANDLER_H_
  #define MASSHANDLER_H_
@@ -575,9 +557,8 @@ diff -urN /tmp/percolator-preserved/MassHandler.h src/openms/thirdparty/percolat
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*MASSHANDLER_H_*/
-diff -urN /tmp/percolator-preserved/MonotoneRegressor.cpp src/openms/thirdparty/percolator/MonotoneRegressor.cpp
---- /tmp/percolator-preserved/MonotoneRegressor.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/MonotoneRegressor.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/MonotoneRegressor.cpp
++++ src/openms/thirdparty/percolator/MonotoneRegressor.cpp
 @@ -3,6 +3,8 @@
  #include "ISplineTRRRegressor.h"
  #include <stdexcept>
@@ -593,9 +574,8 @@ diff -urN /tmp/percolator-preserved/MonotoneRegressor.cpp src/openms/thirdparty/
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/MonotoneRegressor.h src/openms/thirdparty/percolator/MonotoneRegressor.h
---- /tmp/percolator-preserved/MonotoneRegressor.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/MonotoneRegressor.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/MonotoneRegressor.h
++++ src/openms/thirdparty/percolator/MonotoneRegressor.h
 @@ -3,6 +3,8 @@
  #include <memory>
  
@@ -611,9 +591,8 @@ diff -urN /tmp/percolator-preserved/MonotoneRegressor.h src/openms/thirdparty/pe
  std::unique_ptr<MonotoneRegressor> make_monotone_regressor(RegressorType type);
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/MyException.cpp src/openms/thirdparty/percolator/MyException.cpp
---- /tmp/percolator-preserved/MyException.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/MyException.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/MyException.cpp
++++ src/openms/thirdparty/percolator/MyException.cpp
 @@ -17,7 +17,9 @@
  
  #include "MyException.h"
@@ -635,9 +614,8 @@ diff -urN /tmp/percolator-preserved/MyException.cpp src/openms/thirdparty/percol
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
-diff -urN /tmp/percolator-preserved/MyException.h src/openms/thirdparty/percolator/MyException.h
---- /tmp/percolator-preserved/MyException.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/MyException.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/MyException.h
++++ src/openms/thirdparty/percolator/MyException.h
 @@ -22,6 +22,8 @@
  #include <exception>
  #include <sstream>
@@ -659,9 +637,8 @@ diff -urN /tmp/percolator-preserved/MyException.h src/openms/thirdparty/percolat
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif
-diff -urN /tmp/percolator-preserved/NoNormalizer.cpp src/openms/thirdparty/percolator/NoNormalizer.cpp
---- /tmp/percolator-preserved/NoNormalizer.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/NoNormalizer.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/NoNormalizer.cpp
++++ src/openms/thirdparty/percolator/NoNormalizer.cpp
 @@ -23,11 +23,12 @@
  #include <vector>
  #include <string>
@@ -683,9 +660,8 @@ diff -urN /tmp/percolator-preserved/NoNormalizer.cpp src/openms/thirdparty/perco
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/NoNormalizer.h src/openms/thirdparty/percolator/NoNormalizer.h
---- /tmp/percolator-preserved/NoNormalizer.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/NoNormalizer.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/NoNormalizer.h
++++ src/openms/thirdparty/percolator/NoNormalizer.h
 @@ -17,6 +17,8 @@
  #ifndef NONORMALIZER_H_
  #define NONORMALIZER_H_
@@ -702,9 +678,8 @@ diff -urN /tmp/percolator-preserved/NoNormalizer.h src/openms/thirdparty/percola
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*NONORMALIZER_H_*/
-diff -urN /tmp/percolator-preserved/Normalizer.cpp src/openms/thirdparty/percolator/Normalizer.cpp
---- /tmp/percolator-preserved/Normalizer.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/Normalizer.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/Normalizer.cpp
++++ src/openms/thirdparty/percolator/Normalizer.cpp
 @@ -19,7 +19,6 @@
  #include <vector>
  #include <set>
@@ -730,9 +705,8 @@ diff -urN /tmp/percolator-preserved/Normalizer.cpp src/openms/thirdparty/percola
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/Normalizer.h src/openms/thirdparty/percolator/Normalizer.h
---- /tmp/percolator-preserved/Normalizer.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/Normalizer.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/Normalizer.h
++++ src/openms/thirdparty/percolator/Normalizer.h
 @@ -16,10 +16,13 @@
   *******************************************************************************/
  #ifndef NORMALIZER_H_
@@ -754,9 +728,8 @@ diff -urN /tmp/percolator-preserved/Normalizer.h src/openms/thirdparty/percolato
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*NORMALIZER_H_*/
-diff -urN /tmp/percolator-preserved/Numerical.cpp src/openms/thirdparty/percolator/Numerical.cpp
---- /tmp/percolator-preserved/Numerical.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/Numerical.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/Numerical.cpp
++++ src/openms/thirdparty/percolator/Numerical.cpp
 @@ -2,6 +2,7 @@
  // see license for more information
  
@@ -771,9 +744,8 @@ diff -urN /tmp/percolator-preserved/Numerical.cpp src/openms/thirdparty/percolat
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/Numerical.h src/openms/thirdparty/percolator/Numerical.h
---- /tmp/percolator-preserved/Numerical.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/Numerical.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/Numerical.h
++++ src/openms/thirdparty/percolator/Numerical.h
 @@ -4,10 +4,13 @@
  #ifndef _Numerical_H
  #define _Numerical_H
@@ -796,10 +768,14 @@ diff -urN /tmp/percolator-preserved/Numerical.h src/openms/thirdparty/percolator
 +
  #endif
  
-diff -urN /tmp/percolator-preserved/PAVARegressor.h src/openms/thirdparty/percolator/PAVARegressor.h
---- /tmp/percolator-preserved/PAVARegressor.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/PAVARegressor.h	2026-04-24 12:40:37.908019912 +0200
-@@ -4,6 +4,8 @@
+--- /tmp/percolator-preserved/PAVARegressor.h
++++ src/openms/thirdparty/percolator/PAVARegressor.h
+@@ -1,9 +1,13 @@
++#pragma once
++
+ #include "MonotoneRegressor.h"
+ #include <algorithm>
+ #include <cassert>
  #include <numeric>
  #include <stdexcept>
  
@@ -808,15 +784,14 @@ diff -urN /tmp/percolator-preserved/PAVARegressor.h src/openms/thirdparty/percol
  class PAVARegressor final : public MonotoneRegressor {
  public:
    using MonotoneRegressor::MonotoneRegressor;
-@@ -114,3 +116,5 @@
+@@ -114,3 +118,5 @@
      }
      return result;
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/PSMDescription.cpp src/openms/thirdparty/percolator/PSMDescription.cpp
---- /tmp/percolator-preserved/PSMDescription.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/PSMDescription.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/PSMDescription.cpp
++++ src/openms/thirdparty/percolator/PSMDescription.cpp
 @@ -22,6 +22,7 @@
  
  #include "Globals.h"
@@ -831,9 +806,8 @@ diff -urN /tmp/percolator-preserved/PSMDescription.cpp src/openms/thirdparty/per
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/PSMDescription.h src/openms/thirdparty/percolator/PSMDescription.h
---- /tmp/percolator-preserved/PSMDescription.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/PSMDescription.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/PSMDescription.h
++++ src/openms/thirdparty/percolator/PSMDescription.h
 @@ -16,13 +16,13 @@
   *******************************************************************************/
  #ifndef PSMDESCRIPTION_H_
@@ -880,9 +854,8 @@ diff -urN /tmp/percolator-preserved/PSMDescription.h src/openms/thirdparty/perco
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*PSMDESCRIPTION_H_*/
-diff -urN /tmp/percolator-preserved/PackedMatrix.cpp src/openms/thirdparty/percolator/PackedMatrix.cpp
---- /tmp/percolator-preserved/PackedMatrix.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/PackedMatrix.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/PackedMatrix.cpp
++++ src/openms/thirdparty/percolator/PackedMatrix.cpp
 @@ -6,6 +6,7 @@
   */
  
@@ -897,9 +870,8 @@ diff -urN /tmp/percolator-preserved/PackedMatrix.cpp src/openms/thirdparty/perco
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/PackedMatrix.h src/openms/thirdparty/percolator/PackedMatrix.h
---- /tmp/percolator-preserved/PackedMatrix.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/PackedMatrix.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/PackedMatrix.h
++++ src/openms/thirdparty/percolator/PackedMatrix.h
 @@ -8,9 +8,12 @@
  #ifndef _PackedMatrix_H
  #define _PackedMatrix_H
@@ -920,9 +892,8 @@ diff -urN /tmp/percolator-preserved/PackedMatrix.h src/openms/thirdparty/percola
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif
-diff -urN /tmp/percolator-preserved/PackedVector.cpp src/openms/thirdparty/percolator/PackedVector.cpp
---- /tmp/percolator-preserved/PackedVector.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/PackedVector.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/PackedVector.cpp
++++ src/openms/thirdparty/percolator/PackedVector.cpp
 @@ -8,6 +8,7 @@
  #include "Numerical.h"
  #include "PackedVector.h"
@@ -937,9 +908,8 @@ diff -urN /tmp/percolator-preserved/PackedVector.cpp src/openms/thirdparty/perco
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/PackedVector.h src/openms/thirdparty/percolator/PackedVector.h
---- /tmp/percolator-preserved/PackedVector.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/PackedVector.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/PackedVector.h
++++ src/openms/thirdparty/percolator/PackedVector.h
 @@ -9,10 +9,13 @@
  #ifndef _PackedVector_H
  #define _PackedVector_H
@@ -961,9 +931,8 @@ diff -urN /tmp/percolator-preserved/PackedVector.h src/openms/thirdparty/percola
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif
-diff -urN /tmp/percolator-preserved/PosteriorEstimator.cpp src/openms/thirdparty/percolator/PosteriorEstimator.cpp
---- /tmp/percolator-preserved/PosteriorEstimator.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/PosteriorEstimator.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/PosteriorEstimator.cpp
++++ src/openms/thirdparty/percolator/PosteriorEstimator.cpp
 @@ -26,17 +26,19 @@
  #include<algorithm>
  #include<numeric>
@@ -1094,9 +1063,8 @@ diff -urN /tmp/percolator-preserved/PosteriorEstimator.cpp src/openms/thirdparty
 +
 +}}}  // namespace OpenMS::Internal::Percolator
  
-diff -urN /tmp/percolator-preserved/PosteriorEstimator.h src/openms/thirdparty/percolator/PosteriorEstimator.h
---- /tmp/percolator-preserved/PosteriorEstimator.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/PosteriorEstimator.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/PosteriorEstimator.h
++++ src/openms/thirdparty/percolator/PosteriorEstimator.h
 @@ -17,6 +17,7 @@
  
  #ifndef POSTERIORESTIMATOR_H_
@@ -1126,9 +1094,8 @@ diff -urN /tmp/percolator-preserved/PosteriorEstimator.h src/openms/thirdparty/p
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*POSTERIORESTIMATOR_H_*/
-diff -urN /tmp/percolator-preserved/PseudoRandom.cpp src/openms/thirdparty/percolator/PseudoRandom.cpp
---- /tmp/percolator-preserved/PseudoRandom.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/PseudoRandom.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/PseudoRandom.cpp
++++ src/openms/thirdparty/percolator/PseudoRandom.cpp
 @@ -17,6 +17,8 @@
  
  #include "PseudoRandom.h"
@@ -1147,9 +1114,8 @@ diff -urN /tmp/percolator-preserved/PseudoRandom.cpp src/openms/thirdparty/perco
 +}
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/PseudoRandom.h src/openms/thirdparty/percolator/PseudoRandom.h
---- /tmp/percolator-preserved/PseudoRandom.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/PseudoRandom.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/PseudoRandom.h
++++ src/openms/thirdparty/percolator/PseudoRandom.h
 @@ -18,8 +18,11 @@
  #ifndef PSEUDO_RANDOM_H
  #define PSEUDO_RANDOM_H
@@ -1169,9 +1135,8 @@ diff -urN /tmp/percolator-preserved/PseudoRandom.h src/openms/thirdparty/percola
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif // RANDOM_H
-diff -urN /tmp/percolator-preserved/ResultHolder.cpp src/openms/thirdparty/percolator/ResultHolder.cpp
---- /tmp/percolator-preserved/ResultHolder.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/ResultHolder.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/ResultHolder.cpp
++++ src/openms/thirdparty/percolator/ResultHolder.cpp
 @@ -16,9 +16,12 @@
   *******************************************************************************/
  #include <iostream>
@@ -1192,9 +1157,8 @@ diff -urN /tmp/percolator-preserved/ResultHolder.cpp src/openms/thirdparty/perco
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/ResultHolder.h src/openms/thirdparty/percolator/ResultHolder.h
---- /tmp/percolator-preserved/ResultHolder.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/ResultHolder.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/ResultHolder.h
++++ src/openms/thirdparty/percolator/ResultHolder.h
 @@ -16,8 +16,11 @@
   *******************************************************************************/
  #ifndef RESULTHOLDER_H_
@@ -1214,9 +1178,8 @@ diff -urN /tmp/percolator-preserved/ResultHolder.h src/openms/thirdparty/percola
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*RESULTHOLDER_H_*/
-diff -urN /tmp/percolator-preserved/SanityCheck.cpp src/openms/thirdparty/percolator/SanityCheck.cpp
---- /tmp/percolator-preserved/SanityCheck.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/SanityCheck.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/SanityCheck.cpp
++++ src/openms/thirdparty/percolator/SanityCheck.cpp
 @@ -17,13 +17,15 @@
  #include <string>
  #include <fstream>
@@ -1250,9 +1213,8 @@ diff -urN /tmp/percolator-preserved/SanityCheck.cpp src/openms/thirdparty/percol
  
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/SanityCheck.h src/openms/thirdparty/percolator/SanityCheck.h
---- /tmp/percolator-preserved/SanityCheck.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/SanityCheck.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/SanityCheck.h
++++ src/openms/thirdparty/percolator/SanityCheck.h
 @@ -17,6 +17,8 @@
  #ifndef SANITYCHECK_H_
  #define SANITYCHECK_H_
@@ -1269,9 +1231,8 @@ diff -urN /tmp/percolator-preserved/SanityCheck.h src/openms/thirdparty/percolat
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*SANITYCHECK_H_*/
-diff -urN /tmp/percolator-preserved/ScoreHolder.cpp src/openms/thirdparty/percolator/ScoreHolder.cpp
---- /tmp/percolator-preserved/ScoreHolder.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/ScoreHolder.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/ScoreHolder.cpp
++++ src/openms/thirdparty/percolator/ScoreHolder.cpp
 @@ -23,6 +23,8 @@
  #include <iomanip>
  #include <regex>
@@ -1290,9 +1251,8 @@ diff -urN /tmp/percolator-preserved/ScoreHolder.cpp src/openms/thirdparty/percol
 +}
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/ScoreHolder.h src/openms/thirdparty/percolator/ScoreHolder.h
---- /tmp/percolator-preserved/ScoreHolder.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/ScoreHolder.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/ScoreHolder.h
++++ src/openms/thirdparty/percolator/ScoreHolder.h
 @@ -17,9 +17,12 @@
  #ifndef SCORE_HOLDER_H_
  #define SCORE_HOLDER_H_
@@ -1310,15 +1270,12 @@ diff -urN /tmp/percolator-preserved/ScoreHolder.h src/openms/thirdparty/percolat
    }
  };
  
--#endif /*SCORE_HOLDER_H_*/
-\ No newline at end of file
 +}}}  // namespace OpenMS::Internal::Percolator
 +
-+#endif /*SCORE_HOLDER_H_*/
+ #endif /*SCORE_HOLDER_H_*/
 \ No newline at end of file
-diff -urN /tmp/percolator-preserved/Scores.cpp src/openms/thirdparty/percolator/Scores.cpp
---- /tmp/percolator-preserved/Scores.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/Scores.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/Scores.cpp
++++ src/openms/thirdparty/percolator/Scores.cpp
 @@ -38,6 +38,8 @@
  #include "ssl.h"
  #include "IsotonicPEP.h"
@@ -1334,9 +1291,8 @@ diff -urN /tmp/percolator-preserved/Scores.cpp src/openms/thirdparty/percolator/
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/Scores.h src/openms/thirdparty/percolator/Scores.h
---- /tmp/percolator-preserved/Scores.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/Scores.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/Scores.h
++++ src/openms/thirdparty/percolator/Scores.h
 @@ -38,6 +38,8 @@
  
  #include <boost/unordered/unordered_map.hpp>
@@ -1353,9 +1309,8 @@ diff -urN /tmp/percolator-preserved/Scores.h src/openms/thirdparty/percolator/Sc
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*SCORES_H_*/
-diff -urN /tmp/percolator-preserved/Set.cpp src/openms/thirdparty/percolator/Set.cpp
---- /tmp/percolator-preserved/Set.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/Set.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/Set.cpp
++++ src/openms/thirdparty/percolator/Set.cpp
 @@ -2,6 +2,7 @@
  // see license for more information
  
@@ -1370,9 +1325,8 @@ diff -urN /tmp/percolator-preserved/Set.cpp src/openms/thirdparty/percolator/Set
  
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/Set.h src/openms/thirdparty/percolator/Set.h
---- /tmp/percolator-preserved/Set.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/Set.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/Set.h
++++ src/openms/thirdparty/percolator/Set.h
 @@ -4,8 +4,11 @@
  #ifndef _Set_H
  #define _Set_H
@@ -1393,9 +1347,8 @@ diff -urN /tmp/percolator-preserved/Set.h src/openms/thirdparty/percolator/Set.h
 +
  #endif
  
-diff -urN /tmp/percolator-preserved/SetHandler.cpp src/openms/thirdparty/percolator/SetHandler.cpp
---- /tmp/percolator-preserved/SetHandler.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/SetHandler.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/SetHandler.cpp
++++ src/openms/thirdparty/percolator/SetHandler.cpp
 @@ -16,6 +16,9 @@
   *******************************************************************************/
  
@@ -1412,9 +1365,8 @@ diff -urN /tmp/percolator-preserved/SetHandler.cpp src/openms/thirdparty/percola
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/SetHandler.h src/openms/thirdparty/percolator/SetHandler.h
---- /tmp/percolator-preserved/SetHandler.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/SetHandler.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/SetHandler.h
++++ src/openms/thirdparty/percolator/SetHandler.h
 @@ -18,6 +18,7 @@
  #ifndef SETHANDLER_H_
  #define SETHANDLER_H_
@@ -1439,9 +1391,8 @@ diff -urN /tmp/percolator-preserved/SetHandler.h src/openms/thirdparty/percolato
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*SETHANDLER_H_*/
-diff -urN /tmp/percolator-preserved/StdvNormalizer.cpp src/openms/thirdparty/percolator/StdvNormalizer.cpp
---- /tmp/percolator-preserved/StdvNormalizer.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/StdvNormalizer.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/StdvNormalizer.cpp
++++ src/openms/thirdparty/percolator/StdvNormalizer.cpp
 @@ -23,12 +23,13 @@
  #include <vector>
  #include <string>
@@ -1464,9 +1415,8 @@ diff -urN /tmp/percolator-preserved/StdvNormalizer.cpp src/openms/thirdparty/per
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/StdvNormalizer.h src/openms/thirdparty/percolator/StdvNormalizer.h
---- /tmp/percolator-preserved/StdvNormalizer.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/StdvNormalizer.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/StdvNormalizer.h
++++ src/openms/thirdparty/percolator/StdvNormalizer.h
 @@ -17,6 +17,8 @@
  #ifndef STDVNORMALIZER_H_
  #define STDVNORMALIZER_H_
@@ -1483,9 +1433,8 @@ diff -urN /tmp/percolator-preserved/StdvNormalizer.h src/openms/thirdparty/perco
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*STDVNORMALIZER_H_*/
-diff -urN /tmp/percolator-preserved/TabReader.h src/openms/thirdparty/percolator/TabReader.h
---- /tmp/percolator-preserved/TabReader.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/TabReader.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/TabReader.h
++++ src/openms/thirdparty/percolator/TabReader.h
 @@ -22,6 +22,8 @@
  #include <cstring>
  #include <cmath>
@@ -1499,15 +1448,12 @@ diff -urN /tmp/percolator-preserved/TabReader.h src/openms/thirdparty/percolator
    int err;
  };
  
--#endif /*TABREADER_H_*/
-\ No newline at end of file
 +}}}  // namespace OpenMS::Internal::Percolator
 +
-+#endif /*TABREADER_H_*/
+ #endif /*TABREADER_H_*/
 \ No newline at end of file
-diff -urN /tmp/percolator-preserved/Timer.cpp src/openms/thirdparty/percolator/Timer.cpp
---- /tmp/percolator-preserved/Timer.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/Timer.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/Timer.cpp
++++ src/openms/thirdparty/percolator/Timer.cpp
 @@ -4,6 +4,7 @@
  
  #include <iostream>
@@ -1522,9 +1468,8 @@ diff -urN /tmp/percolator-preserved/Timer.cpp src/openms/thirdparty/percolator/T
  
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/Timer.h src/openms/thirdparty/percolator/Timer.h
---- /tmp/percolator-preserved/Timer.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/Timer.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/Timer.h
++++ src/openms/thirdparty/percolator/Timer.h
 @@ -2,9 +2,12 @@
  #ifndef TIMER_H_
  #define TIMER_H_
@@ -1546,9 +1491,8 @@ diff -urN /tmp/percolator-preserved/Timer.h src/openms/thirdparty/percolator/Tim
 +
  #endif
  
-diff -urN /tmp/percolator-preserved/Transform.h src/openms/thirdparty/percolator/Transform.h
---- /tmp/percolator-preserved/Transform.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/Transform.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/Transform.h
++++ src/openms/thirdparty/percolator/Transform.h
 @@ -17,8 +17,11 @@
  #ifndef TRANSFORM_H_
  #define TRANSFORM_H_
@@ -1568,9 +1512,8 @@ diff -urN /tmp/percolator-preserved/Transform.h src/openms/thirdparty/percolator
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*TRANSFORM_H_*/
-diff -urN /tmp/percolator-preserved/UniNormalizer.cpp src/openms/thirdparty/percolator/UniNormalizer.cpp
---- /tmp/percolator-preserved/UniNormalizer.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/UniNormalizer.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/UniNormalizer.cpp
++++ src/openms/thirdparty/percolator/UniNormalizer.cpp
 @@ -18,10 +18,13 @@
  #include <iostream>
  #include <cmath>
@@ -1592,9 +1535,8 @@ diff -urN /tmp/percolator-preserved/UniNormalizer.cpp src/openms/thirdparty/perc
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/UniNormalizer.h src/openms/thirdparty/percolator/UniNormalizer.h
---- /tmp/percolator-preserved/UniNormalizer.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/UniNormalizer.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/UniNormalizer.h
++++ src/openms/thirdparty/percolator/UniNormalizer.h
 @@ -17,6 +17,8 @@
  #ifndef UNINORMALIZER_H_
  #define UNINORMALIZER_H_
@@ -1611,9 +1553,8 @@ diff -urN /tmp/percolator-preserved/UniNormalizer.h src/openms/thirdparty/percol
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*UNINORMALIZER_H_*/
-diff -urN /tmp/percolator-preserved/Vector.cpp src/openms/thirdparty/percolator/Vector.cpp
---- /tmp/percolator-preserved/Vector.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/Vector.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/Vector.cpp
++++ src/openms/thirdparty/percolator/Vector.cpp
 @@ -2,6 +2,8 @@
  // see license for more information
  
@@ -1665,9 +1606,8 @@ diff -urN /tmp/percolator-preserved/Vector.cpp src/openms/thirdparty/percolator/
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/Vector.h src/openms/thirdparty/percolator/Vector.h
---- /tmp/percolator-preserved/Vector.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/Vector.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/Vector.h
++++ src/openms/thirdparty/percolator/Vector.h
 @@ -3,11 +3,14 @@
  
  #ifndef _Vector_H
@@ -1691,9 +1631,8 @@ diff -urN /tmp/percolator-preserved/Vector.h src/openms/thirdparty/percolator/Ve
 +
  #endif
  
-diff -urN /tmp/percolator-preserved/ssl.cpp src/openms/thirdparty/percolator/ssl.cpp
---- /tmp/percolator-preserved/ssl.cpp	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/ssl.cpp	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/ssl.cpp
++++ src/openms/thirdparty/percolator/ssl.cpp
 @@ -25,6 +25,7 @@
  #include <stdarg.h>
  #include <cstring>
@@ -1708,9 +1647,8 @@ diff -urN /tmp/percolator-preserved/ssl.cpp src/openms/thirdparty/percolator/ssl
  
 +
 +}}}  // namespace OpenMS::Internal::Percolator
-diff -urN /tmp/percolator-preserved/ssl.h src/openms/thirdparty/percolator/ssl.h
---- /tmp/percolator-preserved/ssl.h	2026-04-24 12:41:01.636312206 +0200
-+++ src/openms/thirdparty/percolator/ssl.h	2026-04-24 12:40:37.908019912 +0200
+--- /tmp/percolator-preserved/ssl.h
++++ src/openms/thirdparty/percolator/ssl.h
 @@ -11,9 +11,12 @@
   *******************************************************************************/
  #ifndef _svmlin_H

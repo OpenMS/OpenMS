@@ -105,7 +105,7 @@ The cascading-impact analysis at `docs/superpowers/plans/` (session transcript 2
 
 **Why this exists:** the previous session left an untracked, already-wrapped `ISplineTRRRegressor.h` in the tree. A fresh subagent running Task 3 would see the sync script copy upstream content over it (losing the wrap) and then fail namespace-wrap patch application. Decide what to do before Task 3 runs.
 
-- [ ] **Step 1: Pick one option and execute it**
+- [x] **Step 1: Pick one option and execute it**
 
 **Option A (recommended, clean slate):** discard the untracked file and let Task 3 + Task 4 regenerate it from scratch.
 
@@ -125,7 +125,7 @@ diff <(grep -v "namespace OpenMS" src/openms/thirdparty/percolator/ISplineTRRReg
 
 If the diff is *only* the wrap markers + optional `using Eigen::...` moves → Option A is safe (no hand-edits beyond wrap to preserve), pick it.
 
-- [ ] **Step 2: No commit for Task 0**
+- [x] **Step 2: No commit for Task 0**
 
 Decision-only task. The bulk commit happens in Task 7.
 
@@ -137,7 +137,7 @@ Decision-only task. The bulk commit happens in Task 7.
 
 **What this guards:** before touching the vendored code, lock in current behavior. Makes it easy to triage whether a post-migration test failure is due to the new code or a pre-existing test flakiness.
 
-- [ ] **Step 0: Ensure artifacts dir exists and is git-ignored**
+- [x] **Step 0: Ensure artifacts dir exists and is git-ignored**
 
 ```bash
 mkdir -p docs/superpowers/plans/artifacts
@@ -147,7 +147,7 @@ grep -q "^docs/superpowers/plans/artifacts/" .gitignore 2>/dev/null || \
 
 These artifacts are the handshake between Task 1 (baseline) and Tasks 10–11 (post-migration comparison); they must survive `/tmp` loss but stay out of commits.
 
-- [ ] **Step 1: Add baseline diagnostic prints to parity tests (temporary)**
+- [x] **Step 1: Add baseline diagnostic prints to parity tests (temporary)**
 
 Open `src/tests/class_tests/openms/source/Percolator_subprocess_parity_test.cpp` and `src/tests/class_tests/openms/source/PercolatorAdapter_parity_test.cpp`. At the final TEST_TRUE on `max_dpep` in each section that has one (§2, §6, §7, §8 in subprocess parity; the single section in adapter parity), add an `std::cerr` line immediately before the `TEST_TRUE(max_dpep <= ...)` call:
 
@@ -157,7 +157,7 @@ Open `src/tests/class_tests/openms/source/Percolator_subprocess_parity_test.cpp`
 
 Fill `<name>` with the section identifier (e.g. `§2`, `§6-realistic`, `§7-reservoir`, `§8-multifile`, `P2-adapter`). These are temporary — removed in Task 13.
 
-- [ ] **Step 2: Rebuild and run all three suites**
+- [x] **Step 2: Rebuild and run all three suites**
 
 ```bash
 cmake --build OpenMS-build --target Percolator_test Percolator_subprocess_parity_test PercolatorAdapter_parity_test -j$(nproc)
@@ -166,7 +166,7 @@ ctest --test-dir OpenMS-build -R '^(Percolator_test|Percolator_subprocess_parity
 
 Expected: 3/3 tests pass.
 
-- [ ] **Step 3: Grep baseline values out**
+- [x] **Step 3: Grep baseline values out**
 
 ```bash
 grep -E "^BASELINE:" docs/superpowers/plans/artifacts/percolator-eb157f7-baseline.log > docs/superpowers/plans/artifacts/percolator-eb157f7-baseline.txt
@@ -184,11 +184,11 @@ BASELINE: section=P2-adapter r=1.0 max_dpep=0.23
 
 Save this file — it's the reference for Tasks 10-12. Do NOT commit the diagnostic lines.
 
-- [ ] **Step 4: Revert the diagnostic `std::cerr` lines**
+- [x] **Step 4: Revert the diagnostic `std::cerr` lines**
 
 Use `git checkout -- src/tests/class_tests/openms/source/Percolator_subprocess_parity_test.cpp src/tests/class_tests/openms/source/PercolatorAdapter_parity_test.cpp` to drop the temporary additions. Verify `git status --short` shows a clean tree.
 
-- [ ] **Step 5: No commit for Task 1**
+- [x] **Step 5: No commit for Task 1**
 
 This task collects data, not code changes. Proceed to Task 2.
 
@@ -203,7 +203,7 @@ This task collects data, not code changes. Proceed to Task 2.
 - Modify: `src/openms/thirdparty/percolator/UPSTREAM.md`
 - Modify: `src/openms/thirdparty/percolator/sync-from-upstream.sh`
 
-- [ ] **Step 1: Add 4 new files to whitelist**
+- [x] **Step 1: Add 4 new files to whitelist**
 
 Open `src/openms/thirdparty/percolator/whitelist.txt`. Current entries are alphabetical within upstream's `src/` tree root. Add these lines (alphabetical insertion):
 
@@ -216,11 +216,11 @@ PAVARegressor.h
 
 Find the right insertion points by looking at the existing alphabetical order (e.g., `ISplineTRRRegressor.h` goes just before `IsotonicPEP.cpp`; `MonotoneRegressor.cpp/.h` goes after `MassHandler.h`; `PAVARegressor.h` goes after `PSMDescription.h`).
 
-- [ ] **Step 2: Add the one .cpp to sources.cmake**
+- [x] **Step 2: Add the one .cpp to sources.cmake**
 
 Open `src/openms/thirdparty/percolator/sources.cmake`. Find the list of compiled percolator source files (look for `CrossValidation.cpp`). Add `MonotoneRegressor.cpp` to the list (alphabetically after `MassHandler.cpp` or wherever matches existing sort order).
 
-- [ ] **Step 3: Update UPSTREAM_COMMIT**
+- [x] **Step 3: Update UPSTREAM_COMMIT**
 
 Replace the contents of `src/openms/thirdparty/percolator/UPSTREAM_COMMIT` with the new full SHA:
 
@@ -230,7 +230,7 @@ eb157f74e963430e559e0d0bcd31291e4ad660ba
 
 (Single line, no trailing markers — the file currently has just a SHA and a newline.)
 
-- [ ] **Step 4: Update UPSTREAM.md**
+- [x] **Step 4: Update UPSTREAM.md**
 
 Open `src/openms/thirdparty/percolator/UPSTREAM.md`. Change the two metadata lines at the top:
 
@@ -239,7 +239,7 @@ Open `src/openms/thirdparty/percolator/UPSTREAM.md`. Change the two metadata lin
 - **Commit SHA**: eb157f74e963430e559e0d0bcd31291e4ad660ba
 ```
 
-- [ ] **Step 5: Update sync script default**
+- [x] **Step 5: Update sync script default**
 
 Open `src/openms/thirdparty/percolator/sync-from-upstream.sh`. Find `UPSTREAM_REF="${1:-rel-3-06-1}"` (or whatever the current default is). Change to:
 
@@ -249,7 +249,7 @@ UPSTREAM_REF="${1:-eb157f74e963430e559e0d0bcd31291e4ad660ba}"
 
 This makes the script default to re-syncing to this same commit until someone changes it again.
 
-- [ ] **Step 6: Commit metadata-only change**
+- [x] **Step 6: Commit metadata-only change**
 
 ```bash
 git add src/openms/thirdparty/percolator/whitelist.txt \
@@ -281,7 +281,7 @@ EOF
 
 **Note:** `Globals.h.cmake` is NOT in our whitelist (we use a static stub at `Globals.h` instead). The sync script should skip it correctly.
 
-- [ ] **Step 1: Run sync-from-upstream.sh**
+- [x] **Step 1: Run sync-from-upstream.sh**
 
 ```bash
 cd src/openms/thirdparty/percolator
@@ -301,7 +301,7 @@ Expected patch-application failures on:
 
 If the sync script fails midway (e.g., on patch failures), the files are still copied. Good — we regenerate the patch in Tasks 5-6.
 
-- [ ] **Step 2: Verify sync outcome**
+- [x] **Step 2: Verify sync outcome**
 
 ```bash
 git status --short src/openms/thirdparty/percolator/
@@ -311,7 +311,7 @@ Expected: 10+ files modified/added:
 - 4 new files (`MonotoneRegressor.h/.cpp`, `PAVARegressor.h`, `ISplineTRRRegressor.h`)
 - 6+ modified files (`IsotonicPEP.h/.cpp`, `Scores.h/.cpp`, `Globals.cpp`, `CrossValidation.cpp`; possibly also `PosteriorEstimator.cpp` and `SetHandler.cpp` — those have upstream edits but no context-breaking changes, so their patches should apply cleanly)
 
-- [ ] **Step 3: Spot-check the new files landed unwrapped**
+- [x] **Step 3: Spot-check the new files landed unwrapped**
 
 ```bash
 grep -l "namespace OpenMS" src/openms/thirdparty/percolator/MonotoneRegressor.h \
@@ -322,7 +322,7 @@ grep -l "namespace OpenMS" src/openms/thirdparty/percolator/MonotoneRegressor.h 
 
 Expected: no output (none of the new files are yet namespace-wrapped). This is the baseline for Task 4.
 
-- [ ] **Step 4: Sanity-check vendored `IsotonicPEP` structure**
+- [x] **Step 4: Sanity-check vendored `IsotonicPEP` structure**
 
 ```bash
 grep -nE 'class (InferPEP|IsotonicRegression|PavaRegression|IsplineRegression|MonotoneRegressor)' \
@@ -334,7 +334,7 @@ Expected output:
 - `IsotonicPEP.h`: only `class InferPEP` (no `IsotonicRegression`, `PavaRegression`, `IsplineRegression` anymore).
 - `MonotoneRegressor.h`: `class MonotoneRegressor` abstract base.
 
-- [ ] **Step 5: No commit for Task 3 yet**
+- [x] **Step 5: No commit for Task 3 yet**
 
 The sync leaves a broken build (namespace-wrap unapplied on new files; hunks failed on rewritten files). Proceed directly to Task 4.
 
@@ -360,7 +360,7 @@ The sync leaves a broken build (namespace-wrap unapplied on new files; hunks fai
 6. Batch F (other patch-failed): `PosteriorEstimator.cpp`, `SetHandler.cpp`
 7. Batch G (wrap-patch gap): `MyException.h`, `MyException.cpp`, `TabReader.h`
 
-- [ ] **Step 1: Open MonotoneRegressor.h and apply the wrap**
+- [x] **Step 1: Open MonotoneRegressor.h and apply the wrap**
 
 Inspect the file structure:
 ```bash
@@ -382,7 +382,7 @@ Insert immediately before the trailing `#endif`:
 
 ```
 
-- [ ] **Step 2: Same for MonotoneRegressor.cpp**
+- [x] **Step 2: Same for MonotoneRegressor.cpp**
 
 ```bash
 head -20 src/openms/thirdparty/percolator/MonotoneRegressor.cpp
@@ -393,7 +393,7 @@ The file has includes at the top, then `make_monotone_regressor()` factory funct
 
 If the `.cpp` has `using namespace std;` at file scope, that can stay outside the OpenMS namespace or go inside — prefer inside to match the other vendored `.cpp` files' pattern. Check a reference: `grep -A3 "namespace OpenMS" src/openms/thirdparty/percolator/Scores.cpp | head -10`.
 
-- [ ] **Step 3: PAVARegressor.h — header-only with PAVA class definition**
+- [x] **Step 3: PAVARegressor.h — header-only with PAVA class definition**
 
 ```bash
 head -25 src/openms/thirdparty/percolator/PAVARegressor.h
@@ -403,7 +403,7 @@ Check for any file-scope `using` directives (common in Eigen-using headers — e
 
 Wrap pattern same as Step 1.
 
-- [ ] **Step 4: ISplineTRRRegressor.h — the big one (~476 lines)**
+- [x] **Step 4: ISplineTRRRegressor.h — the big one (~476 lines)**
 
 ```bash
 head -40 src/openms/thirdparty/percolator/ISplineTRRRegressor.h
@@ -413,7 +413,7 @@ Expected: `#include <Eigen/Dense>`, possibly file-scope `using Eigen::MatrixXd;`
 
 Apply wrap the same way. Confirm that any file-scope `using Eigen::X;` lines are **inside** the OpenMS namespace. If they're outside (which would pollute the global namespace), move them inside.
 
-- [ ] **Step 5: Verify every wrapped file has exactly one opener and one closer**
+- [x] **Step 5: Verify every wrapped file has exactly one opener and one closer**
 
 ```bash
 WRAP_TARGETS=(
@@ -432,7 +432,7 @@ done
 
 Expected: every file reports `open=1 close=1`. Zeros mean the wrap is missing; twos mean it was applied twice (common after a retry — clean up by reverting and re-wrapping).
 
-- [ ] **Step 6: Build the library to catch wrap mistakes early**
+- [x] **Step 6: Build the library to catch wrap mistakes early**
 
 ```bash
 cmake --build OpenMS-build --target OpenMS -j$(nproc) 2>&1 | tail -30
@@ -443,7 +443,7 @@ Expected: `Built target OpenMS`. If errors appear:
 - `Vectorstd::min` or similar corruption → a regex substitution slipped in; revert the file and hand-edit wrap markers via `Edit`.
 - Duplicate symbol / redefinition → two opener or two closer blocks. Step 5's check should catch this; if it didn't, search the file for both patterns.
 
-- [ ] **Step 7: No commit yet**
+- [x] **Step 7: No commit yet**
 
 Task 5 regenerates the patch hunks for `IsotonicPEP.{h,cpp}`, Task 6 for `Scores.{h,cpp}` + the new files, and Task 7b for `MyException.{h,cpp}` + `TabReader.h`. Commit is bundled in Task 7.
 
@@ -458,7 +458,7 @@ Task 5 regenerates the patch hunks for `IsotonicPEP.{h,cpp}`, Task 6 for `Scores
 
 **Approach:** the upstream files are now in the tree (from Task 3), but unwrapped — they're raw upstream `src/IsotonicPEP.h/.cpp`. We re-apply the wrap the same way as Task 4, then regenerate the patch hunks so the next sync will work.
 
-- [ ] **Step 1: Inspect the new unwrapped `IsotonicPEP.h`**
+- [x] **Step 1: Inspect the new unwrapped `IsotonicPEP.h`**
 
 ```bash
 head -40 src/openms/thirdparty/percolator/IsotonicPEP.h
@@ -467,11 +467,11 @@ tail -10 src/openms/thirdparty/percolator/IsotonicPEP.h
 
 Expected: shrunk to ~55-60 lines. `class InferPEP` decl only; forward-declares `MonotoneRegressor`; `#include <memory>` (for `unique_ptr`); maybe `#include "MonotoneRegressor.h"`.
 
-- [ ] **Step 2: Apply namespace wrap to IsotonicPEP.h**
+- [x] **Step 2: Apply namespace wrap to IsotonicPEP.h**
 
 Same pattern as Task 4: after includes, before `class InferPEP`, open the wrap. Before the include guard's `#endif`, close the wrap.
 
-- [ ] **Step 3: Inspect and wrap IsotonicPEP.cpp**
+- [x] **Step 3: Inspect and wrap IsotonicPEP.cpp**
 
 ```bash
 head -30 src/openms/thirdparty/percolator/IsotonicPEP.cpp
@@ -480,7 +480,7 @@ tail -10 src/openms/thirdparty/percolator/IsotonicPEP.cpp
 
 Apply wrap: after `#include` block, before the `InferPEP` method definitions. Close before EOF.
 
-- [ ] **Step 4: Build to confirm IsotonicPEP is correctly wrapped**
+- [x] **Step 4: Build to confirm IsotonicPEP is correctly wrapped**
 
 ```bash
 cmake --build OpenMS-build --target OpenMS -j$(nproc) 2>&1 | grep -E "IsotonicPEP|error:" | head -20
@@ -488,7 +488,7 @@ cmake --build OpenMS-build --target OpenMS -j$(nproc) 2>&1 | grep -E "IsotonicPE
 
 Expected: any remaining errors should be in `Scores.{h,cpp}` or `MonotoneRegressor.cpp` (if its `#include "IsotonicPEP.h"` references an unwrapped name). `IsotonicPEP` itself should compile cleanly.
 
-- [ ] **Step 5: Regenerate the patch hunks**
+- [x] **Step 5: Regenerate the patch hunks**
 
 The `01-namespace-wrap.patch` file still contains the OBSOLETE hunks for `IsotonicPEP.{h,cpp}`. To regenerate them correctly we need to diff the upstream-source (unwrapped) file against our now-wrapped vendored file.
 
@@ -510,13 +510,13 @@ sed -i 's|/tmp/perc-eb157f7/|a/|; s|src/openms/thirdparty/percolator/|b/|' \
     /tmp/IsotonicPEP_h.hunk.patch /tmp/IsotonicPEP_cpp.hunk.patch
 ```
 
-- [ ] **Step 6: Splice the new hunks into the patch**
+- [x] **Step 6: Splice the new hunks into the patch**
 
 Open `src/openms/thirdparty/percolator/patches/01-namespace-wrap.patch`. Use Grep to find the `diff --git a/IsotonicPEP.h b/IsotonicPEP.h` and `diff --git a/IsotonicPEP.cpp b/IsotonicPEP.cpp` markers — these start the obsolete hunks. Find the next `diff --git` marker to identify where each hunk ends.
 
 Replace the obsolete block for `IsotonicPEP.h` with the contents of `/tmp/IsotonicPEP_h.hunk.patch`. Same for `IsotonicPEP.cpp`. Keep the rest of the patch file unchanged.
 
-- [ ] **Step 7: Verify the regenerated patch applies cleanly against upstream**
+- [x] **Step 7: Verify the regenerated patch applies cleanly against upstream**
 
 ```bash
 # Re-sync and re-apply from scratch as a sanity check (safe — working tree is already in the target state)
@@ -528,7 +528,7 @@ git diff --stat src/openms/thirdparty/percolator/IsotonicPEP.h src/openms/thirdp
 
 Expected: `git diff --stat` shows ZERO changes if the patch applies cleanly to fresh upstream content. If the diff shows any changes, the regenerated hunks are wrong — redo Step 5-6.
 
-- [ ] **Step 8: No commit for Task 5 yet**
+- [x] **Step 8: No commit for Task 5 yet**
 
 Task 6 still needs to handle Scores.{h,cpp}. Continue.
 
@@ -543,11 +543,11 @@ Task 6 still needs to handle Scores.{h,cpp}. Continue.
 
 **Approach:** these files weren't fully rewritten upstream; just context-shifted at three places (`Scores.cpp`: `\%` escape removed, `getScoreLabelPairs` body restructured, `weedOutRedundant` uses `[]` instead of `.at()`) plus one new overload declaration in `Scores.h`. Our namespace wrap still applies in principle — just the hunks' context lines are stale.
 
-- [ ] **Step 1: Apply namespace wrap to the synced (but unwrapped) Scores.h / Scores.cpp**
+- [x] **Step 1: Apply namespace wrap to the synced (but unwrapped) Scores.h / Scores.cpp**
 
 If the sync script failed on these hunks during Task 3, the in-tree files are unwrapped upstream content. Apply the wrap the same way as Task 4: open after `#include`s (inside the include guard for `.h`), close before `#endif` / EOF.
 
-- [ ] **Step 2: Confirm the two files build**
+- [x] **Step 2: Confirm the two files build**
 
 ```bash
 cmake --build OpenMS-build --target OpenMS -j$(nproc) 2>&1 | grep -E "Scores\.(h|cpp)|error:" | head -15
@@ -555,7 +555,7 @@ cmake --build OpenMS-build --target OpenMS -j$(nproc) 2>&1 | grep -E "Scores\.(h
 
 Expected: no errors in `Scores.h` / `Scores.cpp`. If MonotoneRegressor.cpp's inclusion of PAVARegressor.h produces errors about Eigen types not being in scope, re-check the Task 4 wrap for `PAVARegressor.h` / `ISplineTRRRegressor.h`.
 
-- [ ] **Step 3: Regenerate Scores patch hunks**
+- [x] **Step 3: Regenerate Scores patch hunks**
 
 ```bash
 gh api "repos/percolator/percolator/contents/src/Scores.h?ref=eb157f7" --jq '.content' | base64 -d > /tmp/perc-eb157f7/Scores.h
@@ -568,11 +568,11 @@ sed -i 's|/tmp/perc-eb157f7/|a/|; s|src/openms/thirdparty/percolator/|b/|' \
     /tmp/Scores_h.hunk.patch /tmp/Scores_cpp.hunk.patch
 ```
 
-- [ ] **Step 4: Splice Scores hunks into the patch**
+- [x] **Step 4: Splice Scores hunks into the patch**
 
 In `src/openms/thirdparty/percolator/patches/01-namespace-wrap.patch`, locate the existing hunks for `Scores.h` and `Scores.cpp` (via `grep -n "diff --git a/Scores"` on the patch). Replace each obsolete hunk block with the corresponding `/tmp/Scores_*.hunk.patch` content.
 
-- [ ] **Step 5: Also add hunks for the new files**
+- [x] **Step 5: Also add hunks for the new files**
 
 The four new files (MonotoneRegressor.{h,cpp}, PAVARegressor.h, ISplineTRRRegressor.h) now exist in the vendored tree wrapped (from Task 4) but have no entries in `01-namespace-wrap.patch`. Generate hunks:
 
@@ -586,7 +586,7 @@ done
 
 Append each to `01-namespace-wrap.patch` (in alphabetical file order, maintaining the patch's existing sort).
 
-- [ ] **Step 6: Full resync + reapply + diff check**
+- [x] **Step 6: Full resync + reapply + diff check**
 
 ```bash
 cd src/openms/thirdparty/percolator
@@ -599,7 +599,7 @@ Expected: only the 5 metadata files from Task 2 should diff (whitelist, sources.
 
 If any source file shows a diff, the patch still isn't perfectly regenerated. Go back to Steps 3-5 for that file.
 
-- [ ] **Step 7: Run the full OpenMS library build**
+- [x] **Step 7: Run the full OpenMS library build**
 
 ```bash
 cmake --build OpenMS-build --target OpenMS -j$(nproc) 2>&1 | tail -5
@@ -609,7 +609,7 @@ Expected: `Built target OpenMS`. No errors.
 
 If `ISplineTRRRegressor.h`'s Eigen types cause compile errors elsewhere, it's likely because a `using Eigen::X;` at file scope ended up outside the OpenMS namespace. Re-check Task 4 Step 4 wrap placement.
 
-- [ ] **Step 8: No commit for Task 6 yet**
+- [x] **Step 8: No commit for Task 6 yet**
 
 Still need Task 7 (Globals.h stub edit) before committing. Continue.
 
@@ -622,7 +622,7 @@ Still need Task 7 (Globals.h stub edit) before committing. Continue.
 
 **What this fixes:** `Globals.cpp` (now synced from upstream at eb157f7) no longer defines `getXMLDir()`. Our static stub `Globals.h` still declares it. Without this fix, linking OpenMS fails because the declaration has no definition, or a downstream caller references it.
 
-- [ ] **Step 1: Locate the declaration**
+- [x] **Step 1: Locate the declaration**
 
 ```bash
 grep -n "getXMLDir" src/openms/thirdparty/percolator/Globals.h
@@ -630,11 +630,11 @@ grep -n "getXMLDir" src/openms/thirdparty/percolator/Globals.h
 
 Expected: one line, a declaration like `static std::string getXMLDir();` or similar.
 
-- [ ] **Step 2: Remove the declaration + any includes that exist only for it**
+- [x] **Step 2: Remove the declaration + any includes that exist only for it**
 
 Delete the line. Check for adjacent comments that apply only to `getXMLDir` and remove those too. Verify no include (e.g. `<string>`) is needed only for this declaration; if so leave it — it's probably needed elsewhere.
 
-- [ ] **Step 3: Build to confirm linkage**
+- [x] **Step 3: Build to confirm linkage**
 
 ```bash
 cmake --build OpenMS-build --target OpenMS -j$(nproc) 2>&1 | tail -5
@@ -642,11 +642,11 @@ cmake --build OpenMS-build --target OpenMS -j$(nproc) 2>&1 | tail -5
 
 Expected: `Built target OpenMS`. If any undefined-reference error mentions `getXMLDir`, some caller still references it — grep for it across the tree and remove those calls (should be zero callers since our wrapper doesn't use XML).
 
-- [ ] **Step 4: Fold Task 7b before committing (see next task)**
+- [x] **Step 4: Fold Task 7b before committing (see next task)**
 
 `MyException.{h,cpp}` and `TabReader.h` are wrapped in-tree but missing from `01-namespace-wrap.patch` — a pre-existing gap. Fix it now, while the regen tooling is already set up, so the same commit captures the whole wrap-patch story. Jump to Task 7b, then come back here.
 
-- [ ] **Step 5: Commit the full sync (Tasks 3–7b together)**
+- [x] **Step 5: Commit the full sync (Tasks 3–7b together)**
 
 ```bash
 git add src/openms/thirdparty/percolator/
@@ -692,7 +692,7 @@ EOF
 
 **Why:** `grep "^diff " 01-namespace-wrap.patch` confirms these three files have never been in the wrap patch, yet they carry a hand-applied namespace wrap in the tree. Every sync strips the wrap, leaving the build broken until someone hand-re-wraps them. This task makes the wrap self-healing.
 
-- [ ] **Step 1: Confirm the files are wrapped in-tree**
+- [x] **Step 1: Confirm the files are wrapped in-tree**
 
 ```bash
 for f in MyException.h MyException.cpp TabReader.h; do
@@ -703,7 +703,7 @@ done
 
 Expected: each reports `1`. If not, apply the wrap first (Task 4 pattern) before generating hunks.
 
-- [ ] **Step 2: Generate hunks from upstream-vs-wrapped diff**
+- [x] **Step 2: Generate hunks from upstream-vs-wrapped diff**
 
 ```bash
 mkdir -p /tmp/perc-eb157f7
@@ -727,11 +727,11 @@ for f in MyException.h MyException.cpp TabReader.h; do
 done
 ```
 
-- [ ] **Step 3: Append hunks in alphabetical position**
+- [x] **Step 3: Append hunks in alphabetical position**
 
 Open `src/openms/thirdparty/percolator/patches/01-namespace-wrap.patch`. Insert the `MyException.cpp` hunk between `MassHandler.h` and `NOTICE-percolator.txt`; insert `MyException.h` right after it; insert `TabReader.h` after `SetHandler.*` (alphabetical order is the existing convention per `grep "^diff "`). Use `Edit` with anchor text from neighboring `diff -urN` lines to splice.
 
-- [ ] **Step 4: Verify the patch round-trips**
+- [x] **Step 4: Verify the patch round-trips**
 
 ```bash
 cd src/openms/thirdparty/percolator
@@ -744,7 +744,7 @@ git diff --stat src/openms/thirdparty/percolator/MyException.h \
 
 Expected: zero diff — the sync script now re-creates the wrapped versions bit-identical to the committed tree.
 
-- [ ] **Step 5: Return to Task 7 Step 5 to bundle the commit**
+- [x] **Step 5: Return to Task 7 Step 5 to bundle the commit**
 
 No separate commit for Task 7b; it rolls up into Task 7's "sync + wrap + patch-regen" commit.
 
@@ -756,7 +756,7 @@ No separate commit for Task 7b; it rolls up into Task 7's "sync + wrap + patch-r
 
 **What this validates:** no residual stale object files, all percolator sources compile together with the new regressor hierarchy.
 
-- [ ] **Step 1: Clean rebuild of the library target**
+- [x] **Step 1: Clean rebuild of the library target**
 
 ```bash
 cmake --build OpenMS-build --target OpenMS -j$(nproc) --clean-first 2>&1 | tail -10
@@ -769,7 +769,7 @@ If errors appear:
 - Multiple definition / redefinition errors → a namespace wrap was applied twice. Grep for duplicate `namespace OpenMS { namespace Internal { namespace Percolator {` blocks in each new file.
 - Undefined `getXMLDir` → Task 7 Step 2 didn't fully remove references.
 
-- [ ] **Step 2: Build the test targets**
+- [x] **Step 2: Build the test targets**
 
 ```bash
 cmake --build OpenMS-build --target Percolator_test Percolator_subprocess_parity_test PercolatorAdapter_parity_test PercolatorAdapter -j$(nproc) 2>&1 | tail -5
@@ -777,7 +777,7 @@ cmake --build OpenMS-build --target Percolator_test Percolator_subprocess_parity
 
 Expected: all four targets link cleanly.
 
-- [ ] **Step 3: No commit for Task 8**
+- [x] **Step 3: No commit for Task 8**
 
 Build verification only. Continue.
 
@@ -789,13 +789,13 @@ Build verification only. Continue.
 
 **What this task catches:** algorithmic shift in `pep_method="logistic_regression"` (the library default) — now routes to the new TRR I-spline regressor instead of the old PavaRegression-based path. P3.a/b bit-identicality expects run1 == run2 (not comparison against stored values), so identicality itself should hold if TRR is deterministic. But `medianTargetBeatsDecoy_` in the basic test may shift. Run and observe.
 
-- [ ] **Step 1: Run Percolator_test**
+- [x] **Step 1: Run Percolator_test**
 
 ```bash
 ctest --test-dir OpenMS-build -R '^Percolator_test$' --output-on-failure 2>&1 | tail -40
 ```
 
-- [ ] **Step 2: Assess outcome**
+- [x] **Step 2: Assess outcome**
 
 **If 100% pass:** proceed to Step 5.
 
@@ -812,7 +812,7 @@ Scoping it to just the vendored sources (rather than target-wide) keeps the rest
 
 **If the basic `rescore` test fails**: the SVM path would be broken. Unexpected — SVM code (`ssl.cpp`, `LogisticRegression.*`) wasn't touched by `eb157f7`. Likely a namespace-wrap error. Recheck Task 4 wrap placements.
 
-- [ ] **Step 3 (conditional): If P3.a/b need tolerance loosening, edit inline**
+- [x] **Step 3 (conditional): If P3.a/b need tolerance loosening, edit inline**
 
 Example for P3.a:
 ```cpp
@@ -822,14 +822,14 @@ if (std::abs(out1.scores[i] - out2.scores[i]) > 1e-12) bit_identical = false;
 ```
 Same for `q_values` and `peps`. Add a comment explaining: *"After upstream eb157f7's TRR I-spline PEP path, PEPs are deterministic but not bit-exact across Eigen/TRR iterative solver internals. 1e-12 tolerance preserves the 'bit-identical-level' contract within numerical noise."*
 
-- [ ] **Step 4 (conditional): Rerun Percolator_test until green**
+- [x] **Step 4 (conditional): Rerun Percolator_test until green**
 
 ```bash
 cmake --build OpenMS-build --target Percolator_test -j$(nproc) && \
 ctest --test-dir OpenMS-build -R '^Percolator_test$' --output-on-failure
 ```
 
-- [ ] **Step 5: Commit the test file change if made**
+- [x] **Step 5: Commit the test file change if made**
 
 If Step 3 was needed:
 ```bash
@@ -857,11 +857,11 @@ If Step 3 was NOT needed, no commit — continue to Task 10.
 
 **What this tests:** are post-migration observed values better, equal, or worse than the baseline captured in Task 1?
 
-- [ ] **Step 1: Re-add BASELINE diagnostic prints (temporary)**
+- [x] **Step 1: Re-add BASELINE diagnostic prints (temporary)**
 
 Open `src/tests/class_tests/openms/source/Percolator_subprocess_parity_test.cpp`. Add the same `std::cerr << "POSTMIG: section=..."` lines as Task 1 Step 1 (at each `max_dpep` assertion site), BUT use the prefix `POSTMIG:` instead of `BASELINE:`.
 
-- [ ] **Step 2: Rebuild and run**
+- [x] **Step 2: Rebuild and run**
 
 > **Gotcha from Task 1 baseline capture:** `ctest --output-on-failure` silently drops stderr for passing tests, so `std::cerr` diagnostics never reach the log. Use `--verbose` instead, **and** confirm the two env vars are set — without them the parity tests silently skip (looks like a pass). Baseline capture used the direct-binary fallback; same options apply here.
 
@@ -876,7 +876,7 @@ ctest --test-dir OpenMS-build -R '^Percolator_subprocess_parity_test$' --verbose
 grep "^POSTMIG:" docs/superpowers/plans/artifacts/percolator-eb157f7-postmig.log > docs/superpowers/plans/artifacts/percolator-eb157f7-postmig.txt
 ```
 
-- [ ] **Step 3: Compare baseline vs post-migration**
+- [x] **Step 3: Compare baseline vs post-migration**
 
 ```bash
 paste docs/superpowers/plans/artifacts/percolator-eb157f7-baseline.txt docs/superpowers/plans/artifacts/percolator-eb157f7-postmig.txt
@@ -886,18 +886,18 @@ Expected:
 - **§2, §3, §4, §5, §7, §8** (synthetic with `pep_method="isotonic"`): r values should stay at their baseline (score algorithm unchanged). `max_dpep` may change slightly either way due to the PAVA pseudocount addition.
 - **§6 (`pep_method="nonparametric"`)**: `r` and `max_dpep` should be essentially unchanged (the nonparametric path is untouched by eb157f7).
 
-- [ ] **Step 4: Tolerate or tighten**
+- [x] **Step 4: Tolerate or tighten**
 
 For each section:
 - If the post-mig observed value is within the current test tolerance → no action.
 - If it exceeds the current tolerance (test now fails) → investigate and, if it's algorithmic drift not a regression, widen the tolerance with an inline comment explaining. Flag to controller if unsure.
 - If it's strictly tighter (lower `max_dpep`, higher `r`) by ≥ 2× → TIGHTEN the test tolerance to catch future regressions. Update the `TODO(percolator-3.08-binary)` markers accordingly (if this migration closes the gap, remove the TODO; if it doesn't close it, keep the TODO).
 
-- [ ] **Step 5: Remove POSTMIG diagnostic prints**
+- [x] **Step 5: Remove POSTMIG diagnostic prints**
 
 `git checkout -- src/tests/class_tests/openms/source/Percolator_subprocess_parity_test.cpp` to drop the `std::cerr` lines. If tolerance adjustments (Step 4) are needed, re-apply only those changes (via direct edit).
 
-- [ ] **Step 6: Rebuild and verify final test passes**
+- [x] **Step 6: Rebuild and verify final test passes**
 
 ```bash
 cmake --build OpenMS-build --target Percolator_subprocess_parity_test -j$(nproc) && \
@@ -906,7 +906,7 @@ ctest --test-dir OpenMS-build -R '^Percolator_subprocess_parity_test$' --output-
 
 Expected: `PASSED`.
 
-- [ ] **Step 7: Commit tolerance changes (only if any were made)**
+- [x] **Step 7: Commit tolerance changes (only if any were made)**
 
 If tolerances were adjusted in Step 4:
 
@@ -938,11 +938,11 @@ If no tolerance changes were needed, no commit — continue to Task 11.
 
 **What this tests:** the same pattern as Task 10 but at the PercolatorAdapter layer, where subprocess post-processing amplifies any residual drift.
 
-- [ ] **Step 1-6: Mirror Task 10's flow for the adapter test**
+- [x] **Step 1-6: Mirror Task 10's flow for the adapter test**
 
 Apply the same pattern as Task 10 to `src/tests/class_tests/openms/source/PercolatorAdapter_parity_test.cpp` and its single section. Note: this test spawns the full `PercolatorAdapter` TOPP binary — make sure `OpenMS-build/bin/PercolatorAdapter` is rebuilt after the vendored tree sync.
 
-- [ ] **Step 7: Commit tolerance changes (only if any were made)**
+- [x] **Step 7: Commit tolerance changes (only if any were made)**
 
 Similar to Task 10 Step 7, but adjust the commit message subject/body for adapter test.
 
@@ -952,7 +952,7 @@ Similar to Task 10 Step 7, but adjust the commit message subject/body for adapte
 
 **Files:** none modified.
 
-- [ ] **Step 1: Clean build + ctest of all three**
+- [x] **Step 1: Clean build + ctest of all three**
 
 ```bash
 # --clean-first wipes the default target's objects. Rebuild library + all test targets + adapter
@@ -966,11 +966,11 @@ ctest --test-dir OpenMS-build -R '^(Percolator_test|Percolator_subprocess_parity
 
 Expected: 3/3 tests pass.
 
-- [ ] **Step 2: If anything fails, go back to Task 9/10/11**
+- [x] **Step 2: If anything fails, go back to Task 9/10/11**
 
 Do not commit tolerance relaxations without surfacing to the controller.
 
-- [ ] **Step 3: No commit (validation-only task).**
+- [x] **Step 3: No commit (validation-only task).**
 
 ---
 
@@ -982,19 +982,19 @@ Do not commit tolerance relaxations without surfacing to the controller.
 
 **What this preserves:** record the final observed drift values + what the migration achieved, so future readers can see the trajectory.
 
-- [ ] **Step 1: Update the spec's tolerance table**
+- [x] **Step 1: Update the spec's tolerance table**
 
 Open `docs/superpowers/specs/2026-04-23-percolator-in-process-parity-design.md`. In the tolerance table, annotate any entries whose tolerance changed post-migration. Add a "Post-eb157f7" column or footnotes.
 
-- [ ] **Step 2: Update the upgrade-path section**
+- [x] **Step 2: Update the upgrade-path section**
 
 The section "Upgrade path when the bundled binary is updated to 3.08.01" should now be retitled or amended to reflect that we've done the VENDORED upgrade (but NOT the subprocess binary upgrade). The two are still decoupled.
 
-- [ ] **Step 3: Cross-reference this migration plan in the earlier plan**
+- [x] **Step 3: Cross-reference this migration plan in the earlier plan**
 
 At the top of `docs/superpowers/plans/2026-04-23-percolator-in-process-parity.md`, add a `> **Follow-up migration:** See [2026-04-24-percolator-eb157f7-migration.md]` note.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add docs/superpowers/specs/2026-04-23-percolator-in-process-parity-design.md \

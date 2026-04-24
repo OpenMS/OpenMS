@@ -1,3 +1,5 @@
+#pragma once
+
 #include "MonotoneRegressor.h"
 #include <iostream> // for std::cerr, std::endl
 #include <Eigen/Dense>

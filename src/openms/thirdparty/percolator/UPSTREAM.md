@@ -31,9 +31,34 @@ hand-editing sources and committing them, to keep sync self-healing.
   `using namespace std;` placement, `std::` qualifications, additional
   includes (TabReader, Version.h), `::min/::max → std::min/std::max`,
   `parseOptions` body removal, enzyme / protein-inference / SQT feature
-  drops, etc. Regenerated 2026-04-24 (commit 9f227d7c03) from the
-  current-tree-vs-upstream diff — replaces the former 01-06 chain which
-  had accumulated drift.
+  drops, `#pragma once` on the new header-only regressors, etc.
+  Regenerated 2026-04-24 (commit 9f227d7c03) from the current-tree-vs-upstream
+  diff — replaces the former 01-06 chain which had accumulated drift.
+
+### Regenerating the patch
+
+Whenever you hand-fix a downstream issue in the vendored tree, capture it in
+this patch rather than leaving it only in the source commit. To regenerate:
+
+```bash
+mkdir -p /tmp/perc-eb157f7
+whitelist=$(grep -v '^#' whitelist.txt | grep -v '^$')
+for f in $whitelist; do
+  gh api "repos/percolator/percolator/contents/src/$f?ref=$(cat UPSTREAM_COMMIT)" \
+    --jq '.content' 2>/dev/null | base64 -d > "/tmp/perc-eb157f7/$f" 2>/dev/null
+done
+: > patches/01-namespace-wrap.patch
+for f in $(ls /tmp/perc-eb157f7/ | sort); do
+  [ -s "/tmp/perc-eb157f7/$f" ] || continue
+  diff -urN --label "/tmp/percolator-preserved/$f" --label "src/openms/thirdparty/percolator/$f" \
+    "/tmp/perc-eb157f7/$f" "src/openms/thirdparty/percolator/$f" \
+    >> patches/01-namespace-wrap.patch || true
+done
+```
+
+The `--label` flags are important — without them, `diff -urN` embeds
+filesystem timestamps that make `git diff` noisy on every regeneration even
+when the semantic patch content is unchanged.
 
 ## Licensing note
 
