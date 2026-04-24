@@ -67,7 +67,6 @@ FeatureFinder TOPP tools.
 class TOPPFeatureLinkerWNet :
   public TOPPFeatureLinkerBase
 {
-
 public:
   TOPPFeatureLinkerWNet() :
     TOPPFeatureLinkerBase("FeatureLinkerWNet", "Groups corresponding features from multiple maps using Wasserstein optimal transport.")
@@ -93,7 +92,6 @@ protected:
     FeatureGroupingAlgorithmWNet algo;
     return TOPPFeatureLinkerBase::common_main_(&algo);
   }
-
 };
 
 
