@@ -72,9 +72,25 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 endif()
 find_program(PERCOLATOR_BINARY_FOR_TEST percolator
   PATHS ENV PATH ${_percolator_thirdparty_hints})
+
+# Optional 3.08-era (eb157f7-equivalent) binary used by additional parity
+# sections that compare the in-process "isotonic" and "logistic_regression"
+# PEP methods against upstream 3.08's --pava-pep / --ip-pep. The bundled
+# 3.06 binary above cannot exercise those paths (it predates them). Drop
+# a rel-3-08 percolator into ${CMAKE_BINARY_DIR}/THIRDPARTY/Percolator-eb157f7/
+# (see that dir's PROVENANCE.txt for the prebuilt deb source) to enable.
+find_program(PERCOLATOR_EB157F7_BINARY_FOR_TEST percolator
+  HINTS "${CMAKE_BINARY_DIR}/THIRDPARTY/Percolator-eb157f7"
+  NO_DEFAULT_PATH)
+
 if (PERCOLATOR_BINARY_FOR_TEST)
+  set(_percolator_test_env "PERCOLATOR_BINARY=${PERCOLATOR_BINARY_FOR_TEST}")
+  if (PERCOLATOR_EB157F7_BINARY_FOR_TEST)
+    set(_percolator_test_env
+      "${_percolator_test_env};PERCOLATOR_EB157F7_BINARY=${PERCOLATOR_EB157F7_BINARY_FOR_TEST}")
+  endif()
   set_tests_properties(Percolator_subprocess_parity_test PROPERTIES
-    ENVIRONMENT "PERCOLATOR_BINARY=${PERCOLATOR_BINARY_FOR_TEST}")
+    ENVIRONMENT "${_percolator_test_env}")
   # Compute PercolatorAdapter path at configure time.
   # TOPP tools are placed in ${CMAKE_BINARY_DIR}/bin/ (the root build dir's bin/),
   # which is the same directory that the top-level CMakeLists sets as
@@ -89,6 +105,11 @@ if (PERCOLATOR_BINARY_FOR_TEST)
   set_tests_properties(PercolatorAdapter_parity_test PROPERTIES
     ENVIRONMENT "PERCOLATOR_BINARY=${PERCOLATOR_BINARY_FOR_TEST};PERCOLATOR_ADAPTER_BINARY=${_percolator_adapter_path}")
   message(STATUS "Percolator_subprocess_parity_test: enabled (found ${PERCOLATOR_BINARY_FOR_TEST})")
+  if (PERCOLATOR_EB157F7_BINARY_FOR_TEST)
+    message(STATUS "Percolator_subprocess_parity_test: 3.08 parity sections enabled (found ${PERCOLATOR_EB157F7_BINARY_FOR_TEST})")
+  else()
+    message(STATUS "Percolator_subprocess_parity_test: 3.08 parity sections skipped (PERCOLATOR_EB157F7_BINARY not found under ${CMAKE_BINARY_DIR}/THIRDPARTY/Percolator-eb157f7/)")
+  endif()
   message(STATUS "PercolatorAdapter_parity_test: enabled (adapter at ${_percolator_adapter_path})")
 else()
   message(STATUS "Percolator_subprocess_parity_test: subprocess sections skipped (percolator binary not on PATH nor in THIRDPARTY)")
