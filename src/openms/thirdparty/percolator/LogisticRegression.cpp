@@ -21,11 +21,12 @@
 #include<functional>
 #include<fstream>
 #include<sstream>
-using namespace std;
 
 #include "Globals.h"
 #include "LogisticRegression.h"
+
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 using namespace std;
 
 const double LogisticRegression::gRange = 35.0;

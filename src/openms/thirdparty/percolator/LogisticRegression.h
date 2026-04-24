@@ -25,7 +25,7 @@
 #include "Array.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
+
 class LogisticRegression : public BaseSpline {
   public:
     LogisticRegression(){};

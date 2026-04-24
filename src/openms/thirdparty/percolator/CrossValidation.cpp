@@ -20,9 +20,10 @@
 #ifdef _OPENMP
 #include <omp.h>
 #include <algorithm>
-namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
 #endif
+
+namespace OpenMS { namespace Internal { namespace Percolator {
+
 // checks cross validation convergence in case of quickValidation_
 const double CrossValidation::requiredIncreaseOver2Iterations_ = 0.01;
 
@@ -437,8 +438,8 @@ int CrossValidation::mergeCpCnPairs(
       tp = nestedTestScoresVec[set][static_cast<std::size_t>(
                                         itCpCnPair->nestedSet)]
                .calcScoresAndQvals(itCpCnPair->ww, testFdr_, skipDecoysPlusOne);
-      intermediateResults[std::make_pair(itCpCnPair->cpos,
-                                         itCpCnPair->cfrac)] += tp;
+      intermediateResults[std::pair<double,double>{itCpCnPair->cpos,
+                                                   itCpCnPair->cfrac}] += tp;
       itCpCnPair->tp = tp;
       if (nestedXvalBins_ <= 1) {
         if (tp >= bestTruePoses[set]) {
@@ -458,7 +459,7 @@ int CrossValidation::mergeCpCnPairs(
         std::vector<double>::const_iterator itCfrac = cfracCandidates.begin();
         for (; itCfrac != cfracCandidates.end(); ++itCfrac) {
           double cfrac = *itCfrac;
-          tp = intermediateResults[std::make_pair(cpos, cfrac)];
+          tp = intermediateResults[std::pair<double,double>{cpos, cfrac}];
           if (tp >= bestTruePoses[set]) {
             bestTruePoses[set] = tp;
             bestCposes[set] = cpos;

@@ -18,8 +18,8 @@
 #include "DataSet.h"
 #include "TabReader.h"
 #include <cmath>
+
 namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
 
 FeatureNames DataSet::featureNames_;
 bool DataSet::decoyWarningTripped_ = false;
@@ -172,7 +172,7 @@ LabelType DataSet::readPsm(const std::string& line, const unsigned int lineNr,
       oss << "ERROR: Reached strange feature with val=" << featureRow[j]
            << " col=" << j << " for PSM with id " << myPsm->getId() << endl;
       if (NO_TERMINATE) {
-        cerr << oss.str();
+        std::cerr << oss.str();
         std::cerr << "No-terminate flag set: setting value to 0 and ignoring the error." << std::endl;
         featureRow[j] = 0.0;
       } else {
@@ -228,6 +228,22 @@ LabelType DataSet::readPsm(const std::string& line, const unsigned int lineNr,
         names.erase(0, pos + PSMDescription::getProteinNameSeparator().length());
       }
       if (names.size() > 0) proteins.push_back(names);
+
+      // check if end of line was reached after reading the protein string
+      // if this is not the case, it means the user probably incorrectly provided proteins as a tab separated input
+      if (!reader.error()) {
+        ostringstream temp;
+        temp << "ERROR: Reading tab file, error reading PSM " << myPsm->getId() 
+          << ". Found tab character after reading proteins even though " << PSMDescription::getProteinNameSeparator() 
+          << " was specified as --protein-name-separator." << std::endl;
+        if (NO_TERMINATE) {
+          std::cerr << temp.str();
+          std::cerr << "No-terminate flag set: ignoring error and continuing "
+                    << "without PSMs." << std::endl;
+        } else {
+          throw MyException(temp.str());
+        }
+      }
     }
     proteins.swap(myPsm->proteinIds); // shrink to fit
   }

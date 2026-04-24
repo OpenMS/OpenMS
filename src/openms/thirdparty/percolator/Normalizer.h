@@ -21,10 +21,10 @@
 #include <vector>
 #include <iostream>
 
+namespace OpenMS { namespace Internal { namespace Percolator {
+
 using namespace std;
 
-namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
 class Normalizer {
  public:
   virtual ~Normalizer();

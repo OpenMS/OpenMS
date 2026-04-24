@@ -15,6 +15,8 @@
 #include <vector>
 #include <ctime>
 
+namespace OpenMS { namespace Internal { namespace Percolator {
+
 using namespace std;
 
 /* OPTIMIZATION CONSTANTS */
@@ -27,8 +29,6 @@ using namespace std;
 
 #define VERBOSE_CGLS 0
 
-namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
 class AlgIn {
   public:
     AlgIn(const unsigned int size, const int numFeat);

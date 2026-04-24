@@ -452,12 +452,12 @@ double Vector::min() const
  
   for ( Set::Iterator iter = beginNonzero(); iter != endNonzero(); iter++ )
     {
-      currentMin = ::min( currentMin, values[ *iter ] );     
+      currentMin = std::min( currentMin, values[ *iter ] );
     }
- 
+
   if ( ! zeroIndices.isEmpty() )
     {
-      currentMin = ::min( currentMin, 0.0 );
+      currentMin = std::min( currentMin, 0.0 );
     }
 
   return currentMin;
@@ -468,15 +468,15 @@ double Vector::max() const
   double currentMax = -Numerical::inf();
 
   Set zeroIndices = Set::FullSet(0, size()-1 ).without( nonzeroIndices );
- 
+
   for ( Set::Iterator iter = beginNonzero(); iter != endNonzero(); iter++ )
     {
-      currentMax = ::max( currentMax, values[ *iter ] );     
+      currentMax = std::max( currentMax, values[ *iter ] );
     }
- 
+
   if ( ! zeroIndices.isEmpty() )
     {
-      currentMax = ::max( currentMax, 0.0 );
+      currentMax = std::max( currentMax, 0.0 );
     }
 
   return currentMax;

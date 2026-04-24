@@ -23,6 +23,7 @@
 #include<cmath>
 #include "BaseSpline.h"
 #include "Globals.h"
+
 namespace OpenMS { namespace Internal { namespace Percolator {
 
 using namespace std;

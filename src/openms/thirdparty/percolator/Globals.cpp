@@ -19,8 +19,8 @@
 #include "Version.h"
 #include <iostream>
 #include <cstdlib>
+
 namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
 
 Globals* Globals::glob = 0;
 
@@ -51,47 +51,6 @@ Globals* Globals::getInstance() {
 #include <windows.h>
 #include <tchar.h>
 #endif
-
-const std::string Globals::getXMLDir(bool isConverter) {
-  std::string out = WRITABLE_DIR;
-#if defined (__WIN32__) || defined (__MINGW__) || defined (MINGW) || defined (_WIN32)
-  std::wstring keyName = L"Software\\Percolator\\percolator-";
-  if (isConverter) keyName += L"converters-";
-  keyName += LVERSION_NAME;
-  HKEY hKey;
-  if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, keyName.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-    WCHAR szBuffer[512];
-    DWORD dwBufferSize = sizeof(szBuffer);
-    if (RegQueryValueExW(hKey, NULL, 0, NULL, (LPBYTE)szBuffer, &dwBufferSize) == ERROR_SUCCESS) {
-      char szcBuffer[512];
-      WideCharToMultiByte(CP_ACP, 0, szBuffer, -1, szcBuffer, 512, NULL, NULL);
-      out = szcBuffer;
-      out += "\\";
-      out += WRITABLE_DIR;
-    }
-    RegCloseKey(hKey);
-  } else {
-    keyName = L"Software\\Wow6432Node\\Percolator\\percolator-";
-    if (isConverter) keyName += L"converters-";
-    keyName += LVERSION_NAME;
-    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, keyName.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-      WCHAR szBuffer[512];
-      DWORD dwBufferSize = sizeof(szBuffer);
-      if (RegQueryValueExW(hKey, NULL, 0, NULL, (LPBYTE)szBuffer, &dwBufferSize) == ERROR_SUCCESS) {
-        char szcBuffer[512];
-        WideCharToMultiByte(CP_ACP, 0, szBuffer, -1, szcBuffer, 512, NULL, NULL);
-        out = szcBuffer;
-        out += "\\";
-        out += WRITABLE_DIR;
-      }
-      RegCloseKey(hKey);
-    }
-  }
-#else
-(void) isConverter;
-#endif
-  return out;  
-}
 
 Logger* Globals::getLogger() {
   if(buffer_redirected)

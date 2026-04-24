@@ -37,9 +37,10 @@
 #include "PSMDescription.h"
 #include "FeatureNames.h"
 #include "FeatureMemoryPool.h"
-// Optional columns in tab delimited input
+
 namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
+
+// Optional columns in tab delimited input
 enum OptionalField {
   SCANNR, EXPMASS, CALCMASS, RETTIME, DELTAMASS, FILENAME
 };

@@ -19,7 +19,6 @@
 
 
 namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
 class Scores;
 class Normalizer;
 

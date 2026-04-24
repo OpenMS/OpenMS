@@ -23,14 +23,13 @@
 #include <vector>
 #include <string>
 
-using namespace std;
-
 #include "Normalizer.h"
 #include "StdvNormalizer.h"
 #include "Globals.h"
-namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
 
+namespace OpenMS { namespace Internal { namespace Percolator {
+
+using namespace std;
 
 StdvNormalizer::StdvNormalizer() {
 }

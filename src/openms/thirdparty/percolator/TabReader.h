@@ -7,20 +7,22 @@
 
  http://www.apache.org/licenses/LICENSE-2.0
 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
  *******************************************************************************/
 #ifndef TABREADER_H_
 #define TABREADER_H_
 
-#include <cerrno>
-#include <climits>
-#include <cmath>
-#include <cstring>
-#include <cctype>
-#include <cstdlib>
 #include <string>
+#include <climits>
+#include <cstring>
+#include <cmath>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
 
 // using char pointers is much faster than istringstream
 class TabReader {
@@ -28,7 +30,7 @@ class TabReader {
   TabReader(const std::string& line) : f_(line.c_str()), err(0) {
     errno = 0;
   }
-
+  
   void advance(const char* next) {
     if (*next != '\0') {
       f_ = next + 1; // eats up the tab
@@ -36,7 +38,7 @@ class TabReader {
       f_ = next; // prevents pointing over the null byte
     }
   }
-
+  
   void skip() {
     const char* pch = strchr(f_, '\t');
     if (pch == NULL) {
@@ -45,11 +47,11 @@ class TabReader {
       advance(pch);
     }
   }
-
+  
   void skip(size_t numSkip) {
     for (size_t i = 0; i < numSkip; ++i) skip();
   }
-
+  
   double readDouble() {
     char* next = NULL;
     errno = 0;
@@ -61,7 +63,7 @@ class TabReader {
     advance(next);
     return d;
   }
-
+  
   int readInt() {
     char* next = NULL;
     errno=0;
@@ -73,7 +75,7 @@ class TabReader {
     advance(next);
     return static_cast<int>(val);
   }
-
+  
   std::string readString() {
     const char* pch = strchr(f_, '\t');
     if (pch == NULL) {

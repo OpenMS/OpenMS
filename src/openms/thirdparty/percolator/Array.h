@@ -17,9 +17,8 @@
 #include <algorithm>
 #include <functional>
 
-
 namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
+
 template <typename T>
 class Array 
 {

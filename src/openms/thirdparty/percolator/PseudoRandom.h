@@ -21,6 +21,8 @@
 
 #include <stdint.h>
 
+namespace OpenMS { namespace Internal { namespace Percolator {
+
 /*
 * Random is a helper class generating pseudo random numbers starting from a seed
 *
@@ -28,8 +30,6 @@
 * LCG - Linear Congruential Generator
 *
 */
-namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
 class PseudoRandom {
  public:
   inline static void setSeed(unsigned long s) { seed_ = s; }

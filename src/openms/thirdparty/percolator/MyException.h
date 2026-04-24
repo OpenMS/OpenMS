@@ -32,10 +32,11 @@ class MyException : public std::exception {
   MyException(const std::ostream &ss);
   ~MyException() throw();
   const char* what() const throw();
-
+ 
  protected:
   std::string msg;
 };
 
 }}}  // namespace OpenMS::Internal::Percolator
+
 #endif

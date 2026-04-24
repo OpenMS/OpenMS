@@ -17,8 +17,8 @@
 
 #include "SetHandler.h"
 #include "TabReader.h"
+
 namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
 
 SetHandler::SetHandler(unsigned int maxPSMs) : maxPSMs_(maxPSMs) {}
 
@@ -438,7 +438,7 @@ int SetHandler::readAndScoreTab(istream& dataStream,
   headerLine = rtrim(headerLine);
   if (headerLine.substr(0,5) == "<?xml") {
     std::cerr << "ERROR: Cannot read Tab delimited input from data stream.\n" << 
-       "Input file seems to be in XML format, use the -k flag for XML input." << 
+       "Input file seems to be in XML format, which is deprecated since percolator 3.9." << 
        std::endl;
     return 0;
   }

@@ -17,7 +17,6 @@
 #ifndef SCORES_H_
 #define SCORES_H_
 
-
 #ifndef WIN32
 #include <stdint.h>
 #endif
@@ -40,7 +39,7 @@
 #include <boost/unordered/unordered_map.hpp>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
+
 class SetHandler;
 class AlgIn;
 
@@ -131,6 +130,7 @@ class Scores {
   inline unsigned int negSize() const { return totalNumberOfDecoys_; }
 
   inline void addScoreHolder(const ScoreHolder& sh) { scores_.push_back(sh); }
+  inline void reserve(size_t n) { scores_.reserve(n); }
 
   inline void setNullTargetWinProb(const double nullTargetWinProb) {
     nullTargetWinProb_ = nullTargetWinProb;
@@ -166,6 +166,8 @@ class Scores {
       boost::unordered_map<double*, double*>& movedAddresses,
       size_t& idx);
   void getScoreLabelPairs(std::vector<std::pair<double, bool> >& combined);
+  int calcQvals(double fdr, bool skipDecoysPlusOne,
+                std::vector<std::pair<double, bool> >& combined);
   void checkSeparationAndSetPi0();
   bool is_output_rt_ = false;
 };

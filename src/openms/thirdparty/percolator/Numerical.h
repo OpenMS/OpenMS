@@ -9,10 +9,10 @@
 #include <cmath>
 #include <limits>
 
+namespace OpenMS { namespace Internal { namespace Percolator {
+
 using namespace std;
 
-namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
 const double Pi = 3.14159;
 
 class Numerical {

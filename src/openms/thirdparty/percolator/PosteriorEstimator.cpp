@@ -26,7 +26,6 @@
 #include<algorithm>
 #include<numeric>
 #include<functional>
-using namespace std;
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -36,7 +35,9 @@ using namespace std;
 #include "Transform.h"
 #include "Globals.h"
 #include "Version.h"
+
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 using namespace std;
 
 static int noIntervals = 500;
@@ -606,3 +607,4 @@ string PosteriorEstimator::greeter() {
 
 
 }}}  // namespace OpenMS::Internal::Percolator
+

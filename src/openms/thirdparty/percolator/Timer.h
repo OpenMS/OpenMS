@@ -6,9 +6,9 @@
 #include <string>
 #include <ctime>
 
-/* Timer is for measuring wall clock time and CPU time of different code sections. Stop is used to make a checkpoint in time and reset for restarting the timer. */
 namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
+
+/* Timer is for measuring wall clock time and CPU time of different code sections. Stop is used to make a checkpoint in time and reset for restarting the timer. */
 class Timer
 {
 

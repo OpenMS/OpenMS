@@ -37,8 +37,8 @@
 #include "SetHandler.h"
 #include "ssl.h"
 #include "IsotonicPEP.h"
+
 namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
 
 void Scores::merge(std::vector<Scores>& sv,
                    double fdr,
@@ -110,7 +110,7 @@ void Scores::scoreAndAddPSM(ScoreHolder& sh,
 }
 
 void Scores::print(LabelType label, std::ostream& os) {
-  std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
+ std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
   os << "PSMId\t";
   if (PSMDescription::hasSpectrumFileName()) {
     os << "filename\t";
@@ -212,6 +212,12 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
   // set the number of cross validation folds for train and test to xval_fold
   train.resize(xval_fold, Scores(usePi0_));
   test.resize(xval_fold, Scores(usePi0_));
+  size_t approxTestSize = scores_.size() / xval_fold + 1;
+  size_t approxTrainSize = (approxTestSize < scores_.size()) ? scores_.size() - approxTestSize : scores_.size();
+  for (unsigned int i = 0; i < xval_fold; ++i) {
+    train[i].reserve(approxTrainSize);
+    test[i].reserve(approxTestSize);
+  }
   // remain keeps track of residual space available in each fold
   std::vector<int> remain(xval_fold);
   // set values for remain: initially each fold is assigned (tot number of
@@ -392,8 +398,8 @@ void Scores::normalizeScores(double fdr, std::vector<double>& weights) {
   if (diff <= 0) {
     ostringstream oss;
     oss << "Error: median decoy score <= score at " << fdr * 100
-        << "\% FDR. Cannot rescale scores to merge cross validation bins, try "
-           "lowering --trainFDR.\n";
+        << "% FDR. Cannot rescale scores to merge cross validation bins, try "
+        << "lowering --trainFDR.\n";
     if (NO_TERMINATE) {
       cerr << oss.str()
            << "No-terminate flag set: apply offset such that median "
@@ -459,8 +465,8 @@ int Scores::calcScores(std::vector<double>& w) {
 }
 
 void Scores::getScoreLabelPairs(std::vector<pair<double, bool> >& combined) {
-  combined.clear();
-  transform(scores_.begin(), scores_.end(), back_inserter(combined),
+  combined.resize(scores_.size());
+  transform(scores_.begin(), scores_.end(), combined.begin(),
             mem_fn(&ScoreHolder::toPair));
 }
 
@@ -471,9 +477,14 @@ void Scores::getScoreLabelPairs(std::vector<pair<double, bool> >& combined) {
  * @return number of true positives
  */
 int Scores::calcQvals(double fdr, bool skipDecoysPlusOne) {
+  std::vector<pair<double, bool> > combined;
+  return calcQvals(fdr, skipDecoysPlusOne, combined);
+}
+
+int Scores::calcQvals(double fdr, bool skipDecoysPlusOne,
+                      std::vector<pair<double, bool> >& combined) {
   assert(totalNumberOfDecoys_ + totalNumberOfTargets_ == size());
 
-  std::vector<pair<double, bool> > combined;
   getScoreLabelPairs(combined);
 
   std::vector<double> qvals;
@@ -567,19 +578,19 @@ void Scores::weedOutRedundant(
   LabelType previousLabel = LabelType::UNDEFINED;
   size_t lastWrittenIdx = 0u;
   for (size_t idx = 0u; idx < scores_.size(); ++idx) {
-    std::string currentPeptide = scores_.at(idx).pPSM->getPeptideSequence();
-    LabelType currentLabel = scores_.at(idx).label;
+    std::string currentPeptide = scores_[idx].pPSM->getPeptideSequence();
+    LabelType currentLabel = scores_[idx].label;
     if (currentPeptide != previousPeptide || currentLabel != previousLabel) {
       // insert as a new score
-      scores_.at(lastWrittenIdx++) = scores_.at(idx);
+      scores_[lastWrittenIdx++] = scores_[idx];
       previousPeptide = currentPeptide;
       previousLabel = currentLabel;
     }
     // append the psm
-    peptidePsmMap_[scores_.at(lastWrittenIdx - 1).pPSM].push_back(
-        scores_.at(idx).pPSM);
+    peptidePsmMap_[scores_[lastWrittenIdx - 1].pPSM].push_back(
+        scores_[idx].pPSM);
     if (specCountQvalThreshold > 0.0 &&
-        scores_.at(idx).q < specCountQvalThreshold) {
+        scores_[idx].q < specCountQvalThreshold) {
       ++peptideSpecCounts[currentPeptide];
     }
   }
@@ -642,6 +653,10 @@ int Scores::getInitDirection(const double initialSelectionFdr,
   // is too restrictive for small datasets
   bool skipDecoysPlusOne = true;
 
+  // pre-allocate once and reuse across all 2*numFeatures calcQvals calls
+  std::vector<pair<double, bool> > combined;
+  combined.reserve(scores_.size());
+
   for (unsigned int featNo = 0; featNo < FeatureNames::getNumFeatures();
        featNo++) {
     for (std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
@@ -655,7 +670,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
       if (i == 1) {
         reverse(scores_.begin(), scores_.end());
       }
-      int positives = calcQvals(initialSelectionFdr, skipDecoysPlusOne);
+      int positives = calcQvals(initialSelectionFdr, skipDecoysPlusOne, combined);
       if (positives > bestPositives) {
         bestPositives = positives;
         bestFeature = static_cast<int>(featNo);
@@ -729,51 +744,38 @@ void Scores::checkSeparationAndSetPi0() {
 
 void Scores::calcPep(const bool spline, const bool interp, const bool pava) {
     if (!spline) {
-        if (pava) {
-            std::vector<double> target_q, sc;
-            for (auto& sh : scores_) {
-                if (sh.isTarget()) {
-                    target_q.push_back(sh.q);
-                    sc.push_back(sh.score);
-                }
-            }
-            InferPEP reg(false);
-            auto target_pep = interp
-                                ? reg.qns_to_pep(target_q, sc)
-                                : reg.q_to_pep(target_q);
-            // Move PEPs to scoreholders. The PEPs are only defined for target, 
-            // We use interpolation for decoys.
-            // Add elements avoiding overflow problems if last sh is a decoy
-            target_pep.push_back(1.0); target_q.push_back(1.0);
-            auto it_pep = target_pep.begin();
-            auto it_q = target_q.begin();
-            double l_q(0.0), l_pep(0.0);
-            for (auto& sh : scores_) {
-                if (sh.isTarget()) {
-                    sh.pep = *it_pep;
-                    // remember last (l_) pep and q for interpolation
-                    l_pep = *it_pep;
-                    l_q = *it_q;
-                    it_pep++; it_q++;
-                } else {
-                    double pep = reg.interpolate(sh.q,l_q,*it_q,l_pep,*it_pep);
-                    sh.pep = pep;
-                }
-            }
-        } else {
-            std::vector<double> is_decoy, sc;
-            for (auto& sh : scores_) {
-                is_decoy.push_back(sh.isTarget()? 0.: 1.);
+        // Derive PEPs from q-values so that average PEP ≈ q at every
+        // threshold.  Use PAVA when --pava-pep is set, otherwise I-spline
+        // for smooth output.
+        const bool use_ispline = !pava;
+        std::vector<double> target_q, sc;
+        for (auto& sh : scores_) {
+            if (sh.isTarget()) {
+                target_q.push_back(sh.q);
                 sc.push_back(sh.score);
             }
-            InferPEP reg(true);
-            auto peps = interp
-                                ? reg.tdc_to_pep(is_decoy, sc)
-                                : reg.tdc_to_pep(is_decoy);
-            auto it_pep = peps.begin();
-            for (auto& sh : scores_) {
+        }
+        InferPEP reg(use_ispline);
+        auto target_pep = interp
+                            ? reg.qns_to_pep(target_q, sc)
+                            : reg.q_to_pep(target_q);
+        // Move PEPs to scoreholders. The PEPs are only defined for target,
+        // We use interpolation for decoys.
+        // Add elements avoiding overflow problems if last sh is a decoy
+        target_pep.push_back(1.0); target_q.push_back(1.0);
+        auto it_pep = target_pep.begin();
+        auto it_q = target_q.begin();
+        double l_q(0.0), l_pep(0.0);
+        for (auto& sh : scores_) {
+            if (sh.isTarget()) {
                 sh.pep = *it_pep;
-                it_pep++;
+                // remember last (l_) pep and q for interpolation
+                l_pep = *it_pep;
+                l_q = *it_q;
+                it_pep++; it_q++;
+            } else {
+                double pep = reg.interpolate(sh.q,l_q,*it_q,l_pep,*it_pep);
+                sh.pep = std::max(0.0, std::min(1.0, pep));
             }
         }
     } else {

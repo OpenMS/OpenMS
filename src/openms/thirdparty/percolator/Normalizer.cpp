@@ -19,14 +19,15 @@
 #include <vector>
 #include <set>
 #include <string>
-using namespace std;
 #include "Normalizer.h"
 #include "StdvNormalizer.h"
 #include "UniNormalizer.h"
 #include "NoNormalizer.h"
 #include "FeatureNames.h"
 #include "Globals.h"
+
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 using namespace std;
 
 int Normalizer::subclass_type = STDV;

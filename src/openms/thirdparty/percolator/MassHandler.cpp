@@ -17,8 +17,8 @@
 #include <assert.h>
 #include <cmath>
 #include "MassHandler.h"
+
 namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
 
 MassHandler::MassHandler() {
 }

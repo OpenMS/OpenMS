@@ -32,7 +32,7 @@
 #include "ssl.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
+
 struct CandidateCposCfrac {
   double cpos;
   double cfrac;

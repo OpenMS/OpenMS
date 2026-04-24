@@ -19,7 +19,6 @@
 
 
 namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
 class NoNormalizer : public Normalizer { // virtual Normalizer
  public:
   NoNormalizer();

@@ -18,11 +18,10 @@ limitations under the License.
 #include "MyException.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
 
 MyException::MyException(const string& ss)  : msg(ss)
 {
-
+  
 }
 
 MyException::MyException(const ostream& ss)
@@ -44,3 +43,4 @@ const char* MyException::what() const throw()
 }
 
 }}}  // namespace OpenMS::Internal::Percolator
+
