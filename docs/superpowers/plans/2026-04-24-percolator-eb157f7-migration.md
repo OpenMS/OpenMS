@@ -2,6 +2,22 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Execution status (2026-04-24):** Tasks 1-2 + sync-script hardening are done on commits `3b0a6fccb4` / `6ea7b05afd` / `6f304fff17`. Task 3's sync script now runs cleanly. Tasks 4-13 remain pending — see "Scope growth discovered during execution" below before dispatching.
+>
+> **Scope growth discovered during execution**: the plan estimated 4 new files + 4 patch-failed files = 8 files needing manual namespace-wrap. Actual scope is **16 files**:
+> - 4 new upstream files (as planned): `MonotoneRegressor.h/.cpp`, `PAVARegressor.h`, `ISplineTRRRegressor.h`
+> - 9 patch-failed files (more than expected): `CrossValidation.cpp`, `DataSet.cpp`, `Globals.cpp`, `IsotonicPEP.h/.cpp`, `PosteriorEstimator.cpp`, `Scores.h/.cpp`, `SetHandler.cpp`
+> - 3 previously manually-wrapped files that LOST their wrap during sync and were never in `01-namespace-wrap.patch` to begin with (pre-existing gap): `MyException.h/.cpp`, `TabReader.h`
+>
+> Additional complications surfaced during Task 3:
+> - **Mixed CRLF/LF line endings** in the upstream tree and the patch file. Fixed in `sync-from-upstream.sh` at commit `6f304fff17`: apply patch FIRST (while files still have original CRLF), normalize to LF AFTER.
+> - **Mixed patch formats**: `01-namespace-wrap.patch` uses `diff -urN` with raw paths (`-p0`); `02-06-*.patch` use `diff --git` with a/b/ prefixes (`-p1`). Fixed in same commit: auto-detect per-patch.
+> - **Bare SHA clones** unsupported by `git clone --branch`. Fixed in same commit: clone master, fetch+checkout ref.
+>
+> **Execution risks observed**: bulk find-and-replace patches are dangerous on wrap work — an automated "::min → std::min" style substitution corrupted `Vector::min()` into `Vectorstd::min()`. Recommendation for resume: hand-edit each file's wrap markers individually with exact-context matching. Do NOT use regex-based global substitution across multiple files.
+>
+> **Suggested resume strategy for a fresh session**: dispatch one subagent per 2-3 files at a time with explicit read-first, edit-twice (wrap open + close) pattern. Build library after each batch of 2-3 files to catch errors early. Estimated effort: 3-5 hours focused work.
+
 **Goal:** Sync the vendored percolator tree from upstream `rel-3-08-01` (SHA `febeef3`) to commit `eb157f7` (PR #399, merged 2026-04-23), absorbing the new I-spline PEP calibration + small cleanups, without breaking the OpenMS-side `Percolator` wrapper or its tests.
 
 **Architecture:** Three phases. **(1) Preparation** — capture pre-migration test output as baseline, update vendored-tree metadata (whitelist / sources.cmake / UPSTREAM_COMMIT). **(2) Sync and adapt** — copy the changed + new upstream files, apply namespace-wrap patches to the new content, regenerate the two patch hunk blocks that no longer apply cleanly, edit our static `Globals.h` stub. **(3) Rebuild and validate** — clean rebuild, run all three percolator test suites, update any tolerances that shifted, commit. No changes to `Percolator.cpp`'s wrapper API or its call sites are expected: `Scores::calcPep(bool, bool, bool)` signature is preserved upstream.
