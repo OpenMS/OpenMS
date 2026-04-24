@@ -231,6 +231,9 @@ protected:
     setMinFloat_("scoring:tic_fraction", 0.5);
     setMaxFloat_("scoring:tic_fraction", 1.0);
     registerFlag_("scoring:use_mass_accuracy", "Apply mass accuracy-based distance weighting to scores (applies to both 'hyperscore' and 'mvh' methods)", true);
+    registerDoubleList_("scoring:blacklist_mz", "<values>", DoubleList(), "List of m/z values to exclude from theoretical spectra during scoring (e.g., uninformative c1/d1 ions from unmodified bases). Peaks matching these values within the blacklist tolerance will be removed before scoring.", false, true);
+    registerDoubleOption_("scoring:blacklist_tolerance", "<ppm>", 10.0, "Tolerance (in ppm) for matching peaks to blacklisted m/z values", false, true);
+    setMinFloat_("scoring:blacklist_tolerance", 0.0);
 
     registerTOPPSubsection_("modifications", "Modification options");
 
@@ -294,6 +297,50 @@ protected:
     {
     }
   };
+
+  // Helper function to filter blacklisted m/z values from theoretical spectrum
+  void filterBlacklistedIons_(MSSpectrum& theo_spectrum, 
+                               const vector<double>& blacklist_mz,
+                               double tolerance_ppm) const
+  {
+    if (blacklist_mz.empty()) return;
+    
+    vector<Size> indices_to_remove;
+    for (Size i = 0; i < theo_spectrum.size(); ++i)
+    {
+      double mz = theo_spectrum[i].getMZ();
+      for (double blacklisted_mz : blacklist_mz)
+      {
+        double tolerance_da = blacklisted_mz * tolerance_ppm * 1e-6;
+        if (abs(mz - blacklisted_mz) <= tolerance_da)
+        {
+          indices_to_remove.push_back(i);
+          break;
+        }
+      }
+    }
+    
+    // Remove peaks in reverse order to maintain valid indices
+    for (auto it = indices_to_remove.rbegin(); it != indices_to_remove.rend(); ++it)
+    {
+      theo_spectrum.erase(theo_spectrum.begin() + *it);
+      // Also remove from data arrays if present
+      for (auto& data_array : theo_spectrum.getStringDataArrays())
+      {
+        if (data_array.size() > *it)
+        {
+          data_array.erase(data_array.begin() + *it);
+        }
+      }
+      for (auto& data_array : theo_spectrum.getIntegerDataArrays())
+      {
+        if (data_array.size() > *it)
+        {
+          data_array.erase(data_array.begin() + *it);
+        }
+      }
+    }
+  }
 
   // slimmer structure to store basic hit information
   struct AnnotatedHit
@@ -1803,6 +1850,17 @@ protected:
           spectrum_generator.getMultipleSpectra(theo_spectra_by_charge,
                                                 candidate, precursor_charges,
                                                 base_charge);
+
+          // Filter blacklisted m/z values from theoretical spectra
+          DoubleList blacklist_mz = getDoubleList_("scoring:blacklist_mz");
+          double blacklist_tolerance = getDoubleOption_("scoring:blacklist_tolerance");
+          if (!blacklist_mz.empty())
+          {
+            for (auto& charge_spectrum_pair : theo_spectra_by_charge)
+            {
+              filterBlacklistedIons_(charge_spectrum_pair.second, blacklist_mz, blacklist_tolerance);
+            }
+          }
 
           for (auto prec_it = low_it; prec_it != up_it; ++prec_it) // OMS_CODING_TEST_EXCLUDE
           {
