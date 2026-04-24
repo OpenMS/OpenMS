@@ -60,6 +60,36 @@ The `--label` flags are important — without them, `diff -urN` embeds
 filesystem timestamps that make `git diff` noisy on every regeneration even
 when the semantic patch content is unchanged.
 
+## Optional: 3.08 parity tests
+
+`Percolator_subprocess_parity_test`'s §9–§10 sections compare in-process
+`pep_method="isotonic"` / `"logistic_regression"` against a 3.08-era
+subprocess `percolator` binary (which exposes `--pava-pep` / `--ip-pep` /
+`--irls-pep`; the bundled 3.06 binary predates these flags). The sections
+skip silently unless a 3.08 binary is available.
+
+To enable them locally:
+
+```bash
+# Fetch the rel-3-08 prebuilt (no-XML) deb and extract just the binary
+mkdir -p OpenMS-build/THIRDPARTY/Percolator-eb157f7
+curl -sL -o /tmp/p38.deb \
+  https://github.com/percolator/percolator/releases/download/rel-3-08/percolator-noxml-v3-08-linux-amd64.deb
+dpkg-deb -x /tmp/p38.deb /tmp/p38-extracted
+cp /tmp/p38-extracted/usr/bin/percolator OpenMS-build/THIRDPARTY/Percolator-eb157f7/
+cmake --build OpenMS-build -j$(nproc) --target OpenMS  # re-runs configure, picks up the binary
+```
+
+CMake prints `Percolator_subprocess_parity_test: 3.08 parity sections
+enabled` on configure when the binary is found.
+
+Note: rel-3-08 (3.08.0, May 2025) is slightly older than the eb157f7 SHA
+we vendor, so observed drift is ~0.28 on PEP/q-value even under
+same-algorithm comparison. This is binary-version skew, not a parity
+regression; test tolerances (0.5) accommodate it. The `r ≥ 0.9999`
+assertion on SVM scores is the strong signal — any regression that
+corrupts the SVM path fails it immediately.
+
 ## Licensing note
 
 The file-level license of the vendored `ssl.{h,cpp}` (SVMlin) files is
