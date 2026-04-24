@@ -303,7 +303,7 @@ FetchContent_Declare(
 FetchContent_Declare(
   wnet
   GIT_REPOSITORY https://github.com/michalsta/wnet.git
-  GIT_TAG        v0.9.10
+  GIT_TAG        v0.9.11
 )
 FetchContent_Declare(
   wnetalign
