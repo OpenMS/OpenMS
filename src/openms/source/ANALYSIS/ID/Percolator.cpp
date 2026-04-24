@@ -161,6 +161,12 @@ Percolator::Percolator()
                      "meta values regardless of this setting.");
   defaults_.setValidStrings("report_as_main_score", {"none","q-value","pep","svm"});
 
+  defaults_.setValue("num_threads",       3,
+                     "Number of OpenMP threads for cross-validation "
+                     "(one per CV fold; max useful = 3). Matches upstream's default.");
+  defaults_.setMinInt("num_threads",      1);
+  defaults_.setMaxInt("num_threads",      3);
+
   defaults_.setValue("use_pi0", "true",
                      "Enable pi0 correction when computing q-values and PEPs (default). "
                      "When true, pi0 is estimated per CV fold via bootstrap spline fit on "
@@ -195,6 +201,7 @@ void Percolator::updateMembers_()
   impl_->subset_max_train    = static_cast<int>(param_.getValue("subset_max_train"));
   impl_->initial_direction   = param_.getValue("initial_direction").toString();
   impl_->use_pi0             = (param_.getValue("use_pi0").toString() == "true");
+  impl_->num_threads         = static_cast<int>(param_.getValue("num_threads"));
   impl_->report_as_main_score = param_.getValue("report_as_main_score").toString();
 }
 
@@ -493,7 +500,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
     /*usePi0=*/impl_->use_pi0,
     /*nestedXvalBins=*/static_cast<unsigned int>(impl_->nested_xval_bins),
     /*trainBestPositive=*/impl_->train_best_positive,
-    /*numThreads=*/1,
+    /*numThreads=*/static_cast<unsigned int>(impl_->num_threads),
     /*skipNormalizeScores=*/false,
     /*decoyFractionTraining=*/1.0,
     /*numFolds=*/3);
@@ -755,7 +762,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     /*usePi0=*/impl_->use_pi0,
     /*nestedXvalBins=*/static_cast<unsigned int>(impl_->nested_xval_bins),
     /*trainBestPositive=*/impl_->train_best_positive,
-    /*numThreads=*/1,
+    /*numThreads=*/static_cast<unsigned int>(impl_->num_threads),
     /*skipNormalizeScores=*/false,
     /*decoyFractionTraining=*/1.0,
     /*numFolds=*/3);

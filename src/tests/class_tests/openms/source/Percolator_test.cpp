@@ -142,6 +142,7 @@ START_SECTION([EXTRA] reproducibility with fixed seed is bit-identical)
   {
     Param par = p->getDefaults();
     par.setValue("seed", 17);
+    par.setValue("num_threads", 1);  // bit-identicality requires single-threaded
     p->setParameters(par);
   }
 
@@ -940,6 +941,7 @@ START_SECTION([EXTRA] same-instance consecutive calls are bit-identical)
   Percolator p;
   Param par = p.getDefaults();
   par.setValue("seed", 123);
+  par.setValue("num_threads", 1);  // bit-identicality requires single-threaded
   p.setParameters(par);
 
   RescoreOutput out1 = p.rescore(input);

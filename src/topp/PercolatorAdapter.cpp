@@ -879,6 +879,10 @@ protected:
         pp.setValue("subset_max_train", getIntOption_("subset_max_train"));
         pp.setValue("initial_direction", getStringOption_("default_direction"));
         pp.setValue("pep_method", "nonparametric");  // match external percolator binary's PEP algorithm
+        {
+          const int in_process_threads = std::min(std::max(getIntOption_("threads"), 1), 3);
+          pp.setValue("num_threads", in_process_threads);  // mirror subprocess --num-threads
+        }
         perc.setParameters(pp);
         // Call the low-level API so the PIN-compatible fields on `ri` are
         // actually used (the high-level rescore(peptide_ids, …) ignores them).
