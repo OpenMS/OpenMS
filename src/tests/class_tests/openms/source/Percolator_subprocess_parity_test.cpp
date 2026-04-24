@@ -1156,6 +1156,9 @@ START_SECTION([EXTRA] reservoir-sampling parity at 20k rows)
     size_t matches = 0;
     int tgt_q01_in = 0, tgt_q01_sub = 0;
     int tgt_q05_in = 0, tgt_q05_sub = 0;
+    // Accepted-target SETS at q <= 0.01 / 0.05: catches drift that count-only
+    // checks miss (e.g. same count but different PSMs crossing the threshold).
+    std::set<size_t> acc01_in, acc01_sub, acc05_in, acc05_sub;
     for (size_t i = 0; i < out.scores.size(); ++i)
     {
       char k[64]; std::snprintf(k, sizeof(k), "row_%08zu|-.PEPTIDE.-", i);
@@ -1167,10 +1170,10 @@ START_SECTION([EXTRA] reservoir-sampling parity at 20k rows)
       sx += x; sy += y; sxx += x * x; syy += y * y; sxy += x * y;
       if (!ri.is_decoy[i])
       {
-        if (out.q_values[i]   <= 0.01) tgt_q01_in++;
-        if (it->second.qval <= 0.01) tgt_q01_sub++;
-        if (out.q_values[i]   <= 0.05) tgt_q05_in++;
-        if (it->second.qval <= 0.05) tgt_q05_sub++;
+        if (out.q_values[i]   <= 0.01) { tgt_q01_in++; acc01_in.insert(i); }
+        if (it->second.qval <= 0.01) { tgt_q01_sub++; acc01_sub.insert(i); }
+        if (out.q_values[i]   <= 0.05) { tgt_q05_in++; acc05_in.insert(i); }
+        if (it->second.qval <= 0.05) { tgt_q05_sub++; acc05_sub.insert(i); }
       }
     }
     const double nf = static_cast<double>(matches);
@@ -1199,6 +1202,27 @@ START_SECTION([EXTRA] reservoir-sampling parity at 20k rows)
       ? static_cast<double>(std::abs(tgt_q05_in - tgt_q05_sub)) / static_cast<double>(maxc05)
       : 0.0;
     TEST_TRUE(ratio05 <= 0.005)
+
+    // Accepted-target SET parity at q ≤ 0.01 and q ≤ 0.05 via Jaccard. Count
+    // ratio above ensures cardinalities are close, but doesn't catch the case
+    // where two paths accept the same *number* of targets but different *sets*
+    // of rows near the q-threshold boundary. On this fixture both paths agree
+    // on ~99.9% of accepted IDs; Jaccard floor of 0.99 catches a regression
+    // that shuffles membership while preserving counts.
+    auto jaccard = [](const std::set<size_t>& a, const std::set<size_t>& b) {
+      if (a.empty() && b.empty()) return 1.0;
+      std::set<size_t> inter, uni;
+      std::set_intersection(a.begin(), a.end(), b.begin(), b.end(),
+                            std::inserter(inter, inter.begin()));
+      std::set_union(a.begin(), a.end(), b.begin(), b.end(),
+                     std::inserter(uni, uni.begin()));
+      return uni.empty() ? 1.0
+        : static_cast<double>(inter.size()) / static_cast<double>(uni.size());
+    };
+    const double j01 = jaccard(acc01_in, acc01_sub);
+    const double j05 = jaccard(acc05_in, acc05_sub);
+    TEST_TRUE(j01 >= 0.99)
+    TEST_TRUE(j05 >= 0.99)
   }
 }
 END_SECTION
