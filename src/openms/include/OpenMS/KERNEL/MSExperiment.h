@@ -1116,7 +1116,7 @@ std::vector<MSChromatogram> extractXICs(
 
     //@}
 
-    /// Clear all internal data (spectra, ranges, metadata)
+    /// Clear all internal data (spectra, chromatograms, ranges, metadata)
     void reset();
 
     /**
