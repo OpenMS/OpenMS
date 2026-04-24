@@ -19,6 +19,7 @@ FeatureMemoryPool.h
 FeatureNames.cpp
 FeatureNames.h
 Globals.cpp
+ISplineTRRRegressor.h
 IsotonicPEP.cpp
 IsotonicPEP.h
 LabelType.h
@@ -28,6 +29,8 @@ LogisticRegression.cpp
 LogisticRegression.h
 MassHandler.cpp
 MassHandler.h
+MonotoneRegressor.cpp
+MonotoneRegressor.h
 MyException.cpp
 MyException.h
 NoNormalizer.cpp
@@ -40,6 +43,7 @@ PackedMatrix.cpp
 PackedMatrix.h
 PackedVector.cpp
 PackedVector.h
+PAVARegressor.h
 PosteriorEstimator.cpp
 PosteriorEstimator.h
 PSMDescription.cpp

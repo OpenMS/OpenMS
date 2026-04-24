@@ -12,6 +12,7 @@ set(OpenMS_percolator_sources
   Logger.cpp
   LogisticRegression.cpp
   MassHandler.cpp
+  MonotoneRegressor.cpp
   MyException.cpp
   NoNormalizer.cpp
   Normalizer.cpp

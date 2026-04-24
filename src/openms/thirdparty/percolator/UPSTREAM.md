@@ -1,8 +1,8 @@
 # Percolator vendored source tree
 
 - **Upstream**: https://github.com/percolator/percolator
-- **Pinned at**: rel-3-08-01 (update via sync-from-upstream.sh)
-- **Commit SHA**: febeef346327ff3adaf6712c7b8b250499aecc63
+- **Pinned at**: commit eb157f7 (post-rel-3-08-01; PR #399 / I-spline PEP)
+- **Commit SHA**: eb157f74e963430e559e0d0bcd31291e4ad660ba
 - **License**: Apache 2.0 (see LICENSE-Apache-2.0.txt) plus the embedded SVMlin files (see NOTICE-percolator.txt).
 
 ## What's here

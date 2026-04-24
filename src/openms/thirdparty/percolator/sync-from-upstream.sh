@@ -4,7 +4,7 @@
 set -euo pipefail
 
 UPSTREAM_URL="https://github.com/percolator/percolator.git"
-UPSTREAM_REF="${1:-rel-3-06-1}"
+UPSTREAM_REF="${1:-eb157f74e963430e559e0d0bcd31291e4ad660ba}"
 
 here=$(pwd)
 tmpdir=$(mktemp -d)
