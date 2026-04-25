@@ -46,10 +46,15 @@ public:
     */
     struct OPENMS_DLLAPI PreparedSpectrum
     {
+      /// Theoretical fragment/isotope m/z positions used for window integration.
       std::vector<double> mz_theor;
+      /// Non-negative normalized theoretical intensities used for Manhattan-style comparison.
       std::vector<double> int_theor;
+      /// Signed normalized theoretical intensities including negatively weighted pre-isotope peaks.
       std::vector<double> int_theor_neg;
+      /// Lower bound used to rescale the signed dot-product score.
       double neg_val = 0.0;
+      /// Upper bound used to rescale the signed dot-product score.
       double pos_val = 0.0;
 
       /**
@@ -69,11 +74,12 @@ public:
     void updateMembers_() override;
 
     /**
-      @brief Score a spectrum given a transition group.
+      @brief Score one or more observed spectra for a transition group.
 
-      Simulate theoretical spectrum from library intensities of transition group
-      and compute manhattan distance and dotprod score between spectrum intensities
-      and simulated spectrum.
+      Builds the transition-group-specific theoretical spectrum from the library
+      intensities and compares it against the observed spectrum sequence. The
+      input may contain multiple adjacent MS2 spectra / frames around the apex
+      or a single pre-merged spectrum, depending on the upstream merge mode.
     */
     void score(const SpectrumSequence& spec,
                const std::vector<OpenSwath::LightTransition>& lt,
@@ -82,7 +88,7 @@ public:
                double& manhattan) const;
 
     /**
-      @brief Prepare the theoretical DIA isotope spectrum for repeated scoring.
+      @brief Build the theoretical DIA isotope spectrum cache for repeated scoring.
 
       The prepared spectrum depends only on the transition group and DiaPrescore
       parameters, not on the observed spectrum.
@@ -94,9 +100,13 @@ public:
                  PreparedSpectrum& prepared) const;
 
     /**
-      @brief Score an observed spectrum against a precomputed theoretical DIA spectrum.
+      @brief Score an observed spectrum sequence against a precomputed theoretical DIA spectrum.
 
-      @param[in] spec Observed spectra around the feature apex
+      The observed input may be a single merged spectrum or multiple spectra /
+      frames around the feature apex, depending on the configured spectrum
+      addition mode.
+
+      @param[in] spec Observed spectrum sequence around the feature apex
       @param[in] prepared Precomputed theoretical spectrum
       @param[in] dia_extract_window DIA extraction window in Th
       @param[in] im_range Ion mobility extraction range
@@ -111,8 +121,11 @@ public:
                               double& manhattan);
 
     /**
-      @brief Compute manhattan and dotprod score for all spectra which can be accessed by
-      the SpectrumAccessPtr for all transitions groups in the LightTargetedExperiment.
+      @brief Compute Manhattan and dot-product scores for all spectra accessible through the SpectrumAccessPtr.
+
+      Scores all transition groups in the LightTargetedExperiment against the
+      spectra provided by @p swath_ptr and writes the per-spectrum score vectors
+      to @p ivw.
     */
     void operator()(const OpenSwath::SpectrumAccessPtr& swath_ptr,
                     OpenSwath::LightTargetedExperiment& transition_exp_used, const RangeMobility& range_im,

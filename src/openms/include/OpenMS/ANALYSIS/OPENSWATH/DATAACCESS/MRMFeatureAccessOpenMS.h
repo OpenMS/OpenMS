@@ -122,16 +122,27 @@ private:
     void ensurePrecursorFeatureWrappers_();
 
     const MRMFeature& mrmfeature_;
+    /// Lazily materialized OpenSwath wrappers for fragment features.
     std::shared_ptr<FeatureWrapperList_> features_;
+    /// Lazily materialized OpenSwath wrappers for precursor features.
     std::shared_ptr<FeatureWrapperList_> precursor_features_;
+    /// Direct access to fragment features when constructor-provided lookup ids already match storage order.
     const std::vector<Feature>* direct_features_ = nullptr;
+    /// Cached fragment feature pointers for index-based access without repeated native-id lookup.
     FeaturePointerList_ feature_ptrs_;
+    /// Cached precursor feature pointers for index-based access without repeated native-id lookup.
     FeaturePointerList_ precursor_feature_ptrs_;
+    /// Maps fragment native ids to positions in @p feature_ptrs_ or @p direct_features_.
     FeatureIndexList_ feature_index_;
+    /// Maps precursor native ids to positions in @p precursor_feature_ptrs_.
     FeatureIndexList_ precursor_feature_index_;
+    /// Owned fragment native-id cache used when ids are supplied as std::string vectors.
     std::vector<std::string> feature_ids_storage_;
+    /// Owned precursor native-id cache used when ids are supplied as std::string vectors.
     std::vector<std::string> precursor_feature_ids_storage_;
+    /// Active fragment native-id view; points to cached storage when available, otherwise ids are derived from @p feature_index_.
     const std::vector<std::string>* feature_ids_ = nullptr;
+    /// Active precursor native-id view; points to cached storage when available, otherwise ids are derived from @p precursor_feature_index_.
     const std::vector<std::string>* precursor_feature_ids_ = nullptr;
   };
 

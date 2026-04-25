@@ -268,14 +268,14 @@ namespace OpenMS
     void getNormalized_library_intensities_(const std::vector<TransitionType> & transitions,
                                             std::vector<double>& normalized_library_intensity);
 
-    /** @brief Return pooled normalized library intensities (uses internal pool)
+    /** @brief Return normalized library intensities in a thread-local scratch buffer.
      *
-     * Fills and returns a reference to an internal thread-local buffer. Callers
-     * that want to avoid per-call allocations can use this to obtain a
-     * reference to pooled normalized intensities.
+     * Fills and returns a reference to a reusable per-thread buffer to avoid a
+     * temporary allocation on every call. The returned reference stays valid
+     * until the next call on the same thread.
      *
      * @param[in] transitions The library transition to score the feature against
-     * @return const reference to pooled normalized library intensities
+     * @return const reference to normalized library intensities in the scratch buffer
      */
     const std::vector<double>& getNormalized_library_intensities_pooled(const std::vector<TransitionType> & transitions);
 
