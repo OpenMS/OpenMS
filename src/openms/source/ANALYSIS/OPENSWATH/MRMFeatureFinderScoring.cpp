@@ -23,6 +23,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 
 #include <boost/range/adaptor/map.hpp>
 #include <algorithm>
@@ -33,11 +34,31 @@
 
 #define run_identifier "unique_run_identifier"
 
-bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std::pair<double, double>& right)
+namespace
 {
-  return left.first < right.first;
-}
 
+  bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std::pair<double, double>& right)
+  {
+    return left.first < right.first;
+  }
+
+  /// Fill normalized library intensities directly into cached transition-group storage.
+  void fillNormalizedLibraryIntensities_(const std::vector<OpenSwath::LightTransition>& transitions,
+                                         std::vector<double>& normalized_library_intensity)
+  {
+    normalized_library_intensity.clear();
+    normalized_library_intensity.reserve(transitions.size());
+    for (const auto& transition : transitions)
+    {
+      const double intensity = std::max(0.0, transition.getLibraryIntensity());
+      normalized_library_intensity.push_back(intensity);
+    }
+    if (!normalized_library_intensity.empty())
+    {
+      OpenSwath::Scoring::normalize_sum(normalized_library_intensity);
+    }
+  }
+} // namespace
 
 void processFeatureForOutput(OpenMS::Feature& curr_feature, bool write_convex_hull_, double
                              quantification_cutoff_, double& total_intensity, double& total_peak_apices, const std::string& ms_level)
@@ -622,8 +643,7 @@ namespace OpenMS
 
     // Populate a TransitionGroupCache once per group to avoid per-feature recomputation
     TransitionGroupCache tg_cache;
-    // Use per-thread pooled normalized library intensities to avoid per-group allocations
-    tg_cache.normalized_library_intensity = scorer.getNormalized_library_intensities_pooled(transition_group_detection.getTransitions());
+    fillNormalizedLibraryIntensities_(transition_group_detection.getTransitions(), tg_cache.normalized_library_intensity);
 
     const auto& transitions = transition_group_detection.getTransitions();
     tg_cache.transition_native_ids.resize(transitions.size());

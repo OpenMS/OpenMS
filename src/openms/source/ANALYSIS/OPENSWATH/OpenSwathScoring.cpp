@@ -54,8 +54,6 @@ namespace OpenMS
       }
     };
     thread_local ChromScoresPool chrom_pool;
-    // Separate pooled normalized library intensities to avoid clearing them with transitions
-    thread_local std::vector<double> normalized_library_intensity_pool;
 
     struct PrecursorFormulaCache
     {
@@ -637,41 +635,6 @@ namespace OpenMS
       scores.raw_rt_score = rt_score;
       scores.norm_rt_score = rt_score / rt_normalization_factor_;
     }
-  }
-
-  void OpenSwathScoring::getNormalized_library_intensities_(const std::vector<TransitionType> & transitions,
-                                                            std::vector<double>& normalized_library_intensity)
-  {
-    normalized_library_intensity.clear();
-    for (Size i = 0; i < transitions.size(); i++)
-    {
-      normalized_library_intensity.push_back(transitions[i].getLibraryIntensity());
-    }
-    for (Size i = 0; i < normalized_library_intensity.size(); i++)
-    {
-      // the library intensity should never be below zero
-      if (normalized_library_intensity[i] < 0.0) { normalized_library_intensity[i] = 0.0; }
-    }
-    OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
-  }
-
-  const std::vector<double>& OpenSwathScoring::getNormalized_library_intensities_pooled(const std::vector<TransitionType> & transitions)
-  {
-    normalized_library_intensity_pool.clear();
-    normalized_library_intensity_pool.reserve(transitions.size());
-    for (Size i = 0; i < transitions.size(); i++)
-    {
-      normalized_library_intensity_pool.push_back(transitions[i].getLibraryIntensity());
-    }
-    for (Size i = 0; i < normalized_library_intensity_pool.size(); i++)
-    {
-      if (normalized_library_intensity_pool[i] < 0.0) { normalized_library_intensity_pool[i] = 0.0; }
-    }
-    if (!normalized_library_intensity_pool.empty())
-    {
-      OpenSwath::Scoring::normalize_sum(&normalized_library_intensity_pool[0], boost::numeric_cast<int>(normalized_library_intensity_pool.size()));
-    }
-    return normalized_library_intensity_pool;
   }
 
   SpectrumSequence OpenSwathScoring::fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swathmap, double RT, int nr_spectra_to_add, const RangeMobility& im_range)

@@ -257,28 +257,6 @@ namespace OpenMS
                               MobilogramParquetConsumer* mobilogram_consumer = nullptr,
                               Int64 feature_id = -1);
 
-    /** @brief Computing the normalized library intensities from the transition objects
-     *
-     * The intensities are normalized such that the sum to one.
-     *
-     * @param[in] transitions The library transition to score the feature against
-     * @param[out] normalized_library_intensity The resulting normalized library intensities
-     *
-    */
-    void getNormalized_library_intensities_(const std::vector<TransitionType> & transitions,
-                                            std::vector<double>& normalized_library_intensity);
-
-    /** @brief Return normalized library intensities in a thread-local scratch buffer.
-     *
-     * Fills and returns a reference to a reusable per-thread buffer to avoid a
-     * temporary allocation on every call. The returned reference stays valid
-     * until the next call on the same thread.
-     *
-     * @param[in] transitions The library transition to score the feature against
-     * @return const reference to normalized library intensities in the scratch buffer
-     */
-    const std::vector<double>& getNormalized_library_intensities_pooled(const std::vector<TransitionType> & transitions);
-
     /** @brief Prepares a spectrum for DIA analysis (single map)
      *
      * This function will fetch a vector of spectrum pointers to be used in DIA analysis.

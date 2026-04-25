@@ -108,13 +108,6 @@ START_SECTION((void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, cons
 }
 END_SECTION
 
-START_SECTION((void getNormalized_library_intensities_(const std::vector<TransitionType> & transitions, std::vector<double>& normalized_library_intensity)))
-{
-  NOT_TESTABLE // see MRMFeatureFinderScoring_test.cpp
-  // - the OpenSwathScoring is a facade and thus does not need testing on its own
-}
-END_SECTION
-
 START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps,
                                                               double RT, int nr_spectra_to_add, RangeMobility im_range)))
 {
