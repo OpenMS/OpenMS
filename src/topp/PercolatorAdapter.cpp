@@ -202,7 +202,148 @@ protected:
       return !(operator !=(rhs));
     }
   };
-  
+
+  /// Strip PIN-format meta values that PercolatorInfile::stampPinFeaturesOnHits
+  /// leaves on each hit during the in-process feature-matrix build. Without
+  /// this, the in-process output idXML carries 17+ internal columns (SpecId,
+  /// ScanNr, Label, ExpMass, CalcMass, mass, peplen, charge<N>, enzN/C/Int,
+  /// dm, absdm, deltamass, retentiontime, score, Peptide, Proteins) that
+  /// downstream tools shouldn't see. The subprocess path doesn't need this:
+  /// it writes those fields to a temporary PIN file and never stamps them
+  /// onto hits in the first place.
+  static void stripPinFeatureMetaValues_(
+    PeptideIdentificationList& pep_ids,
+    int min_charge, int max_charge)
+  {
+    static const std::vector<String> KEYS_TO_STRIP = {
+      "SpecId", "ScanNr", "Label", "ExpMass", "CalcMass",
+      "mass", "peplen", "deltamass", "retentiontime", "score",
+      "enzN", "enzC", "enzInt", "dm", "absdm",
+      "Peptide", "Proteins"
+    };
+    for (auto& pid : pep_ids.getData())
+    {
+      for (auto& hit : pid.getHits())
+      {
+        for (const String& k : KEYS_TO_STRIP) hit.removeMetaValue(k);
+        for (int c = min_charge; c <= max_charge; ++c)
+        {
+          hit.removeMetaValue("charge" + String(c));
+        }
+      }
+    }
+  }
+
+  /// Stamp "this run was post-processed by Percolator via PercolatorAdapter"
+  /// metadata on every ProteinIdentification: search_engine, version, the
+  /// "percolator" marker UserParam, and the 23 Percolator:* SearchParameter
+  /// UserParams recording the adapter's CLI configuration. Both backends
+  /// (in-process and subprocess) must produce equivalent metadata so that
+  /// downstream tools see the same provenance regardless of which path ran.
+  ///
+  /// @param prot_ids       all ProteinIdentifications from the input
+  /// @param peptide_level_fdrs / @param protein_level_fdrs  CLI flag values
+  /// @param version_string  e.g. "3.08" or "in-process eb157f7"
+  /// @param protein_map     populated only when protein_level_fdrs=true on
+  ///                        the subprocess path (provides per-protein qvalue/
+  ///                        PEP from Percolator's protein-level results to
+  ///                        be stamped back onto each ProteinHit). nullptr
+  ///                        on the in-process path skips that block.
+  void stampPercolatorAdapterMetadata_(
+    vector<ProteinIdentification>& prot_ids,
+    bool peptide_level_fdrs,
+    bool protein_level_fdrs,
+    const String& version_string,
+    map<String, PercolatorProteinResult>* protein_map = nullptr) const
+  {
+    // Guard: it would be a silent metadata lie to stamp
+    // `Percolator:protein_level_fdrs=true` without actually running the
+    // protein-level FDR mapping block (which only happens when protein_map
+    // is non-null). Catch any future caller that mismatches the two.
+    assert(!protein_level_fdrs || protein_map != nullptr);
+
+    for (ProteinIdentification& prot_id_run : prot_ids)
+    {
+      // It is not a real search engine but we set it so downstream tools
+      // can see that scores were post-processed.
+      prot_id_run.setSearchEngine("Percolator");
+      prot_id_run.setSearchEngineVersion(version_string);
+
+      if (protein_level_fdrs && protein_map)
+      {
+        // Map Percolator protein-level qvalue/PEP back onto each ProteinHit
+        // by accession.
+        for (ProteinHit& protein : prot_id_run.getHits())
+        {
+          String protein_accession = protein.getAccession();
+          map<String, PercolatorProteinResult>::iterator pr =
+            protein_map->find(protein_accession);
+          if (pr != protein_map->end())
+          {
+            protein.setMetaValue("MS:1001493", pr->second.posterior_error_prob);
+            protein.setScore(pr->second.qvalue);
+            // Mark mapped — safe because each protein appears once in the
+            // Percolator output.
+            protein_map->erase(pr);
+          }
+          else
+          {
+            protein.setScore(1.0);
+            protein.setMetaValue("MS:1001493", 1.0);
+          }
+        }
+        prot_id_run.setInferenceEngine("Percolator");
+        prot_id_run.setInferenceEngineVersion(version_string);
+        prot_id_run.setScoreType("q-value");
+        prot_id_run.setHigherScoreBetter(false);
+        prot_id_run.sort();
+
+        if (!protein_map->empty())
+        {
+          for (const auto& prot : *protein_map)
+          {
+            if (prot.second.posterior_error_prob < 1.0)
+            {
+              OPENMS_LOG_WARN << "Warning: Protein " << prot.first
+                << " reported by Percolator with non-zero probability was"
+                << " not present in the input idXML. Ignoring to keep "
+                << "consistency of the PeptideIndexer settings.";
+            }
+          }
+          IDFilter::updateProteinGroups(
+            prot_ids[0].getIndistinguishableProteins(), prot_ids[0].getHits());
+        }
+      }
+
+      prot_id_run.setMetaValue("percolator", "PercolatorAdapter");
+      ProteinIdentification::SearchParameters sp = prot_id_run.getSearchParameters();
+      sp.setMetaValue("Percolator:peptide_level_fdrs",   peptide_level_fdrs);
+      sp.setMetaValue("Percolator:protein_level_fdrs",   protein_level_fdrs);
+      sp.setMetaValue("Percolator:generic_feature_set",  getFlag_("generic_feature_set"));
+      sp.setMetaValue("Percolator:testFDR",              getDoubleOption_("testFDR"));
+      sp.setMetaValue("Percolator:trainFDR",             getDoubleOption_("trainFDR"));
+      sp.setMetaValue("Percolator:maxiter",              getIntOption_("maxiter"));
+      sp.setMetaValue("Percolator:subset_max_train",     getIntOption_("subset_max_train"));
+      sp.setMetaValue("Percolator:quick_validation",     getFlag_("quick_validation"));
+      sp.setMetaValue("Percolator:static",               getFlag_("static"));
+      sp.setMetaValue("Percolator:weights",              getStringOption_("weights"));
+      sp.setMetaValue("Percolator:init_weights",         getStringOption_("init_weights"));
+      sp.setMetaValue("Percolator:default_direction",    getStringOption_("default_direction"));
+      sp.setMetaValue("Percolator:cpos",                 getDoubleOption_("cpos"));
+      sp.setMetaValue("Percolator:cneg",                 getDoubleOption_("cneg"));
+      sp.setMetaValue("Percolator:unitnorm",             getFlag_("unitnorm"));
+      sp.setMetaValue("Percolator:override",             getFlag_("override"));
+      sp.setMetaValue("Percolator:seed",                 getIntOption_("seed"));
+      sp.setMetaValue("Percolator:doc",                  getIntOption_("doc"));
+      sp.setMetaValue("Percolator:klammer",              getFlag_("klammer"));
+      sp.setMetaValue("Percolator:fasta",                getStringOption_("fasta"));
+      sp.setMetaValue("Percolator:decoy_pattern",        getStringOption_("decoy_pattern"));
+      sp.setMetaValue("Percolator:post_processing_tdc",  getFlag_("post_processing_tdc"));
+      sp.setMetaValue("Percolator:train_best_positive",  getFlag_("train_best_positive"));
+      prot_id_run.setSearchParameters(sp);
+    }
+  }
+
   void registerOptionsAndFlags_() override
   {
     static const bool is_required(true);
@@ -943,6 +1084,16 @@ protected:
           }
         }
 
+        // Clean up the PIN-format meta values that stampPinFeaturesOnHits
+        // left on each hit, then stamp PercolatorAdapter provenance metadata
+        // (search engine identity + 23 SearchParameter UserParams) so the
+        // in-process output matches the historical subprocess output's
+        // metadata contract that downstream tools rely on.
+        stripPinFeatureMetaValues_(all_peptide_ids, min_charge, max_charge);
+        stampPercolatorAdapterMetadata_(all_protein_ids,
+          peptide_level_fdrs, protein_level_fdrs,
+          /*version_string=*/"3.08-vendored");
+
         // Write output and return — skipping the pin / subprocess / pout path.
         FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {out_type});
         return EXECUTION_OK;
@@ -1275,87 +1426,10 @@ protected:
       OPENMS_LOG_INFO << cnt << " suitable PeptideHits of " << all_peptide_ids.size() <<  " PSMs were reannotated." << endl;
 
       // TODO: There should only be 1 ProteinIdentification element in this vector, no need for a for loop
-      for (ProteinIdentification& prot_id_run : all_protein_ids)
-      {
-        // it is not a real search engine but we set it so that we know that
-        // scores were postprocessed
-        prot_id_run.setSearchEngine("Percolator");
-        prot_id_run.setSearchEngineVersion("3.07"); // TODO: read from percolator
-        if (protein_level_fdrs)
-        {
-          //check each ProteinHit for compliance with one of the PercolatorProteinResults (by accession)
-          for (ProteinHit& protein : prot_id_run.getHits())
-          {
-            String protein_accession = protein.getAccession();        
-            map<String, PercolatorProteinResult>::iterator pr = protein_map.find(protein_accession);
-            if (pr != protein_map.end())
-            {
-              protein.setMetaValue("MS:1001493", pr->second.posterior_error_prob);  // percolator pep
-              protein.setScore(pr->second.qvalue);
-              //remove to mark the protein as mapped. We can safely assume that every protein
-              // only occurs once in Percolator output.
-              protein_map.erase(pr);
-            }
-            else
-            {
-              protein.setScore(1.0); // set q-value to 1.0 if hit not found in results
-              protein.setMetaValue("MS:1001493", 1.0);  // same for percolator pep
-            }
-          }
-          if (protein_level_fdrs)
-          {
-            prot_id_run.setInferenceEngine("Percolator");
-            prot_id_run.setInferenceEngineVersion("3.07");
-          }
-          prot_id_run.setScoreType("q-value");
-          prot_id_run.setHigherScoreBetter(false);
-          prot_id_run.sort();
-        }
-        
-        if (!protein_map.empty())  //there remain unmapped proteins from Percolator
-        {
-          for (const auto& prot : protein_map)
-          {
-                  if (prot.second.posterior_error_prob < 1.0) //actually present according to Percolator
-            {
-                    OPENMS_LOG_WARN << "Warning: Protein " << prot.first << " reported by Percolator with non-zero probability was"
-                "not present in the input idXML. Ignoring to keep consistency of the PeptideIndexer settings..";
-            }
-          }
-          // filter groups that might contain these unmapped proteins so we do not get errors while writing our output.
-          IDFilter::updateProteinGroups(all_protein_ids[0].getIndistinguishableProteins(), all_protein_ids[0].getHits());
-        }
-
-        //TODO add software percolator and PercolatorAdapter
-        prot_id_run.setMetaValue("percolator", "PercolatorAdapter");
-        ProteinIdentification::SearchParameters search_parameters = prot_id_run.getSearchParameters();
-        
-        search_parameters.setMetaValue("Percolator:peptide_level_fdrs", peptide_level_fdrs);
-        search_parameters.setMetaValue("Percolator:protein_level_fdrs", protein_level_fdrs);
-        search_parameters.setMetaValue("Percolator:generic_feature_set", getFlag_("generic_feature_set"));
-        search_parameters.setMetaValue("Percolator:testFDR", getDoubleOption_("testFDR"));
-        search_parameters.setMetaValue("Percolator:trainFDR", getDoubleOption_("trainFDR"));
-        search_parameters.setMetaValue("Percolator:maxiter", getIntOption_("maxiter"));
-        search_parameters.setMetaValue("Percolator:subset_max_train", getIntOption_("subset_max_train"));
-        search_parameters.setMetaValue("Percolator:quick_validation", getFlag_("quick_validation"));
-        search_parameters.setMetaValue("Percolator:static", getFlag_("static"));
-        search_parameters.setMetaValue("Percolator:weights", getStringOption_("weights"));
-        search_parameters.setMetaValue("Percolator:init_weights", getStringOption_("init_weights"));
-        search_parameters.setMetaValue("Percolator:default_direction", getStringOption_("default_direction"));
-        search_parameters.setMetaValue("Percolator:cpos", getDoubleOption_("cpos"));
-        search_parameters.setMetaValue("Percolator:cneg", getDoubleOption_("cneg"));
-        search_parameters.setMetaValue("Percolator:unitnorm", getFlag_("unitnorm"));
-        search_parameters.setMetaValue("Percolator:override", getFlag_("override"));
-        search_parameters.setMetaValue("Percolator:seed", getIntOption_("seed"));
-        search_parameters.setMetaValue("Percolator:doc", getIntOption_("doc"));
-        search_parameters.setMetaValue("Percolator:klammer", getFlag_("klammer"));
-        search_parameters.setMetaValue("Percolator:fasta", getStringOption_("fasta"));
-        search_parameters.setMetaValue("Percolator:decoy_pattern", getStringOption_("decoy_pattern"));
-        search_parameters.setMetaValue("Percolator:post_processing_tdc", getFlag_("post_processing_tdc"));
-        search_parameters.setMetaValue("Percolator:train_best_positive", getFlag_("train_best_positive"));
-        
-        prot_id_run.setSearchParameters(search_parameters);
-      }
+      stampPercolatorAdapterMetadata_(all_protein_ids,
+        peptide_level_fdrs, protein_level_fdrs,
+        /*version_string=*/"3.07",  // TODO: read from percolator binary --version
+        protein_level_fdrs ? &protein_map : nullptr);
       // Storing the PeptideHits with calculated q-value, pep and svm score
       FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
     }
