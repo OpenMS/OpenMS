@@ -437,17 +437,12 @@ namespace OpenMS
       return;
     }
     const auto* openms_feature = dynamic_cast<const OpenMS::MRMFeatureOpenMS*>(mrmfeature);
-    const bool use_openms_index = openms_feature != nullptr && openms_feature->hasCachedFeatureIds();
     for (Size k = 0; k < transitions.size(); k++)
     {
       isotopes_int.clear();
       const TransitionType& transition = transitions[k];
       double transition_intensity = 0.0;
-      if (use_openms_index)
-      {
-        transition_intensity = openms_feature->getFeatureIntensity(k);
-      }
-      else if (openms_feature != nullptr)
+      if (openms_feature != nullptr)
       {
         transition_intensity = openms_feature->getFeatureIntensity(transition.transition_name, k);
       }
