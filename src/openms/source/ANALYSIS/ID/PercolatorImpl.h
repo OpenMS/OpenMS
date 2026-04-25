@@ -71,6 +71,11 @@ namespace OpenMS
     /// Percolator::getSvmWeights(). Empty before the first rescore().
     std::vector<std::vector<double>> svm_weights;
 
+    /// Pi0 (null fraction) estimated on the post-CV, post-TDC merged Scores
+    /// set right before calcPep. Populated by rescore() and score(). Read by
+    /// Percolator::getPi0(). Negative (-1.0) before the first call.
+    double last_pi0 = -1.0;
+
     void reset();
   };
 }

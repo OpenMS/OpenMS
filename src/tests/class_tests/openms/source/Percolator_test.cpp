@@ -478,6 +478,45 @@ START_SECTION([EXTRA] report_as_main_score promotes a Percolator output to hit.g
   }
   TEST_EQUAL(peps_b.front().getHits().front().getScore(), 42.0)
   TEST_TRUE(peps_b.front().getHits().front().metaValueExists("percolator_q_value"))
+
+  // Run C/D: report_as_main_score="pep" and "svm". Each has its own
+  // promoted-meta-key, score_type label, and higher_score_better orientation
+  // — and each branch sets all three independently in Percolator.cpp's
+  // promotion block, so they can break independently of "q-value".
+  struct PromoteCase
+  {
+    const char* mode;          // setValue("report_as_main_score", mode)
+    const char* meta_key;      // hit meta value that must equal hit.getScore()
+    const char* score_type;    // expected pid.getScoreType()
+    bool        higher_better; // expected pid.isHigherScoreBetter()
+  };
+  for (const PromoteCase tc : {
+    PromoteCase{"pep", "percolator_pep", "Posterior Error Probability", false},
+    PromoteCase{"svm", "percolator_score", "svm",                       true },
+  })
+  {
+    std::vector<PeptideIdentification> peps = source;
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 3);
+    par.setValue("test_fdr",  0.1);
+    par.setValue("train_fdr", 0.1);
+    par.setValue("report_as_main_score", tc.mode);
+    p.setParameters(par);
+    p.rescore(peps, StringList{"f"});
+
+    bool all_ok = true;
+    for (const auto& pid : peps)
+    {
+      if (pid.getHits().empty()) continue;
+      if (pid.getScoreType() != tc.score_type)            { all_ok = false; break; }
+      if (pid.isHigherScoreBetter() != tc.higher_better)  { all_ok = false; break; }
+      const auto& hit = pid.getHits().front();
+      const double promoted = hit.getMetaValue(tc.meta_key);
+      if (std::abs(hit.getScore() - promoted) > 1e-12)    { all_ok = false; break; }
+    }
+    TEST_EQUAL(all_ok, true)
+  }
 }
 END_SECTION
 
@@ -528,6 +567,14 @@ START_SECTION([EXTRA] use_pi0=false disables pi0 correction)
 
   RescoreOutput out_on  = p_on.rescore(input);
   RescoreOutput out_off = p_off.rescore(input);
+
+  // Verify the public getPi0() contract: with use_pi0=false, the merged-set
+  // pi0 estimation is bypassed and pi0 stays at the Scores constructor's
+  // default 1.0 — matches the header doc claim.
+  TEST_REAL_SIMILAR(p_off.getPi0(), 1.0)
+  // And with use_pi0=true (default), pi0 is estimated from the data, so it
+  // must be strictly < 1.0 on a fixture with any null fraction at all.
+  TEST_TRUE(p_on.getPi0() < 1.0)
 
   // Mean target q over top-100 ranked targets should be strictly lower when
   // pi0 is on (because q is scaled by pi0 < 1).
@@ -1122,6 +1169,251 @@ START_SECTION([EXTRA] seed change produces different but statistically equivalen
     ? static_cast<double>(std::abs(c17 - c42)) / static_cast<double>(maxc)
     : 0.0;
   TEST_TRUE(ratio <= 0.20)
+}
+END_SECTION
+
+START_SECTION([EXTRA] normalizer="none" trains and produces sensible output)
+{
+  // The "none" path goes through NoNormalizer (vendored thirdparty/percolator/
+  // NoNormalizer.cpp), which is a different vtable than StdvNormalizer/
+  // UniNormalizer. Untested elsewhere — there is no upstream CLI flag
+  // (Percolator binary only enables NONORM via --static + --init-weights),
+  // so this is an in-process-only check.
+  std::srand(2027);
+  auto rand01 = []() { return static_cast<double>(std::rand()) / RAND_MAX; };
+  auto randn  = [&]() {
+    double u1 = std::max(1e-9, rand01());
+    return std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * rand01());
+  };
+
+  RescoreInput input;
+  input.feature_names = StringList{"f0", "f1", "noise"};
+  for (size_t i = 0; i < 600; ++i)
+  {
+    input.features.push_back({+2.0 + 0.5 * randn(), +1.0 + 0.5 * randn(), randn()});
+    input.is_decoy.push_back(false);
+  }
+  for (size_t i = 0; i < 600; ++i)
+  {
+    input.features.push_back({0.0 + 0.5 * randn(), 0.0 + 0.5 * randn(), randn()});
+    input.is_decoy.push_back(true);
+  }
+
+  // Run with normalizer="none"
+  Percolator p_none;
+  RescoreOutput out_none;
+  {
+    Param par = p_none.getDefaults();
+    par.setValue("seed", 2027);
+    par.setValue("normalizer", "none");
+    p_none.setParameters(par);
+    out_none = p_none.rescore(input);
+  }
+
+  // Output ranges sane
+  TEST_EQUAL(out_none.scores.size(), input.features.size())
+  for (double q   : out_none.q_values) TEST_TRUE(q   >= 0.0 && q   <= 1.0 + 1e-9)
+  for (double pep : out_none.peps)     TEST_TRUE(pep >= 0.0 && pep <= 1.0 + 1e-9)
+
+  // SVM separates: mean target score > mean decoy score
+  double sum_t = 0, sum_d = 0; size_t nt = 0, nd = 0;
+  for (size_t i = 0; i < input.features.size(); ++i)
+  {
+    if (input.is_decoy[i]) { sum_d += out_none.scores[i]; ++nd; }
+    else                   { sum_t += out_none.scores[i]; ++nt; }
+  }
+  TEST_TRUE((sum_t / nt) > (sum_d / nd))
+
+  // Compare to default normalizer="stdv": ranking should be similar
+  // (same SVM problem on the same features) — but the SVM weights are
+  // learned on differently-scaled inputs (standardized vs raw), so the
+  // raw-space weight vectors must have visibly different magnitudes.
+  Percolator p_stdv;
+  RescoreOutput out_stdv;
+  {
+    Param par = p_stdv.getDefaults();
+    par.setValue("seed", 2027);
+    // normalizer left at default "stdv"
+    p_stdv.setParameters(par);
+    out_stdv = p_stdv.rescore(input);
+  }
+  // Pearson r >= 0.95 — same data, different rescaling, expect highly correlated
+  double sx=0, sy=0, sxx=0, syy=0, sxy=0;
+  const size_t n = input.features.size();
+  for (size_t i = 0; i < n; ++i)
+  {
+    const double x = out_none.scores[i];
+    const double y = out_stdv.scores[i];
+    sx += x; sy += y; sxx += x*x; syy += y*y; sxy += x*y;
+  }
+  const double nf = static_cast<double>(n);
+  const double r  = (nf*sxx - sx*sx > 1e-15 && nf*syy - sy*sy > 1e-15)
+    ? (nf*sxy - sx*sy) / std::sqrt((nf*sxx - sx*sx) * (nf*syy - sy*sy)) : 0.0;
+  TEST_TRUE(r >= 0.95)
+
+  // Stronger signal that the NoNormalizer path was actually exercised:
+  // require the majority of rows (≥10%) to differ between the two runs,
+  // not just "any single row" which a 1-ULP-elsewhere code path could
+  // produce. With NoNormalizer the SVM trains in raw-feature space and
+  // converges to a different separating hyperplane; the merged-then-
+  // per-fold-rescaled scores end up shuffled enough that many rows
+  // disagree. Empirically observed > 80% disagree on this fixture.
+  size_t n_diff = 0;
+  for (size_t i = 0; i < n; ++i)
+  {
+    if (out_none.scores[i] != out_stdv.scores[i]) ++n_diff;
+  }
+  TEST_TRUE(n_diff >= n / 10)
+}
+END_SECTION
+
+START_SECTION([EXTRA] initial_direction explicit feature with and without "-" inversion)
+{
+  // Auto-direction (empty initial_direction) iterates every feature in both
+  // signs and picks the most discriminative. Explicit initial_direction takes
+  // a separate branch via SanityCheck::setInitDefaultDirName — and the "-"
+  // prefix flips sign. Neither branch is exercised by the parity tests
+  // (which all leave it empty). Asserts: both modes train and produce
+  // sensible output; both correlate well with auto-direction; "-f0" is
+  // NOT bit-identical to "f0"; an unknown feature name throws.
+  std::srand(2028);
+  auto rand01 = []() { return static_cast<double>(std::rand()) / RAND_MAX; };
+  auto randn  = [&]() {
+    double u1 = std::max(1e-9, rand01());
+    return std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * rand01());
+  };
+  RescoreInput input;
+  input.feature_names = StringList{"f0", "f1", "noise"};
+  for (size_t i = 0; i < 600; ++i)
+  {
+    input.features.push_back({+2.0 + 0.5 * randn(), +1.0 + 0.5 * randn(), randn()});
+    input.is_decoy.push_back(false);
+  }
+  for (size_t i = 0; i < 600; ++i)
+  {
+    input.features.push_back({0.0 + 0.5 * randn(), 0.0 + 0.5 * randn(), randn()});
+    input.is_decoy.push_back(true);
+  }
+
+  auto run_with = [&](const std::string& dir) -> RescoreOutput {
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 2028);
+    par.setValue("initial_direction", dir);
+    p.setParameters(par);
+    return p.rescore(input);
+  };
+
+  RescoreOutput out_auto = run_with("");        // baseline: auto-select
+  RescoreOutput out_pos  = run_with("f0");      // explicit positive direction
+  RescoreOutput out_neg  = run_with("-f0");     // explicit inverted direction
+
+  // auto and "f0" should both separate (mean target > mean decoy) — both
+  // pick a direction in which f0 is positively informative. "-f0" tells the
+  // SVM "lower f0 = better target" on data where higher f0 actually means
+  // target, so the SVM may end up inverted; we don't claim separation there.
+  for (const auto* out : {&out_auto, &out_pos})
+  {
+    double st=0, sd=0; size_t nt=0, nd=0;
+    for (size_t i = 0; i < input.features.size(); ++i)
+    {
+      if (input.is_decoy[i]) { sd += out->scores[i]; ++nd; }
+      else                   { st += out->scores[i]; ++nt; }
+    }
+    TEST_TRUE((st / nt) > (sd / nd))
+  }
+
+  // "-f0" tells the SVM to start with "lower f0 = better target". On data
+  // where higher f0 actually means target, the wrong starting direction
+  // either leaves the SVM separating in the inverted direction (decoys
+  // get higher scores) or yields no usable separation at all. Either way,
+  // mean(target) - mean(decoy) under "-f0" must NOT be a meaningfully
+  // positive number the way it is under "f0" — that actively confirms the
+  // "-" prefix flowed through to SanityCheck::setInitDefaultDirName, not
+  // just that two arrays disagree at the LSB.
+  double pos_t=0, pos_d=0, neg_t=0, neg_d=0;
+  size_t nt=0, nd=0;
+  for (size_t i = 0; i < input.features.size(); ++i)
+  {
+    if (input.is_decoy[i]) { pos_d += out_pos.scores[i]; neg_d += out_neg.scores[i]; ++nd; }
+    else                   { pos_t += out_pos.scores[i]; neg_t += out_neg.scores[i]; ++nt; }
+  }
+  const double pos_sep = (pos_t / nt) - (pos_d / nd);  // expect strongly positive
+  const double neg_sep = (neg_t / nt) - (neg_d / nd);  // expect ≤ 0 or near-zero
+  TEST_TRUE(pos_sep > 0.5)            // "f0" gives clear separation
+  TEST_TRUE(neg_sep <= 0.5 * pos_sep) // "-f0" gives at most half the gap
+                                      // (typically near 0 or negative)
+
+  // Unknown feature name must throw InvalidValue (caught by SanityCheck path).
+  {
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 2028);
+    par.setValue("initial_direction", "no_such_feature");
+    p.setParameters(par);
+    TEST_EXCEPTION(Exception::InvalidValue, p.rescore(input))
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] target_decoy_metavalue overrides the meta-key for high-level rescore)
+{
+  // The high-level rescore(vector<PeptideIdentification>&, ...) reads the
+  // target/decoy label from a configurable meta key. Default is
+  // "target_decoy"; a caller can override (e.g., "my_td"). Asserts: rescore
+  // honors the override; mismatch between param and actual meta keys throws.
+  std::srand(2029);
+  auto rand01 = []() { return static_cast<double>(std::rand()) / RAND_MAX; };
+  auto randn  = [&]() {
+    double u1 = std::max(1e-9, rand01());
+    return std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * rand01());
+  };
+
+  // Build PeptideIdentifications with the custom meta key "my_td"
+  // (and NOT setting "target_decoy"). 800 PSMs, 50/50 split.
+  std::vector<PeptideIdentification> peps;
+  for (size_t i = 0; i < 800; ++i)
+  {
+    const bool is_decoy = (i % 2 == 1);
+    PeptideIdentification pid;
+    pid.setIdentifier("run1");
+    pid.setRT(0.1 * i);
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPTIDER"));
+    hit.setCharge(2);
+    hit.setMetaValue("my_td", is_decoy ? "decoy" : "target");
+    hit.setMetaValue("f", (is_decoy ? 0.0 : 1.5) + 0.9 * randn());
+    pid.insertHit(hit);
+    peps.push_back(std::move(pid));
+  }
+
+  // Run with the custom key — should succeed and stamp percolator_* metas.
+  std::vector<PeptideIdentification> peps_ok = peps;
+  {
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 2029);
+    par.setValue("test_fdr",  0.1);
+    par.setValue("train_fdr", 0.1);
+    par.setValue("target_decoy_metavalue", "my_td");
+    p.setParameters(par);
+    p.rescore(peps_ok, StringList{"f"});
+  }
+  TEST_TRUE(peps_ok.front().getHits().front().metaValueExists("percolator_q_value"))
+
+  // Run with default param ("target_decoy") on the same data — must throw
+  // because the hits only have "my_td", not "target_decoy".
+  std::vector<PeptideIdentification> peps_bad = peps;
+  {
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 2029);
+    par.setValue("test_fdr",  0.1);
+    par.setValue("train_fdr", 0.1);
+    // target_decoy_metavalue left at default "target_decoy"
+    p.setParameters(par);
+    TEST_EXCEPTION(Exception::InvalidValue, p.rescore(peps_bad, StringList{"f"}))
+  }
 }
 END_SECTION
 

@@ -210,6 +210,11 @@ const std::vector<std::vector<double>>& Percolator::getSvmWeights() const
   return impl_->svm_weights;
 }
 
+double Percolator::getPi0() const
+{
+  return impl_->last_pi0;
+}
+
 struct RowKeys
 {
   int    scan;
@@ -547,6 +552,12 @@ PercolatorModel Percolator::train(const RescoreInput& input)
 RescoreOutput Percolator::score(const RescoreInput& input,
                                 const PercolatorModel& model)
 {
+  // Mark pi0 invalid up front: any throw — including from input/model
+  // validation below or anywhere inside the scoring try block — leaves
+  // last_pi0 in a "no usable value from this call" state, instead of stale
+  // from a prior successful call.
+  impl_->last_pi0 = -1.0;
+
   validateRescoreInput_(input);
   validateModelCompat_(input, model);
 
@@ -612,6 +623,15 @@ RescoreOutput Percolator::score(const RescoreInput& input,
       all_scores.weedOutRedundantTDC();
     }
 
+    // Mirror Caller::calculatePSMProb: after any TDC weed-out, recompute
+    // q-values so they use the post-TDC pi0 set by weedOutRedundantTDC's
+    // internal postMergeStep. Kept unconditional for symmetry with rescore()
+    // — when TDC is off this is a no-op (pi0 and scores are unchanged since
+    // the earlier calcQvals call) but the cost is negligible on already-
+    // sorted scores.
+    all_scores.calcQvals(impl_->test_fdr);
+    impl_->last_pi0 = all_scores.getPi0();
+
     if (impl_->pep_method == "isotonic")
     {
       all_scores.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/true);
@@ -664,6 +684,12 @@ RescoreOutput Percolator::score(const RescoreInput& input,
 
 RescoreOutput Percolator::rescore(const RescoreInput& input)
 {
+  // Mark pi0 invalid up front: any throw — including from input validation
+  // below or anywhere inside the training/scoring try block — leaves
+  // last_pi0 in a "no usable value from this call" state, instead of stale
+  // from a prior successful call.
+  impl_->last_pi0 = -1.0;
+
   validateRescoreInput_(input);
 
   const size_t n_rows = input.features.size();
@@ -815,6 +841,14 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     {
       all_scores.weedOutRedundantTDC();
     }
+
+    // Mirror Caller::calculatePSMProb: after the merge, recompute q-values
+    // on the merged set so they use the merged-set pi0 (set by postMergeStep
+    // inside merge, and re-set by weedOutRedundantTDC's internal
+    // postMergeStep when TDC ran), not the stale per-fold pi0 left behind by
+    // Scores::merge's per-fold calcQvals loop.
+    all_scores.calcQvals(impl_->test_fdr);
+    impl_->last_pi0 = all_scores.getPi0();
 
     if (impl_->pep_method == "isotonic")
     {

@@ -144,6 +144,21 @@ namespace OpenMS
     const std::vector<std::vector<double>>& getSvmWeights() const;
 
     /**
+      @brief Pi0 (null fraction) from the last rescore()/score() call.
+
+      The target-null fraction estimated by the vendored
+      `PosteriorEstimator::estimatePi0` on the merged, post-TDC Scores set
+      right before PEP calculation. Matches the value the external percolator
+      binary reports on stderr ("New pi_0 estimate on final list..." /
+      "Selecting pi_0=..."). Useful for parity tests and diagnostics; not
+      needed for production scoring.
+
+      @return pi0 in [0, 1], or -1.0 if no rescore()/score() has run yet.
+              Always 1.0 when the instance was configured with use_pi0=false.
+    */
+    double getPi0() const;
+
+    /**
       @brief Train a Percolator model on feature rows. No scoring.
 
       Runs the full semi-supervised cross-validation training on @p input
