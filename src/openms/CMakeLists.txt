@@ -59,10 +59,16 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/percolator/sources.cmake)
 list(APPEND OpenMS_sources ${OpenMS_percolator_sources})
 
 # Suppress upstream-originated warnings on vendored files only.
-set_source_files_properties(${OpenMS_percolator_sources}
-  PROPERTIES
-    COMPILE_FLAGS "-Wno-sign-compare -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unused-variable -Wno-overloaded-virtual")
-if (NOT WIN32)
+# GCC/Clang use -Wno-*; MSVC needs /wd<code> with the corresponding warning
+# numbers and chokes on the -Wno-* spellings (D8021).
+if (MSVC)
+  set_source_files_properties(${OpenMS_percolator_sources}
+    PROPERTIES
+      COMPILE_FLAGS "/wd4018 /wd4100 /wd4244 /wd4267 /wd4996 /wd4458")
+else()
+  set_source_files_properties(${OpenMS_percolator_sources}
+    PROPERTIES
+      COMPILE_FLAGS "-Wno-sign-compare -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unused-variable -Wno-overloaded-virtual")
   set_source_files_properties(${OpenMS_percolator_sources}
     PROPERTIES COMPILE_OPTIONS "-fvisibility=hidden")
 endif()
