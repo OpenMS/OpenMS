@@ -72,5 +72,7 @@ UniNormalizer.cpp
 UniNormalizer.h
 Vector.cpp
 Vector.h
-ssl.cpp
-ssl.h
+# ssl.cpp / ssl.h are NOT whitelisted: they were replaced with the
+# TRON-based SVM solver from the percolator-tron development branch.
+# tron.cpp / tron.h likewise come from percolator-tron, not upstream
+# Percolator. See UPSTREAM.md for provenance.

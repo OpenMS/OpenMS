@@ -32,7 +32,14 @@ set(OpenMS_percolator_sources
   Timer.cpp
   UniNormalizer.cpp
   Vector.cpp
+
+  # ssl.{cpp,h} + tron.{cpp,h}: TRON-based SVM solver replacing the
+  # legacy SVMlin L2-SVM-MFN. Sourced from the percolator-tron development
+  # branch (Halloran's TRON integration of liblinear v2.11). NOT in
+  # whitelist.txt — these are OpenMS-local replacements preserved across
+  # sync-from-upstream.sh runs. See UPSTREAM.md for provenance.
   ssl.cpp
+  tron.cpp
 
   # OpenMS-local addition: reservoir-sampling helper derived from
   # SetHandler::readPSMs, required by the in-process Percolator wrapper

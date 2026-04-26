@@ -3,12 +3,28 @@
 - **Upstream**: https://github.com/percolator/percolator
 - **Pinned at**: commit eb157f7 (post-rel-3-08-01; PR #399 / I-spline PEP)
 - **Commit SHA**: eb157f74e963430e559e0d0bcd31291e4ad660ba
-- **License**: Apache 2.0 (see LICENSE-Apache-2.0.txt) plus the embedded SVMlin files (see NOTICE-percolator.txt).
+- **License**: Apache 2.0 (see LICENSE-Apache-2.0.txt) plus the BSD 3-Clause licensed liblinear-derived TRON solver (see NOTICE-percolator.txt).
 
 ## What's here
 
 A stripped-down copy of Percolator's `src/` tree, covering the PSM rescoring path only:
 XML / tab / CLI / protein inference / peptide fragmentation code is excluded.
+
+### Local replacement: TRON-based SVM solver
+
+`ssl.{cpp,h}` and `tron.{cpp,h}` come from the
+[`percolator-tron`](https://bitbucket.org/jthalloran/percolator_upgrade)
+development branch (Halloran's TRON integration of liblinear v2.11). They
+replace the legacy SVMlin-based L2-SVM-MFN solver from upstream
+Percolator's `ssl.{cpp,h}`. The replacement:
+- Sidesteps the SVMlin license question (its upstream headline is GPL v2+;
+  the relicense to Apache-2.0 was scoped to Percolator itself, not to
+  link-time inclusion in downstream non-Apache projects).
+- Calls `extern "C"` BLAS (`dnrm2_`, `ddot_`, `daxpy_`, `dscal_`) which
+  resolve at link time against OpenMS's existing libblas dependency.
+- Is NOT in `whitelist.txt` — `sync-from-upstream.sh` won't overwrite
+  these files. If a future upstream Percolator sync introduces a different
+  ssl.cpp, this replacement will need to be re-applied manually.
 
 ## How to re-sync
 
@@ -62,7 +78,6 @@ when the semantic patch content is unchanged.
 
 ## Licensing note
 
-The file-level license of the vendored `ssl.{h,cpp}` (SVMlin) files is
-understood to have been explicitly resolved to Apache-2.0-compatible terms by
-the OpenMS maintainers prior to landing this subtree. See `NOTICE-percolator.txt`
-for the attribution.
+`ssl.{cpp,h}` and `tron.{cpp,h}` are BSD-3-Clause (liblinear v2.11 via
+the percolator-tron fork). All other vendored files are Apache-2.0
+(Percolator). See `NOTICE-percolator.txt` for the full attribution.

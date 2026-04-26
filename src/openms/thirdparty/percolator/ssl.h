@@ -1,106 +1,112 @@
-/*******************************************************************************
- * SVMlin
- * Copyright (c) 2006 Vikas Sindhwani at the University of Chicago.
- * Adapted to Percolator by Lukas Käll at the University of Washington
- * Sped up by John Halloran at the University of California, Davis, as detailed in:
- ******************************
- * A Matter of Time: Faster Percolator Analysis via Efficient SVM Learning for 
- * Large-Scale Proteomics
- * John T. Halloran and David M. Rocke
- * Journal of Proteome Research 2018 17 (5), 1978-1982
- *******************************************************************************/
+/*
+ * Percolator's TRON-based SVM solver.
+ *
+ * Wraps liblinear v2.11's TRON optimizer (src/tron.{cpp,h}) with a
+ * function-object that encodes Percolator's L2-loss SVM with
+ * per-class costs. See:
+ *   - docs/superpowers/specs/2026-04-25-tron-solver-design.md
+ *     (algorithm, per-example cost mapping C_i = c_i / (2*lambda),
+ *      output reconstruction, return-code convention)
+ *   - docs/superpowers/specs/2026-04-26-tron-pr2-cleanup-design.md
+ *     (the cleanup that retired the legacy SVMlin solver that used
+ *      to live in this file)
+ *   - Halloran & Rocke (2018), "A Matter of Time...", JPR 17(5).
+ *   - Lin, Weng, Keerthi (2008), "Trust Region Newton Method...",
+ *     JMLR 9.
+ *
+ * Apache-2.0 (Percolator codebase).
+ */
 #ifndef _svmlin_H
 #define _svmlin_H
 
 #include <vector>
-#include <ctime>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
-using namespace std;
-
-/* OPTIMIZATION CONSTANTS */
-#define CGITERMAX 10000 /* maximum number of CGLS iterations */
-#define SMALL_CGITERMAX 10 /* for heuristic 1 in reference [2] */
-#define EPSILON   1e-7 /* most tolerances are set to this value */
-#define BIG_EPSILON 0.01 /* for heuristic 2 in reference [2] */
-#define RELATIVE_STOP_EPS 1e-9 /* for L2-SVM-MFN relative stopping criterion */
-#define MFNITERMAX 50 /* maximum number of MFN iterations */
-
-#define VERBOSE_CGLS 0
+/* Caller-facing iteration / convergence defaults. EPSILON is the outer
+ * convergence tolerance for the TRON solver; tight enough to give
+ * MFN-comparable weights at Percolator's default. CGITERMAX and
+ * MFNITERMAX are passed through to options.cgitermax / mfnitermax —
+ * cgitermax has no liblinear analogue and is silently ignored on the
+ * TRON path; mfnitermax caps TRON's outer iterations. */
+constexpr int    CGITERMAX  = 10000;
+constexpr int    MFNITERMAX = 50;
+constexpr double EPSILON    = 1e-7;
 
 class AlgIn {
-  public:
-    AlgIn(const unsigned int size, const int numFeat);
-    virtual ~AlgIn();
-    int m; /* number of examples */
-    int n; /* number of features */
-    int positives;
-    int negatives;
-    double** vals;
-    double* Y; /* labels */
+ public:
+  AlgIn(const unsigned int size, const int numFeat);
+  virtual ~AlgIn();
+  // No copy / no move. AlgIn owns raw arrays and has no copy/move
+  // semantics — any return-by-value path that doesn't get NRVO would
+  // shallow-copy the pointers and double-free in the source dtor.
+  // Deleting these turns any non-elided path into a compile error,
+  // which is the safe failure mode.
+  AlgIn(const AlgIn&) = delete;
+  AlgIn& operator=(const AlgIn&) = delete;
+  AlgIn(AlgIn&&) = delete;
+  AlgIn& operator=(AlgIn&&) = delete;
+  int m;          /* number of examples */
+  int n;          /* number of features, including synthesized bias slot */
+  int positives;
+  int negatives;
+  double** vals;  /* m pointers to external feature storage of length n-1 */
+  double* Y;      /* labels, size m */
 };
 
-struct vector_double { /* defines a vector of doubles */
-    int d; /* number of elements */
-    double* vec = nullptr; /* ptr to vector elements*/
-    ~vector_double(){
-      delete[] vec;
-    }
+struct vector_double {
+  int d;
+  double* vec = nullptr;
+  ~vector_double() { delete[] vec; }
 };
 
-struct vector_int { /* defines a vector of ints for index subsets */
-    int d; /* number of elements */
-    int* vec = nullptr; /* ptr to vector elements */
-    ~vector_int(){
-      delete[] vec;
-    }
+struct vector_int {
+  int d;
+  int* vec = nullptr;
+  ~vector_int() { delete[] vec; }
 };
 
 struct options {
-    /* user options */
-    double lambda; /* regularization parameter */
-    double lambda_u; /* regularization parameter over unlabeled examples */
-    double epsilon; /* all tolerances */
-    int cgitermax; /* max iterations for CGLS */
-    int mfnitermax; /* max iterations for L2_SVM_MFN */
-
+  double lambda;
+  double lambda_u;
+  double epsilon;
+  int cgitermax;
+  int mfnitermax;
 };
 
-class Delta { /* used in line search */
-  public:
-    Delta() {
-      delta = 0.0;
-      index = 0;
-      s = 0;
-    }
-    ;
-    double delta;
-    int index;
-    int s;
-};
-inline bool operator<(const Delta& a, const Delta& b) {
-  return (a.delta < b.delta);
-}
-
-/* svmlin algorithms and their subroutines */
-
-/* Conjugate Gradient for Sparse Linear Least Squares Problems */
-/* Solves: min_w 0.5*Options->lamda*w'*w + 0.5*sum_{i in Subset} Data->C[i] (Y[i]- w' x_i)^2 */
-/* over a subset of examples x_i specified by vector_int Subset */
-int CGLS(const AlgIn& set, const double lambda, const int cgitermax,
-         const double epsilon, const vector_int& Subset,
+// TRON solver — the real implementation. Returns 1 if the post-solve
+// relative gradient norm satisfies the TRON convergence criterion
+// (||g(w)|| / ||g(w_0)|| <= opts.epsilon); 0 otherwise. Asserts
+// opts.lambda > 0 — a precondition of the C_i scaling.
+//
+// opts.epsilon is passed directly to TRON as its outer convergence eps;
+// at Percolator's default 1e-7 the TRON path converges to MFN-comparable
+// weights. opts.cgitermax is silently ignored — vendored liblinear TRON
+// has no cgitermax analogue (inner CG is an uncapped while-loop until
+// cg-tolerance or trust-region exit).
+int tron(const AlgIn& set, options& opts,
          vector_double& Weights, vector_double& Outputs,
          double cpos, double cneg);
 
-/* Linear Modified Finite Newton L2-SVM*/
-/* Solves: min_w 0.5*Options->lamda*w'*w + 0.5*sum_i Data->C[i] max(0,1 - Y[i] w' x_i)^2 */
-int L2_SVM_MFN(const AlgIn& set, options& Options,
-               vector_double& Weights,
-               vector_double& Outputs, double cpos, double cneg);
-double line_search(double* w, double* w_bar, double lambda, double* o,
-                         double* o_bar, const double* Y, int d, int l,
-                          double cpos, double cneg);
+// Drop-in replacement for the legacy SVMlin-based L2_SVM_MFN. The
+// original implementation in this file was the modified-finite-Newton
+// solver from Vikas Sindhwani's SVMlin (2006). Sindhwani granted
+// Percolator a relicensing to redistribute the SVMlin code as part of
+// Percolator under the project's Apache-2.0 terms, but the relicense
+// was scoped to Percolator itself and does NOT cleanly cover link-time
+// inclusion of perclibrary into downstream binaries that ship under
+// non-Apache licenses — the upstream SVMlin headline is GPL v2+, so
+// any third-party project that statically links perclibrary inherits
+// an unresolved GPL-vs-license-X question. Replacing the body with a
+// forwarder to TRON (BSD-3 vendored liblinear) sidesteps that question
+// at the source. The public name is preserved so existing callers
+// compile unchanged.
+inline int L2_SVM_MFN(const AlgIn& set, options& opts,
+                      vector_double& Weights, vector_double& Outputs,
+                      double cpos, double cneg) {
+  return tron(set, opts, Weights, Outputs, cpos, cneg);
+}
+
 }}}  // namespace OpenMS::Internal::Percolator
 
 #endif
