@@ -34,8 +34,6 @@
 #include <omp.h>
 #endif
 
-bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std::pair<double, double>& right);
-
 namespace OpenMS
 {
   // Forward declaration for optional mobilogram consumer
