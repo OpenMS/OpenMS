@@ -6,15 +6,15 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
-
-// MSVC doesn't expose M_PI from <cmath> by default; define this macro
-// before any system header that pulls in <cmath> (transitively, the
-// OpenMS headers below do). Several Box-Muller helpers in this file use
-// `std::cos(2.0 * M_PI * rand01())`.
+// MSVC doesn't expose M_PI from <cmath> by default. This must be defined
+// before ANY include that transitively pulls in <cmath> — once the include
+// guard fires, defining the macro later is a no-op. Several Box-Muller
+// helpers in this file use `std::cos(2.0 * M_PI * rand01())`.
 #define _USE_MATH_DEFINES
 #include <cmath>
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
