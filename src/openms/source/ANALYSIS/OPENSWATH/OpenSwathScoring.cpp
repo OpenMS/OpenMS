@@ -105,6 +105,9 @@ namespace OpenMS
     {
       if (!im_range.isEmpty())
       {
+        // Preserve drift-time arrays for IM-aware downstream scoring. The DIA
+        // integration path uses tolerance-window extraction, so concatenating
+        // drift-filtered spectra is safe while resampling would discard IM.
         return concatenateDriftFilteredSpectra_(spectra, im_range);
       }
       if (containsDriftTimeData_(spectra))

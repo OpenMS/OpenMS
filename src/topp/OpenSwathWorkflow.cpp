@@ -575,11 +575,10 @@ protected:
 
   ExitCodes main_(int, const char **) override
   {
-    // Suppress resampling spacing warnings throughout entire workflow (calibration + extraction)
-    // The warning occurs repeatedly during spectrum resampling and is not actionable for typical
-    // ToF instrument data where fine resampling is expected. Suppression significantly improves
-    // performance by reducing console I/O overhead.
-    suppress_resampling_spacing_warning.store(true);
+    // Suppress repeated resampling-spacing warnings only for the lifetime of
+    // this tool invocation so the global setting does not leak across reuse in
+    // a shared process.
+    Internal::ScopedResamplingWarningSuppression scoped_resampling_warning_suppression;
     
     ///////////////////////////////////
     // Prepare Parameters

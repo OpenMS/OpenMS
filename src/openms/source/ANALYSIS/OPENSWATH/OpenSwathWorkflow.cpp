@@ -298,10 +298,18 @@ namespace OpenMS
     int innerBatchSize,
     int maxConcurrentSwaths)
   {
-    // Suppress resampling spacing warnings to reduce console I/O overhead.
-    // This warning occurs repeatedly during spectrum resampling and is not actionable
-    // for typical ToF instrument data where fine resampling is expected.
-    suppress_resampling_spacing_warning.store(true);
+    // Suppress repeated resampling-spacing warnings for this workflow call
+    // only, so embedded use does not affect later resampling in the process.
+    Internal::ScopedResamplingWarningSuppression scoped_resampling_warning_suppression;
+    auto sortOutputFeaturesIfNeeded = [&out_featureFile, store_features]()
+    {
+      if (store_features)
+      {
+        // Parallel extraction and scoring append peak groups in completion
+        // order, so sort once at the end to keep feature output deterministic.
+        out_featureFile.sortByPosition();
+      }
+    };
     
     // user-controllable overrides for inner batching and outer concurrency
     const int user_inner_batch_size = innerBatchSize;
@@ -321,6 +329,7 @@ namespace OpenMS
       std::vector<MSChromatogram> empty_ms1_chromatograms;
 
       writeOutFeaturesAndChroms_(filtered_chroms, empty_ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
+      sortOutputFeaturesIfNeeded();
       this->endProgress();
       return;
     }
@@ -909,6 +918,7 @@ namespace OpenMS
       }
       }
 
+      sortOutputFeaturesIfNeeded();
       if (buffered_osw_writer != nullptr)
       {
         buffered_osw_writer->finish();
@@ -1133,6 +1143,7 @@ namespace OpenMS
       this->setProgress(++progress);
 
     }
+    sortOutputFeaturesIfNeeded();
     this->endProgress();
 
 #ifdef _OPENMP

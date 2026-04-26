@@ -10,6 +10,8 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/KERNEL/MRMTransitionGroup.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <boost/assign/std/vector.hpp>
@@ -192,6 +194,13 @@ START_SECTION([EXTRA] test reading PQP with multiple gene mappings does not dupl
   TEST_EQUAL(light_exp.transitions.size(), 1)
   TEST_EQUAL(light_exp.compounds.size(), 1)
   TEST_EQUAL(light_exp.proteins.size(), 1)
+
+  MRMTransitionGroup<MSChromatogram, OpenSwath::LightTransition> transition_group;
+  for (const auto& transition : light_exp.transitions)
+  {
+    transition_group.addTransition(transition, transition.getNativeID());
+  }
+  TEST_EQUAL(transition_group.size(), 1)
 }
 END_SECTION
 
