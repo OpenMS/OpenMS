@@ -1224,7 +1224,6 @@ void Percolator::rescore(std::vector<PeptideIdentification>& peptide_ids,
   ri.is_decoy.reserve(peptide_ids.size());
   ri.cv_group_keys.reserve(peptide_ids.size());
 
-  std::hash<std::string> str_hash;
   for (size_t i = 0; i < peptide_ids.size(); ++i)
   {
     auto& hits = peptide_ids[i].getHits();
@@ -1251,13 +1250,12 @@ void Percolator::rescore(std::vector<PeptideIdentification>& peptide_ids,
       ri.features.push_back(std::move(row));
       ri.is_decoy.push_back(hit.getMetaValue(td_meta).toString() == "decoy");
 
-      // CV group key: hash (identifier, rt). Cast OpenMS::String to
-      // std::string explicitly so the ensuing concatenation with std::string
-      // (from std::to_string) is unambiguous under clang/MSVC, which reject
-      // the implicit String+const-char*+std::string overload resolution.
-      std::string spec_key = static_cast<std::string>(peptide_ids[i].getIdentifier())
-                             + "|" + std::to_string(peptide_ids[i].getRT());
-      ri.cv_group_keys.push_back(static_cast<int>(str_hash(spec_key) & 0x7fffffff));
+      // CV group key: the pid index. All hits from peptide_ids[i] share i,
+      // which is the only invariant CV grouping needs (rows in the same
+      // group land in the same fold). Equivalent to the previous
+      // hash(identifier+RT) but without string allocations or hash
+      // collisions in the hot loop.
+      ri.cv_group_keys.push_back(static_cast<int>(i));
 
       hit_locs.push_back({i, j});
     }
