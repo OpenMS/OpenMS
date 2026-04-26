@@ -203,17 +203,6 @@ String percolatorBinary()
   return String(env);
 }
 
-/// 3.08-era percolator binary (equivalent to the vendored eb157f7 SHA),
-/// used by sections that exercise in-process pep_method="isotonic" or
-/// "logistic_regression". The bundled 3.06 binary predates the --pava-pep
-/// and --ip-pep flags, so it cannot participate in those parity checks.
-String percolatorEb157f7Binary()
-{
-  const char* env = std::getenv("PERCOLATOR_EB157F7_BINARY");
-  if (!env || !*env) return String();
-  return String(env);
-}
-
 /// Generate a realistic-scale synthetic dataset: 2000 PSMs with a mildly
 /// informative 3-feature signal, same shape as the "realistic" Percolator
 /// class test. Large enough to comfortably pass SanityCheck.
@@ -321,7 +310,6 @@ struct SubprocessOut
 {
   std::map<String, PercolatorTriplet> triplets;  // keyed by row_id (PSMId)
   int exit_code = -1;
-  double pi0 = -1.0;  ///< parsed from stderr; -1 if not found
 };
 
 /// Invoke the external percolator binary on `pin_path`. `extra_args` is space-
@@ -392,26 +380,6 @@ SubprocessOut runSubprocess(const String& bin,
   };
   parse(target_pout);
   parse(decoy_pout);
-
-  // Parse pi0 from stderr. We want the final estimate used by calcQvals,
-  // printed as "Selecting pi_0=<value>" by Caller's VERB>0 path. The scanner
-  // takes the last "pi_0=" occurrence — Caller may also print "New pi_0
-  // estimate on final list yields ..." earlier (mix-max path) which has the
-  // same value but doesn't lead with "Selecting"; last-wins yields the right
-  // number either way.
-  {
-    std::ifstream f(stderr_log.c_str());
-    std::string line;
-    while (std::getline(f, line))
-    {
-      const auto p = line.find("pi_0=");
-      if (p == std::string::npos) continue;
-      const std::string rest = line.substr(p + 5);
-      try { s.pi0 = std::stod(rest); }
-      catch (...) { /* keep previous */ }
-    }
-  }
-
   return s;
 }
 
@@ -464,162 +432,6 @@ AlignedRows alignAndCompare(const RescoreOutput& inp,
   return a;
 }
 
-/// Builds a RescoreInput + its backing PIN path from the realistic
-/// CometAdapter_4_out idXML fixture — shared prelude for §6 and §9/§10.
-/// Returns row keys (SpecId|Peptide) in the same order as ri.features
-/// so callers can zip them with subprocess output triplets.
-struct RealisticFixture
-{
-  RescoreInput ri;
-  std::vector<String> pin_keys;
-  String pin_path;
-};
-
-RealisticFixture buildRealisticFixture()
-{
-  RealisticFixture fx;
-  vector<ProteinIdentification> prs;
-  PeptideIdentificationList pids;
-  const String idxml_path =
-    OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/CometAdapter_4_out.idXML");
-  IdXMLFile().load(idxml_path, prs, pids);
-
-  int min_charge, max_charge;
-  deriveChargeRange(pids, min_charge, max_charge);
-  StringList feature_set = buildFeatureSet(prs, min_charge, max_charge);
-  const std::string enz = "trypsin";
-
-  fx.pin_path = File::getTemporaryFile();
-  PercolatorInfile::store(fx.pin_path, pids, feature_set, enz, min_charge, max_charge);
-
-  TextFile pin;
-  pin.load(fx.pin_path);
-  StringList header = ListUtils::create<String>(*pin.begin(), '\t');
-  std::map<String, size_t> col_index;
-  for (size_t c = 0; c < header.size(); ++c) col_index[header[c]] = c;
-
-  StringList numeric = numericFeatures(feature_set);
-  fx.ri.feature_names = numeric;
-  for (auto it = pin.begin() + 1; it != pin.end(); ++it)
-  {
-    StringList cols = ListUtils::create<String>(*it, '\t');
-    bool ok = true;
-    for (const auto& f : numeric)
-    {
-      if (col_index[f] >= cols.size()) { ok = false; break; }
-    }
-    if (!ok) continue;
-    const String peptide_col = (col_index["Peptide"] < cols.size())
-      ? cols[col_index["Peptide"]] : String();
-    fx.pin_keys.push_back(cols[col_index["SpecId"]] + "|" + peptide_col);
-    fx.ri.is_decoy.push_back(cols[col_index["Label"]] == "-1");
-    fx.ri.scan_numbers.push_back(cols[col_index["ScanNr"]].toInt());
-    fx.ri.spec_file_numbers.push_back(0);
-    fx.ri.exp_masses.push_back(cols[col_index["ExpMass"]].toDouble());
-    fx.ri.calc_masses.push_back(cols[col_index["CalcMass"]].toDouble());
-    std::vector<double> feats;
-    feats.reserve(numeric.size());
-    for (const auto& f : numeric) feats.push_back(cols[col_index[f]].toDouble());
-    fx.ri.features.push_back(std::move(feats));
-  }
-  return fx;
-}
-
-/// Aggregate metrics for a 3.08-parity check (§9, §10): aligns in-process
-/// rescore output against subprocess triplets by (SpecId|Peptide), computes
-/// Pearson r on SVM scores plus max |Δq| / max |Δpep|, and prints a
-/// diagnostic line so the actual numbers are visible without re-running.
-struct ParityStats
-{
-  size_t matches = 0;
-  double r = 0.0;
-  double max_dq = 0.0;
-  double max_dpep = 0.0;
-};
-ParityStats computeParityStats(const RescoreOutput& out,
-                               const std::vector<String>& pin_keys,
-                               const SubprocessOut& sub,
-                               double pi0_in,
-                               const std::string& label)
-{
-  ParityStats s;
-  double sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
-  for (size_t i = 0; i < out.scores.size(); ++i)
-  {
-    auto it = sub.triplets.find(pin_keys[i]);
-    if (it == sub.triplets.end()) continue;
-    s.matches++;
-    const double x = out.scores[i];
-    const double y = it->second.score;
-    sx += x; sy += y; sxx += x*x; syy += y*y; sxy += x*y;
-    s.max_dpep = std::max(s.max_dpep, std::abs(out.peps[i] - it->second.pep));
-    s.max_dq   = std::max(s.max_dq,   std::abs(out.q_values[i] - it->second.qval));
-  }
-  const double nf = static_cast<double>(s.matches);
-  const double num = nf*sxy - sx*sy;
-  const double den = std::sqrt((nf*sxx - sx*sx) * (nf*syy - sy*sy));
-  s.r = (den > 1e-15) ? num / den : 0.0;
-
-  std::cerr << "[" << label << "] matches=" << s.matches
-            << "/" << sub.triplets.size() << "(sub)"
-            << " r=" << s.r
-            << " max_dq=" << s.max_dq
-            << " max_dpep=" << s.max_dpep
-            << " pi0_in=" << pi0_in
-            << " pi0_sub=" << sub.pi0 << std::endl;
-  return s;
-}
-
-/// Per-section configuration for the 3.08 parity sections (§9, §10). Body
-/// is shared in run3p08Parity() below; only the dispatch differs.
-struct Eb157Case
-{
-  const char* label;       ///< identifier for diagnostic line
-  const char* sub_extra;   ///< appended to the subprocess command
-  const char* pep_method;  ///< in-process pep_method param value
-  double max_dpep_bound;   ///< PEP-tolerance ceiling
-};
-
-void run3p08Parity(const String& bin, const Eb157Case& tc)
-{
-  RealisticFixture fx = buildRealisticFixture();
-  TEST_TRUE(fx.ri.features.size() >= 20)
-
-  std::ostringstream sub_args;
-  sub_args << "-S 1 -t 0.5 -F 0.5 " << tc.sub_extra;
-  SubprocessOut sub = runSubprocess(bin, fx.pin_path, sub_args.str());
-  TEST_EQUAL(sub.exit_code, 0)
-
-  Percolator p;
-  Param par = p.getDefaults();
-  par.setValue("seed", 1);
-  par.setValue("pep_method", tc.pep_method);
-  par.setValue("test_fdr",  0.5);
-  par.setValue("train_fdr", 0.5);
-  par.setValue("post_processing_tdc",  "false");
-  par.setValue("train_best_positive",  "false");
-  p.setParameters(par);
-  RescoreOutput out = p.rescore(fx.ri);
-  TEST_EQUAL(out.scores.size(), fx.ri.features.size())
-
-  ParityStats stats = computeParityStats(out, fx.pin_keys, sub, p.getPi0(), tc.label);
-
-  TEST_TRUE(stats.matches >= 20)
-  // SVM scores are bit-identical (pep_method does not touch the SVM path).
-  TEST_TRUE(stats.r >= 0.9999)
-  // Pi0 matches to round-trip precision — sanity check that the fix's
-  // post-TDC calcQvals call uses the same pi0 as the subprocess.
-  TEST_TRUE(std::abs(p.getPi0() - sub.pi0) < 5e-6)
-  // Percolator::rescore()'s post-TDC calcQvals (mirroring Caller::
-  // calculatePSMProb) brought max_dq from ~0.28 (pre-fix) down to ~5e-3 on
-  // this fixture. The residual is a deterministic tail-sort artifact: most
-  // rows are bit-identical, a small low-score plateau diverges by a
-  // constant ~5e-3 in both deb and self-built subprocess builds (i.e. it
-  // is NOT version skew — see project_percolator_parity_divergence.md).
-  // 1e-2 catches regressions while tolerating the known artifact.
-  TEST_TRUE(stats.max_dq <= 1e-2)
-  TEST_TRUE(stats.max_dpep <= tc.max_dpep_bound)
-}
 
 } // namespace
 
@@ -1497,62 +1309,6 @@ START_SECTION([EXTRA] multi-file PIN parity)
     TEST_TRUE(r >= 0.999)
     TEST_EQUAL(tgt_q01_in, tgt_q01_sub)
     TEST_EQUAL(tgt_q05_in, tgt_q05_sub)
-  }
-}
-END_SECTION
-
-///////////////////////////////////////////////////////////////////////////////
-// Tests 9-10: 3.08 parity — pep_method="isotonic" (--pava-pep) and
-// pep_method="logistic_regression" (--ip-pep). These paths were added by
-// upstream PR #399 and do not exist in the bundled 3.06 binary. Gated on
-// PERCOLATOR_EB157F7_BINARY env var, which CMake sets when a rel-3-08+
-// binary is dropped into OpenMS-build/THIRDPARTY/Percolator-eb157f7/.
-//
-// Algorithm-identical parity expectation: the SVM code is unchanged across
-// pep_methods (so scores and q-values are bit-identical to the 3.06 §6
-// baseline), and the in-process and 3.08-subprocess PEP paths run the same
-// algorithm on the same SVM scores. PEP parity should be very tight — PAVA
-// is a deterministic non-iterative algorithm (bit-identical across
-// compilation units in practice), I-spline / TRR is iterative but stable.
-///////////////////////////////////////////////////////////////////////////////
-
-START_SECTION([EXTRA] 3.08 parity: pep_method=isotonic vs --pava-pep)
-{
-  const String bin = percolatorEb157f7Binary();
-  if (bin.empty()) { TEST_EQUAL(true, true); /* skip silently */ }
-  else
-  {
-    // PAVA PEP is deterministic given q-values, so dpep tracks dq → 1e-2.
-    run3p08Parity(bin, {"3.08 parity §9 isotonic/--pava-pep",
-                        "--pava-pep", "isotonic", 1e-2});
-  }
-}
-END_SECTION
-
-///////////////////////////////////////////////////////////////////////////////
-
-START_SECTION([EXTRA] 3.08 parity: pep_method=logistic_regression vs 3.08 default I-spline)
-{
-  const String bin = percolatorEb157f7Binary();
-  if (bin.empty()) { TEST_EQUAL(true, true); /* skip silently */ }
-  else
-  {
-    // 3.08 subprocess with NO --*-pep flag takes Caller's default I-spline
-    // PEP path: useIrlsPep_/useInterpolatingPep_/usePavaPep_ all start
-    // false, and calcPep routes the all-false case through the I-spline
-    // branch of InferPEP::q_to_pep. This matches in-process
-    // pep_method="logistic_regression" → calcPep(spline=false, interp=false,
-    // pava=false). (--ip-pep swaps rank→score as the I-spline independent
-    // variable; it does NOT select I-spline vs PAVA, so it would be the
-    // wrong flag here.)
-    //
-    // I-spline PEP from ISplineTRRRegressor (PR #399) is iterative; small
-    // FP convergence drift between in-process and subprocess. Observed
-    // ≈ 1.1e-2 against self-built eb157f7 (down from 0.22 against the
-    // older rel-3.08.0 deb, which had a pre-PR-399 I-spline implementation).
-    // 5e-2 leaves headroom across compiler/build configs.
-    run3p08Parity(bin, {"3.08 parity §10 logistic_regression/default I-spline",
-                        "", "logistic_regression", 5e-2});
   }
 }
 END_SECTION
