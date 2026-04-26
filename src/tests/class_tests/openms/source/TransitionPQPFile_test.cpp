@@ -200,7 +200,8 @@ START_SECTION([EXTRA] test reading PQP with multiple gene mappings does not dupl
   {
     transition_group.addTransition(transition, transition.getNativeID());
   }
-  TEST_EQUAL(transition_group.size(), 1)
+  TEST_EQUAL(transition_group.getTransitions().size(), 1)
+  TEST_EQUAL(transition_group.hasTransition("transition_1"), true)
 }
 END_SECTION
 

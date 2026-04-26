@@ -301,16 +301,7 @@ namespace OpenMS
     // Suppress repeated resampling-spacing warnings for this workflow call
     // only, so embedded use does not affect later resampling in the process.
     Internal::ScopedResamplingWarningSuppression scoped_resampling_warning_suppression;
-    auto sortOutputFeaturesIfNeeded = [&out_featureFile, store_features]()
-    {
-      if (store_features)
-      {
-        // Parallel extraction and scoring append peak groups in completion
-        // order, so sort once at the end to keep feature output deterministic.
-        out_featureFile.sortByPosition();
-      }
-    };
-    
+
     // user-controllable overrides for inner batching and outer concurrency
     const int user_inner_batch_size = innerBatchSize;
     const int user_max_concurrent_swaths = maxConcurrentSwaths;
@@ -329,7 +320,6 @@ namespace OpenMS
       std::vector<MSChromatogram> empty_ms1_chromatograms;
 
       writeOutFeaturesAndChroms_(filtered_chroms, empty_ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
-      sortOutputFeaturesIfNeeded();
       this->endProgress();
       return;
     }
@@ -749,6 +739,8 @@ namespace OpenMS
         }
       }
 
+      const bool wave_has_parallel_scoring = inner_batch_queue.size() > 1;
+
       {
         std::lock_guard<std::mutex> lock(inner_queue_mutex);
         std::sort(inner_batch_queue.begin(), inner_batch_queue.end(),
@@ -916,9 +908,16 @@ namespace OpenMS
         context.active = false;
         context.finalized = true;
       }
+
+      if (store_features && wave_has_parallel_scoring)
+      {
+        // Parallel scoring jobs append peak groups in completion order, so
+        // sort once after the wave to keep featureXML output deterministic
+        // without perturbing established serial-order outputs.
+        out_featureFile.sortByPosition();
+      }
       }
 
-      sortOutputFeaturesIfNeeded();
       if (buffered_osw_writer != nullptr)
       {
         buffered_osw_writer->finish();
@@ -1143,7 +1142,6 @@ namespace OpenMS
       this->setProgress(++progress);
 
     }
-    sortOutputFeaturesIfNeeded();
     this->endProgress();
 
 #ifdef _OPENMP
