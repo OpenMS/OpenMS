@@ -187,10 +187,20 @@ endif()
 find_package(CURL REQUIRED)
 
 #------------------------------------------------------------------------------
-# Apache Arrow and Parquet (required dependency)
-# Arrow 23+ required for parquet file format compatibility
-find_package(Arrow 23 CONFIG REQUIRED)
-find_package(Parquet 23 CONFIG REQUIRED)
+# Apache Arrow and Parquet (required dependency).
+# Arrow 23+ required for parquet file format compatibility. We don't pin the
+# version in find_package because Arrow's ConfigVersion uses SameMajorVersion
+# compatibility, so `find_package(Arrow 23 ...)` rejects 24.x even though
+# 24.x remains API-compatible for our usage. Enforce the minimum with an
+# explicit VERSION_LESS check after the package is located.
+find_package(Arrow CONFIG REQUIRED)
+if(Arrow_VERSION VERSION_LESS 23)
+  message(FATAL_ERROR "Apache Arrow >= 23 required (found ${Arrow_VERSION}).")
+endif()
+find_package(Parquet CONFIG REQUIRED)
+if(Parquet_VERSION VERSION_LESS 23)
+  message(FATAL_ERROR "Apache Parquet >= 23 required (found ${Parquet_VERSION}).")
+endif()
 
 # Arrow's CMake config may import nlohmann_json as a transitive dependency.
 # If so, force the vendored extern to use the already-imported target instead
