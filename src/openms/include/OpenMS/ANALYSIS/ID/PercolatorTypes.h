@@ -21,24 +21,21 @@ namespace OpenMS
 
     Row ordering is preserved in the output. Every row corresponds to one
     data point (PSM, transition, whatever the caller chooses).
-
-    @var features         [n_rows][n_features] scalar features per row. Rows must
-                          all have the same length.
-    @var is_decoy         Target (false) or decoy (true) label per row.
-    @var cv_group_keys    Per-row integer key used to group rows into the same
-                          cross-validation fold. Rows sharing a key will never
-                          be split across folds. Leave empty to use row index
-                          (each row in its own group). Supply this when rows
-                          have natural duplication (e.g., multiple PSMs from
-                          one spectrum, multiple transitions from one precursor).
-    @var feature_names    Names aligned 1:1 with feature columns; used for
-                          logging only.
   */
   struct OPENMS_DLLAPI RescoreInput
   {
+    /// [n_rows][n_features] scalar features per row. Rows must all have
+    /// the same length.
     std::vector<std::vector<double>> features;
+    /// Target (false) or decoy (true) label per row.
     std::vector<bool> is_decoy;
+    /// Per-row integer key used to group rows into the same cross-validation
+    /// fold. Rows sharing a key will never be split across folds. Leave empty
+    /// to use row index (each row in its own group). Supply this when rows
+    /// have natural duplication (e.g., multiple PSMs from one spectrum,
+    /// multiple transitions from one precursor).
     std::vector<int> cv_group_keys;
+    /// Names aligned 1:1 with feature columns; used for logging only.
     StringList feature_names;
 
     /**
@@ -88,28 +85,25 @@ namespace OpenMS
     Percolator::score() applies a further FDR-based rescaling on top of that
     to produce the final SVM discriminant reported in RescoreOutput.scores;
     see Percolator::score for the exact formula.
-
-    @var format_version   Integer schema version for the on-disk format.
-    @var feature_names    Feature column names (must be non-empty and match
-                          RescoreInput::feature_names positionally at
-                          score time). Any string value is permitted —
-                          saveModel carries bias in the header, so feature
-                          names are opaque.
-    @var weights          Size = n_features + 1. Last entry is the bias.
-    @var normalizer_type  "stdv" | "uni" | "none" — the normalizer used
-                          during training. Informational; all three produce
-                          raw-space weights that score() can apply directly
-                          (the transform is already folded into the
-                          weights+bias). Recorded so reproducibility tools
-                          can see which learner policy produced the model.
-    @var seed             Random seed used during training. Informational.
   */
   struct OPENMS_DLLAPI PercolatorModel
   {
+    /// Integer schema version for the on-disk format.
     int format_version = 1;
+    /// Feature column names (must be non-empty and match
+    /// RescoreInput::feature_names positionally at score time). Any
+    /// string value is permitted — saveModel carries bias in the header,
+    /// so feature names are opaque.
     StringList feature_names;
+    /// Size = n_features + 1. Last entry is the bias.
     std::vector<double> weights;
+    /// "stdv" | "uni" | "none" — the normalizer used during training.
+    /// Informational; all three produce raw-space weights that score()
+    /// can apply directly (the transform is already folded into the
+    /// weights + bias). Recorded so reproducibility tools can see which
+    /// learner policy produced the model.
     std::string normalizer_type;
+    /// Random seed used during training. Informational.
     int seed = 0;
   };
 }
