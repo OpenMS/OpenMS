@@ -2442,7 +2442,7 @@ FeatureFinder algorithm for picked (centroided) data
 DefaultParamHandler
 )doc")
         .def(nb::init<>())
-        .def("run", [](OpenMS::FeatureFinderAlgorithmPicked& self, OpenMS::MSExperiment& input_map, OpenMS::FeatureMap& features, const OpenMS::Param& param, const OpenMS::FeatureMap& seeds) { nb::gil_scoped_release release; return self.run(input_map, features, param, seeds); }, "input_map"_a, "features"_a, "param"_a, "seeds"_a)
+        .def("run", [](OpenMS::FeatureFinderAlgorithmPicked& self, OpenMS::MSExperiment input_map, OpenMS::FeatureMap& features, const OpenMS::Param& param, const OpenMS::FeatureMap& seeds) { nb::gil_scoped_release release; return self.run(std::move(input_map), features, param, seeds); }, "input_map"_a, "features"_a, "param"_a, "seeds"_a)
         ;
 
     // -----------------------------------------------------------------------

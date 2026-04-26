@@ -9,6 +9,7 @@
 #pragma once
 
 #include <limits>
+#include <atomic>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -18,6 +19,38 @@
 
 namespace OpenMS
 {
+  /// Shared process-wide flag to suppress repeated resampling-spacing warnings.  During OpenSwathWorkflow extraction and scoring, the constant warning message causes 18x performance slowdown via stderr lock contention during scoring.
+  extern OPENMS_DLLAPI std::atomic<bool> suppress_resampling_spacing_warning;
+
+  namespace Internal
+  {
+    /**
+      @brief Internal RAII guard for temporary resampling warning suppression.
+
+      Saves the current global warning state on construction and restores it on
+      destruction so OpenSwath can suppress high-volume warnings without
+      leaking the suppression to later work in the same process.
+    */
+    class ScopedResamplingWarningSuppression
+    {
+    public:
+      explicit ScopedResamplingWarningSuppression(bool suppress = true) :
+        previous_(suppress_resampling_spacing_warning.exchange(suppress))
+      {
+      }
+
+      ~ScopedResamplingWarningSuppression()
+      {
+        suppress_resampling_spacing_warning.store(previous_);
+      }
+
+      ScopedResamplingWarningSuppression(const ScopedResamplingWarningSuppression&) = delete;
+      ScopedResamplingWarningSuppression& operator=(const ScopedResamplingWarningSuppression&) = delete;
+
+    private:
+      bool previous_;
+    };
+  } // namespace Internal
 
   /**
     @brief Linear Resampling of raw data with alignment.
@@ -410,7 +443,7 @@ protected:
         ++it;
       }
 
-      if (spacing_ < min_dist)
+      if (spacing_ < min_dist && !suppress_resampling_spacing_warning.load())
       {
         OPENMS_LOG_WARN << "Resampling spacing (" << spacing_
                         << ") is smaller than the smallest distance between data points ("

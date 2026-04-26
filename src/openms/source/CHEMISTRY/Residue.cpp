@@ -630,6 +630,86 @@ namespace OpenMS
     return os;
   }
 
+  double Residue::getHydrophobicity(const HydrophobicityScaleMethod scale) const
+  {     
+    char amino_acid;
+    if (one_letter_code_.size() == 1)
+    {
+      amino_acid = one_letter_code_[0];
+    }
+    else 
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "One letter code for this residue is empty", "");
+    }
+    if (amino_acid < 'A' || amino_acid > 'Z') 
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No hydrophobicity value known for this residue", one_letter_code_);
+    }
+    static const double scales[7][26] = 
+    {
+      // KyteDoolitlle scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        1.800,   999, 2.500, -3.50, -3.50, 2.800, -0.40, -3.20, 4.500,   999, -3.90, 3.800, 1.900, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        -3.50,   999, -1.60, -3.50, -4.50, -0.80, -0.70,   999, 4.200, -0.90,   999, -1.30,   999
+      },
+      // Eisenberg normalized scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        0.620,   999, 0.290, -0.90, -0.74, 1.190, 0.480, -0.40, 1.380,   999, -1.50, 1.060, 0.640, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        -0.780,  999, 0.120, -0.85, -2.53, -0.18, -0.05,   999, 1.080, 0.810,   999, 0.260,   999
+      },
+      // HoppWoods scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        -0.50,   999, -1.00, 3.000, 3.000, -2.50, 0.000, -0.50, -1.80,   999, 3.000, -1.80, -1.30, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        0.200,   999, 0.000, 0.200, 3.000, 0.300, -0.40,   999, -1.50, -3.40,   999, -2.30,   999
+      },
+      // BullBreese scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        0.610,   999, 0.360, 0.610, 0.510, -1.52, 0.810, 0.690, -1.45,   999, 0.460, -1.65, -0.66, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        0.890,   999, -0.17, 0.970, 0.690, 0.420, 0.290,   999, -0.75, -1.20,   999, -1.43,   999
+      },
+      // BlackMould scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        0.616,   999, 0.680, 0.028, 0.043, 1.000, 0.501, 0.165, 0.943,   999, 0.283, 0.943, 0.738, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        0.236,   999, 0.711, 0.251, 0.000, 0.359, 0.450,   999, 0.825, 0.878,   999, 0.880,   999
+      },
+      // Guy scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        0.100,   999, -1.42, 0.780, 0.830, -2.12, 0.330, -0.500, -1.13,   999, 1.400, -1.18, -1.59, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        0.480,   999, 0.730, 0.950, 1.910, 0.520, 0.070,   999, -1.27, -0.51,   999, -0.21,   999
+      },
+      // Eisenberg consensus scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        0.250,   999, 0.040, -0.72, -0.62, 0.610, 0.160, -0.40, 0.730,   999, -1.10, 0.530, 0.260, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        -0.64,   999, -0.07, -0.69, -1.76, -0.26, -0.18,   999, 0.540, 0.370,   999, 0.020,   999
+      }   
+    };
+    const int scale_idx = static_cast<int>(scale);
+    if (scale_idx < 0 || scale_idx >= 7)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown hydrophobicity scale", String(scale_idx));
+    }
+    const double result = scales[scale_idx][amino_acid - 'A'];
+    if (result == 999)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No hydrophobicity value known for this residue", one_letter_code_);
+    }
+    return result;
+  }
+
   // static members
   // TODO They could actually be constexpr but EmpiricalFormula of a string literal is not constexpr yet
   //  not sure if possible with current C++ standard

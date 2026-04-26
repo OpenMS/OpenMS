@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflowScheduler.h>
 #include <OpenMS/ANALYSIS/TARGETED/IChromatogramHandler.h>
 #include <OpenMS/ANALYSIS/TARGETED/ChromatogramProcessor.h>
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
@@ -17,13 +18,244 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
+#include <algorithm>
 #include <cmath>
+#include <condition_variable>
+#include <deque>
+#include <exception>
+#include <iterator>
+#include <limits>
+#include <memory>
+#include <mutex>
+#include <thread>
 #include <unordered_map>
+#include <unordered_set>
+#include <utility>
 
 
 // OpenSwathWorkflow
 namespace OpenMS
 {
+  namespace
+  {
+    // --- Dynamic batching helpers ---
+    Size estimateFeatureMemoryPerCompound()
+    {
+      // Conservative estimate in bytes per compound (features + temporaries)
+      return static_cast<Size>(2 * 1024); // 2 KB
+    }
+
+    Size calculateInnerBatchSize(Size total_compounds, int user_innerBatchSize = -1)
+    {
+      if (user_innerBatchSize > 0)
+      {
+        return static_cast<Size>(std::min<Size>(static_cast<Size>(user_innerBatchSize), total_compounds));
+      }
+      const UInt64 safe_mem = OpenSwathWorkflowScheduler::estimateAvailableMemoryForScoring(
+        OpenSwathWorkflowScheduler::Options());
+      if (safe_mem == 0) return std::min<Size>(static_cast<Size>(5000), total_compounds);
+      // use 5% of available memory for feature batch buffer
+      UInt64 feature_buffer_safe = safe_mem / 20ULL;
+      Size bytes_per_compound = estimateFeatureMemoryPerCompound();
+      Size inner = static_cast<Size>(feature_buffer_safe / bytes_per_compound);
+      // clamp
+      inner = std::max<Size>(2000, std::min<Size>(10000, inner));
+      return std::min<Size>(inner, total_compounds);
+    }
+
+    constexpr UInt64 OSW_MIN_WRITE_BUFFER_BYTES = 64ull * 1024ull * 1024ull;
+    constexpr UInt64 OSW_FALLBACK_WRITE_BUFFER_BYTES = 512ull * 1024ull * 1024ull;
+    constexpr UInt64 OSW_MAX_WRITE_BUFFER_BYTES = 2ull * 1024ull * 1024ull * 1024ull;
+    constexpr UInt64 OSW_SYSTEM_MEMORY_RESERVE_BYTES = 4ull * 1024ull * 1024ull * 1024ull;
+
+    UInt64 determineOSWWriteBufferBytes()
+    {
+      size_t available_kb = 0;
+      if (!SysInfo::getFreeSystemMemory(available_kb))
+      {
+        return OSW_FALLBACK_WRITE_BUFFER_BYTES;
+      }
+
+      const UInt64 available_kb_64 = static_cast<UInt64>(available_kb);
+      UInt64 available_bytes = 0;
+      if (available_kb_64 > std::numeric_limits<UInt64>::max() / 1024ull)
+      {
+        available_bytes = std::numeric_limits<UInt64>::max();
+      }
+      else
+      {
+        available_bytes = available_kb_64 * 1024ull;
+      }
+
+      const UInt64 usable_bytes = available_bytes > OSW_SYSTEM_MEMORY_RESERVE_BYTES ?
+        available_bytes - OSW_SYSTEM_MEMORY_RESERVE_BYTES :
+        available_bytes / 8ull;
+      const UInt64 budget_bytes = usable_bytes / 4ull;
+      return std::clamp(budget_bytes, OSW_MIN_WRITE_BUFFER_BYTES, OSW_MAX_WRITE_BUFFER_BYTES);
+    }
+
+    // Queue OSW rows so scoring threads only block when the memory budget is exhausted.
+    class OSWBufferedWriter
+    {
+    public:
+      OSWBufferedWriter(OpenSwathOSWWriter& writer, UInt64 buffer_budget_bytes) :
+        writer_(writer),
+        buffer_budget_bytes_(std::max(buffer_budget_bytes, OSW_MIN_WRITE_BUFFER_BYTES))
+      {
+        worker_ = std::thread([this]() { writerLoop_(); });
+      }
+
+      ~OSWBufferedWriter()
+      {
+        try { finish(); } catch (...) {}
+      }
+
+      void enqueue(OpenSwathOSWWriter::OSWData rows)
+      {
+        if (rows.empty())
+        {
+          return;
+        }
+
+        const UInt64 byte_count = std::max<UInt64>(rows.estimateMemoryUsage(), 1ull);
+
+        std::unique_lock<std::mutex> lock(mutex_);
+        checkExceptionLocked_();
+        cv_.wait(lock, [&]()
+        {
+          return exception_ != nullptr ||
+                 finish_requested_ ||
+                 (buffered_bytes_ <= buffer_budget_bytes_ &&
+                  byte_count <= buffer_budget_bytes_ - buffered_bytes_) ||
+                 (buffered_bytes_ == 0 && queue_.empty());
+        });
+        checkExceptionLocked_();
+        if (finish_requested_)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Cannot enqueue OSW rows after the buffered writer was finished.");
+        }
+
+        queue_.push_back({std::move(rows), byte_count});
+        buffered_bytes_ += byte_count;
+
+        lock.unlock();
+        cv_.notify_all();
+      }
+
+      void finish()
+      {
+        {
+          std::lock_guard<std::mutex> lock(mutex_);
+          if (finished_)
+          {
+            checkExceptionLocked_();
+            return;
+          }
+          finish_requested_ = true;
+        }
+        cv_.notify_all();
+
+        if (worker_.joinable())
+        {
+          worker_.join();
+        }
+
+        std::lock_guard<std::mutex> lock(mutex_);
+        finished_ = true;
+        checkExceptionLocked_();
+      }
+
+    private:
+      struct QueueItem
+      {
+        OpenSwathOSWWriter::OSWData rows;
+        UInt64 byte_count = 0;
+      };
+
+      void checkExceptionLocked_() const
+      {
+        if (exception_ != nullptr)
+        {
+          std::rethrow_exception(exception_);
+        }
+      }
+
+      void writerLoop_()
+      {
+        try
+        {
+          while (true)
+          {
+            OpenSwathOSWWriter::OSWData batch;
+            UInt64 batch_bytes = 0;
+
+            {
+              std::unique_lock<std::mutex> lock(mutex_);
+              cv_.wait(lock, [&]()
+              {
+                return exception_ != nullptr ||
+                       finish_requested_ ||
+                       !queue_.empty();
+              });
+
+              if (exception_ != nullptr)
+              {
+                return;
+              }
+
+              if (queue_.empty() && finish_requested_)
+              {
+                return;
+              }
+              if (queue_.empty())
+              {
+                continue;
+              }
+              while (!queue_.empty())
+              {
+                QueueItem item = std::move(queue_.front());
+                queue_.pop_front();
+                batch_bytes += item.byte_count;
+                batch.append(std::move(item.rows));
+              }
+            }
+
+            if (!batch.empty())
+            {
+              writer_.writeRows(batch);
+
+              std::lock_guard<std::mutex> lock(mutex_);
+              buffered_bytes_ -= batch_bytes;
+              cv_.notify_all();
+            }
+          }
+        }
+        catch (...)
+        {
+          std::lock_guard<std::mutex> lock(mutex_);
+          exception_ = std::current_exception();
+          queue_.clear();
+          buffered_bytes_ = 0;
+          cv_.notify_all();
+        }
+      }
+
+      OpenSwathOSWWriter& writer_;
+      UInt64 buffer_budget_bytes_ = OSW_FALLBACK_WRITE_BUFFER_BYTES;
+      mutable std::mutex mutex_;
+      std::condition_variable cv_;
+      std::deque<QueueItem> queue_;
+      UInt64 buffered_bytes_ = 0;
+      bool finish_requested_ = false;
+      bool finished_ = false;
+      std::exception_ptr exception_;
+      std::thread worker_;
+    };
+  }
+
   // Helper: load MS1 map (returns first swath map marked as ms1)
   OpenSwath::SpectrumAccessPtr OpenSwathWorkflow::loadMS1Map(const std::vector< OpenSwath::SwathMap > & swath_maps, bool load_into_memory)
   {
@@ -62,8 +294,17 @@ namespace OpenMS
     int ms1_isotopes,
     bool load_into_memory,
     const Param & mrm_mapping_param,
-    MobilogramParquetConsumer * mobilogram_consumer)
+    MobilogramParquetConsumer * mobilogram_consumer,
+    int innerBatchSize,
+    int maxConcurrentSwaths)
   {
+    // Suppress repeated resampling-spacing warnings for this workflow call
+    // only, so embedded use does not affect later resampling in the process.
+    Internal::ScopedResamplingWarningSuppression scoped_resampling_warning_suppression;
+
+    // user-controllable overrides for inner batching and outer concurrency
+    const int user_inner_batch_size = innerBatchSize;
+    const int user_max_concurrent_swaths = maxConcurrentSwaths;
     bool ms1_only = (swath_maps.size() == 1 && swath_maps[0].ms1);
 
     if (mrm_)
@@ -204,11 +445,502 @@ namespace OpenMS
     }
     else {
     };
+#ifdef _OPENMP
+    const Size scoring_threads = static_cast<Size>(std::max(1, omp_get_max_threads()));
+#else
+    const Size scoring_threads = 1;
+#endif
+
+    OpenSwathWorkflowScheduler::Options scheduler_options;
+    scheduler_options.max_concurrent_swaths = user_max_concurrent_swaths;
+    scheduler_options.scoring_threads = scoring_threads;
+    const Size non_ms1_swath_count = std::count_if(swath_maps.begin(), swath_maps.end(),
+      [](const OpenSwath::SwathMap& swath_map)
+      {
+        return !swath_map.ms1;
+      });
+    if (non_ms1_swath_count > 0)
+    {
+      // Extracted chromatogram storage dominates memory for very large
+      // predicted libraries, so use transition density in the wave estimate.
+      scheduler_options.avg_transitions_per_swath =
+        (transition_exp.transitions.size() + non_ms1_swath_count - 1) / non_ms1_swath_count;
+    }
+    if (osw_writer.isActive())
+    {
+      scheduler_options.osw_buffer_bytes = determineOSWWriteBufferBytes();
+    }
+    else
+    {
+      scheduler_options.osw_buffer_bytes = 0ULL;
+    }
+    const OpenSwathWorkflowScheduler::ConcurrencyEstimate swath_concurrency_estimate =
+      OpenSwathWorkflowScheduler::estimateConcurrency(swath_maps, scheduler_options);
+
+#ifdef _OPENMP
+#ifdef MT_ENABLE_NESTED_OPENMP
+    const bool nested_scheduler_requested = threads_outer_loop_ > -1;
+#else
+    const bool nested_scheduler_requested = false;
+#endif
+    const bool use_swath_range_scheduler = batchSize <= 0 && load_into_memory && !ms1_only &&
+                                          !nested_scheduler_requested;
+#else
+    const bool use_swath_range_scheduler = false;
+#endif
+    if (use_swath_range_scheduler)
+    {
+      struct SwathSchedulerContext
+      {
+        SignedSize swath_index = -1;
+        bool active = false;
+        int score_job_size = 0;
+        SignedSize nr_score_jobs = 0;
+        SignedSize remaining_score_jobs = 0;
+        bool finalized = false;
+        OpenSwath::LightTargetedExperiment transition_exp_used_all;
+        OpenSwath::SpectrumAccessPtr current_swath_map;
+        std::vector<MSChromatogram> ms1_chromatograms;
+        PeakMap chrom_exp;
+        FeatureMap feature_file;
+      };
+
+      std::vector<SwathSchedulerContext> contexts(swath_maps.size());
+      std::unique_ptr<OSWBufferedWriter> buffered_osw_writer;
+      if (osw_writer.isActive())
+      {
+        OPENMS_LOG_INFO << "Use buffered OSW writer with "
+                        << bytesToHumanReadable(scheduler_options.osw_buffer_bytes)
+                        << " queue budget and a single writer thread." << std::endl;
+        buffered_osw_writer = std::make_unique<OSWBufferedWriter>(osw_writer, scheduler_options.osw_buffer_bytes);
+      }
+
+      struct InnerBatchScoringJob
+      {
+        Size context_index = 0;
+        Size batch_index = 0;
+        Size estimated_compounds = 0;
+        Size estimated_transitions = 0;
+      };
+
+      std::deque<InnerBatchScoringJob> inner_batch_queue;
+      std::mutex inner_queue_mutex;
+      std::exception_ptr scoring_exception;
+
+      const std::vector<OpenSwathWorkflowScheduler::Wave> swath_waves =
+        OpenSwathWorkflowScheduler::planWaves(swath_maps, scheduler_options, swath_concurrency_estimate);
+
+      OPENMS_LOG_INFO << "Use SWATH wave scheduler with "
+                      << swath_waves.size() << " waves, max_concurrent_swaths="
+                      << swath_concurrency_estimate.max_concurrent_swaths
+                      << ", memory_budget=" << bytesToHumanReadable(swath_concurrency_estimate.memory_budget_bytes)
+                      << ", avg_spectra=" << swath_concurrency_estimate.avg_spectra_per_swath
+                      << ", avg_transitions=" << scheduler_options.avg_transitions_per_swath
+                      << ", estimated_swath=" << bytesToHumanReadable(swath_concurrency_estimate.estimated_bytes_per_swath)
+                      << "." << std::endl;
+
+      for (Size swath_index = 0; swath_index < swath_maps.size(); ++swath_index)
+      {
+        if (swath_maps[swath_index].ms1)
+        {
+          this->setProgress(++progress);
+        }
+      }
+
+      OPENMS_LOG_INFO << "Use SWATH wave scheduler with " << scoring_threads
+                      << " scoring threads." << std::endl;
+
+      for (Size wave_index = 0; wave_index < swath_waves.size(); ++wave_index)
+      {
+        const OpenSwathWorkflowScheduler::Wave& wave = swath_waves[wave_index];
+        inner_batch_queue.clear();
+
+        OPENMS_LOG_DEBUG << "Process SWATH wave " << (wave_index + 1) << "/"
+                         << swath_waves.size() << " with "
+                         << wave.swath_indices.size() << " SWATHs (estimated "
+                         << bytesToHumanReadable(wave.estimated_bytes) << ")." << std::endl;
+
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic,1)
+#endif
+      for (SignedSize wave_pos = 0; wave_pos < boost::numeric_cast<SignedSize>(wave.swath_indices.size()); ++wave_pos)
+      {
+        const SignedSize swath_index = boost::numeric_cast<SignedSize>(wave.swath_indices[wave_pos]);
+        SwathSchedulerContext& context = contexts[swath_index];
+        context.swath_index = swath_index;
+
+        if (swath_maps[swath_index].ms1)
+        {
+          continue;
+        }
+
+        if (!(prm_ || pasef_))
+        {
+          OpenSwathHelper::selectSwathTransitions(transition_exp, context.transition_exp_used_all,
+              cp.min_upper_edge_dist, swath_maps[swath_index].lower, swath_maps[swath_index].upper);
+        }
+        else
+        {
+          std::set<std::string> matching_compounds;
+          for (Size k = 0; k < tr_win_map.size(); k++)
+          {
+            if (tr_win_map[k] == swath_index)
+            {
+              const OpenSwath::LightTransition& tr = transition_exp.transitions[k];
+              context.transition_exp_used_all.transitions.push_back(tr);
+              matching_compounds.insert(tr.getPeptideRef());
+              OPENMS_LOG_DEBUG << "Adding Precursor with m/z " << tr.getPrecursorMZ()
+                               << " and IM of " << tr.getPrecursorIM()
+                               << " to swath with mz upper of " << swath_maps[swath_index].upper
+                               << " im lower of " << swath_maps[swath_index].imLower
+                               << " and im upper of " << swath_maps[swath_index].imUpper << '\n';
+            }
+          }
+
+          std::set<std::string> matching_proteins;
+          for (Size compound_idx = 0; compound_idx < transition_exp.compounds.size(); compound_idx++)
+          {
+            if (matching_compounds.find(transition_exp.compounds[compound_idx].id) != matching_compounds.end())
+            {
+              context.transition_exp_used_all.compounds.push_back(transition_exp.compounds[compound_idx]);
+              for (Size protein_ref_idx = 0;
+                   protein_ref_idx < transition_exp.compounds[compound_idx].protein_refs.size();
+                   protein_ref_idx++)
+              {
+                matching_proteins.insert(transition_exp.compounds[compound_idx].protein_refs[protein_ref_idx]);
+              }
+            }
+          }
+          for (Size protein_idx = 0; protein_idx < transition_exp.proteins.size(); protein_idx++)
+          {
+            if (matching_proteins.find(transition_exp.proteins[protein_idx].id) != matching_proteins.end())
+            {
+              context.transition_exp_used_all.proteins.push_back(transition_exp.proteins[protein_idx]);
+            }
+          }
+        }
+        if (context.transition_exp_used_all.getTransitions().empty())
+        {
+          continue;
+        }
+
+        context.current_swath_map = swath_maps[swath_index].sptr;
+        context.current_swath_map = std::shared_ptr<SpectrumAccessOpenMSInMemory>(
+          new SpectrumAccessOpenMSInMemory(*context.current_swath_map));
+
+#ifdef _OPENMP
+#pragma omp critical (osw_write_stdout)
+#endif
+        {
+          OPENMS_LOG_DEBUG << "Thread " <<
+#ifdef _OPENMP
+            omp_get_thread_num() << "_0 " <<
+#else
+            "0" <<
+#endif
+            "will extract " << context.transition_exp_used_all.getCompounds().size() << " compounds and "
+                            << context.transition_exp_used_all.getTransitions().size() << " transitions "
+                            << "from SWATH " << swath_index << std::endl;
+        }
+
+        if (ms1_map_ != nullptr)
+        {
+          OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
+          MS1Extraction_(threadsafe_ms1, swath_maps, context.ms1_chromatograms, ms1_cp,
+              context.transition_exp_used_all, trafo_inverse, ms1_only, ms1_isotopes);
+        }
+
+        ChromatogramExtractor extractor;
+        std::vector<OpenSwath::ChromatogramPtr> chrom_list;
+        std::vector<ChromatogramExtractor::ExtractionCoordinates> coordinates;
+
+        prepareExtractionCoordinates_(chrom_list, coordinates, context.transition_exp_used_all, trafo_inverse, cp);
+
+        extractor.extractChromatograms(context.current_swath_map, chrom_list, coordinates, cp.mz_extraction_window,
+            cp.ppm, cp.im_extraction_window, cp.extraction_function);
+
+        extractor.return_chromatogram(chrom_list, coordinates, context.transition_exp_used_all, SpectrumSettings(),
+                                      context.chrom_exp.getChromatograms(), false, cp.im_extraction_window);
+
+        context.active = true;
+      }
+
+      // Create inner scoring jobs for all active SWATHs. The assay-range scheduler
+      // has already extracted chromatograms per SWATH, so these jobs only score
+      // sub-ranges of the extracted assay set.
+      Size wave_compounds = 0;
+      Size active_swaths = 0;
+      for (Size swath_index : wave.swath_indices)
+      {
+        SwathSchedulerContext& context = contexts[swath_index];
+        if (!context.active)
+        {
+          continue;
+        }
+
+        wave_compounds += context.transition_exp_used_all.getCompounds().size();
+        ++active_swaths;
+      }
+
+      const Size wave_inner_batch = OpenSwathWorkflowScheduler::chooseInnerBatchSize(
+        wave_compounds, active_swaths, scoring_threads, user_inner_batch_size, scheduler_options);
+      if (wave_inner_batch > 0)
+      {
+        OPENMS_LOG_DEBUG << "Use " << wave_inner_batch
+                         << " compounds per scoring job for wave " << (wave_index + 1)
+                         << " (" << wave_compounds << " compounds, "
+                         << active_swaths << " active SWATHs)." << std::endl;
+      }
+
+      for (Size swath_index : wave.swath_indices)
+      {
+        const Size context_index = swath_index;
+        SwathSchedulerContext& context = contexts[context_index];
+        if (!context.active)
+        {
+          continue;
+        }
+
+        const Size n_compounds = context.transition_exp_used_all.getCompounds().size();
+        const Size inner_batch = std::min<Size>(wave_inner_batch, n_compounds);
+        context.score_job_size = boost::numeric_cast<int>(inner_batch);
+        if (context.score_job_size > 0)
+        {
+          context.nr_score_jobs = static_cast<SignedSize>((n_compounds + context.score_job_size - 1) / context.score_job_size);
+          context.remaining_score_jobs = context.nr_score_jobs;
+        }
+
+        OPENMS_LOG_DEBUG << "SWATH " << context.swath_index
+                         << " will score " << context.transition_exp_used_all.getCompounds().size()
+                         << " compounds and " << context.transition_exp_used_all.getTransitions().size()
+                         << " transitions in " << context.nr_score_jobs
+                         << " scoring jobs with " << context.score_job_size
+                         << " compounds per job" << std::endl;
+
+        for (SignedSize batch_index = 0; batch_index < context.nr_score_jobs; ++batch_index)
+        {
+          InnerBatchScoringJob job;
+          job.context_index = context_index;
+          job.batch_index = static_cast<Size>(batch_index);
+          const Size batch_start = job.batch_index * static_cast<Size>(context.score_job_size);
+          job.estimated_compounds = batch_start < n_compounds ?
+            std::min<Size>(static_cast<Size>(context.score_job_size), n_compounds - batch_start) :
+            0;
+          if (n_compounds > 0)
+          {
+            job.estimated_transitions =
+              (job.estimated_compounds * context.transition_exp_used_all.getTransitions().size() +
+               n_compounds - 1) / n_compounds;
+          }
+          {
+            std::lock_guard<std::mutex> lock(inner_queue_mutex);
+            inner_batch_queue.push_back(job);
+          }
+        }
+      }
+
+      const bool wave_has_parallel_scoring = inner_batch_queue.size() > 1;
+
+      {
+        std::lock_guard<std::mutex> lock(inner_queue_mutex);
+        std::sort(inner_batch_queue.begin(), inner_batch_queue.end(),
+          [](const InnerBatchScoringJob& lhs, const InnerBatchScoringJob& rhs)
+          {
+            if (lhs.estimated_transitions != rhs.estimated_transitions)
+            {
+              return lhs.estimated_transitions > rhs.estimated_transitions;
+            }
+            if (lhs.estimated_compounds != rhs.estimated_compounds)
+            {
+              return lhs.estimated_compounds > rhs.estimated_compounds;
+            }
+            if (lhs.batch_index != rhs.batch_index)
+            {
+              return lhs.batch_index < rhs.batch_index;
+            }
+            return lhs.context_index < rhs.context_index;
+          });
+      }
+
+      auto finalize_context = [&](const Size context_index)
+      {
+        SwathSchedulerContext& context = contexts[context_index];
+        if (!context.active || context.finalized)
+        {
+          return;
+        }
+
+#ifdef _OPENMP
+#pragma omp critical (osw_write_out)
+#endif
+        {
+          writeOutFeaturesAndChroms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms,
+              context.feature_file, out_featureFile, store_features, chromConsumer);
+        }
+
+        context.finalized = true;
+#ifdef _OPENMP
+#pragma omp critical (progress)
+#endif
+        {
+          this->setProgress(++progress);
+        }
+      };
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+      {
+        while (true)
+        {
+          InnerBatchScoringJob job;
+          {
+            std::lock_guard<std::mutex> lock(inner_queue_mutex);
+            if (scoring_exception != nullptr) break;
+            if (inner_batch_queue.empty()) break;
+            job = inner_batch_queue.front();
+            inner_batch_queue.pop_front();
+          }
+
+          try
+          {
+            SwathSchedulerContext& context = contexts[job.context_index];
+            OpenSwath::LightTargetedExperiment transition_exp_used;
+            const Size n_compounds = context.transition_exp_used_all.getCompounds().size();
+            const Size inner_batch = std::min<Size>(
+              static_cast<Size>(context.score_job_size), n_compounds);
+            selectCompoundsForBatch_(context.transition_exp_used_all, transition_exp_used, inner_batch, static_cast<SignedSize>(job.batch_index));
+
+            FeatureMap featureFile;
+            std::vector<OpenSwath::SwathMap> tmp = {swath_maps[context.swath_index]};
+            tmp.back().sptr = context.current_swath_map->lightClone();
+            OpenSwathOSWWriter::OSWData job_osw_output;
+            scoreAllChromatograms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms, tmp, transition_exp_used,
+              feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false,
+              mobilogram_consumer, &job_osw_output);
+
+            if (osw_writer.isActive() && !job_osw_output.empty())
+            {
+              if (buffered_osw_writer != nullptr)
+              {
+                buffered_osw_writer->enqueue(std::move(job_osw_output));
+              }
+              else
+              {
+                // Fallback: if buffered writer is not available, write directly.
+#ifdef _OPENMP
+#pragma omp critical (osw_write_out)
+#endif
+                {
+                  osw_writer.writeRows(job_osw_output);
+                }
+              }
+            }
+
+            bool context_ready_to_finalize = false;
+#ifdef _OPENMP
+#pragma omp critical (osw_scheduler_context)
+#endif
+            {
+              if (!osw_writer.isActive() && store_features)
+              {
+                for (FeatureMap::const_iterator feature_it = featureFile.begin(); feature_it != featureFile.end(); ++feature_it)
+                {
+                  context.feature_file.push_back(*feature_it);
+                }
+                for (std::vector<ProteinIdentification>::const_iterator protid_it = featureFile.getProteinIdentifications().begin();
+                     protid_it != featureFile.getProteinIdentifications().end(); ++protid_it)
+                {
+                  context.feature_file.getProteinIdentifications().push_back(*protid_it);
+                }
+              }
+
+              --context.remaining_score_jobs;
+              context_ready_to_finalize = context.remaining_score_jobs == 0;
+            }
+
+            if (context_ready_to_finalize)
+            {
+              finalize_context(job.context_index);
+            }
+          }
+          catch (...)
+          {
+            std::lock_guard<std::mutex> lock(inner_queue_mutex);
+            if (scoring_exception == nullptr)
+            {
+              scoring_exception = std::current_exception();
+            }
+            inner_batch_queue.clear();
+            break;
+          }
+        }
+      }
+
+      if (scoring_exception != nullptr)
+      {
+        std::rethrow_exception(scoring_exception);
+      }
+
+      for (Size swath_index : wave.swath_indices)
+      {
+        const Size context_index = swath_index;
+        SwathSchedulerContext& context = contexts[context_index];
+        if (context.active && !context.finalized)
+        {
+          finalize_context(context_index);
+        }
+        else if (!context.active)
+        {
+          this->setProgress(++progress);
+        }
+      }
+
+      for (Size swath_index : wave.swath_indices)
+      {
+        SwathSchedulerContext& context = contexts[swath_index];
+        context.transition_exp_used_all = OpenSwath::LightTargetedExperiment();
+        context.current_swath_map.reset();
+        context.ms1_chromatograms.clear();
+        context.ms1_chromatograms.shrink_to_fit();
+        context.chrom_exp = PeakMap();
+        context.feature_file = FeatureMap();
+        context.active = false;
+        context.finalized = true;
+      }
+
+      if (store_features && wave_has_parallel_scoring)
+      {
+        // Parallel scoring jobs append peak groups in completion order, so
+        // sort once after the wave to keep featureXML output deterministic
+        // without perturbing established serial-order outputs.
+        out_featureFile.sortByPosition();
+      }
+      }
+
+      if (buffered_osw_writer != nullptr)
+      {
+        buffered_osw_writer->finish();
+      }
+      this->endProgress();
+      return;
+    }
 
     // (iv) Perform extraction and scoring of fragment ion chromatograms (MS2)
     // We set dynamic scheduling such that the maps are worked on in the order
     // in which they were given to the program / acquired. This gives much
     // better load balancing than static allocation.
+    std::unique_ptr<OpenSwathWorkflowScheduler::ConcurrencyLimiter> swath_load_limiter;
+    if (load_into_memory && !ms1_only &&
+        swath_concurrency_estimate.non_ms1_swath_count > swath_concurrency_estimate.max_concurrent_swaths)
+    {
+      swath_load_limiter = std::make_unique<OpenSwathWorkflowScheduler::ConcurrencyLimiter>(
+        swath_concurrency_estimate.max_concurrent_swaths);
+      OPENMS_LOG_INFO << "Limit concurrently loaded SWATHs to "
+                      << swath_concurrency_estimate.max_concurrent_swaths
+                      << " in the streaming scheduler." << std::endl;
+    }
+
 #ifdef _OPENMP
 #ifdef MT_ENABLE_NESTED_OPENMP
     int total_nr_threads = omp_get_max_threads(); // store total number of threads we are allowed to use
@@ -230,7 +962,6 @@ namespace OpenMS
     {
       if (!swath_maps[i].ms1) // skip MS1
       {
-
         // Step 1: select which transitions to extract (proceed in batches)
         OpenSwath::LightTargetedExperiment transition_exp_used_all;
         if (!(prm_ || pasef_))
@@ -274,9 +1005,9 @@ namespace OpenMS
             }
           }
         }
-
         if (!transition_exp_used_all.getTransitions().empty()) // skip if no transitions found
         {
+          OpenSwathWorkflowScheduler::ScopedSlot swath_slot(swath_load_limiter.get());
 
           OpenSwath::SpectrumAccessPtr current_swath_map = swath_maps[i].sptr;
           if (load_into_memory)
@@ -286,16 +1017,23 @@ namespace OpenMS
           }
 
           int batch_size;
-          if (batchSize <= 0 || batchSize >= (int)transition_exp_used_all.getCompounds().size())
+          const Size n_compounds = transition_exp_used_all.getCompounds().size();
+          if (batchSize <= 0)
           {
-            batch_size = transition_exp_used_all.getCompounds().size();
+            // Auto-calculate an inner batch size to bound memory when using the range scheduler
+            Size inner = calculateInnerBatchSize(n_compounds, user_inner_batch_size);
+            batch_size = static_cast<int>(std::max<Size>(1, inner));
+            OPENMS_LOG_INFO << "Auto-calculated inner batch size: " << batch_size << " (total compounds: " << n_compounds << ")" << std::endl;
+          }
+          else if (batchSize >= (int)n_compounds)
+          {
+            batch_size = static_cast<int>(n_compounds);
           }
           else
           {
             batch_size = batchSize;
           }
-
-          const Size n_compounds = transition_exp_used_all.getCompounds().size();
+          
           SignedSize nr_batches = 0;
           if (batch_size > 0)
           {
@@ -370,6 +1108,7 @@ namespace OpenMS
             // Step 2.2: prepare the extraction coordinates and extract chromatograms
             // chrom_list contains one entry for each fragment ion (transition) in transition_exp_used
             prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, trafo_inverse, cp);
+
             extractor.extractChromatograms(current_swath_map_inner, chrom_list, coordinates, cp.mz_extraction_window,
                 cp.ppm, cp.im_extraction_window, cp.extraction_function);
 
@@ -384,7 +1123,8 @@ namespace OpenMS
             std::vector< OpenSwath::SwathMap > tmp = {swath_maps[i]};
             tmp.back().sptr = current_swath_map_inner;
             scoreAllChromatograms_(chrom_exp.getChromatograms(), ms1_chromatograms, tmp, transition_exp_used,
-              feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false, mobilogram_consumer);
+              feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false,
+              mobilogram_consumer);
 
             // Step 4: write all chromatograms and features out into an output object / file
             // (this needs to be done in a critical section since we only have one
@@ -492,7 +1232,8 @@ namespace OpenMS
     OpenSwathOSWWriter & osw_writer,
     int nr_ms1_isotopes,
     bool ms1only,
-    MobilogramParquetConsumer* mobilogram_consumer) const
+    MobilogramParquetConsumer* mobilogram_consumer,
+    OpenSwathOSWWriter::OSWData* deferred_osw_output) const
   {
     TransformationDescription trafo_inv = trafo;
     trafo_inv.invert();
@@ -558,8 +1299,17 @@ namespace OpenMS
     {
       assay_map[transition_exp.getTransitions()[i].getPeptideRef()].push_back(&transition_exp.getTransitions()[i]);
     }
-
-    std::vector<String> to_osw_output;
+    OpenSwathOSWWriter::OSWData to_osw_output;
+    if (osw_writer.isActive())
+    {
+      const int stop_report_after_feature =
+        static_cast<int>(feature_finder_param.getValue("stop_report_after_feature"));
+      const Size expected_features_per_assay = stop_report_after_feature > 0 ?
+        static_cast<Size>(stop_report_after_feature) :
+        5;
+      to_osw_output.reserve(transition_exp.getCompounds().size() * expected_features_per_assay,
+                            transition_exp.getTransitions().size() * expected_features_per_assay);
+    }
     ///////////////////////////////////
     // Start of main function
     // Iterating over all the assays
@@ -775,22 +1525,30 @@ namespace OpenMS
       // 5. Add to the output osw if given
       if (osw_writer.isActive() && !output.empty()) // implies that detection_assay_it was set
       {
-        const OpenSwath::LightCompound pep;
-        to_osw_output.push_back(osw_writer.prepareLine(OpenSwath::LightCompound(), // not used currently: transition_exp.getCompounds()[ assay_peptide_map[id] ],
-                                                       nullptr, // not used currently: detection_assay_it,
-                                                       output,
-                                                       id));
+        // Compound and transition are currently unused by the OSW row writer.
+        osw_writer.prepareRowsInto(to_osw_output,
+                                   OpenSwath::LightCompound(),
+                                   nullptr,
+                                   output,
+                                   id);
       }
     }
 
-    // Only write at the very end since this is a step that needs a barrier
+    // Only write at the very end since this is a step that needs a barrier.
+    // Schedulers can batch these rows and pass them through the bounded writer.
     if (osw_writer.isActive())
     {
+      if (deferred_osw_output != nullptr)
+      {
+        deferred_osw_output->append(std::move(to_osw_output));
+        return;
+      }
+
 #ifdef _OPENMP
 #pragma omp critical (osw_write_tsv)
 #endif
       {
-        osw_writer.writeLines(to_osw_output);
+        osw_writer.writeRows(to_osw_output);
       }
     }
   }
@@ -808,9 +1566,17 @@ namespace OpenMS
     }
 
     // Create the new, batch-size transition experiment
+    const Size compound_count = end - start;
     transition_exp_used.proteins = transition_exp_used_all.proteins;
+    transition_exp_used.compounds.reserve(compound_count);
     transition_exp_used.compounds.insert(transition_exp_used.compounds.end(),
         transition_exp_used_all.compounds.begin() + start, transition_exp_used_all.compounds.begin() + end);
+    if (!transition_exp_used_all.compounds.empty())
+    {
+      const Size transitions_per_compound =
+        std::max<Size>(1, transition_exp_used_all.transitions.size() / transition_exp_used_all.compounds.size());
+      transition_exp_used.transitions.reserve(compound_count * transitions_per_compound);
+    }
     copyBatchTransitions_(transition_exp_used.compounds, transition_exp_used_all.transitions, transition_exp_used.transitions);
   }
 
@@ -818,7 +1584,8 @@ namespace OpenMS
     const std::vector<OpenSwath::LightTransition>& all_transitions,
     std::vector<OpenSwath::LightTransition>& output)
   {
-    std::set<std::string> selected_compounds;
+    std::unordered_set<std::string> selected_compounds;
+    selected_compounds.reserve(used_compounds.size());
     for (Size i = 0; i < used_compounds.size(); i++)
     {
       selected_compounds.insert(used_compounds[i].id);

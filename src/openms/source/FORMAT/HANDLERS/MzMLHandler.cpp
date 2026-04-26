@@ -4102,7 +4102,7 @@ namespace OpenMS::Internal
 
       MzMLHandlerHelper::writeFooter_(os, options_, spectra_offsets_, chromatograms_offsets_);
 
-      OPENMS_LOG_INFO << stored_spectra << " spectra and " << stored_chromatograms << " chromatograms stored.\n";
+      OPENMS_LOG_DEBUG << stored_spectra << " spectra and " << stored_chromatograms << " chromatograms stored.\n";
 
       logger_.endProgress(os.tellp());
     }

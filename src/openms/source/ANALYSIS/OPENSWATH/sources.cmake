@@ -31,6 +31,7 @@ set(sources_list
   OpenSwathOSWParquetWriter.cpp
   OpenSwathOSWWriter.cpp
   OpenSwathWorkflow.cpp
+  OpenSwathWorkflowScheduler.cpp
   PeakIntegrator.cpp
   PeakPickerChromatogram.cpp
   PeakPickerMobilogram.cpp

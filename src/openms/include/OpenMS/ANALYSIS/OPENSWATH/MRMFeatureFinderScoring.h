@@ -34,12 +34,11 @@
 #include <omp.h>
 #endif
 
-bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std::pair<double, double>& right);
-
 namespace OpenMS
 {
   // Forward declaration for optional mobilogram consumer
   class MobilogramParquetConsumer;
+  class ProteaseDigestion;
 
 
   /**
@@ -211,12 +210,123 @@ public:
                                        double rt_extraction_window);
 private:
 
+    /**
+     * @brief Cache of transition-group invariant data to avoid per-feature recomputation
+     */
+    struct TransitionGroupCache
+    {
+      std::vector<double> normalized_library_intensity;
+      std::vector<std::string> transition_native_ids;
+      std::vector<std::string> precursor_ids;
+      std::vector<String> transition_native_ids_openms;
+      std::vector<String> precursor_ids_openms;
+    };
+
+    /**
+     * @brief Pooled variant of OpenSwath_Ind_Scores to allow pre-allocation and reuse
+     */
+    struct OpenSwath_Ind_Scores_Pooled : public OpenSwath_Ind_Scores
+    {
+      /// Reserve storage for all identification score vectors.
+      void preallocate(Size capacity)
+      {
+        ind_transition_names.reserve(capacity);
+        ind_isotope_correlation.reserve(capacity);
+        ind_isotope_overlap.reserve(capacity);
+        ind_massdev_score.reserve(capacity);
+        ind_xcorr_coelution_score.reserve(capacity);
+        ind_xcorr_shape_score.reserve(capacity);
+        ind_log_sn_score.reserve(capacity);
+        ind_area_intensity.reserve(capacity);
+        ind_total_area_intensity.reserve(capacity);
+        ind_intensity_score.reserve(capacity);
+        ind_apex_intensity.reserve(capacity);
+        ind_apex_position.reserve(capacity);
+        ind_fwhm.reserve(capacity);
+        ind_total_mi.reserve(capacity);
+        ind_log_intensity.reserve(capacity);
+        ind_intensity_ratio.reserve(capacity);
+        ind_mi_ratio.reserve(capacity);
+        ind_mi_score.reserve(capacity);
+        ind_im_drift.reserve(capacity);
+        ind_im_drift_left.reserve(capacity);
+        ind_im_drift_right.reserve(capacity);
+        ind_im_delta.reserve(capacity);
+        ind_im_delta_score.reserve(capacity);
+        ind_im_log_intensity.reserve(capacity);
+        ind_im_contrast_coelution.reserve(capacity);
+        ind_im_contrast_shape.reserve(capacity);
+        ind_im_sum_contrast_coelution.reserve(capacity);
+        ind_im_sum_contrast_shape.reserve(capacity);
+        ind_start_position_at_5.reserve(capacity);
+        ind_end_position_at_5.reserve(capacity);
+        ind_start_position_at_10.reserve(capacity);
+        ind_end_position_at_10.reserve(capacity);
+        ind_start_position_at_50.reserve(capacity);
+        ind_end_position_at_50.reserve(capacity);
+        ind_total_width.reserve(capacity);
+        ind_tailing_factor.reserve(capacity);
+        ind_asymmetry_factor.reserve(capacity);
+        ind_slope_of_baseline.reserve(capacity);
+        ind_baseline_delta_2_height.reserve(capacity);
+        ind_points_across_baseline.reserve(capacity);
+        ind_points_across_half_height.reserve(capacity);
+      }
+
+      /// Clear all identification scores while preserving allocated capacity.
+      void reset()
+      {
+        ind_num_transitions = 0;
+        ind_transition_names.clear();
+        ind_isotope_correlation.clear();
+        ind_isotope_overlap.clear();
+        ind_massdev_score.clear();
+        ind_xcorr_coelution_score.clear();
+        ind_xcorr_shape_score.clear();
+        ind_log_sn_score.clear();
+        ind_area_intensity.clear();
+        ind_total_area_intensity.clear();
+        ind_intensity_score.clear();
+        ind_apex_intensity.clear();
+        ind_apex_position.clear();
+        ind_fwhm.clear();
+        ind_total_mi.clear();
+        ind_log_intensity.clear();
+        ind_intensity_ratio.clear();
+        ind_mi_ratio.clear();
+        ind_mi_score.clear();
+        ind_im_drift.clear();
+        ind_im_drift_left.clear();
+        ind_im_drift_right.clear();
+        ind_im_delta.clear();
+        ind_im_delta_score.clear();
+        ind_im_log_intensity.clear();
+        ind_im_contrast_coelution.clear();
+        ind_im_contrast_shape.clear();
+        ind_im_sum_contrast_coelution.clear();
+        ind_im_sum_contrast_shape.clear();
+        ind_start_position_at_5.clear();
+        ind_end_position_at_5.clear();
+        ind_start_position_at_10.clear();
+        ind_end_position_at_10.clear();
+        ind_start_position_at_50.clear();
+        ind_end_position_at_50.clear();
+        ind_total_width.clear();
+        ind_tailing_factor.clear();
+        ind_asymmetry_factor.clear();
+        ind_slope_of_baseline.clear();
+        ind_baseline_delta_2_height.clear();
+        ind_points_across_baseline.clear();
+        ind_points_across_half_height.clear();
+      }
+    };
+
     /** @brief Splits combined transition groups into detection transition groups
      *
      * For standard assays, transition_group_detection is identical to transition_group and the others are empty.
      *
      * @param[in] transition_group Containing all detecting, identifying transitions
-     * @param[in] transition_group_detection To be filled with detecting transitions
+     * @param[out] transition_group_detection To be filled with detecting transitions
     */
     void splitTransitionGroupsDetection_(const MRMTransitionGroupType& transition_group,
                                          MRMTransitionGroupType& transition_group_detection) const;
@@ -227,7 +337,7 @@ private:
      * is enabled, it contains the corresponding identification transitions.
      *
      * @param[in] transition_group Containing all detecting, identifying transitions
-     * @param[in] transition_group_identification To be filled with identifying transitions
+     * @param[out] transition_group_identification To be filled with identifying transitions
      * @param[out] transition_group_identification_decoy To be filled with identifying decoy transitions
     */
     void splitTransitionGroupsIdentification_(const MRMTransitionGroupType& transition_group,
@@ -239,34 +349,52 @@ private:
      * The function is used twice, for target and decoy identification transitions. The results are
      * reported analogously to the ones for detecting transitions but must be stored separately.
      *
-     * @param[out] transition_group_identification Containing all detecting and identifying transitions
-     * @param[out] transition_group_detection Containing all detecting transitions
+     * @param[in,out] transition_group_identification Containing all detecting and identifying transitions
+     * @param[in,out] transition_group_detection Containing all detecting transitions
      * @param[in] scorer An instance of OpenSwathScoring
      * @param[in] feature_idx The index of the current feature
      * @param[in] feature_id The id of the current feature
      * @param[in] native_ids_detection The native IDs of the detecting transitions
+     * @param[in] signal_noise_estimators_identification Precomputed signal-to-noise estimators for the identification transitions
      * @param[in] det_intensity_ratio_score The intensity score of the detection transitions for normalization
      * @param[in] det_mi_ratio_score The MI score of the detection transitions for normalization
      * @param[in] swath_maps Optional SWATH-MS (DIA) map corresponding from which
      *                  the chromatograms were extracted. Use empty map if no
      *                  data is available.
-     * @param[out] drift_target The target drift value
+     * @param[in] drift_target The target drift value
      * @param[in] im_range Ion mobility subrange to consider (used as filter); can be empty (i.e. no IM filtering). If scoring non-IMS data, this should be empty, otherwise a missing information exception is thrown when integrating spectra for scoring.
+     * @param[out] idscores_out Reused output vectors for target or decoy identification scores
      * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
-     * @return a struct of type OpenSwath_Ind_Scores containing either target or decoy values
     */
-    OpenSwath_Ind_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
-                                              MRMTransitionGroupType& transition_group_detection,
-                                              OpenSwathScoring& scorer,
-                                              const size_t feature_idx,
-                                              const Int64 feature_id,
-                                              const std::vector<std::string> & native_ids_detection,
-                                              const double det_intensity_ratio_score,
-                                              const double det_mi_ratio_score,
-                                              const std::vector<OpenSwath::SwathMap>& swath_maps,
-                                              const double drift_target,
-                                              RangeMobility& im_range,
-                                              MobilogramParquetConsumer* mobilogram_consumer = nullptr) const;
+    void scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
+                              MRMTransitionGroupType& transition_group_detection,
+                              OpenSwathScoring& scorer,
+                              const size_t feature_idx,
+                              const Int64 feature_id,
+                              const std::vector<std::string>& native_ids_detection,
+                              const std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators_identification,
+                              const double det_intensity_ratio_score,
+                              const double det_mi_ratio_score,
+                              const std::vector<OpenSwath::SwathMap>& swath_maps,
+                              const double drift_target,
+                              RangeMobility& im_range,
+                              OpenSwath_Ind_Scores_Pooled& idscores_out,
+                              MobilogramParquetConsumer* mobilogram_consumer = nullptr) const;
+
+    void prepareScoredFeatureOutput_(OpenMS::MRMFeature& mrmfeature,
+                                     const PeptideType& pep,
+                                     ProteaseDigestion& pd,
+                                     bool swath_present,
+                                     double precursor_mz,
+                                     bool ms1only) const;
+
+    void addScoreMetaValues_(OpenMS::MRMFeature& mrmfeature,
+                             const MRMTransitionGroupType& transition_group_detection,
+                             const std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+                             const std::vector<OpenSwath::ISignalToNoisePtr>& ms1_signal_noise_estimators,
+                             double expected_rt,
+                             bool swath_present,
+                             bool ms1only) const;
 
     void prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge) const;
 
@@ -312,4 +440,3 @@ private:
 }
 
 #undef run_identifier
-

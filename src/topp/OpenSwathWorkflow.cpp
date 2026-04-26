@@ -47,6 +47,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
@@ -327,9 +328,29 @@ protected:
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
     setValidStrings_("extraction_function", ListUtils::create<String>("tophat,bartlett"));
 
-    registerIntOption_("batchSize", "<number>", 1000, "The batch size of chromatograms to process (0 means to only have one batch, sensible values are around 250-1000)", false, true);
+    registerIntOption_("batchSize", "<number>", 0,
+                       "Compound batch size for the legacy per-SWATH extraction/scoring path. "
+                       "0 enables automatic scheduling: with in-memory reads (cacheWorkingInMemory or workingInMemory) "
+                       "this uses the SWATH wave scheduler; otherwise it uses automatic "
+                       "inner batches in the legacy path. Set a positive value to force the legacy batch scheduler "
+                       "(typical legacy values are 250-1000).",
+                       false, true);
     setMinInt_("batchSize", 0);
-    registerIntOption_("outer_loop_threads", "<number>", -1, "How many threads should be used for the outer loop (-1 use all threads, use 4 to analyze 4 SWATH windows in memory at once).", false, true);
+    registerIntOption_("innerBatchSize", "<number>", -1,
+                       "Inner scoring batch size for automatic/wave scheduling (<=0 enables automatic sizing based on input and memory).",
+                       false, true);
+    setMinInt_("innerBatchSize", -1);
+    registerIntOption_("maxConcurrentSwaths", "<number>", -1,
+                       "Maximum concurrent non-MS1 SWATH maps to keep in memory for automatic/wave scheduling "
+                       "(-1 auto compute based on free memory and transition density).",
+                       false, true);
+    setMinInt_("maxConcurrentSwaths", -1);
+    registerIntOption_("outer_loop_threads", "<number>", -1,
+                       "Legacy nested OpenMP outer-loop thread count. This is only relevant for the old per-SWATH "
+                       "parallel path and only when OpenMS was built with nested OpenMP support. Leave -1 to allow "
+                       "automatic scheduling; with batchSize 0 and in-memory reads this permits the SWATH wave scheduler. "
+                       "Setting this >=0 requests legacy outer-loop parallelism and disables the wave scheduler in nested OpenMP builds.",
+                       false, true);
 
     registerIntOption_("ms1_isotopes", "<number>", 3, "The number of MS1 isotopes used for extraction", false, true);
     setMinInt_("ms1_isotopes", 0);
@@ -554,6 +575,11 @@ protected:
 
   ExitCodes main_(int, const char **) override
   {
+    // Suppress repeated resampling-spacing warnings only for the lifetime of
+    // this tool invocation so the global setting does not leak across reuse in
+    // a shared process.
+    Internal::ScopedResamplingWarningSuppression scoped_resampling_warning_suppression;
+    
     ///////////////////////////////////
     // Prepare Parameters
     ///////////////////////////////////
@@ -631,6 +657,8 @@ protected:
     int batchSize = (int)getIntOption_("batchSize");
     int outer_loop_threads = (int)getIntOption_("outer_loop_threads");
     int ms1_isotopes = (int)getIntOption_("ms1_isotopes");
+    int innerBatchSize = (int)getIntOption_("innerBatchSize");
+    int maxConcurrentSwaths = (int)getIntOption_("maxConcurrentSwaths");
     Size debug_level = (Size)getIntOption_("debug");
 
     Param debug_params = getParam_().copy("Debugging:", true);
@@ -980,9 +1008,10 @@ protected:
     ///////////////////////////////////
 
     // Set up shared output objects that persist across files
-    FeatureMap out_featureFile;  // accumulates features across all files
+    FeatureMap out_featureFile;  // only featureXML output accumulates features across files
     const bool write_osw = (out_features_type == FileTypes::OSW);
     const bool write_parquet = (out_features_type == FileTypes::OSWPQ);
+    const bool write_featurexml = (out_features_type == FileTypes::FEATUREXML);
     String osw_out_filename = write_osw ? out_features : "";
     OpenSwathOSWWriter oswwriter(osw_out_filename, enable_uis_scoring);
 
@@ -1347,14 +1376,22 @@ protected:
     }
 
     FeatureMap run_featureFile;
-    FeatureMap& active_feature_map = write_parquet ? run_featureFile : out_featureFile;
+    FeatureMap& active_feature_map = write_featurexml ? out_featureFile : run_featureFile;
+    const bool store_features_in_feature_file = write_featurexml || write_parquet;
 
-    OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
-    wf.setLogType(log_type_);
+    {
+      OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
+      wf.setLogType(log_type_);
 
-    // perform extraction for this file's swath maps
-    wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run, transition_exp,
-             active_feature_map, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param, mobilogramConsumer.get());
+      // OSW output is streamed by the writer during extraction. Avoid retaining
+      // the same peak groups in a FeatureMap across runs.
+      wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run, transition_exp,
+           active_feature_map, store_features_in_feature_file, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes,
+           load_into_memory, mrm_map_param, mobilogramConsumer.get(), innerBatchSize, maxConcurrentSwaths);
+    }
+
+    swath_maps.clear();
+    swath_maps.shrink_to_fit();
 
     if (mobilogramConsumer)
     {

@@ -108,13 +108,6 @@ START_SECTION((void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, cons
 }
 END_SECTION
 
-START_SECTION((void getNormalized_library_intensities_(const std::vector<TransitionType> & transitions, std::vector<double>& normalized_library_intensity)))
-{
-  NOT_TESTABLE // see MRMFeatureFinderScoring_test.cpp
-  // - the OpenSwathScoring is a facade and thus does not need testing on its own
-}
-END_SECTION
-
 START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps,
                                                               double RT, int nr_spectra_to_add, RangeMobility im_range)))
 {
@@ -378,24 +371,37 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     OpenSwathScoring sc;
     OpenSwath_Scores_Usage su;
 
-    // test resample - IM filtering should occur, also IM information is not needed so is cleared
+    // test resample - IM filtering should occur and IM information is preserved
     {
       sc.initialize(1.0, 1, 0.005, 0.20, 0.0, su, "resample", "fixed", true, true);
       SpectrumSequence sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range);
 
       TEST_EQUAL(sp.size(), 1);
 
-      TEST_EQUAL(sp[0]->getMZArray()->data.size(), 3);
-      TEST_EQUAL(sp[0]->getIntensityArray()->data.size(), 3);
-      TEST_TRUE( (sp[0]->getDriftTimeArray() == nullptr ) ); // for resampling we do not use IM array
+      TEST_EQUAL(sp[0]->getMZArray()->data.size(), 6);
+      TEST_EQUAL(sp[0]->getIntensityArray()->data.size(), 6);
+      TEST_EQUAL(sp[0]->getDriftTimeArray()->data.size(), 6);
 
       TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[0], 102.);
-      TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[1], 103.);
-      TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[2], 104.);
+      TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[1], 102.);
+      TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[2], 103.);
+      TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[3], 103.);
+      TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[4], 104.);
+      TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[5], 104.);
 
-      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[0], 2.);
-      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[1], 2.);
-      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[2], 2.);
+      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[0], 1.);
+      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[1], 1.);
+      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[2], 1.);
+      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[3], 1.);
+      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[4], 1.);
+      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[5], 1.);
+
+      TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[0], 2.);
+      TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[1], 2.);
+      TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[2], 3.);
+      TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[3], 3.);
+      TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[4], 4.);
+      TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[5], 4.);
     }
     // test simple, since downstream functions are IM aware no filtering needs to occur. Should just return all the original spectra
     {
@@ -458,6 +464,35 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     // delete eptr;
   }
 
+  // Test IM-enhanced input without an extraction range. Resampling is not
+  // applied to IM data; spectra are concatenated to keep drift-time arrays.
+  {
+    OpenMS::RangeMobility im_range_empty;
+    PeakMap* eptr = new PeakMap;
+    eptr->addSpectrum(generateImSpec(1,3,19.0));
+    eptr->addSpectrum(generateImSpec(1,6,20.0));
+    eptr->addSpectrum(generateImSpec(3,6,21.0));
+    std::shared_ptr<PeakMap > swath_map (eptr);
+    OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+    TEST_EQUAL(swath_ptr->getNrSpectra(), 3);
+
+    OpenSwathScoring sc;
+    OpenSwath_Scores_Usage su;
+    sc.initialize(1.0, 1, 0.005, 0.20, 0.0, su, "resample", "fixed", true, true);
+
+    SpectrumSequence sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range_empty);
+
+    TEST_EQUAL(sp.size(), 1);
+    TEST_EQUAL(sp[0]->getMZArray()->data.size(), 10);
+    TEST_EQUAL(sp[0]->getIntensityArray()->data.size(), 10);
+    TEST_EQUAL(sp[0]->getDriftTimeArray()->data.size(), 10);
+
+    TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[0], 101.);
+    TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[1], 101.);
+    TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[8], 105.);
+    TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[9], 105.);
+  }
+
   // test result for map with 4 spectra (select 3)
   {
     PeakMap* eptr = new PeakMap;
@@ -479,17 +514,30 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
       SpectrumSequence sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range);
 
       TEST_EQUAL(sp.size(), 1);
-      TEST_EQUAL(sp[0]->getMZArray()->data.size(), 3);
-      TEST_EQUAL(sp[0]->getIntensityArray()->data.size(), 3);
-      TEST_TRUE( (sp[0]->getDriftTimeArray() == nullptr ) ); // for resampling we do not use IM array
+      TEST_EQUAL(sp[0]->getMZArray()->data.size(), 6);
+      TEST_EQUAL(sp[0]->getIntensityArray()->data.size(), 6);
+      TEST_EQUAL(sp[0]->getDriftTimeArray()->data.size(), 6);
 
       TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[0], 102.);
-      TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[1], 103.);
-      TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[2], 104.);
+      TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[1], 102.);
+      TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[2], 103.);
+      TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[3], 103.);
+      TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[4], 104.);
+      TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[5], 104.);
 
-      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[0], 2.);
-      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[1], 2.);
-      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[2], 2.);
+      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[0], 1.);
+      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[1], 1.);
+      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[2], 1.);
+      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[3], 1.);
+      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[4], 1.);
+      TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[5], 1.);
+
+      TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[0], 2.);
+      TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[1], 2.);
+      TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[2], 3.);
+      TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[3], 3.);
+      TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[4], 4.);
+      TEST_REAL_SIMILAR(sp[0]->getDriftTimeArray()->data[5], 4.);
     }
 
     // test simple, since downstream functions are IM aware no filtering needs to occur. Should just return all the original spectra, but the 4th spectrum should not be selected
