@@ -70,7 +70,7 @@ namespace OpenMS
       int nr_isotopes = 0;
       int nr_charges = 0;
       bool valid = false;
-      DiaPrescore::PreparedSpectrum prepared;
+      DiaPrescore::TransitionGroupTheoreticalSpectrumCache theoretical_spectrum_cache;
     };
     thread_local DiaPrescoreThreadCache dia_prescore_cache;
 
@@ -412,10 +412,10 @@ namespace OpenMS
     if (!diaPrescoreCacheMatches(cache, transitions, dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_))
     {
       OpenMS::DiaPrescore dp(dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_);
-      dp.prepare(transitions, cache.prepared);
+      dp.buildTheoreticalSpectrum(transitions, cache.theoretical_spectrum_cache);
       updateDiaPrescoreCacheKey(cache, transitions, dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_);
     }
-    OpenMS::DiaPrescore::scorePrepared(spectrum, cache.prepared, dia_extract_window_, im_range, dotprod, manhattan);
+    OpenMS::DiaPrescore::scorePrepared(spectrum, cache.theoretical_spectrum_cache, dia_extract_window_, im_range, dotprod, manhattan);
   }
 
   ///////////////////////////////////////////////////////////////////////////

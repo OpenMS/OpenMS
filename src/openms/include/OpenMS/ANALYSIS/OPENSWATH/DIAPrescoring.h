@@ -39,12 +39,12 @@ namespace OpenMS
     int nr_charges_;
 public:
     /**
-      @brief Transition-group-specific theoretical spectrum used by the DIA prescore.
+      @brief Cached transition-group-specific theoretical spectrum used by the DIA prescore.
 
       Stores precomputed theoretical m/z and intensity arrays plus rescaling
       bounds for repeated scoring of the same transition group.
     */
-    struct OPENMS_DLLAPI PreparedSpectrum
+    struct OPENMS_DLLAPI TransitionGroupTheoreticalSpectrumCache
     {
       /// Theoretical fragment/isotope m/z positions used for window integration.
       std::vector<double> mz_theor;
@@ -76,10 +76,11 @@ public:
     /**
       @brief Score one or more observed spectra for a transition group.
 
-      Builds the transition-group-specific theoretical spectrum from the library
-      intensities and compares it against the observed spectrum sequence. The
-      input may contain multiple adjacent MS2 spectra / frames around the apex
-      or a single pre-merged spectrum, depending on the upstream merge mode.
+      Builds the transition-group-specific theoretical spectrum cache from the
+      library intensities and compares it against the observed spectrum
+      sequence. The input may contain multiple adjacent MS2 spectra / frames
+      around the apex or a single pre-merged spectrum, depending on the
+      upstream merge mode.
     */
     void score(const SpectrumSequence& spec,
                const std::vector<OpenSwath::LightTransition>& lt,
@@ -90,14 +91,15 @@ public:
     /**
       @brief Build the theoretical DIA isotope spectrum cache for repeated scoring.
 
-      The prepared spectrum depends only on the transition group and DiaPrescore
-      parameters, not on the observed spectrum.
+      The transition-group-specific theoretical spectrum cache depends only on
+      the transition group and DiaPrescore parameters, not on the observed
+      spectrum.
 
       @param[in] lt Library transitions for the transition group
-      @param[out] prepared Precomputed theoretical spectrum
+      @param[out] theoretical_spectrum_cache Precomputed theoretical spectrum cache
     */
-    void prepare(const std::vector<OpenSwath::LightTransition>& lt,
-                 PreparedSpectrum& prepared) const;
+    void buildTheoreticalSpectrum(const std::vector<OpenSwath::LightTransition>& lt,
+                                  TransitionGroupTheoreticalSpectrumCache& theoretical_spectrum_cache) const;
 
     /**
       @brief Score an observed spectrum sequence against a precomputed theoretical DIA spectrum.
@@ -107,14 +109,14 @@ public:
       addition mode.
 
       @param[in] spec Observed spectrum sequence around the feature apex
-      @param[in] prepared Precomputed theoretical spectrum
+      @param[in] theoretical_spectrum_cache Precomputed theoretical spectrum cache
       @param[in] dia_extract_window DIA extraction window in Th
       @param[in] im_range Ion mobility extraction range
       @param[out] dotprod Dot product score
       @param[out] manhattan Manhattan distance score
     */
     static void scorePrepared(const SpectrumSequence& spec,
-                              const PreparedSpectrum& prepared,
+                              const TransitionGroupTheoreticalSpectrumCache& theoretical_spectrum_cache,
                               double dia_extract_window,
                               const RangeMobility& im_range,
                               double& dotprod,
