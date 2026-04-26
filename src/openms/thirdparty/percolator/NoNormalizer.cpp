@@ -15,10 +15,6 @@
 
  *******************************************************************************/
 #include <iostream>
-#ifdef WIN32
-#include <float.h>
-#define isfinite _finite
-#endif
 #include <cmath>
 #include <vector>
 #include <string>

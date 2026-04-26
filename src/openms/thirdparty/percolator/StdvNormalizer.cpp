@@ -15,10 +15,6 @@
 
  *******************************************************************************/
 #include <iostream>
-#ifdef WIN32
-#include <float.h>
-#define isfinite _finite
-#endif
 #include <cmath>
 #include <vector>
 #include <string>
@@ -98,7 +94,7 @@ void StdvNormalizer::setSet(std::vector<double*>& featuresV,
   for (it = featuresV.begin(); it != featuresV.end(); ++it) {
     features = *it;
     for (ix = 0; ix < numFeatures; ++ix) {
-      if (!isfinite(features[ix])) {
+      if (!std::isfinite(features[ix])) {
         cerr << "Reached strange feature with val=" << features[ix]
             << " at col=" << ix << endl;
       }
@@ -109,7 +105,7 @@ void StdvNormalizer::setSet(std::vector<double*>& featuresV,
   for (it = rtFeaturesV.begin(); it != rtFeaturesV.end(); ++it) {
     features = *it;
     for (ix = numFeatures; ix < numFeatures + numRetentionFeatures; ++ix) {
-      if (!isfinite(features[ix-numFeatures])) {
+      if (!std::isfinite(features[ix-numFeatures])) {
         cerr << "Reached strange feature with val=" << features[ix
             - numFeatures] << " at col=" << ix << endl;
       }
@@ -164,7 +160,7 @@ void StdvNormalizer::updateSet(vector<double*> & featuresV, size_t offset,
   for (it = featuresV.begin(); it != featuresV.end(); ++it) {
     features = *it;
     for (ix = 0; ix < numFeatures; ++ix) {
-      if (!isfinite(features[ix])) {
+      if (!std::isfinite(features[ix])) {
         cerr << "Reached strange feature with val=" << features[ix]
             << " at col=" << ix << endl;
       }

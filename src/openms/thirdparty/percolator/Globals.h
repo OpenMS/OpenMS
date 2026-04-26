@@ -64,12 +64,15 @@ http://www.apache.org/licenses/LICENSE-2.0
 #endif
 
 #ifdef _MSC_VER
-  #define NOMINMAX
-  #include <float.h>
-  #define _finite(x) _finite(x)
-  #ifndef isfinite
-    #define isfinite _finite
+  #ifndef NOMINMAX
+    #define NOMINMAX
   #endif
+  // Modern MSVC has std::isfinite from <cmath>; the legacy
+  // `#define isfinite _finite` macro that used to live here
+  // pollutes <format> and Eigen (both reference std::isfinite /
+  // std::_finite via their own helpers, and the function-like
+  // macro mangles the std-qualified usage). Use std::isfinite at
+  // call sites instead.
 #endif
 
 #include "Logger.h"
