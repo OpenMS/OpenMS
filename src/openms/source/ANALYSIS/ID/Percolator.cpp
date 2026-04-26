@@ -1251,9 +1251,12 @@ void Percolator::rescore(std::vector<PeptideIdentification>& peptide_ids,
       ri.features.push_back(std::move(row));
       ri.is_decoy.push_back(hit.getMetaValue(td_meta).toString() == "decoy");
 
-      // CV group key: hash (identifier, rt).
-      std::string spec_key = peptide_ids[i].getIdentifier() + "|" +
-                             std::to_string(peptide_ids[i].getRT());
+      // CV group key: hash (identifier, rt). Cast OpenMS::String to
+      // std::string explicitly so the ensuing concatenation with std::string
+      // (from std::to_string) is unambiguous under clang/MSVC, which reject
+      // the implicit String+const-char*+std::string overload resolution.
+      std::string spec_key = static_cast<std::string>(peptide_ids[i].getIdentifier())
+                             + "|" + std::to_string(peptide_ids[i].getRT());
       ri.cv_group_keys.push_back(static_cast<int>(str_hash(spec_key) & 0x7fffffff));
 
       hit_locs.push_back({i, j});
