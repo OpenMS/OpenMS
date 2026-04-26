@@ -1417,4 +1417,103 @@ START_SECTION([EXTRA] target_decoy_metavalue overrides the meta-key for high-lev
 }
 END_SECTION
 
+START_SECTION([EXTRA] TRON solver capture for BLAS-to-Eigen migration)
+{
+  // CHARACTERIZATION TEST for the TRON-based SVM solver in
+  // src/openms/thirdparty/percolator/{ssl,tron}.cpp. Pins down the
+  // numeric output of L2_SVM_MFN(...) on a fixed deterministic dataset
+  // so that a future replacement of tron.cpp's extern "C" BLAS calls
+  // (dnrm2_, ddot_, daxpy_, dscal_) with Eigen equivalents can verify
+  // the math is unchanged.
+  //
+  // The test goes through the public Percolator::train() API. With:
+  //   - explicit c_pos > 0 AND c_neg > 0  -> single (cpos, cfrac) grid
+  //     point, no SVM grid search
+  //   - num_iterations = 1                -> ONE doStep per fold per CV iter
+  //   - nested_xval_bins = 1              -> no nested grid
+  //   - num_threads = 1                   -> deterministic OMP order
+  //   - 3 folds (default)                 -> 3 L2_SVM_MFN calls total
+  // ...the only math layer that meaningfully varies is the SVM solver
+  // itself; the averaged weights returned by getSvmWeights() are
+  // therefore a strong signal for any solver-internal drift.
+  //
+  // If a BLAS-to-Eigen migration is mathematically equivalent (same
+  // ordering of multiply-accumulates), the captured values below should
+  // round-trip bit-identically. Practical Eigen rewrites typically pick
+  // up ~1e-12 to ~1e-10 relative drift due to SIMD / loop fusion, hence
+  // the 1e-8 tolerance — tight enough to flag any algorithmic divergence,
+  // loose enough to absorb rounding-mode variance.
+
+  // Build a 200-row, 4-feature linearly-separable fixture using a
+  // closed-form deterministic generator (no RNG, no platform-specific
+  // libm — only IEEE doubles).
+  RescoreInput input;
+  input.feature_names = StringList{"f0", "f1", "f2", "f3"};
+  for (int i = 0; i < 200; ++i)
+  {
+    const bool is_target = (i < 100);
+    const double sign = is_target ? +1.0 : -1.0;
+    // Deterministic "noise" pattern using only integer multiplies and
+    // double divides — bit-stable across compilers / libms.
+    const double n0 = (((i * 7) % 17) - 8) / 30.0;
+    const double n1 = (((i * 11) % 13) - 6) / 30.0;
+    const double n2 = (((i * 13) % 11) - 5) / 30.0;
+    const double n3 = (((i * 17) % 19) - 9) / 30.0;
+    input.features.push_back({
+      sign * 1.0 + n0,    // f0: strong target/decoy signal
+      sign * 0.5 + n1,    // f1: weak  target/decoy signal
+      n2,                 // f2: pure noise
+      n3,                 // f3: pure noise
+    });
+    input.is_decoy.push_back(!is_target);
+  }
+
+  Percolator p;
+  Param par = p.getDefaults();
+  par.setValue("seed",                1);
+  par.setValue("c_pos",               1.0);   // explicit -> single grid value
+  par.setValue("c_neg",               1.0);   // explicit -> single grid value
+  par.setValue("num_iterations",      1);
+  par.setValue("nested_xval_bins",    1);
+  par.setValue("test_fdr",            0.05);
+  par.setValue("train_fdr",           0.05);
+  par.setValue("num_threads",         1);
+  par.setValue("post_processing_tdc", "false");
+  par.setValue("train_best_positive", "false");
+  par.setValue("normalizer",          "stdv");
+  par.setValue("initial_direction",   "f0");  // skip auto-direction
+                                              // (which calls L2_SVM_MFN once
+                                              // per feature × 2 signs).
+  p.setParameters(par);
+
+  PercolatorModel model = p.train(input);
+
+  // Snapshot of the averaged SVM weights (raw feature space, bias last).
+  // Captured 2026-04-26 with TRON (vendored liblinear v2.11) + extern "C"
+  // BLAS routines (dnrm2_, ddot_, daxpy_, dscal_) -> system libblas.so.3.
+  // After the BLAS-to-Eigen migration, regenerate the values below ONLY
+  // if the diff exceeds 1e-8 relative AND the diff is judged acceptable
+  // (e.g., reduce-precision ordering in Eigen vectorization). Any
+  // unexplained drift means the rewrite changed the math.
+  TOLERANCE_RELATIVE(1e-8)
+  TEST_EQUAL(model.weights.size(), 5u)  // 4 features + bias slot
+  TEST_REAL_SIMILAR(model.weights[0],  /* f0 */     0.322043788444676)
+  TEST_REAL_SIMILAR(model.weights[1],  /* f1 */     0.539442429779238)
+  TEST_REAL_SIMILAR(model.weights[2],  /* f2 */    -0.0742443430244037)
+  TEST_REAL_SIMILAR(model.weights[3],  /* f3 */     0.105641051671916)
+  TEST_REAL_SIMILAR(model.weights[4],  /* bias */  -0.408004346094467)
+
+  // Capture a few RescoreOutput values too — verifies the score-prediction
+  // path (raw_score = features . weights + bias) hasn't drifted along with
+  // any rewrite of the solver. The 200-row fixture maps to RescoreOutput
+  // rows 1:1; we sample 4 representative rows (top, two mids, last).
+  RescoreOutput out = p.score(input, model);
+  TEST_EQUAL(out.scores.size(), 200u)
+  TEST_REAL_SIMILAR(out.scores[0],   /* row 0   */    5.27386027410112)
+  TEST_REAL_SIMILAR(out.scores[50],  /* row 50  */    6.7241872137246)
+  TEST_REAL_SIMILAR(out.scores[100], /* row 100 */   -1.01713704846917)
+  TEST_REAL_SIMILAR(out.scores[199], /* row 199 */   -0.648701128332891)
+}
+END_SECTION
+
 END_TEST
