@@ -277,4 +277,3 @@ github_token*
 
 # Lock files from external tools
 *.fasta.lock
-docs/superpowers/plans/artifacts/

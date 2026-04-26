@@ -1,7 +1,4 @@
-/*
- * See ssl.h for the contract; design document at
- * docs/superpowers/specs/2026-04-25-tron-solver-design.md.
- */
+/* See ssl.h for the contract. */
 #include "ssl.h"
 
 #include <cassert>

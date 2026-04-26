@@ -3,16 +3,11 @@
  *
  * Wraps liblinear v2.11's TRON optimizer (src/tron.{cpp,h}) with a
  * function-object that encodes Percolator's L2-loss SVM with
- * per-class costs. See:
- *   - docs/superpowers/specs/2026-04-25-tron-solver-design.md
- *     (algorithm, per-example cost mapping C_i = c_i / (2*lambda),
- *      output reconstruction, return-code convention)
- *   - docs/superpowers/specs/2026-04-26-tron-pr2-cleanup-design.md
- *     (the cleanup that retired the legacy SVMlin solver that used
- *      to live in this file)
- *   - Halloran & Rocke (2018), "A Matter of Time...", JPR 17(5).
- *   - Lin, Weng, Keerthi (2008), "Trust Region Newton Method...",
- *     JMLR 9.
+ * per-class costs (C_i = c_i / (2*lambda)). References:
+ *   - Halloran & Rocke (2018), "A Matter of Time: Faster Percolator
+ *     Analysis...", JPR 17(5):1978-1982.
+ *   - Lin, Weng, Keerthi (2008), "Trust Region Newton Method for
+ *     Large-Scale Logistic Regression", JMLR 9:627-650.
  *
  * Apache-2.0 (Percolator codebase).
  */
