@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <Eigen/Dense>
 #include "tron.h"
 
 #ifndef min
@@ -33,20 +34,39 @@ template <class T> static inline T min(T x,T y) { return (x<y)?x:y; }
 template <class T> static inline T max(T x,T y) { return (x>y)?x:y; }
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern double dnrm2_(int *, double *, int *);
-extern double ddot_(int *, double *, int *, double *, int *);
-extern int daxpy_(int *, double *, double *, int *, double *, int *);
-extern int dscal_(int *, double *, double *, int *);
-
-#ifdef __cplusplus
-}
-#endif
-
 namespace OpenMS { namespace Internal { namespace Percolator {
+
+// Eigen-backed replacements for the four BLAS-1 calls TRON used to make
+// against extern "C" {dnrm2_, ddot_, daxpy_, dscal_}. The signatures are
+// kept simple (n + raw pointers) so the call sites below stay as close as
+// possible to the upstream liblinear v2.11 source. Eigen::Map adds zero
+// allocations / copies; under -O3 the body inlines to the same x86_64 SIMD
+// the system BLAS would emit, but without the .so dependency.
+namespace {
+
+inline double tron_nrm2(int n, const double* x)
+{
+  return Eigen::Map<const Eigen::VectorXd>(x, n).norm();
+}
+
+inline double tron_dot(int n, const double* x, const double* y)
+{
+  return Eigen::Map<const Eigen::VectorXd>(x, n).dot(
+         Eigen::Map<const Eigen::VectorXd>(y, n));
+}
+
+inline void tron_axpy(int n, double alpha, const double* x, double* y)
+{
+  Eigen::Map<Eigen::VectorXd>(y, n) +=
+      alpha * Eigen::Map<const Eigen::VectorXd>(x, n);
+}
+
+inline void tron_scal(int n, double alpha, double* x)
+{
+  Eigen::Map<Eigen::VectorXd>(x, n) *= alpha;
+}
+
+}  // anonymous namespace
 
 static void default_print(const char *buf)
 {
@@ -100,12 +120,12 @@ void TRON::tron(double *w)
 		w0[i] = 0;
 	fun_obj->fun(w0);
 	fun_obj->grad(w0, g);
-	double gnorm0 = dnrm2_(&n, g, &inc);
+	double gnorm0 = tron_nrm2(n, g);
 	delete [] w0;
 
 	f = fun_obj->fun(w);
 	fun_obj->grad(w, g);
-	delta = dnrm2_(&n, g, &inc);
+	delta = tron_nrm2(n, g);
 	double gnorm = delta;
 
 	if (gnorm <= eps*gnorm0)
@@ -120,17 +140,17 @@ void TRON::tron(double *w)
 		cg_iter = trcg(delta, g, s, r, &reach_boundary);
 
 		memcpy(w_new, w, sizeof(double)*n);
-		daxpy_(&n, &one, s, &inc, w_new, &inc);
+		tron_axpy(n, one, s, w_new);
 
-		gs = ddot_(&n, g, &inc, s, &inc);
-		prered = -0.5*(gs-ddot_(&n, s, &inc, r, &inc));
+		gs = tron_dot(n, g, s);
+		prered = -0.5*(gs-tron_dot(n, s, r));
 		fnew = fun_obj->fun(w_new);
 
 		// Compute the actual reduction.
 		actred = f - fnew;
 
 		// On the first iteration, adjust the initial step bound.
-		snorm = dnrm2_(&n, s, &inc);
+		snorm = tron_nrm2(n, s);
 		if (iter == 1)
 			delta = min(delta, snorm);
 
@@ -164,7 +184,7 @@ void TRON::tron(double *w)
 			f = fnew;
 			fun_obj->grad(w, g);
 
-			gnorm = dnrm2_(&n, g, &inc);
+			gnorm = tron_nrm2(n, g);
 			if (gnorm <= eps*gnorm0)
 				break;
 		}
@@ -208,46 +228,46 @@ int TRON::trcg(double delta, double *g, double *s, double *r, bool *reach_bounda
 		r[i] = -g[i];
 		d[i] = r[i];
 	}
-	cgtol = eps_cg*dnrm2_(&n, g, &inc);
+	cgtol = eps_cg*tron_nrm2(n, g);
 
 	int cg_iter = 0;
-	rTr = ddot_(&n, r, &inc, r, &inc);
+	rTr = tron_dot(n, r, r);
 	while (1)
 	{
-		if (dnrm2_(&n, r, &inc) <= cgtol)
+		if (tron_nrm2(n, r) <= cgtol)
 			break;
 		cg_iter++;
 		fun_obj->Hv(d, Hd);
 
-		alpha = rTr/ddot_(&n, d, &inc, Hd, &inc);
-		daxpy_(&n, &alpha, d, &inc, s, &inc);
-		if (dnrm2_(&n, s, &inc) > delta)
+		alpha = rTr/tron_dot(n, d, Hd);
+		tron_axpy(n, alpha, d, s);
+		if (tron_nrm2(n, s) > delta)
 		{
 			info("cg reaches trust region boundary\n");
 			*reach_boundary = true;
 			alpha = -alpha;
-			daxpy_(&n, &alpha, d, &inc, s, &inc);
+			tron_axpy(n, alpha, d, s);
 
-			double std = ddot_(&n, s, &inc, d, &inc);
-			double sts = ddot_(&n, s, &inc, s, &inc);
-			double dtd = ddot_(&n, d, &inc, d, &inc);
+			double std = tron_dot(n, s, d);
+			double sts = tron_dot(n, s, s);
+			double dtd = tron_dot(n, d, d);
 			double dsq = delta*delta;
 			double rad = sqrt(std*std + dtd*(dsq-sts));
 			if (std >= 0)
 				alpha = (dsq - sts)/(std + rad);
 			else
 				alpha = (rad - std)/dtd;
-			daxpy_(&n, &alpha, d, &inc, s, &inc);
+			tron_axpy(n, alpha, d, s);
 			alpha = -alpha;
-			daxpy_(&n, &alpha, Hd, &inc, r, &inc);
+			tron_axpy(n, alpha, Hd, r);
 			break;
 		}
 		alpha = -alpha;
-		daxpy_(&n, &alpha, Hd, &inc, r, &inc);
-		rnewTrnew = ddot_(&n, r, &inc, r, &inc);
+		tron_axpy(n, alpha, Hd, r);
+		rnewTrnew = tron_dot(n, r, r);
 		beta = rnewTrnew/rTr;
-		dscal_(&n, &beta, d, &inc);
-		daxpy_(&n, &one, r, &inc, d, &inc);
+		tron_scal(n, beta, d);
+		tron_axpy(n, one, r, d);
 		rTr = rnewTrnew;
 	}
 
