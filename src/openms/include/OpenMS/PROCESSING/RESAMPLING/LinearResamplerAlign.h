@@ -19,8 +19,8 @@
 
 namespace OpenMS
 {
-  // Suppress resampling spacing warnings across all threads. During OpenSwathWorkflow extraction and scoring, the constant warning message causes 18x performance slowdown via stderr lock contention during scoring.
-  inline std::atomic<bool> suppress_resampling_spacing_warning{false};
+  /// Shared process-wide flag to suppress repeated resampling-spacing warnings.  During OpenSwathWorkflow extraction and scoring, the constant warning message causes 18x performance slowdown via stderr lock contention during scoring.
+  extern OPENMS_DLLAPI std::atomic<bool> suppress_resampling_spacing_warning;
 
   namespace Internal
   {
