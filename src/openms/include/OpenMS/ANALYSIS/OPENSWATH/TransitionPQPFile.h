@@ -201,6 +201,8 @@ private:
       std::string select_sql;      ///< The complete SQL SELECT query
       bool drift_time_exists;      ///< Whether LIBRARY_DRIFT_TIME column exists
       bool gene_exists;            ///< Whether GENE table exists
+      bool compound_exists;        ///< Whether compound mappings exist
+      bool peptidoforms_exists;    ///< Whether transition-to-peptide mappings exist
     };
 
     /** @brief Build the SQL query for reading PQP transitions
@@ -210,9 +212,10 @@ private:
      *
      * @param[in] db The SQLite database connection
      * @param[in] legacy_traml_id Whether to use legacy TraML IDs
+     * @param[in] stable_order Whether to apply the legacy deterministic row order
      * @return PQPSqlQueryInfo containing the query and column availability flags
      */
-    PQPSqlQueryInfo buildPQPSelectQuery_(sqlite3* db, bool legacy_traml_id) const;
+    PQPSqlQueryInfo buildPQPSelectQuery_(sqlite3* db, bool legacy_traml_id, bool stable_order) const;
 
     /** @brief Read PQP SQLite file
      *

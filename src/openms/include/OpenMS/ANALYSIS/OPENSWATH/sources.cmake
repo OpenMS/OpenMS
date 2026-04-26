@@ -31,6 +31,7 @@ set(sources_list_h
   OpenSwathOSWParquetWriter.h
   OpenSwathOSWWriter.h
   OpenSwathWorkflow.h
+  OpenSwathWorkflowScheduler.h
   PeakIntegrator.h
   PeakPickerChromatogram.h
   PeakPickerMobilogram.h

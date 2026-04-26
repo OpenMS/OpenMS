@@ -10,8 +10,10 @@
 
 #include <array>
 #include <cstdlib>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <sstream>
 
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -20,6 +22,7 @@
   #include <process.h>  // for _getpid()
 #elif __APPLE__
   #include <mach/mach.h>
+  #include <mach/mach_host.h>
   #include <mach/mach_init.h>
   #include <unistd.h>   // for getpid()
 #else
@@ -100,6 +103,56 @@ namespace OpenMS
     fclose(f);
     return true;
   }
+
+  bool read_available_memory_linux(size_t& mem_available)
+  {
+    mem_available = 0;
+
+    std::ifstream meminfo("/proc/meminfo");
+    std::string line;
+    while (std::getline(meminfo, line))
+    {
+      std::istringstream iss(line);
+      std::string key;
+      UInt64 value = 0;
+      if (!(iss >> key >> value))
+      {
+        continue;
+      }
+
+      if (key == "MemAvailable:")
+      {
+        if (value > static_cast<UInt64>(std::numeric_limits<size_t>::max()))
+        {
+          mem_available = std::numeric_limits<size_t>::max();
+        }
+        else
+        {
+          mem_available = static_cast<size_t>(value);
+        }
+        return true;
+      }
+    }
+
+    const long available_pages = sysconf(_SC_AVPHYS_PAGES);
+    const long page_size = sysconf(_SC_PAGESIZE);
+    if (available_pages <= 0 || page_size <= 0)
+    {
+      return false;
+    }
+
+    const UInt64 available_kb = static_cast<UInt64>(available_pages) *
+                                static_cast<UInt64>(page_size) / 1024ull;
+    if (available_kb > static_cast<UInt64>(std::numeric_limits<size_t>::max()))
+    {
+      mem_available = std::numeric_limits<size_t>::max();
+    }
+    else
+    {
+      mem_available = static_cast<size_t>(available_kb);
+    }
+    return true;
+  }
 #endif
 
   bool SysInfo::getProcessMemoryConsumption(size_t& mem_virtual)
@@ -130,6 +183,46 @@ namespace OpenMS
       return false;
     }
     mem_virtual = (size_t)mem.resident * (size_t)sysconf(_SC_PAGESIZE) / 1024; // byte to KB
+#endif
+    return true;
+  }
+
+  bool SysInfo::getFreeSystemMemory(size_t& mem_available)
+  {
+    mem_available = 0;
+#ifdef OPENMS_WINDOWSPLATFORM
+    MEMORYSTATUSEX status;
+    status.dwLength = sizeof(status);
+    if (!GlobalMemoryStatusEx(&status))
+    {
+      return false;
+    }
+    mem_available = static_cast<size_t>(status.ullAvailPhys / 1024ull);
+#elif __APPLE__
+    vm_size_t page_size = 0;
+    if (KERN_SUCCESS != host_page_size(mach_host_self(), &page_size))
+    {
+      return false;
+    }
+
+    vm_statistics64_data_t vm_stat;
+    mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
+    if (KERN_SUCCESS != host_statistics64(mach_host_self(),
+                                          HOST_VM_INFO64,
+                                          reinterpret_cast<host_info64_t>(&vm_stat),
+                                          &count))
+    {
+      return false;
+    }
+
+    const UInt64 available_pages = static_cast<UInt64>(vm_stat.free_count) +
+                                   static_cast<UInt64>(vm_stat.inactive_count);
+    mem_available = static_cast<size_t>(available_pages * static_cast<UInt64>(page_size) / 1024ull);
+#else // Linux
+    if (!read_available_memory_linux(mem_available))
+    {
+      return false;
+    }
 #endif
     return true;
   }

@@ -1771,8 +1771,6 @@ Estimate the retention time span of a targeted experiment by returning the min/m
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::OpenSwathOSWWriter>(m, "OpenSwathOSWWriter", "Class to write out an OpenSwath OSW SQLite output (PyProphet input)")
         .def(nb::init<OpenMS::String, bool>())
-        .def("__copy__", [](const OpenMS::OpenSwathOSWWriter& self) { return OpenMS::OpenSwathOSWWriter(self); })
-        .def("__deepcopy__", [](const OpenMS::OpenSwathOSWWriter& self, nb::dict) { return OpenMS::OpenSwathOSWWriter(self); }, "memo"_a)
         .def("isActive", [](const OpenMS::OpenSwathOSWWriter& self) { return self.isActive(); })
         .def("writeHeader", [](OpenMS::OpenSwathOSWWriter& self) { return self.writeHeader(); }, "Initializes file by generating SQLite tables")
         .def("addRun", [](OpenMS::OpenSwathOSWWriter& self, size_t run_id, const OpenMS::String& input_filename) { return self.addRun(run_id, input_filename); }, "run_id"_a, "input_filename"_a, 
