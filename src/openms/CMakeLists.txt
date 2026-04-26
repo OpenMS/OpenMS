@@ -62,9 +62,12 @@ list(APPEND OpenMS_sources ${OpenMS_percolator_sources})
 # GCC/Clang use -Wno-*; MSVC needs /wd<code> with the corresponding warning
 # numbers and chokes on the -Wno-* spellings (D8021).
 if (MSVC)
+  # /wd4100 + /wd4189 explicitly defeat the project-wide /we4100 + /we4189
+  # ("unused parameter" and "unused-but-initialized local variable" elevated
+  # to errors) on the vendored upstream code, which has plenty of both.
   set_source_files_properties(${OpenMS_percolator_sources}
     PROPERTIES
-      COMPILE_FLAGS "/wd4018 /wd4100 /wd4244 /wd4267 /wd4996 /wd4458")
+      COMPILE_FLAGS "/wd4018 /wd4100 /wd4189 /wd4244 /wd4267 /wd4996 /wd4458")
 else()
   set_source_files_properties(${OpenMS_percolator_sources}
     PROPERTIES
