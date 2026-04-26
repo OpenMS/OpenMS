@@ -114,7 +114,16 @@ int runAdapter(const String& adapter_bin,
   if (!extra_args.empty()) cmd << " " << extra_args;
   cmd << " > \"" << stdout_log << "\""
       << " 2> \"" << stderr_log << "\"";
+  // cmd.exe /c strips the first and last quote of its argument. Since this
+  // command both starts AND ends with a quoted path, both get stripped, which
+  // mangles the binary path and the redirection target. Wrap the whole thing
+  // in an extra outer pair of quotes so cmd.exe strips only those.
+#ifdef _WIN32
+  const std::string full_cmd = "\"" + cmd.str() + "\"";
+  return std::system(full_cmd.c_str());
+#else
   return std::system(cmd.str().c_str());
+#endif
 }
 
 /// Build a map[rowKey -> triplet] from an adapter output idXML.

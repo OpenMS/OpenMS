@@ -334,7 +334,16 @@ SubprocessOut runSubprocess(const String& bin,
       << " 2> \"" << stderr_log << "\"";
 
   SubprocessOut s;
+  // cmd.exe /c strips the first and last quote of its argument. Since this
+  // command both starts AND ends with a quoted path, both get stripped, which
+  // mangles the binary path and the redirection target. Wrap the whole thing
+  // in an extra outer pair of quotes so cmd.exe strips only those.
+#ifdef _WIN32
+  const std::string full_cmd = "\"" + cmd.str() + "\"";
+  s.exit_code = std::system(full_cmd.c_str());
+#else
   s.exit_code = std::system(cmd.str().c_str());
+#endif
   if (s.exit_code != 0) return s;
 
   auto parse = [&s](const String& path)
