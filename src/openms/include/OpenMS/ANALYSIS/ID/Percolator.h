@@ -249,7 +249,8 @@ namespace OpenMS
       - exp_mass: `pid.getMZ()` (kept as m/z — Percolator doesn't convert
         to neutral for the sort hash).
       - calc_mass: from `hit.metaValueExists("CalcMass")` if present,
-        else `hit.getSequence().getMonoWeight()`.
+        else `hit.getSequence().getMZ(hit.getCharge())` (m/z, matching
+        the PercolatorInfile::store fallback).
 
       This helper must be called before rescore(input) when the
       in-process output is required to match running the external

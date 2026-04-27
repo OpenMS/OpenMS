@@ -1037,7 +1037,11 @@ void Percolator::fillPINCompatibleFields(
       }
       else
       {
-        try { calc_mass = hit.getSequence().getMonoWeight(); }
+        // Mirror PercolatorInfile::store fallback (PercolatorInfile.cpp:460):
+        // m/z at the hit's charge, not the neutral mass. This matters for
+        // CV-fold parity with the subprocess path when CalcMass has not
+        // already been stamped on the hit.
+        try { calc_mass = hit.getSequence().getMZ(hit.getCharge()); }
         catch (...) { calc_mass = 0.0; }
       }
 
