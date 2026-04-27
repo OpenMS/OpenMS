@@ -934,7 +934,7 @@ namespace OpenMS
     DefaultParamHandler("TransitionListEvidenceFilter"),
     ProgressLogger()
   {
-    defaults_.setValue("enabled", "false", "Enable raw-data evidence prefiltering.");
+    defaults_.setValue("enabled", "true", "Enable raw-data evidence prefiltering.");
     defaults_.setValidStrings("enabled", {"true", "false"});
 
     defaults_.setValue("evidence_sources", "hybrid", "Evidence source used to keep precursor candidates: 'ms1', 'ms2', or 'hybrid' (MS1 OR MS2).");
@@ -946,11 +946,11 @@ namespace OpenMS
     defaults_.setValue("ms2_top_peaks_per_spectrum", 1000, "Number of most intense MS2 peaks to keep per spectrum before fragment m/z matching.");
     defaults_.setMinInt("ms2_top_peaks_per_spectrum", 1);
 
-    defaults_.setValue("ms2_top_transitions_per_precursor", 3, "Number of highest library-intensity fragment transitions to index per precursor for MS2 evidence.");
+    defaults_.setValue("ms2_top_transitions_per_precursor", 6, "Number of highest library-intensity fragment transitions to index per precursor for MS2 evidence.");
     defaults_.setMinInt("ms2_top_transitions_per_precursor", 1);
     defaults_.setMaxInt("ms2_top_transitions_per_precursor", 64);
 
-    defaults_.setValue("ms2_min_fragment_hits", 2, "Minimum number of distinct indexed fragments that must match in one MS2 spectrum to support a precursor.");
+    defaults_.setValue("ms2_min_fragment_hits", 4, "Minimum number of distinct indexed fragments that must match in one MS2 spectrum to support a precursor.");
     defaults_.setMinInt("ms2_min_fragment_hits", 1);
     defaults_.setMaxInt("ms2_min_fragment_hits", 64);
 
