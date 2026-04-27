@@ -808,9 +808,9 @@ namespace OpenMS
         }
       };
 
-      // Fast path: no X/B/Z anywhere — sweep the whole protein as a single span.
-      // Slow path: walk find_first_of("XBZ") to split into contiguous unambiguous
-      // spans. Issue #9192 item 2: previously the whole mother was dropped on any
+      // No X/B/Z anywhere: sweep the whole protein as a single span.
+      // Otherwise: split into contiguous unambiguous spans and sweep each.
+      // Issue #9192 item 2: previously the whole mother was dropped on any
       // X/B/Z overlap; truncating to the unambiguous prefix/suffix at the same
       // anchor preserves valid shorter realizations.
       const size_t first_bad = seq.find_first_of("XBZ");
@@ -826,9 +826,9 @@ namespace OpenMS
         {
           sweepSpan(p, bad);
           p = bad + 1;
-          if (p >= L) break;
+          if (p >= L) break;  // protein ended with X/B/Z — no tail span
           bad = seq.find_first_of("XBZ", p);
-          if (bad == std::string::npos) { sweepSpan(p, L); break; }
+          if (bad == std::string::npos) { sweepSpan(p, L); break; }  // last span — no more X/B/Z
         }
       }
     }
@@ -850,7 +850,7 @@ namespace OpenMS
     });
 
     OPENMS_LOG_INFO << "Generated " << fi_peptides_.size() << " SNES mothers ("
-                    << skipped_peptides.load() << " skipped due to ambiguous residues or mass filter)." << std::endl;
+                    << skipped_peptides.load() << " spans skipped — shorter than peptide:min_size)." << std::endl;
   }
 
   void FragmentIndex::generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
