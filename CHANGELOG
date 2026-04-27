@@ -229,6 +229,8 @@ TOPP tools:
       - Added SRM support (#8700)
       - Added Parquet chromatogram output support (#8737)
       - Direct Bruker .d (TDF) file input: Bruker TimsTOF files can now be passed directly without prior mzML conversion; requires WITH_TIMSRUST=ON (#9019)
+      - Performance: new SWATH wave scheduler for large libraries; batchSize default changed from 1000 to 0 (automatic scheduling); new parameters innerBatchSize (inner scoring batch, <=0 = auto) and maxConcurrentSwaths (max concurrent SWATH maps in memory, -1 = auto); the legacy per-SWATH path is still available by setting a positive batchSize (#9190)
+      - Fix: RUN.ID column in OSW output was stored as BLOB instead of INTEGER, causing JOIN queries in downstream tools (e.g. PyProphet) to return 0 rows; now correctly stored as INTEGER (#9190)
     PeakPickerHiRes:
       - New parameter to allow peak cores with no leading flank peaks (#8649)
       - Warns when given IM_PEAK format (per-peak ion mobility) data; partial support via intensity-weighted mean IM per picked peak (#9018)
