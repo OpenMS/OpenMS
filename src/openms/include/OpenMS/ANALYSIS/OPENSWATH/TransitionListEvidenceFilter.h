@@ -130,12 +130,12 @@ public:
                   int threads = 1) const;
 
 private:
-    bool enabled_{false};
+    bool enabled_{true};
     String evidence_sources_{"hybrid"};
     Size ms1_top_peaks_per_spectrum_{1000};
     Size ms2_top_peaks_per_spectrum_{1000};
-    Size ms2_top_transitions_per_precursor_{3};
-    Size ms2_min_fragment_hits_{2};
+    Size ms2_top_transitions_per_precursor_{6};
+    Size ms2_min_fragment_hits_{4};
     Size min_supported_precursors_{3};
     bool peak_picking_enabled_{false};
     bool peak_picking_use_gauss_{true};
