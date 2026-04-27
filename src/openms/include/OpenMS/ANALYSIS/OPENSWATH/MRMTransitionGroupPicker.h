@@ -71,8 +71,10 @@ namespace OpenMS
     }
   };
 
-  // Per-thread instance of the shared pools.
-  extern thread_local PickerPoolShared g_picker_pool_shared;
+  // Per-thread instance of the shared pools. OPENMS_DLLAPI exports it from
+  // libOpenMS so callers in other targets (TOPP tools, tests) that
+  // instantiate the inline templates below can resolve the symbol.
+  extern OPENMS_DLLAPI thread_local PickerPoolShared g_picker_pool_shared;
 
   namespace MRMTransitionGroupPickerMeta
   {
