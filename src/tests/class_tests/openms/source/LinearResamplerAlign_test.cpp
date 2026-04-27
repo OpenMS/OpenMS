@@ -63,6 +63,35 @@ START_SECTION(LinearResamplerAlign())
 }
 END_SECTION
 
+START_SECTION([EXTRA] Internal::ScopedResamplingWarningSuppression restores prior state)
+{
+  const bool original_state = suppress_resampling_spacing_warning.load();
+
+  suppress_resampling_spacing_warning.store(false);
+  {
+    Internal::ScopedResamplingWarningSuppression outer_scope;
+    TEST_EQUAL(suppress_resampling_spacing_warning.load(), true)
+
+    {
+      Internal::ScopedResamplingWarningSuppression inner_scope;
+      TEST_EQUAL(suppress_resampling_spacing_warning.load(), true)
+    }
+
+    TEST_EQUAL(suppress_resampling_spacing_warning.load(), true)
+  }
+  TEST_EQUAL(suppress_resampling_spacing_warning.load(), false)
+
+  suppress_resampling_spacing_warning.store(true);
+  {
+    Internal::ScopedResamplingWarningSuppression scope_with_true_prior_state;
+    TEST_EQUAL(suppress_resampling_spacing_warning.load(), true)
+  }
+  TEST_EQUAL(suppress_resampling_spacing_warning.load(), true)
+
+  suppress_resampling_spacing_warning.store(original_state);
+}
+END_SECTION
+
 START_SECTION((~LinearResamplerAlign()))
 {
   LinearResamplerAlign lr;
@@ -605,5 +634,4 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 

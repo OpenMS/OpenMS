@@ -10,6 +10,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CONCEPT/CommonEnums.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -436,7 +437,18 @@ public:
 
     /// ostream iterator to write the residue to a stream
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
+    
+    /** 
+    @brief returns the hydrophobicity value of the residue
 
+    The sources for the hydrophobicity scales are here: @ref HydrophobicityProfile
+
+    @param scale which scale to use for the hydrophobicity value
+    @return hydrophobicity value of the residue
+    @throw Exception::InvalidValue Throws an exception if the residue is not one of the 20 common amino acids or when an unknown scale is used
+    */
+    double getHydrophobicity(const HydrophobicityScaleMethod scale) const;
+ 
 protected:
 
     /// the name of the residue

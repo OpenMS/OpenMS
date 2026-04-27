@@ -93,15 +93,19 @@ protected:
      *
      *  @param[in] use_ms1_traces Use MS1 data?
      *  @param[in] use_ms1_ion_mobility Use ion mobility extraction on MS1 traces?
-     *  @param[out] prm Is data acquired in targeted DIA (e.g. PRM mode) with potentially overlapping windows?
+     *  @param[in] prm Is data acquired in targeted DIA (e.g. PRM mode) with potentially overlapping windows?
      *  @param[in] pasef Is this diaPASEF data?
      *  @param[in] mrm Is this SRM/MRM data?
-     *  @param[in] threads_outer_loop How many threads should be used for the outer
-     *  loop (-1 will use all threads in the outer loop)
+     *  @param[in] threads_outer_loop Legacy nested OpenMP outer-loop thread count.
+     *  Values >= 0 request the old per-SWATH nested parallelism; -1 leaves
+     *  scheduling automatic and allows the SWATH wave scheduler to be used when
+     *  its other preconditions are met.
      *
-     *  @note The total number of threads should be divisible by this number
-     *  (e.g. use 8 in outer loop if you have 24 threads in total and 3 will be
-     *  used for the inner loop).
+     *  @note This setting is only relevant when OpenMS is built with nested
+     *  OpenMP support and the SWATH wave scheduler is not active. For the legacy
+     *  nested path, the total number of threads should be divisible by this
+     *  number (e.g. use 8 in the outer loop if 24 threads are available and 3
+     *  should be used for each inner loop).
      *
      *
      **/
@@ -207,11 +211,14 @@ protected:
 
     /** @brief How many threads should be used for the outer loop
      *
-     *  @note A value of -1 will use all threads in the outer loop
+     *  @note A value of -1 leaves scheduling automatic and allows the SWATH wave
+     *  scheduler to be used when its other preconditions are met.
      *
-     *  @note The total number of threads should be divisible by this number
-     *  (e.g. use 8 in outer loop if you have 24 threads in total and 3 will be
-     *  used for the inner loop).
+     *  @note Values >= 0 select the legacy nested OpenMP outer-loop path when
+     *  OpenMS is built with nested OpenMP support. In that path, the total
+     *  number of threads should be divisible by this number (e.g. use 8 in the
+     *  outer loop if 24 threads are available and 3 should be used for each
+     *  inner loop).
      *
      **/
     int threads_outer_loop_;
@@ -235,7 +242,7 @@ protected:
    *    - Obtain precursor ion chromatograms (if enabled) through MS1Extraction_()
    *    - Perform scoring of precursor ion chromatograms if no MS2 is given
    *    - Iterate through each SWATH-MS window:
-   *      - Select which transitions to extract (proceed in batches) using OpenSwathHelper::selectSwathTransitions()
+   *      - Select which transitions to extract using OpenSwathHelper::selectSwathTransitions()
    *      - Iterate through each batch of transitions:
    *        - Extract current batch of transitions from current SWATH window:
    *          - Select transitions for current batch (see selectCompoundsForBatch_())
@@ -299,19 +306,28 @@ protected:
      * @param[in] feature_finder_param Parameter set for the feature finding in chromatographic dimension
      * @param[in] assay_library The set of assays to be extracted and scored
      * @param[out] result_featureFile Output feature map to store identified features
-     * @param[out] store_features_in_featureFile Whether features should be appended to the output feature map (if this is false, then out_featureFile will be empty)
-     * @param[out] result_osw OSW Writer object to store identified features in SQLite format (set store_features to false if using this option)
-     * @param[out] result_chromatograms Chromatogram consumer object to store the extracted chromatograms
-     * @param[in] batchSize Size of the batches which should be extracted and scored
+     * @param[in] store_features_in_featureFile Whether features should be appended to the output feature map (if this is false, then out_featureFile will be empty)
+     * @param[in,out] result_osw OSW Writer object to store identified features in SQLite format (set store_features to false if using this option)
+     * @param[in,out] result_chromatograms Chromatogram consumer object to store the extracted chromatograms
+     * @param[in] batchSize Scheduler and batch-size selector. Values <= 0 enable
+     * automatic scheduling; with in-memory reads this uses the SWATH wave
+     * scheduler. Positive values force the legacy per-SWATH batched path and
+     * set the number of compounds per extraction/scoring batch.
      * @param[in] ms1_isotopes Number of MS1 isotopes to extract (zero means only monoisotopic peak)
      * @param[in] load_into_memory Whether to cache the current SWATH map in memory
      * @param[in] mrm_mapping_param Parameter for mapping chromatograms to transitions (MRMMapping)
      * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
+     * @param[in] innerBatchSize Inner scoring batch size for automatic/wave
+     * scheduling; values <= 0 enable automatic wave-aware sizing
+     * @param[in] maxConcurrentSwaths Maximum non-MS1 SWATH maps to keep
+     * resident during automatic/wave scheduling; values <= 0 enable
+     * memory-aware planning
      *
-     * @note Speed and memory performance can be influenced by \p batchSize and
-     * \p load_into_memory where larger batch sizes increase memory and
-     * potentially decrease the utility of parallelization while loading data
-     * into memory will increase memory usage but decrease execution time.
+     * @note Speed and memory performance can be influenced by \p batchSize,
+     * \p innerBatchSize, \p maxConcurrentSwaths, and \p load_into_memory. The
+     * wave scheduler is the default optimized path for in-memory DIA/SWATH
+     * processing when \p batchSize is <= 0. Positive \p batchSize values are
+     * primarily useful to force the legacy per-SWATH batched path.
      *
     */
   void performExtraction(const std::vector<OpenSwath::SwathMap>& swath_maps,
@@ -328,7 +344,9 @@ protected:
                int ms1_isotopes,
                bool load_into_memory,
               const Param & mrm_mapping_param = Param(),
-              class MobilogramParquetConsumer * mobilogram_consumer = nullptr);
+              class MobilogramParquetConsumer * mobilogram_consumer = nullptr,
+              int innerBatchSize = -1,
+              int maxConcurrentSwaths = -1);
 
   protected:
 
@@ -390,6 +408,7 @@ protected:
      * @param[in] nr_ms1_isotopes Consider this many MS1 isotopes for precursor chromatograms
      * @param[in] ms1only If true, will only score on MS1 level and ignore MS2 level
      * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
+     * @param[out] deferred_osw_output Optional buffer for OSW output rows, deferring writer access to the caller
      *
     */
   void scoreAllChromatograms_(
@@ -404,7 +423,8 @@ protected:
         OpenSwathOSWWriter& osw_writer,
         int nr_ms1_isotopes = 0,
         bool ms1only = false,
-        class MobilogramParquetConsumer * mobilogram_consumer = nullptr) const;
+        class MobilogramParquetConsumer * mobilogram_consumer = nullptr,
+        OpenSwathOSWWriter::OSWData* deferred_osw_output = nullptr) const;
 
     /** @brief Select which compounds to analyze in the next batch (and copy to output)
      *
@@ -439,5 +459,3 @@ protected:
       std::vector<OpenSwath::LightTransition>& output);
   };
 }
-
-

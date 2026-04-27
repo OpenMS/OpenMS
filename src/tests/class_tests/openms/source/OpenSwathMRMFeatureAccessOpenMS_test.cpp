@@ -23,6 +23,39 @@
 using namespace OpenMS;
 using namespace std;
 
+namespace
+{
+  Feature makeFeature_(double rt, double intensity, const std::vector<std::pair<double, double>>& hull_points)
+  {
+    Feature feature;
+    feature.setRT(rt);
+    feature.setIntensity(intensity);
+
+    ConvexHull2D hull;
+    ConvexHull2D::PointArrayType points;
+    for (const auto& hull_point : hull_points)
+    {
+      DPosition<2> position;
+      position[0] = hull_point.first;
+      position[1] = hull_point.second;
+      points.push_back(position);
+    }
+    hull.setHullPoints(points);
+    feature.getConvexHulls().push_back(hull);
+    return feature;
+  }
+
+  MRMFeature makeMRMFeatureFixture_()
+  {
+    MRMFeature feature;
+    feature.addFeature(makeFeature_(10.0, 100.0, {{9.9, 11.0}, {10.1, 12.0}}), "tr2");
+    feature.addFeature(makeFeature_(11.0, 200.0, {{10.9, 21.0}, {11.1, 22.0}}), "tr1");
+    feature.addPrecursorFeature(makeFeature_(12.0, 300.0, {{11.9, 31.0}, {12.1, 32.0}}), "pr1");
+    feature.addPrecursorFeature(makeFeature_(13.0, 400.0, {{12.9, 41.0}, {13.1, 42.0}}), "pr0");
+    return feature;
+  }
+}
+
 START_TEST(MRMFeatureAccessOpenMS, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -64,6 +97,99 @@ END_SECTION
 START_SECTION(~MRMFeatureOpenMS())
 {
   delete ptr;
+}
+END_SECTION
+
+START_SECTION([EXTRA] default lookup mode preserves native-id access and falls back from wrong index hints)
+{
+  MRMFeature feature = makeMRMFeatureFixture_();
+  MRMFeatureOpenMS access(feature);
+
+  const std::vector<std::string> native_ids = access.getNativeIDs();
+  TEST_EQUAL(native_ids.size(), 2)
+  TEST_EQUAL(native_ids[0], "tr1")
+  TEST_EQUAL(native_ids[1], "tr2")
+
+  const std::vector<std::string> precursor_ids = access.getPrecursorIDs();
+  TEST_EQUAL(precursor_ids.size(), 2)
+  TEST_EQUAL(precursor_ids[0], "pr0")
+  TEST_EQUAL(precursor_ids[1], "pr1")
+
+  TEST_REAL_SIMILAR(access.getFeatureIntensity("tr1", 0), 200.0)
+  TEST_REAL_SIMILAR(access.getFeatureIntensity("tr2", 1), 100.0)
+  TEST_REAL_SIMILAR(access.getFeatureIntensity("tr2", 0), 100.0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] cached-id constructor keeps requested id order for feature and precursor extraction)
+{
+  MRMFeature feature = makeMRMFeatureFixture_();
+  std::vector<std::string> feature_ids{"tr2", "tr1"};
+  std::vector<std::string> precursor_ids{"pr1", "pr0"};
+  MRMFeatureOpenMS access(feature, feature_ids, precursor_ids);
+
+  const std::vector<std::string> native_ids = access.getNativeIDs();
+  TEST_EQUAL(native_ids.size(), 2)
+  TEST_EQUAL(native_ids[0], "tr2")
+  TEST_EQUAL(native_ids[1], "tr1")
+
+  const std::vector<std::string> native_precursor_ids = access.getPrecursorIDs();
+  TEST_EQUAL(native_precursor_ids.size(), 2)
+  TEST_EQUAL(native_precursor_ids[0], "pr1")
+  TEST_EQUAL(native_precursor_ids[1], "pr0")
+  TEST_REAL_SIMILAR(access.getFeatureIntensity("tr2", 0), 100.0)
+  TEST_REAL_SIMILAR(access.getFeatureIntensity("tr1", 1), 200.0)
+
+  std::vector<std::vector<double>> intensities;
+  access.getFeatureIntensities(feature_ids, intensities);
+  TEST_EQUAL(intensities.size(), 2)
+  TEST_EQUAL(intensities[0].size(), 2)
+  TEST_REAL_SIMILAR(intensities[0][0], 11.0)
+  TEST_REAL_SIMILAR(intensities[0][1], 12.0)
+  TEST_REAL_SIMILAR(intensities[1][0], 21.0)
+  TEST_REAL_SIMILAR(intensities[1][1], 22.0)
+
+  std::vector<std::vector<double>> precursor_intensities;
+  access.getPrecursorFeatureIntensities(precursor_ids, precursor_intensities);
+  TEST_EQUAL(precursor_intensities.size(), 2)
+  TEST_EQUAL(precursor_intensities[0].size(), 2)
+  TEST_REAL_SIMILAR(precursor_intensities[0][0], 31.0)
+  TEST_REAL_SIMILAR(precursor_intensities[0][1], 32.0)
+  TEST_REAL_SIMILAR(precursor_intensities[1][0], 41.0)
+  TEST_REAL_SIMILAR(precursor_intensities[1][1], 42.0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] aligned-order constructor uses requested aligned ids and tolerates wrong index hints)
+{
+  MRMFeature feature = makeMRMFeatureFixture_();
+  std::vector<std::string> feature_ids{"tr2", "tr1"};
+  std::vector<std::string> precursor_ids{"pr1", "pr0"};
+  std::vector<String> feature_lookup_ids{"tr1", "tr2"};
+  std::vector<String> precursor_lookup_ids{"pr1", "pr0"};
+  MRMFeatureOpenMS access(feature, feature_ids, precursor_ids, feature_lookup_ids, precursor_lookup_ids);
+
+  const std::vector<std::string> native_ids = access.getNativeIDs();
+  TEST_EQUAL(native_ids.size(), 2)
+  TEST_EQUAL(native_ids[0], "tr2")
+  TEST_EQUAL(native_ids[1], "tr1")
+
+  const std::vector<std::string> native_precursor_ids = access.getPrecursorIDs();
+  TEST_EQUAL(native_precursor_ids.size(), 2)
+  TEST_EQUAL(native_precursor_ids[0], "pr1")
+  TEST_EQUAL(native_precursor_ids[1], "pr0")
+  TEST_REAL_SIMILAR(access.getFeatureIntensity("tr2", 0), 100.0)
+  TEST_REAL_SIMILAR(access.getFeatureIntensity("tr1", 1), 200.0)
+  TEST_REAL_SIMILAR(access.getFeatureIntensity("tr2", 1), 100.0)
+
+  std::shared_ptr<OpenSwath::IFeature> wrapped_feature = access.getFeature("tr1");
+  TEST_REAL_SIMILAR(wrapped_feature->getIntensity(), 200.0)
+
+  std::vector<std::vector<double>> intensities;
+  access.getFeatureIntensities(feature_ids, intensities);
+  TEST_EQUAL(intensities.size(), 2)
+  TEST_REAL_SIMILAR(intensities[0][0], 11.0)
+  TEST_REAL_SIMILAR(intensities[1][0], 21.0)
 }
 END_SECTION
 }
@@ -163,6 +289,4 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
 

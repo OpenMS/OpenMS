@@ -40,6 +40,7 @@ General:
   - CometAdapter: workaround for a latent bug in Comet's bundled mzParser (MSToolkit/saxmzmlhandler.cpp) that segfaults when mzML files contain mixed "frame=..." and "scan=..." native IDs with overlapping numeric values — which is exactly the Bruker .d DDA/DIA case. CometAdapter rewrites Bruker .d native IDs to monotonic "index=N" before handing the temp mzML to Comet, and translates PSM spectrum references back to the original Bruker IDs after Comet finishes. Upstream fix for cindex::compare's strict-weak-ordering violation should be filed against UWPR/Comet.
   - New Constants::UserParam::MEAN_INVERSE_REDUCED_ION_MOBILITY_ARRAY constant ("mean inverse reduced ion mobility array", CV MS:1003006) for Bruker timsTOF data; IMDataConverter::getIMUnit now recognises all three IM array name prefixes (Ion Mobility, inverse reduced ion mobility, mean inverse reduced ion mobility array) ensuring correct unit detection across timsTOF, MSConvert, and Bruker raw data (#9181)
   - MascotGenericFile: SEQ= sequence-query field is now parsed on load (stored as "SEQ" meta value; multiple SEQ= lines per query accumulate into a StringList) and emitted on store, enabling lossless MGF round-trips with peptide-sequence annotations (#9186)
+  - Fix: MSExperiment::reset() now clears chromatograms as well as spectra; previously chromatograms were left intact, causing duplicate chromatogram entries when an experiment was reset and reloaded; FileFilter's RT-block filtering loop was updated accordingly (#9211)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -228,6 +229,8 @@ TOPP tools:
       - Added SRM support (#8700)
       - Added Parquet chromatogram output support (#8737)
       - Direct Bruker .d (TDF) file input: Bruker TimsTOF files can now be passed directly without prior mzML conversion; requires WITH_TIMSRUST=ON (#9019)
+      - Performance: new automatic SWATH wave scheduler reduces wall time on large spectral libraries; batchSize=0 (default) now selects the wave scheduler automatically when working in memory; new advanced parameters innerBatchSize (inner scoring batch size, <=0 for auto), maxConcurrentSwaths (max concurrent SWATH maps in memory, -1 for auto), and outer_loop_threads (legacy nested-OpenMP outer threads, -1 for auto) expose tuning knobs; OSW output is written via a memory-aware buffered writer that flushes when free system RAM falls below a configurable threshold (#9190)
+      - Fix: OSW RUN.ID column now stored as INTEGER instead of BLOB; the previous BLOB type caused JOIN queries between the FEATURE and RUN tables to return 0 rows (#9190)
     PeakPickerHiRes:
       - New parameter to allow peak cores with no leading flank peaks (#8649)
       - Warns when given IM_PEAK format (per-peak ion mobility) data; partial support via intensity-weighted mean IM per picked peak (#9018)
@@ -340,6 +343,11 @@ OpenMS Library:
     - BREAKING: IMFormat::MIXED removed; determineIMFormat(MSExperiment) replaced with determineIMFormat(MSExperiment, int ms_level) requiring explicit MS level for unambiguous format detection (#9011)
     - AccurateMassSearchEngine: Performance improvement when use_feature_adducts is set and a specific adduct is observed; only that adduct is evaluated instead of the full list (fixes #5867) (#8635)
     - BREAKING: Transitive Qt and other includes trimmed from core KERNEL and METADATA headers (ConsensusMap.h, FeatureMap.h, ProteinIdentification.h, SpectrumSettings.h, ExperimentalSettings.h); downstream code relying on these transitive includes must now include headers directly (#8946)
+    - Residue: added function that returns hydrophobicity (#9179)
+    - HydrophobicityProfile: added a class used for calculating hydrophobicity profiles of peptides and hydrophobic moments in peptides (#9179)
+    - SysInfo: added getFreeSystemMemory() returning currently available physical RAM in KB; on Linux this uses MemAvailable from /proc/meminfo so reclaimable page-cache is counted as available (#9190)
+    - OpenSwathWorkflowScheduler: new class encapsulating the SWATH wave scheduling logic extracted from OpenSwathWorkflow; manages compound batches, per-SWATH scoring job queues, and deferred OSW output with memory-based flushing (#9190)
+    - OpenSwathOSWWriter: added getRowCount() and estimateMemoryUsage() for memory-aware buffered output (#9190)
 
 Fixes:
   - Fix inverted use_all_hits logic causing NucleicAcidSearchEngine crash with multiple hits per spectrum (#8542)
