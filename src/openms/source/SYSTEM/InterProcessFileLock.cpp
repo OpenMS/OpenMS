@@ -37,7 +37,7 @@ namespace OpenMS
 
       // Polling acquisition with timeout prevents indefinite waits
       // If a process crashes, OS-level file locks are released automatically
-      const auto timeout = std::chrono::seconds(5);
+      const auto timeout = std::chrono::seconds(3);
       const auto retry_interval = std::chrono::milliseconds(50);
       const auto start = std::chrono::steady_clock::now();
 

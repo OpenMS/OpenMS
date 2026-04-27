@@ -104,8 +104,22 @@ START_SECTION((InterProcessFileLock(const String& target_file_path)))
   std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
   // Attempt to acquire the lock while it's held by the child process, expecting a timeout
-  TEST_EXCEPTION(Exception::FailedAPICall,
-                 { InterProcessFileLock waiting_lock(target); })
+  const auto start = std::chrono::steady_clock::now();
+  bool timeout_thrown = false;
+  try
+  {
+    InterProcessFileLock waiting_lock(target);
+  }
+  catch (const Exception::FailedAPICall&)
+  {
+    timeout_thrown = true;
+  }
+
+  const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+    std::chrono::steady_clock::now() - start);
+
+  TEST_TRUE(timeout_thrown)
+  TEST_TRUE(elapsed >= std::chrono::milliseconds(2500))
 
   kill(child_pid, SIGTERM);
   int status = 0;

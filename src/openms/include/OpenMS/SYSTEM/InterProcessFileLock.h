@@ -28,9 +28,26 @@ namespace OpenMS
   class OPENMS_DLLAPI InterProcessFileLock
   {
     public:
-      explicit InterProcessFileLock(const String& target_file_path);
-      ~InterProcessFileLock() noexcept;
+      /**
+        @brief Acquire an inter-process lock for the given file.
 
+        Creates the lock file if required and acquires the OS-level file lock.
+
+        @param[in] target_file_path Path to the lock file.
+
+        @throws Exception::FileNotWritable if the lock file cannot be created/opened.
+        @throws Exception::FailedAPICall if lock acquisition fails or times out.
+      */
+      explicit InterProcessFileLock(const String& target_file_path);
+
+      /**
+        @brief Release the held inter-process file lock.
+
+        Unlocks the file in a non-throwing cleanup path.
+      */
+      ~InterProcessFileLock() noexcept;
+      
+      // Non-copyable to prevent multiple instances managing the same lock
       InterProcessFileLock(const InterProcessFileLock&) = delete;
       InterProcessFileLock& operator=(const InterProcessFileLock&) = delete;
 
