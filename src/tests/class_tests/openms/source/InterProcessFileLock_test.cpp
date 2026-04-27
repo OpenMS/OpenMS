@@ -119,6 +119,8 @@ START_SECTION((InterProcessFileLock(const String& target_file_path)))
     std::chrono::steady_clock::now() - start);
 
   TEST_TRUE(timeout_thrown)
+
+  // The timeout should be at least the specified duration
   TEST_TRUE(elapsed >= std::chrono::milliseconds(2500))
 
   kill(child_pid, SIGTERM);
