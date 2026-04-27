@@ -358,4 +358,46 @@ START_SECTION((filter() - threaded consistency))
 }
 END_SECTION
 
+START_SECTION((filter() - SWATH wave scheduler consistency))
+{
+  LightTargetedExperiment transition_exp;
+  LightProtein protein;
+  protein.id = "protein";
+  transition_exp.proteins.push_back(protein);
+  addCompound(transition_exp, "PEP_A", 500.0, {100.0, 110.0, 120.0});
+  addCompound(transition_exp, "PEP_B", 600.0, {200.0, 210.0, 220.0});
+  addCompound(transition_exp, "PEP_C", 700.0, {300.0, 310.0, 320.0});
+  addCompound(transition_exp, "PEP_D", 800.0, {400.0, 410.0, 420.0});
+
+  vector<SwathMap> swath_maps;
+  swath_maps.push_back(makeSwathMap(false, 450.0, 550.0,
+                                    {makeSpectrum(12.0, {{100.002, 1100.0}, {110.002, 1000.0}})}));
+  swath_maps.push_back(makeSwathMap(false, 550.0, 650.0,
+                                    {makeSpectrum(13.0, {{200.002, 1200.0}, {210.002, 1100.0}})}));
+  swath_maps.push_back(makeSwathMap(false, 650.0, 750.0,
+                                    {makeSpectrum(14.0, {{300.002, 1300.0}, {310.002, 1200.0}})}));
+  swath_maps.push_back(makeSwathMap(false, 750.0, 850.0,
+                                    {makeSpectrum(15.0, {{400.002, 1400.0}, {410.002, 1300.0}})}));
+
+  TransitionListEvidenceFilter filter = makeFilter("ms2", 4);
+  TransitionListEvidenceFilter::Result single_thread = filter.filter(
+    swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.02), false, 1);
+  TransitionListEvidenceFilter::Result four_threads = filter.filter(
+    swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.02), false, 4);
+
+  TEST_EQUAL(single_thread.supported_precursors, 4)
+  TEST_EQUAL(single_thread.supported_precursors, four_threads.supported_precursors)
+  TEST_EQUAL(single_thread.ms2_supported, four_threads.ms2_supported)
+  TEST_EQUAL(single_thread.filtered_targets.compounds.size(), four_threads.filtered_targets.compounds.size())
+  TEST_EQUAL(single_thread.filtered_targets.transitions.size(), four_threads.filtered_targets.transitions.size())
+  TEST_EQUAL(single_thread.evidence.size(), four_threads.evidence.size())
+  for (Size i = 0; i < single_thread.evidence.size(); ++i)
+  {
+    TEST_EQUAL(single_thread.evidence[i].compound_id, four_threads.evidence[i].compound_id)
+    TEST_EQUAL(single_thread.evidence[i].supported_ms2, four_threads.evidence[i].supported_ms2)
+    TEST_EQUAL(single_thread.evidence[i].ms2_best_fragment_hits, four_threads.evidence[i].ms2_best_fragment_hits)
+  }
+}
+END_SECTION
+
 END_TEST
