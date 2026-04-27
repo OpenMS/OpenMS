@@ -13,6 +13,9 @@
 namespace OpenMS
 {
 
+  // Single definition of the per-thread pool declared in the header.
+  thread_local PickerPoolShared g_picker_pool_shared;
+
   // Simple linear interpolation at point x between x0 and x1
   double lin_interpolate(double x, double x0, double x1, double y0, double y1)
   {
