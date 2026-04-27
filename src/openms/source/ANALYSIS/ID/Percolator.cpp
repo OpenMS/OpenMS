@@ -410,6 +410,14 @@ static void validateModelCompat_(
 
 PercolatorModel Percolator::train(const RescoreInput& input)
 {
+  // Mark pi0 invalid up front: train() doesn't run scoring / q-value
+  // estimation, so it never produces a pi0. Resetting here matches the
+  // pattern in rescore()/score() and ensures getPi0() == -1.0 reliably
+  // means "no usable pi0 from the current state" (rather than a stale
+  // value left over from a prior successful rescore()/score() call).
+  // Also covers throws from validateRescoreInput_ below.
+  impl_->last_pi0 = -1.0;
+
   validateRescoreInput_(input);
 
   impl_->reset();
@@ -470,7 +478,10 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   // SanityCheck: reset static state so successive calls don't leak configuration.
   P::SanityCheck::setInitDefaultDir(0);
   P::SanityCheck::setInitDefaultDirName(impl_->initial_direction);
-  P::SanityCheck* sanity = P::SanityCheck::initialize("");
+  // initialize() returns a heap-allocated SanityCheck the caller owns.
+  // Wrap it in unique_ptr so it's released on every exit path (including
+  // throws) without manual delete.
+  auto sanity = std::unique_ptr<P::SanityCheck>(P::SanityCheck::initialize(""));
   if (!sanity)
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -482,7 +493,6 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   }
   catch (const std::exception& e)
   {
-    delete sanity;
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
       std::string("initial_direction not resolved: ") + e.what(),
       impl_->initial_direction);
@@ -513,21 +523,21 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   std::vector<double> avg_weights;
   try
   {
-    cv.preIterationSetup(train_scores, sanity, normalizer,
+    // CV uses sanity transiently per call (no storage); the unique_ptr in
+    // this scope outlives cv, so the bare pointer stays valid.
+    cv.preIterationSetup(train_scores, sanity.get(), normalizer,
                          impl_->set_handler->getFeaturePool());
     cv.train(normalizer);
-    cv.postIterationProcessing(train_scores, sanity);
+    cv.postIterationProcessing(train_scores, sanity.get());
     // getAvgWeights returns un-normalized (raw feature space) averaged weights:
     // size = n_features + 1, bias last. This is what score() will use.
     cv.getAvgWeights(avg_weights, normalizer);
   }
   catch (const std::exception& e)
   {
-    delete sanity;
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
       std::string("Percolator training failed: ") + e.what(), "");
   }
-  delete sanity;
 
   // Mirror into getSvmWeights() buffer for backward compatibility.
   impl_->svm_weights.clear();
@@ -753,7 +763,10 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
   P::SanityCheck::setInitDefaultDir(0);
   P::SanityCheck::setInitDefaultDirName(impl_->initial_direction);
-  P::SanityCheck* sanity = P::SanityCheck::initialize("");
+  // initialize() returns a heap-allocated SanityCheck the caller owns.
+  // Wrap it in unique_ptr so it's released on every exit path (including
+  // throws) without manual delete.
+  auto sanity = std::unique_ptr<P::SanityCheck>(P::SanityCheck::initialize(""));
   if (!sanity)
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -765,7 +778,6 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   }
   catch (const std::exception& e)
   {
-    delete sanity;
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
       std::string("initial_direction not resolved: ") + e.what(),
       impl_->initial_direction);
@@ -795,10 +807,12 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
   try
   {
-    cv.preIterationSetup(all_scores, sanity, normalizer,
+    // CV uses sanity transiently per call (no storage); the unique_ptr in
+    // this scope outlives cv, so the bare pointer stays valid.
+    cv.preIterationSetup(all_scores, sanity.get(), normalizer,
                          impl_->set_handler->getFeaturePool());
     cv.train(normalizer);
-    cv.postIterationProcessing(all_scores, sanity);
+    cv.postIterationProcessing(all_scores, sanity.get());
 
     std::vector<double> avg_weights;
     cv.getAvgWeights(avg_weights, normalizer);
@@ -865,11 +879,9 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   }
   catch (const std::exception& e)
   {
-    delete sanity;
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
       std::string("Percolator training failed: ") + e.what(), "");
   }
-  delete sanity;
 
   RescoreOutput out;
   out.scores.assign(n_rows, 0.0);

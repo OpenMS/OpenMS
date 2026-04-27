@@ -153,8 +153,10 @@ namespace OpenMS
       "Selecting pi_0=..."). Useful for parity tests and diagnostics; not
       needed for production scoring.
 
-      @return pi0 in [0, 1], or -1.0 if no rescore()/score() has run yet.
-              Always 1.0 when the instance was configured with use_pi0=false.
+      @return pi0 in [0, 1], or -1.0 if no rescore()/score() has run yet
+              on this instance, or after a train() call (train() resets
+              last_pi0 since it doesn't run scoring). Always 1.0 when the
+              instance was configured with use_pi0=false.
     */
     double getPi0() const;
 
