@@ -264,6 +264,10 @@ namespace OpenMS
                                          const String& id) const
   {
     std::stringstream sql, sql_feature, sql_feature_ms1, sql_feature_ms1_precursor, sql_feature_ms2, sql_feature_ms2_transition, sql_feature_uis_transition;
+    const auto valueOrNull = [](const std::vector<String>& values, Size index) -> String
+    {
+      return index < values.size() ? values[index] : String("NULL");
+    };
 
     for (const auto& feature_it : output)
     {
@@ -272,19 +276,17 @@ namespace OpenMS
       const auto& masserror_ppm = feature_it.metaValueExists("masserror_ppm") ? getSeparateScore(feature_it, "masserror_ppm") : std::vector<String>();
 
       const auto& subordinates = feature_it.getSubordinates();
+      Size ms2_subordinate_index = 0;
       for (Size i=0; i < subordinates.size(); i++)
       {
         const auto& sub_it = subordinates[i];
         if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS2")
         {
-          std::string total_mi = "NULL"; // total_mi is not guaranteed to be set
-          std::string masserror_ppm_query = "NULL"; // masserror_ppm is not guaranteed to be set
+          String total_mi = "NULL"; // total_mi is not guaranteed to be set
+          const String masserror_ppm_query = valueOrNull(masserror_ppm, ms2_subordinate_index);
+          ++ms2_subordinate_index;
 
-          if (!masserror_ppm.empty())
-          {
-            masserror_ppm_query = masserror_ppm[i];
-          }
-          if (!sub_it.getMetaValue("total_mi").isEmpty())
+          if (sub_it.metaValueExists("total_mi") && !sub_it.getMetaValue("total_mi").isEmpty())
           {
             total_mi = sub_it.getMetaValue("total_mi").toString();
           }
@@ -490,11 +492,9 @@ namespace OpenMS
         auto points_across_baseline = getSeparateScore(feature_it, "id_target_ind_points_across_baseline");
         auto points_across_half_height = getSeparateScore(feature_it, "id_target_ind_points_across_half_height");
 
-        if (feature_it.metaValueExists("id_target_num_transitions"))
+        if (!id_target_transition_names.empty())
         {
-          int id_target_num_transitions = feature_it.getMetaValue("id_target_num_transitions");
-
-          for (int i = 0; i < id_target_num_transitions; ++i)
+          for (Size i = 0; i < id_target_transition_names.size(); ++i)
           {
             sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION "\
               "(FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, "\
@@ -511,50 +511,50 @@ namespace OpenMS
               << ") VALUES ("
                                         << feature_id << ", "
                                         << id_target_transition_names[i] << ", "
-                                        << id_target_area_intensity[i] << ", "
-                                        << id_target_total_area_intensity[i] << ", "
-                                        << id_target_apex_intensity[i] << ", "
-                                        << id_target_peak_apex_position[i] << ", "
-                                        << id_target_peak_fwhm[i] << ", "
-                                        << id_target_ind_massdev_score[i] << ", "
-                                        << id_target_total_mi[i] << ", "
-                                        << id_target_intensity_score[i] << ", "
-                                        << id_target_intensity_ratio_score[i] << ", "
-                                        << id_target_log_intensity[i] << ", "
-                                        << id_target_ind_xcorr_coelution[i] << ", "
-                                        << id_target_ind_xcorr_shape[i] << ", "
-                                        << id_target_ind_log_sn_score[i] << ", "
-                                        << id_target_ind_massdev_score[i] << ", "
-                                        << id_target_ind_mi_score[i] << ", "
-                                        << id_target_ind_mi_ratio_score[i] << ", "
-                                        << id_target_ind_isotope_correlation[i] << ", "
-                                        << id_target_ind_isotope_overlap[i] << ", "
-                                        << id_target_ind_im_drift[i] << ", "
-                                        << id_target_ind_im_drift_left[i] << ", "
-                                        << id_target_ind_im_drift_right[i] << ", "
-                                        << id_target_ind_im_delta[i] << ", "
-                                        << id_target_ind_im_delta_score[i] << ", "
-                                        << id_target_ind_im_log_intensity[i] << ", "
-                                        << id_target_ind_im_contrast_coelution[i] << ", "
-                                        << id_target_ind_im_contrast_shape[i] << ", "
-                                        << id_target_ind_im_sum_contrast_coelution[i] << ", "
-                                        << id_target_ind_im_sum_contrast_shape[i];
+                                        << valueOrNull(id_target_area_intensity, i) << ", "
+                                        << valueOrNull(id_target_total_area_intensity, i) << ", "
+                                        << valueOrNull(id_target_apex_intensity, i) << ", "
+                                        << valueOrNull(id_target_peak_apex_position, i) << ", "
+                                        << valueOrNull(id_target_peak_fwhm, i) << ", "
+                                        << valueOrNull(id_target_ind_massdev_score, i) << ", "
+                                        << valueOrNull(id_target_total_mi, i) << ", "
+                                        << valueOrNull(id_target_intensity_score, i) << ", "
+                                        << valueOrNull(id_target_intensity_ratio_score, i) << ", "
+                                        << valueOrNull(id_target_log_intensity, i) << ", "
+                                        << valueOrNull(id_target_ind_xcorr_coelution, i) << ", "
+                                        << valueOrNull(id_target_ind_xcorr_shape, i) << ", "
+                                        << valueOrNull(id_target_ind_log_sn_score, i) << ", "
+                                        << valueOrNull(id_target_ind_massdev_score, i) << ", "
+                                        << valueOrNull(id_target_ind_mi_score, i) << ", "
+                                        << valueOrNull(id_target_ind_mi_ratio_score, i) << ", "
+                                        << valueOrNull(id_target_ind_isotope_correlation, i) << ", "
+                                        << valueOrNull(id_target_ind_isotope_overlap, i) << ", "
+                                        << valueOrNull(id_target_ind_im_drift, i) << ", "
+                                        << valueOrNull(id_target_ind_im_drift_left, i) << ", "
+                                        << valueOrNull(id_target_ind_im_drift_right, i) << ", "
+                                        << valueOrNull(id_target_ind_im_delta, i) << ", "
+                                        << valueOrNull(id_target_ind_im_delta_score, i) << ", "
+                                        << valueOrNull(id_target_ind_im_log_intensity, i) << ", "
+                                        << valueOrNull(id_target_ind_im_contrast_coelution, i) << ", "
+                                        << valueOrNull(id_target_ind_im_contrast_shape, i) << ", "
+                                        << valueOrNull(id_target_ind_im_sum_contrast_coelution, i) << ", "
+                                        << valueOrNull(id_target_ind_im_sum_contrast_shape, i);
                          if (enable_compute_peak_shape_metrics)
                          {
                             sql_feature_uis_transition << ", "
-                                          << start_position_at_5[i] << ", "
-                                          << end_position_at_5[i] << ", "
-                                          << start_position_at_10[i] << ", "
-                                          << end_position_at_10[i] << ", "
-                                          << start_position_at_50[i] << ", "
-                                          << end_position_at_50[i] << ", "
-                                          << total_width[i] << ", "
-                                          << tailing_factor[i] << ", "
-                                          << asymmetry_factor[i] << ", "
-                                          << slope_of_baseline[i] << ", "
-                                          << baseline_delta_2_height[i] << ", "
-                                          << points_across_baseline[i] << ", "
-                                          << points_across_half_height[i];
+                                          << valueOrNull(start_position_at_5, i) << ", "
+                                          << valueOrNull(end_position_at_5, i) << ", "
+                                          << valueOrNull(start_position_at_10, i) << ", "
+                                          << valueOrNull(end_position_at_10, i) << ", "
+                                          << valueOrNull(start_position_at_50, i) << ", "
+                                          << valueOrNull(end_position_at_50, i) << ", "
+                                          << valueOrNull(total_width, i) << ", "
+                                          << valueOrNull(tailing_factor, i) << ", "
+                                          << valueOrNull(asymmetry_factor, i) << ", "
+                                          << valueOrNull(slope_of_baseline, i) << ", "
+                                          << valueOrNull(baseline_delta_2_height, i) << ", "
+                                          << valueOrNull(points_across_baseline, i) << ", "
+                                          << valueOrNull(points_across_half_height, i);
                          }
                          sql_feature_uis_transition << "); ";
 
@@ -607,11 +607,9 @@ namespace OpenMS
         auto decoy_points_across_baseline = getSeparateScore(feature_it, "id_decoy_ind_points_across_baseline");
         auto decoy_points_across_half_height = getSeparateScore(feature_it, "id_decoy_ind_points_across_half_height");
 
-        if (feature_it.metaValueExists("id_decoy_num_transitions"))
+        if (!id_decoy_transition_names.empty())
         {
-          int id_decoy_num_transitions = feature_it.getMetaValue("id_decoy_num_transitions");
-
-          for (int i = 0; i < id_decoy_num_transitions; ++i)
+          for (Size i = 0; i < id_decoy_transition_names.size(); ++i)
           {
              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION "\
                 "(FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, "\
@@ -628,51 +626,51 @@ namespace OpenMS
                 << ") VALUES ("
                                         << feature_id << ", "
                                         << id_decoy_transition_names[i] << ", "
-                                        << id_decoy_area_intensity[i] << ", "
-                                        << id_decoy_total_area_intensity[i] << ", "
-                                        << id_decoy_apex_intensity[i] << ", "
-                                        << id_decoy_peak_apex_position[i] << ", "
-                                        << id_decoy_peak_fwhm[i] << ", "
-                                        << id_decoy_ind_massdev_score[i] << ", "
-                                        << id_decoy_total_mi[i] << ", "
-                                        << id_decoy_intensity_score[i] << ", "
-                                        << id_decoy_intensity_ratio_score[i] << ", "
-                                        << id_decoy_log_intensity[i] << ", "
-                                        << id_decoy_ind_xcorr_coelution[i] << ", "
-                                        << id_decoy_ind_xcorr_shape[i] << ", "
-                                        << id_decoy_ind_log_sn_score[i] << ", "
-                                        << id_decoy_ind_massdev_score[i] << ", "
-                                        << id_decoy_ind_mi_score[i] << ", "
-                                        << id_decoy_ind_mi_ratio_score[i] << ", "
-                                        << id_decoy_ind_isotope_correlation[i] << ", "
-                                        << id_decoy_ind_isotope_overlap[i] << ", "
-                                        << id_decoy_ind_im_drift[i] << ", "
-                                        << id_decoy_ind_im_drift_left[i] << ", "
-                                        << id_decoy_ind_im_drift_right[i] << ", "
-                                        << id_decoy_ind_im_delta[i] << ", "
-                                        << id_decoy_ind_ind_im_delta_score[i] << ", "
-                                        << id_decoy_ind_log_intensity[i] << ", "
-                                        << id_decoy_ind_im_contrast_coelution[i] << ", "
-                                        << id_decoy_ind_im_contrast_shape[i] << ", "
-                                        << id_decoy_ind_im_sum_contrast_coelution[i] << ", "
-                                        << id_decoy_ind_im_sum_contrast_shape[i];
+                                        << valueOrNull(id_decoy_area_intensity, i) << ", "
+                                        << valueOrNull(id_decoy_total_area_intensity, i) << ", "
+                                        << valueOrNull(id_decoy_apex_intensity, i) << ", "
+                                        << valueOrNull(id_decoy_peak_apex_position, i) << ", "
+                                        << valueOrNull(id_decoy_peak_fwhm, i) << ", "
+                                        << valueOrNull(id_decoy_ind_massdev_score, i) << ", "
+                                        << valueOrNull(id_decoy_total_mi, i) << ", "
+                                        << valueOrNull(id_decoy_intensity_score, i) << ", "
+                                        << valueOrNull(id_decoy_intensity_ratio_score, i) << ", "
+                                        << valueOrNull(id_decoy_log_intensity, i) << ", "
+                                        << valueOrNull(id_decoy_ind_xcorr_coelution, i) << ", "
+                                        << valueOrNull(id_decoy_ind_xcorr_shape, i) << ", "
+                                        << valueOrNull(id_decoy_ind_log_sn_score, i) << ", "
+                                        << valueOrNull(id_decoy_ind_massdev_score, i) << ", "
+                                        << valueOrNull(id_decoy_ind_mi_score, i) << ", "
+                                        << valueOrNull(id_decoy_ind_mi_ratio_score, i) << ", "
+                                        << valueOrNull(id_decoy_ind_isotope_correlation, i) << ", "
+                                        << valueOrNull(id_decoy_ind_isotope_overlap, i) << ", "
+                                        << valueOrNull(id_decoy_ind_im_drift, i) << ", "
+                                        << valueOrNull(id_decoy_ind_im_drift_left, i) << ", "
+                                        << valueOrNull(id_decoy_ind_im_drift_right, i) << ", "
+                                        << valueOrNull(id_decoy_ind_im_delta, i) << ", "
+                                        << valueOrNull(id_decoy_ind_ind_im_delta_score, i) << ", "
+                                        << valueOrNull(id_decoy_ind_log_intensity, i) << ", "
+                                        << valueOrNull(id_decoy_ind_im_contrast_coelution, i) << ", "
+                                        << valueOrNull(id_decoy_ind_im_contrast_shape, i) << ", "
+                                        << valueOrNull(id_decoy_ind_im_sum_contrast_coelution, i) << ", "
+                                        << valueOrNull(id_decoy_ind_im_sum_contrast_shape, i);
 
                          if (enable_compute_peak_shape_metrics)
                          {
                             sql_feature_uis_transition << ", "
-                                          << decoy_start_position_at_5[i] << ", "
-                                          << decoy_end_position_at_5[i] << ", "
-                                          << decoy_start_position_at_10[i] << ", "
-                                          << decoy_end_position_at_10[i] << ", "
-                                          << decoy_start_position_at_50[i] << ", "
-                                          << decoy_end_position_at_50[i] << ", "
-                                          << decoy_total_width[i] << ", "
-                                          << decoy_tailing_factor[i] << ", "
-                                          << decoy_asymmetry_factor[i] << ", "
-                                          << decoy_slope_of_baseline[i] << ", "
-                                          << decoy_baseline_delta_2_height[i] << ", "
-                                          << decoy_points_across_baseline[i] << ", "
-                                          << decoy_points_across_half_height[i];
+                                          << valueOrNull(decoy_start_position_at_5, i) << ", "
+                                          << valueOrNull(decoy_end_position_at_5, i) << ", "
+                                          << valueOrNull(decoy_start_position_at_10, i) << ", "
+                                          << valueOrNull(decoy_end_position_at_10, i) << ", "
+                                          << valueOrNull(decoy_start_position_at_50, i) << ", "
+                                          << valueOrNull(decoy_end_position_at_50, i) << ", "
+                                          << valueOrNull(decoy_total_width, i) << ", "
+                                          << valueOrNull(decoy_tailing_factor, i) << ", "
+                                          << valueOrNull(decoy_asymmetry_factor, i) << ", "
+                                          << valueOrNull(decoy_slope_of_baseline, i) << ", "
+                                          << valueOrNull(decoy_baseline_delta_2_height, i) << ", "
+                                          << valueOrNull(decoy_points_across_baseline, i) << ", "
+                                          << valueOrNull(decoy_points_across_half_height, i);
                          }
                          sql_feature_uis_transition << "); ";
           }
@@ -703,4 +701,3 @@ namespace OpenMS
     conn.executeStatement("END TRANSACTION");
   }
 }
-
