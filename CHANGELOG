@@ -229,6 +229,8 @@ TOPP tools:
       - Added SRM support (#8700)
       - Added Parquet chromatogram output support (#8737)
       - Direct Bruker .d (TDF) file input: Bruker TimsTOF files can now be passed directly without prior mzML conversion; requires WITH_TIMSRUST=ON (#9019)
+      - Performance: new automatic SWATH wave scheduler reduces wall time on large spectral libraries; batchSize=0 (default) now selects the wave scheduler automatically when working in memory; new advanced parameters innerBatchSize (inner scoring batch size, <=0 for auto), maxConcurrentSwaths (max concurrent SWATH maps in memory, -1 for auto), and outer_loop_threads (legacy nested-OpenMP outer threads, -1 for auto) expose tuning knobs; OSW output is written via a memory-aware buffered writer that flushes when free system RAM falls below a configurable threshold (#9190)
+      - Fix: OSW RUN.ID column now stored as INTEGER instead of BLOB; the previous BLOB type caused JOIN queries between the FEATURE and RUN tables to return 0 rows (#9190)
     PeakPickerHiRes:
       - New parameter to allow peak cores with no leading flank peaks (#8649)
       - Warns when given IM_PEAK format (per-peak ion mobility) data; partial support via intensity-weighted mean IM per picked peak (#9018)
@@ -343,6 +345,9 @@ OpenMS Library:
     - BREAKING: Transitive Qt and other includes trimmed from core KERNEL and METADATA headers (ConsensusMap.h, FeatureMap.h, ProteinIdentification.h, SpectrumSettings.h, ExperimentalSettings.h); downstream code relying on these transitive includes must now include headers directly (#8946)
     - Residue: added function that returns hydrophobicity (#9179)
     - HydrophobicityProfile: added a class used for calculating hydrophobicity profiles of peptides and hydrophobic moments in peptides (#9179)
+    - SysInfo: added getFreeSystemMemory() returning currently available physical RAM in KB; on Linux this uses MemAvailable from /proc/meminfo so reclaimable page-cache is counted as available (#9190)
+    - OpenSwathWorkflowScheduler: new class encapsulating the SWATH wave scheduling logic extracted from OpenSwathWorkflow; manages compound batches, per-SWATH scoring job queues, and deferred OSW output with memory-based flushing (#9190)
+    - OpenSwathOSWWriter: added getRowCount() and estimateMemoryUsage() for memory-aware buffered output (#9190)
 
 Fixes:
   - Fix inverted use_all_hits logic causing NucleicAcidSearchEngine crash with multiple hits per spectrum (#8542)
