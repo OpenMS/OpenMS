@@ -32,6 +32,7 @@ set(sources_list_h
   OpenSwathOSWWriter.h
   TransitionListEvidenceFilter.h
   OpenSwathWorkflow.h
+  OpenSwathWorkflowScheduler.h
   PeakIntegrator.h
   PeakPickerChromatogram.h
   PeakPickerMobilogram.h

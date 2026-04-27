@@ -86,9 +86,17 @@ public:
       @brief Loads a Swath run from a Bruker .d (TDF) directory
 
       @param[in] file Path to a Bruker .d (TDF) directory
+      @param[in] tmp Temporary directory (for cached data)
       @param[in,out] exp_meta Will be filled with ExperimentalSettings metadata
+      @param[in] readoptions How spectra are accessed: "normal" (in-memory) or "cache" (disk-cached)
       @return Vector of SwathMap structures representing the loaded Swath maps
     */
+    std::vector<OpenSwath::SwathMap> loadBrukerTdf(const String& file,
+                                                    const String& tmp,
+                                                    std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                    const String& readoptions);
+
+    /// @brief Convenience overload: loads Bruker TDF in-memory (readoptions="normal")
     std::vector<OpenSwath::SwathMap> loadBrukerTdf(const String& file,
                                                     std::shared_ptr<ExperimentalSettings>& exp_meta);
 #endif

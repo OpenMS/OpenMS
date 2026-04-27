@@ -187,10 +187,20 @@ endif()
 find_package(CURL REQUIRED)
 
 #------------------------------------------------------------------------------
-# Apache Arrow and Parquet (required dependency)
-# Arrow 23+ required for parquet file format compatibility
-find_package(Arrow 23 CONFIG REQUIRED)
-find_package(Parquet 23 CONFIG REQUIRED)
+# Apache Arrow and Parquet (required dependency).
+# Arrow 23+ required for parquet file format compatibility. We don't pin the
+# version in find_package because Arrow's ConfigVersion uses SameMajorVersion
+# compatibility, so `find_package(Arrow 23 ...)` rejects 24.x even though
+# 24.x remains API-compatible for our usage. Enforce the minimum with an
+# explicit VERSION_LESS check after the package is located.
+find_package(Arrow CONFIG REQUIRED)
+if(Arrow_VERSION VERSION_LESS 23)
+  message(FATAL_ERROR "Apache Arrow >= 23 required (found ${Arrow_VERSION}).")
+endif()
+find_package(Parquet CONFIG REQUIRED)
+if(Parquet_VERSION VERSION_LESS 23)
+  message(FATAL_ERROR "Apache Parquet >= 23 required (found ${Parquet_VERSION}).")
+endif()
 
 # Arrow's CMake config may import nlohmann_json as a transitive dependency.
 # If so, force the vendored extern to use the already-imported target instead
@@ -279,53 +289,6 @@ if(ArrowDataset_FOUND)
 endif()
 
 #------------------------------------------------------------------------------
-# opentims (Bruker TimsTOF .d file reading)
-if (WITH_OPENTIMS)
-  # Enable C language for bundled ZSTD fallback (zstddeclib.c)
-  enable_language(C)
-  include(FetchContent)
-
-  FetchContent_Declare(
-    opentims
-    GIT_REPOSITORY https://github.com/michalsta/opentims.git
-    GIT_TAG v1.2.0b1
-  )
-
-  # Build opentims as a C++ static library, not a Python module.
-  # Use OpenMS's own sqlite3 instead of opentims's runtime dlopen.
-  set(OPENTIMS_BUILD_PYTHON OFF CACHE BOOL "" FORCE)
-  set(OPENTIMS_BUILD_CPP_LIB ON CACHE BOOL "" FORCE)
-  set(OPENTIMS_LINK_SQLITE_STATICALLY ON CACHE BOOL "" FORCE)
-  FetchContent_MakeAvailable(opentims)
-
-  # Provide OpenMS's sqlite3 headers and library to opentims
-  target_include_directories(opentims_cpp PRIVATE "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
-  target_link_libraries(opentims_cpp PRIVATE sqlite3)
-
-  # ZSTD: opentims uses ZSTD for TDF frame decompression.
-  # Prefer system/package-managed zstd; fall back to opentims's bundled decoder.
-  set(_OPENTIMS_SRC "${opentims_SOURCE_DIR}/src/opentims++")
-  find_package(zstd QUIET)
-  if(TARGET zstd::libzstd_shared)
-    target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_shared)
-    message(STATUS "opentims: using system zstd (shared)")
-  elseif(TARGET zstd::libzstd_static)
-    target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_static)
-    message(STATUS "opentims: using system zstd (static)")
-  else()
-    # Compile opentims's bundled ZSTD decompression-only amalgamation
-    target_sources(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd/zstddeclib.c")
-    target_include_directories(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd")
-    message(STATUS "opentims: using bundled zstd decoder (system zstd not found)")
-  endif()
-
-  # Suppress warnings from third-party code
-  target_compile_options(opentims_cpp PRIVATE $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>)
-
-  message(STATUS "Built opentims_cpp from source: ${opentims_SOURCE_DIR}")
-endif()
-
-#------------------------------------------------------------------------------
 # Done finding contrib libraries
 #------------------------------------------------------------------------------
 
@@ -401,5 +364,106 @@ if (WITH_GUI)
     list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt6::${COMP}")
   endforeach()
 
+endif()
+
+#------------------------------------------------------------------------------
+# opentims (Bruker TimsTOF .d file reading)
+if (WITH_OPENTIMS)
+  # Enable C language for bundled ZSTD fallback (zstddeclib.c)
+  enable_language(C)
+
+  find_package(Opentims QUIET)
+
+  if(Opentims_FOUND)
+    message(STATUS "opentims: using system installation (${Opentims_LIBRARIES})")
+
+    # If the installed library was built with OPENTIMS_LINK_SQLITE_STATICALLY,
+    # that compile definition is propagated via the imported target's
+    # INTERFACE_COMPILE_DEFINITIONS. OpenMS must then supply sqlite3 headers
+    # and the library, just as it does in the FetchContent path.
+    # When the library was found via the manual search path (no CMake config
+    # package), INTERFACE_COMPILE_DEFINITIONS may not be set; in that case we
+    # conservatively inject sqlite3 because we cannot know how it was built.
+    get_target_property(_opentims_defs opentims::opentims_cpp INTERFACE_COMPILE_DEFINITIONS)
+    if(_opentims_defs MATCHES "OPENTIMS_LINK_SQLITE_STATICALLY"
+       OR ((_opentims_defs MATCHES "NOTFOUND" OR _opentims_defs STREQUAL "") AND NOT opentims_FOUND))
+      target_include_directories(opentims::opentims_cpp INTERFACE
+        "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
+      target_link_libraries(opentims::opentims_cpp INTERFACE sqlite3)
+      message(STATUS "opentims: injecting OpenMS sqlite3 (library was built with static sqlite)")
+    endif()
+  else()
+    # No system install found — fetch and build from source.
+    message(STATUS "opentims: system installation not found, fetching from git")
+    include(FetchContent)
+
+    FetchContent_Declare(
+      opentims
+      GIT_REPOSITORY https://github.com/michalsta/opentims.git
+      GIT_TAG        v1.2.0b4
+    )
+
+    # Build opentims as a C++ static library, not a Python module.
+    # Use OpenMS's own sqlite3 instead of opentims's runtime dlopen.
+    set(OPENTIMS_BUILD_LIB              ON  CACHE BOOL "" FORCE)
+    set(OPENTIMS_BUILD_PYTHON           OFF CACHE BOOL "" FORCE)
+    set(OPENTIMS_LINK_SQLITE_STATICALLY ON  CACHE BOOL "" FORCE)
+
+    # OpenMS sets BUILD_SHARED_LIBS=true (to build libOpenMS.so). Without this
+    # override, opentims's CMakeLists.txt would build libopentims_cpp.so instead
+    # of libopentims_cpp.a. A shared opentims would land in _deps/opentims-build/
+    # rather than the system lib path, so the build-time linker would fail with
+    # "undefined reference to TimsDataHandle" when linking test binaries against
+    # libOpenMS.so (because libopentims_cpp.so's directory is not in the test's
+    # -L search path). Force static so all opentims symbols get absorbed into
+    # libOpenMS.so at link time.
+    set(_openms_saved_build_shared_libs ${BUILD_SHARED_LIBS})
+    set(BUILD_SHARED_LIBS OFF)
+    FetchContent_MakeAvailable(opentims)
+    set(BUILD_SHARED_LIBS ${_openms_saved_build_shared_libs})
+
+    # Provide OpenMS's sqlite3 headers to opentims so it compiles with
+    # OPENTIMS_LINK_SQLITE_STATICALLY (direct sqlite3 calls vs. dlopen).
+    # We intentionally do NOT call target_link_libraries(opentims_cpp PRIVATE sqlite3)
+    # here: adding the CMake sqlite3 target as a PRIVATE dep of a STATIC library
+    # would require sqlite3 to appear in the CMake export sets, which creates
+    # conflicts with SQLiteCpp's own sqlite3 export. The sqlite3 symbols are
+    # resolved at final link time through OpenMS's own SQLiteCpp dependency
+    # (SQLiteCpp PUBLIC-links sqlite3, so libsqlite3.a already appears in
+    # libOpenMS.so's link command after libopentims_cpp.a).
+    target_include_directories(opentims_cpp PRIVATE
+      "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
+
+    # ZSTD: prefer system; fall back to opentims's bundled decoder.
+    set(_OPENTIMS_SRC "${opentims_SOURCE_DIR}/src/opentims++")
+    find_package(zstd QUIET)
+    if(TARGET zstd::libzstd_shared)
+      target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_shared)
+      message(STATUS "opentims: using system zstd (shared)")
+    elseif(TARGET zstd::libzstd_static)
+      target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_static)
+      message(STATUS "opentims: using system zstd (static)")
+    else()
+      target_sources(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd/zstddeclib.c")
+      target_include_directories(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd")
+      message(STATUS "opentims: using bundled zstd decoder (system zstd not found)")
+    endif()
+
+    # Suppress warnings from third-party code
+    target_compile_options(opentims_cpp PRIVATE $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>)
+
+    # Expose a namespaced alias so downstream CMakeLists always use
+    # opentims::opentims_cpp regardless of how the library was obtained.
+    add_library(opentims::opentims_cpp ALIAS opentims_cpp)
+
+    # Add opentims_cpp to both the install-tree and build-tree export sets
+    # (same pattern as Evergreen, IsoSpec, and other bundled deps).
+    # install_library() → OpenMSTargets install export
+    # openms_register_export_target() → _OPENMS_EXPORT_TARGETS build-tree export()
+    install_library(opentims_cpp)
+    openms_register_export_target(opentims_cpp)
+
+    message(STATUS "opentims: built from source (${opentims_SOURCE_DIR})")
+  endif()
 endif()
 #------------------------------------------------------------------------------

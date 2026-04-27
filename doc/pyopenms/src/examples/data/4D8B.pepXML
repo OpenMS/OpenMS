@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://regis-web.systemsbiology.net/pepXML http://www.matrixscience.com/xmlns/schema/pepXML_v18/pepXML_v18.xsd" summary_xml=".xml">
+<msms_run_summary base_name="test.pepXML" raw_data_type="raw" raw_data=".mzXML" search_engine="">
+<sample_enzyme name="trypsin">
+<specificity cut="KR" no_cut="P" sense="C"/>
+</sample_enzyme>
+<search_summary base_name="test.pepXML" search_engine="" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
+		<search_database local_path="" type="AA"/>
+    </search_summary>
+    <analysis_timestamp analysis="peptideprophet" time="2007-12-05T17:49:52" id="1"/>
+		<spectrum_query spectrum="1" start_scan="1" end_scan="1" precursor_neutral_mass="1021.5444163925" assumed_charge="0" index="1">
+      <search_result>
+			<search_hit hit_rank="1" peptide="DSAITFIQK" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1021.5444163925" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="2" start_scan="2" end_scan="2" precursor_neutral_mass="2169.1218638488" assumed_charge="0" index="2">
+      <search_result>
+			<search_hit hit_rank="1" peptide="GIHYNQGNPYNLLTPVIEK" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2169.1218638488" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="3" start_scan="3" end_scan="3" precursor_neutral_mass="1724.8270765728" assumed_charge="0" index="3">
+      <search_result>
+			<search_hit hit_rank="1" peptide="QYNWNNILPTYSGR" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1724.8270765728" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="4" start_scan="4" end_scan="4" precursor_neutral_mass="1369.6738689029" assumed_charge="0" index="4">
+      <search_result>
+			<search_hit hit_rank="1" peptide="VGGHAFVIDGADGR" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1369.6738689029" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="5" start_scan="5" end_scan="5" precursor_neutral_mass="1708.8420587004" assumed_charge="0" index="5">
+      <search_result>
+			<search_hit hit_rank="1" peptide="ELSQNQPVYYQGVGK" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1708.8420587004" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="6" start_scan="6" end_scan="6" precursor_neutral_mass="991.5450843287" assumed_charge="0" index="6">
+      <search_result>
+			<search_hit hit_rank="1" peptide="NLFAAISTR" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="991.5450843287" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="7" start_scan="7" end_scan="7" precursor_neutral_mass="2059.9275811151" assumed_charge="0" index="7">
+      <search_result>
+			<search_hit hit_rank="1" peptide="DYTYTLSSNNPYFNHPK" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2059.9275811151" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="8" start_scan="8" end_scan="8" precursor_neutral_mass="2143.9653021151" assumed_charge="0" index="8">
+      <search_result>
+			<search_hit hit_rank="1" peptide="NFYHVNWGWGGVSDGFFR" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2143.9653021151" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="9" start_scan="9" end_scan="9" precursor_neutral_mass="1724.8270765728" assumed_charge="0" index="9">
+      <search_result>
+			<search_hit hit_rank="1" peptide="QYNWNNILPTYSGR" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1724.8270765728" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="10" start_scan="10" end_scan="10" precursor_neutral_mass="1409.7402182857" assumed_charge="0" index="10">
+      <search_result>
+			<search_hit hit_rank="1" peptide="KLDTTYAGTAEIK" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1409.7402182857" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="11" start_scan="11" end_scan="11" precursor_neutral_mass="2822.3511529653" assumed_charge="0" index="11">
+      <search_result>
+			<search_hit hit_rank="1" peptide="QDWEAQIDKELSQNQPVYYQGVGK" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2822.3511529653" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="12" start_scan="12" end_scan="12" precursor_neutral_mass="1961.0833527212" assumed_charge="0" index="12">
+      <search_result>
+			<search_hit hit_rank="1" peptide="KLDTTYAGTAEIKQPVVK" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1961.0833527212" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="13" start_scan="13" end_scan="13" precursor_neutral_mass="2822.3511529653" assumed_charge="0" index="13">
+      <search_result>
+			<search_hit hit_rank="1" peptide="QDWEAQIDKELSQNQPVYYQGVGK" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2822.3511529653" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="14" start_scan="14" end_scan="14" precursor_neutral_mass="2787.4191721886" assumed_charge="0" index="14">
+      <search_result>
+			<search_hit hit_rank="1" peptide="LDALNPSALGTGGGAGGFNGYQSAVVGIKP" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2787.4191721886" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="15" start_scan="15" end_scan="15" precursor_neutral_mass="2358.1280729445" assumed_charge="0" index="15">
+      <search_result>
+			<search_hit hit_rank="1" peptide="GLKDYTYTLSSNNPYFNHPK" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2358.1280729445" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="16" start_scan="16" end_scan="16" precursor_neutral_mass="2059.9275811151" assumed_charge="0" index="16">
+      <search_result>
+			<search_hit hit_rank="1" peptide="DYTYTLSSNNPYFNHPK" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2059.9275811151" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="17" start_scan="17" end_scan="17" precursor_neutral_mass="1281.6452549029" assumed_charge="0" index="17">
+      <search_result>
+			<search_hit hit_rank="1" peptide="LDTTYAGTAEIK" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1281.6452549029" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+		<spectrum_query spectrum="18" start_scan="18" end_scan="18" precursor_neutral_mass="2017.0129813384" assumed_charge="0" index="18">
+      <search_result>
+			<search_hit hit_rank="1" peptide="ALKENFGYNQSVHQINR" peptide_prev_aa=" " peptide_next_aa=" " protein="Protein1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2017.0129813384" massdiff="0.0" num_tol_term="0" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+          <analysis_result analysis="peptideprophet">
+			<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+			</peptideprophet_result>
+			</analysis_result>
+			</search_hit>
+		</search_result>
+		</spectrum_query>
+	</msms_run_summary>
+</msms_pipeline_analysis>

@@ -395,6 +395,32 @@ namespace OpenMS
       irt_chromatograms = provider->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp_irt, TransformationDescription(), pasef, load_into_memory);
     }
 
+    // Summarize chromatogram extraction quality — empty chromatograms are a leading
+    // indicator that downstream calibration will fail (insufficient RT bin coverage).
+    // The per-batch "Detected N empty chromatograms" warnings from DIAChromHandler
+    // scroll past easily; this one-line summary is the aggregated view.
+    {
+      Size nr_empty = std::count_if(irt_chromatograms.begin(), irt_chromatograms.end(),
+        [](const MSChromatogram& c) { return c.empty(); });
+      Size nr_total = irt_chromatograms.size();
+      Size nr_nonempty = nr_total - nr_empty;
+      if (nr_total > 0 && nr_empty > nr_total / 2)
+      {
+        OPENMS_LOG_WARN << "[OpenSwath] iRT chromatogram extraction: " << nr_nonempty << "/"
+                        << nr_total << " non-empty (" << std::fixed << std::setprecision(1)
+                        << (100.0 * nr_nonempty / nr_total) << "%). "
+                        << "Over half are empty - iRT calibration may fail. "
+                        << "Common causes: wrong SWATH boundaries, poor data quality, "
+                        << "or unsorted m/z peaks in the input spectra." << std::endl;
+      }
+      else if (nr_total > 0)
+      {
+        OPENMS_LOG_INFO << "[OpenSwath] iRT chromatogram extraction: " << nr_nonempty << "/"
+                        << nr_total << " non-empty (" << std::fixed << std::setprecision(1)
+                        << (100.0 * nr_nonempty / nr_total) << "%)" << std::endl;
+      }
+    }
+
     // debug output of the iRT chromatograms
     String irt_mzml_out_local = irt_mzml_out;
     if (irt_mzml_out_local.empty() && debug_level > 1)
@@ -567,14 +593,30 @@ namespace OpenMS
 
       if (!enoughPeptides)
       {
+        const int nr_bins = irt_detection_param.getValue("NrRTBins");
+        const int min_pep = irt_detection_param.getValue("MinPeptidesPerBin");
+        const int min_filled = irt_detection_param.getValue("MinBinsFilled");
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "There were not enough bins with the minimal number of peptides");
+          String("iRT calibration failed: insufficient RT coverage after outlier removal.\n") +
+          "  Chromatograms extracted:    " + String(chromatograms.size()) + "\n" +
+          "  iRT peptides matched:       " + String(pairs.size()) + " (before outlier removal)\n" +
+          "  After outlier removal:      " + String(pairs_corrected.size()) + " (exp_RT, theor_RT) pairs\n" +
+          "  Binning requires:           " + String(min_filled) + "/" + String(nr_bins) + " RT bins "
+          "with >= " + String(min_pep) + " peptides each\n" +
+          "  RT range:                   " + String(RTRange.first, 1) + " - " + String(RTRange.second, 1) + " s\n" +
+          "Common causes:\n"
+          "  - Too few iRT/CiRT peptides in the transition library for the LC gradient\n"
+          "  - Low data quality (check the 'Detected N empty chromatograms' warnings above)\n"
+          "  - Wrong SWATH window boundaries (precursor m/z mismatch between library and data)");
       }
     }
     if (pairs_corrected.size() < 2)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "There are less than 2 iRT normalization peptides, not enough for an RT correction.");
+        String("Less than 2 iRT normalization peptides after outlier removal (have ") +
+        String(pairs_corrected.size()) + " from " + String(pairs.size()) + " initial matches, " +
+        String(chromatograms.size()) + " chromatograms extracted). "
+        "Not enough for an RT correction.");
     }
 
     // 7. Select the "correct" peaks for m/z (and IM) correction (e.g. remove those not

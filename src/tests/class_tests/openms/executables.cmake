@@ -275,6 +275,7 @@ set(format_executables_list
   ZlibCompression_test
   Libzip_test
   ZipArchiveFile_test
+  ZipIfstream_test
   ZipRandomAccessFile_test
   # DATAACCESS
   MSDataCachedConsumer_test
@@ -345,7 +346,6 @@ set(filtering_executables_list
   GaussFilterAlgorithm_test
   IDFilter_test
   InternalCalibration_test
-  LinearResampler_test
   LinearResamplerAlign_test
   LowessSmoothing_test
   MassTraceDetection_test
@@ -416,6 +416,7 @@ set(chemistry_executables_list
   EmpiricalFormula_test
   EnzymaticDigestion_test
   FineIsotopeDistribution_test
+  HydrophobicityProfile_test
   IMSAlphabetParser_test
   IMSAlphabetTextParser_test
   IMSAlphabet_test
@@ -564,7 +565,7 @@ set(analysis_executables_list
   ReactionMonitoringTransition_test
   NuXLModificationsGenerator_test
   NuXLParameterParsing_test
-  PeptideSearchEngineFIAlgorithm_test
+  ProSEAlgorithm_test
   SimpleSearchEngineAlgorithm_test
   SimpleSVM_test
   SpectralDeconvolution_test

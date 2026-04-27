@@ -2915,22 +2915,90 @@ set_tests_properties("TOPP_SimpleSearchEngine_2_out" PROPERTIES DEPENDS
 "TOPP_SimpleSearchEngine_2")
 
 
-# PeptideDataBaseSearchFI:
-add_test("TOPP_PeptideDataBaseSearchFI_1" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
--ini ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_1.ini -in
-${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_1_out.tmp.idXML
+# ProSE:
+add_test("TOPP_ProSE_1" ${TOPP_BIN_PATH}/ProSE -test
+-ini ${DATA_DIR_TOPP}/ProSE_1.ini -in
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML
 -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
-add_test("TOPP_PeptideDataBaseSearchFI_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
-set_tests_properties("TOPP_PeptideDataBaseSearchFI_1_out" PROPERTIES DEPENDS
-"TOPP_PeptideDataBaseSearchFI_1")
+add_test("TOPP_ProSE_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
+set_tests_properties("TOPP_ProSE_1_out" PROPERTIES DEPENDS
+"TOPP_ProSE_1")
 
-add_test("TOPP_PeptideDataBaseSearchFI_2" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
--ini ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_2.ini -in
-${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_2_out.tmp.idXML
+add_test("TOPP_ProSE_2" ${TOPP_BIN_PATH}/ProSE -test
+-ini ${DATA_DIR_TOPP}/ProSE_2.ini -in
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML
 -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
-add_test("TOPP_PeptideDataBaseSearchFI_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_2_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
-set_tests_properties("TOPP_PeptideDataBaseSearchFI_2_out" PROPERTIES DEPENDS
-"TOPP_PeptideDataBaseSearchFI_2")
+add_test("TOPP_ProSE_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
+set_tests_properties("TOPP_ProSE_2_out" PROPERTIES DEPENDS
+"TOPP_ProSE_2")
+
+# Multi-file test: single-file idXML output
+add_test("TOPP_ProSE_3_multi" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+add_test("TOPP_ProSE_3_multi_idXML_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML
+  -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML
+  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
+set_tests_properties("TOPP_ProSE_3_multi_idXML_out" PROPERTIES DEPENDS "TOPP_ProSE_3_multi")
+
+# Test 3b: QPX directory output (smoke test — check files exist)
+add_test("TOPP_ProSE_3_qpx" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  -out_qpx ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+add_test(NAME "TOPP_ProSE_3_qpx_psm_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
+  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.psm.parquet)
+set_tests_properties("TOPP_ProSE_3_qpx_psm_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
+add_test(NAME "TOPP_ProSE_3_qpx_pg_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
+  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/SimpleSearchEngine_1.pg.parquet)
+set_tests_properties("TOPP_ProSE_3_qpx_pg_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
+add_test(NAME "TOPP_ProSE_3_qpx_merged_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
+  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.psm.parquet)
+set_tests_properties("TOPP_ProSE_3_qpx_merged_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
+add_test(NAME "TOPP_ProSE_3_qpx_merged_pg_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
+  ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir/quantms.pg.parquet)
+set_tests_properties("TOPP_ProSE_3_qpx_merged_pg_exists" PROPERTIES DEPENDS "TOPP_ProSE_3_qpx")
+
+# Asymmetric precursor window + calibration bias preservation end-to-end test.
+# Uses SimpleSearchEngine_1_shifted_7ppm.mzML (all MS2 precursors multiplied by
+# 1 + 7e-6). The asymmetric window [lower=15 ppm, upper=10 ppm] is skewed
+# toward the low mass side so the FragmentIndex mass window [m_obs - 15 ppm,
+# m_obs + 10 ppm] captures the true peptide mass that sits ~7 ppm below the
+# observed mass. Calibration is enabled with min_psms=3 so the small fixture
+# (3 MS2 spectra) triggers the calibration pass, which detects shift ~ +7 ppm
+# as the signed median. With 3 tight residuals the |shift| >> spread check
+# routes the result through the extreme-bias path, preserving user bounds.
+add_test("TOPP_ProSE_4" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_4.ini
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1_shifted_7ppm.mzML
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+add_test("TOPP_ProSE_4_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
+  -in2 ${DATA_DIR_TOPP}/ProSE_4_out.idXML
+  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "name=\"fragment_annotation\""
+  -ratio 1.2 -absdiff 2.0)
+set_tests_properties("TOPP_ProSE_4_out" PROPERTIES DEPENDS
+  "TOPP_ProSE_4")
+
+# Test 5: Database chunking — same inputs as test 1 but with chunk_size=5.
+# 11 proteins (decoys=false in ProSE_1.ini) → 3 chunks (5+5+1). Output
+# must match test 1 exactly (chunking must not change identification results).
+add_test("TOPP_ProSE_5_chunked" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini -in
+  ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_5_chunked_out.tmp.idXML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+  -Search:database:chunk_size 5)
+add_test("TOPP_ProSE_5_chunked_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_5_chunked_out.tmp.idXML
+  -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML
+  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
+set_tests_properties("TOPP_ProSE_5_chunked_out" PROPERTIES DEPENDS
+  "TOPP_ProSE_5_chunked")
 
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
@@ -2963,11 +3031,23 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     -protein false)
   set_tests_properties("TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA" PROPERTIES DEPENDS "TOPP_SimpleSearchEngine_DDA")
 
-  add_test("TOPP_PeptideDataBaseSearchFI_DDA" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
+  # Floor-only PSM-count regression tripwire. Current yield on this fixture is
+  # 4187; floor set ~0.5% below so tiny tie-breaking jitter is absorbed but any
+  # real regression (silent native-ID or IM-annotation breakage, thirdparty
+  # algorithm drift) trips the check. If a legitimate improvement raises yield,
+  # raise the floor in the same commit.
+  add_test(NAME "TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA_psm_count"
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/check_psm_floor.cmake
+      ${TESTS_TEMP_DIR}/SimpleSearchEngine_DDA_fdr.tmp.idXML 4170)
+  set_tests_properties("TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA_psm_count"
+    PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA")
+
+  add_test("TOPP_ProSE_DDA" ${TOPP_BIN_PATH}/ProSE -test
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
-    -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_out.tmp.idXML
-    -Search:precursor:mass_tolerance 20
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_DDA_out.tmp.idXML
+    -Search:precursor:mass_tolerance_lower 20
+    -Search:precursor:mass_tolerance_upper 20
     -Search:precursor:mass_tolerance_unit ppm
     -Search:fragment:mass_tolerance 20
     -Search:fragment:mass_tolerance_unit ppm
@@ -2976,22 +3056,126 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
     -Search:decoys)
 
-  add_test("TOPP_FalseDiscoveryRate_PeptideDataBaseSearchFIDDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
-    -in ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_out.tmp.idXML
-    -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_fdr.tmp.idXML
+  add_test("TOPP_FalseDiscoveryRate_ProSEDDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+    -in ${TESTS_TEMP_DIR}/ProSE_DDA_out.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/ProSE_DDA_fdr.tmp.idXML
     -FDR:PSM 0.01
     -protein false)
-  set_tests_properties("TOPP_FalseDiscoveryRate_PeptideDataBaseSearchFIDDA" PROPERTIES DEPENDS "TOPP_PeptideDataBaseSearchFI_DDA")
+  set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA" PROPERTIES DEPENDS "TOPP_ProSE_DDA")
 
-  # SageAdapter DDA test: generate decoys externally (SageAdapter sets generate_decoys=false),
-  # then search with Sage, then apply FDR filtering on hyperscore via FalseDiscoveryRate.
+  # Floor: 4373 current; guard ~0.5% below.
+  add_test(NAME "TOPP_FalseDiscoveryRate_ProSEDDA_psm_count"
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/check_psm_floor.cmake
+      ${TESTS_TEMP_DIR}/ProSE_DDA_fdr.tmp.idXML 4350)
+  set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_psm_count"
+    PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_ProSEDDA")
+
+  # Same DDA search with automatic calibration enabled
+  add_test("TOPP_ProSE_DDA_calibrated" ${TOPP_BIN_PATH}/ProSE -test
+    -in ${OPENTIMS_DDA_SYMLINK}
+    -database ${OPENTIMS_TEST_FASTA}
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_out.tmp.idXML
+    -Search:precursor:mass_tolerance_lower 20
+    -Search:precursor:mass_tolerance_upper 20
+    -Search:precursor:mass_tolerance_unit ppm
+    -Search:fragment:mass_tolerance 20
+    -Search:fragment:mass_tolerance_unit ppm
+    -Search:enzyme Trypsin/P
+    -Search:peptide:missed_cleavages 2
+    "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
+    -Search:decoys
+    -Search:calibration:enabled)
+
+  add_test("TOPP_FalseDiscoveryRate_ProSEDDA_calibrated" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+    -in ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_out.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_fdr.tmp.idXML
+    -FDR:PSM 0.01
+    -protein false)
+  set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_calibrated" PROPERTIES DEPENDS "TOPP_ProSE_DDA_calibrated")
+
+  # Floor: 4681 current (calibration should legitimately EXCEED uncalibrated yield);
+  # guard ~0.5% below. This test also protects the sign-convention fix in
+  # ProSEAlgorithm::runCalibrationPass_ — a regression of the swap would drop
+  # this count back to ~1441.
+  add_test(NAME "TOPP_FalseDiscoveryRate_ProSEDDA_calibrated_psm_count"
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/check_psm_floor.cmake
+      ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_fdr.tmp.idXML 4650)
+  set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_calibrated_psm_count"
+    PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_ProSEDDA_calibrated")
+
+  # Chunked + calibration regression guard. Under the pre-#9180 code the chunked
+  # calibration path collapsed the asymmetric calibrated window to symmetric max(),
+  # dropping yield; under pre-#9182 code small chunk_size would silently starve
+  # the calibration pool. chunk_size=5000 is the sweet spot on the HeLa fixture
+  # where calibration fires reliably with the cal_target=chunk_size strategy.
+  # Current: 4438. Floor ~0.5% below.
+  add_test("TOPP_ProSE_DDA_chunked_calibrated" ${TOPP_BIN_PATH}/ProSE -test
+    -in ${OPENTIMS_DDA_SYMLINK}
+    -database ${OPENTIMS_TEST_FASTA}
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_DDA_chunked_cal_out.tmp.idXML
+    -Search:precursor:mass_tolerance_lower 20
+    -Search:precursor:mass_tolerance_upper 20
+    -Search:precursor:mass_tolerance_unit ppm
+    -Search:fragment:mass_tolerance 20
+    -Search:fragment:mass_tolerance_unit ppm
+    -Search:enzyme Trypsin/P
+    -Search:peptide:missed_cleavages 2
+    "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
+    -Search:decoys
+    -Search:calibration:enabled
+    -Search:database:chunk_size 5000)
+
+  add_test("TOPP_FalseDiscoveryRate_ProSEDDA_chunked_calibrated" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+    -in ${TESTS_TEMP_DIR}/ProSE_DDA_chunked_cal_out.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/ProSE_DDA_chunked_cal_fdr.tmp.idXML
+    -FDR:PSM 0.01
+    -protein false)
+  set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_chunked_calibrated"
+    PROPERTIES DEPENDS "TOPP_ProSE_DDA_chunked_calibrated")
+
+  add_test(NAME "TOPP_FalseDiscoveryRate_ProSEDDA_chunked_calibrated_psm_count"
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/check_psm_floor.cmake
+      ${TESTS_TEMP_DIR}/ProSE_DDA_chunked_cal_fdr.tmp.idXML 4400)
+  set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_chunked_calibrated_psm_count"
+    PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_ProSEDDA_chunked_calibrated")
+
+  # Generate target-decoy database (shared by CometAdapter and SageAdapter DDA tests)
+  add_test("TOPP_DecoyDatabase_DDA" ${TOPP_BIN_PATH}/DecoyDatabase -test
+    -in ${OPENTIMS_TEST_FASTA}
+    -out ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
+    -decoy_string DECOY_
+    -decoy_string_position prefix)
+
+  # CometAdapter DDA test: search Bruker .d input with Comet, then apply FDR filtering.
+  if (NOT (${COMET_BINARY} STREQUAL "COMET_BINARY-NOTFOUND"))
+    add_test("TOPP_CometAdapter_DDA" ${TOPP_BIN_PATH}/CometAdapter -test
+      -in ${OPENTIMS_DDA_SYMLINK}
+      -database ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
+      -out ${TESTS_TEMP_DIR}/CometAdapter_DDA_out.tmp.idXML
+      -comet_executable "${COMET_BINARY}"
+      -precursor_mass_tolerance 20
+      -precursor_error_units ppm
+      -fragment_mass_tolerance 0.02
+      -enzyme Trypsin/P
+      -missed_cleavages 2
+      "-variable_modifications" "Oxidation (M)" "Acetyl (Protein N-term)")
+    set_tests_properties("TOPP_CometAdapter_DDA" PROPERTIES DEPENDS "TOPP_DecoyDatabase_DDA")
+
+    add_test("TOPP_FalseDiscoveryRate_CometDDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+      -in ${TESTS_TEMP_DIR}/CometAdapter_DDA_out.tmp.idXML
+      -out ${TESTS_TEMP_DIR}/CometAdapter_DDA_fdr.tmp.idXML
+      -FDR:PSM 0.01
+      -protein false)
+    set_tests_properties("TOPP_FalseDiscoveryRate_CometDDA" PROPERTIES DEPENDS "TOPP_CometAdapter_DDA")
+
+    # Verify that ion mobility metadata was annotated on peptide IDs from .d input
+    add_test(NAME "TOPP_CometAdapter_DDA_IM_check"
+      COMMAND grep -q "UserParam type=\"float\" name=\"IM\"" ${TESTS_TEMP_DIR}/CometAdapter_DDA_out.tmp.idXML)
+    set_tests_properties("TOPP_CometAdapter_DDA_IM_check" PROPERTIES DEPENDS "TOPP_CometAdapter_DDA")
+  endif()
+
+  # SageAdapter DDA test: search with Sage, then apply FDR filtering on hyperscore via FalseDiscoveryRate.
   if (NOT (${SAGE_BINARY} STREQUAL "SAGE_BINARY-NOTFOUND"))
-    add_test("TOPP_DecoyDatabase_DDA" ${TOPP_BIN_PATH}/DecoyDatabase -test
-      -in ${OPENTIMS_TEST_FASTA}
-      -out ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
-      -decoy_string DECOY_
-      -decoy_string_position prefix)
-
     add_test("TOPP_SageAdapter_DDA" ${TOPP_BIN_PATH}/SageAdapter -test
       -in ${OPENTIMS_DDA_SYMLINK}
       -database ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
@@ -3008,7 +3192,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
       "-variable_modifications" "Oxidation (M)" "Acetyl (Protein N-term)"
       -chimera false
       -predict_rt false
-      -deisotope false
+      -deisotope true
       -min_ion_index 2)
     set_tests_properties("TOPP_SageAdapter_DDA" PROPERTIES DEPENDS "TOPP_DecoyDatabase_DDA")
 
@@ -3267,6 +3451,7 @@ add_test("TOPP_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -targeted_only false
          -mass_recalibration false
+         -PeptideQuantification:seed_apex_rt_tolerance 0
          -out_cxml ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer.tmp.mzTab
@@ -3464,6 +3649,7 @@ add_test("TOPP_ProteomicsLFQ_9" ${TOPP_BIN_PATH}/ProteomicsLFQ
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -targeted_only false
          -mass_recalibration false
+         -PeptideQuantification:seed_apex_rt_tolerance 0
          -out_cxml ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.consensusXML
          -out_msstats ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.csv
          -out ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.mzTab
@@ -3480,6 +3666,78 @@ add_test("TOPP_ProteomicsLFQ_9_out_3" ${DIFF} -whitelist "software" "location" "
 set_tests_properties("TOPP_ProteomicsLFQ_9_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9")
 add_test("TOPP_ProteomicsLFQ_9_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_sub_9.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.tsv )
 set_tests_properties("TOPP_ProteomicsLFQ_9_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9")
+
+# Variant of TOPP_ProteomicsLFQ_3 with seed_apex_rt_tolerance=5.0 (filter unreliable RT-outlier seed features)
+add_test("TOPP_ProteomicsLFQ_3_seedRT" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+         -Alignment:align_algorithm:max_rt_shift 0
+         -Linking:min_nr_diffs_per_bin 10
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only false
+         -mass_recalibration false
+         -PeptideQuantification:seed_apex_rt_tolerance 5.0
+         -out_cxml ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.consensusXML
+         -out_msstats ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.csv
+         -out ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.mzTab
+         -out_triqler ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.tsv
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         -debug 0
+         )
+add_test("TOPP_ProteomicsLFQ_3_seedRT_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_seedRT_out.consensusXML )
+set_tests_properties("TOPP_ProteomicsLFQ_3_seedRT_out_1" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3_seedRT")
+add_test("TOPP_ProteomicsLFQ_3_seedRT_out_2" ${DIFF}  -whitelist "software" "location" -in1 ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_seedRT_out.csv )
+set_tests_properties("TOPP_ProteomicsLFQ_3_seedRT_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3_seedRT")
+add_test("TOPP_ProteomicsLFQ_3_seedRT_out_3" ${DIFF}  -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_seedRT_out.mzTab )
+set_tests_properties("TOPP_ProteomicsLFQ_3_seedRT_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3_seedRT")
+add_test("TOPP_ProteomicsLFQ_3_seedRT_out_4" ${DIFF}  -in1 ${TESTS_TEMP_DIR}/BSA_plusSeeds_plusTransfer_seedRT.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_seedRT_out.tsv )
+set_tests_properties("TOPP_ProteomicsLFQ_3_seedRT_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_3_seedRT")
+
+# Variant of TOPP_ProteomicsLFQ_9 with seed_apex_rt_tolerance=5.0 (filter unreliable RT-outlier seed features)
+add_test("TOPP_ProteomicsLFQ_9_seedRT" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         -Alignment:align_algorithm:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only false
+         -mass_recalibration false
+         -PeptideQuantification:seed_apex_rt_tolerance 5.0
+         -out_cxml ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.consensusXML
+         -out_msstats ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.csv
+         -out ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.mzTab
+         -out_triqler ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.tsv
+         -threads 1
+         -proteinFDR 0.8
+         -test
+         )
+add_test("TOPP_ProteomicsLFQ_9_seedRT_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_seedRT_out.consensusXML )
+set_tests_properties("TOPP_ProteomicsLFQ_9_seedRT_out_1" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9_seedRT")
+add_test("TOPP_ProteomicsLFQ_9_seedRT_out_2" ${DIFF}  -whitelist "software" "location" -in1 ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_seedRT_out.csv )
+set_tests_properties("TOPP_ProteomicsLFQ_9_seedRT_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9_seedRT")
+add_test("TOPP_ProteomicsLFQ_9_seedRT_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_seedRT_out.mzTab )
+set_tests_properties("TOPP_ProteomicsLFQ_9_seedRT_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9_seedRT")
+add_test("TOPP_ProteomicsLFQ_9_seedRT_out_4" ${DIFF} -in1 ${TESTS_TEMP_DIR}/BSA_sub_9_seedRT.tmp.tsv -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_seedRT_out.tsv )
+set_tests_properties("TOPP_ProteomicsLFQ_9_seedRT_out_4" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_9_seedRT")
 
 # biosaur2 seeding algorithm smoke test (mzML input, verifies pipeline completes)
 add_test("TOPP_ProteomicsLFQ_biosaur2_seeds" ${TOPP_BIN_PATH}/ProteomicsLFQ

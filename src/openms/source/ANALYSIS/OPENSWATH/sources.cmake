@@ -32,6 +32,7 @@ set(sources_list
   OpenSwathOSWWriter.cpp
   TransitionListEvidenceFilter.cpp
   OpenSwathWorkflow.cpp
+  OpenSwathWorkflowScheduler.cpp
   PeakIntegrator.cpp
   PeakPickerChromatogram.cpp
   PeakPickerMobilogram.cpp

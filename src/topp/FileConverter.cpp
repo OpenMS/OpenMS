@@ -184,6 +184,10 @@ protected:
     setMinFloat_("bruker:calibration_tolerance", 0.0);
     registerStringOption_("bruker:calibrate", "<toggle>", "false", "Enable m/z recalibration (may fail on some datasets)", false, true);
     setValidStrings_("bruker:calibrate", {"true", "false"});
+    registerStringOption_("bruker:load_ms1", "<toggle>", "true",
+      "Load MS1 spectra. Disable for MS2-only workflows (peptide database search) "
+      "where MS1 surveys are not needed — substantially cuts memory and time. Affects all export modes.", false, true);
+    setValidStrings_("bruker:load_ms1", {"true", "false"});
     registerStringOption_("bruker:export_mode", "<mode>", "auto", "Export mode: 'auto' detects DDA/DIA acquisition type, "
       "'spectrum' forces per-precursor MS2 spectra (DDA-style), 'frame' returns raw 4D frames without signal processing.", false, true);
     setValidStrings_("bruker:export_mode", {"auto", "spectrum", "frame"});
@@ -196,6 +200,49 @@ protected:
       "MS1 frame IM-centroiding ion mobility tolerance in percent. Both this and ms1_centroid_mz_ppm "
       "must be > 0 to enable. Suggested value: 3.0.", false, true);
     setMinFloat_("bruker:ms1_centroid_im_pct", 0.0);
+    registerIntOption_("bruker:dia_ms2_n_neighbors", "<int>", 0,
+      "DIA MS2 frame aggregation: number of adjacent frames on each side to sum per SWATH window. "
+      "0 = disabled (raw export), 1 = 3-frame sum, 2 = 5-frame sum. "
+      "Boosts signal by summing intensity across neighboring RT frames, then removes isolated noise.", false, true);
+    setMinInt_("bruker:dia_ms2_n_neighbors", 0);
+    registerIntOption_("bruker:dia_ms2_min_support", "<int>", 1,
+      "DIA MS2 denoising: minimum occupied neighbor cells in a 3x3 (m/z x IM) grid to keep a point "
+      "(center cell excluded from count). Applied after frame aggregation. Only effective when dia_ms2_n_neighbors > 0. "
+      "Set to 0 to disable denoising (useful for pure centroiding without noise filtering).", false, true);
+    setMinInt_("bruker:dia_ms2_min_support", 0);
+    registerStringOption_("bruker:dia_ms2_centroid", "<toggle>", "false",
+      "Apply 2D Gaussian smoothing + local maxima peak picking to the denoised DIA MS2 grid. "
+      "Produces IM_CENTROIDED spectra with sub-bin (m/z, IM) precision. Only effective when dia_ms2_n_neighbors > 0.", false, true);
+    setValidStrings_("bruker:dia_ms2_centroid", {"true", "false"});
+
+    registerIntOption_("bruker:ms1_n_neighbors", "<int>", 0,
+      "MS1 frame aggregation: number of adjacent MS1 frames on each side to sum. "
+      "0 = disabled (raw export), 1 = 3-frame sum, 2 = 5-frame sum. "
+      "Applies to both DIA and DDA; ignored in FRAME export mode.", false, true);
+    setMinInt_("bruker:ms1_n_neighbors", 0);
+    setMaxInt_("bruker:ms1_n_neighbors", 50);
+
+    registerIntOption_("bruker:ms1_min_support", "<int>", 0,
+      "MS1 denoising: minimum occupied neighbor cells in a 3x3 (m/z x IM) grid to keep a point. "
+      "Applied after aggregation. 0 = disabled, 8 = all 8 neighbors required (strictest). "
+      "Only effective when ms1_n_neighbors > 0. Appropriate for dense survey runs; disable for "
+      "rare-species discovery.", false, true);
+    setMinInt_("bruker:ms1_min_support", 0);
+    setMaxInt_("bruker:ms1_min_support", 8);
+
+    registerDoubleOption_("bruker:ms1_max_rt_distance_sec", "<float>", 0.0,
+      "Cap the RT distance (seconds) between a neighbor MS1 frame and the center frame during "
+      "aggregation. 0.0 = no cap. Recommended for DDA (e.g. 5.0) where MS1 frame cadence is "
+      "irregular. The center frame is always included regardless of this cap.", false, true);
+    setMinFloat_("bruker:ms1_max_rt_distance_sec", 0.0);
+
+    registerIntOption_("bruker:ms1_centroid_max_peaks", "<int>", 100000,
+      "Cap on the number of centroided peaks retained per MS1 spectrum. Top-intensity peaks "
+      "are kept; low-intensity tail is dropped if the limit is hit (a warning is logged in that "
+      "case). Only effective when MS1 centroiding is enabled via ms1_centroid_mz_ppm/pct. Raise "
+      "for aggregated MS1 (ms1_n_neighbors > 0) on dense surveys; lower to trim long-tail noise.",
+      false, true);
+    setMinInt_("bruker:ms1_centroid_max_peaks", 1);
 #endif
 
     registerTOPPSubsection_("RawToMzML", "Options for converting raw files to mzML (uses ThermoRawFileParser)");
@@ -223,12 +270,20 @@ protected:
     BrukerTimsFile::Config c;
     c.calibration_tolerance = getDoubleOption_("bruker:calibration_tolerance");
     c.calibrate = (getStringOption_("bruker:calibrate") == "true");
+    c.load_ms1 = (getStringOption_("bruker:load_ms1") == "true");
     String mode = getStringOption_("bruker:export_mode");
     if (mode == "spectrum") c.export_mode = BrukerTimsFile::Config::SPECTRUM;
     else if (mode == "frame") c.export_mode = BrukerTimsFile::Config::FRAME;
     else c.export_mode = BrukerTimsFile::Config::AUTO;
     c.ms1_centroid_mz_ppm = static_cast<float>(getDoubleOption_("bruker:ms1_centroid_mz_ppm"));
     c.ms1_centroid_im_pct = static_cast<float>(getDoubleOption_("bruker:ms1_centroid_im_pct"));
+    c.dia_ms2_n_neighbors = getIntOption_("bruker:dia_ms2_n_neighbors");
+    c.dia_ms2_min_support = getIntOption_("bruker:dia_ms2_min_support");
+    c.dia_ms2_centroid = (getStringOption_("bruker:dia_ms2_centroid") == "true");
+    c.ms1_n_neighbors         = getIntOption_("bruker:ms1_n_neighbors");
+    c.ms1_min_support         = getIntOption_("bruker:ms1_min_support");
+    c.ms1_max_rt_distance_sec = getDoubleOption_("bruker:ms1_max_rt_distance_sec");
+    c.ms1_centroid_max_peaks  = getIntOption_("bruker:ms1_centroid_max_peaks");
     return c;
   }
 #endif

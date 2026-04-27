@@ -216,6 +216,7 @@ protected:
 
   bool quantify_decoys_;
   double add_mass_offset_peptides_{0.0}; ///< non-zero if for every feature an additional offset features should be extracted
+  double seed_apex_rt_tolerance_{5.0}; ///< max allowed RT deviation (s) between seed apex and detected feature apex; seed-derived features exceeding this are removed (0 = disabled)
   bool use_psm_cutoff_;
   double psm_score_cutoff_;
   PeptideIdentificationList unassignedIDs_;

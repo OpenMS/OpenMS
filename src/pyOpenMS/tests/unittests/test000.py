@@ -283,13 +283,15 @@ def testAASequence():
     assert "length=" in repr_str
     assert "mono_mass=" in repr_str
     assert "modified=True" in repr_str
+    # __str__ returns the peptide string (not repr)
     str_str = str(aas_repr)
-    assert str_str == repr_str
+    assert str_str == "PEPTM(Oxidation)IDE"
 
     # Test unmodified sequence
     aas_unmod = pyopenms.AASequence.fromString("PEPTIDE")
     repr_unmod = repr(aas_unmod)
     assert "modified=True" not in repr_unmod
+    assert str(aas_unmod) == "PEPTIDE"
 
     # Test getAAFrequencies - matching C++ test case
     aas_freq = pyopenms.AASequence.fromString("THREEAAAWITHYYY")
@@ -1851,17 +1853,17 @@ def testItraqConstants():
 
 @report
 
-def testLinearResampler():
+def testLinearResamplerAlign():
     """
-    @tests: LinearResampler
-     LinearResampler.__init__
+    @tests: LinearResamplerAlign
+     LinearResamplerAlign.__init__
     """
-    ff = pyopenms.LinearResampler()
+    ff = pyopenms.LinearResamplerAlign()
     p = ff.getDefaults()
     _testParam(p)
 
-    assert pyopenms.LinearResampler().raster is not None
-    assert pyopenms.LinearResampler().rasterExperiment is not None
+    assert pyopenms.LinearResamplerAlign().raster is not None
+    assert pyopenms.LinearResamplerAlign().rasterExperiment is not None
 
 @report
 def testPeptideAndProteinQuant():

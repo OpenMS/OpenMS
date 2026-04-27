@@ -38,7 +38,60 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  # NOTE: This job is temporary until we get rid of contrib.
+  prepare-contrib-for-windows:
+    runs-on: windows-2025
+    steps:
+      - name: Clone OpenMS
+        uses: actions/checkout@v6
+      - name: Set up Visual Studio shell
+        uses: egor-tensin/vs-shell@v2
+        with: { arch: x64 }
+
+      - name: Identify contrib submodule revision for cache key
+        id: contrib-rev
+        shell: bash
+        run: |
+          rev=$(git submodule status --cached -- contrib | sed -E 's/^-?//' | cut -d' ' -f1)
+          echo "rev=$rev" >> "$GITHUB_OUTPUT"
+
+      - name: Cache contrib
+        id: cache-contrib
+        uses: actions/cache@v5
+        with:
+          path: contrib/build
+          key: ${{ runner.os }}-${{ steps.contrib-rev.outputs.rev }}
+
+      - name: Fetch contrib if not in cache
+        if: steps.cache-contrib.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          git submodule update --init -- contrib
+          mkdir -p contrib/build
+
+      - name: Build contrib if not in cache
+        if: steps.cache-contrib.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          $NPROC = $env:NUMBER_OF_PROCESSORS
+          if (-not $NPROC) { $NPROC = 4 }
+          $env:CMAKE_BUILD_PARALLEL_LEVEL = $NPROC
+          Set-Location "${{ github.workspace }}\contrib\build"
+          cmake -G"Visual Studio 17 2022" -Ax64 -DBUILD_TYPE=ALL "${{ github.workspace }}\contrib"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload Contrib
+        uses: actions/upload-artifact@v7
+        with:
+          name: contrib-${{ steps.contrib-rev.outputs.rev }}
+          path: |
+            contrib/build/lib/
+            contrib/build/bin/
+            contrib/build/include/
+          retention-days: 7
+
   build-and-test:
+    needs: prepare-contrib-for-windows
     strategy:
       fail-fast: false
       matrix:
@@ -326,28 +379,6 @@ jobs:
           echo "cmake_prefix=$(brew --prefix);$(brew --prefix libomp)" >>"$GITHUB_OUTPUT"
         fi
 
-    - name: Cache contrib (Windows)
-      if: startsWith(matrix.os, 'windows')
-      id: cache-contrib
-      uses: actions/cache@v4
-      with:
-        path: ${{ github.workspace }}/OpenMS/contrib
-        key: ${{ runner.os }}-contrib4
-    
-    - name: Download contrib build from archive (Windows)
-      if: startsWith(matrix.os, 'windows') && steps.cache-contrib.outputs.cache-hit != 'true'
-      shell: bash
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-          cd OpenMS/contrib
-          # Download the file using the URL fetched from GitHub
-          gh release download -R OpenMS/contrib --pattern 'contrib_build-Windows.tar.gz'
-          # Extract the archive
-          7z x -so contrib_build-Windows.tar.gz | 7z x -si -ttar
-          rm contrib_build-Windows.tar.gz
-          ls -la
-
     - name: Build libcurl from source (Windows)
       if: startsWith(matrix.os, 'windows')
       shell: bash
@@ -378,6 +409,21 @@ jobs:
           ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-ccache-develop
           ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-ccache-
 
+    - name: Identify contrib submodule revision for cache key
+      id: contrib-rev
+      shell: bash
+      run: |
+        cd OpenMS
+        rev=$(git submodule status --cached -- contrib | sed -E 's/^-?//' | cut -d' ' -f1)
+        echo "rev=$rev" >> "$GITHUB_OUTPUT"
+
+    - name: Download contrib artifact for Windows
+      if: runner.os == 'Windows'
+      uses: actions/download-artifact@v4
+      with:
+        name: contrib-${{ steps.contrib-rev.outputs.rev }}
+        path: OpenMS/contrib/build
+          
     - name: Add THIRDPARTY
       shell: bash
       run: |
@@ -453,7 +499,7 @@ jobs:
           PYOPENMS: "${{ startsWith(matrix.os, 'ubuntu') && matrix.compiler == 'g++' && 'ON' || 'OFF' }}"
           NO_DEPENDENCIES: "${{ startsWith(matrix.os, 'ubuntu') && matrix.compiler == 'g++' && 'OFF' || 'ON' }}"
           CMAKE_PREFIX_PATH: "${{ steps.tools-prefix.outputs.cmake_prefix }};${{ steps.conda-setup.outputs.cmake_prefix }}"
-          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
+          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib/build"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
@@ -1144,15 +1190,8 @@ jobs:
           JSViewer_SHA=$(curl -s -X GET https://api.github.com/repos/genericworkflownodes/de.openms.knime.dynamicJSViewers/git/ref/heads/master |jq -r '.object.sha')
           CONTRIB_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/OpenMS/contents/contrib\?ref\=${{ github.sha }} | jq -r ".sha")
           THIRDPARTY_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/OpenMS/contents/THIRDPARTY\?ref\=${{ github.sha }} | jq -r ".sha")
-          PYDOCS_SHA=$(curl -s -X GET https://api.github.com/repos/OpenMS/OpenMS/contents/src/pyOpenMS/pyopenms-docs\?ref\=${{ github.sha }} | jq -r ".sha")
-          TUTORIAL_SHA=$(curl https://api.github.com/repos/OpenMS/Tutorials/git/refs/heads/master | jq -r ".object.sha")
-          DOCS_SHA=$(curl https://api.github.com/repos/OpenMS/OpenMS-docs/git/refs/heads/develop | jq -r ".object.sha")
-
           handleGitTag OpenMS/contrib $CONTRIB_SHA
-          handleGitTag OpenMS/pyopenms-docs $PYDOCS_SHA
           handleGitTag OpenMS/THIRDPARTY $THIRDPARTY_SHA
-          handleGitTag OpenMS/Tutorials $TUTORIAL_SHA
-          handleGitTag OpenMS/OpenMS-docs $DOCS_SHA
           handleGitTag OpenMS/de.openms.knime $DEOPENMS_SHA
           # Uncomment when permissions are fixed
           # handleGitTag genericworkflownodes/de.openms.knime.dynamicJSViewers $JSViewer_SHA

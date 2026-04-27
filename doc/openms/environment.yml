@@ -1,0 +1,10 @@
+name: openms-docs
+
+channels:
+  - defaults
+
+dependencies:
+  - pip
+  - pip:
+    - -r requirements.txt
+

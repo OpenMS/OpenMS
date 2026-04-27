@@ -1,0 +1,14 @@
+# Updated to use latest compatible versions as of December 2025.
+sphinx==8.2.3
+pydata-sphinx-theme
+readthedocs-sphinx-search
+sphinx-copybutton
+sphinx-hoverxref
+sphinx-remove-toctrees
+## for pygment coloring of code snippets using ipython syntax
+ipython
+pygments-lexer-pseudocode
+
+# Note: pyopenms is installed via docs/install_pyopenms.py script
+# On ReadTheDocs: uses READTHEDOCS_VERSION_NAME to install the correct version (--pre only for "latest")
+# For local builds: run "python docs/install_pyopenms.py" manually after installing requirements

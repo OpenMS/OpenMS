@@ -1,0 +1,36 @@
+[
+{
+      "name": "nightly",
+      "version": "3.6.0dev",
+      "url": "https://pyopenms.readthedocs.io/en/latest/"
+  },
+  {
+      "name": "3.5.0",
+      "version": "3.5.0",
+      "url": "https://pyopenms.readthedocs.io/en/release-3.5.0/"
+  },
+  {
+    "name": "3.4.0",
+    "version": "3.4.0",
+    "url": "https://pyopenms.readthedocs.io/en/release-3.4.0/"
+},
+  {
+      "name": "3.3.0",
+      "version": "3.3.0",
+      "url": "https://pyopenms.readthedocs.io/en/release-3.3.0/"
+  },
+  {
+      "name": "3.2.0",
+      "version": "3.2.0",
+      "url": "https://pyopenms.readthedocs.io/en/release-3.2.0/"
+  },
+  {
+      "name": "3.0.0",
+      "version": "3.0.0",
+      "url": "https://pyopenms.readthedocs.io/en/release3.0.0/"
+  },
+  {
+      "version": "2.5",
+      "url": "https://pyopenms.readthedocs.io/en/release_2.5.0/"
+  }
+]

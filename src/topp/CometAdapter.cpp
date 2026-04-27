@@ -32,6 +32,12 @@
 
 #include <OpenMS/ANALYSIS/ID/CometModification.h>
 
+#include <unordered_map>
+
+#ifdef WITH_OPENTIMS
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
+#endif
+
 #include <fstream>
 #include <iomanip>
 #include <regex>
@@ -107,11 +113,28 @@ protected:
 
   map<string,int> num_enzyme_termini {{"semi",1},{"fully",2},{"C-term unspecific", 8},{"N-term unspecific",9}};
 
+#ifdef WITH_OPENTIMS
+  BrukerTimsFile::Config getBrukerConfig_()
+  {
+    BrukerTimsFile::Config c;
+    c.calibration_tolerance = getDoubleOption_("bruker:calibration_tolerance");
+    c.calibrate = (getStringOption_("bruker:calibrate") == "true");
+    String mode = getStringOption_("bruker:export_mode");
+    if (mode == "spectrum") c.export_mode = BrukerTimsFile::Config::SPECTRUM;
+    else c.export_mode = BrukerTimsFile::Config::AUTO;
+    return c;
+  }
+#endif
+
   void registerOptionsAndFlags_() override
   {
 
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", { "mzML" } );
+    setValidFormats_("in", { "mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+    });
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", { "idXML"} );
     registerInputFile_("database", "<file>", "", "FASTA file", true, false, {"skipexists"});
@@ -248,8 +271,19 @@ protected:
     registerStringOption_("require_variable_mod", "<bool>", "false", "If true, requires at least one variable modification per peptide", false, true);
     setValidStrings_("require_variable_mod", ListUtils::create<String>("true,false"));
 
+#ifdef WITH_OPENTIMS
+    registerTOPPSubsection_("bruker", "Options for reading Bruker TimsTOF .d files (requires WITH_OPENTIMS)");
+    registerStringOption_("bruker:export_mode", "<mode>", "auto", "Export mode: 'auto' detects DDA/DIA acquisition type, "
+      "'spectrum' forces per-precursor spectra (DDA style).", false, true);
+    setValidStrings_("bruker:export_mode", {"auto", "spectrum"});
+    registerDoubleOption_("bruker:calibration_tolerance", "<float>", 0.0, "m/z recalibration tolerance (0 = library default)", false, true);
+    setMinFloat_("bruker:calibration_tolerance", 0.0);
+    registerStringOption_("bruker:calibrate", "<toggle>", "false", "Enable m/z recalibration (may fail on some datasets)", false, true);
+    setValidStrings_("bruker:calibrate", {"true", "false"});
+#endif
+
     // register peptide indexing parameter (with defaults for this search engine) TODO: check if search engine defaults are needed
-    registerPeptideIndexingParameter_(PeptideIndexing().getParameters()); 
+    registerPeptideIndexingParameter_(PeptideIndexing().getParameters());
   }
 
   const vector<const ResidueModification*> getModifications_(const StringList& modNames)
@@ -657,31 +691,131 @@ protected:
         tmp_file = default_params;
     }
 
-    // check for mzML index (comet requires one)
+    // Load input data — branch on file type
     MSExperiment exp;
-    MzMLFile mzml_file{};
     String input_file_with_index = inputfile_name;
-    if (!mzml_file.hasIndex(inputfile_name))
-    {
-      OPENMS_LOG_WARN << "The mzML file provided to CometAdapter is not indexed, but comet requires one. "
-                      << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
-      // Low memory conversion
-      // write mzML with index again
-      auto tmp_file = File::getTemporaryFile() + ".mzML";
-      PlainMSDataWritingConsumer consumer(tmp_file);
-      consumer.getOptions().addMSLevel(ms_level); // only load msLevel 2
-      bool skip_full_count = true;
-      mzml_file.transform(inputfile_name, &consumer, skip_full_count);
-      input_file_with_index = tmp_file;
-    }
 
-	// Load spectra metadata to map to idXML
-    mzml_file.getOptions().setMetadataOnly(false);
-	mzml_file.getOptions().setFillData(false);
-	mzml_file.getOptions().clearMSLevels();
-	// Ion mobility data is currently stored in MS2
-	mzml_file.getOptions().addMSLevel(2);
-    mzml_file.load(inputfile_name, exp);
+#ifdef WITH_OPENTIMS
+    const bool is_bruker_d = (FileHandler::getType(inputfile_name) == FileTypes::BRUKER_TDF);
+    if (is_bruker_d)
+    {
+      // Load .d via BrukerTimsFile. Skip MS1 loading for MS2 searches since
+      // Comet only searches MS2 — cuts load time substantially.
+      auto bruker_config = getBrukerConfig_();
+      if (ms_level == 2)
+        bruker_config.load_ms1 = false;
+      BrukerTimsFile tims_file;
+      tims_file.setLogType(log_type_);
+      tims_file.load(inputfile_name, exp, bruker_config);
+
+      // Filter to target MS level only (Comet only needs MS2). Redundant when
+      // load_ms1=false for MS2 searches but kept for safety / MS1 searches.
+      std::erase_if(exp.getSpectra(), [&](const MSSpectrum& s) { return s.getMSLevel() != static_cast<UInt>(ms_level); });
+
+      OPENMS_LOG_INFO << "Loaded " << exp.size() << " MS" << ms_level << " spectra from Bruker .d directory." << std::endl;
+
+      if (!exp.empty())
+      {
+        writeDebug_("First native ID from .d: " + exp[0].getNativeID(), 2);
+        writeDebug_("Last native ID from .d: " + exp[exp.size() - 1].getNativeID(), 2);
+      }
+
+      // Rewrite native IDs to "index=N" (monotonic) before the temp-mzML write.
+      //
+      // Bruker .d DDA native IDs are of the form "frame=F scan=S precursor=P".
+      // Comet's bundled mzParser (MSToolkit/saxmzmlhandler.cpp) greps for "scan="
+      // anywhere in the id and uses atoi of the following digits as its sort
+      // key. Because `scan=S` here is the TIMS isolation-window start (not a
+      // monotonic counter), mzParser detects "unsorted" scans and falls into
+      // a std::sort with a strict-weak-ordering-violating comparator
+      // (cindex::compare returns true for equal values) → undefined behavior
+      // → segfault in std::string shuffling.
+      //
+      // Workaround: rewrite native IDs to `index=N` (counter path, no atoi
+      // on scan=) before handing the mzML to Comet. Preserve the original
+      // native ID on each spectrum so post-Comet PSMs can be translated back.
+      size_t idx = 0;
+      for (auto& spec : exp.getSpectra())
+      {
+        spec.setMetaValue("original_native_id", spec.getNativeID());
+        spec.setNativeID("index=" + String(idx++));
+      }
+
+      // Write to temporary indexed mzML for Comet
+      auto tmp_mzml = File::getTemporaryFile() + ".mzML";
+      MzMLFile().store(tmp_mzml, exp);
+      input_file_with_index = tmp_mzml;
+
+      // Free peak data but keep spectrum metadata (native IDs, drift times)
+      // needed for IM annotation in post-processing.
+      for (auto& spec : exp.getSpectra()) { spec.clear(false); }
+    }
+    else
+#endif
+    {
+      // Existing mzML path.
+      //
+      // Load spectrum metadata (no peak data) unconditionally — needed for
+      // post-Comet annotation in all cases AND to detect Bruker-originated
+      // mzML (.d → FileConverter → .mzML) that triggers mzParser's sort-UB.
+      MzMLFile mzml_file{};
+      mzml_file.getOptions().setFillData(false);
+      mzml_file.getOptions().clearMSLevels();
+      mzml_file.getOptions().addMSLevel(ms_level);
+      mzml_file.load(inputfile_name, exp);
+
+      const bool is_bruker_mzml = !exp.empty()
+        && exp[0].getNativeID().hasSubstring("frame=");
+
+      if (is_bruker_mzml)
+      {
+        // Bruker-originated mzML contains "frame=F scan=S" native IDs that
+        // trigger Comet's mzParser sort-UB (same root cause as the direct .d
+        // path above). Reload with peak data, rewrite IDs, write temp mzML.
+        OPENMS_LOG_WARN << "Warning: Bruker-originated mzML detected (native IDs contain 'frame='). "
+                        << "Writing a temporary mzML with rewritten native IDs for Comet compatibility "
+                        << "(works around a sorting bug in Comet's mzParser). "
+                        << "To avoid this overhead, use .d input directly." << std::endl;
+
+        exp.clear(true);
+        MzMLFile mzml_full;
+        mzml_full.getOptions().clearMSLevels();
+        mzml_full.getOptions().addMSLevel(ms_level);
+        mzml_full.load(inputfile_name, exp);
+
+        size_t idx = 0;
+        for (auto& spec : exp.getSpectra())
+        {
+          spec.setMetaValue("original_native_id", spec.getNativeID());
+          spec.setNativeID("index=" + String(idx++));
+        }
+
+        auto tmp_mzml = File::getTemporaryFile() + ".mzML";
+        MzMLFile().store(tmp_mzml, exp);
+        input_file_with_index = tmp_mzml;
+
+        for (auto& spec : exp.getSpectra()) { spec.clear(false); }
+      }
+      else
+      {
+        // Non-Bruker mzML: exp already has metadata from the load above.
+        // Only need to ensure Comet gets an indexed file. Use a fresh
+        // MzMLFile instance — mzml_file was already used for the metadata
+        // load and reusing it for hasIndex/transform could carry stale state.
+        MzMLFile mzml_index_check;
+        if (!mzml_index_check.hasIndex(inputfile_name))
+        {
+          OPENMS_LOG_WARN << "The mzML file provided to CometAdapter is not indexed, but comet requires one. "
+                          << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
+          auto tmp_file_mzml = File::getTemporaryFile() + ".mzML";
+          PlainMSDataWritingConsumer consumer(tmp_file_mzml);
+          consumer.getOptions().addMSLevel(ms_level);
+          bool skip_full_count = true;
+          mzml_index_check.transform(inputfile_name, &consumer, skip_full_count);
+          input_file_with_index = tmp_file_mzml;
+        }
+      }
+    }
 
     //-------------------------------------------------------------
     // calculations
@@ -744,13 +878,43 @@ protected:
     {
       protein_identifications[0].setMetaValue(Constants::UserParam::IM, exp.getSpectrum(0).getDriftTimeUnitAsString());
     }
+#ifdef WITH_OPENTIMS
+    else if (is_bruker_d)
+    {
+      OPENMS_LOG_WARN << "Warning: Bruker .d input but not all peptide IDs could be annotated with ion mobility values. "
+                      << "This may indicate a native ID mismatch between the .d data and Comet results." << std::endl;
+    }
+#endif
 
     // Parse FAIMS compensation voltage if present
     SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_identifications, exp);
 
+    // Translate PSM spectrum references back from "index=N" (the rewritten form
+    // we handed to Comet to work around the mzParser sort bug) to the original
+    // Bruker native ID. Fires for both direct .d input AND Bruker-originated
+    // mzML (.d → FileConverter → .mzML → CometAdapter). Detection is via the
+    // original_native_id MetaValue set during the rewrite — no is_bruker_d
+    // guard needed.
+    if (!exp.empty() && exp[0].metaValueExists("original_native_id"))
+    {
+      // Build rewritten-id → original-id map once (O(N) vs O(N*M) linear scan).
+      std::unordered_map<String, String> id_map;
+      id_map.reserve(exp.size());
+      for (const auto& spec : exp.getSpectra())
+      {
+        if (spec.metaValueExists("original_native_id"))
+          id_map.emplace(spec.getNativeID(), spec.getMetaValue("original_native_id").toString());
+      }
+      for (auto& pid : peptide_identifications)
+      {
+        auto it = id_map.find(pid.getSpectrumReference());
+        if (it != id_map.end()) pid.setSpectrumReference(it->second);
+      }
+    }
+
     // remove base_name meta value from peptide identifications
     for (auto& peptide_identification : peptide_identifications)
-    {      
+    {
       peptide_identification.removeMetaValue("base_name");
     }
 

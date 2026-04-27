@@ -748,6 +748,24 @@ START_SECTION((static String getResidueTypeName(const ResidueType res_type)))
 }
 END_SECTION
 
+START_SECTION((double getHydrophobicity(const HydrophobicityScaleMethod scale) const))
+{
+  Residue res;
+  res.setOneLetterCode("A");
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE),1.800);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG),0.620);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::HOPP_WOODS),-0.5);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::BULL_BREESE),0.610);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::BLACK_MOULD),0.616);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::GUY),0.1);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG_CONSENSUS),0.25);
+  res.setOneLetterCode("X");
+  TEST_EXCEPTION(Exception::InvalidValue,res.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE));
+  res.setOneLetterCode("");
+  TEST_EXCEPTION(Exception::InvalidValue,res.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE));
+}
+END_SECTION
+
 delete e_ptr;
 
 /////////////////////////////////////////////////////////////
