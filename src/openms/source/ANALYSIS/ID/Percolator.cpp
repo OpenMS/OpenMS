@@ -675,7 +675,11 @@ RescoreOutput Percolator::score(const RescoreInput& input,
     const std::string& id = sh.pPSM->getFullPeptide();
     if (id.size() < 12 || id.compare(0, 4, "row_") != 0) continue;
     char* end = nullptr;
-    const unsigned long row = std::strtoul(id.c_str() + 4, &end, 10);
+    const char* num_begin = id.c_str() + 4;
+    const unsigned long row = std::strtoul(num_begin, &end, 10);
+    // Reject ids whose digit suffix didn't parse cleanly: no digits consumed
+    // or unexpected trailing chars after the number.
+    if (end == nullptr || end == num_begin || *end != '\0') continue;
     if (row >= n_rows) continue;
     out.scores[row]   = sh.score;
     out.q_values[row] = sh.q;
@@ -897,7 +901,11 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     const std::string& id = sh.pPSM->getFullPeptide();
     if (id.size() < 12 || id.compare(0, 4, "row_") != 0) continue;
     char* end = nullptr;
-    const unsigned long row = std::strtoul(id.c_str() + 4, &end, 10);
+    const char* num_begin = id.c_str() + 4;
+    const unsigned long row = std::strtoul(num_begin, &end, 10);
+    // Reject ids whose digit suffix didn't parse cleanly: no digits consumed
+    // or unexpected trailing chars after the number.
+    if (end == nullptr || end == num_begin || *end != '\0') continue;
     if (row >= n_rows) continue;
     out.scores[row]   = sh.score;
     out.q_values[row] = sh.q;
