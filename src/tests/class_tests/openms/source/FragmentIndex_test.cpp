@@ -2543,6 +2543,14 @@ START_SECTION((SNES mother generation truncates Single-C mother to unambiguous s
     }
   }
   TEST_EQUAL(found_truncated_suffix, true)
+
+  // Invariant: no kept mother spans the X at position 8.
+  for (const auto& mother : fi.getPeptides())
+  {
+    const size_t start = mother.sequence_.first;
+    const size_t end = start + mother.sequence_.second;
+    TEST_EQUAL(start > 8u || end <= 8u, true)
+  }
 }
 END_SECTION
 
