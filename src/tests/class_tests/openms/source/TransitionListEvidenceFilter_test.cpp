@@ -51,6 +51,26 @@ namespace
     return spectrum;
   }
 
+  void appendProfilePeak(vector<pair<double, double>>& peaks, double center_mz, double apex_intensity)
+  {
+    const vector<pair<double, double>> shape{
+      {-0.020, 0.005},
+      {-0.015, 0.030},
+      {-0.010, 0.120},
+      {-0.005, 0.450},
+      { 0.000, 1.000},
+      { 0.005, 0.450},
+      { 0.010, 0.120},
+      { 0.015, 0.030},
+      { 0.020, 0.005}
+    };
+
+    for (const auto& point : shape)
+    {
+      peaks.emplace_back(center_mz + point.first, apex_intensity * point.second);
+    }
+  }
+
   MSSpectrum makeIMSpectrum(double rt, const vector<tuple<double, double, double>>& peaks)
   {
     MSSpectrum spectrum;
@@ -232,10 +252,12 @@ START_SECTION((filter() - peak picking path))
 {
   LightTargetedExperiment transition_exp = makeLibrary();
   vector<SwathMap> swath_maps;
+  vector<pair<double, double>> profile_peaks;
+  appendProfilePeak(profile_peaks, 100.0, 2000.0);
+  appendProfilePeak(profile_peaks, 110.0, 1500.0);
+  appendProfilePeak(profile_peaks, 120.0, 1000.0);
   swath_maps.push_back(makeSwathMap(false, 400.0, 650.0,
-                                    {makeSpectrum(12.0,
-                                                  {{99.98, 10.0}, {99.99, 200.0}, {100.0, 2000.0}, {100.01, 200.0}, {100.02, 10.0},
-                                                   {109.98, 10.0}, {109.99, 200.0}, {110.0, 1500.0}, {110.01, 200.0}, {110.02, 10.0}})}));
+                                    {makeSpectrum(12.0, profile_peaks)}));
 
   TransitionListEvidenceFilter filter = makeFilter("ms2");
   Param params = filter.getParameters();
@@ -244,7 +266,7 @@ START_SECTION((filter() - peak picking path))
   filter.setParameters(params);
 
   TransitionListEvidenceFilter::Result result = filter.filter(
-    swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.05), false, 1);
+    swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.08), false, 1);
   TEST_EQUAL(result.supported_precursors, 1)
   TEST_EQUAL(result.filtered_targets.compounds[0].id, "PEP_A")
 }
