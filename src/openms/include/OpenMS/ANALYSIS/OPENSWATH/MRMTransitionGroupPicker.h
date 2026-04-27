@@ -71,10 +71,17 @@ namespace OpenMS
     }
   };
 
-  // Per-thread instance of the shared pools. OPENMS_DLLAPI exports it from
-  // libOpenMS so callers in other targets (TOPP tools, tests) that
-  // instantiate the inline templates below can resolve the symbol.
-  extern OPENMS_DLLAPI thread_local PickerPoolShared g_picker_pool_shared;
+  // Per-thread instance of the shared pools. Wrapped in a function so the
+  // function-local `thread_local static` is the single point of definition
+  // across all translation units / DLLs and we don't have to deal with
+  // platform-specific behavior of namespace-scope `inline thread_local`
+  // (duplicate TLS init wrapper on macOS clang) or `extern thread_local`
+  // exported from a DLL (MSVC LNK2019 on TOPP-tool consumers).
+  inline PickerPoolShared& g_picker_pool_shared()
+  {
+    thread_local PickerPoolShared instance;
+    return instance;
+  }
 
   namespace MRMTransitionGroupPickerMeta
   {
@@ -316,7 +323,7 @@ public:
       // Use shared per-thread pool declared at file scope to allow nested
       // helpers (computeQuality_, pickFragmentChromatograms, ...) to reuse
       // the same buffers and avoid repeated allocations.
-      auto &picker_pool = g_picker_pool_shared;
+      auto &picker_pool = g_picker_pool_shared();
       picker_pool.reset();
       auto &picked_chroms = picker_pool.picked_chroms;
       auto &smoothed_chroms = picker_pool.smoothed_chroms;
@@ -1228,7 +1235,8 @@ protected:
       const SpectrumT& ref_chromatogram = *picked_input_chromatograms[chr_idx];
       prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
       // Reuse the shared per-thread pool's containers for quality computation
-      auto &all_ints = g_picker_pool_shared.all_ints;
+      auto &pool = g_picker_pool_shared();
+      auto &all_ints = pool.all_ints;
       all_ints.clear();
       for (Size k = 0; k < picked_chroms.size(); k++)
       {
@@ -1244,8 +1252,8 @@ protected:
       }
 
       // Compute the cross-correlation for the collected intensities
-      auto &mean_shapes = g_picker_pool_shared.mean_shapes;
-      auto &mean_coel = g_picker_pool_shared.mean_coel;
+      auto &mean_shapes = pool.mean_shapes;
+      auto &mean_coel = pool.mean_coel;
       mean_shapes.clear();
       mean_coel.clear();
       for (Size k = 0; k < all_ints.size(); k++)
@@ -1291,8 +1299,8 @@ protected:
       int multiple_peaks = 0;
 
       // collect all seeds that lie within the current seed
-      auto &left_borders = g_picker_pool_shared.left_borders;
-      auto &right_borders = g_picker_pool_shared.right_borders;
+      auto &left_borders = pool.left_borders;
+      auto &right_borders = pool.right_borders;
       left_borders.clear();
       right_borders.clear();
       for (Size k = 0; k < picked_chroms.size(); k++)
