@@ -752,9 +752,10 @@ namespace OpenMS
       // length 0 and an empty SNES index.
       const size_t effective_max_length = (peptide_max_length_ == 0) ? L : peptide_max_length_;
 
-      // Mass-compute + filter + emit. No X/B/Z check here: the fast path runs
-      // only when the protein is unambiguous, and the slow path drives
-      // correctness via span boundaries.
+      // Mass-compute + filter + emit. No X/B/Z check here: the dispatch below
+      // either calls sweepSpan(0, L) on a protein with no ambiguous residues
+      // or splits at X/B/Z, so span boundaries structurally prevent any
+      // ambiguous residue from reaching this lambda.
       auto emitMother = [&](size_t start, size_t length, bool is_single_c)
       {
         if (length < peptide_min_length_) return;

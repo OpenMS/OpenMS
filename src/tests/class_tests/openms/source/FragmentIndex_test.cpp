@@ -2511,8 +2511,8 @@ START_SECTION((SNES mother generation truncates Single-C mother to unambiguous s
 {
   // Issue #9192 item 2: a Single-C mother anchored at the last residue (j=19)
   // with proposed length 12 spans [8, 20) and covers the X. The whole mother
-  // used to be dropped; now the unambiguous suffix [9, 20) length 11 must
-  // still be emitted (length capped per-span at e - s = 11).
+  // used to be dropped; the unambiguous suffix [9, 20) length 11 must now
+  // be emitted (length capped per-span at e - s = 11).
   const std::vector<FASTAFile::FASTAEntry> entries{
       {"p", "p", "ACDEFGHIXKLMNPQSTVWY"}}; // X at 0-based position 8
 
