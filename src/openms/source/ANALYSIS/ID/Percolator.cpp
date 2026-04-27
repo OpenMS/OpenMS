@@ -809,6 +809,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     /*decoyFractionTraining=*/1.0,
     /*numFolds=*/3);
 
+  std::vector<double> avg_weights;
   try
   {
     // CV uses sanity transiently per call (no storage); the unique_ptr in
@@ -817,12 +818,19 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
                          impl_->set_handler->getFeaturePool());
     cv.train(normalizer);
     cv.postIterationProcessing(all_scores, sanity.get());
-
-    std::vector<double> avg_weights;
     cv.getAvgWeights(avg_weights, normalizer);
-    impl_->svm_weights.clear();
-    if (!avg_weights.empty()) impl_->svm_weights.push_back(avg_weights);
+  }
+  catch (const std::exception& e)
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      std::string("Percolator training failed: ") + e.what(), "");
+  }
 
+  impl_->svm_weights.clear();
+  if (!avg_weights.empty()) impl_->svm_weights.push_back(avg_weights);
+
+  try
+  {
     // Second pass: when we subsampled for training, score the FULL input set
     // using the trained weights. Mirrors upstream Caller.cpp (rel-3-08-01
     // lines 1196-1236): reset allScores, rebuild via readAndScoreTab, then
@@ -884,7 +892,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   catch (const std::exception& e)
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      std::string("Percolator training failed: ") + e.what(), "");
+      std::string("Percolator scoring failed: ") + e.what(), "");
   }
 
   RescoreOutput out;
