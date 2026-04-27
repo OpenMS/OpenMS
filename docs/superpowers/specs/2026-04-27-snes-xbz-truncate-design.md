@@ -108,18 +108,27 @@ Two new tests in `src/tests/class_tests/openms/source/FragmentIndex_test.cpp`,
 beside the existing `(SNES mother generation rejects ambiguous residue spans
 (X/B/Z))` block (which remains unchanged and still passes):
 
+Both new tests share the parameter block from test 2419 (`peptide:enzyme_specificity=none`,
+`peptide:min_mass=0`, `peptide:max_mass=50000`, empty fixed/variable mods,
+`snes_enabled=true`) but with `peptide:min_size=8` and `peptide:max_size=12`
+(currently both =8 in 2419). Mother-classification uses
+`FragmentIndex_test::isSingleCMother(mother.mod_bitmask_)` — `is_single_c` is
+not a direct field on `Peptide`.
+
 1. **Single-N short realization in unambiguous prefix is kept.** Protein
-   `ACDEFGHIXKLMNPQSTVWY` (X at index 8), `peptide_min_size=8`,
-   `peptide_max_size=12`. Today: the start-0 Single-N mother of proposed length
-   12 spans X → dropped, with no shorter alternative kept. After: a Single-N
-   mother at `start=0, length=8` must exist. Assertion: scan
-   `fi.getPeptides()`, find at least one mother with `is_single_c == false`,
-   `sequence_.first == 0`, `sequence_.second == 8`.
+   `ACDEFGHIXKLMNPQSTVWY` (X at index 8). Today: the start-0 Single-N mother
+   of proposed length 12 spans X → dropped, with no shorter alternative kept.
+   After: a Single-N mother at `start=0, length=8` must exist. Assertion: scan
+   `fi.getPeptides()`, find at least one mother with
+   `!isSingleCMother(mother.mod_bitmask_)`, `sequence_.first == 0`,
+   `sequence_.second == 8`.
 2. **Single-C short realization in unambiguous suffix is kept.** Same protein
    and parameters. The end-anchored mother at `j=19` (last residue) currently
    produces span `[8, 20)` length 12 — covers X → dropped. After: a Single-C
    mother at `start=9, length=11` must exist (length capped at
-   `effective_max_length=12` but truncated to span `[9, 20)`).
+   `effective_max_length=12` but truncated to span `[9, 20)`). Assertion
+   mirror: `isSingleCMother(mother.mod_bitmask_)`, `sequence_.first == 9`,
+   `sequence_.second == 11`.
 
 No regression-only assertion needed; the existing `(start > 8 || end <= 8)`
 invariant in the prior test still holds (no kept mother spans the X) and is
