@@ -72,9 +72,6 @@ namespace OpenMS
   };
 
   // Per-thread instance of the shared pools.
-  // Defined in MRMTransitionGroupPicker.cpp: declaring it `inline thread_local`
-  // here triggers a duplicate "thread-local initialization routine" symbol on
-  // macOS clang because the TLS init wrapper is not always emitted as weak.
   extern thread_local PickerPoolShared g_picker_pool_shared;
 
   namespace MRMTransitionGroupPickerMeta
