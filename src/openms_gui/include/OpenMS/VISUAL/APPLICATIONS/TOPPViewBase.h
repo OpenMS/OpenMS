@@ -14,6 +14,7 @@
 //OpenMS
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/SYSTEM/TempFileManager.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <OpenMS/VISUAL/FileWatcher.h>
@@ -513,6 +514,8 @@ protected:
     } topp_;
     //@}
 
+    /// Handler for temporary files created during the session
+    TempFileManager temp_handler_;
     /// check if all available preferences get set by the .ini file. If there are some missing entries fill them with default values.
     void checkPreferences_();
     ///@name reimplemented Qt events
@@ -539,4 +542,3 @@ private:
   }; //class
 
 } //namespace
-
