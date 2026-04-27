@@ -236,7 +236,7 @@ else()
   # Fallback: compute might be a plain library without a CMake target.
   # Use platform-neutral search with optional hints.
   find_library(OPENMS_ARROW_COMPUTE_LIB
-    NAMES arrow_compute
+    NAMES arrow_compute arrow_computed
     HINTS ${CMAKE_PREFIX_PATH} ${ARROW_HOME}
     PATH_SUFFIXES lib lib64
   )
