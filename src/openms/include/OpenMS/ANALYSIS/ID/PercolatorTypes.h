@@ -19,8 +19,9 @@ namespace OpenMS
   /**
     @brief Input to domain-agnostic Percolator::rescore.
 
-    Row ordering is preserved in the output. Every row corresponds to one
-    data point (PSM, transition, whatever the caller chooses).
+    Row ordering is preserved in the output. Each row corresponds to one
+    data point — the row's semantics (PSM, transition, peak group, etc.)
+    are determined by the caller.
   */
   struct OPENMS_DLLAPI RescoreInput
   {
@@ -42,19 +43,21 @@ namespace OpenMS
       @brief Optional per-row PIN-compatible fields.
 
       When supplied, these override the synthetic defaults
-      (`scan = row_index`, `specFileNr = 0`, `expMass = calcMass = 0.0`) that
-      the wrapper uses internally. Set them to make the in-process output
-      bitwise-identical to running the external percolator binary on a .pin
-      file derived from the same PSMs — Percolator's internal PSM sort order
-      (OrderScanHash hashes `specFileNr` + `scan`) determines the CV fold
-      assignment, so scan/spec_file_numbers have to match the PIN path.
+      (`scan = row_index`, `specFileNr = 0`, `expMass = calcMass = 0.0`)
+      that the wrapper uses internally. Populate them when the in-process
+      output must be bitwise-identical to running the external percolator
+      binary on a .pin file derived from the same PSMs: Percolator's
+      internal PSM sort order (`OrderScanHash` hashes `specFileNr` and
+      `scan`) determines the CV fold assignment, so scan_numbers and
+      spec_file_numbers must match those that `PercolatorInfile::store`
+      would emit.
 
-      See Percolator::fillPINCompatibleFields() for a helper that populates
-      these from a vector of PeptideIdentifications the way PercolatorInfile
-      would write them.
+      Percolator::fillPINCompatibleFields() is a helper that derives all
+      four vectors from a vector of PeptideIdentifications using the same
+      conventions as PercolatorInfile::store.
 
-      Each vector is either empty (use default) or has exactly n_rows entries
-      (one per feature row).
+      Each vector is either empty (in which case the default is used) or
+      contains exactly n_rows entries, one per feature row.
     */
     std::vector<int>    scan_numbers;
     std::vector<int>    spec_file_numbers;
@@ -73,35 +76,36 @@ namespace OpenMS
   /**
     @brief Trained Percolator model: averaged SVM weights in raw feature space.
 
-    Produced by Percolator::train, consumed by Percolator::score. The weights
-    are un-normalized (i.e., meant to multiply raw input features — the
-    normalization transform the SVM learned has already been folded into the
-    weights and bias by Normalizer::unnormalizeweight). Callers should never
-    normalize features before score() — do that and you double-count the
-    transform.
+    Produced by Percolator::train and consumed by Percolator::score. The
+    weights are un-normalized: they are intended to multiply raw input
+    features directly. The normalization transform learned by the SVM has
+    already been folded into the weights and bias by
+    Normalizer::unnormalizeweight(). Callers must therefore not normalize
+    features before score(); doing so would apply the transform twice.
 
-    The raw SVM dot product for a row with feature vector f is:
+    The raw SVM dot product for a row with feature vector f is
         raw = sum_j(f[j] * weights[j]) + weights[n_features]     // bias last
-    Percolator::score() applies a further FDR-based rescaling on top of that
-    to produce the final SVM discriminant reported in RescoreOutput.scores;
-    see Percolator::score for the exact formula.
+    Percolator::score() applies a further FDR-based rescaling on top of
+    this raw value to produce the final SVM discriminant reported in
+    RescoreOutput.scores; see Percolator::score for the exact formula.
   */
   struct OPENMS_DLLAPI PercolatorModel
   {
     /// Integer schema version for the on-disk format.
     int format_version = 1;
-    /// Feature column names (must be non-empty and match
-    /// RescoreInput::feature_names positionally at score time). Any
-    /// string value is permitted — saveModel carries bias in the header,
-    /// so feature names are opaque.
+    /// Feature column names. Must be non-empty and must match
+    /// RescoreInput::feature_names positionally at score time. Any
+    /// string value is permitted: the bias is stored in the header by
+    /// saveModel(), so feature names carry no reserved meaning.
     StringList feature_names;
-    /// Size = n_features + 1. Last entry is the bias.
+    /// Size = n_features + 1. The last entry is the bias.
     std::vector<double> weights;
     /// "stdv" | "uni" | "none" — the normalizer used during training.
-    /// Informational; all three produce raw-space weights that score()
-    /// can apply directly (the transform is already folded into the
-    /// weights + bias). Recorded so reproducibility tools can see which
-    /// learner policy produced the model.
+    /// Informational only; all three produce raw-space weights that
+    /// score() can apply directly, since the normalization transform is
+    /// already folded into the weights and bias. Recorded so that
+    /// reproducibility tooling can identify the learner configuration
+    /// that produced the model.
     std::string normalizer_type;
     /// Random seed used during training. Informational.
     int seed = 0;
