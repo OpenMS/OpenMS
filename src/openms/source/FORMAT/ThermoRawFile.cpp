@@ -40,7 +40,7 @@ namespace OpenMS
 
     try
     {
-      openms_thermo_bridge::RawFile raw(raw_path);
+      openms::thermo_bridge::RawFile raw(raw_path);
 
       // --- Source file metadata ---
       SourceFile src;
@@ -94,17 +94,17 @@ namespace OpenMS
 
         // Centroid / profile
         const bool centroid = raw.is_centroid_scan(scan);
-        spectrum.setType(centroid ? SpectrumSettings::CENTROID : SpectrumSettings::PROFILE);
+        spectrum.setType(centroid ? SpectrumSettings::SpectrumType::CENTROID : SpectrumSettings::SpectrumType::PROFILE);
 
         // Polarity
         const int polarity = raw.polarity(scan);
         if (polarity == 0)
         {
-          spectrum.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+          spectrum.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
         }
         else if (polarity == 1)
         {
-          spectrum.getInstrumentSettings().setPolarity(IonSource::NEGATIVE);
+          spectrum.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE);
         }
 
         // Scan filter as comment
@@ -135,25 +135,25 @@ namespace OpenMS
             const std::string act_type = raw.activation_type(scan);
             if (act_type == "CID")
             {
-              prec.getActivationMethods().insert(Precursor::CID);
+              prec.getActivationMethods().insert(Precursor::ActivationMethod::CID);
             }
             else if (act_type == "HCD")
             {
-              prec.getActivationMethods().insert(Precursor::BEAM); // BEAM = higher-energy collision dissociation (HCD)
+              prec.getActivationMethods().insert(Precursor::ActivationMethod::HCD); // HCD = beam-type collision-induced dissociation
             }
             else if (act_type == "ETD")
             {
-              prec.getActivationMethods().insert(Precursor::ETD);
+              prec.getActivationMethods().insert(Precursor::ActivationMethod::ETD);
             }
             else if (act_type == "ECD")
             {
-              prec.getActivationMethods().insert(Precursor::ECD);
+              prec.getActivationMethods().insert(Precursor::ActivationMethod::ECD);
             }
             else if (!act_type.empty())
             {
               OPENMS_LOG_WARN << "ThermoRawFile: unknown activation type '" << act_type
                               << "' for scan " << scan << ", defaulting to CID\n";
-              prec.getActivationMethods().insert(Precursor::CID);
+              prec.getActivationMethods().insert(Precursor::ActivationMethod::CID);
             }
             prec.setActivationEnergy(ce);
           }
@@ -188,7 +188,7 @@ namespace OpenMS
 
       OPENMS_LOG_INFO << "ThermoRawFile: loaded " << exp.size() << " spectra\n";
     }
-    catch (const openms_thermo_bridge::bridge_error& e)
+    catch (const openms::thermo_bridge::bridge_error& e)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         path, String("Thermo bridge error: ") + e.what());
