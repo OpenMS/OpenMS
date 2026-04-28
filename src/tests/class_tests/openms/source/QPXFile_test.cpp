@@ -527,6 +527,7 @@ START_SECTION(([EXTRA] importFromArrow_round_trip))
   prot.setHigherScoreBetter(true);
   std::vector<ProteinIdentification> prot_ids{prot};
 
+  // --- First PeptideIdentification ---
   PeptideIdentification pid;
   pid.setIdentifier("run_1");
   pid.setScoreType("score");
@@ -545,24 +546,111 @@ START_SECTION(([EXTRA] importFromArrow_round_trip))
   hit.addPeptideEvidence(ev);
   pid.getHits().push_back(hit);
 
+  // --- Second PeptideIdentification (same run, different spectrum) ---
+  PeptideIdentification pid2;
+  pid2.setIdentifier("run_1");
+  pid2.setScoreType("score");
+  pid2.setHigherScoreBetter(true);
+  pid2.setRT(234.5);
+  pid2.setMZ(678.90);
+  pid2.setSpectrumReference("scan=99");
+  PeptideHit hit2;
+  hit2.setSequence(AASequence::fromString("ACDEFGHIK"));
+  hit2.setCharge(3);
+  hit2.setScore(0.80);
+  hit2.setMetaValue("target_decoy", "target");
+  pid2.getHits().push_back(hit2);
+
   PeptideIdentificationList pep_ids;
   pep_ids.push_back(pid);
+  pep_ids.push_back(pid2);
 
   // Export to Arrow table (PSMSchema), then import back.
+  // export_all_psms=true is required so that every PeptideIdentification produces a row.
   auto table = QPXFile::exportToArrow(prot_ids, pep_ids, /*export_all_psms=*/true);
   TEST_NOT_EQUAL(table.get(), nullptr);
+  // Two PIDs → two rows in the table.
+  TEST_EQUAL(table->num_rows(), 2);
 
   std::vector<ProteinIdentification> prot_ids_out = prot_ids; // shell with run identifier preserved
   PeptideIdentificationList pep_ids_out;
   TEST_TRUE(QPXFile::importFromArrow(table, prot_ids_out, pep_ids_out));
 
-  TEST_EQUAL(pep_ids_out.size(), 1);
+  // --- Single-group assertions (existing) ---
+  TEST_EQUAL(pep_ids_out.size(), 2);
   TEST_EQUAL(pep_ids_out[0].getHits().size(), 1);
   TEST_STRING_EQUAL(pep_ids_out[0].getHits()[0].getSequence().toString(), "PEPTIDE");
   TEST_EQUAL(pep_ids_out[0].getHits()[0].getCharge(), 2);
   TEST_REAL_SIMILAR(pep_ids_out[0].getHits()[0].getScore(), 0.95);
   TEST_STRING_EQUAL(String(pep_ids_out[0].getHits()[0].getMetaValue("target_decoy")), "target");
   TEST_REAL_SIMILAR(double(pep_ids_out[0].getHits()[0].getMetaValue("COMET:deltaCn")), 0.5);
+
+  // --- Round-trip detail assertions on the first PID ---
+  TEST_REAL_SIMILAR(pep_ids_out[0].getRT(), 123.4);
+  TEST_REAL_SIMILAR(pep_ids_out[0].getMZ(), 567.89);
+  TEST_STRING_EQUAL(pep_ids_out[0].getIdentifier(), "run_1");
+  TEST_STRING_EQUAL(pep_ids_out[0].getSpectrumReference(), "scan=42");
+  // Protein accession round-trip on the first hit.
+  TEST_EQUAL(pep_ids_out[0].getHits()[0].getPeptideEvidences().size(), 1);
+  TEST_STRING_EQUAL(pep_ids_out[0].getHits()[0].getPeptideEvidences()[0].getProteinAccession(),
+                    "sp|P12345|EXAMPLE");
+
+  // --- Multi-group dispatch assertions (second PID) ---
+  TEST_EQUAL(pep_ids_out[1].getHits().size(), 1);
+  TEST_STRING_EQUAL(pep_ids_out[1].getHits()[0].getSequence().toString(), "ACDEFGHIK");
+  TEST_EQUAL(pep_ids_out[1].getHits()[0].getCharge(), 3);
+  TEST_REAL_SIMILAR(pep_ids_out[1].getHits()[0].getScore(), 0.80);
+  TEST_REAL_SIMILAR(pep_ids_out[1].getRT(), 234.5);
+  TEST_REAL_SIMILAR(pep_ids_out[1].getMZ(), 678.90);
+  TEST_STRING_EQUAL(pep_ids_out[1].getIdentifier(), "run_1");
+  TEST_STRING_EQUAL(pep_ids_out[1].getSpectrumReference(), "scan=99");
+}
+END_SECTION
+
+START_SECTION(([EXTRA] importFromArrow_appends_shell_for_unknown_run_identifier))
+{
+  // Build one PeptideIdentification with a run_identifier that has NO matching
+  // ProteinIdentification — importFromArrow must append a shell entry.
+  PeptideIdentification pid;
+  pid.setIdentifier("run_unknown");
+  pid.setScoreType("hyperscore");
+  pid.setHigherScoreBetter(true);
+  pid.setRT(99.0);
+  pid.setMZ(400.0);
+  pid.setSpectrumReference("scan=7");
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("TESTVAK"));
+  hit.setCharge(2);
+  hit.setScore(0.70);
+  hit.setMetaValue("target_decoy", "target");
+  pid.getHits().push_back(hit);
+
+  PeptideIdentificationList pep_ids;
+  pep_ids.push_back(pid);
+
+  // Export: no matching ProteinIdentification provided.
+  std::vector<ProteinIdentification> prot_ids_empty;
+  auto table = QPXFile::exportToArrow(prot_ids_empty, pep_ids, /*export_all_psms=*/true);
+  TEST_NOT_EQUAL(table.get(), nullptr);
+
+  // Import against an *empty* prot_ids_out vector — shell must be appended.
+  std::vector<ProteinIdentification> prot_ids_out;
+  PeptideIdentificationList pep_ids_out;
+  TEST_TRUE(QPXFile::importFromArrow(table, prot_ids_out, pep_ids_out));
+
+  // One shell ProteinIdentification must have been appended.
+  TEST_EQUAL(prot_ids_out.size(), 1);
+  TEST_STRING_EQUAL(prot_ids_out[0].getIdentifier(), "run_unknown");
+
+  // The shell's score_type and higher_score_better must mirror the input PID.
+  TEST_STRING_EQUAL(prot_ids_out[0].getScoreType(), "hyperscore");
+  TEST_EQUAL(prot_ids_out[0].isHigherScoreBetter(), true);
+
+  // The PeptideIdentification itself must have been populated correctly.
+  TEST_EQUAL(pep_ids_out.size(), 1);
+  TEST_STRING_EQUAL(pep_ids_out[0].getIdentifier(), "run_unknown");
+  TEST_EQUAL(pep_ids_out[0].getHits().size(), 1);
+  TEST_STRING_EQUAL(pep_ids_out[0].getHits()[0].getSequence().toString(), "TESTVAK");
 }
 END_SECTION
 
