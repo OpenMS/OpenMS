@@ -518,6 +518,54 @@ START_SECTION(ProteinGroupArrowExport::exportToArrow empty groups)
 }
 END_SECTION
 
+START_SECTION(([EXTRA] importFromArrow_round_trip))
+{
+  // Build minimal protein + peptide identifications.
+  ProteinIdentification prot;
+  prot.setIdentifier("run_1");
+  prot.setScoreType("score");
+  prot.setHigherScoreBetter(true);
+  std::vector<ProteinIdentification> prot_ids{prot};
+
+  PeptideIdentification pid;
+  pid.setIdentifier("run_1");
+  pid.setScoreType("score");
+  pid.setHigherScoreBetter(true);
+  pid.setRT(123.4);
+  pid.setMZ(567.89);
+  pid.setSpectrumReference("scan=42");
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDE"));
+  hit.setCharge(2);
+  hit.setScore(0.95);
+  hit.setMetaValue("target_decoy", "target");
+  hit.setMetaValue("COMET:deltaCn", 0.5);
+  PeptideEvidence ev;
+  ev.setProteinAccession("sp|P12345|EXAMPLE");
+  hit.addPeptideEvidence(ev);
+  pid.getHits().push_back(hit);
+
+  PeptideIdentificationList pep_ids;
+  pep_ids.push_back(pid);
+
+  // Export to Arrow table (PSMSchema), then import back.
+  auto table = QPXFile::exportToArrow(prot_ids, pep_ids, /*export_all_psms=*/true);
+  TEST_NOT_EQUAL(table.get(), nullptr);
+
+  std::vector<ProteinIdentification> prot_ids_out = prot_ids; // shell with run identifier preserved
+  PeptideIdentificationList pep_ids_out;
+  TEST_TRUE(QPXFile::importFromArrow(table, prot_ids_out, pep_ids_out));
+
+  TEST_EQUAL(pep_ids_out.size(), 1);
+  TEST_EQUAL(pep_ids_out[0].getHits().size(), 1);
+  TEST_STRING_EQUAL(pep_ids_out[0].getHits()[0].getSequence().toString(), "PEPTIDE");
+  TEST_EQUAL(pep_ids_out[0].getHits()[0].getCharge(), 2);
+  TEST_REAL_SIMILAR(pep_ids_out[0].getHits()[0].getScore(), 0.95);
+  TEST_STRING_EQUAL(String(pep_ids_out[0].getHits()[0].getMetaValue("target_decoy")), "target");
+  TEST_REAL_SIMILAR(double(pep_ids_out[0].getHits()[0].getMetaValue("COMET:deltaCn")), 0.5);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
