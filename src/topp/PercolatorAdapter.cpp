@@ -446,8 +446,8 @@ protected:
     setMinFloat_("score:fdr", 0.0);
     setMaxFloat_("score:fdr", 1.0);
 
-    registerFlag_("keep_all_passing",
-      "Keep every PSM that passes score:fdr (default: keep only the best PSM per spectrum).",
+    registerFlag_("best_per_spectrum_only",
+      "After applying score:fdr, retain only the best-scoring PSM per spectrum (default: keep all hits, matching legacy PercolatorAdapter behaviour).",
       false);
   }
   
@@ -1465,7 +1465,7 @@ protected:
         }
       }
 
-      if (!getFlag_("keep_all_passing"))
+      if (getFlag_("best_per_spectrum_only"))
       {
         IDFilter::keepBestPeptideHits(all_peptide_ids);
       }
