@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
@@ -808,153 +809,6 @@ namespace // anonymous
     return *combined;
   }
 
-  /// Fetch a named column from a table, combining chunks if needed.
-  std::shared_ptr<arrow::Array> getColumn_(
-    const std::shared_ptr<arrow::Table>& table,
-    const std::string& name,
-    bool required = true)
-  {
-    auto column = table->GetColumnByName(name);
-    if (!column)
-    {
-      if (required)
-      {
-        OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Missing required column '" << name << "'" << std::endl;
-      }
-      return nullptr;
-    }
-    if (column->num_chunks() == 0)
-    {
-      OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Column '" << name << "' has no chunks" << std::endl;
-      return nullptr;
-    }
-    if (column->num_chunks() == 1)
-    {
-      return column->chunk(0);
-    }
-    auto combined = arrow::Concatenate(column->chunks(), arrow::default_memory_pool());
-    if (!combined.ok())
-    {
-      OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to combine chunks for column '" << name << "'" << std::endl;
-      return nullptr;
-    }
-    return *combined;
-  }
-
-  String getStringValue_(const std::shared_ptr<arrow::Array>& array, int64_t row)
-  {
-    if (!array || array->IsNull(row)) return "";
-    return std::static_pointer_cast<arrow::StringArray>(array)->GetString(row);
-  }
-
-  double getDoubleValue_(const std::shared_ptr<arrow::Array>& array, int64_t row, double default_val = 0.0)
-  {
-    if (!array || array->IsNull(row)) return default_val;
-    return std::static_pointer_cast<arrow::DoubleArray>(array)->Value(row);
-  }
-
-  float getFloatValue_(const std::shared_ptr<arrow::Array>& array, int64_t row, float default_val = 0.0f)
-  {
-    if (!array || array->IsNull(row)) return default_val;
-    return std::static_pointer_cast<arrow::FloatArray>(array)->Value(row);
-  }
-
-  int64_t getInt64Value_(const std::shared_ptr<arrow::Array>& array, int64_t row, int64_t default_val = 0)
-  {
-    if (!array || array->IsNull(row)) return default_val;
-    return std::static_pointer_cast<arrow::Int64Array>(array)->Value(row);
-  }
-
-  int32_t getInt32Value_(const std::shared_ptr<arrow::Array>& array, int64_t row, int32_t default_val = 0)
-  {
-    if (!array || array->IsNull(row)) return default_val;
-    return std::static_pointer_cast<arrow::Int32Array>(array)->Value(row);
-  }
-
-  bool getBoolValue_(const std::shared_ptr<arrow::Array>& array, int64_t row, bool default_val = false)
-  {
-    if (!array || array->IsNull(row)) return default_val;
-    return std::static_pointer_cast<arrow::BooleanArray>(array)->Value(row);
-  }
-
-  bool isNull_(const std::shared_ptr<arrow::Array>& array, int64_t row)
-  {
-    return !array || array->IsNull(row);
-  }
-
-  /// Read metavalues from a list<struct{name,value,value_type}> column at a given row.
-  void readMetaValues_(
-    const std::shared_ptr<arrow::Array>& array,
-    int64_t row,
-    MetaInfoInterface& target,
-    const std::unordered_set<std::string>& excluded_keys = {})
-  {
-    if (!array || array->IsNull(row)) return;
-    auto list_arr = std::static_pointer_cast<arrow::ListArray>(array);
-    auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->value_slice(row));
-    if (!struct_arr || struct_arr->length() == 0) return;
-
-    auto name_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(0));
-    auto value_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(1));
-    auto type_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(2));
-
-    for (int64_t i = 0; i < struct_arr->length(); ++i)
-    {
-      std::string name = name_arr->GetString(i);
-      if (excluded_keys.count(name)) continue;
-
-      std::string value_str = value_arr->GetString(i);
-      std::string type_str = type_arr->GetString(i);
-
-      if (type_str == "int")
-      {
-        try { target.setMetaValue(name, static_cast<int>(std::stol(value_str))); }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "double" || type_str == "float")
-      {
-        try { target.setMetaValue(name, std::stod(value_str)); }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "int_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          target.setMetaValue(name, DataValue(ListUtils::create<Int>(s)));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "double_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          target.setMetaValue(name, DataValue(ListUtils::create<double>(s)));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "string_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          auto sl = ListUtils::create<String>(s);
-          for (auto& e : sl) { e = e.trim(); }
-          target.setMetaValue(name, DataValue(sl));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else
-      {
-        target.setMetaValue(name, value_str);
-      }
-    }
-  }
-
   /// Read FeatureHandles from a list<struct{...}> column at a given row into a ConsensusFeature.
   void readHandles_(
     const std::shared_ptr<arrow::Array>& array,
@@ -1330,15 +1184,15 @@ bool ConsensusMapArrowIO::importFeaturesFromArrow(
     return false;
   }
 
-  auto col_unique_id = getColumn_(tbl, ConsensusFeatureSchema::UNIQUE_ID);
-  auto col_rt = getColumn_(tbl, ConsensusFeatureSchema::RT);
-  auto col_mz = getColumn_(tbl, ConsensusFeatureSchema::MZ);
-  auto col_intensity = getColumn_(tbl, ConsensusFeatureSchema::INTENSITY);
-  auto col_charge = getColumn_(tbl, ConsensusFeatureSchema::CHARGE);
-  auto col_quality = getColumn_(tbl, ConsensusFeatureSchema::QUALITY);
-  auto col_width = getColumn_(tbl, ConsensusFeatureSchema::WIDTH, /*required=*/false);
-  auto col_handles = getColumn_(tbl, ConsensusFeatureSchema::HANDLES, /*required=*/false);
-  auto col_metavalues = getColumn_(tbl, ConsensusFeatureSchema::METAVALUES, /*required=*/false);
+  auto col_unique_id = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::UNIQUE_ID);
+  auto col_rt = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::RT);
+  auto col_mz = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::MZ);
+  auto col_intensity = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::INTENSITY);
+  auto col_charge = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::CHARGE);
+  auto col_quality = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::QUALITY);
+  auto col_width = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::WIDTH, /*required=*/false);
+  auto col_handles = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::HANDLES, /*required=*/false);
+  auto col_metavalues = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::METAVALUES, /*required=*/false);
 
   if (!col_unique_id || !col_rt || !col_mz || !col_intensity || !col_charge || !col_quality)
   {
@@ -1349,17 +1203,17 @@ bool ConsensusMapArrowIO::importFeaturesFromArrow(
   for (int64_t i = 0; i < num_rows; ++i)
   {
     ConsensusFeature cf;
-    cf.setUniqueId(static_cast<UInt64>(getInt64Value_(col_unique_id, i, 0)));
-    cf.setRT(getDoubleValue_(col_rt, i));
-    cf.setMZ(getDoubleValue_(col_mz, i));
-    cf.setIntensity(getFloatValue_(col_intensity, i));
-    cf.setCharge(static_cast<Int>(getInt32Value_(col_charge, i)));
-    cf.setQuality(getFloatValue_(col_quality, i));
+    cf.setUniqueId(static_cast<UInt64>(ArrowIOHelpers::getInt64Value(col_unique_id, i, 0)));
+    cf.setRT(ArrowIOHelpers::getDoubleValue(col_rt, i));
+    cf.setMZ(ArrowIOHelpers::getDoubleValue(col_mz, i));
+    cf.setIntensity(ArrowIOHelpers::getFloatValue(col_intensity, i));
+    cf.setCharge(static_cast<Int>(ArrowIOHelpers::getInt32Value(col_charge, i)));
+    cf.setQuality(ArrowIOHelpers::getFloatValue(col_quality, i));
 
     // Width: null means unset (default 0.0), so we only call setWidth for non-null values.
-    if (col_width && !isNull_(col_width, i))
+    if (col_width && !ArrowIOHelpers::isNull(col_width, i))
     {
-      cf.setWidth(getFloatValue_(col_width, i));
+      cf.setWidth(ArrowIOHelpers::getFloatValue(col_width, i));
     }
 
     if (col_handles)
@@ -1369,7 +1223,7 @@ bool ConsensusMapArrowIO::importFeaturesFromArrow(
 
     if (col_metavalues)
     {
-      readMetaValues_(col_metavalues, i, cf);
+      ArrowIOHelpers::readMetaValues(col_metavalues, i, cf);
     }
 
     cmap.push_back(std::move(cf));
@@ -1394,8 +1248,8 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
 
   // Read consensus_feature_unique_id and PEPTIDE_IDENTIFICATION_INDEX side-by-side
   // so we can route each constructed PeptideIdentification to the right ConsensusFeature.
-  auto col_feature_id = getColumn_(tbl, "consensus_feature_unique_id");
-  auto col_p_id = getColumn_(tbl, PSMSchema::PEPTIDE_IDENTIFICATION_INDEX);
+  auto col_feature_id = ArrowIOHelpers::getColumn(tbl, "consensus_feature_unique_id");
+  auto col_p_id = ArrowIOHelpers::getColumn(tbl, PSMSchema::PEPTIDE_IDENTIFICATION_INDEX);
   if (!col_feature_id || !col_p_id)
   {
     OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Missing required columns for PSM import" << std::endl;
@@ -1415,9 +1269,9 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
   std::unordered_map<int32_t, std::pair<bool, int64_t>> p_id_to_feature; // bool: is_null
   for (int64_t row = 0; row < tbl->num_rows(); ++row)
   {
-    int32_t p_id = getInt32Value_(col_p_id, row, -1);
-    bool is_null = isNull_(col_feature_id, row);
-    int64_t fid = is_null ? 0 : getInt64Value_(col_feature_id, row, 0);
+    int32_t p_id = ArrowIOHelpers::getInt32Value(col_p_id, row, -1);
+    bool is_null = ArrowIOHelpers::isNull(col_feature_id, row);
+    int64_t fid = is_null ? 0 : ArrowIOHelpers::getInt64Value(col_feature_id, row, 0);
     auto [it, inserted] = p_id_to_feature.try_emplace(p_id, std::make_pair(is_null, fid));
     if (!inserted)
     {
@@ -1453,7 +1307,7 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
   seen.reserve(static_cast<size_t>(tbl->num_rows()));
   for (int64_t row = 0; row < tbl->num_rows(); ++row)
   {
-    int32_t p_id = getInt32Value_(col_p_id, row, -1);
+    int32_t p_id = ArrowIOHelpers::getInt32Value(col_p_id, row, -1);
     if (seen.insert(p_id).second) { p_id_order.push_back(p_id); }
   }
   if (p_id_order.size() != pep_ids.size())

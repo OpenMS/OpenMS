@@ -399,7 +399,7 @@ namespace OpenMS
       arrow::field(SCORE, arrow::float64()),
       arrow::field(SCORE_TYPE, arrow::utf8()),
       arrow::field(HIGHER_SCORE_BETTER, arrow::boolean()),
-      arrow::field(RANK, arrow::int32()),
+      arrow::field(HIT_INDEX, arrow::int32()),
       arrow::field(PEPTIDE_IDENTIFICATION_INDEX, arrow::int32()),
       arrow::field(PSM_METAVALUES, metavaluesType()),
       arrow::field(SPECTRUM_METAVALUES, metavaluesType()),

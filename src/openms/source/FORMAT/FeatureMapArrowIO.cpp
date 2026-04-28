@@ -1434,7 +1434,7 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
   auto col_charge = getColumn_(tbl, PSMSchema::PRECURSOR_CHARGE);
   auto col_score = getColumn_(tbl, PSMSchema::SCORE);
   auto col_score_type = getColumn_(tbl, PSMSchema::SCORE_TYPE);
-  auto col_rank = getColumn_(tbl, PSMSchema::RANK, /*required=*/false);
+  // hit_index is positional (analytics view); rank semantics travel via psm_metavalues.
   auto col_rt = getColumn_(tbl, PSMSchema::RT, /*required=*/false);
   auto col_mz = getColumn_(tbl, PSMSchema::OBSERVED_MZ, /*required=*/false);
   auto col_spec_ref = getColumn_(tbl, PSMSchema::SPECTRUM_REFERENCE, /*required=*/false);
@@ -1587,11 +1587,6 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
 
     hit.setCharge(static_cast<Int>(getInt32Value_(col_charge, row, 0)));
     hit.setScore(getDoubleValue_(col_score, row, 0.0));
-
-    if (col_rank && !isNull_(col_rank, row))
-    {
-      hit.setRank(static_cast<UInt>(getInt32Value_(col_rank, row, 0)));
-    }
 
     // is_decoy -> target_decoy metavalue
     if (col_is_decoy && !isNull_(col_is_decoy, row))
