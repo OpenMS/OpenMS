@@ -61,6 +61,7 @@ Dependencies:
   - opentims: CMake now searches for a system-installed opentims_cpp via FindOpentims.cmake before falling back to a FetchContent git clone; packagers and users with opentims already installed can set opentims_DIR or opentims_ROOT to skip the download (#9147, #9148)
   - contrib: the contrib directory is now a git submodule; developers and packagers building from a git clone must run `git submodule update --init` (or clone with `--recurse-submodules`) to obtain the vendored third-party libraries (#9155)
   - Fix: CMake now accepts Arrow/Parquet 24.x and later; the find_package version argument was dropped and a VERSION_LESS guard enforces the >= 23 minimum, so any future Arrow major release is accepted without an explicit CMake update; pyOpenMS excludes pyarrow 24.0.0 (cp310-only wheels on PyPI) to ensure pyarrow installs correctly on Python 3.11/3.12/3.13 (#9196)
+  - Fix: pyOpenMS standalone/cibuildwheel build now also accepts Arrow 24.x and later; the standalone CMakeLists previously called find_package(Arrow 23 CONFIG REQUIRED) which Arrow's SameMajorVersion compatibility rejected for 24.0.0; mirrors the fix from #9196 (#9221)
 
 PyOpenMS:
   - BREAKING: Binding backend replaced from Autowrap/Cython to hand-maintained nanobind C++ bindings (#8699)
@@ -182,6 +183,9 @@ TOPP tools:
       - Fix: PercolatorAdapter sibling binary is now resolved via File::findSiblingTOPPExecutable before the per-file search loop; previously the bare name "PercolatorAdapter" was passed to boost::process which only searches $PATH, causing silent fallback to HyperScore results in dev builds or installs where the OpenMS bin/ directory is not on PATH (#9204)
       - Fix: -out_merged write failure no longer discards per-file outputs. Per-file -out_idxml/-out_pin/-out_qpx/-out_parquet writes now complete before the merged write is attempted, and the merged write is wrapped in try/catch (#9205, #9197 item 1a)
       - Fix: merged idXML write no longer crashes with "Invalid protein reference 'DECOY_...'" when target+decoy shared peptides are present and protein FDR is enabled. Added IDFilter::removeDanglingProteinReferences pass after decoy/protein cleanup (#9205, #9197 item 1b)
+      - Fix: SNES mode (snes_enabled=true) now truncates Single-N/Single-C mother peptides to unambiguous spans when the proposed window overlaps an X/B/Z (ambiguous) residue, instead of silently dropping the whole mother; proteins without X/B/Z take an unchanged fast path (#9224)
+    PercolatorAdapter:
+      - In-process Percolator rescoring backend: PercolatorAdapter now runs Percolator directly in-process (no external binary required) for PSM-level FDR rescoring on idXML/mzIdentML input; the external subprocess path is still available via -use_subprocess true; -percolator_executable is no longer required when using in-process mode (#9218)
     SimpleSearchEngine:
       - Added peptide:enzyme_specificity parameter (full/semi/none) to enable semi-tryptic and non-specific searches (#9112)
       - New annotate:PSM options: num_matched_peaks, matched_b_ions, matched_y_ions, longest_peptide_ion_sequence, fragment_annotation (#9117)
@@ -231,6 +235,7 @@ TOPP tools:
       - Direct Bruker .d (TDF) file input: Bruker TimsTOF files can now be passed directly without prior mzML conversion; requires WITH_TIMSRUST=ON (#9019)
       - Performance: new automatic SWATH wave scheduler reduces wall time on large spectral libraries; batchSize=0 (default) now selects the wave scheduler automatically when working in memory; new advanced parameters innerBatchSize (inner scoring batch size, <=0 for auto), maxConcurrentSwaths (max concurrent SWATH maps in memory, -1 for auto), and outer_loop_threads (legacy nested-OpenMP outer threads, -1 for auto) expose tuning knobs; OSW output is written via a memory-aware buffered writer that flushes when free system RAM falls below a configurable threshold (#9190)
       - Fix: OSW RUN.ID column now stored as INTEGER instead of BLOB; the previous BLOB type caused JOIN queries between the FEATURE and RUN tables to return 0 rows (#9190)
+      - Fix: resolved duplicate TLS initialization symbol for g_picker_pool_shared on macOS arm64/clang; the inline thread_local variable in MRMTransitionGroupPicker.h produced one init wrapper per translation unit causing linker errors; moved to extern declaration in the header with a single definition in the .cpp (#9223)
     PeakPickerHiRes:
       - New parameter to allow peak cores with no leading flank peaks (#8649)
       - Warns when given IM_PEAK format (per-peak ion mobility) data; partial support via intensity-weighted mean IM per picked peak (#9018)
