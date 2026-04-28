@@ -46,6 +46,10 @@ namespace
     hit.setMetaValue("COMET:deltaCn", 0.5);
     PeptideEvidence ev;
     ev.setProteinAccession("sp|P12345|EXAMPLE");
+    ev.setAABefore('K');
+    ev.setAAAfter('R');
+    ev.setStart(42);
+    ev.setEnd(48);
     hit.addPeptideEvidence(ev);
     pid.getHits().push_back(hit);
     pep_ids.push_back(pid);
@@ -85,6 +89,15 @@ START_SECTION(([EXTRA] export_then_import_round_trip))
   TEST_EQUAL(pep_ids_in[0].getHits().size(), 1);
   TEST_STRING_EQUAL(pep_ids_in[0].getHits()[0].getSequence().toString(), "PEPTIDE");
   TEST_REAL_SIMILAR(double(pep_ids_in[0].getHits()[0].getMetaValue("COMET:deltaCn")), 0.5);
+
+  // PeptideEvidence positional fields round-trip (.idparquet schema extension).
+  TEST_EQUAL(pep_ids_in[0].getHits()[0].getPeptideEvidences().size(), 1);
+  const auto& ev_in = pep_ids_in[0].getHits()[0].getPeptideEvidences().front();
+  TEST_STRING_EQUAL(ev_in.getProteinAccession(), "sp|P12345|EXAMPLE");
+  TEST_EQUAL(ev_in.getAABefore(), 'K');
+  TEST_EQUAL(ev_in.getAAAfter(),  'R');
+  TEST_EQUAL(ev_in.getStart(), 42);
+  TEST_EQUAL(ev_in.getEnd(),   48);
 
   File::removeDirRecursively(dir);
 }

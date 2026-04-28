@@ -15,6 +15,7 @@
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/Scores.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 
 #include <arrow/api.h>
@@ -208,9 +209,17 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   arrow::DoubleBuilder pep_builder, calculated_mz_builder, observed_mz_builder;
   arrow::DoubleBuilder rt_builder, ion_mobility_builder, predicted_rt_builder, score_builder;
 
-  // -- protein_accessions list<utf8> --
-  auto pa_vb = std::make_shared<arrow::StringBuilder>();
-  arrow::ListBuilder protein_accessions_builder(arrow::default_memory_pool(), pa_vb);
+  // -- protein_accessions list<struct{accession, aa_before, aa_after, start, end}> --
+  auto pa_struct_type = std::static_pointer_cast<arrow::ListType>(PSMSchema::proteinAccessionsType())->value_type();
+  auto pa_acc_b      = std::make_shared<arrow::StringBuilder>();
+  auto pa_before_b   = std::make_shared<arrow::StringBuilder>();
+  auto pa_after_b    = std::make_shared<arrow::StringBuilder>();
+  auto pa_start_b    = std::make_shared<arrow::Int32Builder>();
+  auto pa_end_b      = std::make_shared<arrow::Int32Builder>();
+  auto pa_struct_b   = std::make_shared<arrow::StructBuilder>(
+    pa_struct_type, arrow::default_memory_pool(),
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{pa_acc_b, pa_before_b, pa_after_b, pa_start_b, pa_end_b});
+  arrow::ListBuilder protein_accessions_builder(arrow::default_memory_pool(), pa_struct_b);
 
   // -- Modifications list<struct{name, accession, positions: list<struct{position, scores}>}> --
   auto pos_position_b = std::make_shared<arrow::StringBuilder>();
@@ -564,11 +573,30 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
         }
       }
 
-      // === protein_accessions ===
+      // === protein_accessions (list<struct{accession, aa_before, aa_after, start, end}>) ===
       (void)protein_accessions_builder.Append();
       for (const auto& ev : hit.getPeptideEvidences())
       {
-        (void)pa_vb->Append(ev.getProteinAccession());
+        (void)pa_struct_b->Append();
+        (void)pa_acc_b->Append(ev.getProteinAccession());
+
+        // aa_before/after: store the char as a length-1 string; UNKNOWN_AA -> Arrow null.
+        const char b = ev.getAABefore();
+        if (b == PeptideEvidence::UNKNOWN_AA) { (void)pa_before_b->AppendNull(); }
+        else { (void)pa_before_b->Append(std::string(1, b)); }
+
+        const char a = ev.getAAAfter();
+        if (a == PeptideEvidence::UNKNOWN_AA) { (void)pa_after_b->AppendNull(); }
+        else { (void)pa_after_b->Append(std::string(1, a)); }
+
+        // start/end: UNKNOWN_POSITION (-1) -> null.
+        const int s = ev.getStart();
+        if (s == PeptideEvidence::UNKNOWN_POSITION) { (void)pa_start_b->AppendNull(); }
+        else { (void)pa_start_b->Append(s); }
+
+        const int e = ev.getEnd();
+        if (e == PeptideEvidence::UNKNOWN_POSITION) { (void)pa_end_b->AppendNull(); }
+        else { (void)pa_end_b->Append(e); }
       }
 
       // === predicted_rt ===
@@ -1666,13 +1694,22 @@ bool QPXFile::importFromArrow(
     if (col_protein_accs && !isNull_(col_protein_accs, row))
     {
       auto list_arr = std::static_pointer_cast<arrow::ListArray>(col_protein_accs);
-      auto values = std::static_pointer_cast<arrow::StringArray>(list_arr->values());
-      int64_t start = list_arr->value_offset(row);
-      int64_t end = start + list_arr->value_length(row);
-      for (int64_t k = start; k < end; ++k)
+      auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->values());
+      auto acc_arr    = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("accession"));
+      auto before_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("aa_before"));
+      auto after_arr  = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("aa_after"));
+      auto start_arr  = std::static_pointer_cast<arrow::Int32Array>(struct_arr->GetFieldByName("start"));
+      auto end_arr    = std::static_pointer_cast<arrow::Int32Array>(struct_arr->GetFieldByName("end"));
+      int64_t lstart = list_arr->value_offset(row);
+      int64_t lend = lstart + list_arr->value_length(row);
+      for (int64_t k = lstart; k < lend; ++k)
       {
         PeptideEvidence ev;
-        ev.setProteinAccession(values->GetString(k));
+        ev.setProteinAccession(acc_arr->GetString(k));
+        ev.setAABefore(before_arr->IsNull(k) ? PeptideEvidence::UNKNOWN_AA : before_arr->GetString(k)[0]);
+        ev.setAAAfter (after_arr ->IsNull(k) ? PeptideEvidence::UNKNOWN_AA : after_arr ->GetString(k)[0]);
+        ev.setStart(start_arr->IsNull(k) ? PeptideEvidence::UNKNOWN_POSITION : start_arr->Value(k));
+        ev.setEnd  (end_arr  ->IsNull(k) ? PeptideEvidence::UNKNOWN_POSITION : end_arr  ->Value(k));
         hit.addPeptideEvidence(ev);
       }
     }

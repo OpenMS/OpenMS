@@ -365,6 +365,17 @@ namespace OpenMS
     }));
   }
 
+  std::shared_ptr<arrow::DataType> PSMSchema::proteinAccessionsType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("accession", arrow::utf8(), /*nullable=*/false),
+      arrow::field("aa_before", arrow::utf8(), /*nullable=*/true),
+      arrow::field("aa_after",  arrow::utf8(), /*nullable=*/true),
+      arrow::field("start",     arrow::int32(), /*nullable=*/true),
+      arrow::field("end",       arrow::int32(), /*nullable=*/true),
+    }));
+  }
+
   std::shared_ptr<arrow::Schema> PSMSchema::schema()
   {
     return arrow::schema({
@@ -377,7 +388,7 @@ namespace OpenMS
       arrow::field(CALCULATED_MZ, arrow::float64()),
       arrow::field(OBSERVED_MZ, arrow::float64()),
       arrow::field(ADDITIONAL_SCORES, additionalScoresType()),
-      arrow::field(PROTEIN_ACCESSIONS, arrow::list(arrow::utf8())),
+      arrow::field(PROTEIN_ACCESSIONS, proteinAccessionsType()),
       arrow::field(PREDICTED_RT, arrow::float64()),
       arrow::field(REFERENCE_FILE_NAME, arrow::utf8()),
       arrow::field(CV_PARAMS, arrow::utf8()),

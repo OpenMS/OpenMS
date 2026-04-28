@@ -200,6 +200,8 @@ namespace OpenMS
     static std::shared_ptr<arrow::DataType> modificationsType();
     static std::shared_ptr<arrow::DataType> additionalScoresType();
     static std::shared_ptr<arrow::DataType> metavaluesType();
+    /// Arrow type for protein_accessions: list<struct{accession, aa_before, aa_after, start, end}>
+    static std::shared_ptr<arrow::DataType> proteinAccessionsType();
     static std::shared_ptr<arrow::Schema> schema();
   };
 
