@@ -493,7 +493,7 @@ if (WITH_THERMO_RAW)
 
     FetchContent_MakeAvailable(OpenMSThermoBridge)
 
-    message(STATUS "openms-thermo-bridge: built from source (${openmsthermobrige_SOURCE_DIR})")
+    message(STATUS "openms-thermo-bridge: built from source (${openmsthermobridge_SOURCE_DIR})")
   endif()
 endif()
 #------------------------------------------------------------------------------
