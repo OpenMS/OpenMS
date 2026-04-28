@@ -111,14 +111,14 @@ bool PSMArrowIO::importFromParquet(
     }
   }
 
-  protein_identifications.clear();
-  peptide_identifications.clear();
+  std::vector<ProteinIdentification> tmp_proteins;
+  PeptideIdentificationList tmp_peptides;
 
   if (!ProteinIdentificationArrowIO::importFromParquet(
         dir + "/" + kProteins,
         dir + "/" + kProteinGroups,
         dir + "/" + kSearchParams,
-        protein_identifications))
+        tmp_proteins))
   {
     return false;
   }
@@ -130,7 +130,14 @@ bool PSMArrowIO::importFromParquet(
     return false;
   }
 
-  return QPXFile::importFromArrow(psm_table, protein_identifications, peptide_identifications);
+  if (!QPXFile::importFromArrow(psm_table, tmp_proteins, tmp_peptides))
+  {
+    return false;
+  }
+
+  protein_identifications.swap(tmp_proteins);
+  peptide_identifications.swap(tmp_peptides);
+  return true;
 }
 
 } // namespace OpenMS

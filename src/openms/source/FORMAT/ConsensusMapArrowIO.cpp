@@ -1401,6 +1401,14 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
     OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Missing required columns for PSM import" << std::endl;
     return false;
   }
+  if (col_feature_id->type_id() != arrow::Type::INT64 ||
+      col_p_id->type_id() != arrow::Type::INT32)
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Invalid column types for PSM import "
+                     << "(expected consensus_feature_unique_id=int64 and "
+                     << PSMSchema::PEPTIDE_IDENTIFICATION_INDEX << "=int32)" << std::endl;
+    return false;
+  }
 
   // Build (p_id -> feature_unique_id-or-null) map by capturing the first row each p_id appears.
   // Do not assume rows of the same p_id are contiguous.
@@ -1416,11 +1424,12 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
       const auto& [prev_null, prev_fid] = it->second;
       if (prev_null != is_null || (!is_null && prev_fid != fid))
       {
-        OPENMS_LOG_WARN << "ConsensusMapArrowIO: inconsistent consensus_feature_unique_id "
-                        << "mappings for p_id " << p_id << " (kept first: "
-                        << (prev_null ? "null" : std::to_string(prev_fid))
-                        << ", saw: " << (is_null ? "null" : std::to_string(fid))
-                        << ")" << std::endl;
+        OPENMS_LOG_ERROR << "ConsensusMapArrowIO: inconsistent consensus_feature_unique_id "
+                         << "mappings for p_id " << p_id << " (first: "
+                         << (prev_null ? "null" : std::to_string(prev_fid))
+                         << ", later: " << (is_null ? "null" : std::to_string(fid))
+                         << ")" << std::endl;
+        return false;
       }
     }
   }

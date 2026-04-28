@@ -1612,6 +1612,11 @@ bool QPXFile::importFromArrow(
   std::unordered_map<int32_t, size_t> p_id_to_idx;
   const size_t pep_ids_start_size = peptide_identifications.size();
 
+  // Capture the first non-empty reference_file_name per run_identifier so that
+  // shell ProteinIdentifications synthesized below can preserve the primary MS
+  // run path on round-trip.
+  std::unordered_map<std::string, std::string> run_id_to_ref_file;
+
   for (int64_t row = 0; row < num_rows; ++row)
   {
     int32_t p_id = getInt32Value_(col_p_id, row, -1);
@@ -1656,6 +1661,7 @@ bool QPXFile::importFromArrow(
     }
 
     PeptideHit hit;
+    bool sequence_set = false;
     if (col_peptidoform && !isNull_(col_peptidoform, row))
     {
       const String peptidoform_str = getStringValue_(col_peptidoform, row);
@@ -1665,17 +1671,14 @@ bool QPXFile::importFromArrow(
         {
           auto pf = ProForma::parse(peptidoform_str);
           hit.setSequence(ProForma::toAASequence(pf, ProForma::ConversionPolicy::BEST_EFFORT));
+          sequence_set = true;
         }
         catch (...)
         {
-          if (col_sequence && !isNull_(col_sequence, row))
-          {
-            hit.setSequence(AASequence::fromString(getStringValue_(col_sequence, row)));
-          }
         }
       }
     }
-    else if (col_sequence && !isNull_(col_sequence, row))
+    if (!sequence_set && col_sequence && !isNull_(col_sequence, row))
     {
       hit.setSequence(AASequence::fromString(getStringValue_(col_sequence, row)));
     }
@@ -1747,7 +1750,13 @@ bool QPXFile::importFromArrow(
     }
     if (col_ref_file && !isNull_(col_ref_file, row))
     {
-      hit.setMetaValue("reference_file_name", getStringValue_(col_ref_file, row));
+      const String ref_file = getStringValue_(col_ref_file, row);
+      hit.setMetaValue("reference_file_name", ref_file);
+      if (!ref_file.empty())
+      {
+        const std::string& run_id = peptide_identifications[it->second].getIdentifier();
+        run_id_to_ref_file.try_emplace(run_id, ref_file);
+      }
     }
 
     if (col_psm_metavalues)
@@ -1775,6 +1784,11 @@ bool QPXFile::importFromArrow(
       shell.setIdentifier(id);
       shell.setScoreType(pid.getScoreType());
       shell.setHigherScoreBetter(pid.isHigherScoreBetter());
+      auto rf_it = run_id_to_ref_file.find(id);
+      if (rf_it != run_id_to_ref_file.end())
+      {
+        shell.setPrimaryMSRunPath({rf_it->second});
+      }
       protein_identifications.push_back(std::move(shell));
     }
   }
