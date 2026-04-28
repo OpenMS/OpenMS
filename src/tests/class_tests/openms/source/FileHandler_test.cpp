@@ -18,6 +18,10 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <filesystem>
 #include <fstream>
@@ -309,6 +313,45 @@ TEST_EQUAL(fh.getTypeByContent(filename), FileTypes::MZML)
 TEST_EXCEPTION(Exception::InvalidFileType, fh.storeExperiment(filename, exp, {FileTypes::SIZE_OF_TYPE}))
 
 //other types cannot be tested, because the NEW_TMP_FILE template does not support file extensions...
+END_SECTION
+
+START_SECTION(([EXTRA] storeIdentifications_loadIdentifications_idparquet_round_trip))
+{
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+
+  ProteinIdentification prot;
+  prot.setIdentifier("run_1");
+  prot.setScoreType("score");
+  prot.setHigherScoreBetter(true);
+  prot_ids.push_back(prot);
+
+  PeptideIdentification pid;
+  pid.setIdentifier("run_1");
+  pid.setScoreType("score");
+  pid.setHigherScoreBetter(true);
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDE"));
+  hit.setCharge(2);
+  hit.setScore(0.5);
+  pid.getHits().push_back(hit);
+  pep_ids.push_back(pid);
+
+  String dir;
+  NEW_TMP_FILE(dir)
+  dir += ".idparquet";
+
+  FileHandler().storeIdentifications(dir, prot_ids, pep_ids, {FileTypes::IDPARQUET});
+
+  std::vector<ProteinIdentification> prot_ids_in;
+  PeptideIdentificationList pep_ids_in;
+  FileHandler().loadIdentifications(dir, prot_ids_in, pep_ids_in, {FileTypes::IDPARQUET});
+
+  TEST_EQUAL(prot_ids_in.size(), 1);
+  TEST_EQUAL(pep_ids_in.size(), 1);
+
+  File::removeDirRecursively(dir);
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
