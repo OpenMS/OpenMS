@@ -169,7 +169,7 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    vector<String> formats = {"idXML", "oms"};
+    vector<String> formats = {"idXML", "oms", "idparquet"};
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks (all must have the same type)");
     setValidFormats_("in", formats);
     registerOutputFile_("out", "<file>", "", "Output file (must have the same type as the input files)");
@@ -327,7 +327,7 @@ protected:
     //-------------------------------------------------------------
     OPENMS_LOG_DEBUG << "protein IDs: " << proteins.size() << endl
               << "peptide IDs: " << peptides.size() << endl;
-    FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
     return EXECUTION_OK;
   }
