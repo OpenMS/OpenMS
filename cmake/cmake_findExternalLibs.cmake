@@ -467,3 +467,33 @@ if (WITH_OPENTIMS)
   endif()
 endif()
 #------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# openms-thermo-bridge (Thermo RAW file reading)
+if (WITH_THERMO_RAW)
+  find_package(OpenMSThermoBridge QUIET)
+
+  if(OpenMSThermoBridge_FOUND)
+    message(STATUS "openms-thermo-bridge: using system installation")
+  else()
+    # No system install found — fetch and build from source.
+    message(STATUS "openms-thermo-bridge: system installation not found, fetching from git")
+    include(FetchContent)
+
+    FetchContent_Declare(
+      OpenMSThermoBridge
+      GIT_REPOSITORY https://github.com/jpfeuffer/openms-thermo-bridge.git
+      GIT_TAG        main
+    )
+
+    # Configure the thermo bridge build options
+    set(OPENMS_THERMO_BRIDGE_BUILD_CLI         OFF CACHE BOOL "" FORCE)
+    set(OPENMS_THERMO_BRIDGE_ENABLE_VENDOR_DOWNLOAD ON CACHE BOOL "" FORCE)
+    set(OPENMS_THERMO_BRIDGE_DOWNLOAD_TEST_DATA OFF CACHE BOOL "" FORCE)
+
+    FetchContent_MakeAvailable(OpenMSThermoBridge)
+
+    message(STATUS "openms-thermo-bridge: built from source (${openmsthermobrige_SOURCE_DIR})")
+  endif()
+endif()
+#------------------------------------------------------------------------------
