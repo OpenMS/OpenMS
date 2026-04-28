@@ -244,10 +244,10 @@ START_SECTION(ProteinSchema field types and nullability)
   TEST_EQUAL(s->field(1)->name(), "score")
   TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::DOUBLE)
   TEST_EQUAL(s->field(1)->nullable(), false)
-  // rank: int32, nullable
+  // rank: int32, non-null (mirrors ProteinHit::rank_, which is always defined)
   TEST_EQUAL(s->field(2)->name(), "rank")
   TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::INT32)
-  TEST_EQUAL(s->field(2)->nullable(), true)
+  TEST_EQUAL(s->field(2)->nullable(), false)
   // coverage: float64, nullable
   TEST_EQUAL(s->field(3)->name(), "coverage")
   TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::DOUBLE)

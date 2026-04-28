@@ -153,7 +153,7 @@ namespace OpenMS
     return arrow::schema({
       arrow::field(ACCESSION, arrow::utf8(), /*nullable=*/false),
       arrow::field(SCORE, arrow::float64(), /*nullable=*/false),
-      arrow::field(RANK, arrow::int32(), /*nullable=*/true),
+      arrow::field(RANK, arrow::int32(), /*nullable=*/false),
       arrow::field(COVERAGE, arrow::float64(), /*nullable=*/true),
       arrow::field(SEQUENCE, arrow::utf8(), /*nullable=*/true),
       arrow::field(DESCRIPTION, arrow::utf8(), /*nullable=*/true),
