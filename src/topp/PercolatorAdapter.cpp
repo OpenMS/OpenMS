@@ -436,6 +436,19 @@ protected:
     registerDoubleOption_("ipf_max_peakgroup_pep", "<value>", 0.7, "OSW/IPF: Assess transitions only for candidate peak groups until maximum posterior error probability.", !is_required, is_advanced_option);
     registerDoubleOption_("ipf_max_transition_isotope_overlap", "<value>", 0.5, "OSW/IPF: Maximum isotope overlap to consider transitions in IPF.", !is_required, is_advanced_option);
     registerDoubleOption_("ipf_min_transition_sn", "<value>", 0, "OSW/IPF: Minimum log signal-to-noise level to consider transitions in IPF. Set -1 to disable this filter.", !is_required, is_advanced_option);
+
+    //Post-filter parameters
+    registerDoubleOption_("score:fdr", "<value>",
+      1.0,
+      "FDR cutoff applied to the Percolator q-value before writing output. "
+      "PSMs with q-value > cutoff are dropped. 1.0 disables the filter.",
+      false, false);
+    setMinFloat_("score:fdr", 0.0);
+    setMaxFloat_("score:fdr", 1.0);
+
+    registerFlag_("keep_all_passing",
+      "Keep every PSM that passes score:fdr (default: keep only the best PSM per spectrum).",
+      false);
   }
   
 
@@ -1434,6 +1447,29 @@ protected:
         peptide_level_fdrs, protein_level_fdrs,
         /*version_string=*/"3.07",  // TODO: read from percolator binary --version
         protein_level_fdrs ? &protein_map : nullptr);
+
+      // Post-filter on Percolator's q-value (PeptideHit::score after Percolator parsing).
+      const double score_fdr = getDoubleOption_("score:fdr");
+      if (score_fdr < 1.0)
+      {
+        // After Percolator output parsing, hit.score is the q-value. Lower is better.
+        // IDFilter::filterHitsByScore drops hits where score >= threshold (higher is worse).
+        IDFilter::filterHitsByScore(all_peptide_ids, score_fdr);
+        IDFilter::removeEmptyIdentifications(all_peptide_ids);
+        OPENMS_LOG_INFO << "Applied score:fdr cutoff " << score_fdr
+                        << "; remaining peptide identifications: " << all_peptide_ids.size() << std::endl;
+        if (all_peptide_ids.empty())
+        {
+          OPENMS_LOG_WARN << "score:fdr cutoff " << score_fdr << " dropped all PSMs. "
+                          << "Output will contain no peptide identifications." << std::endl;
+        }
+      }
+
+      if (!getFlag_("keep_all_passing"))
+      {
+        IDFilter::keepBestPeptideHits(all_peptide_ids);
+      }
+
       // Storing the PeptideHits with calculated q-value, pep and svm score
       FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML, FileTypes::IDPARQUET});
     }
