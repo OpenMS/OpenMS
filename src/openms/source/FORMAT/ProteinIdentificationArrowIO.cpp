@@ -1381,11 +1381,15 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
       }
     }
 
-    // Primary MS run paths (always call — empty list creates an empty spectra_data UserParam,
-    // matching idXML round-trip semantics)
-    auto ms_run_paths = readStringList_(col_ms_run_paths, row);
-    StringList sl(ms_run_paths.begin(), ms_run_paths.end());
-    prot_id.setPrimaryMSRunPath(sl);
+    // Primary MS run paths — only call when the column is present.
+    // Missing column → no spectra_data UserParam (preserves round-trip semantics).
+    // Present-but-empty column → empty spectra_data UserParam (matches idXML behaviour).
+    if (col_ms_run_paths)
+    {
+      auto ms_run_paths = readStringList_(col_ms_run_paths, row);
+      StringList sl(ms_run_paths.begin(), ms_run_paths.end());
+      prot_id.setPrimaryMSRunPath(sl);
+    }
 
     // SearchParameters
     ProteinIdentification::SearchParameters sp;

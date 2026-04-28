@@ -1709,8 +1709,10 @@ bool QPXFile::importFromArrow(
       {
         PeptideEvidence ev;
         ev.setProteinAccession(acc_arr->GetString(k));
-        ev.setAABefore(before_arr->IsNull(k) ? PeptideEvidence::UNKNOWN_AA : before_arr->GetString(k)[0]);
-        ev.setAAAfter (after_arr ->IsNull(k) ? PeptideEvidence::UNKNOWN_AA : after_arr ->GetString(k)[0]);
+        const std::string before_s = before_arr->IsNull(k) ? std::string{} : before_arr->GetString(k);
+        ev.setAABefore(before_s.empty() ? PeptideEvidence::UNKNOWN_AA : before_s[0]);
+        const std::string after_s = after_arr->IsNull(k) ? std::string{} : after_arr->GetString(k);
+        ev.setAAAfter(after_s.empty() ? PeptideEvidence::UNKNOWN_AA : after_s[0]);
         ev.setStart(start_arr->IsNull(k) ? PeptideEvidence::UNKNOWN_POSITION : start_arr->Value(k));
         ev.setEnd  (end_arr  ->IsNull(k) ? PeptideEvidence::UNKNOWN_POSITION : end_arr  ->Value(k));
         hit.addPeptideEvidence(ev);

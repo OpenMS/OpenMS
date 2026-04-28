@@ -1408,10 +1408,21 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
   for (int64_t row = 0; row < tbl->num_rows(); ++row)
   {
     int32_t p_id = getInt32Value_(col_p_id, row, -1);
-    if (p_id_to_feature.count(p_id)) { continue; }
     bool is_null = isNull_(col_feature_id, row);
     int64_t fid = is_null ? 0 : getInt64Value_(col_feature_id, row, 0);
-    p_id_to_feature.emplace(p_id, std::make_pair(is_null, fid));
+    auto [it, inserted] = p_id_to_feature.try_emplace(p_id, std::make_pair(is_null, fid));
+    if (!inserted)
+    {
+      const auto& [prev_null, prev_fid] = it->second;
+      if (prev_null != is_null || (!is_null && prev_fid != fid))
+      {
+        OPENMS_LOG_WARN << "ConsensusMapArrowIO: inconsistent consensus_feature_unique_id "
+                        << "mappings for p_id " << p_id << " (kept first: "
+                        << (prev_null ? "null" : std::to_string(prev_fid))
+                        << ", saw: " << (is_null ? "null" : std::to_string(fid))
+                        << ")" << std::endl;
+      }
+    }
   }
 
   // Delegate PSM construction to QPXFile::importFromArrow.
