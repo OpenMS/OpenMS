@@ -1606,50 +1606,53 @@ bool QPXFile::importFromArrow(
     higher_score_better_lookup[prot_id.getIdentifier()] = prot_id.isHigherScoreBetter();
   }
 
-  PeptideIdentification* current_pid = nullptr;
-  int32_t current_p_id = -1;
+  // Group rows by PEPTIDE_IDENTIFICATION_INDEX value (not by adjacency).
+  // Track the first-seen-order index of each distinct p_id so the resulting
+  // peptide_identifications preserve table order even when rows are interleaved.
+  std::unordered_map<int32_t, size_t> p_id_to_idx;
+  const size_t pep_ids_start_size = peptide_identifications.size();
 
   for (int64_t row = 0; row < num_rows; ++row)
   {
     int32_t p_id = getInt32Value_(col_p_id, row, -1);
 
-    if (current_pid == nullptr || p_id != current_p_id)
+    auto [it, inserted] = p_id_to_idx.try_emplace(p_id, peptide_identifications.size());
+    if (inserted)
     {
       peptide_identifications.emplace_back();
-      current_pid = &peptide_identifications.back();
-      current_pid->setScoreType(getStringValue_(col_score_type, row));
+      PeptideIdentification& pid = peptide_identifications.back();
+      pid.setScoreType(getStringValue_(col_score_type, row));
 
       if (col_run_id && !isNull_(col_run_id, row))
       {
-        current_pid->setIdentifier(getStringValue_(col_run_id, row));
+        pid.setIdentifier(getStringValue_(col_run_id, row));
       }
 
       if (col_hsb && !isNull_(col_hsb, row))
       {
-        current_pid->setHigherScoreBetter(getBoolValue_(col_hsb, row, true));
+        pid.setHigherScoreBetter(getBoolValue_(col_hsb, row, true));
       }
       else if (col_run_id && !isNull_(col_run_id, row))
       {
-        auto hsb_it = higher_score_better_lookup.find(current_pid->getIdentifier());
-        current_pid->setHigherScoreBetter(
+        auto hsb_it = higher_score_better_lookup.find(pid.getIdentifier());
+        pid.setHigherScoreBetter(
           hsb_it != higher_score_better_lookup.end() ? hsb_it->second : true);
       }
       else
       {
-        current_pid->setHigherScoreBetter(true);
+        pid.setHigherScoreBetter(true);
       }
 
-      if (col_rt && !isNull_(col_rt, row)) { current_pid->setRT(getDoubleValue_(col_rt, row)); }
-      if (col_mz && !isNull_(col_mz, row)) { current_pid->setMZ(getDoubleValue_(col_mz, row)); }
+      if (col_rt && !isNull_(col_rt, row)) { pid.setRT(getDoubleValue_(col_rt, row)); }
+      if (col_mz && !isNull_(col_mz, row)) { pid.setMZ(getDoubleValue_(col_mz, row)); }
       if (col_spec_ref && !isNull_(col_spec_ref, row))
       {
-        current_pid->setSpectrumReference(getStringValue_(col_spec_ref, row));
+        pid.setSpectrumReference(getStringValue_(col_spec_ref, row));
       }
       if (col_spectrum_metavalues)
       {
-        readMetaValues_(col_spectrum_metavalues, row, *current_pid);
+        readMetaValues_(col_spectrum_metavalues, row, pid);
       }
-      current_p_id = p_id;
     }
 
     PeptideHit hit;
@@ -1753,14 +1756,16 @@ bool QPXFile::importFromArrow(
       readMetaValues_(col_psm_metavalues, row, hit, psm_excluded_mvs);
     }
 
-    current_pid->getHits().push_back(std::move(hit));
+    peptide_identifications[it->second].getHits().push_back(std::move(hit));
   }
 
   // Append a shell ProteinIdentification for any run_identifier we saw but don't have.
+  // Only consider PIDs added by this call (caller may concatenate multiple imports).
   std::unordered_set<std::string> known;
   for (const auto& p : protein_identifications) { known.insert(p.getIdentifier()); }
-  for (const auto& pid : peptide_identifications)
+  for (size_t i = pep_ids_start_size; i < peptide_identifications.size(); ++i)
   {
+    const auto& pid = peptide_identifications[i];
     const std::string& id = pid.getIdentifier();
     if (!id.empty() && known.insert(id).second)
     {

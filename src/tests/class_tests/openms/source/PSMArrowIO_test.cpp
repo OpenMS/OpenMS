@@ -27,6 +27,7 @@ namespace
     prot.setIdentifier("run_1");
     prot.setScoreType("score");
     prot.setHigherScoreBetter(true);
+    prot.setPrimaryMSRunPath({"/tmp/foo.mzML"});
     prot.getSearchParameters().digestion_enzyme.setName("Trypsin");
     prot.getSearchParameters().setMetaValue("extra_features", "COMET:deltaCn,MS:1002049");
     prot_ids = {prot};
@@ -84,6 +85,12 @@ START_SECTION(([EXTRA] export_then_import_round_trip))
   TEST_STRING_EQUAL(prot_ids_in[0].getSearchParameters().digestion_enzyme.getName(), "Trypsin");
   TEST_STRING_EQUAL(String(prot_ids_in[0].getSearchParameters().getMetaValue("extra_features")),
                     "COMET:deltaCn,MS:1002049");
+
+  // Primary MS run path round-trips (spectra_data UserParam).
+  StringList msrun_in;
+  prot_ids_in[0].getPrimaryMSRunPath(msrun_in);
+  TEST_EQUAL(msrun_in.size(), 1);
+  TEST_STRING_EQUAL(msrun_in.front(), "/tmp/foo.mzML");
 
   TEST_EQUAL(pep_ids_in.size(), 1);
   TEST_EQUAL(pep_ids_in[0].getHits().size(), 1);

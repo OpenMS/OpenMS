@@ -117,7 +117,7 @@ public:
 
     @param[in]    table                     PSMSchema Arrow table (must not be null)
     @param[in,out] protein_identifications  Existing protein identifications (used for higher_score_better lookup; new shells appended for unknown run_identifiers)
-    @param[out]   peptide_identifications   Peptide identifications populated from the table
+    @param[in,out] peptide_identifications  Peptide identifications appended to (caller may pass an empty or pre-populated list)
     @return true on success, false on schema mismatch or unrecoverable error (errors are logged)
   */
   static bool importFromArrow(

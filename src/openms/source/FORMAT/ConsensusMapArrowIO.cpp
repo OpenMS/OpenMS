@@ -1402,17 +1402,16 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
     return false;
   }
 
-  // Build (p_id -> feature_unique_id-or-null) map by scanning the first row of each p_id group.
+  // Build (p_id -> feature_unique_id-or-null) map by capturing the first row each p_id appears.
+  // Do not assume rows of the same p_id are contiguous.
   std::unordered_map<int32_t, std::pair<bool, int64_t>> p_id_to_feature; // bool: is_null
-  int32_t current_p_id = -1;
   for (int64_t row = 0; row < tbl->num_rows(); ++row)
   {
     int32_t p_id = getInt32Value_(col_p_id, row, -1);
-    if (p_id == current_p_id) { continue; }
+    if (p_id_to_feature.count(p_id)) { continue; }
     bool is_null = isNull_(col_feature_id, row);
     int64_t fid = is_null ? 0 : getInt64Value_(col_feature_id, row, 0);
     p_id_to_feature.emplace(p_id, std::make_pair(is_null, fid));
-    current_p_id = p_id;
   }
 
   // Delegate PSM construction to QPXFile::importFromArrow.
@@ -1428,13 +1427,14 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
     feature_lookup[static_cast<int64_t>(cf.getUniqueId())] = &cf;
   }
 
-  // Re-derive the p_id sequence from the table to keep PeptideIdentifications in input order.
+  // Re-derive the p_id sequence in first-seen order (independent of adjacency).
   std::vector<int32_t> p_id_order;
-  current_p_id = -1;
+  std::unordered_set<int32_t> seen;
+  seen.reserve(static_cast<size_t>(tbl->num_rows()));
   for (int64_t row = 0; row < tbl->num_rows(); ++row)
   {
     int32_t p_id = getInt32Value_(col_p_id, row, -1);
-    if (p_id != current_p_id) { p_id_order.push_back(p_id); current_p_id = p_id; }
+    if (seen.insert(p_id).second) { p_id_order.push_back(p_id); }
   }
   if (p_id_order.size() != pep_ids.size())
   {
