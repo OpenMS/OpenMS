@@ -43,7 +43,7 @@
 				<UserParam type="int" name="Percolator:post_processing_tdc" value="0"/>
 				<UserParam type="int" name="Percolator:train_best_positive" value="0"/>
 	</SearchParameters>
-	<IdentificationRun date="58293-01-04T22:33:20" search_engine="Percolator" search_engine_version="3.07" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2026-04-28T14:07:09" search_engine="Percolator" search_engine_version="3.07" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
 			<ProteinHit id="PH_0" accession="sp|Q02952|AKA12_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -51,6 +51,7 @@
 			<ProteinHit id="PH_1" accession="sp|Q12774|ARHG5_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[]"/>
 			<UserParam type="string" name="percolator" value="PercolatorAdapter"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="514.28045603190003" RT="721.399999999999977" spectrum_reference="controllerType=0 controllerNumber=1 scan=3" >
