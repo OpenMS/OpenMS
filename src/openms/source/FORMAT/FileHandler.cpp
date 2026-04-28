@@ -994,6 +994,7 @@ namespace OpenMS
               [this](const MSSpectrum& s) { return !options_.containsMSLevel(s.getMSLevel()); }),
             exp.getSpectra().end());
         }
+        exp.updateRanges();
       }
       break;
 #endif

@@ -483,7 +483,8 @@ if (WITH_THERMO_RAW)
     FetchContent_Declare(
       OpenMSThermoBridge
       GIT_REPOSITORY https://github.com/jpfeuffer/openms-thermo-bridge.git
-      GIT_TAG        main
+      # Pin to a specific reviewed upstream revision to keep builds reproducible.
+      GIT_TAG        v1.0.0
     )
 
     # Configure the thermo bridge build options
@@ -493,7 +494,7 @@ if (WITH_THERMO_RAW)
 
     FetchContent_MakeAvailable(OpenMSThermoBridge)
 
-    message(STATUS "openms-thermo-bridge: built from source (${openmsthermobridge_SOURCE_DIR})")
+    message(STATUS "openms-thermo-bridge: built from source (${OpenMSThermoBridge_SOURCE_DIR})")
   endif()
 endif()
 #------------------------------------------------------------------------------

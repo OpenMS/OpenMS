@@ -18,6 +18,8 @@
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <filesystem>
+
 #include <openms_thermo_bridge/thermo_bridge.hpp>
 #include <openms_thermo_bridge/cv_mapping.hpp>
 
@@ -26,6 +28,9 @@ namespace OpenMS
 
   void ThermoRawFile::load(const String& path, MSExperiment& exp)
   {
+    // Loaders are expected to populate the output experiment from scratch.
+    exp = MSExperiment();
+
     if (!File::exists(path))
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
@@ -41,8 +46,8 @@ namespace OpenMS
       SourceFile src;
       src.setNameOfFile(raw_path.filename().string());
       src.setPathToFile(raw_path.parent_path().string());
-      src.setFileType("RAW");
-      src.setNativeIDType("scan number");
+      src.setFileType("Thermo RAW format");
+      src.setNativeIDType("Thermo nativeID format");
       src.setNativeIDTypeAccession("MS:1000768"); // Thermo nativeID format
       exp.getSourceFiles().push_back(src);
 
@@ -89,6 +94,7 @@ namespace OpenMS
 
         // Centroid / profile
         const bool centroid = raw.is_centroid_scan(scan);
+        spectrum.setType(centroid ? SpectrumSettings::CENTROID : SpectrumSettings::PROFILE);
 
         // Polarity
         const int polarity = raw.polarity(scan);
@@ -178,6 +184,7 @@ namespace OpenMS
 
       // Sort by RT
       exp.sortSpectra(true);
+      exp.updateRanges();
 
       OPENMS_LOG_INFO << "ThermoRawFile: loaded " << exp.size() << " spectra\n";
     }
