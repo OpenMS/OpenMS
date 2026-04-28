@@ -89,10 +89,6 @@ namespace OpenMS
 
         // Centroid / profile
         const bool centroid = raw.is_centroid_scan(scan);
-        if (centroid)
-        {
-          spectrum.getDataProcessing().clear(); // use default
-        }
 
         // Polarity
         const int polarity = raw.polarity(scan);
@@ -137,7 +133,7 @@ namespace OpenMS
             }
             else if (act_type == "HCD")
             {
-              prec.getActivationMethods().insert(Precursor::BEAM);
+              prec.getActivationMethods().insert(Precursor::BEAM); // BEAM = higher-energy collision dissociation (HCD)
             }
             else if (act_type == "ETD")
             {
@@ -149,7 +145,8 @@ namespace OpenMS
             }
             else if (!act_type.empty())
             {
-              // Fallback: store as CID
+              OPENMS_LOG_WARN << "ThermoRawFile: unknown activation type '" << act_type
+                              << "' for scan " << scan << ", defaulting to CID\n";
               prec.getActivationMethods().insert(Precursor::CID);
             }
             prec.setActivationEnergy(ce);
