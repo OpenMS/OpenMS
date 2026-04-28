@@ -95,6 +95,7 @@ namespace OpenMS
       GZ,                 ///< any Gzipped file
       ZIP,                ///< any ZIP compressed file
       PARQUET,            ///< Apache Parquet file format (.parquet, .pqt)
+      IDPARQUET,          ///< OpenMS internal identification parquet bundle (directory: psms.parquet + proteins.parquet + protein_groups.parquet + search_params.parquet)
       BRUKER_TDF,         ///< Bruker TimsTOF .d directory (TDF format)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
