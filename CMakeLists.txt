@@ -59,8 +59,8 @@ option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript 
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
 option(ENABLE_OPENTIMS_TESTS "Download Bruker test data for opentims integration tests" OFF)
-option(WITH_THERMO_RAW "Build with Thermo RAW file reading support via openms-thermo-bridge" OFF)
-option(ENABLE_THERMO_RAW_TESTS "Download Thermo RAW test data for integration tests" OFF)
+option(WITH_THERMO_RAW "Build with Thermo RAW file reading support via openms-thermo-bridge" ON)
+option(ENABLE_THERMO_RAW_TESTS "Download Thermo RAW test data for integration tests" ON)
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
 
