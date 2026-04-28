@@ -104,6 +104,16 @@ START_SECTION((static Type nameToType(const String& name)))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] isDirectoryType))
+{
+  TEST_TRUE(FileTypes::isDirectoryType(FileTypes::IDPARQUET));
+  TEST_TRUE(FileTypes::isDirectoryType(FileTypes::BRUKER_TDF));
+  TEST_FALSE(FileTypes::isDirectoryType(FileTypes::IDXML));
+  TEST_FALSE(FileTypes::isDirectoryType(FileTypes::PARQUET));
+  TEST_FALSE(FileTypes::isDirectoryType(FileTypes::UNKNOWN));
+}
+END_SECTION
+
 START_SECTION([EXTRA] FileTypes::FileTypeList)
   FileTypeList list({ FileTypes::MZML, FileTypes::BZ2 });
   TEST_EQUAL(list.contains(FileTypes::MZML), true);

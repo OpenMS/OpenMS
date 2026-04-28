@@ -242,6 +242,12 @@ namespace OpenMS
   }
 
 
+  bool FileTypes::isDirectoryType(Type type)
+  {
+    return type == FileTypes::BRUKER_TDF || type == FileTypes::IDPARQUET;
+  }
+
+
   String FileTypes::typeToMZML(FileTypes::Type type)
   {
     switch (type)

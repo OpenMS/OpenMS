@@ -271,7 +271,7 @@ protected:
     logger.setLogType(ProgressLogger::CMD);
     logger.startProgress(0, 1, "Loading...");
 
-    if (File::isDirectory(in) && FileHandler::getTypeByFileName(in) != FileTypes::IDPARQUET)
+    if (File::isDirectory(in) && !FileTypes::isDirectoryType(FileHandler::getTypeByFileName(in)))
     {
       const String in_directory = File::absolutePath(in).ensureLastChar('/');
       const bool ignore_proteins_per_peptide = getFlag_("ignore_proteins_per_peptide");

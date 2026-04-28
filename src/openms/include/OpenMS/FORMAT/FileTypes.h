@@ -130,6 +130,9 @@ namespace OpenMS
 
     /// Returns the mzML name (TODO: switch to accession since they are more stable!)
     static String typeToMZML(Type type);
+
+    /// Returns true if @p type represents a directory-shaped format (e.g. BRUKER_TDF, IDPARQUET).
+    static bool isDirectoryType(Type type);
   };
 
  enum class FilterLayout
