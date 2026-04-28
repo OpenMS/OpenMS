@@ -176,7 +176,9 @@ namespace // anonymous
         {
           String s(value_str);
           if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          target.setMetaValue(name, DataValue(ListUtils::create<String>(s)));
+          auto sl = ListUtils::create<String>(s);
+          for (auto& e : sl) { e = e.trim(); }
+          target.setMetaValue(name, DataValue(sl));
         }
         catch (...) { target.setMetaValue(name, value_str); }
       }
