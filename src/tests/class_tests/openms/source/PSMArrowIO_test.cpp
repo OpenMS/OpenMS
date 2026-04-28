@@ -166,4 +166,106 @@ START_SECTION(([EXTRA] empty_psms_round_trips))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] decoy_round_trips))
+{
+  // Build a single decoy PSM (target_decoy=decoy) and verify is_decoy round-trips.
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+
+  ProteinIdentification prot;
+  prot.setIdentifier("run_decoy");
+  prot.setScoreType("score");
+  prot.setHigherScoreBetter(true);
+  prot_ids.push_back(prot);
+
+  PeptideIdentification pid;
+  pid.setIdentifier("run_decoy");
+  pid.setScoreType("score");
+  pid.setHigherScoreBetter(true);
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("DECOYSEQ"));
+  hit.setCharge(2);
+  hit.setScore(0.1);
+  hit.setMetaValue("target_decoy", "decoy");
+  PeptideEvidence ev;
+  ev.setProteinAccession("DECOY_sp|P99999|FAKE");
+  hit.addPeptideEvidence(ev);
+  pid.getHits().push_back(hit);
+  pep_ids.push_back(pid);
+
+  String dir;
+  NEW_TMP_FILE(dir)
+  dir += ".idparquet";
+
+  TEST_TRUE(PSMArrowIO::exportToParquet(prot_ids, pep_ids, dir));
+
+  std::vector<ProteinIdentification> prot_ids_in;
+  PeptideIdentificationList pep_ids_in;
+  TEST_TRUE(PSMArrowIO::importFromParquet(dir, prot_ids_in, pep_ids_in));
+
+  TEST_EQUAL(pep_ids_in.size(), 1);
+  TEST_EQUAL(pep_ids_in[0].getHits().size(), 1);
+  TEST_STRING_EQUAL(String(pep_ids_in[0].getHits()[0].getMetaValue("target_decoy")), "decoy");
+
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] multi_rank_round_trips))
+{
+  // Build a PID with three rank-ordered PSMs and verify all three survive round-trip
+  // (this is the new default behaviour after the keep_all_passing -> best_per_spectrum_only flip).
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+
+  ProteinIdentification prot;
+  prot.setIdentifier("run_multirank");
+  prot.setScoreType("score");
+  prot.setHigherScoreBetter(true);
+  prot_ids.push_back(prot);
+
+  PeptideIdentification pid;
+  pid.setIdentifier("run_multirank");
+  pid.setScoreType("score");
+  pid.setHigherScoreBetter(true);
+
+  for (int rank = 1; rank <= 3; ++rank)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(std::string(rank, 'P') + "EPTIDE"));
+    hit.setCharge(2);
+    hit.setScore(1.0 / rank);
+    hit.setRank(static_cast<UInt>(rank));
+    PeptideEvidence ev;
+    ev.setProteinAccession("sp|P" + String(rank) + "|RANK");
+    hit.addPeptideEvidence(ev);
+    pid.getHits().push_back(hit);
+  }
+  pep_ids.push_back(pid);
+
+  String dir;
+  NEW_TMP_FILE(dir)
+  dir += ".idparquet";
+
+  TEST_TRUE(PSMArrowIO::exportToParquet(prot_ids, pep_ids, dir, /*export_all_psms=*/true));
+
+  std::vector<ProteinIdentification> prot_ids_in;
+  PeptideIdentificationList pep_ids_in;
+  TEST_TRUE(PSMArrowIO::importFromParquet(dir, prot_ids_in, pep_ids_in));
+
+  TEST_EQUAL(pep_ids_in.size(), 1);
+  TEST_EQUAL(pep_ids_in[0].getHits().size(), 3);
+  for (size_t i = 0; i < 3; ++i)
+  {
+    const auto& h = pep_ids_in[0].getHits()[i];
+    TEST_EQUAL(h.getRank(), static_cast<UInt>(i + 1));
+  }
+  TEST_REAL_SIMILAR(pep_ids_in[0].getHits()[0].getScore(), 1.0);
+  TEST_REAL_SIMILAR(pep_ids_in[0].getHits()[1].getScore(), 0.5);
+  TEST_REAL_SIMILAR(pep_ids_in[0].getHits()[2].getScore(), 1.0/3.0);
+
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
 END_TEST
