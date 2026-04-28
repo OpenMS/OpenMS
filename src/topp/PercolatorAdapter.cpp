@@ -351,13 +351,13 @@ protected:
     static const bool force_openms_format(true);
         
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", !is_required);
-    setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
+    setValidFormats_("in", ListUtils::create<String>("mzid,idXML,idparquet"));
     registerInputFileList_("in_decoy", "<files>", StringList(), "Input decoy file(s) in case of separate searches", !is_required);
-    setValidFormats_("in_decoy", ListUtils::create<String>("mzid,idXML"));
+    setValidFormats_("in_decoy", ListUtils::create<String>("mzid,idXML,idparquet"));
     registerInputFile_("in_osw", "<file>", "", "Input file in OSW format", !is_required);
     setValidFormats_("in_osw", ListUtils::create<String>("OSW"));
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("idXML,mzid,osw"));
+    setValidFormats_("out", ListUtils::create<String>("idXML,mzid,osw,idparquet"));
     registerOutputFile_("out_pin", "<file>", "", "Write pin file (e.g., for debugging)", !is_required, is_advanced_option);
     setValidFormats_("out_pin", ListUtils::create<String>("tsv"), !force_openms_format);
 
@@ -371,7 +371,7 @@ protected:
     setValidFormats_("out_pout_decoy_proteins", ListUtils::create<String>("tab"), !force_openms_format);
 
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
-    setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML,osw"));
+    setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML,osw,idparquet"));
     String enzs = "no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin,trypsinp";
     registerStringOption_("enzyme", "<enzyme>", "trypsin", "Type of enzyme: "+enzs , !is_required);
     setValidStrings_("enzyme", ListUtils::create<String>(enzs));
@@ -574,6 +574,10 @@ protected:
       {
         OPENMS_LOG_WARN << "Converting from mzid: possible loss of information depending on target format." << endl;
         FileHandler().loadIdentifications(in, protein_ids, peptide_ids, {FileTypes::IDXML});
+      }
+      else if (in_type == FileTypes::IDPARQUET)
+      {
+        FileHandler().loadIdentifications(in, protein_ids, peptide_ids, {FileTypes::IDPARQUET});
       }
       //else catched by TOPPBase:registerInput being mandatory mzid or idxml
       if (protein_ids.empty())
@@ -1431,7 +1435,7 @@ protected:
         /*version_string=*/"3.07",  // TODO: read from percolator binary --version
         protein_level_fdrs ? &protein_map : nullptr);
       // Storing the PeptideHits with calculated q-value, pep and svm score
-      FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
+      FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML, FileTypes::IDPARQUET});
     }
     else
     {
