@@ -169,6 +169,25 @@ set_tests_properties("TOPP_IDMerger_6_out1" PROPERTIES DEPENDS "TOPP_IDMerger_6"
 add_test("TOPP_IDMerger_6_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDMerger_6_output2.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDMerger_6_output.idXML)
 set_tests_properties("TOPP_IDMerger_6_out2" PROPERTIES DEPENDS "TOPP_IDMerger_6_out1")
 
+# .idparquet merge: two idparquet inputs -> merged idparquet -> convert to idXML -> diff
+# fixtures generated with: IDFileConverter -in IDMerger_1_inputX.idXML -out IDMerger_idparquet_inputX.idparquet
+add_test("TOPP_IDMerger_idparquet"
+  ${TOPP_BIN_PATH}/IDMerger -test
+    -in ${DATA_DIR_TOPP}/IDMerger_idparquet_input1.idparquet ${DATA_DIR_TOPP}/IDMerger_idparquet_input2.idparquet
+    -out ${TESTS_TEMP_DIR}/IDMerger_idparquet_output.tmp.idparquet
+    -out_type idparquet)
+add_test("TOPP_IDMerger_idparquet_convert"
+  ${TOPP_BIN_PATH}/IDFileConverter
+    -in ${TESTS_TEMP_DIR}/IDMerger_idparquet_output.tmp.idparquet
+    -out ${TESTS_TEMP_DIR}/IDMerger_idparquet_output.tmp.idXML)
+set_tests_properties("TOPP_IDMerger_idparquet_convert" PROPERTIES DEPENDS "TOPP_IDMerger_idparquet")
+add_test("TOPP_IDMerger_idparquet_diff"
+  ${DIFF}
+    -in1 ${TESTS_TEMP_DIR}/IDMerger_idparquet_output.tmp.idXML
+    -in2 ${DATA_DIR_TOPP}/IDMerger_idparquet_output.idXML
+    -whitelist "IdentificationRun date" "UserParam.*file_origin")
+set_tests_properties("TOPP_IDMerger_idparquet_diff" PROPERTIES DEPENDS "TOPP_IDMerger_idparquet_convert")
+
 #------------------------------------------------------------------------------
 # BaselineFilter tests
 add_test("TOPP_BaselineFilter_1" ${TOPP_BIN_PATH}/BaselineFilter -test -in ${DATA_DIR_TOPP}/BaselineFilter_input.mzML -out ${TESTS_TEMP_DIR}/BaselineFilter.tmp.mzML -struc_elem_length 1.5)

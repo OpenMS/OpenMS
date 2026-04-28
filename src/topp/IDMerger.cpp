@@ -312,7 +312,7 @@ protected:
       {
         vector<ProteinIdentification> prots;
         PeptideIdentificationList peps;
-        idXMLf.loadIdentifications(file,prots,peps, {FileTypes::IDXML});
+        idXMLf.loadIdentifications(file,prots,peps, {FileTypes::IDXML, FileTypes::IDPARQUET});
         merger.insertRuns(prots, peps);
       }
       merger.returnResultsAndClear(proteins[0], peptides);
@@ -353,7 +353,7 @@ protected:
     {
       const String& file_name = file_names[i];
       vector<ProteinIdentification> additional_proteins;
-      FileHandler().loadIdentifications(file_name, additional_proteins, peptides_by_file[i], {FileTypes::IDXML});
+      FileHandler().loadIdentifications(file_name, additional_proteins, peptides_by_file[i], {FileTypes::IDXML, FileTypes::IDPARQUET});
 
       if (annotate_file_origin) // set MetaValue "file_origin" if flag is set
       {
