@@ -60,8 +60,9 @@ START_SECTION(([EXTRA] export_then_import_round_trip))
   PeptideIdentificationList pep_ids;
   buildMinimalIds(prot_ids, pep_ids);
 
-  String dir = OPENMS_GET_TEST_DATA_PATH("../tmp_PSMArrowIO_round_trip.idparquet");
-  if (File::exists(dir)) { File::removeDirRecursively(dir); }
+  String dir;
+  NEW_TMP_FILE(dir)
+  dir += ".idparquet";
 
   TEST_TRUE(PSMArrowIO::exportToParquet(prot_ids, pep_ids, dir));
 
@@ -95,8 +96,9 @@ START_SECTION(([EXTRA] import_missing_subfile_returns_false))
   PeptideIdentificationList pep_ids;
   buildMinimalIds(prot_ids, pep_ids);
 
-  String dir = OPENMS_GET_TEST_DATA_PATH("../tmp_PSMArrowIO_missing_sub.idparquet");
-  if (File::exists(dir)) { File::removeDirRecursively(dir); }
+  String dir;
+  NEW_TMP_FILE(dir)
+  dir += ".idparquet";
   TEST_TRUE(PSMArrowIO::exportToParquet(prot_ids, pep_ids, dir));
 
   // Delete one subfile.
@@ -116,8 +118,9 @@ START_SECTION(([EXTRA] export_target_is_regular_file_returns_false))
   PeptideIdentificationList pep_ids;
   buildMinimalIds(prot_ids, pep_ids);
 
-  String path = OPENMS_GET_TEST_DATA_PATH("../tmp_PSMArrowIO_regular_file.idparquet");
-  if (File::exists(path)) { File::remove(path); }
+  String path;
+  NEW_TMP_FILE(path)
+  path += ".idparquet";
   // Create a regular file at the target path.
   std::ofstream f(path); f << "not a directory"; f.close();
 
@@ -134,8 +137,9 @@ START_SECTION(([EXTRA] empty_psms_round_trips))
   buildMinimalIds(prot_ids, pep_ids);
   pep_ids.clear();
 
-  String dir = OPENMS_GET_TEST_DATA_PATH("../tmp_PSMArrowIO_empty.idparquet");
-  if (File::exists(dir)) { File::removeDirRecursively(dir); }
+  String dir;
+  NEW_TMP_FILE(dir)
+  dir += ".idparquet";
 
   TEST_TRUE(PSMArrowIO::exportToParquet(prot_ids, pep_ids, dir));
 
