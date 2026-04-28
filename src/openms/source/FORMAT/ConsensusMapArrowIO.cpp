@@ -1391,257 +1391,80 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
     return false;
   }
   const auto& tbl = *combined_result;
-  int64_t num_rows = tbl->num_rows();
 
-  auto psm_validation = ArrowSchemaValidation::validate(tbl, PSMSchema::schema(), ArrowSchemaValidation::Mode::Subset);
-  if (!psm_validation.valid)
+  // Read consensus_feature_unique_id and PEPTIDE_IDENTIFICATION_INDEX side-by-side
+  // so we can route each constructed PeptideIdentification to the right ConsensusFeature.
+  auto col_feature_id = getColumn_(tbl, "consensus_feature_unique_id");
+  auto col_p_id = getColumn_(tbl, PSMSchema::PEPTIDE_IDENTIFICATION_INDEX);
+  if (!col_feature_id || !col_p_id)
   {
-    OPENMS_LOG_ERROR << "Incompatible PSM schema: " << psm_validation.toString() << "\n";
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Missing required columns for PSM import" << std::endl;
     return false;
   }
 
-  // Build consensus feature lookup: unique_id -> ConsensusFeature*
+  // Build (p_id -> feature_unique_id-or-null) map by scanning the first row of each p_id group.
+  std::unordered_map<int32_t, std::pair<bool, int64_t>> p_id_to_feature; // bool: is_null
+  int32_t current_p_id = -1;
+  for (int64_t row = 0; row < tbl->num_rows(); ++row)
+  {
+    int32_t p_id = getInt32Value_(col_p_id, row, -1);
+    if (p_id == current_p_id) { continue; }
+    bool is_null = isNull_(col_feature_id, row);
+    int64_t fid = is_null ? 0 : getInt64Value_(col_feature_id, row, 0);
+    p_id_to_feature.emplace(p_id, std::make_pair(is_null, fid));
+    current_p_id = p_id;
+  }
+
+  // Delegate PSM construction to QPXFile::importFromArrow.
+  std::vector<ProteinIdentification> prot_ids = cmap.getProteinIdentifications();
+  PeptideIdentificationList pep_ids;
+  if (!QPXFile::importFromArrow(tbl, prot_ids, pep_ids)) { return false; }
+  cmap.setProteinIdentifications(prot_ids);
+
+  // Walk each constructed PeptideIdentification and route to features by feature_id.
   std::unordered_map<int64_t, ConsensusFeature*> feature_lookup;
   for (auto& cf : cmap)
   {
     feature_lookup[static_cast<int64_t>(cf.getUniqueId())] = &cf;
   }
 
-  // Read columns
-  auto col_feature_id = getColumn_(tbl, "consensus_feature_unique_id");
-  auto col_p_id = getColumn_(tbl, PSMSchema::PEPTIDE_IDENTIFICATION_INDEX);
-  auto col_peptidoform = getColumn_(tbl, PSMSchema::PEPTIDOFORM, /*required=*/false);
-  auto col_sequence = getColumn_(tbl, PSMSchema::SEQUENCE, /*required=*/false);
-  auto col_charge = getColumn_(tbl, PSMSchema::PRECURSOR_CHARGE);
-  auto col_score = getColumn_(tbl, PSMSchema::SCORE);
-  auto col_score_type = getColumn_(tbl, PSMSchema::SCORE_TYPE);
-  auto col_rank = getColumn_(tbl, PSMSchema::RANK, /*required=*/false);
-  auto col_rt = getColumn_(tbl, PSMSchema::RT, /*required=*/false);
-  auto col_mz = getColumn_(tbl, PSMSchema::OBSERVED_MZ, /*required=*/false);
-  auto col_spec_ref = getColumn_(tbl, PSMSchema::SPECTRUM_REFERENCE, /*required=*/false);
-  auto col_run_id = getColumn_(tbl, PSMSchema::RUN_IDENTIFIER, /*required=*/false);
-  auto col_is_decoy = getColumn_(tbl, PSMSchema::IS_DECOY, /*required=*/false);
-  auto col_protein_accs = getColumn_(tbl, PSMSchema::PROTEIN_ACCESSIONS, /*required=*/false);
-  auto col_additional_scores = getColumn_(tbl, PSMSchema::ADDITIONAL_SCORES, /*required=*/false);
-  auto col_psm_metavalues = getColumn_(tbl, PSMSchema::PSM_METAVALUES, /*required=*/false);
-  auto col_spectrum_metavalues = getColumn_(tbl, PSMSchema::SPECTRUM_METAVALUES, /*required=*/false);
-  auto col_predicted_rt = getColumn_(tbl, PSMSchema::PREDICTED_RT, /*required=*/false);
-  auto col_ion_mobility = getColumn_(tbl, PSMSchema::ION_MOBILITY, /*required=*/false);
-  auto col_hsb = getColumn_(tbl, PSMSchema::HIGHER_SCORE_BETTER, /*required=*/false);
-  auto col_scan = getColumn_(tbl, PSMSchema::SCAN, /*required=*/false);
-  auto col_ref_file = getColumn_(tbl, PSMSchema::REFERENCE_FILE_NAME, /*required=*/false);
-
-  if (!col_feature_id || !col_p_id || !col_charge || !col_score || !col_score_type)
+  // Re-derive the p_id sequence from the table to keep PeptideIdentifications in input order.
+  std::vector<int32_t> p_id_order;
+  current_p_id = -1;
+  for (int64_t row = 0; row < tbl->num_rows(); ++row)
   {
-    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Missing required columns for PSM import" << std::endl;
+    int32_t p_id = getInt32Value_(col_p_id, row, -1);
+    if (p_id != current_p_id) { p_id_order.push_back(p_id); current_p_id = p_id; }
+  }
+  if (p_id_order.size() != pep_ids.size())
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: PSM count mismatch after import "
+                     << "(rows=" << p_id_order.size() << ", pep_ids=" << pep_ids.size() << ")" << std::endl;
     return false;
   }
 
-  // Build a lookup for higher_score_better from ProteinIdentifications
-  std::unordered_map<std::string, bool> higher_score_better_lookup;
-  for (const auto& prot_id : cmap.getProteinIdentifications())
+  for (size_t i = 0; i < pep_ids.size(); ++i)
   {
-    higher_score_better_lookup[prot_id.getIdentifier()] = prot_id.isHigherScoreBetter();
-  }
+    auto fit = p_id_to_feature.find(p_id_order[i]);
+    bool is_null = (fit == p_id_to_feature.end()) ? true : fit->second.first;
+    int64_t fid = (fit == p_id_to_feature.end()) ? 0 : fit->second.second;
 
-  struct PepIdGroup
-  {
-    int64_t feature_id;
-    bool feature_id_is_null;
-    PeptideIdentification pep_id;
-  };
-
-  std::vector<PepIdGroup> groups;
-  int32_t current_p_id = -1;
-
-  for (int64_t row = 0; row < num_rows; ++row)
-  {
-    int32_t p_id = getInt32Value_(col_p_id, row, -1);
-
-    if (groups.empty() || p_id != current_p_id)
+    if (is_null)
     {
-      PepIdGroup group;
-      group.feature_id_is_null = isNull_(col_feature_id, row);
-      group.feature_id = group.feature_id_is_null ? 0 : getInt64Value_(col_feature_id, row, 0);
-
-      PeptideIdentification& pid = group.pep_id;
-      pid.setScoreType(getStringValue_(col_score_type, row));
-      // Run identifier (links to ProteinIdentification)
-      if (col_run_id && !isNull_(col_run_id, row))
-      {
-        pid.setIdentifier(getStringValue_(col_run_id, row));
-      }
-
-      // higher_score_better: prefer per-PSM column, fall back to ProteinIdentification lookup
-      if (col_hsb && !isNull_(col_hsb, row))
-      {
-        pid.setHigherScoreBetter(getBoolValue_(col_hsb, row, true));
-      }
-      else if (col_run_id && !isNull_(col_run_id, row))
-      {
-        auto hsb_it = higher_score_better_lookup.find(pid.getIdentifier());
-        if (hsb_it != higher_score_better_lookup.end())
-        {
-          pid.setHigherScoreBetter(hsb_it->second);
-        }
-        else
-        {
-          pid.setHigherScoreBetter(true);
-        }
-      }
-      else
-      {
-        pid.setHigherScoreBetter(true);
-      }
-
-      if (col_rt && !isNull_(col_rt, row))
-      {
-        pid.setRT(getDoubleValue_(col_rt, row));
-      }
-
-      if (col_mz && !isNull_(col_mz, row))
-      {
-        pid.setMZ(getDoubleValue_(col_mz, row));
-      }
-
-      if (col_spec_ref && !isNull_(col_spec_ref, row))
-      {
-        pid.setSpectrumReference(getStringValue_(col_spec_ref, row));
-      }
-
-      if (col_spectrum_metavalues)
-      {
-        readMetaValues_(col_spectrum_metavalues, row, pid);
-      }
-
-      groups.push_back(std::move(group));
-      current_p_id = p_id;
-    }
-
-    // Add a PeptideHit to the current group
-    PeptideHit hit;
-
-    if (col_peptidoform && !isNull_(col_peptidoform, row))
-    {
-      String peptidoform_str = getStringValue_(col_peptidoform, row);
-      if (!peptidoform_str.empty())
-      {
-        try
-        {
-          auto pf = ProForma::parse(peptidoform_str);
-          hit.setSequence(ProForma::toAASequence(pf, ProForma::ConversionPolicy::BEST_EFFORT));
-        }
-        catch (...)
-        {
-          if (col_sequence && !isNull_(col_sequence, row))
-          {
-            hit.setSequence(AASequence::fromString(getStringValue_(col_sequence, row)));
-          }
-        }
-      }
-    }
-    else if (col_sequence && !isNull_(col_sequence, row))
-    {
-      hit.setSequence(AASequence::fromString(getStringValue_(col_sequence, row)));
-    }
-
-    hit.setCharge(static_cast<Int>(getInt32Value_(col_charge, row, 0)));
-    hit.setScore(getDoubleValue_(col_score, row, 0.0));
-
-    if (col_rank && !isNull_(col_rank, row))
-    {
-      hit.setRank(static_cast<UInt>(getInt32Value_(col_rank, row, 0)));
-    }
-
-    if (col_is_decoy && !isNull_(col_is_decoy, row))
-    {
-      bool is_decoy = getBoolValue_(col_is_decoy, row, false);
-      hit.setMetaValue("target_decoy", is_decoy ? "decoy" : "target");
-    }
-
-    if (col_protein_accs && !isNull_(col_protein_accs, row))
-    {
-      auto list_arr = std::static_pointer_cast<arrow::ListArray>(col_protein_accs);
-      auto values = std::static_pointer_cast<arrow::StringArray>(list_arr->values());
-      int64_t start = list_arr->value_offset(row);
-      int64_t end = start + list_arr->value_length(row);
-      for (int64_t k = start; k < end; ++k)
-      {
-        PeptideEvidence ev;
-        ev.setProteinAccession(values->GetString(k));
-        hit.addPeptideEvidence(ev);
-      }
-    }
-
-    if (col_additional_scores && !isNull_(col_additional_scores, row))
-    {
-      auto list_arr = std::static_pointer_cast<arrow::ListArray>(col_additional_scores);
-      auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->values());
-      auto names_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("score_name"));
-      auto values_arr = std::static_pointer_cast<arrow::DoubleArray>(struct_arr->GetFieldByName("score_value"));
-
-      int64_t start = list_arr->value_offset(row);
-      int64_t end = start + list_arr->value_length(row);
-      for (int64_t k = start; k < end; ++k)
-      {
-        String name = names_arr->GetString(k);
-        double value = values_arr->Value(k);
-        hit.setMetaValue(name, value);
-      }
-    }
-
-    if (col_predicted_rt && !isNull_(col_predicted_rt, row))
-    {
-      hit.setMetaValue("predicted_RT", getDoubleValue_(col_predicted_rt, row));
-    }
-
-    if (col_ion_mobility && !isNull_(col_ion_mobility, row))
-    {
-      hit.setMetaValue("ion_mobility", getDoubleValue_(col_ion_mobility, row));
-    }
-
-    // scan -> PeptideHit metavalue
-    if (col_scan && !isNull_(col_scan, row))
-    {
-      hit.setMetaValue("scan", static_cast<int>(getInt32Value_(col_scan, row)));
-    }
-
-    // reference_file_name -> PeptideHit metavalue
-    if (col_ref_file && !isNull_(col_ref_file, row))
-    {
-      hit.setMetaValue("reference_file_name", getStringValue_(col_ref_file, row));
-    }
-
-    if (col_psm_metavalues)
-    {
-      static const std::unordered_set<std::string> psm_excluded_mvs =
-        {"target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM",
-         "scan", "reference_file_name"};
-      readMetaValues_(col_psm_metavalues, row, hit, psm_excluded_mvs);
-    }
-
-    groups.back().pep_id.getHits().push_back(std::move(hit));
-  }
-
-  // Assign PeptideIdentifications to consensus features or as unassigned
-  for (auto& group : groups)
-  {
-    if (group.feature_id_is_null)
-    {
-      cmap.getUnassignedPeptideIdentifications().push_back(std::move(group.pep_id));
+      cmap.getUnassignedPeptideIdentifications().push_back(std::move(pep_ids[i]));
     }
     else
     {
-      auto it = feature_lookup.find(group.feature_id);
+      auto it = feature_lookup.find(fid);
       if (it != feature_lookup.end())
       {
-        it->second->getPeptideIdentifications().push_back(std::move(group.pep_id));
+        it->second->getPeptideIdentifications().push_back(std::move(pep_ids[i]));
       }
       else
       {
         OPENMS_LOG_WARN << "ConsensusMapArrowIO: Could not find consensus feature with id "
-                        << group.feature_id << " for PSM. Adding as unassigned." << std::endl;
-        cmap.getUnassignedPeptideIdentifications().push_back(std::move(group.pep_id));
+                        << fid << " for PSM. Adding as unassigned." << std::endl;
+        cmap.getUnassignedPeptideIdentifications().push_back(std::move(pep_ids[i]));
       }
     }
   }
