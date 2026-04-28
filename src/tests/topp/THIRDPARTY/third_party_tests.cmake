@@ -226,8 +226,41 @@ if (NOT (${PERCOLATOR_BINARY} STREQUAL "PERCOLATOR_BINARY-NOTFOUND"))
   set_tests_properties("TOPP_PercolatorAdapter_4" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_3")
   add_test("TOPP_PercolatorAdapter_5" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_out1.tmp.idXML -out_type idXML -percolator_executable "${PERCOLATOR_BINARY}" -out_pin PercolatorAdapter_1_out1.tsv )
   set_tests_properties("TOPP_PercolatorAdapter_5" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_4")
+  add_test("TOPP_PercolatorAdapter_score_fdr"
+    ${TOPP_BIN_PATH}/PercolatorAdapter -test
+      -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini
+      -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML
+      -out PercolatorAdapter_score_fdr_out.tmp.idXML
+      -out_type idXML
+      -score:fdr 0.01
+      -percolator_executable "${PERCOLATOR_BINARY}")
+  set_tests_properties("TOPP_PercolatorAdapter_score_fdr" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_5")
   ### TOPP_PercolatorAdapter_2-4 do not validate output, but checks whether OSW files can be read and written to.
   ### same for TOPP_PercolatorAdapter_5 which tests if pin file can be written
+  ### TOPP_PercolatorAdapter_score_fdr tests the score:fdr post-filter option
+
+  # idparquet round-trip test: run Percolator on idparquet input, convert output back to idXML and diff
+  add_test("TOPP_PercolatorAdapter_idparquet"
+    ${TOPP_BIN_PATH}/PercolatorAdapter -test
+      -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini
+      -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_idparquet_in.idparquet
+      -out PercolatorAdapter_idparquet_out.tmp.idparquet
+      -out_type idparquet
+      -percolator_executable "${PERCOLATOR_BINARY}")
+  set_tests_properties("TOPP_PercolatorAdapter_idparquet" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_score_fdr")
+
+  add_test("TOPP_PercolatorAdapter_idparquet_convert"
+    ${TOPP_BIN_PATH}/IDFileConverter
+      -in PercolatorAdapter_idparquet_out.tmp.idparquet
+      -out PercolatorAdapter_idparquet_out.tmp.idXML)
+  set_tests_properties("TOPP_PercolatorAdapter_idparquet_convert" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_idparquet")
+
+  add_test("TOPP_PercolatorAdapter_idparquet_diff"
+    ${DIFF}
+      -in1 PercolatorAdapter_idparquet_out.tmp.idXML
+      -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_idparquet_out.idXML
+      -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+  set_tests_properties("TOPP_PercolatorAdapter_idparquet_diff" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_idparquet_convert")
 endif()
 ## test returncode when Percolator not found:
 add_test("TOPP_PercolatorAdapter_missing" ${TOPP_BIN_PATH}/PercolatorAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out Percolator_1_out.tmp.idXML -percolator_executable "/does/not/exists/path.exe")

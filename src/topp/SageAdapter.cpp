@@ -14,6 +14,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
@@ -425,7 +426,7 @@ protected:
     setValidFormats_("in", { "mzML", "d" } );
 
     registerOutputFile_("out", "<file>", "", "Single output file containing all search results.", true, false);
-    setValidFormats_("out", { "idXML" } );
+    setValidFormats_("out", { "idXML", "idparquet" } );
 
     registerInputFile_("database", "<file>", "", "FASTA file", true, false, {"skipexists"});
     setValidFormats_("database", { "FASTA" } );
@@ -886,7 +887,8 @@ protected:
       }
     }
 
-    IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
+    FileHandler().storeIdentifications(output_file, protein_identifications, peptide_identifications,
+      {FileTypes::IDXML, FileTypes::IDPARQUET});
     return EXECUTION_OK;
   }
 };

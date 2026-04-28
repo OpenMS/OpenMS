@@ -169,7 +169,7 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    vector<String> formats = {"idXML", "oms"};
+    vector<String> formats = {"idXML", "oms", "idparquet"};
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks (all must have the same type)");
     setValidFormats_("in", formats);
     registerOutputFile_("out", "<file>", "", "Output file (must have the same type as the input files)");
@@ -312,7 +312,7 @@ protected:
       {
         vector<ProteinIdentification> prots;
         PeptideIdentificationList peps;
-        idXMLf.loadIdentifications(file,prots,peps, {FileTypes::IDXML});
+        idXMLf.loadIdentifications(file,prots,peps, {FileTypes::IDXML, FileTypes::IDPARQUET});
         merger.insertRuns(prots, peps);
       }
       merger.returnResultsAndClear(proteins[0], peptides);
@@ -327,7 +327,7 @@ protected:
     //-------------------------------------------------------------
     OPENMS_LOG_DEBUG << "protein IDs: " << proteins.size() << endl
               << "peptide IDs: " << peptides.size() << endl;
-    FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
     return EXECUTION_OK;
   }
@@ -353,7 +353,7 @@ protected:
     {
       const String& file_name = file_names[i];
       vector<ProteinIdentification> additional_proteins;
-      FileHandler().loadIdentifications(file_name, additional_proteins, peptides_by_file[i], {FileTypes::IDXML});
+      FileHandler().loadIdentifications(file_name, additional_proteins, peptides_by_file[i], {FileTypes::IDXML, FileTypes::IDPARQUET});
 
       if (annotate_file_origin) // set MetaValue "file_origin" if flag is set
       {

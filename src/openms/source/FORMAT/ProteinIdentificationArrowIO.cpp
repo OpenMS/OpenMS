@@ -1342,11 +1342,22 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     prot_id.setHigherScoreBetter(getBoolValue_(col_higher_better, row));
     prot_id.setSignificanceThreshold(getDoubleValue_(col_sig_threshold, row));
 
-    // Date (timestamp seconds since epoch)
+    // Date (timestamp; normalize to seconds based on the column's actual time unit).
+    // The schema declares timestamp(SECOND), but Parquet may persist/restore the column
+    // as nanoseconds, so we have to inspect the runtime unit rather than assume seconds.
     if (!isNull_(col_date, row))
     {
       auto ts_arr = std::static_pointer_cast<arrow::TimestampArray>(col_date);
-      int64_t epoch_secs = ts_arr->Value(row);
+      auto ts_type = std::static_pointer_cast<arrow::TimestampType>(ts_arr->type());
+      int64_t raw = ts_arr->Value(row);
+      int64_t epoch_secs = raw;
+      switch (ts_type->unit())
+      {
+        case arrow::TimeUnit::SECOND: epoch_secs = raw; break;
+        case arrow::TimeUnit::MILLI:  epoch_secs = raw / 1000LL; break;
+        case arrow::TimeUnit::MICRO:  epoch_secs = raw / 1000000LL; break;
+        case arrow::TimeUnit::NANO:   epoch_secs = raw / 1000000000LL; break;
+      }
       if (epoch_secs >= 0) // negative epochs are invalid on Windows
       {
         time_t t = static_cast<time_t>(epoch_secs);
@@ -1370,10 +1381,12 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
       }
     }
 
-    // Primary MS run paths
-    auto ms_run_paths = readStringList_(col_ms_run_paths, row);
-    if (!ms_run_paths.empty())
+    // Primary MS run paths — only call when the column is present.
+    // Missing column → no spectra_data UserParam (preserves round-trip semantics).
+    // Present-but-empty column → empty spectra_data UserParam (matches idXML behaviour).
+    if (col_ms_run_paths)
     {
+      auto ms_run_paths = readStringList_(col_ms_run_paths, row);
       StringList sl(ms_run_paths.begin(), ms_run_paths.end());
       prot_id.setPrimaryMSRunPath(sl);
     }

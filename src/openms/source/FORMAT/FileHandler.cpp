@@ -41,6 +41,7 @@
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/FORMAT/PSMArrowIO.h>
 
 #include <OpenMS/FORMAT/MsInspectFile.h>
 #include <OpenMS/FORMAT/SpecArrayFile.h>
@@ -1416,6 +1417,16 @@ namespace OpenMS
       }
       break;
 
+      case FileTypes::IDPARQUET:
+      {
+        if (!PSMArrowIO::importFromParquet(filename, additional_proteins, additional_peptides))
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                      "PSMArrowIO::importFromParquet failed");
+        }
+      }
+      break;
+
       default:
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for loading identifications");
     }   
@@ -1473,11 +1484,21 @@ namespace OpenMS
       }
       break;
 
+      case FileTypes::IDPARQUET:
+      {
+        if (!PSMArrowIO::exportToParquet(additional_proteins, additional_peptides, filename))
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                              "PSMArrowIO::exportToParquet failed");
+        }
+      }
+      break;
+
       default:
       {
         throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing Identifications");
       }
-    }   
+    }
   }
 
   void FileHandler::loadTransitions(const String& filename,TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
