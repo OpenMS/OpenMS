@@ -129,6 +129,10 @@ if (WITH_OPENTIMS)
   list(APPEND sources_list RationalScan2ImConverter.cpp)
 endif()
 
+if (WITH_THERMO_RAW)
+  list(APPEND sources_list ThermoRawFile.cpp)
+endif()
+
 ### add path to the filenames
 set(sources)
 foreach(i ${sources_list})

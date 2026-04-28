@@ -139,6 +139,10 @@ if (WITH_OPENTIMS)
   list(APPEND sources_list_h RationalScan2ImConverter.h)
 endif()
 
+if (WITH_THERMO_RAW)
+  list(APPEND sources_list_h ThermoRawFile.h)
+endif()
+
 ### add path to the filenames
 set(sources_h)
 foreach(i ${sources_list_h})
