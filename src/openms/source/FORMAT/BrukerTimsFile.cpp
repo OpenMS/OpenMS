@@ -246,7 +246,7 @@ namespace OpenMS
                   size_t max_peaks = DEFAULT_CENTROID_MAX_PEAKS)
     {
       agg_buff.clear();
-      agg_buff.reserve(std::min(peaks.size(), max_peaks + 1));
+      agg_buff.reserve(std::min(peaks.size(), max_peaks));
       ++total_calls_;
 
       const float utol = mz_ppm / 1e6f;
@@ -257,7 +257,7 @@ namespace OpenMS
       {
         if (peaks[idx].intensity <= 0.0f) continue;  // already consumed
 
-        if (agg_buff.size() > max_peaks)
+        if (agg_buff.size() >= max_peaks)
         {
           // Only count as a "real" cap hit if the next dropped peak is above
           // the noise floor (~200 counts on timsTOF). Dropping noise-floor

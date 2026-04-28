@@ -516,6 +516,42 @@ START_SECTION(DDA MS1 centroiding test)
 }
 END_SECTION
 
+START_SECTION(DDA MS1 centroiding cap is exact (regression: issue #9230))
+{
+  // With ms1_centroid_max_peaks=N, no centroided MS1 spectrum should ever
+  // exceed N peaks. Prior to the fix, the cap was off-by-one and emitted
+  // N+1 peaks whenever it fired, producing defaultArrayLength="100001" in
+  // the resulting mzML on real timsTOF runs.
+  BrukerTimsFile f;
+  BrukerTimsFile::Config cfg;
+  cfg.ms1_centroid_mz_ppm = 5.0f;
+  cfg.ms1_centroid_im_pct = 3.0f;
+  cfg.ms1_centroid_max_peaks = 10; // small cap so it actually fires
+  MSExperiment exp;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp, cfg);
+
+  Size capped_count = 0;
+  Size max_observed = 0;
+  for (const auto& spec : exp)
+  {
+    if (spec.getMSLevel() != 1) continue;
+    max_observed = std::max(max_observed, spec.size());
+    if (spec.size() == static_cast<Size>(cfg.ms1_centroid_max_peaks)) ++capped_count;
+    // IM array must stay aligned with peak count regardless of cap
+    if (!spec.empty())
+    {
+      TEST_EQUAL(spec.getFloatDataArrays().empty(), false);
+      TEST_EQUAL(spec.getFloatDataArrays()[0].size(), spec.size());
+    }
+  }
+
+  // Hard invariant: never exceed the cap
+  TEST_EQUAL(max_observed <= static_cast<Size>(cfg.ms1_centroid_max_peaks), true);
+  // Sanity: cap should actually have fired on this fixture
+  TEST_EQUAL(capped_count > 0, true);
+}
+END_SECTION
+
 START_SECTION(DDA partial centroiding config test)
 {
   // Setting only one tolerance should NOT enable centroiding
