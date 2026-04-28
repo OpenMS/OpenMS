@@ -438,6 +438,7 @@ protected:
     registerDoubleOption_("ipf_min_transition_sn", "<value>", 0, "OSW/IPF: Minimum log signal-to-noise level to consider transitions in IPF. Set -1 to disable this filter.", !is_required, is_advanced_option);
 
     //Post-filter parameters
+    registerTOPPSubsection_("score", "Post-filter parameters applied to Percolator output");
     registerDoubleOption_("score:fdr", "<value>",
       1.0,
       "FDR cutoff applied to the Percolator q-value before writing output. "
