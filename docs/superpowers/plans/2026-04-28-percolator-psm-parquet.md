@@ -1579,18 +1579,19 @@ EOF
 
 ---
 
-## Task 10: CometAdapter, MSGFPlusAdapter, MSFraggerAdapter, XTandemAdapter — accept `.idparquet`
+## Task 10: CometAdapter, MSGFPlusAdapter, MSFraggerAdapter — accept `.idparquet`
+
+**Note:** `XTandemAdapter.cpp` was removed from the codebase (only old test fixtures remain). Originally listed in the spec, dropped here.
 
 **Files:**
 - Modify: `src/topp/CometAdapter.cpp:139, 926`
 - Modify: `src/topp/MSGFPlusAdapter.cpp` (find the analogous line numbers via grep)
 - Modify: `src/topp/MSFraggerAdapter.cpp:888`
-- Modify: `src/topp/XTandemAdapter.cpp` (find the analogous line numbers)
 
 - [ ] **Step 1: For each adapter, locate the `setValidFormats_("out", ...)` call and the `storeIdentifications` call.**
 
 ```bash
-for f in CometAdapter MSGFPlusAdapter MSFraggerAdapter XTandemAdapter; do
+for f in CometAdapter MSGFPlusAdapter MSFraggerAdapter; do
   echo "=== $f ==="
   grep -nE "setValidFormats_\\(\"out\"|storeIdentifications" src/topp/$f.cpp
 done
@@ -1614,13 +1615,13 @@ Pattern (CometAdapter shown — apply equivalent edits to the other three):
     FileHandler().storeIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDXML, FileTypes::IDPARQUET});
 ```
 
-Repeat for `MSGFPlusAdapter.cpp:887`, `MSFraggerAdapter.cpp:888`, and `XTandemAdapter.cpp` (line numbers will differ; the textual pattern is the same).
+Repeat for `MSGFPlusAdapter.cpp:887` and `MSFraggerAdapter.cpp:888` (line numbers will differ; the textual pattern is the same).
 
-- [ ] **Step 3: Build all four adapters and run their tests.**
+- [ ] **Step 3: Build all three adapters and run their tests.**
 
 ```bash
-cmake --build OpenMS-build -j$(nproc) --target CometAdapter MSGFPlusAdapter MSFraggerAdapter XTandemAdapter
-ctest --test-dir OpenMS-build -R "^TOPP_(Comet|MSGFPlus|MSFragger|XTandem)Adapter" --output-on-failure
+cmake --build OpenMS-build -j$(nproc) --target CometAdapter MSGFPlusAdapter MSFraggerAdapter
+ctest --test-dir OpenMS-build -R "^TOPP_(Comet|MSGFPlus|MSFragger)Adapter" --output-on-failure
 ```
 
 Expected: all existing tests PASS.
@@ -1628,11 +1629,11 @@ Expected: all existing tests PASS.
 - [ ] **Step 4: Commit.**
 
 ```bash
-git add src/topp/CometAdapter.cpp src/topp/MSGFPlusAdapter.cpp src/topp/MSFraggerAdapter.cpp src/topp/XTandemAdapter.cpp
+git add src/topp/CometAdapter.cpp src/topp/MSGFPlusAdapter.cpp src/topp/MSFraggerAdapter.cpp
 git commit -m "$(cat <<'EOF'
 feat(search-engine adapters): accept .idparquet output (#9225)
 
-Comet, MSGFPlus, MSFragger, XTandem adapters now accept idparquet as
+Comet, MSGFPlus, and MSFragger adapters now accept idparquet as
 an output format, matching SageAdapter and PercolatorAdapter.
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
