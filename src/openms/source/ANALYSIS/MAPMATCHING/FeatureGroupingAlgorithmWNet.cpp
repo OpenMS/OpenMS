@@ -166,7 +166,7 @@ namespace OpenMS
     if (use_ppm)
     {
       max_mz_shift = param_.getValue("max_mz_shift_ppm");
-      mz_shift_native = log(1.0 + max_mz_shift * 1e-6);
+      mz_shift_native = std::log1p(max_mz_shift * 1e-6);
     }
     else
     {
