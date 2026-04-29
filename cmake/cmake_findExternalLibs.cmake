@@ -492,7 +492,16 @@ if (WITH_THERMO_RAW)
     set(OPENMS_THERMO_BRIDGE_ENABLE_VENDOR_DOWNLOAD ON CACHE BOOL "" FORCE)
     set(OPENMS_THERMO_BRIDGE_DOWNLOAD_TEST_DATA OFF CACHE BOOL "" FORCE)
 
+    # OpenMS sets BUILD_SHARED_LIBS=ON (to build libOpenMS.so). Without this
+    # override, openms_thermo_bridge would be built as a shared library. A shared
+    # bridge would land in _deps/openmsthermobridge-build/ rather than the system
+    # lib path, so TOPP tools linking libOpenMS.so would fail with "undefined
+    # reference" because libopenms_thermo_bridge.so is not in their link command.
+    # Force static so all bridge symbols are absorbed into libOpenMS.so at link time.
+    set(_openms_saved_build_shared_libs ${BUILD_SHARED_LIBS})
+    set(BUILD_SHARED_LIBS OFF)
     FetchContent_MakeAvailable(OpenMSThermoBridge)
+    set(BUILD_SHARED_LIBS ${_openms_saved_build_shared_libs})
 
     # Add openms_thermo_bridge to both the install-tree and build-tree export sets
     # (same pattern as opentims, Evergreen, IsoSpec, and other bundled deps).
