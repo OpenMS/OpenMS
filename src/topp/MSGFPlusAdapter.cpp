@@ -136,8 +136,8 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file (MS-GF+ parameter '-s')");
     setValidFormats_("in", {"mzML", "mzXML", "mgf", "ms2" });
-    registerOutputFile_("out", "<file>", "", "Output file", false);
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    registerOutputFile_("out", "<file>", "", "Output file (.idXML) or directory bundle (.idparquet) containing the search results.", false);
+    setValidFormats_("out", {"idXML", "idparquet"});
     registerOutputFile_("mzid_out", "<file>", "", "Alternative output file (MS-GF+ parameter '-o')\nEither 'out' or 'mzid_out' are required. They can be used together.", false);
     setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
     registerInputFile_("executable", "<file>", "MSGFPlus.jar", "The MSGFPlus Java archive file. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
@@ -884,7 +884,7 @@ protected:
       PercolatorFeatureSetHelper::addMSGFFeatures(peptide_ids, feature_set);
       protein_ids.front().getSearchParameters().setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
 
-      FileHandler().storeIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML, FileTypes::IDPARQUET});
     }
 
     //-------------------------------------------------------------

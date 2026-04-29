@@ -11,6 +11,7 @@
 
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
+#include <OpenMS/ANALYSIS/ID/Scores.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
@@ -344,6 +345,39 @@ protected:
     }
   }
 
+  /// Apply the user-facing post-filters (-score:fdr, -best_per_spectrum_only)
+  /// to in-memory identifications before they are written.  Used by both the
+  /// subprocess path and the in-process path so the two backends produce
+  /// equivalent output.
+  void applyPostFilters_(PeptideIdentificationList& all_peptide_ids)
+  {
+    const double score_fdr = getDoubleOption_("score:fdr");
+    if (score_fdr < 1.0)
+    {
+      // -score:fdr is always interpreted as a q-value cutoff, independent of -score_type.
+      // The 3-arg overload uses IDScoreSwitcherAlgorithm: if the main score already is the
+      // q-value it filters on it directly; otherwise it locates the q-value in the hit's
+      // meta values (PercolatorAdapter stamps it as MS:1001491 in both backends, see the
+      // svm/PEP code paths) and filters on that. This keeps the user's chosen main score
+      // (e.g. svm or PEP) for downstream tools while still applying the FDR cutoff.
+      IDFilter::filterHitsByScore(all_peptide_ids.getData(), score_fdr,
+                                  IDScoreSwitcherAlgorithm::ScoreType::QVAL);
+      IDFilter::removeEmptyIdentifications(all_peptide_ids);
+      OPENMS_LOG_INFO << "Applied score:fdr cutoff " << score_fdr
+                      << "; remaining peptide identifications: " << all_peptide_ids.size() << std::endl;
+      if (all_peptide_ids.empty())
+      {
+        OPENMS_LOG_WARN << "score:fdr cutoff " << score_fdr << " dropped all PSMs. "
+                        << "Output will contain no peptide identifications." << std::endl;
+      }
+    }
+
+    if (getFlag_("best_per_spectrum_only"))
+    {
+      IDFilter::keepBestPeptideHits(all_peptide_ids);
+    }
+  }
+
   void registerOptionsAndFlags_() override
   {
     static const bool is_required(true);
@@ -351,13 +385,13 @@ protected:
     static const bool force_openms_format(true);
         
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", !is_required);
-    setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
+    setValidFormats_("in", ListUtils::create<String>("mzid,idXML,idparquet"));
     registerInputFileList_("in_decoy", "<files>", StringList(), "Input decoy file(s) in case of separate searches", !is_required);
-    setValidFormats_("in_decoy", ListUtils::create<String>("mzid,idXML"));
+    setValidFormats_("in_decoy", ListUtils::create<String>("mzid,idXML,idparquet"));
     registerInputFile_("in_osw", "<file>", "", "Input file in OSW format", !is_required);
     setValidFormats_("in_osw", ListUtils::create<String>("OSW"));
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("idXML,mzid,osw"));
+    setValidFormats_("out", ListUtils::create<String>("idXML,mzid,osw,idparquet"));
     registerOutputFile_("out_pin", "<file>", "", "Write pin file (e.g., for debugging)", !is_required, is_advanced_option);
     setValidFormats_("out_pin", ListUtils::create<String>("tsv"), !force_openms_format);
 
@@ -371,7 +405,7 @@ protected:
     setValidFormats_("out_pout_decoy_proteins", ListUtils::create<String>("tab"), !force_openms_format);
 
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
-    setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML,osw"));
+    setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML,osw,idparquet"));
     String enzs = "no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin,trypsinp";
     registerStringOption_("enzyme", "<enzyme>", "trypsin", "Type of enzyme: "+enzs , !is_required);
     setValidStrings_("enzyme", ListUtils::create<String>(enzs));
@@ -436,6 +470,20 @@ protected:
     registerDoubleOption_("ipf_max_peakgroup_pep", "<value>", 0.7, "OSW/IPF: Assess transitions only for candidate peak groups until maximum posterior error probability.", !is_required, is_advanced_option);
     registerDoubleOption_("ipf_max_transition_isotope_overlap", "<value>", 0.5, "OSW/IPF: Maximum isotope overlap to consider transitions in IPF.", !is_required, is_advanced_option);
     registerDoubleOption_("ipf_min_transition_sn", "<value>", 0, "OSW/IPF: Minimum log signal-to-noise level to consider transitions in IPF. Set -1 to disable this filter.", !is_required, is_advanced_option);
+
+    //Post-filter parameters
+    registerTOPPSubsection_("score", "Post-filter parameters applied to Percolator output");
+    registerDoubleOption_("score:fdr", "<value>",
+      1.0,
+      "FDR cutoff applied to the Percolator q-value before writing output. "
+      "PSMs with q-value > cutoff are dropped. 1.0 disables the filter.",
+      false, false);
+    setMinFloat_("score:fdr", 0.0);
+    setMaxFloat_("score:fdr", 1.0);
+
+    registerFlag_("best_per_spectrum_only",
+      "After applying score:fdr, retain only the best-scoring PSM per spectrum (default: keep all hits, matching legacy PercolatorAdapter behaviour).",
+      false);
   }
   
 
@@ -574,6 +622,10 @@ protected:
       {
         OPENMS_LOG_WARN << "Converting from mzid: possible loss of information depending on target format." << endl;
         FileHandler().loadIdentifications(in, protein_ids, peptide_ids, {FileTypes::IDXML});
+      }
+      else if (in_type == FileTypes::IDPARQUET)
+      {
+        FileHandler().loadIdentifications(in, protein_ids, peptide_ids, {FileTypes::IDPARQUET});
       }
       //else catched by TOPPBase:registerInput being mandatory mzid or idxml
       if (protein_ids.empty())
@@ -1094,6 +1146,10 @@ protected:
           peptide_level_fdrs, protein_level_fdrs,
           /*version_string=*/"3.08-vendored");
 
+        // Apply the same post-filters the subprocess path uses, so the two
+        // backends produce equivalent output for -score:fdr / -best_per_spectrum_only.
+        applyPostFilters_(all_peptide_ids);
+
         // Write output and return — skipping the pin / subprocess / pout path.
         FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {out_type});
         return EXECUTION_OK;
@@ -1430,8 +1486,11 @@ protected:
         peptide_level_fdrs, protein_level_fdrs,
         /*version_string=*/"3.07",  // TODO: read from percolator binary --version
         protein_level_fdrs ? &protein_map : nullptr);
+
+      applyPostFilters_(all_peptide_ids);
+
       // Storing the PeptideHits with calculated q-value, pep and svm score
-      FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
+      FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML, FileTypes::IDPARQUET});
     }
     else
     {

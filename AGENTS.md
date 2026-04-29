@@ -6,7 +6,7 @@ This file provides context and instructions for AI coding agents working on Open
 
 **NEVER do these things:**
 - Build the project unless explicitly asked (extremely resource-intensive)
-- Modify files in `src/openms/extern/` (third-party vendored code)
+- Modify files in `src/openms/extern/` or `src/openms/thirdparty/` (third-party vendored code; use the provided sync scripts to update vendored libraries)
 - Commit secrets, credentials, or `.env` files
 - Add `using namespace` or `using std::...` in header files
 - Modify the contrib tree or third-party dependencies

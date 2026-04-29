@@ -15,6 +15,7 @@
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
 
 #include <arrow/api.h>
@@ -1433,7 +1434,7 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
   auto col_charge = getColumn_(tbl, PSMSchema::PRECURSOR_CHARGE);
   auto col_score = getColumn_(tbl, PSMSchema::SCORE);
   auto col_score_type = getColumn_(tbl, PSMSchema::SCORE_TYPE);
-  auto col_rank = getColumn_(tbl, PSMSchema::RANK, /*required=*/false);
+  // hit_index is positional (analytics view); rank semantics travel via psm_metavalues.
   auto col_rt = getColumn_(tbl, PSMSchema::RT, /*required=*/false);
   auto col_mz = getColumn_(tbl, PSMSchema::OBSERVED_MZ, /*required=*/false);
   auto col_spec_ref = getColumn_(tbl, PSMSchema::SPECTRUM_REFERENCE, /*required=*/false);
@@ -1587,11 +1588,6 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
     hit.setCharge(static_cast<Int>(getInt32Value_(col_charge, row, 0)));
     hit.setScore(getDoubleValue_(col_score, row, 0.0));
 
-    if (col_rank && !isNull_(col_rank, row))
-    {
-      hit.setRank(static_cast<UInt>(getInt32Value_(col_rank, row, 0)));
-    }
-
     // is_decoy -> target_decoy metavalue
     if (col_is_decoy && !isNull_(col_is_decoy, row))
     {
@@ -1603,13 +1599,24 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
     if (col_protein_accs && !isNull_(col_protein_accs, row))
     {
       auto list_arr = std::static_pointer_cast<arrow::ListArray>(col_protein_accs);
-      auto values = std::static_pointer_cast<arrow::StringArray>(list_arr->values());
-      int64_t start = list_arr->value_offset(row);
-      int64_t end = start + list_arr->value_length(row);
-      for (int64_t k = start; k < end; ++k)
+      auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->values());
+      auto acc_arr    = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("accession"));
+      auto before_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("aa_before"));
+      auto after_arr  = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("aa_after"));
+      auto start_arr  = std::static_pointer_cast<arrow::Int32Array>(struct_arr->GetFieldByName("start"));
+      auto end_arr    = std::static_pointer_cast<arrow::Int32Array>(struct_arr->GetFieldByName("end"));
+      int64_t lstart = list_arr->value_offset(row);
+      int64_t lend = lstart + list_arr->value_length(row);
+      for (int64_t k = lstart; k < lend; ++k)
       {
         PeptideEvidence ev;
-        ev.setProteinAccession(values->GetString(k));
+        ev.setProteinAccession(acc_arr->GetString(k));
+        const std::string before_s = before_arr->IsNull(k) ? std::string{} : before_arr->GetString(k);
+        ev.setAABefore(before_s.empty() ? PeptideEvidence::UNKNOWN_AA : before_s[0]);
+        const std::string after_s = after_arr->IsNull(k) ? std::string{} : after_arr->GetString(k);
+        ev.setAAAfter(after_s.empty() ? PeptideEvidence::UNKNOWN_AA : after_s[0]);
+        ev.setStart(start_arr->IsNull(k) ? PeptideEvidence::UNKNOWN_POSITION : start_arr->Value(k));
+        ev.setEnd  (end_arr  ->IsNull(k) ? PeptideEvidence::UNKNOWN_POSITION : end_arr  ->Value(k));
         hit.addPeptideEvidence(ev);
       }
     }

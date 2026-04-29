@@ -304,6 +304,7 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   ProteinIdentificationArrowIO_test
   FeatureMapArrowIO_test
   ConsensusMapArrowIO_test
+  PSMArrowIO_test
   ArrowSchemaRegistry_test)
 
 set(math_executables_list
