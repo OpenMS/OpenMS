@@ -324,7 +324,17 @@ namespace OpenMS
     // Phase 2: sort by ascending cost (best matches first), then apply merges.
     // This resolves conflicts globally rather than in arbitrary map-pair order.
     sort(candidates.begin(), candidates.end(),
-         [](const Candidate& a, const Candidate& b) { return a.cost < b.cost; });
+         [](const Candidate& a, const Candidate& b)
+         {
+           // Primary: ascending cost. Tie-break by ordered endpoint pair so
+           // equal-cost candidates are always processed in the same order.
+           auto key = [](const Candidate& c) {
+             return std::make_tuple(c.cost,
+                                    std::min(c.flat_i, c.flat_j),
+                                    std::max(c.flat_i, c.flat_j));
+           };
+           return key(a) < key(b);
+         });
 
     Size accepted = 0;
     for (const auto& c : candidates)
