@@ -310,7 +310,7 @@ namespace OpenMS
                         << ": " << emp_ids.size() << " candidate pairs (total cost = "
                         << aligner.total_cost() << ")" << '\n';
 
-        for (size_t k = 0; k < emp_ids.size(); ++k)
+        for (Size k = 0; k < emp_ids.size(); ++k)
         {
           candidates.push_back({
             feature_offsets[i] + static_cast<Size>(emp_ids[k]),
