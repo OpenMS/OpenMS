@@ -1353,9 +1353,13 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
       // Floor-style division so a small negative sub-second value (e.g. raw = -500
       // ms) maps to -1 second instead of 0; with C++'s truncating integer division
       // it would otherwise pass the epoch_secs >= 0 check below and silently render
-      // as 1970-01-01.
+      // as 1970-01-01.  Quotient/remainder form avoids UB at INT64_MIN that the
+      // simpler `-((-r + d - 1) / d)` formulation would hit by negating r.
       auto floor_div = [](int64_t r, int64_t d) -> int64_t {
-        return (r >= 0) ? (r / d) : -((-r + d - 1) / d);
+        int64_t q = r / d;
+        int64_t rem = r % d;
+        if (rem != 0 && ((rem < 0) != (d < 0))) { --q; }
+        return q;
       };
       int64_t epoch_secs = raw;
       switch (ts_type->unit())

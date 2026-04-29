@@ -370,11 +370,9 @@ protected:
       for (const ProteinIdentification& prot : additional_proteins)
       {
         const String& id = prot.getIdentifier();
-        if (proteins_by_id.count(id) == 0)
-        {
-          proteins_order.push_back(id);
-        }
-        proteins_by_id[id] = prot;
+        auto [it, inserted] = proteins_by_id.try_emplace(id, prot);
+        if (inserted) { proteins_order.push_back(id); }
+        else          { it->second = prot; }
         if (i == 0) { add_to_ids.push_back(id); }
       }
     }
@@ -400,11 +398,9 @@ protected:
       for (auto ids_it = add_to_ids.begin();
             ids_it != add_to_ids.end(); ++ids_it)
       {
-        if (selected_proteins.count(*ids_it) == 0)
-        {
-          selected_proteins_order.push_back(*ids_it);
-        }
-        selected_proteins[*ids_it] = proteins_by_id[*ids_it];
+        auto [it, inserted] = selected_proteins.try_emplace(*ids_it, proteins_by_id[*ids_it]);
+        if (inserted) { selected_proteins_order.push_back(*ids_it); }
+        else          { it->second = proteins_by_id[*ids_it]; }
       }
       // keep track of peptides that shouldn't be duplicated:
       set<AASequence> sequences;
