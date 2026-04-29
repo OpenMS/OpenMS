@@ -3372,14 +3372,14 @@ TransformationModel
     // -----------------------------------------------------------------------
     nb::enum_<OpenMS::WNetMatcher::DistanceMetric>(m, "WNetMatcherDistanceMetric",
         "Distance metric for WNetMatcher point matching")
-        .value("L1", OpenMS::WNetMatcher::DistanceMetric::L1)
-        .value("L2", OpenMS::WNetMatcher::DistanceMetric::L2)
-        .value("LINF", OpenMS::WNetMatcher::DistanceMetric::LINF)
+        .value("L1",   OpenMS::WNetMatcher::DistanceMetric::L1,   "L1 (Manhattan) distance: sum of absolute coordinate differences")
+        .value("L2",   OpenMS::WNetMatcher::DistanceMetric::L2,   "L2 (Euclidean) distance: square root of sum of squared differences")
+        .value("LINF", OpenMS::WNetMatcher::DistanceMetric::LINF, "L-infinity (Chebyshev) distance: maximum absolute coordinate difference")
         ;
 
     nb::class_<OpenMS::WNetMatcher::MatchResult>(m, "WNetMatchResult",
         "Result of a pairwise WNetMatcher matching")
-        .def(nb::init<>())
+        .def(nb::init<>(), "Construct an empty MatchResult with zero cost and no matched pairs")
         .def_rw("matched_pairs", &OpenMS::WNetMatcher::MatchResult::matched_pairs,
             "List of (index_a, index_b) matched point pairs")
         .def_rw("cost", &OpenMS::WNetMatcher::MatchResult::cost,
@@ -3403,9 +3403,10 @@ FeatureGroupingAlgorithmWNet instead.
             "metric"_a = OpenMS::WNetMatcher::DistanceMetric::LINF,
             "max_distance"_a = 100.0,
             "trash_cost"_a = 100.0,
-            "Match two sets of 2D points using optimal transport")
+            "Match two sets of 2D points using minimum-cost optimal transport; returns matched index pairs and total cost")
         .def_static("metricFromString", &OpenMS::WNetMatcher::metricFromString,
-            "s"_a, "Convert string (L1, L2, LINF) to DistanceMetric enum")
+            "s"_a,
+            "Convert a string ('L1', 'L2', 'LINF') to a WNetMatcherDistanceMetric enum value; unknown strings emit a warning and fall back to LINF")
         ;
 
     // -----------------------------------------------------------------------
@@ -3421,10 +3422,19 @@ heuristic and not globally optimal.
 
 FeatureGroupingAlgorithm
 )doc")
-        .def(nb::init<>())
-        .def("group", [](OpenMS::FeatureGroupingAlgorithmWNet& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
-        .def("group", [](OpenMS::FeatureGroupingAlgorithmWNet& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
-        .def("transferSubelements", [](const OpenMS::FeatureGroupingAlgorithmWNet& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.transferSubelements(maps, out); }, "maps"_a, "out"_a, "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
+        .def(nb::init<>(), "Construct a FeatureGroupingAlgorithmWNet with default parameters")
+        .def("group",
+            [](OpenMS::FeatureGroupingAlgorithmWNet& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); },
+            "maps"_a, "out"_a,
+            "Group corresponding features across multiple FeatureMaps into consensus features using Wasserstein optimal transport")
+        .def("group",
+            [](OpenMS::FeatureGroupingAlgorithmWNet& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); },
+            "maps"_a, "out"_a,
+            "Group corresponding features across multiple ConsensusMaps into consensus features using Wasserstein optimal transport")
+        .def("transferSubelements",
+            [](const OpenMS::FeatureGroupingAlgorithmWNet& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.transferSubelements(maps, out); },
+            "maps"_a, "out"_a,
+            "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
         ;
 
 }
