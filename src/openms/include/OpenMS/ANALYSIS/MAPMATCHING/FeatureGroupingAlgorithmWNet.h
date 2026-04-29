@@ -43,6 +43,9 @@ namespace OpenMS
 
         @pre The data ranges of the input maps have to be up-to-date (use FeatureMap::updateRanges).
 
+        @param[in]  maps  Input feature maps (at least two required).
+        @param[out] out   Resulting consensus map with grouped features.
+
         @exception IllegalArgument is thrown if less than two input maps are given.
     */
     void group(const std::vector<FeatureMap>& maps, ConsensusMap& out) override;
@@ -51,6 +54,9 @@ namespace OpenMS
         @brief Applies the algorithm to consensus maps
 
         @pre The data ranges of the input maps have to be up-to-date (use ConsensusMap::updateRanges).
+
+        @param[in]  maps  Input consensus maps (at least two required).
+        @param[out] out   Resulting consensus map with grouped features.
 
         @exception IllegalArgument is thrown if less than two input maps are given.
     */
