@@ -205,6 +205,15 @@ if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
   target_compile_definitions(ThermoRawFile_test PRIVATE
     THERMO_RAW_TEST_DATA="${THERMO_RAW_TEST_DATA}")
   set_tests_properties(ThermoRawFile_test PROPERTIES TIMEOUT 1200)
+
+  # Copy the managed bridge runtime (.dll + .runtimeconfig.json) next to the
+  # test binary. The bridge looks first in the executable's own directory; on
+  # Windows the test exe is in src/tests/class_tests/bin (not next to
+  # libOpenMS), so the OpenMS-target POST_BUILD copy in src/openms/CMakeLists
+  # is in a different directory and would not be found at test runtime.
+  if (COMMAND openms_thermo_bridge_copy_runtime_files)
+    openms_thermo_bridge_copy_runtime_files(TARGET ThermoRawFile_test)
+  endif()
 endif()
 
 #------------------------------------------------------------------------------
