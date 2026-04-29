@@ -97,6 +97,12 @@ START_SECTION((static Type nameToType(const String& name)))
   TEST_EQUAL(FileTypes::nameToType("idparquet"), FileTypes::IDPARQUET);
   TEST_EQUAL(FileTypes::nameToType("IDPARQUET"), FileTypes::IDPARQUET);
   TEST_STRING_EQUAL(FileTypes::typeToName(FileTypes::IDPARQUET), "idparquet");
+  TEST_EQUAL(FileTypes::nameToType("featureparquet"), FileTypes::FEATUREPARQUET);
+  TEST_EQUAL(FileTypes::nameToType("FEATUREPARQUET"), FileTypes::FEATUREPARQUET);
+  TEST_STRING_EQUAL(FileTypes::typeToName(FileTypes::FEATUREPARQUET), "featureparquet");
+  TEST_EQUAL(FileTypes::nameToType("consensusparquet"), FileTypes::CONSENSUSPARQUET);
+  TEST_EQUAL(FileTypes::nameToType("CONSENSUSPARQUET"), FileTypes::CONSENSUSPARQUET);
+  TEST_STRING_EQUAL(FileTypes::typeToName(FileTypes::CONSENSUSPARQUET), "consensusparquet");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::BRUKER_TDF), "d");
   TEST_EQUAL(FileTypes::BRUKER_TDF, FileTypes::nameToType("d"));
 
@@ -107,6 +113,8 @@ END_SECTION
 START_SECTION(([EXTRA] isDirectoryType))
 {
   TEST_TRUE(FileTypes::isDirectoryType(FileTypes::IDPARQUET));
+  TEST_TRUE(FileTypes::isDirectoryType(FileTypes::FEATUREPARQUET));
+  TEST_TRUE(FileTypes::isDirectoryType(FileTypes::CONSENSUSPARQUET));
   TEST_TRUE(FileTypes::isDirectoryType(FileTypes::BRUKER_TDF));
   TEST_FALSE(FileTypes::isDirectoryType(FileTypes::IDXML));
   TEST_FALSE(FileTypes::isDirectoryType(FileTypes::PARQUET));
@@ -145,10 +153,8 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
     std::vector<FileTypes::FileProperties> f;
     f.push_back(FileTypes::FileProperties::READABLE);
     FileTypeList g = FileTypeList::typesWithProperties(f);
-    TEST_EQUAL(g.getTypes().size(), 45);
-    // Test that empty filter returns the full list
-    TEST_EQUAL(FileTypeList::typesWithProperties({}).size(), 68);
-    // Test that the full list is equal to the list of known file types
+    TEST_EQUAL(g.getTypes().size(), 47);
+    // Test that empty filter returns the full list, equal to the list of known file types
     TEST_EQUAL(FileTypeList::typesWithProperties({}).size(),static_cast<size_t>(FileTypes::Type::SIZE_OF_TYPE));
     // Check that we don't have duplicate Types in our type_with_annotation__
     vector<FileTypes::Type> vec = FileTypeList::typesWithProperties({});

@@ -108,6 +108,8 @@ namespace OpenMS
     TypeNameBinding(FileTypes::ZIP, "zip", "ZIP compressed file", {PROP::READABLE}),
     TypeNameBinding(FileTypes::PARQUET, "parquet", "Apache Parquet file", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::IDPARQUET, "idparquet", "OpenMS identification parquet bundle (directory)", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE}),
+    TypeNameBinding(FileTypes::FEATUREPARQUET, "featureparquet", "OpenMS feature map parquet bundle (directory)", {PROP::PROVIDES_FEATURES, PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE}),
+    TypeNameBinding(FileTypes::CONSENSUSPARQUET, "consensusparquet", "OpenMS consensus map parquet bundle (directory)", {PROP::PROVIDES_CONSENSUSFEATURES, PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::BRUKER_TDF, "d", "Bruker TDF", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE}),
     TypeNameBinding(FileTypes::XML, "xml", "any XML file", {PROP::READABLE}),  // make sure this comes last, since the name is a suffix of other formats and should only be matched last
   };
@@ -244,7 +246,10 @@ namespace OpenMS
 
   bool FileTypes::isDirectoryType(Type type)
   {
-    return type == FileTypes::BRUKER_TDF || type == FileTypes::IDPARQUET;
+    return type == FileTypes::BRUKER_TDF
+        || type == FileTypes::IDPARQUET
+        || type == FileTypes::FEATUREPARQUET
+        || type == FileTypes::CONSENSUSPARQUET;
   }
 
 
