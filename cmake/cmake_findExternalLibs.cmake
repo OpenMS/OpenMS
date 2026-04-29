@@ -303,19 +303,22 @@ if(WITH_WNETALIGN)
   FetchContent_Declare(
     pylmcf
     GIT_REPOSITORY https://github.com/michalsta/pylmcf.git
-    GIT_TAG        v0.9.7
+    GIT_TAG        8d866c0447ee5fd26545d2f08f0643a377256297 # v0.9.7
+    GIT_SHALLOW    TRUE
     SOURCE_SUBDIR  _no_cmake
   )
   FetchContent_Declare(
     wnet
     GIT_REPOSITORY https://github.com/michalsta/wnet.git
-    GIT_TAG        v0.9.11
+    GIT_TAG        18a15250adb7ed478ef40d26d736bcd873265c74 # v0.9.11
+    GIT_SHALLOW    TRUE
     SOURCE_SUBDIR  _no_cmake
   )
   FetchContent_Declare(
     wnetalign
     GIT_REPOSITORY https://github.com/michalsta/wnetalign.git
-    GIT_TAG        v0.9.8
+    GIT_TAG        cff6a19a6b540247d57044e06b1852afe24346a0 # v0.9.8
+    GIT_SHALLOW    TRUE
     SOURCE_SUBDIR  _no_cmake
   )
 
