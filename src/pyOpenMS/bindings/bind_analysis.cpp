@@ -3380,6 +3380,9 @@ TransformationModel
     nb::class_<OpenMS::WNetMatcher::MatchResult>(m, "WNetMatchResult",
         "Result of a pairwise WNetMatcher matching")
         .def(nb::init<>(), "Construct an empty MatchResult with zero cost and no matched pairs")
+        .def(nb::init<const OpenMS::WNetMatcher::MatchResult&>(), "Copy constructor")
+        .def("__copy__",     [](const OpenMS::WNetMatcher::MatchResult& self) { return OpenMS::WNetMatcher::MatchResult(self); })
+        .def("__deepcopy__", [](const OpenMS::WNetMatcher::MatchResult& self, nb::dict) { return OpenMS::WNetMatcher::MatchResult(self); }, "memo"_a)
         .def_rw("matched_pairs", &OpenMS::WNetMatcher::MatchResult::matched_pairs,
             "List of (index_a, index_b) matched point pairs")
         .def_rw("cost", &OpenMS::WNetMatcher::MatchResult::cost,
