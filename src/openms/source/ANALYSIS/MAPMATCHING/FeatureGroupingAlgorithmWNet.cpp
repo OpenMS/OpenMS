@@ -276,7 +276,7 @@ namespace OpenMS
 
         vector<Spectrum<2>*> theoretical = {&spectra[j]};
         WNetAligner<2> aligner(spectra[i], theoretical, metric, max_distance, trash_cost);
-        aligner.set_point({1.0});
+        aligner.set_point({1.0}); // weight=1: solve a single unit-weight consensus
 
         auto [emp_ids, theo_ids] = aligner.consensus_for_target(0);
 
