@@ -383,6 +383,26 @@ START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
   f.setIntensity(1000.0f);
   f.setCharge(2);
   f.setOverallQuality(0.9f);
+
+  // Minimal ID sidecar: ProteinIdentification on the map, PeptideIdentification
+  // on the feature, linked via shared identifier.
+  ProteinIdentification prot;
+  prot.setIdentifier("run_1");
+  prot.setScoreType("score");
+  prot.setHigherScoreBetter(true);
+  fm.getProteinIdentifications().push_back(prot);
+
+  PeptideIdentification pid;
+  pid.setIdentifier("run_1");
+  pid.setScoreType("score");
+  pid.setHigherScoreBetter(true);
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDE"));
+  hit.setCharge(2);
+  hit.setScore(0.8);
+  pid.getHits().push_back(hit);
+  f.getPeptideIdentifications().push_back(pid);
+
   fm.push_back(f);
 
   String dir;
@@ -401,6 +421,19 @@ START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
   TEST_REAL_SIMILAR(fm_in[0].getIntensity(), 1000.0f);
   TEST_EQUAL(fm_in[0].getCharge(), 2);
   TEST_REAL_SIMILAR(fm_in[0].getOverallQuality(), 0.9f);
+
+  // ID sidecar round-trip
+  TEST_EQUAL(fm_in.getProteinIdentifications().size(), 1);
+  TEST_STRING_EQUAL(fm_in.getProteinIdentifications()[0].getIdentifier(), "run_1");
+  TEST_STRING_EQUAL(fm_in.getProteinIdentifications()[0].getScoreType(), "score");
+  TEST_EQUAL(fm_in.getProteinIdentifications()[0].isHigherScoreBetter(), true);
+  TEST_EQUAL(fm_in[0].getPeptideIdentifications().size(), 1);
+  TEST_STRING_EQUAL(fm_in[0].getPeptideIdentifications()[0].getIdentifier(), "run_1");
+  TEST_EQUAL(fm_in[0].getPeptideIdentifications()[0].getHits().size(), 1);
+  const PeptideHit& h_in = fm_in[0].getPeptideIdentifications()[0].getHits()[0];
+  TEST_STRING_EQUAL(h_in.getSequence().toString(), "PEPTIDE");
+  TEST_EQUAL(h_in.getCharge(), 2);
+  TEST_REAL_SIMILAR(h_in.getScore(), 0.8);
 
   File::removeDirRecursively(dir);
 }
@@ -604,6 +637,26 @@ START_SECTION(([EXTRA] storeConsensusFeatures_loadConsensusFeatures_consensuspar
   cf.setIntensity(2000.0f);
   cf.setCharge(3);
   cf.setQuality(0.8f);
+
+  // Minimal ID sidecar: ProteinIdentification on the map, PeptideIdentification
+  // on the consensus feature, linked via shared identifier.
+  ProteinIdentification prot;
+  prot.setIdentifier("run_1");
+  prot.setScoreType("score");
+  prot.setHigherScoreBetter(true);
+  cmap.getProteinIdentifications().push_back(prot);
+
+  PeptideIdentification pid;
+  pid.setIdentifier("run_1");
+  pid.setScoreType("score");
+  pid.setHigherScoreBetter(true);
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDE"));
+  hit.setCharge(3);
+  hit.setScore(0.7);
+  pid.getHits().push_back(hit);
+  cf.getPeptideIdentifications().push_back(pid);
+
   cmap.push_back(cf);
 
   String dir;
@@ -622,6 +675,19 @@ START_SECTION(([EXTRA] storeConsensusFeatures_loadConsensusFeatures_consensuspar
   TEST_REAL_SIMILAR(cmap_in[0].getIntensity(), 2000.0f);
   TEST_EQUAL(cmap_in[0].getCharge(), 3);
   TEST_REAL_SIMILAR(cmap_in[0].getQuality(), 0.8f);
+
+  // ID sidecar round-trip
+  TEST_EQUAL(cmap_in.getProteinIdentifications().size(), 1);
+  TEST_STRING_EQUAL(cmap_in.getProteinIdentifications()[0].getIdentifier(), "run_1");
+  TEST_STRING_EQUAL(cmap_in.getProteinIdentifications()[0].getScoreType(), "score");
+  TEST_EQUAL(cmap_in.getProteinIdentifications()[0].isHigherScoreBetter(), true);
+  TEST_EQUAL(cmap_in[0].getPeptideIdentifications().size(), 1);
+  TEST_STRING_EQUAL(cmap_in[0].getPeptideIdentifications()[0].getIdentifier(), "run_1");
+  TEST_EQUAL(cmap_in[0].getPeptideIdentifications()[0].getHits().size(), 1);
+  const PeptideHit& h_in = cmap_in[0].getPeptideIdentifications()[0].getHits()[0];
+  TEST_STRING_EQUAL(h_in.getSequence().toString(), "PEPTIDE");
+  TEST_EQUAL(h_in.getCharge(), 3);
+  TEST_REAL_SIMILAR(h_in.getScore(), 0.7);
 
   File::removeDirRecursively(dir);
 }
