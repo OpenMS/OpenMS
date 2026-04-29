@@ -42,6 +42,8 @@
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/FORMAT/PSMArrowIO.h>
+#include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
 
 #include <OpenMS/FORMAT/MsInspectFile.h>
 #include <OpenMS/FORMAT/SpecArrayFile.h>
@@ -1167,7 +1169,7 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::OMS: 
+      case FileTypes::OMS:
       {
         OMSFile f;
         f.setLogType(log);
@@ -1175,7 +1177,17 @@ namespace OpenMS
       }
       break;
 
-      default: 
+      case FileTypes::FEATUREPARQUET:
+      {
+        if (!FeatureMapArrowIO::importFromParquet(filename, map))
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                      "FeatureMapArrowIO::importFromParquet failed");
+        }
+      }
+      break;
+
+      default:
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,"type: " + FileTypes::typeToName(type) + " is not supported for loading features");
       }
@@ -1244,6 +1256,16 @@ namespace OpenMS
       }
       break;
 
+      case FileTypes::FEATUREPARQUET:
+      {
+        if (!FeatureMapArrowIO::exportToParquet(map, filename))
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                              "FeatureMapArrowIO::exportToParquet failed");
+        }
+      }
+      break;
+
       default:
       {
           throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing features");
@@ -1283,11 +1305,21 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::OMS: 
+      case FileTypes::OMS:
       {
         OMSFile f;
         f.setLogType(log);
         f.load(filename, map);
+      }
+      break;
+
+      case FileTypes::CONSENSUSPARQUET:
+      {
+        if (!ConsensusMapArrowIO::importFromParquet(filename, map))
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                      "ConsensusMapArrowIO::importFromParquet failed");
+        }
       }
       break;
 
@@ -1337,9 +1369,19 @@ namespace OpenMS
         f.store(filename, map);
       }
       break;
-      
+
+      case FileTypes::CONSENSUSPARQUET:
+      {
+        if (!ConsensusMapArrowIO::exportToParquet(map, filename))
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                              "ConsensusMapArrowIO::exportToParquet failed");
+        }
+      }
+      break;
+
       default:
-      {        
+      {
         throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing consensus features");
       }
     }
