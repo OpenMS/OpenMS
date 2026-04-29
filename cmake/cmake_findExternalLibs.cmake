@@ -503,10 +503,13 @@ if (WITH_THERMO_RAW)
     FetchContent_MakeAvailable(OpenMSThermoBridge)
     set(BUILD_SHARED_LIBS ${_openms_saved_build_shared_libs})
 
-    # Add openms_thermo_bridge to both the install-tree and build-tree export sets
-    # (same pattern as opentims, Evergreen, IsoSpec, and other bundled deps).
-    install_library(openms_thermo_bridge)
-    openms_register_export_target(openms_thermo_bridge)
+    # openms_thermo_bridge is a private implementation detail of libOpenMS — its
+    # symbols are fully absorbed into libOpenMS.so (because we force it static
+    # above). Downstream consumers only link libOpenMS; they never need to link
+    # openms_thermo_bridge directly. Therefore we do NOT install or export the
+    # bridge target. The managed .NET runtime files are copied as runtime
+    # artifacts by openms_thermo_bridge_copy_runtime_files (called in
+    # src/openms/CMakeLists.txt) and need no CMake export entry.
 
     message(STATUS "openms-thermo-bridge: built from source (${OpenMSThermoBridge_SOURCE_DIR})")
   endif()
