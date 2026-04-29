@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <numeric>
 #include <set>
 
@@ -174,7 +175,11 @@ namespace OpenMS
       max_mz_shift = param_.getValue("max_mz_shift_da");
       mz_shift_native = max_mz_shift;
     }
-    double mz_scale = (mz_shift_native > 0) ? max_rt_shift / mz_shift_native : 1.0;
+    // When max_mz_shift == 0 the m/z axis must be a strict constraint (no
+    // m/z difference is acceptable). Setting mz_scale = ∞ maps any non-zero
+    // m/z difference to an infinite scaled distance, rejecting such pairs.
+    double mz_scale = (mz_shift_native > 0) ? max_rt_shift / mz_shift_native
+                                             : std::numeric_limits<double>::infinity();
 
     // After mz_scale, both axes are in "RT-equivalent seconds".
     // max_distance must reflect the chosen norm so that a feature exactly at
