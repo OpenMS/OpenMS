@@ -41,7 +41,7 @@ namespace OpenMS
     struct OPENMS_DLLAPI MatchResult
     {
       std::vector<std::pair<Size, Size>> matched_pairs; ///< (index_a, index_b) of matched points
-      double cost; ///< Total transport cost
+      double cost = 0.0; ///< Total transport cost
     };
 
     /**
