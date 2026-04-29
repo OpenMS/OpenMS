@@ -350,6 +350,20 @@ START_SECTION(([EXTRA] storeIdentifications_loadIdentifications_idparquet_round_
   TEST_EQUAL(prot_ids_in.size(), 1);
   TEST_EQUAL(pep_ids_in.size(), 1);
 
+  // Verify key fields actually round-trip rather than just counting containers.
+  TEST_STRING_EQUAL(prot_ids_in[0].getIdentifier(), "run_1");
+  TEST_STRING_EQUAL(prot_ids_in[0].getScoreType(), "score");
+  TEST_EQUAL(prot_ids_in[0].isHigherScoreBetter(), true);
+
+  TEST_STRING_EQUAL(pep_ids_in[0].getIdentifier(), "run_1");
+  TEST_STRING_EQUAL(pep_ids_in[0].getScoreType(), "score");
+  TEST_EQUAL(pep_ids_in[0].isHigherScoreBetter(), true);
+  TEST_EQUAL(pep_ids_in[0].getHits().size(), 1);
+  const PeptideHit& h = pep_ids_in[0].getHits()[0];
+  TEST_STRING_EQUAL(h.getSequence().toString(), "PEPTIDE");
+  TEST_EQUAL(h.getCharge(), 2);
+  TEST_REAL_SIMILAR(h.getScore(), 0.5);
+
   File::removeDirRecursively(dir);
 }
 END_SECTION
