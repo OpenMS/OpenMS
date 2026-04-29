@@ -32,64 +32,64 @@ namespace OpenMS
   {
     public:
       /**
-        @brief Constructor with explicit registry id.
+        @brief Constructor with explicit registry id
 
         Each usage is expected to provide its own id to isolate temporary
         file registries between different tools/components.
 
-        @param[in] registry_id Logical id used to derive registry file name.
+        @param[in] registry_id Logical id used to derive registry file name
       */
       explicit TempFileManager(const String& registry_id);
 
       /**
-        @brief Move constructor.
+        @brief Move constructor
 
-        @param[in,out] temp_file_manager Source manager.
+        @param[in,out] temp_file_manager Source manager
       */
       TempFileManager(TempFileManager&& temp_file_manager) noexcept;
 
-      /// Deleted copy constructor to enforce unique ownership semantics.
+      // Deleted copy constructor to enforce unique ownership semantics
       TempFileManager(const TempFileManager& temp_file_manager) = delete;
 
       /**
-        @brief Destructor.
+        @brief Destructor
 
-        Removes all stored temporary files known to this manager and the persisted registry.
+        Removes all stored temporary files known to this manager and the persisted registry
       */
       virtual ~TempFileManager() noexcept;
 
       /**
-        @brief Move assignment operator.
+        @brief Move assignment operator
 
-        @param[in,out] temp_file_manager Source manager.
-        @return Reference to @p *this.
+        @param[in,out] temp_file_manager Source manager
+        @return Reference to @p *this
       */
       TempFileManager& operator=(TempFileManager&& temp_file_manager) noexcept;
       /// Disable the copy constructor
       TempFileManager& operator=(const TempFileManager& temp_file_manager) = delete;
 
       /**
-        @brief Adds a temporary file to be managed.
-        @param[in] file_path The path to the temporary file.
+        @brief Adds a temporary file to be managed
+        @param[in] file_path The path to the temporary file
       */
       void addFile(const String& file_path);
 
       /**
-        @brief Releases a file from management without removing it from disk.
-        @param[in] file_path The path to the temporary file.
+        @brief Releases a file from management without removing it from disk
+        @param[in] file_path The path to the temporary file
       */
       void releaseFile(const String& file_path);
 
       /**
         @brief Removes a managed file immediately and unregisters it.
 
-        @param[in] file_path The path to the temporary file.
-        @return True if the file was removed successfully or did not exist, false otherwise.
+        @param[in] file_path The path to the temporary file
+        @return True if the file was removed successfully or did not exist, false otherwise
       */
       bool removeFileNow(const String& file_path) noexcept;
 
       /**
-        @brief Removes all currently managed files and clears the persisted registry for this scope.
+        @brief Removes all currently managed files and clears the persisted registry for this scope
       */
       void cleanupNow() noexcept;
 
@@ -97,37 +97,37 @@ namespace OpenMS
       /**
         @brief Sanitizes a registry id so it can be used as filename component.
 
-        @param[in] registry_id Input registry id string.
-        @return Sanitized registry id.
+        @param[in] registry_id Input registry id string
+        @return Sanitized registry id
       */
       static String sanitizeRegistryId_(const String& registry_id);
 
       /**
         @brief Builds the registry file path from registry id and scope options.
 
-        @param[in] registry_id Logical id used for file naming.
-        @return Absolute or relative registry file path.
+        @param[in] registry_id Logical id used for file naming
+        @return Absolute or relative registry file path
       */
       static String getRegistryFilePath_(const String& registry_id);
 
       /**
         @brief Loads the registry file and populates the set of temporary files.
-        @param[in,out] files The set to populate with file paths from the registry.
+        @param[in,out] files The set to populate with file paths from the registry
       */
       void loadRegistryFile_(std::set<String>& files) const;
 
       /**
         @brief Writes the complete registry set to disk.
 
-        @param[in] files The file set to persist.
+        @param[in] files The file set to persist
       */
       void writeRegistryFile_(const std::set<String>& files) const;
 
       /**
         @brief Adds or removes one file entry from the persisted registry.
 
-        @param[in] file_path The file path to modify.
-        @param[in] add_file True to add the file, false to remove it.
+        @param[in] file_path The file path to modify
+        @param[in] add_file True to add the file, false to remove it
       */
       void updateRegistryEntry_(const String& file_path, bool add_file);
 

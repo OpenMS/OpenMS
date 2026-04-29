@@ -254,7 +254,7 @@ namespace OpenMS
     std::ifstream registry_stream(registry_file_path_.c_str());
     if (!registry_stream.is_open())
     {
-      // Missing registry is valid on first run; existing-but-unreadable is an error.
+      // Missing registry is valid on first run; existing-but-unreadable is an error
       if (File::exists(registry_file_path_))
       {
         throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, registry_file_path_);
