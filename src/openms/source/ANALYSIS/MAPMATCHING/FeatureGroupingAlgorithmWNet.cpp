@@ -49,9 +49,9 @@ namespace OpenMS
     defaults_.setMinFloat("max_mz_shift_ppm", 0.0);
 
     defaults_.setValue("trash_cost", 0.0,
-      "Cost of leaving a feature unmatched (in seconds). At the default of 0 "
-      "this equals max_rt_shift, meaning a match at the boundary costs the same "
-      "as no match. Increase to prefer matching over leaving features unmatched.");
+      "Cost of leaving a feature unmatched (in seconds). Set to 0 to "
+      "auto-derive from max_rt_shift (a match at the boundary costs the same "
+      "as no match). Increase to prefer matching over leaving features unmatched.");
     defaults_.setMinFloat("trash_cost", 0.0);
     defaults_.addTag("trash_cost", "advanced");
 
