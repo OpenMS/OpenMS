@@ -290,49 +290,48 @@ endif()
 
 #------------------------------------------------------------------------------
 # wnetalign (Wasserstein network spectral alignment)
-include(FetchContent)
+option(WITH_WNETALIGN "Enable WNet alignment (fetches pylmcf, wnet, wnetalign)" OFF)
 
-# Header-only: use GIT_REPOSITORY for reproducible versioned fetch.
-# To override with local checkouts, set FETCHCONTENT_SOURCE_DIR_PYLMCF,
-# FETCHCONTENT_SOURCE_DIR_WNET, FETCHCONTENT_SOURCE_DIR_WNETALIGN.
-FetchContent_Declare(
-  pylmcf
-  GIT_REPOSITORY https://github.com/michalsta/pylmcf.git
-  GIT_TAG        v0.9.7
-)
-FetchContent_Declare(
-  wnet
-  GIT_REPOSITORY https://github.com/michalsta/wnet.git
-  GIT_TAG        v0.9.11
-)
-FetchContent_Declare(
-  wnetalign
-  GIT_REPOSITORY https://github.com/michalsta/wnetalign.git
-  GIT_TAG        v0.9.8
-)
+set(WNETALIGN_INCLUDE_DIRS "")
 
-# Populate source dirs without running their CMakeLists.txt
-# (they build nanobind Python modules, not needed for C++ header-only usage).
-FetchContent_GetProperties(pylmcf)
-if(NOT pylmcf_POPULATED)
-  FetchContent_Populate(pylmcf)
+if(WITH_WNETALIGN)
+  include(FetchContent)
+
+  # Header-only: use GIT_REPOSITORY for reproducible versioned fetch.
+  # To override with local checkouts, set FETCHCONTENT_SOURCE_DIR_PYLMCF,
+  # FETCHCONTENT_SOURCE_DIR_WNET, FETCHCONTENT_SOURCE_DIR_WNETALIGN.
+  FetchContent_Declare(
+    pylmcf
+    GIT_REPOSITORY https://github.com/michalsta/pylmcf.git
+    GIT_TAG        v0.9.7
+    SOURCE_SUBDIR  _no_cmake
+  )
+  FetchContent_Declare(
+    wnet
+    GIT_REPOSITORY https://github.com/michalsta/wnet.git
+    GIT_TAG        v0.9.11
+    SOURCE_SUBDIR  _no_cmake
+  )
+  FetchContent_Declare(
+    wnetalign
+    GIT_REPOSITORY https://github.com/michalsta/wnetalign.git
+    GIT_TAG        v0.9.8
+    SOURCE_SUBDIR  _no_cmake
+  )
+
+  # MakeAvailable populates source dirs without running the top-level
+  # CMakeLists (SOURCE_SUBDIR points to a nonexistent subdirectory), so
+  # nanobind Python modules are never configured.
+  FetchContent_MakeAvailable(pylmcf wnet wnetalign)
+
+  set(WNETALIGN_INCLUDE_DIRS
+    "${pylmcf_SOURCE_DIR}/src/pylmcf/cpp"
+    "${wnet_SOURCE_DIR}/src/wnet/cpp"
+    "${wnetalign_SOURCE_DIR}/src/wnetalign/cpp"
+  )
+
+  message(STATUS "wnetalign include dirs: ${WNETALIGN_INCLUDE_DIRS}")
 endif()
-FetchContent_GetProperties(wnet)
-if(NOT wnet_POPULATED)
-  FetchContent_Populate(wnet)
-endif()
-FetchContent_GetProperties(wnetalign)
-if(NOT wnetalign_POPULATED)
-  FetchContent_Populate(wnetalign)
-endif()
-
-set(WNETALIGN_INCLUDE_DIRS
-  "${pylmcf_SOURCE_DIR}/src/pylmcf/cpp"
-  "${wnet_SOURCE_DIR}/src/wnet/cpp"
-  "${wnetalign_SOURCE_DIR}/src/wnetalign/cpp"
-)
-
-message(STATUS "wnetalign include dirs: ${WNETALIGN_INCLUDE_DIRS}")
 
 #------------------------------------------------------------------------------
 # Done finding contrib libraries

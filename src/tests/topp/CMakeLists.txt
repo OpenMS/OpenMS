@@ -2310,10 +2310,12 @@ set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_7_out1" PROPERTIES DEPENDS "
 add_test("TOPP_FeatureLinkerUnlabeledKD_8" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_charge_any_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_charge_any_input2.featureXML -out ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeledKD_8_output.tmp.consensusXML -algorithm:link:charge_merging Any)
 add_test("TOPP_FeatureLinkerUnlabeledKD_8_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeledKD_8_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_8_output.consensusXML )
 set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_8_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_8")
-# FeatureLinkerWNet
-add_test("TOPP_FeatureLinkerWNet_1" ${TOPP_BIN_PATH}/FeatureLinkerWNet -test -ini ${DATA_DIR_TOPP}/FeatureLinkerWNet_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input3.featureXML -out ${TESTS_TEMP_DIR}/FeatureLinkerWNet_1_output.tmp.consensusXML)
-add_test("TOPP_FeatureLinkerWNet_1_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FeatureLinkerWNet_1_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FeatureLinkerWNet_1_output.consensusXML )
-set_tests_properties("TOPP_FeatureLinkerWNet_1_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerWNet_1")
+if(WITH_WNETALIGN)
+  # FeatureLinkerWNet
+  add_test("TOPP_FeatureLinkerWNet_1" ${TOPP_BIN_PATH}/FeatureLinkerWNet -test -ini ${DATA_DIR_TOPP}/FeatureLinkerWNet_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input3.featureXML -out ${TESTS_TEMP_DIR}/FeatureLinkerWNet_1_output.tmp.consensusXML)
+  add_test("TOPP_FeatureLinkerWNet_1_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FeatureLinkerWNet_1_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FeatureLinkerWNet_1_output.consensusXML )
+  set_tests_properties("TOPP_FeatureLinkerWNet_1_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerWNet_1")
+endif()
 
 
 #------------------------------------------------------------------------------
