@@ -37,8 +37,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmWNet.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/WNetMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
@@ -795,66 +793,6 @@ FeatureGroupingAlgorithm
         .def("group", [](OpenMS::FeatureGroupingAlgorithmQT& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
         .def("group", [](OpenMS::FeatureGroupingAlgorithmQT& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
         .def("transferSubelements", [](const OpenMS::FeatureGroupingAlgorithmQT& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.transferSubelements(maps, out); }, "maps"_a, "out"_a, "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
-        ;
-
-    // -----------------------------------------------------------------------
-    // WNetMatcher
-    // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::WNetMatcher::DistanceMetric>(m, "WNetMatcherDistanceMetric",
-        "Distance metric for WNetMatcher point matching")
-        .value("L1", OpenMS::WNetMatcher::DistanceMetric::L1)
-        .value("L2", OpenMS::WNetMatcher::DistanceMetric::L2)
-        .value("LINF", OpenMS::WNetMatcher::DistanceMetric::LINF)
-        ;
-
-    nb::class_<OpenMS::WNetMatcher::MatchResult>(m, "WNetMatchResult",
-        "Result of a pairwise WNetMatcher matching")
-        .def(nb::init<>())
-        .def_rw("matched_pairs", &OpenMS::WNetMatcher::MatchResult::matched_pairs,
-            "List of (index_a, index_b) matched point pairs")
-        .def_rw("cost", &OpenMS::WNetMatcher::MatchResult::cost,
-            "Total transport cost")
-        ;
-
-    nb::class_<OpenMS::WNetMatcher>(m, "WNetMatcher",
-        R"doc(
-Pairwise point-set matching using Wasserstein optimal transport.
-
-Matches two sets of 2D points (with associated intensities) by solving
-a minimum-cost network flow problem. Returns 1-to-1 matched index pairs.
-
-This provides a minimal, FeatureMap-independent interface to the WNetAlign
-algorithm. For feature-level grouping across multiple maps, use
-FeatureGroupingAlgorithmWNet instead.
-)doc")
-        .def_static("match", &OpenMS::WNetMatcher::match,
-            "positions_a"_a, "intensities_a"_a,
-            "positions_b"_a, "intensities_b"_a,
-            "metric"_a = OpenMS::WNetMatcher::DistanceMetric::LINF,
-            "max_distance"_a = 100.0,
-            "trash_cost"_a = 100.0,
-            "Match two sets of 2D points using optimal transport")
-        .def_static("metricFromString", &OpenMS::WNetMatcher::metricFromString,
-            "s"_a, "Convert string (L1, L2, LINF) to DistanceMetric enum")
-        ;
-
-    // -----------------------------------------------------------------------
-    // FeatureGroupingAlgorithmWNet
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::FeatureGroupingAlgorithmWNet, OpenMS::FeatureGroupingAlgorithm>(m, "FeatureGroupingAlgorithmWNet",
-        R"doc(
-A feature grouping algorithm using Wasserstein optimal transport.
-
-Finds pairwise optimal 1-to-1 feature matchings via minimum-cost network
-flow on (m/z, RT) positions; the subsequent merge across multiple maps is
-heuristic and not globally optimal.
-
-FeatureGroupingAlgorithm
-)doc")
-        .def(nb::init<>())
-        .def("group", [](OpenMS::FeatureGroupingAlgorithmWNet& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
-        .def("group", [](OpenMS::FeatureGroupingAlgorithmWNet& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
-        .def("transferSubelements", [](const OpenMS::FeatureGroupingAlgorithmWNet& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.transferSubelements(maps, out); }, "maps"_a, "out"_a, "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
         ;
 
     // -----------------------------------------------------------------------
