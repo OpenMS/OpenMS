@@ -174,7 +174,20 @@ namespace OpenMS
       mz_shift_native = max_mz_shift;
     }
     double mz_scale = (mz_shift_native > 0) ? max_rt_shift / mz_shift_native : 1.0;
-    double max_distance = max_rt_shift;
+
+    // After mz_scale, both axes are in "RT-equivalent seconds".
+    // max_distance must reflect the chosen norm so that a feature exactly at
+    // the per-axis threshold [max_rt_shift, max_rt_shift] lands on the boundary:
+    //   LINF: max(|Δmz|, |Δrt|) ≤ max_rt_shift  →  max_distance = max_rt_shift
+    //   L1:   |Δmz| + |Δrt| ≤ 2·max_rt_shift    →  max_distance = 2·max_rt_shift
+    //   L2:   √(Δmz²+Δrt²) ≤ √2·max_rt_shift    →  max_distance = √2·max_rt_shift
+    double max_distance;
+    switch (metric)
+    {
+      case DistanceMetric::L1:   max_distance = 2.0 * max_rt_shift; break;
+      case DistanceMetric::L2:   max_distance = std::sqrt(2.0) * max_rt_shift; break;
+      default:                   max_distance = max_rt_shift; break; // LINF
+    }
 
     OPENMS_LOG_INFO << "FeatureGroupingAlgorithmWNet: max_mz_shift = " << max_mz_shift
                     << (use_ppm ? " ppm" : " Da")
