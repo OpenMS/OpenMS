@@ -845,9 +845,9 @@ FeatureGroupingAlgorithmWNet instead.
         R"doc(
 A feature grouping algorithm using Wasserstein optimal transport.
 
-Groups corresponding features across multiple maps by solving a minimum-cost
-network flow problem on their (m/z, RT) positions. Produces globally optimal
-1-to-1 feature matchings.
+Finds pairwise optimal 1-to-1 feature matchings via minimum-cost network
+flow on (m/z, RT) positions; the subsequent merge across multiple maps is
+heuristic and not globally optimal.
 
 FeatureGroupingAlgorithm
 )doc")
