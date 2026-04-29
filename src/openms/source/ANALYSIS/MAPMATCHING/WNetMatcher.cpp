@@ -34,11 +34,11 @@ namespace OpenMS
     {
       switch (m)
       {
-        case WNetMatcher::DistanceMetric::L1: return ::DistanceMetric::L1;
-        case WNetMatcher::DistanceMetric::L2: return ::DistanceMetric::L2;
+        case WNetMatcher::DistanceMetric::L1:   return ::DistanceMetric::L1;
+        case WNetMatcher::DistanceMetric::L2:   return ::DistanceMetric::L2;
         case WNetMatcher::DistanceMetric::LINF: return ::DistanceMetric::LINF;
+        default:                                return ::DistanceMetric::LINF;
       }
-      return ::DistanceMetric::LINF;
     }
   } // anonymous namespace
 
@@ -70,15 +70,20 @@ namespace OpenMS
       return result;
     }
 
+    // Build spectra: spec_a is the empirical set, spec_b the theoretical target.
     Spectrum<2> spec_a(positions_a, intensities_a);
     Spectrum<2> spec_b(positions_b, intensities_b);
 
+    // Construct aligner for empirical (spec_a) vs. one theoretical target (spec_b).
     vector<Spectrum<2>*> theoretical = {&spec_b};
     WNetAligner<2> aligner(spec_a, theoretical, toWNetMetric(metric), max_distance, trash_cost);
-    aligner.set_point({1.0}); // weight=1: solve a single unit-weight consensus
+    // set_point({1.0}) fixes a single unit-weight consensus and triggers the network-flow solve.
+    aligner.set_point({1.0});
 
+    // consensus_for_target(0) returns paired index lists: emp_ids[k] in spec_a matched to theo_ids[k] in spec_b.
     auto [emp_ids, theo_ids] = aligner.consensus_for_target(0);
 
+    // total_cost() reads the optimal transport cost computed by set_point().
     result.cost = aligner.total_cost();
     result.matched_pairs.reserve(emp_ids.size());
     for (Size i = 0; i < emp_ids.size(); ++i)
