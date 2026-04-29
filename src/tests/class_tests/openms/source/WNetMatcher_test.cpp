@@ -46,13 +46,20 @@ START_SECTION((static MatchResult match(const std::vector<std::array<double, 2>>
     TEST_REAL_SIMILAR(result.cost, 0.0)
   }
 
-  // Two identical point sets should match perfectly
+  // Two identical point sets should match perfectly with zero cost
   {
     vector<array<double, 2>> positions = {{1.0, 10.0}, {2.0, 20.0}, {3.0, 30.0}};
     vector<double> intensities = {100.0, 200.0, 150.0};
 
     auto result = WNetMatcher::match(positions, intensities, positions, intensities);
     TEST_EQUAL(result.matched_pairs.size(), 3)
+    TEST_REAL_SIMILAR(result.cost, 0.0)
+
+    // Each point must match its own index (identity matching)
+    set<pair<Size,Size>> pairs(result.matched_pairs.begin(), result.matched_pairs.end());
+    TEST_EQUAL(pairs.count({0, 0}), 1)
+    TEST_EQUAL(pairs.count({1, 1}), 1)
+    TEST_EQUAL(pairs.count({2, 2}), 1)
   }
 
   // Close points should match, distant points should not
@@ -65,8 +72,14 @@ START_SECTION((static MatchResult match(const std::vector<std::array<double, 2>>
     auto result = WNetMatcher::match(pos_a, int_a, pos_b, int_b,
                                      WNetMatcher::DistanceMetric::LINF,
                                      5.0, 5.0);
-    // First two pairs are close (distance ~0.1), third is far (distance ~470)
+    // First two pairs are close (LINF distance 0.1), third is far (~470)
     TEST_EQUAL(result.matched_pairs.size(), 2)
+    TEST_EQUAL(result.cost > 0.0, true)
+
+    // The two close pairs must be (0,0) and (1,1)
+    set<pair<Size,Size>> pairs(result.matched_pairs.begin(), result.matched_pairs.end());
+    TEST_EQUAL(pairs.count({0, 0}), 1)
+    TEST_EQUAL(pairs.count({1, 1}), 1)
   }
 }
 END_SECTION
