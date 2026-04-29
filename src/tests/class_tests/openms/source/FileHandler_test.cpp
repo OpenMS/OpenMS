@@ -403,6 +403,61 @@ START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
+{
+  // Round-trip a real ProteomicsLFQ consensusXML through .consensusparquet
+  // (load → store as parquet bundle → load back) and verify that the
+  // structural counts that drive downstream tools (FeatureHandles, column
+  // headers, attached + unassigned IDs, ProteinIdentifications) all survive.
+  ConsensusMap cmap_ref;
+  FileHandler().loadConsensusFeatures(
+    OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"),
+    cmap_ref, {FileTypes::CONSENSUSXML});
+
+  String dir;
+  NEW_TMP_FILE(dir)
+  dir += ".consensusparquet";
+
+  FileHandler().storeConsensusFeatures(dir, cmap_ref, {FileTypes::CONSENSUSPARQUET});
+
+  ConsensusMap cmap_in;
+  FileHandler().loadConsensusFeatures(dir, cmap_in, {FileTypes::CONSENSUSPARQUET});
+
+  // Top-level structure
+  TEST_EQUAL(cmap_in.size(), cmap_ref.size());
+  TEST_EQUAL(cmap_in.getColumnHeaders().size(), cmap_ref.getColumnHeaders().size());
+  TEST_EQUAL(cmap_in.getProteinIdentifications().size(), cmap_ref.getProteinIdentifications().size());
+  TEST_EQUAL(cmap_in.getUnassignedPeptideIdentifications().size(), cmap_ref.getUnassignedPeptideIdentifications().size());
+
+  // Sum FeatureHandles and attached PeptideIdentifications across all features
+  Size handles_ref = 0, handles_in = 0;
+  Size feat_pids_ref = 0, feat_pids_in = 0;
+  for (Size i = 0; i < cmap_ref.size(); ++i)
+  {
+    handles_ref += cmap_ref[i].getFeatures().size();
+    feat_pids_ref += cmap_ref[i].getPeptideIdentifications().size();
+  }
+  for (Size i = 0; i < cmap_in.size(); ++i)
+  {
+    handles_in += cmap_in[i].getFeatures().size();
+    feat_pids_in += cmap_in[i].getPeptideIdentifications().size();
+  }
+  TEST_EQUAL(handles_in, handles_ref);
+  TEST_EQUAL(feat_pids_in, feat_pids_ref);
+
+  // Spot-check a couple of features for numeric fidelity
+  if (!cmap_ref.empty() && !cmap_in.empty())
+  {
+    TEST_REAL_SIMILAR(cmap_in[0].getRT(), cmap_ref[0].getRT());
+    TEST_REAL_SIMILAR(cmap_in[0].getMZ(), cmap_ref[0].getMZ());
+    TEST_REAL_SIMILAR(cmap_in[0].getIntensity(), cmap_ref[0].getIntensity());
+    TEST_EQUAL(cmap_in[0].getCharge(), cmap_ref[0].getCharge());
+  }
+
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
 START_SECTION(([EXTRA] storeConsensusFeatures_loadConsensusFeatures_consensusparquet_round_trip))
 {
   ConsensusMap cmap;
