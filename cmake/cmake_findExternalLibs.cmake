@@ -498,10 +498,25 @@ if (WITH_THERMO_RAW)
     # lib path, so TOPP tools linking libOpenMS.so would fail with "undefined
     # reference" because libopenms_thermo_bridge.so is not in their link command.
     # Force static so all bridge symbols are absorbed into libOpenMS.so at link time.
+    #
+    # Because the static bridge is ultimately linked into a shared library
+    # (libOpenMS.so), it must be compiled as position-independent code (-fPIC).
+    # Without this the linker emits:
+    #   relocation R_X86_64_PC32 ... can not be used when making a shared object;
+    #   recompile with -fPIC
     set(_openms_saved_build_shared_libs ${BUILD_SHARED_LIBS})
+    set(_openms_saved_pic ${CMAKE_POSITION_INDEPENDENT_CODE})
     set(BUILD_SHARED_LIBS OFF)
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
     FetchContent_MakeAvailable(OpenMSThermoBridge)
     set(BUILD_SHARED_LIBS ${_openms_saved_build_shared_libs})
+    set(CMAKE_POSITION_INDEPENDENT_CODE ${_openms_saved_pic})
+
+    # Belt-and-suspenders: also set PIC directly on the target in case the
+    # subproject CMakeLists.txt resets CMAKE_POSITION_INDEPENDENT_CODE internally.
+    if(TARGET openms_thermo_bridge)
+      set_target_properties(openms_thermo_bridge PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    endif()
 
     # openms_thermo_bridge is a private implementation detail of libOpenMS — its
     # symbols are fully absorbed into libOpenMS.so (because we force it static
