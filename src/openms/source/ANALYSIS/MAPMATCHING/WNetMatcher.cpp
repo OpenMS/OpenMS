@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/WNetMatcher.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <wnetalign/aligner.hpp>
@@ -52,6 +53,17 @@ namespace OpenMS
   {
     MatchResult result;
     result.cost = 0.0;
+
+    if (positions_a.size() != intensities_a.size())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "positions_a and intensities_a must have the same length");
+    }
+    if (positions_b.size() != intensities_b.size())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "positions_b and intensities_b must have the same length");
+    }
 
     if (positions_a.empty() || positions_b.empty())
     {
