@@ -11,6 +11,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/WNetMatcher.h>
 
+#include <set>
+
 using namespace OpenMS;
 using namespace std;
 
