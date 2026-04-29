@@ -81,7 +81,7 @@ namespace OpenMS
 
     result.cost = aligner.total_cost();
     result.matched_pairs.reserve(emp_ids.size());
-    for (size_t i = 0; i < emp_ids.size(); ++i)
+    for (Size i = 0; i < emp_ids.size(); ++i)
     {
       result.matched_pairs.emplace_back(
         static_cast<Size>(emp_ids[i]),
