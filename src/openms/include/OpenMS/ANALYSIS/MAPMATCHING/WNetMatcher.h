@@ -71,7 +71,13 @@ namespace OpenMS
       double trash_cost = 100.0
     );
 
-    /// Convert a string ("L1", "L2", "LINF") to DistanceMetric enum
+    /**
+      @brief Convert a string to a DistanceMetric enum value.
+
+      Recognizes "L1", "L2", and "LINF" (maps to DistanceMetric::L1/L2/LINF
+      respectively). Any other input emits a warning via OPENMS_LOG_WARN and
+      returns DistanceMetric::LINF as the fallback.
+    */
     static DistanceMetric metricFromString(const std::string& s);
   };
 

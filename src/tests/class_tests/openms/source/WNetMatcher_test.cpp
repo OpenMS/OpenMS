@@ -23,7 +23,9 @@ START_SECTION((static DistanceMetric metricFromString(const std::string& s)))
   TEST_EQUAL(WNetMatcher::metricFromString("L1") == WNetMatcher::DistanceMetric::L1, true)
   TEST_EQUAL(WNetMatcher::metricFromString("L2") == WNetMatcher::DistanceMetric::L2, true)
   TEST_EQUAL(WNetMatcher::metricFromString("LINF") == WNetMatcher::DistanceMetric::LINF, true)
+  // Unknown strings fall back to LINF and emit a warning
   TEST_EQUAL(WNetMatcher::metricFromString("unknown") == WNetMatcher::DistanceMetric::LINF, true)
+  TEST_EQUAL(WNetMatcher::metricFromString("") == WNetMatcher::DistanceMetric::LINF, true)
 END_SECTION
 
 START_SECTION((static MatchResult match(const std::vector<std::array<double, 2>>& positions_a, const std::vector<double>& intensities_a, const std::vector<std::array<double, 2>>& positions_b, const std::vector<double>& intensities_b, DistanceMetric metric, double max_distance, double trash_cost)))

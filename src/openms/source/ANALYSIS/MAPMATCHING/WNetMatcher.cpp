@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/WNetMatcher.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <wnetalign/aligner.hpp>
 #include <wnetalign/spectrum.hpp>
@@ -20,6 +21,9 @@ namespace OpenMS
   {
     if (s == "L1") return DistanceMetric::L1;
     if (s == "L2") return DistanceMetric::L2;
+    if (s == "LINF") return DistanceMetric::LINF;
+    OPENMS_LOG_WARN << "WNetMatcher::metricFromString: unrecognized metric '" << s
+                    << "', falling back to LINF.\n";
     return DistanceMetric::LINF;
   }
 
