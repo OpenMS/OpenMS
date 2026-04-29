@@ -425,7 +425,7 @@ protected:
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", { "mzML", "d" } );
 
-    registerOutputFile_("out", "<file>", "", "Single output file containing all search results.", true, false);
+    registerOutputFile_("out", "<file>", "", "Output file (.idXML) or directory bundle (.idparquet) containing all search results.", true, false);
     setValidFormats_("out", { "idXML", "idparquet" } );
 
     registerInputFile_("database", "<file>", "", "FASTA file", true, false, {"skipexists"});

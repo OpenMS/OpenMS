@@ -135,7 +135,7 @@ protected:
       "d",
 #endif
     });
-    registerOutputFile_("out", "<file>", "", "Output file");
+    registerOutputFile_("out", "<file>", "", "Output file (.idXML) or directory bundle (.idparquet) containing the search results.");
     setValidFormats_("out", { "idXML", "idparquet"} );
     registerInputFile_("database", "<file>", "", "FASTA file", true, false, {"skipexists"});
     setValidFormats_("database", { "FASTA" } );
