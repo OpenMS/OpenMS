@@ -344,6 +344,35 @@ protected:
     }
   }
 
+  /// Apply the user-facing post-filters (-score:fdr, -best_per_spectrum_only)
+  /// to in-memory identifications before they are written.  Used by both the
+  /// subprocess path and the in-process path so the two backends produce
+  /// equivalent output.
+  void applyPostFilters_(PeptideIdentificationList& all_peptide_ids)
+  {
+    const double score_fdr = getDoubleOption_("score:fdr");
+    if (score_fdr < 1.0)
+    {
+      // After Percolator output parsing, hit.score is the q-value. Lower is better,
+      // so PeptideIdentification::isHigherScoreBetter() == false; IDFilter respects
+      // the orientation and drops hits worse than the threshold.
+      IDFilter::filterHitsByScore(all_peptide_ids, score_fdr);
+      IDFilter::removeEmptyIdentifications(all_peptide_ids);
+      OPENMS_LOG_INFO << "Applied score:fdr cutoff " << score_fdr
+                      << "; remaining peptide identifications: " << all_peptide_ids.size() << std::endl;
+      if (all_peptide_ids.empty())
+      {
+        OPENMS_LOG_WARN << "score:fdr cutoff " << score_fdr << " dropped all PSMs. "
+                        << "Output will contain no peptide identifications." << std::endl;
+      }
+    }
+
+    if (getFlag_("best_per_spectrum_only"))
+    {
+      IDFilter::keepBestPeptideHits(all_peptide_ids);
+    }
+  }
+
   void registerOptionsAndFlags_() override
   {
     static const bool is_required(true);
@@ -1112,6 +1141,10 @@ protected:
           peptide_level_fdrs, protein_level_fdrs,
           /*version_string=*/"3.08-vendored");
 
+        // Apply the same post-filters the subprocess path uses, so the two
+        // backends produce equivalent output for -score:fdr / -best_per_spectrum_only.
+        applyPostFilters_(all_peptide_ids);
+
         // Write output and return — skipping the pin / subprocess / pout path.
         FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {out_type});
         return EXECUTION_OK;
@@ -1449,27 +1482,7 @@ protected:
         /*version_string=*/"3.07",  // TODO: read from percolator binary --version
         protein_level_fdrs ? &protein_map : nullptr);
 
-      // Post-filter on Percolator's q-value (PeptideHit::score after Percolator parsing).
-      const double score_fdr = getDoubleOption_("score:fdr");
-      if (score_fdr < 1.0)
-      {
-        // After Percolator output parsing, hit.score is the q-value. Lower is better.
-        // IDFilter::filterHitsByScore drops hits where score >= threshold (higher is worse).
-        IDFilter::filterHitsByScore(all_peptide_ids, score_fdr);
-        IDFilter::removeEmptyIdentifications(all_peptide_ids);
-        OPENMS_LOG_INFO << "Applied score:fdr cutoff " << score_fdr
-                        << "; remaining peptide identifications: " << all_peptide_ids.size() << std::endl;
-        if (all_peptide_ids.empty())
-        {
-          OPENMS_LOG_WARN << "score:fdr cutoff " << score_fdr << " dropped all PSMs. "
-                          << "Output will contain no peptide identifications." << std::endl;
-        }
-      }
-
-      if (getFlag_("best_per_spectrum_only"))
-      {
-        IDFilter::keepBestPeptideHits(all_peptide_ids);
-      }
+      applyPostFilters_(all_peptide_ids);
 
       // Storing the PeptideHits with calculated q-value, pep and svm score
       FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML, FileTypes::IDPARQUET});
