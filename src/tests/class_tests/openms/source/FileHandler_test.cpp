@@ -15,6 +15,8 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -363,6 +365,72 @@ START_SECTION(([EXTRA] storeIdentifications_loadIdentifications_idparquet_round_
   TEST_STRING_EQUAL(h.getSequence().toString(), "PEPTIDE");
   TEST_EQUAL(h.getCharge(), 2);
   TEST_REAL_SIMILAR(h.getScore(), 0.5);
+
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
+{
+  FeatureMap fm;
+  Feature f;
+  f.setUniqueId(42);
+  f.setRT(123.4);
+  f.setMZ(567.89);
+  f.setIntensity(1000.0f);
+  f.setCharge(2);
+  f.setOverallQuality(0.9f);
+  fm.push_back(f);
+
+  String dir;
+  NEW_TMP_FILE(dir)
+  dir += ".featureparquet";
+
+  FileHandler().storeFeatures(dir, fm, {FileTypes::FEATUREPARQUET});
+
+  FeatureMap fm_in;
+  FileHandler().loadFeatures(dir, fm_in, {FileTypes::FEATUREPARQUET});
+
+  TEST_EQUAL(fm_in.size(), 1);
+  TEST_EQUAL(fm_in[0].getUniqueId(), 42);
+  TEST_REAL_SIMILAR(fm_in[0].getRT(), 123.4);
+  TEST_REAL_SIMILAR(fm_in[0].getMZ(), 567.89);
+  TEST_REAL_SIMILAR(fm_in[0].getIntensity(), 1000.0f);
+  TEST_EQUAL(fm_in[0].getCharge(), 2);
+  TEST_REAL_SIMILAR(fm_in[0].getOverallQuality(), 0.9f);
+
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] storeConsensusFeatures_loadConsensusFeatures_consensusparquet_round_trip))
+{
+  ConsensusMap cmap;
+  ConsensusFeature cf;
+  cf.setUniqueId(7);
+  cf.setRT(50.0);
+  cf.setMZ(300.5);
+  cf.setIntensity(2000.0f);
+  cf.setCharge(3);
+  cf.setQuality(0.8f);
+  cmap.push_back(cf);
+
+  String dir;
+  NEW_TMP_FILE(dir)
+  dir += ".consensusparquet";
+
+  FileHandler().storeConsensusFeatures(dir, cmap, {FileTypes::CONSENSUSPARQUET});
+
+  ConsensusMap cmap_in;
+  FileHandler().loadConsensusFeatures(dir, cmap_in, {FileTypes::CONSENSUSPARQUET});
+
+  TEST_EQUAL(cmap_in.size(), 1);
+  TEST_EQUAL(cmap_in[0].getUniqueId(), 7);
+  TEST_REAL_SIMILAR(cmap_in[0].getRT(), 50.0);
+  TEST_REAL_SIMILAR(cmap_in[0].getMZ(), 300.5);
+  TEST_REAL_SIMILAR(cmap_in[0].getIntensity(), 2000.0f);
+  TEST_EQUAL(cmap_in[0].getCharge(), 3);
+  TEST_REAL_SIMILAR(cmap_in[0].getQuality(), 0.8f);
 
   File::removeDirRecursively(dir);
 }
