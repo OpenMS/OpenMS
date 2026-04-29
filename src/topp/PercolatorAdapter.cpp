@@ -354,29 +354,14 @@ protected:
     const double score_fdr = getDoubleOption_("score:fdr");
     if (score_fdr < 1.0)
     {
-      // -score:fdr is an FDR threshold; it is only meaningful when the main score
-      // is a q-value (or FDR).  PercolatorAdapter establishes that when the user
-      // selected -score_type q-value (the default), so this should always hold on
-      // the well-formed code path.  Surface the assumption with a runtime check —
-      // if a future code path lands here with svm/PEP as the main score, the
-      // filter would silently mis-threshold otherwise.
-      for (const auto& pid : all_peptide_ids.getData())
-      {
-        if (pid.getHits().empty()) continue;
-        const String& st = pid.getScoreType();
-        if (!Scores::isScoreType(st, Scores::IDType::QVAL) &&
-            !Scores::isScoreType(st, Scores::IDType::FDR))
-        {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "score:fdr requires the main score type to be a q-value or FDR; got '" + st +
-            "'. Re-run with -score_type q-value or omit -score:fdr.");
-        }
-      }
-
-      // After Percolator output parsing, hit.score is the q-value. Lower is better,
-      // so PeptideIdentification::isHigherScoreBetter() == false; IDFilter respects
-      // the orientation and drops hits worse than the threshold.
-      IDFilter::filterHitsByScore(all_peptide_ids, score_fdr);
+      // -score:fdr is always interpreted as a q-value cutoff, independent of -score_type.
+      // The 3-arg overload uses IDScoreSwitcherAlgorithm: if the main score already is the
+      // q-value it filters on it directly; otherwise it locates the q-value in the hit's
+      // meta values (PercolatorAdapter stamps it as MS:1001491 in both backends, see the
+      // svm/PEP code paths) and filters on that. This keeps the user's chosen main score
+      // (e.g. svm or PEP) for downstream tools while still applying the FDR cutoff.
+      IDFilter::filterHitsByScore(all_peptide_ids.getData(), score_fdr,
+                                  IDScoreSwitcherAlgorithm::ScoreType::QVAL);
       IDFilter::removeEmptyIdentifications(all_peptide_ids);
       OPENMS_LOG_INFO << "Applied score:fdr cutoff " << score_fdr
                       << "; remaining peptide identifications: " << all_peptide_ids.size() << std::endl;
