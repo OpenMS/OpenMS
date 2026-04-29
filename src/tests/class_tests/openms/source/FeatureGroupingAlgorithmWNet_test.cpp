@@ -111,6 +111,70 @@ START_SECTION((virtual void group(const std::vector<FeatureMap>& maps, Consensus
   }
   TEST_EQUAL(pairs, 2)
   TEST_EQUAL(singletons, 2)
+
+  // ppm mode: same maps, same expected outcome
+  {
+    FeatureGroupingAlgorithmWNet algo_ppm;
+    Param pp = algo_ppm.getParameters();
+    pp.setValue("mz_unit", "ppm");
+    pp.setValue("max_mz_shift_ppm", 500.0); // 500 ppm @ 500 Da ≈ 0.25 Da
+    algo_ppm.setParameters(pp);
+
+    ConsensusMap result_ppm;
+    algo_ppm.group(maps, result_ppm);
+
+    TEST_EQUAL(result_ppm.size(), 4)
+
+    Size pairs_ppm = 0, singletons_ppm = 0;
+    for (Size i = 0; i < result_ppm.size(); ++i)
+    {
+      if (result_ppm[i].size() == 2) ++pairs_ppm;
+      else if (result_ppm[i].size() == 1) ++singletons_ppm;
+    }
+    TEST_EQUAL(pairs_ppm, 2)
+    TEST_EQUAL(singletons_ppm, 2)
+  }
+
+  // decharge_mz mode: features at z=2 should be projected to [M+H]+ before matching
+  {
+    vector<FeatureMap> dc_maps(2);
+
+    Feature fa;
+    fa.setUniqueId(11);
+    fa.setMZ(250.5); // z=2: neutral = 2*250.5 - 2*1.00728 ≈ 498.985; [M+H]+ ≈ 499.993
+    fa.setRT(100.0);
+    fa.setIntensity(1000.0f);
+    fa.setCharge(2);
+    dc_maps[0].push_back(fa);
+
+    Feature fb;
+    fb.setUniqueId(12);
+    fb.setMZ(500.0); // z=1: already singly charged
+    fb.setRT(100.0);
+    fb.setIntensity(900.0f);
+    fb.setCharge(1);
+    dc_maps[1].push_back(fb);
+
+    for (auto& m : dc_maps) m.updateRanges();
+
+    FeatureGroupingAlgorithmWNet algo_dc;
+    Param pdc = algo_dc.getParameters();
+    pdc.setValue("mz_unit", "Da");
+    pdc.setValue("decharge_mz", "true");
+    algo_dc.setParameters(pdc);
+
+    ConsensusMap result_dc;
+    algo_dc.group(dc_maps, result_dc);
+
+    // After decharging, fa maps to ~499.993 Da and fb is 500.0 Da,
+    // difference ~0.007 Da, well within 0.3 Da threshold.
+    Size pairs_dc = 0;
+    for (Size i = 0; i < result_dc.size(); ++i)
+    {
+      if (result_dc[i].size() == 2) ++pairs_dc;
+    }
+    TEST_EQUAL(pairs_dc, 1)
+  }
 }
 END_SECTION
 
