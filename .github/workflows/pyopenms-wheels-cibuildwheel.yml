@@ -131,6 +131,7 @@ jobs:
                 -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
                 -DPYOPENMS=OFF \
                 -DWITH_GUI=OFF \
+                -DWITH_THERMO_RAW=OFF \
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF
               ninja OpenMS OpenSwathAlgo
@@ -210,6 +211,7 @@ jobs:
                 -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
                 -DPYOPENMS=OFF \
                 -DWITH_GUI=OFF \
+                -DWITH_THERMO_RAW=OFF \
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF
               ninja OpenMS OpenSwathAlgo
@@ -277,6 +279,7 @@ jobs:
             -DARROW_USE_STATIC=OFF \
             -DPYOPENMS=OFF \
             -DWITH_GUI=OFF \
+            -DWITH_THERMO_RAW=OFF \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF \
             -DMT_ENABLE_OPENMP=ON
@@ -383,6 +386,7 @@ jobs:
             -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contrib" \
             -DPYOPENMS=OFF \
             -DWITH_GUI=OFF \
+            -DWITH_THERMO_RAW=OFF \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF
           cmake --build . --target OpenMS OpenSwathAlgo
