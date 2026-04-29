@@ -13,6 +13,7 @@
 #include <wnetalign/aligner.hpp>
 #include <wnetalign/spectrum.hpp>
 
+#include <algorithm>
 #include <cmath>
 #include <numeric>
 #include <set>
@@ -277,7 +278,12 @@ namespace OpenMS
       return true;
     };
 
-    // Pairwise alignment
+    // Phase 1: run all pairwise alignments and collect candidates.
+    // Using average per-pair cost (total_cost / n_pairs) as a confidence proxy
+    // so that globally cheaper matches are merged first regardless of map order.
+    struct Candidate { Size flat_i, flat_j; double cost; };
+    vector<Candidate> candidates;
+
     for (Size i = 0; i < n; ++i)
     {
       for (Size j = i + 1; j < n; ++j)
@@ -292,24 +298,37 @@ namespace OpenMS
         aligner.set_point({1.0}); // weight=1: solve a single unit-weight consensus
 
         auto [emp_ids, theo_ids] = aligner.consensus_for_target(0);
-
-        Size accepted = 0;
-        for (size_t k = 0; k < emp_ids.size(); ++k)
-        {
-          Size flat_i = feature_offsets[i] + static_cast<Size>(emp_ids[k]);
-          Size flat_j = feature_offsets[j] + static_cast<Size>(theo_ids[k]);
-          if (unite(flat_i, flat_j))
-          {
-            ++accepted;
-          }
-        }
+        double pair_cost = emp_ids.empty() ? 0.0
+                         : aligner.total_cost() / static_cast<double>(emp_ids.size());
 
         OPENMS_LOG_INFO << "FeatureGroupingAlgorithmWNet: maps " << i << " vs " << j
-                        << ": " << emp_ids.size() << " pairs matched, "
-                        << accepted << " accepted (cost = "
+                        << ": " << emp_ids.size() << " candidate pairs (total cost = "
                         << aligner.total_cost() << ")" << '\n';
+
+        for (size_t k = 0; k < emp_ids.size(); ++k)
+        {
+          candidates.push_back({
+            feature_offsets[i] + static_cast<Size>(emp_ids[k]),
+            feature_offsets[j] + static_cast<Size>(theo_ids[k]),
+            pair_cost
+          });
+        }
       }
     }
+
+    // Phase 2: sort by ascending cost (best matches first), then apply merges.
+    // This resolves conflicts globally rather than in arbitrary map-pair order.
+    sort(candidates.begin(), candidates.end(),
+         [](const Candidate& a, const Candidate& b) { return a.cost < b.cost; });
+
+    Size accepted = 0;
+    for (const auto& c : candidates)
+    {
+      if (unite(c.flat_i, c.flat_j)) ++accepted;
+    }
+    OPENMS_LOG_INFO << "FeatureGroupingAlgorithmWNet: " << candidates.size()
+                    << " total candidates, " << accepted
+                    << " accepted after globally sorted merge\n";
 
     // Build ConsensusMap from union-find groups
     map<Size, vector<pair<Size, Size>>> groups; // root -> [(map_idx, feature_idx), ...]
