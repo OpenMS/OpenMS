@@ -188,6 +188,42 @@ add_test("TOPP_IDMerger_idparquet_diff"
     -whitelist "IdentificationRun date" "UserParam.*file_origin")
 set_tests_properties("TOPP_IDMerger_idparquet_diff" PROPERTIES DEPENDS "TOPP_IDMerger_idparquet_convert")
 
+# .idparquet rip: split the merged .idparquet from TOPP_IDMerger_idparquet back into
+# per-run .idparquet directories.  -numeric_filenames + -split_ident_runs make output
+# names deterministic (merged_<ident_run_idx>_<file_origin_idx>.idparquet) so the diff
+# also implicitly verifies that the per-run output ordering matches the input order.
+file(MAKE_DIRECTORY ${TESTS_TEMP_DIR}/IDRipper_idparquet_out)
+add_test("TOPP_IDRipper_idparquet"
+  ${TOPP_BIN_PATH}/IDRipper -test
+    -in ${TESTS_TEMP_DIR}/IDMerger_idparquet_output.tmp.idparquet
+    -out ${TESTS_TEMP_DIR}/IDRipper_idparquet_out
+    -split_ident_runs -numeric_filenames)
+set_tests_properties("TOPP_IDRipper_idparquet" PROPERTIES DEPENDS "TOPP_IDMerger_idparquet")
+
+add_test("TOPP_IDRipper_idparquet_convert_0"
+  ${TOPP_BIN_PATH}/IDFileConverter
+    -in ${TESTS_TEMP_DIR}/IDRipper_idparquet_out/IDMerger_idparquet_output.tmp_0_0.idparquet
+    -out ${TESTS_TEMP_DIR}/IDRipper_idparquet_out_0.tmp.idXML)
+set_tests_properties("TOPP_IDRipper_idparquet_convert_0" PROPERTIES DEPENDS "TOPP_IDRipper_idparquet")
+add_test("TOPP_IDRipper_idparquet_diff_0"
+  ${DIFF}
+    -in1 ${TESTS_TEMP_DIR}/IDRipper_idparquet_out_0.tmp.idXML
+    -in2 ${DATA_DIR_TOPP}/IDRipper_idparquet_0.idXML
+    -whitelist "IdentificationRun date")
+set_tests_properties("TOPP_IDRipper_idparquet_diff_0" PROPERTIES DEPENDS "TOPP_IDRipper_idparquet_convert_0")
+
+add_test("TOPP_IDRipper_idparquet_convert_1"
+  ${TOPP_BIN_PATH}/IDFileConverter
+    -in ${TESTS_TEMP_DIR}/IDRipper_idparquet_out/IDMerger_idparquet_output.tmp_1_1.idparquet
+    -out ${TESTS_TEMP_DIR}/IDRipper_idparquet_out_1.tmp.idXML)
+set_tests_properties("TOPP_IDRipper_idparquet_convert_1" PROPERTIES DEPENDS "TOPP_IDRipper_idparquet")
+add_test("TOPP_IDRipper_idparquet_diff_1"
+  ${DIFF}
+    -in1 ${TESTS_TEMP_DIR}/IDRipper_idparquet_out_1.tmp.idXML
+    -in2 ${DATA_DIR_TOPP}/IDRipper_idparquet_1.idXML
+    -whitelist "IdentificationRun date")
+set_tests_properties("TOPP_IDRipper_idparquet_diff_1" PROPERTIES DEPENDS "TOPP_IDRipper_idparquet_convert_1")
+
 #------------------------------------------------------------------------------
 # BaselineFilter tests
 add_test("TOPP_BaselineFilter_1" ${TOPP_BIN_PATH}/BaselineFilter -test -in ${DATA_DIR_TOPP}/BaselineFilter_input.mzML -out ${TESTS_TEMP_DIR}/BaselineFilter.tmp.mzML -struc_elem_length 1.5)
