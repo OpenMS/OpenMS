@@ -201,6 +201,12 @@ if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)
   set_tests_properties(BrukerTimsFile_test PROPERTIES TIMEOUT 1200)
 endif()
 
+if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
+  target_compile_definitions(ThermoRawFile_test PRIVATE
+    THERMO_RAW_TEST_DATA="${THERMO_RAW_TEST_DATA}")
+  set_tests_properties(ThermoRawFile_test PROPERTIES TIMEOUT 1200)
+endif()
+
 #------------------------------------------------------------------------------
 # restore old compiler flags
 if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)

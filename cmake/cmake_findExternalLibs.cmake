@@ -506,11 +506,14 @@ if (WITH_THERMO_RAW)
     #   recompile with -fPIC
     set(_openms_saved_build_shared_libs ${BUILD_SHARED_LIBS})
     set(_openms_saved_pic ${CMAKE_POSITION_INDEPENDENT_CODE})
+    set(_openms_saved_build_testing ${BUILD_TESTING})
     set(BUILD_SHARED_LIBS OFF)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    set(BUILD_TESTING OFF)
     FetchContent_MakeAvailable(OpenMSThermoBridge)
     set(BUILD_SHARED_LIBS ${_openms_saved_build_shared_libs})
     set(CMAKE_POSITION_INDEPENDENT_CODE ${_openms_saved_pic})
+    set(BUILD_TESTING ${_openms_saved_build_testing})
 
     # Belt-and-suspenders: also set PIC directly on the target in case the
     # subproject CMakeLists.txt resets CMAKE_POSITION_INDEPENDENT_CODE internally.

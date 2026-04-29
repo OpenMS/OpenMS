@@ -59,10 +59,27 @@ option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript 
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
 option(ENABLE_OPENTIMS_TESTS "Download Bruker test data for opentims integration tests" OFF)
-option(WITH_THERMO_RAW "Build with Thermo RAW file reading support via openms-thermo-bridge" ON)
+set(_openms_with_thermo_raw_default ON)
+if(APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64|aarch64)$")
+  set(_openms_with_thermo_raw_default OFF)
+endif()
+option(WITH_THERMO_RAW "Build with Thermo RAW file reading support via openms-thermo-bridge" ${_openms_with_thermo_raw_default})
 option(ENABLE_THERMO_RAW_TESTS "Download Thermo RAW test data for integration tests" ON)
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
+
+if(APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64|aarch64)$")
+  if(WITH_THERMO_RAW)
+    message(WARNING
+      "Thermo RAW support is disabled by default on macOS ARM because Thermo RawFileReader support is not available there. "
+      "You explicitly enabled WITH_THERMO_RAW=ON. Please vote on https://github.com/thermofisherlsms/RawFileReader/issues/21 "
+      "and contact Thermo Fisher support by email if this support matters for your workflow.")
+  else()
+    message(STATUS
+      "Thermo RAW support defaults to OFF on macOS ARM. Please vote on https://github.com/thermofisherlsms/RawFileReader/issues/21 "
+      "and contact Thermo Fisher support by email if native support matters for your workflow.")
+  endif()
+endif()
 
 if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
     message(FATAL_ERROR "ENABLE_CWL_GENERATION requires ENABLE_TDL to be ON.")
