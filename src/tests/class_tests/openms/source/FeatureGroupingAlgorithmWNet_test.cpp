@@ -115,8 +115,61 @@ START_SECTION((virtual void group(const std::vector<FeatureMap>& maps, Consensus
 END_SECTION
 
 START_SECTION((virtual void group(const std::vector<ConsensusMap>& maps, ConsensusMap& out)))
-  // ConsensusMap grouping follows the same code path via template
-  NOT_TESTABLE;
+{
+  FeatureGroupingAlgorithmWNet algo;
+  Param p = algo.getParameters();
+  p.setValue("mz_unit", "Da");
+  algo.setParameters(p);
+
+  // Build two ConsensusMap inputs with matching ConsensusFeatures
+  std::vector<ConsensusMap> maps(2);
+
+  ConsensusFeature cf1;
+  cf1.setUniqueId(101);
+  cf1.setMZ(400.0);
+  cf1.setRT(50.0);
+  cf1.setIntensity(500.0f);
+  maps[0].push_back(cf1);
+
+  ConsensusFeature cf2;
+  cf2.setUniqueId(102);
+  cf2.setMZ(500.0);
+  cf2.setRT(150.0);
+  cf2.setIntensity(800.0f);
+  maps[0].push_back(cf2);
+
+  ConsensusFeature cf3;
+  cf3.setUniqueId(103);
+  cf3.setMZ(400.1);
+  cf3.setRT(51.0);
+  cf3.setIntensity(520.0f);
+  maps[1].push_back(cf3);
+
+  ConsensusFeature cf4;
+  cf4.setUniqueId(104);
+  cf4.setMZ(900.0);
+  cf4.setRT(900.0);
+  cf4.setIntensity(100.0f);
+  maps[1].push_back(cf4);
+
+  for (auto& m : maps) m.updateRanges();
+
+  ConsensusMap result;
+  algo.group(maps, result);
+
+  // cf1/cf3 should match (Δmz=0.1 Da within 0.3 Da, Δrt=1 s within 100 s)
+  // cf2 and cf4 should remain as singletons
+  TEST_EQUAL(result.size(), 3)
+
+  Size pairs = 0, singletons = 0;
+  for (Size i = 0; i < result.size(); ++i)
+  {
+    if (result[i].size() == 2) ++pairs;
+    else if (result[i].size() == 1) ++singletons;
+  }
+  TEST_EQUAL(pairs, 1)
+  TEST_EQUAL(singletons, 2)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
