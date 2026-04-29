@@ -338,7 +338,13 @@ protected:
                  vector<ProteinIdentification>& proteins,
                  PeptideIdentificationList& peptides)
   {
-    map<String, ProteinIdentification> proteins_by_id;
+    // Keep both an insertion-ordered key list and a hash map for O(1) lookup so
+    // the merged output preserves the order in which IdentificationRuns were
+    // first seen (which mirrors input-file order). Using a plain std::map here
+    // would silently re-sort runs alphabetically by identifier and break tools
+    // like IDRipper that rely on stable run ordering.
+    vector<String> proteins_order;
+    std::unordered_map<String, ProteinIdentification> proteins_by_id;
     vector<PeptideIdentificationList> peptides_by_file;
     StringList add_to_ids; // IDs from the "add_to" file (if any)
 
@@ -364,7 +370,9 @@ protected:
       for (const ProteinIdentification& prot : additional_proteins)
       {
         const String& id = prot.getIdentifier();
-        proteins_by_id[id] = prot;
+        auto [it, inserted] = proteins_by_id.try_emplace(id, prot);
+        if (inserted) { proteins_order.push_back(id); }
+        else          { it->second = prot; }
         if (i == 0) { add_to_ids.push_back(id); }
       }
     }
@@ -376,20 +384,23 @@ protected:
       {
         peptides.insert(peptides.end(), peps.begin(), peps.end());
       }
-      // only append the runs (no merging of proteins)
-      for (auto map_it = proteins_by_id.begin(); map_it != proteins_by_id.end(); ++map_it)
+      // only append the runs (no merging of proteins) — in first-seen order
+      for (const String& id : proteins_order)
       {
-        proteins.push_back(map_it->second);
+        proteins.push_back(proteins_by_id[id]);
       }
     }
     else // add only new IDs to an existing file
     {
-      // copy over data from reference file ("add_to"):
-      map<String, ProteinIdentification> selected_proteins;
+      // copy over data from reference file ("add_to") in insertion order
+      vector<String> selected_proteins_order;
+      std::unordered_map<String, ProteinIdentification> selected_proteins;
       for (auto ids_it = add_to_ids.begin();
             ids_it != add_to_ids.end(); ++ids_it)
       {
-        selected_proteins[*ids_it] = proteins_by_id[*ids_it];
+        auto [it, inserted] = selected_proteins.try_emplace(*ids_it, proteins_by_id[*ids_it]);
+        if (inserted) { selected_proteins_order.push_back(*ids_it); }
+        else          { it->second = proteins_by_id[*ids_it]; }
       }
       // keep track of peptides that shouldn't be duplicated:
       set<AASequence> sequences;
@@ -453,6 +464,7 @@ protected:
             if (selected_proteins.find(id) == selected_proteins.end())
             {
               OPENMS_LOG_DEBUG << "adding protein identification" << endl;
+              selected_proteins_order.push_back(id);
               selected_proteins[id] = protein;
               selected_proteins[id].getHits().clear();
               // remove potentially invalid information:
@@ -466,10 +478,12 @@ protected:
           }
         }
       }
-      for (auto map_it = selected_proteins.rbegin(); map_it != selected_proteins.rend();
-            ++map_it)
+      // emit selected runs in first-seen order (was rbegin/rend on a sorted map,
+      // which produced reverse-alphabetical-by-identifier order — an artifact, not
+      // a contract).
+      for (const String& id : selected_proteins_order)
       {
-        proteins.push_back(map_it->second);
+        proteins.push_back(selected_proteins[id]);
       }
     }
   }

@@ -1420,7 +1420,11 @@ bool QPXFile::importFromArrow(
   std::vector<ProteinIdentification>& protein_identifications,
   PeptideIdentificationList& peptide_identifications)
 {
-  if (!table || table->num_rows() == 0) { return true; }
+  if (!table)
+  {
+    OPENMS_LOG_ERROR << "QPXFile::importFromArrow: null table" << std::endl;
+    return false;
+  }
 
   auto combined_result = table->CombineChunks(arrow::default_memory_pool());
   if (!combined_result.ok())
@@ -1431,6 +1435,8 @@ bool QPXFile::importFromArrow(
   const auto& tbl = *combined_result;
   int64_t num_rows = tbl->num_rows();
 
+  // Validate schema even for empty tables, so a structurally-incompatible
+  // 0-row file is rejected rather than silently treated as success.
   auto psm_validation = ArrowSchemaValidation::validate(
     tbl, PSMSchema::schema(), ArrowSchemaValidation::Mode::Subset);
   if (!psm_validation.valid)
@@ -1439,6 +1445,7 @@ bool QPXFile::importFromArrow(
                      << psm_validation.toString() << std::endl;
     return false;
   }
+  if (num_rows == 0) { return true; }
 
   auto col_p_id = ArrowIOHelpers::getColumn(tbl, PSMSchema::PEPTIDE_IDENTIFICATION_INDEX);
   auto col_peptidoform = ArrowIOHelpers::getColumn(tbl, PSMSchema::PEPTIDOFORM, /*required=*/false);

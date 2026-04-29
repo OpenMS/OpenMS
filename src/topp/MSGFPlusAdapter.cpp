@@ -136,7 +136,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file (MS-GF+ parameter '-s')");
     setValidFormats_("in", {"mzML", "mzXML", "mgf", "ms2" });
-    registerOutputFile_("out", "<file>", "", "Output file", false);
+    registerOutputFile_("out", "<file>", "", "Output file (.idXML) or directory bundle (.idparquet) containing the search results.", false);
     setValidFormats_("out", {"idXML", "idparquet"});
     registerOutputFile_("mzid_out", "<file>", "", "Alternative output file (MS-GF+ parameter '-o')\nEither 'out' or 'mzid_out' are required. They can be used together.", false);
     setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
