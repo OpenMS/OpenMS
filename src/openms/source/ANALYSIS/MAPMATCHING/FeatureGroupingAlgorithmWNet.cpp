@@ -179,7 +179,7 @@ namespace OpenMS
     OPENMS_LOG_INFO << "FeatureGroupingAlgorithmWNet: max_mz_shift = " << max_mz_shift
                     << (use_ppm ? " ppm" : " Da")
                     << ", max_rt_shift = " << max_rt_shift << " s"
-                    << ", mz_scale = " << mz_scale << endl;
+                    << ", mz_scale = " << mz_scale << '\n';
 
     // convert all maps to Spectrum<2>
     Size n = maps.size();
@@ -294,7 +294,7 @@ namespace OpenMS
         OPENMS_LOG_INFO << "FeatureGroupingAlgorithmWNet: maps " << i << " vs " << j
                         << ": " << emp_ids.size() << " pairs matched, "
                         << accepted << " accepted (cost = "
-                        << aligner.total_cost() << ")" << endl;
+                        << aligner.total_cost() << ")" << '\n';
       }
     }
 
