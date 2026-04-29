@@ -1350,13 +1350,20 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
       auto ts_arr = std::static_pointer_cast<arrow::TimestampArray>(col_date);
       auto ts_type = std::static_pointer_cast<arrow::TimestampType>(ts_arr->type());
       int64_t raw = ts_arr->Value(row);
+      // Floor-style division so a small negative sub-second value (e.g. raw = -500
+      // ms) maps to -1 second instead of 0; with C++'s truncating integer division
+      // it would otherwise pass the epoch_secs >= 0 check below and silently render
+      // as 1970-01-01.
+      auto floor_div = [](int64_t r, int64_t d) -> int64_t {
+        return (r >= 0) ? (r / d) : -((-r + d - 1) / d);
+      };
       int64_t epoch_secs = raw;
       switch (ts_type->unit())
       {
         case arrow::TimeUnit::SECOND: epoch_secs = raw; break;
-        case arrow::TimeUnit::MILLI:  epoch_secs = raw / 1000LL; break;
-        case arrow::TimeUnit::MICRO:  epoch_secs = raw / 1000000LL; break;
-        case arrow::TimeUnit::NANO:   epoch_secs = raw / 1000000000LL; break;
+        case arrow::TimeUnit::MILLI:  epoch_secs = floor_div(raw, 1000LL); break;
+        case arrow::TimeUnit::MICRO:  epoch_secs = floor_div(raw, 1000000LL); break;
+        case arrow::TimeUnit::NANO:   epoch_secs = floor_div(raw, 1000000000LL); break;
       }
       if (epoch_secs >= 0) // negative epochs are invalid on Windows
       {
