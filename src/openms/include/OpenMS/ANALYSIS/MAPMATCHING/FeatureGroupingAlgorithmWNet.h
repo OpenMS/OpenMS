@@ -65,6 +65,8 @@ namespace OpenMS
   private:
     FeatureGroupingAlgorithmWNet(const FeatureGroupingAlgorithmWNet&) = delete;
     FeatureGroupingAlgorithmWNet& operator=(const FeatureGroupingAlgorithmWNet&) = delete;
+    FeatureGroupingAlgorithmWNet(FeatureGroupingAlgorithmWNet&&) = delete;
+    FeatureGroupingAlgorithmWNet& operator=(FeatureGroupingAlgorithmWNet&&) = delete;
 
     template <typename MapType>
     void group_(const std::vector<MapType>& maps, ConsensusMap& out);
