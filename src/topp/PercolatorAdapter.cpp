@@ -11,6 +11,7 @@
 
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
+#include <OpenMS/ANALYSIS/ID/Scores.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
@@ -353,6 +354,25 @@ protected:
     const double score_fdr = getDoubleOption_("score:fdr");
     if (score_fdr < 1.0)
     {
+      // -score:fdr is an FDR threshold; it is only meaningful when the main score
+      // is a q-value (or FDR).  PercolatorAdapter establishes that when the user
+      // selected -score_type q-value (the default), so this should always hold on
+      // the well-formed code path.  Surface the assumption with a runtime check —
+      // if a future code path lands here with svm/PEP as the main score, the
+      // filter would silently mis-threshold otherwise.
+      for (const auto& pid : all_peptide_ids.getData())
+      {
+        if (pid.getHits().empty()) continue;
+        const String& st = pid.getScoreType();
+        if (!Scores::isScoreType(st, Scores::IDType::QVAL) &&
+            !Scores::isScoreType(st, Scores::IDType::FDR))
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "score:fdr requires the main score type to be a q-value or FDR; got '" + st +
+            "'. Re-run with -score_type q-value or omit -score:fdr.");
+        }
+      }
+
       // After Percolator output parsing, hit.score is the q-value. Lower is better,
       // so PeptideIdentification::isHigherScoreBetter() == false; IDFilter respects
       // the orientation and drops hits worse than the threshold.
