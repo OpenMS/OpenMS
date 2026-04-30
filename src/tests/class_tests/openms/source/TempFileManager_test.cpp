@@ -67,7 +67,7 @@ START_SECTION((TempFileManager(const String& registry_id)))
   const String registry_id = "temp_file_manager_ctor_test" + File::getUniqueName(false);
   TempFileManager manager(registry_id);
   // pass marker
-  TEST_EQUAL(true, true)
+  NOT_TESTABLE
 }
 END_SECTION
 
@@ -79,17 +79,17 @@ START_SECTION((void addFile(const String& file_path)))
   const String temp_file = File::getTempDirectory() + "/tfm_add_" + File::getUniqueName(false) + ".tmp";
 
   writeTextFile(temp_file, "tmp");
-  TEST_EQUAL(File::exists(temp_file), true)
+  TEST_TRUE(File::exists(temp_file))
 
   {
     TempFileManager manager(registry_id);
     manager.addFile(temp_file);
-    TEST_EQUAL(File::exists(registry_path), true)
+    TEST_TRUE(File::exists(registry_path))
   }
 
   // After manager destruction, the temp file and registry should be cleaned up
-  TEST_EQUAL(File::exists(temp_file), false)
-  TEST_EQUAL(File::exists(registry_path), false)
+  TEST_FALSE(File::exists(temp_file))
+  TEST_FALSE(File::exists(registry_path))
 }
 END_SECTION
 
@@ -107,12 +107,12 @@ START_SECTION((void addFile(const String& file_path)))
     manager.addFile(temp_file);
     manager.addFile(temp_file);
 
-    TEST_EQUAL(File::exists(registry_path), true)
+    TEST_TRUE(File::exists(registry_path))
     TEST_EQUAL(countNonEmptyLines(registry_path), 1)
   }
 
-  TEST_EQUAL(File::exists(temp_file), false)
-  TEST_EQUAL(File::exists(registry_path), false)
+  TEST_FALSE(File::exists(temp_file))
+  TEST_FALSE(File::exists(registry_path))
 }
 END_SECTION
 
@@ -124,7 +124,7 @@ START_SECTION((void releaseFile(const String& file_path)))
   const String temp_file = File::getTempDirectory() + "/tfm_release_" + File::getUniqueName(false) + ".tmp";
 
   writeTextFile(temp_file, "tmp");
-  TEST_EQUAL(File::exists(temp_file), true)
+  TEST_TRUE(File::exists(temp_file))
 
   {
     TempFileManager manager(registry_id);
@@ -133,9 +133,9 @@ START_SECTION((void releaseFile(const String& file_path)))
   }
 
   // temp_file should still exist, but registry should be cleaned up
-  TEST_EQUAL(File::exists(temp_file), true)
-  TEST_EQUAL(File::remove(temp_file), true)
-  TEST_EQUAL(File::exists(registry_path), false)
+  TEST_TRUE(File::exists(temp_file))
+  TEST_TRUE(File::remove(temp_file))
+  TEST_FALSE(File::exists(registry_path))
 }
 END_SECTION
 
@@ -156,10 +156,10 @@ START_SECTION((void releaseFile(const String& file_path)))
     manager.releaseFile(unmanaged_file);
   }
 
-  TEST_EQUAL(File::exists(managed_file), false)
-  TEST_EQUAL(File::exists(unmanaged_file), true)
-  TEST_EQUAL(File::remove(unmanaged_file), true)
-  TEST_EQUAL(File::exists(registry_path), false)
+  TEST_FALSE(File::exists(managed_file))
+  TEST_TRUE(File::exists(unmanaged_file))
+  TEST_TRUE(File::remove(unmanaged_file))
+  TEST_FALSE(File::exists(registry_path))
 }
 END_SECTION
 
@@ -184,8 +184,8 @@ START_SECTION((bool removeFileNow(const String& file_path) noexcept))
   manager.addFile(temp_file);
 
   // check if removal works and returns true
-  TEST_EQUAL(manager.removeFileNow(temp_file), true)
-  TEST_EQUAL(File::exists(temp_file), false)
+  TEST_TRUE(manager.removeFileNow(temp_file))
+  TEST_FALSE(File::exists(temp_file))
 }
 END_SECTION
 
@@ -199,16 +199,16 @@ START_SECTION((void cleanupNow() noexcept))
   writeTextFile(temp_file, "tmp");
   writeTextFile(registry_path, temp_file + "\n");
 
-  TEST_EQUAL(File::exists(temp_file), true)
-  TEST_EQUAL(File::exists(registry_path), true)
+  TEST_TRUE(File::exists(temp_file))
+  TEST_TRUE(File::exists(registry_path))
 
   {
     TempFileManager manager(registry_id);
     manager.cleanupNow();
   }
 
-  TEST_EQUAL(File::exists(temp_file), false)
-  TEST_EQUAL(File::exists(registry_path), false)
+  TEST_FALSE(File::exists(temp_file))
+  TEST_FALSE(File::exists(registry_path))
 }
 END_SECTION
 
@@ -230,9 +230,9 @@ START_SECTION((void cleanupNow() noexcept))
     manager.cleanupNow();
   }
 
-  TEST_EQUAL(File::exists(persisted_file), false)
-  TEST_EQUAL(File::exists(in_memory_file), false)
-  TEST_EQUAL(File::exists(registry_path), false)
+  TEST_FALSE(File::exists(persisted_file))
+  TEST_FALSE(File::exists(in_memory_file))
+  TEST_FALSE(File::exists(registry_path))
 }
 END_SECTION
 

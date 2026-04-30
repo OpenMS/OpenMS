@@ -74,7 +74,7 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="12" column="1" colspan="2">
+       <item row="13" column="1" colspan="2">
         <spacer>
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -161,6 +161,16 @@ p, li { white-space: pre-wrap; }
            <string>off</string>
           </property>
          </item>
+        </widget>
+       </item>
+       <item row="12" column="2">
+        <widget class="QCheckBox" name="instantcleanup">
+         <property name="toolTip">
+          <string>If enabled, temporary TOPP input/output files are removed immediately after tool execution to safe space on the harddrive.</string>
+         </property>
+         <property name="text">
+          <string>Instant cleanup of TOPP temporary files</string>
+         </property>
         </widget>
        </item>
        <item row="11" column="0">

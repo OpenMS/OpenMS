@@ -447,6 +447,8 @@ namespace OpenMS
     defaults_.setValidStrings(user_section + "use_cached_ms2", {"true","false"});
     defaults_.setValue(user_section + "use_cached_ms1", "false", "If possible, do not load MS1 spectra into memory spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
     defaults_.setValidStrings(user_section + "use_cached_ms1", {"true","false"});
+    defaults_.setValue(user_section + "instantcleanup", "true", "If enabled, temporary TOPP input/output data files are removed immediately after tool execution.");
+    defaults_.setValidStrings(user_section + "instantcleanup", {"true","false"});
 
     // FIXME: getCanvasParameters() depends on the exact naming of the param sections below!
     // 1d view
@@ -1689,6 +1691,8 @@ namespace OpenMS
       topp_.file_name_out = topp_.file_name + "_out." + tools_dialog.getExtension();
       // Store temporary file names for cleanup
       temp_handler_.addFile(topp_.file_name + "_ini");
+      // Always register input/output temp files first. If TOPPView crashes before explicit
+      // cleanup, the registry still contains the files for cleanup in the next run.
       temp_handler_.addFile(topp_.file_name_in);
       temp_handler_.addFile(topp_.file_name_out);
       // run the tool
@@ -1855,6 +1859,13 @@ namespace OpenMS
     }
 
     // clean up
+    const bool instant_cleanup = (param_.getValue(user_section + "instantcleanup") == "true");
+    if (instant_cleanup)
+    {
+      temp_handler_.removeFileNow(topp_.file_name_in);
+      temp_handler_.removeFileNow(topp_.file_name_out);
+    }
+
     delete topp_.process;
     topp_.process = nullptr;
     updateMenu();

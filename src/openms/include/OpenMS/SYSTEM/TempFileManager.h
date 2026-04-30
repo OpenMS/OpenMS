@@ -21,6 +21,7 @@ namespace OpenMS
     It also maintains a persistent registry of temporary files to enable cleanup of files from prior runs that for example crashed before cleanup.
     By doing this, we can assure that temporary files do not accumulate on the endusers drive over time, even in the case of unexpected program termination.
 
+    // an funktion, wo die exceptions passieren
     @throw Exception::InvalidParameter If an empty file path is provided to managed-file APIs.
     @throw Exception::FileNotReadable If an existing registry file cannot be opened for reading.
     @throw Exception::FileNotWritable If the registry file cannot be written.
@@ -127,11 +128,17 @@ namespace OpenMS
         @brief Adds or removes one file entry from the persisted registry.
 
         @param[in] file_path The file path to modify
-        @param[in] add_file True to add the file, false to remove it
+        @param[in] action Action to apply to the registry entry
       */
-      void updateRegistryEntry_(const String& file_path, bool add_file);
+      enum class RegistryAction
+      {
+        ADD,
+        REMOVE
+      };
 
-      String registry_file_path_;
+      void updateRegistryEntry_(const String& file_path, RegistryAction action);
+
+      const String registry_file_path_;
       std::set<String> files_;
   };
 } // namespace OpenMS

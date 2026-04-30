@@ -55,6 +55,7 @@ namespace OpenMS
       ui_->plugins_path->setText(toQString(String(param_.getValue("plugins_path").toString())));
       ui_->use_cached_ms1->setChecked(param_.getValue("use_cached_ms1").toBool());
       ui_->use_cached_ms2->setChecked(param_.getValue("use_cached_ms2").toBool());
+      ui_->instantcleanup->setChecked(param_.getValue("instantcleanup").toBool());
 
       ui_->map_default->setCurrentIndex(ui_->map_default->findText(toQString(String(param_.getValue("default_map_view").toString()))));
       ui_->map_cutoff->setCurrentIndex(ui_->map_cutoff->findText(toQString(String(param_.getValue("intensity_cutoff").toString()))));
@@ -102,6 +103,7 @@ namespace OpenMS
 
       p.setValue("use_cached_ms1", fromCheckState(ui_->use_cached_ms1->checkState()));
       p.setValue("use_cached_ms2", fromCheckState(ui_->use_cached_ms2->checkState()));
+      p.setValue("instantcleanup", fromCheckState(ui_->instantcleanup->checkState()));
 
       p.setValue("default_map_view", ui_->map_default->currentText().toStdString());
       p.setValue("intensity_cutoff", ui_->map_cutoff->currentText().toStdString());
