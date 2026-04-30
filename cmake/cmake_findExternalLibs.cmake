@@ -131,13 +131,26 @@ if (NOT LPTARGET AND (LP_SOLVER STREQUAL "HIGHS" OR LP_SOLVER STREQUAL "AUTO"))
     FetchContent_Declare(
       highs
       GIT_REPOSITORY https://github.com/ERGO-Code/HiGHS.git
-      GIT_TAG        v1.10.0
+      GIT_TAG        v1.14.0
       GIT_SHALLOW    TRUE
     )
     set(HIGHS_BUILD_TESTING OFF CACHE BOOL "" FORCE)
     set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
     set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(highs)
+    # OpenMS defaults to hidden C++ symbol visibility globally. HiGHS does not
+    # annotate its C++ API for export, so a shared HiGHS build must opt out of
+    # hidden visibility or libOpenMS cannot link against those symbols.
+    if (TARGET highs)
+      set_target_properties(highs PROPERTIES
+        CXX_VISIBILITY_PRESET default
+        VISIBILITY_INLINES_HIDDEN OFF)
+    endif()
+    if (TARGET libhighs)
+      set_target_properties(libhighs PROPERTIES
+        CXX_VISIBILITY_PRESET default
+        VISIBILITY_INLINES_HIDDEN OFF)
+    endif()
     set(OPENMS_HAS_HIGHS 1)
     set(LPTARGET "highs")
     message(STATUS "LP solver: HiGHS (FetchContent)")

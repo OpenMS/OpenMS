@@ -108,7 +108,9 @@ namespace OpenMS
     // Add a row with no bounds (free row) by default
     std::vector<HighsInt> indices(row_indices.begin(), row_indices.end());
     highs_->addRow(-kHighsInf, kHighsInf, (HighsInt)indices.size(), indices.data(), row_values.data());
-    return highs_->getNumRow() - 1;
+    const Int index = highs_->getNumRow() - 1;
+    highs_->passRowName(index, name);
+    return index;
 #else
     std::vector<Int> row_indices_ = row_indices;
     std::vector<double> row_values_ = row_values;
@@ -154,10 +156,11 @@ namespace OpenMS
     model_->addColumn((int)column_indices.size(), column_indices.data(), column_values.data(), -COIN_DBL_MAX, COIN_DBL_MAX, 0.0, name.c_str());
     return model_->numberColumns() - 1;
 #elif defined(OPENMS_HAS_HIGHS)
-    (void)name; // HiGHS doesn't support column names in the same way
     std::vector<HighsInt> indices(column_indices.begin(), column_indices.end());
     highs_->addCol(0.0, -kHighsInf, kHighsInf, (HighsInt)indices.size(), indices.data(), column_values.data());
-    return highs_->getNumCol() - 1;
+    const Int index = highs_->getNumCol() - 1;
+    highs_->passColName(index, name);
+    return index;
 #else
     std::vector<Int> column_indices_ = column_indices;
     std::vector<double> column_values_ = column_values;
@@ -305,23 +308,9 @@ namespace OpenMS
 #ifdef OPENMS_HAS_COINOR
     return model_->getElement(row_index, column_index);
 #elif defined(OPENMS_HAS_HIGHS)
-    // HiGHS doesn't have a direct getElement; we need to get the row and find the coefficient
-    HighsInt num_row;
-    HighsInt num_nz;
-    // First query to get sizes
-    highs_->getRows(row_index, row_index, num_row, nullptr, nullptr, num_nz, nullptr, nullptr);
-    if (num_nz == 0) return 0.0;
-    std::vector<double> row_lower(1), row_upper(1);
-    std::vector<HighsInt> indices(num_nz);
-    std::vector<double> values(num_nz);
-    HighsInt num_nz_out;
-    highs_->getRows(row_index, row_index, num_row, row_lower.data(), row_upper.data(), num_nz_out, indices.data(), values.data());
-    for (HighsInt i = 0; i < num_nz_out; ++i)
-    {
-      if (indices[i] == column_index)
-        return values[i];
-    }
-    return 0.0;
+  double value = 0.0;
+  highs_->getCoeff(row_index, column_index, value);
+  return value;
 #else
     const Int length = glp_get_mat_row(lp_problem_, row_index + 1, nullptr, nullptr);
     std::vector<double> values(length + 1);
@@ -479,7 +468,6 @@ namespace OpenMS
     else
       return CONTINUOUS;
 #elif defined(OPENMS_HAS_HIGHS)
-    HighsVarType integrality;
     // Get integrality from the model's integrality vector
     const HighsLp& lp = highs_->getLp();
     if (lp.integrality_.empty() || lp.integrality_[index] == HighsVarType::kContinuous)
@@ -496,7 +484,7 @@ namespace OpenMS
 #ifdef OPENMS_HAS_COINOR
     model_->setObjective(index, obj_value);
 #elif defined(OPENMS_HAS_HIGHS)
-    highs_->changeObjectiveCost(index, obj_value);
+  highs_->changeColCost(index, obj_value);
 #else
     glp_set_obj_coef(lp_problem_, index + 1, obj_value);
 #endif
@@ -1010,7 +998,8 @@ namespace OpenMS
 #elif defined(OPENMS_HAS_HIGHS)
     HighsInt num_row;
     HighsInt num_nz;
-    highs_->getRows(idx, idx, num_row, nullptr, nullptr, num_nz, nullptr, nullptr);
+  HighsInt row_start;
+  highs_->getRows(idx, idx, num_row, nullptr, nullptr, num_nz, &row_start, nullptr, nullptr);
     return num_nz;
 #else
     /* Non-zero coefficient count in the row. */
@@ -1036,13 +1025,15 @@ namespace OpenMS
     indexes.clear();
     HighsInt num_row;
     HighsInt num_nz;
-    highs_->getRows(idx, idx, num_row, nullptr, nullptr, num_nz, nullptr, nullptr);
+  HighsInt row_start;
+  highs_->getRows(idx, idx, num_row, nullptr, nullptr, num_nz, &row_start, nullptr, nullptr);
     if (num_nz == 0) return;
     std::vector<double> row_lower(1), row_upper(1);
+  std::vector<HighsInt> starts(1);
     std::vector<HighsInt> ind(num_nz);
     std::vector<double> values(num_nz);
     HighsInt num_nz_out;
-    highs_->getRows(idx, idx, num_row, row_lower.data(), row_upper.data(), num_nz_out, ind.data(), values.data());
+  highs_->getRows(idx, idx, num_row, row_lower.data(), row_upper.data(), num_nz_out, starts.data(), ind.data(), values.data());
     for (HighsInt i = 0; i < num_nz_out; ++i)
     {
       indexes.push_back(static_cast<Int>(ind[i]));
