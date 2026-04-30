@@ -19,8 +19,9 @@
 
 namespace OpenMS
 {
-  InterProcessFileLock::InterProcessFileLock(const String& target_file_path) :
+  InterProcessFileLock::InterProcessFileLock(const String& target_file_path) : //keine exceptions im constructor lieber try catch für sich - default constructor und rest in eigene funktion
     lock_file_path_(target_file_path)
+    //kann er eventuell alleine
   {
     // Ensure the lock file exists before trying to lock it. This also creates the file if it doesn't exist, which is necessary for locking
     std::ofstream lock_file_stream(lock_file_path_.c_str(), std::ios::out | std::ios::app);
@@ -42,6 +43,9 @@ namespace OpenMS
       const auto start = std::chrono::steady_clock::now();
 
       // Try to acquire the lock, with timeout
+      // hat try_lock eine zeiteinstellung
+      // lock mit optionalem parameter, default 3sekunden -- doku!
+      // wenn lock nicht funktioniert, nur false statt fehlermeldung geben
       while (!lock_->try_lock())
       {
         if (std::chrono::steady_clock::now() - start >= timeout)

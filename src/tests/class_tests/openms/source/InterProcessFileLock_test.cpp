@@ -38,10 +38,10 @@ START_SECTION((InterProcessFileLock(const String& target_file_path)))
 
   {
     InterProcessFileLock lock(target);
-    TEST_EQUAL(File::exists(lock_file), true)
+    TEST_TRUE(File::exists(lock_file))
   }
 
-  TEST_EQUAL(File::remove(lock_file), true)
+  TEST_TRUE(File::remove(lock_file))
 }
 END_SECTION
 
@@ -58,10 +58,12 @@ START_SECTION((InterProcessFileLock(const String& target_file_path)))
     InterProcessFileLock lock_b(target);
   }
 
-  TEST_EQUAL(File::exists(lock_file), true)
-  TEST_EQUAL(File::remove(lock_file), true)
+  TEST_TRUE(File::exists(lock_file))
+  TEST_TRUE(File::remove(lock_file))
 }
 END_SECTION
+
+//TEMP_FILE makro von openms existiert ggf
 
 // validate constructor error handling for missing parent directory
 START_SECTION((InterProcessFileLock(const String& target_file_path)))
@@ -92,7 +94,7 @@ START_SECTION((InterProcessFileLock(const String& target_file_path)))
     }
     catch (const Exception::BaseException&)
     {
-      _exit(1);
+      _exit(1); // kein exit benutzen
     }
     catch (const std::exception&)
     {
@@ -121,9 +123,9 @@ START_SECTION((InterProcessFileLock(const String& target_file_path)))
   TEST_TRUE(timeout_thrown)
 
   // The timeout should be at least the specified duration
-  TEST_TRUE(elapsed >= std::chrono::milliseconds(2500))
+  TEST_TRUE(elapsed >= std::chrono::milliseconds(2500)) //nicht gehardcoded wenn lock funktion existiert, sondern konstante + x
 
-  kill(child_pid, SIGTERM);
+  kill(child_pid, SIGTERM); //braucht es kill? oder bin ich selbst child pid? if childpid=!0 
   int status = 0;
   waitpid(child_pid, &status, 0);
 
