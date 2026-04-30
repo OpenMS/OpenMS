@@ -33,6 +33,11 @@
 #include <unordered_map>
 #include <optional>
 
+// Open-addressing flat hash map (Boost 1.81+). Used in FrameAggregator's
+// hot path because it eliminates per-node allocations and pointer chasing,
+// giving 2-3x faster lookup/insert vs std::unordered_map for small values.
+#include <boost/unordered/unordered_flat_map.hpp>
+
 namespace OpenMS
 {
 
@@ -515,7 +520,8 @@ namespace OpenMS
       std::vector<OutputPeak> finalizeCentroided(int min_support, bool skip_denoise) const
       {
         // Step 1: Denoise (same as finalize)
-        std::unordered_map<uint64_t, Cell> denoised;
+        boost::unordered_flat_map<uint64_t, Cell> denoised;
+        denoised.reserve(grid_.size());
         for (const auto& [key, cell] : grid_)
         {
           if (!skip_denoise)
@@ -548,7 +554,8 @@ namespace OpenMS
           {0.003, 0.013, 0.022, 0.013, 0.003}
         };
 
-        std::unordered_map<uint64_t, double> smoothed;
+        boost::unordered_flat_map<uint64_t, double> smoothed;
+        smoothed.reserve(denoised.size());
         for (const auto& [key, cell] : denoised)
         {
           uint32_t scan_id = static_cast<uint32_t>(key & 0xFFFFFFFF);
@@ -649,7 +656,7 @@ namespace OpenMS
         double intensity_sum = 0.0;
         double mz_weighted_sum = 0.0;
       };
-      std::unordered_map<uint64_t, Cell> grid_;
+      boost::unordered_flat_map<uint64_t, Cell> grid_;
     };
 
     // SWATH window descriptor

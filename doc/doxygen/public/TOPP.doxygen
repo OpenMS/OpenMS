@@ -144,6 +144,7 @@
   - @subpage TOPP_FeatureLinkerUnlabeled - Groups corresponding features from multiple maps.
   - @subpage TOPP_FeatureLinkerUnlabeledQT - Groups corresponding features from multiple maps using a QT clustering approach.
   - @subpage TOPP_FeatureLinkerUnlabeledKD - Groups corresponding features from multiple maps using a KD tree.
+  - @subpage TOPP_FeatureLinkerWNet - Groups corresponding features from multiple maps using Wasserstein optimal transport.
 
   <b>Targeted Experiments and OpenSWATH</b>
   - @subpage TOPP_AssayGeneratorMetabo - Generates an assay library using DDA data (Metabolomics).

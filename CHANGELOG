@@ -30,7 +30,6 @@ General:
   - BREAKING: Qt string interop removed from core String and DataValue API; String(const QString&), String::toQString(), DataValue(const QString&), DataValue::toQString(), and StringListUtils::fromQStringList() removed; Qt5Port.h deleted (#8940)
   - BREAKING: Qt6::Core removed from libOpenMS PUBLIC CMake link dependencies; downstream CMake projects must now link Qt6::Core directly if needed (#8965)
   - Fix: UpdateCheck no longer crashes TOPP tools when $HOME is not writable (e.g., in container environments where $HOME=/); the update check is skipped gracefully (#9075, fixes #9074)
-  - Fix: File::rename now falls back to copy+remove when std::filesystem::rename fails with EXDEV (cross-device rename); the previous Qt-based implementation silently copied across devices; the std::filesystem replacement introduced in #8938 broke TOPP adapters (CometAdapter -pin_out, MSGFPlusAdapter -mzid_out) that move output files from a tmp directory to a bind-mounted output directory, a common container layout (#9207)
   - Fix: TheoreticalSpectrumGenerator: corrected m/z calculation for b/a neutral-loss fragment ions; the neutral-loss loop previously omitted the first residue mass, causing all b/a neutral-loss fragments to report masses that were too low by the first residue's internal mass (#9078, #9084)
   - Fix: LinearResampler: right_index was clamped to the number of raw data points instead of the number of resampled points; when resampled points far outnumber raw points (e.g. fine spacing over a wide m/z range), this caused extreme intensity spikes; bug introduced in 2008 and masked by LinearResamplerAlign which has an independent correct implementation (#9127)
   - Transparent .zip decompression for XML-based formats (mzML, idXML, etc.) and Bruker .d directories: files with a .zip extension are now decompressed on-the-fly during parsing; .d.zip archives are extracted to a temporary directory and loaded via BrukerTimsFile; no conversion step required (#9139)
@@ -43,6 +42,8 @@ General:
   - Fix: MSExperiment::reset() now clears chromatograms as well as spectra; previously chromatograms were left intact, causing duplicate chromatogram entries when an experiment was reset and reloaded; FileFilter's RT-block filtering loop was updated accordingly (#9211)
   - Fix: BrukerTimsFile: off-by-one in MS1 centroid cap; the ms1_centroid_max_peaks limit used `>` instead of `>=`, causing capped MS1 spectra to emit exactly max_peaks + 1 peaks rather than max_peaks; the ion-mobility array length is now kept aligned with the peak count (#9233)
   - Native .idparquet identification format: a new directory-based Parquet bundle (psms.parquet, proteins.parquet, protein_groups.parquet, search_params.parquet) for lossless round-trip storage of PeptideIdentification/ProteinIdentification data; supported by FileHandler, IDMerger, IDFileConverter, PercolatorAdapter, CometAdapter, MSGFPlusAdapter, and SageAdapter (#9225, #9232)
+  - Perf: BrukerTimsFile FrameAggregator: switched grid_, denoised, and smoothed internal maps from std::unordered_map to boost::unordered_flat_map; 2.1x–3.2x faster finalize/finalizeCentroided per call, ~18% end-to-end wall-time reduction on DIA-PASEF .d files (#9243)
+  - Native .featureparquet and .consensusparquet formats: FileHandler now loads and stores FeatureMap as .featureparquet directory bundles and ConsensusMap as .consensusparquet directory bundles via Parquet, parallel to .idparquet; FileTypes::FEATUREPARQUET and FileTypes::CONSENSUSPARQUET registered with isDirectoryType() = true (#9242)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -191,6 +192,7 @@ TOPP tools:
       - In-process rescoring backend: PercolatorAdapter now defaults to running Percolator in-process via the new OpenMS::Percolator class (vendored Percolator 3.08 + TRON solver) without requiring an external percolator binary; covers idXML/mzid input with PSM-level FDR; use -use_subprocess true to revert to the external binary path; OSW input, protein-level FDR, and peptide-level FDR still require the subprocess (#9218)
       - -percolator_executable is now optional (not required) when -use_subprocess false (the default); the parameter is still validated when -use_subprocess true (#9218)
       - Added .idparquet input/output support; -in and -in_decoy now accept .idparquet bundles and -out can produce .idparquet output (#9232)
+      - Fix: -score:fdr and -best_per_spectrum_only post-filters are now applied when using the in-process backend (default); previously these filters were only applied on the subprocess path, causing different output depending on which backend was used (#9240)
     SimpleSearchEngine:
       - Added peptide:enzyme_specificity parameter (full/semi/none) to enable semi-tryptic and non-specific searches (#9112)
       - New annotate:PSM options: num_matched_peaks, matched_b_ions, matched_y_ions, longest_peptide_ion_sequence, fragment_annotation (#9117)
@@ -201,6 +203,7 @@ TOPP tools:
       - BREAKING: -out_feature_qpx (single file) replaced with -out_qpx (directory); exports quantms.feature.parquet, quantms.psm.parquet, and quantms.pg.parquet following the QPX/quantms schema (#8973, #8974)
       - Added Bruker TimsTOF .d (BRUKER_TDF) input support with Biosaur2-based seed generation; IM_PEAK data path with automatic FWHM estimation and skip of PeakPickerHiRes/PrecursorCorrection; new Seeding:algorithm parameter (#9030)
       - Added PeptideQuantification:seed_apex_rt_tolerance parameter (default 5.0 s, advanced) to FeatureFinderIdentificationAlgorithm; seed features whose detected apex RT deviates more than the tolerance from the seed apex are discarded, removing unreliable extractions (#9102)
+      - Added .idparquet and .mzId input support; -ids now accepts .idparquet directories and .mzId files in addition to idXML (#9236)
     MetaProSIP:
       - Added detailed documentation of CSV output column formats (#4400)
         Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
@@ -223,17 +226,11 @@ TOPP tools:
       - Arrow/Parquet export for ConsensusMap (#8729)
       - BREAKING: -out_feature_qpx (single file) replaced with -out_qpx (directory); exports quantms.feature.parquet, quantms.psm.parquet, and quantms.pg.parquet following the QPX/quantms schema (#8973, #8974)
       - Added TMT 32-plex and 35-plex quantitation support; isotope correction matrix defaults to identity until calibrated values are provided (#9003)
+      - Added .idparquet and .mzId input support; -in_id now accepts .idparquet directories and .mzId files in addition to idXML (#9241)
     SageAdapter:
       - Fixed thread handling - removed duplicate parameter registration (#8441)
       - Added .idparquet output support; -out now accepts .idparquet format in addition to idXML (#9232)
     OpenSwathWorkflow:
-      - Added cache file auto cleanup (#9029)
-      - MRMFeatureFinderScoring: enzyme used for missed cleavage counting is now configurable via new `enzyme` parameter (default: Trypsin) (#9077)
-      - Fix: OpenSwathOSWWriter::getScore() and getSeparateScore() now correctly handle all NaN variants ("NaN", "-NaN") and avoid redundant meta value lookups; double score values are written with full precision (#9047)
-      - Bruker DIA MS2 frame aggregation, denoising, and OpenSwath streaming: new BrukerTimsFile::Config fields (bruker:dia_ms2_n_neighbors, bruker:dia_ms2_min_support, bruker:dia_ms2_centroid) enable grid-based denoising and 2D peak picking of DIA MS2 frames; aggregated spectra can be streamed directly into the OpenSwath pipeline without prior mzML conversion; registered in FileConverter and PeakPickerIM; requires WITH_TIMSRUST=ON (#9129)
-      - Fix: BrukerTimsFile::loadDIAStreaming now sorts each spectrum's peaks by m/z before feeding them to the OpenSwath consumer; unsorted peaks (caused by TIMS scan ordering) silently produced empty chromatograms, breaking iRT calibration on .d DIA input (#9135)
-      - Fix: segfault when use_consensus=false; hull_points returned by PeakIntegrator::integratePeak varied in size per-transition, causing Eigen::Map to read past the end of the shorter vector in MRMScoring::initializeXCorrMatrix; fixed by padding hull_points to the full resampled chromatogram length in non-consensus mode (#9143)
-      - Allow Bruker DIA MS2 centroiding without denoising: bruker:dia_ms2_min_support can now be set to 0; with centroid=true and min_support=0 every populated grid cell is a centroid candidate, skipping the neighbor-support filter; useful for low-density data where the 3×3 denoising step discards real peaks (#9151)
       - Priority peptide sampling for iRT calibration (#8373)
       - Decoy generation speed optimizations (#8569)
       - Added SRM support (#8700)
@@ -270,10 +267,15 @@ TOPP tools:
       - Reworked the underlying algorithm to omit a RAM-costly copy statement. RAM usage is now reduced by around 20% (#9159)
     IDMerger:
       - Added .idparquet input support; -in now accepts .idparquet bundles in addition to idXML and oms (#9232)
+      - Fix: merged output now preserves input file order; previously IdentificationRuns were sorted alphabetically by run identifier rather than emitted in the order the input files were given (#9240)
+    IDRipper:
+      - Added .idparquet input/output support; -in now accepts a merged .idparquet directory and emits one .idparquet output directory per IdentificationRun, mirroring the existing .idXML behavior; output format follows input format (#9237)
     MSGFPlusAdapter:
       - Added .idparquet output support; -out now accepts .idparquet format in addition to idXML (#9232)
     IDFileConverter:
       - Added .idparquet input/output support; can now convert to and from the native .idparquet identification Parquet bundle (#9232)
+  New tools:
+    - FeatureLinkerWNet: groups corresponding features across multiple label-free maps using Wasserstein (optimal transport) distance over (m/z, RT) space; solves a minimum-cost network flow problem via the wnetalign library; supports Da and ppm m/z tolerances, L1/L2/L∞ distance metrics, and intensity normalization
 
 OpenMS Library:
   Added:
@@ -324,6 +326,7 @@ OpenMS Library:
     - PSMArrowIO: new class for reading and writing OpenMS identification data as a native .idparquet directory bundle (four parquet files: psms.parquet, proteins.parquet, protein_groups.parquet, search_params.parquet); round-trip lossless from PeptideIdentification/ProteinIdentification (#9225, #9232)
     - FileTypes::IDPARQUET: new enum value for the .idparquet identification Parquet bundle directory format; FileTypes::isDirectoryType() returns true for both IDPARQUET and BRUKER_TDF (#9225)
     - QPXFile::importFromArrow(): new free-standing reader that converts a PSMSchema Arrow table directly to a PeptideIdentificationList without ConsensusFeature linkage; refactored from ConsensusMapArrowIO (#9225)
+    - FileTypes::FEATUREPARQUET, FileTypes::CONSENSUSPARQUET: new enum values for the .featureparquet and .consensusparquet directory-based Parquet bundle formats; FileHandler dispatches these to FeatureMapArrowIO and ConsensusMapArrowIO respectively (#9242)
     - ModifiedSincSmoother: new class for profile data smoothing using Modified Sinc interpolation with configurable degree, window size, and passband correction coefficients (#8217)
     - BrukerTimsFile: experimental reader for Bruker TimsTOF .d directory format (BRUKER_TDF file type); supports DDA-PASEF, DIA-PASEF, and raw frame-level 4D access; requires CMake option WITH_TIMSRUST=ON (#8975)
     - BrukerTimsFile: tiered scan→1/K0 calibration with three fallback levels: Bruker SDK → rational function from TimsCalibration table (open-source) → linear; RationalScan2ImConverter added for the rational function model (#8999)
@@ -432,8 +435,6 @@ Build System:
   - Minimum Boost version bumped to 1.81 (#9042, #9095)
   - Qt6 find_package guarded by WITH_GUI block; Qt is no longer needed for non-GUI TOPP tool builds (#9041)
   - yaml-cpp bumped to 0.9.0 in tool_description_lib; fixes broken hash/map type parsing in YAML CTD config files (#9056)
-  - Fix: Arrow/Parquet 24.x and later now accepted; Ubuntu 24.04 CI runners ship Arrow 24.0.0 which broke builds with the previous find_package(Arrow 23) version constraint (SameMajorVersion compatibility); constraint replaced with an explicit VERSION_LESS guard; pyarrow 24.0.0 excluded from pyOpenMS dependencies (cp310-only wheels on PyPI) (#9196)
-  - Fix: SpectraIDViewTab GUI compilation failure on macOS Apple Silicon (Tahoe); accession key lookup now converts to std::string matching the std::map key type after Qt string interop removal (#9174)
 
 
 ------------------------------------------------------------------------------------------
