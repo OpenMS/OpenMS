@@ -156,8 +156,8 @@ protected:
 
     /// @name Members for parameters often needed in methods
     //@{
-    double pattern_tolerance_; ///< Stores mass_trace:mz_tolerance
-    double trace_tolerance_; ///< Stores isotopic_pattern:mz_tolerance
+    double pattern_tolerance_; ///< Stores isotopic_pattern:mz_tolerance
+    double trace_tolerance_; ///< Stores mass_trace:mz_tolerance
     UInt min_spectra_; ///< Number of spectra that have to show the same mass (for finding a mass trace)
     UInt max_missing_trace_peaks_; ///< Stores mass_trace:max_missing
     double slope_bound_; ///< Max slope of mass trace intensities
