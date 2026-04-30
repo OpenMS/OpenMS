@@ -88,25 +88,71 @@ if (LIBSVM_FOUND)
 endif()
 
 #------------------------------------------------------------------------------
-# COIN-OR
-# Our find module creates an imported CoinOR::CoinOR target
-find_package(COIN)
-if (COIN_FOUND)
-  set(OPENMS_HAS_COINOR 1)
-  set(LPTARGET "CoinOR::CoinOR")
-else()
-  #------------------------------------------------------------------------------
-  # GLPK
-  # creates GLPK::GLPK target
-  find_package(GLPK)
+# LP Solver selection
+# LP_SOLVER option: COIN, GLPK, HIGHS, or AUTO (default)
+# AUTO tries COIN-OR first, then GLPK, then HiGHS via FetchContent
+set(LP_SOLVER "AUTO" CACHE STRING "LP solver to use: AUTO, COIN, GLPK, or HIGHS")
+set_property(CACHE LP_SOLVER PROPERTY STRINGS AUTO COIN GLPK HIGHS)
+
+if (LP_SOLVER STREQUAL "COIN" OR LP_SOLVER STREQUAL "AUTO")
+  find_package(COIN QUIET)
+  if (COIN_FOUND)
+    set(OPENMS_HAS_COINOR 1)
+    set(LPTARGET "CoinOR::CoinOR")
+    message(STATUS "LP solver: COIN-OR")
+  elseif(LP_SOLVER STREQUAL "COIN")
+    message(FATAL_ERROR "LP_SOLVER set to COIN but COIN-OR was not found.")
+  endif()
+endif()
+
+if (NOT LPTARGET AND (LP_SOLVER STREQUAL "GLPK" OR LP_SOLVER STREQUAL "AUTO"))
+  find_package(GLPK QUIET)
   if (GLPK_FOUND)
     set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
     set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
     set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
     set(LPTARGET "GLPK::GLPK")
-  else()
-    message(FATAL_ERROR "Either COIN-OR or GLPK has to be available (COIN-OR takes precedence).")
+    message(STATUS "LP solver: GLPK ${GLPK_VERSION_STRING}")
+  elseif(LP_SOLVER STREQUAL "GLPK")
+    message(FATAL_ERROR "LP_SOLVER set to GLPK but GLPK was not found.")
   endif()
+endif()
+
+if (NOT LPTARGET AND (LP_SOLVER STREQUAL "HIGHS" OR LP_SOLVER STREQUAL "AUTO"))
+  # Try to find a system-installed HiGHS first
+  find_package(highs QUIET CONFIG)
+  if (highs_FOUND)
+    set(OPENMS_HAS_HIGHS 1)
+    set(LPTARGET "highs::highs")
+    message(STATUS "LP solver: HiGHS (system)")
+  else()
+    # Fetch HiGHS via FetchContent
+    include(FetchContent)
+    FetchContent_Declare(
+      highs
+      GIT_REPOSITORY https://github.com/ERGO-Code/HiGHS.git
+      GIT_TAG        v1.10.0
+      GIT_SHALLOW    TRUE
+    )
+    set(HIGHS_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(highs)
+    set(OPENMS_HAS_HIGHS 1)
+    set(LPTARGET "highs")
+    message(STATUS "LP solver: HiGHS (FetchContent)")
+  endif()
+endif()
+
+if (NOT LPTARGET)
+  message(FATAL_ERROR "No LP solver found. Set LP_SOLVER to COIN, GLPK, or HIGHS, or ensure one is available.")
+endif()
+
+# Set default GLPK version variables if GLPK was not found (needed for config.h.in substitution)
+if (NOT DEFINED CF_OPENMS_GLPK_VERSION_MAJOR)
+  set(CF_OPENMS_GLPK_VERSION_MAJOR 0)
+  set(CF_OPENMS_GLPK_VERSION_MINOR 0)
+  set(CF_OPENMS_GLPK_VERSION "0.0")
 endif()
 
 #------------------------------------------------------------------------------
