@@ -42,9 +42,9 @@ General:
   - Fix: MSExperiment::reset() now clears chromatograms as well as spectra; previously chromatograms were left intact, causing duplicate chromatogram entries when an experiment was reset and reloaded; FileFilter's RT-block filtering loop was updated accordingly (#9211)
   - Fix: BrukerTimsFile: off-by-one in MS1 centroid cap; the ms1_centroid_max_peaks limit used `>` instead of `>=`, causing capped MS1 spectra to emit exactly max_peaks + 1 peaks rather than max_peaks; the ion-mobility array length is now kept aligned with the peak count (#9233)
   - Native .idparquet identification format: a new directory-based Parquet bundle (psms.parquet, proteins.parquet, protein_groups.parquet, search_params.parquet) for lossless round-trip storage of PeptideIdentification/ProteinIdentification data; supported by FileHandler, IDMerger, IDFileConverter, PercolatorAdapter, CometAdapter, MSGFPlusAdapter, and SageAdapter (#9225, #9232)
-  - IDRipper: split merged .idparquet into per-run .idparquet outputs; accepts a merged .idparquet bundle as -in and emits one .idparquet directory per source IdentificationRun; output format mirrors input format (.idXML in → .idXML out, .idparquet in → .idparquet out) (#9237)
-  - FEATUREPARQUET (.featureparquet) and CONSENSUSPARQUET (.consensusparquet): new directory-shaped file types for feature map and consensus map Parquet bundles; FileHandler::loadFeatures/storeFeatures and loadConsensusFeatures/storeConsensusFeatures dispatch to FeatureMapArrowIO/ConsensusMapArrowIO; FileTypes::isDirectoryType() extended accordingly (#9242)
-  - perf: BrukerTimsFile FrameAggregator hot maps switched from std::unordered_map to boost::unordered_flat_map; 2–3× speedup per finalize call on DIA/DDA MS1+MS2 aggregation paths (~17% end-to-end reduction on DIA-PASEF) (#9243)
+  - IDRipper: split merged .idparquet into per-run .idparquet outputs; -in accepts a merged .idparquet directory and emits one .idparquet output directory per IdentificationRun, mirroring the existing .idXML behavior; output format follows input format (#9237)
+  - Perf: BrukerTimsFile FrameAggregator: switched grid_, denoised, and smoothed internal maps from std::unordered_map to boost::unordered_flat_map; 2.1x–3.2x faster finalize/finalizeCentroided per call, ~18% end-to-end wall-time reduction on DIA-PASEF .d files (#9243)
+  - Native .featureparquet and .consensusparquet formats: FileHandler now loads and stores FeatureMap as .featureparquet directory bundles and ConsensusMap as .consensusparquet directory bundles via Parquet, parallel to .idparquet; FileTypes::FEATUREPARQUET and FileTypes::CONSENSUSPARQUET registered with isDirectoryType() = true (#9242)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -194,7 +194,7 @@ TOPP tools:
       - In-process rescoring backend: PercolatorAdapter now defaults to running Percolator in-process via the new OpenMS::Percolator class (vendored Percolator 3.08 + TRON solver) without requiring an external percolator binary; covers idXML/mzid input with PSM-level FDR; use -use_subprocess true to revert to the external binary path; OSW input, protein-level FDR, and peptide-level FDR still require the subprocess (#9218)
       - -percolator_executable is now optional (not required) when -use_subprocess false (the default); the parameter is still validated when -use_subprocess true (#9218)
       - Added .idparquet input/output support; -in and -in_decoy now accept .idparquet bundles and -out can produce .idparquet output (#9232)
-      - Fix: -score:fdr and -best_per_spectrum_only post-filters are now applied on the in-process Percolator backend, matching the subprocess path behavior (#9240)
+      - Fix: -score:fdr and -best_per_spectrum_only post-filters are now applied when using the in-process backend (default); previously these filters were only applied on the subprocess path, causing different output depending on which backend was used (#9240)
     SimpleSearchEngine:
       - Added peptide:enzyme_specificity parameter (full/semi/none) to enable semi-tryptic and non-specific searches (#9112)
       - New annotate:PSM options: num_matched_peaks, matched_b_ions, matched_y_ions, longest_peptide_ion_sequence, fragment_annotation (#9117)
@@ -205,7 +205,7 @@ TOPP tools:
       - BREAKING: -out_feature_qpx (single file) replaced with -out_qpx (directory); exports quantms.feature.parquet, quantms.psm.parquet, and quantms.pg.parquet following the QPX/quantms schema (#8973, #8974)
       - Added Bruker TimsTOF .d (BRUKER_TDF) input support with Biosaur2-based seed generation; IM_PEAK data path with automatic FWHM estimation and skip of PeakPickerHiRes/PrecursorCorrection; new Seeding:algorithm parameter (#9030)
       - Added PeptideQuantification:seed_apex_rt_tolerance parameter (default 5.0 s, advanced) to FeatureFinderIdentificationAlgorithm; seed features whose detected apex RT deviates more than the tolerance from the seed apex are discarded, removing unreliable extractions (#9102)
-      - Added .idparquet and .mzId input support; -in_id now accepts .idparquet bundles and .mzId files in addition to idXML (#9236)
+      - Added .idparquet and .mzId input support; -ids now accepts .idparquet directories and .mzId files in addition to idXML (#9236)
     MetaProSIP:
       - Added detailed documentation of CSV output column formats (#4400)
         Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
@@ -228,7 +228,7 @@ TOPP tools:
       - Arrow/Parquet export for ConsensusMap (#8729)
       - BREAKING: -out_feature_qpx (single file) replaced with -out_qpx (directory); exports quantms.feature.parquet, quantms.psm.parquet, and quantms.pg.parquet following the QPX/quantms schema (#8973, #8974)
       - Added TMT 32-plex and 35-plex quantitation support; isotope correction matrix defaults to identity until calibrated values are provided (#9003)
-      - Added .idparquet and .mzId input support; -in_id now accepts .idparquet bundles and .mzId files in addition to idXML (#9241)
+      - Added .idparquet and .mzId input support; -in_id now accepts .idparquet directories and .mzId files in addition to idXML (#9241)
     SageAdapter:
       - Fixed thread handling - removed duplicate parameter registration (#8441)
       - Added .idparquet output support; -out now accepts .idparquet format in addition to idXML (#9232)
@@ -269,9 +269,9 @@ TOPP tools:
       - Reworked the underlying algorithm to omit a RAM-costly copy statement. RAM usage is now reduced by around 20% (#9159)
     IDMerger:
       - Added .idparquet input support; -in now accepts .idparquet bundles in addition to idXML and oms (#9232)
-      - Fix: preserve input file order across merged IdentificationRuns; the previous std::map implementation sorted runs alphabetically by identifier, breaking downstream tools that rely on insertion order (#9240)
+      - Fix: merged output now preserves input file order; previously IdentificationRuns were sorted alphabetically by run identifier rather than emitted in the order the input files were given (#9240)
     IDRipper:
-      - Added .idparquet input/output support; accepts a merged .idparquet bundle as -in and emits one .idparquet directory per source IdentificationRun; output format follows input format (.idXML in → .idXML out, .idparquet in → .idparquet out) (#9237)
+      - Added .idparquet input/output support; -in now accepts a merged .idparquet directory and emits one .idparquet output directory per IdentificationRun, mirroring the existing .idXML behavior; output format follows input format (#9237)
     MSGFPlusAdapter:
       - Added .idparquet output support; -out now accepts .idparquet format in addition to idXML (#9232)
     IDFileConverter:
@@ -328,7 +328,7 @@ OpenMS Library:
     - PSMArrowIO: new class for reading and writing OpenMS identification data as a native .idparquet directory bundle (four parquet files: psms.parquet, proteins.parquet, protein_groups.parquet, search_params.parquet); round-trip lossless from PeptideIdentification/ProteinIdentification (#9225, #9232)
     - FileTypes::IDPARQUET: new enum value for the .idparquet identification Parquet bundle directory format; FileTypes::isDirectoryType() returns true for both IDPARQUET and BRUKER_TDF (#9225)
     - QPXFile::importFromArrow(): new free-standing reader that converts a PSMSchema Arrow table directly to a PeptideIdentificationList without ConsensusFeature linkage; refactored from ConsensusMapArrowIO (#9225)
-    - FileTypes::FEATUREPARQUET, FileTypes::CONSENSUSPARQUET: new enum values for directory-shaped feature map (.featureparquet) and consensus map (.consensusparquet) Parquet bundles; FileTypes::isDirectoryType() extended to return true for all three Parquet bundle types (#9242)
+    - FileTypes::FEATUREPARQUET, FileTypes::CONSENSUSPARQUET: new enum values for the .featureparquet and .consensusparquet directory-based Parquet bundle formats; FileHandler dispatches these to FeatureMapArrowIO and ConsensusMapArrowIO respectively (#9242)
     - FeatureGroupingAlgorithmWNet: new class for grouping features across multiple maps using Wasserstein (optimal transport) network flow over (m/z, RT) space; WNetMatcher handles pairwise matching and union-find consensus building (#8992)
     - ModifiedSincSmoother: new class for profile data smoothing using Modified Sinc interpolation with configurable degree, window size, and passband correction coefficients (#8217)
     - BrukerTimsFile: experimental reader for Bruker TimsTOF .d directory format (BRUKER_TDF file type); supports DDA-PASEF, DIA-PASEF, and raw frame-level 4D access; requires CMake option WITH_TIMSRUST=ON (#8975)
