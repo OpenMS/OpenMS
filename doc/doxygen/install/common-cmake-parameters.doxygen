@@ -111,6 +111,25 @@ The most important CMake variables are:
     Recommended for Linux distributions. (Default: Off, On for Ubuntu in CI)</td>
   </tr>
   <tr>
+    <th valign="top">WITH_THERMO_RAW=On/Off</td>
+    <td>Enable native reading of Thermo Fisher RAW files via the openms-thermo-bridge C++/.NET library
+    (fetched automatically via CMake FetchContent from GitHub).
+    Requires a .NET runtime to be present at run time so that the managed bridge DLLs can be loaded.
+    Install .NET 8 (or later) from <a href="https://dotnet.microsoft.com/download">https://dotnet.microsoft.com/download</a>,
+    or install the <code>dotnet-runtime-8.0</code> (or newer) package from your distribution's package manager.
+    On Windows and macOS the required <code>nethost</code> library is bundled with the .NET SDK/runtime installer.
+    On Linux you may need to install the additional <code>libnethost-dev</code> (Debian/Ubuntu) or
+    <code>dotnet-runtime-8.0</code> package explicitly.
+    Disabled automatically on Linux/aarch64 and macOS/arm64 targets.
+    (Default: On on supported platforms)</td>
+  </tr>
+  <tr>
+    <th valign="top">ENABLE_THERMO_RAW_TESTS=On/Off</td>
+    <td>Download a small Thermo RAW test file and enable integration tests for the Thermo RAW reader.
+    Requires <code>WITH_THERMO_RAW=On</code> and a working internet connection during CMake configuration.
+    (Default: On)</td>
+  </tr>
+  <tr>
     <th valign="top">CMAKE_INSTALL_PREFIX</td>
     <td>the path where the bin/ and lib/ directories should be installed to
         (when <pre>sudo make install</pre> is wished for a system-wide
