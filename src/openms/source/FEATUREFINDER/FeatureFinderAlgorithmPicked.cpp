@@ -1109,8 +1109,8 @@ namespace OpenMS
 
   void FeatureFinderAlgorithmPicked::updateMembers_()
   {
-    pattern_tolerance_ = param_.getValue("mass_trace:mz_tolerance");
-    trace_tolerance_ = param_.getValue("isotopic_pattern:mz_tolerance");
+    pattern_tolerance_ = param_.getValue("isotopic_pattern:mz_tolerance");
+    trace_tolerance_ = param_.getValue("mass_trace:mz_tolerance");
     min_spectra_ = (UInt) std::floor((double)param_.getValue("mass_trace:min_spectra") * 0.5);
     max_missing_trace_peaks_ = param_.getValue("mass_trace:max_missing");
     slope_bound_ = param_.getValue("mass_trace:slope_bound");
