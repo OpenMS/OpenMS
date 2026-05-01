@@ -67,6 +67,7 @@ Dependencies:
   - Fix: CMake now accepts Arrow/Parquet 24.x and later; the find_package version argument was dropped and a VERSION_LESS guard enforces the >= 23 minimum, so any future Arrow major release is accepted without an explicit CMake update; pyOpenMS excludes pyarrow 24.0.0 (cp310-only wheels on PyPI) to ensure pyarrow installs correctly on Python 3.11/3.12/3.13 (#9196)
   - Fix: pyOpenMS standalone build (cibuildwheel path) now accepts Arrow 24.x; the standalone CMakeLists.txt called find_package(Arrow 23 CONFIG REQUIRED) which uses SameMajorVersion compatibility and therefore rejects Arrow 24.0.0; the version pin is dropped and a manual VERSION_LESS guard enforces the >= 23 minimum, mirroring the fix in cmake_findExternalLibs.cmake (#9221)
   - wnetalign/wnet/pylmcf: three header-only C++ libraries fetched via CMake FetchContent for Wasserstein network alignment; pylmcf v0.9.5, wnet v0.9.9, wnetalign v0.9.6; controlled by WITH_WNETALIGN CMake option (ON by default) (#8992)
+  - HiGHS LP solver added as a third linear-programming backend alternative to COIN-OR and GLPK; selectable via the LP_SOLVER CMake variable (AUTO/COIN/GLPK/HIGHS); AUTO tries COIN-OR, then GLPK, then fetches HiGHS via FetchContent if neither is found (#9246)
 
 PyOpenMS:
   - BREAKING: Binding backend replaced from Autowrap/Cython to hand-maintained nanobind C++ bindings (#8699)
@@ -267,6 +268,8 @@ TOPP tools:
       - BREAKING: GenericWrapper tool removed; migrate to direct TOPP tool invocations or TOPPAS workflows (#8981)
     FeatureFinderCentroided:
       - Reworked the underlying algorithm to omit a RAM-costly copy statement. RAM usage is now reduced by around 20% (#9159)
+    FeatureFinderAlgorithmPicked:
+      - Fix: `mass_trace:mz_tolerance` and `isotopic_pattern:mz_tolerance` parameters were swapped in updateMembers_(); pattern_tolerance_ (used for isotopic-pattern scoring) received the mass-trace value and vice versa; had no effect with default values (both 0.03) but caused incorrect behavior when users tuned the parameters independently (#9247, #9250)
     IDMerger:
       - Added .idparquet input support; -in now accepts .idparquet bundles in addition to idXML and oms (#9232)
       - Fix: merged output now preserves input file order; previously IdentificationRuns were sorted alphabetically by run identifier rather than emitted in the order the input files were given (#9240)
