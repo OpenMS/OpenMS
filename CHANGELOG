@@ -378,6 +378,7 @@ OpenMS Library:
     - OpenSwathWorkflowScheduler: new class encapsulating the SWATH wave scheduling logic extracted from OpenSwathWorkflow; manages compound batches, per-SWATH scoring job queues, and deferred OSW output with memory-based flushing (#9190)
     - OpenSwathOSWWriter: added getRowCount() and estimateMemoryUsage() for memory-aware buffered output (#9190)
     - Percolator: new class providing an in-process semi-supervised target/decoy rescoring engine based on a vendored subset of Percolator 3.08 (with TRON solver); exposes rescore() for combined train+score, train()+score() for split workflows, and saveModel()/loadModel() for model persistence; note: concurrent calls across instances race on process-wide Percolator statics — serialize at the call site (#9218)
+    - BREAKING: OpenSwath::Scoring: deprecated pointer-based (C-array) overloads of NormalizedManhattanDist, RootMeanSquareDeviation, SpectralAngle, normalize_sum, and calcxcorr_legacy_mquest_ removed; use the std::vector& overloads (#9252)
 
 Fixes:
   - Fix inverted use_all_hits logic causing NucleicAcidSearchEngine crash with multiple hits per spectrum (#8542)
