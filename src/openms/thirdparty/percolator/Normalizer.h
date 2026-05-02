@@ -52,6 +52,7 @@ class Normalizer {
 
   static Normalizer* getNormalizer();
   static void resetNormalizer() {
+    delete theNormalizer;
     theNormalizer = NULL;
   }
   static void setType(int type);
