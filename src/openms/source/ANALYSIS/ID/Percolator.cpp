@@ -183,6 +183,7 @@ Percolator::Percolator()
 Percolator::~Percolator()
 {
   if (impl_) impl_->reset();
+  P::Normalizer::resetNormalizer();
   P::Globals::clean();
 }
 
