@@ -183,6 +183,7 @@ Percolator::Percolator()
 Percolator::~Percolator()
 {
   if (impl_) impl_->reset();
+  P::Globals::clean();
 }
 
 void Percolator::updateMembers_()
