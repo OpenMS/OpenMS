@@ -22,6 +22,11 @@
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/filter/bzip2.hpp>
+#include <boost/iostreams/device/file_descriptor.hpp>
+
 #include <fstream>
 #include <iomanip> // setprecision etc.
 
@@ -207,20 +212,49 @@ private:
 
     void XMLFile::save_(const String & filename, XMLHandler * handler) const
     {
-      // open file in binary mode to avoid any line ending conversions
-      std::ofstream os(filename.c_str(), std::ios::out | std::ios::binary);
+      // Detect compression from filename extension
+      bool use_gzip = filename.hasSuffix(".gz");
+      bool use_bzip2 = filename.hasSuffix(".bz2");
 
-      //set high precision for writing of floating point numbers
-      os.precision(writtenDigits(double()));
-
-      if (!os)
+      if (use_gzip || use_bzip2)
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-      }
+        // Use boost::iostreams filtering_ostream for compressed output
+        boost::iostreams::filtering_ostream os;
 
-      // write data and close stream
-      handler->writeTo(os);
-      os.close();
+        if (use_gzip)
+        {
+          os.push(boost::iostreams::gzip_compressor());
+        }
+        else
+        {
+          os.push(boost::iostreams::bzip2_compressor());
+        }
+
+        os.push(boost::iostreams::file_descriptor_sink(filename, std::ios::out | std::ios::binary));
+        os.precision(writtenDigits(double()));
+
+        if (!os.good())
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+
+        handler->writeTo(os);
+        // filtering_ostream flushes and closes on destruction
+      }
+      else
+      {
+        // Uncompressed: original path
+        std::ofstream os(filename.c_str(), std::ios::out | std::ios::binary);
+        os.precision(writtenDigits(double()));
+
+        if (!os)
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+
+        handler->writeTo(os);
+        os.close();
+      }
     }
 
     String encodeTab(const String& to_encode)
