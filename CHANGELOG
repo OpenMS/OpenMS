@@ -196,6 +196,7 @@ TOPP tools:
       - -percolator_executable is now optional (not required) when -use_subprocess false (the default); the parameter is still validated when -use_subprocess true (#9218)
       - Added .idparquet input/output support; -in and -in_decoy now accept .idparquet bundles and -out can produce .idparquet output (#9232)
       - Fix: -score:fdr and -best_per_spectrum_only post-filters are now applied when using the in-process backend (default); previously these filters were only applied on the subprocess path, causing different output depending on which backend was used (#9240)
+      - Fix: Percolator in-process backend memory leaks fixed; Normalizer singleton was not freed between train()/rescore() calls (~1.7 KB per call) and Logger file handles were not released on destruction; both are now cleaned up in the Percolator destructor (#9257)
     SimpleSearchEngine:
       - Added peptide:enzyme_specificity parameter (full/semi/none) to enable semi-tryptic and non-specific searches (#9112)
       - New annotate:PSM options: num_matched_peaks, matched_b_ions, matched_y_ions, longest_peptide_ion_sequence, fragment_annotation (#9117)
