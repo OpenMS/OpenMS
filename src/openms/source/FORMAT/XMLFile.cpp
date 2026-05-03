@@ -22,13 +22,12 @@
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 
-#include <boost/iostreams/filtering_stream.hpp>
-#include <boost/iostreams/filter/gzip.hpp>
-#include <boost/iostreams/filter/bzip2.hpp>
-#include <boost/iostreams/device/file.hpp>
+#include <zlib.h>
+#include <bzlib.h>
 
 #include <fstream>
 #include <iomanip> // setprecision etc.
+#include <streambuf>
 
 #include <memory>
 
@@ -213,45 +212,161 @@ private:
     void XMLFile::save_(const String & filename, XMLHandler * handler) const
     {
       // Detect compression from filename extension
-      bool use_gzip = filename.hasSuffix(".gz");
-      bool use_bzip2 = filename.hasSuffix(".bz2");
+      const bool use_gzip = filename.hasSuffix(".gz");
+      const bool use_bzip2 = filename.hasSuffix(".bz2");
 
-      if (use_gzip || use_bzip2)
+      if (use_gzip)
       {
-        // Use boost::iostreams filtering_ostream for compressed output
-        boost::iostreams::filtering_ostream os;
-
-        if (use_gzip)
+        // Minimal std::streambuf that writes gzip-compressed data via zlib
+        class GzipOStreambuf : public std::streambuf
         {
-          os.push(boost::iostreams::gzip_compressor());
-        }
-        else
-        {
-          os.push(boost::iostreams::bzip2_compressor());
-        }
+        public:
+          static constexpr int BUF_SIZE = 65536;
 
-        os.push(boost::iostreams::file_sink(filename, std::ios::out | std::ios::binary));
-        os.precision(writtenDigits(double()));
+          explicit GzipOStreambuf(const char* fn) : gz_(gzopen(fn, "wb"))
+          {
+            if (gz_) setp(buf_, buf_ + BUF_SIZE);
+          }
 
-        if (!os.good())
+          ~GzipOStreambuf()
+          {
+            flush_buffer();
+            if (gz_) gzclose(gz_);
+          }
+
+          bool is_open() const { return gz_ != nullptr; }
+
+        protected:
+          int_type overflow(int_type c) override
+          {
+            if (!gz_) return traits_type::eof();
+            if (pptr() == epptr() && !flush_buffer()) return traits_type::eof();
+            if (!traits_type::eq_int_type(c, traits_type::eof()))
+            {
+              *pptr() = traits_type::to_char_type(c);
+              pbump(1);
+            }
+            return traits_type::not_eof(c);
+          }
+
+          int sync() override { return flush_buffer() ? 0 : -1; }
+
+        private:
+          bool flush_buffer()
+          {
+            int n = static_cast<int>(pptr() - pbase());
+            if (n > 0)
+            {
+              if (gzwrite(gz_, pbase(), static_cast<unsigned>(n)) != n) return false;
+              setp(buf_, buf_ + BUF_SIZE);
+            }
+            return true;
+          }
+
+          gzFile gz_;
+          char buf_[BUF_SIZE];
+        };
+
+        GzipOStreambuf sbuf(filename.c_str());
+        if (!sbuf.is_open())
         {
           throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
         }
-
+        std::ostream os(&sbuf);
+        os.precision(writtenDigits(double()));
         handler->writeTo(os);
-        // filtering_ostream flushes and closes on destruction
+      }
+      else if (use_bzip2)
+      {
+        // Minimal std::streambuf that writes bzip2-compressed data via bzlib
+        class Bzip2OStreambuf : public std::streambuf
+        {
+        public:
+          static constexpr int BUF_SIZE = 65536;
+
+          explicit Bzip2OStreambuf(const char* fn) : file_(nullptr), bz_(nullptr)
+          {
+            file_ = fopen(fn, "wb");
+            if (!file_) return;
+            int err = BZ_OK;
+            bz_ = BZ2_bzWriteOpen(&err, file_, 9, 0, 0);
+            if (err != BZ_OK)
+            {
+              BZ2_bzWriteClose(&err, bz_, 1, nullptr, nullptr);
+              bz_ = nullptr;
+              fclose(file_);
+              file_ = nullptr;
+              return;
+            }
+            setp(buf_, buf_ + BUF_SIZE);
+          }
+
+          ~Bzip2OStreambuf()
+          {
+            flush_buffer();
+            if (bz_)
+            {
+              int err = BZ_OK;
+              BZ2_bzWriteClose(&err, bz_, 0, nullptr, nullptr);
+            }
+            if (file_) fclose(file_);
+          }
+
+          bool is_open() const { return bz_ != nullptr; }
+
+        protected:
+          int_type overflow(int_type c) override
+          {
+            if (!bz_) return traits_type::eof();
+            if (pptr() == epptr() && !flush_buffer()) return traits_type::eof();
+            if (!traits_type::eq_int_type(c, traits_type::eof()))
+            {
+              *pptr() = traits_type::to_char_type(c);
+              pbump(1);
+            }
+            return traits_type::not_eof(c);
+          }
+
+          int sync() override { return flush_buffer() ? 0 : -1; }
+
+        private:
+          bool flush_buffer()
+          {
+            if (!bz_) return false;
+            int n = static_cast<int>(pptr() - pbase());
+            if (n > 0)
+            {
+              int err = BZ_OK;
+              BZ2_bzWrite(&err, bz_, pbase(), n);
+              if (err != BZ_OK && err != BZ_RUN_OK) return false;
+              setp(buf_, buf_ + BUF_SIZE);
+            }
+            return true;
+          }
+
+          FILE* file_;
+          BZFILE* bz_;
+          char buf_[BUF_SIZE];
+        };
+
+        Bzip2OStreambuf sbuf(filename.c_str());
+        if (!sbuf.is_open())
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+        std::ostream os(&sbuf);
+        os.precision(writtenDigits(double()));
+        handler->writeTo(os);
       }
       else
       {
-        // Uncompressed: original path
+        // Uncompressed: open in binary mode to avoid any line ending conversions
         std::ofstream os(filename.c_str(), std::ios::out | std::ios::binary);
         os.precision(writtenDigits(double()));
-
         if (!os)
         {
           throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
         }
-
         handler->writeTo(os);
         os.close();
       }
