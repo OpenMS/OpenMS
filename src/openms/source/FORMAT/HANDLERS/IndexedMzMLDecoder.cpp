@@ -10,11 +10,20 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
+#ifdef WITH_S3
+#include <OpenMS/FORMAT/DATAACCESS/S3InputSource.h>
+#include <aws/core/Aws.h>
+#include <aws/s3/S3Client.h>
+#include <aws/s3/model/GetObjectRequest.h>
+#include <aws/s3/model/HeadObjectRequest.h>
+#endif
+
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
@@ -23,6 +32,70 @@
 
 namespace OpenMS
 {
+
+#ifdef WITH_S3
+  namespace
+  {
+    /// Parse S3 URI into bucket and key
+    void parseS3Uri(const String& s3uri, std::string& bucket, std::string& key)
+    {
+      std::string uri = s3uri;
+      if (uri.compare(0, 5, "s3://") == 0)
+      {
+        uri = uri.substr(5);
+      }
+      size_t slash_pos = uri.find('/');
+      if (slash_pos == std::string::npos)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          s3uri, "Invalid S3 URI format: missing '/' after bucket name");
+      }
+      bucket = uri.substr(0, slash_pos);
+      key = uri.substr(slash_pos + 1);
+      if (bucket.empty() || key.empty())
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          s3uri, "Invalid S3 URI: bucket name or object key is empty");
+      }
+    }
+
+    /// Get the size of an S3 object
+    long long getS3ObjectSize(const Aws::S3::S3Client& client, const std::string& bucket, const std::string& key)
+    {
+      Aws::S3::Model::HeadObjectRequest request;
+      request.SetBucket(bucket);
+      request.SetKey(key);
+      auto outcome = client.HeadObject(request);
+      if (!outcome.IsSuccess())
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "s3://" + bucket + "/" + key);
+      }
+      return outcome.GetResult().GetContentLength();
+    }
+
+    /// Read a byte range from an S3 object into a string
+    std::string readS3Range(const Aws::S3::S3Client& client, const std::string& bucket,
+                            const std::string& key, long long start, long long end)
+    {
+      Aws::S3::Model::GetObjectRequest request;
+      request.SetBucket(bucket);
+      request.SetKey(key);
+      request.SetRange("bytes=" + std::to_string(start) + "-" + std::to_string(end));
+
+      auto outcome = client.GetObject(request);
+      if (!outcome.IsSuccess())
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Failed to read from s3://" + bucket + "/" + key + ": " + outcome.GetError().GetMessage());
+      }
+
+      std::ostringstream ss;
+      ss << outcome.GetResult().GetBody().rdbuf();
+      return ss.str();
+    }
+  } // anonymous namespace
+#endif
 
   namespace IndexedMzMLUtils
   {
@@ -67,6 +140,37 @@ namespace OpenMS
 
   int IndexedMzMLDecoder::parseOffsets(const String& filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
+    std::string buffer_str;
+    long long length = 0;
+
+#ifdef WITH_S3
+    //-------------------------------------------------------------
+    // Handle S3 URIs
+    //-------------------------------------------------------------
+    if (filename.hasPrefix("s3://"))
+    {
+      AwsSdkHelper::initializeAwsSdk();
+
+      std::string bucket, key;
+      parseS3Uri(filename, bucket, key);
+
+      Aws::Client::ClientConfiguration client_config;
+      Aws::S3::S3Client s3_client(client_config);
+
+      length = getS3ObjectSize(s3_client, bucket, key);
+
+      if (indexoffset < 0 || indexoffset > length)
+      {
+        std::cerr << "IndexedMzMLDecoder::parseOffsets Error: Offset was " <<
+          indexoffset << " (not between 0 and " << length << ")." << std::endl;
+        return -1;
+      }
+
+      buffer_str = readS3Range(s3_client, bucket, key, indexoffset, length - 1);
+    }
+    else
+#endif
+    {
     //-------------------------------------------------------------
     // Open file, jump to end and read last indexoffset bytes into buffer.
     //-------------------------------------------------------------
@@ -89,7 +193,7 @@ namespace OpenMS
 
     // get length of file:
     f.seekg(0, f.end);
-    std::streampos length = f.tellg();
+    length = f.tellg();
 
     if (indexoffset < 0 || indexoffset > length)
     {
@@ -110,7 +214,6 @@ namespace OpenMS
     // catch case where not enough memory is available
     if (buffer == nullptr)
     {
-      // Warning: Index takes up more than 10 % of the whole file, please check your input file.\n";
       std::cerr << "IndexedMzMLDecoder::parseOffsets Could not allocate enough memory to read in index of indexedMzML" << std::endl;
       std::cerr << "IndexedMzMLDecoder::parseOffsets calculated index offset " << indexoffset << " and file length " << length <<
         ", consequently tried to read into memory " << readl << " bytes." << std::endl;
@@ -121,15 +224,16 @@ namespace OpenMS
     f.seekg(-readl, f.end);
     f.read(buffer, readl);
     buffer[readl] = '\0';
+    buffer_str = buffer;
+    delete[] buffer;
+    }
 
     //-------------------------------------------------------------
     // Add a sane start element and then give it to a DOM parser
     //-------------------------------------------------------------
     // http://stackoverflow.com/questions/4691039/making-xerces-parse-a-string-insted-of-a-file
-    std::string tmp_fixed_xml = "<indexedmzML>" +  String(buffer) + "\n";
+    std::string tmp_fixed_xml = "<indexedmzML>" + buffer_str + "\n";
     int res = domParseIndexedEnd_(tmp_fixed_xml, spectra_offsets, chromatograms_offsets);
-
-    delete[] buffer;
 
     return res;
   }
@@ -138,7 +242,29 @@ namespace OpenMS
   {
     // return value
     std::streampos indexoffset = -1;
+    std::string buffer_str;
 
+#ifdef WITH_S3
+    //-------------------------------------------------------------
+    // Handle S3 URIs
+    //-------------------------------------------------------------
+    if (filename.hasPrefix("s3://"))
+    {
+      AwsSdkHelper::initializeAwsSdk();
+
+      std::string bucket, key;
+      parseS3Uri(filename, bucket, key);
+
+      Aws::Client::ClientConfiguration client_config;
+      Aws::S3::S3Client s3_client(client_config);
+
+      long long file_size = getS3ObjectSize(s3_client, bucket, key);
+      long long start = std::max(0LL, file_size - buffersize);
+      buffer_str = readS3Range(s3_client, bucket, key, start, file_size - 1);
+    }
+    else
+#endif
+    {
     //-------------------------------------------------------------
     // Open file, jump to end and read last n bytes into buffer.
     //-------------------------------------------------------------
@@ -165,10 +291,12 @@ namespace OpenMS
     f.seekg(-buffersize, f.end);
     f.read(buffer.get(), buffersize);
     buffer.get()[buffersize] = '\0';
+    buffer_str = buffer.get();
+    }
 
 #ifdef DEBUG_READER
     std::cout << " reading file " << filename  << " with size " << buffersize << '\n';
-    std::cout << buffer << '\n';
+    std::cout << buffer_str << '\n';
 #endif
 
     //-------------------------------------------------------------
@@ -176,8 +304,8 @@ namespace OpenMS
     // indexListOffset and read its content.
     //-------------------------------------------------------------
     boost::regex listoffset_rx(R"(<[^>/]*indexListOffset\s*>\s*(\d*))");
-    boost::cmatch matches;
-    boost::regex_search(buffer.get(), matches, listoffset_rx);
+    boost::smatch matches;
+    boost::regex_search(buffer_str, matches, listoffset_rx);
     String thismatch(matches[1].first, matches[1].second);
     if (!thismatch.empty())
     {
@@ -196,7 +324,7 @@ namespace OpenMS
     {
       std::cerr << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last "
                 << buffersize << " bytes. Maybe this is not a indexedMzML."
-                << buffer.get() << std::endl;
+                << buffer_str << std::endl;
     }
 
     return indexoffset;

@@ -18,6 +18,10 @@ set(sources_list
 list(APPEND sources_list MSChromatogramParquetConsumer.cpp)
 list(APPEND sources_list MobilogramParquetConsumer.cpp)
 
+if(WITH_S3)
+  list(APPEND sources_list S3InputSource.cpp)
+endif()
+
 ### add path to the filenames
 set(sources)
 foreach(i ${sources_list})

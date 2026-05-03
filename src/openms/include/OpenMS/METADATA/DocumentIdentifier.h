@@ -73,11 +73,31 @@ public:
     /// set the file_name_ according to absolute path of the file loaded from preferably done whilst loading
     void setLoadedFilePath(const String & file_name);
 
+    /**
+      @brief Set the loaded file path for a network resource (no path validation).
+
+      Unlike setLoadedFilePath(), this does not attempt to convert relative paths
+      to absolute paths and accepts any URI string (e.g., http://, s3://).
+
+      @param[in] file_name Network URI or path to store
+    */
+    void setLoadedNetFilePath(const String & file_name);
+
     /// get the file_name_ which is the absolute path to the file loaded from
     const String & getLoadedFilePath() const;
 
     /// set the file_type according to the type of the file loaded from (see FileHandler::Type) preferably done whilst loading
     void setLoadedFileType(const String & file_name);
+
+    /**
+      @brief Set the file type directly from an enum value.
+
+      Use this when the file type is already known (e.g., for remote files
+      where content-based detection is not possible).
+
+      @param[in] type The file type to set
+    */
+    void setLoadedFileType(FileTypes::Type type);
 
     /// get the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded from
     const FileTypes::Type & getLoadedFileType() const;

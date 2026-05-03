@@ -60,6 +60,7 @@ option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
 option(ENABLE_OPENTIMS_TESTS "Download Bruker test data for opentims integration tests" OFF)
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
+option(WITH_S3 "Build with S3 loading support. Uses the AWS SDK (e.g. from Apache Arrow)." OFF)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
 
 if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
