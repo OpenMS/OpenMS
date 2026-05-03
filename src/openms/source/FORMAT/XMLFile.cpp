@@ -25,7 +25,7 @@
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
-#include <boost/iostreams/device/file_descriptor.hpp>
+#include <boost/iostreams/device/file.hpp>
 
 #include <fstream>
 #include <iomanip> // setprecision etc.
@@ -230,7 +230,7 @@ private:
           os.push(boost::iostreams::bzip2_compressor());
         }
 
-        os.push(boost::iostreams::file_descriptor_sink(filename, std::ios::out | std::ios::binary));
+        os.push(boost::iostreams::file_sink(filename, std::ios::out | std::ios::binary));
         os.precision(writtenDigits(double()));
 
         if (!os.good())
