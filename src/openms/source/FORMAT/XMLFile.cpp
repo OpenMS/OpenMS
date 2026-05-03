@@ -221,7 +221,7 @@ private:
         class GzipOStreambuf : public std::streambuf
         {
         public:
-          static constexpr int BUF_SIZE = 65536;
+          enum { BUF_SIZE = 65536 };
 
           explicit GzipOStreambuf(const char* fn) : gz_(gzopen(fn, "wb"))
           {
@@ -282,7 +282,7 @@ private:
         class Bzip2OStreambuf : public std::streambuf
         {
         public:
-          static constexpr int BUF_SIZE = 65536;
+          enum { BUF_SIZE = 65536 };
 
           explicit Bzip2OStreambuf(const char* fn) : file_(nullptr), bz_(nullptr)
           {
