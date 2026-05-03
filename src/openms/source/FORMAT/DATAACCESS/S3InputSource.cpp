@@ -126,7 +126,7 @@ namespace OpenMS
       uri = uri.substr(5);
     }
 
-    Size slash_pos = uri.find('/');
+    size_t slash_pos = uri.find('/');
     if (slash_pos == std::string::npos)
     {
       throw std::runtime_error("Invalid S3 URI format: missing '/' after bucket name in '" + s3uri + "'");

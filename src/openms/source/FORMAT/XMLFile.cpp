@@ -122,10 +122,10 @@ private:
       StringManager sm;
 
       // Detect remote URIs (skip local file existence check for them)
-      bool is_remote = filename.hasPrefix("http:") || filename.hasPrefix("https:")
-                       || filename.hasPrefix("ftp:")
+      bool is_remote = filename.hasPrefix("http://") || filename.hasPrefix("https://")
+                       || filename.hasPrefix("ftp://")
 #ifdef WITH_S3
-                       || filename.hasPrefix("s3:")
+                       || filename.hasPrefix("s3://")
 #endif
                        ;
 
@@ -147,13 +147,13 @@ private:
 
       unique_ptr<xercesc::InputSource> source;
 
-      if (filename.hasPrefix("http:") || filename.hasPrefix("https:") || filename.hasPrefix("ftp:"))
+      if (filename.hasPrefix("http://") || filename.hasPrefix("https://") || filename.hasPrefix("ftp://"))
       {
         // Use Xerces URLInputSource for HTTP/HTTPS/FTP streaming
         source.reset(new xercesc::URLInputSource(sm.convert(filename).c_str()));
       }
 #ifdef WITH_S3
-      else if (filename.hasPrefix("s3:"))
+      else if (filename.hasPrefix("s3://"))
       {
         source.reset(new S3InputSource(filename));
       }
