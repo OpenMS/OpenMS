@@ -91,7 +91,16 @@ function(openms_add_compiler_flags target_name)
   if(NOT MSVC AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}")
     target_compile_options(${target_name} PUBLIC -mssse3)
   endif()
-  
+
+  # When full OpenMP isn't available (typically Apple clang without libomp),
+  # multithreading.cmake sets OPENMS_OMP_SIMD_FALLBACK_FLAG to -fopenmp-simd
+  # so #pragma omp simd vectorization still works. Apply it PUBLIC, like the
+  # SIMD ISA flag above, so downstream consumers see the same parser mode.
+  # Not gated on architecture: -fopenmp-simd is useful on ARM too (NEON).
+  if(OPENMS_OMP_SIMD_FALLBACK_FLAG)
+    target_compile_options(${target_name} PUBLIC ${OPENMS_OMP_SIMD_FALLBACK_FLAG})
+  endif()
+
   #------------------------------------------------------------------------------
   # PRIVATE flags (not propagated to dependent targets)
   #------------------------------------------------------------------------------
