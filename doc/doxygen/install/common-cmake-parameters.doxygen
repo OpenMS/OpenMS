@@ -111,6 +111,18 @@ The most important CMake variables are:
     Recommended for Linux distributions. (Default: Off, On for Ubuntu in CI)</td>
   </tr>
   <tr>
+    <th valign="top">LP_SOLVER=AUTO/COIN/GLPK/HIGHS</td>
+    <td>Select the linear programming solver backend. <code>AUTO</code> (default) tries COIN-OR first,
+    then GLPK, then fetches HiGHS automatically via FetchContent if neither is installed.
+    Set to <code>COIN</code>, <code>GLPK</code>, or <code>HIGHS</code> to require a specific solver.</td>
+  </tr>
+  <tr>
+    <th valign="top">WITH_WNETALIGN=On/Off</td>
+    <td>Enable the Wasserstein network alignment feature (FeatureLinkerWNet TOPP tool).
+    When enabled, the three header-only libraries <code>pylmcf</code>, <code>wnet</code>, and
+    <code>wnetalign</code> are fetched automatically via FetchContent. (Default: On)</td>
+  </tr>
+  <tr>
     <th valign="top">CMAKE_INSTALL_PREFIX</td>
     <td>the path where the bin/ and lib/ directories should be installed to
         (when <pre>sudo make install</pre> is wished for a system-wide
