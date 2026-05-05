@@ -132,11 +132,13 @@ brew install libomp
 cmake -DOpenMP_ROOT=$(brew --prefix libomp) [other cmake options]
 ```
 
-To skip OpenMP entirely (no parallel regions, no SIMD pragmas), pass:
+To skip OpenMP entirely, pass:
 
 ```bash
 cmake -DMT_ENABLE_OPENMP=OFF [other cmake options]
 ```
+
+This disables both OpenMP parallel regions and the `-fopenmp-simd` fallback. The `#pragma omp simd` directives in the source remain, but the compiler ignores unrecognized pragmas (`-Wno-unknown-pragmas`), so they have no effect on the generated code.
 
 
 

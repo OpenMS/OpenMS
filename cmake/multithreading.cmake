@@ -36,9 +36,11 @@ if (MT_ENABLE_OPENMP)
       message(STATUS
         "Full OpenMP not found; falling back to -fopenmp-simd. "
         "#pragma omp simd will vectorize, but #pragma omp parallel will not. "
-        "To get full OpenMP, install your platform's OpenMP runtime "
-        "(e.g. `brew install libomp` on macOS, libgomp-dev on Debian/Ubuntu) "
-        "and reconfigure with -DOpenMP_ROOT=<runtime-prefix>.")
+        "On macOS, install Homebrew's libomp (`brew install libomp`) and "
+        "reconfigure with -DOpenMP_ROOT=$(brew --prefix libomp) for full OpenMP. "
+        "On Linux this fallback is uncommon (libgomp/libomp ship with GCC and "
+        "Clang); if it fires here, check that your toolchain installation is "
+        "complete and that find_package(OpenMP) can locate it.")
     else()
       message(FATAL_ERROR
         "OpenMP was requested (MT_ENABLE_OPENMP=ON) but neither full OpenMP "
