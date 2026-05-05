@@ -94,10 +94,12 @@ function(openms_add_compiler_flags target_name)
 
   # When full OpenMP isn't available (typically Apple clang without libomp),
   # multithreading.cmake sets OPENMS_OMP_SIMD_FALLBACK_FLAG to -fopenmp-simd
-  # so #pragma omp simd vectorization still works. Apply it PUBLIC, like the
-  # SIMD ISA flag above, so downstream consumers see the same parser mode.
+  # so #pragma omp simd vectorization still works. Apply it PUBLIC so that
+  # downstream targets can also use #pragma omp simd without extra flags.
+  # (No link-time effect; PUBLIC here follows the convention set by -mssse3,
+  # which IS ABI-load-bearing because of intrinsics in headers.)
   # Not gated on architecture: -fopenmp-simd is useful on ARM too (NEON).
-  if(OPENMS_OMP_SIMD_FALLBACK_FLAG)
+  if(DEFINED OPENMS_OMP_SIMD_FALLBACK_FLAG)
     target_compile_options(${target_name} PUBLIC ${OPENMS_OMP_SIMD_FALLBACK_FLAG})
   endif()
 
