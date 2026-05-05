@@ -11,8 +11,6 @@
 #------------------------------------------------------------------------------
 message(STATUS "OpenMP support requested: ${MT_ENABLE_OPENMP}")
 
-include(CheckCXXCompilerFlag)
-
 if (MT_ENABLE_OPENMP)
   find_package(OpenMP COMPONENTS CXX)
 
@@ -22,6 +20,11 @@ if (MT_ENABLE_OPENMP)
     # WITHOUT requiring libgomp/libomp at link time and WITHOUT defining _OPENMP.
     # Existing OpenMP::OpenMP_CXX consumers are gated by OPENMP_FOUND, so this
     # fallback does not activate any OpenMP-runtime-dependent code path.
+    # Note: CHECK_CXX_COMPILER_FLAG caches OPENMS_HAS_FOPENMP_SIMD as an
+    # INTERNAL cache variable (standard CMake behavior). If you upgrade the
+    # compiler and want the probe to re-run, delete that cache entry or pass
+    # -UOPENMS_HAS_FOPENMP_SIMD on the next configure.
+    include(CheckCXXCompilerFlag)
     CHECK_CXX_COMPILER_FLAG("-fopenmp-simd" OPENMS_HAS_FOPENMP_SIMD)
     if (OPENMS_HAS_FOPENMP_SIMD)
       # Plain (non-CACHE) variable on purpose: we want it to reset to undefined
@@ -33,8 +36,9 @@ if (MT_ENABLE_OPENMP)
       message(STATUS
         "Full OpenMP not found; falling back to -fopenmp-simd. "
         "#pragma omp simd will vectorize, but #pragma omp parallel will not. "
-        "To get full OpenMP on macOS, install libomp (e.g. `brew install libomp`) "
-        "and reconfigure with -DOpenMP_ROOT=$(brew --prefix libomp).")
+        "To get full OpenMP, install your platform's OpenMP runtime "
+        "(e.g. `brew install libomp` on macOS, libgomp-dev on Debian/Ubuntu) "
+        "and reconfigure with -DOpenMP_ROOT=<runtime-prefix>.")
     else()
       message(FATAL_ERROR
         "OpenMP was requested (MT_ENABLE_OPENMP=ON) but neither full OpenMP "
