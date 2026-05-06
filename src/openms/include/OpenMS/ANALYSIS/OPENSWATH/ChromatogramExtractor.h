@@ -140,13 +140,6 @@ public:
     */
     static void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
                                     std::vector< ExtractionCoordinates > & coordinates,
-                                    const OpenMS::TargetedExperiment & transition_exp,
-                                    const double rt_extraction_window,
-                                    const bool ms1 = false,
-                                    const int ms1_isotopes = 0);
-
-    static void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
-                                    std::vector< ExtractionCoordinates > & coordinates,
                                     const OpenSwath::LightTargetedExperiment & transition_exp_used,
                                     const double rt_extraction_window,
                                     const bool ms1 = false,
