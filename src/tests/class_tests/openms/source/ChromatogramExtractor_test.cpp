@@ -10,6 +10,7 @@
 
 #include <OpenMS/test_config.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
@@ -105,6 +106,45 @@ START_SECTION(void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr >
 
     TEST_EQUAL(OpenSwathHelper::computeTransitionGroupId(coordinates[0].id), "tr_gr1")
     TEST_EQUAL(OpenSwathHelper::computeTransitionGroupId(coordinates[1].id), "tr_gr2")
+  }
+
+  // Regression test for issue #7284: ms1_isotopes was previously ignored on
+  // the OpenMS::TargetedExperiment overload because of a literal `&& false`
+  // guard. Verify the parameter now produces (1 + ms1_isotopes) coordinates
+  // per peptide, with isotope IDs and m/z derived from C13C12_MASSDIFF_U.
+  {
+    std::vector< OpenSwath::ChromatogramPtr > output_chromatograms;
+    std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
+    ChromatogramExtractor extractor;
+    const int ms1_isotopes = 2;
+    extractor.prepare_coordinates(output_chromatograms, coordinates,
+                                  transitions, rt_extraction_window,
+                                  /*ms1*/ true, ms1_isotopes);
+
+    // 2 peptides * (1 monoisotopic + 2 isotopes) = 6 coordinates
+    TEST_EQUAL(output_chromatograms.size(), coordinates.size())
+    TEST_EQUAL(coordinates.size(), 6)
+
+    // After stable_sort by m/z the order is:
+    // 500.000  pep1 i0
+    // 501.000  pep2 i0
+    // 501.003  pep1 i1 = 500 + 1*C13C12_MASSDIFF_U
+    // 502.003  pep2 i1 = 501 + 1*C13C12_MASSDIFF_U
+    // 502.007  pep1 i2 = 500 + 2*C13C12_MASSDIFF_U
+    // 503.007  pep2 i2 = 501 + 2*C13C12_MASSDIFF_U
+    TEST_REAL_SIMILAR(coordinates[0].mz, 500.0)
+    TEST_REAL_SIMILAR(coordinates[1].mz, 501.0)
+    TEST_REAL_SIMILAR(coordinates[2].mz, 500.0 + 1 * Constants::C13C12_MASSDIFF_U)
+    TEST_REAL_SIMILAR(coordinates[3].mz, 501.0 + 1 * Constants::C13C12_MASSDIFF_U)
+    TEST_REAL_SIMILAR(coordinates[4].mz, 500.0 + 2 * Constants::C13C12_MASSDIFF_U)
+    TEST_REAL_SIMILAR(coordinates[5].mz, 501.0 + 2 * Constants::C13C12_MASSDIFF_U)
+
+    TEST_EQUAL(coordinates[0].id, "tr_gr1_Precursor_i0")
+    TEST_EQUAL(coordinates[1].id, "tr_gr2_Precursor_i0")
+    TEST_EQUAL(coordinates[2].id, "tr_gr1_Precursor_i1")
+    TEST_EQUAL(coordinates[3].id, "tr_gr2_Precursor_i1")
+    TEST_EQUAL(coordinates[4].id, "tr_gr1_Precursor_i2")
+    TEST_EQUAL(coordinates[5].id, "tr_gr2_Precursor_i2")
   }
 
 }
