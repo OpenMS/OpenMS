@@ -199,6 +199,12 @@ namespace OpenMS
   {
     OpenSwath::LightModification light_mod;
 
+    // Reset RT-related fields up front so a reused LightCompound doesn't leak
+    // a stale rt/rt_start/rt_end when the new source has no RT info.
+    p.rt       = std::numeric_limits<double>::quiet_NaN();
+    p.rt_start = std::numeric_limits<double>::quiet_NaN();
+    p.rt_end   = std::numeric_limits<double>::quiet_NaN();
+
     p.id = pep.id;
     if (pep.hasRetentionTime())
     {
@@ -208,11 +214,14 @@ namespace OpenMS
         p.rt = 60 * pep.getRetentionTime();
       }
     }
-    // If the source library encodes a retention-time *range* via two RT entries
-    // (e.g. some pqp/TraML libraries), preserve it on the LightCompound so that
-    // ChromatogramExtractor::prepare_coordinates(..., rt_extraction_window=NaN)
-    // can use it. MINUTE→second conversion is applied per entry to match `p.rt`.
-    if (pep.rts.size() >= 2)
+    // If the source library encodes a retention-time *range* via exactly two
+    // RT entries (e.g. some pqp/TraML libraries), preserve it on the
+    // LightCompound so that ChromatogramExtractor::prepare_coordinates with
+    // rt_extraction_window=NaN can use it. We require exactly two entries
+    // (not >=2) to match the old heavyweight overload's contract; libraries
+    // with 3+ RT entries encode different semantics and should not be silently
+    // truncated.
+    if (pep.rts.size() == 2)
     {
       auto rt_in_seconds = [](const TargetedExperimentHelper::RetentionTime& r) {
         return r.retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE
@@ -289,6 +298,12 @@ namespace OpenMS
 
   void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Compound& compound, OpenSwath::LightCompound & comp)
   {
+    // Reset RT-related fields up front so a reused LightCompound doesn't leak
+    // stale values when the new source has no RT info.
+    comp.rt       = std::numeric_limits<double>::quiet_NaN();
+    comp.rt_start = std::numeric_limits<double>::quiet_NaN();
+    comp.rt_end   = std::numeric_limits<double>::quiet_NaN();
+
     comp.id = compound.id;
     if (compound.hasRetentionTime())
     {
@@ -299,9 +314,11 @@ namespace OpenMS
       }
     }
     // Preserve a per-compound retention-time range (rt_start, rt_end) when the
-    // source library encodes one via two RT entries — used by
-    // ChromatogramExtractor::prepare_coordinates(..., rt_extraction_window=NaN).
-    if (compound.rts.size() >= 2)
+    // source library encodes one via exactly two RT entries — used by
+    // ChromatogramExtractor::prepare_coordinates with rt_extraction_window=NaN.
+    // We require exactly two entries to match the old heavyweight overload's
+    // contract.
+    if (compound.rts.size() == 2)
     {
       auto rt_in_seconds = [](const TargetedExperimentHelper::RetentionTime& r) {
         return r.retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE

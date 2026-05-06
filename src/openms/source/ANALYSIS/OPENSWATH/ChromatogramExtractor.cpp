@@ -126,7 +126,16 @@ namespace OpenMS
 
       if (rt_extraction_window >= 0)
       {
-        // if 'rt_extraction_window' is non-negative, use the (first) RT value as window center
+        // Non-negative rt_extraction_window: use pep.rt as window center.
+        // pep.rt is NaN when the source library had no retention-time info;
+        // throw to match the pre-unification heavyweight overload's behavior
+        // (silently using NaN here would produce an empty extraction window).
+        if (std::isnan(pep.rt))
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Error: Peptide " + pep.id +
+              " does not have retention time information which is necessary to perform an RT-limited extraction");
+        }
         double rt = pep.rt;
         coord.rt_start = rt - rt_extraction_window / 2.0;
         coord.rt_end = rt + rt_extraction_window / 2.0;
@@ -134,8 +143,9 @@ namespace OpenMS
       else if (std::isnan(rt_extraction_window))
       {
         // NaN means: use the per-compound RT range encoded on the LightCompound
-        // (populated from a heavyweight TargetedExperiment::Peptide whose `rts`
-        // vector had two entries — see OpenSwathDataAccessHelper::convertTargetedExp).
+        // (populated from a heavyweight TargetedExperiment::Peptide/Compound whose
+        // `rts` vector had exactly two entries — see
+        // OpenSwathDataAccessHelper::convertTargetedExp).
         if (std::isnan(pep.rt_start) || std::isnan(pep.rt_end))
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,

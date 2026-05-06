@@ -386,12 +386,14 @@ private:
     prec_charge = comp.charge;
     if (!comp.sequence.empty())
     {
-      return comp.sequence;
+      return comp.sequence;        // peptide path
     }
-    else
+    if (!comp.compound_name.empty())
     {
-      return comp.compound_name;
+      return comp.compound_name;   // metabolite with human-readable CompoundName
     }
+    return comp.id;                // fallback when compound_name is unset (matches the
+                                   // behavior of the now-removed heavyweight overload)
   }
 
   // Const-qualified template specialization for extract_id_.

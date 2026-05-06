@@ -270,6 +270,7 @@ namespace OpenSwath
 
     LightCompound() :
       drift_time(-1),
+      rt(std::numeric_limits<double>::quiet_NaN()),
       rt_start(std::numeric_limits<double>::quiet_NaN()),
       rt_end(std::numeric_limits<double>::quiet_NaN()),
       charge(0)
@@ -277,6 +278,8 @@ namespace OpenSwath
     }
 
     double drift_time;
+    /// Retention time (seconds). NaN if unset — `ChromatogramExtractor::prepare_coordinates`
+    /// throws if a non-negative `rt_extraction_window` is requested but `rt` is NaN.
     double rt;
     /// Optional retention time range, used by ChromatogramExtractor::prepare_coordinates
     /// when called with rt_extraction_window=NaN. Both NaN means "no range encoded";
