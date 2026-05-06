@@ -138,7 +138,7 @@ To skip OpenMP entirely, pass:
 cmake -DMT_ENABLE_OPENMP=OFF [other cmake options]
 ```
 
-This disables both OpenMP parallel regions and the `-fopenmp-simd` fallback. The `#pragma omp simd` directives in the source remain, but the compiler ignores unrecognized pragmas (`-Wno-unknown-pragmas`), so they have no effect on the generated code.
+This disables both OpenMP parallel regions and the `-fopenmp-simd` fallback. The `#pragma omp simd` directives in the source remain but have no effect on the generated code; `cmake/compiler_flags.cmake` silences the warning that would otherwise fire by passing `-Wno-source-uses-openmp` to Apple Clang (and `-Wno-unknown-pragmas` to GCC).
 
 
 
