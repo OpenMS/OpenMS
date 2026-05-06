@@ -208,6 +208,20 @@ namespace OpenMS
         p.rt = 60 * pep.getRetentionTime();
       }
     }
+    // If the source library encodes a retention-time *range* via two RT entries
+    // (e.g. some pqp/TraML libraries), preserve it on the LightCompound so that
+    // ChromatogramExtractor::prepare_coordinates(..., rt_extraction_window=NaN)
+    // can use it. MINUTE→second conversion is applied per entry to match `p.rt`.
+    if (pep.rts.size() >= 2)
+    {
+      auto rt_in_seconds = [](const TargetedExperimentHelper::RetentionTime& r) {
+        return r.retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE
+                 ? 60.0 * r.getRT()
+                 : r.getRT();
+      };
+      p.rt_start = rt_in_seconds(pep.rts[0]);
+      p.rt_end   = rt_in_seconds(pep.rts[1]);
+    }
     p.setDriftTime(pep.getDriftTime());
 
     if (pep.hasCharge())
@@ -283,6 +297,19 @@ namespace OpenMS
       {
         comp.rt = 60 * compound.getRetentionTime();
       }
+    }
+    // Preserve a per-compound retention-time range (rt_start, rt_end) when the
+    // source library encodes one via two RT entries — used by
+    // ChromatogramExtractor::prepare_coordinates(..., rt_extraction_window=NaN).
+    if (compound.rts.size() >= 2)
+    {
+      auto rt_in_seconds = [](const TargetedExperimentHelper::RetentionTime& r) {
+        return r.retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE
+                 ? 60.0 * r.getRT()
+                 : r.getRT();
+      };
+      comp.rt_start = rt_in_seconds(compound.rts[0]);
+      comp.rt_end   = rt_in_seconds(compound.rts[1]);
     }
     comp.setDriftTime(compound.getDriftTime());
 
