@@ -74,6 +74,8 @@ OpenMS/
 
 **Optional:** HDF5 (`-DWITH_HDF5=ON`)
 
+**Enabled by default (fetched via FetchContent; requires network or `FETCHCONTENT_SOURCE_DIR_*` override):** WNetAlign/WNet/PyLMCF for `FeatureLinkerWNet` (`-DWITH_WNETALIGN=OFF` to disable)
+
 **Always enabled:** Apache Arrow/Parquet (required dependency since 3.6)
 
 ## Platform-Specific Build Gotchas
