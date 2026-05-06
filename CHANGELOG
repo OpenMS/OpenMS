@@ -407,6 +407,7 @@ Fixes:
   - Fix IDMapper duplicate spectrum reference insertion when the same spectrum is mapped multiple times (#8905)
   - Fix segfault in FeatureLinkerUnlabeledKD with charge_merging=Any when all candidate features have a non-matching charge, causing best_index to remain unset (#8944)
   - Fix TOPPView performance regression when right-clicking in large mzML files (#8997)
+  - Fix: TOPPView: prevent segfault on extreme zoom in 1D view in SNAP intensity mode; when the visible m/z range contains no peaks the intensity range collapsed to [0, 0], causing divide-by-zero in dataToWidget_ and a crash in Qt's painter; now falls back to the layer's overall intensity range (#9206, #9263)
 
 Documentation:
   - Comprehensive documentation for Targeted Quantitation algorithms (#8588)
