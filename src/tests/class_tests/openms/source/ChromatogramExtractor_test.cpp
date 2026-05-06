@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
@@ -46,12 +47,17 @@ START_SECTION(void extractChromatograms(const OpenSwath::SpectrumAccessPtr input
 }
 END_SECTION
 
-START_SECTION(void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms, std::vector< ExtractionCoordinates > & coordinates, OpenMS::TargetedExperiment & transition_exp, const double rt_extraction_window, const bool ms1) const)
+START_SECTION(void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms, std::vector< ExtractionCoordinates > & coordinates, const OpenSwath::LightTargetedExperiment & transition_exp_used, const double rt_extraction_window, const bool ms1, const int ms1_isotopes))
 {
   TargetedExperiment transitions;
   TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.TraML"), transitions);
   TargetedExperiment transitions_;
   TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.TraML"), transitions_);
+  // The TargetedExperiment overload was removed (issue #7284); convert once
+  // and exercise the LightTargetedExperiment overload throughout. The NaN
+  // window relies on rt_start/rt_end now carried on LightCompound.
+  OpenSwath::LightTargetedExperiment light_transitions;
+  OpenSwathDataAccessHelper::convertTargetedExp(transitions, light_transitions);
   double rt_extraction_window = 1.0;
 
   // Test transitions
@@ -59,7 +65,7 @@ START_SECTION(void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr >
     std::vector< OpenSwath::ChromatogramPtr > output_chromatograms;
     std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
     ChromatogramExtractor extractor;
-    extractor.prepare_coordinates(output_chromatograms, coordinates, transitions, rt_extraction_window, false);
+    extractor.prepare_coordinates(output_chromatograms, coordinates, light_transitions, rt_extraction_window, false);
 
     TEST_TRUE(transitions == transitions_)
     TEST_EQUAL(output_chromatograms.size(), coordinates.size())
@@ -87,7 +93,7 @@ START_SECTION(void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr >
     std::vector< OpenSwath::ChromatogramPtr > output_chromatograms;
     std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
     ChromatogramExtractor extractor;
-    extractor.prepare_coordinates(output_chromatograms, coordinates, transitions, rt_extraction_window, true);
+    extractor.prepare_coordinates(output_chromatograms, coordinates, light_transitions, rt_extraction_window, true);
 
     TEST_TRUE(transitions == transitions_)
     TEST_EQUAL(output_chromatograms.size(), coordinates.size())
@@ -118,7 +124,7 @@ START_SECTION(void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr >
     ChromatogramExtractor extractor;
     const int ms1_isotopes = 2;
     extractor.prepare_coordinates(output_chromatograms, coordinates,
-                                  transitions, rt_extraction_window,
+                                  light_transitions, rt_extraction_window,
                                   /*ms1*/ true, ms1_isotopes);
 
     // 2 peptides * (1 monoisotopic + 2 isotopes) = 6 coordinates
@@ -159,6 +165,9 @@ START_SECTION((template < typename TransitionExpT > static void return_chromatog
 
   TargetedExperiment transitions;
   TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.TraML"), transitions);
+  // Convert once for both prepare_coordinates and return_chromatogram (issue #7284 cleanup).
+  OpenSwath::LightTargetedExperiment light_transitions;
+  OpenSwathDataAccessHelper::convertTargetedExp(transitions, light_transitions);
 
   std::shared_ptr<PeakMap > exp(new PeakMap);
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.mzML"), *exp);
@@ -169,12 +178,12 @@ START_SECTION((template < typename TransitionExpT > static void return_chromatog
     std::vector< OpenSwath::ChromatogramPtr > output_chromatograms;
     std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
     ChromatogramExtractor extractor;
-    extractor.prepare_coordinates(output_chromatograms, coordinates, transitions, rt_extraction_window, false);
+    extractor.prepare_coordinates(output_chromatograms, coordinates, light_transitions, rt_extraction_window, false);
 
-    extractor.extractChromatograms(expptr, output_chromatograms, coordinates, 
+    extractor.extractChromatograms(expptr, output_chromatograms, coordinates,
         extract_window, ppm, extraction_function);
 
-    extractor.return_chromatogram(output_chromatograms, coordinates, transitions, (*exp)[0], chromatograms, false);
+    extractor.return_chromatogram(output_chromatograms, coordinates, light_transitions, (*exp)[0], chromatograms, false);
   }
 
   TEST_EQUAL(chromatograms.size(), 3)
