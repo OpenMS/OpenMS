@@ -10,6 +10,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
@@ -388,12 +389,11 @@ private:
     {
       return comp.sequence;        // peptide path
     }
-    if (!comp.compound_name.empty())
-    {
-      return comp.compound_name;   // metabolite with human-readable CompoundName
-    }
-    return comp.id;                // fallback when compound_name is unset (matches the
-                                   // behavior of the now-removed heavyweight overload)
+    // Fall through to compound_name (may itself be empty — that is intentional
+    // for iRT calibration peptides, which carry empty sequence and no
+    // CompoundName user-param. Downstream consumers expect an empty
+    // peptide_sequence userParam in that case).
+    return comp.compound_name;
   }
 
   // Const-qualified template specialization for extract_id_.
