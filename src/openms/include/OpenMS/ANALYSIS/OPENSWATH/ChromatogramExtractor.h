@@ -128,7 +128,7 @@ public:
      * @param[out] coordinates An empty vector which will be filled with the
      *   appropriate extraction coordinates in m/z and rt and sorted by m/z (to
      *   be used as input to extractChromatograms)
-     * @param[in] transition_exp The transition experiment used as input (is constant)
+     * @param[in] transition_exp_used The transition experiment used as input
      * @param[in] rt_extraction_window If non-negative, full RT extraction window,
      *   centered on the first RT value (@p rt_end - @p rt_start will equal this
      *   window size). If negative, @p rt_end will be set to -1 and @p rt_start
@@ -269,10 +269,9 @@ private:
     /**
      * @brief Extracts id (peptide sequence or compound name) for a compound
      *
-     * @param[out] transition_exp_used The transition experiment used as input (is constant) and either of type LightTargetedExperiment or TargetedExperiment
-     * @param[in] id The identifier of the compound or peptide
-     * @param[in] prec_charge The charge state of the precursor
-     *
+     * @param[in]  transition_exp_used The transition experiment used as input (LightTargetedExperiment)
+     * @param[in]  id The identifier of the compound or peptide
+     * @param[out] prec_charge The charge state of the precursor (filled by this function)
      */
     template <typename TransitionExpT>
     static String extract_id_(TransitionExpT& transition_exp_used, const String& id, int& prec_charge);
