@@ -146,6 +146,7 @@
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/INTERFACES/DataStructures.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -1285,6 +1286,27 @@ chromatograms to be consumed and need to be informed about this
         .def_static("imPeakTypeToString", [](OpenMS::IMPeakType value) {
             return OpenMS::imPeakTypeToString(value);
         }, "value"_a, "Convert IMPeakType to string")
+        ;
+
+    // -----------------------------------------------------------------------
+    // FAIMSHelper
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::FAIMSHelper>(m, "FAIMSHelper",
+        "Helper functions for FAIMS data (compensation voltages, peptide ID filtering)")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::FAIMSHelper &>())
+        .def("__copy__", [](const OpenMS::FAIMSHelper& self) { return OpenMS::FAIMSHelper(self); })
+        .def("__deepcopy__", [](const OpenMS::FAIMSHelper& self, nb::dict) { return OpenMS::FAIMSHelper(self); }, "memo"_a)
+        .def_static("getCompensationVoltages",
+            [](const OpenMS::PeakMap& exp) { return OpenMS::FAIMSHelper::getCompensationVoltages(exp); },
+            "exp"_a,
+            "Returns the unique FAIMS compensation voltages (CVs) found across spectra of `exp` whose drift time unit is FAIMS_COMPENSATION_VOLTAGE. Empty set if none.")
+        .def_static("filterPeptidesByFAIMSCV",
+            [](const OpenMS::PeptideIdentificationList& peptides, double target_cv, double cv_tolerance) {
+                return OpenMS::FAIMSHelper::filterPeptidesByFAIMSCV(peptides, target_cv, cv_tolerance);
+            },
+            "peptides"_a, "target_cv"_a, "cv_tolerance"_a = 0.01,
+            "Filters peptide identifications by FAIMS compensation voltage. IDs without FAIMS_CV annotation are kept for backward compatibility.")
         ;
 
     // -----------------------------------------------------------------------
