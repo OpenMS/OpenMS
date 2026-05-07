@@ -48,6 +48,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
@@ -2293,9 +2294,16 @@ ProgressLogger
                 double rt_extraction_window,
                 bool ms1,
                 int ms1_isotopes) {
+            // The TargetedExperiment overload of prepare_coordinates was
+            // removed in favor of the LightTargetedExperiment one (see issue
+            // #7284). Convert internally to keep this Python signature stable
+            // for existing callers; rt_extraction_window=NaN now uses the
+            // rt_start/rt_end fields populated by convertTargetedExp.
+            OpenSwath::LightTargetedExperiment light_exp;
+            OpenMS::OpenSwathDataAccessHelper::convertTargetedExp(targeted, light_exp);
             std::vector<std::shared_ptr<OpenSwath::OSChromatogram>> output_chromatograms;
             std::vector<OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates> extraction_coordinates;
-            OpenMS::ChromatogramExtractor::prepare_coordinates(output_chromatograms, extraction_coordinates, targeted, rt_extraction_window, ms1, ms1_isotopes);
+            OpenMS::ChromatogramExtractor::prepare_coordinates(output_chromatograms, extraction_coordinates, light_exp, rt_extraction_window, ms1, ms1_isotopes);
             // Update Python lists in-place
             while (nb::len(output_chromatograms_py) > 0) { output_chromatograms_py.attr("pop")(); }
             for (auto& c : output_chromatograms) { output_chromatograms_py.append(nb::cast(c)); }
