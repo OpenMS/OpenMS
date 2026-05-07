@@ -1294,6 +1294,9 @@ chromatograms to be consumed and need to be informed about this
     nb::class_<OpenMS::FAIMSHelper>(m, "FAIMSHelper",
         "Helper functions for FAIMS data (compensation voltages, peptide ID filtering)")
         .def(nb::init<>())
+        .def(nb::init<const OpenMS::FAIMSHelper &>())
+        .def("__copy__", [](const OpenMS::FAIMSHelper& self) { return OpenMS::FAIMSHelper(self); })
+        .def("__deepcopy__", [](const OpenMS::FAIMSHelper& self, nb::dict) { return OpenMS::FAIMSHelper(self); }, "memo"_a)
         .def_static("getCompensationVoltages",
             [](const OpenMS::PeakMap& exp) { return OpenMS::FAIMSHelper::getCompensationVoltages(exp); },
             "exp"_a,

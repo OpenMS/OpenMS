@@ -41,10 +41,14 @@ def test_get_compensation_voltages_ignores_non_faims():
 
 def _make_pid_list():
     pids = poms.PeptideIdentificationList()
-    a = poms.PeptideIdentification(); a.setMetaValue("FAIMS_CV", -45.0)
-    b = poms.PeptideIdentification(); b.setMetaValue("FAIMS_CV", -65.0)
+    a = poms.PeptideIdentification()
+    a.setMetaValue("FAIMS_CV", -45.0)
+    b = poms.PeptideIdentification()
+    b.setMetaValue("FAIMS_CV", -65.0)
     c = poms.PeptideIdentification()  # no FAIMS_CV — kept for backward compat
-    pids.append(a); pids.append(b); pids.append(c)
+    pids.append(a)
+    pids.append(b)
+    pids.append(c)
     return pids
 
 
