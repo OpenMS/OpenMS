@@ -2,24 +2,178 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: George Rosenberger $
-// $Authors: George Rosenberger $
+// $Maintainer: George Rosenberger, Justin Sing $
+// $Authors: George Rosenberger, Justin Sing $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/OSWFile.h>
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <sqlite3.h>
 
+#include <algorithm>
 #include <cstring> // for strcmp
+#include <optional>
 #include <sstream>
+#include <unordered_map>
 #include <utility> // for std::move
 
 namespace OpenMS
 {
   namespace Sql = Internal::SqliteHelper;
   using namespace std;
+
+  namespace
+  {
+    void checkSqliteReturnCode_(sqlite3* db, const int rc, const String& action);
+    void tryCreateIndex_(SqliteConnector& conn, const String& sql);
+
+    void tryCreateIndexIfTableExists_(SqliteConnector& conn, const String& table_name, const String& sql)
+    {
+      if (!conn.tableExists(table_name))
+      {
+        return;
+      }
+      tryCreateIndex_(conn, sql);
+    }
+
+    void tryCreateIndex_(SqliteConnector& conn, const String& sql)
+    {
+      try
+      {
+        conn.executeStatement(sql);
+      }
+      catch (const Exception::BaseException& e)
+      {
+        OPENMS_LOG_WARN << "Failed to create SQLite index with statement '" << sql << "': " << e.getMessage() << '\n';
+      }
+    }
+
+    void requireTable_(SqliteConnector& conn, const String& table_name, const String& message)
+    {
+      if (!conn.tableExists(table_name))
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message + " Missing required table '" + table_name + "'.");
+      }
+    }
+
+    void createIPFIndexes_(SqliteConnector& conn)
+    {
+      tryCreateIndexIfTableExists_(conn, "TRANSITION", "CREATE INDEX IF NOT EXISTS idx_transition_id ON TRANSITION (ID);");
+      tryCreateIndexIfTableExists_(conn, "PRECURSOR", "CREATE INDEX IF NOT EXISTS idx_precursor_id ON PRECURSOR (ID);");
+      tryCreateIndexIfTableExists_(conn, "FEATURE", "CREATE INDEX IF NOT EXISTS idx_feature_precursor_id ON FEATURE (PRECURSOR_ID);");
+      tryCreateIndexIfTableExists_(conn, "FEATURE", "CREATE INDEX IF NOT EXISTS idx_feature_id ON FEATURE (ID);");
+      tryCreateIndexIfTableExists_(conn, "SCORE_MS2", "CREATE INDEX IF NOT EXISTS idx_score_ms2_feature_id ON SCORE_MS2 (FEATURE_ID);");
+      tryCreateIndexIfTableExists_(conn, "SCORE_MS1", "CREATE INDEX IF NOT EXISTS idx_score_ms1_feature_id ON SCORE_MS1 (FEATURE_ID);");
+      tryCreateIndexIfTableExists_(conn, "SCORE_TRANSITION", "CREATE INDEX IF NOT EXISTS idx_score_transition_feature_id ON SCORE_TRANSITION (FEATURE_ID);");
+      tryCreateIndexIfTableExists_(conn, "SCORE_TRANSITION", "CREATE INDEX IF NOT EXISTS idx_score_transition_transition_id ON SCORE_TRANSITION (TRANSITION_ID);");
+      tryCreateIndexIfTableExists_(conn, "TRANSITION_PEPTIDE_MAPPING", "CREATE INDEX IF NOT EXISTS idx_transition_peptide_mapping_transition_id ON TRANSITION_PEPTIDE_MAPPING (TRANSITION_ID);");
+      tryCreateIndexIfTableExists_(conn, "TRANSITION_PEPTIDE_MAPPING", "CREATE INDEX IF NOT EXISTS idx_transition_peptide_mapping_peptide_id ON TRANSITION_PEPTIDE_MAPPING (PEPTIDE_ID);");
+      tryCreateIndexIfTableExists_(conn, "FEATURE_MS2_ALIGNMENT", "CREATE INDEX IF NOT EXISTS idx_feature_ms2_alignment_alignment_id ON FEATURE_MS2_ALIGNMENT (ALIGNMENT_ID);");
+      tryCreateIndexIfTableExists_(conn, "FEATURE_MS2_ALIGNMENT", "CREATE INDEX IF NOT EXISTS idx_feature_ms2_alignment_reference_feature_id ON FEATURE_MS2_ALIGNMENT (REFERENCE_FEATURE_ID);");
+      tryCreateIndexIfTableExists_(conn, "FEATURE_MS2_ALIGNMENT", "CREATE INDEX IF NOT EXISTS idx_feature_ms2_alignment_aligned_feature_id ON FEATURE_MS2_ALIGNMENT (ALIGNED_FEATURE_ID);");
+      tryCreateIndexIfTableExists_(conn, "SCORE_ALIGNMENT", "CREATE INDEX IF NOT EXISTS idx_score_alignment_feature_id ON SCORE_ALIGNMENT (FEATURE_ID);");
+    }
+
+    void createLevelContextIndexes_(SqliteConnector& conn, const InferenceLevel level)
+    {
+      tryCreateIndexIfTableExists_(conn, "PEPTIDE", "CREATE INDEX IF NOT EXISTS idx_peptide_id ON PEPTIDE (ID);");
+      tryCreateIndexIfTableExists_(conn, "PRECURSOR_PEPTIDE_MAPPING", "CREATE INDEX IF NOT EXISTS idx_precursor_peptide_mapping_peptide_id ON PRECURSOR_PEPTIDE_MAPPING (PEPTIDE_ID);");
+      tryCreateIndexIfTableExists_(conn, "PRECURSOR_PEPTIDE_MAPPING", "CREATE INDEX IF NOT EXISTS idx_precursor_peptide_mapping_precursor_id ON PRECURSOR_PEPTIDE_MAPPING (PRECURSOR_ID);");
+      tryCreateIndexIfTableExists_(conn, "PRECURSOR", "CREATE INDEX IF NOT EXISTS idx_precursor_id_level_ctx ON PRECURSOR (ID);");
+      tryCreateIndexIfTableExists_(conn, "FEATURE", "CREATE INDEX IF NOT EXISTS idx_feature_precursor_id_level_ctx ON FEATURE (PRECURSOR_ID);");
+      tryCreateIndexIfTableExists_(conn, "FEATURE", "CREATE INDEX IF NOT EXISTS idx_feature_id_level_ctx ON FEATURE (ID);");
+      tryCreateIndexIfTableExists_(conn, "FEATURE", "CREATE INDEX IF NOT EXISTS idx_feature_run_id_level_ctx ON FEATURE (RUN_ID);");
+      tryCreateIndexIfTableExists_(conn, "SCORE_MS2", "CREATE INDEX IF NOT EXISTS idx_score_ms2_feature_id_level_ctx ON SCORE_MS2 (FEATURE_ID);");
+      if (level == InferenceLevel::Protein)
+      {
+        tryCreateIndexIfTableExists_(conn, "PEPTIDE_PROTEIN_MAPPING", "CREATE INDEX IF NOT EXISTS idx_peptide_protein_mapping_peptide_id ON PEPTIDE_PROTEIN_MAPPING (PEPTIDE_ID);");
+        tryCreateIndexIfTableExists_(conn, "PEPTIDE_PROTEIN_MAPPING", "CREATE INDEX IF NOT EXISTS idx_peptide_protein_mapping_protein_id ON PEPTIDE_PROTEIN_MAPPING (PROTEIN_ID);");
+      }
+      else if (level == InferenceLevel::Gene)
+      {
+        tryCreateIndexIfTableExists_(conn, "PEPTIDE_GENE_MAPPING", "CREATE INDEX IF NOT EXISTS idx_peptide_gene_mapping_peptide_id ON PEPTIDE_GENE_MAPPING (PEPTIDE_ID);");
+        tryCreateIndexIfTableExists_(conn, "PEPTIDE_GENE_MAPPING", "CREATE INDEX IF NOT EXISTS idx_peptide_gene_mapping_gene_id ON PEPTIDE_GENE_MAPPING (GENE_ID);");
+      }
+    }
+
+    String prepareOutputFile_(const String& input_filename, const String& output_filename)
+    {
+      const String target_filename = output_filename.empty() ? input_filename : output_filename;
+      if (target_filename != input_filename)
+      {
+        if (File::exists(target_filename) && !File::remove(target_filename))
+        {
+          throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, target_filename);
+        }
+        if (!File::copy(input_filename, target_filename))
+        {
+          throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, target_filename);
+        }
+      }
+      return target_filename;
+    }
+
+    void bindNullableInt64_(sqlite3* db, sqlite3_stmt* stmt, const int column, const std::optional<Int64>& value)
+    {
+      int rc = SQLITE_OK;
+      if (value.has_value())
+      {
+        rc = sqlite3_bind_int64(stmt, column, *value);
+      }
+      else
+      {
+        rc = sqlite3_bind_null(stmt, column);
+      }
+      checkSqliteReturnCode_(db, rc, "Failed to bind nullable INTEGER value");
+    }
+
+    String scoreTableName_(const InferenceLevel level)
+    {
+      switch (level)
+      {
+        case InferenceLevel::Peptide: return "SCORE_PEPTIDE";
+        case InferenceLevel::Protein: return "SCORE_PROTEIN";
+        case InferenceLevel::Gene: return "SCORE_GENE";
+        default:
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Level-context score tables only exist for peptide, protein, and gene inference.");
+      }
+    }
+
+    String entityIdColumnName_(const InferenceLevel level)
+    {
+      switch (level)
+      {
+        case InferenceLevel::Peptide: return "PEPTIDE_ID";
+        case InferenceLevel::Protein: return "PROTEIN_ID";
+        case InferenceLevel::Gene: return "GENE_ID";
+        default:
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Level-context score tables only exist for peptide, protein, and gene inference.");
+      }
+    }
+
+    void checkSqliteReturnCode_(sqlite3* db, const int rc, const String& action)
+    {
+      if (rc != SQLITE_OK)
+      {
+        throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, action + ": " + sqlite3_errmsg(db));
+      }
+    }
+
+    void executePreparedStatement_(sqlite3* db, sqlite3_stmt* stmt, const String& action)
+    {
+      const int rc = sqlite3_step(stmt);
+      if (rc != SQLITE_DONE)
+      {
+        throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, action + ": " + sqlite3_errmsg(db));
+      }
+      sqlite3_reset(stmt);
+      sqlite3_clear_bindings(stmt);
+    }
+  } // namespace
 
   const std::array<std::string, (Size)OSWFile::OSWLevel::SIZE_OF_OSWLEVEL> OSWFile::names_of_oswlevel = { "ms1", "ms2", "transition" };
 
@@ -611,6 +765,603 @@ namespace OpenMS
         throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "File '" + filename_ + "' contains more than one run. This is currently not supported!");
       }
       return id;
+    }
+
+    std::vector<IPFPrecursorRow> OSWFile::readIPFPrecursorData(const PeptidoformInferenceConfig& config) const
+    {
+      SqliteConnector conn(filename_, SqliteConnector::SqlOpenMode::READWRITE);
+      createIPFIndexes_(conn);
+
+      requireTable_(conn, "PRECURSOR", "Peptidoform inference requires precursor information.");
+      requireTable_(conn, "FEATURE", "Peptidoform inference requires candidate feature annotations.");
+      requireTable_(conn, "SCORE_MS2", "Peptidoform inference requires MS2 peakgroup scores.");
+      if (config.ipf_ms1_scoring)
+      {
+        requireTable_(conn, "SCORE_MS1", "Peptidoform inference with MS1 precursor scoring requires MS1 scores.");
+      }
+      if (config.ipf_ms1_scoring || config.ipf_ms2_scoring)
+      {
+        requireTable_(conn, "SCORE_TRANSITION", "Peptidoform inference requires transition-level scores.");
+      }
+
+      String query;
+      if (!config.ipf_ms1_scoring && config.ipf_ms2_scoring)
+      {
+        query =
+          "SELECT FEATURE.ID AS FEATURE_ID, "
+          "       SCORE_MS2.PEP AS MS2_PEAKGROUP_PEP, "
+          "       NULL AS MS1_PRECURSOR_PEP, "
+          "       SCORE_TRANSITION.PEP AS MS2_PRECURSOR_PEP "
+          "FROM PRECURSOR "
+          "INNER JOIN FEATURE ON PRECURSOR.ID = FEATURE.PRECURSOR_ID "
+          "INNER JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID "
+          "INNER JOIN ("
+          "  SELECT FEATURE_ID, PEP "
+          "  FROM SCORE_TRANSITION "
+          "  INNER JOIN TRANSITION ON SCORE_TRANSITION.TRANSITION_ID = TRANSITION.ID "
+          "  WHERE TRANSITION.TYPE = '' AND TRANSITION.DECOY = 0"
+          ") AS SCORE_TRANSITION ON FEATURE.ID = SCORE_TRANSITION.FEATURE_ID "
+          "WHERE PRECURSOR.DECOY = 0 AND SCORE_MS2.PEP < ? "
+          "ORDER BY FEATURE.ID;";
+      }
+      else if (config.ipf_ms1_scoring && !config.ipf_ms2_scoring)
+      {
+        query =
+          "SELECT FEATURE.ID AS FEATURE_ID, "
+          "       SCORE_MS2.PEP AS MS2_PEAKGROUP_PEP, "
+          "       SCORE_MS1.PEP AS MS1_PRECURSOR_PEP, "
+          "       NULL AS MS2_PRECURSOR_PEP "
+          "FROM PRECURSOR "
+          "INNER JOIN FEATURE ON PRECURSOR.ID = FEATURE.PRECURSOR_ID "
+          "INNER JOIN SCORE_MS1 ON FEATURE.ID = SCORE_MS1.FEATURE_ID "
+          "INNER JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID "
+          "WHERE PRECURSOR.DECOY = 0 AND SCORE_MS2.PEP < ? "
+          "ORDER BY FEATURE.ID;";
+      }
+      else if (config.ipf_ms1_scoring && config.ipf_ms2_scoring)
+      {
+        query =
+          "SELECT FEATURE.ID AS FEATURE_ID, "
+          "       SCORE_MS2.PEP AS MS2_PEAKGROUP_PEP, "
+          "       SCORE_MS1.PEP AS MS1_PRECURSOR_PEP, "
+          "       SCORE_TRANSITION.PEP AS MS2_PRECURSOR_PEP "
+          "FROM PRECURSOR "
+          "INNER JOIN FEATURE ON PRECURSOR.ID = FEATURE.PRECURSOR_ID "
+          "INNER JOIN SCORE_MS1 ON FEATURE.ID = SCORE_MS1.FEATURE_ID "
+          "INNER JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID "
+          "INNER JOIN ("
+          "  SELECT FEATURE_ID, PEP "
+          "  FROM SCORE_TRANSITION "
+          "  INNER JOIN TRANSITION ON SCORE_TRANSITION.TRANSITION_ID = TRANSITION.ID "
+          "  WHERE TRANSITION.TYPE = '' AND TRANSITION.DECOY = 0"
+          ") AS SCORE_TRANSITION ON FEATURE.ID = SCORE_TRANSITION.FEATURE_ID "
+          "WHERE PRECURSOR.DECOY = 0 AND SCORE_MS2.PEP < ? "
+          "ORDER BY FEATURE.ID;";
+      }
+      else
+      {
+        query =
+          "SELECT FEATURE.ID AS FEATURE_ID, "
+          "       SCORE_MS2.PEP AS MS2_PEAKGROUP_PEP, "
+          "       NULL AS MS1_PRECURSOR_PEP, "
+          "       NULL AS MS2_PRECURSOR_PEP "
+          "FROM PRECURSOR "
+          "INNER JOIN FEATURE ON PRECURSOR.ID = FEATURE.PRECURSOR_ID "
+          "INNER JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID "
+          "WHERE PRECURSOR.DECOY = 0 AND SCORE_MS2.PEP < ? "
+          "ORDER BY FEATURE.ID;";
+      }
+
+      sqlite3_stmt* stmt = nullptr;
+      conn.prepareStatement(&stmt, query);
+      checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(stmt, 1, config.ipf_max_peakgroup_pep),
+                             "Failed to bind ipf_max_peakgroup_pep for precursor query");
+
+      std::vector<IPFPrecursorRow> rows;
+      Sql::SqlState state = Sql::nextRow(stmt);
+      while (state == Sql::SqlState::SQL_ROW)
+      {
+        IPFPrecursorRow row;
+        row.feature_id = Sql::extractInt64(stmt, 0);
+        row.ms2_peakgroup_pep = Sql::extractDouble(stmt, 1);
+        if (sqlite3_column_type(stmt, 2) != SQLITE_NULL)
+        {
+          row.ms1_precursor_pep = Sql::extractDouble(stmt, 2);
+        }
+        if (sqlite3_column_type(stmt, 3) != SQLITE_NULL)
+        {
+          row.ms2_precursor_pep = Sql::extractDouble(stmt, 3);
+        }
+        rows.push_back(std::move(row));
+        state = Sql::nextRow(stmt, state);
+      }
+      sqlite3_finalize(stmt);
+
+      OPENMS_LOG_INFO << "Read " << rows.size() << " precursor/IPF evidence rows" << "'.\n";
+      return rows;
+    }
+
+    std::vector<IPFTransitionRow> OSWFile::readIPFTransitionData(const PeptidoformInferenceConfig& config) const
+    {
+      SqliteConnector conn(filename_, SqliteConnector::SqlOpenMode::READWRITE);
+      createIPFIndexes_(conn);
+
+      requireTable_(conn, "SCORE_TRANSITION", "Peptidoform inference requires transition-level scores.");
+      requireTable_(conn, "TRANSITION", "Peptidoform inference requires transition information.");
+      requireTable_(conn, "TRANSITION_PEPTIDE_MAPPING", "Peptidoform inference requires transition-to-peptidoform mappings.");
+
+      std::unordered_map<Int64, Int32> num_peptidoforms;
+      {
+        const String num_query =
+          "SELECT SCORE_TRANSITION.FEATURE_ID, COUNT(DISTINCT TRANSITION_PEPTIDE_MAPPING.PEPTIDE_ID) AS NUM_PEPTIDOFORMS "
+          "FROM SCORE_TRANSITION "
+          "INNER JOIN TRANSITION ON SCORE_TRANSITION.TRANSITION_ID = TRANSITION.ID "
+          "INNER JOIN TRANSITION_PEPTIDE_MAPPING ON TRANSITION.ID = TRANSITION_PEPTIDE_MAPPING.TRANSITION_ID "
+          "WHERE TRANSITION.TYPE != '' AND TRANSITION.DECOY = 0 "
+          "GROUP BY SCORE_TRANSITION.FEATURE_ID "
+          "ORDER BY SCORE_TRANSITION.FEATURE_ID;";
+        sqlite3_stmt* stmt = nullptr;
+        conn.prepareStatement(&stmt, num_query);
+        Sql::SqlState state = Sql::nextRow(stmt);
+        while (state == Sql::SqlState::SQL_ROW)
+        {
+          num_peptidoforms[Sql::extractInt64(stmt, 0)] = static_cast<Int32>(Sql::extractInt(stmt, 1));
+          state = Sql::nextRow(stmt, state);
+        }
+        sqlite3_finalize(stmt);
+      }
+
+      std::vector<std::pair<Int64, Int64>> bitmask_pairs;
+      {
+        const String bitmask_query =
+          "SELECT DISTINCT TRANSITION.ID AS TRANSITION_ID, TRANSITION_PEPTIDE_MAPPING.PEPTIDE_ID "
+          "FROM SCORE_TRANSITION "
+          "INNER JOIN TRANSITION ON SCORE_TRANSITION.TRANSITION_ID = TRANSITION.ID "
+          "INNER JOIN TRANSITION_PEPTIDE_MAPPING ON TRANSITION.ID = TRANSITION_PEPTIDE_MAPPING.TRANSITION_ID "
+          "WHERE TRANSITION.TYPE != '' AND TRANSITION.DECOY = 0 "
+          "ORDER BY TRANSITION.ID, TRANSITION_PEPTIDE_MAPPING.PEPTIDE_ID;";
+        sqlite3_stmt* stmt = nullptr;
+        conn.prepareStatement(&stmt, bitmask_query);
+        Sql::SqlState state = Sql::nextRow(stmt);
+        while (state == Sql::SqlState::SQL_ROW)
+        {
+          bitmask_pairs.emplace_back(Sql::extractInt64(stmt, 0), Sql::extractInt64(stmt, 1));
+          state = Sql::nextRow(stmt, state);
+        }
+        sqlite3_finalize(stmt);
+      }
+
+      const String evidence_query =
+        "SELECT SCORE_TRANSITION.FEATURE_ID, SCORE_TRANSITION.TRANSITION_ID, SCORE_TRANSITION.PEP "
+        "FROM SCORE_TRANSITION "
+        "INNER JOIN TRANSITION ON SCORE_TRANSITION.TRANSITION_ID = TRANSITION.ID "
+        "WHERE TRANSITION.TYPE != '' AND TRANSITION.DECOY = 0 AND SCORE_TRANSITION.PEP < ? "
+        "ORDER BY SCORE_TRANSITION.FEATURE_ID, SCORE_TRANSITION.TRANSITION_ID;";
+      const String candidate_query =
+        "SELECT DISTINCT SCORE_TRANSITION.FEATURE_ID, TRANSITION_PEPTIDE_MAPPING.PEPTIDE_ID "
+        "FROM SCORE_TRANSITION "
+        "INNER JOIN TRANSITION ON SCORE_TRANSITION.TRANSITION_ID = TRANSITION.ID "
+        "INNER JOIN TRANSITION_PEPTIDE_MAPPING ON TRANSITION.ID = TRANSITION_PEPTIDE_MAPPING.TRANSITION_ID "
+        "WHERE TRANSITION.TYPE != '' AND TRANSITION.DECOY = 0 "
+        "ORDER BY SCORE_TRANSITION.FEATURE_ID, TRANSITION_PEPTIDE_MAPPING.PEPTIDE_ID;";
+
+      sqlite3_stmt* evidence_stmt = nullptr;
+      sqlite3_stmt* candidate_stmt = nullptr;
+      conn.prepareStatement(&evidence_stmt, evidence_query);
+      conn.prepareStatement(&candidate_stmt, candidate_query);
+      checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(evidence_stmt, 1, config.ipf_max_transition_pep),
+                             "Failed to bind ipf_max_transition_pep for transition query");
+
+      struct CompactEvidenceRow
+      {
+        Int64 transition_id = -1;
+        double pep = 1.0;
+      };
+
+      auto loadEvidenceGroup = [&](Int64& feature_id, std::vector<CompactEvidenceRow>& rows, Sql::SqlState& state) -> bool
+      {
+        rows.clear();
+        if (state != Sql::SqlState::SQL_ROW)
+        {
+          return false;
+        }
+        feature_id = Sql::extractInt64(evidence_stmt, 0);
+        while (state == Sql::SqlState::SQL_ROW && Sql::extractInt64(evidence_stmt, 0) == feature_id)
+        {
+          rows.push_back({Sql::extractInt64(evidence_stmt, 1), Sql::extractDouble(evidence_stmt, 2)});
+          state = Sql::nextRow(evidence_stmt, state);
+        }
+        return true;
+      };
+
+      auto loadCandidateGroup = [&](Int64& feature_id, std::vector<Int64>& rows, Sql::SqlState& state) -> bool
+      {
+        rows.clear();
+        if (state != Sql::SqlState::SQL_ROW)
+        {
+          return false;
+        }
+        feature_id = Sql::extractInt64(candidate_stmt, 0);
+        while (state == Sql::SqlState::SQL_ROW && Sql::extractInt64(candidate_stmt, 0) == feature_id)
+        {
+          rows.push_back(Sql::extractInt64(candidate_stmt, 1));
+          state = Sql::nextRow(candidate_stmt, state);
+        }
+        return true;
+      };
+
+      std::vector<IPFTransitionRow> rows;
+      Size evidence_row_count = 0;
+      Size output_feature_count = 0;
+      Sql::SqlState evidence_state = Sql::nextRow(evidence_stmt);
+      Sql::SqlState candidate_state = Sql::nextRow(candidate_stmt);
+      Int64 evidence_feature_id = -1;
+      Int64 candidate_feature_id = -1;
+      std::vector<CompactEvidenceRow> evidence_rows;
+      std::vector<Int64> candidate_rows;
+      bool has_evidence = loadEvidenceGroup(evidence_feature_id, evidence_rows, evidence_state);
+      bool has_candidates = loadCandidateGroup(candidate_feature_id, candidate_rows, candidate_state);
+
+      while (has_evidence && has_candidates)
+      {
+        if (evidence_feature_id < candidate_feature_id)
+        {
+          has_evidence = loadEvidenceGroup(evidence_feature_id, evidence_rows, evidence_state);
+          continue;
+        }
+        if (candidate_feature_id < evidence_feature_id)
+        {
+          has_candidates = loadCandidateGroup(candidate_feature_id, candidate_rows, candidate_state);
+          continue;
+        }
+
+        const auto num_it = num_peptidoforms.find(evidence_feature_id);
+        if (num_it != num_peptidoforms.end() && num_it->second > 0)
+        {
+          ++output_feature_count;
+          evidence_row_count += evidence_rows.size();
+          for (const auto& evidence_row : evidence_rows)
+          {
+            for (const Int64 peptide_id : candidate_rows)
+            {
+              const auto key = std::make_pair(evidence_row.transition_id, peptide_id);
+              const bool supports_peptidoform = std::binary_search(bitmask_pairs.begin(), bitmask_pairs.end(), key);
+              rows.push_back({evidence_feature_id, evidence_row.transition_id, peptide_id, evidence_row.pep,
+                              supports_peptidoform ? 1 : 0, num_it->second, std::nullopt});
+            }
+            if (config.ipf_h0)
+            {
+              rows.push_back({evidence_feature_id, evidence_row.transition_id, -1, evidence_row.pep, 0, num_it->second, std::nullopt});
+            }
+          }
+        }
+
+        has_evidence = loadEvidenceGroup(evidence_feature_id, evidence_rows, evidence_state);
+        has_candidates = loadCandidateGroup(candidate_feature_id, candidate_rows, candidate_state);
+      }
+
+      sqlite3_finalize(evidence_stmt);
+      sqlite3_finalize(candidate_stmt);
+
+      OPENMS_LOG_INFO << "Read " << evidence_row_count << " transition evidence rows across "
+                      << output_feature_count << " eligible features and expanded them to "
+                      << rows.size() << " IPF transition hypotheses.\n";
+      return rows;
+    }
+
+    std::vector<IPFAlignmentRow> OSWFile::readIPFAlignmentData(const PeptidoformInferenceConfig& config) const
+    {
+      if (!config.propagate_signal_across_runs)
+      {
+        return {};
+      }
+
+      SqliteConnector conn(filename_, SqliteConnector::SqlOpenMode::READWRITE);
+      createIPFIndexes_(conn);
+
+      requireTable_(conn, "FEATURE_MS2_ALIGNMENT", "Across-run peptidoform propagation requires feature alignment results.");
+      requireTable_(conn, "SCORE_ALIGNMENT", "Across-run peptidoform propagation requires alignment scores.");
+
+      const String query =
+        "SELECT DENSE_RANK() OVER (ORDER BY FEATURE_LIST.PRECURSOR_ID, FEATURE_LIST.ALIGNMENT_ID) AS ALIGNMENT_GROUP_ID, "
+        "       FEATURE_LIST.FEATURE_ID "
+        "FROM ("
+        "  SELECT DISTINCT ALIGNMENT_ID, PRECURSOR_ID, REFERENCE_FEATURE_ID AS FEATURE_ID "
+        "  FROM FEATURE_MS2_ALIGNMENT "
+        "  WHERE LABEL = 1 AND REFERENCE_FEATURE_ID != ALIGNED_FEATURE_ID "
+        "  UNION "
+        "  SELECT DISTINCT ALIGNMENT_ID, PRECURSOR_ID, ALIGNED_FEATURE_ID AS FEATURE_ID "
+        "  FROM FEATURE_MS2_ALIGNMENT "
+        "  WHERE LABEL = 1 AND REFERENCE_FEATURE_ID != ALIGNED_FEATURE_ID"
+        ") AS FEATURE_LIST "
+        "INNER JOIN ("
+        "  SELECT DISTINCT FEATURE_ID "
+        "  FROM SCORE_ALIGNMENT "
+        "  WHERE PEP < ?"
+        ") AS GOOD_ALIGNMENTS ON GOOD_ALIGNMENTS.FEATURE_ID = FEATURE_LIST.FEATURE_ID "
+        "ORDER BY ALIGNMENT_GROUP_ID, FEATURE_LIST.FEATURE_ID;";
+
+      sqlite3_stmt* stmt = nullptr;
+      conn.prepareStatement(&stmt, query);
+      checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(stmt, 1, config.ipf_max_alignment_pep),
+                             "Failed to bind ipf_max_alignment_pep for alignment query");
+
+      std::vector<IPFAlignmentRow> rows;
+      Sql::SqlState state = Sql::nextRow(stmt);
+      while (state == Sql::SqlState::SQL_ROW)
+      {
+        rows.push_back({Sql::extractInt64(stmt, 0), Sql::extractInt64(stmt, 1)});
+        state = Sql::nextRow(stmt, state);
+      }
+      sqlite3_finalize(stmt);
+
+      OPENMS_LOG_INFO << "Read " << rows.size() << " alignment-group memberships for IPF propagation.\n";
+      return rows;
+    }
+
+    void OSWFile::writeIPFResults(const String& output_filename, const std::vector<IPFResultRow>& results) const
+    {
+      const String target_filename = prepareOutputFile_(filename_, output_filename);
+      SqliteConnector conn(target_filename, SqliteConnector::SqlOpenMode::READWRITE);
+      sqlite3* db = conn.getDB();
+
+      conn.executeStatement("DROP TABLE IF EXISTS SCORE_IPF;");
+      conn.executeStatement(
+        "CREATE TABLE SCORE_IPF ("
+        "FEATURE_ID INTEGER NOT NULL, "
+        "PEPTIDE_ID INTEGER NOT NULL, "
+        "PRECURSOR_PEAKGROUP_PEP DOUBLE NOT NULL, "
+        "QVALUE DOUBLE NOT NULL, "
+        "PEP DOUBLE NOT NULL);"
+      );
+
+      sqlite3_stmt* stmt = nullptr;
+      conn.prepareStatement(&stmt,
+        "INSERT INTO SCORE_IPF (FEATURE_ID, PEPTIDE_ID, PRECURSOR_PEAKGROUP_PEP, QVALUE, PEP) "
+        "VALUES (?, ?, ?, ?, ?);");
+
+      conn.executeStatement("BEGIN TRANSACTION");
+      try
+      {
+        for (const auto& row : results)
+        {
+          checkSqliteReturnCode_(db, sqlite3_bind_int64(stmt, 1, row.feature_id), "Failed to bind SCORE_IPF.FEATURE_ID");
+          checkSqliteReturnCode_(db, sqlite3_bind_int64(stmt, 2, row.peptide_id), "Failed to bind SCORE_IPF.PEPTIDE_ID");
+          checkSqliteReturnCode_(db, sqlite3_bind_double(stmt, 3, row.precursor_peakgroup_pep), "Failed to bind SCORE_IPF.PRECURSOR_PEAKGROUP_PEP");
+          checkSqliteReturnCode_(db, sqlite3_bind_double(stmt, 4, row.qvalue), "Failed to bind SCORE_IPF.QVALUE");
+          checkSqliteReturnCode_(db, sqlite3_bind_double(stmt, 5, row.pep), "Failed to bind SCORE_IPF.PEP");
+          executePreparedStatement_(db, stmt, "Failed to insert SCORE_IPF row");
+        }
+        conn.executeStatement("COMMIT");
+      }
+      catch (...)
+      {
+        sqlite3_finalize(stmt);
+        try
+        {
+          conn.executeStatement("ROLLBACK");
+        }
+        catch (...)
+        {
+        }
+        throw;
+      }
+      sqlite3_finalize(stmt);
+
+      OPENMS_LOG_INFO << "Wrote " << results.size() << " SCORE_IPF rows to '" << target_filename << "'.\n";
+    }
+
+    std::vector<LevelContextInputRow> OSWFile::readLevelContextData(InferenceLevel level, InferenceContext context) const
+    {
+      if (level == InferenceLevel::Peptidoform)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Level-context reading only supports peptide, protein, and gene inference.");
+      }
+
+      SqliteConnector conn(filename_, SqliteConnector::SqlOpenMode::READWRITE);
+      createLevelContextIndexes_(conn, level);
+
+      requireTable_(conn, "PEPTIDE", "Level-context inference requires peptide information.");
+      requireTable_(conn, "PRECURSOR_PEPTIDE_MAPPING", "Level-context inference requires precursor-to-peptide mappings.");
+      requireTable_(conn, "PRECURSOR", "Level-context inference requires precursor information.");
+      requireTable_(conn, "FEATURE", "Level-context inference requires candidate feature information.");
+      requireTable_(conn, "SCORE_MS2", "Level-context inference requires MS2 peakgroup scores.");
+      if (level == InferenceLevel::Protein)
+      {
+        requireTable_(conn, "PROTEIN", "Protein inference requires protein information.");
+        requireTable_(conn, "PEPTIDE_PROTEIN_MAPPING", "Protein inference requires peptide-to-protein mappings.");
+      }
+      else if (level == InferenceLevel::Gene)
+      {
+        requireTable_(conn, "GENE", "Gene inference requires gene information.");
+        requireTable_(conn, "PEPTIDE_GENE_MAPPING", "Gene inference requires peptide-to-gene mappings.");
+      }
+
+      const bool global_context = context == InferenceContext::Global;
+      const String run_select = global_context ? "NULL AS RUN_ID" : "FEATURE.RUN_ID AS RUN_ID";
+      const String partition_by = global_context ? "ENTITY_ID" : "RUN_ID, ENTITY_ID";
+
+      String inner_select;
+      if (level == InferenceLevel::Peptide)
+      {
+        inner_select =
+          "SELECT " + run_select + ", "
+          "       PEPTIDE.ID AS ENTITY_ID, "
+          "       PRECURSOR.DECOY AS DECOY, "
+          "       SCORE_MS2.SCORE AS SCORE "
+          "FROM PEPTIDE "
+          "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PEPTIDE.ID = PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID "
+          "INNER JOIN PRECURSOR ON PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID = PRECURSOR.ID "
+          "INNER JOIN FEATURE ON PRECURSOR.ID = FEATURE.PRECURSOR_ID "
+          "INNER JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID "
+          "WHERE SCORE_MS2.SCORE IS NOT NULL";
+      }
+      else if (level == InferenceLevel::Protein)
+      {
+        inner_select =
+          "SELECT " + run_select + ", "
+          "       PROTEIN.ID AS ENTITY_ID, "
+          "       PRECURSOR.DECOY AS DECOY, "
+          "       SCORE_MS2.SCORE AS SCORE "
+          "FROM PROTEIN "
+          "INNER JOIN ("
+          "  SELECT PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID AS PEPTIDE_ID, PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID "
+          "  FROM ("
+          "    SELECT PEPTIDE_ID, COUNT(*) AS NUM_PROTEINS "
+          "    FROM PEPTIDE_PROTEIN_MAPPING "
+          "    GROUP BY PEPTIDE_ID"
+          "  ) AS PROTEINS_PER_PEPTIDE "
+          "  INNER JOIN PEPTIDE_PROTEIN_MAPPING ON PROTEINS_PER_PEPTIDE.PEPTIDE_ID = PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID "
+          "  WHERE NUM_PROTEINS = 1"
+          ") AS UNIQUE_PEPTIDE_PROTEIN_MAPPING ON PROTEIN.ID = UNIQUE_PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID "
+          "INNER JOIN PEPTIDE ON UNIQUE_PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID = PEPTIDE.ID "
+          "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PEPTIDE.ID = PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID "
+          "INNER JOIN PRECURSOR ON PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID = PRECURSOR.ID "
+          "INNER JOIN FEATURE ON PRECURSOR.ID = FEATURE.PRECURSOR_ID "
+          "INNER JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID "
+          "WHERE SCORE_MS2.SCORE IS NOT NULL";
+      }
+      else
+      {
+        inner_select =
+          "SELECT " + run_select + ", "
+          "       GENE.ID AS ENTITY_ID, "
+          "       PRECURSOR.DECOY AS DECOY, "
+          "       SCORE_MS2.SCORE AS SCORE "
+          "FROM GENE "
+          "INNER JOIN ("
+          "  SELECT PEPTIDE_GENE_MAPPING.PEPTIDE_ID AS PEPTIDE_ID, PEPTIDE_GENE_MAPPING.GENE_ID "
+          "  FROM ("
+          "    SELECT PEPTIDE_ID, COUNT(*) AS NUM_GENES "
+          "    FROM PEPTIDE_GENE_MAPPING "
+          "    GROUP BY PEPTIDE_ID"
+          "  ) AS GENES_PER_PEPTIDE "
+          "  INNER JOIN PEPTIDE_GENE_MAPPING ON GENES_PER_PEPTIDE.PEPTIDE_ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID "
+          "  WHERE NUM_GENES = 1"
+          ") AS UNIQUE_PEPTIDE_GENE_MAPPING ON GENE.ID = UNIQUE_PEPTIDE_GENE_MAPPING.GENE_ID "
+          "INNER JOIN PEPTIDE ON UNIQUE_PEPTIDE_GENE_MAPPING.PEPTIDE_ID = PEPTIDE.ID "
+          "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PEPTIDE.ID = PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID "
+          "INNER JOIN PRECURSOR ON PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID = PRECURSOR.ID "
+          "INNER JOIN FEATURE ON PRECURSOR.ID = FEATURE.PRECURSOR_ID "
+          "INNER JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID "
+          "WHERE SCORE_MS2.SCORE IS NOT NULL";
+      }
+
+      const String query =
+        "WITH SCORED AS (" + inner_select + "), "
+        "RANKED AS ("
+        "  SELECT RUN_ID, ENTITY_ID, DECOY, SCORE, "
+        "         ROW_NUMBER() OVER (PARTITION BY " + partition_by + " ORDER BY SCORE DESC) AS RN "
+        "  FROM SCORED"
+        ") "
+        "SELECT RUN_ID, ENTITY_ID, DECOY, SCORE "
+        "FROM RANKED "
+        "WHERE RN = 1 "
+        "ORDER BY RUN_ID, ENTITY_ID;";
+
+      sqlite3_stmt* stmt = nullptr;
+      conn.prepareStatement(&stmt, query);
+
+      std::vector<LevelContextInputRow> rows;
+      Sql::SqlState state = Sql::nextRow(stmt);
+      while (state == Sql::SqlState::SQL_ROW)
+      {
+        LevelContextInputRow row;
+        if (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
+        {
+          row.run_id = Sql::extractInt64(stmt, 0);
+        }
+        row.entity_id = Sql::extractInt64(stmt, 1);
+        row.decoy = Sql::extractInt(stmt, 2) != 0;
+        row.score = Sql::extractDouble(stmt, 3);
+        row.context = context;
+        row.group_id = row.run_id.has_value() ? String(*row.run_id) + "_" + String(row.entity_id) : String(row.entity_id);
+        rows.push_back(std::move(row));
+        state = Sql::nextRow(stmt, state);
+      }
+      sqlite3_finalize(stmt);
+
+      OPENMS_LOG_INFO << "Read " << rows.size() << " best-score rows for "
+                      << toString(level) << " inference in '" << toString(context)
+                      << "' context" << "'.\n";
+      return rows;
+    }
+
+    void OSWFile::writeLevelContextResults(const String& output_filename,
+                                           InferenceLevel level,
+                                           InferenceContext context,
+                                           const std::vector<LevelContextResultRow>& results) const
+    {
+      if (level == InferenceLevel::Peptidoform)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Level-context writing only supports peptide, protein, and gene inference.");
+      }
+
+      const String target_filename = prepareOutputFile_(filename_, output_filename);
+      SqliteConnector conn(target_filename, SqliteConnector::SqlOpenMode::READWRITE);
+      sqlite3* db = conn.getDB();
+
+      const String table_name = scoreTableName_(level);
+      const String entity_column = entityIdColumnName_(level);
+      const String context_value = toString(context);
+      conn.executeStatement(
+        "CREATE TABLE IF NOT EXISTS " + table_name + " ("
+        "CONTEXT TEXT NOT NULL, "
+        "RUN_ID INTEGER, "
+        + entity_column + " INTEGER NOT NULL, "
+        "SCORE DOUBLE NOT NULL, "
+        "PVALUE DOUBLE NOT NULL, "
+        "QVALUE DOUBLE NOT NULL, "
+        "PEP DOUBLE NOT NULL);"
+      );
+
+      sqlite3_stmt* delete_stmt = nullptr;
+      sqlite3_stmt* insert_stmt = nullptr;
+      conn.prepareStatement(&delete_stmt, "DELETE FROM " + table_name + " WHERE CONTEXT = ?;");
+      conn.prepareStatement(&insert_stmt,
+        "INSERT INTO " + table_name + " (CONTEXT, RUN_ID, " + entity_column + ", SCORE, PVALUE, QVALUE, PEP) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?);");
+
+      conn.executeStatement("BEGIN TRANSACTION");
+      try
+      {
+        checkSqliteReturnCode_(db, sqlite3_bind_text(delete_stmt, 1, context_value.c_str(), -1, SQLITE_TRANSIENT),
+                               "Failed to bind context for SCORE_* delete");
+        executePreparedStatement_(db, delete_stmt, "Failed to delete existing level-context rows");
+
+        for (const auto& row : results)
+        {
+          checkSqliteReturnCode_(db, sqlite3_bind_text(insert_stmt, 1, context_value.c_str(), -1, SQLITE_TRANSIENT),
+                                 "Failed to bind SCORE_* CONTEXT");
+          bindNullableInt64_(db, insert_stmt, 2, row.run_id);
+          checkSqliteReturnCode_(db, sqlite3_bind_int64(insert_stmt, 3, row.entity_id), "Failed to bind SCORE_* entity id");
+          checkSqliteReturnCode_(db, sqlite3_bind_double(insert_stmt, 4, row.score), "Failed to bind SCORE_* SCORE");
+          checkSqliteReturnCode_(db, sqlite3_bind_double(insert_stmt, 5, row.pvalue), "Failed to bind SCORE_* PVALUE");
+          checkSqliteReturnCode_(db, sqlite3_bind_double(insert_stmt, 6, row.qvalue), "Failed to bind SCORE_* QVALUE");
+          checkSqliteReturnCode_(db, sqlite3_bind_double(insert_stmt, 7, row.pep), "Failed to bind SCORE_* PEP");
+          executePreparedStatement_(db, insert_stmt, "Failed to insert level-context score row");
+        }
+
+        conn.executeStatement("COMMIT");
+      }
+      catch (...)
+      {
+        sqlite3_finalize(delete_stmt);
+        sqlite3_finalize(insert_stmt);
+        try
+        {
+          conn.executeStatement("ROLLBACK");
+        }
+        catch (...)
+        {
+        }
+        throw;
+      }
+      sqlite3_finalize(delete_stmt);
+      sqlite3_finalize(insert_stmt);
+
+      OPENMS_LOG_INFO << "Wrote " << results.size() << " rows to " << table_name
+                      << " for context '" << context_value << "' in '" << target_filename << "'.\n";
     }
 
     void OSWFile::readTransitions_(OSWData& swath_result)
