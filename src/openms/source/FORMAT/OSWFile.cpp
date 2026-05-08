@@ -75,6 +75,11 @@ namespace OpenMS
       tryCreateIndexIfTableExists_(conn, "FEATURE_MS2_ALIGNMENT", "CREATE INDEX IF NOT EXISTS idx_feature_ms2_alignment_alignment_id ON FEATURE_MS2_ALIGNMENT (ALIGNMENT_ID);");
       tryCreateIndexIfTableExists_(conn, "FEATURE_MS2_ALIGNMENT", "CREATE INDEX IF NOT EXISTS idx_feature_ms2_alignment_reference_feature_id ON FEATURE_MS2_ALIGNMENT (REFERENCE_FEATURE_ID);");
       tryCreateIndexIfTableExists_(conn, "FEATURE_MS2_ALIGNMENT", "CREATE INDEX IF NOT EXISTS idx_feature_ms2_alignment_aligned_feature_id ON FEATURE_MS2_ALIGNMENT (ALIGNED_FEATURE_ID);");
+      tryCreateIndexIfTableExists_(conn, "FEATURE_MS2_ALIGNMENT_CANDIDATE", "CREATE INDEX IF NOT EXISTS idx_feature_ms2_alignment_candidate_alignment_id ON FEATURE_MS2_ALIGNMENT_CANDIDATE (ALIGNMENT_ID);");
+      tryCreateIndexIfTableExists_(conn, "FEATURE_MS2_ALIGNMENT_CANDIDATE", "CREATE INDEX IF NOT EXISTS idx_feature_ms2_alignment_candidate_reference_feature_id ON FEATURE_MS2_ALIGNMENT_CANDIDATE (REFERENCE_FEATURE_ID);");
+      tryCreateIndexIfTableExists_(conn, "FEATURE_MS2_ALIGNMENT_CANDIDATE", "CREATE INDEX IF NOT EXISTS idx_feature_ms2_alignment_candidate_aligned_feature_id ON FEATURE_MS2_ALIGNMENT_CANDIDATE (ALIGNED_FEATURE_ID);");
+      tryCreateIndexIfTableExists_(conn, "FEATURE_MS2_ALIGNMENT_CANDIDATE", "CREATE INDEX IF NOT EXISTS idx_feature_ms2_alignment_candidate_selected ON FEATURE_MS2_ALIGNMENT_CANDIDATE (SELECTED);");
+      tryCreateIndexIfTableExists_(conn, "FEATURE_MS2_ALIGNMENT_CANDIDATE", "CREATE INDEX IF NOT EXISTS idx_feature_ms2_alignment_candidate_confidence ON FEATURE_MS2_ALIGNMENT_CANDIDATE (MAPPING_CONFIDENCE);");
       tryCreateIndexIfTableExists_(conn, "SCORE_ALIGNMENT", "CREATE INDEX IF NOT EXISTS idx_score_alignment_feature_id ON SCORE_ALIGNMENT (FEATURE_ID);");
     }
 
@@ -1089,9 +1094,49 @@ namespace OpenMS
 
       SqliteConnector conn(filename_, SqliteConnector::SqlOpenMode::READWRITE);
       createIPFIndexes_(conn);
+      requireTable_(conn, "FEATURE_MS2_ALIGNMENT_CANDIDATE", "Across-run peptidoform propagation requires candidate-based feature alignment results.");
 
-      requireTable_(conn, "FEATURE_MS2_ALIGNMENT", "Across-run peptidoform propagation requires feature alignment results.");
-      requireTable_(conn, "SCORE_ALIGNMENT", "Across-run peptidoform propagation requires alignment scores.");
+      const String query =
+        "SELECT DENSE_RANK() OVER (ORDER BY FEATURE_LIST.PRECURSOR_ID, FEATURE_LIST.ALIGNMENT_ID) AS ALIGNMENT_GROUP_ID, "
+        "       FEATURE_LIST.FEATURE_ID "
+        "FROM ("
+        "  SELECT DISTINCT ALIGNMENT_ID, PRECURSOR_ID, REFERENCE_FEATURE_ID AS FEATURE_ID "
+        "  FROM FEATURE_MS2_ALIGNMENT_CANDIDATE "
+        "  WHERE SELECTED = 1 AND MAPPING_CONFIDENCE >= ? AND REFERENCE_FEATURE_ID != ALIGNED_FEATURE_ID AND ALIGNED_FEATURE_ID != -1 "
+        "  UNION "
+        "  SELECT DISTINCT ALIGNMENT_ID, PRECURSOR_ID, ALIGNED_FEATURE_ID AS FEATURE_ID "
+        "  FROM FEATURE_MS2_ALIGNMENT_CANDIDATE "
+        "  WHERE SELECTED = 1 AND MAPPING_CONFIDENCE >= ? AND REFERENCE_FEATURE_ID != ALIGNED_FEATURE_ID AND ALIGNED_FEATURE_ID != -1"
+        ") AS FEATURE_LIST "
+        "ORDER BY ALIGNMENT_GROUP_ID, FEATURE_LIST.FEATURE_ID;";
+
+      sqlite3_stmt* stmt = nullptr;
+      conn.prepareStatement(&stmt, query);
+      checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(stmt, 1, config.ipf_min_alignment_mapping_confidence),
+                             "Failed to bind ipf_min_alignment_mapping_confidence for candidate alignment query");
+      checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(stmt, 2, config.ipf_min_alignment_mapping_confidence),
+                             "Failed to bind ipf_min_alignment_mapping_confidence for candidate alignment query");
+
+      std::vector<IPFAlignmentRow> rows;
+      Sql::SqlState state = Sql::nextRow(stmt);
+      while (state == Sql::SqlState::SQL_ROW)
+      {
+        rows.push_back({Sql::extractInt64(stmt, 0), Sql::extractInt64(stmt, 1)});
+        state = Sql::nextRow(stmt, state);
+      }
+      sqlite3_finalize(stmt);
+
+      OPENMS_LOG_INFO << "Read " << rows.size() << " candidate-derived alignment-group memberships for IPF propagation." << std::endl;
+      return rows;
+    }
+
+    std::vector<IPFAlignmentRow> OSWFile::readIPFAlignmentData(double ipf_max_alignment_pep) const
+    {
+      SqliteConnector conn(filename_, SqliteConnector::SqlOpenMode::READWRITE);
+      createIPFIndexes_(conn);
+
+      requireTable_(conn, "FEATURE_MS2_ALIGNMENT", "Across-run peptidoform propagation requires legacy feature alignment results.");
+      requireTable_(conn, "SCORE_ALIGNMENT", "Across-run peptidoform propagation requires legacy alignment scores.");
 
       const String query =
         "SELECT DENSE_RANK() OVER (ORDER BY FEATURE_LIST.PRECURSOR_ID, FEATURE_LIST.ALIGNMENT_ID) AS ALIGNMENT_GROUP_ID, "
@@ -1114,8 +1159,8 @@ namespace OpenMS
 
       sqlite3_stmt* stmt = nullptr;
       conn.prepareStatement(&stmt, query);
-      checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(stmt, 1, config.ipf_max_alignment_pep),
-                             "Failed to bind ipf_max_alignment_pep for alignment query");
+      checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(stmt, 1, ipf_max_alignment_pep),
+                             "Failed to bind ipf_max_alignment_pep for historical alignment query");
 
       std::vector<IPFAlignmentRow> rows;
       Sql::SqlState state = Sql::nextRow(stmt);
@@ -1126,7 +1171,7 @@ namespace OpenMS
       }
       sqlite3_finalize(stmt);
 
-      OPENMS_LOG_INFO << "Read " << rows.size() << " alignment-group memberships for IPF propagation." << std::endl;
+      OPENMS_LOG_INFO << "Read " << rows.size() << " historical alignment-group memberships for IPF propagation." << std::endl;
       return rows;
     }
 

@@ -115,8 +115,11 @@ namespace OpenMS
     /// Read transition-level evidence required for peptidoform inference.
     std::vector<IPFTransitionRow> readIPFTransitionData(const PeptidoformInferenceConfig& config) const;
 
-    /// Read alignment-group membership required for optional across-run signal propagation.
+    /// Read alignment-group membership required for optional across-run signal propagation from FEATURE_MS2_ALIGNMENT_CANDIDATE.
     std::vector<IPFAlignmentRow> readIPFAlignmentData(const PeptidoformInferenceConfig& config) const;
+
+    /// Historical overload that reads legacy alignment-group membership from FEATURE_MS2_ALIGNMENT + SCORE_ALIGNMENT.
+    std::vector<IPFAlignmentRow> readIPFAlignmentData(double ipf_max_alignment_pep) const;
 
     /// Write peptidoform inference results into SCORE_IPF, copying to @p output_filename first if requested.
     void writeIPFResults(const String& output_filename, const std::vector<IPFResultRow>& results) const;

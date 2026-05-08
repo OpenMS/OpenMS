@@ -85,7 +85,7 @@ protected:
     config.ipf_max_precursor_peakgroup_pep = getDoubleOption_("peptidoform:ipf_max_precursor_peakgroup_pep");
     config.ipf_max_transition_pep = getDoubleOption_("peptidoform:ipf_max_transition_pep");
     config.propagate_signal_across_runs = toBool_(getStringOption_("peptidoform:propagate_signal_across_runs"));
-    config.ipf_max_alignment_pep = getDoubleOption_("peptidoform:ipf_max_alignment_pep");
+    config.ipf_min_alignment_mapping_confidence = getDoubleOption_("peptidoform:ipf_min_alignment_mapping_confidence");
     config.across_run_confidence_threshold = getDoubleOption_("peptidoform:across_run_confidence_threshold");
     return config;
   }
@@ -292,9 +292,9 @@ protected:
     registerDoubleOption_("peptidoform:ipf_max_precursor_pep", "<num>", ipf_defaults.ipf_max_precursor_pep, "Maximum precursor-level evidence PEP for precursor inference.", false, true);
     registerDoubleOption_("peptidoform:ipf_max_precursor_peakgroup_pep", "<num>", ipf_defaults.ipf_max_precursor_peakgroup_pep, "Maximum precursor-peakgroup PEP retained for transition inference.", false, true);
     registerDoubleOption_("peptidoform:ipf_max_transition_pep", "<num>", ipf_defaults.ipf_max_transition_pep, "Maximum transition evidence PEP retained for IPF.", false, true);
-    registerStringOption_("peptidoform:propagate_signal_across_runs", "<true|false>", ipf_defaults.propagate_signal_across_runs ? "true" : "false", "Propagate confident transition evidence across aligned runs.", false);
+    registerStringOption_("peptidoform:propagate_signal_across_runs", "<true|false>", ipf_defaults.propagate_signal_across_runs ? "true" : "false", "Propagate confident transition evidence across aligned runs using FEATURE_MS2_ALIGNMENT_CANDIDATE.", false);
     setValidStrings_("peptidoform:propagate_signal_across_runs", {"true", "false"});
-    registerDoubleOption_("peptidoform:ipf_max_alignment_pep", "<num>", ipf_defaults.ipf_max_alignment_pep, "Maximum alignment PEP retained for across-run propagation.", false, true);
+    registerDoubleOption_("peptidoform:ipf_min_alignment_mapping_confidence", "<num>", ipf_defaults.ipf_min_alignment_mapping_confidence, "Minimum mapping confidence retained for across-run propagation from FEATURE_MS2_ALIGNMENT_CANDIDATE.", false, true);
     registerDoubleOption_("peptidoform:across_run_confidence_threshold", "<num>", ipf_defaults.across_run_confidence_threshold, "Maximum transition PEP eligible for across-run propagation.", false, true);
 
     registerTOPPSubsection_("peptide", "Peptide-level inference selection options.");

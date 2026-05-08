@@ -56,7 +56,7 @@ namespace OpenMS
     double ipf_max_precursor_peakgroup_pep = 0.4;
     double ipf_max_transition_pep = 0.6;
     bool propagate_signal_across_runs = false;
-    double ipf_max_alignment_pep = 1.0;
+    double ipf_min_alignment_mapping_confidence = 0.5;
     double across_run_confidence_threshold = 0.5;
   };
 
