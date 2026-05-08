@@ -95,6 +95,9 @@ namespace OpenMS
       GZ,                 ///< any Gzipped file
       ZIP,                ///< any ZIP compressed file
       PARQUET,            ///< Apache Parquet file format (.parquet, .pqt)
+      IDPARQUET,          ///< OpenMS internal identification parquet bundle (directory: psms.parquet + proteins.parquet + protein_groups.parquet + search_params.parquet)
+      FEATUREPARQUET,     ///< OpenMS internal feature map parquet bundle (directory: features.parquet + psms.parquet + proteins.parquet + protein_groups.parquet + search_params.parquet)
+      CONSENSUSPARQUET,   ///< OpenMS internal consensus map parquet bundle (directory: consensus_features.parquet + psms.parquet + proteins.parquet + protein_groups.parquet + search_params.parquet)
       BRUKER_TDF,         ///< Bruker TimsTOF .d directory (TDF format)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
@@ -129,6 +132,9 @@ namespace OpenMS
 
     /// Returns the mzML name (TODO: switch to accession since they are more stable!)
     static String typeToMZML(Type type);
+
+    /// Returns true if @p type represents a directory-shaped format (e.g. BRUKER_TDF, IDPARQUET, FEATUREPARQUET, CONSENSUSPARQUET).
+    static bool isDirectoryType(Type type);
   };
 
  enum class FilterLayout

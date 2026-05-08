@@ -221,6 +221,46 @@ START_SECTION([EXTRA](bool isValid(const String &filename)))
   TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true);
 END_SECTION
 
+START_SECTION([EXTRA] Compressed file writing - gzip round-trip)
+  ConsensusXMLFile f;
+  ConsensusMap map;
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
+
+  // Store as gzip-compressed file
+  String tmp_gz;
+  NEW_TMP_FILE(tmp_gz);
+  tmp_gz += ".gz";
+  f.store(tmp_gz, map);
+
+  // Load back from compressed file
+  ConsensusMap map_gz;
+  f.load(tmp_gz, map_gz);
+
+  // Verify round-trip integrity
+  TEST_EQUAL(map_gz.size(), map.size())
+  TEST_EQUAL(map_gz.getColumnHeaders().size(), map.getColumnHeaders().size())
+END_SECTION
+
+START_SECTION([EXTRA] Compressed file writing - bzip2 round-trip)
+  ConsensusXMLFile f;
+  ConsensusMap map;
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
+
+  // Store as bzip2-compressed file
+  String tmp_bz2;
+  NEW_TMP_FILE(tmp_bz2);
+  tmp_bz2 += ".bz2";
+  f.store(tmp_bz2, map);
+
+  // Load back from compressed file
+  ConsensusMap map_bz2;
+  f.load(tmp_bz2, map_bz2);
+
+  // Verify round-trip integrity
+  TEST_EQUAL(map_bz2.size(), map.size())
+  TEST_EQUAL(map_bz2.getColumnHeaders().size(), map.getColumnHeaders().size())
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

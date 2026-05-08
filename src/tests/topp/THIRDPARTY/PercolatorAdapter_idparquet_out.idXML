@@ -43,8 +43,8 @@
 				<UserParam type="int" name="Percolator:post_processing_tdc" value="0"/>
 				<UserParam type="int" name="Percolator:train_best_positive" value="0"/>
 	</SearchParameters>
-	<IdentificationRun date="2025-03-11T12:44:34" search_engine="Percolator" search_engine_version="3.07" search_parameters_ref="SP_0" >
-		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+	<IdentificationRun date="2026-04-28T20:04:03" search_engine="Percolator" search_engine_version="3.08-vendored" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
 			<ProteinHit id="PH_0" accession="sp|Q02952|AKA12_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
@@ -55,8 +55,14 @@
 			<UserParam type="string" name="percolator" value="PercolatorAdapter"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="514.28045603190003" RT="721.399999999999977" spectrum_reference="controllerType=0 controllerNumber=1 scan=3" >
-			<PeptideHit score="0.357143" sequence="EAVPAQKERRRRGAH" charge="2" aa_before="A" aa_after="P" start="1211" end="1219" protein_refs="PH_0" >
+			<PeptideHit score="0.026645350386358" sequence="EAVPAQKERRRRGAH" charge="2" aa_before="A" aa_after="P" start="1211" end="1219" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="0.0342"/>
+				<UserParam type="float" name="expect" value="0.0342"/>
+				<UserParam type="float" name="MS:1001492" value="0.357234284215156"/>
+				<UserParam type="float" name="MS:1001491" value="0.026645350386358"/>
+				<UserParam type="float" name="MS:1001493" value="0.066727889247038"/>
+				<UserParam type="int" name="scan" value="3"/>
 				<UserParam type="string" name="MS:1002258" value="9"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
 				<UserParam type="string" name="num_matched_peptides" value="11906"/>
@@ -64,7 +70,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.256"/>
 				<UserParam type="float" name="MS:1002255" value="256.600000000000023"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.0342"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="1.0"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -72,15 +77,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.38479775371334"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.5625"/>
-				<UserParam type="float" name="expect" value="0.0342"/>
-				<UserParam type="float" name="MS:1001492" value="0.357234"/>
-				<UserParam type="float" name="MS:1001491" value="0.357143"/>
-				<UserParam type="float" name="MS:1001493" value="0.465065"/>
+				<UserParam type="float" name="percolator_score" value="0.357234284215156"/>
+				<UserParam type="float" name="percolator_q_value" value="0.026645350386358"/>
+				<UserParam type="float" name="percolator_pep" value="0.066727889247038"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="499.610778031899997" RT="721.700000000000046" spectrum_reference="controllerType=0 controllerNumber=1 scan=4" >
-			<PeptideHit score="0.357143" sequence="TRILKHGAKDKDDLHKY" charge="3" aa_before="F F F" aa_after="] ] ]" start="159 158 159" end="171 170 171" protein_refs="PH_0" >
+			<PeptideHit score="0.10423176610227" sequence="TRILKHGAKDKDDLHKY" charge="3" aa_before="F F F" aa_after="] ] ]" start="159 158 159" end="171 170 171" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="0.0272"/>
+				<UserParam type="float" name="expect" value="0.0272"/>
+				<UserParam type="float" name="MS:1001492" value="-0.442921758889832"/>
+				<UserParam type="float" name="MS:1001491" value="0.10423176610227"/>
+				<UserParam type="float" name="MS:1001493" value="0.260736864846557"/>
+				<UserParam type="int" name="scan" value="4"/>
 				<UserParam type="string" name="MS:1002258" value="10"/>
 				<UserParam type="string" name="MS:1002259" value="48"/>
 				<UserParam type="string" name="num_matched_peptides" value="13136"/>
@@ -88,7 +98,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.37"/>
 				<UserParam type="float" name="MS:1002255" value="106.5"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.0272"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="1.0"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -96,15 +105,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.483111831692209"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.208333333333333"/>
-				<UserParam type="float" name="expect" value="0.0272"/>
-				<UserParam type="float" name="MS:1001492" value="-0.442922"/>
-				<UserParam type="float" name="MS:1001491" value="0.357143"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-0.442921758889832"/>
+				<UserParam type="float" name="percolator_q_value" value="0.10423176610227"/>
+				<UserParam type="float" name="percolator_pep" value="0.260736864846557"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="545.750182531900009" RT="721.899999999999977" spectrum_reference="controllerType=0 controllerNumber=1 scan=5" >
-			<PeptideHit score="0.166667" sequence="AAGGEAEHQRAY" charge="2" aa_before="A" aa_after="L" start="171" end="179" protein_refs="PH_0" >
+			<PeptideHit score="0.10423176610227" sequence="AAGGEAEHQRAY" charge="2" aa_before="A" aa_after="L" start="171" end="179" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="0.0421"/>
+				<UserParam type="float" name="expect" value="0.0421"/>
+				<UserParam type="float" name="MS:1001492" value="-0.095122496813647"/>
+				<UserParam type="float" name="MS:1001491" value="0.10423176610227"/>
+				<UserParam type="float" name="MS:1001493" value="0.145603853186456"/>
+				<UserParam type="int" name="scan" value="5"/>
 				<UserParam type="string" name="MS:1002258" value="6"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
 				<UserParam type="string" name="num_matched_peptides" value="9348"/>
@@ -112,7 +126,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.344"/>
 				<UserParam type="float" name="MS:1002255" value="126.299999999999997"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.0421"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="1.0"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -120,15 +133,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.142917695658751"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.375"/>
-				<UserParam type="float" name="expect" value="0.0421"/>
-				<UserParam type="float" name="MS:1001492" value="1.79219"/>
-				<UserParam type="float" name="MS:1001491" value="0.166667"/>
-				<UserParam type="float" name="MS:1001493" value="0.0774777"/>
+				<UserParam type="float" name="percolator_score" value="-0.095122496813647"/>
+				<UserParam type="float" name="percolator_q_value" value="0.10423176610227"/>
+				<UserParam type="float" name="percolator_pep" value="0.145603853186456"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="527.31176703189999" RT="722.100000000000023" spectrum_reference="controllerType=0 controllerNumber=1 scan=6" >
-			<PeptideHit score="0.357143" sequence="TQVVVSHLLKL" charge="2" aa_before="Q" aa_after="S" start="327" end="335" protein_refs="PH_0" >
+			<PeptideHit score="0.10423176610227" sequence="TQVVVSHLLKL" charge="2" aa_before="Q" aa_after="S" start="327" end="335" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="1.01"/>
+				<UserParam type="float" name="expect" value="1.01"/>
+				<UserParam type="float" name="MS:1001492" value="0.0"/>
+				<UserParam type="float" name="MS:1001491" value="0.10423176610227"/>
+				<UserParam type="float" name="MS:1001493" value="0.123876424415951"/>
+				<UserParam type="int" name="scan" value="6"/>
 				<UserParam type="string" name="MS:1002258" value="4"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
 				<UserParam type="string" name="num_matched_peptides" value="4910"/>
@@ -136,7 +154,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.014"/>
 				<UserParam type="float" name="MS:1002255" value="44.5"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="1.01"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.951"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -144,15 +161,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="8.49902922078857"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.25"/>
-				<UserParam type="float" name="expect" value="1.01"/>
-				<UserParam type="float" name="MS:1001492" value="0.0"/>
-				<UserParam type="float" name="MS:1001491" value="0.357143"/>
-				<UserParam type="float" name="MS:1001493" value="0.718684"/>
+				<UserParam type="float" name="percolator_score" value="0.0"/>
+				<UserParam type="float" name="percolator_q_value" value="0.10423176610227"/>
+				<UserParam type="float" name="percolator_pep" value="0.123876424415951"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="561.281737531900035" RT="722.299999999999955" spectrum_reference="controllerType=0 controllerNumber=1 scan=7" >
-			<PeptideHit score="0.944444" sequence="AGIYR" charge="2" aa_before="N" aa_after="C" start="82" end="91" protein_refs="PH_0" >
+			<PeptideHit score="0.238690259913282" sequence="AGIYR" charge="2" aa_before="N" aa_after="C" start="82" end="91" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="6.24"/>
+				<UserParam type="float" name="expect" value="6.24"/>
+				<UserParam type="float" name="MS:1001492" value="-1.065674534368017"/>
+				<UserParam type="float" name="MS:1001491" value="0.238690259913282"/>
+				<UserParam type="float" name="MS:1001493" value="0.74552579272976"/>
+				<UserParam type="int" name="scan" value="7"/>
 				<UserParam type="string" name="MS:1002258" value="1"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
 				<UserParam type="string" name="num_matched_peptides" value="16834"/>
@@ -160,7 +182,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.011"/>
 				<UserParam type="float" name="MS:1002255" value="4.4"/>
 				<UserParam type="float" name="MS:1002256" value="5.0"/>
-				<UserParam type="float" name="MS:1002257" value="6.24"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.397"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -168,15 +189,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.73115592977152"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.6094379124341"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.055555555555556"/>
-				<UserParam type="float" name="expect" value="6.24"/>
-				<UserParam type="float" name="MS:1001492" value="-1.06567"/>
-				<UserParam type="float" name="MS:1001491" value="0.944444"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-1.065674534368017"/>
+				<UserParam type="float" name="percolator_q_value" value="0.238690259913282"/>
+				<UserParam type="float" name="percolator_pep" value="0.74552579272976"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="514.759948031899967" RT="722.700000000000046" spectrum_reference="controllerType=0 controllerNumber=1 scan=9" >
-			<PeptideHit score="0.166667" sequence="SVSSKRGHASSYRR" charge="2" aa_before="R" aa_after="M" start="4" end="12" protein_refs="PH_0" >
+			<PeptideHit score="0.026645350386358" sequence="SVSSKRGHASSYRR" charge="2" aa_before="R" aa_after="M" start="4" end="12" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="0.401"/>
+				<UserParam type="float" name="expect" value="0.401"/>
+				<UserParam type="float" name="MS:1001492" value="0.622970768371957"/>
+				<UserParam type="float" name="MS:1001491" value="0.026645350386358"/>
+				<UserParam type="float" name="MS:1001493" value="0.041868429833078"/>
+				<UserParam type="int" name="scan" value="9"/>
 				<UserParam type="string" name="MS:1002258" value="8"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
 				<UserParam type="string" name="num_matched_peptides" value="12854"/>
@@ -184,7 +210,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.037"/>
 				<UserParam type="float" name="MS:1002255" value="159.599999999999994"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.401"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.03758865248227"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.03758865248227"/>
@@ -192,13 +217,18 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.461410325931229"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.5"/>
-				<UserParam type="float" name="expect" value="0.401"/>
-				<UserParam type="float" name="MS:1001492" value="4.00802"/>
-				<UserParam type="float" name="MS:1001491" value="0.166667"/>
-				<UserParam type="float" name="MS:1001493" value="4.3139e-03"/>
+				<UserParam type="float" name="percolator_score" value="0.622970768371957"/>
+				<UserParam type="float" name="percolator_q_value" value="0.026645350386358"/>
+				<UserParam type="float" name="percolator_pep" value="0.041868429833078"/>
 			</PeptideHit>
-			<PeptideHit score="0.166667" sequence="AGGDPAAKGERLHFY" charge="2" aa_before="G" aa_after="W" start="2239" end="2249" protein_refs="PH_0" >
+			<PeptideHit score="0.026645350386358" sequence="AGGDPAAKGERLHFY" charge="2" aa_before="G" aa_after="W" start="2239" end="2249" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="0.592"/>
+				<UserParam type="float" name="expect" value="0.592"/>
+				<UserParam type="float" name="MS:1001492" value="0.622970768371957"/>
+				<UserParam type="float" name="MS:1001491" value="0.026645350386358"/>
+				<UserParam type="float" name="MS:1001493" value="0.041868429833078"/>
+				<UserParam type="int" name="scan" value="9"/>
 				<UserParam type="string" name="MS:1002258" value="6"/>
 				<UserParam type="string" name="MS:1002259" value="20"/>
 				<UserParam type="string" name="num_matched_peptides" value="12854"/>
@@ -206,7 +236,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.204"/>
 				<UserParam type="float" name="MS:1002255" value="99.599999999999994"/>
 				<UserParam type="float" name="MS:1002256" value="3.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.592"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.0"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -214,23 +243,27 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.461410325931229"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.09861228866811"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.3"/>
-				<UserParam type="float" name="expect" value="0.592"/>
-				<UserParam type="float" name="MS:1001492" value="4.00802"/>
-				<UserParam type="float" name="MS:1001491" value="0.166667"/>
-				<UserParam type="float" name="MS:1001493" value="4.3139e-03"/>
+				<UserParam type="float" name="percolator_score" value="0.622970768371957"/>
+				<UserParam type="float" name="percolator_q_value" value="0.026645350386358"/>
+				<UserParam type="float" name="percolator_pep" value="0.041868429833078"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="570.815490031900026" RT="723.100000000000023" spectrum_reference="controllerType=0 controllerNumber=1 scan=11" >
-			<PeptideHit score="0.357143" sequence="GKRGAAARGEPGGV" charge="2" aa_before="E" aa_after="G" start="488" end="499" protein_refs="PH_0" >
+			<PeptideHit score="0.157340491243369" sequence="GKRGAAARGEPGGV" charge="2" aa_before="E" aa_after="G" start="488" end="499" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="2.02"/>
+				<UserParam type="float" name="expect" value="2.02"/>
+				<UserParam type="float" name="MS:1001492" value="-0.675925733573802"/>
+				<UserParam type="float" name="MS:1001491" value="0.157340491243369"/>
+				<UserParam type="float" name="MS:1001493" value="0.384243349368348"/>
+				<UserParam type="int" name="scan" value="11"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="22"/>
 				<UserParam type="string" name="num_matched_peptides" value="10184"/>
 				<UserParam type="float" name="MS:1002252" value="0.424"/>
-				<UserParam type="float" name="MS:1002253" value="6.0000000000000000e-03"/>
+				<UserParam type="float" name="MS:1002253" value="6.0e-03"/>
 				<UserParam type="float" name="MS:1002255" value="8.699999999999999"/>
 				<UserParam type="float" name="MS:1002256" value="2.0"/>
-				<UserParam type="float" name="MS:1002257" value="2.02"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.424"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -238,15 +271,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.22857314023724"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.693147180559945"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.090909090909091"/>
-				<UserParam type="float" name="expect" value="2.02"/>
-				<UserParam type="float" name="MS:1001492" value="0.0"/>
-				<UserParam type="float" name="MS:1001491" value="0.357143"/>
-				<UserParam type="float" name="MS:1001493" value="0.718684"/>
+				<UserParam type="float" name="percolator_score" value="-0.675925733573802"/>
+				<UserParam type="float" name="percolator_q_value" value="0.157340491243369"/>
+				<UserParam type="float" name="percolator_pep" value="0.384243349368348"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="528.254210531899957" RT="723.5" spectrum_reference="controllerType=0 controllerNumber=1 scan=13" >
-			<PeptideHit score="0.4375" sequence="EVFHSGHSFHLAY" charge="2" aa_before="E" aa_after="N" start="219" end="227" protein_refs="PH_0" >
+			<PeptideHit score="0.157340491243369" sequence="EVFHSGHSFHLAY" charge="2" aa_before="E" aa_after="N" start="219" end="227" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="0.409"/>
+				<UserParam type="float" name="expect" value="0.409"/>
+				<UserParam type="float" name="MS:1001492" value="-0.732162873884922"/>
+				<UserParam type="float" name="MS:1001491" value="0.157340491243369"/>
+				<UserParam type="float" name="MS:1001493" value="0.422254538557658"/>
+				<UserParam type="int" name="scan" value="13"/>
 				<UserParam type="string" name="MS:1002258" value="4"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
 				<UserParam type="string" name="num_matched_peptides" value="12114"/>
@@ -254,7 +292,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.236"/>
 				<UserParam type="float" name="MS:1002255" value="51.399999999999999"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.409"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.645"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -262,15 +299,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.402117087540891"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.25"/>
-				<UserParam type="float" name="expect" value="0.409"/>
-				<UserParam type="float" name="MS:1001492" value="-0.732163"/>
-				<UserParam type="float" name="MS:1001491" value="0.4375"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-0.732162873884922"/>
+				<UserParam type="float" name="percolator_q_value" value="0.157340491243369"/>
+				<UserParam type="float" name="percolator_pep" value="0.422254538557658"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="514.28045603190003" RT="721.399999999999977" spectrum_reference="controllerType=0 controllerNumber=1 scan=3" >
-			<PeptideHit score="0.357143" sequence="EAVPAACQKERRRRGAH" charge="2" aa_before="A" aa_after="P" start="1211" end="1219" protein_refs="PH_0" >
+			<PeptideHit score="0.026645350386358" sequence="EAVPAACQKERRRRGAH" charge="2" aa_before="A" aa_after="P" start="1211" end="1219" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="0.0342"/>
+				<UserParam type="float" name="expect" value="0.0342"/>
+				<UserParam type="float" name="MS:1001492" value="0.357234284215156"/>
+				<UserParam type="float" name="MS:1001491" value="0.026645350386358"/>
+				<UserParam type="float" name="MS:1001493" value="0.066727889247038"/>
+				<UserParam type="int" name="scan" value="3"/>
 				<UserParam type="string" name="MS:1002258" value="9"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
 				<UserParam type="string" name="num_matched_peptides" value="11906"/>
@@ -278,7 +320,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.256"/>
 				<UserParam type="float" name="MS:1002255" value="256.600000000000023"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.0342"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="1.0"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -286,15 +327,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.38479775371334"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.5625"/>
-				<UserParam type="float" name="expect" value="0.0342"/>
-				<UserParam type="float" name="MS:1001492" value="0.357234"/>
-				<UserParam type="float" name="MS:1001491" value="0.357143"/>
-				<UserParam type="float" name="MS:1001493" value="0.465065"/>
+				<UserParam type="float" name="percolator_score" value="0.357234284215156"/>
+				<UserParam type="float" name="percolator_q_value" value="0.026645350386358"/>
+				<UserParam type="float" name="percolator_pep" value="0.066727889247038"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="499.610778031899997" RT="721.700000000000046" spectrum_reference="controllerType=0 controllerNumber=1 scan=4" >
-			<PeptideHit score="0.357143" sequence="TRILKHGGFAAKDKDDLHKY" charge="3" aa_before="F F F" aa_after="] ] ]" start="159 158 159" end="171 170 171" protein_refs="PH_0" >
+			<PeptideHit score="0.10423176610227" sequence="TRILKHGGFAAKDKDDLHKY" charge="3" aa_before="F F F" aa_after="] ] ]" start="159 158 159" end="171 170 171" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="0.0272"/>
+				<UserParam type="float" name="expect" value="0.0272"/>
+				<UserParam type="float" name="MS:1001492" value="-0.442921758889832"/>
+				<UserParam type="float" name="MS:1001491" value="0.10423176610227"/>
+				<UserParam type="float" name="MS:1001493" value="0.260736864846557"/>
+				<UserParam type="int" name="scan" value="4"/>
 				<UserParam type="string" name="MS:1002258" value="10"/>
 				<UserParam type="string" name="MS:1002259" value="48"/>
 				<UserParam type="string" name="num_matched_peptides" value="13136"/>
@@ -302,7 +348,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.37"/>
 				<UserParam type="float" name="MS:1002255" value="106.5"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.0272"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="1.0"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -310,15 +355,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.483111831692209"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.208333333333333"/>
-				<UserParam type="float" name="expect" value="0.0272"/>
-				<UserParam type="float" name="MS:1001492" value="-0.442922"/>
-				<UserParam type="float" name="MS:1001491" value="0.357143"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-0.442921758889832"/>
+				<UserParam type="float" name="percolator_q_value" value="0.10423176610227"/>
+				<UserParam type="float" name="percolator_pep" value="0.260736864846557"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="545.750182531900009" RT="721.899999999999977" spectrum_reference="controllerType=0 controllerNumber=1 scan=5" >
-			<PeptideHit score="0.166667" sequence="AAGGEAEHQASDRAY" charge="2" aa_before="A" aa_after="L" start="171" end="179" protein_refs="PH_0" >
+			<PeptideHit score="0.10423176610227" sequence="AAGGEAEHQASDRAY" charge="2" aa_before="A" aa_after="L" start="171" end="179" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="0.0421"/>
+				<UserParam type="float" name="expect" value="0.0421"/>
+				<UserParam type="float" name="MS:1001492" value="-0.095122496813647"/>
+				<UserParam type="float" name="MS:1001491" value="0.10423176610227"/>
+				<UserParam type="float" name="MS:1001493" value="0.145603853186456"/>
+				<UserParam type="int" name="scan" value="5"/>
 				<UserParam type="string" name="MS:1002258" value="6"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
 				<UserParam type="string" name="num_matched_peptides" value="9348"/>
@@ -326,7 +376,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.344"/>
 				<UserParam type="float" name="MS:1002255" value="126.299999999999997"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.0421"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="1.0"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -334,15 +383,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.142917695658751"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.375"/>
-				<UserParam type="float" name="expect" value="0.0421"/>
-				<UserParam type="float" name="MS:1001492" value="1.79219"/>
-				<UserParam type="float" name="MS:1001491" value="0.166667"/>
-				<UserParam type="float" name="MS:1001493" value="0.0774777"/>
+				<UserParam type="float" name="percolator_score" value="-0.095122496813647"/>
+				<UserParam type="float" name="percolator_q_value" value="0.10423176610227"/>
+				<UserParam type="float" name="percolator_pep" value="0.145603853186456"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="527.31176703189999" RT="722.100000000000023" spectrum_reference="controllerType=0 controllerNumber=1 scan=6" >
-			<PeptideHit score="0.357143" sequence="TQVASDVVSHLLKL" charge="2" aa_before="Q" aa_after="S" start="327" end="335" protein_refs="PH_0" >
+			<PeptideHit score="0.10423176610227" sequence="TQVASDVVSHLLKL" charge="2" aa_before="Q" aa_after="S" start="327" end="335" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="1.01"/>
+				<UserParam type="float" name="expect" value="1.01"/>
+				<UserParam type="float" name="MS:1001492" value="0.0"/>
+				<UserParam type="float" name="MS:1001491" value="0.10423176610227"/>
+				<UserParam type="float" name="MS:1001493" value="0.123876424415951"/>
+				<UserParam type="int" name="scan" value="6"/>
 				<UserParam type="string" name="MS:1002258" value="4"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
 				<UserParam type="string" name="num_matched_peptides" value="4910"/>
@@ -350,7 +404,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.014"/>
 				<UserParam type="float" name="MS:1002255" value="44.5"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="1.01"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.951"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -358,15 +411,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="8.49902922078857"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.25"/>
-				<UserParam type="float" name="expect" value="1.01"/>
-				<UserParam type="float" name="MS:1001492" value="0.0"/>
-				<UserParam type="float" name="MS:1001491" value="0.357143"/>
-				<UserParam type="float" name="MS:1001493" value="0.718684"/>
+				<UserParam type="float" name="percolator_score" value="0.0"/>
+				<UserParam type="float" name="percolator_q_value" value="0.10423176610227"/>
+				<UserParam type="float" name="percolator_pep" value="0.123876424415951"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="561.281737531900035" RT="722.299999999999955" spectrum_reference="controllerType=0 controllerNumber=1 scan=7" >
-			<PeptideHit score="0.944444" sequence="AGIYGFR" charge="2" aa_before="N" aa_after="C" start="82" end="91" protein_refs="PH_0" >
+			<PeptideHit score="0.238690259913282" sequence="AGIYGFR" charge="2" aa_before="N" aa_after="C" start="82" end="91" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="6.24"/>
+				<UserParam type="float" name="expect" value="6.24"/>
+				<UserParam type="float" name="MS:1001492" value="-1.065674534368017"/>
+				<UserParam type="float" name="MS:1001491" value="0.238690259913282"/>
+				<UserParam type="float" name="MS:1001493" value="0.74552579272976"/>
+				<UserParam type="int" name="scan" value="7"/>
 				<UserParam type="string" name="MS:1002258" value="1"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
 				<UserParam type="string" name="num_matched_peptides" value="16834"/>
@@ -374,7 +432,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.011"/>
 				<UserParam type="float" name="MS:1002255" value="4.4"/>
 				<UserParam type="float" name="MS:1002256" value="5.0"/>
-				<UserParam type="float" name="MS:1002257" value="6.24"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.397"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -382,15 +439,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.73115592977152"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.6094379124341"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.055555555555556"/>
-				<UserParam type="float" name="expect" value="6.24"/>
-				<UserParam type="float" name="MS:1001492" value="-1.06567"/>
-				<UserParam type="float" name="MS:1001491" value="0.944444"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-1.065674534368017"/>
+				<UserParam type="float" name="percolator_q_value" value="0.238690259913282"/>
+				<UserParam type="float" name="percolator_pep" value="0.74552579272976"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="514.759948031899967" RT="722.700000000000046" spectrum_reference="controllerType=0 controllerNumber=1 scan=9" >
-			<PeptideHit score="0.166667" sequence="SVSSAASDKRGHASSYRR" charge="2" aa_before="R" aa_after="M" start="4" end="12" protein_refs="PH_0" >
+			<PeptideHit score="0.026645350386358" sequence="SVSSAASDKRGHASSYRR" charge="2" aa_before="R" aa_after="M" start="4" end="12" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="0.401"/>
+				<UserParam type="float" name="expect" value="0.401"/>
+				<UserParam type="float" name="MS:1001492" value="0.622970768371957"/>
+				<UserParam type="float" name="MS:1001491" value="0.026645350386358"/>
+				<UserParam type="float" name="MS:1001493" value="0.041868429833078"/>
+				<UserParam type="int" name="scan" value="9"/>
 				<UserParam type="string" name="MS:1002258" value="8"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
 				<UserParam type="string" name="num_matched_peptides" value="12854"/>
@@ -398,7 +460,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.037"/>
 				<UserParam type="float" name="MS:1002255" value="159.599999999999994"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.401"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.03758865248227"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.03758865248227"/>
@@ -406,13 +467,18 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.461410325931229"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.5"/>
-				<UserParam type="float" name="expect" value="0.401"/>
-				<UserParam type="float" name="MS:1001492" value="4.00802"/>
-				<UserParam type="float" name="MS:1001491" value="0.166667"/>
-				<UserParam type="float" name="MS:1001493" value="4.3139e-03"/>
+				<UserParam type="float" name="percolator_score" value="0.622970768371957"/>
+				<UserParam type="float" name="percolator_q_value" value="0.026645350386358"/>
+				<UserParam type="float" name="percolator_pep" value="0.041868429833078"/>
 			</PeptideHit>
-			<PeptideHit score="0.166667" sequence="AGGDASDFPAAKGERLHFY" charge="2" aa_before="G" aa_after="W" start="2239" end="2249" protein_refs="PH_0" >
+			<PeptideHit score="0.026645350386358" sequence="AGGDASDFPAAKGERLHFY" charge="2" aa_before="G" aa_after="W" start="2239" end="2249" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="0.592"/>
+				<UserParam type="float" name="expect" value="0.592"/>
+				<UserParam type="float" name="MS:1001492" value="0.622970768371957"/>
+				<UserParam type="float" name="MS:1001491" value="0.026645350386358"/>
+				<UserParam type="float" name="MS:1001493" value="0.041868429833078"/>
+				<UserParam type="int" name="scan" value="9"/>
 				<UserParam type="string" name="MS:1002258" value="6"/>
 				<UserParam type="string" name="MS:1002259" value="20"/>
 				<UserParam type="string" name="num_matched_peptides" value="12854"/>
@@ -420,7 +486,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.204"/>
 				<UserParam type="float" name="MS:1002255" value="99.599999999999994"/>
 				<UserParam type="float" name="MS:1002256" value="3.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.592"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.0"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -428,23 +493,27 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.461410325931229"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.09861228866811"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.3"/>
-				<UserParam type="float" name="expect" value="0.592"/>
-				<UserParam type="float" name="MS:1001492" value="4.00802"/>
-				<UserParam type="float" name="MS:1001491" value="0.166667"/>
-				<UserParam type="float" name="MS:1001493" value="4.3139e-03"/>
+				<UserParam type="float" name="percolator_score" value="0.622970768371957"/>
+				<UserParam type="float" name="percolator_q_value" value="0.026645350386358"/>
+				<UserParam type="float" name="percolator_pep" value="0.041868429833078"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="570.815490031900026" RT="723.100000000000023" spectrum_reference="controllerType=0 controllerNumber=1 scan=11" >
-			<PeptideHit score="0.357143" sequence="GKRGAAARGEPGASDFGV" charge="2" aa_before="E" aa_after="G" start="488" end="499" protein_refs="PH_0" >
+			<PeptideHit score="0.157340491243369" sequence="GKRGAAARGEPGASDFGV" charge="2" aa_before="E" aa_after="G" start="488" end="499" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="2.02"/>
+				<UserParam type="float" name="expect" value="2.02"/>
+				<UserParam type="float" name="MS:1001492" value="-0.675925733573802"/>
+				<UserParam type="float" name="MS:1001491" value="0.157340491243369"/>
+				<UserParam type="float" name="MS:1001493" value="0.384243349368348"/>
+				<UserParam type="int" name="scan" value="11"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="22"/>
 				<UserParam type="string" name="num_matched_peptides" value="10184"/>
 				<UserParam type="float" name="MS:1002252" value="0.424"/>
-				<UserParam type="float" name="MS:1002253" value="6.0000000000000000e-03"/>
+				<UserParam type="float" name="MS:1002253" value="6.0e-03"/>
 				<UserParam type="float" name="MS:1002255" value="8.699999999999999"/>
 				<UserParam type="float" name="MS:1002256" value="2.0"/>
-				<UserParam type="float" name="MS:1002257" value="2.02"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.424"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -452,15 +521,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.22857314023724"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.693147180559945"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.090909090909091"/>
-				<UserParam type="float" name="expect" value="2.02"/>
-				<UserParam type="float" name="MS:1001492" value="0.0"/>
-				<UserParam type="float" name="MS:1001491" value="0.357143"/>
-				<UserParam type="float" name="MS:1001493" value="0.718684"/>
+				<UserParam type="float" name="percolator_score" value="-0.675925733573802"/>
+				<UserParam type="float" name="percolator_q_value" value="0.157340491243369"/>
+				<UserParam type="float" name="percolator_pep" value="0.384243349368348"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="528.254210531899957" RT="723.5" spectrum_reference="controllerType=0 controllerNumber=1 scan=13" >
-			<PeptideHit score="0.4375" sequence="EVFASDFHSGHSFHLAY" charge="2" aa_before="E" aa_after="N" start="219" end="227" protein_refs="PH_0" >
+			<PeptideHit score="0.157340491243369" sequence="EVFASDFHSGHSFHLAY" charge="2" aa_before="E" aa_after="N" start="219" end="227" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="MS:1002257" value="0.409"/>
+				<UserParam type="float" name="expect" value="0.409"/>
+				<UserParam type="float" name="MS:1001492" value="-0.732162873884922"/>
+				<UserParam type="float" name="MS:1001491" value="0.157340491243369"/>
+				<UserParam type="float" name="MS:1001493" value="0.422254538557658"/>
+				<UserParam type="int" name="scan" value="13"/>
 				<UserParam type="string" name="MS:1002258" value="4"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
 				<UserParam type="string" name="num_matched_peptides" value="12114"/>
@@ -468,7 +542,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.236"/>
 				<UserParam type="float" name="MS:1002255" value="51.399999999999999"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.409"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.645"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -476,15 +549,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.402117087540891"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.25"/>
-				<UserParam type="float" name="expect" value="0.409"/>
-				<UserParam type="float" name="MS:1001492" value="-0.732163"/>
-				<UserParam type="float" name="MS:1001491" value="0.4375"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-0.732162873884922"/>
+				<UserParam type="float" name="percolator_q_value" value="0.157340491243369"/>
+				<UserParam type="float" name="percolator_pep" value="0.422254538557658"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="556.345092031899981" RT="724.899999999999977" spectrum_reference="controllerType=0 controllerNumber=1 scan=17" >
-			<PeptideHit score="0.5625" sequence="SAAGHLASDFKQQAL" charge="2" aa_before="K" aa_after="L" start="1099" end="1108" protein_refs="PH_1" >
+			<PeptideHit score="0.177324504033137" sequence="SAAGHLASDFKQQAL" charge="2" aa_before="K" aa_after="L" start="1099" end="1108" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="0.969"/>
+				<UserParam type="float" name="expect" value="0.969"/>
+				<UserParam type="float" name="MS:1001492" value="-0.79590603545269"/>
+				<UserParam type="float" name="MS:1001491" value="0.177324504033137"/>
+				<UserParam type="float" name="MS:1001493" value="0.470195171028056"/>
+				<UserParam type="int" name="scan" value="17"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
 				<UserParam type="string" name="num_matched_peptides" value="3320"/>
@@ -492,7 +570,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.164"/>
 				<UserParam type="float" name="MS:1002255" value="9.0"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.969"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.533"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -500,15 +577,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="8.107720061910531"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.111111111111111"/>
-				<UserParam type="float" name="expect" value="0.969"/>
-				<UserParam type="float" name="MS:1001492" value="-0.795906"/>
-				<UserParam type="float" name="MS:1001491" value="0.5625"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-0.79590603545269"/>
+				<UserParam type="float" name="percolator_q_value" value="0.177324504033137"/>
+				<UserParam type="float" name="percolator_pep" value="0.470195171028056"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="563.790099531899955" RT="726.299999999999955" spectrum_reference="controllerType=0 controllerNumber=1 scan=22" >
-			<PeptideHit score="0.9375" sequence="GSYC(Carbamidomethyl)HSGAFALKPI" charge="2" aa_before="A" aa_after="F" start="187" end="197" protein_refs="PH_1" >
+			<PeptideHit score="0.237276542402442" sequence="GSYC(Carbamidomethyl)HSGAFALKPI" charge="2" aa_before="A" aa_after="F" start="187" end="197" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="6.1"/>
+				<UserParam type="float" name="expect" value="6.1"/>
+				<UserParam type="float" name="MS:1001492" value="-1.0"/>
+				<UserParam type="float" name="MS:1001491" value="0.237276542402442"/>
+				<UserParam type="float" name="MS:1001493" value="0.66587461971078"/>
+				<UserParam type="int" name="scan" value="22"/>
 				<UserParam type="string" name="MS:1002258" value="0"/>
 				<UserParam type="string" name="MS:1002259" value="20"/>
 				<UserParam type="string" name="num_matched_peptides" value="12282"/>
@@ -516,7 +598,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.121"/>
 				<UserParam type="float" name="MS:1002255" value="0.0"/>
 				<UserParam type="float" name="MS:1002256" value="11.0"/>
-				<UserParam type="float" name="MS:1002257" value="6.1"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.155"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -524,15 +605,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.41589005488934"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="2.39789527279837"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.0"/>
-				<UserParam type="float" name="expect" value="6.1"/>
-				<UserParam type="float" name="MS:1001492" value="-1.0"/>
-				<UserParam type="float" name="MS:1001491" value="0.9375"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-1.0"/>
+				<UserParam type="float" name="percolator_q_value" value="0.237276542402442"/>
+				<UserParam type="float" name="percolator_pep" value="0.66587461971078"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="614.865416531899996" RT="726.700000000000046" spectrum_reference="controllerType=0 controllerNumber=1 scan=24" >
-			<PeptideHit score="1.0" sequence="KGRVRRKKKRRKEEA" charge="2" aa_before="P" aa_after="K" start="504" end="513" protein_refs="PH_1" >
+			<PeptideHit score="0.25645382683752" sequence="KGRVRRKKKRRKEEA" charge="2" aa_before="P" aa_after="K" start="504" end="513" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="0.0506"/>
+				<UserParam type="float" name="expect" value="0.0506"/>
+				<UserParam type="float" name="MS:1001492" value="-1.696632935759406"/>
+				<UserParam type="float" name="MS:1001491" value="0.25645382683752"/>
+				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="int" name="scan" value="24"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
 				<UserParam type="string" name="num_matched_peptides" value="6600"/>
@@ -540,7 +626,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.34"/>
 				<UserParam type="float" name="MS:1002255" value="11.9"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.0506"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.453"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -548,15 +633,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="8.794824928014521"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.111111111111111"/>
-				<UserParam type="float" name="expect" value="0.0506"/>
-				<UserParam type="float" name="MS:1001492" value="-3.14961"/>
-				<UserParam type="float" name="MS:1001491" value="1.0"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-1.696632935759406"/>
+				<UserParam type="float" name="percolator_q_value" value="0.25645382683752"/>
+				<UserParam type="float" name="percolator_pep" value="1.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="584.801330031899965" RT="727.200000000000045" spectrum_reference="controllerType=0 controllerNumber=1 scan=26" >
-			<PeptideHit score="0.9375" sequence="QTKGTGASGSFKHHLAKY" charge="2" aa_before="V V V V V" aa_after="L L L L L" start="97 94 94 95 97" end="108 105 105 106 108" protein_refs="PH_1" >
+			<PeptideHit score="0.237276542402442" sequence="QTKGTGASGSFKHHLAKY" charge="2" aa_before="V V V V V" aa_after="L L L L L" start="97 94 94 95 97" end="108 105 105 106 108" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="0.0246"/>
+				<UserParam type="float" name="expect" value="0.0246"/>
+				<UserParam type="float" name="MS:1001492" value="-1.0"/>
+				<UserParam type="float" name="MS:1001491" value="0.237276542402442"/>
+				<UserParam type="float" name="MS:1001493" value="0.66587461971078"/>
+				<UserParam type="int" name="scan" value="26"/>
 				<UserParam type="string" name="MS:1002258" value="5"/>
 				<UserParam type="string" name="MS:1002259" value="22"/>
 				<UserParam type="string" name="num_matched_peptides" value="17838"/>
@@ -564,7 +654,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.318"/>
 				<UserParam type="float" name="MS:1002255" value="57.399999999999999"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.0246"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="1.0"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -572,15 +661,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.78908629222615"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.227272727272727"/>
-				<UserParam type="float" name="expect" value="0.0246"/>
-				<UserParam type="float" name="MS:1001492" value="-1.0"/>
-				<UserParam type="float" name="MS:1001491" value="0.9375"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-1.0"/>
+				<UserParam type="float" name="percolator_q_value" value="0.237276542402442"/>
+				<UserParam type="float" name="percolator_pep" value="0.66587461971078"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="455.748412531899987" RT="727.600000000000023" spectrum_reference="controllerType=0 controllerNumber=1 scan=28" >
-			<PeptideHit score="0.357143" sequence="VVGANRASHVVAAGGYY" charge="2" aa_before="F" aa_after="R" start="974" end="982" protein_refs="PH_1" >
+			<PeptideHit score="0.10423176610227" sequence="VVGANRASHVVAAGGYY" charge="2" aa_before="F" aa_after="R" start="974" end="982" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="1.48"/>
+				<UserParam type="float" name="expect" value="1.48"/>
+				<UserParam type="float" name="MS:1001492" value="0.0"/>
+				<UserParam type="float" name="MS:1001491" value="0.10423176610227"/>
+				<UserParam type="float" name="MS:1001493" value="0.123876424415951"/>
+				<UserParam type="int" name="scan" value="28"/>
 				<UserParam type="string" name="MS:1002258" value="5"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
 				<UserParam type="string" name="num_matched_peptides" value="9784"/>
@@ -588,7 +682,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.06"/>
 				<UserParam type="float" name="MS:1002255" value="113.400000000000006"/>
 				<UserParam type="float" name="MS:1002256" value="3.0"/>
-				<UserParam type="float" name="MS:1002257" value="1.48"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="1.0"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -596,15 +689,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.188503677367009"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.09861228866811"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.3125"/>
-				<UserParam type="float" name="expect" value="1.48"/>
-				<UserParam type="float" name="MS:1001492" value="0.0"/>
-				<UserParam type="float" name="MS:1001491" value="0.357143"/>
-				<UserParam type="float" name="MS:1001493" value="0.718684"/>
+				<UserParam type="float" name="percolator_score" value="0.0"/>
+				<UserParam type="float" name="percolator_q_value" value="0.10423176610227"/>
+				<UserParam type="float" name="percolator_pep" value="0.123876424415951"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="562.315551031899986" RT="727.799999999999955" spectrum_reference="controllerType=0 controllerNumber=1 scan=29" >
-			<PeptideHit score="0.357143" sequence="FQSMKIILLFQSMH" charge="2" aa_before="D" aa_after="N" start="78" end="86" protein_refs="PH_1" >
+			<PeptideHit score="0.15423176610227" sequence="FQSMKIILLFQSMH" charge="2" aa_before="D" aa_after="N" start="78" end="86" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="2.2"/>
+				<UserParam type="float" name="expect" value="2.2"/>
+				<UserParam type="float" name="MS:1001492" value="-0.478968561455969"/>
+				<UserParam type="float" name="MS:1001491" value="0.15423176610227"/>
+				<UserParam type="float" name="MS:1001493" value="0.276845424963204"/>
+				<UserParam type="int" name="scan" value="29"/>
 				<UserParam type="string" name="MS:1002258" value="1"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
 				<UserParam type="string" name="num_matched_peptides" value="9754"/>
@@ -612,7 +710,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.134"/>
 				<UserParam type="float" name="MS:1002255" value="1.7"/>
 				<UserParam type="float" name="MS:1002256" value="3.0"/>
-				<UserParam type="float" name="MS:1002257" value="2.2"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.357"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -620,15 +717,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.18543273627"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.09861228866811"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.0625"/>
-				<UserParam type="float" name="expect" value="2.2"/>
-				<UserParam type="float" name="MS:1001492" value="0.607753"/>
-				<UserParam type="float" name="MS:1001491" value="0.357143"/>
-				<UserParam type="float" name="MS:1001493" value="0.344137"/>
+				<UserParam type="float" name="percolator_score" value="-0.478968561455969"/>
+				<UserParam type="float" name="percolator_q_value" value="0.15423176610227"/>
+				<UserParam type="float" name="percolator_pep" value="0.276845424963204"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="558.798888531900047" RT="728.700000000000046" spectrum_reference="controllerType=0 controllerNumber=1 scan=33" >
-			<PeptideHit score="0.944444" sequence="QQKGRLHSYQQLLAG" charge="2" aa_before="W" aa_after="]" start="210" end="218" protein_refs="PH_1" >
+			<PeptideHit score="0.238690259913282" sequence="QQKGRLHSYQQLLAG" charge="2" aa_before="W" aa_after="]" start="210" end="218" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="0.635"/>
+				<UserParam type="float" name="expect" value="0.635"/>
+				<UserParam type="float" name="MS:1001492" value="-1.040602748257032"/>
+				<UserParam type="float" name="MS:1001491" value="0.238690259913282"/>
+				<UserParam type="float" name="MS:1001493" value="0.714006883819055"/>
+				<UserParam type="int" name="scan" value="33"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
 				<UserParam type="string" name="num_matched_peptides" value="17366"/>
@@ -636,7 +738,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.252"/>
 				<UserParam type="float" name="MS:1002255" value="7.2"/>
 				<UserParam type="float" name="MS:1002256" value="5.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.635"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.72"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -644,15 +745,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.762269550620591"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.6094379124341"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.125"/>
-				<UserParam type="float" name="expect" value="0.635"/>
-				<UserParam type="float" name="MS:1001492" value="-1.0406"/>
-				<UserParam type="float" name="MS:1001491" value="0.944444"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-1.040602748257032"/>
+				<UserParam type="float" name="percolator_q_value" value="0.238690259913282"/>
+				<UserParam type="float" name="percolator_pep" value="0.714006883819055"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="544.787414031899971" RT="729.799999999999955" spectrum_reference="controllerType=0 controllerNumber=1 scan=37" >
-			<PeptideHit score="0.4375" sequence="KAAPGHSRQH" charge="2" aa_before="P" aa_after="T" start="72" end="81" protein_refs="PH_1" >
+			<PeptideHit score="0.157340491243369" sequence="KAAPGHSRQH" charge="2" aa_before="P" aa_after="T" start="72" end="81" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="10.699999999999999"/>
+				<UserParam type="float" name="expect" value="10.699999999999999"/>
+				<UserParam type="float" name="MS:1001492" value="-0.479069239253192"/>
+				<UserParam type="float" name="MS:1001491" value="0.157340491243369"/>
+				<UserParam type="float" name="MS:1001493" value="0.276891760952067"/>
+				<UserParam type="int" name="scan" value="37"/>
 				<UserParam type="string" name="MS:1002258" value="1"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
 				<UserParam type="string" name="num_matched_peptides" value="16732"/>
@@ -660,7 +766,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.089"/>
 				<UserParam type="float" name="MS:1002255" value="2.4"/>
 				<UserParam type="float" name="MS:1002256" value="6.0"/>
-				<UserParam type="float" name="MS:1002257" value="10.699999999999999"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.163"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -668,15 +773,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.72507833256209"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.79175946922805"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.055555555555556"/>
-				<UserParam type="float" name="expect" value="10.699999999999999"/>
-				<UserParam type="float" name="MS:1001492" value="-0.479069"/>
-				<UserParam type="float" name="MS:1001491" value="0.4375"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-0.479069239253192"/>
+				<UserParam type="float" name="percolator_q_value" value="0.157340491243369"/>
+				<UserParam type="float" name="percolator_pep" value="0.276891760952067"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="624.236205531900055" RT="730.200000000000045" spectrum_reference="controllerType=0 controllerNumber=1 scan=39" >
-			<PeptideHit score="1.0" sequence="SDYNEDNLDYSTNGD" charge="2" aa_before="E" aa_after="Y" start="307" end="316" protein_refs="PH_1" >
+			<PeptideHit score="0.274217393761758" sequence="SDYNEDNLDYSTNGD" charge="2" aa_before="E" aa_after="Y" start="307" end="316" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="0.627"/>
+				<UserParam type="float" name="expect" value="0.627"/>
+				<UserParam type="float" name="MS:1001492" value="-2.657041368324612"/>
+				<UserParam type="float" name="MS:1001491" value="0.274217393761758"/>
+				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="int" name="scan" value="39"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
 				<UserParam type="string" name="num_matched_peptides" value="1012"/>
@@ -684,7 +794,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.168"/>
 				<UserParam type="float" name="MS:1002255" value="15.6"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.627"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.406"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -692,15 +801,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="6.91968384984741"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.111111111111111"/>
-				<UserParam type="float" name="expect" value="0.627"/>
-				<UserParam type="float" name="MS:1001492" value="-2.65704"/>
-				<UserParam type="float" name="MS:1001491" value="1.0"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-2.657041368324612"/>
+				<UserParam type="float" name="percolator_q_value" value="0.274217393761758"/>
+				<UserParam type="float" name="percolator_pep" value="1.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="645.677123365233001" RT="730.399999999999977" spectrum_reference="controllerType=0 controllerNumber=1 scan=40" >
-			<PeptideHit score="1.0" sequence="WIRITGDEYGVVAD" charge="3" aa_before="D" aa_after="P" start="192" end="208" protein_refs="PH_1" >
+			<PeptideHit score="0.291980960685997" sequence="WIRITGDEYGVVAD" charge="3" aa_before="D" aa_after="P" start="192" end="208" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="0.359"/>
+				<UserParam type="float" name="expect" value="0.359"/>
+				<UserParam type="float" name="MS:1001492" value="-3.24481269348957"/>
+				<UserParam type="float" name="MS:1001491" value="0.291980960685997"/>
+				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="int" name="scan" value="40"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="64"/>
 				<UserParam type="string" name="num_matched_peptides" value="20414"/>
@@ -708,7 +822,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.297"/>
 				<UserParam type="float" name="MS:1002255" value="5.1"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.359"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.463"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -716,15 +829,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.923976218963441"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.03125"/>
-				<UserParam type="float" name="expect" value="0.359"/>
-				<UserParam type="float" name="MS:1001492" value="-3.24481"/>
-				<UserParam type="float" name="MS:1001491" value="1.0"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-3.24481269348957"/>
+				<UserParam type="float" name="percolator_q_value" value="0.291980960685997"/>
+				<UserParam type="float" name="percolator_pep" value="1.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="554.778014531899999" RT="732.200000000000045" spectrum_reference="controllerType=0 controllerNumber=1 scan=45" >
-			<PeptideHit score="0.9375" sequence="ALKAAHPTASDFNVQR" charge="2" aa_before="F" aa_after="L" start="114" end="123" protein_refs="PH_1" >
+			<PeptideHit score="0.237276542402442" sequence="ALKAAHPTASDFNVQR" charge="2" aa_before="F" aa_after="L" start="114" end="123" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="0.0175"/>
+				<UserParam type="float" name="expect" value="0.0175"/>
+				<UserParam type="float" name="MS:1001492" value="-1.0"/>
+				<UserParam type="float" name="MS:1001491" value="0.237276542402442"/>
+				<UserParam type="float" name="MS:1001493" value="0.66587461971078"/>
+				<UserParam type="int" name="scan" value="45"/>
 				<UserParam type="string" name="MS:1002258" value="5"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
 				<UserParam type="string" name="num_matched_peptides" value="18586"/>
@@ -732,7 +850,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.355"/>
 				<UserParam type="float" name="MS:1002255" value="60.600000000000001"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.0175"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="1.0"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -740,15 +857,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.830163888117291"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.277777777777778"/>
-				<UserParam type="float" name="expect" value="0.0175"/>
-				<UserParam type="float" name="MS:1001492" value="-1.0"/>
-				<UserParam type="float" name="MS:1001491" value="0.9375"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-1.0"/>
+				<UserParam type="float" name="percolator_q_value" value="0.237276542402442"/>
+				<UserParam type="float" name="percolator_pep" value="0.66587461971078"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="556.345092031899981" RT="724.899999999999977" spectrum_reference="controllerType=0 controllerNumber=1 scan=17" >
-			<PeptideHit score="0.5625" sequence="SAAGHLASDFKQQASDFAL" charge="2" aa_before="K" aa_after="L" start="1099" end="1108" protein_refs="PH_1" >
+			<PeptideHit score="0.177324504033137" sequence="SAAGHLASDFKQQASDFAL" charge="2" aa_before="K" aa_after="L" start="1099" end="1108" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="0.969"/>
+				<UserParam type="float" name="expect" value="0.969"/>
+				<UserParam type="float" name="MS:1001492" value="-0.79590603545269"/>
+				<UserParam type="float" name="MS:1001491" value="0.177324504033137"/>
+				<UserParam type="float" name="MS:1001493" value="0.470195171028056"/>
+				<UserParam type="int" name="scan" value="17"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
 				<UserParam type="string" name="num_matched_peptides" value="3320"/>
@@ -756,7 +878,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.164"/>
 				<UserParam type="float" name="MS:1002255" value="9.0"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.969"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.533"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -764,15 +885,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="8.107720061910531"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.111111111111111"/>
-				<UserParam type="float" name="expect" value="0.969"/>
-				<UserParam type="float" name="MS:1001492" value="-0.795906"/>
-				<UserParam type="float" name="MS:1001491" value="0.5625"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-0.79590603545269"/>
+				<UserParam type="float" name="percolator_q_value" value="0.177324504033137"/>
+				<UserParam type="float" name="percolator_pep" value="0.470195171028056"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="563.790099531899955" RT="726.299999999999955" spectrum_reference="controllerType=0 controllerNumber=1 scan=22" >
-			<PeptideHit score="0.9375" sequence="GSYC(Carbamidomethyl)HSASDFGAFALKPI" charge="2" aa_before="A" aa_after="F" start="187" end="197" protein_refs="PH_1" >
+			<PeptideHit score="0.237276542402442" sequence="GSYC(Carbamidomethyl)HSASDFGAFALKPI" charge="2" aa_before="A" aa_after="F" start="187" end="197" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="6.1"/>
+				<UserParam type="float" name="expect" value="6.1"/>
+				<UserParam type="float" name="MS:1001492" value="-1.0"/>
+				<UserParam type="float" name="MS:1001491" value="0.237276542402442"/>
+				<UserParam type="float" name="MS:1001493" value="0.66587461971078"/>
+				<UserParam type="int" name="scan" value="22"/>
 				<UserParam type="string" name="MS:1002258" value="0"/>
 				<UserParam type="string" name="MS:1002259" value="20"/>
 				<UserParam type="string" name="num_matched_peptides" value="12282"/>
@@ -780,7 +906,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.121"/>
 				<UserParam type="float" name="MS:1002255" value="0.0"/>
 				<UserParam type="float" name="MS:1002256" value="11.0"/>
-				<UserParam type="float" name="MS:1002257" value="6.1"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.155"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -788,15 +913,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.41589005488934"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="2.39789527279837"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.0"/>
-				<UserParam type="float" name="expect" value="6.1"/>
-				<UserParam type="float" name="MS:1001492" value="-1.0"/>
-				<UserParam type="float" name="MS:1001491" value="0.9375"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-1.0"/>
+				<UserParam type="float" name="percolator_q_value" value="0.237276542402442"/>
+				<UserParam type="float" name="percolator_pep" value="0.66587461971078"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="614.865416531899996" RT="726.700000000000046" spectrum_reference="controllerType=0 controllerNumber=1 scan=24" >
-			<PeptideHit score="1.0" sequence="KGRVRRASDFKKKRRKEEA" charge="2" aa_before="P" aa_after="K" start="504" end="513" protein_refs="PH_1" >
+			<PeptideHit score="0.25645382683752" sequence="KGRVRRASDFKKKRRKEEA" charge="2" aa_before="P" aa_after="K" start="504" end="513" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="0.0506"/>
+				<UserParam type="float" name="expect" value="0.0506"/>
+				<UserParam type="float" name="MS:1001492" value="-1.696632935759406"/>
+				<UserParam type="float" name="MS:1001491" value="0.25645382683752"/>
+				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="int" name="scan" value="24"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
 				<UserParam type="string" name="num_matched_peptides" value="6600"/>
@@ -804,7 +934,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.34"/>
 				<UserParam type="float" name="MS:1002255" value="11.9"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.0506"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.453"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -812,15 +941,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="8.794824928014521"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.111111111111111"/>
-				<UserParam type="float" name="expect" value="0.0506"/>
-				<UserParam type="float" name="MS:1001492" value="-3.14961"/>
-				<UserParam type="float" name="MS:1001491" value="1.0"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-1.696632935759406"/>
+				<UserParam type="float" name="percolator_q_value" value="0.25645382683752"/>
+				<UserParam type="float" name="percolator_pep" value="1.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="584.801330031899965" RT="727.200000000000045" spectrum_reference="controllerType=0 controllerNumber=1 scan=26" >
-			<PeptideHit score="0.9375" sequence="QTKASDFGTGASGSFKHHLAKY" charge="2" aa_before="V V V V V" aa_after="L L L L L" start="97 94 94 95 97" end="108 105 105 106 108" protein_refs="PH_1" >
+			<PeptideHit score="0.237276542402442" sequence="QTKASDFGTGASGSFKHHLAKY" charge="2" aa_before="V V V V V" aa_after="L L L L L" start="97 94 94 95 97" end="108 105 105 106 108" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="0.0246"/>
+				<UserParam type="float" name="expect" value="0.0246"/>
+				<UserParam type="float" name="MS:1001492" value="-1.0"/>
+				<UserParam type="float" name="MS:1001491" value="0.237276542402442"/>
+				<UserParam type="float" name="MS:1001493" value="0.66587461971078"/>
+				<UserParam type="int" name="scan" value="26"/>
 				<UserParam type="string" name="MS:1002258" value="5"/>
 				<UserParam type="string" name="MS:1002259" value="22"/>
 				<UserParam type="string" name="num_matched_peptides" value="17838"/>
@@ -828,7 +962,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.318"/>
 				<UserParam type="float" name="MS:1002255" value="57.399999999999999"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.0246"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="1.0"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -836,15 +969,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.78908629222615"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.227272727272727"/>
-				<UserParam type="float" name="expect" value="0.0246"/>
-				<UserParam type="float" name="MS:1001492" value="-1.0"/>
-				<UserParam type="float" name="MS:1001491" value="0.9375"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-1.0"/>
+				<UserParam type="float" name="percolator_q_value" value="0.237276542402442"/>
+				<UserParam type="float" name="percolator_pep" value="0.66587461971078"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="455.748412531899987" RT="727.600000000000023" spectrum_reference="controllerType=0 controllerNumber=1 scan=28" >
-			<PeptideHit score="0.357143" sequence="VVGANRASASDFHVVAAGGYY" charge="2" aa_before="F" aa_after="R" start="974" end="982" protein_refs="PH_1" >
+			<PeptideHit score="0.10423176610227" sequence="VVGANRASASDFHVVAAGGYY" charge="2" aa_before="F" aa_after="R" start="974" end="982" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="1.48"/>
+				<UserParam type="float" name="expect" value="1.48"/>
+				<UserParam type="float" name="MS:1001492" value="0.0"/>
+				<UserParam type="float" name="MS:1001491" value="0.10423176610227"/>
+				<UserParam type="float" name="MS:1001493" value="0.123876424415951"/>
+				<UserParam type="int" name="scan" value="28"/>
 				<UserParam type="string" name="MS:1002258" value="5"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
 				<UserParam type="string" name="num_matched_peptides" value="9784"/>
@@ -852,7 +990,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.06"/>
 				<UserParam type="float" name="MS:1002255" value="113.400000000000006"/>
 				<UserParam type="float" name="MS:1002256" value="3.0"/>
-				<UserParam type="float" name="MS:1002257" value="1.48"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="1.0"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -860,15 +997,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.188503677367009"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.09861228866811"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.3125"/>
-				<UserParam type="float" name="expect" value="1.48"/>
-				<UserParam type="float" name="MS:1001492" value="0.0"/>
-				<UserParam type="float" name="MS:1001491" value="0.357143"/>
-				<UserParam type="float" name="MS:1001493" value="0.718684"/>
+				<UserParam type="float" name="percolator_score" value="0.0"/>
+				<UserParam type="float" name="percolator_q_value" value="0.10423176610227"/>
+				<UserParam type="float" name="percolator_pep" value="0.123876424415951"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="562.315551031899986" RT="727.799999999999955" spectrum_reference="controllerType=0 controllerNumber=1 scan=29" >
-			<PeptideHit score="0.357143" sequence="FQSMKIILASDFLFQSMH" charge="2" aa_before="D" aa_after="N" start="78" end="86" protein_refs="PH_1" >
+			<PeptideHit score="0.15423176610227" sequence="FQSMKIILASDFLFQSMH" charge="2" aa_before="D" aa_after="N" start="78" end="86" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="2.2"/>
+				<UserParam type="float" name="expect" value="2.2"/>
+				<UserParam type="float" name="MS:1001492" value="-0.478968561455969"/>
+				<UserParam type="float" name="MS:1001491" value="0.15423176610227"/>
+				<UserParam type="float" name="MS:1001493" value="0.276845424963204"/>
+				<UserParam type="int" name="scan" value="29"/>
 				<UserParam type="string" name="MS:1002258" value="1"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
 				<UserParam type="string" name="num_matched_peptides" value="9754"/>
@@ -876,7 +1018,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.134"/>
 				<UserParam type="float" name="MS:1002255" value="1.7"/>
 				<UserParam type="float" name="MS:1002256" value="3.0"/>
-				<UserParam type="float" name="MS:1002257" value="2.2"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.357"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -884,15 +1025,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.18543273627"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.09861228866811"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.0625"/>
-				<UserParam type="float" name="expect" value="2.2"/>
-				<UserParam type="float" name="MS:1001492" value="0.607753"/>
-				<UserParam type="float" name="MS:1001491" value="0.357143"/>
-				<UserParam type="float" name="MS:1001493" value="0.344137"/>
+				<UserParam type="float" name="percolator_score" value="-0.478968561455969"/>
+				<UserParam type="float" name="percolator_q_value" value="0.15423176610227"/>
+				<UserParam type="float" name="percolator_pep" value="0.276845424963204"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="558.798888531900047" RT="728.700000000000046" spectrum_reference="controllerType=0 controllerNumber=1 scan=33" >
-			<PeptideHit score="0.944444" sequence="QQKGRLHSASDFYQQLLAG" charge="2" aa_before="W" aa_after="]" start="210" end="218" protein_refs="PH_1" >
+			<PeptideHit score="0.238690259913282" sequence="QQKGRLHSASDFYQQLLAG" charge="2" aa_before="W" aa_after="]" start="210" end="218" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="0.635"/>
+				<UserParam type="float" name="expect" value="0.635"/>
+				<UserParam type="float" name="MS:1001492" value="-1.040602748257032"/>
+				<UserParam type="float" name="MS:1001491" value="0.238690259913282"/>
+				<UserParam type="float" name="MS:1001493" value="0.714006883819055"/>
+				<UserParam type="int" name="scan" value="33"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
 				<UserParam type="string" name="num_matched_peptides" value="17366"/>
@@ -900,7 +1046,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.252"/>
 				<UserParam type="float" name="MS:1002255" value="7.2"/>
 				<UserParam type="float" name="MS:1002256" value="5.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.635"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.72"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -908,15 +1053,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.762269550620591"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.6094379124341"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.125"/>
-				<UserParam type="float" name="expect" value="0.635"/>
-				<UserParam type="float" name="MS:1001492" value="-1.0406"/>
-				<UserParam type="float" name="MS:1001491" value="0.944444"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-1.040602748257032"/>
+				<UserParam type="float" name="percolator_q_value" value="0.238690259913282"/>
+				<UserParam type="float" name="percolator_pep" value="0.714006883819055"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="544.787414031899971" RT="729.799999999999955" spectrum_reference="controllerType=0 controllerNumber=1 scan=37" >
-			<PeptideHit score="0.4375" sequence="KAAPGHSRQASDFH" charge="2" aa_before="P" aa_after="T" start="72" end="81" protein_refs="PH_1" >
+			<PeptideHit score="0.157340491243369" sequence="KAAPGHSRQASDFH" charge="2" aa_before="P" aa_after="T" start="72" end="81" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="10.699999999999999"/>
+				<UserParam type="float" name="expect" value="10.699999999999999"/>
+				<UserParam type="float" name="MS:1001492" value="-0.479069239253192"/>
+				<UserParam type="float" name="MS:1001491" value="0.157340491243369"/>
+				<UserParam type="float" name="MS:1001493" value="0.276891760952067"/>
+				<UserParam type="int" name="scan" value="37"/>
 				<UserParam type="string" name="MS:1002258" value="1"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
 				<UserParam type="string" name="num_matched_peptides" value="16732"/>
@@ -924,7 +1074,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.089"/>
 				<UserParam type="float" name="MS:1002255" value="2.4"/>
 				<UserParam type="float" name="MS:1002256" value="6.0"/>
-				<UserParam type="float" name="MS:1002257" value="10.699999999999999"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.163"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -932,15 +1081,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.72507833256209"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.79175946922805"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.055555555555556"/>
-				<UserParam type="float" name="expect" value="10.699999999999999"/>
-				<UserParam type="float" name="MS:1001492" value="-0.479069"/>
-				<UserParam type="float" name="MS:1001491" value="0.4375"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-0.479069239253192"/>
+				<UserParam type="float" name="percolator_q_value" value="0.157340491243369"/>
+				<UserParam type="float" name="percolator_pep" value="0.276891760952067"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="624.236205531900055" RT="730.200000000000045" spectrum_reference="controllerType=0 controllerNumber=1 scan=39" >
-			<PeptideHit score="1.0" sequence="SDYNEDASDFNLDYSTNGD" charge="2" aa_before="E" aa_after="Y" start="307" end="316" protein_refs="PH_1" >
+			<PeptideHit score="0.274217393761758" sequence="SDYNEDASDFNLDYSTNGD" charge="2" aa_before="E" aa_after="Y" start="307" end="316" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="0.627"/>
+				<UserParam type="float" name="expect" value="0.627"/>
+				<UserParam type="float" name="MS:1001492" value="-2.657041368324612"/>
+				<UserParam type="float" name="MS:1001491" value="0.274217393761758"/>
+				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="int" name="scan" value="39"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
 				<UserParam type="string" name="num_matched_peptides" value="1012"/>
@@ -948,7 +1102,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.168"/>
 				<UserParam type="float" name="MS:1002255" value="15.6"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.627"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.406"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -956,15 +1109,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="6.91968384984741"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.111111111111111"/>
-				<UserParam type="float" name="expect" value="0.627"/>
-				<UserParam type="float" name="MS:1001492" value="-2.65704"/>
-				<UserParam type="float" name="MS:1001491" value="1.0"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-2.657041368324612"/>
+				<UserParam type="float" name="percolator_q_value" value="0.274217393761758"/>
+				<UserParam type="float" name="percolator_pep" value="1.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="645.677123365233001" RT="730.399999999999977" spectrum_reference="controllerType=0 controllerNumber=1 scan=40" >
-			<PeptideHit score="1.0" sequence="WIRITGASDFDEYGVVAD" charge="3" aa_before="D" aa_after="P" start="192" end="208" protein_refs="PH_1" >
+			<PeptideHit score="0.291980960685997" sequence="WIRITGASDFDEYGVVAD" charge="3" aa_before="D" aa_after="P" start="192" end="208" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="0.359"/>
+				<UserParam type="float" name="expect" value="0.359"/>
+				<UserParam type="float" name="MS:1001492" value="-3.24481269348957"/>
+				<UserParam type="float" name="MS:1001491" value="0.291980960685997"/>
+				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="int" name="scan" value="40"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="64"/>
 				<UserParam type="string" name="num_matched_peptides" value="20414"/>
@@ -972,7 +1130,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.297"/>
 				<UserParam type="float" name="MS:1002255" value="5.1"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.359"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.463"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -980,15 +1137,20 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.923976218963441"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.03125"/>
-				<UserParam type="float" name="expect" value="0.359"/>
-				<UserParam type="float" name="MS:1001492" value="-3.24481"/>
-				<UserParam type="float" name="MS:1001491" value="1.0"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-3.24481269348957"/>
+				<UserParam type="float" name="percolator_q_value" value="0.291980960685997"/>
+				<UserParam type="float" name="percolator_pep" value="1.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="554.778014531899999" RT="732.200000000000045" spectrum_reference="controllerType=0 controllerNumber=1 scan=45" >
-			<PeptideHit score="0.9375" sequence="ALKAAASDFHPTNVQR" charge="2" aa_before="F" aa_after="L" start="114" end="123" protein_refs="PH_1" >
+			<PeptideHit score="0.237276542402442" sequence="ALKAAASDFHPTNVQR" charge="2" aa_before="F" aa_after="L" start="114" end="123" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="MS:1002257" value="0.0175"/>
+				<UserParam type="float" name="expect" value="0.0175"/>
+				<UserParam type="float" name="MS:1001492" value="-1.0"/>
+				<UserParam type="float" name="MS:1001491" value="0.237276542402442"/>
+				<UserParam type="float" name="MS:1001493" value="0.66587461971078"/>
+				<UserParam type="int" name="scan" value="45"/>
 				<UserParam type="string" name="MS:1002258" value="5"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
 				<UserParam type="string" name="num_matched_peptides" value="18586"/>
@@ -996,7 +1158,6 @@
 				<UserParam type="float" name="MS:1002253" value="0.355"/>
 				<UserParam type="float" name="MS:1002255" value="60.600000000000001"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.0175"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="1.0"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
@@ -1004,10 +1165,9 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.830163888117291"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.277777777777778"/>
-				<UserParam type="float" name="expect" value="0.0175"/>
-				<UserParam type="float" name="MS:1001492" value="-1.0"/>
-				<UserParam type="float" name="MS:1001491" value="0.9375"/>
-				<UserParam type="float" name="MS:1001493" value="1.0"/>
+				<UserParam type="float" name="percolator_score" value="-1.0"/>
+				<UserParam type="float" name="percolator_q_value" value="0.237276542402442"/>
+				<UserParam type="float" name="percolator_pep" value="0.66587461971078"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

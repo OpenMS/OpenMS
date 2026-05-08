@@ -187,7 +187,10 @@ namespace OpenMS
     static constexpr const char* SCORE = "score";
     static constexpr const char* SCORE_TYPE = "score_type";
     static constexpr const char* HIGHER_SCORE_BETTER = "higher_score_better";
-    static constexpr const char* RANK = "rank";
+    /// 0-based positional column: hit position within parent identification.
+    /// Distinct from PeptideHit::getRank(), which is round-tripped via the
+    /// "rank" UserParam carried in PSM_METAVALUES.
+    static constexpr const char* HIT_INDEX = "hit_index";
     static constexpr const char* PEPTIDE_IDENTIFICATION_INDEX = "peptide_identification_index";
     static constexpr const char* PSM_METAVALUES = "psm_metavalues";
     static constexpr const char* SPECTRUM_METAVALUES = "spectrum_metavalues";
@@ -200,6 +203,10 @@ namespace OpenMS
     static std::shared_ptr<arrow::DataType> modificationsType();
     static std::shared_ptr<arrow::DataType> additionalScoresType();
     static std::shared_ptr<arrow::DataType> metavaluesType();
+    /**
+      @brief Arrow type for protein_accessions: list<struct{accession, aa_before, aa_after, start, end}>
+    */
+    static std::shared_ptr<arrow::DataType> proteinAccessionsType();
     static std::shared_ptr<arrow::Schema> schema();
   };
 

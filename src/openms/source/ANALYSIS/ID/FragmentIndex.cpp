@@ -747,41 +747,19 @@ namespace OpenMS
       const size_t L = seq.size();
       if (L < peptide_min_length_) continue;
 
-      // Fast path: for the overwhelmingly common case of a protein with no
-      // ambiguous residues, a single linear scan tells us we can skip the per-
-      // mother X/B/Z check entirely. For the rare protein with X/B/Z, we fall
-      // back to checking only the next-bad-position via std::string::find_first_of
-      // starting from the mother's start index — still O(length) in the worst
-      // case, but only if the mother actually overlaps a bad region.
-      //
-      // Follow-up: a protein-wide skip here is overly conservative. A max-length
-      // mother spanning an `X` is discarded, but shorter realizations with the
-      // same anchor *not* covering the `X` could be valid. CodeRabbit #1.
-      // Correct fix: split the protein into contiguous unambiguous spans and
-      // generate mothers per-span. Deferred to v1.1.
-      const bool protein_has_ambiguous = seq.find_first_of("XBZ") != std::string::npos;
-
       // Honor peptide:max_size=0 as "no maximum" (the documented semantics of
       // the non-SNES path). Using raw peptide_max_length_ in std::min would give
       // length 0 and an empty SNES index.
       const size_t effective_max_length = (peptide_max_length_ == 0) ? L : peptide_max_length_;
 
+      // Mass-compute + filter + emit. No X/B/Z check here: the dispatch below
+      // either calls sweepSpan(0, L) on a protein with no ambiguous residues
+      // or splits at X/B/Z, so span boundaries structurally prevent any
+      // ambiguous residue from reaching this lambda.
       auto emitMother = [&](size_t start, size_t length, bool is_single_c)
       {
         if (length < peptide_min_length_) return;
         const char* seq_ptr = seq.c_str() + start;
-
-        // Reject mothers containing ambiguous codes — any realized sub-peptide
-        // spanning an X/B/Z would fail AASequence::fromString downstream.
-        if (protein_has_ambiguous)
-        {
-          const size_t bad = seq.find_first_of("XBZ", start);
-          if (bad != std::string::npos && bad < start + length)
-          {
-            skipped_peptides.fetch_add(1);
-            return;
-          }
-        }
 
         double mass = base_sum_constants;
         for (size_t k = 0; k < length; ++k)
@@ -805,27 +783,54 @@ namespace OpenMS
             mz);
       };
 
-      // Single-N mothers: anchored at position i, span the longest possible peptide
-      // starting there (capped at effective_max_length). i sweeps [0, L - min_length].
-      for (size_t i = 0; i + peptide_min_length_ <= L; ++i)
-      {
-        const size_t length = std::min<size_t>(effective_max_length, L - i);
-        emitMother(i, length, /*is_single_c=*/false);
-      }
-
-      // Single-C mothers: anchored at position j (last residue), span the longest
-      // possible peptide ending there. j sweeps [min_length - 1, L - 1].
-      // When j + 1 <= effective_max_length the mother happens to coincide with a
-      // Single-N mother at position 0 — that's harmless redundancy: both emit a
-      // different ion series into the index, so there's no duplicate fragment.
-      // Guard against min_length=0: j would wrap to SIZE_MAX. Clamp to 1 locally;
-      // this is the only code path sensitive to the min_length=0 edge case.
+      // Single-N mothers anchored at every position in [s, e - min_length], length
+      // capped at effective_max_length and at the span end. Single-C mothers
+      // anchored at every position j in [s + snes_min_length - 1, e - 1] with the
+      // same length cap. snes_min_length guards the peptide_min_length_=0 corner
+      // case (j would wrap to SIZE_MAX otherwise).
       const size_t snes_min_length = std::max<size_t>(1, peptide_min_length_);
-      for (size_t j = snes_min_length - 1; j < L; ++j)
+      auto sweepSpan = [&](size_t s, size_t e)
       {
-        const size_t length = std::min<size_t>(effective_max_length, j + 1);
-        const size_t start = j + 1 - length;
-        emitMother(start, length, /*is_single_c=*/true);
+        if (e <= s || e - s < peptide_min_length_)
+        {
+          if (e > s) skipped_peptides.fetch_add(1);
+          return;
+        }
+        for (size_t i = s; i + peptide_min_length_ <= e; ++i)
+        {
+          const size_t length = std::min<size_t>(effective_max_length, e - i);
+          emitMother(i, length, /*is_single_c=*/false);
+        }
+        for (size_t j = s + snes_min_length - 1; j < e; ++j)
+        {
+          const size_t length = std::min<size_t>(effective_max_length, j + 1 - s);
+          const size_t start = j + 1 - length;
+          emitMother(start, length, /*is_single_c=*/true);
+        }
+      };
+
+      // No X/B/Z anywhere: sweep the whole protein as a single span.
+      // Otherwise: split into contiguous unambiguous spans and sweep each.
+      // Issue #9192 item 2: previously the whole mother was dropped on any
+      // X/B/Z overlap; truncating to the unambiguous prefix/suffix at the same
+      // anchor preserves valid shorter realizations.
+      const size_t first_bad = seq.find_first_of("XBZ");
+      if (first_bad == std::string::npos)
+      {
+        sweepSpan(0, L);
+      }
+      else
+      {
+        size_t p = 0;
+        size_t bad = first_bad;
+        while (true)
+        {
+          sweepSpan(p, bad);
+          p = bad + 1;
+          if (p >= L) break;  // protein ended with X/B/Z — no tail span
+          bad = seq.find_first_of("XBZ", p);
+          if (bad == std::string::npos) { sweepSpan(p, L); break; }  // last span — no more X/B/Z
+        }
       }
     }
 
@@ -846,7 +851,7 @@ namespace OpenMS
     });
 
     OPENMS_LOG_INFO << "Generated " << fi_peptides_.size() << " SNES mothers ("
-                    << skipped_peptides.load() << " skipped due to ambiguous residues or mass filter)." << std::endl;
+                    << skipped_peptides.load() << " spans skipped — shorter than peptide:min_size)." << std::endl;
   }
 
   void FragmentIndex::generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)

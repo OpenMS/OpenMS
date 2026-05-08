@@ -14,6 +14,7 @@
 #include <OpenMS/FEATUREFINDER/TraceFitter.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
@@ -358,7 +359,13 @@ namespace OpenMS
     // extractor.setLogType(ProgressLogger::NONE);
     vector<OpenSwath::ChromatogramPtr> chrom_temp;
     vector<ChromatogramExtractor::ExtractionCoordinates> coords;
-    extractor.prepare_coordinates(chrom_temp, coords, library_,
+    // ChromatogramExtractor::prepare_coordinates / return_chromatogram now
+    // take OpenSwath::LightTargetedExperiment (issue #7284 cleanup). The NaN
+    // window relies on rt_start/rt_end now carried on LightCompound, populated
+    // by convertTargetedExp from library_.peptides[*].rts.
+    OpenSwath::LightTargetedExperiment light_library;
+    OpenSwathDataAccessHelper::convertTargetedExp(library_, light_library);
+    extractor.prepare_coordinates(chrom_temp, coords, light_library,
                                   numeric_limits<double>::quiet_NaN(), false);
 
     std::shared_ptr<PeakMap> shared = std::make_shared<PeakMap>(ms_data_);
@@ -375,7 +382,7 @@ namespace OpenMS
       extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
                                      mz_window_ppm_, "tophat");
     }
-    extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
+    extractor.return_chromatogram(chrom_temp, coords, light_library, (*shared)[0],
                                   chrom_data_.getChromatograms(), false);
 
     OPENMS_LOG_DEBUG << "Extracted " << chrom_data_.getNrChromatograms()

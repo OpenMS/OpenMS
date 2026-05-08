@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
@@ -257,24 +258,29 @@ protected:
       // continue if the map is not empty
       if (do_continue)
       {
+        // ChromatogramExtractor::prepare_coordinates / return_chromatogram now
+        // operate exclusively on OpenSwath::LightTargetedExperiment (issue #7284
+        // cleanup; the heavyweight OpenMS::TargetedExperiment overload was removed).
+        OpenSwath::LightTargetedExperiment light_exp;
+        OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_used, light_exp);
 
         // Prepare the coordinates (with or without rt extraction) and then extract the chromatograms
         ChromatogramExtractor extractor;
         if (rt_extraction_window < 0)
         {
-          extractor.prepare_coordinates(chromatogram_ptrs, coordinates, transition_exp_used, rt_extraction_window, extract_MS1);
+          extractor.prepare_coordinates(chromatogram_ptrs, coordinates, light_exp, rt_extraction_window, extract_MS1);
         }
         else
         {
           // Use an rt extraction window of 0.0 which will just write the retention time in start / end positions
-          extractor.prepare_coordinates(chromatogram_ptrs, coordinates, transition_exp_used, 0.0, extract_MS1);
+          extractor.prepare_coordinates(chromatogram_ptrs, coordinates, light_exp, 0.0, extract_MS1);
           for (ChromatogramExtractor::ExtractionCoordinates& chrom : coordinates)
           {
             chrom.rt_start = trafo_inverse.apply(chrom.rt_start) - rt_extraction_window / 2.0;
             chrom.rt_end = trafo_inverse.apply(chrom.rt_end) + rt_extraction_window / 2.0;
           }
         }
-        extractor.extractChromatograms(expptr, chromatogram_ptrs, coordinates, 
+        extractor.extractChromatograms(expptr, chromatogram_ptrs, coordinates,
             mz_extraction_window, ppm, im_window, extraction_function);
 
 #pragma omp critical (OpenSwathChromatogramExtractor_insertMS1)
@@ -288,7 +294,7 @@ protected:
               exp_settings.getDataProcessing()[j]->removeMetaValue("cached_data");
             }
           }
-          extractor.return_chromatogram(chromatogram_ptrs, coordinates, transition_exp_used, exp_settings, chromatograms, extract_MS1, im_window);
+          extractor.return_chromatogram(chromatogram_ptrs, coordinates, light_exp, exp_settings, chromatograms, extract_MS1, im_window);
         }
 
       } // end of do_continue

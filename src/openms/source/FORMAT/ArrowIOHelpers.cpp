@@ -9,6 +9,8 @@
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <arrow/api.h>
 #include <arrow/io/file.h>
@@ -141,6 +143,155 @@ bool concatenateAndWriteToParquet(
   }
 
   return writeTableToParquet(concat_result.ValueOrDie(), filename, config);
+}
+
+// ---------------------------------------------------------------------------
+// Read helpers
+// ---------------------------------------------------------------------------
+
+std::shared_ptr<arrow::Array> getColumn(
+  const std::shared_ptr<arrow::Table>& table,
+  const std::string& name,
+  bool required)
+{
+  auto column = table->GetColumnByName(name);
+  if (!column)
+  {
+    if (required)
+    {
+      OPENMS_LOG_ERROR << "ArrowIOHelpers: Missing required column '" << name << "'" << std::endl;
+    }
+    return nullptr;
+  }
+  if (column->num_chunks() == 0)
+  {
+    OPENMS_LOG_ERROR << "ArrowIOHelpers: Column '" << name << "' has no chunks" << std::endl;
+    return nullptr;
+  }
+  if (column->num_chunks() == 1)
+  {
+    return column->chunk(0);
+  }
+  auto combined = arrow::Concatenate(column->chunks(), arrow::default_memory_pool());
+  if (!combined.ok())
+  {
+    OPENMS_LOG_ERROR << "ArrowIOHelpers: Failed to combine chunks for column '" << name << "'" << std::endl;
+    return nullptr;
+  }
+  return *combined;
+}
+
+String getStringValue(const std::shared_ptr<arrow::Array>& array, int64_t row)
+{
+  if (!array || array->IsNull(row)) return "";
+  return std::static_pointer_cast<arrow::StringArray>(array)->GetString(row);
+}
+
+double getDoubleValue(const std::shared_ptr<arrow::Array>& array, int64_t row, double default_val)
+{
+  if (!array || array->IsNull(row)) return default_val;
+  return std::static_pointer_cast<arrow::DoubleArray>(array)->Value(row);
+}
+
+float getFloatValue(const std::shared_ptr<arrow::Array>& array, int64_t row, float default_val)
+{
+  if (!array || array->IsNull(row)) return default_val;
+  return std::static_pointer_cast<arrow::FloatArray>(array)->Value(row);
+}
+
+int32_t getInt32Value(const std::shared_ptr<arrow::Array>& array, int64_t row, int32_t default_val)
+{
+  if (!array || array->IsNull(row)) return default_val;
+  return std::static_pointer_cast<arrow::Int32Array>(array)->Value(row);
+}
+
+int64_t getInt64Value(const std::shared_ptr<arrow::Array>& array, int64_t row, int64_t default_val)
+{
+  if (!array || array->IsNull(row)) return default_val;
+  return std::static_pointer_cast<arrow::Int64Array>(array)->Value(row);
+}
+
+bool getBoolValue(const std::shared_ptr<arrow::Array>& array, int64_t row, bool default_val)
+{
+  if (!array || array->IsNull(row)) return default_val;
+  return std::static_pointer_cast<arrow::BooleanArray>(array)->Value(row);
+}
+
+bool isNull(const std::shared_ptr<arrow::Array>& array, int64_t row)
+{
+  return !array || array->IsNull(row);
+}
+
+void readMetaValues(
+  const std::shared_ptr<arrow::Array>& array,
+  int64_t row,
+  MetaInfoInterface& target,
+  const std::unordered_set<std::string>& excluded_keys)
+{
+  if (!array || array->IsNull(row)) return;
+  auto list_arr = std::static_pointer_cast<arrow::ListArray>(array);
+  auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->value_slice(row));
+  if (!struct_arr || struct_arr->length() == 0) return;
+
+  auto name_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(0));
+  auto value_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(1));
+  auto type_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(2));
+
+  for (int64_t i = 0; i < struct_arr->length(); ++i)
+  {
+    std::string name = name_arr->GetString(i);
+    if (excluded_keys.count(name)) continue;
+
+    std::string value_str = value_arr->GetString(i);
+    std::string type_str = type_arr->GetString(i);
+
+    if (type_str == "int")
+    {
+      try { target.setMetaValue(name, static_cast<int>(std::stol(value_str))); }
+      catch (...) { target.setMetaValue(name, value_str); }
+    }
+    else if (type_str == "double" || type_str == "float")
+    {
+      try { target.setMetaValue(name, std::stod(value_str)); }
+      catch (...) { target.setMetaValue(name, value_str); }
+    }
+    else if (type_str == "int_list")
+    {
+      try
+      {
+        String s(value_str);
+        if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+        target.setMetaValue(name, DataValue(ListUtils::create<Int>(s)));
+      }
+      catch (...) { target.setMetaValue(name, value_str); }
+    }
+    else if (type_str == "double_list")
+    {
+      try
+      {
+        String s(value_str);
+        if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+        target.setMetaValue(name, DataValue(ListUtils::create<double>(s)));
+      }
+      catch (...) { target.setMetaValue(name, value_str); }
+    }
+    else if (type_str == "string_list")
+    {
+      try
+      {
+        String s(value_str);
+        if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+        auto sl = ListUtils::create<String>(s);
+        for (auto& e : sl) { e = e.trim(); }
+        target.setMetaValue(name, DataValue(sl));
+      }
+      catch (...) { target.setMetaValue(name, value_str); }
+    }
+    else
+    {
+      target.setMetaValue(name, value_str);
+    }
+  }
 }
 
 } // namespace ArrowIOHelpers

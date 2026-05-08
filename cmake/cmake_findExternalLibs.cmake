@@ -88,25 +88,84 @@ if (LIBSVM_FOUND)
 endif()
 
 #------------------------------------------------------------------------------
-# COIN-OR
-# Our find module creates an imported CoinOR::CoinOR target
-find_package(COIN)
-if (COIN_FOUND)
-  set(OPENMS_HAS_COINOR 1)
-  set(LPTARGET "CoinOR::CoinOR")
-else()
-  #------------------------------------------------------------------------------
-  # GLPK
-  # creates GLPK::GLPK target
-  find_package(GLPK)
+# LP Solver selection
+# LP_SOLVER option: COIN, GLPK, HIGHS, or AUTO (default)
+# AUTO tries COIN-OR first, then GLPK, then HiGHS via FetchContent
+set(LP_SOLVER "AUTO" CACHE STRING "LP solver to use: AUTO, COIN, GLPK, or HIGHS")
+set_property(CACHE LP_SOLVER PROPERTY STRINGS AUTO COIN GLPK HIGHS)
+
+if (LP_SOLVER STREQUAL "COIN" OR LP_SOLVER STREQUAL "AUTO")
+  find_package(COIN QUIET)
+  if (COIN_FOUND)
+    set(OPENMS_HAS_COINOR 1)
+    set(LPTARGET "CoinOR::CoinOR")
+    message(STATUS "LP solver: COIN-OR")
+  elseif(LP_SOLVER STREQUAL "COIN")
+    message(FATAL_ERROR "LP_SOLVER set to COIN but COIN-OR was not found.")
+  endif()
+endif()
+
+if (NOT LPTARGET AND (LP_SOLVER STREQUAL "GLPK" OR LP_SOLVER STREQUAL "AUTO"))
+  find_package(GLPK QUIET)
   if (GLPK_FOUND)
     set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
     set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
     set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
     set(LPTARGET "GLPK::GLPK")
-  else()
-    message(FATAL_ERROR "Either COIN-OR or GLPK has to be available (COIN-OR takes precedence).")
+    message(STATUS "LP solver: GLPK ${GLPK_VERSION_STRING}")
+  elseif(LP_SOLVER STREQUAL "GLPK")
+    message(FATAL_ERROR "LP_SOLVER set to GLPK but GLPK was not found.")
   endif()
+endif()
+
+if (NOT LPTARGET AND (LP_SOLVER STREQUAL "HIGHS" OR LP_SOLVER STREQUAL "AUTO"))
+  # Try to find a system-installed HiGHS first
+  find_package(highs QUIET CONFIG)
+  if (highs_FOUND)
+    set(OPENMS_HAS_HIGHS 1)
+    set(LPTARGET "highs::highs")
+    message(STATUS "LP solver: HiGHS (system)")
+  else()
+    # Fetch HiGHS via FetchContent
+    include(FetchContent)
+    FetchContent_Declare(
+      highs
+      GIT_REPOSITORY https://github.com/ERGO-Code/HiGHS.git
+      GIT_TAG        v1.14.0
+      GIT_SHALLOW    TRUE
+    )
+    set(HIGHS_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(highs)
+    # OpenMS defaults to hidden C++ symbol visibility globally. HiGHS does not
+    # annotate its C++ API for export, so a shared HiGHS build must opt out of
+    # hidden visibility or libOpenMS cannot link against those symbols.
+    if (TARGET highs)
+      set_target_properties(highs PROPERTIES
+        CXX_VISIBILITY_PRESET default
+        VISIBILITY_INLINES_HIDDEN OFF)
+    endif()
+    if (TARGET libhighs)
+      set_target_properties(libhighs PROPERTIES
+        CXX_VISIBILITY_PRESET default
+        VISIBILITY_INLINES_HIDDEN OFF)
+    endif()
+    set(OPENMS_HAS_HIGHS 1)
+    set(LPTARGET "highs")
+    message(STATUS "LP solver: HiGHS (FetchContent)")
+  endif()
+endif()
+
+if (NOT LPTARGET)
+  message(FATAL_ERROR "No LP solver found. Set LP_SOLVER to COIN, GLPK, or HIGHS, or ensure one is available.")
+endif()
+
+# Set default GLPK version variables if GLPK was not found (needed for config.h.in substitution)
+if (NOT DEFINED CF_OPENMS_GLPK_VERSION_MAJOR)
+  set(CF_OPENMS_GLPK_VERSION_MAJOR 0)
+  set(CF_OPENMS_GLPK_VERSION_MINOR 0)
+  set(CF_OPENMS_GLPK_VERSION "0.0")
 endif()
 
 #------------------------------------------------------------------------------
@@ -286,6 +345,54 @@ if(ArrowDataset_FOUND)
     # This avoids missing xmlBufferFree at runtime when dataset pushdown is enabled.
     find_package(LibXml2 REQUIRED)
   endif()
+endif()
+
+#------------------------------------------------------------------------------
+# wnetalign (Wasserstein network spectral alignment)
+option(WITH_WNETALIGN "Enable WNet alignment (fetches pylmcf, wnet, wnetalign)" ON)
+
+set(WNETALIGN_INCLUDE_DIRS "")
+
+if(WITH_WNETALIGN)
+  include(FetchContent)
+
+  # Header-only: use GIT_REPOSITORY for reproducible versioned fetch.
+  # To override with local checkouts, set FETCHCONTENT_SOURCE_DIR_PYLMCF,
+  # FETCHCONTENT_SOURCE_DIR_WNET, FETCHCONTENT_SOURCE_DIR_WNETALIGN.
+  FetchContent_Declare(
+    pylmcf
+    GIT_REPOSITORY https://github.com/michalsta/pylmcf.git
+    GIT_TAG        v0.9.8  # d2c9c52bd67d7198ae17b389d77884357260f114
+    GIT_SHALLOW    TRUE
+    SOURCE_SUBDIR  _no_cmake
+  )
+  FetchContent_Declare(
+    wnet
+    GIT_REPOSITORY https://github.com/michalsta/wnet.git
+    GIT_TAG        v0.9.11  # 18a15250adb7ed478ef40d26d736bcd873265c74
+    GIT_SHALLOW    TRUE
+    SOURCE_SUBDIR  _no_cmake
+  )
+  FetchContent_Declare(
+    wnetalign
+    GIT_REPOSITORY https://github.com/michalsta/wnetalign.git
+    GIT_TAG        v0.9.8  # cff6a19a6b540247d57044e06b1852afe24346a0
+    GIT_SHALLOW    TRUE
+    SOURCE_SUBDIR  _no_cmake
+  )
+
+  # MakeAvailable populates source dirs without running the top-level
+  # CMakeLists (SOURCE_SUBDIR points to a nonexistent subdirectory), so
+  # nanobind Python modules are never configured.
+  FetchContent_MakeAvailable(pylmcf wnet wnetalign)
+
+  set(WNETALIGN_INCLUDE_DIRS
+    "${pylmcf_SOURCE_DIR}/src/pylmcf/cpp"
+    "${wnet_SOURCE_DIR}/src/wnet/cpp"
+    "${wnetalign_SOURCE_DIR}/src/wnetalign/cpp"
+  )
+
+  message(STATUS "wnetalign include dirs: ${WNETALIGN_INCLUDE_DIRS}")
 endif()
 
 #------------------------------------------------------------------------------

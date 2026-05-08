@@ -6,7 +6,7 @@ This file provides context and instructions for AI coding agents working on Open
 
 **NEVER do these things:**
 - Build the project unless explicitly asked (extremely resource-intensive)
-- Modify files in `src/openms/extern/` (third-party vendored code)
+- Modify files in `src/openms/extern/` or `src/openms/thirdparty/` (third-party vendored code; use the provided sync scripts to update vendored libraries)
 - Commit secrets, credentials, or `.env` files
 - Add `using namespace` or `using std::...` in header files
 - Modify the contrib tree or third-party dependencies
@@ -69,10 +69,12 @@ OpenMS/
 - Style checks: `ENABLE_STYLE_TESTING=ON` runs cpplint at `src/tests/coding/cpplint.py`.
 
 **Required dependencies:**
-- XercesC, Boost 1.81+ (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR or GLPK, ZLIB, BZip2, libcurl
+- XercesC, Boost 1.81+ (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR, GLPK, or HiGHS (LP solver; use `-DLP_SOLVER=AUTO/COIN/GLPK/HIGHS`), ZLIB, BZip2, libcurl
 - Qt6 (6.1.0+) — required for GUI (`openms_gui`); optional for TOPP tools, core library (`libOpenMS`), and pyOpenMS builds
 
 **Optional:** HDF5 (`-DWITH_HDF5=ON`)
+
+**Enabled by default (fetched via FetchContent; requires network or `FETCHCONTENT_SOURCE_DIR_*` override):** WNetAlign/WNet/PyLMCF for `FeatureLinkerWNet` (`-DWITH_WNETALIGN=OFF` to disable)
 
 **Always enabled:** Apache Arrow/Parquet (required dependency since 3.6)
 

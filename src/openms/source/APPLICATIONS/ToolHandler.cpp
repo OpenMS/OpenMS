@@ -76,6 +76,7 @@ namespace OpenMS
     tools_map["FeatureLinkerUnlabeled"] = Internal::ToolDescription("FeatureLinkerUnlabeled", cat_linking);
     tools_map["FeatureLinkerUnlabeledKD"] = Internal::ToolDescription("FeatureLinkerUnlabeledKD", cat_linking);
     tools_map["FeatureLinkerUnlabeledQT"] = Internal::ToolDescription("FeatureLinkerUnlabeledQT", cat_linking);
+    tools_map["FeatureLinkerWNet"] = Internal::ToolDescription("FeatureLinkerWNet", cat_linking);
     tools_map["FileConverter"] = Internal::ToolDescription("FileConverter", cat_file_converter);
     tools_map["FileFilter"] = Internal::ToolDescription("FileFilter", cat_file_filter_extract_merge);
     tools_map["FileInfo"] = Internal::ToolDescription("FileInfo", cat_file_filter_extract_merge);

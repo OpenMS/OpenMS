@@ -12,17 +12,21 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>  // for ParquetWriteConfig
 
+#include <cstdint>
 #include <memory>
+#include <unordered_set>
 #include <vector>
 
 // Forward declarations
 namespace arrow
 {
+  class Array;
   class Table;
 }
 
 namespace OpenMS
 {
+class MetaInfoInterface;
 
 /**
   @brief Public helpers for writing and concatenating Arrow tables to Parquet files
@@ -72,6 +76,73 @@ namespace ArrowIOHelpers
     const std::vector<std::shared_ptr<arrow::Table>>& tables,
     const String& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
+
+  // ---------------------------------------------------------------------------
+  // Read helpers
+  // ---------------------------------------------------------------------------
+
+  /**
+    @brief Fetch a named column from a table, combining chunks if needed
+
+    Returns nullptr if the column is missing or contains no chunks. When
+    @p required is true, missing columns are logged as errors.
+  */
+  OPENMS_DLLAPI std::shared_ptr<arrow::Array> getColumn(
+    const std::shared_ptr<arrow::Table>& table,
+    const std::string& name,
+    bool required = true);
+
+  /// Read a string at @p row, or "" if null/out-of-bounds
+  OPENMS_DLLAPI String getStringValue(
+    const std::shared_ptr<arrow::Array>& array,
+    int64_t row);
+
+  /// Read a double at @p row, or @p default_val if null
+  OPENMS_DLLAPI double getDoubleValue(
+    const std::shared_ptr<arrow::Array>& array,
+    int64_t row,
+    double default_val = 0.0);
+
+  /// Read a float at @p row, or @p default_val if null
+  OPENMS_DLLAPI float getFloatValue(
+    const std::shared_ptr<arrow::Array>& array,
+    int64_t row,
+    float default_val = 0.0f);
+
+  /// Read an int32 at @p row, or @p default_val if null
+  OPENMS_DLLAPI int32_t getInt32Value(
+    const std::shared_ptr<arrow::Array>& array,
+    int64_t row,
+    int32_t default_val = 0);
+
+  /// Read an int64 at @p row, or @p default_val if null
+  OPENMS_DLLAPI int64_t getInt64Value(
+    const std::shared_ptr<arrow::Array>& array,
+    int64_t row,
+    int64_t default_val = 0);
+
+  /// Read a bool at @p row, or @p default_val if null
+  OPENMS_DLLAPI bool getBoolValue(
+    const std::shared_ptr<arrow::Array>& array,
+    int64_t row,
+    bool default_val = false);
+
+  /// Whether @p array is null at @p row (or unset)
+  OPENMS_DLLAPI bool isNull(
+    const std::shared_ptr<arrow::Array>& array,
+    int64_t row);
+
+  /**
+    @brief Read metavalues from a list<struct{name,value,value_type}> column
+
+    Decodes typed entries (int, double/float, *_list, string) and assigns
+    them to @p target. Keys in @p excluded_keys are skipped.
+  */
+  OPENMS_DLLAPI void readMetaValues(
+    const std::shared_ptr<arrow::Array>& array,
+    int64_t row,
+    MetaInfoInterface& target,
+    const std::unordered_set<std::string>& excluded_keys = {});
 }
 
 } // namespace OpenMS

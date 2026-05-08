@@ -11,8 +11,6 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-#include <unordered_map>
-
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h>
@@ -132,6 +130,26 @@ public:
                              const RangeMobility& im_range,
                              double& dotprod,
                              double& manhattan) const;
+
+    /**
+      @brief Return the DIA extraction window.
+
+      The value is expressed in Thomson or ppm, depending on isDIAExtractionPPM().
+    */
+    double getDIAExtractionWindow() const
+    {
+      return dia_extract_window_;
+    }
+
+    /**
+      @brief Return whether the DIA extraction window is interpreted in ppm.
+
+      Returns false when the extraction window is interpreted in Thomson.
+    */
+    bool isDIAExtractionPPM() const
+    {
+      return dia_extraction_ppm_;
+    }
     //@}
 
 private:
@@ -148,17 +166,10 @@ private:
     /// Subfunction of dia_isotope_scores
     void diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions,
                               const SpectrumSequence& spectrum,
-                              std::unordered_map<std::string, double>& intensities,
+                              OpenSwath::IMRMFeature* mrmfeature,
                               const RangeMobility& im_range,
                               double& isotope_corr,
                               double& isotope_overlap) const;
-
-    /// retrieves intensities from MRMFeature
-    /// computes a vector of relative intensities for each feature (output to intensities)
-    void getFirstIsotopeRelativeIntensities_(const std::vector<TransitionType>& transitions,
-                                            OpenSwath::IMRMFeature* mrmfeature,
-                                            std::unordered_map<std::string, double>& intensities //experimental intensities of transitions
-                                            ) const;
 
 private:
 
