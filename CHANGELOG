@@ -98,6 +98,7 @@ PyOpenMS:
     - Drift time accessors: get_drift_time_array(), get_drift_time_unit() (#8423)
     - SpectrumNativeIDParser with static methods for native ID parsing (#8637)
     - MSExperiment.rasterize2D() for rasterizing 2D ion mobility data (#8739)
+    - FAIMSHelper: getCompensationVoltages(PeakMap) and filterPeptidesByFAIMSCV(PeptideIdentificationList, target_cv, cv_tolerance) for FAIMS compensation voltage detection and per-CV peptide ID filtering (#9275)
   - String handling: Functions now accept both str and bytes via libcpp_utf8_string (#8602, #8604)
   - Backward compatibility restored for file I/O methods in IdXMLFile, PepXMLFile, MzIdentMLFile (#8553)
   - Static methods modernized using @staticmethod decorator (#8562)
@@ -281,6 +282,8 @@ TOPP tools:
       - Added .idparquet output support; -out now accepts .idparquet format in addition to idXML (#9232)
     IDFileConverter:
       - Added .idparquet input/output support; can now convert to and from the native .idparquet identification Parquet bundle (#9232)
+    OpenSwathChromatogramExtractor:
+      - Compound identifiers in output chromatograms for metabolite targets now use the CompoundName user-param (compound_name field) instead of the compound id, aligning with OpenSwathWorkflow behavior (#9271)
   New tools:
     - FeatureLinkerWNet: groups corresponding features across multiple label-free maps using Wasserstein (optimal transport) distance over (m/z, RT) space; solves a minimum-cost network flow problem via the wnetalign library; supports Da and ppm m/z tolerances, L1/L2/L∞ distance metrics, and intensity normalization
 
@@ -381,6 +384,8 @@ OpenMS Library:
     - OpenSwathOSWWriter: added getRowCount() and estimateMemoryUsage() for memory-aware buffered output (#9190)
     - Percolator: new class providing an in-process semi-supervised target/decoy rescoring engine based on a vendored subset of Percolator 3.08 (with TRON solver); exposes rescore() for combined train+score, train()+score() for split workflows, and saveModel()/loadModel() for model persistence; note: concurrent calls across instances race on process-wide Percolator statics — serialize at the call site (#9218)
     - BREAKING: OpenSwath::Scoring: deprecated pointer-based (C-array) overloads of NormalizedManhattanDist, RootMeanSquareDeviation, SpectralAngle, normalize_sum, and calcxcorr_legacy_mquest_ removed; use the std::vector& overloads (#9252)
+    - BREAKING: ChromatogramExtractor::prepare_coordinates(TargetedExperiment) overload removed; callers should convert via OpenSwathDataAccessHelper::convertTargetedExp and use the LightTargetedExperiment overload; the Python API in pyOpenMS is unchanged (#9271)
+    - OpenSwath::LightCompound gained rt_start and rt_end fields (NaN by default) to carry per-compound RT extraction ranges; populated by OpenSwathDataAccessHelper::convertTargetedExp from TargetedExperiment::Peptide/Compound rts vectors (#9271)
 
 Fixes:
   - Fix inverted use_all_hits logic causing NucleicAcidSearchEngine crash with multiple hits per spectrum (#8542)
