@@ -130,6 +130,14 @@ namespace OpenMS
                                   InferenceContext context,
                                   const std::vector<LevelContextResultRow>& results) const;
 
+    /**
+      @brief Read RUN IDs and convert their filenames to user-facing basenames.
+
+      The returned names are stripped to stem names when possible, so
+      @c sample.mzML.gz becomes @c sample.
+    */
+    std::map<Int64, String> readRunBasenames() const;
+
     /// extract the RUN::ID from the sqMass file
     /// @throws Exception::SqlOperationFailed more than on run exists
     UInt64 getRunID() const;

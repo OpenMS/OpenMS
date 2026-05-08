@@ -741,6 +741,37 @@ namespace OpenMS
       data.setRunID(getRunID());
     }
 
+    std::map<Int64, String> OSWFile::readRunBasenames() const
+    {
+      SqliteConnector conn(filename_);
+      requireTable_(conn, "RUN", "Run-name lookup requires run metadata.");
+
+      const String query = "SELECT ID, FILENAME FROM RUN ORDER BY ID;";
+      sqlite3_stmt* stmt = nullptr;
+      conn.prepareStatement(&stmt, query);
+
+      std::map<Int64, String> run_names;
+      Sql::SqlState state = Sql::nextRow(stmt);
+      while (state == Sql::SqlState::SQL_ROW)
+      {
+        const Int64 run_id = Sql::extractInt64(stmt, 0);
+        const String filename = Sql::extractString(stmt, 1);
+        String run_name = File::stemName(filename);
+        if (run_name.empty())
+        {
+          run_name = File::basename(filename);
+        }
+        if (run_name.empty())
+        {
+          run_name = "RUN_ID " + String(run_id);
+        }
+        run_names[run_id] = std::move(run_name);
+        state = Sql::nextRow(stmt, state);
+      }
+      sqlite3_finalize(stmt);
+      return run_names;
+    }
+
     UInt64 OSWFile::getRunID() const
     {
       SqliteConnector conn(filename_);
@@ -877,7 +908,7 @@ namespace OpenMS
       }
       sqlite3_finalize(stmt);
 
-      OPENMS_LOG_INFO << "Read " << rows.size() << " precursor/IPF evidence rows" << "'.\n";
+      OPENMS_LOG_INFO << "Read " << rows.size() << " precursor/IPF evidence rows." << std::endl;
       return rows;
     }
 
@@ -1045,7 +1076,7 @@ namespace OpenMS
 
       OPENMS_LOG_INFO << "Read " << evidence_row_count << " transition evidence rows across "
                       << output_feature_count << " eligible features and expanded them to "
-                      << rows.size() << " IPF transition hypotheses.\n";
+                      << rows.size() << " IPF transition hypotheses." << std::endl;
       return rows;
     }
 
@@ -1095,7 +1126,7 @@ namespace OpenMS
       }
       sqlite3_finalize(stmt);
 
-      OPENMS_LOG_INFO << "Read " << rows.size() << " alignment-group memberships for IPF propagation.\n";
+      OPENMS_LOG_INFO << "Read " << rows.size() << " alignment-group memberships for IPF propagation." << std::endl;
       return rows;
     }
 
@@ -1148,7 +1179,7 @@ namespace OpenMS
       }
       sqlite3_finalize(stmt);
 
-      OPENMS_LOG_INFO << "Wrote " << results.size() << " SCORE_IPF rows to '" << target_filename << "'.\n";
+      OPENMS_LOG_DEBUG << "Wrote " << results.size() << " SCORE_IPF rows to '" << target_filename << "'." << std::endl;
     }
 
     std::vector<LevelContextInputRow> OSWFile::readLevelContextData(InferenceLevel level, InferenceContext context) const
@@ -1283,7 +1314,7 @@ namespace OpenMS
 
       OPENMS_LOG_INFO << "Read " << rows.size() << " best-score rows for "
                       << toString(level) << " inference in '" << toString(context)
-                      << "' context" << "'.\n";
+                      << "' context." << std::endl;
       return rows;
     }
 
@@ -1360,8 +1391,8 @@ namespace OpenMS
       sqlite3_finalize(delete_stmt);
       sqlite3_finalize(insert_stmt);
 
-      OPENMS_LOG_INFO << "Wrote " << results.size() << " rows to " << table_name
-                      << " for context '" << context_value << "' in '" << target_filename << "'.\n";
+      OPENMS_LOG_DEBUG << "Wrote " << results.size() << " rows to " << table_name
+                       << " for context '" << context_value << "' in '" << target_filename << "'." << std::endl;
     }
 
     void OSWFile::readTransitions_(OSWData& swath_result)
