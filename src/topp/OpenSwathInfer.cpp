@@ -284,18 +284,18 @@ protected:
     setValidStrings_("peptidoform:ipf_ms1_scoring", {"true", "false"});
     registerStringOption_("peptidoform:ipf_ms2_scoring", "<true|false>", ipf_defaults.ipf_ms2_scoring ? "true" : "false", "Use MS2 precursor evidence from transition-level precursor rows.", false);
     setValidStrings_("peptidoform:ipf_ms2_scoring", {"true", "false"});
-    registerStringOption_("peptidoform:ipf_h0", "<true|false>", ipf_defaults.ipf_h0 ? "true" : "false", "Include the null hypothesis in IPF transition inference.", false);
+    registerStringOption_("peptidoform:ipf_h0", "<true|false>", ipf_defaults.ipf_h0 ? "true" : "false", "Include the null hypothesis in IPF transition inference.", false, true);
     setValidStrings_("peptidoform:ipf_h0", {"true", "false"});
-    registerStringOption_("peptidoform:ipf_grouped_fdr", "<true|false>", ipf_defaults.ipf_grouped_fdr ? "true" : "false", "Compute model FDR separately per num_peptidoforms group.", false);
+    registerStringOption_("peptidoform:ipf_grouped_fdr", "<true|false>", ipf_defaults.ipf_grouped_fdr ? "true" : "false", "Compute model FDR separately per num_peptidoforms group.", false, true);
     setValidStrings_("peptidoform:ipf_grouped_fdr", {"true", "false"});
-    registerDoubleOption_("peptidoform:ipf_max_peakgroup_pep", "<num>", ipf_defaults.ipf_max_peakgroup_pep, "Maximum peakgroup PEP for entering precursor inference.", false);
-    registerDoubleOption_("peptidoform:ipf_max_precursor_pep", "<num>", ipf_defaults.ipf_max_precursor_pep, "Maximum precursor-level evidence PEP for precursor inference.", false);
-    registerDoubleOption_("peptidoform:ipf_max_precursor_peakgroup_pep", "<num>", ipf_defaults.ipf_max_precursor_peakgroup_pep, "Maximum precursor-peakgroup PEP retained for transition inference.", false);
-    registerDoubleOption_("peptidoform:ipf_max_transition_pep", "<num>", ipf_defaults.ipf_max_transition_pep, "Maximum transition evidence PEP retained for IPF.", false);
+    registerDoubleOption_("peptidoform:ipf_max_peakgroup_pep", "<num>", ipf_defaults.ipf_max_peakgroup_pep, "Maximum peakgroup PEP for entering precursor inference.", false, true);
+    registerDoubleOption_("peptidoform:ipf_max_precursor_pep", "<num>", ipf_defaults.ipf_max_precursor_pep, "Maximum precursor-level evidence PEP for precursor inference.", false, true);
+    registerDoubleOption_("peptidoform:ipf_max_precursor_peakgroup_pep", "<num>", ipf_defaults.ipf_max_precursor_peakgroup_pep, "Maximum precursor-peakgroup PEP retained for transition inference.", false, true);
+    registerDoubleOption_("peptidoform:ipf_max_transition_pep", "<num>", ipf_defaults.ipf_max_transition_pep, "Maximum transition evidence PEP retained for IPF.", false, true);
     registerStringOption_("peptidoform:propagate_signal_across_runs", "<true|false>", ipf_defaults.propagate_signal_across_runs ? "true" : "false", "Propagate confident transition evidence across aligned runs.", false);
     setValidStrings_("peptidoform:propagate_signal_across_runs", {"true", "false"});
-    registerDoubleOption_("peptidoform:ipf_max_alignment_pep", "<num>", ipf_defaults.ipf_max_alignment_pep, "Maximum alignment PEP retained for across-run propagation.", false);
-    registerDoubleOption_("peptidoform:across_run_confidence_threshold", "<num>", ipf_defaults.across_run_confidence_threshold, "Maximum transition PEP eligible for across-run propagation.", false);
+    registerDoubleOption_("peptidoform:ipf_max_alignment_pep", "<num>", ipf_defaults.ipf_max_alignment_pep, "Maximum alignment PEP retained for across-run propagation.", false, true);
+    registerDoubleOption_("peptidoform:across_run_confidence_threshold", "<num>", ipf_defaults.across_run_confidence_threshold, "Maximum transition PEP eligible for across-run propagation.", false, true);
 
     registerTOPPSubsection_("peptide", "Peptide-level inference selection options.");
     registerStringOption_("peptide:global", "<true|false>", "true", "Enable peptide inference in the global context.", false);
@@ -323,25 +323,25 @@ protected:
 
     registerTOPPSubsection_("error_estimation", "Context-level error estimation options.");
     const ErrorEstimationConfig error_defaults;
-    registerStringOption_("error_estimation:parametric", "<true|false>", error_defaults.parametric ? "true" : "false", "Use parametric p-value estimation instead of empirical estimation.", false);
+    registerStringOption_("error_estimation:parametric", "<true|false>", error_defaults.parametric ? "true" : "false", "Use parametric p-value estimation instead of empirical estimation.", false, true);
     setValidStrings_("error_estimation:parametric", {"true", "false"});
-    registerStringOption_("error_estimation:pfdr", "<true|false>", error_defaults.pfdr ? "true" : "false", "Use positive FDR in q-value and s-value calculations.", false);
+    registerStringOption_("error_estimation:pfdr", "<true|false>", error_defaults.pfdr ? "true" : "false", "Use positive FDR in q-value and s-value calculations.", false, true);
     setValidStrings_("error_estimation:pfdr", {"true", "false"});
-    registerDoubleList_("error_estimation:pi0_lambda", "<l1,l2,...>", error_defaults.pi0_lambda, "Lambda grid for pi0 estimation.", false);
-    registerStringOption_("error_estimation:pi0_method", "<choice>", error_defaults.pi0_method, "Method for pi0 estimation.", false);
+    registerDoubleList_("error_estimation:pi0_lambda", "<l1,l2,...>", error_defaults.pi0_lambda, "Lambda grid for pi0 estimation.", false, true);
+    registerStringOption_("error_estimation:pi0_method", "<choice>", error_defaults.pi0_method, "Method for pi0 estimation.", false, true);
     setValidStrings_("error_estimation:pi0_method", {"bootstrap", "smoother"});
-    registerIntOption_("error_estimation:pi0_smooth_df", "<num>", error_defaults.pi0_smooth_df, "Degrees of freedom for smoother-based pi0 estimation.", false);
+    registerIntOption_("error_estimation:pi0_smooth_df", "<num>", error_defaults.pi0_smooth_df, "Degrees of freedom for smoother-based pi0 estimation.", false, true);
     setMinInt_("error_estimation:pi0_smooth_df", 1);
-    registerStringOption_("error_estimation:pi0_smooth_log_pi0", "<true|false>", error_defaults.pi0_smooth_log_pi0 ? "true" : "false", "Smooth log(pi0) instead of pi0 directly.", false);
+    registerStringOption_("error_estimation:pi0_smooth_log_pi0", "<true|false>", error_defaults.pi0_smooth_log_pi0 ? "true" : "false", "Smooth log(pi0) instead of pi0 directly.", false, true);
     setValidStrings_("error_estimation:pi0_smooth_log_pi0", {"true", "false"});
-    registerStringOption_("error_estimation:lfdr_truncate", "<true|false>", error_defaults.lfdr_truncate ? "true" : "false", "Truncate local FDR/PEP values to [0,1].", false);
+    registerStringOption_("error_estimation:lfdr_truncate", "<true|false>", error_defaults.lfdr_truncate ? "true" : "false", "Truncate local FDR/PEP values to [0,1].", false, true);
     setValidStrings_("error_estimation:lfdr_truncate", {"true", "false"});
-    registerStringOption_("error_estimation:lfdr_monotone", "<true|false>", error_defaults.lfdr_monotone ? "true" : "false", "Enforce monotone local FDR/PEP estimates.", false);
+    registerStringOption_("error_estimation:lfdr_monotone", "<true|false>", error_defaults.lfdr_monotone ? "true" : "false", "Enforce monotone local FDR/PEP estimates.", false, true);
     setValidStrings_("error_estimation:lfdr_monotone", {"true", "false"});
-    registerStringOption_("error_estimation:lfdr_transformation", "<choice>", error_defaults.lfdr_transformation, "Transformation used by local FDR estimation.", false);
+    registerStringOption_("error_estimation:lfdr_transformation", "<choice>", error_defaults.lfdr_transformation, "Transformation used by local FDR estimation.", false, true);
     setValidStrings_("error_estimation:lfdr_transformation", {"probit", "logit"});
-    registerDoubleOption_("error_estimation:lfdr_adj", "<num>", error_defaults.lfdr_adj, "Adjustment factor for local FDR estimation bandwidth.", false);
-    registerDoubleOption_("error_estimation:lfdr_eps", "<num>", error_defaults.lfdr_eps, "Epsilon used to clip p-values before local FDR estimation.", false);
+    registerDoubleOption_("error_estimation:lfdr_adj", "<num>", error_defaults.lfdr_adj, "Adjustment factor for local FDR estimation bandwidth.", false, true);
+    registerDoubleOption_("error_estimation:lfdr_eps", "<num>", error_defaults.lfdr_eps, "Epsilon used to clip p-values before local FDR estimation.", false, true);
   }
 
   ExitCodes main_(int, const char**) override
