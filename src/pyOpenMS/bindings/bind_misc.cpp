@@ -48,6 +48,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
@@ -146,6 +147,7 @@
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/INTERFACES/DataStructures.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -1288,6 +1290,27 @@ chromatograms to be consumed and need to be informed about this
         ;
 
     // -----------------------------------------------------------------------
+    // FAIMSHelper
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::FAIMSHelper>(m, "FAIMSHelper",
+        "Helper functions for FAIMS data (compensation voltages, peptide ID filtering)")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::FAIMSHelper &>())
+        .def("__copy__", [](const OpenMS::FAIMSHelper& self) { return OpenMS::FAIMSHelper(self); })
+        .def("__deepcopy__", [](const OpenMS::FAIMSHelper& self, nb::dict) { return OpenMS::FAIMSHelper(self); }, "memo"_a)
+        .def_static("getCompensationVoltages",
+            [](const OpenMS::PeakMap& exp) { return OpenMS::FAIMSHelper::getCompensationVoltages(exp); },
+            "exp"_a,
+            "Returns the unique FAIMS compensation voltages (CVs) found across spectra of `exp` whose drift time unit is FAIMS_COMPENSATION_VOLTAGE. Empty set if none.")
+        .def_static("filterPeptidesByFAIMSCV",
+            [](const OpenMS::PeptideIdentificationList& peptides, double target_cv, double cv_tolerance) {
+                return OpenMS::FAIMSHelper::filterPeptidesByFAIMSCV(peptides, target_cv, cv_tolerance);
+            },
+            "peptides"_a, "target_cv"_a, "cv_tolerance"_a = 0.01,
+            "Filters peptide identifications by FAIMS compensation voltage. IDs without FAIMS_CV annotation are kept for backward compatibility.")
+        ;
+
+    // -----------------------------------------------------------------------
     // IsobaricQuantifier
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::IsobaricQuantifier, OpenMS::DefaultParamHandler>(m, "IsobaricQuantifier", 
@@ -2271,9 +2294,16 @@ ProgressLogger
                 double rt_extraction_window,
                 bool ms1,
                 int ms1_isotopes) {
+            // The TargetedExperiment overload of prepare_coordinates was
+            // removed in favor of the LightTargetedExperiment one (see issue
+            // #7284). Convert internally to keep this Python signature stable
+            // for existing callers; rt_extraction_window=NaN now uses the
+            // rt_start/rt_end fields populated by convertTargetedExp.
+            OpenSwath::LightTargetedExperiment light_exp;
+            OpenMS::OpenSwathDataAccessHelper::convertTargetedExp(targeted, light_exp);
             std::vector<std::shared_ptr<OpenSwath::OSChromatogram>> output_chromatograms;
             std::vector<OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates> extraction_coordinates;
-            OpenMS::ChromatogramExtractor::prepare_coordinates(output_chromatograms, extraction_coordinates, targeted, rt_extraction_window, ms1, ms1_isotopes);
+            OpenMS::ChromatogramExtractor::prepare_coordinates(output_chromatograms, extraction_coordinates, light_exp, rt_extraction_window, ms1, ms1_isotopes);
             // Update Python lists in-place
             while (nb::len(output_chromatograms_py) > 0) { output_chromatograms_py.attr("pop")(); }
             for (auto& c : output_chromatograms) { output_chromatograms_py.append(nb::cast(c)); }
