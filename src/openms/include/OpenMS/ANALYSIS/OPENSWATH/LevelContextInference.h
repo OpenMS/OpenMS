@@ -31,9 +31,25 @@ namespace OpenMS
     /**
       @brief Estimate p-values, q-values, and PEPs for the given input rows.
 
+      The input rows are expected to contain one best-scoring row per entity and
+      context. Their @p decoy flag defines the target/decoy split used to build
+      score distributions for p-value, q-value, and local-FDR/PEP estimation.
+
+      For @c run-specific inference, target/decoy error statistics are estimated
+      independently per @c RUN_ID. For @c global and @c experiment-wide inference,
+      one shared score distribution is used for all rows in the call.
+
+      Internally this wraps OpenMS multiple-testing utilities for:
+      - target/decoy-based p-value estimation
+      - pi0 estimation
+      - q-value estimation
+      - local-FDR / posterior error probability estimation
+
       @param input Compact input rows selected for one inference level
       @param config Inference and error-estimation configuration
-      @return Result rows with OpenSwath-style score lookups
+
+      @return Result rows containing the original entity and score plus derived
+              p-value, q-value, and PEP estimates
     */
     static std::vector<LevelContextResultRow> infer(const std::vector<LevelContextInputRow>& input,
                                                     const LevelContextInferenceConfig& config);

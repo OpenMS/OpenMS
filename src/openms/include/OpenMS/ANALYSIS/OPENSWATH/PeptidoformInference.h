@@ -31,6 +31,12 @@ namespace OpenMS
     /**
       @brief Compact Bayesian model row used by the public helper methods.
 
+      The meaning of @p hypothesis depends on the inference layer:
+      - precursor inference uses hypothesis @c 1 for the true precursor state and
+        hypothesis @c 0 for the false precursor state
+      - transition / peptidoform inference uses peptide IDs as hypotheses and
+        reserves @c -1 for the H0/null hypothesis
+
       @ingroup OpenSwath
     */
     struct BayesianModelRow
@@ -44,6 +50,9 @@ namespace OpenMS
     /**
       @brief Posterior probability row returned by @ref applyBM.
 
+      The @p hypothesis value follows the same conventions as in
+      @ref BayesianModelRow.
+
       @ingroup OpenSwath
     */
     struct PosteriorRow
@@ -53,16 +62,52 @@ namespace OpenMS
       double posterior = 0.0;
     };
 
-    /// Reuse OpenMS multiple-testing utilities for model FDR computation.
+    /**
+      @brief Compute model FDR/q-values from posterior error probabilities.
+
+      This reuses OpenMS multiple-testing utilities and follows the PyProphet IPF
+      convention of computing model FDR from sorted PEP values with maximum-rank
+      tie handling.
+
+      @param pep_values Posterior error probabilities for one model-FDR family
+      @return Model FDR / q-values in the original input order
+    */
     static std::vector<double> computeModelFDR(const std::vector<double>& pep_values);
 
-    /// Build precursor-layer Bayesian model rows.
+    /**
+      @brief Build precursor-layer Bayesian model rows.
+
+      For each feature this emits rows for the true (@c 1) and false (@c 0)
+      precursor hypotheses using the configured MS1/MS2 precursor evidence.
+
+      @param rows Peakgroup and optional precursor-evidence rows
+      @return Bayesian-model rows for precursor inference
+    */
     static std::vector<BayesianModelRow> preparePrecursorBM(const std::vector<IPFPrecursorRow>& rows);
 
-    /// Apply the Bayesian model and return posterior probabilities per feature and hypothesis.
+    /**
+      @brief Apply a compact Bayesian model and return posterior probabilities.
+
+      Rows are grouped by feature and hypothesis. Within each group, evidence
+      values are multiplied and the smallest prior in the group is retained,
+      matching the PyProphet implementation being ported.
+
+      @param rows Bayesian-model rows
+      @return Posterior probabilities per feature/hypothesis pair
+    */
     static std::vector<PosteriorRow> applyBM(const std::vector<BayesianModelRow>& rows);
 
-    /// Perform precursor-layer inference and return precursor peakgroup PEPs.
+    /**
+      @brief Perform precursor-layer inference and return precursor peakgroup PEPs.
+
+      This step combines peakgroup evidence with optional MS1/MS2 precursor
+      evidence. The returned precursor peakgroup PEP is then used as the prior
+      for the transition/peptidoform layer.
+
+      @param precursor_rows Peakgroup/precursor evidence rows
+      @param config IPF configuration
+      @return One precursor peakgroup PEP per retained feature
+    */
     std::vector<IPFPrecursorProbabilityRow> precursorInference(const std::vector<IPFPrecursorRow>& precursor_rows,
                                                                const PeptidoformInferenceConfig& config) const;
 
@@ -71,7 +116,9 @@ namespace OpenMS
 
       @param precursor_rows Peakgroup/precursor evidence
       @param transition_rows Transition-level evidence
+      @param alignment_rows Optional alignment-group memberships for across-run propagation
       @param config IPF configuration
+
       @return Final IPF result rows without the H0 hypothesis
     */
     std::vector<IPFResultRow> infer(const std::vector<IPFPrecursorRow>& precursor_rows,
