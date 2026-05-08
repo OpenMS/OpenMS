@@ -20,6 +20,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 
+#include <cmath>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -955,8 +957,24 @@ START_SECTION(DIA MS2 centroiding test)
     }
   }
 
-  STATUS("DIA centroiding: MS2 spectra=" << cent_ms2_count
-         << " peaks=" << cent_ms2_peaks);
+  // Regression guard: the 2D peak picker must not emit adjacent centroids that
+  // are indistinguishable in both m/z and ion mobility. Such peaks typically
+  // come from neighboring local maxima reusing the same centroid support.
+  Size ambiguous_2d_duplicates = 0;
+  for (const auto& spec : exp_cent)
+  {
+    if (spec.getMSLevel() != 2 || spec.empty() || ! spec.containsIMData()) continue;
+
+    const auto& im_array = spec.getFloatDataArrays()[0];
+    TEST_EQUAL(im_array.size(), spec.size());
+    for (Size i = 1; i < spec.size(); ++i)
+    {
+      if ((spec[i].getMZ() - spec[i - 1].getMZ()) < 1e-6 && std::fabs(im_array[i] - im_array[i - 1]) < 1e-6) { ++ambiguous_2d_duplicates; }
+    }
+  }
+  TEST_EQUAL(ambiguous_2d_duplicates, 0);
+
+  STATUS("DIA centroiding: MS2 spectra=" << cent_ms2_count << " peaks=" << cent_ms2_peaks);
 }
 END_SECTION
 

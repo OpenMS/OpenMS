@@ -578,7 +578,10 @@ namespace OpenMS
           smoothed[key] = weighted_sum;
         }
 
-        // Step 3: Find local maxima in smoothed grid
+        // Step 3: Find local maxima in the smoothed grid. Equal-valued
+        // plateaus are kept as candidates here and collapsed by the
+        // non-maximum suppression below, which prevents one broad 2D peak from
+        // producing several almost-identical centroid m/z values.
         std::vector<uint64_t> maxima;
         for (const auto& [key, val] : smoothed)
         {
@@ -599,6 +602,39 @@ namespace OpenMS
           }
           if (is_max) maxima.push_back(key);
         }
+
+        // Step 3b: Apply one-bin 2D non-maximum suppression. The centroiding
+        // window below intentionally overlaps neighboring cells (±2 bins), so
+        // adjacent maxima would otherwise reuse nearly the same support and can
+        // yield peaks that are indistinguishable in m/z and IM. Process the
+        // strongest candidates first and keep deterministic ordering for ties.
+        std::sort(maxima.begin(), maxima.end(), [&smoothed](uint64_t a, uint64_t b) {
+          double intensity_a = smoothed.at(a);
+          double intensity_b = smoothed.at(b);
+          if (intensity_a != intensity_b) return intensity_a > intensity_b;
+          return a < b;
+        });
+
+        std::vector<uint64_t> suppressed_maxima;
+        suppressed_maxima.reserve(maxima.size());
+        boost::unordered_flat_map<uint64_t, bool> suppressed;
+        suppressed.reserve(maxima.size() * 9);
+        for (uint64_t max_key : maxima)
+        {
+          if (suppressed.find(max_key) != suppressed.end()) continue;
+
+          suppressed_maxima.push_back(max_key);
+          uint32_t center_scan = static_cast<uint32_t>(max_key & 0xFFFFFFFF);
+          uint32_t center_mz_bin = static_cast<uint32_t>(max_key >> 32);
+          for (int dm = -1; dm <= 1; ++dm)
+          {
+            for (int ds = -1; ds <= 1; ++ds)
+            {
+              if (auto nkey = neighborKey(center_mz_bin, center_scan, dm, ds)) { suppressed[*nkey] = true; }
+            }
+          }
+        }
+        maxima.swap(suppressed_maxima);
 
         // Step 4: Centroid each maximum from original denoised cells within ±2 radius
         std::vector<OutputPeak> result;
