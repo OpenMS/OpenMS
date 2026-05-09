@@ -76,8 +76,6 @@ namespace OpenMS
     double ipf_max_transition_pep = 0.6;
     /// If true, propagate confident transition evidence across aligned runs.
     bool propagate_signal_across_runs = false;
-    /// Maximum alignment PEP retained when using legacy FEATURE_MS2_ALIGNMENT plus SCORE_ALIGNMENT tables.
-    double ipf_max_alignment_pep = 0.7;
     /// Minimum mapping confidence retained from FEATURE_MS2_ALIGNMENT_CANDIDATE.
     double ipf_min_alignment_mapping_confidence = 0.5;
     /// Maximum transition PEP eligible for across-run evidence propagation.
