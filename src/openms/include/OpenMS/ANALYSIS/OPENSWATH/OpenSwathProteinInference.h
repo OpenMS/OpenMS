@@ -19,9 +19,9 @@ namespace OpenMS
   /**
     @brief OpenSwath protein-level context inference.
 
-    @ingroup OpenSwath
+    @ingroup TargetedQuantitation
   */
-  class OPENMS_DLLAPI ProteinInference
+  class OPENMS_DLLAPI OpenSwathProteinInference
   {
   public:
     /// Infer protein-level statistics for the provided rows.

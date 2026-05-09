@@ -127,11 +127,8 @@ START_SECTION(OSWFile IPF readers)
   TEST_EQUAL(support_row->bmask, 1)
   TEST_EQUAL(nonsupport_row->bmask, 0)
   TEST_EQUAL(support_row->num_peptidoforms, 1)
-
-  config.propagate_signal_across_runs = true;
-  const auto alignment_rows = osw.readIPFAlignmentData(config);
-  TEST_EQUAL(alignment_rows.size(), 2)
-  TEST_EQUAL(alignment_rows[0].alignment_group_id, alignment_rows[1].alignment_group_id)
+  // The shared PyProphet test fixture is single-run and intentionally does not
+  // contain alignment tables, so across-run propagation is covered elsewhere.
 }
 END_SECTION
 

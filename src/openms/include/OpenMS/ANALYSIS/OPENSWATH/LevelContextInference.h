@@ -23,7 +23,7 @@ namespace OpenMS
 
     This is adapted from PyProphet's context inference methods. See the original publication for details: Rosenberger, G., Bludau, I., Schmitt, U. et al. Statistical control of peptide and protein error rates in large-scale targeted data-independent acquisition analyses. Nat Methods 14, 921–927 (2017). https://doi.org/10.1038/nmeth.4398
 
-    @ingroup OpenSwath
+    @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI LevelContextInference
   {

@@ -23,7 +23,7 @@ namespace OpenMS
 
     See: Rosenberger, G., Liu, Y., Röst, H. et al. Inference and quantification of peptidoforms in large sample cohorts by SWATH-MS. Nat Biotechnol 35, 781–788 (2017). https://doi.org/10.1038/nbt.3908
 
-    @ingroup OpenSwath
+    @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI PeptidoformInference
   {
@@ -37,7 +37,7 @@ namespace OpenMS
       - transition / peptidoform inference uses peptide IDs as hypotheses and
         reserves @c -1 for the H0/null hypothesis
 
-      @ingroup OpenSwath
+      @ingroup TargetedQuantitation
     */
     struct BayesianModelRow
     {
@@ -53,7 +53,7 @@ namespace OpenMS
       The @p hypothesis value follows the same conventions as in
       @ref BayesianModelRow.
 
-      @ingroup OpenSwath
+      @ingroup TargetedQuantitation
     */
     struct PosteriorRow
     {

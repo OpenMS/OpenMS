@@ -6,19 +6,19 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/ProteinInference.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathProteinInference.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/LevelContextInference.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS
 {
-  std::vector<LevelContextResultRow> ProteinInference::infer(const std::vector<LevelContextInputRow>& input,
-                                                             const LevelContextInferenceConfig& config) const
+  std::vector<LevelContextResultRow> OpenSwathProteinInference::infer(const std::vector<LevelContextInputRow>& input,
+                                                                      const LevelContextInferenceConfig& config) const
   {
     if (config.level != InferenceLevel::Protein)
     {
-      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ProteinInference requires config.level = InferenceLevel::Protein.");
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "OpenSwathProteinInference requires config.level = InferenceLevel::Protein.");
     }
     return LevelContextInference::infer(input, config);
   }

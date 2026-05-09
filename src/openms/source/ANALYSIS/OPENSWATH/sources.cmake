@@ -39,7 +39,7 @@ set(sources_list
   PeakPickerMobilogram.cpp
   PeptideInference.cpp
   PeptidoformInference.cpp
-  ProteinInference.cpp
+  OpenSwathProteinInference.cpp
   SwathMapMassCorrection.cpp
   SwathWindowLoader.cpp
   SwathQC.cpp

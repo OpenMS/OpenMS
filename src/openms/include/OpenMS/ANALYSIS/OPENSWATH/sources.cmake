@@ -41,7 +41,7 @@ set(sources_list_h
   PeakPickerMobilogram.h
   PeptideInference.h
   PeptidoformInference.h
-  ProteinInference.h
+  OpenSwathProteinInference.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h
   SwathQC.h

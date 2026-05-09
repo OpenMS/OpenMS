@@ -24,7 +24,7 @@ namespace OpenMS
     - Rosenberger, G., Bludau, I., Schmitt, U. et al. Statistical control of peptide and protein error rates in large-scale targeted data-independent acquisition analyses. Nat Methods 14, 921–927 (2017). https://doi.org/10.1038/nmeth.4398
     - Rosenberger, G., Liu, Y., Röst, H. et al. Inference and quantification of peptidoforms in large sample cohorts by SWATH-MS. Nat Biotechnol 35, 781–788 (2017). https://doi.org/10.1038/nbt.3908
 
-    @ingroup OpenSwath
+    @ingroup TargetedQuantitation
   */
   enum class InferenceLevel
   {
@@ -37,7 +37,7 @@ namespace OpenMS
   /**
     @brief Context for peptide-, protein-, and gene-level inference.
 
-    @ingroup OpenSwath
+    @ingroup TargetedQuantitation
   */
   enum class InferenceContext
   {
@@ -74,7 +74,7 @@ namespace OpenMS
   /**
     @brief Peak-group and precursor evidence for peptidoform inference.
 
-    @ingroup OpenSwath
+    @ingroup TargetedQuantitation
   */
   struct OPENMS_DLLAPI IPFPrecursorRow
   {
@@ -87,7 +87,7 @@ namespace OpenMS
   /**
     @brief Precursor-layer posterior error probability used by IPF.
 
-    @ingroup OpenSwath
+    @ingroup TargetedQuantitation
   */
   struct OPENMS_DLLAPI IPFPrecursorProbabilityRow
   {
@@ -98,7 +98,7 @@ namespace OpenMS
   /**
     @brief Transition-layer evidence for peptidoform inference.
 
-    @ingroup OpenSwath
+    @ingroup TargetedQuantitation
   */
   struct OPENMS_DLLAPI IPFTransitionRow
   {
@@ -114,7 +114,7 @@ namespace OpenMS
   /**
     @brief Alignment-group membership for cross-run IPF signal propagation.
 
-    @ingroup OpenSwath
+    @ingroup TargetedQuantitation
   */
   struct OPENMS_DLLAPI IPFAlignmentRow
   {
@@ -125,7 +125,7 @@ namespace OpenMS
   /**
     @brief Final peptidoform inference result row.
 
-    @ingroup OpenSwath
+    @ingroup TargetedQuantitation
   */
   struct OPENMS_DLLAPI IPFResultRow
   {
@@ -139,7 +139,7 @@ namespace OpenMS
   /**
     @brief Compact level-context input row independent of file format.
 
-    @ingroup OpenSwath
+    @ingroup TargetedQuantitation
   */
   struct OPENMS_DLLAPI LevelContextInputRow
   {
@@ -154,7 +154,7 @@ namespace OpenMS
   /**
     @brief Final level-context result row.
 
-    @ingroup OpenSwath
+    @ingroup TargetedQuantitation
   */
   struct OPENMS_DLLAPI LevelContextResultRow
   {

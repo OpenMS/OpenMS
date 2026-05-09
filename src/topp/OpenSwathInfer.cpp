@@ -9,9 +9,9 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/GeneInference.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathProteinInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeptideInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeptidoformInference.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/ProteinInference.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -395,7 +395,7 @@ protected:
       }
       else if (task.level == InferenceLevel::Protein)
       {
-        ProteinInference inference;
+        OpenSwathProteinInference inference;
         results = inference.infer(input_rows, config);
       }
       else

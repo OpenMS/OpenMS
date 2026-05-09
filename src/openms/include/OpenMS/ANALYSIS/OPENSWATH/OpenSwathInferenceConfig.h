@@ -21,7 +21,7 @@ namespace OpenMS
 
     Defaults mirror the current PyProphet CLI defaults.
 
-    @ingroup OpenSwath
+    @ingroup TargetedQuantitation
   */
   struct OPENMS_DLLAPI ErrorEstimationConfig
   {
@@ -54,7 +54,7 @@ namespace OpenMS
 
     Defaults mirror the current PyProphet CLI defaults.
 
-    @ingroup OpenSwath
+    @ingroup TargetedQuantitation
   */
   struct OPENMS_DLLAPI PeptidoformInferenceConfig
   {
@@ -85,7 +85,7 @@ namespace OpenMS
   /**
     @brief Configuration for peptide-, protein-, and gene-level context inference.
 
-    @ingroup OpenSwath
+    @ingroup TargetedQuantitation
   */
   struct OPENMS_DLLAPI LevelContextInferenceConfig
   {
