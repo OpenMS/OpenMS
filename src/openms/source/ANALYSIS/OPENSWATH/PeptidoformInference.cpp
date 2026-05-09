@@ -45,10 +45,11 @@ namespace OpenMS
       grouped_rows.reserve(rows.size());
       for (const auto& row : rows)
       {
-        // alignment_group_id == feature_id means "no external group available", so the
-        // row stays local to its original feature and is not part of cross-run
-        // propagation.
-        if (row.feature_id == row.alignment_group_id)
+        // Negative group ids are reserved for rows that do not belong to any
+        // across-run alignment group. Using a dedicated sentinel avoids clashes
+        // with real DENSE_RANK()-based group ids on small synthetic OSWs where
+        // group ids and feature ids can numerically overlap.
+        if (row.alignment_group_id < 0)
         {
           result.push_back(row);
         }
@@ -378,7 +379,7 @@ namespace OpenMS
       merged_row.num_peptidoforms = row.num_peptidoforms;
       merged_row.alignment_group_id = row.alignment_group_id.has_value() ?
         *row.alignment_group_id :
-        (alignment_group_map.count(row.feature_id) ? alignment_group_map[row.feature_id] : row.feature_id);
+        (alignment_group_map.count(row.feature_id) ? alignment_group_map[row.feature_id] : -1);
       merged_rows.push_back(std::move(merged_row));
 
       if (row.num_peptidoforms > 0 && num_peptidoforms_by_feature.find(row.feature_id) == num_peptidoforms_by_feature.end())
