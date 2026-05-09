@@ -13,8 +13,6 @@
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <sqlite3.h>
-
 #include <algorithm>
 #include <sstream>
 
@@ -34,16 +32,13 @@ namespace
     return conn.countTableRows(table_name);
   }
 
-  Int64 scalarInt64_(const String& filename, const String& query)
+  Size countFilteredRows_(const String& filename, const String& table_name, const String& where_clause)
   {
-    SqliteConnector conn(filename, SqliteConnector::SqlOpenMode::READ_ONLY);
-    sqlite3_stmt* stmt = nullptr;
-    conn.prepareStatement(&stmt, query);
-    const int state = sqlite3_step(stmt);
-    TEST_EQUAL(state, SQLITE_ROW)
-    const Int64 value = sqlite3_column_int64(stmt, 0);
-    sqlite3_finalize(stmt);
-    return value;
+    SqliteConnector conn(filename, SqliteConnector::SqlOpenMode::READWRITE);
+    const String temp_view = "__oswfile_inference_test_count_view";
+    conn.executeStatement("DROP VIEW IF EXISTS " + temp_view + ";");
+    conn.executeStatement("CREATE TEMP VIEW " + temp_view + " AS SELECT * FROM " + table_name + " WHERE " + where_clause + ";");
+    return conn.countTableRows(temp_view);
   }
 
   void createLargeTransitionOSW_(const String& filename)
@@ -192,8 +187,8 @@ START_SECTION(OSWFile writers)
                                         {std::nullopt, 102, InferenceContext::Global, 5.5, 0.35, 0.35, 0.35}
                                       });
   TEST_EQUAL(countRows_(out_osw, "SCORE_PEPTIDE"), 3)
-  TEST_EQUAL(scalarInt64_(out_osw, "SELECT COUNT(*) FROM SCORE_PEPTIDE WHERE CONTEXT = 'run-specific';"), 1)
-  TEST_EQUAL(scalarInt64_(out_osw, "SELECT COUNT(*) FROM SCORE_PEPTIDE WHERE CONTEXT = 'global';"), 2)
+  TEST_EQUAL(countFilteredRows_(out_osw, "SCORE_PEPTIDE", "CONTEXT = 'run-specific'"), 1)
+  TEST_EQUAL(countFilteredRows_(out_osw, "SCORE_PEPTIDE", "CONTEXT = 'global'"), 2)
 }
 END_SECTION
 

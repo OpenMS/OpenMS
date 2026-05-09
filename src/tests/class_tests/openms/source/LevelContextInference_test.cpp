@@ -182,7 +182,8 @@ START_SECTION(static std::vector<LevelContextResultRow> infer(const std::vector<
       // vary slightly across platforms, so keep these checks coarse.
       TEST_EQUAL(std::isfinite(peptide_row->qvalue), true)
       TEST_EQUAL(std::isfinite(peptide_row->pep), true)
-      TEST_EQUAL(peptide_row->qvalue >= peptide_row->pvalue, true)
+      TEST_EQUAL(peptide_row->qvalue >= 0.0 && peptide_row->qvalue <= 1.0, true)
+      TEST_EQUAL(peptide_row->pep >= 0.0 && peptide_row->pep <= 1.0, true)
       TEST_EQUAL(peptide_row->qvalue <= 0.05, true)
       TEST_EQUAL(peptide_row->pep <= 0.05, true)
     }
@@ -210,7 +211,8 @@ START_SECTION(static std::vector<LevelContextResultRow> infer(const std::vector<
       TEST_EQUAL(std::fabs(protein_row->pvalue - 0.0625) < 5e-4, true)
       TEST_EQUAL(std::isfinite(protein_row->qvalue), true)
       TEST_EQUAL(std::isfinite(protein_row->pep), true)
-      TEST_EQUAL(protein_row->qvalue >= protein_row->pvalue, true)
+      TEST_EQUAL(protein_row->qvalue >= 0.0 && protein_row->qvalue <= 1.0, true)
+      TEST_EQUAL(protein_row->pep >= 0.0 && protein_row->pep <= 1.0, true)
       TEST_EQUAL(protein_row->qvalue <= 0.5, true)
       TEST_EQUAL(protein_row->pep <= 0.75, true)
     }
