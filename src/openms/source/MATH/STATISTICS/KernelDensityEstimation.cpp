@@ -84,12 +84,19 @@ namespace OpenMS
       double iqr = q75 - q25;
 
       double lo = std::min(sd, iqr / 1.34);
-      // fallbacks to match pyprophet/numpy implementation
+      // Match PyProphet's `lo or hi or abs(x[0]) or 1` fallback chain so that
+      // fully degenerate inputs (e.g. all transformed p-values equal to zero)
+      // still receive a strictly positive bandwidth instead of collapsing the
+      // downstream KDE grid to a zero-width interval.
       if (!(lo > 0.0))
       {
         if (sd > 0.0) lo = sd;
         else if (!xf.empty()) lo = std::abs(xf[0]);
         else lo = 1.0;
+      }
+      if (!(lo > 0.0))
+      {
+        lo = 1.0;
       }
 
       double bw = 0.9 * lo * std::pow(static_cast<double>(n), -0.2); // Silverman variant used by statsmodels/pyprophet
