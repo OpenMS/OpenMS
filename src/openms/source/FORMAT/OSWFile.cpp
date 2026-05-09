@@ -815,6 +815,9 @@ namespace OpenMS
       {
         requireTable_(conn, "SCORE_MS1", "Peptidoform inference with MS1 precursor scoring requires MS1 scores.");
       }
+      // Keep this precondition aligned with the current PyProphet OSW reader,
+      // which still expects SCORE_TRANSITION to be present whenever precursor
+      // scoring is enabled, even in the MS1-only branch.
       if (config.ipf_ms1_scoring || config.ipf_ms2_scoring)
       {
         requireTable_(conn, "SCORE_TRANSITION", "Peptidoform inference requires transition-level scores.");
