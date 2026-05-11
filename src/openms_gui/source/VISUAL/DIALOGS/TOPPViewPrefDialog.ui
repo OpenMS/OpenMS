@@ -165,6 +165,9 @@ p, li { white-space: pre-wrap; }
        </item>
        <item row="12" column="2">
         <widget class="QCheckBox" name="instantcleanup">
+         <property name="checked">
+          <bool>true</bool>
+         </property>
          <property name="toolTip">
           <string>If enabled, temporary TOPP input/output files are removed immediately after tool execution to save space on the hard drive.</string>
          </property>

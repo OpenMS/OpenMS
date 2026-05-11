@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <exception>
 #include <fstream>
+#include <mutex>
 #include <string>
 #include <utility>
 
@@ -28,9 +29,10 @@ namespace OpenMS
   {
     // Process-local slot ownership to disambiguate multiple managers in one process
     std::set<String> active_registry_paths;
+    std::mutex active_registry_paths_mutex;
   }
 
-  TempFileManager::TempFileManager(const String& registry_id, uint lock_timeout_ms) :
+  TempFileManager::TempFileManager(const String& registry_id, UInt lock_timeout_ms) :
     registry_file_path_(selectRegistryFilePath_(registry_id, lock_timeout_ms)),
     lock_file_path_(registry_file_path_ + ".lock"),
     lock_timeout_ms_(lock_timeout_ms)
@@ -45,7 +47,6 @@ namespace OpenMS
       throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      "Could not acquire lock for temp file registry lockfile '" + lock_file_path_ + "'.");
     }
-    active_registry_paths.insert(registry_file_path_);
     loadRegistryFile_(files_);
   }
 
@@ -189,7 +190,10 @@ namespace OpenMS
       files_.clear();
       registry_lock_.reset();
       File::remove(lock_file_path_);
-      active_registry_paths.erase(registry_file_path_);
+      {
+        std::lock_guard<std::mutex> lock(active_registry_paths_mutex);
+        active_registry_paths.erase(registry_file_path_);
+      }
     }
     catch (const Exception::BaseException& e)
     {
@@ -287,7 +291,7 @@ namespace OpenMS
     File::remove(registry_file_path);
   }
 
-  String TempFileManager::selectRegistryFilePath_(const String& registry_id, uint lock_timeout_ms)
+  String TempFileManager::selectRegistryFilePath_(const String& registry_id, UInt lock_timeout_ms)
   {
     const Size max_instances = 15;
 
@@ -297,9 +301,12 @@ namespace OpenMS
       const String candidate_path = getRegistryFilePathForInstance_(registry_id, i);
       const String candidate_lock_path = getLockFilePathForInstance_(registry_id, i);
       // skip paths already owned by other TempFileManager instances in this process
-      if (active_registry_paths.find(candidate_path) != active_registry_paths.end())
       {
-        continue;
+        std::lock_guard<std::mutex> lock(active_registry_paths_mutex);
+        if (active_registry_paths.find(candidate_path) != active_registry_paths.end())
+        {
+          continue;
+        }
       }
       // if no lock file exists, slot is not currently reserved by another process
       if (!File::exists(candidate_lock_path))
@@ -317,19 +324,36 @@ namespace OpenMS
       File::remove(candidate_lock_path);
     }
 
-    // pass 2: pick lowest free slot (missing lock file)
+    // pass 2: pick lowest free slot by acquiring the slot lock first
     for (Size i = 1; i <= max_instances; ++i)
     {
       const String candidate_path = getRegistryFilePathForInstance_(registry_id, i);
       const String candidate_lock_path = getLockFilePathForInstance_(registry_id, i);
-      if (active_registry_paths.find(candidate_path) != active_registry_paths.end())
+
+      {
+        std::lock_guard<std::mutex> lock(active_registry_paths_mutex);
+        if (active_registry_paths.find(candidate_path) != active_registry_paths.end())
+        {
+          continue;
+        }
+      }
+
+      // Attempt to acquire the inter-process lock for this slot
+      // If this fails, the slot is currently in use by another process
+      InterProcessFileLock probe_lock(candidate_lock_path, lock_timeout_ms);
+      if (!probe_lock.isLocked())
       {
         continue;
       }
 
-      // lock file is the liveness indicator; if missing, slot is free
-      if (!File::exists(candidate_lock_path))
+      // We own the slot lock for this scope; now reserve registry path in-process
       {
+        std::lock_guard<std::mutex> lock(active_registry_paths_mutex);
+        if (active_registry_paths.find(candidate_path) != active_registry_paths.end())
+        {
+          continue;
+        }
+
         // Reserve the slot immediately so another instance in the same process...
         // ...cannot pick the same index before constructor finishes
         std::ofstream registry_stream(candidate_path.c_str(), std::ios::out | std::ios::app);
@@ -338,8 +362,11 @@ namespace OpenMS
           throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, candidate_path);
         }
         registry_stream.close();
-        return candidate_path;
+        active_registry_paths.insert(candidate_path);
       }
+
+      // Keep minimal behavior: return selected registry path
+      return candidate_path;
     }
 
     throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,

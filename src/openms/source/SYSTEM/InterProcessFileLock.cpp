@@ -23,12 +23,12 @@ namespace OpenMS
 {
   InterProcessFileLock::InterProcessFileLock() noexcept = default;
 
-  InterProcessFileLock::InterProcessFileLock(const String& target_file_path, uint timeout_ms) noexcept
+  InterProcessFileLock::InterProcessFileLock(const String& target_file_path, UInt timeout_ms) noexcept
   {
     lock(target_file_path, timeout_ms);
   }
 
-  bool InterProcessFileLock::lock(const String& target_file_path, uint timeout_ms) noexcept
+  bool InterProcessFileLock::lock(const String& target_file_path, UInt timeout_ms) noexcept
   {
     try
     {
@@ -56,7 +56,7 @@ namespace OpenMS
     return false;
   }
 
-  bool InterProcessFileLock::lockImpl_(const String& target_file_path, uint timeout_ms)
+  bool InterProcessFileLock::lockImpl_(const String& target_file_path, UInt timeout_ms)
   {
     // If we already hold a lock, release it before acquiring a new one
     if (locked_ && lock_ != nullptr)
@@ -103,7 +103,7 @@ namespace OpenMS
 
     // Polling acquisition with timeout prevents indefinite waits
     // If a process crashes, OS-level file locks are released automatically
-    const uint effective_timeout_ms = std::max(timeout_ms, static_cast<uint>(1));
+    const UInt effective_timeout_ms = std::max(timeout_ms, static_cast<UInt>(1));
     const auto timeout = std::chrono::milliseconds(effective_timeout_ms);
     const auto retry_interval = std::chrono::milliseconds(50);
     const auto start = std::chrono::steady_clock::now();

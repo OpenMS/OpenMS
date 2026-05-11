@@ -81,15 +81,17 @@ START_SECTION((bool lock(const String& target_file_path, uint timeout_ms = 3000)
   const String invalid_target = parent + "/child/target.tmp";
   const String valid_target = File::getTempDirectory() + "/ipfl_lock_valid_" + File::getUniqueName(false) + ".tmp";
 
-  // API is non-throwing: failure is reported via return value and unlocked state
-  InterProcessFileLock lock;
-  TEST_FALSE(lock.lock(invalid_target, 1000))
-  TEST_FALSE(lock.isLocked())
+  {
+    // API is non-throwing: failure is reported via return value and unlocked state
+    InterProcessFileLock lock;
+    TEST_FALSE(lock.lock(invalid_target, 1000))
+    TEST_FALSE(lock.isLocked())
 
-  // Subsequent lock() call with valid target should recover and lock
-  TEST_TRUE(lock.lock(valid_target, 1000))
-  TEST_TRUE(lock.isLocked())
-  TEST_TRUE(File::exists(valid_target))
+    // Subsequent lock() call with valid target should recover and lock
+    TEST_TRUE(lock.lock(valid_target, 1000))
+    TEST_TRUE(lock.isLocked())
+    TEST_TRUE(File::exists(valid_target))
+  }
 
   // Cleanup
   TEST_TRUE(File::remove(valid_target))
@@ -102,9 +104,11 @@ START_SECTION((InterProcessFileLock(const String& target_file_path, uint timeout
   // Lock with zero timeout must still succeed on uncontended target
   const String target = File::getTempDirectory() + "/ipfl_timeout_zero_" + File::getUniqueName(false) + ".tmp";
 
-  InterProcessFileLock lock(target, 0);
-  TEST_TRUE(lock.isLocked())
-  TEST_TRUE(File::exists(target))
+  {
+    InterProcessFileLock lock(target, 0);
+    TEST_TRUE(lock.isLocked())
+    TEST_TRUE(File::exists(target))
+  }
 
   // Cleanup lock file
   TEST_TRUE(File::remove(target))

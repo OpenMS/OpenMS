@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <memory>
@@ -24,11 +25,12 @@ namespace OpenMS
 
     The lock is acquired in the constructor and released in the destructor.
     Acquisition waits until the lock becomes available.
+
+    @ingroup System
   */
   class OPENMS_DLLAPI InterProcessFileLock
   {
     public:
-    
       // Default constructor; call lock() to acquire a lock later
       InterProcessFileLock() noexcept;
 
@@ -40,7 +42,7 @@ namespace OpenMS
 
         This constructor does not throw; failures are logged and the instance remains unlocked.
       */
-      explicit InterProcessFileLock(const String& target_file_path, uint timeout_ms = 3000) noexcept;
+      explicit InterProcessFileLock(const String& target_file_path, UInt timeout_ms = 3000) noexcept;
 
       /**
         @brief Acquire (or re-acquire) an inter-process lock for a file.
@@ -49,7 +51,7 @@ namespace OpenMS
         @param[in] timeout_ms Timeout in milliseconds for lock acquisition attempts. Default is 3000 ms.
         @return True if lock acquisition succeeded, false otherwise
       */
-      bool lock(const String& target_file_path, uint timeout_ms = 3000) noexcept;
+      bool lock(const String& target_file_path, UInt timeout_ms = 3000) noexcept;
 
       /**
         @brief Returns whether this instance currently holds a lock.
@@ -67,7 +69,6 @@ namespace OpenMS
       InterProcessFileLock& operator=(const InterProcessFileLock&) = delete;
 
     private:
-
       /**
        @brief Internal implementation of lock acquisition with timeout.
        This method is called by the constructor and the public lock() method.
@@ -77,7 +78,7 @@ namespace OpenMS
        
        @return True if lock acquisition succeeded, false otherwise
        */
-      bool lockImpl_(const String& target_file_path, uint timeout_ms);
+      bool lockImpl_(const String& target_file_path, UInt timeout_ms);
 
       String lock_file_path_;
       std::unique_ptr<boost::interprocess::file_lock> lock_;

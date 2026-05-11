@@ -37,7 +37,7 @@ namespace OpenMS
         @param[in] registry_id Logical id used to derive registry file name
         @param[in] lock_timeout_ms Timeout in milliseconds for inter-process lock acquisition
       */
-      explicit TempFileManager(const String& registry_id, uint lock_timeout_ms = 3000);
+      explicit TempFileManager(const String& registry_id, UInt lock_timeout_ms = 3000);
       /**
         @brief Move constructor
 
@@ -141,7 +141,7 @@ namespace OpenMS
         
         @return Registry file path for this manager instance
       */
-      static String selectRegistryFilePath_(const String& registry_id, uint lock_timeout_ms);
+      static String selectRegistryFilePath_(const String& registry_id, UInt lock_timeout_ms);
 
       /**
         @brief Cleanup helper for a specific registry path.
@@ -185,7 +185,7 @@ namespace OpenMS
 
       const String registry_file_path_;
       const String lock_file_path_;
-      uint lock_timeout_ms_;
+      UInt lock_timeout_ms_;
       std::unique_ptr<InterProcessFileLock> registry_lock_;
       std::set<String> files_;
   };

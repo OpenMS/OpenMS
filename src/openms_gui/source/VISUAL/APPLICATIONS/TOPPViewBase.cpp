@@ -1795,18 +1795,17 @@ namespace OpenMS
           default: break;
         }
 
+        const String error_text = String("The selected layer cannot be used to run / rerun the selected TOPP tool. Current layer type: ") +
+                                  layer_type + ", requested layer type: " + requested_layer_type +
+                                  ". Internal error: " + e.what();
         log_->appendNewHeader(
           LogWindow::LogState::CRITICAL,
           "TOPP tool input could not be created",
-          String("The selected layer cant be used to run / rerun the selected TOPPTool. Current layer type: ") +
-          layer_type + ", requested layer type: " + requested_layer_type +
-          ". Internal error: " + e.what());
+          error_text);
         QMessageBox::critical(
           this,
           "TOPP tool input could not be created",
-          toQString(String("The selected layer cant be used to run / rerun the selected TOPPTool. Current layer type: ") +
-                    layer_type + ", requested layer type: " + requested_layer_type +
-                    ". Internal error: " + e.what()));
+          toQString(error_text));
         return;
       }
     }
@@ -1902,7 +1901,7 @@ namespace OpenMS
         auto l = getCurrentLayer();
         if (l)
         {
-          auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(topp_.file_name_in);
+          auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(topp_.file_name_out);
           if (annotator.get() == nullptr)
           { // no suitable annotator? open new layer/window
             addDataFile(topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
@@ -2253,7 +2252,6 @@ namespace OpenMS
       //- doesn't make sense for fragment scan
       //- build new Area with mz range equal to 1D visible range
       //- rt range either overall MS1 data range or some convenient window
-
     }
     else if (getActive2DWidget()) // switch from 2D to 3D
     {
