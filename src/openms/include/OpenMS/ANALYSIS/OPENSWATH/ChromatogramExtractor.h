@@ -27,13 +27,11 @@ namespace OpenMS
    * This class provides functionality to extract chromatographic traces from mass spectrometry data
    * based on specified coordinates (m/z, retention time, and optionally ion mobility values).
    * 
-   * The extractor supports two main interfaces:
-   * 1. Legacy interface: Takes a TargetedExperiment object containing transitions and extracts 
-   *    chromatograms at the m/z values specified in those transitions.
-   * 2. Modern interface: Takes a set of ExtractionCoordinates that specify the exact coordinates 
-   *    for extraction. This provides more flexibility and control over the extraction process.
-   *    The prepare_coordinates() helper function can generate these coordinates for common 
-   *    MS1 and MS2 extraction scenarios.
+   * The primary interface uses a set of ExtractionCoordinates that specify the exact coordinates
+   * for extraction. The static prepare_coordinates() helper generates these coordinates from an
+   * OpenSwath::LightTargetedExperiment for common MS1 and MS2 extraction scenarios. Callers
+   * working with an OpenMS::TargetedExperiment should first convert it to a
+   * LightTargetedExperiment via OpenSwathDataAccessHelper::convertTargetedExp().
    *
    * Key features:
    * - Supports both MS1 and MS2 level extractions
