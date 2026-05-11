@@ -7,10 +7,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <boost/interprocess/exceptions.hpp>
 #include <boost/interprocess/sync/file_lock.hpp>
 
+#include <algorithm>
 #include <chrono>
 #include <fstream>
 #include <thread>
@@ -19,11 +21,74 @@
 
 namespace OpenMS
 {
-  InterProcessFileLock::InterProcessFileLock(const String& target_file_path) : //keine exceptions im constructor lieber try catch für sich - default constructor und rest in eigene funktion
-    lock_file_path_(target_file_path)
-    //kann er eventuell alleine
+  InterProcessFileLock::InterProcessFileLock(const String& target_file_path, uint timeout_ms) noexcept
   {
-    // Ensure the lock file exists before trying to lock it. This also creates the file if it doesn't exist, which is necessary for locking
+    lock(target_file_path, timeout_ms);
+  }
+
+  bool InterProcessFileLock::lock(const String& target_file_path, uint timeout_ms) noexcept
+  {
+    try
+    {
+      return lockImpl_(target_file_path, timeout_ms);
+    }
+    catch (const Exception::BaseException& e)
+    {
+      OPENMS_LOG_WARN << "InterProcessFileLock acquisition failed: "
+                      << e.getName() << ": " << e.what() << "\n";
+    }
+    catch (const boost::interprocess::interprocess_exception& e)
+    {
+      OPENMS_LOG_WARN << "InterProcessFileLock acquisition failed: "
+                      << e.what() << "\n";
+    }
+    catch (const std::exception& e)
+    {
+      OPENMS_LOG_WARN << "InterProcessFileLock acquisition failed: "
+                      << e.what() << "\n";
+    }
+    catch (...)
+    {
+      OPENMS_LOG_WARN << "InterProcessFileLock acquisition failed: unknown exception\n";
+    }
+    return false;
+  }
+
+  bool InterProcessFileLock::lockImpl_(const String& target_file_path, uint timeout_ms)
+  {
+    // If we already hold a lock, release it before acquiring a new one
+    if (locked_ && lock_ != nullptr)
+    {
+      try
+      {
+        lock_->unlock();
+      }
+      catch (const boost::interprocess::interprocess_exception& e)
+      {
+        OPENMS_LOG_WARN << "InterProcessFileLock failed to unlock current lock file '"
+                        << lock_file_path_ << "' before relocking: " << e.what() << "\n";
+        return false;
+      }
+      catch (const std::exception& e)
+      {
+        OPENMS_LOG_WARN << "InterProcessFileLock failed to unlock current lock file '"
+                        << lock_file_path_ << "' before relocking: " << e.what() << "\n";
+        return false;
+      }
+      catch (...)
+      {
+        OPENMS_LOG_WARN << "InterProcessFileLock failed to unlock current lock file '"
+                        << lock_file_path_ << "' before relocking: unknown exception\n";
+        return false;
+      }
+      locked_ = false;
+      lock_.reset();
+    }
+
+    lock_file_path_ = target_file_path;
+
+    // Ensure the lock file exists before trying to lock it
+    // boost::interprocess::file_lock requires an existing file and does not create one implicitly
     std::ofstream lock_file_stream(lock_file_path_.c_str(), std::ios::out | std::ios::app);
     if (!lock_file_stream.is_open())
     {
@@ -31,48 +96,29 @@ namespace OpenMS
     }
     lock_file_stream.close();
 
-    try
+    // Create the file lock object
+    lock_ = std::make_unique<boost::interprocess::file_lock>(lock_file_path_.c_str());
+
+    // Polling acquisition with timeout prevents indefinite waits
+    // If a process crashes, OS-level file locks are released automatically
+    const uint effective_timeout_ms = std::max(timeout_ms, static_cast<uint>(1));
+    const auto timeout = std::chrono::milliseconds(effective_timeout_ms);
+    const auto retry_interval = std::chrono::milliseconds(50);
+    const auto start = std::chrono::steady_clock::now();
+
+    // Try to acquire the lock, with timeout
+    while (!lock_->try_lock())
     {
-      // Create the file lock object
-      lock_ = std::make_unique<boost::interprocess::file_lock>(lock_file_path_.c_str());
-
-      // Polling acquisition with timeout prevents indefinite waits
-      // If a process crashes, OS-level file locks are released automatically
-      const auto timeout = std::chrono::seconds(3);
-      const auto retry_interval = std::chrono::milliseconds(50);
-      const auto start = std::chrono::steady_clock::now();
-
-      // Try to acquire the lock, with timeout
-      // hat try_lock eine zeiteinstellung
-      // lock mit optionalem parameter, default 3sekunden -- doku!
-      // wenn lock nicht funktioniert, nur false statt fehlermeldung geben
-      while (!lock_->try_lock())
+      if (std::chrono::steady_clock::now() - start >= timeout)
       {
-        if (std::chrono::steady_clock::now() - start >= timeout)
-        {
-          throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Timeout while waiting to acquire lock file '" + lock_file_path_ + "'.");
-        }
-        std::this_thread::sleep_for(retry_interval);
+        throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Timeout while waiting to acquire lock file '" + lock_file_path_ + "'.");
       }
-      locked_ = true;
+      std::this_thread::sleep_for(retry_interval);
     }
-    catch (const Exception::FailedAPICall& e)
-    {
-      throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                     "Failed to acquire lock file '" + lock_file_path_ + "': " + String(e.what()));
-    }
-    catch (const Exception::BaseException& e)
-    {
-      throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                     "Failed to acquire lock file '" + lock_file_path_ + "': " +
-                                       String(e.getName()) + " (" + String(e.what()) + ")");
-    }
-    catch (const boost::interprocess::interprocess_exception& e)
-    {
-      throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                     "Failed to acquire lock file '" + lock_file_path_ + "': " + e.what());
-    }
+
+    locked_ = true;
+    return true;
   }
 
   InterProcessFileLock::~InterProcessFileLock() noexcept
@@ -89,14 +135,25 @@ namespace OpenMS
       lock_->unlock();
       locked_ = false;
     }
-    catch (const boost::interprocess::interprocess_exception&)
+    catch (const boost::interprocess::interprocess_exception& e)
     {
+      OPENMS_LOG_WARN << "InterProcessFileLock destructor failed to unlock '"
+                      << lock_file_path_ << "': " << e.what() << "\n";
     }
-    catch (const Exception::BaseException&)
+    catch (const Exception::BaseException& e)
     {
+      OPENMS_LOG_WARN << "InterProcessFileLock destructor failed to unlock '"
+                      << lock_file_path_ << "': " << e.getName() << ": " << e.what() << "\n";
     }
-    catch (const std::exception&)
+    catch (const std::exception& e)
     {
+      OPENMS_LOG_WARN << "InterProcessFileLock destructor failed to unlock '"
+                      << lock_file_path_ << "': " << e.what() << "\n";
+    }
+    catch (...)
+    {
+      OPENMS_LOG_WARN << "InterProcessFileLock destructor failed to unlock '"
+                      << lock_file_path_ << "': unknown exception\n";
     }
   }
 } // namespace OpenMS

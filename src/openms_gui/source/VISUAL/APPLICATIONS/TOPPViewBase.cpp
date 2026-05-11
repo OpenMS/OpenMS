@@ -832,8 +832,10 @@ namespace OpenMS
     // create dialog no matter if it is shown or not. It is used to determine the flags.
     TOPPViewOpenDialog dialog(caption, as_new_window, maps_as_2d, use_intensity_cutoff, this);
 
-    // disable opening in new window when there is no active window or feature/ID data is to be opened, but the current window is a 3D window
-    if (target_window == nullptr || (mergeable && dynamic_cast<Plot3DWidget*>(target_window)))
+    // disable opening in current window when there is no active window or when
+    // mergeable data (feature/consensus/identification) would be opened in an
+    // incompatible view type (1D/3D). These data types require a 2D canvas.
+    if (target_window == nullptr || (mergeable && (dynamic_cast<Plot1DWidget*>(target_window) || dynamic_cast<Plot3DWidget*>(target_window))))
     {
       dialog.disableLocation(true);
     }
@@ -886,6 +888,11 @@ namespace OpenMS
     }
 
     // determine the window to open the data in
+    // mergeable layers (feature/consensus/ID) require a Plot2DWidget target
+    if (!as_new_window && mergeable && dynamic_cast<Plot2DWidget*>(target_window) == nullptr)
+    {
+      as_new_window = true;
+    }
     if (as_new_window) // new window
     {
       if (maps_as_1d) // 2d in 1d window
@@ -1751,7 +1758,45 @@ namespace OpenMS
       auto visitor_data = topp_.visible_area_only
                           ? layer.storeVisibleData(getActiveCanvas()->getVisibleArea().getAreaUnit(), layer.filters)
                           : layer.storeFullData();
-      visitor_data->saveToFile(topp_.file_name_in, ProgressLogger::GUI);
+      try
+      {
+        visitor_data->saveToFile(topp_.file_name_in, ProgressLogger::GUI);
+      }
+      catch (const Exception::UnableToCreateFile& e)
+      {
+        String layer_type = "unknown";
+        String requested_layer_type = "unknown";
+
+        const auto requested_type = FileTypes::typeToName(FileHandler::getTypeByFileName(topp_.file_name_in));
+        if (!requested_type.empty() && requested_type != "UNKNOWN")
+        {
+          requested_layer_type = requested_type;
+        }
+
+        switch (layer.type)
+        {
+          case LayerDataBase::DataType::DT_PEAK: layer_type = "MS experiment / mzML"; break;
+          case LayerDataBase::DataType::DT_CHROMATOGRAM: layer_type = "chromatogram / mzML"; break;
+          case LayerDataBase::DataType::DT_FEATURE: layer_type = "featureXML"; break;
+          case LayerDataBase::DataType::DT_CONSENSUS: layer_type = "consensusXML"; break;
+          case LayerDataBase::DataType::DT_IDENT: layer_type = "idXML"; break;
+          default: break;
+        }
+
+        log_->appendNewHeader(
+          LogWindow::LogState::CRITICAL,
+          "TOPP tool input could not be created",
+          String("The selected layer cant be used to run / rerun the selected TOPPTool. Current layer type: ") +
+          layer_type + ", requested layer type: " + requested_layer_type +
+          ". Internal error: " + e.what());
+        QMessageBox::critical(
+          this,
+          "TOPP tool input could not be created",
+          toQString(String("The selected layer cant be used to run / rerun the selected TOPPTool. Current layer type: ") +
+                    layer_type + ", requested layer type: " + requested_layer_type +
+                    ". Internal error: " + e.what()));
+        return;
+      }
     }
 
     // compose argument list
@@ -1859,7 +1904,7 @@ namespace OpenMS
     }
 
     // clean up
-    const bool instant_cleanup = (param_.getValue(user_section + "instantcleanup") == "true");
+    const bool instant_cleanup = (param_.getValue(user_section + "instantcleanup").toBool());
     if (instant_cleanup)
     {
       temp_handler_.removeFileNow(topp_.file_name_in);
@@ -2037,7 +2082,7 @@ namespace OpenMS
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
     
     ExperimentSharedPtrType exp = std::make_shared<AnnotatedMSRun>();
-    exp.get()->getMSExperiment() = std::move(IMDataConverter::reshapeIMFrameToMany(spec));
+    exp.get()->getMSExperiment() = IMDataConverter::reshapeIMFrameToMany(spec);
     // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
     // for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
 
