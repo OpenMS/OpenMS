@@ -21,6 +21,8 @@
 
 namespace OpenMS
 {
+  InterProcessFileLock::InterProcessFileLock() noexcept = default;
+
   InterProcessFileLock::InterProcessFileLock(const String& target_file_path, uint timeout_ms) noexcept
   {
     lock(target_file_path, timeout_ms);

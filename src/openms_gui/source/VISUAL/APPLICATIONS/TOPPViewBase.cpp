@@ -1729,6 +1729,18 @@ namespace OpenMS
   {
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
 
+    // Ensure current TOPP temp input/output files are always tracked for cleanup.
+    // This is required for reruns after switching instantcleanup from true -> false,
+    // because previous instant cleanup may have removed these entries from the registry.
+    if (!topp_.file_name_in.empty())
+    {
+      temp_handler_.addFile(topp_.file_name_in);
+    }
+    if (!topp_.file_name_out.empty())
+    {
+      temp_handler_.addFile(topp_.file_name_out);
+    }
+
 
     // delete old input and output file
     File::remove(topp_.file_name_in);

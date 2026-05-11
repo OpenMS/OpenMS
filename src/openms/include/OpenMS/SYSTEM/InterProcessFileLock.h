@@ -30,7 +30,7 @@ namespace OpenMS
     public:
     
       // Default constructor; call lock() to acquire a lock later
-      InterProcessFileLock() noexcept = default;
+      InterProcessFileLock() noexcept;
 
       /**
         @brief Acquire an inter-process lock for the given file.
