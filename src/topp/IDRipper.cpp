@@ -83,7 +83,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file, in which the protein/peptide identifications must be tagged with 'file_origin'");
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML,idparquet"));
     registerOutputPrefix_("out", "<directory>", "", "Path to the output directory to write the ripped files to.", true, false);
     registerFlag_("numeric_filenames", "Do not infer output filenames from spectra_data or file_origin but use the input filename with numeric suffixes.");
     registerFlag_("split_ident_runs", "Split different identification runs into separate files.");
@@ -108,12 +108,13 @@ protected:
 
     vector<ProteinIdentification> proteins;
     PeptideIdentificationList peptides;
-    FileHandler().loadIdentifications(file_name, proteins, peptides, {FileTypes::IDXML});
+    const FileTypes::Type in_type = FileHandler::getTypeByFileName(file_name);
+    FileHandler().loadIdentifications(file_name, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
     // ensure protein and peptide identifications are presented, otherwise we don't have to rip anything anyhow
     if (proteins.empty() || peptides.empty())
     {
-      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "idXML file has to store protein and peptide identifications!");
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "input file has to store protein and peptide identifications!");
     }
 
     IDRipper::RipFileMap ripped;
@@ -126,6 +127,12 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
+    // Output files preserve the input format: .idXML in -> .idXML out, .idparquet in -> .idparquet out.
+    // RipFileMap is sorted by (ident_run_idx, file_origin_idx), so iteration order matches the
+    // order in which IdentificationRuns appeared in the merged input.
+    const String out_ext = (in_type == FileTypes::IDPARQUET) ? ".idparquet" : ".idXML";
+    const FileTypes::Type out_type = (in_type == FileTypes::IDPARQUET) ? FileTypes::IDPARQUET : FileTypes::IDXML;
+
     for (IDRipper::RipFileMap::iterator it = ripped.begin(); it != ripped.end(); ++it)
     {
       const IDRipper::RipFileIdentifier& rfi = it->first;
@@ -136,17 +143,17 @@ protected:
       {
         String s_ident_run_idx = split_ident_runs ? '_' + String(rfi.ident_run_idx) : "";
         String s_file_origin_idx = '_' + String(rfi.file_origin_idx);
-        out_fname = to_path(file_name).stem().string() + s_ident_run_idx + s_file_origin_idx + ".idXML";
+        out_fname = to_path(file_name).stem().string() + s_ident_run_idx + s_file_origin_idx + out_ext;
       }
       else
       {
-        out_fname = to_path(rfi.out_basename).stem().string() + ".idXML";
+        out_fname = to_path(rfi.out_basename).stem().string() + out_ext;
       }
 
       String out = (to_path(output_directory) / to_path(out_fname)).make_preferred().string();
       OPENMS_LOG_INFO << "Storing file: '" << out << "'." << std::endl;
 
-      FileHandler().storeIdentifications(out, rfc.prot_idents, rfc.pep_idents, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(out, rfc.prot_idents, rfc.pep_idents, {out_type});
     }
     return EXECUTION_OK;
   }

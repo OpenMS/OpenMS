@@ -2461,6 +2461,99 @@ START_SECTION((SNES mother generation rejects ambiguous residue spans (X/B/Z)))
 }
 END_SECTION
 
+START_SECTION((SNES mother generation truncates Single-N mother to unambiguous prefix on X/B/Z))
+{
+  // Issue #9192 item 2: a Single-N mother anchored at position 0 with proposed
+  // length 12 spans the X at position 8. The whole mother used to be dropped;
+  // now the unambiguous prefix [0, 8) length 8 must still be emitted.
+  const std::vector<FASTAFile::FASTAEntry> entries{
+      {"p", "p", "ACDEFGHIXKLMNPQSTVWY"}}; // X at 0-based position 8
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 12);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Truncated Single-N mother [0, 8) of length 8 must exist.
+  bool found_truncated_prefix = false;
+  for (const auto& mother : fi.getPeptides())
+  {
+    const bool is_single_c = FragmentIndex::isSingleCMother(mother.mod_bitmask_);
+    if (!is_single_c
+        && mother.sequence_.first == 0
+        && mother.sequence_.second == 8)
+    {
+      found_truncated_prefix = true;
+      break;
+    }
+  }
+  TEST_EQUAL(found_truncated_prefix, true)
+
+  // Invariant: no kept mother spans the X at position 8.
+  for (const auto& mother : fi.getPeptides())
+  {
+    const size_t start = mother.sequence_.first;
+    const size_t end = start + mother.sequence_.second;
+    TEST_EQUAL(start > 8u || end <= 8u, true)
+  }
+}
+END_SECTION
+
+START_SECTION((SNES mother generation truncates Single-C mother to unambiguous suffix on X/B/Z))
+{
+  // Issue #9192 item 2: a Single-C mother anchored at the last residue (j=19)
+  // with proposed length 12 spans [8, 20) and covers the X. The whole mother
+  // used to be dropped; the unambiguous suffix [9, 20) length 11 must now
+  // be emitted (length capped per-span at e - s = 11).
+  const std::vector<FASTAFile::FASTAEntry> entries{
+      {"p", "p", "ACDEFGHIXKLMNPQSTVWY"}}; // X at 0-based position 8
+
+  FragmentIndex_test fi;
+  auto p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 8);
+  p.setValue("peptide:max_size", 12);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  fi.setParameters(p);
+  fi.build(entries);
+
+  // Truncated Single-C mother [9, 20) of length 11 must exist.
+  bool found_truncated_suffix = false;
+  for (const auto& mother : fi.getPeptides())
+  {
+    const bool is_single_c = FragmentIndex::isSingleCMother(mother.mod_bitmask_);
+    if (is_single_c
+        && mother.sequence_.first == 9
+        && mother.sequence_.second == 11)
+    {
+      found_truncated_suffix = true;
+      break;
+    }
+  }
+  TEST_EQUAL(found_truncated_suffix, true)
+
+  // Invariant: no kept mother spans the X at position 8.
+  for (const auto& mother : fi.getPeptides())
+  {
+    const size_t start = mother.sequence_.first;
+    const size_t end = start + mother.sequence_.second;
+    TEST_EQUAL(start > 8u || end <= 8u, true)
+  }
+}
+END_SECTION
+
 START_SECTION((SNES full-length realization hits via supplementary precursor lookup))
 {
   // When the observed precursor equals the full mother mass, the realized

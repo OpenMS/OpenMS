@@ -74,7 +74,11 @@ protected:
       /**
         @brief Stores the contents of the XML handler given by @p handler in the file given by @p filename.
 
-        @param[in] filename The output filename
+        If @p filename ends with <tt>.gz</tt>, the output is written with gzip compression.
+        If @p filename ends with <tt>.bz2</tt>, the output is written with bzip2 compression.
+        Otherwise, uncompressed output is written.
+
+        @param[in] filename The output filename (extension determines compression: .gz, .bz2, or none)
         @param[in] handler The XML handler containing the content to write
 
         @exception Exception::UnableToCreateFile is thrown if the file cannot be created

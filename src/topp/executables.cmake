@@ -159,6 +159,13 @@ set(TOPP_executables
   ParquetConverter
 )
 
+if(WITH_WNETALIGN)
+  set(TOPP_executables
+    ${TOPP_executables}
+    FeatureLinkerWNet
+  )
+endif()
+
 ### add filenames to Visual Studio solution tree
 set(sources_VS)
 foreach(i ${TOPP_executables})

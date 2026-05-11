@@ -2558,8 +2558,4 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         return OpenMS::PEFFEntry::fromFASTAEntry(fasta);
     }, "fasta"_a, "Create a PEFFEntry from a FASTAEntry");
 
-    // NOTE: OSWFile cannot be bound here because OSWFile.h includes
-    // SqliteConnector.h which has a READONLY enum that conflicts with
-    // Python's READONLY macro from structmember.h.
-
 }

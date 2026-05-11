@@ -135,8 +135,8 @@ protected:
       "d",
 #endif
     });
-    registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", { "idXML"} );
+    registerOutputFile_("out", "<file>", "", "Output file (.idXML) or directory bundle (.idparquet) containing the search results.");
+    setValidFormats_("out", { "idXML", "idparquet"} );
     registerInputFile_("database", "<file>", "", "FASTA file", true, false, {"skipexists"});
     setValidFormats_("database", { "FASTA" } );
     registerInputFile_("comet_executable", "<executable>",
@@ -923,7 +923,7 @@ protected:
     PercolatorFeatureSetHelper::addCOMETFeatures(peptide_identifications, feature_set);
     protein_identifications.front().getSearchParameters().setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
 
-    FileHandler().storeIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
     //-------------------------------------------------------------
     // create (move) optional pin output

@@ -247,6 +247,9 @@ set(format_executables_list
   PepNovoOutfile_test
   PepXMLFileMascot_test
   PepXMLFile_test
+  Percolator_test
+  Percolator_subprocess_parity_test
+  PercolatorAdapter_parity_test
   PercolatorInfile_test
   PercolatorOutfile_test
   ProtXMLFile_test
@@ -302,6 +305,7 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   ProteinIdentificationArrowIO_test
   FeatureMapArrowIO_test
   ConsensusMapArrowIO_test
+  PSMArrowIO_test
   ArrowSchemaRegistry_test)
 
 set(math_executables_list
@@ -491,7 +495,9 @@ set(analysis_executables_list
   FeatureGroupingAlgorithmLabeled_test
   FeatureGroupingAlgorithmQT_test
   FeatureGroupingAlgorithmUnlabeled_test
+  FeatureGroupingAlgorithmWNet_test
   FeatureGroupingAlgorithm_test
+  WNetMatcher_test
   FeatureHandle_test
   FIAMSDataProcessor_test
   FLASHDeconvAlgorithm_test

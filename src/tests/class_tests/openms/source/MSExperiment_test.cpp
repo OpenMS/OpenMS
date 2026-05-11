@@ -1104,9 +1104,19 @@ START_SECTION((void reset()))
   exp.set2DData(plist);
   exp.updateRanges();
 
+  // Add a chromatogram to verify it gets cleared too
+  MSChromatogram chrom;
+  ChromatogramPeak cp;
+  cp.setRT(1.0);
+  cp.setIntensity(100.0);
+  chrom.push_back(cp);
+  exp.addChromatogram(chrom);
+  TEST_EQUAL(exp.getChromatograms().size(), 1);
+
   exp.reset();
 
   TEST_EQUAL(exp.empty(),true);
+  TEST_EQUAL(exp.getChromatograms().empty(), true);
 }
 END_SECTION
 

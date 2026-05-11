@@ -15,14 +15,18 @@
 #include <OpenMS/config.h>
 
 #include <limits>
+#include <memory>
 
 // do NOT include glpk and CoinOr headers here, as they define bad stuff, which ripples through OpenMS then...
 // include them in LPWrapper.cpp where they do not harm
 // only declare them here
 class CoinModel;
 
+// Forward declare HiGHS
+class Highs;
+
 // if GLPK was found:
-#ifndef OPENMS_HAS_COINOR
+#if !defined(OPENMS_HAS_COINOR) && !defined(OPENMS_HAS_HIGHS)
   #ifndef GLP_PROB_DEFINED
     #define GLP_PROB_DEFINED
     // depending on the glpk version
@@ -45,7 +49,8 @@ namespace OpenMS
     @brief A wrapper class for linear programming (LP) solvers
 
     This class provides a unified interface to different linear programming solvers,
-    including GLPK (GNU Linear Programming Kit) and COIN-OR (if available).
+    including GLPK (GNU Linear Programming Kit), COIN-OR, and HiGHS (selected via the
+    LP_SOLVER CMake variable: AUTO, COIN, GLPK, or HIGHS).
     
     Linear programming is a method to find the best outcome in a mathematical model
     whose requirements are represented by linear relationships. It is used for
@@ -165,6 +170,9 @@ public:
 #ifdef OPENMS_HAS_COINOR
       , SOLVER_COINOR     ///< COIN-OR solver (if available)
 #endif
+#ifdef OPENMS_HAS_HIGHS
+      , SOLVER_HIGHS      ///< HiGHS solver (if available)
+#endif
     };
 
     /**
@@ -183,7 +191,8 @@ public:
     /**
       @brief Default constructor
       
-      Initializes a new LP problem with the default solver (GLPK or COIN-OR if available).
+      Initializes a new LP problem with the default solver (COIN-OR, HiGHS, or GLPK,
+      depending on which LP solver was selected at build time via LP_SOLVER).
     */
     LPWrapper();
     
@@ -512,6 +521,9 @@ protected:
 #ifdef OPENMS_HAS_COINOR
     CoinModel * model_ = nullptr;      ///< COIN-OR model object for the LP problem
     std::vector<double> solution_;     ///< Solution vector when using COIN-OR
+#elif defined(OPENMS_HAS_HIGHS)
+    std::unique_ptr<Highs> highs_;     ///< HiGHS solver instance
+    std::vector<double> solution_;     ///< Solution vector when using HiGHS
 #else
     glp_prob * lp_problem_ = nullptr;  ///< GLPK problem object for the LP problem
 #endif

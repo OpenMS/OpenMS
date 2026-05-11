@@ -10,5 +10,5 @@
 
 namespace OpenMS
 {
+  std::atomic<bool> suppress_resampling_spacing_warning{false};
 }
-
