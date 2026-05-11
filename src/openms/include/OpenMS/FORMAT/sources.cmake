@@ -133,6 +133,7 @@ list(APPEND sources_list_h ProteinGroupArrowExport.h)
 list(APPEND sources_list_h ProteinIdentificationArrowIO.h)
 list(APPEND sources_list_h FeatureMapArrowIO.h)
 list(APPEND sources_list_h ConsensusMapArrowIO.h)
+list(APPEND sources_list_h PSMArrowIO.h)
 
 if (WITH_OPENTIMS)
   list(APPEND sources_list_h BrukerTimsFile.h)

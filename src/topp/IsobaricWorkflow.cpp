@@ -188,7 +188,7 @@ protected:
     registerInputFileList_("in", "<file>", {}, "input centroided spectrum files");
     setValidFormats_("in", {"mzML"});
     registerInputFileList_("in_id", "<file>", {}, "corresponding input PSMs");
-    setValidFormats_("in_id", {"idXML"});
+    setValidFormats_("in_id", {"idXML", "mzId", "idparquet"});
     registerInputFile_("exp_design", "<file>", "", "experimental design file (optional). If not given, the design is assumed to be unfractionated.", false);
     setValidFormats_("exp_design", {"tsv"});
     registerOutputFile_("out", "<file>", "", "output consensusXML file");
@@ -556,7 +556,8 @@ protected:
       // load idXML
       vector<ProteinIdentification> prot_ids;
       PeptideIdentificationList pep_ids;
-      FileHandler().loadIdentifications(id_file, prot_ids, pep_ids);
+      FileHandler().loadIdentifications(id_file, prot_ids, pep_ids,
+          {FileTypes::IDXML, FileTypes::MZIDENTML, FileTypes::IDPARQUET}, log_type_);
       // TODO filter by qvalue here?
       double pro_score = getDoubleOption_("protein_score");
       double psm_score = getDoubleOption_("psm_score");

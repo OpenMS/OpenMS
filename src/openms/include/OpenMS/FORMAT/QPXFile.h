@@ -105,6 +105,25 @@ public:
     const std::shared_ptr<arrow::Table>& table,
     const String& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
+
+  /**
+    @brief Import PSMs from a PSMSchema Arrow table.
+
+    Reads `PSMSchema`-conformant rows and appends `PeptideIdentification`s
+    to @p peptide_identifications. Each row's `run_identifier` column links
+    PSMs back to the matching `ProteinIdentification` already present in
+    @p protein_identifications by run identifier. If no match exists, a
+    new `ProteinIdentification` shell is appended.
+
+    @param[in]    table                     PSMSchema Arrow table (must not be null)
+    @param[in,out] protein_identifications  Existing protein identifications (used for higher_score_better lookup; new shells appended for unknown run_identifiers)
+    @param[in,out] peptide_identifications  Peptide identifications appended to (caller may pass an empty or pre-populated list)
+    @return true on success, false on schema mismatch or unrecoverable error (errors are logged)
+  */
+  static bool importFromArrow(
+    const std::shared_ptr<arrow::Table>& table,
+    std::vector<ProteinIdentification>& protein_identifications,
+    PeptideIdentificationList& peptide_identifications);
 };
 
 } // namespace OpenMS

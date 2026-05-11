@@ -41,49 +41,6 @@ namespace
     return result;
   }
 
-  Scoring::XCorrArrayType calcxcorr_legacy_ref(
-    const std::vector<double>& data1, const std::vector<double>& data2, bool normalize)
-  {
-    int datasize = static_cast<int>(data1.size());
-    int maxdelay = datasize;
-    int lag = 1;
-
-    double mean1 = std::accumulate(data1.begin(), data1.end(), 0.0) / static_cast<double>(data1.size());
-    double mean2 = std::accumulate(data2.begin(), data2.end(), 0.0) / static_cast<double>(data2.size());
-    double denominator = 1.0;
-
-    if (normalize)
-    {
-      double sqsum1 = 0, sqsum2 = 0;
-      for (size_t i = 0; i < data1.size(); ++i)
-        sqsum1 += (data1[i] - mean1) * (data1[i] - mean1);
-      for (size_t i = 0; i < data2.size(); ++i)
-        sqsum2 += (data2[i] - mean2) * (data2[i] - mean2);
-      denominator = std::sqrt(sqsum1 * sqsum2);
-    }
-    denominator = (denominator > 0) ? (1.0 / denominator) : 0.0;
-
-    Scoring::XCorrArrayType result;
-    for (int delay = -maxdelay; delay <= maxdelay; delay += lag)
-    {
-      double sxy = 0;
-      for (int i = 0; i < datasize; ++i)
-      {
-        int j = i + delay;
-        if (j < 0 || j >= datasize) continue;
-        if (normalize)
-          sxy += (data1[i] - mean1) * (data2[j] - mean2);
-        else
-          sxy += data1[i] * data2[j];
-      }
-      if (denominator > 0)
-        result.data.emplace_back(delay, sxy * denominator);
-      else
-        result.data.emplace_back(delay, 0);
-    }
-    return result;
-  }
-
   std::vector<double> generate_test_signal(int n, double freq1 = 0.1, double freq2 = 0.3)
   {
     std::vector<double> data(n);
@@ -114,7 +71,7 @@ START_SECTION(double_NormalizedManhattanDist_test)
   static const double arr2[] = {1,3,5,2,0,0};
   std::vector<double> data1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
   std::vector<double> data2 (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
-  TEST_REAL_SIMILAR (Scoring::NormalizedManhattanDist(&data1[0], &data2[0], 6), 0.15151515)
+  TEST_REAL_SIMILAR (Scoring::NormalizedManhattanDist(data1, data2), 0.15151515)
 }
 END_SECTION
 
@@ -131,7 +88,7 @@ START_SECTION(double_RootMeanSquareDeviation_test)
   static const double arr2[] = {1,3,5,2,0,0};
   std::vector<double> data1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
   std::vector<double> data2 (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
-  TEST_REAL_SIMILAR (Scoring::RootMeanSquareDeviation(&data1[0], &data2[0], 6), 1.91485421551)
+  TEST_REAL_SIMILAR (Scoring::RootMeanSquareDeviation(data1, data2), 1.91485421551)
 }
 END_SECTION
 
@@ -204,7 +161,7 @@ START_SECTION(double_SpectralAngle_test)
     std::vector<double> d1,
     std::vector<double> d2
   ) -> double {
-    return Scoring::SpectralAngle(&d1[0], &d2[0], d1.size());
+    return Scoring::SpectralAngle(d1, d2);
   };
 
   // previous unit test
@@ -258,7 +215,6 @@ START_SECTION(double_SpectralAngle_test)
 END_SECTION
 
 START_SECTION(void_normalize_sum_test)
-// void normalize_sum(double x[], unsigned int n)
 {
   // arr1 = [ 0,1,3,5,2,0 ];
   // n_arr1 = (arr1 / (sum(arr1) *1.0) )
@@ -267,7 +223,7 @@ START_SECTION(void_normalize_sum_test)
   std::vector<double> data1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
   std::vector<double> data2 (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
 
-  Scoring::normalize_sum(&data1[0], 6);
+  Scoring::normalize_sum(data1);
   TEST_REAL_SIMILAR (data1[0], 0.0)
   TEST_REAL_SIMILAR (data1[1], 0.09090909)
   TEST_REAL_SIMILAR (data1[2], 0.27272727)
@@ -381,16 +337,16 @@ START_SECTION(test_MRMFeatureScoring_normalizedCrossCorrelation)
 }
 END_SECTION
 
-START_SECTION(test_MRMFeatureScoring_calcxcorr_legacy_mquest_)
-//START_SECTION((MRMFeatureScoring::XCorrArrayType MRMFeatureScoring::calcxcorr(std::vector<double>& data1, std::vector<double>& data2, bool normalize)))
+START_SECTION(test_MRMFeatureScoring_normalizedCrossCorrelation_full_range)
 {
-
+  // Full-range normalized cross-correlation (maxdelay = data.size(), lag = 1)
+  // produces 2*N+1 = 13 entries (-6..+6) for length-6 input vectors.
   static const double arr1[] = {0,1,3,5,2,0};
   static const double arr2[] = {1,3,5,2,0,0};
   std::vector<double> data1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
   std::vector<double> data2 (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
 
-  OpenSwath::Scoring::XCorrArrayType result = Scoring::calcxcorr_legacy_mquest_(data1, data2, true);
+  OpenSwath::Scoring::XCorrArrayType result = Scoring::normalizedCrossCorrelation(data1, data2, static_cast<int>(data1.size()), 1);
   TEST_EQUAL (result.data.size(), 13)
 
   TEST_REAL_SIMILAR (result.data[4+4].second, -0.7374631);    // .find( 2)
@@ -398,7 +354,7 @@ START_SECTION(test_MRMFeatureScoring_calcxcorr_legacy_mquest_)
   TEST_REAL_SIMILAR (result.data[2+4].second,  0.4159292);    // .find( 0)
   TEST_REAL_SIMILAR (result.data[1+4].second,  0.8215339);    // .find(-1)
   TEST_REAL_SIMILAR (result.data[0+4].second,  0.15634218);   // .find(-2)
-    
+
   TEST_EQUAL (result.data[4+4].first, 2)
   TEST_EQUAL (result.data[3+4].first, 1)
   TEST_EQUAL (result.data[2+4].first, 0)
@@ -457,65 +413,6 @@ START_SECTION(test_calculateCrossCorrelation_equivalence)
 
     auto result = Scoring::calculateCrossCorrelation(data1, data2, 20, 1);
     auto result_ref = calculateCrossCorrelation_ref(data1, data2, 20, 1);
-
-    TEST_EQUAL(result.data.size(), result_ref.data.size())
-    for (size_t i = 0; i < result.data.size(); ++i)
-    {
-      TEST_EQUAL(result.data[i].first, result_ref.data[i].first)
-      TEST_REAL_SIMILAR(result.data[i].second, result_ref.data[i].second)
-    }
-  }
-}
-END_SECTION
-
-START_SECTION(test_calcxcorr_legacy_equivalence)
-//START_SECTION(Eigen vs manual-loop reference for calcxcorr_legacy_mquest_)
-{
-  // Verify that Eigen-based calcxcorr_legacy_mquest_ matches the old
-  // manual-loop implementation in both normalized and unnormalized modes.
-
-  // Normalized mode - small array
-  {
-    std::vector<double> data1 = {0, 1, 3, 5, 2, 0};
-    std::vector<double> data2 = {1, 3, 5, 2, 0, 0};
-    std::vector<double> d1_copy = data1, d2_copy = data2;
-
-    auto result = Scoring::calcxcorr_legacy_mquest_(d1_copy, d2_copy, true);
-    auto result_ref = calcxcorr_legacy_ref(data1, data2, true);
-
-    TEST_EQUAL(result.data.size(), result_ref.data.size())
-    for (size_t i = 0; i < result.data.size(); ++i)
-    {
-      TEST_EQUAL(result.data[i].first, result_ref.data[i].first)
-      TEST_REAL_SIMILAR(result.data[i].second, result_ref.data[i].second)
-    }
-  }
-
-  // Unnormalized mode - small array
-  {
-    std::vector<double> data1 = {0, 1, 3, 5, 2, 0};
-    std::vector<double> data2 = {1, 3, 5, 2, 0, 0};
-    std::vector<double> d1_copy = data1, d2_copy = data2;
-
-    auto result = Scoring::calcxcorr_legacy_mquest_(d1_copy, d2_copy, false);
-    auto result_ref = calcxcorr_legacy_ref(data1, data2, false);
-
-    TEST_EQUAL(result.data.size(), result_ref.data.size())
-    for (size_t i = 0; i < result.data.size(); ++i)
-    {
-      TEST_EQUAL(result.data[i].first, result_ref.data[i].first)
-      TEST_REAL_SIMILAR(result.data[i].second, result_ref.data[i].second)
-    }
-  }
-
-  // Normalized mode - larger array (100 elements)
-  {
-    auto data1 = generate_test_signal(100, 0.1, 0.3);
-    auto data2 = generate_test_signal(100, 0.2, 0.5);
-    std::vector<double> d1_copy = data1, d2_copy = data2;
-
-    auto result = Scoring::calcxcorr_legacy_mquest_(d1_copy, d2_copy, true);
-    auto result_ref = calcxcorr_legacy_ref(data1, data2, true);
 
     TEST_EQUAL(result.data.size(), result_ref.data.size())
     for (size_t i = 0; i < result.data.size(); ++i)
@@ -600,7 +497,7 @@ START_SECTION(test_xcorr_edge_cases)
     std::vector<double> zeros(10, 0.0);
     std::vector<double> zeros2(10, 0.0);
 
-    auto result = Scoring::calcxcorr_legacy_mquest_(zeros, zeros2, true);
+    auto result = Scoring::normalizedCrossCorrelation(zeros, zeros2, 10, 1);
     for (auto it = result.begin(); it != result.end(); ++it)
     {
       TEST_REAL_SIMILAR(it->second, 0.0)
@@ -612,7 +509,7 @@ START_SECTION(test_xcorr_edge_cases)
     std::vector<double> const5(10, 5.0);
     std::vector<double> const5b(10, 5.0);
 
-    auto result = Scoring::calcxcorr_legacy_mquest_(const5, const5b, true);
+    auto result = Scoring::normalizedCrossCorrelation(const5, const5b, 10, 1);
     for (auto it = result.begin(); it != result.end(); ++it)
     {
       TEST_REAL_SIMILAR(it->second, 0.0)
@@ -644,34 +541,6 @@ START_SECTION(test_xcorr_edge_cases)
     TEST_EQUAL(result.data.size(), 1)
     TEST_EQUAL(result.data[0].first, 0)
     TEST_REAL_SIMILAR(result.data[0].second, 42.0 * 7.0)
-  }
-}
-END_SECTION
-
-START_SECTION(test_legacy_vs_normalized_consistency)
-//START_SECTION(calcxcorr_legacy_mquest_ agrees with normalizedCrossCorrelation)
-{
-  // The deprecated calcxcorr_legacy_mquest_(normalize=true) should produce
-  // the same results as normalizedCrossCorrelation at matching lags, since
-  // both compute Pearson cross-correlation with mean subtraction and
-  // variance normalization.
-
-  std::vector<double> d1_for_legacy = {0, 1, 3, 5, 2, 0};
-  std::vector<double> d2_for_legacy = {1, 3, 5, 2, 0, 0};
-  std::vector<double> d1_for_norm = d1_for_legacy;
-  std::vector<double> d2_for_norm = d2_for_legacy;
-
-  int maxdelay = static_cast<int>(d1_for_legacy.size());
-
-  auto result_legacy = Scoring::calcxcorr_legacy_mquest_(d1_for_legacy, d2_for_legacy, true);
-  auto result_normalized = Scoring::normalizedCrossCorrelation(d1_for_norm, d2_for_norm, maxdelay, 1);
-
-  TEST_EQUAL(result_legacy.data.size(), result_normalized.data.size())
-
-  for (size_t i = 0; i < result_legacy.data.size(); ++i)
-  {
-    TEST_EQUAL(result_legacy.data[i].first, result_normalized.data[i].first)
-    TEST_REAL_SIMILAR(result_legacy.data[i].second, result_normalized.data[i].second)
   }
 }
 END_SECTION

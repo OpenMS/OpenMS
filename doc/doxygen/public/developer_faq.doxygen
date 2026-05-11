@@ -56,11 +56,12 @@
  
  View the description for each option by calling <code>ccmake</code>.
 
- @subsection can_i_use_another_solver Can I use another solver other than GLPK or COINOR?
+ @subsection can_i_use_another_solver Which LP solvers are supported?
 
- No. 
- Additionally, if COINOR is found during the CMake step, it is preferred over GLPK.
- Refer to the documentation of the <code>LPWrapper</code> class, on how to abstract your code.
+ OpenMS supports three LP solvers: GLPK, COIN-OR, and HiGHS.
+ Use the <code>LP_SOLVER</code> CMake cache variable to select one: <code>AUTO</code> (default), <code>COIN</code>, <code>GLPK</code>, or <code>HIGHS</code>.
+ In <code>AUTO</code> mode, COIN-OR is tried first, then GLPK, then HiGHS (fetched automatically via FetchContent if not found).
+ Refer to the documentation of the <code>LPWrapper</code> class on how to abstract your code.
 
  <h2><a class="anchor" id="changed_contrib_path"></a>I changed the <code>contrib</code> path, but re-running <code>CMake</code> won't change the library paths?</h2>
 

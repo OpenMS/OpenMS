@@ -11,10 +11,12 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
 
 #include <arrow/api.h>
@@ -698,80 +700,6 @@ namespace // anonymous
     return !array || array->IsNull(row);
   }
 
-  /// Read metavalues from a list<struct{name,value,value_type}> column at a given row.
-  /// Sets them on the target MetaInfoInterface, excluding specified keys.
-  void readMetaValues_(
-    const std::shared_ptr<arrow::Array>& array,
-    int64_t row,
-    MetaInfoInterface& target,
-    const std::unordered_set<std::string>& excluded_keys = {})
-  {
-    if (!array || array->IsNull(row)) return;
-    auto list_arr = std::static_pointer_cast<arrow::ListArray>(array);
-    auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->value_slice(row));
-    if (!struct_arr || struct_arr->length() == 0) return;
-
-    auto name_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(0));
-    auto value_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(1));
-    auto type_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(2));
-
-    for (int64_t i = 0; i < struct_arr->length(); ++i)
-    {
-      std::string name = name_arr->GetString(i);
-      if (excluded_keys.count(name)) continue;
-
-      std::string value_str = value_arr->GetString(i);
-      std::string type_str = type_arr->GetString(i);
-
-      if (type_str == "int")
-      {
-        try { target.setMetaValue(name, static_cast<int>(std::stol(value_str))); }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "double" || type_str == "float")
-      {
-        try { target.setMetaValue(name, std::stod(value_str)); }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "int_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          target.setMetaValue(name, DataValue(ListUtils::create<Int>(s)));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "double_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          target.setMetaValue(name, DataValue(ListUtils::create<double>(s)));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "string_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          auto sl = ListUtils::create<String>(s);
-          for (auto& e : sl) { e = e.trim(); }
-          target.setMetaValue(name, DataValue(sl));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else
-      {
-        target.setMetaValue(name, value_str);
-      }
-    }
-  }
-
   /// Read convex hulls from a list<struct{hull_index, points: list<struct{x, y}>}> column at a given row.
   void readConvexHulls_(
     const std::shared_ptr<arrow::Array>& array,
@@ -1325,7 +1253,7 @@ bool FeatureMapArrowIO::importFeaturesFromArrow(
     // Read metavalues
     if (col_metavalues)
     {
-      readMetaValues_(col_metavalues, i, f, excluded_mvs);
+      ArrowIOHelpers::readMetaValues(col_metavalues, i, f, excluded_mvs);
     }
 
     entries.push_back(std::move(entry));
@@ -1433,7 +1361,7 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
   auto col_charge = getColumn_(tbl, PSMSchema::PRECURSOR_CHARGE);
   auto col_score = getColumn_(tbl, PSMSchema::SCORE);
   auto col_score_type = getColumn_(tbl, PSMSchema::SCORE_TYPE);
-  auto col_rank = getColumn_(tbl, PSMSchema::RANK, /*required=*/false);
+  // hit_index is positional (analytics view); rank semantics travel via psm_metavalues.
   auto col_rt = getColumn_(tbl, PSMSchema::RT, /*required=*/false);
   auto col_mz = getColumn_(tbl, PSMSchema::OBSERVED_MZ, /*required=*/false);
   auto col_spec_ref = getColumn_(tbl, PSMSchema::SPECTRUM_REFERENCE, /*required=*/false);
@@ -1548,7 +1476,7 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       // spectrum_metavalues -> PeptideIdentification metavalues
       if (col_spectrum_metavalues)
       {
-        readMetaValues_(col_spectrum_metavalues, row, pid);
+        ArrowIOHelpers::readMetaValues(col_spectrum_metavalues, row, pid);
       }
 
       groups.push_back(std::move(group));
@@ -1587,11 +1515,6 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
     hit.setCharge(static_cast<Int>(getInt32Value_(col_charge, row, 0)));
     hit.setScore(getDoubleValue_(col_score, row, 0.0));
 
-    if (col_rank && !isNull_(col_rank, row))
-    {
-      hit.setRank(static_cast<UInt>(getInt32Value_(col_rank, row, 0)));
-    }
-
     // is_decoy -> target_decoy metavalue
     if (col_is_decoy && !isNull_(col_is_decoy, row))
     {
@@ -1603,13 +1526,24 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
     if (col_protein_accs && !isNull_(col_protein_accs, row))
     {
       auto list_arr = std::static_pointer_cast<arrow::ListArray>(col_protein_accs);
-      auto values = std::static_pointer_cast<arrow::StringArray>(list_arr->values());
-      int64_t start = list_arr->value_offset(row);
-      int64_t end = start + list_arr->value_length(row);
-      for (int64_t k = start; k < end; ++k)
+      auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->values());
+      auto acc_arr    = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("accession"));
+      auto before_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("aa_before"));
+      auto after_arr  = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("aa_after"));
+      auto start_arr  = std::static_pointer_cast<arrow::Int32Array>(struct_arr->GetFieldByName("start"));
+      auto end_arr    = std::static_pointer_cast<arrow::Int32Array>(struct_arr->GetFieldByName("end"));
+      int64_t lstart = list_arr->value_offset(row);
+      int64_t lend = lstart + list_arr->value_length(row);
+      for (int64_t k = lstart; k < lend; ++k)
       {
         PeptideEvidence ev;
-        ev.setProteinAccession(values->GetString(k));
+        ev.setProteinAccession(acc_arr->GetString(k));
+        const std::string before_s = before_arr->IsNull(k) ? std::string{} : before_arr->GetString(k);
+        ev.setAABefore(before_s.empty() ? PeptideEvidence::UNKNOWN_AA : before_s[0]);
+        const std::string after_s = after_arr->IsNull(k) ? std::string{} : after_arr->GetString(k);
+        ev.setAAAfter(after_s.empty() ? PeptideEvidence::UNKNOWN_AA : after_s[0]);
+        ev.setStart(start_arr->IsNull(k) ? PeptideEvidence::UNKNOWN_POSITION : start_arr->Value(k));
+        ev.setEnd  (end_arr  ->IsNull(k) ? PeptideEvidence::UNKNOWN_POSITION : end_arr  ->Value(k));
         hit.addPeptideEvidence(ev);
       }
     }
@@ -1662,7 +1596,7 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       static const std::unordered_set<std::string> psm_excluded_mvs =
         {"target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM",
          "scan", "reference_file_name"};
-      readMetaValues_(col_psm_metavalues, row, hit, psm_excluded_mvs);
+      ArrowIOHelpers::readMetaValues(col_psm_metavalues, row, hit, psm_excluded_mvs);
     }
 
     groups.back().pep_id.getHits().push_back(std::move(hit));

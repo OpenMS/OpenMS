@@ -153,7 +153,7 @@ namespace OpenMS
     return arrow::schema({
       arrow::field(ACCESSION, arrow::utf8(), /*nullable=*/false),
       arrow::field(SCORE, arrow::float64(), /*nullable=*/false),
-      arrow::field(RANK, arrow::int32(), /*nullable=*/true),
+      arrow::field(RANK, arrow::int32(), /*nullable=*/false),
       arrow::field(COVERAGE, arrow::float64(), /*nullable=*/true),
       arrow::field(SEQUENCE, arrow::utf8(), /*nullable=*/true),
       arrow::field(DESCRIPTION, arrow::utf8(), /*nullable=*/true),
@@ -365,6 +365,17 @@ namespace OpenMS
     }));
   }
 
+  std::shared_ptr<arrow::DataType> PSMSchema::proteinAccessionsType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("accession", arrow::utf8(), /*nullable=*/false),
+      arrow::field("aa_before", arrow::utf8(), /*nullable=*/true),
+      arrow::field("aa_after",  arrow::utf8(), /*nullable=*/true),
+      arrow::field("start",     arrow::int32(), /*nullable=*/true),
+      arrow::field("end",       arrow::int32(), /*nullable=*/true),
+    }));
+  }
+
   std::shared_ptr<arrow::Schema> PSMSchema::schema()
   {
     return arrow::schema({
@@ -377,7 +388,7 @@ namespace OpenMS
       arrow::field(CALCULATED_MZ, arrow::float64()),
       arrow::field(OBSERVED_MZ, arrow::float64()),
       arrow::field(ADDITIONAL_SCORES, additionalScoresType()),
-      arrow::field(PROTEIN_ACCESSIONS, arrow::list(arrow::utf8())),
+      arrow::field(PROTEIN_ACCESSIONS, proteinAccessionsType()),
       arrow::field(PREDICTED_RT, arrow::float64()),
       arrow::field(REFERENCE_FILE_NAME, arrow::utf8()),
       arrow::field(CV_PARAMS, arrow::utf8()),
@@ -388,7 +399,7 @@ namespace OpenMS
       arrow::field(SCORE, arrow::float64()),
       arrow::field(SCORE_TYPE, arrow::utf8()),
       arrow::field(HIGHER_SCORE_BETTER, arrow::boolean()),
-      arrow::field(RANK, arrow::int32()),
+      arrow::field(HIT_INDEX, arrow::int32()),
       arrow::field(PEPTIDE_IDENTIFICATION_INDEX, arrow::int32()),
       arrow::field(PSM_METAVALUES, metavaluesType()),
       arrow::field(SPECTRUM_METAVALUES, metavaluesType()),

@@ -13,6 +13,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 
 #include <arrow/api.h>
@@ -304,80 +305,6 @@ namespace // anonymous
       result.emplace_back(values->GetString(i));
     }
     return result;
-  }
-
-  /// Read metavalues from a list<struct{name,value,value_type}> column at a given row.
-  /// Sets them on the target MetaInfoInterface, excluding specified keys.
-  void readMetaValues_(
-    const std::shared_ptr<arrow::Array>& array,
-    int64_t row,
-    MetaInfoInterface& target,
-    const std::unordered_set<std::string>& excluded_keys = {})
-  {
-    if (!array || array->IsNull(row)) return;
-    auto list_arr = std::static_pointer_cast<arrow::ListArray>(array);
-    auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->value_slice(row));
-    if (!struct_arr || struct_arr->length() == 0) return;
-
-    auto name_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(0));
-    auto value_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(1));
-    auto type_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(2));
-
-    for (int64_t i = 0; i < struct_arr->length(); ++i)
-    {
-      std::string name = name_arr->GetString(i);
-      if (excluded_keys.count(name)) continue;
-
-      std::string value_str = value_arr->GetString(i);
-      std::string type_str = type_arr->GetString(i);
-
-      if (type_str == "int")
-      {
-        try { target.setMetaValue(name, static_cast<int>(std::stol(value_str))); }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "double" || type_str == "float")
-      {
-        try { target.setMetaValue(name, std::stod(value_str)); }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "int_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          target.setMetaValue(name, DataValue(ListUtils::create<Int>(s)));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "double_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          target.setMetaValue(name, DataValue(ListUtils::create<double>(s)));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else if (type_str == "string_list")
-      {
-        try
-        {
-          String s(value_str);
-          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-          auto sl = ListUtils::create<String>(s);
-          for (auto& e : sl) { e = e.trim(); }
-          target.setMetaValue(name, DataValue(sl));
-        }
-        catch (...) { target.setMetaValue(name, value_str); }
-      }
-      else
-      {
-        target.setMetaValue(name, value_str);
-      }
-    }
   }
 
   /// Build a map from run_identifier to index in the protein_identifications vector.
@@ -1342,11 +1269,33 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     prot_id.setHigherScoreBetter(getBoolValue_(col_higher_better, row));
     prot_id.setSignificanceThreshold(getDoubleValue_(col_sig_threshold, row));
 
-    // Date (timestamp seconds since epoch)
+    // Date (timestamp; normalize to seconds based on the column's actual time unit).
+    // The schema declares timestamp(SECOND), but Parquet may persist/restore the column
+    // as nanoseconds, so we have to inspect the runtime unit rather than assume seconds.
     if (!isNull_(col_date, row))
     {
       auto ts_arr = std::static_pointer_cast<arrow::TimestampArray>(col_date);
-      int64_t epoch_secs = ts_arr->Value(row);
+      auto ts_type = std::static_pointer_cast<arrow::TimestampType>(ts_arr->type());
+      int64_t raw = ts_arr->Value(row);
+      // Floor-style division so a small negative sub-second value (e.g. raw = -500
+      // ms) maps to -1 second instead of 0; with C++'s truncating integer division
+      // it would otherwise pass the epoch_secs >= 0 check below and silently render
+      // as 1970-01-01.  Quotient/remainder form avoids UB at INT64_MIN that the
+      // simpler `-((-r + d - 1) / d)` formulation would hit by negating r.
+      auto floor_div = [](int64_t r, int64_t d) -> int64_t {
+        int64_t q = r / d;
+        int64_t rem = r % d;
+        if (rem != 0 && ((rem < 0) != (d < 0))) { --q; }
+        return q;
+      };
+      int64_t epoch_secs = raw;
+      switch (ts_type->unit())
+      {
+        case arrow::TimeUnit::SECOND: epoch_secs = raw; break;
+        case arrow::TimeUnit::MILLI:  epoch_secs = floor_div(raw, 1000LL); break;
+        case arrow::TimeUnit::MICRO:  epoch_secs = floor_div(raw, 1000000LL); break;
+        case arrow::TimeUnit::NANO:   epoch_secs = floor_div(raw, 1000000000LL); break;
+      }
       if (epoch_secs >= 0) // negative epochs are invalid on Windows
       {
         time_t t = static_cast<time_t>(epoch_secs);
@@ -1370,10 +1319,12 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
       }
     }
 
-    // Primary MS run paths
-    auto ms_run_paths = readStringList_(col_ms_run_paths, row);
-    if (!ms_run_paths.empty())
+    // Primary MS run paths — only call when the column is present.
+    // Missing column → no spectra_data UserParam (preserves round-trip semantics).
+    // Present-but-empty column → empty spectra_data UserParam (matches idXML behaviour).
+    if (col_ms_run_paths)
     {
+      auto ms_run_paths = readStringList_(col_ms_run_paths, row);
       StringList sl(ms_run_paths.begin(), ms_run_paths.end());
       prot_id.setPrimaryMSRunPath(sl);
     }
@@ -1428,7 +1379,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     sp.variable_modifications.assign(var_mods.begin(), var_mods.end());
 
     // SearchParameters metavalues (restore before setSearchParameters)
-    readMetaValues_(col_sp_metavalues, row, sp);
+    ArrowIOHelpers::readMetaValues(col_sp_metavalues, row, sp);
 
     prot_id.setSearchParameters(sp);
 
@@ -1449,7 +1400,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
       "InferenceEngine", "InferenceEngineVersion",
       "spectra_data", "spectra_data_raw"
     };
-    readMetaValues_(col_metavalues, row, prot_id, excluded_prot_id_mvs);
+    ArrowIOHelpers::readMetaValues(col_metavalues, row, prot_id, excluded_prot_id_mvs);
 
     protein_identifications.push_back(std::move(prot_id));
   }
@@ -1584,7 +1535,7 @@ bool ProteinIdentificationArrowIO::importProteinsFromArrow(
     }
 
     // MetaValues
-    readMetaValues_(col_metavalues, row, hit, excluded_hit_mvs);
+    ArrowIOHelpers::readMetaValues(col_metavalues, row, hit, excluded_hit_mvs);
 
     protein_identifications[prot_id_idx].insertHit(std::move(hit));
   }

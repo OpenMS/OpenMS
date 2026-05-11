@@ -204,9 +204,21 @@ endif()
 #------------------------------------------------------------------------------
 if (NOT (${PERCOLATOR_BINARY} STREQUAL "PERCOLATOR_BINARY-NOTFOUND"))
   ### NOT needs to be added after the binarys have been included
-  add_test("TOPP_PercolatorAdapter_1" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_out1.tmp.idXML -out_type idXML -percolator_executable "${PERCOLATOR_BINARY}")
-  add_test("TOPP_PercolatorAdapter_1_out1" ${DIFF} -in1 PercolatorAdapter_1_out1.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
-  set_tests_properties("TOPP_PercolatorAdapter_1_out1" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1")
+  ### TOPP_PercolatorAdapter_1 has TWO variants — one per backend — so a
+  ### regression in either path (in-process Percolator library OR subprocess
+  ### binary post-processing) gets caught by its own test, not masked by the
+  ### other. Each compares against its own reference idXML; the in-process
+  ### path also stamps additional metadata via stampPercolatorAdapterMetadata_
+  ### that previously only the subprocess path produced.
+  set(_topp_percolator_diff_whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "search_engine_version=" "Percolator:cpos" "Percolator:cneg")
+  ### in-process backend (default — no -use_subprocess flag)
+  add_test("TOPP_PercolatorAdapter_1_inproc" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_inproc_out.tmp.idXML -out_type idXML -percolator_executable "${PERCOLATOR_BINARY}")
+  add_test("TOPP_PercolatorAdapter_1_inproc_out" ${DIFF} -in1 PercolatorAdapter_1_inproc_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_inproc_out.idXML -whitelist ${_topp_percolator_diff_whitelist})
+  set_tests_properties("TOPP_PercolatorAdapter_1_inproc_out" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_inproc")
+  ### subprocess backend (forced via -use_subprocess true)
+  add_test("TOPP_PercolatorAdapter_1_subprocess" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess true -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_subprocess_out.tmp.idXML -out_type idXML -percolator_executable "${PERCOLATOR_BINARY}")
+  add_test("TOPP_PercolatorAdapter_1_subprocess_out" ${DIFF} -in1 PercolatorAdapter_1_subprocess_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_subprocess_out.idXML -whitelist ${_topp_percolator_diff_whitelist})
+  set_tests_properties("TOPP_PercolatorAdapter_1_subprocess_out" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_subprocess")
   add_test("TOPP_PercolatorAdapter_2" ${TOPP_BIN_PATH}/PercolatorAdapter -test -osw_level ms1 -in_osw ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_2.osw -out PercolatorAdapter_2_out1.osw -out_type osw -percolator_executable "${PERCOLATOR_BINARY}")
   add_test("TOPP_PercolatorAdapter_3" ${TOPP_BIN_PATH}/PercolatorAdapter -test -osw_level ms2 -in_osw PercolatorAdapter_2_out1.osw -out PercolatorAdapter_3_out1.osw -out_type osw -percolator_executable "${PERCOLATOR_BINARY}")
   set_tests_properties("TOPP_PercolatorAdapter_3" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_2")
@@ -214,8 +226,41 @@ if (NOT (${PERCOLATOR_BINARY} STREQUAL "PERCOLATOR_BINARY-NOTFOUND"))
   set_tests_properties("TOPP_PercolatorAdapter_4" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_3")
   add_test("TOPP_PercolatorAdapter_5" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_out1.tmp.idXML -out_type idXML -percolator_executable "${PERCOLATOR_BINARY}" -out_pin PercolatorAdapter_1_out1.tsv )
   set_tests_properties("TOPP_PercolatorAdapter_5" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_4")
+  add_test("TOPP_PercolatorAdapter_score_fdr"
+    ${TOPP_BIN_PATH}/PercolatorAdapter -test
+      -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini
+      -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML
+      -out PercolatorAdapter_score_fdr_out.tmp.idXML
+      -out_type idXML
+      -score:fdr 0.01
+      -percolator_executable "${PERCOLATOR_BINARY}")
+  set_tests_properties("TOPP_PercolatorAdapter_score_fdr" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_5")
   ### TOPP_PercolatorAdapter_2-4 do not validate output, but checks whether OSW files can be read and written to.
   ### same for TOPP_PercolatorAdapter_5 which tests if pin file can be written
+  ### TOPP_PercolatorAdapter_score_fdr tests the score:fdr post-filter option
+
+  # idparquet round-trip test: run Percolator on idparquet input, convert output back to idXML and diff
+  add_test("TOPP_PercolatorAdapter_idparquet"
+    ${TOPP_BIN_PATH}/PercolatorAdapter -test
+      -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini
+      -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_idparquet_in.idparquet
+      -out PercolatorAdapter_idparquet_out.tmp.idparquet
+      -out_type idparquet
+      -percolator_executable "${PERCOLATOR_BINARY}")
+  set_tests_properties("TOPP_PercolatorAdapter_idparquet" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_score_fdr")
+
+  add_test("TOPP_PercolatorAdapter_idparquet_convert"
+    ${TOPP_BIN_PATH}/IDFileConverter
+      -in PercolatorAdapter_idparquet_out.tmp.idparquet
+      -out PercolatorAdapter_idparquet_out.tmp.idXML)
+  set_tests_properties("TOPP_PercolatorAdapter_idparquet_convert" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_idparquet")
+
+  add_test("TOPP_PercolatorAdapter_idparquet_diff"
+    ${DIFF}
+      -in1 PercolatorAdapter_idparquet_out.tmp.idXML
+      -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_idparquet_out.idXML
+      -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+  set_tests_properties("TOPP_PercolatorAdapter_idparquet_diff" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_idparquet_convert")
 endif()
 ## test returncode when Percolator not found:
 add_test("TOPP_PercolatorAdapter_missing" ${TOPP_BIN_PATH}/PercolatorAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out Percolator_1_out.tmp.idXML -percolator_executable "/does/not/exists/path.exe")

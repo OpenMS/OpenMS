@@ -173,7 +173,7 @@ protected:
       "3. IDFilter (pep:score = 0.05)\n"
       "To obtain well calibrated PEPs and an initial reduction of PSMs\n"
       "ID files must be provided in same order as spectra files.");
-    setValidFormats_("ids", ListUtils::create<String>("idXML,mzId"));
+    setValidFormats_("ids", ListUtils::create<String>("idXML,mzId,idparquet"));
 
     registerInputFile_("design", "<file>", "", "design file", false);
     setValidFormats_("design", ListUtils::create<String>("tsv"));
@@ -755,7 +755,8 @@ protected:
   {
 
     const String& mz_file_abs_path = File::absolutePath(mz_file);
-    FileHandler().loadIdentifications(id_file_abs_path, protein_ids, peptide_ids, {FileTypes::IDXML}, log_type_);
+    FileHandler().loadIdentifications(id_file_abs_path, protein_ids, peptide_ids,
+        {FileTypes::IDXML, FileTypes::MZIDENTML, FileTypes::IDPARQUET}, log_type_);
 
     ExitCodes e = checkSingleRunPerID_(protein_ids, id_file_abs_path);
     if (e != EXECUTION_OK) return e;

@@ -37,6 +37,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmWNet.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/WNetMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
@@ -46,6 +48,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
@@ -144,6 +147,7 @@
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/INTERFACES/DataStructures.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -812,6 +816,79 @@ FeatureGroupingAlgorithm
         ;
 
     // -----------------------------------------------------------------------
+    // WNetMatcher
+    // -----------------------------------------------------------------------
+    nb::enum_<OpenMS::WNetMatcher::DistanceMetric>(m, "WNetMatcherDistanceMetric",
+        "Distance metric for WNetMatcher point matching")
+        .value("L1",   OpenMS::WNetMatcher::DistanceMetric::L1,   "L1 (Manhattan) distance: sum of absolute coordinate differences")
+        .value("L2",   OpenMS::WNetMatcher::DistanceMetric::L2,   "L2 (Euclidean) distance: square root of sum of squared differences")
+        .value("LINF", OpenMS::WNetMatcher::DistanceMetric::LINF, "L-infinity (Chebyshev) distance: maximum absolute coordinate difference")
+        ;
+
+    nb::class_<OpenMS::WNetMatcher::MatchResult>(m, "WNetMatchResult",
+        "Result of a pairwise WNetMatcher matching")
+        .def(nb::init<>(), "Construct an empty MatchResult with zero cost and no matched pairs")
+        .def(nb::init<const OpenMS::WNetMatcher::MatchResult&>(), "Copy constructor")
+        .def("__copy__",     [](const OpenMS::WNetMatcher::MatchResult& self) { return OpenMS::WNetMatcher::MatchResult(self); })
+        .def("__deepcopy__", [](const OpenMS::WNetMatcher::MatchResult& self, nb::dict) { return OpenMS::WNetMatcher::MatchResult(self); }, "memo"_a)
+        .def_rw("matched_pairs", &OpenMS::WNetMatcher::MatchResult::matched_pairs,
+            "List of (index_a, index_b) matched point pairs")
+        .def_rw("cost", &OpenMS::WNetMatcher::MatchResult::cost,
+            "Total transport cost")
+        ;
+
+    nb::class_<OpenMS::WNetMatcher>(m, "WNetMatcher",
+        R"doc(
+Pairwise point-set matching using Wasserstein optimal transport.
+
+Matches two sets of 2D points (with associated intensities) by solving
+a minimum-cost network flow problem. Returns 1-to-1 matched index pairs.
+
+This provides a minimal, FeatureMap-independent interface to the WNetAlign
+algorithm. For feature-level grouping across multiple maps, use
+FeatureGroupingAlgorithmWNet instead.
+)doc")
+        .def_static("match", &OpenMS::WNetMatcher::match,
+            "positions_a"_a, "intensities_a"_a,
+            "positions_b"_a, "intensities_b"_a,
+            "metric"_a = OpenMS::WNetMatcher::DistanceMetric::LINF,
+            "max_distance"_a = 100.0,
+            "trash_cost"_a = 100.0,
+            "Match two sets of 2D points using minimum-cost optimal transport; returns matched index pairs and total cost")
+        .def_static("metricFromString", &OpenMS::WNetMatcher::metricFromString,
+            "s"_a,
+            "Convert a string ('L1', 'L2', 'LINF') to a WNetMatcherDistanceMetric enum value; unknown strings emit a warning and fall back to LINF")
+        ;
+
+    // -----------------------------------------------------------------------
+    // FeatureGroupingAlgorithmWNet
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::FeatureGroupingAlgorithmWNet, OpenMS::FeatureGroupingAlgorithm>(m, "FeatureGroupingAlgorithmWNet",
+        R"doc(
+A feature grouping algorithm using Wasserstein optimal transport.
+
+Finds pairwise optimal 1-to-1 feature matchings via minimum-cost network
+flow on (m/z, RT) positions; the subsequent merge across multiple maps is
+heuristic and not globally optimal.
+
+FeatureGroupingAlgorithm
+)doc")
+        .def(nb::init<>(), "Construct a FeatureGroupingAlgorithmWNet with default parameters")
+        .def("group",
+            [](OpenMS::FeatureGroupingAlgorithmWNet& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); },
+            "maps"_a, "out"_a,
+            "Group corresponding features across multiple FeatureMaps into consensus features using Wasserstein optimal transport")
+        .def("group",
+            [](OpenMS::FeatureGroupingAlgorithmWNet& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); },
+            "maps"_a, "out"_a,
+            "Group corresponding features across multiple ConsensusMaps into consensus features using Wasserstein optimal transport")
+        .def("transferSubelements",
+            [](const OpenMS::FeatureGroupingAlgorithmWNet& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.transferSubelements(maps, out); },
+            "maps"_a, "out"_a,
+            "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
+        ;
+
+    // -----------------------------------------------------------------------
     // File
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::File>(m, "File", "Basic file handling operations")
@@ -1210,6 +1287,27 @@ chromatograms to be consumed and need to be informed about this
         .def_static("imPeakTypeToString", [](OpenMS::IMPeakType value) {
             return OpenMS::imPeakTypeToString(value);
         }, "value"_a, "Convert IMPeakType to string")
+        ;
+
+    // -----------------------------------------------------------------------
+    // FAIMSHelper
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::FAIMSHelper>(m, "FAIMSHelper",
+        "Helper functions for FAIMS data (compensation voltages, peptide ID filtering)")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::FAIMSHelper &>())
+        .def("__copy__", [](const OpenMS::FAIMSHelper& self) { return OpenMS::FAIMSHelper(self); })
+        .def("__deepcopy__", [](const OpenMS::FAIMSHelper& self, nb::dict) { return OpenMS::FAIMSHelper(self); }, "memo"_a)
+        .def_static("getCompensationVoltages",
+            [](const OpenMS::PeakMap& exp) { return OpenMS::FAIMSHelper::getCompensationVoltages(exp); },
+            "exp"_a,
+            "Returns the unique FAIMS compensation voltages (CVs) found across spectra of `exp` whose drift time unit is FAIMS_COMPENSATION_VOLTAGE. Empty set if none.")
+        .def_static("filterPeptidesByFAIMSCV",
+            [](const OpenMS::PeptideIdentificationList& peptides, double target_cv, double cv_tolerance) {
+                return OpenMS::FAIMSHelper::filterPeptidesByFAIMSCV(peptides, target_cv, cv_tolerance);
+            },
+            "peptides"_a, "target_cv"_a, "cv_tolerance"_a = 0.01,
+            "Filters peptide identifications by FAIMS compensation voltage. IDs without FAIMS_CV annotation are kept for backward compatibility.")
         ;
 
     // -----------------------------------------------------------------------
@@ -2196,9 +2294,16 @@ ProgressLogger
                 double rt_extraction_window,
                 bool ms1,
                 int ms1_isotopes) {
+            // The TargetedExperiment overload of prepare_coordinates was
+            // removed in favor of the LightTargetedExperiment one (see issue
+            // #7284). Convert internally to keep this Python signature stable
+            // for existing callers; rt_extraction_window=NaN now uses the
+            // rt_start/rt_end fields populated by convertTargetedExp.
+            OpenSwath::LightTargetedExperiment light_exp;
+            OpenMS::OpenSwathDataAccessHelper::convertTargetedExp(targeted, light_exp);
             std::vector<std::shared_ptr<OpenSwath::OSChromatogram>> output_chromatograms;
             std::vector<OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates> extraction_coordinates;
-            OpenMS::ChromatogramExtractor::prepare_coordinates(output_chromatograms, extraction_coordinates, targeted, rt_extraction_window, ms1, ms1_isotopes);
+            OpenMS::ChromatogramExtractor::prepare_coordinates(output_chromatograms, extraction_coordinates, light_exp, rt_extraction_window, ms1, ms1_isotopes);
             // Update Python lists in-place
             while (nb::len(output_chromatograms_py) > 0) { output_chromatograms_py.attr("pop")(); }
             for (auto& c : output_chromatograms) { output_chromatograms_py.append(nb::cast(c)); }

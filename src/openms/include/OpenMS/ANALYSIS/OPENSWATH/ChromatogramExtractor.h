@@ -10,6 +10,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
@@ -26,13 +27,11 @@ namespace OpenMS
    * This class provides functionality to extract chromatographic traces from mass spectrometry data
    * based on specified coordinates (m/z, retention time, and optionally ion mobility values).
    * 
-   * The extractor supports two main interfaces:
-   * 1. Legacy interface: Takes a TargetedExperiment object containing transitions and extracts 
-   *    chromatograms at the m/z values specified in those transitions.
-   * 2. Modern interface: Takes a set of ExtractionCoordinates that specify the exact coordinates 
-   *    for extraction. This provides more flexibility and control over the extraction process.
-   *    The prepare_coordinates() helper function can generate these coordinates for common 
-   *    MS1 and MS2 extraction scenarios.
+   * The primary interface uses a set of ExtractionCoordinates that specify the exact coordinates
+   * for extraction. The static prepare_coordinates() helper generates these coordinates from an
+   * OpenSwath::LightTargetedExperiment for common MS1 and MS2 extraction scenarios. Callers
+   * working with an OpenMS::TargetedExperiment should first convert it to a
+   * LightTargetedExperiment via OpenSwathDataAccessHelper::convertTargetedExp().
    *
    * Key features:
    * - Supports both MS1 and MS2 level extractions
@@ -127,7 +126,7 @@ public:
      * @param[out] coordinates An empty vector which will be filled with the
      *   appropriate extraction coordinates in m/z and rt and sorted by m/z (to
      *   be used as input to extractChromatograms)
-     * @param[in] transition_exp The transition experiment used as input (is constant)
+     * @param[in] transition_exp_used The transition experiment used as input
      * @param[in] rt_extraction_window If non-negative, full RT extraction window,
      *   centered on the first RT value (@p rt_end - @p rt_start will equal this
      *   window size). If negative, @p rt_end will be set to -1 and @p rt_start
@@ -138,13 +137,6 @@ public:
      *
      * @throw Exception::IllegalArgument if RT values are expected (depending on @p rt_extraction_window) but not provided
     */
-    static void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
-                                    std::vector< ExtractionCoordinates > & coordinates,
-                                    const OpenMS::TargetedExperiment & transition_exp,
-                                    const double rt_extraction_window,
-                                    const bool ms1 = false,
-                                    const int ms1_isotopes = 0);
-
     static void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
                                     std::vector< ExtractionCoordinates > & coordinates,
                                     const OpenSwath::LightTargetedExperiment & transition_exp_used,
@@ -275,10 +267,9 @@ private:
     /**
      * @brief Extracts id (peptide sequence or compound name) for a compound
      *
-     * @param[out] transition_exp_used The transition experiment used as input (is constant) and either of type LightTargetedExperiment or TargetedExperiment
-     * @param[in] id The identifier of the compound or peptide
-     * @param[in] prec_charge The charge state of the precursor
-     *
+     * @param[in]  transition_exp_used The transition experiment used as input (LightTargetedExperiment)
+     * @param[in]  id The identifier of the compound or peptide
+     * @param[out] prec_charge The charge state of the precursor (filled by this function)
      */
     template <typename TransitionExpT>
     static String extract_id_(TransitionExpT& transition_exp_used, const String& id, int& prec_charge);
@@ -393,12 +384,13 @@ private:
     prec_charge = comp.charge;
     if (!comp.sequence.empty())
     {
-      return comp.sequence;
+      return comp.sequence;        // peptide path
     }
-    else
-    {
-      return comp.compound_name;
-    }
+    // Fall through to compound_name (may itself be empty — that is intentional
+    // for iRT calibration peptides, which carry empty sequence and no
+    // CompoundName user-param. Downstream consumers expect an empty
+    // peptide_sequence userParam in that case).
+    return comp.compound_name;
   }
 
   // Const-qualified template specialization for extract_id_.
