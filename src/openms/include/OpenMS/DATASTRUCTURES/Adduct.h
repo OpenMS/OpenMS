@@ -37,10 +37,10 @@ namespace OpenMS
                             formula triggers a warning at construction.
       - @c amount         : how many copies of @c formula contribute
                             (stoichiometric count; e.g. 2 in @c "M+2K-H").
-                            Negative amounts are rejected with a warning.
+                            Negative amounts are accepted but emit a warning.
       - @c singleMass     : monoisotopic mass of one entity (one copy of
-                            @c formula). The full contribution to the
-                            observed @em m/z is @c amount @c * @c singleMass.
+                            @c formula). The full mass contribution of this
+                            Adduct is @c amount @c * @c singleMass.
       - @c charge         : per-entity charge of the adduct (e.g. @c +1 for
                             Na+, @c -1 for a proton loss). The ion's total
                             charge is @c amount @c * @c charge.
@@ -100,8 +100,9 @@ public:
     /**
       @brief Construct with only the per-entity charge set.
 
-      All other fields are zero/empty and must be populated via setters
-      before the Adduct is used in scoring.
+      All other fields are zero/empty. @c amount, @c singleMass,
+      @c log_prob, and @c formula can be populated via setters; @c rt_shift
+      and @c label can only be set via the full constructor.
 
       @param[in] charge Per-entity charge (e.g. @c +1 for Na+).
     */
@@ -182,8 +183,7 @@ public:
 
     /**
       @brief Set the per-entity charge.
-      @param[in] charge Per-entity charge (zero is allowed here, unlike in
-                        the all-fields constructor).
+      @param[in] charge Per-entity charge.
     */
     void setCharge(const Int& charge);
 
@@ -264,7 +264,7 @@ public:
         ("Na1", +1, 1) -> "[M+Na]+"
         ("Na1", +1, 2) -> "[2M+Na]+"
         ("H1",  -1, 1) -> "[M-H]-"
-        ("NH3", +1, 1) -> "[M+H+3N]+"   (canonical sort of NH3)
+        ("NH3", +1, 1) -> "[M+3H+N]+"   (canonical sort of NH3)
       @endverbatim
 
       @param[in] ion_string     EmpiricalFormula-parseable element string.
