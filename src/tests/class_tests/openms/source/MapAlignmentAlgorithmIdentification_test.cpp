@@ -88,6 +88,46 @@ START_SECTION((template <typename DataType> void align(std::vector<DataType>& da
 END_SECTION
 
 
+START_SECTION([EXTRA] repeated align() with internal reference does not leak stale reference state)
+{
+  // Regression: checkParameters_ used to inspect reference_ left over from a
+  // previous align() call when the user asked for an internal reference, so
+  // the effective run count was inflated by 1 on every subsequent call. With
+  // min_run_occur larger than the actual number of input maps, the cap that
+  // normally clamps it to the run count no longer fired, and the per-sequence
+  // filter in computeTransformations_ dropped every peptide -> identity
+  // transforms. Two consecutive calls with the same inputs must therefore
+  // produce identical, non-empty alignments.
+  MapAlignmentAlgorithmIdentification repeat_aligner;
+  repeat_aligner.setLogType(ProgressLogger::CMD);
+  Param repeat_params = repeat_aligner.getParameters();
+  // Force the cap path: min_run_occur (3) > data.size() (2).
+  repeat_params.setValue("min_run_occur", 3);
+  repeat_aligner.setParameters(repeat_params);
+
+  vector<TransformationDescription> first_transforms;
+  repeat_aligner.align(peptides, first_transforms, 0);
+  vector<TransformationDescription> second_transforms;
+  repeat_aligner.align(peptides, second_transforms, 0);
+
+  TEST_EQUAL(first_transforms.size(), 2);
+  TEST_EQUAL(second_transforms.size(), 2);
+  TEST_EQUAL(first_transforms[0].getModelType(), "identity"); // reference map
+  TEST_EQUAL(second_transforms[0].getModelType(), "identity");
+  TEST_NOT_EQUAL(first_transforms[1].getDataPoints().size(), 0);
+  TEST_EQUAL(second_transforms[1].getDataPoints().size(),
+             first_transforms[1].getDataPoints().size());
+  for (Size i = 0; i < first_transforms[1].getDataPoints().size(); ++i)
+  {
+    TEST_REAL_SIMILAR(second_transforms[1].getDataPoints()[i].first,
+                      first_transforms[1].getDataPoints()[i].first);
+    TEST_REAL_SIMILAR(second_transforms[1].getDataPoints()[i].second,
+                      first_transforms[1].getDataPoints()[i].second);
+  }
+}
+END_SECTION
+
+
 START_SECTION((template <typename DataType> void setReference(DataType& data)))
 {
   // alignment with external reference:
