@@ -114,9 +114,15 @@ START_SECTION([EXTRA] repeated align() with internal reference does not leak sta
   TEST_EQUAL(second_transforms.size(), 2);
   TEST_EQUAL(first_transforms[0].getModelType(), "identity"); // reference map
   TEST_EQUAL(second_transforms[0].getModelType(), "identity");
-  TEST_NOT_EQUAL(first_transforms[1].getDataPoints().size(), 0);
-  TEST_EQUAL(second_transforms[1].getDataPoints().size(),
-             first_transforms[1].getDataPoints().size());
+  const auto& first_points = first_transforms[1].getDataPoints();
+  const auto& second_points = second_transforms[1].getDataPoints();
+  TEST_NOT_EQUAL(first_points.size(), 0);
+  TEST_EQUAL(second_points.size(), first_points.size());
+  for (Size i = 0; i < first_points.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(second_points[i].first, first_points[i].first);
+    TEST_REAL_SIMILAR(second_points[i].second, first_points[i].second);
+  }
   for (Size i = 0; i < first_transforms[1].getDataPoints().size(); ++i)
   {
     TEST_REAL_SIMILAR(second_transforms[1].getDataPoints()[i].first,
