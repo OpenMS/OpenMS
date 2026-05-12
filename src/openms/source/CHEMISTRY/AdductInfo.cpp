@@ -76,8 +76,6 @@ namespace OpenMS
     return mass - charge_ * (Constants::PROTON_MASS_U + Constants::ELECTRON_MASS_U);
   }
 
-  /// checks if an adduct (e.g.a 'M+2K-H;1+') is valid, i.e. if the losses (==negative amounts) can actually be lost by the compound given in @p db_entry.
-  /// If the negative parts are present in @p db_entry, true is returned.
   bool AdductInfo::isCompatible(const EmpiricalFormula& db_entry) const
   {
     return db_entry.contains(ef_ * -1);
