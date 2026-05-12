@@ -578,6 +578,40 @@ if (WITH_THERMO_RAW)
     # src/openms/CMakeLists.txt) and need no CMake export entry.
 
     message(STATUS "openms-thermo-bridge: built from source (${OpenMSThermoBridge_SOURCE_DIR})")
+
+    # Download and install the Thermo Fisher RawFileReader license.
+    # OPENMS_THERMO_BRIDGE_THERMO_COMMIT is a CMake cache variable set inside
+    # the bridge's CMakeLists.txt and is visible here after FetchContent_MakeAvailable.
+    # We pin the download to that exact commit so we always get the license that
+    # corresponds to the vendored DLL packages being used.
+    if(OPENMS_THERMO_BRIDGE_THERMO_COMMIT)
+      set(_openms_thermo_license_url
+          "https://raw.githubusercontent.com/thermofisherlsms/RawFileReader/${OPENMS_THERMO_BRIDGE_THERMO_COMMIT}/License.doc")
+      set(_openms_thermo_license_file
+          "${CMAKE_CURRENT_BINARY_DIR}/ThermoRawFileReader-License.doc")
+      if(NOT EXISTS "${_openms_thermo_license_file}")
+        message(STATUS "openms-thermo-bridge: downloading Thermo RawFileReader license")
+        file(DOWNLOAD
+            "${_openms_thermo_license_url}"
+            "${_openms_thermo_license_file}"
+            STATUS _openms_thermo_license_status
+            TLS_VERIFY ON)
+        list(GET _openms_thermo_license_status 0 _openms_thermo_license_code)
+        list(GET _openms_thermo_license_status 1 _openms_thermo_license_message)
+        if(NOT _openms_thermo_license_code EQUAL 0)
+          file(REMOVE "${_openms_thermo_license_file}")
+          message(WARNING
+              "openms-thermo-bridge: failed to download Thermo RawFileReader license "
+              "(${_openms_thermo_license_message}). "
+              "The install will not include the license file.")
+        endif()
+      endif()
+      if(EXISTS "${_openms_thermo_license_file}")
+        install(FILES "${_openms_thermo_license_file}"
+                DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
+                RENAME "ThermoRawFileReader-License.doc")
+      endif()
+    endif()
   endif()
 endif()
 #------------------------------------------------------------------------------
