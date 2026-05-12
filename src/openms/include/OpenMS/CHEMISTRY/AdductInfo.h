@@ -222,9 +222,14 @@ namespace OpenMS
              semicolon, missing charge sign, invalid operators, missing
              @em M, unexpected character).
       @throws Exception::ConversionError if a numeric component (charge,
-             stoichiometric coefficient, n-mer multiplier) cannot be parsed
-             as an integer.
-    */
+              stoichiometric coefficient, n-mer multiplier) cannot be parsed
+              as an integer.
+      @throws Exception::ParseError if an adduct fragment formula cannot be
+             parsed as an EmpiricalFormula.
+      @throws Exception::InvalidParameter if the parsed adduct violates the
+             constructor invariants (e.g. zero charge or a zero n-mer
+             multiplier).
+     */
     static AdductInfo parseAdductString(const String& adduct);
 
     /**

@@ -189,7 +189,7 @@ namespace OpenMS
     // check if M has a multiplier in front
     if (m_part.length() > 1)
     { // will throw conversion error of not a number
-      mol_multiplier = m_part.prefix(m_part.length()-1).toDouble();
+      mol_multiplier = m_part.prefix(m_part.length() - 1).toInt();
     }
 
     // evaluate the adduct string ...
