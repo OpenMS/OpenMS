@@ -94,7 +94,7 @@ public:
      *   This parameter is kept for API compatibility but is not used anymore.
      */
     void computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_maps, FeatureMap& map_transformed,
-                                    std::vector<TransformationDescription>& transformations, const std::vector<Size>& trafo_order);
+                                   std::vector<TransformationDescription>& transformations, const std::vector<Size>& trafo_order);
 
     /**
      * @brief Apply transformations on input maps.

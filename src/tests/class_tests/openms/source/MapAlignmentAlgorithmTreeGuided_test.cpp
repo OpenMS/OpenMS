@@ -11,10 +11,12 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <map>
 
 using namespace std;
 using namespace OpenMS;
@@ -123,24 +125,69 @@ START_SECTION((void computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_m
     TEST_EQUAL(trafos[i].getDataPoints().empty(), false);
   }
 
-  // data points are sequence-based matches to the final consensus RT scale:
-  StringList notes;
-  bool has_non_identity_shift = false;
-  for (const auto& point : trafos[1].getDataPoints())
+  // Median feature RT per peptide sequence in a FeatureMap. Mirrors what
+  // MapAlignmentAlgorithmIdentification does internally when configured with
+  // use_feature_rt = true (which MapAlignmentAlgorithmTreeGuided forces in its
+  // defaults_): for each feature pick the peptide ID closest to the feature
+  // centroid by RT distance, then store the FEATURE's RT under that sequence.
+  // Duplicate values are de-duplicated before taking the median. Unassigned
+  // peptide IDs are NOT considered in this mode.
+  auto median_feature_rt_per_seq = [](const FeatureMap& fm)
   {
-    notes.push_back(point.note);
-    if (std::fabs(point.first - point.second) > 1e-6)
+    std::map<String, std::vector<double>> rts;
+    for (const auto& feat : fm)
     {
-      has_non_identity_shift = true;
+      String best_seq;
+      double best_distance = std::numeric_limits<double>::max();
+      bool any_hit = false;
+      for (const auto& pid : feat.getPeptideIdentifications())
+      {
+        if (!pid.getHits().empty())
+        {
+          double d = std::fabs(pid.getRT() - feat.getRT());
+          if (d < best_distance)
+          {
+            any_hit = true;
+            best_distance = d;
+            best_seq = pid.getHits().front().getSequence().toString();
+          }
+        }
+      }
+      if (any_hit) rts[best_seq].push_back(feat.getRT());
     }
-  }
-  std::sort(notes.begin(), notes.end());
+    std::map<String, double> medians;
+    for (auto& kv : rts)
+    {
+      std::sort(kv.second.begin(), kv.second.end());
+      kv.second.erase(std::unique(kv.second.begin(), kv.second.end()), kv.second.end());
+      medians[kv.first] = Math::median(kv.second.begin(), kv.second.end(), true);
+    }
+    return medians;
+  };
 
-  const StringList expected_notes = ListUtils::create<String>("AAA,ABC,ACD,CAA,FBC");
-  TEST_EQUAL(notes.size(), expected_notes.size());
-  for (Size i = 0; i < notes.size(); ++i)
+  // For every input map, every data point in trafos[i] must:
+  //   - reference a peptide sequence that exists in maps_orig[i], and
+  //   - have point.first anchored to the ORIGINAL input axis (median feature
+  //     RT for that sequence in maps_orig[i]) - not the consensus axis. The
+  //     PR's whole point is that point.first lives on the input axis so
+  //     downstream tools like ProteomicsLFQ get meaningful alignment errors.
+  bool has_non_identity_shift = false;
+  for (Size i = 0; i < trafos.size(); ++i)
   {
-    TEST_EQUAL(notes[i], expected_notes[i]);
+    const auto medians = median_feature_rt_per_seq(maps_orig[i]);
+    for (const auto& point : trafos[i].getDataPoints())
+    {
+      auto it = medians.find(point.note);
+      TEST_EQUAL(it != medians.end(), true);
+      if (it != medians.end())
+      {
+        TEST_REAL_SIMILAR(point.first, it->second);
+      }
+      if (std::fabs(point.first - point.second) > 1e-6)
+      {
+        has_non_identity_shift = true;
+      }
+    }
   }
   TEST_EQUAL(has_non_identity_shift, true);
 }
