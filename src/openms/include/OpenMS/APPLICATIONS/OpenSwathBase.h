@@ -51,11 +51,40 @@
 
 namespace OpenMS
 {
+  /**
+    @brief Shared @ref TOPPBase scaffolding for OpenSWATH-family CLI tools (currently @ref TOPP_OpenSwathWorkflow).
+
+    Bundles the input-loading and output-setup steps that any OpenSWATH DIA tool needs, so the
+    individual TOPP front-ends can stay focused on configuration and workflow wiring. The
+    protected methods cover the three I/O stages of a typical run:
+
+      - loadSwathFiles() — read one or more mzML / mzXML / sqMass SWATH input files via
+        @ref SwathFile (with the @c readoptions parameter selecting in-memory vs. cached
+        access), optionally remap the per-map isolation windows from a @c swath_windows_file,
+        and return both the per-map @ref OpenSwath::SwathMap pointers and a one-to-one list of
+        source-file names.
+      - prepareChromOutput() / prepareMobilogramOutput() — install the output @ref Interfaces::IMSDataConsumer
+        for chromatograms (sqMass / mzML+numpress / Parquet @c .xic) and the optional Parquet
+        mobilogram writer.
+      - loadTransitionList() — read the spectral library from TraML / TSV / PQP into an
+        @ref OpenSwath::LightTargetedExperiment.
+
+    The @ref CalibrationResult inner struct is the return-channel for the per-run RT / m/z /
+    IM calibration step run by the consuming tool (see @ref CalibrationWorkflow).
+
+    @ingroup TargetedQuantitation
+  */
   class OPENMS_DLLAPI TOPPOpenSwathBase : public TOPPBase
   {
 
   public:
-    /// Outputs of RT, m/z, IM calibration
+    /**
+      @brief Per-run outputs of the RT / m/z / IM calibration step.
+
+      Populated by the consuming tool (via @ref CalibrationWorkflow) and consumed later
+      during the analytical extraction phase. Window fields default to @c -1.0 meaning
+      "not computed" — callers must check before using them as extraction windows.
+    */
     struct CalibrationResult
     {
       /// RT normalization transformation (fitted Trafo)
