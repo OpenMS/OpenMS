@@ -51,8 +51,11 @@ namespace OpenMS
       - @c observed_mz       : observed @em m/z of the feature.
       - @c observed_rt       : retention time of the feature.
       - @c observed_intensity: intensity of the feature.
-      - @c individual_intensities : per-sample intensities for consensus
-                                    features (empty for single-map input).
+      - @c individual_intensities : per-FeatureHandle intensities, populated
+                                    only on the @c ConsensusMap overload of
+                                    @ref AccurateMassSearchEngine::run; stays
+                                    empty when the engine is invoked on a plain
+                                    @ref FeatureMap.
       - @c mass_trace_intensities : per-isotopologue intensities of the
                                     underlying mass traces (used for the
                                     isotope-pattern similarity score).

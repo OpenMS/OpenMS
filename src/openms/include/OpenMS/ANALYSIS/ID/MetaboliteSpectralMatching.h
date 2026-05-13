@@ -102,12 +102,12 @@ namespace OpenMS
     /// Setter for the observed-spectrum native id
     void setObservedSpectrumNativeID(const String&);
 
-    /// Primary identifier of the matched metabolite (e.g. HMDB / KEGG id; database-defined)
+    /// Primary identifier of the matched metabolite. The .cpp populates this via the first available of: @c GNPS_Spectrum_ID, @c Massbank_Accession_ID, the metabolite-name meta value, or — as a last fallback — the DB spectrum's native id.
     String getPrimaryIdentifier() const;
     /// Setter for the primary metabolite identifier
     void setPrimaryIdentifier(const String&);
 
-    /// Secondary identifier of the matched metabolite (e.g. alternate database accession)
+    /// Secondary identifier of the matched metabolite. The .cpp populates this from the @c HMDB_ID meta value on the DB-side spectrum.
     String getSecondaryIdentifier() const;
     /// Setter for the secondary metabolite identifier
     void setSecondaryIdentifier(const String&);
@@ -173,22 +173,28 @@ namespace OpenMS
     @brief Metabolomics spectral-library search by hyperscore.
 
     Matches the MS2 spectra in an experimental @ref PeakMap against the MS2 spectra of a
-    spectral library (e.g. exported from MoNA / MassBank / HMDB / GNPS) and emits the
-    top-scoring metabolite identifications as an @ref MzTab table.
+    spectral library (the .cpp recognises GNPS- and MassBank-style metadata on the DB-side
+    spectrum — see @ref SpectralMatch::getPrimaryIdentifier for the actual lookup chain)
+    and emits the matching results as an @ref MzTab table.
 
     Pipeline:
       -# Sort the library by precursor m/z (using @ref PrecursorMassComparator) for fast lookup.
       -# Apply @ref WindowMower noise reduction to each experimental MS2 spectrum.
       -# For each experimental MS2 spectrum, select DB spectra whose precursor is within the
-         configured precursor m/z tolerance and ion-mode filter.
-      -# Score each candidate via @ref computeHyperScore (X!Tandem-style:
-         @c log(dot_product) + @c log(factorial(matched_ions))). Matches with fewer than three
-         matched ions are scored 0.
-      -# Sort matches per spectrum by score (using @ref SpectralMatchScoreComparator), keep
-         the top-N (parameter @c report_mode_), and export to MzTab.
+         configured precursor m/z tolerance and ion-mode filter (parameter
+         @c "ionization_mode", values @c "positive" or @c "negative").
+      -# Score each candidate via @ref computeHyperScore — the hyperscore formula popularised
+         by X!Tandem, @c log(dot_product) + @c log(factorial(matched_ions)). Matches with
+         fewer than three matched ions are scored 0.
+      -# Sort matches per spectrum by score (using the @ref SpectralMatchScoreComparator
+         instance @c SpectralMatchScoreGreater) and emit either the top three or only the
+         single best match per spectrum according to parameter @c "report_mode" (only
+         @c "top3" or @c "best" are valid values) to MzTab.
 
-    Configuration is exposed through @ref DefaultParamHandler (precursor/fragment tolerances
-    and units, ion mode, top-N report mode, spectrum-merging toggle).
+    Configuration is exposed through @ref DefaultParamHandler — see the defaults installed
+    by the constructor for the supported keys (@c "prec_mass_error_value",
+    @c "frag_mass_error_value", @c "mass_error_unit", @c "ionization_mode", @c "report_mode",
+    @c "merge_spectra").
 
     @ingroup Analysis_ID
   */
@@ -283,9 +289,9 @@ namespace OpenMS
     double precursor_mz_error_;     ///< Precursor m/z tolerance (value); unit per @c mz_error_unit_
     double fragment_mz_error_;      ///< Fragment m/z tolerance (value); unit per @c mz_error_unit_
     String mz_error_unit_;          ///< "ppm" or "Da"
-    String ion_mode_;               ///< "positive" or "negative"; pre-filters DB spectra by polarity
+    String ion_mode_;               ///< Cached value of parameter @c "ionization_mode"; @c "positive" or @c "negative"; pre-filters DB spectra by precursor-charge sign
 
-    String report_mode_;            ///< "all" / "top3" / "best" — controls how many matches per spectrum reach MzTab
+    String report_mode_;            ///< Cached value of parameter @c "report_mode"; only @c "top3" or @c "best" are valid — controls whether the top 3 or only the single best match per spectrum is exported to MzTab
 
     bool merge_spectra_;            ///< If true, merge same-precursor MS2 spectra before searching
   };
