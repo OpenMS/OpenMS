@@ -9,6 +9,8 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathExportConfig.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathExportData.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathInferenceConfig.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathInferenceData.h>
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
@@ -132,6 +134,15 @@ namespace OpenMS
                                   InferenceLevel level,
                                   InferenceContext context,
                                   const std::vector<LevelContextResultRow>& results) const;
+
+    /// Read filtered feature rows for user-facing OpenSWATH results and matrix exports.
+    std::vector<OpenSwathExportRow> readOpenSwathExportRows(const OpenSwathExportFilterConfig& config) const;
+
+    /// Read scored feature rows for OpenSWATH Parquet export.
+    OpenSwathFeatureScoreTable readOpenSwathFeatureScoreTable(const OpenSwathParquetExportConfig& config) const;
+
+    /// Read optional transition-level score rows for OpenSWATH Parquet export.
+    OpenSwathTransitionScoreTable readOpenSwathTransitionScoreTable(const OpenSwathParquetExportConfig& config) const;
 
     /**
       @brief Read RUN IDs and convert their filenames to user-facing basenames.
