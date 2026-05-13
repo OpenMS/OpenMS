@@ -76,8 +76,6 @@ namespace OpenMS
     return mass - charge_ * (Constants::PROTON_MASS_U + Constants::ELECTRON_MASS_U);
   }
 
-  /// checks if an adduct (e.g.a 'M+2K-H;1+') is valid, i.e. if the losses (==negative amounts) can actually be lost by the compound given in @p db_entry.
-  /// If the negative parts are present in @p db_entry, true is returned.
   bool AdductInfo::isCompatible(const EmpiricalFormula& db_entry) const
   {
     return db_entry.contains(ef_ * -1);
@@ -191,7 +189,7 @@ namespace OpenMS
     // check if M has a multiplier in front
     if (m_part.length() > 1)
     { // will throw conversion error of not a number
-      mol_multiplier = m_part.prefix(m_part.length()-1).toDouble();
+      mol_multiplier = m_part.prefix(m_part.length() - 1).toInt();
     }
 
     // evaluate the adduct string ...

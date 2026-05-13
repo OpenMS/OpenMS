@@ -5,15 +5,12 @@
 		<Param  type="int" name="num_nodes" value="5"/>
 		<Param  type="string" name="extrapolate" value="linear"/>
 		<Param  type="int" name="boundary_condition" value="2"/>
-		<Pairs count="8">
-			<Pair from="60" to="34.3974808545221" note="21"/>
-			<Pair from="70" to="50.6118312901783" note="22"/>
-			<Pair from="120" to="144.000028332085" note="23"/>
-			<Pair from="120" to="144.000028332085" note="24"/>
-			<Pair from="180" to="324.052708236569" note="25"/>
-			<Pair from="240" to="575.999991321529" note="26"/>
-			<Pair from="300" to="900.000003771397" note="27"/>
-			<Pair from="360" to="1264.93048658311" note="28"/>
+		<Pairs count="5">
+			<Pair from="65" to="42.5000104641758" note="AAAAA"/>
+			<Pair from="120" to="144.000028194462" note="CCCCC"/>
+			<Pair from="180" to="324.052704713904" note="DDDDD"/>
+			<Pair from="240" to="575.999997413688" note="EEEEE"/>
+			<Pair from="300" to="900.000002694693" note="GGGGG"/>
 		</Pairs>
 	</Transformation>
 </TrafoXML>
