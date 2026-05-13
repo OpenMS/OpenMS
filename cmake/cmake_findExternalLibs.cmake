@@ -356,6 +356,7 @@ if(WITH_S3)
 endif()
 
 #------------------------------------------------------------------------------
+# wnetalign (Wasserstein network spectral alignment)
 option(WITH_WNETALIGN "Enable WNet alignment (fetches pylmcf, wnet, wnetalign)" ON)
 
 set(WNETALIGN_INCLUDE_DIRS "")
