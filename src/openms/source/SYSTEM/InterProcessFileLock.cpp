@@ -11,11 +11,11 @@
 
 #include <boost/interprocess/exceptions.hpp>
 #include <boost/interprocess/sync/file_lock.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <algorithm>
-#include <chrono>
 #include <fstream>
-#include <thread>
 
 #include <OpenMS/SYSTEM/InterProcessFileLock.h>
 
@@ -25,14 +25,14 @@ namespace OpenMS
 
   InterProcessFileLock::InterProcessFileLock(const String& target_file_path, UInt timeout_ms) noexcept
   {
-    lock(target_file_path, timeout_ms);
+    timedLock(target_file_path, timeout_ms);
   }
 
-  bool InterProcessFileLock::lock(const String& target_file_path, UInt timeout_ms) noexcept
+  bool InterProcessFileLock::lock(const String& target_file_path) noexcept
   {
     try
     {
-      return lockImpl_(target_file_path, timeout_ms);
+      return lockImpl_(target_file_path, 0, true, false);
     }
     catch (const Exception::BaseException& e)
     {
@@ -56,7 +56,63 @@ namespace OpenMS
     return false;
   }
 
-  bool InterProcessFileLock::lockImpl_(const String& target_file_path, UInt timeout_ms)
+  bool InterProcessFileLock::tryLock(const String& target_file_path) noexcept
+  {
+    try
+    {
+      return lockImpl_(target_file_path, 0, false, true);
+    }
+    catch (const Exception::BaseException& e)
+    {
+      OPENMS_LOG_WARN << "InterProcessFileLock acquisition failed: "
+                      << e.getName() << ": " << e.what() << "\n";
+    }
+    catch (const boost::interprocess::interprocess_exception& e)
+    {
+      OPENMS_LOG_WARN << "InterProcessFileLock acquisition failed: "
+                      << e.what() << "\n";
+    }
+    catch (const std::exception& e)
+    {
+      OPENMS_LOG_WARN << "InterProcessFileLock acquisition failed: "
+                      << e.what() << "\n";
+    }
+    catch (...)
+    {
+      OPENMS_LOG_WARN << "InterProcessFileLock acquisition failed: unknown exception\n";
+    }
+    return false;
+  }
+
+  bool InterProcessFileLock::timedLock(const String& target_file_path, UInt timeout_ms) noexcept
+  {
+    try
+    {
+      return lockImpl_(target_file_path, timeout_ms, false, false);
+    }
+    catch (const Exception::BaseException& e)
+    {
+      OPENMS_LOG_WARN << "InterProcessFileLock acquisition failed: "
+                      << e.getName() << ": " << e.what() << "\n";
+    }
+    catch (const boost::interprocess::interprocess_exception& e)
+    {
+      OPENMS_LOG_WARN << "InterProcessFileLock acquisition failed: "
+                      << e.what() << "\n";
+    }
+    catch (const std::exception& e)
+    {
+      OPENMS_LOG_WARN << "InterProcessFileLock acquisition failed: "
+                      << e.what() << "\n";
+    }
+    catch (...)
+    {
+      OPENMS_LOG_WARN << "InterProcessFileLock acquisition failed: unknown exception\n";
+    }
+    return false;
+  }
+
+  bool InterProcessFileLock::lockImpl_(const String& target_file_path, UInt timeout_ms, bool wait_forever, bool non_blocking)
   {
     // If we already hold a lock, release it before acquiring a new one
     if (locked_ && lock_ != nullptr)
@@ -101,22 +157,29 @@ namespace OpenMS
     // Create the file lock object
     lock_ = std::make_unique<boost::interprocess::file_lock>(lock_file_path_.c_str());
 
-    // Polling acquisition with timeout prevents indefinite waits
-    // If a process crashes, OS-level file locks are released automatically
-    const UInt effective_timeout_ms = std::max(timeout_ms, static_cast<UInt>(1));
-    const auto timeout = std::chrono::milliseconds(effective_timeout_ms);
-    const auto retry_interval = std::chrono::milliseconds(50);
-    const auto start = std::chrono::steady_clock::now();
-
-    // Try to acquire the lock, with timeout
-    while (!lock_->try_lock())
+    if (wait_forever)
     {
-      if (std::chrono::steady_clock::now() - start >= timeout)
-      {
-        throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "Timeout while waiting to acquire lock file '" + lock_file_path_ + "'.");
-      }
-      std::this_thread::sleep_for(retry_interval);
+      lock_->lock();
+      locked_ = true;
+      return true;
+    }
+
+    if (non_blocking)
+    {
+      locked_ = lock_->try_lock();
+      return locked_;
+    }
+
+    // Timed acquisition with timeout
+    const UInt effective_timeout_ms = std::max(timeout_ms, static_cast<UInt>(1));
+    const boost::posix_time::ptime deadline =
+      boost::posix_time::microsec_clock::universal_time() +
+      boost::posix_time::milliseconds(effective_timeout_ms);
+
+    if (!lock_->timed_lock(deadline))
+    {
+      throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                     "Timeout while waiting to acquire lock file '" + lock_file_path_ + "'.");
     }
 
     locked_ = true;

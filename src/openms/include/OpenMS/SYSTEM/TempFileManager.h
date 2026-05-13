@@ -12,16 +12,22 @@
 #include <OpenMS/SYSTEM/InterProcessFileLock.h>
 
 #include <memory>
+#include <mutex>
+#include <utility>
 #include <set>
 
 namespace OpenMS
 {
   /**
-    @brief Handles temporary files, ensuring cleanup on destruction.
+    @brief Manages temporary files via a lock-protected on-disk registry.
 
-    This class provides a simple interface to register temporary files that should be removed when the manager is destroyed. 
-    It also maintains a persistent registry of temporary files to enable cleanup of files from prior runs that for example crashed before cleanup.
-    By doing this, we can assure that temporary files do not accumulate on the endusers drive over time, even in the case of unexpected program termination.
+    Designed for typical single-user desktop/tool usage (e.g. TOPPView):
+    one process owns one registry slot at a time, with occasional crash recovery.
+
+    The implementation provides practical safeguards already used by OpenMS:
+    inter-process lock files, per-instance state locking, and persistent registry
+    cleanup across runs. It is not a hard security boundary; if used in new or
+    adversarial environments, behavior should be validated with scenario-specific tests.
 
     @ingroup System
   */
@@ -100,10 +106,12 @@ namespace OpenMS
       bool removeFileNow(const String& file_path) noexcept;
 
     private:
+      TempFileManager(std::pair<String, std::unique_ptr<InterProcessFileLock>>&& selected_slot, UInt lock_timeout_ms);
+
       /**
         @brief Removes all currently managed files and clears the persisted registry for this scope
       */
-      void cleanup() noexcept;
+      void cleanup_() noexcept;
 
       /**
         @brief Sanitizes a registry id so it can be used as filename component.
@@ -141,7 +149,10 @@ namespace OpenMS
         
         @return Registry file path for this manager instance
       */
-      static String selectRegistryFilePath_(const String& registry_id, UInt lock_timeout_ms);
+      static String selectRegistryFilePath_(const String& registry_id, UInt lock_timeout_ms, std::unique_ptr<InterProcessFileLock>& registry_lock);
+
+      // Internal helper to atomically select a slot path and acquire its persistent lock
+      static std::pair<String, std::unique_ptr<InterProcessFileLock>> selectRegistrySlot_(const String& registry_id, UInt lock_timeout_ms);
 
       /**
         @brief Cleanup helper for a specific registry path.
@@ -187,6 +198,7 @@ namespace OpenMS
       const String lock_file_path_;
       UInt lock_timeout_ms_;
       std::unique_ptr<InterProcessFileLock> registry_lock_;
+      mutable std::mutex state_mutex_;
       std::set<String> files_;
   };
 } // namespace OpenMS

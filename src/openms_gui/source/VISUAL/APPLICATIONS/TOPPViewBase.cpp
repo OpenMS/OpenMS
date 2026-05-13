@@ -1901,6 +1901,16 @@ namespace OpenMS
         auto l = getCurrentLayer();
         if (l)
         {
+          const FileTypes::Type out_type = FileHandler::getType(topp_.file_name_out);
+
+          // featureXML outputs from most tools represent standalone feature layers.
+          // AMS annotation is only meaningful for AccurateMassSearch-generated featureXML.
+          if (out_type == FileTypes::FEATUREXML && topp_.tool != "AccurateMassSearch")
+          {
+            addDataFile(topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
+            return;
+          }
+
           auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(topp_.file_name_out);
           if (annotator.get() == nullptr)
           { // no suitable annotator? open new layer/window
@@ -1908,7 +1918,11 @@ namespace OpenMS
           }
           else
           { // we have an annotator ... let's annotate the current layer
-            annotator->annotateWithFilename(*l, *log_, topp_.file_name_out); // ID tabs are automatically enabled
+            const bool annotation_success = annotator->annotateWithFilename(*l, *log_, topp_.file_name_out); // ID tabs are automatically enabled
+            if (!annotation_success && out_type == FileTypes::FEATUREXML)
+            {
+              addDataFile(topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
+            }
           }
         }
       }

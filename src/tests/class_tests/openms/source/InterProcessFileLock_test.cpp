@@ -74,7 +74,7 @@ START_SECTION((InterProcessFileLock(const String& target_file_path)))
 END_SECTION
 
 // Validate lock() failure then recovery with a valid target
-START_SECTION((bool lock(const String& target_file_path, uint timeout_ms = 3000) noexcept))
+START_SECTION((bool timedLock(const String& target_file_path, UInt timeout_ms = 100) noexcept))
 {
   // Build invalid path (missing parent directory tree) and one valid path
   const String parent = File::getTempDirectory() + "/ipfl_missing_parent_" + File::getUniqueName(false);
@@ -84,11 +84,11 @@ START_SECTION((bool lock(const String& target_file_path, uint timeout_ms = 3000)
   {
     // API is non-throwing: failure is reported via return value and unlocked state
     InterProcessFileLock lock;
-    TEST_FALSE(lock.lock(invalid_target, 1000))
+    TEST_FALSE(lock.timedLock(invalid_target, 1000))
     TEST_FALSE(lock.isLocked())
 
-    // Subsequent lock() call with valid target should recover and lock
-    TEST_TRUE(lock.lock(valid_target, 1000))
+    // Subsequent timedLock() call with valid target should recover and lock
+    TEST_TRUE(lock.timedLock(valid_target, 1000))
     TEST_TRUE(lock.isLocked())
     TEST_TRUE(File::exists(valid_target))
   }
@@ -98,8 +98,19 @@ START_SECTION((bool lock(const String& target_file_path, uint timeout_ms = 3000)
 }
 END_SECTION
 
+START_SECTION((bool tryLock(const String& target_file_path) noexcept))
+{
+  const String parent = File::getTempDirectory() + "/ipfl_trylock_missing_parent_" + File::getUniqueName(false);
+  const String invalid_target = parent + "/child/target.tmp";
+
+  InterProcessFileLock lock;
+  TEST_FALSE(lock.tryLock(invalid_target))
+  TEST_FALSE(lock.isLocked())
+}
+END_SECTION
+
 // Validate timeout_ms == 0 normalization (implementation enforces minimum of 1ms)
-START_SECTION((InterProcessFileLock(const String& target_file_path, uint timeout_ms)))
+START_SECTION((InterProcessFileLock(const String& target_file_path, UInt timeout_ms)))
 {
   // Lock with zero timeout must still succeed on uncontended target
   const String target = File::getTempDirectory() + "/ipfl_timeout_zero_" + File::getUniqueName(false) + ".tmp";
@@ -129,14 +140,14 @@ START_SECTION((InterProcessFileLock(const String& target_file_path)))
 END_SECTION
 
 // POSIX-specific test for lock contention and timeout behavior
-START_SECTION((InterProcessFileLock(const String& target_file_path, uint timeout_ms)))
+START_SECTION((InterProcessFileLock(const String& target_file_path, UInt timeout_ms)))
 {
 #ifdef OPENMS_WINDOWSPLATFORM
   NOT_TESTABLE
 #else
   // Shared target lock file; child acquires lock first, parent tries to acquire with timeout
   const String target = File::getTempDirectory() + "/ipfl_contention_timeout_" + File::getUniqueName(false) + ".tmp";
-  const uint timeout_ms = 1000;
+  const UInt timeout_ms = 1000;
 
   // One-byte pipe acts as a readiness barrier (child -> parent)
   int ready_pipe[2];

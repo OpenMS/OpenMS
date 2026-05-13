@@ -15,6 +15,7 @@
 #include <OpenMS/SYSTEM/TempFileManager.h>
 
 #include <fstream>
+#include <thread>
 
 ///////////////////////////
 
@@ -126,6 +127,49 @@ START_SECTION((void addFile(const String& file_path)))
   TEST_FALSE(File::exists(temp_file))
   TEST_FALSE(File::exists(registry_path))
   TEST_FALSE(File::exists(lock_path))
+}
+END_SECTION
+
+// concurrent add/release on same manager should not race or corrupt registry state
+START_SECTION((void addFile(const String& file_path)))
+{
+  const String registry_id = makeRegistryId("temp_file_manager_concurrent_add_release_test");
+  const String registry_path = computeRegistryPath(registry_id);
+  const String temp_file = File::getTempDirectory() + "/tfm_concurrent_" + File::getUniqueName(false) + ".tmp";
+
+  writeTextFile(temp_file, "tmp");
+  TEST_TRUE(File::exists(temp_file))
+
+  {
+    TempFileManager manager(registry_id);
+
+    const Size iterations = 30;
+    std::thread add_thread([&]()
+    {
+      for (Size i = 0; i < iterations; ++i)
+      {
+        manager.addFile(temp_file);
+      }
+    });
+
+    std::thread release_thread([&]()
+    {
+      for (Size i = 0; i < iterations; ++i)
+      {
+        manager.releaseFile(temp_file);
+      }
+    });
+
+    add_thread.join();
+    release_thread.join();
+
+    // Ensure manager can still operate after concurrent access
+    manager.addFile(temp_file);
+    TEST_TRUE(File::exists(temp_file))
+  }
+
+  TEST_FALSE(File::exists(temp_file))
+  TEST_FALSE(File::exists(registry_path))
 }
 END_SECTION
 

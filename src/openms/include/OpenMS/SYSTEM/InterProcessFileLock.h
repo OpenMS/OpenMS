@@ -21,10 +21,15 @@ namespace boost::interprocess
 namespace OpenMS
 {
   /**
-    @brief RAII wrapper for inter-process file locking
+    @brief Lightweight RAII wrapper for OS-backed file locks.
 
-    The lock is acquired in the constructor and released in the destructor.
-    Acquisition waits until the lock becomes available.
+    This class wraps `boost::interprocess::file_lock` for simple lock-file based
+    coordination. It provides blocking, non-blocking, and timed acquisition
+    methods and releases the lock in the destructor.
+
+    It is intended as a practical coordination helper (e.g. for temporary-file
+    registries), not as a standalone security mechanism. Behavior depends on
+    OS/file-system locking semantics and should be validated in each concrete use.
 
     @ingroup System
   */
@@ -38,20 +43,42 @@ namespace OpenMS
         @brief Acquire an inter-process lock for the given file.
 
         @param[in] target_file_path Path to the lock file
-        @param[in] timeout_ms Timeout in milliseconds for lock acquisition attempts. Default is 3000 ms.
+        @param[in] timeout_ms Timeout in milliseconds for lock acquisition attempts. Default is 100 ms.
 
         This constructor does not throw; failures are logged and the instance remains unlocked.
       */
-      explicit InterProcessFileLock(const String& target_file_path, UInt timeout_ms = 3000) noexcept;
+      explicit InterProcessFileLock(const String& target_file_path, UInt timeout_ms = 100) noexcept;
 
       /**
         @brief Acquire (or re-acquire) an inter-process lock for a file.
 
         @param[in] target_file_path Path to the lock file
-        @param[in] timeout_ms Timeout in milliseconds for lock acquisition attempts. Default is 3000 ms.
+
+        Blocks until the lock becomes available.
+
         @return True if lock acquisition succeeded, false otherwise
       */
-      bool lock(const String& target_file_path, UInt timeout_ms = 3000) noexcept;
+      bool lock(const String& target_file_path) noexcept;
+
+      /**
+        @brief Try to acquire an inter-process lock for a file without waiting.
+
+        @param[in] target_file_path Path to the lock file
+
+        @return True if lock acquisition succeeded, false otherwise
+      */
+      bool tryLock(const String& target_file_path) noexcept;
+
+      /**
+        @brief Try to acquire an inter-process lock for a file within a timeout.
+
+        @param[in] target_file_path Path to the lock file
+        @param[in] timeout_ms Timeout in milliseconds for lock acquisition attempts.
+          A value of 0 is normalized to 1 ms.
+
+        @return True if lock acquisition succeeded, false otherwise
+      */
+      bool timedLock(const String& target_file_path, UInt timeout_ms = 100) noexcept;
 
       /**
         @brief Returns whether this instance currently holds a lock.
@@ -70,15 +97,17 @@ namespace OpenMS
 
     private:
       /**
-       @brief Internal implementation of lock acquisition with timeout.
-       This method is called by the constructor and the public lock() method.
+       @brief Internal implementation of lock acquisition.
+       This method is called by the constructor and public lock methods.
 
        @param[in] target_file_path Path to the lock file
-       @param[in] timeout_ms Timeout in milliseconds for lock acquisition attempts. Default is 3000 ms.
-       
+       @param[in] timeout_ms Timeout in milliseconds for lock acquisition attempts.
+       @param[in] wait_forever If true, acquire lock by blocking until available.
+       @param[in] non_blocking If true, attempt exactly once and return immediately.
+        
        @return True if lock acquisition succeeded, false otherwise
        */
-      bool lockImpl_(const String& target_file_path, UInt timeout_ms);
+      bool lockImpl_(const String& target_file_path, UInt timeout_ms, bool wait_forever, bool non_blocking);
 
       String lock_file_path_;
       std::unique_ptr<boost::interprocess::file_lock> lock_;
