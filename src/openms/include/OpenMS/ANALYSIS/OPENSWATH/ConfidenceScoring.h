@@ -101,8 +101,8 @@ namespace OpenMS
       */
       struct RTNorm_
       {
-        double min_rt; ///< Smallest assay RT in the library (after retention-time-transform); set by scoreMap()
-        double max_rt; ///< Largest assay RT in the library (after retention-time-transform); set by scoreMap()
+        double min_rt; ///< Smallest assay RT in the library; set by scoreMap()
+        double max_rt; ///< Largest assay RT in the library; set by scoreMap()
 
         /// Map @p rt into [0, 100] using the cached min/max library RTs.
         double operator()(double rt) const
@@ -143,7 +143,7 @@ namespace OpenMS
         the GLM on (RT² diff, intensity distance) and returns the GLM output in [0, 1].
 
         @param[in]  assay                Candidate assay (true or decoy).
-        @param[in]  feature_rt           Feature's retention time (after @c rt_trafo_).
+        @param[in]  feature_rt           Feature retention time after @c rt_trafo_ and @c rt_norm_.
         @param[in,out] feature_intensities Feature's transition intensities; reordered to match the assay's transition list.
         @param[in]  transition_ids       Optional subset of transition ids to consider; empty means "use all transitions of the assay".
         @return GLM-derived score in [0, 1].
@@ -161,7 +161,7 @@ namespace OpenMS
         @brief Install the configuration needed before scoreMap() can run.
 
         @param[in] library        Targeted-assay library; must have at least 2 peptides for scoring to be defined.
-        @param[in] n_decoys       Number of decoy assays to sample per feature (silently clamped to all-available if larger).
+        @param[in] n_decoys       Number of decoy assays to sample per feature (clamped to all-available if larger, with warning).
         @param[in] n_transitions  Number of top-intensity transitions to keep when computing the intensity-distance term; 0 keeps all.
         @param[in] rt_trafo       RT transformation applied to feature RTs before comparison against library RTs.
       */
@@ -209,7 +209,7 @@ namespace OpenMS
           - The feature's overall quality is set to @c 1.0 - local_FDR.
 
         Other side effects:
-          - The library's RT range is computed lazily here and cached in @c rt_norm_.
+          - The library's RT range is computed here and cached in @c rt_norm_.
           - If @c n_decoys_ exceeds the number of unrelated assays in the library, it is
             clamped to 0 (= use all available assays as decoys) and a warning is logged.
 
@@ -278,4 +278,3 @@ namespace OpenMS
   };
 
 }
-
