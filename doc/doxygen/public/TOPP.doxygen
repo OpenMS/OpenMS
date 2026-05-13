@@ -162,6 +162,7 @@
   - @subpage TOPP_OpenSwathFeatureXMLToTSV - Converts a featureXML to a tsv.
   - @subpage TOPP_OpenSwathFileSplitter - Splitting a single SWATH / DIA file into a set of files, each containing one SWATH window.
   - @subpage TOPP_OpenSwathInfer - Runs inference on OpenSWATH results.
+  - @subpage TOPP_OpenSwathExport - Exports OpenSWATH OSW results to TSV or Parquet tables.
   - @subpage TOPP_OpenSwathMzMLFileCacher - Caching of large mzML files.
   - @subpage TOPP_OpenSwathRewriteToFeatureXML - Rewrites results from mProphet back into featureXML.
   - @subpage TOPP_OpenSwathRTNormalizer - Align an SRM / SWATH run to a normalized retention time space.
