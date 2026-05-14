@@ -18,16 +18,19 @@ namespace OpenMS
 {
 
   /**
-    @brief Thin wrapper around MRMFeatureFinderScoring::pickExperiment for already-extracted chromatograms.
+    @brief Convenience entry point that runs @ref MRMFeatureFinderScoring on
+           a list of already-extracted chromatograms.
 
-    The class exists so callers that already hold a list of MS chromatograms (i.e. XICs that
-    have been extracted upstream) can drive feature picking / scoring without having to
-    construct an empty SWATH-map / transformation stack themselves. It is typically used
-    inside RT-normalisation flows in the OpenSwath workflow, where iRT chromatograms have
-    been extracted before the analytical-transition scoring runs.
+    Intended for callers that already hold a list of MS chromatograms (XICs
+    extracted upstream) and only need the feature-finding / scoring step
+    without setting up a full SWATH-map / RT-transformation stack. Typical
+    use is inside RT-normalisation flows in the OpenSwath workflow, where
+    iRT chromatograms are extracted before the analytical-transition scoring
+    runs.
 
-    All work is delegated to @ref MRMFeatureFinderScoring; see its documentation for the
-    semantics of the parameter set passed in through @p feature_finder_param.
+    All scoring semantics come from @ref MRMFeatureFinderScoring; see its
+    documentation for the parameter set passed in via
+    @p feature_finder_param.
 
     @ingroup TargetedQuantitation
   */
@@ -41,16 +44,18 @@ namespace OpenMS
     ~ChromatogramProcessor() = default;
 
     /**
-      @brief Score the supplied chromatograms against the transition list and emit features + transition groups.
+      @brief Score the supplied chromatograms against the transition list
+             and emit features + transition groups.
 
-      Wraps @p chromatograms in a @ref PeakMap and a @ref SpectrumAccessOpenMS accessor,
-      constructs an @ref MRMFeatureFinderScoring instance parameterised with
-      @p feature_finder_param (and with @c setStrictFlag(false) so the call does not abort
-      on transitions that have no matching chromatogram), then calls @c pickExperiment()
-      with an empty SWATH-map vector and an identity @ref TransformationDescription.
+      Tolerates transitions that have no matching chromatogram (they are
+      simply skipped rather than reported as an error). Scoring is performed
+      with no SWATH map and no RT transformation, so this overload is intended
+      for callers that have already extracted the chromatograms upstream and
+      only need the feature-finding step.
 
-      Both outputs are populated in place: @p featureFile gets one feature per scored
-      precursor, and @p transition_group_map gets one entry per transition group.
+      Both outputs are populated in place: @p featureFile gets one feature
+      per scored precursor, and @p transition_group_map gets one entry per
+      transition group.
 
       @param[in]  chromatograms         Already-extracted XICs to score (one per transition).
       @param[in]  transition_exp        Transition list to align the chromatograms to.
