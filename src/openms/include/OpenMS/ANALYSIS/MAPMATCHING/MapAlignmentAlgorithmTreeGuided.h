@@ -33,9 +33,9 @@ namespace OpenMS
     Additionally, the original retention times are stored in the meta information of each feature.
     The reference is combined with the transformed cluster.
 
-    The resulting map is used to extract transformation descriptions for each input map.
-    For each map cubic spline smoothing is used to convert the mapping to a smooth function.
-    Retention times of each map are transformed by applying the smoothed function.
+    The resulting consensus map is used to compute transformation descriptions for each input map.
+    Each original input map is re-aligned against the final consensus using @ref OpenMS::MapAlignmentAlgorithmIdentification,
+    so exported transformations map original input RT to the final consensus RT scale.
 
     @htmlinclude OpenMS_MapAlignmentAlgorithmTreeGuided.parameters
 
