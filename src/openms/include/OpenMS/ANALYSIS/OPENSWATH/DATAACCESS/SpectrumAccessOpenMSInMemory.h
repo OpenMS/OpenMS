@@ -21,29 +21,24 @@ namespace OpenMS
 {
   /**
     @brief @ref OpenSwath::ISpectrumAccess implementation that holds the complete
-    spectrum / chromatogram payload in memory.
+           spectrum / chromatogram payload in memory.
 
-    Constructed from any other @ref OpenSwath::ISpectrumAccess (file-backed, on-disk
-    cached, etc.) — every spectrum and chromatogram is pulled through the source's
-    interface at construction time and cached locally, so subsequent accesses do not
-    touch the disk again. The view exposes exactly the same data as the source object.
-
-    There is a fast-path optimisation when the source happens to be a
-    @ref SpectrumAccessSqMass — the constructor recognises it via @c dynamic_cast and
-    uses the batched @ref SpectrumAccessSqMass::getAllSpectra call instead of issuing
-    per-spectrum reads (avoiding the per-SQLite-query overhead). For every other source
-    the constructor falls back to a per-spectrum / per-chromatogram loop.
+    Constructed from any other @ref OpenSwath::ISpectrumAccess (file-backed,
+    on-disk cached, etc.); every spectrum and chromatogram is read through the
+    source's interface during construction and cached locally, so subsequent
+    accesses do not touch the disk again. The view exposes exactly the same
+    data as the source. After construction the source is no longer referenced.
 
     @code
       OpenSwath::ISpectrumAccess * data_access;
-      fillData(data_access); // assume that data_access points to some data
+      fillData(data_access); // assume data_access now points at some data
       OpenSwath::ISpectrumAccess * in_memory_data_access = new SpectrumAccessOpenMSInMemory(*data_access);
     @endcode
 
-    After executing this code, two variables exist: @c data_access which provides access
-    to the original data (in one of multiple ways which is not transparent to the user),
-    and @c in_memory_data_access which exposes the same data with the guarantee that it
-    is held in memory and not re-read from disk.
+    After this snippet, @c data_access still serves the original data (its
+    backing store is opaque to the caller), while @c in_memory_data_access
+    serves the same data with the guarantee that it is held in memory and
+    not re-read from disk.
 
     @ingroup FileIO
   */
@@ -56,15 +51,15 @@ public:
     typedef OpenMS::MSChromatogram MSChromatogramType;
 
     /**
-      @brief Construct by reading every spectrum and chromatogram from @p origin into memory.
+      @brief Construct by reading every spectrum and chromatogram from
+             @p origin into memory.
 
-      For a @ref SpectrumAccessSqMass source, takes the batched
-      @ref SpectrumAccessSqMass::getAllSpectra fast path. For every other source, iterates
-      the spectra (@c 0..getNrSpectra()-1) and chromatograms
-      (@c 0..getNrChromatograms()-1) and pulls each through the per-id getter. After
-      construction, @p origin is no longer referenced.
+      After construction the accessor exposes the same spectra and
+      chromatograms as @p origin, served entirely from memory; @p origin
+      itself is no longer referenced.
 
-      @param[in] origin Source accessor; iterated once during construction and not retained.
+      @param[in] origin Source accessor; read once during construction and
+                        not retained.
     */
     explicit SpectrumAccessOpenMSInMemory(OpenSwath::ISpectrumAccess & origin);
 
@@ -74,36 +69,39 @@ public:
     /**
       @brief Copy constructor (light copy).
 
-      Only the @c SpectrumPtr / @c ChromatogramPtr vectors are copied, not the underlying
-      spectrum / chromatogram payloads (those stay shared via @c shared_ptr).
+      The copy shares the underlying spectrum / chromatogram payloads with
+      @p rhs; only the per-element handles are duplicated. No data is
+      re-read from the original source.
 
       @param[in] rhs Source accessor to copy.
     */
     SpectrumAccessOpenMSInMemory(const SpectrumAccessOpenMSInMemory & rhs);
 
     /**
-      @brief Return a clone of this accessor as a new @ref OpenSwath::ISpectrumAccess pointer.
+      @brief Return a clone of this accessor as a new @ref OpenSwath::ISpectrumAccess.
 
-      Equivalent to copy-constructing via the copy constructor — the clone shares the
-      underlying spectrum / chromatogram @c shared_ptr payloads, so it is safe to hand to
-      another thread without re-reading the source.
+      The clone shares this accessor's spectrum / chromatogram payloads, so
+      it is cheap to create and safe to hand to another thread without
+      re-reading the source.
 
       @return Shared pointer to the cloned accessor.
     */
     std::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
 
     /**
-      @brief Direct in-memory lookup of one spectrum by index.
+      @brief Look up one spectrum by index.
 
-      @param[in] id Spectrum index (0-based; OPENMS_PRECONDITION asserts @c 0 <= id < @c getNrSpectra()).
+      @param[in] id Spectrum index in @c [0, getNrSpectra()). Out-of-range
+                    access is a programming error (checked in debug builds).
       @return Cached @c SpectrumPtr for the requested spectrum.
     */
     OpenSwath::SpectrumPtr getSpectrumById(int id) override;
 
     /**
-      @brief Direct in-memory lookup of one spectrum's metadata by index.
+      @brief Look up one spectrum's metadata by index.
 
-      @param[in] id Spectrum index (0-based; OPENMS_PRECONDITION asserts @c 0 <= id < @c getNrSpectra()).
+      @param[in] id Spectrum index in @c [0, getNrSpectra()). Out-of-range
+                    access is a programming error (checked in debug builds).
       @return Cached @c SpectrumMeta for the requested spectrum.
     */
     OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const override;
@@ -111,13 +109,15 @@ public:
     /**
       @brief Indices of cached spectra whose RT lies in [@p RT - @p deltaRT, @p RT + @p deltaRT].
 
-      Uses @c std::lower_bound on the cached metadata (assumed RT-sorted from the source)
-      to seek to the first matching spectrum, then walks forward while the RT remains in
-      range.
+      Relies on the cached metadata being sorted by RT (inherited from the
+      source); the lookup is logarithmic in the number of spectra.
 
       @param[in] RT      Centre of the RT window.
-      @param[in] deltaRT Half-width of the RT window (OPENMS_PRECONDITION asserts @c deltaRT >= 0).
-      @return Indices into the in-memory view of spectra whose RT falls in the window.
+      @param[in] deltaRT Half-width of the RT window. Must be non-negative;
+                         a negative value is a programming error (checked
+                         in debug builds).
+      @return Indices into the in-memory view of spectra whose RT falls in
+              the window.
     */
     std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const override;
 
@@ -125,9 +125,11 @@ public:
     size_t getNrSpectra() const override;
 
     /**
-      @brief Direct in-memory lookup of one chromatogram by index.
+      @brief Look up one chromatogram by index.
 
-      @param[in] id Chromatogram index (0-based; OPENMS_PRECONDITION asserts @c 0 <= id < @c getNrChromatograms()).
+      @param[in] id Chromatogram index in @c [0, getNrChromatograms()).
+                    Out-of-range access is a programming error (checked in
+                    debug builds).
       @return Cached @c ChromatogramPtr for the requested chromatogram.
     */
     OpenSwath::ChromatogramPtr getChromatogramById(int id) override;
@@ -138,18 +140,20 @@ public:
     /**
       @brief Native id of one cached chromatogram.
 
-      @param[in] id Chromatogram index (0-based; OPENMS_PRECONDITION asserts @c 0 <= id < @c getNrChromatograms()).
+      @param[in] id Chromatogram index in @c [0, getNrChromatograms()).
+                    Out-of-range access is a programming error (checked in
+                    debug builds).
       @return Native-id string captured at construction time.
     */
     std::string getChromatogramNativeID(int id) const override;
 
 private:
 
-    std::vector< OpenSwath::SpectrumPtr > spectra_;       ///< Spectrum payloads pulled from the source at construction; shared with any @ref lightClone derivative via @c shared_ptr
-    std::vector< OpenSwath::SpectrumMeta > spectra_meta_; ///< Parallel metadata cache (native id, RT, MS level) used by @ref getSpectrumMetaById and the @ref getSpectraByRT binary search
+    std::vector< OpenSwath::SpectrumPtr > spectra_;       ///< Spectrum payloads captured at construction; shared with light clones.
+    std::vector< OpenSwath::SpectrumMeta > spectra_meta_; ///< Parallel metadata cache (native id, RT, MS level) keyed on the same index.
 
-    std::vector< OpenSwath::ChromatogramPtr > chromatograms_; ///< Chromatogram payloads cached at construction; shared with clones
-    std::vector< std::string > chromatogram_ids_;             ///< Parallel chromatogram native-id cache used by @ref getChromatogramNativeID
+    std::vector< OpenSwath::ChromatogramPtr > chromatograms_; ///< Chromatogram payloads captured at construction; shared with light clones.
+    std::vector< std::string > chromatogram_ids_;             ///< Parallel chromatogram native-id cache keyed on the same index.
 
   };
 
