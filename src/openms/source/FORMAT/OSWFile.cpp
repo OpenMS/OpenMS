@@ -198,6 +198,30 @@ namespace OpenMS
       return "CAST(GENE.ID AS TEXT)";
     }
 
+    String geneDecoySelect_(SqliteConnector& conn)
+    {
+      if (!conn.tableExists("GENE"))
+      {
+        return "NULL";
+      }
+      if (tableHasColumn_(conn, "GENE", "DECOY"))
+      {
+        return "GENE.DECOY";
+      }
+      return "NULL";
+    }
+
+    String transitionAnnotationSelect_(SqliteConnector& conn)
+    {
+      const String fallback_annotation =
+        "TRANSITION.TYPE || CAST(TRANSITION.ORDINAL AS TEXT) || '^' || CAST(TRANSITION.CHARGE AS TEXT)";
+      if (tableHasColumn_(conn, "TRANSITION", "ANNOTATION"))
+      {
+        return "COALESCE(TRANSITION.ANNOTATION, " + fallback_annotation + ")";
+      }
+      return fallback_annotation;
+    }
+
     String prepareOutputFile_(const String& input_filename, const String& output_filename)
     {
       const String target_filename = output_filename.empty() ? input_filename : output_filename;
@@ -2265,7 +2289,7 @@ namespace OpenMS
         + String(has_library_drift_time ? "PRECURSOR.LIBRARY_DRIFT_TIME" : "NULL") + ", "
         + String(has_gene_tables ? "PEPTIDE_GENE_MAPPING.GENE_ID" : "NULL") + ", "
         + String(has_gene_tables ? geneNameSelect_(conn) : "NULL") + ", "
-        + String(has_gene_tables ? "GENE.DECOY" : "NULL") + ", "
+        + String(has_gene_tables ? geneDecoySelect_(conn) : "NULL") + ", "
         + String(has_protein_tables ? "PROTEIN.DECOY" : "NULL") + ", "
         "PEPTIDE.DECOY, "
         "PRECURSOR.DECOY, "
@@ -2518,7 +2542,7 @@ namespace OpenMS
         if (i != 0) feature_transition_select += ", ";
         feature_transition_select += "FEATURE_TRANSITION." + feature_transition_columns[i];
       }
-      const String feature_transition_select_with_comma = feature_transition_select.empty() ? "" : feature_transition_select + ", ";
+      const String feature_transition_select_with_prefix = feature_transition_select.empty() ? "" : feature_transition_select + " ";
 
       const String score_join = conn.tableExists("SCORE_TRANSITION")
         ? "LEFT JOIN SCORE_TRANSITION ON FEATURE_TRANSITION.FEATURE_ID = SCORE_TRANSITION.FEATURE_ID "
@@ -2536,9 +2560,9 @@ namespace OpenMS
       const String query =
         "SELECT FEATURE.RUN_ID, " + peptide_select + ", TRANSITION_PRECURSOR_MAPPING.PRECURSOR_ID, TRANSITION.ID, TRANSITION.TRAML_ID, "
         "       TRANSITION.PRODUCT_MZ, TRANSITION.CHARGE, TRANSITION.TYPE, TRANSITION.ORDINAL, "
-        "       COALESCE(TRANSITION.ANNOTATION, TRANSITION.TYPE || CAST(TRANSITION.ORDINAL AS TEXT) || '^' || CAST(TRANSITION.CHARGE AS TEXT)), "
+        "       " + transitionAnnotationSelect_(conn) + ", "
         "       TRANSITION.DETECTING, TRANSITION.LIBRARY_INTENSITY, TRANSITION.DECOY, FEATURE_TRANSITION.FEATURE_ID, "
-        + feature_transition_select_with_comma +
+        + feature_transition_select_with_prefix +
         score_select +
         "FROM TRANSITION "
         "LEFT JOIN TRANSITION_PRECURSOR_MAPPING ON TRANSITION.ID = TRANSITION_PRECURSOR_MAPPING.TRANSITION_ID "
