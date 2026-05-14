@@ -39,10 +39,22 @@ namespace OpenMS
     NetworkGetRequest();
     ~NetworkGetRequest();
 
-    /// Set the URL to request. The URL is consumed by the next @ref run call; no validation is performed here.
+    /**
+      @brief Set the URL to request.
+
+      The URL is consumed by the next @ref run call; no validation is performed here.
+
+      @param[in] url URL to request on the next @ref run call.
+    */
     void setUrl(const std::string& url);
 
-    /// Set the request timeout in seconds. The default of @c 0 leaves the timeout unset (request blocks until the server responds or libcurl gives up on its own).
+    /**
+      @brief Set the request timeout in seconds.
+
+      @param[in] seconds Timeout in seconds. @c 0 (the default) leaves the
+                         timeout unset, so the request blocks until the server
+                         responds or libcurl gives up on its own.
+    */
     void setTimeout(int seconds);
 
     /**
@@ -60,22 +72,39 @@ namespace OpenMS
         - a transport-level libcurl error occurred (error string from
           @c curl_easy_strerror), or
         - the server responded with HTTP status @c >= @c 400 (error
-          string @c "HTTP error <code>").
+          string @c "HTTP error N", where @c N is the status code).
 
       No exception is thrown for any of these.
     */
     void run();
 
-    /// Response body as a string (copy of @ref getResponseBinary).
+    /**
+      @brief Response body as a string.
+
+      @return A copy of @ref getResponseBinary materialised as @c std::string.
+    */
     std::string getResponse() const;
 
-    /// Raw response body. Reference is valid until the next @ref run call or destruction.
+    /**
+      @brief Raw response body.
+
+      @return Reference to the byte buffer; valid until the next @ref run call or destruction.
+    */
     const std::vector<char>& getResponseBinary() const;
 
-    /// @c true if the last @ref run call did not produce a usable response (see @ref run for the conditions).
+    /**
+      @brief Whether the last @ref run produced an error.
+
+      @return @c true if the last @ref run call did not produce a usable
+              response (see @ref run for the conditions).
+    */
     bool hasError() const;
 
-    /// Human-readable error message; empty when @ref hasError is @c false.
+    /**
+      @brief Human-readable description of the last error.
+
+      @return Error message; empty when @ref hasError is @c false.
+    */
     std::string getErrorString() const;
 
   private:
