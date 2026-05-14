@@ -34,6 +34,8 @@ namespace OpenMS
 
         Internal helper class used by the OpenSWATH I/O stack; not part of
         the stable public API.
+
+        @ingroup FileIO
     */
     class OPENMS_DLLAPI MzMLSqliteSwathHandler
     {
@@ -61,6 +63,11 @@ public:
           values.
 
           @return SWATH window definitions in the file's natural order.
+
+          @throws Exception::SqlOperationFailed if the sqMass file cannot
+                                                be opened.
+          @throws Exception::IllegalArgument    if preparing the SQL query
+                                                fails.
       */
       std::vector<OpenSwath::SwathMap> readSwathWindows();
 
@@ -69,6 +76,11 @@ public:
 
           @return Spectrum indices for the MS1 scans in the file's natural
                   order.
+
+          @throws Exception::SqlOperationFailed if the sqMass file cannot
+                                                be opened.
+          @throws Exception::IllegalArgument    if preparing the SQL query
+                                                fails.
       */
       std::vector<int> readMS1Spectra();
 
@@ -87,6 +99,11 @@ public:
                                is used.
           @return Spectrum indices that fall into the window, in the file's
                   natural order.
+
+          @throws Exception::SqlOperationFailed if the sqMass file cannot
+                                                be opened.
+          @throws Exception::IllegalArgument    if preparing the SQL query
+                                                fails.
       */
       std::vector<int> readSpectraForWindow(const OpenSwath::SwathMap & swath_map);
 
