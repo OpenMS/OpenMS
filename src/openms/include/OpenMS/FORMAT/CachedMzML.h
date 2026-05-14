@@ -36,10 +36,22 @@ public:
     /** @name Constructors and Destructor
     */
     //@{
-    /// Default constructor; produces an empty instance with no associated file.
+    /**
+      @brief Default constructor.
+
+      Produces an empty instance with no associated file.
+    */
     CachedmzML();
 
-    /// Construct and load metadata + side-car index from @p filename in one step. See @ref load for the exact behaviour.
+    /**
+      @brief Construct and load metadata + side-car index from @p filename in one step.
+
+      Equivalent to default-constructing and then calling @ref load. See
+      @ref load for the exact behaviour, file layout and exceptions.
+
+      @param[in] filename Path of the @c .mzML metadata file; the side-car
+                          is expected next to it as @p filename + @c ".cached".
+    */
     CachedmzML(const String& filename);
 
     /**
@@ -48,10 +60,16 @@ public:
       Each instance keeps its own file handle on the @c .mzML.cached
       side-car, so the copy opens a fresh stream on the same path -- the
       original's stream is not shared.
+
+      @param[in] rhs Instance to copy.
     */
     CachedmzML(const CachedmzML & rhs);
 
-    /// Destructor; closes the open file stream on the @c .mzML.cached side-car.
+    /**
+      @brief Destructor.
+
+      Closes the open file stream on the @c .mzML.cached side-car.
+    */
     ~CachedmzML();
     //@}
 
@@ -87,13 +105,29 @@ public:
     */
     MSChromatogram getChromatogram(Size id);
 
-    /// Number of spectra in the loaded experiment.
+    /**
+      @brief Number of spectra in the loaded experiment.
+
+      @return Spectrum count.
+    */
     size_t getNrSpectra() const;
 
-    /// Number of chromatograms in the loaded experiment.
+    /**
+      @brief Number of chromatograms in the loaded experiment.
+
+      @return Chromatogram count.
+    */
     size_t getNrChromatograms() const;
 
-    /// Experiment-level metadata (instrument, acquisition settings, per-spectrum/chromatogram headers) loaded from the @c .mzML file. Empty until @ref load has been called.
+    /**
+      @brief Experiment-level metadata loaded from the @c .mzML file.
+
+      The returned experiment contains instrument and acquisition settings
+      as well as the per-spectrum / per-chromatogram headers. Empty until
+      @ref load has been called.
+
+      @return Const reference to the loaded metadata experiment.
+    */
     const MSExperiment& getMetaData() const
     {
       return meta_ms_experiment_;
