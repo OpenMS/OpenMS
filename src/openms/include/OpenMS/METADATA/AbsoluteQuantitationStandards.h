@@ -58,8 +58,8 @@ public:
     };
 
     /**
-      @brief One target component matched to the @ref FeatureMap-side feature
-             plus its known concentration.
+      @brief One target component matched to a feature in the corresponding
+             @ref FeatureMap, paired with its known concentration.
 
       Produced by @ref mapComponentsToConcentrations and
       @ref getComponentFeatureConcentrations.
