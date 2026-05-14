@@ -73,6 +73,19 @@ public:
       @param[in]  filename Path to the @c sqMass file to read.
       @param[out] map      Destination experiment; populated with the
                            file's spectra, chromatograms and metadata.
+
+      @throws Exception::IllegalArgument    On malformed or inconsistent
+                                            rows in the sqMass tables
+                                            (mismatched native id,
+                                            missing data type, ...) or
+                                            when the file contains more
+                                            than one run.
+      @throws Exception::ConversionError    When a binary buffer's size
+                                            does not match its declared
+                                            data type.
+      @throws Exception::SqlOperationFailed When the file's @c RUN table
+                                            advertises an unsupported
+                                            configuration.
     */
     void load(const String& filename, MapType& map) const;
 
@@ -113,6 +126,19 @@ public:
                                  the duration of the call.
       @param[in] skip_full_count Currently ignored.
       @param[in] skip_first_pass Currently ignored.
+
+      @throws Exception::IllegalArgument    On malformed or inconsistent
+                                            rows in the sqMass tables
+                                            (mismatched native id,
+                                            missing data type, ...) or
+                                            when the file contains more
+                                            than one run.
+      @throws Exception::ConversionError    When a binary buffer's size
+                                            does not match its declared
+                                            data type.
+      @throws Exception::SqlOperationFailed When the file's @c RUN table
+                                            advertises an unsupported
+                                            configuration.
     */
     void transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count = false, bool skip_first_pass = false) const;
 
