@@ -25,32 +25,26 @@ namespace OpenMS
   {
 
     /**
-      @brief Holds an indexed list of bio-chemical elements.
+      @brief Holds an indexed list of bio-chemical elements used by mass-decomposition algorithms.
 
-      Presents an indexed list of bio-chemical elements of type (or derived from
-      type) @c Element. Due to indexed structure @c Alphabet can be used similar
-      to @c std::vector, for example to add a new element to @c Alphabet function
-      @c push_back(element_type) can be used. Elements or their properties (such
-      as element's mass) can be accessed by index in a constant time. On the other
-      hand accessing elements by their names takes linear time. Due to this and
-      also the fact that @c Alphabet is 'heavy-weighted' (consisting of
-      @c Element -s or their derivatives where the depth of derivation as well is
-      undefined resulting in possibly 'heavy' access operations) it is recommended
-      not use @c Alphabet directly in operations where fast access to
-      @c Element 's properties is required. Instead consider to use
-      'light-weighted' equivalents, such as @c Weights.
+      Stores @c IMSElement instances in a vector-like container. Elements can be
+      appended with @c push_back, and accessed in constant time by index (@c getElement(size_type),
+      @c getName(size_type), @c getMass(size_type)) or in linear time by name
+      (@c getElement(const name_type&), @c getMass(const name_type&), @c hasName).
+      Because @c IMSAlphabet stores fully-featured elements, prefer the lighter
+      @c ims::Weights when only mass values are needed in performance-critical code.
 
-      Elements in @c Alphabet can be sorted by the @c Element 's properties:
-      sequence and mass. When alphabet's data is loaded from file it is
-      automatically sorted by mass. To load data from file default function
-      @c load(str::string& fname) can be used. Then elements have to be stored
-      in a flat file @c fname in a predefined format. To read more on this format,
-      please, @see AlphabetParser. If one wants to load data stored differently or
-      in its own file format (i.e. xml) one has to define a new parser derived from
-      @c AlphabetParser and pass its pointer together with the file name to function
-      @c load(const std::string& fname, AlphabetParser<>* parser). If there is any
-      error happened while loading data, @c IOException will be thrown.
-    *
+      The container can be sorted by element name (@c sortByNames) or by mass
+      (@c sortByValues). The two-argument @c load() always re-sorts the alphabet
+      by mass after reading, so files do not need to be pre-sorted.
+
+      To populate an alphabet from a flat text file with the default format,
+      call @c load(const std::string&). To support a custom format, derive
+      a parser from @c IMSAlphabetParser and pass it to
+      @c load(const std::string&, IMSAlphabetParser<>&). Both overloads throw
+      @c Exception::IOException if the file cannot be read.
+
+      @ingroup Analysis_DeNovo
     */
     class OPENMS_DLLAPI IMSAlphabet
     {
@@ -90,7 +84,7 @@ public:
       /**
         Copy constructor.
 
-        @param[out] alphabet Alphabet to be assigned
+        @param[in] alphabet Alphabet whose elements are copied.
       */
       IMSAlphabet(const IMSAlphabet & alphabet) :
         elements_(alphabet.elements_)
@@ -249,27 +243,34 @@ public:
 
 
       /**
-        Loads the alphabet data from the file @c fname using the default
-        parser. If there is no file @c fname, throws an @c IOException.
+        Loads the alphabet data from the file @c fname using @c IMSAlphabetTextParser.
 
-        @param[in] fname The file name to be loaded.
-        @throws Exception::IOException
+        Equivalent to constructing a default @c IMSAlphabetTextParser and calling
+        the two-argument @c load() overload, so any current contents are
+        replaced and the resulting alphabet is sorted by mass.
 
-        @see load(const std::string& fname, AlphabetParser<>* parser)
+        @param[in] fname File to read.
+        @throws Exception::IOException if @c fname cannot be opened.
+
+        @see load(const std::string&, IMSAlphabetParser<>&)
       */
       virtual void load(const std::string & fname);
 
 
       /**
         Loads the alphabet data from the file @c fname using @c parser.
-        If there is no file @c fname found, throws an @c IOException.
 
-        @param[in] fname File name to be loaded.
-        @param[in] parser Parser to be used by loading.
-        @throws Exception::IOException
+        After @c parser has read the file, the existing alphabet is cleared,
+        the parsed (name, mass) pairs are appended via @c push_back, and the
+        alphabet is sorted by mass (@c sortByValues).
 
-        @see load(const std::string& fname)
-        @see AlphabetParser
+        @param[in] fname File to read.
+        @param[in,out] parser Parser used to read the file; its internal element
+                              container is populated by this call (see @c IMSAlphabetParser::getElements).
+        @throws Exception::IOException if @c fname cannot be opened by @p parser.
+
+        @see load(const std::string&)
+        @see IMSAlphabetParser
       */
       virtual void load(const std::string & fname, IMSAlphabetParser<> & parser);
 
