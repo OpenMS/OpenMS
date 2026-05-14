@@ -42,10 +42,14 @@ private:
     ConsensusMapNormalizerAlgorithmThreshold & operator=(const ConsensusMapNormalizerAlgorithmThreshold & rhs);
 
 public:
-    /// Default constructor.
+    /**
+      @brief Default constructor.
+    */
     ConsensusMapNormalizerAlgorithmThreshold();
 
-    /// Destructor.
+    /**
+      @brief Destructor.
+    */
     virtual ~ConsensusMapNormalizerAlgorithmThreshold();
 
     /**
@@ -64,10 +68,10 @@ public:
       accessions) and @p desc_filter (regex on protein descriptions);
       only features that pass both filters contribute to the ratios.
 
-      When no feature passes the filters for a given map (the surviving
-      ratio list is empty), the function returns a vector of @c 1.0 of
-      length @c number_of_maps and logs a warning -- i.e. the result is
-      "no normalisation".
+      @warning When no feature passes the filters for a given map (the
+               surviving ratio list is empty), the function returns a
+               vector of @c 1.0 of length @c number_of_maps and logs a
+               warning -- i.e. the result is "no normalisation".
 
       @param[in] map             ConsensusMap providing the per-map feature handles.
       @param[in] ratio_threshold Lower bound of the kept-ratio window. Use e.g. @c 0.5 to keep ratios in @c (0.5, 2.0).
