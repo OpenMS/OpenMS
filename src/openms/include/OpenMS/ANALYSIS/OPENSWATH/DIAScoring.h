@@ -157,7 +157,7 @@ public:
       @param[in]  precursor_mz    Exact m/z of the precursor to be evaluated.
       @param[in]  spectrum        MS1 spectrum sequence.
       @param[in]  charge_state    Precursor charge state used to space the averagine isotope envelope.
-      @param[in,out] im_range     Ion-mobility range filter; may be narrowed internally before use.
+      @param[in,out] im_range     Ion-mobility range filter; may be narrowed during the call.
       @param[out] isotope_corr    Pearson correlation against the averagine isotope distribution.
       @param[out] isotope_overlap Count of peaks at lower m/z that could explain @p precursor_mz as part of a larger isotope envelope.
     */
@@ -172,7 +172,7 @@ public:
 
       @param[in]  precursor_mz    Exact m/z of the precursor to be evaluated.
       @param[in]  spectrum        MS1 spectrum sequence.
-      @param[in,out] im_range     Ion-mobility range filter; may be narrowed internally before use.
+      @param[in,out] im_range     Ion-mobility range filter; may be narrowed during the call.
       @param[out] isotope_corr    Pearson correlation against the formula-derived isotope distribution.
       @param[out] isotope_overlap Count of peaks at lower m/z that could explain @p precursor_mz as part of a larger isotope envelope.
       @param[in]  sum_formula     Neutral sum formula of the precursor compound; its @c getCharge() is used for the isotope spacing.
@@ -183,15 +183,14 @@ public:
     /**
       @brief Count the b- and y-fragment ions of a peptide that have evidence in a DIA spectrum.
 
-      For every b/y ion of @p sequence at the given @p charge, the function integrates the
-      spectrum around the theoretical fragment m/z and increments the corresponding score if
-      a peak is found, its ppm error is below @c "dia_byseries_ppm_diff", and its intensity
-      is above @c "dia_byseries_intensity_min". The b/y theoretical series is cached across
-      calls keyed on (sequence, charge) so a tight scoring loop doesn't pay the rebuild cost.
+      For every b/y ion of @p sequence at the given @p charge, a peak is
+      considered a match if its ppm error is below @c "dia_byseries_ppm_diff"
+      and its intensity is above @c "dia_byseries_intensity_min". The
+      returned scores are the number of matching b- and y-ions.
 
       @param[in]  spectrum       DIA MS2 spectrum sequence.
-      @param[in]  sequence       Peptide sequence; passed by non-const reference because the AA series cache reads from it.
-      @param[in]  charge         Fragment-ion charge state (must be > 0; OPENMS_PRECONDITION aborts otherwise).
+      @param[in]  sequence       Peptide sequence.
+      @param[in]  charge         Fragment-ion charge state. Must be > 0; passing a non-positive value is a programming error (checked in debug builds).
       @param[in]  im_range       Ion-mobility range filter; pass an empty range to disable IM filtering.
       @param[out] bseries_score  Number of matching b-ions.
       @param[out] yseries_score  Number of matching y-ions.
@@ -200,10 +199,8 @@ public:
                           int charge, const RangeMobility& im_range, double& bseries_score, double& yseries_score) const;
 
     /**
-      @brief Dot-product and Manhattan-distance scores between the spectrum and the transition group's theoretical isotope pattern.
-
-      Uses @ref DiaPrescore::scorePrepared with a cached theoretical spectrum (rebuilt only
-      when the transitions / window / isotope count / charge count change).
+      @brief Dot-product and Manhattan-distance scores between the spectrum
+             and the transition group's theoretical isotope pattern.
 
       @param[in]  spectrum     DIA MS2 spectrum sequence.
       @param[in]  transitions  Transition group whose theoretical pattern is scored against @p spectrum.
