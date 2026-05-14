@@ -94,12 +94,18 @@ public:
                std::vector<TransformationDescription>& transformations,
                Int reference_index = -1)
     {
+      // is reference one of the input files?
+      bool use_internal_reference = (reference_index >= 0);
+      // Drop any reference_ left over from a previous align() call before
+      // checkParameters_ counts it as an extra run; setReference() further
+      // down repopulates reference_ for this invocation. External references
+      // set explicitly via setReference() are preserved (reference_index < 0).
+      if (use_internal_reference) reference_.clear();
+
       checkParameters_(data.size());
       startProgress(0, 3, "aligning maps");
 
       reference_index_ = reference_index;
-      // is reference one of the input files?
-      bool use_internal_reference = (reference_index >= 0);
       if (use_internal_reference)
       {
         if (reference_index >= Int(data.size()))

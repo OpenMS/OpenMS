@@ -27,13 +27,11 @@ namespace OpenMS
    * This class provides functionality to extract chromatographic traces from mass spectrometry data
    * based on specified coordinates (m/z, retention time, and optionally ion mobility values).
    * 
-   * The extractor supports two main interfaces:
-   * 1. Legacy interface: Takes a TargetedExperiment object containing transitions and extracts 
-   *    chromatograms at the m/z values specified in those transitions.
-   * 2. Modern interface: Takes a set of ExtractionCoordinates that specify the exact coordinates 
-   *    for extraction. This provides more flexibility and control over the extraction process.
-   *    The prepare_coordinates() helper function can generate these coordinates for common 
-   *    MS1 and MS2 extraction scenarios.
+   * The primary interface uses a set of ExtractionCoordinates that specify the exact coordinates
+   * for extraction. The static prepare_coordinates() helper generates these coordinates from an
+   * OpenSwath::LightTargetedExperiment for common MS1 and MS2 extraction scenarios. Callers
+   * working with an OpenMS::TargetedExperiment should first convert it to a
+   * LightTargetedExperiment via OpenSwathDataAccessHelper::convertTargetedExp().
    *
    * Key features:
    * - Supports both MS1 and MS2 level extractions
@@ -118,7 +116,7 @@ public:
     }
 
     /**
-     * @brief Prepare the extraction coordinates from a TargetedExperiment
+     * @brief Prepare the extraction coordinates from a LightTargetedExperiment
      *
      * Will fill the coordinates vector with the appropriate extraction
      * coordinates (transitions for MS2 extraction, peptide m/z for MS1
@@ -132,8 +130,10 @@ public:
      * @param[in] rt_extraction_window If non-negative, full RT extraction window,
      *   centered on the first RT value (@p rt_end - @p rt_start will equal this
      *   window size). If negative, @p rt_end will be set to -1 and @p rt_start
-     *   to 0 (i.e. full RT range). If NaN, exactly two RT entries are expected
-     *   - the first is used as @p rt_start and the second as @p rt_end.
+     *   to 0 (i.e. full RT range). If NaN, the compound's @p rt_start and
+     *   @p rt_end fields are used directly (must be pre-populated, e.g. via
+     *   OpenSwathDataAccessHelper::convertTargetedExp() from a compound whose
+     *   @c rts vector contains exactly two entries).
      * @param[in] ms1 Whether to extract for MS1 (peptide level) or MS2 (transition level)
      * @param[in] ms1_isotopes Number of isotopes to include in @p coordinates when in MS1 mode
      *
