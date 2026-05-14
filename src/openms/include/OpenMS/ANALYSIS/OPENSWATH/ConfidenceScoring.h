@@ -131,7 +131,7 @@ namespace OpenMS
       /// Manhattan (L1) distance between two equal-length vectors
       double manhattanDist_(DoubleList x, DoubleList y);
 
-      /// Read the (single) retention time from an assay's @ref TargetedExperiment::Peptide; aborts via OPENMS_PRECONDITION if no RT is set
+      /// Read the (single) retention time from an assay's @ref TargetedExperiment::Peptide; the assay is required to have an RT set (checked in debug builds)
       double getAssayRT_(const TargetedExperiment::Peptide& assay);
 
       /**
