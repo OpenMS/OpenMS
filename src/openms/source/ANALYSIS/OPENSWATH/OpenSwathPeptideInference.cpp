@@ -6,19 +6,19 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/GeneInference.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPeptideInference.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/LevelContextInference.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS
 {
-  std::vector<LevelContextResultRow> GeneInference::infer(const std::vector<LevelContextInputRow>& input,
-                                                          const LevelContextInferenceConfig& config) const
+  std::vector<LevelContextResultRow> OpenSwathPeptideInference::infer(const std::vector<LevelContextInputRow>& input,
+                                                                      const LevelContextInferenceConfig& config) const
   {
-    if (config.level != InferenceLevel::Gene)
+    if (config.level != InferenceLevel::Peptide)
     {
-      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "GeneInference requires config.level = InferenceLevel::Gene.");
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "OpenSwathPeptideInference requires config.level = InferenceLevel::Peptide.");
     }
     return LevelContextInference::infer(input, config);
   }

@@ -6,7 +6,7 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/PeptidoformInference.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPeptidoformInference.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/MATH/STATISTICS/MultipleTesting.h>
@@ -116,9 +116,9 @@ namespace OpenMS
       return result;
     }
 
-    std::vector<PeptidoformInference::BayesianModelRow> prepareTransitionBM_(const std::vector<TransitionInferenceRow>& rows)
+    std::vector<OpenSwathPeptidoformInference::BayesianModelRow> prepareTransitionBM_(const std::vector<TransitionInferenceRow>& rows)
     {
-      std::vector<PeptidoformInference::BayesianModelRow> bm_rows;
+      std::vector<OpenSwathPeptidoformInference::BayesianModelRow> bm_rows;
       bm_rows.reserve(rows.size());
       for (const auto& row : rows)
       {
@@ -127,7 +127,7 @@ namespace OpenMS
           throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Transition inference requires num_peptidoforms > 0 for non-null hypotheses.");
         }
 
-        PeptidoformInference::BayesianModelRow bm_row;
+        OpenSwathPeptidoformInference::BayesianModelRow bm_row;
         bm_row.feature_id = row.feature_id;
         bm_row.hypothesis = row.hypothesis;
         if (row.hypothesis == -1)
@@ -159,12 +159,12 @@ namespace OpenMS
     }
   } // namespace
 
-  std::vector<double> PeptidoformInference::computeModelFDR(const std::vector<double>& pep_values)
+  std::vector<double> OpenSwathPeptidoformInference::computeModelFDR(const std::vector<double>& pep_values)
   {
     return Math::MultipleTesting::computeModelFDR(pep_values);
   }
 
-  std::vector<PeptidoformInference::BayesianModelRow> PeptidoformInference::preparePrecursorBM(const std::vector<IPFPrecursorRow>& rows)
+  std::vector<OpenSwathPeptidoformInference::BayesianModelRow> OpenSwathPeptidoformInference::preparePrecursorBM(const std::vector<IPFPrecursorRow>& rows)
   {
     std::vector<BayesianModelRow> bm_rows;
     bm_rows.reserve(rows.size() * 4);
@@ -206,7 +206,7 @@ namespace OpenMS
     return bm_rows;
   }
 
-  std::vector<PeptidoformInference::PosteriorRow> PeptidoformInference::applyBM(const std::vector<BayesianModelRow>& rows)
+  std::vector<OpenSwathPeptidoformInference::PosteriorRow> OpenSwathPeptidoformInference::applyBM(const std::vector<BayesianModelRow>& rows)
   {
     if (rows.empty())
     {
@@ -281,8 +281,8 @@ namespace OpenMS
     return posterior_rows;
   }
 
-  std::vector<IPFPrecursorProbabilityRow> PeptidoformInference::precursorInference(const std::vector<IPFPrecursorRow>& precursor_rows,
-                                                                                   const PeptidoformInferenceConfig& config) const
+  std::vector<IPFPrecursorProbabilityRow> OpenSwathPeptidoformInference::precursorInference(const std::vector<IPFPrecursorRow>& precursor_rows,
+                                                                                             const PeptidoformInferenceConfig& config) const
   {
     std::vector<IPFPrecursorProbabilityRow> inferred_precursors;
     inferred_precursors.reserve(precursor_rows.size());
@@ -335,10 +335,10 @@ namespace OpenMS
     return inferred_precursors;
   }
 
-  std::vector<IPFResultRow> PeptidoformInference::infer(const std::vector<IPFPrecursorRow>& precursor_rows,
-                                                        const std::vector<IPFTransitionRow>& transition_rows,
-                                                        const std::vector<IPFAlignmentRow>& alignment_rows,
-                                                        const PeptidoformInferenceConfig& config) const
+  std::vector<IPFResultRow> OpenSwathPeptidoformInference::infer(const std::vector<IPFPrecursorRow>& precursor_rows,
+                                                                 const std::vector<IPFTransitionRow>& transition_rows,
+                                                                 const std::vector<IPFAlignmentRow>& alignment_rows,
+                                                                 const PeptidoformInferenceConfig& config) const
   {
     const std::vector<IPFPrecursorProbabilityRow> precursor_probabilities = precursorInference(precursor_rows, config);
     if (precursor_probabilities.empty() || transition_rows.empty())

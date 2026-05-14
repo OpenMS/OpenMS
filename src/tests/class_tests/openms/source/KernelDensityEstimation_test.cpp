@@ -60,7 +60,7 @@ START_SECTION(double bwNrd0(const std::vector<double>&))
   {
     std::vector<double> zero_constant_data(10, 0.0);
     bw = KernelDensityEstimation::bwNrd0(zero_constant_data);
-    TEST_EQUAL(bw > 0.0, true)
+    TEST_REAL_SIMILAR(bw, 0.9 * std::pow(10.0, -0.2))
   }
   
   // Test with insufficient data

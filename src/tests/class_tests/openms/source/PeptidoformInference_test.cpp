@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/PeptidoformInference.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPeptidoformInference.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -22,11 +22,11 @@ namespace
   void copySharedInferenceFixture_(const String& filename)
   {
     File::remove(filename);
-    TEST_EQUAL(File::copy(OPENMS_GET_TEST_DATA_PATH("PyProphet_inference_test.osw"), filename), true)
+    TEST_TRUE(File::copy(OPENMS_GET_TEST_DATA_PATH("PyProphet_inference_test.osw"), filename))
   }
 } // namespace
 
-START_TEST(PeptidoformInference, "$Id$")
+START_TEST(OpenSwathPeptidoformInference, "$Id$")
 
 TOLERANCE_ABSOLUTE(1e-10)
 TOLERANCE_RELATIVE(1.0 + 1e-10)
@@ -34,7 +34,7 @@ TOLERANCE_RELATIVE(1.0 + 1e-10)
 START_SECTION(static std::vector<double> computeModelFDR(const std::vector<double>& pep_values))
 {
   const std::vector<double> pep_values = {0.2, 0.1, 0.1, 0.4};
-  const std::vector<double> qvalues = PeptidoformInference::computeModelFDR(pep_values);
+  const std::vector<double> qvalues = OpenSwathPeptidoformInference::computeModelFDR(pep_values);
   TEST_EQUAL(qvalues.size(), pep_values.size())
   TEST_REAL_SIMILAR(qvalues[0], 0.4 / 3.0)
   TEST_REAL_SIMILAR(qvalues[1], 0.1)
@@ -45,13 +45,13 @@ END_SECTION
 
 START_SECTION(static std::vector<PosteriorRow> applyBM(const std::vector<BayesianModelRow>& rows))
 {
-  const std::vector<PeptidoformInference::BayesianModelRow> rows =
+  const std::vector<OpenSwathPeptidoformInference::BayesianModelRow> rows =
   {
     {1, 0, 0.3, 0.5},
     {1, 1, 0.7, 0.5},
     {1, 1, 0.8, 0.5}
   };
-  const std::vector<PeptidoformInference::PosteriorRow> posteriors = PeptidoformInference::applyBM(rows);
+  const std::vector<OpenSwathPeptidoformInference::PosteriorRow> posteriors = OpenSwathPeptidoformInference::applyBM(rows);
   TEST_EQUAL(posteriors.size(), 2)
   TEST_EQUAL(posteriors[0].feature_id, 1)
   TEST_EQUAL(posteriors[1].feature_id, 1)
@@ -70,12 +70,12 @@ START_SECTION(static std::vector<PosteriorRow> applyBM(const std::vector<Bayesia
     TEST_REAL_SIMILAR(hyp1->posterior, 0.175 / 0.325)
   }
 
-  const std::vector<PeptidoformInference::BayesianModelRow> zero_rows =
+  const std::vector<OpenSwathPeptidoformInference::BayesianModelRow> zero_rows =
   {
     {2, 0, 0.5, 0.0},
     {2, 1, 0.5, 0.0}
   };
-  const std::vector<PeptidoformInference::PosteriorRow> zero_posteriors = PeptidoformInference::applyBM(zero_rows);
+  const std::vector<OpenSwathPeptidoformInference::PosteriorRow> zero_posteriors = OpenSwathPeptidoformInference::applyBM(zero_rows);
   TEST_EQUAL(zero_posteriors.size(), 2)
   TEST_REAL_SIMILAR(zero_posteriors[0].posterior, 0.0)
   TEST_REAL_SIMILAR(zero_posteriors[1].posterior, 0.0)
@@ -84,7 +84,7 @@ END_SECTION
 
 START_SECTION(std::vector<IPFPrecursorProbabilityRow> precursorInference(const std::vector<IPFPrecursorRow>&, const PeptidoformInferenceConfig&) const)
 {
-  PeptidoformInference inference;
+  OpenSwathPeptidoformInference inference;
 
   {
     PeptidoformInferenceConfig config;
@@ -159,7 +159,7 @@ END_SECTION
 
 START_SECTION(std::vector<IPFResultRow> infer(const std::vector<IPFPrecursorRow>&, const std::vector<IPFTransitionRow>&, const std::vector<IPFAlignmentRow>&, const PeptidoformInferenceConfig&) const)
 {
-  PeptidoformInference inference;
+  OpenSwathPeptidoformInference inference;
 
   {
     PeptidoformInferenceConfig config;

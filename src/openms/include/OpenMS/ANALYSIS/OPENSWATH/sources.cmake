@@ -10,7 +10,6 @@ set(sources_list_h
   DIAHelper.h
   DIAPrescoring.h
   DIAScoring.h
-  GeneInference.h
   IonMobilityScoring.h
   LevelContextInference.h
   MasstraceCorrelator.h
@@ -26,6 +25,7 @@ set(sources_list_h
   MRMRTNormalizer.h
   MRMScoring.h
   MRMTransitionGroupPicker.h
+  OpenSwathGeneInference.h
   OpenSwathHelper.h
   OpenSwathInferenceConfig.h
   OpenSwathInferenceData.h
@@ -39,8 +39,8 @@ set(sources_list_h
   PeakIntegrator.h
   PeakPickerChromatogram.h
   PeakPickerMobilogram.h
-  PeptideInference.h
-  PeptidoformInference.h
+  OpenSwathPeptideInference.h
+  OpenSwathPeptidoformInference.h
   OpenSwathProteinInference.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h

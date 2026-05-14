@@ -21,7 +21,7 @@ namespace OpenMS
 
     @ingroup TargetedQuantitation
   */
-  class OPENMS_DLLAPI GeneInference
+  class OPENMS_DLLAPI OpenSwathGeneInference
   {
   public:
     /// Infer gene-level statistics for the provided rows.

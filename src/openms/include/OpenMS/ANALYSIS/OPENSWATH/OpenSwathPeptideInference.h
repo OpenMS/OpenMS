@@ -21,7 +21,7 @@ namespace OpenMS
 
     @ingroup TargetedQuantitation
   */
-  class OPENMS_DLLAPI PeptideInference
+  class OPENMS_DLLAPI OpenSwathPeptideInference
   {
   public:
     /// Infer peptide-level statistics for the provided rows.

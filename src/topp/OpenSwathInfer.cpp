@@ -8,10 +8,10 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/GeneInference.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathGeneInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathProteinInference.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/PeptideInference.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/PeptidoformInference.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPeptideInference.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPeptidoformInference.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -373,7 +373,7 @@ protected:
         const auto transition_rows = osw.readIPFTransitionData(peptidoform_config);
         const auto alignment_rows = osw.readIPFAlignmentData(peptidoform_config);
 
-        PeptidoformInference inference;
+        OpenSwathPeptidoformInference inference;
         const auto results = inference.infer(precursor_rows, transition_rows, alignment_rows, peptidoform_config);
         osw.writeIPFResults("", results);
         logPeptidoformSummary_(results);
@@ -390,7 +390,7 @@ protected:
       std::vector<LevelContextResultRow> results;
       if (task.level == InferenceLevel::Peptide)
       {
-        PeptideInference inference;
+        OpenSwathPeptideInference inference;
         results = inference.infer(input_rows, config);
       }
       else if (task.level == InferenceLevel::Protein)
@@ -400,7 +400,7 @@ protected:
       }
       else
       {
-        GeneInference inference;
+        OpenSwathGeneInference inference;
         results = inference.infer(input_rows, config);
       }
 

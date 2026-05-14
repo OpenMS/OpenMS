@@ -10,7 +10,7 @@ set(sources_list
   DIAHelper.cpp
   DIAPrescoring.cpp
   DIAScoring.cpp
-  GeneInference.cpp
+  OpenSwathGeneInference.cpp
   IonMobilityScoring.cpp
   LevelContextInference.cpp
   MasstraceCorrelator.cpp
@@ -37,8 +37,8 @@ set(sources_list
   PeakIntegrator.cpp
   PeakPickerChromatogram.cpp
   PeakPickerMobilogram.cpp
-  PeptideInference.cpp
-  PeptidoformInference.cpp
+  OpenSwathPeptideInference.cpp
+  OpenSwathPeptidoformInference.cpp
   OpenSwathProteinInference.cpp
   SwathMapMassCorrection.cpp
   SwathWindowLoader.cpp

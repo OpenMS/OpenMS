@@ -9,10 +9,10 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/GeneInference.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathGeneInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/LevelContextInference.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathProteinInference.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/PeptideInference.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathPeptideInference.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -26,7 +26,7 @@ namespace
   void copySharedInferenceFixture_(const String& filename)
   {
     File::remove(filename);
-    TEST_EQUAL(File::copy(OPENMS_GET_TEST_DATA_PATH("PyProphet_inference_test.osw"), filename), true)
+    TEST_TRUE(File::copy(OPENMS_GET_TEST_DATA_PATH("PyProphet_inference_test.osw"), filename))
   }
 } // namespace
 
@@ -165,9 +165,9 @@ START_SECTION(static std::vector<LevelContextResultRow> infer(const std::vector<
     copySharedInferenceFixture_(tmp_osw);
 
     OSWFile osw(tmp_osw);
-    PeptideInference peptide_inference;
+    OpenSwathPeptideInference peptide_inference;
     OpenSwathProteinInference protein_inference;
-    GeneInference gene_inference;
+    OpenSwathGeneInference gene_inference;
 
     const auto peptide_input = osw.readLevelContextData(InferenceLevel::Peptide, InferenceContext::Global);
     const std::vector<LevelContextResultRow> peptide_results = peptide_inference.infer(peptide_input, global_config);
@@ -236,11 +236,11 @@ START_SECTION(static std::vector<LevelContextResultRow> infer(const std::vector<
 }
 END_SECTION
 
-START_SECTION("PeptideInference / OpenSwathProteinInference / GeneInference wrappers")
+START_SECTION("OpenSwathPeptideInference / OpenSwathProteinInference / OpenSwathGeneInference wrappers")
 {
-  PeptideInference peptide_inference;
+  OpenSwathPeptideInference peptide_inference;
   OpenSwathProteinInference protein_inference;
-  GeneInference gene_inference;
+  OpenSwathGeneInference gene_inference;
 
   LevelContextInferenceConfig peptide_config;
   peptide_config.level = InferenceLevel::Peptide;
