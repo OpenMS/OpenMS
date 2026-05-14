@@ -127,7 +127,7 @@ public:
     /**
       @brief Direct in-memory lookup of one chromatogram by index.
 
-      @param[in] id Chromatogram index (0-based; expected within @c [0, getNrChromatograms())).
+      @param[in] id Chromatogram index (0-based; OPENMS_PRECONDITION asserts @c 0 <= id < @c getNrChromatograms()).
       @return Cached @c ChromatogramPtr for the requested chromatogram.
     */
     OpenSwath::ChromatogramPtr getChromatogramById(int id) override;
@@ -138,7 +138,7 @@ public:
     /**
       @brief Native id of one cached chromatogram.
 
-      @param[in] id Chromatogram index (0-based; expected within @c [0, getNrChromatograms())).
+      @param[in] id Chromatogram index (0-based; OPENMS_PRECONDITION asserts @c 0 <= id < @c getNrChromatograms()).
       @return Native-id string captured at construction time.
     */
     std::string getChromatogramNativeID(int id) const override;
