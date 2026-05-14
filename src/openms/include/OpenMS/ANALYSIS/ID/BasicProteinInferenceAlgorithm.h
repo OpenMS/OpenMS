@@ -50,9 +50,9 @@ namespace OpenMS
       - @c "score_type" — explicit PSM score type to use; empty falls back to the main
         score.
 
-    The algorithm assumes posteriors or posterior error probabilities and converts the
-    latter to posteriors internally. Multiple runs are supported but processed one at a
-    time, walking the full @ref PeptideIdentificationList per run.
+    The algorithm assumes posteriors or posterior error probabilities; PEPs
+    are converted to posteriors as part of scoring. Multiple runs are
+    supported, each processed independently.
 
     @ingroup Analysis_ID
   */
