@@ -21,8 +21,9 @@ namespace OpenMS
            types (@c PeakMap, @c FeatureMap, @c ConsensusMap).
 
     Each overload replaces the contents of the destination, gives it a
-    container-level unique id, and leaves its cached ranges consistent with
-    the new data so range queries are valid immediately after the call.
+    container-level unique id, and leaves it in a state where the standard
+    range queries reflect the new contents without further bookkeeping by
+    the caller.
 
     The conversions are not symmetric: which fields are preserved
     (container / element unique ids, protein and unassigned peptide
@@ -49,8 +50,9 @@ public:
 
       @param[in]     input_map_index Index assigned to the input map in the
                                      resulting @c ConsensusMap column headers.
-      @param[in,out] input_map       Source peaks; its cached ranges are
-                                     refreshed as a side effect.
+      @param[in,out] input_map       Source peaks; its range queries are
+                                     left consistent with its contents as a
+                                     side effect.
       @param[out]    output_map      Resulting @c ConsensusMap; previous
                                      contents are replaced.
       @param[in]     n               Maximum number of peaks to copy. The
