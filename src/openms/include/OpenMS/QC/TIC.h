@@ -89,10 +89,11 @@ namespace OpenMS
       @brief Append the TIC traces from @p tics to the MTD section of @p meta as custom parameters.
 
       For every non-empty entry in @p tics one custom parameter is added
-      to @p meta, named @c TIC_<i>, with the controlled-vocabulary label
-      @c "total ion current" (@c MS:1000285). The value is a flat list
-      of @c [rt0, int0, rt1, int1, ...] pairs taken directly from
-      @ref Result::retention_times and @ref Result::intensities.
+      to @p meta, named @c TIC_1, @c TIC_2, ... (1-based index into
+      @p tics), with the controlled-vocabulary label @c "total ion current"
+      (@c MS:1000285). The value is a flat list of
+      @c [rt0,int0,rt1,int1,...] pairs taken from @ref Result::retention_times
+      and @ref Result::intensities.
 
       @param[in,out] meta mzTab metadata section to extend.
       @param[in]     tics TIC results to serialise; empty entries are skipped.
