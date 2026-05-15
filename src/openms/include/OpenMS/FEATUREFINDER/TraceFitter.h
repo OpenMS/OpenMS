@@ -46,9 +46,9 @@ public:
     /**
       @brief Generic LM functor with a raw-pointer interface, used to keep Eigen out of the public API.
 
-      Subclasses implement @ref operator() to fill the residual vector
-      and @ref df to fill the Jacobian; the cpp wraps each side in an
-      @c Eigen::Map before handing it to the LM solver.
+      Subclasses implement the @c operator() to fill the residual
+      vector and @ref df to fill the Jacobian; the cpp wraps each side
+      in an @c Eigen::Map before handing it to the LM solver.
     */
     //TODO: This is copy and paste from LevMarqFitter1d.h. Make a generic wrapper for LM optimization
     class GenericFunctor
