@@ -41,7 +41,14 @@ namespace OpenMS
     class OPENMS_DLLAPI QuadraticRegression
     {
 public:
-      /// Default constructor; leaves all coefficients and the chi-squared sum at @c 0.
+      /**
+        @brief Default constructor.
+
+        Leaves all coefficients and the chi-squared sum at @c 0; the
+        instance produces meaningful results only after the first
+        successful call to @ref computeRegression or
+        @ref computeRegressionWeighted.
+      */
       QuadraticRegression();
 
       /**
@@ -100,13 +107,34 @@ public:
       */
       static double eval(double A, double B, double C, double x);
 
-      /// Constant term (@c a) of the last successful fit.
+      /**
+        @brief Constant term of the fitted polynomial.
+
+        @return @c a from the last successful fit (or @c 0 if no fit has been computed yet).
+      */
       double getA() const;
-      /// Linear coefficient (@c b) of the last successful fit.
+
+      /**
+        @brief Linear coefficient of the fitted polynomial.
+
+        @return @c b from the last successful fit (or @c 0 if no fit has been computed yet).
+      */
       double getB() const;
-      /// Quadratic coefficient (@c c) of the last successful fit.
+
+      /**
+        @brief Quadratic coefficient of the fitted polynomial.
+
+        @return @c c from the last successful fit (or @c 0 if no fit has been computed yet).
+      */
       double getC() const;
-      /// Weighted residual sum @c sum(weight * (y - a - b*x - c*x*x)^2) of the last successful fit.
+
+      /**
+        @brief Weighted residual sum of squares of the last successful fit.
+
+        @return @c sum(weight * (y - a - b*x - c*x*x)^2) over the last
+                fit's input points (or @c 0 if no fit has been computed
+                yet).
+      */
       double getChiSquared() const;
 
 protected:
