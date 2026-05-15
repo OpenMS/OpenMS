@@ -115,19 +115,39 @@ protected:
     */
     virtual void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces) = 0;
 
-    /// Lower RT bound of the fitted RT model.
+    /**
+      @brief Lower RT bound of the fitted RT model.
+
+      @return Lower RT bound (retention-time units).
+    */
     virtual double getLowerRTBound() const = 0;
 
-    /// Upper RT bound of the fitted RT model.
+    /**
+      @brief Upper RT bound of the fitted RT model.
+
+      @return Upper RT bound (retention-time units).
+    */
     virtual double getUpperRTBound() const = 0;
 
-    /// Height of the fitted RT model at its centre.
+    /**
+      @brief Height of the fitted RT model at its centre.
+
+      @return Model intensity at the centre RT.
+    */
     virtual double getHeight() const = 0;
 
-    /// Centre (RT) of the fitted RT model.
+    /**
+      @brief Centre of the fitted RT model.
+
+      @return Centre retention time of the fitted model.
+    */
     virtual double getCenter() const = 0;
 
-    /// Full width at half maximum of the fitted RT model.
+    /**
+      @brief Full width at half maximum of the fitted RT model.
+
+      @return FWHM in retention-time units.
+    */
     virtual double getFWHM() const = 0;
 
     /**
@@ -170,7 +190,11 @@ protected:
     */
     virtual bool checkMaximalRTSpan(const double max_rt_span) = 0;
 
-    /// Area under the fitted RT model.
+    /**
+      @brief Area under the fitted RT model.
+
+      @return Integrated intensity of the fitted model.
+    */
     virtual double getArea() = 0;
 
     /**
