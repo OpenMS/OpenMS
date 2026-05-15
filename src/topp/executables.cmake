@@ -96,6 +96,7 @@ OpenSwathChromatogramExtractor
 OpenSwathConfidenceScoring
 OpenSwathDecoyGenerator
 OpenSwathFeatureXMLToTSV
+OpenSwathInfer
 OpenSwathRTNormalizer
 PeakPickerHiRes
 PeakPickerIterative
