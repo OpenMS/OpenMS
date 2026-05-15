@@ -108,7 +108,7 @@ window_lower window_upper
                                    order; same length as
                                    @p swath_prec_lower.
 
-      @throws Exception::InvalidValue if a row has @c lower @c >= @c upper.
+      @throws Exception::InvalidValue if a row has @c lower >= @c upper.
     */
     static void readSwathWindows(const std::string& filename,
                                  std::vector<double>& swath_prec_lower,
