@@ -51,10 +51,16 @@ namespace OpenMS
     */
     NeedlemanWunsch(ScoringMatrix matrix, int penalty);
 
-    /// Default constructor; uses @c ScoringMatrix::PAM30MS and a gap penalty of @c 5.
+    /**
+      @brief Default constructor.
+
+      Uses @c ScoringMatrix::PAM30MS and a gap penalty of @c 5.
+    */
     NeedlemanWunsch() = default;
 
-    /// Destructor.
+    /**
+      @brief Destructor.
+    */
     ~NeedlemanWunsch()=default;
 
     /// Lookup table for @ref setMatrix(const std::string&); current entries: @c "identity", @c "PAM30MS".
