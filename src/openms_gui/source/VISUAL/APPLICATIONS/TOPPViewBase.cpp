@@ -1908,20 +1908,21 @@ namespace OpenMS
           if (out_type == FileTypes::FEATUREXML && topp_.tool != "AccurateMassSearch")
           {
             addDataFile(topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
-            return;
-          }
-
-          auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(topp_.file_name_out);
-          if (annotator.get() == nullptr)
-          { // no suitable annotator? open new layer/window
-            addDataFile(topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
           }
           else
-          { // we have an annotator ... let's annotate the current layer
-            const bool annotation_success = annotator->annotateWithFilename(*l, *log_, topp_.file_name_out); // ID tabs are automatically enabled
-            if (!annotation_success && out_type == FileTypes::FEATUREXML)
-            {
+          {
+            auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(topp_.file_name_out);
+            if (annotator.get() == nullptr)
+            { // no suitable annotator? open new layer/window
               addDataFile(topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
+            }
+            else
+            { // we have an annotator ... let's annotate the current layer
+              const bool annotation_success = annotator->annotateWithFilename(*l, *log_, topp_.file_name_out); // ID tabs are automatically enabled
+              if (!annotation_success && out_type == FileTypes::FEATUREXML)
+              {
+                addDataFile(topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
+              }
             }
           }
         }

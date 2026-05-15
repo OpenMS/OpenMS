@@ -36,7 +36,15 @@ namespace OpenMS
   class OPENMS_DLLAPI InterProcessFileLock
   {
     public:
-      // Default constructor; call lock() to acquire a lock later
+      /**
+        @brief Default constructor.
+
+        Creates an unlocked instance without acquiring any inter-process lock.
+        Call lock(), tryLock(), or timedLock() to acquire a lock for a target file.
+
+        @note This constructor does not lock any file.
+        @see lock(), tryLock(), timedLock()
+      */
       InterProcessFileLock() noexcept;
 
       /**

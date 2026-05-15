@@ -16,12 +16,18 @@
 
 #include <cassert>
 #include <cctype>
-#include <cstdlib>
 #include <exception>
 #include <fstream>
 #include <mutex>
 #include <string>
 #include <utility>
+#include <cstdio>
+
+#ifdef _WIN32
+#  include <io.h>
+#else
+#  include <unistd.h>
+#endif
 
 namespace OpenMS
 {
@@ -30,6 +36,74 @@ namespace OpenMS
     // Process-local slot ownership to disambiguate multiple managers in one process
     std::set<String> active_registry_paths;
     std::mutex active_registry_paths_mutex;
+
+    // Flush file-content changes to storage before atomic rename.
+    // Uses platform-specific APIs to keep TempFileManager portable.
+    bool syncFileDescriptor_(const int fd)
+    {
+#ifdef _WIN32
+      return fd >= 0 && ::_commit(fd) == 0;
+#else
+      return fd >= 0 && ::fsync(fd) == 0;
+#endif
+    }
+
+    // Rewrite a registry file atomically by writing to a temp file first and then replacing.
+    // The temp file is created next to the target to preserve same-filesystem rename guarantees.
+    bool rewriteFileAtomically_(const String& target_path, const std::set<String>& lines)
+    {
+      const String tmp_path = target_path + ".tmp." + File::getUniqueName(false);
+
+      std::ofstream out(tmp_path.c_str(), std::ios::out | std::ios::trunc);
+      if (!out.is_open())
+      {
+        return false;
+      }
+
+      for (const String& line : lines)
+      {
+        out << line << '\n';
+      }
+
+      // Check stream state before attempting to replace the live registry file.
+      out.flush();
+      if (out.fail() || out.bad())
+      {
+        out.close();
+        File::remove(tmp_path);
+        return false;
+      }
+
+      out.close();
+
+      // Re-open file to obtain a file descriptor and force data to disk on all platforms.
+      FILE* handle = std::fopen(tmp_path.c_str(), "rb");
+      if (handle != nullptr)
+      {
+        const int fd =
+#ifdef _WIN32
+          ::_fileno(handle);
+#else
+          ::fileno(handle);
+#endif
+        const bool synced = syncFileDescriptor_(fd);
+        std::fclose(handle);
+
+        if (!synced)
+        {
+          File::remove(tmp_path);
+          return false;
+        }
+      }
+
+      // Only now replace the destination file.
+      if (!File::rename(tmp_path, target_path, true, false))
+      {
+        File::remove(tmp_path);
+        return false;
+      }
+      return true;
+    }
   }
 
   TempFileManager::TempFileManager(std::pair<String, std::unique_ptr<InterProcessFileLock>>&& selected_slot, UInt lock_timeout_ms) :
@@ -46,21 +120,9 @@ namespace OpenMS
   {
   }
 
-  std::pair<String, std::unique_ptr<InterProcessFileLock>> TempFileManager::selectRegistrySlot_(const String& registry_id, UInt lock_timeout_ms)
-  {
-    std::unique_ptr<InterProcessFileLock> selected_lock;
-    String selected_path = selectRegistryFilePath_(registry_id, lock_timeout_ms, selected_lock);
-    if (selected_lock == nullptr || !selected_lock->isLocked())
-    {
-      throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                     "Could not acquire lock for temp file registry lockfile for registry id '" + registry_id + "'.");
-    }
-    return {selected_path, std::move(selected_lock)};
-  }
-
   TempFileManager::TempFileManager(TempFileManager&& temp_file_manager) noexcept :
-    registry_file_path_(temp_file_manager.registry_file_path_),
-    lock_file_path_(temp_file_manager.lock_file_path_),
+    registry_file_path_(std::move(temp_file_manager.registry_file_path_)),
+    lock_file_path_(std::move(temp_file_manager.lock_file_path_)),
     lock_timeout_ms_(temp_file_manager.lock_timeout_ms_),
     registry_lock_(std::move(temp_file_manager.registry_lock_)),
     files_(std::move(temp_file_manager.files_))
@@ -69,6 +131,7 @@ namespace OpenMS
 
   TempFileManager::~TempFileManager() noexcept
   {
+    // Centralized teardown path: delete managed files, persist survivors, release lock/slot
     cleanup_();
   }
 
@@ -82,8 +145,8 @@ namespace OpenMS
     // Remove currently owned resources before taking over new state
     cleanup_();
 
-    const_cast<String&>(registry_file_path_) = std::move(temp_file_manager.registry_file_path_);
-    const_cast<String&>(lock_file_path_) = std::move(temp_file_manager.lock_file_path_);
+    registry_file_path_ = std::move(temp_file_manager.registry_file_path_);
+    lock_file_path_ = std::move(temp_file_manager.lock_file_path_);
     lock_timeout_ms_ = temp_file_manager.lock_timeout_ms_;
     registry_lock_ = std::move(temp_file_manager.registry_lock_);
     files_ = std::move(temp_file_manager.files_);
@@ -154,9 +217,19 @@ namespace OpenMS
       return;
     }
 
+    // Moved-from objects do not own the inter-process lock anymore and must not
+    // attempt cleanup actions on shared registry/lock paths
+    if (registry_lock_ == nullptr)
+    {
+      files_.clear();
+      return;
+    }
+
     try
     {
+      // First cleanup data files listed in registry and compact registry accordingly
       cleanupRegistryFile_(registry_file_path_);
+      // Then clear in-memory ownership and release process/inter-process slot ownership
       files_.clear();
       registry_lock_.reset();
       File::remove(lock_file_path_);
@@ -275,14 +348,9 @@ namespace OpenMS
     }
 
     // Persist survivors conservatively so crashed cleanup can resume next run
-    std::ofstream registry_out(registry_file_path.c_str(), std::ios::out | std::ios::trunc);
-    if (!registry_out.is_open())
+    if (!rewriteFileAtomically_(registry_file_path, remaining_files))
     {
       return;
-    }
-    for (const String& file : remaining_files)
-    {
-      registry_out << file << '\n';
     }
   }
 
@@ -297,6 +365,7 @@ namespace OpenMS
       const String candidate_lock_path = getLockFilePathForInstance_(registry_id, i);
       // skip paths already owned by other TempFileManager instances in this process
       {
+        // Process-local guard: avoid two managers in same process reserving same path
         std::lock_guard<std::mutex> lock(active_registry_paths_mutex);
         if (active_registry_paths.find(candidate_path) != active_registry_paths.end())
         {
@@ -313,6 +382,7 @@ namespace OpenMS
       }
 
       {
+        // Probe lock ensures stale cleanup only happens for currently unowned slots
         InterProcessFileLock probe_lock(candidate_lock_path, lock_timeout_ms);
         if (!probe_lock.isLocked())
         {
@@ -339,6 +409,7 @@ namespace OpenMS
       const String candidate_lock_path = getLockFilePathForInstance_(registry_id, i);
 
       {
+        // Re-check while holding mutex: another thread may have reserved in the meantime
         std::lock_guard<std::mutex> lock(active_registry_paths_mutex);
         if (active_registry_paths.find(candidate_path) != active_registry_paths.end())
         {
@@ -379,6 +450,19 @@ namespace OpenMS
 
     throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                    "Could not find a free temp registry slot in range 1..15 for registry id '" + registry_id + "'.");
+  }
+
+  std::pair<String, std::unique_ptr<InterProcessFileLock>> TempFileManager::selectRegistrySlot_(const String& registry_id, UInt lock_timeout_ms)
+  {
+    // High-level slot selection wrapper: returns both chosen path and held lock object
+    std::unique_ptr<InterProcessFileLock> selected_lock;
+    String selected_path = selectRegistryFilePath_(registry_id, lock_timeout_ms, selected_lock);
+    if (selected_lock == nullptr || !selected_lock->isLocked())
+    {
+      throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                     "Could not acquire lock for temp file registry lockfile for registry id '" + registry_id + "'.");
+    }
+    return {selected_path, std::move(selected_lock)};
   }
 
   void TempFileManager::loadRegistryFile_(std::set<String>& files) const
@@ -434,6 +518,14 @@ namespace OpenMS
       registry_stream << file << '\n';
     }
 
+    registry_stream.flush();
+    if (registry_stream.fail() || registry_stream.bad())
+    {
+      registry_stream.close();
+      File::remove(tmp_registry_path);
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_registry_path);
+    }
+
     registry_stream.close();
     if (!File::rename(tmp_registry_path, registry_file_path_, true, false))
     {
@@ -444,6 +536,7 @@ namespace OpenMS
 
   void TempFileManager::updateRegistryEntry_(const String& file_path, RegistryAction action)
   {
+    // Registry mutations require the long-lived slot lock to guarantee cross-process consistency
     if (registry_lock_ == nullptr || !registry_lock_->isLocked())
     {
       throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -452,6 +545,7 @@ namespace OpenMS
 
     if (action == RegistryAction::ADD)
     {
+      // Fast path for append-only updates
       std::ofstream registry_stream(registry_file_path_.c_str(), std::ios::out | std::ios::app);
       if (!registry_stream.is_open())
       {
@@ -462,6 +556,7 @@ namespace OpenMS
     }
 
     std::set<String> persisted_files;
+    // REMOVE path reloads full registry and rewrites atomically to drop one entry
     loadRegistryFile_(persisted_files);
 
     if (action == RegistryAction::REMOVE)

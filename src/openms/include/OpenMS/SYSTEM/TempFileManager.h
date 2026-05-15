@@ -194,8 +194,8 @@ namespace OpenMS
 
       void updateRegistryEntry_(const String& file_path, RegistryAction action);
 
-      const String registry_file_path_;
-      const String lock_file_path_;
+      String registry_file_path_;
+      String lock_file_path_;
       UInt lock_timeout_ms_;
       std::unique_ptr<InterProcessFileLock> registry_lock_;
       mutable std::mutex state_mutex_;
