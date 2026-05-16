@@ -20,10 +20,10 @@ namespace OpenMS
     @brief Writes a SIRIUS @c .ms file from an MSExperiment, optionally enriched with feature/adduct/formula annotations.
 
     Used by @ref TOPP_SiriusExport to translate centroided MS2 data (and, optionally, feature
-    annotations from @ref FeatureFindingMetabo, @ref MetaboliteAdductDecharger, and/or
-    @ref AccurateMassSearch) into the @c .ms compound format consumed by SIRIUS.
+    annotations from @ref FeatureFindingMetabo, @ref TOPP_MetaboliteAdductDecharger, and/or
+    @ref TOPP_AccurateMassSearch) into the @c .ms compound format consumed by SIRIUS.
 
-    The writer chooses one of three layouts based on the input @ref FeatureMapping::FeatureToMs2Indices:
+    The writer chooses one of three layouts based on the input @c FeatureMapping::FeatureToMs2Indices —
       - @b feature-driven (@c assignedMS2 non-empty): one compound block per feature, carrying
         its associated MS2 spectra plus adduct / formula / description metadata if those are
         present on the feature.
@@ -36,7 +36,7 @@ namespace OpenMS
     unassigned-MS2). For each compound emitted, a matching @ref CompoundInfo entry is
     appended to @p v_cmpinfo for downstream mzTab-M export.
 
-    Constraints enforced during @ref store:
+    Constraints enforced during @ref store —
       - Spectra must be centroided. If the first spectrum is @c SpectrumSettings::PROFILE,
         @c OpenMS::Exception::IllegalArgument is thrown.
       - The input mzML must carry @c SourceFile annotation; an empty @ref MSExperiment::getSourceFiles
