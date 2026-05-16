@@ -56,7 +56,7 @@ public:
       @param[in] file_path Path to the compressed file; relative paths
                            are completed against Xerces' current
                            working directory.
-      @param[in] header    See @ref CompressedInputSource(const String&, const String&, xercesc::MemoryManager*).
+      @param[in] header    Same semantics as the @c header argument of the @c String overload of this constructor.
       @param[in] manager   Memory manager used for Xerces allocations.
                            Defaults to the platform-wide manager.
     */
