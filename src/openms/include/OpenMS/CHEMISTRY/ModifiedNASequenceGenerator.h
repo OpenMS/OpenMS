@@ -66,7 +66,7 @@ namespace OpenMS
 
       Produces every legal combination of @em compatible variable modifications drawn from
       @p var_mods, with the number of placements per variant ranging from @c 1 to
-      @c min(max_variable_mods_per_NASequence, #compatible_sites). 5' / 3' terminal
+      @c min(max_variable_mods_per_NASequence, @c N) where @c N is the number of compatible sites. 5' / 3' terminal
       modifications participate in the enumeration as virtual sites and are considered only
       when the corresponding terminal slot of @p seq is empty; nucleotides that are already
       modified are skipped during compatibility analysis.
@@ -92,7 +92,7 @@ namespace OpenMS
 
   protected:
     /**
-      @brief Recursive helper for @ref applyVariableModifications: enumerate every assignment of compatible modifications to a fixed subset of sequence sites.
+      @brief Recursive helper for @ref applyVariableModifications — enumerate every assignment of compatible modifications to a fixed subset of sequence sites.
 
       For the position at @c subset_indices[depth], iterate over every modification listed
       in @p map_compatibility for that position, apply it to a copy of @p current_NASequence,
