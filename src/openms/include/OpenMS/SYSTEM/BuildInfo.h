@@ -33,11 +33,11 @@ namespace OpenMS
   namespace Internal
   {
 
-    /// Operating systems @ref OpenMSOSInfo can report. @c SIZE_OF_OPENMS_OS is a sentinel for array sizing.
+    /// Operating systems @c OpenMSOSInfo can report. @c SIZE_OF_OPENMS_OS is a sentinel for array sizing.
     enum class OpenMS_OS {OS_UNKNOWN, OS_MACOS, OS_WINDOWS, OS_LINUX, SIZE_OF_OPENMS_OS};
     /// String labels paired with @ref OpenMS_OS; index by @c static_cast<size_t>(enum_value).
     inline const std::string OpenMS_OSNames[] = {"unknown", "MacOS", "Windows", "Linux"};
-    /// Pointer-width architectures @ref OpenMSOSInfo can report. @c SIZE_OF_OPENMS_ARCHITECTURE is a sentinel for array sizing.
+    /// Pointer-width architectures @c OpenMSOSInfo can report. @c SIZE_OF_OPENMS_ARCHITECTURE is a sentinel for array sizing.
     enum class OpenMS_Architecture {ARCH_UNKNOWN, ARCH_32BIT, ARCH_64BIT, SIZE_OF_OPENMS_ARCHITECTURE};
     /// String labels paired with @ref OpenMS_Architecture; index by @c static_cast<size_t>(enum_value).
     inline const std::string OpenMS_ArchNames[] = {"unknown", "32 bit", "64 bit"};
