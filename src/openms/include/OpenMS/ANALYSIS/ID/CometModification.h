@@ -120,7 +120,7 @@ struct OPENMS_DLLAPI CometModification
     @verbatim
     variable_mod<II> = <mass> <residues> <binary_group> <max_mods_per_peptide> <term_distance> <nc_term> <required> 0.0
     @endverbatim
-    with @c <II> being @p index zero-padded to two digits. The last
+    with the @c II suffix being @p index zero-padded to two digits. The last
     column is hard-coded to @c "0.0" (neutral loss; OpenMS does not
     currently surface it). Numeric formatting uses @c std::ostream
     default precision (six significant digits).
