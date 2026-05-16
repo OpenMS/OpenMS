@@ -39,8 +39,8 @@ public:
       @param[in] file_path Path to the compressed file; relative paths
                            are completed against Xerces' current
                            working directory.
-      @param[in] header    First two bytes of the file used to pick
-                           the decompressor in @ref makeStream:
+      @param[in] header    First two bytes of the file; @ref makeStream
+                           uses them to pick the decompressor.
                            @c "BZ" selects bzip2, @c "PK" selects zip,
                            anything else (including a header shorter
                            than two characters, which is silently
