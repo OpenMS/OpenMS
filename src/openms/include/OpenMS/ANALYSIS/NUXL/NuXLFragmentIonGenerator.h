@@ -79,7 +79,8 @@ class OPENMS_DLLAPI NuXLFragmentIonGenerator
 
     All appended peaks have charge @c 1 and intensity @c 1.0f. Annotations are formatted by
     @ref NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon for the standard immoniums and
-    as @c "iK(C5H10N1)<shift>" / @c "iK(C6H13N2O)<shift>" for the K variants. No collision
+    as @c "iK(C5H10N1){shift}" / @c "iK(C6H13N2O){shift}" for the K variants (with @c {shift}
+    standing in for the @p fragment_shift_name suffix). No collision
     check against existing entries.
 
     @param[in]     unmodified_sequence                  Peptide sequence (one-letter codes); only residues present in this string contribute peaks.
@@ -145,8 +146,9 @@ class OPENMS_DLLAPI NuXLFragmentIonGenerator
     Computes the m/z as @c (peptide_weight @c + @c precursor_rna_mass @c + @c charge @c * @c PROTON_MASS_U) @c / @c charge
     and appends one peak only when no existing entry is within @c 1e-4 m/z (collision check
     via @c findNearest). Annotation format:
-      - @c "[M+H+<adduct>]" for charge @c 1,
-      - @c "[M+nH+<adduct>]" with @c n explicit for charge @c >= @c 2.
+      - @c "[M+H+{adduct}]" for charge @c 1,
+      - @c "[M+nH+{adduct}]" with @c n explicit for charge @c >= @c 2,
+    where @c {adduct} stands in for @p precursor_rna_adduct.
     Intensity @c 1.0f; the charge data array receives the actual @p charge value (not always @c 1).
 
     @param[in]     fixed_and_variable_modified_peptide_weight Mass of the modified peptide.
