@@ -147,10 +147,14 @@ public:
       /**
         @brief Bin @p spec with the configured bin parameters and score it against every entry of the cached library; keep only matches @c >= @p min_score.
 
-        @p scores is cleared on entry. The query spectrum is wrapped in a new
-        @c BinnedSpectrum with the current @c bin_size, @c peak_spread, and @c bin_offset
-        (no precursor m/z carried over) and then compared one-by-one against the cached
-        library bins via @ref BinnedSpectralContrastAngle.
+        The query spectrum is wrapped in a new @c BinnedSpectrum with the current
+        @c bin_size, @c peak_spread, and @c bin_offset (no precursor m/z carried over)
+        and then compared one-by-one against the cached library bins via
+        @ref BinnedSpectralContrastAngle.
+
+        @param[in]  spec      Query spectrum to bin and score.
+        @param[out] scores    Cleared on entry, then filled with @c (library_index, score) pairs for matches that clear the threshold; unsorted.
+        @param[in]  min_score Lower bound on the kept score (inclusive).
       */
       void generateScores (
         const MSSpectrum& spec,
