@@ -43,6 +43,8 @@ class OPENMS_DLLAPI NuXLFDR
       @ref FalseDiscoveryRate so q-values are computed across all hits per PSM, not only
       the top hit. The value is otherwise stored verbatim and consulted by the
       @ref QValueAtPSMLevel and @ref calculatePeptideAndXLQValueAtPSMLevel methods.
+
+      @param[in] report_top_hits Top-hit cap; values @c >= @c 2 enable the underlying FDR engine's @c use_all_hits mode.
     */
     explicit NuXLFDR(size_t report_top_hits);
 
@@ -57,6 +59,10 @@ class OPENMS_DLLAPI NuXLFDR
       classes), but never to @p pep_pi twice.
 
       @p pep_pi and @p xl_pi are cleared on entry.
+
+      @param[in]  peptide_ids Input mixed plain-peptide / cross-link PSMs.
+      @param[out] pep_pi      Receives the plain-peptide PSMs (one hit per PSM, the first encountered with @c NuXL:isXL @c == @c 0).
+      @param[out] xl_pi       Receives the cross-link PSMs (one hit per PSM, the first encountered with @c NuXL:isXL @c != @c 0).
     */
     void splitIntoPeptidesAndXLs(const PeptideIdentificationList& peptide_ids,
       PeptideIdentificationList& pep_pi,
@@ -73,6 +79,10 @@ class OPENMS_DLLAPI NuXLFDR
           appended to its hit list and that hit list is re-sorted in place.
 
       @p peptide_ids is cleared on entry.
+
+      @param[in]  pep_pi      Plain-peptide PSMs (typically from @ref splitIntoPeptidesAndXLs).
+      @param[in]  xl_pi       Cross-link PSMs (typically from @ref splitIntoPeptidesAndXLs).
+      @param[out] peptide_ids Receives the merged PSM list keyed by @c "spectrum_reference".
     */
     void mergePeptidesAndXLs(const PeptideIdentificationList& pep_pi,
       const PeptideIdentificationList& xl_pi,
@@ -86,6 +96,8 @@ class OPENMS_DLLAPI NuXLFDR
       tools such as Percolator), and @c use_all_hits @c = @c true iff @c report_top_hits_
       passed to the constructor is @c >= @c 2. Also computes the peptide-level q-value
       meta value @c Constants::UserParam::PEPTIDE_Q_VALUE on each hit.
+
+      @param[in,out] peptide_ids PSMs to score in place; each hit receives PSM- and peptide-level q-value meta values.
     */
     void QValueAtPSMLevel(PeptideIdentificationList& peptide_ids) const;
 
@@ -96,6 +108,10 @@ class OPENMS_DLLAPI NuXLFDR
       @ref FalseDiscoveryRate to each output list with the same parameters as
       @ref QValueAtPSMLevel. The q-values are computed independently on each class so XL
       and non-XL FDR control are not confounded.
+
+      @param[in]  peptide_ids Input mixed plain-peptide / cross-link PSMs.
+      @param[out] pep_pi      Plain-peptide PSMs with PSM- and peptide-level q-values annotated.
+      @param[out] xl_pi       Cross-link PSMs with PSM- and peptide-level q-values annotated.
     */
     void calculatePeptideAndXLQValueAtPSMLevel(const PeptideIdentificationList& peptide_ids,
       PeptideIdentificationList& pep_pi,
