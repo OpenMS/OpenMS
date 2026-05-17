@@ -184,10 +184,10 @@ public:
     */
     void runAccurateMassSearch(FeatureMap& input, OpenMS::MzTab& output);
 
-    /// Return the band centres used by @ref mergeAlongTime: @c {bin_step, 2*bin_step, ..., (n-1)*bin_step} where @c n @c = @c max_mz @c / @c bin_step. Refreshed by @ref updateMembers_ when relevant parameters change.
+    /// Return the band centres used by @ref mergeAlongTime — @c {bin_step, 2*bin_step, ..., (n-1)*bin_step} where @c n @c = @c max_mz @c / @c bin_step. Refreshed by @ref updateMembers_ when relevant parameters change.
     const std::vector<float>& getMZs();
 
-    /// Return the per-band sliding bin sizes used by @ref mergeAlongTime: @c bin_size[i] @c = @c mzs_[i] @c / @c (resolution @c * @c 4). Parallel to @ref getMZs.
+    /// Return the per-band sliding bin sizes used by @ref mergeAlongTime — @c bin_size[i] @c = @c mzs_[i] @c / @c (resolution @c * @c 4). Parallel to @ref getMZs.
     const std::vector<float>& getBinSizes();
 
 protected:
