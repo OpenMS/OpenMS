@@ -104,7 +104,7 @@ class OPENMS_DLLAPI NuXLFragmentIonGenerator
     For each @p partial_loss_modification entry @c f:
       -# Calls @ref addShiftedImmoniumIons (charge-1 immonium series for @c f.mass).
       -# For each charge @c z in @c [1, min(precursor_charge, 3)], copies peaks from the
-         charge-specific @p partial_loss_template_z{1,2,3} into the output and shifts their
+         charge-specific @p patial_loss_template_z{1,2,3} into the output and shifts their
          m/z by @c f.mass @c / @c z. For @c z @c == @c 2 and @c z @c == @c 3 the template is
          filtered down to peaks whose template-charge annotation matches @c z (lower-charge
          peaks already present in the higher-charge templates are skipped).
@@ -124,9 +124,9 @@ class OPENMS_DLLAPI NuXLFragmentIonGenerator
     @param[in]  precursor_rna_mass                        Monoisotopic mass of the complete RNA adduct.
     @param[in]  precursor_charge                          Upper bound on the emitted fragment / precursor charge states.
     @param[in]  partial_loss_modification                 Definitions of MS2 fragment adducts whose shifts the spectrum should reflect.
-    @param[in]  partial_loss_template_z1                  Charge-1 template peaks to shift and append.
-    @param[in]  partial_loss_template_z2                  Charge-2 template peaks (filtered to charge-2 entries during the shift step).
-    @param[in]  partial_loss_template_z3                  Charge-3 template peaks (filtered to charge-3 entries during the shift step).
+    @param[in]  patial_loss_template_z1                  Charge-1 template peaks to shift and append.
+    @param[in]  patial_loss_template_z2                  Charge-2 template peaks (filtered to charge-2 entries during the shift step).
+    @param[in]  patial_loss_template_z3                  Charge-3 template peaks (filtered to charge-3 entries during the shift step).
     @param[out] partial_loss_spectrum                     Receives the composed spectrum (data arrays resized to one each).
   */
   static void generatePartialLossSpectrum(const String& unmodified_sequence,
