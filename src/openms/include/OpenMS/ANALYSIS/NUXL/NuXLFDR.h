@@ -136,8 +136,9 @@ class OPENMS_DLLAPI NuXLFDR
            is in @c (0, 1); values @c <= @c 0 or @c >= @c 1 disable the filter.
         -# Filters @p pep PSMs by score when @p peptide_PSM_qvalue_threshold is in
            @c (0, 1).
-        -# Writes the plain-peptide idXML to @c <out_idxml><threshold:.4f>_peptides.idXML
-           with unreferenced proteins pruned.
+        -# Writes the plain-peptide idXML to @c {out_idxml}{threshold:.4f}_peptides.idXML
+           (with @p out_idxml the literal prefix and @c threshold the configured cut
+           formatted to four decimal places), with unreferenced proteins pruned.
         -# Normalises @p xl_PSM_qvalue_thresholds: @c 0.0 entries are rewritten to @c 1.0
            (disabled filter = 100% FDR) and the vector is then sorted in @em descending
            order so increasingly stringent filters are applied progressively to the same
@@ -151,9 +152,9 @@ class OPENMS_DLLAPI NuXLFDR
             - prune unreferenced proteins from a fresh copy of @p protein_ids;
             - compute coverage by cross-linked peptides on the first @c ProteinIdentification
               of that copy;
-            - write the XL idXML to @c <out_idxml><threshold:.4f>_XLs.idXML;
+            - write the XL idXML to @c {out_idxml}{threshold:.4f}_XLs.idXML;
             - if the XL FDR is @c <= @c 0.1, also write a TSV protein report to
-              @c <out_idxml>proteins<threshold:.4f>_XLs.tsv (skipped for permissive FDRs
+              @c {out_idxml}proteins{threshold:.4f}_XLs.tsv (skipped for permissive FDRs
               to bound output size).
 
       @param[in]  protein_ids                       Protein identifications used as the source for the per-file protein lists; unreferenced proteins are pruned per output.
