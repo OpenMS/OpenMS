@@ -90,13 +90,31 @@ public:
         but only checks presence — i.e. @c "1.0.0-alpha @c < @c 1.0.0" holds, while
         @c "1.0.0-alpha @c < @c 1.0.0-beta" is @c false (both have a pre-release, so the
         triples are compared as equal).
+
+        @param[in] rhs Version to compare against.
+        @return @c true if @c *this is strictly less than @p rhs by the rule above.
       */
       bool operator<(const VersionDetails & rhs) const;
-      /// Field-wise equality on all four members, including string equality on the pre-release identifier.
+      /**
+        @brief Field-wise equality on all four members, including string equality on the pre-release identifier.
+
+        @param[in] rhs Version to compare against.
+        @return @c true if every field of @c *this equals the corresponding field of @p rhs.
+      */
       bool operator==(const VersionDetails & rhs) const;
-      /// Field-wise inequality (the logical negation of @ref operator==).
+      /**
+        @brief Field-wise inequality (the logical negation of @ref operator==).
+
+        @param[in] rhs Version to compare against.
+        @return @c true if at least one field differs.
+      */
       bool operator!=(const VersionDetails & rhs) const;
-      /// Equivalent to @c !(*this @c < @c rhs @c || @c *this @c == @c rhs); inherits the @c operator< caveat about pre-release ties.
+      /**
+        @brief Equivalent to @c !(*this @c < @c rhs @c || @c *this @c == @c rhs); inherits the @c operator< caveat about pre-release ties.
+
+        @param[in] rhs Version to compare against.
+        @return @c true if @c *this is strictly greater than @p rhs.
+      */
       bool operator>(const VersionDetails & rhs) const;
 
       /// Sentinel @c 0.0.0 version used both as the default-constructed value and as the parse-failure return of @ref create.
