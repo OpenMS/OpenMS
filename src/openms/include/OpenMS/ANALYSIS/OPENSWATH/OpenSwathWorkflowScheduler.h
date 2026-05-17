@@ -80,7 +80,7 @@ namespace OpenMS
     struct OPENMS_DLLAPI Wave
     {
       std::vector<Size> swath_indices; ///< Indices into the original @c swath_maps vector. Always non-MS1.
-      UInt64 estimated_bytes = 0;      ///< Sum of @ref Options-derived per-SWATH byte estimates for the indices above.
+      UInt64 estimated_bytes = 0;      ///< Sum of the per-SWATH byte estimates (derived from @ref Options) for the indices above.
     };
 
     /**
