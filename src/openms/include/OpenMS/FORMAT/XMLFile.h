@@ -31,6 +31,8 @@ namespace OpenMS
       and matching one of three magic numbers: @c "BZ" (bzip2), @c 0x1F8B (gzip),
       @c "PK" (zip). On @ref save_, compression is selected by filename suffix
       (@c .gz, @c .bz2) instead.
+
+      @ingroup FileIO
     */
     class OPENMS_DLLAPI XMLFile
     {
@@ -131,6 +133,8 @@ protected:
 
         Stores @p encoding in @ref enforced_encoding_. Pass an empty string to disable the
         override and let Xerces use the encoding declared inside the XML.
+
+        @param[in] encoding Encoding name (e.g. @c "ISO-8859-1") to apply to the @c InputSource before parsing; empty string disables the override so Xerces consults the XML declaration instead.
       */
       void enforceEncoding_(const String& encoding);
     };
