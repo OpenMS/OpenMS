@@ -156,6 +156,141 @@ namespace OpenMS
     float im;
   };
 
+  // Per-frame parallel buffers that travel together through the
+  // centroiding pipeline: m/z, intensity, IM (1/K0), and TIMS scan index.
+  // All four vectors stay in lockstep (same size, same ordering).
+  // Downstream centroiders consume them via .data() pointers; the SoA
+  // layout is what PASEFHillCentroider / FrameCentroider / PeakPickerIM
+  // already expect.
+  struct FrameBuffers
+  {
+    std::vector<double>   mz;
+    std::vector<double>   intensity;
+    std::vector<double>   im;
+    std::vector<uint32_t> scan_ids;
+
+    size_t size() const { return mz.size(); }
+    bool   empty() const { return mz.empty(); }
+
+    void clear()
+    {
+      mz.clear(); intensity.clear(); im.clear(); scan_ids.clear();
+    }
+    void resize(size_t n)
+    {
+      mz.resize(n); intensity.resize(n); im.resize(n); scan_ids.resize(n);
+    }
+    void reserve(size_t n)
+    {
+      mz.reserve(n); intensity.reserve(n); im.reserve(n); scan_ids.reserve(n);
+    }
+
+    // Compact in place to the entries where keep(i) returns true. The
+    // ordering of survivors is preserved.
+    template <class Keep>
+    void filter(Keep keep)
+    {
+      const size_t n = mz.size();
+      size_t w = 0;
+      for (size_t r = 0; r < n; ++r)
+      {
+        if (!keep(r)) continue;
+        if (w != r)
+        {
+          mz[w]        = mz[r];
+          intensity[w] = intensity[r];
+          im[w]        = im[r];
+          scan_ids[w]  = scan_ids[r];
+        }
+        ++w;
+      }
+      resize(w);
+    }
+  };
+
+  // Sort the four buffers in lockstep by m/z ascending. The downstream
+  // centroiders all re-sort internally if they need a specific order,
+  // so the only caller that strictly needs a sort is the isotopic
+  // prefilter (which binary-searches m/z windows).
+  static void sortFrameBuffersByMz(FrameBuffers& buf)
+  {
+    const size_t n = buf.size();
+    if (n <= 1) return;
+    std::vector<size_t> idx(n);
+    std::iota(idx.begin(), idx.end(), size_t(0));
+    std::sort(idx.begin(), idx.end(),
+              [&buf](size_t a, size_t b) { return buf.mz[a] < buf.mz[b]; });
+    // Build a permuted copy then move back; cheaper than in-place
+    // permutation for typical PASEF frame sizes (10^4–10^5 peaks).
+    FrameBuffers tmp;
+    tmp.resize(n);
+    for (size_t i = 0; i < n; ++i)
+    {
+      tmp.mz[i]        = buf.mz[idx[i]];
+      tmp.intensity[i] = buf.intensity[idx[i]];
+      tmp.im[i]        = buf.im[idx[i]];
+      tmp.scan_ids[i]  = buf.scan_ids[idx[i]];
+    }
+    buf = std::move(tmp);
+  }
+
+  // Isotopic-partner prefilter. Drops peaks lacking at least one
+  // isotopic partner at m/z ± C13C12_MASSDIFF_U/q (for q in {1..5})
+  // within ±tol_da AND |Δscan_id| <= 1. m/z lookup uses binary search,
+  // so the buffer is sorted by m/z first (in lockstep). Returns the
+  // number of dropped peaks. Output buffers are m/z-sorted.
+  //
+  // Charges 1..5 cover essentially all peptide MS1 / DIA-MS2 precursors;
+  // tol_da is intentionally broad (default 0.05 Da from the Config) to
+  // tolerate per-scan m/z calibration jitter at the prefilter stage.
+  // No intensity-ratio check is applied — pure existence test.
+  static size_t isotopicPrefilter(FrameBuffers& buf, double tol_da)
+  {
+    if (buf.empty()) return 0;
+
+    sortFrameBuffersByMz(buf);
+
+    const size_t n = buf.size();
+    std::vector<bool> keep(n, false);
+    static constexpr std::array<int, 5> CHARGES = {1, 2, 3, 4, 5};
+
+    for (size_t i = 0; i < n; ++i)
+    {
+      if (keep[i]) continue;  // already validated as partner of another
+      bool found = false;
+      for (int q : CHARGES)
+      {
+        const double dmz = Constants::C13C12_MASSDIFF_U / static_cast<double>(q);
+        for (double sign : {-1.0, 1.0})
+        {
+          const double target = buf.mz[i] + sign * dmz;
+          auto it_lo = std::lower_bound(buf.mz.begin(), buf.mz.end(), target - tol_da);
+          auto it_hi = std::upper_bound(buf.mz.begin(), buf.mz.end(), target + tol_da);
+          for (auto it = it_lo; it != it_hi; ++it)
+          {
+            const size_t j = static_cast<size_t>(it - buf.mz.begin());
+            if (j == i) continue;
+            const int64_t ds = static_cast<int64_t>(buf.scan_ids[j])
+                             - static_cast<int64_t>(buf.scan_ids[i]);
+            if (std::abs(ds) <= 1)
+            {
+              keep[i] = true;
+              keep[j] = true;   // mutual confirmation; saves later work
+              found = true;
+              break;
+            }
+          }
+          if (found) break;
+        }
+        if (found) break;
+      }
+    }
+
+    const size_t before = n;
+    buf.filter([&keep](size_t i) { return keep[i]; });
+    return before - buf.size();
+  }
+
   // Default cap on the number of centroided peaks per frame. Overridable via
   // BrukerTimsFile::Config::ms1_centroid_max_peaks. For per-frame MS1 (~200k
   // peaks) the 10k default covers the top-intensity peaks well; for aggregated
@@ -989,36 +1124,28 @@ namespace OpenMS
       boost::unordered_flat_map<uint64_t, Cell> grid_;
     };
 
-    // Build parallel (m/z, intensity, IM[, scan_id]) buffers from FrameAggregator
-    // output peaks. Converts each peak's scan_id to inverse ion mobility (1/K0)
-    // via the handle's converter, using @p center_frame_id as the calibration
-    // reference. Used by the three sites that consume aggregator output:
-    // loadAggregatedMS1Spectrum, DIA-MS2 aggregated hill, DIA-MS2 aggregated
-    // PeakPickerIM. @p out_scan_ids is optional — the hill paths need it for
-    // max_scan_gap detection, PeakPickerIM does not.
+    // Fill a FrameBuffers struct from FrameAggregator output peaks. Converts
+    // each peak's scan_id to inverse ion mobility (1/K0) via the handle's
+    // converter using @p center_frame_id as the calibration reference. Used
+    // by the three sites that consume aggregator output: loadAggregatedMS1Spectrum,
+    // DIA-MS2 aggregated hill, DIA-MS2 aggregated PeakPickerIM.
     static void aggregatorPeaksToBuffers(
         const std::vector<FrameAggregator::OutputPeak>& peaks,
         TimsDataHandle& handle,
         uint32_t center_frame_id,
-        std::vector<double>& out_mz,
-        std::vector<double>& out_intensity,
-        std::vector<double>& out_im,
-        std::vector<uint32_t>* out_scan_ids = nullptr)
+        FrameBuffers& out)
     {
       const size_t n = peaks.size();
-      out_mz.resize(n);
-      out_intensity.resize(n);
-      out_im.resize(n);
-      if (out_scan_ids) out_scan_ids->resize(n);
+      out.resize(n);
       for (size_t i = 0; i < n; ++i)
       {
-        out_mz[i]        = peaks[i].mz;
-        out_intensity[i] = peaks[i].intensity;
+        out.mz[i]        = peaks[i].mz;
+        out.intensity[i] = peaks[i].intensity;
         double im_val = 0.0;
         handle.scan2inv_ion_mobility_converter->convert(
           center_frame_id, &im_val, &peaks[i].scan_id, 1);
-        out_im[i] = im_val;
-        if (out_scan_ids) (*out_scan_ids)[i] = peaks[i].scan_id;
+        out.im[i]        = im_val;
+        out.scan_ids[i]  = peaks[i].scan_id;
       }
     }
 
@@ -1455,23 +1582,29 @@ namespace OpenMS
 
     if (frame.num_peaks == 0) return;
 
-    // Extract data from frame using save_to_buffs. Pull scan_ids in addition
-    // so the HillBased centroider can see real IM-scan gaps for its
-    // max_scan_gap tolerance (no-op for the Greedy2D path which doesn't use
-    // them).
-    std::vector<uint32_t> scan_ids(frame.num_peaks);
-    std::vector<uint32_t> intensities(frame.num_peaks);
-    std::vector<double> mzs(frame.num_peaks);
-    std::vector<double> inv_ion_mobilities(frame.num_peaks);
-
-    frame.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
-                        mzs.data(), inv_ion_mobilities.data(), nullptr);
-
-    // Convert intensities to double for the unified centroider dispatch
-    // (PASEFHillCentroider takes double; FrameCentroider has a double overload).
-    std::vector<double> intensities_d(frame.num_peaks);
+    // Extract frame data into FrameBuffers. save_to_buffs writes uint32
+    // intensities; we widen to double for the unified centroider dispatch
+    // (PASEFHillCentroider + FrameCentroider double overloads + PeakPickerIM).
+    FrameBuffers buf;
+    buf.resize(frame.num_peaks);
+    std::vector<uint32_t> raw_intensities(frame.num_peaks);
+    frame.save_to_buffs(nullptr, buf.scan_ids.data(), nullptr,
+                        raw_intensities.data(),
+                        buf.mz.data(), buf.im.data(), nullptr);
     for (uint32_t i = 0; i < frame.num_peaks; ++i)
-      intensities_d[i] = static_cast<double>(intensities[i]);
+      buf.intensity[i] = static_cast<double>(raw_intensities[i]);
+
+    if (config.isotopic_prefilter)
+    {
+      const size_t before = buf.size();
+      const size_t dropped = isotopicPrefilter(buf, config.isotopic_prefilter_tol_da);
+      OPENMS_LOG_INFO << "Isotopic prefilter (MS1, frame=" << frame.id
+                      << "): dropped " << dropped << " / " << before
+                      << " peaks ("
+                      << (100.0 * dropped / std::max<size_t>(1, before)) << "%)"
+                      << std::endl;
+      if (buf.empty()) return;
+    }
 
     const auto algo = effectiveMS1Algo(config, /*emit_warnings=*/false);
 
@@ -1480,8 +1613,8 @@ namespace OpenMS
     // Bypasses the runMS1Centroider dispatcher (which is buffer-oriented).
     if (algo == BrukerTimsFile::Config::CentroidAlgo::PEAK_PICKER_IM)
     {
-      runPeakPickerIMOnBuffers(picker_im, mzs.data(), intensities_d.data(),
-                               inv_ion_mobilities.data(), frame.num_peaks, spec);
+      runPeakPickerIMOnBuffers(picker_im, buf.mz.data(), buf.intensity.data(),
+                               buf.im.data(), buf.size(), spec);
       return;
     }
 
@@ -1494,10 +1627,11 @@ namespace OpenMS
         ? HillBoundsOut{&b_im_lo, &b_im_hi, &b_mz_lo, &b_mz_hi}
         : HillBoundsOut{nullptr, nullptr, nullptr, nullptr};
     runMS1Centroider(algo, config, centroider,
-                     mzs.data(), intensities_d.data(),
-                     inv_ion_mobilities.data(), frame.num_peaks,
+                     buf.mz.data(), buf.intensity.data(),
+                     buf.im.data(),
+                     static_cast<uint32_t>(buf.size()),
                      cent_mz, cent_intensity, cent_im,
-                     scan_ids.data(), bounds);
+                     buf.scan_ids.data(), bounds);
 
     // Build MSSpectrum from centroided output
     spec.reserve(cent_mz.size());
@@ -1614,23 +1748,39 @@ namespace OpenMS
       return;
     }
 
+    // Build FrameBuffers once for all algos (including OFF). scan_ids are
+    // needed by HillBased (max_scan_gap) and the isotopic prefilter; for
+    // OFF they're unused but cheap.
+    FrameBuffers buf;
+    aggregatorPeaksToBuffers(peaks, handle, center_frame.id, buf);
+
+    if (config.isotopic_prefilter)
+    {
+      const size_t before = buf.size();
+      const size_t dropped = isotopicPrefilter(buf, config.isotopic_prefilter_tol_da);
+      OPENMS_LOG_INFO << "Isotopic prefilter (MS1 aggregated, frame="
+                      << center_frame.id << "): dropped " << dropped << " / "
+                      << before << " peaks ("
+                      << (100.0 * dropped / std::max<size_t>(1, before)) << "%)"
+                      << std::endl;
+      if (buf.empty())
+      {
+        spec.getFloatDataArrays().push_back(std::move(im_array));
+        spec.setIMPeakType(IMPeakType::IM_PROFILE);
+        return;
+      }
+    }
+
     const auto algo = effectiveMS1Algo(config, /*emit_warnings=*/false);
     if (algo != BrukerTimsFile::Config::CentroidAlgo::OFF)
     {
-      // Unpack aggregator output into parallel arrays for the centroider,
-      // including per-peak scan_id so HillBased can do gap detection.
-      std::vector<double> cent_mzs, cent_intensities, cent_ims;
-      std::vector<uint32_t> cent_scan_ids;
-      aggregatorPeaksToBuffers(peaks, handle, center_frame.id,
-                               cent_mzs, cent_intensities, cent_ims, &cent_scan_ids);
-
-      // PeakPickerIM bypasses the buffer-oriented dispatcher; we built the
-      // (m/z, intensity, IM) buffers above and feed them directly into the
-      // mobilogram pipeline via a temp MSSpectrum.
+      // PeakPickerIM bypasses the buffer-oriented dispatcher; feed the
+      // (m/z, intensity, IM) buffers directly into the mobilogram pipeline
+      // via a temp MSSpectrum.
       if (algo == BrukerTimsFile::Config::CentroidAlgo::PEAK_PICKER_IM)
       {
-        runPeakPickerIMOnBuffers(picker_im, cent_mzs.data(), cent_intensities.data(),
-                                 cent_ims.data(), peaks.size(), spec);
+        runPeakPickerIMOnBuffers(picker_im, buf.mz.data(), buf.intensity.data(),
+                                 buf.im.data(), buf.size(), spec);
         return;
       }
 
@@ -1643,11 +1793,11 @@ namespace OpenMS
           ? HillBoundsOut{&b_im_lo, &b_im_hi, &b_mz_lo, &b_mz_hi}
           : HillBoundsOut{nullptr, nullptr, nullptr, nullptr};
       runMS1Centroider(algo, config, centroider,
-                       cent_mzs.data(), cent_intensities.data(),
-                       cent_ims.data(),
-                       static_cast<uint32_t>(peaks.size()),
+                       buf.mz.data(), buf.intensity.data(),
+                       buf.im.data(),
+                       static_cast<uint32_t>(buf.size()),
                        out_mz, out_intensity, out_im,
-                       cent_scan_ids.data(), bounds);
+                       buf.scan_ids.data(), bounds);
 
       spec.reserve(out_mz.size());
       for (size_t i = 0; i < out_mz.size(); ++i)
@@ -1665,16 +1815,13 @@ namespace OpenMS
         attachHillBoundsArrays(spec, b_im_lo, b_im_hi, b_mz_lo, b_mz_hi);
       return;
     }
-    // Off path:
-    spec.reserve(peaks.size());
-    im_array.reserve(peaks.size());
-    for (const auto& peak : peaks)
+    // Off path — emit from prefiltered (or raw) buf.
+    spec.reserve(buf.size());
+    im_array.reserve(buf.size());
+    for (size_t i = 0; i < buf.size(); ++i)
     {
-      spec.emplace_back(peak.mz, static_cast<float>(peak.intensity));
-      double im_val = 0.0;
-      handle.scan2inv_ion_mobility_converter->convert(
-        center_frame.id, &im_val, &peak.scan_id, 1);
-      im_array.push_back(static_cast<float>(im_val));
+      spec.emplace_back(buf.mz[i], static_cast<float>(buf.intensity[i]));
+      im_array.push_back(static_cast<float>(buf.im[i]));
     }
     spec.setIMPeakType(IMPeakType::IM_PROFILE);
     spec.getFloatDataArrays().push_back(std::move(im_array));
@@ -2758,15 +2905,29 @@ namespace OpenMS
             DataArrays::FloatDataArray im_array;
             IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
 
+            // Convert aggregator output to FrameBuffers once for all algos
+            // (HILL/PPIM consume the buffers; GREEDY2D/OFF emit from them).
+            // This also enables the isotopic prefilter to run before dispatch.
+            FrameBuffers buf;
+            aggregatorPeaksToBuffers(peaks, handle, center_frame.id, buf);
+
+            if (config.isotopic_prefilter)
+            {
+              const size_t before = buf.size();
+              const size_t dropped = isotopicPrefilter(buf, config.isotopic_prefilter_tol_da);
+              OPENMS_LOG_INFO << "Isotopic prefilter (DIA-MS2 aggregated, frame="
+                              << center_frame.id << " window=" << win->window_group
+                              << "): dropped " << dropped << " / " << before
+                              << " peaks ("
+                              << (100.0 * dropped / std::max<size_t>(1, before))
+                              << "%)" << std::endl;
+              if (buf.empty()) continue;
+            }
+
             std::vector<float> b_im_lo, b_im_hi, b_mz_lo, b_mz_hi;
             bool wrote_hill_bounds = false;
             if (ms2_algo == CA::HILL_BASED)
             {
-              // Convert aggregator scan_ids to IM and run hill detection.
-              std::vector<double>   hb_mz, hb_int, hb_im;
-              std::vector<uint32_t> hb_scan_ids;
-              aggregatorPeaksToBuffers(peaks, handle, center_frame.id,
-                                       hb_mz, hb_int, hb_im, &hb_scan_ids);
               std::vector<double> out_mz, out_int;
               std::vector<float>  out_im;
               const bool want_bounds = config.expose_hill_bounds;
@@ -2774,9 +2935,9 @@ namespace OpenMS
                   ? HillBoundsOut{&b_im_lo, &b_im_hi, &b_mz_lo, &b_mz_hi}
                   : HillBoundsOut{nullptr, nullptr, nullptr, nullptr};
               runHillCentroider(makeMS2HillParams(config),
-                                hb_mz.data(), hb_int.data(), hb_im.data(),
-                                peaks.size(), out_mz, out_int, out_im,
-                                hb_scan_ids.data(), bounds);
+                                buf.mz.data(), buf.intensity.data(), buf.im.data(),
+                                buf.size(), out_mz, out_int, out_im,
+                                buf.scan_ids.data(), bounds);
               if (out_mz.empty()) continue;
               for (size_t k = 0; k < out_mz.size(); ++k)
               {
@@ -2789,29 +2950,22 @@ namespace OpenMS
             else if (ms2_algo == CA::PEAK_PICKER_IM)
             {
               // PeakPickerIM (mobilogram method) runs on a temp MSSpectrum
-              // inheriting spec's precursor/IM-window metadata. Build the
-              // (m/z, intensity, IM) buffers from the aggregator output,
-              // hand off to runPeakPickerIMOnBuffers, then commit and skip
-              // the shared post-branch im_array push (the picker emits its
-              // own IM array).
-              std::vector<double> mz_buf, int_buf, im_buf;
-              aggregatorPeaksToBuffers(peaks, handle, center_frame.id,
-                                       mz_buf, int_buf, im_buf);
-              runPeakPickerIMOnBuffers(picker_im, mz_buf.data(), int_buf.data(),
-                                       im_buf.data(), peaks.size(), spec);
+              // inheriting spec's precursor/IM-window metadata. The picker
+              // emits its own IM array, so we skip the shared im_array push
+              // and addSpectrum directly.
+              runPeakPickerIMOnBuffers(picker_im, buf.mz.data(), buf.intensity.data(),
+                                       buf.im.data(), buf.size(), spec);
               if (!spec.empty()) exp.addSpectrum(std::move(spec));
               continue;
             }
             else
             {
-              for (const auto& peak : peaks)
+              // GREEDY2D (finalizeCentroided already produced centroids) and OFF
+              // (raw passthrough). Emit straight from buf.
+              for (size_t k = 0; k < buf.size(); ++k)
               {
-                spec.emplace_back(peak.mz, peak.intensity);
-                // Convert scan_id → 1/K0 using center frame's calibration
-                double im_val = 0.0;
-                handle.scan2inv_ion_mobility_converter->convert(
-                  center_frame.id, &im_val, &peak.scan_id, 1);
-                im_array.push_back(static_cast<float>(im_val));
+                spec.emplace_back(buf.mz[k], static_cast<float>(buf.intensity[k]));
+                im_array.push_back(static_cast<float>(buf.im[k]));
               }
               spec.setIMPeakType(ms2_algo == CA::GREEDY2D ? IMPeakType::IM_CENTROIDED
                                                           : IMPeakType::IM_PROFILE);
@@ -2855,13 +3009,14 @@ namespace OpenMS
             TimsFrame& frame = handle.get_frame(frame_ids[i]);
             if (frame.num_peaks == 0) continue;
 
-            std::vector<uint32_t> scan_ids(frame.num_peaks);
-            std::vector<uint32_t> intensities(frame.num_peaks);
-            std::vector<double> mzs(frame.num_peaks);
-            std::vector<double> inv_ion_mobilities(frame.num_peaks);
+            std::vector<uint32_t> raw_scan_ids(frame.num_peaks);
+            std::vector<uint32_t> raw_intensities(frame.num_peaks);
+            std::vector<double> raw_mzs(frame.num_peaks);
+            std::vector<double> raw_ims(frame.num_peaks);
 
-            frame.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
-                                mzs.data(), inv_ion_mobilities.data(), nullptr);
+            frame.save_to_buffs(nullptr, raw_scan_ids.data(), nullptr,
+                                raw_intensities.data(),
+                                raw_mzs.data(), raw_ims.data(), nullptr);
 
             MSSpectrum spec;
             spec.setRT(frame.time);
@@ -2882,59 +3037,48 @@ namespace OpenMS
             DataArrays::FloatDataArray im_array;
             IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
 
+            // Window-filter into FrameBuffers once for all algos. IM is
+            // already in 1/K0 from save_to_buffs — no scan_id→IM conversion
+            // needed here (unlike the aggregated path). scan_ids carried
+            // through for HillBased max_scan_gap and the isotopic prefilter.
+            FrameBuffers buf;
+            buf.reserve(frame.num_peaks);
+            for (uint32_t p = 0; p < frame.num_peaks; ++p)
+            {
+              if (raw_ims[p] >= win->im_lower && raw_ims[p] <= win->im_upper)
+              {
+                buf.mz.push_back(raw_mzs[p]);
+                buf.intensity.push_back(static_cast<double>(raw_intensities[p]));
+                buf.im.push_back(raw_ims[p]);
+                buf.scan_ids.push_back(raw_scan_ids[p]);
+              }
+            }
+            if (buf.empty()) continue;
+
+            if (config.isotopic_prefilter)
+            {
+              const size_t before = buf.size();
+              const size_t dropped = isotopicPrefilter(buf, config.isotopic_prefilter_tol_da);
+              OPENMS_LOG_INFO << "Isotopic prefilter (DIA-MS2 raw, frame="
+                              << frame.id << " window=" << win->window_group
+                              << "): dropped " << dropped << " / " << before
+                              << " peaks ("
+                              << (100.0 * dropped / std::max<size_t>(1, before))
+                              << "%)" << std::endl;
+              if (buf.empty()) continue;
+            }
+
             std::vector<float> b_im_lo, b_im_hi, b_mz_lo, b_mz_hi;
             bool wrote_hill_bounds = false;
             if (do_ppim_raw)
             {
-              // PeakPickerIM raw path: collect window-filtered (m/z, intensity, IM)
-              // tuples and run pickIMTraces via the shared helper. spec already
-              // carries precursor/IM-window metadata; runPeakPickerIMOnBuffers
-              // preserves it via SpectrumSettings copy and pickIMTraces's internal
-              // settings-preserving move.
-              std::vector<double> mz_buf, int_buf, im_buf;
-              mz_buf.reserve(frame.num_peaks);
-              int_buf.reserve(frame.num_peaks);
-              im_buf.reserve(frame.num_peaks);
-              for (uint32_t p = 0; p < frame.num_peaks; ++p)
-              {
-                if (inv_ion_mobilities[p] >= win->im_lower &&
-                    inv_ion_mobilities[p] <= win->im_upper)
-                {
-                  mz_buf.push_back(mzs[p]);
-                  int_buf.push_back(static_cast<double>(intensities[p]));
-                  im_buf.push_back(inv_ion_mobilities[p]);
-                }
-              }
-              if (mz_buf.empty()) continue;
-              runPeakPickerIMOnBuffers(picker_im, mz_buf.data(), int_buf.data(),
-                                       im_buf.data(), mz_buf.size(), spec);
+              runPeakPickerIMOnBuffers(picker_im, buf.mz.data(), buf.intensity.data(),
+                                       buf.im.data(), buf.size(), spec);
               if (!spec.empty()) exp.addSpectrum(std::move(spec));
               continue;
             }
             if (do_hill_raw)
             {
-              // Collect window-filtered peaks into parallel arrays, then run
-              // hill centroiding on the single frame (IM scans within it
-              // provide the linking dimension). Pass scan_ids so hill
-              // max_scan_gap can bridge missing IM scans.
-              std::vector<double>   hb_mz, hb_int, hb_im;
-              std::vector<uint32_t> hb_scan_ids;
-              hb_mz.reserve(frame.num_peaks);
-              hb_int.reserve(frame.num_peaks);
-              hb_im.reserve(frame.num_peaks);
-              hb_scan_ids.reserve(frame.num_peaks);
-              for (uint32_t p = 0; p < frame.num_peaks; ++p)
-              {
-                if (inv_ion_mobilities[p] >= win->im_lower &&
-                    inv_ion_mobilities[p] <= win->im_upper)
-                {
-                  hb_mz.push_back(mzs[p]);
-                  hb_int.push_back(static_cast<double>(intensities[p]));
-                  hb_im.push_back(inv_ion_mobilities[p]);
-                  hb_scan_ids.push_back(scan_ids[p]);
-                }
-              }
-              if (hb_mz.empty()) continue;
               std::vector<double> out_mz, out_int;
               std::vector<float>  out_im;
               const bool want_bounds = config.expose_hill_bounds;
@@ -2942,9 +3086,9 @@ namespace OpenMS
                   ? HillBoundsOut{&b_im_lo, &b_im_hi, &b_mz_lo, &b_mz_hi}
                   : HillBoundsOut{nullptr, nullptr, nullptr, nullptr};
               runHillCentroider(makeMS2HillParams(config),
-                                hb_mz.data(), hb_int.data(), hb_im.data(),
-                                hb_mz.size(), out_mz, out_int, out_im,
-                                hb_scan_ids.data(), bounds);
+                                buf.mz.data(), buf.intensity.data(), buf.im.data(),
+                                buf.size(), out_mz, out_int, out_im,
+                                buf.scan_ids.data(), bounds);
               if (out_mz.empty()) continue;
               for (size_t k = 0; k < out_mz.size(); ++k)
               {
@@ -2956,16 +3100,12 @@ namespace OpenMS
             }
             else
             {
-              for (uint32_t p = 0; p < frame.num_peaks; ++p)
+              // OFF (or Greedy2D in raw mode — falls through here per
+              // effectiveDIAMS2Algo: Greedy2D requires aggregation).
+              for (size_t k = 0; k < buf.size(); ++k)
               {
-                if (inv_ion_mobilities[p] >= win->im_lower && inv_ion_mobilities[p] <= win->im_upper)
-                {
-                  Peak1D peak;
-                  peak.setMZ(mzs[p]);
-                  peak.setIntensity(static_cast<double>(intensities[p]));
-                  spec.push_back(peak);
-                  im_array.push_back(static_cast<float>(inv_ion_mobilities[p]));
-                }
+                spec.emplace_back(buf.mz[k], static_cast<float>(buf.intensity[k]));
+                im_array.push_back(static_cast<float>(buf.im[k]));
               }
               spec.setIMPeakType(IMPeakType::IM_PROFILE);
             }

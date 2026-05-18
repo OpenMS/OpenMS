@@ -177,6 +177,18 @@ protected:
       "HillBased: max consecutive empty IM scans a hill may bridge (0 = strict).",
       false, true);
     setMinInt_("bruker:centroid_max_scan_gap", 0);
+    registerStringOption_("bruker:isotopic_prefilter", "<toggle>", "false",
+      "MS1 + DIA-MS2 isotopic-partner prefilter applied after aggregation (or after raw "
+      "extraction), before the centroider. Drops peaks lacking an isotopic partner at "
+      "m/z ± C13C12_MASSDIFF / q (q in {1..5}) within ± isotopic_prefilter_tol_da AND "
+      "|Δscan_id| <= 1. Not applied to DDA-MS2.",
+      false, true);
+    setValidStrings_("bruker:isotopic_prefilter", {"true", "false"});
+    registerDoubleOption_("bruker:isotopic_prefilter_tol_da", "<float>", 0.05,
+      "Da tolerance for isotopic-partner matching by the prefilter.",
+      false, true);
+    setMinFloat_("bruker:isotopic_prefilter_tol_da", 0.0);
+
     registerStringOption_("bruker:expose_hill_bounds", "<toggle>", "false",
       "HillBased: attach hill bounding-box arrays per centroided spectrum for visual QC.",
       false, true);
@@ -229,6 +241,8 @@ protected:
     c.ms2_centroid_min_hill_length = static_cast<Size>(getIntOption_("bruker:ms2_centroid_min_hill_length"));
     c.centroid_max_scan_gap        = static_cast<Size>(getIntOption_("bruker:centroid_max_scan_gap"));
     c.expose_hill_bounds           = (getStringOption_("bruker:expose_hill_bounds") == "true");
+    c.isotopic_prefilter           = (getStringOption_("bruker:isotopic_prefilter") == "true");
+    c.isotopic_prefilter_tol_da    = getDoubleOption_("bruker:isotopic_prefilter_tol_da");
     // If PEAK_PICKER_IM is selected on either MS level, forward the algorithm:
     // subsection params (which the user configures via -algorithm:pickIMTraces:*)
     // to the loader so it uses the same tuning as the post-load step.
