@@ -679,6 +679,7 @@ if(NOT DISABLE_OPENSWATH)
     MRMFeatureFinderScoring_test
     MRMFeatureFilter_test
     MRMFeatureQC_test
+    OpenSwathExport_test
     PeptidoformInference_test
     SpectrumHelpers_test
     StatsHelpers_test
