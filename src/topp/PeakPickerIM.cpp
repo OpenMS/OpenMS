@@ -138,14 +138,22 @@ protected:
 
     // Hill-based centroiding (IM-axis trace linking + valley splitting).
     registerStringOption_("bruker:ms1_centroid_algo", "<algo>", "off",
-      "MS1 centroiding algorithm. 'off' = no IM-axis centroiding. 'greedy2d' = legacy 2D box "
-      "clustering using ms1_centroid_mz_ppm/pct. 'hillbased' = IM-axis hill detection.",
+      "MS1 centroiding algorithm applied during .d loading. 'off' = no IM-axis centroiding "
+      "(default; the tool will then apply its own PeakPickerIM 'method' to the raw frames "
+      "after loading — usually what you want). 'greedy2d' = legacy 2D box clustering. "
+      "'hillbased' = IM-axis hill detection. 'peakpickerim' = run PeakPickerIM (mobilogram) "
+      "inside the loader using parameters from the algorithm: subsection. Note: when set to "
+      "'peakpickerim', the tool's outer 'method' step still runs on the already-centroided "
+      "output, which is typically redundant — most users should leave this 'off' and rely "
+      "on the outer 'method' instead.",
       false, true);
-    setValidStrings_("bruker:ms1_centroid_algo", {"off", "greedy2d", "hillbased"});
+    setValidStrings_("bruker:ms1_centroid_algo", {"off", "greedy2d", "hillbased", "peakpickerim"});
     registerStringOption_("bruker:ms2_centroid_algo", "<algo>", "off",
-      "MS2 centroiding algorithm. Takes precedence over dia_ms2_centroid.",
+      "MS2 centroiding algorithm applied during .d loading. 'peakpickerim' is DIA-MS2 only "
+      "(DDA-MS2 falls back to 'off' with a warning). See bruker:ms1_centroid_algo for the "
+      "redundancy note. Takes precedence over dia_ms2_centroid.",
       false, true);
-    setValidStrings_("bruker:ms2_centroid_algo", {"off", "greedy2d", "hillbased"});
+    setValidStrings_("bruker:ms2_centroid_algo", {"off", "greedy2d", "hillbased", "peakpickerim"});
     registerDoubleOption_("bruker:ms2_centroid_mz_ppm", "<float>", 20.0,
       "HillBased MS2 m/z linking tolerance in ppm. Default 20.0 is DIA-PASEF-tuned. "
       "Set to 0 to refuse to run HillBased MS2 (the algo helper falls back to Off).",
@@ -208,8 +216,9 @@ protected:
 
     using CA = BrukerTimsFile::Config::CentroidAlgo;
     auto parse_algo = [](const String& s) {
-      if (s == "greedy2d")  return CA::GREEDY2D;
-      if (s == "hillbased") return CA::HILL_BASED;
+      if (s == "greedy2d")     return CA::GREEDY2D;
+      if (s == "hillbased")    return CA::HILL_BASED;
+      if (s == "peakpickerim") return CA::PEAK_PICKER_IM;
       return CA::OFF;
     };
     c.ms1_centroid_algo            = parse_algo(getStringOption_("bruker:ms1_centroid_algo"));
@@ -220,6 +229,14 @@ protected:
     c.ms2_centroid_min_hill_length = static_cast<Size>(getIntOption_("bruker:ms2_centroid_min_hill_length"));
     c.centroid_max_scan_gap        = static_cast<Size>(getIntOption_("bruker:centroid_max_scan_gap"));
     c.expose_hill_bounds           = (getStringOption_("bruker:expose_hill_bounds") == "true");
+    // If PEAK_PICKER_IM is selected on either MS level, forward the algorithm:
+    // subsection params (which the user configures via -algorithm:pickIMTraces:*)
+    // to the loader so it uses the same tuning as the post-load step.
+    if (c.ms1_centroid_algo == CA::PEAK_PICKER_IM ||
+        c.ms2_centroid_algo == CA::PEAK_PICKER_IM)
+    {
+      c.peak_picker_im_params = getParam_().copy("algorithm:", true);
+    }
     return c;
   }
 #endif

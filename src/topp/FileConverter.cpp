@@ -255,10 +255,13 @@ protected:
       "MS1 centroiding algorithm. 'off' = no IM-axis centroiding. "
       "'greedy2d' = legacy 2D (m/z, IM) box clustering using ms1_centroid_mz_ppm/pct. "
       "'hillbased' = IM-axis hill detection using ms1_centroid_mz_ppm + centroid_valley_factor + "
-      "ms1_centroid_min_hill_length (modeled on Biosaur2). When 'off', the legacy combination "
-      "ms1_centroid_mz_ppm > 0 + ms1_centroid_im_pct > 0 implies 'greedy2d' (back-compat).",
+      "ms1_centroid_min_hill_length (modeled on Biosaur2). "
+      "'peakpickerim' = mobilogram-based picking via OpenMS::PeakPickerIM::pickIMTraces "
+      "(reads its parameters from PeakPickerIM defaults; ignores ms1_centroid_mz_ppm/pct and the "
+      "hill-specific knobs). When 'off', the legacy combination ms1_centroid_mz_ppm > 0 + "
+      "ms1_centroid_im_pct > 0 implies 'greedy2d' (back-compat).",
       false, true);
-    setValidStrings_("bruker:ms1_centroid_algo", {"off", "greedy2d", "hillbased"});
+    setValidStrings_("bruker:ms1_centroid_algo", {"off", "greedy2d", "hillbased", "peakpickerim"});
 
     registerStringOption_("bruker:ms2_centroid_algo", "<algo>", "off",
       "MS2 centroiding algorithm (DIA-PASEF + DDA-PASEF). 'off' = no MS2 centroiding (DIA emits "
@@ -266,9 +269,11 @@ protected:
       "smoothing + local maxima (requires dia_ms2_n_neighbors > 0; DDA: same as 'off'). "
       "'hillbased' = IM-axis hill detection — works on both DDA-MS2 and DIA-MS2, including "
       "DIA at dia_ms2_n_neighbors=0 (per-frame hill linking, no cross-RT summing). "
+      "'peakpickerim' = mobilogram-based picking via PeakPickerIM (DIA-MS2 only; DDA-MS2 warns "
+      "and falls back to 'off' because the mobilogram pipeline expects per-peak IM arrays). "
       "Takes precedence over the legacy dia_ms2_centroid boolean.",
       false, true);
-    setValidStrings_("bruker:ms2_centroid_algo", {"off", "greedy2d", "hillbased"});
+    setValidStrings_("bruker:ms2_centroid_algo", {"off", "greedy2d", "hillbased", "peakpickerim"});
 
     registerDoubleOption_("bruker:ms2_centroid_mz_ppm", "<float>", 20.0,
       "HillBased DIA-/DDA-MS2 m/z linking tolerance in ppm. Required (>0) when "
@@ -361,8 +366,9 @@ protected:
     // Hill-based centroiding params.
     using CA = BrukerTimsFile::Config::CentroidAlgo;
     auto parse_algo = [](const String& s) {
-      if (s == "greedy2d")   return CA::GREEDY2D;
-      if (s == "hillbased")  return CA::HILL_BASED;
+      if (s == "greedy2d")     return CA::GREEDY2D;
+      if (s == "hillbased")    return CA::HILL_BASED;
+      if (s == "peakpickerim") return CA::PEAK_PICKER_IM;
       return CA::OFF;
     };
     c.ms1_centroid_algo            = parse_algo(getStringOption_("bruker:ms1_centroid_algo"));

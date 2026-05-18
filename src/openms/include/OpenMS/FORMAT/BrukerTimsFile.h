@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <cstdint>
 #include <string>
 
@@ -57,17 +58,25 @@ namespace OpenMS
                                            ///< cuts memory and time substantially. Affects all export modes.
 
       /// Centroiding algorithms for IM-PASEF frames.
-      ///   - Off:       no IM-axis centroiding (raw detector peaks pass through).
-      ///   - Greedy2D:  2D greedy clustering in (m/z, IM) using
-      ///                ms1_centroid_mz_ppm + ms1_centroid_im_pct (the legacy path,
-      ///                adapted from Sage; Lazear 2023 doi:10.1021/acs.jproteome.3c00486).
-      ///   - HillBased: IM-axis hill detection (peaks linked across consecutive
-      ///                IM scans within a frame, with valley splitting); modeled on
-      ///                Biosaur2's hill detection but applied to the IM axis. Uses
-      ///                ms1_centroid_mz_ppm as the m/z tolerance and
-      ///                centroid_valley_factor / centroid_min_hill_length as the
-      ///                hill-specific knobs.
-      enum class CentroidAlgo { OFF, GREEDY2D, HILL_BASED };
+      ///   - Off:           no IM-axis centroiding (raw detector peaks pass through).
+      ///   - Greedy2D:      2D greedy clustering in (m/z, IM) using
+      ///                    ms1_centroid_mz_ppm + ms1_centroid_im_pct (the legacy path,
+      ///                    adapted from Sage; Lazear 2023 doi:10.1021/acs.jproteome.3c00486).
+      ///   - HillBased:     IM-axis hill detection (peaks linked across consecutive
+      ///                    IM scans within a frame, with valley splitting); modeled on
+      ///                    Biosaur2's hill detection but applied to the IM axis. Uses
+      ///                    ms1_centroid_mz_ppm as the m/z tolerance and
+      ///                    centroid_valley_factor / centroid_min_hill_length as the
+      ///                    hill-specific knobs.
+      ///   - PeakPickerIM:  mobilogram-based picking via OpenMS::PeakPickerIM
+      ///                    (pickIMTraces). Builds an MSSpectrum from the frame's
+      ///                    (m/z, intensity, IM) triples and runs the mobilogram
+      ///                    extraction + per-trace centroiding pipeline. Parameters
+      ///                    are read from peak_picker_im_params (subsection
+      ///                    pickIMTraces:); the other centroiding-tolerance fields
+      ///                    above are ignored. Not supported on DDA-MS2 (would warn
+      ///                    and fall back to Off).
+      enum class CentroidAlgo { OFF, GREEDY2D, HILL_BASED, PEAK_PICKER_IM };
 
       /// MS1 centroiding algorithm. Default Off. If left at Off but the legacy
       /// fields ms1_centroid_mz_ppm and ms1_centroid_im_pct are both > 0, the
@@ -76,11 +85,11 @@ namespace OpenMS
 
       /// MS2 centroiding algorithm for both DIA-PASEF and DDA-PASEF.
       ///
-      /// DIA-MS2: Off / Greedy2D / HillBased. Greedy2D maps to the legacy
-      /// 2D Gaussian + local-maxima path (equivalent to dia_ms2_centroid=true).
-      /// HillBased fires only inside the aggregated DIA path (requires
-      /// dia_ms2_n_neighbors > 0); without aggregation, DIA-MS2 stays raw.
-      /// Takes precedence over the legacy dia_ms2_centroid boolean.
+      /// DIA-MS2: Off / Greedy2D / HillBased / PeakPickerIM. Greedy2D maps to the
+      /// legacy 2D Gaussian + local-maxima path (equivalent to dia_ms2_centroid=true).
+      /// HillBased and PeakPickerIM both run inside per-frame and aggregated
+      /// (dia_ms2_n_neighbors > 0) DIA paths. Takes precedence over the legacy
+      /// dia_ms2_centroid boolean.
       ///
       /// DDA-MS2: Off / HillBased. HillBased replaces the default TOF-domain
       /// processing pipeline (sort/group/smooth/local-max in TOF space) with
@@ -88,7 +97,9 @@ namespace OpenMS
       /// Output schema is unchanged — DDA-MS2 still emits a single scalar
       /// drift_time per spectrum (no per-peak IM array). 'Greedy2D' on DDA-MS2
       /// falls through to the default TOF pipeline (DDA has no Greedy2D-style
-      /// box clustering equivalent).
+      /// box clustering equivalent). 'PeakPickerIM' is not supported on DDA-MS2
+      /// (its mobilogram pipeline expects per-peak IM arrays); the resolver
+      /// warns once and falls back to Off.
       CentroidAlgo ms2_centroid_algo = CentroidAlgo::OFF;
 
       float ms1_centroid_mz_ppm = 10.0f; ///< MS1 centroiding m/z tolerance in ppm (used by Greedy2D and HillBased). Default 10 ppm is tuned for HillBased TIMS-PASEF MS1: detector-centroided peaks drift up to ~10 ppm in m/z between IM scans of the same ion, so 5 ppm under-links real multi-scan hills (only ~4% of MS1 hills end up multi-scan at 5 ppm vs ~9% at 10 ppm on bundled DIA fixture). Greedy2D still requires ms1_centroid_im_pct > 0 in addition. Set to 0 to disable MS1 centroiding outright.
@@ -100,7 +111,18 @@ namespace OpenMS
       Size   ms1_centroid_min_hill_length = 1;  ///< HillBased MS1: minimum number of IM scans a hill must span. Default 1 keeps single-IM-scan ions (common on detector-centroided TIMS-PASEF MS1: ~75% of peaks have no same-m/z partner in the previous IM scan within 100 ppm).
       Size   ms2_centroid_min_hill_length = 2;  ///< HillBased MS2: minimum number of IM scans a hill must span. Default 2 is the DIA-PASEF-tuned value (rejects single-scan singletons; ~33% of unfiltered hill output survives, bringing volume close to the legacy Gaussian-smooth + local-maxima path). DDA-PASEF users should override to 1: precursors span a narrow IM range so most fragments are seen in only one IM scan, and min=2 drops ~93% of peaks there.
       Size   centroid_max_scan_gap        = 0;  ///< HillBased (MS1 + MS2): maximum number of consecutive empty IM scans a hill may bridge while linking. 0 = strict consecutive-scan linking (Biosaur2 default). 1 = a single empty scan at the hill's m/z is tolerated. Useful on detector-centroided TIMS-PASEF where an ion may occasionally fail to register in one IM scan. Note: hill length counts only the scans where the ion was actually observed, not the bridged gap.
-      bool   expose_hill_bounds           = false; ///< HillBased (MS1 + DIA-MS2): when true, attach four extra FloatDataArrays per centroided spectrum ("im lower bound", "im upper bound", "m/z lower bound", "m/z upper bound") giving each centroid's source-hill bounding box. Useful for visual QC of the centroider; bloats the mzML by roughly +25% on centroided spectra. Has no effect on DDA-MS2 hill (scalar drift_time schema).
+      bool   expose_hill_bounds           = false; ///< HillBased (MS1 + DIA-MS2): when true, attach four extra FloatDataArrays per centroided spectrum ("im lower bound", "im upper bound", "m/z lower bound", "m/z upper bound") giving each centroid's source-hill bounding box. Useful for visual QC of the centroider; bloats the mzML by roughly +25% on centroided spectra. Has no effect on DDA-MS2 hill (scalar drift_time schema). Ignored by PeakPickerIM (warns once).
+
+      /// PeakPickerIM (MS1 + DIA-MS2): parameter overrides forwarded to
+      /// PeakPickerIM. Treated as a sparse overlay on PeakPickerIM's own
+      /// defaults: empty (the default) means "use all defaults"; any keys
+      /// present here are merged in via Param::update with type/restriction
+      /// validation. Only the `pickIMTraces:*` subsection is consumed
+      /// (pickIMCluster / pickIMElutionProfiles are not currently wired into
+      /// the loader). Set fields directly via
+      /// peak_picker_im_params.setValue("pickIMTraces:gauss_ppm_tolerance", 5.0)
+      /// etc. to override defaults.
+      Param  peak_picker_im_params;
 
       int dia_ms2_n_neighbors = 0;  ///< DIA MS2 frame aggregation: number of adjacent frames on each side (0 = disabled / raw per-frame export, 1 = 3-frame sum, 2 = 5-frame sum). Kept at 0 by default so the raw DIA-MS2 export path is the out-of-the-box behavior — this knob switches the entire DIA-MS2 export pipeline (sum + denoise) regardless of centroiding algo, so flipping it changes output for every caller. Set to 2 alongside ms2_centroid_algo=hillbased + min_hill_length=2 + mz_ppm=20 for the DIA-PASEF hill recipe; set to 1/2 with algo=off for raw RT-summed export.
       int dia_ms2_min_support = 1;  ///< DIA MS2 denoising: minimum occupied neighbors in 3x3 (mz x IM) grid to retain a point (center excluded)

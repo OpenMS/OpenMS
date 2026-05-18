@@ -77,6 +77,9 @@ def first_nonempty(exp, ms_level, want_im_array=True, index=None):
 _IM_ARRAY_NAMES = {
     "raw inverse reduced ion mobility array",
     "inverse reduced ion mobility array",
+    # Set by PeakPickerIM (Constants::UserParam::ION_MOBILITY_CENTROID); emitted
+    # when bruker:ms{1,2}_centroid_algo=peakpickerim.
+    "Ion Mobility Centroid",
 }
 
 

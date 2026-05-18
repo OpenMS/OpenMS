@@ -1920,7 +1920,89 @@ START_SECTION(DIA MS1+MS2 hill-vs-greedy centroiding comparison)
 }
 END_SECTION
 
+START_SECTION(DIA PeakPickerIM centroiding (MS1 + DIA-MS2))
+{
+  // Exercises CentroidAlgo::PEAK_PICKER_IM on MS1 and DIA-MS2 in a single
+  // DIA load. The mobilogram pipeline (pickIMTraces) is the most expensive
+  // centroider in the file (gauss + sgolay + linear resampling + per-trace
+  // peak picking), so we deliberately use only the raw (n_neighbors=0) path:
+  //   - MS1 single-frame path → centroidMS1Frame → PEAK_PICKER_IM branch
+  //   - DIA-MS2 raw path      → loadDIA_'s raw branch → PEAK_PICKER_IM branch
+  // The aggregated paths share the same runPeakPickerIMOnBuffers helper and
+  // are exercised by the existing hill/greedy aggregation tests structurally,
+  // so adding a second full PPIM load is not worth the runtime budget here.
+  using CA = BrukerTimsFile::Config::CentroidAlgo;
+
+  BrukerTimsFile f;
+
+  BrukerTimsFile::Config cfg;
+  cfg.ms1_centroid_algo = CA::PEAK_PICKER_IM;
+  cfg.ms2_centroid_algo = CA::PEAK_PICKER_IM;
+  cfg.dia_ms2_n_neighbors = 0;   // raw DIA-MS2 path
+  MSExperiment exp;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp, cfg);
+  const auto s = collectStats(exp);
+  TEST_EQUAL(s.n_ms1_spectra > 0, true);
+  TEST_EQUAL(s.n_ms2_spectra > 0, true);
+  TEST_EQUAL(s.total_ms1_peaks > 0, true);
+  TEST_EQUAL(s.total_ms2_peaks > 0, true);
+  assertFirstMS1Centroided(exp);
+  assertFirstDIAMS2Centroided(exp);
+
+  // PeakPickerIM renames the IM data array to ION_MOBILITY_CENTROID; verify
+  // that on the first centroided MS1 spectrum. This is the auxiliary array
+  // pass-through that lets downstream tools recognise PPIM output.
+  bool checked_name = false;
+  for (const auto& sp : exp)
+  {
+    if (sp.getMSLevel() != 1 || sp.empty()) continue;
+    TEST_EQUAL(sp.getIMPeakType() == IMPeakType::IM_CENTROIDED, true);
+    const auto& fda = sp.getFloatDataArrays();
+    TEST_EQUAL(fda.empty(), false);
+    TEST_EQUAL(fda[0].getName(), Constants::UserParam::ION_MOBILITY_CENTROID);
+    checked_name = true;
+    break;
+  }
+  TEST_EQUAL(checked_name, true);
+
+  STATUS("DIA PeakPickerIM MS1=" << s.total_ms1_peaks
+         << " MS2=" << s.total_ms2_peaks
+         << " ms1_spectra=" << s.n_ms1_spectra
+         << " ms2_spectra=" << s.n_ms2_spectra);
+}
+END_SECTION
+
 #endif // OPENTIMS_DIA_TEST_DATA
+
+#ifdef OPENTIMS_DDA_TEST_DATA
+START_SECTION(DDA PeakPickerIM is rejected with warn-and-fallback)
+{
+  // PeakPickerIM operates on per-peak IM arrays; DDA-MS2 emits scalar
+  // drift_time per spectrum. effectiveDDAMS2Algo must warn-and-fall-back to
+  // OFF. We verify behaviorally: an MS2-only DDA load with PEAK_PICKER_IM
+  // selected on MS2 must produce the same MS2 spectra as a plain load (OFF).
+  using CA = BrukerTimsFile::Config::CentroidAlgo;
+
+  BrukerTimsFile f;
+
+  BrukerTimsFile::Config cfg_off;
+  cfg_off.load_ms1 = false;
+  MSExperiment exp_off;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_off, cfg_off);
+
+  BrukerTimsFile::Config cfg_ppim;
+  cfg_ppim.load_ms1 = false;
+  cfg_ppim.ms2_centroid_algo = CA::PEAK_PICKER_IM; // should warn + fall back
+  MSExperiment exp_ppim;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_ppim, cfg_ppim);
+
+  const auto s_off = collectStats(exp_off);
+  const auto s_ppim = collectStats(exp_ppim);
+  TEST_EQUAL(s_off.n_ms2_spectra, s_ppim.n_ms2_spectra);
+  TEST_EQUAL(s_off.total_ms2_peaks, s_ppim.total_ms2_peaks);
+}
+END_SECTION
+#endif // OPENTIMS_DDA_TEST_DATA
 
 END_TEST
 

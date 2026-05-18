@@ -197,9 +197,11 @@ if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)
     OPENTIMS_DIA_TEST_DATA="${OPENTIMS_DIA_TEST_DATA}"
     OPENTIMS_TEST_FASTA="${OPENTIMS_TEST_FASTA}")
   # This test loads real Bruker .d files (DDA + DIA) including frame aggregation,
-  # a peptide search engine run, and three-way (greedy vs. hill) centroiding
-  # comparisons (which add 4 extra full-fixture loads), so it needs a generous timeout.
-  set_tests_properties(BrukerTimsFile_test PROPERTIES TIMEOUT 2400)
+  # a peptide search engine run, three-way (greedy vs. hill) centroiding
+  # comparisons (4 extra full-fixture loads), and one PeakPickerIM DIA load
+  # (the slowest centroider — full mobilogram pipeline per frame), so it
+  # needs a generous timeout.
+  set_tests_properties(BrukerTimsFile_test PROPERTIES TIMEOUT 3600)
 endif()
 
 #------------------------------------------------------------------------------

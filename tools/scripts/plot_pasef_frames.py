@@ -15,9 +15,13 @@ Typical workflow::
     $BUILD/bin/FileConverter -in $D -out /tmp/hill.mzML \\
         -bruker:ms1_centroid_algo hillbased \\
         -bruker:ms2_centroid_algo hillbased
+    $BUILD/bin/FileConverter -in $D -out /tmp/ppim.mzML \\
+        -bruker:ms1_centroid_algo peakpickerim \\
+        -bruker:ms2_centroid_algo peakpickerim \\
+        -bruker:dia_ms2_n_neighbors 2
 
     python3 tools/scripts/plot_pasef_frames.py \\
-        --mzml off=/tmp/off.mzML --mzml hill=/tmp/hill.mzML \\
+        --mzml off=/tmp/off.mzML --mzml hill=/tmp/hill.mzML --mzml ppim=/tmp/ppim.mzML \\
         --n-ms1 10 --n-ms2 10 \\
         --out-dir /tmp/frames
 
@@ -153,7 +157,11 @@ def extract_peaks(spec):
     fda = spec.getFloatDataArrays()
     im = _array_by_name(fda,
         {"raw inverse reduced ion mobility array",
-         "inverse reduced ion mobility array"})
+         "inverse reduced ion mobility array",
+         # Set by PeakPickerIM (Constants::UserParam::ION_MOBILITY_CENTROID).
+         # When bruker:ms{1,2}_centroid_algo=peakpickerim, the loader emits
+         # this name instead of the standard inverse-IM CV term.
+         "Ion Mobility Centroid"})
     if im is None and len(fda) > 0:
         arr = fda[0]
         try:
