@@ -234,6 +234,7 @@ set(format_executables_list
   OMSSACSVFile_test
   OMSSAXMLFile_test
   OSWFile_test
+  OSWFileInference_test
   PTMXMLFile_test
   ParamCTDFile_test
   ParamJSONFile_test
@@ -321,6 +322,7 @@ set(math_executables_list
   CrossValidation_test
   Histogram_test
   KernelDensityEstimation_test
+  LevelContextInference_test
   LinearInterpolation_test
   LinearRegression_test
   MathFunctions_test
@@ -678,6 +680,7 @@ if(NOT DISABLE_OPENSWATH)
     MRMFeatureFinderScoring_test
     MRMFeatureFilter_test
     MRMFeatureQC_test
+    PeptidoformInference_test
     SpectrumHelpers_test
     StatsHelpers_test
     SwathQC_test

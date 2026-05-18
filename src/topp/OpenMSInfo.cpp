@@ -133,6 +133,8 @@ protected:
        << "Build type   : " << Internal::OpenMSBuildInfo::getBuildType() << '\n';
 #ifdef OPENMS_HAS_COINOR
     is << "LP-Solver    : COIN-OR\n";
+#elif defined(OPENMS_HAS_HIGHS)
+    is << "LP-Solver    : HiGHS\n";
 #else
     cout << "LP-Solver    : GLPK\n";
 #endif

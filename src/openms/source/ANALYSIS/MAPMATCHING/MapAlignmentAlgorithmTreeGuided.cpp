@@ -272,35 +272,27 @@ namespace OpenMS
     OpenMS::MapAlignmentAlgorithmTreeGuided::computeTransformedFeatureMaps(feature_maps, transformations);
   }
 
-  // Extract original RT ("original_RT" MetaInfo) and transformed RT for each feature to compute RT transformations.
+  // Compute RT transformations from the original maps to the final tree-guided consensus RT scale.
   void MapAlignmentAlgorithmTreeGuided::computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_maps,
                                                                   FeatureMap& map_transformed,
                                                                   std::vector<TransformationDescription>& transformations,
-                                                                  const std::vector<Size>& trafo_order)
+                                                                  const std::vector<Size>& /*trafo_order*/)
   {
-    FeatureMap::const_iterator fit = map_transformed.begin();
-    TransformationDescription::DataPoints trafo_data_tmp;
-    for (auto& map_idx : trafo_order)
+    transformations.clear();
+    transformations.resize(feature_maps.size());
+
+    vector<FeatureMap> to_align(2);
+    to_align[1] = map_transformed;
+    vector<TransformationDescription> pair_transformations;
+    pair_transformations.reserve(2);
+
+    for (Size map_idx = 0; map_idx < feature_maps.size(); ++map_idx)
     {
-      for (Size i = 0; i < feature_maps[map_idx].size(); ++i)
-      {
-        TransformationDescription::DataPoint point;
-        if (fit->metaValueExists("original_RT"))
-        {
-          point.first = fit->getMetaValue("original_RT");
-        }
-        else
-        {
-          point.first = fit->getRT();
-        }
-        point.second = fit->getRT();
-        point.note = fit->getUniqueId();
-        trafo_data_tmp.push_back(point);
-        ++fit;
-      }
-      transformations[map_idx] = TransformationDescription(trafo_data_tmp);
+      to_align[0] = feature_maps[map_idx];
+      pair_transformations.clear();
+      align_algorithm_.align(to_align, pair_transformations, 1);
+      transformations[map_idx] = pair_transformations[0];
       transformations[map_idx].fitModel(model_type_, model_param_);
-      trafo_data_tmp.clear();
     }
   }
 

@@ -69,10 +69,12 @@ OpenMS/
 - Style checks: `ENABLE_STYLE_TESTING=ON` runs cpplint at `src/tests/coding/cpplint.py`.
 
 **Required dependencies:**
-- XercesC, Boost 1.81+ (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR or GLPK, ZLIB, BZip2, libcurl
+- XercesC, Boost 1.81+ (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR, GLPK, or HiGHS (LP solver; use `-DLP_SOLVER=AUTO/COIN/GLPK/HIGHS`), ZLIB, BZip2, libcurl
 - Qt6 (6.1.0+) — required for GUI (`openms_gui`); optional for TOPP tools, core library (`libOpenMS`), and pyOpenMS builds
 
-**Optional:** HDF5 (`-DWITH_HDF5=ON`)
+**Optional:** HDF5 (`-DWITH_HDF5=ON`); Bruker TimsTOF `.d` directory support via opentims (`-DWITH_OPENTIMS=ON`, default off; set `-DENABLE_OPENTIMS_TESTS=ON` to also fetch and run integration tests)
+
+**Enabled by default (fetched via FetchContent; requires network or `FETCHCONTENT_SOURCE_DIR_*` override):** WNetAlign/WNet/PyLMCF for `FeatureLinkerWNet` (`-DWITH_WNETALIGN=OFF` to disable)
 
 **Always enabled:** Apache Arrow/Parquet (required dependency since 3.6)
 

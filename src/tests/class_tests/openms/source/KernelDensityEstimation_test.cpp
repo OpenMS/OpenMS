@@ -54,6 +54,14 @@ START_SECTION(double bwNrd0(const std::vector<double>&))
     // Fallback uses IQR/1.34 which can vary
     TEST_EQUAL(bw > 0.0, true)
   }
+
+  // Degenerate data exactly at zero must still receive a positive fallback
+  // bandwidth. 
+  {
+    std::vector<double> zero_constant_data(10, 0.0);
+    bw = KernelDensityEstimation::bwNrd0(zero_constant_data);
+    TEST_REAL_SIMILAR(bw, 0.9 * std::pow(10.0, -0.2))
+  }
   
   // Test with insufficient data
   std::vector<double> single_point = {1.0};

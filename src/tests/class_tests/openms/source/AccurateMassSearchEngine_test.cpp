@@ -75,6 +75,13 @@ START_SECTION([EXTRA]AdductInfo)
     double neutral_mass_recon = ai.getNeutralMass(mz);
     TEST_REAL_SIMILAR(neutral_mass, neutral_mass_recon);
   }
+  {
+    AdductInfo ai = AdductInfo::parseAdductString("2M+Na;1+");
+    TEST_EQUAL(ai.getMolMultiplier(), 2)
+  }
+  TEST_EXCEPTION(Exception::ConversionError, AdductInfo::parseAdductString("2.5M+H;1+"))
+  TEST_EXCEPTION(Exception::ParseError, AdductInfo::parseAdductString("M+Xx;1+"))
+  TEST_EXCEPTION(Exception::InvalidParameter, AdductInfo::parseAdductString("0M+H;1+"))
 
 }
 END_SECTION

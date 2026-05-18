@@ -71,7 +71,7 @@ if (MSVC)
 else()
   set_source_files_properties(${OpenMS_percolator_sources}
     PROPERTIES
-      COMPILE_FLAGS "-Wno-sign-compare -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unused-variable -Wno-overloaded-virtual")
+      COMPILE_FLAGS "-Wno-sign-compare -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unused-variable -Wno-overloaded-virtual -Wno-reorder -Wno-reorder-ctor -Wno-uninitialized -Wno-ignored-qualifiers -Wno-unused-but-set-variable")
   set_source_files_properties(${OpenMS_percolator_sources}
     PROPERTIES COMPILE_OPTIONS "-fvisibility=hidden")
 endif()

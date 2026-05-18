@@ -82,13 +82,17 @@ public:
                std::vector<TransformationDescription>& transformations);
 
     /**
-     * @brief Extract original RT ("original_RT" MetaInfo) and transformed RT for each feature to compute RT transformations.
+     * @brief Compute RT transformations from the original input maps to the final tree-guided consensus RT scale.
      *
-     * @param[in] feature_maps Vector of input maps for size information.
-     * @param[out] map_transformed FeatureMap that contains all features of combined maps with original and transformed RTs in order of alignment.
+     * The transformed consensus map returned by treeGuidedAlignment() is used as reference and each
+     * original input map is aligned against it using @ref OpenMS::MapAlignmentAlgorithmIdentification.
+     *
+     * @param[in] feature_maps Vector of original input maps.
+     * @param[out] map_transformed FeatureMap that contains all features of the final aligned map.
      * @param[in] transformations Vector to store transformation descriptions for each map. (output)
-     * @param[out] trafo_order Vector that contains the indices of aligned maps in order of alignment.
-    */
+     * @param[in] trafo_order Vector that contains the indices of aligned maps in order of alignment.
+     *   This parameter is kept for API compatibility but is not used anymore.
+     */
     void computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_maps, FeatureMap& map_transformed,
                                    std::vector<TransformationDescription>& transformations, const std::vector<Size>& trafo_order);
 

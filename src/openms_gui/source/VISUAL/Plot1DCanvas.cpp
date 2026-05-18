@@ -1473,6 +1473,11 @@ namespace OpenMS
         area.extend(getLayer(i).getRangeForArea(area));
       }
       auto& intensity = getGravityDim().map(area); // make sure y-axis spans [0, max * TOP_MARGIN]
+      if (intensity.isEmpty())
+      { // no peaks/data in the visible non-gravity range (e.g. extreme zoom). Fall back to the
+        // overall layer intensity range so the y-axis stays sane and dataToWidget_ doesn't divide by zero.
+        intensity = getGravityDim().map(overall_data_range_1d_);
+      }
       intensity.setMin(0); // make sure we start at 0
       intensity.extend(intensity.getMax() * TOP_MARGIN);
     }

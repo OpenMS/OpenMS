@@ -2,13 +2,15 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: George Rosenberger $
+// $Maintainer: George Rosenberger, Justin Sing $
 // $Authors: George Rosenberger, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathInferenceConfig.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathInferenceData.h>
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
@@ -16,6 +18,7 @@
 
 #include <array>
 #include <map>
+#include <vector>
 
 namespace OpenMS
 {
@@ -106,6 +109,38 @@ namespace OpenMS
     */
     static void writeFromPercolator(const std::string& osw_filename, const OSWFile::OSWLevel osw_level, const std::map< std::string, PercolatorFeature >& features);
 
+    /// Read peakgroup and precursor evidence required for peptidoform inference.
+    std::vector<IPFPrecursorRow> readIPFPrecursorData(const PeptidoformInferenceConfig& config) const;
+
+    /// Read transition-level evidence required for peptidoform inference.
+    std::vector<IPFTransitionRow> readIPFTransitionData(const PeptidoformInferenceConfig& config) const;
+
+    /// Read alignment-group membership required for optional across-run signal propagation from FEATURE_MS2_ALIGNMENT_CANDIDATE.
+    std::vector<IPFAlignmentRow> readIPFAlignmentData(const PeptidoformInferenceConfig& config) const;
+
+    /// Historical overload that reads legacy alignment-group membership from FEATURE_MS2_ALIGNMENT + SCORE_ALIGNMENT.
+    std::vector<IPFAlignmentRow> readIPFAlignmentData(double ipf_max_alignment_pep) const;
+
+    /// Write peptidoform inference results into SCORE_IPF, copying to @p output_filename first if requested.
+    void writeIPFResults(const String& output_filename, const std::vector<IPFResultRow>& results) const;
+
+    /// Read compact peptide-, protein-, or gene-level rows for context inference.
+    std::vector<LevelContextInputRow> readLevelContextData(InferenceLevel level, InferenceContext context) const;
+
+    /// Write context inference results into SCORE_PEPTIDE / SCORE_PROTEIN / SCORE_GENE.
+    void writeLevelContextResults(const String& output_filename,
+                                  InferenceLevel level,
+                                  InferenceContext context,
+                                  const std::vector<LevelContextResultRow>& results) const;
+
+    /**
+      @brief Read RUN IDs and convert their filenames to user-facing basenames.
+
+      The returned names are stripped to stem names when possible, so
+      @c sample.mzML.gz becomes @c sample.
+    */
+    std::map<Int64, String> readRunBasenames() const;
+
     /// extract the RUN::ID from the sqMass file
     /// @throws Exception::SqlOperationFailed more than on run exists
     UInt64 getRunID() const;
@@ -136,4 +171,3 @@ namespace OpenMS
   };
 
 } // namespace OpenMS
-

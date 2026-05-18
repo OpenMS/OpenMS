@@ -17,6 +17,60 @@ namespace OpenMS
 
 class MSSpectrum;
 
+/**
+  @brief Collapse isotopic clusters in a centroided peak spectrum to one
+  monoisotopic peak per ion.
+
+  Deisotoping is the standard pre-processing step for centroided MS/MS
+  spectra in database search: each isotopologue ladder (M, M+1, M+2, ...)
+  belonging to one ion is reduced to a single peak, typically the
+  monoisotopic one. The class exposes two static algorithms that share
+  the same in-place spectrum contract but differ in how aggressively they
+  enforce a chemical model:
+
+    - #deisotopeWithAveragineModel — uses a KL-divergence check against
+      the averagine isotope distribution to score candidate clusters,
+      and prefers the cluster with the most peaks (then the highest
+      charge) when several charge states explain the same base peak.
+      Adapted in parts from Guo Ci Teo et al.,
+      DOI: 10.1021/acs.jproteome.0c00544, and closely related to the
+      legacy implementation by Timo Sachsenberg.
+    - #deisotopeAndSingleCharge — uses a simpler model. Peaks are
+      walked in m/z-ascending order; for each peak that has not yet
+      been assigned to a cluster, charges are tried from @p max_charge
+      down to @p min_charge, and isotopologues are probed at the
+      C12-C13 spacing for the current charge until either no matching
+      peak is found, @p max_isopeaks is reached or (only when
+      @p use_decreasing_model is set) intensities stop decreasing.
+      Faster and less sensitive to deviations from the averagine
+      model, but more vulnerable to spurious chaining.
+
+  Both methods operate @b in-place on the input spectrum (sorted by m/z
+  on entry), drop the consumed isotopologues, optionally collapse charges
+  > 1 to the equivalent singly-charged monoisotopic m/z, and remove
+  zero-intensity peaks. Per-peak metadata such as @c charge and
+  @c iso_peak_count can be annotated into IntegerDataArrays on demand
+  (see the per-method documentation for the exact set of flags). Existing
+  DataArrays are kept and shrunk in lock-step with the retained peaks.
+
+  Typical use cases (in order of frequency in OpenMS):
+    - MS/MS pre-processing before peptide spectrum matching
+      (SimpleSearchEngineAlgorithm, ProSEAlgorithm, NuXLDeisotoper,
+      OPXLSpectrumProcessingAlgorithms).
+    - DIA fragment-ion cleanup before scoring (TargetedSpectraExtractor,
+      SwathQC).
+    - Visualization in the 1D spectrum view (Painter1DBase).
+
+  @note Both algorithms assume peptide fragment ions in their default
+        configuration (charges 1..3, averagine model). For
+        oligonucleotides, lipids, or other molecule classes the
+        intensity-decreasing assumption used by
+        #deisotopeAndSingleCharge can be relaxed via the
+        @c use_decreasing_model and @c start_intensity_check
+        parameters.
+
+  @ingroup SpectraPreprocessers
+*/
 class OPENMS_DLLAPI Deisotoper
 {
   public:
