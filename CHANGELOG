@@ -390,6 +390,16 @@ OpenMS Library:
     - BREAKING: OpenSwath::Scoring: deprecated pointer-based (C-array) overloads of NormalizedManhattanDist, RootMeanSquareDeviation, SpectralAngle, normalize_sum, and calcxcorr_legacy_mquest_ removed; use the std::vector& overloads (#9252)
     - BREAKING: ChromatogramExtractor::prepare_coordinates(TargetedExperiment) overload removed; callers should convert via OpenSwathDataAccessHelper::convertTargetedExp and use the LightTargetedExperiment overload; the Python API in pyOpenMS is unchanged (#9271)
     - OpenSwath::LightCompound gained rt_start and rt_end fields (NaN by default) to carry per-compound RT extraction ranges; populated by OpenSwathDataAccessHelper::convertTargetedExp from TargetedExperiment::Peptide/Compound rts vectors (#9271)
+    - OpenSWATH inference infrastructure ported from PyProphet (#9280)
+      - OpenSwathInferenceData: compact row types (LevelContextInputRow, LevelContextResultRow, IPFPrecursorRow, IPFTransitionRow, IPFAlignmentRow, IPFResultRow) and enums (InferenceLevel, InferenceContext) used by all inference classes
+      - OpenSwathInferenceConfig: configuration structs (ErrorEstimationConfig, LevelContextInferenceConfig, PeptidoformInferenceConfig) that mirror the PyProphet CLI defaults
+      - LevelContextInference: file-format-agnostic context inference for peptide-, protein-, and gene-level rows using statistical methods from MultipleTesting/KernelDensityEstimation; adapted from Rosenberger et al. Nat. Methods 2017
+      - OpenSwathGeneInference: gene-level context inference wrapping LevelContextInference
+      - OpenSwathPeptideInference: peptide-level context inference wrapping LevelContextInference
+      - OpenSwathProteinInference: protein-level context inference wrapping LevelContextInference
+      - OpenSwathPeptidoformInference: peptidoform (IPF) inference implementing the Inference of PeptidoForms algorithm
+      - OSWFile: new methods readIPFPrecursorData(), readIPFTransitionData(), readIPFAlignmentData(), readIPFAlignmentData(double), writeIPFResults(), readLevelContextData(), writeLevelContextResults(), readRunBasenames() for inference workflows
+      - KernelDensityEstimation: bandwidth fallback for degenerate inputs (all-zero p-values) now matches PyProphet behaviour, guaranteeing a strictly positive bandwidth
 
 Fixes:
   - Fix inverted use_all_hits logic causing NucleicAcidSearchEngine crash with multiple hits per spectrum (#8542)
