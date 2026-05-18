@@ -289,10 +289,11 @@ def panel(ax, mz, intensity, im, title,
         # Multi-peak mask: a hill must span >= 2 IM scans to be drawn.
         # (Length-1 hills have im_lower == im_upper exactly.)
         multi = im_hi_arr > im_lo_arr
-        # Padding for hills with measurable IM span but degenerate m/z
-        # (a hill that stayed at exactly one m/z across multiple scans),
-        # so the box has a finite width on the m/z axis.
-        min_w_mz = (shared_mz[1] - shared_mz[0]) * 0.0004 if shared_mz else 0.005
+        # Padding for hills with measurable IM span but degenerate or very
+        # narrow m/z extent (e.g. PeakPickerIM emits FWHM-derived boxes ~1 mDa
+        # wide, which is sub-pixel at full-spectrum m/z range). Pad any box
+        # narrower than min_w_mz so it stays visible.
+        min_w_mz = (shared_mz[1] - shared_mz[0]) * 0.0008 if shared_mz else 0.005
         idxs = np.nonzero(multi)[0]
         if idxs.size:
             rects = []
