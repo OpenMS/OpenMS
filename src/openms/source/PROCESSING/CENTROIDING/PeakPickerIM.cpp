@@ -25,6 +25,7 @@
 #include <iostream>
 #include <deque>
 #include <algorithm>
+#include <set>
 #include <limits>
 #include <numeric>
 #include <unordered_map>
@@ -326,6 +327,15 @@ namespace OpenMS
       MSSpectrum::FloatDataArray mz_fwhm_array;
       mz_fwhm_array.setName("MZ FWHM");
 
+      // Optional FWHM-derived bounding-box arrays (same names as
+      // PASEFHillCentroider's expose_hill_bounds so visualization is uniform).
+      // Populated only when expose_bounds_ is true.
+      MSSpectrum::FloatDataArray b_im_lo, b_im_hi, b_mz_lo, b_mz_hi;
+      b_im_lo.setName("im lower bound");
+      b_im_hi.setName("im upper bound");
+      b_mz_lo.setName("m/z lower bound");
+      b_mz_hi.setName("m/z upper bound");
+
 #ifdef DEBUG_PICKER
       OPENMS_LOG_DEBUG << "picked_traces.size(): " << picked_traces.size() << '\n';
 #endif
@@ -454,6 +464,14 @@ namespace OpenMS
             ion_mobility_array.push_back(centroid_im);
             ion_mobility_fwhm.push_back(fwhm);
             mz_fwhm_array.push_back(0.0);
+            if (expose_bounds_)
+            {
+              b_im_lo.push_back(im_lower);
+              b_im_hi.push_back(im_upper);
+              // Degenerate m/z: a single raw point, no FWHM available
+              b_mz_lo.push_back(single_peak.getMZ());
+              b_mz_hi.push_back(single_peak.getMZ());
+            }
 
 #ifdef DEBUG_PICKER
             OPENMS_LOG_DEBUG << "[INFO] Only one raw peak found. Added directly to centroided_frame. m/z: "
@@ -485,6 +503,13 @@ namespace OpenMS
             ion_mobility_array.push_back(centroid_im);
             ion_mobility_fwhm.push_back(fwhm);
             mz_fwhm_array.push_back(0.0);
+            if (expose_bounds_)
+            {
+              b_im_lo.push_back(im_lower);
+              b_im_hi.push_back(im_upper);
+              b_mz_lo.push_back(raw_mz_peaks[0].getMZ());
+              b_mz_hi.push_back(raw_mz_peaks[0].getMZ());
+            }
 
 #ifdef DEBUG_PICKER
             const Peak1D& single_peak = raw_mz_peaks[0];
@@ -648,6 +673,13 @@ namespace OpenMS
           ion_mobility_array.push_back(centroid_im);
           ion_mobility_fwhm.push_back(fwhm);
           mz_fwhm_array.push_back(mz_fwhm);
+          if (expose_bounds_)
+          {
+            b_im_lo.push_back(im_lower);
+            b_im_hi.push_back(im_upper);
+            b_mz_lo.push_back(fwhm_left_mz);
+            b_mz_hi.push_back(fwhm_right_mz);
+          }
         }
 
 #ifdef DEBUG_PICKER
@@ -659,6 +691,13 @@ namespace OpenMS
       centroided_frame_fda.push_back(std::move(ion_mobility_array));
       centroided_frame_fda.push_back(std::move(ion_mobility_fwhm));
       centroided_frame_fda.push_back(std::move(mz_fwhm_array));
+      if (expose_bounds_)
+      {
+        centroided_frame_fda.push_back(std::move(b_im_lo));
+        centroided_frame_fda.push_back(std::move(b_im_hi));
+        centroided_frame_fda.push_back(std::move(b_mz_lo));
+        centroided_frame_fda.push_back(std::move(b_mz_hi));
+      }
       centroided_frame.sortByPosition();
 
 #ifdef DEBUG_PICKER
@@ -672,17 +711,13 @@ namespace OpenMS
       return centroided_frame;
     }
 
-    void removeAllFloatDataArraysExcept(OpenMS::MSSpectrum& spectrum, const String& keep_name)
+    void removeAllFloatDataArraysExcept(OpenMS::MSSpectrum& spectrum, const std::set<String>& keep_names)
     {
       auto& float_arrays = spectrum.getFloatDataArrays();
-  
-      // Use remove_if to move all elements to remove to the end
       auto new_end = std::remove_if(float_arrays.begin(), float_arrays.end(),
-                               [&keep_name](const MSSpectrum::FloatDataArray& array) {
-                                 return array.getName() != keep_name;  // Remove if NOT the one we want to keep
+                               [&keep_names](const MSSpectrum::FloatDataArray& array) {
+                                 return keep_names.find(array.getName()) == keep_names.end();
                                });
-  
-      // Erase the removed elements
       float_arrays.erase(new_end, float_arrays.end());
     }
 
@@ -695,6 +730,15 @@ namespace OpenMS
       defaults_.setValue("pickIMTraces:gauss_ppm_tolerance",     5.0,   "Gaussian smoothing m/z tolerance in ppm");
       defaults_.setValue("pickIMTraces:sgolay_frame_length",     5,     "Savitzky-Golay smoothing frame length");
       defaults_.setValue("pickIMTraces:sgolay_polynomial_order", 3,     "Savitzky-Golay smoothing polynomial order");
+      defaults_.setValue("pickIMTraces:expose_bounds",           "false",
+        "Attach four extra FloatDataArrays per centroided spectrum giving each centroid's "
+        "FWHM-derived bounding box: 'im lower bound' / 'im upper bound' (centroid_im "
+        "+/- IM_FWHM/2) and 'm/z lower bound' / 'm/z upper bound' (the spline FWHM m/z "
+        "endpoints). Same array names as PASEFHillCentroider's expose_hill_bounds, so QC "
+        "tools (e.g. tools/scripts/plot_pasef_frames.py --show-hill-bounds) work uniformly. "
+        "Semantics differ slightly: hill bounds are the source-peak extent; PeakPickerIM "
+        "bounds are the FWHM support window. Off by default.");
+      defaults_.setValidStrings("pickIMTraces:expose_bounds", {"true", "false"});
       // --- PickIMCluster parameters ---
       defaults_.setValue("pickIMCluster:ppm_tolerance_cluster", 50.0, "m/z tolerance in ppm for clustering");
       defaults_.setValue("pickIMCluster:im_tolerance_cluster", 0.1, "Ion mobility tolerance for clustering (in 1/K0 units). For CCS data, use larger values (e.g., 10-20).");
@@ -711,6 +755,7 @@ namespace OpenMS
       gauss_ppm_tolerance_   = (double)param_.getValue("pickIMTraces:gauss_ppm_tolerance");
       sgolay_frame_length_   = (int)param_.getValue("pickIMTraces:sgolay_frame_length");
       sgolay_polynomial_order_= (int)param_.getValue("pickIMTraces:sgolay_polynomial_order");
+      expose_bounds_         = (String(param_.getValue("pickIMTraces:expose_bounds").toString()) == "true");
 
       ppm_tolerance_cluster_ = (double)param_.getValue("pickIMCluster:ppm_tolerance_cluster");
       im_tolerance_cluster_ = (double)param_.getValue("pickIMCluster:im_tolerance_cluster");
@@ -971,7 +1016,15 @@ namespace OpenMS
       centroided_frame.setMSLevel(spectrum.getMSLevel());
       centroided_frame.setName(spectrum.getName());
       centroided_frame.setRT(spectrum.getRT());
-      removeAllFloatDataArraysExcept(centroided_frame, Constants::UserParam::ION_MOBILITY_CENTROID);
+      std::set<String> keep_names = {Constants::UserParam::ION_MOBILITY_CENTROID};
+      if (expose_bounds_)
+      {
+        keep_names.insert("im lower bound");
+        keep_names.insert("im upper bound");
+        keep_names.insert("m/z lower bound");
+        keep_names.insert("m/z upper bound");
+      }
+      removeAllFloatDataArraysExcept(centroided_frame, keep_names);
       centroided_frame.setIMFormat(IMFormat::IM_PEAK);
       centroided_frame.setIMPeakType(IMPeakType::IM_CENTROIDED);
       spectrum = std::move(centroided_frame);
@@ -1225,7 +1278,7 @@ namespace OpenMS
       spectrum.getFloatDataArrays()[im_data_index].setName(Constants::UserParam::ION_MOBILITY_CENTROID);
       spectrum.setIMFormat(IMFormat::IM_PEAK);
       spectrum.setIMPeakType(IMPeakType::IM_CENTROIDED);
-      removeAllFloatDataArraysExcept(spectrum, Constants::UserParam::ION_MOBILITY_CENTROID);
+      removeAllFloatDataArraysExcept(spectrum, {Constants::UserParam::ION_MOBILITY_CENTROID});
     } // End of pickIMCluster function
 
     void PeakPickerIM::pickIMElutionProfiles(MSSpectrum& input) const
@@ -1321,7 +1374,7 @@ namespace OpenMS
       input.getFloatDataArrays()[im_data_index].setName(Constants::UserParam::ION_MOBILITY_CENTROID);
       input.setIMFormat(IMFormat::IM_PEAK);
       input.setIMPeakType(IMPeakType::IM_CENTROIDED);
-      removeAllFloatDataArraysExcept(input, Constants::UserParam::ION_MOBILITY_CENTROID);
+      removeAllFloatDataArraysExcept(input, {Constants::UserParam::ION_MOBILITY_CENTROID});
     }
 
 } // namespace OpenMS

@@ -74,8 +74,10 @@ namespace OpenMS
       ///                    extraction + per-trace centroiding pipeline. Parameters
       ///                    are read from peak_picker_im_params (subsection
       ///                    pickIMTraces:); the other centroiding-tolerance fields
-      ///                    above are ignored. Not supported on DDA-MS2 (would warn
-      ///                    and fall back to Off).
+      ///                    above are ignored. Also honors expose_hill_bounds —
+      ///                    emits FWHM-derived bounding boxes under the same
+      ///                    FloatDataArray names as HillBased. Not supported on
+      ///                    DDA-MS2 (would warn and fall back to Off).
       enum class CentroidAlgo { OFF, GREEDY2D, HILL_BASED, PEAK_PICKER_IM };
 
       /// MS1 centroiding algorithm. Default Off. If left at Off but the legacy
@@ -111,7 +113,7 @@ namespace OpenMS
       Size   ms1_centroid_min_hill_length = 1;  ///< HillBased MS1: minimum number of IM scans a hill must span. Default 1 keeps single-IM-scan ions (common on detector-centroided TIMS-PASEF MS1: ~75% of peaks have no same-m/z partner in the previous IM scan within 100 ppm).
       Size   ms2_centroid_min_hill_length = 2;  ///< HillBased MS2: minimum number of IM scans a hill must span. Default 2 is the DIA-PASEF-tuned value (rejects single-scan singletons; ~33% of unfiltered hill output survives, bringing volume close to the legacy Gaussian-smooth + local-maxima path). DDA-PASEF users should override to 1: precursors span a narrow IM range so most fragments are seen in only one IM scan, and min=2 drops ~93% of peaks there.
       Size   centroid_max_scan_gap        = 0;  ///< HillBased (MS1 + MS2): maximum number of consecutive empty IM scans a hill may bridge while linking. 0 = strict consecutive-scan linking (Biosaur2 default). 1 = a single empty scan at the hill's m/z is tolerated. Useful on detector-centroided TIMS-PASEF where an ion may occasionally fail to register in one IM scan. Note: hill length counts only the scans where the ion was actually observed, not the bridged gap.
-      bool   expose_hill_bounds           = false; ///< HillBased (MS1 + DIA-MS2): when true, attach four extra FloatDataArrays per centroided spectrum ("im lower bound", "im upper bound", "m/z lower bound", "m/z upper bound") giving each centroid's source-hill bounding box. Useful for visual QC of the centroider; bloats the mzML by roughly +25% on centroided spectra. Has no effect on DDA-MS2 hill (scalar drift_time schema). Ignored by PeakPickerIM (warns once).
+      bool   expose_hill_bounds           = false; ///< HillBased + PeakPickerIM (MS1 + DIA-MS2): when true, attach four extra FloatDataArrays per centroided spectrum ("im lower bound", "im upper bound", "m/z lower bound", "m/z upper bound") giving each centroid's bounding box. HillBased emits the source-peak extent (min/max IM and m/z of all peaks that contributed to the hill); PeakPickerIM emits the FWHM-derived support window (centroid_im ± IM_FWHM/2 and the spline m/z FWHM endpoints). Same array names so visualization tools (e.g. tools/scripts/plot_pasef_frames.py --show-hill-bounds) work uniformly. Bloats the mzML by roughly +25% on centroided spectra. Has no effect on DDA-MS2 hill (scalar drift_time schema).
 
       /// PeakPickerIM (MS1 + DIA-MS2): parameter overrides forwarded to
       /// PeakPickerIM. Treated as a sparse overlay on PeakPickerIM's own

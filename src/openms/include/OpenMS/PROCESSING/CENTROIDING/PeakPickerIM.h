@@ -139,6 +139,7 @@ namespace OpenMS
     double sum_tolerance_im_{0.0006};
     int sgolay_frame_length_{5};
     int sgolay_polynomial_order_{3};
+    bool expose_bounds_{false};   ///< pickIMTraces: attach FWHM-derived bounding-box arrays
     double ppm_tolerance_cluster_{50.0};
     double im_tolerance_cluster_{0.1};
 

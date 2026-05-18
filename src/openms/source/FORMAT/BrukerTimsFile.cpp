@@ -460,15 +460,22 @@ namespace OpenMS
   // (override only the fields they care about). Called once per top-level
   // load() entry; the returned instance is reused across all spectra (read-only
   // for its parameter members, single-threaded loader).
+  // When config.expose_hill_bounds is true, also forces pickIMTraces:expose_bounds=true
+  // on the picker so the four FWHM-derived bounding-box arrays are emitted under
+  // the same names as PASEFHillCentroider — visual QC tools work uniformly.
   static PeakPickerIM makeConfiguredPeakPickerIM(const BrukerTimsFile::Config& config)
   {
     PeakPickerIM p;
+    Param merged = p.getParameters();
     if (config.peak_picker_im_params.size() > 0)
     {
-      Param merged = p.getParameters();
       merged.update(config.peak_picker_im_params, /*add_unknown=*/false);
-      p.setParameters(merged);
     }
+    if (config.expose_hill_bounds)
+    {
+      merged.setValue("pickIMTraces:expose_bounds", "true");
+    }
+    p.setParameters(merged);
     return p;
   }
 
@@ -710,18 +717,11 @@ namespace OpenMS
     // entry points (effective{DIA,DDA}MS2Algo are not called here — calling
     // both would emit a DDA-not-supported warning during DIA loads with
     // PEAK_PICKER_IM and vice versa).
-    using CA = BrukerTimsFile::Config::CentroidAlgo;
-    const auto ms1_algo = effectiveMS1Algo(config, /*emit_warnings=*/true);
-
-    // expose_hill_bounds is hill-specific; PeakPickerIM cannot emit them.
-    // Warn once if both are requested.
-    if (config.expose_hill_bounds && (ms1_algo == CA::PEAK_PICKER_IM ||
-        config.ms2_centroid_algo == CA::PEAK_PICKER_IM))
-    {
-      OPENMS_LOG_WARN << "Warning: expose_hill_bounds=true has no effect with "
-                      << "CentroidAlgo::PEAK_PICKER_IM (PeakPickerIM does not "
-                      << "produce hill bounding boxes)." << std::endl;
-    }
+    (void)effectiveMS1Algo(config, /*emit_warnings=*/true);
+    // expose_hill_bounds is also honored by PeakPickerIM (translated to its own
+    // pickIMTraces:expose_bounds Param in makeConfiguredPeakPickerIM, emitting
+    // FWHM-derived bounding boxes under the same FloatDataArray names) — no
+    // warning needed.
   }
 
   // =====================================================================
