@@ -317,18 +317,19 @@ protected:
       "MS1 + DIA-MS2 isotopic-partner prefilter applied after aggregation (or after raw "
       "extraction otherwise), before the centroider dispatch. Drops peaks that lack at "
       "least one isotopic partner at m/z ± C13C12_MASSDIFF / q (q in {1..5}) within "
-      "± bruker:isotopic_prefilter_tol_da AND |Δscan_id| <= 1. Cleans up isolated "
+      "± bruker:isotopic_prefilter_tol_ppm AND |Δscan_id| <= 1. Cleans up isolated "
       "detector-noise singletons; preserves both the monoisotopic peak and the "
       "isotopologue (mutual evidence). Pure existence check — no intensity/averagine model. "
       "Not applied to DDA-MS2 (no per-peak IM array). Off by default.",
       false, true);
     setValidStrings_("bruker:isotopic_prefilter", {"true", "false"});
-    registerDoubleOption_("bruker:isotopic_prefilter_tol_da", "<float>", 0.05,
-      "Da tolerance for isotopic-partner matching by the prefilter. Broad by design "
-      "(0.05 Da ≈ 50 ppm at m/z 1000) so per-scan calibration jitter doesn't drop "
-      "real partners. Only effective when bruker:isotopic_prefilter is true.",
+    registerDoubleOption_("bruker:isotopic_prefilter_tol_ppm", "<float>", 50.0,
+      "ppm tolerance for isotopic-partner matching by the prefilter. Mass-relative, so the "
+      "absolute Da window scales with m/z (50 ppm ≈ 0.01 Da at m/z 200, 0.05 Da at m/z 1000). "
+      "Broad by design so per-scan calibration jitter doesn't drop real partners. Only effective "
+      "when bruker:isotopic_prefilter is true.",
       false, true);
-    setMinFloat_("bruker:isotopic_prefilter_tol_da", 0.0);
+    setMinFloat_("bruker:isotopic_prefilter_tol_ppm", 0.0);
 
     registerStringOption_("bruker:expose_hill_bounds", "<toggle>", "false",
       "HillBased (MS1 + DIA-MS2): attach four extra FloatDataArrays per centroided spectrum "
@@ -397,7 +398,7 @@ protected:
     c.centroid_max_scan_gap        = static_cast<Size>(getIntOption_("bruker:centroid_max_scan_gap"));
     c.expose_hill_bounds           = (getStringOption_("bruker:expose_hill_bounds") == "true");
     c.isotopic_prefilter           = (getStringOption_("bruker:isotopic_prefilter") == "true");
-    c.isotopic_prefilter_tol_da    = getDoubleOption_("bruker:isotopic_prefilter_tol_da");
+    c.isotopic_prefilter_tol_ppm    = getDoubleOption_("bruker:isotopic_prefilter_tol_ppm");
     return c;
   }
 #endif

@@ -236,15 +236,15 @@ namespace OpenMS
 
   // Isotopic-partner prefilter. Drops peaks lacking at least one
   // isotopic partner at m/z ± C13C12_MASSDIFF_U/q (for q in {1..5})
-  // within ±tol_da AND |Δscan_id| <= 1. m/z lookup uses binary search,
-  // so the buffer is sorted by m/z first (in lockstep). Returns the
-  // number of dropped peaks. Output buffers are m/z-sorted.
+  // within ±tol_ppm (mass-relative) AND |Δscan_id| <= 1. m/z lookup uses
+  // binary search, so the buffer is sorted by m/z first (in lockstep).
+  // Returns the number of dropped peaks. Output buffers are m/z-sorted.
   //
   // Charges 1..5 cover essentially all peptide MS1 / DIA-MS2 precursors;
-  // tol_da is intentionally broad (default 0.05 Da from the Config) to
+  // tol_ppm is intentionally broad (default 50 ppm from the Config) to
   // tolerate per-scan m/z calibration jitter at the prefilter stage.
   // No intensity-ratio check is applied — pure existence test.
-  static size_t isotopicPrefilter(FrameBuffers& buf, double tol_da)
+  static size_t isotopicPrefilter(FrameBuffers& buf, double tol_ppm)
   {
     if (buf.empty()) return 0;
 
@@ -264,6 +264,8 @@ namespace OpenMS
         for (double sign : {-1.0, 1.0})
         {
           const double target = buf.mz[i] + sign * dmz;
+          // Convert ppm tolerance to absolute Da at the target m/z.
+          const double tol_da = target * tol_ppm * 1e-6;
           auto it_lo = std::lower_bound(buf.mz.begin(), buf.mz.end(), target - tol_da);
           auto it_hi = std::upper_bound(buf.mz.begin(), buf.mz.end(), target + tol_da);
           for (auto it = it_lo; it != it_hi; ++it)
@@ -1597,7 +1599,7 @@ namespace OpenMS
     if (config.isotopic_prefilter)
     {
       const size_t before = buf.size();
-      const size_t dropped = isotopicPrefilter(buf, config.isotopic_prefilter_tol_da);
+      const size_t dropped = isotopicPrefilter(buf, config.isotopic_prefilter_tol_ppm);
       OPENMS_LOG_INFO << "Isotopic prefilter (MS1, frame=" << frame.id
                       << "): dropped " << dropped << " / " << before
                       << " peaks ("
@@ -1757,7 +1759,7 @@ namespace OpenMS
     if (config.isotopic_prefilter)
     {
       const size_t before = buf.size();
-      const size_t dropped = isotopicPrefilter(buf, config.isotopic_prefilter_tol_da);
+      const size_t dropped = isotopicPrefilter(buf, config.isotopic_prefilter_tol_ppm);
       OPENMS_LOG_INFO << "Isotopic prefilter (MS1 aggregated, frame="
                       << center_frame.id << "): dropped " << dropped << " / "
                       << before << " peaks ("
@@ -2914,7 +2916,7 @@ namespace OpenMS
             if (config.isotopic_prefilter)
             {
               const size_t before = buf.size();
-              const size_t dropped = isotopicPrefilter(buf, config.isotopic_prefilter_tol_da);
+              const size_t dropped = isotopicPrefilter(buf, config.isotopic_prefilter_tol_ppm);
               OPENMS_LOG_INFO << "Isotopic prefilter (DIA-MS2 aggregated, frame="
                               << center_frame.id << " window=" << win->window_group
                               << "): dropped " << dropped << " / " << before
@@ -3058,7 +3060,7 @@ namespace OpenMS
             if (config.isotopic_prefilter)
             {
               const size_t before = buf.size();
-              const size_t dropped = isotopicPrefilter(buf, config.isotopic_prefilter_tol_da);
+              const size_t dropped = isotopicPrefilter(buf, config.isotopic_prefilter_tol_ppm);
               OPENMS_LOG_INFO << "Isotopic prefilter (DIA-MS2 raw, frame="
                               << frame.id << " window=" << win->window_group
                               << "): dropped " << dropped << " / " << before

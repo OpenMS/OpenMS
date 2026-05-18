@@ -130,13 +130,13 @@ namespace OpenMS
       /// Applied after aggregation (or after raw extraction when aggregation
       /// is disabled), before the centroider dispatch. Drops peaks that lack
       /// at least one isotopic partner at m/z ± C13C12_MASSDIFF_U / q (q in
-      /// {1, 2, 3, 4, 5}) within ±isotopic_prefilter_tol_da AND |Δscan_id|
-      /// <= 1. Cleans up isolated detector-noise singletons; preserves both
-      /// the monoisotopic peak and the isotopologue (mutual evidence).
-      /// Pure existence check — no intensity-ratio or averagine model.
-      /// Not applied to DDA-MS2 (which has no per-peak IM array).
-      bool   isotopic_prefilter        = false;
-      double isotopic_prefilter_tol_da = 0.05;   ///< Da tolerance for isotopic-partner matching (broad by design — survives per-scan calibration jitter).
+      /// {1, 2, 3, 4, 5}) within ±isotopic_prefilter_tol_ppm (mass-relative)
+      /// AND |Δscan_id| <= 1. Cleans up isolated detector-noise singletons;
+      /// preserves both the monoisotopic peak and the isotopologue (mutual
+      /// evidence). Pure existence check — no intensity-ratio or averagine
+      /// model. Not applied to DDA-MS2 (which has no per-peak IM array).
+      bool   isotopic_prefilter         = false;
+      double isotopic_prefilter_tol_ppm = 50.0;  ///< ppm tolerance for isotopic-partner matching (broad by design — survives per-scan calibration jitter; 50 ppm @ m/z 1000 = 0.05 Da).
 
       int dia_ms2_n_neighbors = 0;  ///< DIA MS2 frame aggregation: number of adjacent frames on each side (0 = disabled / raw per-frame export, 1 = 3-frame sum, 2 = 5-frame sum). Kept at 0 by default so the raw DIA-MS2 export path is the out-of-the-box behavior — this knob switches the entire DIA-MS2 export pipeline (sum + denoise) regardless of centroiding algo, so flipping it changes output for every caller. Set to 2 alongside ms2_centroid_algo=hillbased + min_hill_length=2 + mz_ppm=20 for the DIA-PASEF hill recipe; set to 1/2 with algo=off for raw RT-summed export.
       int dia_ms2_min_support = 1;  ///< DIA MS2 denoising: minimum occupied neighbors in 3x3 (mz x IM) grid to retain a point (center excluded)
