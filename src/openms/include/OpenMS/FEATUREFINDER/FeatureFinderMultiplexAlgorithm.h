@@ -28,47 +28,76 @@ namespace OpenMS
 {
 
   /**
-  FeatureFinderMultiplexAlgorithm is a tool for the fully automated analysis of quantitative proteomics data. It detects pairs of isotopic envelopes with fixed m/z separation.
-It requires no prior sequence identification of the peptides and works on both profile or centroided spectra. In what follows we outline the algorithm.
+    @brief Identification-free quantitative feature finder for SILAC / Dimethyl / ICPL-style label-pair experiments.
 
-<b>Algorithm</b>
-The algorithm is divided into three parts: filtering, clustering and linear fitting, see Fig. (d), (e) and (f).
-In the following discussion let us consider a particular mass spectrum at retention time 1350 s, see Fig. (a).
-It contains a peptide of mass 1492 Da and its 6 Da heavier labelled counterpart. Both are doubly charged in this instance.
-Their isotopic envelopes therefore appear at 746 and 749 in the spectrum. The isotopic peaks within each envelope are separated by 0.5.
-The spectrum was recorded at finite intervals. In order to read accurate intensities at arbitrary m/z we spline-fit over the data, see Fig. (b).
-We would like to search for such peptide pairs in our LC-MS data set. As a warm-up let us consider a standard intensity cut-off filter, see Fig. (c).
+    Detects pairs (or larger multiplets) of isotopic envelopes separated by fixed label-induced
+    m/z shifts. Works on both profile and centroided MS1 spectra; no prior sequence
+    identification is needed. Configurable via @ref DefaultParamHandler (parameter sections
+    @c "algorithm:*" and @c "labels:*"; defaults are set by the constructor).
 
-Scanning through the entire m/z range (red dot) only data points with intensities above a certain threshold pass the filter. 
-Unlike such a local filter, the filter used in our algorithm takes intensities at a range of m/z positions into account, see Fig. (d). A data point (red dot) passes if
-- all six intensities at m/z, m/z+0.5, m/z+1, m/z+3, m/z+3.5 and m/z+4 lie above a certain threshold,
-- the intensity profiles in neighbourhoods around all six m/z positions show a good correlation and
-- the relative intensity ratios within a peptide agree up to a factor with the ratios of a theoretic averagine model.
+    <b>Algorithm</b>
+    Three stages — filtering, clustering, and linear fitting:
+      - Filtering retains data points where all isotope-pattern peaks (e.g. at m/z, m/z+0.5,
+        m/z+1, m/z+3, m/z+3.5, m/z+4 for a doubly charged pair) clear an intensity threshold,
+        show good profile correlation across the m/z range, and whose within-peptide
+        intensity ratios match an averagine model within a per-call tolerance.
+      - Clustering uses hierarchical methods on the surviving points in the t-m/z plane.
+        Each cluster corresponds to the monoisotopic mass trace of the lightest peptide of
+        a label pattern. The number of clusters is chosen by maximising the silhouette
+        width.
+      - Linear fitting on the in-cluster intensity pairs (e.g. [m/z, m/z+3], [m/z+0.5,
+        m/z+3.5], [m/z+1, m/z+4] for a doubly charged pair) yields the relative amounts of
+        labelled and unlabelled peptide.
 
-Let us now filter not only a single spectrum but all spectra in our data set. Data points that pass the filter form clusters in the t-m/z plane, see Fig. (e).
-Each cluster corresponds to the mono-isotopic mass trace of the lightest peptide of a SILAC pattern. We now use hierarchical clustering methods to assign each data point to a specific cluster.
-The optimum number of clusters is determined by maximizing the silhouette width of the partitioning.
-Each data point in a cluster corresponds to three pairs of intensities (at [m/z, m/z+3], [m/z+0.5, m/z+3.5] and [m/z+1, m/z+4]).
-A plot of all intensity pairs in a cluster shows a clear linear correlation, see Fig. (f).
-Using linear regression we can determine the relative amounts of labelled and unlabelled peptides in the sample.
+    @image html SILACAnalyzer_algorithm.png
 
-@image html SILACAnalyzer_algorithm.png
-
+    @ingroup Quantitation
   */
-
 class OPENMS_DLLAPI FeatureFinderMultiplexAlgorithm :
   public DefaultParamHandler, public ProgressLogger
 {
 public:
-  /// default constructor
+  /// Construct with built-in defaults; parameter sections @c "algorithm" and @c "labels" are registered. Call @c setParameters to override before @ref run.
   FeatureFinderMultiplexAlgorithm();
 
-  /// main method for feature detection
+  /**
+    @brief Run the full detection pipeline on @p exp and populate the internal feature / consensus / blacklist maps.
+
+    The pipeline:
+      -# Parses the configured charge and isotopes-per-peptide ranges from the
+         @c "algorithm:charge" and @c "algorithm:isotopes_per_peptide" Param values
+         (formatted as @c "min:max"; swapped silently if the input is reversed).
+      -# Loads the label mass shifts from the @c "labels:*" Param section into the
+         in-class @c label_mass_shift_ map.
+      -# Clears @p exp's chromatograms, calls @c updateRanges and @c sortSpectra on it,
+         and then **moves** @p exp into either the internal centroided or profile
+         working buffer via @c MSExperiment::swap — after this call returns, the
+         caller's @p exp is left empty.
+      -# Determines the spectrum type from @c "algorithm:spectrum_type":
+         @c "automatic" reads @c exp[0].getType(true) and treats UNKNOWN as profile;
+         @c "centroid" / @c "profile" force the choice.
+      -# When the input is in profile mode, runs @ref PeakPickerHiRes::pickExperiment
+         on @c "MS1" only with @c signal_to_noise @c = @c 0 (S/N estimation disabled).
+      -# Builds the label delta-mass list with @ref MultiplexDeltaMassesGenerator,
+         optionally extending it with knock-out delta masses when
+         @c "algorithm:knock_out" is @c "true".
+      -# Generates isotopic peak patterns, runs the filter / cluster / linear-fit
+         stages described in the class brief, and populates @c feature_map_,
+         @c consensus_map_, and @c exp_blacklist_ accessible through the @c get*
+         methods.
+
+    @param[in,out] exp      MS1 experiment to analyse. Chromatograms are cleared, ranges are recomputed, spectra sorted, and the container is moved into the internal working buffer — the caller's @p exp is empty on return.
+    @param[in]     progress When @c true, progress is reported through the inherited @ref ProgressLogger.
+
+    @throws OpenMS::Exception::FileEmpty when @p exp has no spectra.
+  */
   void run(MSExperiment& exp, bool progress);
 
-  /// get methods
+  /// Return the FeatureMap populated by the most recent @ref run call (empty before @ref run).
   FeatureMap& getFeatureMap();
+  /// Return the ConsensusMap of detected multiplets populated by the most recent @ref run call (empty before @ref run).
   ConsensusMap& getConsensusMap();
+  /// Return the per-pattern blacklist MSExperiment produced during @ref run (peak regions consumed by detected multiplets).
   MSExperiment& getBlacklist();
 
 protected:
