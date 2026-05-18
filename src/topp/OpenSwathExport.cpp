@@ -288,7 +288,7 @@ protected:
                                     "OpenSwathExport currently supports OSW input only. .oswpq support is reserved for future work.");
     }
 
-    const String out_dir = makeOutputDir_(input_file, getStringOption_("out_dir"));
+    const String out_dir = makeOutputDir_(input_file, getOutputDirOption("out_dir"));
     File::makeDir(out_dir);
     const String base_path = makeBasePath_(input_file, out_dir);
     const auto tasks = getTasks_();
