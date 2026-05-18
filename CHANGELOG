@@ -290,6 +290,7 @@ TOPP tools:
   New tools:
     - FeatureLinkerWNet: groups corresponding features across multiple label-free maps using Wasserstein (optimal transport) distance over (m/z, RT) space; solves a minimum-cost network flow problem via the wnetalign library; supports Da and ppm m/z tolerances, L1/L2/L∞ distance metrics, and intensity normalization
     - OpenSwathInfer: Added topp tool for performing peptidoform, peptide, protein and gene inference for OpenSwath analysis. (#9280) 
+    - OpenSwathExport: Added topp tool for exporting OpenSwathWorkflow results to TSV/Parquet files (#9377)
 
 OpenMS Library:
   Added:
