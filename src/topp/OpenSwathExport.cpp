@@ -123,7 +123,14 @@ protected:
     config.filters = getFilterConfig_("matrix");
     config.level = level;
     config.normalization = toNormalization_(getStringOption_("matrix:normalization"));
-    config.top_n = static_cast<Size>(getIntOption_("matrix:top_n"));
+    const Int top_n = getIntOption_("matrix:top_n");
+    if (top_n < 0 || (level != OpenSwathMatrixLevel::Precursor && top_n < 1))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Parameter 'matrix:top_n' must be >= 1 for peptide/protein/gene matrix export and >= 0 for precursor export.",
+        String(top_n));
+    }
+    config.top_n = static_cast<Size>(top_n);
     config.consistent_top = toBool_(getStringOption_("matrix:consistent_top"));
     config.format = toExportFormat_(getStringOption_("matrix:format"));
     return config;

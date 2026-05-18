@@ -200,6 +200,29 @@ namespace OpenMS
       return rows;
     }
 
+    void validateMatrixDimensions_(const OpenSwathQuantMatrix& matrix)
+    {
+      if (matrix.identifier_rows.size() != matrix.values.size())
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Matrix identifiers and values must have identical row counts.");
+      }
+
+      for (Size row_idx = 0; row_idx < matrix.identifier_rows.size(); ++row_idx)
+      {
+        if (matrix.identifier_rows[row_idx].size() != matrix.identifier_column_names.size())
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Identifier row width does not match identifier columns.");
+        }
+        if (matrix.values[row_idx].size() != matrix.sample_column_names.size())
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Value row width does not match sample columns.");
+        }
+      }
+    }
+
     void applyNormalization_(OpenSwathQuantMatrix& matrix, const OpenSwathMatrixNormalization normalization)
     {
       if (normalization == OpenSwathMatrixNormalization::None)
@@ -262,6 +285,11 @@ namespace OpenMS
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "No OpenSWATH rows were available for matrix export.");
+    }
+    if (config.level != OpenSwathMatrixLevel::Precursor && config.top_n == 0)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Matrix export requires top_n > 0 for peptide/protein/gene levels.");
     }
 
     const auto sample_names = buildSampleNames_(rows);
@@ -422,6 +450,7 @@ namespace OpenMS
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Cannot write an empty OpenSWATH quantification matrix.");
     }
+    validateMatrixDimensions_(matrix);
 
     if (config.format == OpenSwathExportFileFormat::TSV)
     {

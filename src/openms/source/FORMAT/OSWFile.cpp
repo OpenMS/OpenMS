@@ -2527,6 +2527,7 @@ namespace OpenMS
 
       requireTable_(conn, "TRANSITION", "Transition Parquet export requires transition information.");
       requireTable_(conn, "FEATURE_TRANSITION", "Transition Parquet export requires FEATURE_TRANSITION.");
+      requireTable_(conn, "TRANSITION_PRECURSOR_MAPPING", "Transition Parquet export requires transition-to-precursor mappings.");
       const bool has_transition_peptide_mapping = conn.tableExists("TRANSITION_PEPTIDE_MAPPING");
 
       std::vector<String> feature_transition_columns = getTableColumns_(conn, "FEATURE_TRANSITION");

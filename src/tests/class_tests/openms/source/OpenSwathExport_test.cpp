@@ -13,6 +13,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathParquetExporter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathResultsExporter.h>
 #include <OpenMS/FORMAT/OSWFile.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
@@ -55,6 +56,12 @@ namespace
       return {};
     }
     return table_result.ValueOrDie();
+  }
+
+  void dropTable_(const String& filename, const String& table_name)
+  {
+    SqliteConnector conn(filename, SqliteConnector::SqlOpenMode::READWRITE);
+    conn.executeStatement("DROP TABLE " + table_name + ";");
   }
 } // namespace
 
@@ -165,6 +172,52 @@ START_SECTION(OSW-backed OpenSWATH export readers and writers)
     TEST_NOT_EQUAL(transition_arrow->GetColumnByName("IPF_PEPTIDE_ID"), nullptr)
     TEST_NOT_EQUAL(transition_arrow->GetColumnByName("SCORE_TRANSITION_QVALUE"), nullptr)
   }
+}
+END_SECTION
+
+START_SECTION(OpenSwathMatrixExporter rejects invalid top_n and malformed matrix shapes)
+{
+  String tmp_osw;
+  NEW_TMP_FILE(tmp_osw);
+  copySharedExportFixture_(tmp_osw);
+
+  OSWFile osw(tmp_osw);
+  OpenSwathExportFilterConfig filter_config;
+  const auto result_rows = osw.readOpenSwathExportRows(filter_config);
+
+  OpenSwathMatrixExportConfig invalid_top_n_config;
+  invalid_top_n_config.level = OpenSwathMatrixLevel::Peptide;
+  invalid_top_n_config.top_n = 0;
+  TEST_EXCEPTION(Exception::Precondition, OpenSwathMatrixExporter::buildMatrix(result_rows, invalid_top_n_config))
+
+  OpenSwathQuantMatrix malformed_matrix;
+  malformed_matrix.identifier_column_names = {"Sequence"};
+  malformed_matrix.sample_column_names = {"run1"};
+  malformed_matrix.identifier_rows = {{"PEPTIDE"}};
+  malformed_matrix.values = {};
+  TEST_EXCEPTION(Exception::Precondition, OpenSwathMatrixExporter::writeMatrix("ignored.tsv", malformed_matrix, {}))
+
+  malformed_matrix.values = {{1.0}};
+  malformed_matrix.identifier_rows = {{"PEPTIDE", "EXTRA"}};
+  TEST_EXCEPTION(Exception::Precondition, OpenSwathMatrixExporter::writeMatrix("ignored.tsv", malformed_matrix, {}))
+
+  malformed_matrix.identifier_rows = {{"PEPTIDE"}};
+  malformed_matrix.values = {{1.0, 2.0}};
+  TEST_EXCEPTION(Exception::Precondition, OpenSwathMatrixExporter::writeMatrix("ignored.tsv", malformed_matrix, {}))
+}
+END_SECTION
+
+START_SECTION(OSWFile transition parquet reader validates TRANSITION_PRECURSOR_MAPPING presence)
+{
+  String tmp_osw;
+  NEW_TMP_FILE(tmp_osw);
+  copySharedExportFixture_(tmp_osw);
+  dropTable_(tmp_osw, "TRANSITION_PRECURSOR_MAPPING");
+
+  OSWFile osw(tmp_osw);
+  OpenSwathParquetExportConfig parquet_config;
+  parquet_config.include_transition_data = true;
+  TEST_EXCEPTION(Exception::Precondition, osw.readOpenSwathTransitionScoreTable(parquet_config))
 }
 END_SECTION
 
