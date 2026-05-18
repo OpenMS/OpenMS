@@ -64,7 +64,7 @@ namespace OpenMS
       std::vector<double> abundant_mono_mass_difference_;
       /// Per-bin SNR multiplication factor: @c (sum-of-normalised-intensities)^2 of the trimmed distribution.
       std::vector<double> snr_mul_factor_;
-      /// Per-bin count of significant isotopes on the left side of the apex (running maximum across bins; see @ref PrecalculatedAveragine(double,double,double,CoarseIsotopePatternGenerator&,bool,double) for the unusual running-max semantics).
+      /// Per-bin count of significant isotopes on the left side of the apex (running maximum across bins; see the @c PrecalculatedAveragine parameterised constructor for the unusual running-max semantics).
       std::vector<int> left_count_from_apex_;
       /// Per-bin count of significant isotopes on the right side of the apex (running maximum across bins; same caveat as @ref left_count_from_apex_).
       std::vector<int> right_count_from_apex_;
