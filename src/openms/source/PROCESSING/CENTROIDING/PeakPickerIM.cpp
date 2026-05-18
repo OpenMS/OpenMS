@@ -36,6 +36,7 @@ using namespace std;
 
 #ifdef DEBUG_PICKER
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #endif
 
 namespace OpenMS
@@ -812,8 +813,8 @@ namespace OpenMS
       {
         return;
       }
-      
-      
+
+
       // Spectrum is in IM_PEAK IM format. Now sort by m/z to prepare for m/z peak picking
       spectrum.sortByPosition();
 
@@ -848,9 +849,38 @@ namespace OpenMS
       }
 #endif
 
+      // ------------------------------------------ step 2a-bis: resample to uniform m/z grid -----------
+      // PeakPickerHiRes (used next) is designed for *profile*-mode data with
+      // approximately uniform m/z spacing. sumFrame_ output is sparse and
+      // non-uniform — it preserves only the m/z values where peaks existed,
+      // with apex spacings ~0.2 mDa and gaps up to ~25 mDa. PPHR's
+      // `spacing_difference` heuristic then refuses to extend peaks across
+      // irregular spacings, silently dropping the apex of every cluster.
+      //
+      // The symmetric fix to what is already done for IM mobilograms below
+      // (step 4a uses LinearResamplerAlign on the IM dimension) is to
+      // resample the m/z projection to a uniform grid before PPHR. We use
+      // ppm-relative spacing matching the Gauss filter tolerance so the
+      // resampler resolution is naturally proportional to m/z. Note: the
+      // resampled grid is only used to *find* m/z peaks; the final centroid
+      // m/z is recomputed from the original (non-resampled) raw spectrum in
+      // computeCentroids_ via cubic-spline bisection, so resampling does not
+      // degrade m/z accuracy.
+      if (summed_spectrum.size() >= 2)
+      {
+        LinearResamplerAlign mz_resampler;
+        Param mz_resampler_p;
+        mz_resampler_p.setValue("spacing", gauss_ppm_tolerance_);
+        mz_resampler_p.setValue("ppm", "true");
+        mz_resampler.setParameters(mz_resampler_p);
+        mz_resampler.raster(summed_spectrum);
+      }
+
       // ------------------------------------------ step 3a: m/z Peak Picking ------------------------------------------
       // Pick peaks in the m/z axis and toggle reporting peak width at half max (FWHM)
       // we will use the FWHM of each picked m/z peak to extract mobilograms.
+      // Input is now uniform-spaced profile data (after the resampling above),
+      // so PPHR's default `spacing_difference` heuristic works correctly.
       PeakPickerHiRes picker_mz;
       Param picker_mz_p;
       picker_mz_p.setValue("signal_to_noise", 0.0);
