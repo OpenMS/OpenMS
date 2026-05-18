@@ -134,34 +134,94 @@ namespace OpenMS
       ~PrecalculatedAveragine() = default;
 
 
-      /// Return the cached trimmed + L2-normalised isotope distribution for the bin containing @p mass. Out-of-range @p mass is silently clamped to @c [min_mass, max_mass].
+      /**
+        @brief Return the cached trimmed + L2-normalised isotope distribution for the bin containing @p mass.
+
+        @param[in] mass Input mass to query. Out-of-range values are silently clamped to @c [min_mass, max_mass].
+        @return Cached isotope distribution for the resolved bin.
+      */
       IsotopeDistribution get(double mass) const;
 
-      /// Return the externally-set isotope-index cap. @warning Reading before @ref setMaxIsotopeIndex has been called returns an uninitialised value (the constructor does not initialise @c max_isotope_index_).
+      /**
+        @brief Return the externally-set isotope-index cap.
+
+        @warning The constructor does not initialise @c max_isotope_index_; reading this
+                 before @ref setMaxIsotopeIndex has been called returns an uninitialised value.
+
+        @return The most recent value passed to @ref setMaxIsotopeIndex.
+      */
       size_t getMaxIsotopeIndex() const;
 
-      /// Set the isotope-index cap consulted by external callers. Does not influence the cached distributions or other accessors.
+      /**
+        @brief Set the isotope-index cap consulted by external callers. Does not influence the cached distributions or other accessors.
+
+        @param[in] index New isotope-index cap value.
+      */
       void setMaxIsotopeIndex(int index);
 
-      /// Return the number of significant isotopes to the left of the apex for the bin containing @p mass. Silently clamps out-of-range @p mass. The value is a running maximum across bins (see the constructor) so it grows monotonically with mass.
+      /**
+        @brief Return the number of significant isotopes to the left of the apex for the bin containing @p mass.
+
+        @note The stored value is a running maximum accumulated across bins during construction,
+              so it grows monotonically with @p mass (see the parameterised constructor's
+              left/right-count semantics).
+
+        @param[in] mass Input mass to query. Out-of-range values are silently clamped to @c [min_mass, max_mass].
+        @return Running-max left count of significant isotopes.
+      */
       Size getLeftCountFromApex(double mass) const;
 
-      /// Return the number of significant isotopes to the right of the apex for the bin containing @p mass. Silently clamps out-of-range @p mass. Same running-maximum caveat as @ref getLeftCountFromApex.
+      /**
+        @brief Return the number of significant isotopes to the right of the apex for the bin containing @p mass.
+
+        @note Same running-maximum caveat as @ref getLeftCountFromApex.
+
+        @param[in] mass Input mass to query. Out-of-range values are silently clamped to @c [min_mass, max_mass].
+        @return Running-max right count of significant isotopes.
+      */
       Size getRightCountFromApex(double mass) const;
 
-      /// Return the index of the most-abundant isotope inside the trimmed distribution for the bin containing @p mass. Silently clamps out-of-range @p mass.
+      /**
+        @brief Return the index of the most-abundant isotope inside the trimmed distribution for the bin containing @p mass.
+
+        @param[in] mass Input mass to query. Out-of-range values are silently clamped to @c [min_mass, max_mass].
+        @return Position of the apex peak inside the trimmed distribution.
+      */
       Size getApexIndex(double mass) const;
 
-      /// Return @c apex_index @c + @c right_count_from_apex — i.e. the index of the rightmost significant isotope — for the bin containing @p mass. Silently clamps out-of-range @p mass.
+      /**
+        @brief Return @c apex_index @c + @c right_count_from_apex for the bin containing @p mass — the index of the rightmost significant isotope.
+
+        @param[in] mass Input mass to query. Out-of-range values are silently clamped to @c [min_mass, max_mass].
+        @return Index of the rightmost significant isotope.
+      */
       Size getLastIndex(double mass) const;
 
-      /// Return @c (average_mass @c - @c monoisotopic_mass) for the bin's trimmed distribution. Silently clamps out-of-range @p mass.
+      /**
+        @brief Return @c (average_mass @c - @c monoisotopic_mass) for the bin's trimmed distribution.
+
+        @param[in] mass Input mass to query. Out-of-range values are silently clamped to @c [min_mass, max_mass].
+        @return Mass difference between the trimmed distribution's average mass and its monoisotopic mass.
+      */
       double getAverageMassDelta(double mass) const;
 
-      /// Return @c (most_abundant_mass @c - @c monoisotopic_mass) for the bin's trimmed distribution. Silently clamps out-of-range @p mass.
+      /**
+        @brief Return @c (most_abundant_mass @c - @c monoisotopic_mass) for the bin's trimmed distribution.
+
+        @param[in] mass Input mass to query. Out-of-range values are silently clamped to @c [min_mass, max_mass].
+        @return Mass difference between the trimmed distribution's most-abundant-isotope mass and its monoisotopic mass.
+      */
       double getMostAbundantMassDelta(double mass) const;
 
-      /// Return the SNR multiplication factor — @c (sum-of-normalised-intensities)^2 of the trimmed distribution for the bin. Used by FLASHDeconv for fast SNR computation. Silently clamps out-of-range @p mass.
+      /**
+        @brief Return the SNR multiplication factor for the bin containing @p mass.
+
+        @c (sum-of-normalised-intensities)^2 of the trimmed distribution. Used by FLASHDeconv
+        for fast SNR computation.
+
+        @param[in] mass Input mass to query. Out-of-range values are silently clamped to @c [min_mass, max_mass].
+        @return Squared sum of normalised peak intensities for the bin.
+      */
       double getSNRMultiplicationFactor(double mass) const;
     };
 
