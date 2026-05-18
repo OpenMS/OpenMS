@@ -34,14 +34,15 @@ namespace
 
   std::shared_ptr<arrow::Table> readParquetTable_(const String& filename)
   {
-    auto input_result = arrow::io::ReadableFile::Open(filename);
-    TEST_EQUAL(input_result.ok(), true)
-    if (!input_result.ok())
+    auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
+    TEST_EQUAL(infile_result.ok(), true)
+    if (!infile_result.ok())
     {
       return {};
     }
+    const auto& infile = *infile_result;
 
-    auto reader_result = parquet::arrow::OpenFile(input_result.ValueOrDie(), arrow::default_memory_pool());
+    auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
     TEST_EQUAL(reader_result.ok(), true)
     if (!reader_result.ok())
     {
@@ -49,13 +50,14 @@ namespace
     }
 
     std::unique_ptr<parquet::arrow::FileReader> reader = std::move(reader_result.ValueOrDie());
-    auto table_result = reader->ReadTable();
-    TEST_EQUAL(table_result.ok(), true)
-    if (!table_result.ok())
+    std::shared_ptr<arrow::Table> table;
+    auto read_status = reader->ReadTable(&table);
+    TEST_EQUAL(read_status.ok(), true)
+    if (!read_status.ok())
     {
       return {};
     }
-    return table_result.ValueOrDie();
+    return table;
   }
 
   void dropTable_(const String& filename, const String& table_name)
