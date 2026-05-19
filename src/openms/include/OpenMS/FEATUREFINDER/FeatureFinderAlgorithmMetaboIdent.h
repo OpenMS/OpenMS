@@ -118,7 +118,7 @@ public:
       }
 
       /// Return the RT tolerance per @c rts_ entry (or a single broadcast value, or empty for the algorithm default).
-      const std::vector<double> getRTRanges() const {
+      const std::vector<double>& getRTRanges() const {
         return rt_ranges_;
       }
 
