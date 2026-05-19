@@ -172,6 +172,7 @@ set(format_executables_list
   AbsoluteQuantitationStandardsFile_test
   Base64_test
   BrukerTimsFile_test
+  PASEFHillCentroider_test
   MSNumpressCoder_test
   Bzip2Ifstream_test
   Bzip2InputStream_test
