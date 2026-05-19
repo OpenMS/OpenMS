@@ -151,6 +151,11 @@ namespace OpenMS
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
     }
 
+    // Resolve analysis.tdf eagerly so an I/O error surfaces as FileNotReadable
+    // here, rather than being masked by isImagingDataset() (which swallows
+    // exceptions to behave as a non-throwing probe).
+    const String tdf = resolveTdfPath_(path);
+
     if (config.strict_imaging_only && !isImagingDataset(path))
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -160,7 +165,6 @@ namespace OpenMS
     // Reject multi-section datasets — geometry is strictly 2D, callers should
     // split sections into separate MSImagingExperiment objects.
     {
-      const String tdf = resolveTdfPath_(path);
       SqliteConnector conn(tdf, SqliteConnector::SqlOpenMode::READ_ONLY);
       if (conn.columnExists("MaldiFrameInfo", "ZIndexPos"))
       {

@@ -146,6 +146,12 @@ START_SECTION(void load(const String& path, MSImagingExperiment& exp))
   BrukerTimsImagingFile f;
   MSImagingExperiment exp;
   TEST_EXCEPTION(Exception::FileNotReadable, f.load(tmp.getPath() + "/nope.d", exp))
+
+  // .d folder exists but analysis.tdf is missing -> FileNotReadable
+  // (must not be masked as InvalidValue by the strict-imaging check).
+  const String d_no_tdf = tmp.getPath() + "/no_tdf.d";
+  std::filesystem::create_directories(d_no_tdf.c_str());
+  TEST_EXCEPTION(Exception::FileNotReadable, f.load(d_no_tdf, exp))
 }
 END_SECTION
 
