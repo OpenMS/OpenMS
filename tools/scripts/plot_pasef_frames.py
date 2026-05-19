@@ -157,8 +157,9 @@ def extract_peaks(spec):
     if im is None and len(fda) > 0:
         arr = fda[0]
         try:
-            im = np.fromiter((arr[i] for i in range(arr.size())),
-                              count=arr.size(), dtype=float)
+            if not arr.getName():
+                im = np.fromiter((arr[i] for i in range(arr.size())),
+                                  count=arr.size(), dtype=float)
         except Exception:
             im = None
     bounds = {
@@ -394,8 +395,10 @@ def render_level(exps, ms_level, n_frames, out_path,
     pool = nonempty_indices(first_exp, ms_level)
     if pick_strategy == "tic":
         picks = pick_by_tic_quantile(first_exp, pool, n_frames)
-        quantile_labels = [f"{int(round(100 * k / n_frames))}%"
-                           for k in range(1, n_frames + 1)]
+        denom = len(picks)
+        quantile_labels = ([f"{int(round(100 * k / denom))}%"
+                            for k in range(1, denom + 1)]
+                           if denom else [])
     else:
         picks = pick_evenly(pool, n_frames)
         quantile_labels = [None] * len(picks)

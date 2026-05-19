@@ -106,8 +106,9 @@ def extract_peaks(spec):
     if im is None and len(fda) > 0:
         try:
             arr = fda[0]
-            im = np.fromiter((arr[i] for i in range(arr.size())),
-                              count=arr.size(), dtype=float)
+            if not arr.getName():
+                im = np.fromiter((arr[i] for i in range(arr.size())),
+                                  count=arr.size(), dtype=float)
         except Exception:
             im = None
     return np.asarray(mz, dtype=float), np.asarray(intensity, dtype=float), im
