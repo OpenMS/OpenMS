@@ -401,6 +401,13 @@ OpenMS Library:
       - OpenSwathPeptidoformInference: peptidoform (IPF) inference implementing the Inference of PeptidoForms algorithm
       - OSWFile: new methods readIPFPrecursorData(), readIPFTransitionData(), readIPFAlignmentData(), readIPFAlignmentData(double), writeIPFResults(), readLevelContextData(), writeLevelContextResults(), readRunBasenames() for inference workflows
       - KernelDensityEstimation: bandwidth fallback for degenerate inputs (all-zero p-values) now matches PyProphet behaviour, guaranteeing a strictly positive bandwidth
+    - OpenSWATH export infrastructure ported from PyProphet (#9377)
+      - OpenSwathExportConfig: configuration structs (FilterConfig, ResultsConfig, MatrixConfig, ParquetConfig) for controlling score filters, output format, pivot-matrix dimensions, and Parquet compression
+      - OpenSwathExportData: shared data structures (FeatureRow, ProteinRow, etc.) used across all export paths
+      - OpenSwathMatrixExporter: builds peptide- and protein-level score matrices from .osw feature data with configurable top_N selection
+      - OpenSwathParquetExporter: writes per-feature score tables to Parquet format via Apache Arrow
+      - OpenSwathResultsExporter: exports combined results in TSV and Parquet formats; reads gene-decoy and transition-annotation columns from OSWFile
+      - OSWFile: extended SQL queries to include gene decoy flags and transition annotation fields required by the new export classes
 
 Fixes:
   - Fix inverted use_all_hits logic causing NucleicAcidSearchEngine crash with multiple hits per spectrum (#8542)
