@@ -17,18 +17,24 @@ namespace OpenMS
   {
 
     /**
-      @brief Semantically validates MzXML files.
+      @brief Semantic validator for mzIdentML files.
+
+      Thin specialisation of @ref SemanticValidator that enables unit
+      checking; all rule matching is performed by the base class against
+      the supplied CV-mapping rules and controlled vocabularies.
+
+      @ingroup FileIO
     */
     class OPENMS_DLLAPI MzIdentMLValidator :
       public SemanticValidator
     {
 public:
       /**
-        @brief Constructor
+        @brief Constructor.
 
-                @param[in] mapping The mapping rules
-                @param[in] cv @em All controlled vocabularies required for the mapping
-            */
+        @param[in] mapping The mapping rules
+        @param[in] cv @em All controlled vocabularies required for the mapping
+      */
       MzIdentMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv);
 
       /// Destructor
