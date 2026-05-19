@@ -525,6 +525,22 @@ if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
     WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
   )
 
+  # Mirror the BrukerTimsFile_test pattern: forward optional CMake-configured
+  # paths to real Bruker .d directories as environment variables, so
+  # test_BrukerTimsFile.py can skip when they are unset.
+  if(OPENTIMS_DDA_TEST_DATA OR OPENTIMS_DIA_TEST_DATA)
+    set(_pyopenms_test_env "")
+    if(OPENTIMS_DDA_TEST_DATA)
+      list(APPEND _pyopenms_test_env "OPENTIMS_DDA_TEST_DATA=${OPENTIMS_DDA_TEST_DATA}")
+    endif()
+    if(OPENTIMS_DIA_TEST_DATA)
+      list(APPEND _pyopenms_test_env "OPENTIMS_DIA_TEST_DATA=${OPENTIMS_DIA_TEST_DATA}")
+    endif()
+    set_tests_properties(pyopenms_unittests PROPERTIES
+      ENVIRONMENT "${_pyopenms_test_env}"
+    )
+  endif()
+
   add_test(
     NAME pyopenms_docstring_tests
     COMMAND ${Python_EXECUTABLE} ${_PYTEST_ARGS}
