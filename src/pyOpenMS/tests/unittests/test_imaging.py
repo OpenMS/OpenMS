@@ -55,20 +55,20 @@ def test_ion_image_get_data_zero_copy():
     assert img.getIntensity(2, 1) == pytest.approx(42.0)
 
 
-def test_ion_image_get_validity_copy():
+def test_ion_image_get_mask_copy():
     from pyopenms import IonImage
 
     img = IonImage(2, 2)
     img.setIntensity(0, 0, 1.0)
     img.setIntensity(1, 1, 2.0)
 
-    valid = img.get_validity()
-    assert valid.shape == (2, 2)
-    assert valid.dtype == np.uint8
-    assert valid[0, 0] == 1
-    assert valid[1, 1] == 1
-    assert valid[0, 1] == 0
-    assert valid[1, 0] == 0
+    mask = img.get_mask()
+    assert mask.shape == (2, 2)
+    assert mask.dtype == np.uint8
+    assert mask[0, 0] == 1
+    assert mask[1, 1] == 1
+    assert mask[0, 1] == 0
+    assert mask[1, 0] == 0
 
 
 def test_ion_image_oob_raises():
@@ -135,8 +135,8 @@ def test_ms_imaging_experiment_extract_ion_image():
     assert data[1, 0] == pytest.approx(100.0)  # spectrum 2 has 500
     assert data[1, 1] == pytest.approx(0.0)    # pixel missing, but data buffer reads 0
 
-    valid = img.get_validity()
-    assert valid[1, 1] == 0  # pixel (1, 1) absent -> invalid
+    valid = img.get_mask()
+    assert valid[1, 1] == 0  # pixel (1, 1) absent -> masked out
 
     assert img.getMzRange().getMinMZ() == pytest.approx(499.9)
     assert img.getMzRange().getMaxMZ() == pytest.approx(500.1)

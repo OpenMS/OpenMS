@@ -24,7 +24,7 @@ namespace OpenMS
     height_ = height;
     const Size n = static_cast<Size>(width) * static_cast<Size>(height);
     intensities_.assign(n, 0.0);
-    valid_pixels_.assign(n, false);
+    mask_.assign(n, false);
   }
 
   UInt IonImage::getWidth() const
@@ -40,7 +40,7 @@ namespace OpenMS
   bool IonImage::hasPixel(UInt x, UInt y) const
   {
     if (x >= width_ || y >= height_) return false;
-    return valid_pixels_[linearIndex_(x, y)];
+    return mask_[linearIndex_(x, y)];
   }
 
   double IonImage::getIntensity(UInt x, UInt y) const
@@ -52,7 +52,7 @@ namespace OpenMS
   {
     const Size idx = linearIndex_(x, y);
     intensities_[idx] = intensity;
-    valid_pixels_[idx] = true;
+    mask_[idx] = true;
   }
 
   void IonImage::setMzRange(const RangeMZ& range)
@@ -70,9 +70,9 @@ namespace OpenMS
     return intensities_;
   }
 
-  const std::vector<bool>& IonImage::getValidity() const
+  const std::vector<bool>& IonImage::getMask() const
   {
-    return valid_pixels_;
+    return mask_;
   }
 
   Size IonImage::linearIndex_(UInt x, UInt y) const

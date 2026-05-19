@@ -48,7 +48,7 @@ START_SECTION((IonImage(UInt width, UInt height)))
   TEST_EQUAL(img.getWidth(), 3u)
   TEST_EQUAL(img.getHeight(), 2u)
   TEST_EQUAL(img.getData().size(), 6u)
-  TEST_EQUAL(img.getValidity().size(), 6u)
+  TEST_EQUAL(img.getMask().size(), 6u)
   for (UInt y = 0; y < 2; ++y)
   {
     for (UInt x = 0; x < 3; ++x)
@@ -85,7 +85,7 @@ START_SECTION((void setIntensity(UInt x, UInt y, double intensity)))
   // index = y * W + x = 1 * 3 + 2 = 5
   img.setIntensity(2, 1, 42.0);
   TEST_REAL_SIMILAR(img.getData()[5], 42.0)
-  TEST_EQUAL(img.getValidity()[5], true)
+  TEST_EQUAL(img.getMask()[5], true)
 }
 END_SECTION
 
@@ -138,7 +138,7 @@ START_SECTION((const std::vector<double>& getData() const))
 }
 END_SECTION
 
-START_SECTION((const std::vector<bool>& getValidity() const))
+START_SECTION((const std::vector<bool>& getMask() const))
 {
   NOT_TESTABLE
 }

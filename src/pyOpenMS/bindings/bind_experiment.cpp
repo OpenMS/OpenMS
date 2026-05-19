@@ -403,11 +403,11 @@ mz, intensities = spectrum.get_peaks()
 
     // --- IonImage ---
     nb::class_<OpenMS::IonImage>(m, "IonImage", R"doc(
-Dense W x H grid of ion intensities with a per-pixel validity mask.
+Dense W x H grid of ion intensities with a per-pixel mask.
 
 Storage is row-major: index = y * W + x. Use get_data() for a zero-copy
 2D numpy view of the intensity grid (shape (H, W), dtype float64).
-Pixels are invalid by default; setIntensity marks them valid.
+Pixels are masked-out by default; setIntensity marks them present.
 )doc")
         .def(nb::init<>())
         .def(nb::init<OpenMS::UInt, OpenMS::UInt>(), "width"_a, "height"_a)
@@ -433,7 +433,7 @@ Pixels are invalid by default; setIntensity marks them valid.
                 return np.attr("empty")(nb::make_tuple(h, w), np.attr("float64"));
             }
             // Zero-copy 2D view of the row-major intensity buffer (cast away const;
-            // the numpy array is mutable but writes bypass validity tracking, so
+            // the numpy array is mutable but writes bypass mask tracking, so
             // prefer setIntensity for correctness-sensitive updates).
             double* ptr = const_cast<double*>(self.getData().data());
             size_t shape[2] = { h, w };
@@ -444,23 +444,22 @@ Pixels are invalid by default; setIntensity marks them valid.
         nb::rv_policy::reference_internal,
         R"doc(Zero-copy 2D numpy view (shape (H, W), dtype float64) of the intensity grid.
 
-Writes through the view modify the underlying buffer but do NOT flip
-validity flags. Use setIntensity(x, y, val) when correctness of the
-validity mask matters.)doc")
+Writes through the view modify the underlying buffer but do NOT flip the
+mask. Use setIntensity(x, y, val) when correctness of the mask matters.)doc")
 
-        .def("get_validity", [](const OpenMS::IonImage& self) {
+        .def("get_mask", [](const OpenMS::IonImage& self) {
             // std::vector<bool> is bit-packed; cannot be zero-copied. Materialize
             // a uint8 mask for downstream numpy use.
             const size_t h = self.getHeight();
             const size_t w = self.getWidth();
             const size_t n = h * w;
             uint8_t* buf = new uint8_t[n ? n : 1];
-            const auto& v = self.getValidity();
+            const auto& v = self.getMask();
             for (size_t i = 0; i < n; ++i) buf[i] = v[i] ? 1 : 0;
             nb::capsule owner(buf, [](void* p) noexcept { delete[] static_cast<uint8_t*>(p); });
             size_t shape[2] = { h, w };
             return nb::ndarray<nb::numpy, uint8_t, nb::ndim<2>>(buf, 2, shape, owner);
-        }, "Returns a 2D uint8 numpy array (H, W) of validity flags (1 = valid). Copy, not zero-copy.")
+        }, "Returns a 2D uint8 numpy array (H, W) of the pixel mask (1 = present). Copy, not zero-copy.")
 
         .def("__repr__", [](const OpenMS::IonImage& self) {
             std::ostringstream oss;

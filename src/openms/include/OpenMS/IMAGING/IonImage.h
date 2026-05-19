@@ -16,11 +16,11 @@
 namespace OpenMS
 {
   /**
-    @brief Dense W x H grid of ion intensities with a per-pixel validity mask.
+    @brief Dense W x H grid of ion intensities with a per-pixel mask.
 
-    Storage is row-major: index = y * W + x. Pixels are invalid by default;
-    setIntensity marks them valid. The m/z window the image was extracted
-    from is stored alongside the data for traceability.
+    Storage is row-major: index = y * W + x. Pixels are masked-out by
+    default; setIntensity marks them present. The m/z window the image
+    was extracted from is stored alongside the data for traceability.
 
     3D MSI is intentionally not modeled here. Serial-section experiments
     are a stack of independent 2D acquisitions and should be handled as a
@@ -95,15 +95,15 @@ namespace OpenMS
     /// @return Reference to the internal buffer of size width * height.
     const std::vector<double>& getData() const;
 
-    /// @brief Parallel validity mask (same indexing as getData()).
-    /// @return Reference to the validity mask of size width * height.
-    const std::vector<bool>& getValidity() const;
+    /// @brief Parallel pixel mask (same indexing as getData()).
+    /// @return Reference to the mask of size width * height.
+    const std::vector<bool>& getMask() const;
 
   private:
     UInt width_ = 0;
     UInt height_ = 0;
     std::vector<double> intensities_;
-    std::vector<bool> valid_pixels_;
+    std::vector<bool> mask_;
     RangeMZ mz_range_;
 
     Size linearIndex_(UInt x, UInt y) const;
