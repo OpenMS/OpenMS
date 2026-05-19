@@ -31,43 +31,74 @@ namespace OpenMS
   public:
     MSImagingExperiment() = default;
 
-    /// @name MSExperiment accessors (owned by value)
-    ///@{
+    /// @brief Mutable access to the owned MSExperiment.
+    /// @return Reference to the owned experiment.
     MSExperiment& getMSExperiment();
-    const MSExperiment& getMSExperiment() const;
-    void setMSExperiment(MSExperiment exp);
-    ///@}
 
-    /// @name MSImagingGeometry accessors (owned by value)
-    ///@{
+    /// @brief Read access to the owned MSExperiment.
+    /// @return Const reference to the owned experiment.
+    const MSExperiment& getMSExperiment() const;
+
+    /**
+      @brief Replaces the owned MSExperiment.
+      @param[in] exp New experiment (moved in).
+    */
+    void setMSExperiment(MSExperiment exp);
+
+    /// @brief Mutable access to the owned geometry.
+    /// @return Reference to the owned geometry.
     MSImagingGeometry& getGeometry();
+
+    /// @brief Read access to the owned geometry.
+    /// @return Const reference to the owned geometry.
     const MSImagingGeometry& getGeometry() const;
+
+    /**
+      @brief Replaces the owned geometry.
+      @param[in] geom New geometry (moved in).
+    */
     void setGeometry(MSImagingGeometry geom);
-    ///@}
 
     /// @brief Number of pixels in the geometry.
+    /// @return Geometry pixel count.
     Size getNumberOfPixels() const;
 
     /// @brief Number of spectra in the underlying experiment.
+    /// @return Spectrum count.
     Size getNumberOfSpectra() const;
 
-    /// @brief True if a pixel exists at (x, y).
+    /**
+      @brief Tests pixel presence at (@p x, @p y).
+      @param[in] x Column index.
+      @param[in] y Row index.
+      @return true if a pixel exists at that coordinate.
+    */
     bool hasPixel(UInt x, UInt y) const;
 
-    /// @brief Spectrum bound to the pixel at (x, y).
-    /// @throws Exception::ElementNotFound if no pixel exists at that coordinate.
-    /// @throws Exception::InvalidValue if the pixel references a spectrum_index
-    ///         outside the underlying experiment.
+    /**
+      @brief Mutable access to the spectrum bound to the pixel at (@p x, @p y).
+      @param[in] x Column index.
+      @param[in] y Row index.
+      @return Reference to the bound spectrum.
+      @throws Exception::ElementNotFound if no pixel exists at that coordinate.
+      @throws Exception::InvalidValue if the pixel references a spectrum_index
+              outside the underlying experiment.
+    */
     MSSpectrum& getSpectrum(UInt x, UInt y);
 
-    /// @brief Spectrum bound to the pixel at (x, y).
-    /// @throws Exception::ElementNotFound if no pixel exists at that coordinate.
-    /// @throws Exception::InvalidValue if the pixel references a spectrum_index
-    ///         outside the underlying experiment.
+    /**
+      @brief Read access to the spectrum bound to the pixel at (@p x, @p y).
+      @param[in] x Column index.
+      @param[in] y Row index.
+      @return Const reference to the bound spectrum.
+      @throws Exception::ElementNotFound if no pixel exists at that coordinate.
+      @throws Exception::InvalidValue if the pixel references a spectrum_index
+              outside the underlying experiment.
+    */
     const MSSpectrum& getSpectrum(UInt x, UInt y) const;
 
     /**
-      @brief Extract an ion image by summing peak intensities inside
+      @brief Extracts an ion image by summing peak intensities inside
              [mz - dm, mz + dm], with dm = mz * tolerance_ppm * 1e-6.
 
       Preconditions: each referenced spectrum must be sorted by m/z.
@@ -76,10 +107,12 @@ namespace OpenMS
 
       Pixels not present in the geometry remain invalid in the returned
       image. Pixels with a spectrum but no peaks in the window are marked
-      valid with intensity 0.
+      valid with intensity 0. The returned image's m/z range is set to
+      [mz - dm, mz + dm].
 
-      The returned image's m/z range is set to [mz - dm, mz + dm].
-
+      @param[in] mz             m/z center of the extraction window (>= 0).
+      @param[in] tolerance_ppm  Half-window width in ppm (>= 0).
+      @return Image of the same dimensions as the geometry.
       @throws Exception::InvalidValue if @p mz or @p tolerance_ppm is
               negative or non-finite, or if any pixel references a missing
               spectrum_index.
@@ -88,9 +121,10 @@ namespace OpenMS
     */
     IonImage extractIonImage(double mz, double tolerance_ppm) const;
 
-    /// @brief Throws if any pixel references a spectrum_index that is out
-    ///        of bounds for the underlying experiment.
-    /// @throws Exception::InvalidValue
+    /**
+      @brief Validates that every pixel references an in-range spectrum_index.
+      @throws Exception::InvalidValue on the first dangling reference.
+    */
     void validate() const;
 
   private:

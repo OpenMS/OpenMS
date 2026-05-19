@@ -17,18 +17,15 @@
 namespace OpenMS
 {
   /**
-    @brief Pixel grid metadata and (x,y) -> spectrum_index lookup for MSI data.
+    @brief Pixel grid metadata and (x, y) -> spectrum_index lookup for MSI data.
 
-    Coordinates are zero-based. imzML files are one-based; the Phase 2
-    loader (ImzMLFile) is responsible for normalizing those to zero-based
-    coordinates before populating this geometry.
-
-    Pixel coordinates are bit-packed into a uint64_t key (32 bits per
-    axis), so any UInt value is admissible.
+    Coordinates are zero-based. imzML files are one-based; the Phase 2 loader
+    (ImzMLFile) is responsible for normalizing those to zero-based coordinates
+    before populating this geometry.
 
     3D MSI is intentionally not modeled here. Serial-section experiments
-    should be handled as a collection of MSImagingExperiment objects
-    (one per section).
+    should be handled as a collection of MSImagingExperiment objects (one
+    per section).
   */
   class OPENMS_DLLAPI MSImagingGeometry final
   {
@@ -36,46 +33,83 @@ namespace OpenMS
     /// @brief A pixel in the imaging grid, linked to one spectrum in the experiment.
     struct Pixel
     {
-      UInt x = 0;
-      UInt y = 0;
-      Size spectrum_index = 0;
+      UInt x = 0;              ///< Column index (zero-based).
+      UInt y = 0;              ///< Row index (zero-based).
+      Size spectrum_index = 0; ///< Index into the bound MSExperiment.
     };
 
-    /// @name Image dimensions (number of pixels along each axis)
-    ///@{
+    /**
+      @brief Sets the image dimensions.
+      @param[in] width  Number of columns.
+      @param[in] height Number of rows.
+    */
     void setDimensions(UInt width, UInt height);
+
+    /// @brief Image width.
+    /// @return Number of columns.
     UInt getWidth() const;
+
+    /// @brief Image height.
+    /// @return Number of rows.
     UInt getHeight() const;
-    ///@}
 
-    /// @name Physical pixel size
-    ///@{
+    /**
+      @brief Records the physical pixel size and its unit.
+      @param[in] x    Pixel size along x.
+      @param[in] y    Pixel size along y.
+      @param[in] unit Length unit (default "micrometer").
+    */
     void setPixelSize(double x, double y, const String& unit = "micrometer");
-    double getPixelSizeX() const;
-    double getPixelSizeY() const;
-    const String& getPixelSizeUnit() const;
-    ///@}
 
-    /// @brief Adds a pixel at (x, y) bound to @p spectrum_index.
-    /// @throws Exception::InvalidValue on duplicate coordinates, or if
-    ///         dimensions have been set and (x, y) is outside [0, width) x
-    ///         [0, height).
+    /// @brief Physical pixel size along x.
+    /// @return Stored x pixel size.
+    double getPixelSizeX() const;
+
+    /// @brief Physical pixel size along y.
+    /// @return Stored y pixel size.
+    double getPixelSizeY() const;
+
+    /// @brief Unit for the pixel size.
+    /// @return Reference to the unit string.
+    const String& getPixelSizeUnit() const;
+
+    /**
+      @brief Adds a pixel at (@p x, @p y) bound to @p spectrum_index.
+      @param[in] x              Column index (zero-based).
+      @param[in] y              Row index (zero-based).
+      @param[in] spectrum_index Index into the bound MSExperiment.
+      @throws Exception::InvalidValue on duplicate coordinates, or if
+              dimensions have been set and (@p x, @p y) is outside
+              [0, width) x [0, height).
+    */
     void addPixel(UInt x, UInt y, Size spectrum_index);
 
-    /// @brief True if a pixel exists at (x, y).
+    /**
+      @brief Tests pixel presence at (@p x, @p y).
+      @param[in] x Column index.
+      @param[in] y Row index.
+      @return true if a pixel was inserted at that coordinate.
+    */
     bool hasPixel(UInt x, UInt y) const;
 
-    /// @brief Returns the spectrum index for (x, y).
-    /// @throws Exception::ElementNotFound if no pixel exists at that coordinate.
+    /**
+      @brief Looks up the spectrum index at (@p x, @p y).
+      @param[in] x Column index.
+      @param[in] y Row index.
+      @return spectrum_index recorded for that pixel.
+      @throws Exception::ElementNotFound if no pixel exists at that coordinate.
+    */
     Size getSpectrumIndex(UInt x, UInt y) const;
 
     /// @brief Pixels in insertion order.
+    /// @return Reference to the internal pixel list.
     const std::vector<Pixel>& getPixels() const;
 
     /// @brief Total number of pixels with a bound spectrum.
+    /// @return Size of the pixel list.
     Size getNumberOfPixels() const;
 
-    /// @brief Reset all state (dimensions, pixel size, pixels, lookup).
+    /// @brief Resets all state (dimensions, pixel size, pixels, lookup).
     void clear();
 
   private:
