@@ -20,7 +20,7 @@ def test_config_defaults():
     cfg = pyopenms.BrukerTimsFile.Config()
     assert cfg.calibrate is False
     assert cfg.load_ms1 is True
-    assert cfg.ms1_centroid_mz_ppm == pytest.approx(0.0)
+    assert cfg.ms1_centroid_mz_ppm == pytest.approx(10.0)
     assert cfg.ms1_centroid_im_pct == pytest.approx(0.0)
     assert cfg.dia_ms2_n_neighbors == 0
     assert cfg.dia_ms2_min_support == 1
