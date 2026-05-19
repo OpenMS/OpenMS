@@ -53,6 +53,13 @@ namespace OpenMS
 
   void MSImagingGeometry::addPixel(UInt x, UInt y, Size spectrum_index)
   {
+    if (width_ > 0 && height_ > 0 && (x >= width_ || y >= height_))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Pixel coordinate outside configured geometry bounds",
+                                    String(x) + "," + String(y));
+    }
+
     const UInt64 key = packKey_(x, y);
     if (lookup_.find(key) != lookup_.end())
     {

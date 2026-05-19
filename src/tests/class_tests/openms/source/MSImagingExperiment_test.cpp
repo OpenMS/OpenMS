@@ -17,6 +17,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
+#include <cmath>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -155,6 +157,10 @@ START_SECTION((MSSpectrum& getSpectrum(UInt x, UInt y)))
   TEST_EQUAL(mie.getSpectrum(0, 1).size(), 1u)
   TEST_REAL_SIMILAR(mie.getSpectrum(0, 1)[0].getMZ(), 500.0)
   TEST_EXCEPTION(Exception::ElementNotFound, mie.getSpectrum(1, 1))
+
+  // stale spectrum_index -> InvalidValue (not UB)
+  mie.getGeometry().addPixel(1, 1, 999);
+  TEST_EXCEPTION(Exception::InvalidValue, mie.getSpectrum(1, 1))
 }
 END_SECTION
 
@@ -188,6 +194,26 @@ START_SECTION((IonImage extractIonImage(double mz, double tolerance_ppm) const))
 
   TEST_REAL_SIMILAR(img.getMzRange().getMinMZ(), 499.9)
   TEST_REAL_SIMILAR(img.getMzRange().getMaxMZ(), 500.1)
+
+  // invalid parameters
+  TEST_EXCEPTION(Exception::InvalidValue, mie.extractIonImage(-1.0, 100.0))
+  TEST_EXCEPTION(Exception::InvalidValue, mie.extractIonImage(500.0, -1.0))
+  TEST_EXCEPTION(Exception::InvalidValue, mie.extractIonImage(std::nan(""), 100.0))
+
+  // m/z window outside any peak -> all present pixels intensity 0
+  IonImage far = mie.extractIonImage(1000.0, 100.0);
+  TEST_EQUAL(far.hasPixel(0, 0), true)
+  TEST_REAL_SIMILAR(far.getIntensity(0, 0), 0.0)
+  TEST_EQUAL(far.hasPixel(0, 1), true)
+  TEST_REAL_SIMILAR(far.getIntensity(0, 1), 0.0)
+
+  // empty experiment -> empty image, no pixels visited
+  MSImagingExperiment empty;
+  IonImage empty_img = empty.extractIonImage(500.0, 100.0);
+  TEST_EQUAL(empty_img.getWidth(), 0u)
+  TEST_EQUAL(empty_img.getHeight(), 0u)
+  TEST_REAL_SIMILAR(empty_img.getMzRange().getMinMZ(), 499.95)
+  TEST_REAL_SIMILAR(empty_img.getMzRange().getMaxMZ(), 500.05)
 }
 END_SECTION
 

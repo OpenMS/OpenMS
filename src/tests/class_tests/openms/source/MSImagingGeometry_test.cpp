@@ -81,6 +81,13 @@ START_SECTION((void addPixel(UInt x, UInt y, Size spectrum_index)))
 
   // duplicate insertion
   TEST_EXCEPTION(Exception::InvalidValue, g.addPixel(0, 0, 99))
+
+  // when dimensions are set, out-of-grid pixels are rejected
+  MSImagingGeometry g2;
+  g2.setDimensions(3, 2);
+  g2.addPixel(2, 1, 5); // in-bounds corner
+  TEST_EXCEPTION(Exception::InvalidValue, g2.addPixel(3, 0, 6))
+  TEST_EXCEPTION(Exception::InvalidValue, g2.addPixel(0, 2, 7))
 }
 END_SECTION
 

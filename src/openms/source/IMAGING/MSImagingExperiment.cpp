@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 
+#include <cmath>
 #include <utility>
 
 namespace OpenMS
@@ -62,16 +63,37 @@ namespace OpenMS
 
   MSSpectrum& MSImagingExperiment::getSpectrum(UInt x, UInt y)
   {
-    return experiment_[geometry_.getSpectrumIndex(x, y)];
+    const Size idx = geometry_.getSpectrumIndex(x, y);
+    if (idx >= experiment_.getNrSpectra())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Pixel references missing spectrum",
+                                    String(idx));
+    }
+    return experiment_[idx];
   }
 
   const MSSpectrum& MSImagingExperiment::getSpectrum(UInt x, UInt y) const
   {
-    return experiment_[geometry_.getSpectrumIndex(x, y)];
+    const Size idx = geometry_.getSpectrumIndex(x, y);
+    if (idx >= experiment_.getNrSpectra())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Pixel references missing spectrum",
+                                    String(idx));
+    }
+    return experiment_[idx];
   }
 
   IonImage MSImagingExperiment::extractIonImage(double mz, double tolerance_ppm) const
   {
+    if (!std::isfinite(mz) || !std::isfinite(tolerance_ppm)
+        || mz < 0.0 || tolerance_ppm < 0.0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "mz and tolerance_ppm must be finite and non-negative",
+                                    "mz=" + String(mz) + ", tolerance_ppm=" + String(tolerance_ppm));
+    }
     const double dm = mz * tolerance_ppm * 1e-6;
     const double mz_lo = mz - dm;
     const double mz_hi = mz + dm;

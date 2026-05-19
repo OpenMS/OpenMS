@@ -56,10 +56,14 @@ namespace OpenMS
 
     /// @brief Spectrum bound to the pixel at (x, y).
     /// @throws Exception::ElementNotFound if no pixel exists at that coordinate.
+    /// @throws Exception::InvalidValue if the pixel references a spectrum_index
+    ///         outside the underlying experiment.
     MSSpectrum& getSpectrum(UInt x, UInt y);
 
     /// @brief Spectrum bound to the pixel at (x, y).
     /// @throws Exception::ElementNotFound if no pixel exists at that coordinate.
+    /// @throws Exception::InvalidValue if the pixel references a spectrum_index
+    ///         outside the underlying experiment.
     const MSSpectrum& getSpectrum(UInt x, UInt y) const;
 
     /**
@@ -76,7 +80,8 @@ namespace OpenMS
 
       The returned image's m/z range is set to [mz - dm, mz + dm].
 
-      @throws Exception::InvalidValue if any pixel references a missing
+      @throws Exception::InvalidValue if @p mz or @p tolerance_ppm is
+              negative or non-finite, or if any pixel references a missing
               spectrum_index.
       @throws Exception::IndexOverflow if a pixel coordinate falls outside
               the geometry's declared dimensions.

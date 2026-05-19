@@ -57,7 +57,9 @@ namespace OpenMS
     ///@}
 
     /// @brief Adds a pixel at (x, y) bound to @p spectrum_index.
-    /// @throws Exception::InvalidValue on duplicate coordinates.
+    /// @throws Exception::InvalidValue on duplicate coordinates, or if
+    ///         dimensions have been set and (x, y) is outside [0, width) x
+    ///         [0, height).
     void addPixel(UInt x, UInt y, Size spectrum_index);
 
     /// @brief True if a pixel exists at (x, y).
