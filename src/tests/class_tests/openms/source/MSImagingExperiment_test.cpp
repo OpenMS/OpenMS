@@ -77,6 +77,34 @@ START_SECTION((~MSImagingExperiment()))
 }
 END_SECTION
 
+START_SECTION((explicit MSImagingExperiment(MSExperiment exp)))
+{
+  MSExperiment exp;
+  exp.addSpectrum(MSSpectrum());
+  exp.addSpectrum(MSSpectrum());
+
+  MSImagingExperiment mie(std::move(exp));
+  TEST_EQUAL(mie.getNumberOfSpectra(), 2u)
+  TEST_EQUAL(mie.getNumberOfPixels(), 0u)
+}
+END_SECTION
+
+START_SECTION((MSImagingExperiment& operator=(MSExperiment exp)))
+{
+  MSImagingExperiment mie = makeFixture();
+  TEST_EQUAL(mie.getNumberOfSpectra(), 3u)
+  TEST_EQUAL(mie.getNumberOfPixels(), 3u)
+
+  // assignment from a new MSExperiment resets the geometry
+  MSExperiment fresh;
+  fresh.addSpectrum(MSSpectrum());
+  mie = std::move(fresh);
+  TEST_EQUAL(mie.getNumberOfSpectra(), 1u)
+  TEST_EQUAL(mie.getNumberOfPixels(), 0u)
+  TEST_EQUAL(mie.getGeometry().getWidth(), 0u)
+}
+END_SECTION
+
 START_SECTION((void setMSExperiment(MSExperiment exp)))
 {
   MSExperiment exp;

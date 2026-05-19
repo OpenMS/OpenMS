@@ -16,6 +16,17 @@
 namespace OpenMS
 {
 
+  MSImagingExperiment::MSImagingExperiment(MSExperiment exp) : experiment_(std::move(exp))
+  {
+  }
+
+  MSImagingExperiment& MSImagingExperiment::operator=(MSExperiment exp)
+  {
+    experiment_ = std::move(exp);
+    geometry_.clear();
+    return *this;
+  }
+
   MSExperiment& MSImagingExperiment::getMSExperiment()
   {
     return experiment_;

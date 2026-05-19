@@ -31,6 +31,25 @@ namespace OpenMS
   public:
     MSImagingExperiment() = default;
 
+    /**
+      @brief Constructs an MSImagingExperiment wrapping @p exp with an empty geometry.
+      @param[in] exp MSExperiment to take ownership of (moved in).
+    */
+    explicit MSImagingExperiment(MSExperiment exp);
+
+    /**
+      @brief Replaces the owned MSExperiment and resets the geometry.
+
+      The previous geometry's spectrum indices are tied to the previous
+      experiment's spectrum order and become meaningless after assignment,
+      so the geometry is cleared. Use setMSExperiment() if you want to
+      keep the existing geometry.
+
+      @param[in] exp MSExperiment to take ownership of (moved in).
+      @return Reference to *this.
+    */
+    MSImagingExperiment& operator=(MSExperiment exp);
+
     /// @brief Mutable access to the owned MSExperiment.
     /// @return Reference to the owned experiment.
     MSExperiment& getMSExperiment();
