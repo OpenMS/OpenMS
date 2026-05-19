@@ -32,7 +32,6 @@ START_SECTION((IonImage()))
   TEST_NOT_EQUAL(ptr, null_ptr)
   TEST_EQUAL(ptr->getWidth(), 0u)
   TEST_EQUAL(ptr->getHeight(), 0u)
-  TEST_EQUAL(ptr->getDepth(), 1u)
   TEST_EQUAL(ptr->hasPixel(0, 0), false)
 }
 END_SECTION
@@ -43,12 +42,11 @@ START_SECTION((~IonImage()))
 }
 END_SECTION
 
-START_SECTION((IonImage(UInt width, UInt height, UInt depth)))
+START_SECTION((IonImage(UInt width, UInt height)))
 {
   IonImage img(3, 2);
   TEST_EQUAL(img.getWidth(), 3u)
   TEST_EQUAL(img.getHeight(), 2u)
-  TEST_EQUAL(img.getDepth(), 1u)
   TEST_EQUAL(img.getData().size(), 6u)
   TEST_EQUAL(img.getValidity().size(), 6u)
   for (UInt y = 0; y < 2; ++y)
@@ -62,7 +60,7 @@ START_SECTION((IonImage(UInt width, UInt height, UInt depth)))
 }
 END_SECTION
 
-START_SECTION((void resize(UInt width, UInt height, UInt depth)))
+START_SECTION((void resize(UInt width, UInt height)))
 {
   IonImage img;
   img.resize(2, 2);
@@ -84,19 +82,8 @@ START_SECTION((void setIntensity(UInt x, UInt y, double intensity)))
   TEST_REAL_SIMILAR(img.getIntensity(1, 0), 7.5)
   TEST_EQUAL(img.hasPixel(2, 1), false)
   TEST_REAL_SIMILAR(img.getIntensity(2, 1), 0.0)
-}
-END_SECTION
-
-START_SECTION((void setIntensity(UInt x, UInt y, UInt z, double intensity)))
-{
-  IonImage img(2, 2, 2);
-  TEST_EQUAL(img.getDepth(), 2u)
-  TEST_EQUAL(img.getData().size(), 8u)
-  img.setIntensity(1, 0, 1, 42.0);
-  TEST_EQUAL(img.hasPixel(1, 0, 1), true)
-  TEST_REAL_SIMILAR(img.getIntensity(1, 0, 1), 42.0)
-  TEST_EQUAL(img.hasPixel(1, 0, 0), false)
-  // index = (z*H + y)*W + x = (1*2 + 0)*2 + 1 = 5
+  // index = y * W + x = 1 * 3 + 2 = 5
+  img.setIntensity(2, 1, 42.0);
   TEST_REAL_SIMILAR(img.getData()[5], 42.0)
   TEST_EQUAL(img.getValidity()[5], true)
 }
@@ -117,7 +104,7 @@ START_SECTION((const RangeMZ& getMzRange() const))
 }
 END_SECTION
 
-START_SECTION((double getIntensity(UInt x, UInt y, UInt z) const))
+START_SECTION((double getIntensity(UInt x, UInt y) const))
 {
   IonImage img(3, 2);
   TEST_EXCEPTION(Exception::IndexOverflow, img.getIntensity(5, 0))
@@ -125,7 +112,7 @@ START_SECTION((double getIntensity(UInt x, UInt y, UInt z) const))
 }
 END_SECTION
 
-START_SECTION((bool hasPixel(UInt x, UInt y, UInt z) const))
+START_SECTION((bool hasPixel(UInt x, UInt y) const))
 {
   IonImage img(3, 2);
   TEST_EQUAL(img.hasPixel(5, 0), false) // OOB returns false without throwing
@@ -140,12 +127,6 @@ START_SECTION((UInt getWidth() const))
 END_SECTION
 
 START_SECTION((UInt getHeight() const))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((UInt getDepth() const))
 {
   NOT_TESTABLE
 }

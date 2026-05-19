@@ -13,17 +13,16 @@
 namespace OpenMS
 {
 
-  IonImage::IonImage(UInt width, UInt height, UInt depth)
+  IonImage::IonImage(UInt width, UInt height)
   {
-    resize(width, height, depth);
+    resize(width, height);
   }
 
-  void IonImage::resize(UInt width, UInt height, UInt depth)
+  void IonImage::resize(UInt width, UInt height)
   {
     width_ = width;
     height_ = height;
-    depth_ = depth;
-    const Size n = static_cast<Size>(width) * static_cast<Size>(height) * static_cast<Size>(depth);
+    const Size n = static_cast<Size>(width) * static_cast<Size>(height);
     intensities_.assign(n, 0.0);
     valid_pixels_.assign(n, false);
   }
@@ -38,30 +37,20 @@ namespace OpenMS
     return height_;
   }
 
-  UInt IonImage::getDepth() const
+  bool IonImage::hasPixel(UInt x, UInt y) const
   {
-    return depth_;
+    if (x >= width_ || y >= height_) return false;
+    return valid_pixels_[linearIndex_(x, y)];
   }
 
-  bool IonImage::hasPixel(UInt x, UInt y, UInt z) const
+  double IonImage::getIntensity(UInt x, UInt y) const
   {
-    if (x >= width_ || y >= height_ || z >= depth_) return false;
-    return valid_pixels_[linearIndex_(x, y, z)];
-  }
-
-  double IonImage::getIntensity(UInt x, UInt y, UInt z) const
-  {
-    return intensities_[linearIndex_(x, y, z)];
+    return intensities_[linearIndex_(x, y)];
   }
 
   void IonImage::setIntensity(UInt x, UInt y, double intensity)
   {
-    setIntensity(x, y, 0, intensity);
-  }
-
-  void IonImage::setIntensity(UInt x, UInt y, UInt z, double intensity)
-  {
-    const Size idx = linearIndex_(x, y, z);
+    const Size idx = linearIndex_(x, y);
     intensities_[idx] = intensity;
     valid_pixels_[idx] = true;
   }
@@ -86,18 +75,17 @@ namespace OpenMS
     return valid_pixels_;
   }
 
-  Size IonImage::linearIndex_(UInt x, UInt y, UInt z) const
+  Size IonImage::linearIndex_(UInt x, UInt y) const
   {
-    if (x >= width_ || y >= height_ || z >= depth_)
+    if (x >= width_ || y >= height_)
     {
-      const Size attempted = (static_cast<Size>(z) * static_cast<Size>(height_ ? height_ : 1)
-                              + static_cast<Size>(y)) * static_cast<Size>(width_ ? width_ : 1)
+      const Size attempted = static_cast<Size>(y) * static_cast<Size>(width_ ? width_ : 1)
                              + static_cast<Size>(x);
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      static_cast<SignedSize>(attempted),
                                      intensities_.size());
     }
-    return (static_cast<Size>(z) * static_cast<Size>(height_) + static_cast<Size>(y)) * static_cast<Size>(width_) + static_cast<Size>(x);
+    return static_cast<Size>(y) * static_cast<Size>(width_) + static_cast<Size>(x);
   }
 
 } // namespace OpenMS

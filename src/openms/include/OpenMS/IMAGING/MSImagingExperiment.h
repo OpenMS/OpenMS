@@ -17,11 +17,14 @@
 namespace OpenMS
 {
   /**
-    @brief In-memory model for an imaging mass spectrometry dataset.
+    @brief In-memory model for a 2D imaging mass spectrometry dataset.
 
     Owns an MSExperiment (spectra) and an MSImagingGeometry (pixel grid +
     pixel -> spectrum index mapping). Provides pixel-based spectrum access
     and a simple sum-based ion image extraction.
+
+    A 3D / serial-section experiment is modeled as a collection of
+    MSImagingExperiment objects, one per section.
   */
   class OPENMS_DLLAPI MSImagingExperiment final
   {
@@ -48,16 +51,16 @@ namespace OpenMS
     /// @brief Number of spectra in the underlying experiment.
     Size getNumberOfSpectra() const;
 
-    /// @brief True if a pixel exists at (x, y, z).
-    bool hasPixel(UInt x, UInt y, UInt z = 0) const;
+    /// @brief True if a pixel exists at (x, y).
+    bool hasPixel(UInt x, UInt y) const;
 
-    /// @brief Spectrum bound to the pixel at (x, y, z).
+    /// @brief Spectrum bound to the pixel at (x, y).
     /// @throws Exception::ElementNotFound if no pixel exists at that coordinate.
-    MSSpectrum& getSpectrum(UInt x, UInt y, UInt z = 0);
+    MSSpectrum& getSpectrum(UInt x, UInt y);
 
-    /// @brief Spectrum bound to the pixel at (x, y, z).
+    /// @brief Spectrum bound to the pixel at (x, y).
     /// @throws Exception::ElementNotFound if no pixel exists at that coordinate.
-    const MSSpectrum& getSpectrum(UInt x, UInt y, UInt z = 0) const;
+    const MSSpectrum& getSpectrum(UInt x, UInt y) const;
 
     /**
       @brief Extract an ion image by summing peak intensities inside

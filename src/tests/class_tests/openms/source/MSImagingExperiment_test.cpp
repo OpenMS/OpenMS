@@ -139,7 +139,7 @@ START_SECTION((Size getNumberOfSpectra() const))
 }
 END_SECTION
 
-START_SECTION((bool hasPixel(UInt x, UInt y, UInt z) const))
+START_SECTION((bool hasPixel(UInt x, UInt y) const))
 {
   MSImagingExperiment mie = makeFixture();
   TEST_EQUAL(mie.hasPixel(0, 0), true)
@@ -149,7 +149,7 @@ START_SECTION((bool hasPixel(UInt x, UInt y, UInt z) const))
 }
 END_SECTION
 
-START_SECTION((MSSpectrum& getSpectrum(UInt x, UInt y, UInt z)))
+START_SECTION((MSSpectrum& getSpectrum(UInt x, UInt y)))
 {
   MSImagingExperiment mie = makeFixture();
   TEST_EQUAL(mie.getSpectrum(0, 1).size(), 1u)
@@ -158,7 +158,7 @@ START_SECTION((MSSpectrum& getSpectrum(UInt x, UInt y, UInt z)))
 }
 END_SECTION
 
-START_SECTION((const MSSpectrum& getSpectrum(UInt x, UInt y, UInt z) const))
+START_SECTION((const MSSpectrum& getSpectrum(UInt x, UInt y) const))
 {
   const MSImagingExperiment mie = makeFixture();
   TEST_EQUAL(mie.getSpectrum(0, 0).size(), 2u)
@@ -174,7 +174,6 @@ START_SECTION((IonImage extractIonImage(double mz, double tolerance_ppm) const))
 
   TEST_EQUAL(img.getWidth(), 2u)
   TEST_EQUAL(img.getHeight(), 2u)
-  TEST_EQUAL(img.getDepth(), 1u)
 
   TEST_EQUAL(img.hasPixel(0, 0), true)
   TEST_REAL_SIMILAR(img.getIntensity(0, 0), 30.0) // 10 + 20

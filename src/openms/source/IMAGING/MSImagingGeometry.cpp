@@ -13,16 +13,10 @@
 namespace OpenMS
 {
 
-  namespace
-  {
-    constexpr UInt64 MAX_AXIS_VALUE = static_cast<UInt64>(1) << 21; // 2^21 = 2097152
-  }
-
-  void MSImagingGeometry::setDimensions(UInt width, UInt height, UInt depth)
+  void MSImagingGeometry::setDimensions(UInt width, UInt height)
   {
     width_ = width;
     height_ = height;
-    depth_ = depth;
   }
 
   UInt MSImagingGeometry::getWidth() const
@@ -35,16 +29,10 @@ namespace OpenMS
     return height_;
   }
 
-  UInt MSImagingGeometry::getDepth() const
-  {
-    return depth_;
-  }
-
-  void MSImagingGeometry::setPixelSize(double x, double y, double z, const String& unit)
+  void MSImagingGeometry::setPixelSize(double x, double y, const String& unit)
   {
     pixel_size_x_ = x;
     pixel_size_y_ = y;
-    pixel_size_z_ = z;
     pixel_size_unit_ = unit;
   }
 
@@ -58,11 +46,6 @@ namespace OpenMS
     return pixel_size_y_;
   }
 
-  double MSImagingGeometry::getPixelSizeZ() const
-  {
-    return pixel_size_z_;
-  }
-
   const String& MSImagingGeometry::getPixelSizeUnit() const
   {
     return pixel_size_unit_;
@@ -70,54 +53,32 @@ namespace OpenMS
 
   void MSImagingGeometry::addPixel(UInt x, UInt y, Size spectrum_index)
   {
-    addPixel(x, y, 0, spectrum_index);
-  }
-
-  void MSImagingGeometry::addPixel(UInt x, UInt y, UInt z, Size spectrum_index)
-  {
-    if (static_cast<UInt64>(x) >= MAX_AXIS_VALUE
-        || static_cast<UInt64>(y) >= MAX_AXIS_VALUE
-        || static_cast<UInt64>(z) >= MAX_AXIS_VALUE)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Pixel coordinate exceeds bit-packing limit (2^21)",
-                                    String(x) + "," + String(y) + "," + String(z));
-    }
-
-    const UInt64 key = packKey_(x, y, z);
+    const UInt64 key = packKey_(x, y);
     if (lookup_.find(key) != lookup_.end())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Duplicate pixel coordinate",
-                                    String(x) + "," + String(y) + "," + String(z));
+                                    String(x) + "," + String(y));
     }
 
     lookup_.emplace(key, pixels_.size());
-    pixels_.push_back(Pixel{x, y, z, spectrum_index});
+    pixels_.push_back(Pixel{x, y, spectrum_index});
   }
 
-  bool MSImagingGeometry::hasPixel(UInt x, UInt y, UInt z) const
+  bool MSImagingGeometry::hasPixel(UInt x, UInt y) const
   {
-    if (static_cast<UInt64>(x) >= MAX_AXIS_VALUE
-        || static_cast<UInt64>(y) >= MAX_AXIS_VALUE
-        || static_cast<UInt64>(z) >= MAX_AXIS_VALUE)
-    {
-      return false;
-    }
-    return lookup_.find(packKey_(x, y, z)) != lookup_.end();
+    return lookup_.find(packKey_(x, y)) != lookup_.end();
   }
 
-  Size MSImagingGeometry::getSpectrumIndex(UInt x, UInt y, UInt z) const
+  Size MSImagingGeometry::getSpectrumIndex(UInt x, UInt y) const
   {
-    if (static_cast<UInt64>(x) < MAX_AXIS_VALUE
-        && static_cast<UInt64>(y) < MAX_AXIS_VALUE
-        && static_cast<UInt64>(z) < MAX_AXIS_VALUE)
+    auto it = lookup_.find(packKey_(x, y));
+    if (it == lookup_.end())
     {
-      auto it = lookup_.find(packKey_(x, y, z));
-      if (it != lookup_.end()) return pixels_[it->second].spectrum_index;
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       String(x) + "," + String(y));
     }
-    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                     String(x) + "," + String(y) + "," + String(z));
+    return pixels_[it->second].spectrum_index;
   }
 
   const std::vector<MSImagingGeometry::Pixel>& MSImagingGeometry::getPixels() const
@@ -134,20 +95,16 @@ namespace OpenMS
   {
     width_ = 0;
     height_ = 0;
-    depth_ = 1;
     pixel_size_x_ = 1.0;
     pixel_size_y_ = 1.0;
-    pixel_size_z_ = 1.0;
     pixel_size_unit_ = "micrometer";
     pixels_.clear();
     lookup_.clear();
   }
 
-  UInt64 MSImagingGeometry::packKey_(UInt x, UInt y, UInt z)
+  UInt64 MSImagingGeometry::packKey_(UInt x, UInt y)
   {
-    return (static_cast<UInt64>(z) << 42)
-           | (static_cast<UInt64>(y) << 21)
-           | static_cast<UInt64>(x);
+    return (static_cast<UInt64>(y) << 32) | static_cast<UInt64>(x);
   }
 
 } // namespace OpenMS

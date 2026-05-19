@@ -55,19 +55,19 @@ namespace OpenMS
     return experiment_.getNrSpectra();
   }
 
-  bool MSImagingExperiment::hasPixel(UInt x, UInt y, UInt z) const
+  bool MSImagingExperiment::hasPixel(UInt x, UInt y) const
   {
-    return geometry_.hasPixel(x, y, z);
+    return geometry_.hasPixel(x, y);
   }
 
-  MSSpectrum& MSImagingExperiment::getSpectrum(UInt x, UInt y, UInt z)
+  MSSpectrum& MSImagingExperiment::getSpectrum(UInt x, UInt y)
   {
-    return experiment_[geometry_.getSpectrumIndex(x, y, z)];
+    return experiment_[geometry_.getSpectrumIndex(x, y)];
   }
 
-  const MSSpectrum& MSImagingExperiment::getSpectrum(UInt x, UInt y, UInt z) const
+  const MSSpectrum& MSImagingExperiment::getSpectrum(UInt x, UInt y) const
   {
-    return experiment_[geometry_.getSpectrumIndex(x, y, z)];
+    return experiment_[geometry_.getSpectrumIndex(x, y)];
   }
 
   IonImage MSImagingExperiment::extractIonImage(double mz, double tolerance_ppm) const
@@ -76,7 +76,7 @@ namespace OpenMS
     const double mz_lo = mz - dm;
     const double mz_hi = mz + dm;
 
-    IonImage image(geometry_.getWidth(), geometry_.getHeight(), geometry_.getDepth());
+    IonImage image(geometry_.getWidth(), geometry_.getHeight());
     image.setMzRange(RangeMZ(mz_lo, mz_hi));
 
     const Size n_spectra = experiment_.getNrSpectra();
@@ -96,7 +96,7 @@ namespace OpenMS
       {
         sum += static_cast<double>(it->getIntensity());
       }
-      image.setIntensity(p.x, p.y, p.z, sum);
+      image.setIntensity(p.x, p.y, sum);
     }
     return image;
   }

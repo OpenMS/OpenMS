@@ -31,11 +31,9 @@ START_SECTION((MSImagingGeometry()))
   TEST_NOT_EQUAL(ptr, null_ptr)
   TEST_EQUAL(ptr->getWidth(), 0u)
   TEST_EQUAL(ptr->getHeight(), 0u)
-  TEST_EQUAL(ptr->getDepth(), 1u)
   TEST_EQUAL(ptr->getNumberOfPixels(), 0u)
   TEST_REAL_SIMILAR(ptr->getPixelSizeX(), 1.0)
   TEST_REAL_SIMILAR(ptr->getPixelSizeY(), 1.0)
-  TEST_REAL_SIMILAR(ptr->getPixelSizeZ(), 1.0)
   TEST_EQUAL(ptr->getPixelSizeUnit(), "micrometer")
 }
 END_SECTION
@@ -46,28 +44,25 @@ START_SECTION((~MSImagingGeometry()))
 }
 END_SECTION
 
-START_SECTION((void setDimensions(UInt width, UInt height, UInt depth)))
+START_SECTION((void setDimensions(UInt width, UInt height)))
 {
   MSImagingGeometry g;
-  g.setDimensions(10, 8, 3);
+  g.setDimensions(10, 8);
   TEST_EQUAL(g.getWidth(), 10u)
   TEST_EQUAL(g.getHeight(), 8u)
-  TEST_EQUAL(g.getDepth(), 3u)
 }
 END_SECTION
 
-START_SECTION((void setPixelSize(double x, double y, double z, const String& unit)))
+START_SECTION((void setPixelSize(double x, double y, const String& unit)))
 {
   MSImagingGeometry g;
-  g.setPixelSize(25.0, 25.0, 1.0, "micrometer");
+  g.setPixelSize(25.0, 25.0, "micrometer");
   TEST_REAL_SIMILAR(g.getPixelSizeX(), 25.0)
   TEST_REAL_SIMILAR(g.getPixelSizeY(), 25.0)
-  TEST_REAL_SIMILAR(g.getPixelSizeZ(), 1.0)
   TEST_EQUAL(g.getPixelSizeUnit(), "micrometer")
-  g.setPixelSize(50.0, 75.0, 2.0, "nanometer");
+  g.setPixelSize(50.0, 75.0, "nanometer");
   TEST_REAL_SIMILAR(g.getPixelSizeX(), 50.0)
   TEST_REAL_SIMILAR(g.getPixelSizeY(), 75.0)
-  TEST_REAL_SIMILAR(g.getPixelSizeZ(), 2.0)
   TEST_EQUAL(g.getPixelSizeUnit(), "nanometer")
 }
 END_SECTION
@@ -86,42 +81,24 @@ START_SECTION((void addPixel(UInt x, UInt y, Size spectrum_index)))
 
   // duplicate insertion
   TEST_EXCEPTION(Exception::InvalidValue, g.addPixel(0, 0, 99))
-
-  // bit-pack overflow
-  TEST_EXCEPTION(Exception::InvalidValue, g.addPixel(1u << 21, 0, 0))
 }
 END_SECTION
 
-START_SECTION((void addPixel(UInt x, UInt y, UInt z, Size spectrum_index)))
-{
-  MSImagingGeometry g;
-  g.addPixel(0, 0, 0, 1);
-  g.addPixel(0, 0, 1, 2);
-  TEST_EQUAL(g.getNumberOfPixels(), 2u)
-  TEST_EQUAL(g.getSpectrumIndex(0, 0, 0), 1u)
-  TEST_EQUAL(g.getSpectrumIndex(0, 0, 1), 2u)
-  TEST_EQUAL(g.hasPixel(0, 0, 2), false)
-}
-END_SECTION
-
-START_SECTION((bool hasPixel(UInt x, UInt y, UInt z) const))
+START_SECTION((bool hasPixel(UInt x, UInt y) const))
 {
   MSImagingGeometry g;
   g.addPixel(5, 9, 100);
   TEST_EQUAL(g.hasPixel(5, 9), true)
-  TEST_EQUAL(g.hasPixel(5, 9, 0), true)
-  TEST_EQUAL(g.hasPixel(5, 9, 1), false)
-  TEST_EQUAL(g.hasPixel(1u << 21, 0), false) // OOB returns false, no throw
+  TEST_EQUAL(g.hasPixel(0, 0), false)
 }
 END_SECTION
 
-START_SECTION((Size getSpectrumIndex(UInt x, UInt y, UInt z) const))
+START_SECTION((Size getSpectrumIndex(UInt x, UInt y) const))
 {
   MSImagingGeometry g;
   g.addPixel(2, 3, 17);
   TEST_EQUAL(g.getSpectrumIndex(2, 3), 17u)
   TEST_EXCEPTION(Exception::ElementNotFound, g.getSpectrumIndex(0, 0))
-  TEST_EXCEPTION(Exception::ElementNotFound, g.getSpectrumIndex(1u << 21, 0))
 }
 END_SECTION
 
@@ -155,7 +132,6 @@ START_SECTION((void clear()))
   g.clear();
   TEST_EQUAL(g.getWidth(), 0u)
   TEST_EQUAL(g.getHeight(), 0u)
-  TEST_EQUAL(g.getDepth(), 1u)
   TEST_EQUAL(g.getNumberOfPixels(), 0u)
   TEST_EQUAL(g.hasPixel(0, 0), false)
   TEST_REAL_SIMILAR(g.getPixelSizeX(), 1.0)
@@ -175,12 +151,6 @@ START_SECTION((UInt getHeight() const))
 }
 END_SECTION
 
-START_SECTION((UInt getDepth() const))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
 START_SECTION((double getPixelSizeX() const))
 {
   NOT_TESTABLE
@@ -188,12 +158,6 @@ START_SECTION((double getPixelSizeX() const))
 END_SECTION
 
 START_SECTION((double getPixelSizeY() const))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((double getPixelSizeZ() const))
 {
   NOT_TESTABLE
 }
