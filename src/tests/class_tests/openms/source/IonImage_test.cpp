@@ -85,7 +85,7 @@ START_SECTION((void setIntensity(UInt x, UInt y, double intensity)))
   // index = y * W + x = 1 * 3 + 2 = 5
   img.setIntensity(2, 1, 42.0);
   TEST_REAL_SIMILAR(img.getData()[5], 42.0)
-  TEST_EQUAL(img.getMask()[5], true)
+  TEST_TRUE(img.getMask()[5])
 }
 END_SECTION
 
