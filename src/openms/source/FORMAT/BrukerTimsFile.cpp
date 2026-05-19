@@ -7,6 +7,7 @@
 
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
+#include <OpenMS/FORMAT/HANDLERS/PASEFHillCentroider.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
@@ -153,6 +154,143 @@ namespace OpenMS
     float intensity;
     float im;
   };
+
+  // Per-frame parallel buffers that travel together through the
+  // centroiding pipeline: m/z, intensity, IM (1/K0), and TIMS scan index.
+  // All four vectors stay in lockstep (same size, same ordering).
+  // Downstream centroiders consume them via .data() pointers; the SoA
+  // layout is what PASEFHillCentroider / FrameCentroider / PeakPickerIM
+  // already expect.
+  struct FrameBuffers
+  {
+    std::vector<double>   mz;
+    std::vector<double>   intensity;
+    std::vector<double>   im;
+    std::vector<uint32_t> scan_ids;
+
+    size_t size() const { return mz.size(); }
+    bool   empty() const { return mz.empty(); }
+
+    void clear()
+    {
+      mz.clear(); intensity.clear(); im.clear(); scan_ids.clear();
+    }
+    void resize(size_t n)
+    {
+      mz.resize(n); intensity.resize(n); im.resize(n); scan_ids.resize(n);
+    }
+    void reserve(size_t n)
+    {
+      mz.reserve(n); intensity.reserve(n); im.reserve(n); scan_ids.reserve(n);
+    }
+
+    // Compact in place to the entries where keep(i) returns true. The
+    // ordering of survivors is preserved.
+    template <class Keep>
+    void filter(Keep keep)
+    {
+      const size_t n = mz.size();
+      size_t w = 0;
+      for (size_t r = 0; r < n; ++r)
+      {
+        if (!keep(r)) continue;
+        if (w != r)
+        {
+          mz[w]        = mz[r];
+          intensity[w] = intensity[r];
+          im[w]        = im[r];
+          scan_ids[w]  = scan_ids[r];
+        }
+        ++w;
+      }
+      resize(w);
+    }
+  };
+
+  // Sort the four buffers in lockstep by m/z ascending. The downstream
+  // centroiders all re-sort internally if they need a specific order,
+  // so the only caller that strictly needs a sort is the isotopic
+  // prefilter (which binary-searches m/z windows).
+  static void sortFrameBuffersByMz(FrameBuffers& buf)
+  {
+    const size_t n = buf.size();
+    if (n <= 1) return;
+    std::vector<size_t> idx(n);
+    std::iota(idx.begin(), idx.end(), size_t(0));
+    std::sort(idx.begin(), idx.end(),
+              [&buf](size_t a, size_t b) { return buf.mz[a] < buf.mz[b]; });
+    // Build a permuted copy then move back; cheaper than in-place
+    // permutation for typical PASEF frame sizes (10^4–10^5 peaks).
+    FrameBuffers tmp;
+    tmp.resize(n);
+    for (size_t i = 0; i < n; ++i)
+    {
+      tmp.mz[i]        = buf.mz[idx[i]];
+      tmp.intensity[i] = buf.intensity[idx[i]];
+      tmp.im[i]        = buf.im[idx[i]];
+      tmp.scan_ids[i]  = buf.scan_ids[idx[i]];
+    }
+    buf = std::move(tmp);
+  }
+
+  // Isotopic-partner prefilter. Drops peaks lacking at least one
+  // isotopic partner at m/z ± C13C12_MASSDIFF_U/q (for q in {1..5})
+  // within ±tol_ppm (mass-relative) AND |Δscan_id| <= 1. m/z lookup uses
+  // binary search, so the buffer is sorted by m/z first (in lockstep).
+  // Returns the number of dropped peaks. Output buffers are m/z-sorted.
+  //
+  // Charges 1..5 cover essentially all peptide MS1 / DIA-MS2 precursors;
+  // tol_ppm is intentionally broad (default 50 ppm from the Config) to
+  // tolerate per-scan m/z calibration jitter at the prefilter stage.
+  // No intensity-ratio check is applied — pure existence test.
+  static size_t isotopicPrefilter(FrameBuffers& buf, double tol_ppm)
+  {
+    if (buf.empty()) return 0;
+
+    sortFrameBuffersByMz(buf);
+
+    const size_t n = buf.size();
+    std::vector<bool> keep(n, false);
+    static constexpr std::array<int, 5> CHARGES = {1, 2, 3, 4, 5};
+
+    for (size_t i = 0; i < n; ++i)
+    {
+      if (keep[i]) continue;  // already validated as partner of another
+      bool found = false;
+      for (int q : CHARGES)
+      {
+        const double dmz = Constants::C13C12_MASSDIFF_U / static_cast<double>(q);
+        for (double sign : {-1.0, 1.0})
+        {
+          const double target = buf.mz[i] + sign * dmz;
+          // Convert ppm tolerance to absolute Da at the target m/z.
+          const double tol_da = target * tol_ppm * 1e-6;
+          auto it_lo = std::lower_bound(buf.mz.begin(), buf.mz.end(), target - tol_da);
+          auto it_hi = std::upper_bound(buf.mz.begin(), buf.mz.end(), target + tol_da);
+          for (auto it = it_lo; it != it_hi; ++it)
+          {
+            const size_t j = static_cast<size_t>(it - buf.mz.begin());
+            if (j == i) continue;
+            const int64_t ds = static_cast<int64_t>(buf.scan_ids[j])
+                             - static_cast<int64_t>(buf.scan_ids[i]);
+            if (std::abs(ds) <= 1)
+            {
+              keep[i] = true;
+              keep[j] = true;   // mutual confirmation; saves later work
+              found = true;
+              break;
+            }
+          }
+          if (found) break;
+        }
+        if (found) break;
+      }
+    }
+
+    const size_t before = n;
+    buf.filter([&keep](size_t i) { return keep[i]; });
+    return before - buf.size();
+  }
 
   // Default cap on the number of centroided peaks per frame. Overridable via
   // BrukerTimsFile::Config::ms1_centroid_max_peaks. For per-frame MS1 (~200k
@@ -348,18 +486,218 @@ namespace OpenMS
     }
   };
 
-  // Helper: check if MS1 centroiding is enabled, warn on partial config
-  static bool isCentroidingEnabled(const BrukerTimsFile::Config& config)
+  // Resolve the effective MS1 centroiding algorithm, taking the legacy
+  // (mz_ppm, im_pct) field combination as an implicit Greedy2D selection
+  // when ms1_centroid_algo == Off. @p emit_warnings controls whether
+  // partial-config warnings are logged; pass true at most once per
+  // top-level load() call to avoid log spam.
+  static BrukerTimsFile::Config::CentroidAlgo
+  effectiveMS1Algo(const BrukerTimsFile::Config& config, bool emit_warnings)
   {
-    bool has_mz = config.ms1_centroid_mz_ppm > 0.0f;
-    bool has_im = config.ms1_centroid_im_pct > 0.0f;
+    using CA = BrukerTimsFile::Config::CentroidAlgo;
+    if (config.ms1_centroid_algo != CA::OFF)
+    {
+      if (config.ms1_centroid_mz_ppm <= 0.0f)
+      {
+        if (emit_warnings)
+          OPENMS_LOG_WARN << "Warning: ms1_centroid_algo selected but "
+                          << "ms1_centroid_mz_ppm <= 0; MS1 centroiding disabled."
+                          << std::endl;
+        return CA::OFF;
+      }
+      if (config.ms1_centroid_algo == CA::GREEDY2D &&
+          config.ms1_centroid_im_pct <= 0.0f)
+      {
+        if (emit_warnings)
+          OPENMS_LOG_WARN << "Warning: Greedy2D MS1 centroiding requires "
+                          << "ms1_centroid_im_pct > 0; centroiding disabled."
+                          << std::endl;
+        return CA::OFF;
+      }
+      return config.ms1_centroid_algo;
+    }
+    // Back-compat: legacy auto-enable when both mz/im fields are set > 0.
+    const bool has_mz = config.ms1_centroid_mz_ppm > 0.0f;
+    const bool has_im = config.ms1_centroid_im_pct > 0.0f;
     if (has_mz != has_im)
     {
-      OPENMS_LOG_WARN << "Warning: ms1_centroid_mz_ppm and ms1_centroid_im_pct must both be > 0 "
-                      << "to enable MS1 centroiding. Centroiding disabled." << std::endl;
-      return false;
+      if (emit_warnings)
+        OPENMS_LOG_WARN << "Warning: ms1_centroid_mz_ppm and "
+                        << "ms1_centroid_im_pct must both be > 0 to enable "
+                        << "MS1 centroiding. Centroiding disabled."
+                        << std::endl;
+      return CA::OFF;
     }
-    return has_mz && has_im;
+    return (has_mz && has_im) ? CA::GREEDY2D : CA::OFF;
+  }
+
+  // Resolve the effective DIA-MS2 centroiding algorithm. The legacy
+  // boolean dia_ms2_centroid is treated as an implicit Greedy2D selection
+  // (Gaussian smoothing + local maxima in finalizeCentroided). HillBased
+  // requires ms2_centroid_mz_ppm > 0; warns and falls back to Off otherwise.
+  static BrukerTimsFile::Config::CentroidAlgo
+  effectiveMS2Algo(const BrukerTimsFile::Config& config, bool emit_warnings)
+  {
+    using CA = BrukerTimsFile::Config::CentroidAlgo;
+    if (config.ms2_centroid_algo != CA::OFF)
+    {
+      if (config.ms2_centroid_algo == CA::HILL_BASED &&
+          config.ms2_centroid_mz_ppm <= 0.0f)
+      {
+        if (emit_warnings)
+          OPENMS_LOG_WARN << "Warning: HillBased DIA-MS2 centroiding requires "
+                          << "ms2_centroid_mz_ppm > 0; centroiding disabled."
+                          << std::endl;
+        return CA::OFF;
+      }
+      return config.ms2_centroid_algo;
+    }
+    // Back-compat: dia_ms2_centroid=true implies Greedy2D.
+    return config.dia_ms2_centroid ? CA::GREEDY2D : CA::OFF;
+  }
+
+  // Convenience wrapper preserving the old call-site semantics.
+  static bool isCentroidingEnabled(const BrukerTimsFile::Config& config)
+  {
+    return effectiveMS1Algo(config, /*emit_warnings=*/false) !=
+           BrukerTimsFile::Config::CentroidAlgo::OFF;
+  }
+
+  // Run the selected MS1 centroiding algorithm on parallel (mz, intensity, im)
+  // arrays. Output arrays are sorted by m/z ascending and parallel to each
+  // other. The Greedy2D path uses the existing FrameCentroider; the HillBased
+  // path uses PASEFHillCentroider. The caller must already have resolved the
+  // algorithm via effectiveMS1Algo() and confirmed it is not Off.
+  // Bounding box arrays for hill-based centroiding output. When non-null,
+  // populated parallel to the (mz, intensity, im) outputs and exposed as
+  // extra FloatDataArrays via expose_hill_bounds. Greedy2D is not a hill
+  // algorithm, so these are only populated for the HillBased branch.
+  struct HillBoundsOut
+  {
+    std::vector<float>* im_lower;
+    std::vector<float>* im_upper;
+    std::vector<float>* mz_lower;
+    std::vector<float>* mz_upper;
+  };
+
+  static void fillHillBounds(
+      const std::vector<Internal::PASEFHillCentroider::Centroid>& centroids,
+      const HillBoundsOut& b)
+  {
+    if (!b.im_lower) return;
+    b.im_lower->resize(centroids.size());
+    b.im_upper->resize(centroids.size());
+    b.mz_lower->resize(centroids.size());
+    b.mz_upper->resize(centroids.size());
+    for (std::size_t i = 0; i < centroids.size(); ++i)
+    {
+      (*b.im_lower)[i] = static_cast<float>(centroids[i].im_lower);
+      (*b.im_upper)[i] = static_cast<float>(centroids[i].im_upper);
+      (*b.mz_lower)[i] = static_cast<float>(centroids[i].mz_lower);
+      (*b.mz_upper)[i] = static_cast<float>(centroids[i].mz_upper);
+    }
+  }
+
+  static void runMS1Centroider(
+      BrukerTimsFile::Config::CentroidAlgo algo,
+      const BrukerTimsFile::Config& config,
+      FrameCentroider& greedy,
+      const double* in_mz,
+      const double* in_intensity,
+      const double* in_im,
+      uint32_t n,
+      std::vector<double>& out_mz,
+      std::vector<double>& out_intensity,
+      std::vector<float>& out_im,
+      const std::uint32_t* in_scan_ids = nullptr,
+      const HillBoundsOut& bounds = HillBoundsOut{nullptr,nullptr,nullptr,nullptr})
+  {
+    using CA = BrukerTimsFile::Config::CentroidAlgo;
+    if (algo == CA::HILL_BASED)
+    {
+      Internal::PASEFHillCentroider::Params p;
+      p.mz_tol_ppm        = static_cast<double>(config.ms1_centroid_mz_ppm);
+      p.valley_factor     = config.centroid_valley_factor;
+      p.min_hill_length   = config.ms1_centroid_min_hill_length;
+      p.max_scan_gap      = config.centroid_max_scan_gap;
+      auto centroids = Internal::PASEFHillCentroider::centroidFrame(
+          in_mz, in_intensity, in_im, static_cast<std::size_t>(n), p,
+          in_scan_ids);
+      out_mz.resize(centroids.size());
+      out_intensity.resize(centroids.size());
+      out_im.resize(centroids.size());
+      for (std::size_t i = 0; i < centroids.size(); ++i)
+      {
+        out_mz[i]        = centroids[i].mz;
+        out_intensity[i] = centroids[i].intensity;
+        out_im[i]        = static_cast<float>(centroids[i].im_apex);
+      }
+      fillHillBounds(centroids, bounds);
+      return;
+    }
+    // Greedy2D path: matches the legacy behavior bit-for-bit.
+    greedy.loadFrame(in_mz, in_intensity, in_im, n);
+    greedy.centroid(config.ms1_centroid_mz_ppm, config.ms1_centroid_im_pct,
+                    out_mz, out_intensity, out_im,
+                    static_cast<std::size_t>(config.ms1_centroid_max_peaks));
+  }
+
+  // Run hill-based centroiding on a DIA-MS2 window's aggregated peaks. The
+  // Greedy2D MS2 path is handled inline via FrameAggregator::finalizeCentroided
+  // (Gaussian smoothing + local maxima); only the HillBased path needs this
+  // helper. Returns true if centroids were produced; false if the input was
+  // empty or the helper rejected all hills.
+  static bool runMS2HillCentroider(
+      const BrukerTimsFile::Config& config,
+      const double* in_mz,
+      const double* in_intensity,
+      const double* in_im,
+      std::size_t n,
+      std::vector<double>& out_mz,
+      std::vector<double>& out_intensity,
+      std::vector<float>& out_im,
+      const std::uint32_t* in_scan_ids = nullptr,
+      const HillBoundsOut& bounds = HillBoundsOut{nullptr,nullptr,nullptr,nullptr})
+  {
+    Internal::PASEFHillCentroider::Params p;
+    p.mz_tol_ppm        = static_cast<double>(config.ms2_centroid_mz_ppm);
+    p.valley_factor     = config.centroid_valley_factor;
+    p.min_hill_length   = config.ms2_centroid_min_hill_length;
+    p.max_scan_gap      = config.centroid_max_scan_gap;
+    auto centroids = Internal::PASEFHillCentroider::centroidFrame(
+        in_mz, in_intensity, in_im, n, p, in_scan_ids);
+    out_mz.resize(centroids.size());
+    out_intensity.resize(centroids.size());
+    out_im.resize(centroids.size());
+    for (std::size_t i = 0; i < centroids.size(); ++i)
+    {
+      out_mz[i]        = centroids[i].mz;
+      out_intensity[i] = centroids[i].intensity;
+      out_im[i]        = static_cast<float>(centroids[i].im_apex);
+    }
+    fillHillBounds(centroids, bounds);
+    return !centroids.empty();
+  }
+
+  // Helper to attach the four hill-bounds FloatDataArrays to a spectrum.
+  // Centralized so emission sites remain uniform.
+  static void attachHillBoundsArrays(
+      MSSpectrum& spec,
+      const std::vector<float>& im_lower,
+      const std::vector<float>& im_upper,
+      const std::vector<float>& mz_lower,
+      const std::vector<float>& mz_upper)
+  {
+    auto make = [](const std::vector<float>& src, const String& name) {
+      DataArrays::FloatDataArray a;
+      a.setName(name);
+      a.assign(src.begin(), src.end());
+      return a;
+    };
+    spec.getFloatDataArrays().push_back(make(im_lower, "im lower bound"));
+    spec.getFloatDataArrays().push_back(make(im_upper, "im upper bound"));
+    spec.getFloatDataArrays().push_back(make(mz_lower, "m/z lower bound"));
+    spec.getFloatDataArrays().push_back(make(mz_upper, "m/z upper bound"));
   }
 
   // Emit one-shot partial-config warnings for the MS1 aggregation knobs.
@@ -392,6 +730,15 @@ namespace OpenMS
                       << ") ignored: load_ms1=false disables MS1 loading entirely."
                       << std::endl;
     }
+
+    // One-shot validation of the centroiding config: emits warnings for
+    // partial/inconsistent inputs but does not change behavior. Per-spectrum
+    // dispatch later calls effectiveMS{1,2}Algo with emit_warnings=false.
+    // Both DDA-MS2 and DIA-MS2 HillBased work without any frame aggregation
+    // (the hill centroider operates within a single PASEF frame across its
+    // own IM scans); dia_ms2_n_neighbors only controls cross-RT summing.
+    (void)effectiveMS1Algo(config, /*emit_warnings=*/true);
+    (void)effectiveMS2Algo(config, /*emit_warnings=*/true);
   }
 
   // =====================================================================
@@ -658,6 +1005,31 @@ namespace OpenMS
       };
       boost::unordered_flat_map<uint64_t, Cell> grid_;
     };
+
+    // Fill a FrameBuffers struct from FrameAggregator output peaks. Converts
+    // each peak's scan_id to inverse ion mobility (1/K0) via the handle's
+    // converter using @p center_frame_id as the calibration reference. Used
+    // by the sites that consume aggregator output: loadAggregatedMS1Spectrum
+    // and the DIA-MS2 aggregated hill path.
+    static void aggregatorPeaksToBuffers(
+        const std::vector<FrameAggregator::OutputPeak>& peaks,
+        TimsDataHandle& handle,
+        uint32_t center_frame_id,
+        FrameBuffers& out)
+    {
+      const size_t n = peaks.size();
+      out.resize(n);
+      for (size_t i = 0; i < n; ++i)
+      {
+        out.mz[i]        = peaks[i].mz;
+        out.intensity[i] = peaks[i].intensity;
+        double im_val = 0.0;
+        handle.scan2inv_ion_mobility_converter->convert(
+          center_frame_id, &im_val, &peaks[i].scan_id, 1);
+        out.im[i]        = im_val;
+        out.scan_ids[i]  = peaks[i].scan_id;
+      }
+    }
 
     // SWATH window descriptor
     struct DIAWindow
@@ -1091,22 +1463,45 @@ namespace OpenMS
 
     if (frame.num_peaks == 0) return;
 
-    // Extract data from frame using save_to_buffs
-    std::vector<uint32_t> intensities(frame.num_peaks);
-    std::vector<double> mzs(frame.num_peaks);
-    std::vector<double> inv_ion_mobilities(frame.num_peaks);
+    // Extract frame data into FrameBuffers. save_to_buffs writes uint32
+    // intensities; we widen to double for the unified centroider dispatch
+    // (PASEFHillCentroider + FrameCentroider double overloads + PeakPickerIM).
+    FrameBuffers buf;
+    buf.resize(frame.num_peaks);
+    std::vector<uint32_t> raw_intensities(frame.num_peaks);
+    frame.save_to_buffs(nullptr, buf.scan_ids.data(), nullptr,
+                        raw_intensities.data(),
+                        buf.mz.data(), buf.im.data(), nullptr);
+    for (uint32_t i = 0; i < frame.num_peaks; ++i)
+      buf.intensity[i] = static_cast<double>(raw_intensities[i]);
 
-    frame.save_to_buffs(nullptr, nullptr, nullptr, intensities.data(),
-                        mzs.data(), inv_ion_mobilities.data(), nullptr);
+    if (config.isotopic_prefilter)
+    {
+      const size_t before = buf.size();
+      const size_t dropped = isotopicPrefilter(buf, config.isotopic_prefilter_tol_ppm);
+      OPENMS_LOG_INFO << "Isotopic prefilter (MS1, frame=" << frame.id
+                      << "): dropped " << dropped << " / " << before
+                      << " peaks ("
+                      << (100.0 * dropped / std::max<size_t>(1, before)) << "%)"
+                      << std::endl;
+      if (buf.empty()) return;
+    }
 
-    // Run centroiding
-    centroider.loadFrame(mzs.data(), intensities.data(), inv_ion_mobilities.data(), frame.num_peaks);
-
+    const auto algo = effectiveMS1Algo(config, /*emit_warnings=*/false);
     std::vector<double> cent_mz, cent_intensity;
     std::vector<float> cent_im;
-    centroider.centroid(config.ms1_centroid_mz_ppm, config.ms1_centroid_im_pct,
-                        cent_mz, cent_intensity, cent_im,
-                        static_cast<size_t>(config.ms1_centroid_max_peaks));
+    std::vector<float> b_im_lo, b_im_hi, b_mz_lo, b_mz_hi;
+    const bool want_bounds = config.expose_hill_bounds &&
+        algo == BrukerTimsFile::Config::CentroidAlgo::HILL_BASED;
+    HillBoundsOut bounds = want_bounds
+        ? HillBoundsOut{&b_im_lo, &b_im_hi, &b_mz_lo, &b_mz_hi}
+        : HillBoundsOut{nullptr, nullptr, nullptr, nullptr};
+    runMS1Centroider(algo, config, centroider,
+                     buf.mz.data(), buf.intensity.data(),
+                     buf.im.data(),
+                     static_cast<uint32_t>(buf.size()),
+                     cent_mz, cent_intensity, cent_im,
+                     buf.scan_ids.data(), bounds);
 
     // Build MSSpectrum from centroided output
     spec.reserve(cent_mz.size());
@@ -1123,6 +1518,8 @@ namespace OpenMS
     im_array.assign(cent_im.begin(), cent_im.end());
     IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
     spec.getFloatDataArrays().push_back(std::move(im_array));
+    if (want_bounds)
+      attachHillBoundsArrays(spec, b_im_lo, b_im_hi, b_mz_lo, b_mz_hi);
     spec.setIMPeakType(IMPeakType::IM_CENTROIDED);
   }
 
@@ -1219,12 +1616,38 @@ namespace OpenMS
       return;
     }
 
-    if (isCentroidingEnabled(config))
+    // Build FrameBuffers once for all algos (including OFF). scan_ids are
+    // needed by HillBased (max_scan_gap) and the isotopic prefilter; for
+    // OFF they're unused but cheap.
+    FrameBuffers buf;
+    aggregatorPeaksToBuffers(peaks, handle, center_frame.id, buf);
+
+    if (config.isotopic_prefilter)
     {
-      // Unpack aggregator output into parallel arrays for FrameCentroider.
+      const size_t before = buf.size();
+      const size_t dropped = isotopicPrefilter(buf, config.isotopic_prefilter_tol_ppm);
+      OPENMS_LOG_INFO << "Isotopic prefilter (MS1 aggregated, frame="
+                      << center_frame.id << "): dropped " << dropped << " / "
+                      << before << " peaks ("
+                      << (100.0 * dropped / std::max<size_t>(1, before)) << "%)"
+                      << std::endl;
+      if (buf.empty())
+      {
+        spec.getFloatDataArrays().push_back(std::move(im_array));
+        spec.setIMPeakType(IMPeakType::IM_PROFILE);
+        return;
+      }
+    }
+
+    const auto algo = effectiveMS1Algo(config, /*emit_warnings=*/false);
+    if (algo != BrukerTimsFile::Config::CentroidAlgo::OFF)
+    {
+      // Unpack aggregator output into parallel arrays for the centroider,
+      // including per-peak scan_id so HillBased can do gap detection.
       std::vector<double> cent_mzs(peaks.size());
       std::vector<double> cent_intensities(peaks.size());
       std::vector<double> cent_ims(peaks.size());
+      std::vector<uint32_t> cent_scan_ids(peaks.size());
       for (size_t i = 0; i < peaks.size(); ++i)
       {
         cent_mzs[i] = peaks[i].mz;
@@ -1233,16 +1656,23 @@ namespace OpenMS
         handle.scan2inv_ion_mobility_converter->convert(
           center_frame.id, &im_val, &peaks[i].scan_id, 1);
         cent_ims[i] = im_val;
+        cent_scan_ids[i] = peaks[i].scan_id;
       }
-
-      centroider.loadFrame(cent_mzs.data(), cent_intensities.data(),
-                           cent_ims.data(), static_cast<uint32_t>(peaks.size()));
 
       std::vector<double> out_mz, out_intensity;
       std::vector<float> out_im;
-      centroider.centroid(config.ms1_centroid_mz_ppm, config.ms1_centroid_im_pct,
-                          out_mz, out_intensity, out_im,
-                          static_cast<size_t>(config.ms1_centroid_max_peaks));
+      std::vector<float> b_im_lo, b_im_hi, b_mz_lo, b_mz_hi;
+      const bool want_bounds = config.expose_hill_bounds &&
+          algo == BrukerTimsFile::Config::CentroidAlgo::HILL_BASED;
+      HillBoundsOut bounds = want_bounds
+          ? HillBoundsOut{&b_im_lo, &b_im_hi, &b_mz_lo, &b_mz_hi}
+          : HillBoundsOut{nullptr, nullptr, nullptr, nullptr};
+      runMS1Centroider(algo, config, centroider,
+                       buf.mz.data(), buf.intensity.data(),
+                       buf.im.data(),
+                       static_cast<uint32_t>(buf.size()),
+                       out_mz, out_intensity, out_im,
+                       buf.scan_ids.data(), bounds);
 
       spec.reserve(out_mz.size());
       for (size_t i = 0; i < out_mz.size(); ++i)
@@ -1255,22 +1685,20 @@ namespace OpenMS
       im_array.assign(out_im.begin(), out_im.end());
       spec.setType(SpectrumSettings::SpectrumType::CENTROID);
       spec.setIMPeakType(IMPeakType::IM_CENTROIDED);
+      spec.getFloatDataArrays().push_back(std::move(im_array));
+      if (want_bounds)
+        attachHillBoundsArrays(spec, b_im_lo, b_im_hi, b_mz_lo, b_mz_hi);
+      return;
     }
-    else
+    // Off path — emit from prefiltered (or raw) buf.
+    spec.reserve(buf.size());
+    im_array.reserve(buf.size());
+    for (size_t i = 0; i < buf.size(); ++i)
     {
-      spec.reserve(peaks.size());
-      im_array.reserve(peaks.size());
-      for (const auto& peak : peaks)
-      {
-        spec.emplace_back(peak.mz, static_cast<float>(peak.intensity));
-        double im_val = 0.0;
-        handle.scan2inv_ion_mobility_converter->convert(
-          center_frame.id, &im_val, &peak.scan_id, 1);
-        im_array.push_back(static_cast<float>(im_val));
-      }
-      spec.setIMPeakType(IMPeakType::IM_PROFILE);
+      spec.emplace_back(buf.mz[i], static_cast<float>(buf.intensity[i]));
+      im_array.push_back(static_cast<float>(buf.im[i]));
     }
-
+    spec.setIMPeakType(IMPeakType::IM_PROFILE);
     spec.getFloatDataArrays().push_back(std::move(im_array));
   }
 
@@ -1901,6 +2329,112 @@ namespace OpenMS
         continue;
       }
 
+      // Branch: HillBased DDA-MS2 centroiding bypasses the TOF-domain pipeline
+      // entirely. It converts each raw peak's TOF to m/z, then runs IM-axis
+      // hill detection on the resulting (m/z, intensity, IM) triples. Output
+      // schema is unchanged: scalar drift_time per spectrum (no per-peak IM
+      // array). For DDA-MS2, peaks come from possibly several PASEF frames
+      // covering one precursor; per-frame IM-calibration jitter is absorbed
+      // by the linker (it chains across IM-sorted scans by m/z proximity, not
+      // IM proximity). Greedy/Off paths fall through to the existing TOF
+      // pipeline below.
+      const auto dda_ms2_algo = effectiveMS2Algo(config, /*emit_warnings=*/false);
+      if (dda_ms2_algo == BrukerTimsFile::Config::CentroidAlgo::HILL_BASED)
+      {
+        std::vector<double> hb_mz(all_tofs.size());
+        std::vector<double> hb_int(all_tofs.size());
+        for (std::size_t i = 0; i < all_tofs.size(); ++i)
+        {
+          handle.tof2mz_converter->convert(0, &hb_mz[i], &all_tofs[i], 1);
+          hb_int[i] = static_cast<double>(all_intensities[i]);
+        }
+        Internal::PASEFHillCentroider::Params p;
+        p.mz_tol_ppm        = static_cast<double>(config.ms2_centroid_mz_ppm);
+        p.valley_factor     = config.centroid_valley_factor;
+        p.min_hill_length   = config.ms2_centroid_min_hill_length;
+        auto centroids = Internal::PASEFHillCentroider::centroidFrame(
+            hb_mz.data(), hb_int.data(), all_im.data(),
+            all_tofs.size(), p);
+
+        if (centroids.empty())
+        {
+          ++precursor_idx;
+          setProgress(ms1_to_emit + precursor_idx);
+          continue;
+        }
+
+        std::vector<double> all_mz, all_intensity_d;
+        std::vector<double> kept_im;
+        all_mz.reserve(centroids.size());
+        all_intensity_d.reserve(centroids.size());
+        kept_im.reserve(centroids.size());
+        for (const auto& c : centroids)
+        {
+          all_mz.push_back(c.mz);
+          all_intensity_d.push_back(c.intensity);
+          kept_im.push_back(c.im_apex);
+        }
+
+        std::vector<size_t> sort_idx(all_mz.size());
+        std::iota(sort_idx.begin(), sort_idx.end(), 0u);
+        std::sort(sort_idx.begin(), sort_idx.end(),
+                  [&all_mz](size_t a, size_t b) { return all_mz[a] < all_mz[b]; });
+
+        double im_weighted_sum = 0.0;
+        double intensity_sum = 0.0;
+        for (std::size_t i = 0; i < all_mz.size(); ++i)
+        {
+          im_weighted_sum += kept_im[i] * all_intensity_d[i];
+          intensity_sum   += all_intensity_d[i];
+        }
+        double scalar_im = (intensity_sum > 0.0) ? (im_weighted_sum / intensity_sum) : 0.0;
+
+        const DDAPrecursorInfo* first_entry = entries.front();
+        double avg_rt = rt_sum / static_cast<double>(entries.size());
+
+        MSSpectrum spec;
+        spec.setRT(avg_rt);
+        spec.setMSLevel(2);
+        spec.setDriftTime(scalar_im);
+        spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+        spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+        spec.setNativeID("frame=" + String(first_entry->frame_id)
+                         + " scan=" + String(first_entry->scan_begin)
+                         + " precursor=" + String(prec_id));
+        spec.setMetaValue("bruker_precursor_id", static_cast<int>(prec_id));
+
+        spec.reserve(all_mz.size());
+        for (size_t idx : sort_idx)
+        {
+          Peak1D peak;
+          peak.setMZ(all_mz[idx]);
+          peak.setIntensity(all_intensity_d[idx]);
+          spec.push_back(peak);
+        }
+
+        Precursor prec;
+        prec.setMZ(first_entry->monoisotopic_mz);
+        prec.setCharge(first_entry->charge);
+        if (!std::isnan(first_entry->intensity))
+          prec.setIntensity(static_cast<float>(first_entry->intensity));
+        prec.setDriftTime(scalar_im);
+        prec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+        double iso_offset_lower = first_entry->isolation_width / 2.0 +
+                                  (first_entry->monoisotopic_mz - first_entry->isolation_mz);
+        double iso_offset_upper = first_entry->isolation_width / 2.0 -
+                                  (first_entry->monoisotopic_mz - first_entry->isolation_mz);
+        prec.setIsolationWindowLowerOffset(std::max(0.0, iso_offset_lower));
+        prec.setIsolationWindowUpperOffset(std::max(0.0, iso_offset_upper));
+        std::vector<Precursor> precursors;
+        precursors.push_back(std::move(prec));
+        spec.setPrecursors(std::move(precursors));
+
+        exp.addSpectrum(std::move(spec));
+        ++precursor_idx;
+        setProgress(ms1_to_emit + precursor_idx);
+        continue;
+      }
+
       // --- TOF-domain processing pipeline (ported from timsrust) ---
       // Step 1: group_and_sum — sort by TOF, merge duplicates
       // We need to co-sort IM values with the TOF/intensity arrays.
@@ -2220,7 +2754,12 @@ namespace OpenMS
             // aggregation provides. Also skipped when min_support <= 0 (user explicitly
             // disabled the filter).
             bool skip_denoise = (contributing_frames <= 1) || config.dia_ms2_min_support <= 0;
-            auto peaks = config.dia_ms2_centroid
+            using CA = BrukerTimsFile::Config::CentroidAlgo;
+            const auto ms2_algo = effectiveMS2Algo(config, /*emit_warnings=*/false);
+            // For HillBased we keep the unprocessed aggregator output (denoised
+            // only) and run the hill helper after; for Greedy2D we delegate to
+            // finalizeCentroided which combines smoothing+local-maxima inline.
+            auto peaks = (ms2_algo == CA::GREEDY2D)
               ? aggregator.finalizeCentroided(config.dia_ms2_min_support, skip_denoise)
               : aggregator.finalize(config.dia_ms2_min_support, skip_denoise);
 
@@ -2247,18 +2786,64 @@ namespace OpenMS
             DataArrays::FloatDataArray im_array;
             IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
 
-            for (const auto& peak : peaks)
+            // Convert aggregator output to FrameBuffers once for all algos
+            // (HILL/PPIM consume the buffers; GREEDY2D/OFF emit from them).
+            // This also enables the isotopic prefilter to run before dispatch.
+            FrameBuffers buf;
+            aggregatorPeaksToBuffers(peaks, handle, center_frame.id, buf);
+
+            if (config.isotopic_prefilter)
             {
-              spec.emplace_back(peak.mz, peak.intensity);
-              // Convert scan_id → 1/K0 using center frame's calibration
-              double im_val = 0.0;
-              handle.scan2inv_ion_mobility_converter->convert(
-                center_frame.id, &im_val, &peak.scan_id, 1);
-              im_array.push_back(static_cast<float>(im_val));
+              const size_t before = buf.size();
+              const size_t dropped = isotopicPrefilter(buf, config.isotopic_prefilter_tol_ppm);
+              OPENMS_LOG_INFO << "Isotopic prefilter (DIA-MS2 aggregated, frame="
+                              << center_frame.id << " window=" << win->window_group
+                              << "): dropped " << dropped << " / " << before
+                              << " peaks ("
+                              << (100.0 * dropped / std::max<size_t>(1, before))
+                              << "%)" << std::endl;
+              if (buf.empty()) continue;
+            }
+
+            std::vector<float> b_im_lo, b_im_hi, b_mz_lo, b_mz_hi;
+            bool wrote_hill_bounds = false;
+            if (ms2_algo == CA::HILL_BASED)
+            {
+              std::vector<double> out_mz, out_int;
+              std::vector<float>  out_im;
+              const bool want_bounds = config.expose_hill_bounds;
+              HillBoundsOut bounds = want_bounds
+                  ? HillBoundsOut{&b_im_lo, &b_im_hi, &b_mz_lo, &b_mz_hi}
+                  : HillBoundsOut{nullptr, nullptr, nullptr, nullptr};
+              const bool produced = runMS2HillCentroider(
+                  config, buf.mz.data(), buf.intensity.data(), buf.im.data(),
+                  buf.size(), out_mz, out_int, out_im,
+                  buf.scan_ids.data(), bounds);
+              if (!produced) continue;
+              for (size_t k = 0; k < out_mz.size(); ++k)
+              {
+                spec.emplace_back(out_mz[k], static_cast<float>(out_int[k]));
+                im_array.push_back(out_im[k]);
+              }
+              spec.setIMPeakType(IMPeakType::IM_CENTROIDED);
+              wrote_hill_bounds = want_bounds;
+            }
+            else
+            {
+              // GREEDY2D (finalizeCentroided already produced centroids) and OFF
+              // (raw passthrough). Emit straight from buf.
+              for (size_t k = 0; k < buf.size(); ++k)
+              {
+                spec.emplace_back(buf.mz[k], static_cast<float>(buf.intensity[k]));
+                im_array.push_back(static_cast<float>(buf.im[k]));
+              }
+              spec.setIMPeakType(ms2_algo == CA::GREEDY2D ? IMPeakType::IM_CENTROIDED
+                                                          : IMPeakType::IM_PROFILE);
             }
 
             spec.getFloatDataArrays().push_back(std::move(im_array));
-            spec.setIMPeakType(config.dia_ms2_centroid ? IMPeakType::IM_CENTROIDED : IMPeakType::IM_PROFILE);
+            if (wrote_hill_bounds)
+              attachHillBoundsArrays(spec, b_im_lo, b_im_hi, b_mz_lo, b_mz_hi);
             exp.addSpectrum(std::move(spec));
           }
         }
@@ -2267,8 +2852,15 @@ namespace OpenMS
     }
     else
     {
-      // === Raw path: per-WindowGroup iteration (no aggregation) ===
-      startProgress(0, total_work, "Loading DIA-PASEF MS2 frames");
+      // === Raw path: per-WindowGroup iteration (no RT aggregation) ===
+      // HillBased centroiding can still run here — it operates on the single
+      // frame's peaks across IM scans, independent of cross-RT summing.
+      using CA = BrukerTimsFile::Config::CentroidAlgo;
+      const auto ms2_algo_raw = effectiveMS2Algo(config, /*emit_warnings=*/false);
+      const bool do_hill_raw = (ms2_algo_raw == CA::HILL_BASED);
+      startProgress(0, total_work, do_hill_raw
+                    ? "Loading DIA-PASEF MS2 frames (hill, no RT aggregation)"
+                    : "Loading DIA-PASEF MS2 frames");
       Size progress_count = 0;
 
       for (const auto& [group, frame_ids] : group_to_frames)
@@ -2285,13 +2877,14 @@ namespace OpenMS
             TimsFrame& frame = handle.get_frame(frame_ids[i]);
             if (frame.num_peaks == 0) continue;
 
-            std::vector<uint32_t> scan_ids(frame.num_peaks);
-            std::vector<uint32_t> intensities(frame.num_peaks);
-            std::vector<double> mzs(frame.num_peaks);
-            std::vector<double> inv_ion_mobilities(frame.num_peaks);
+            std::vector<uint32_t> raw_scan_ids(frame.num_peaks);
+            std::vector<uint32_t> raw_intensities(frame.num_peaks);
+            std::vector<double> raw_mzs(frame.num_peaks);
+            std::vector<double> raw_ims(frame.num_peaks);
 
-            frame.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
-                                mzs.data(), inv_ion_mobilities.data(), nullptr);
+            frame.save_to_buffs(nullptr, raw_scan_ids.data(), nullptr,
+                                raw_intensities.data(),
+                                raw_mzs.data(), raw_ims.data(), nullptr);
 
             MSSpectrum spec;
             spec.setRT(frame.time);
@@ -2312,22 +2905,77 @@ namespace OpenMS
             DataArrays::FloatDataArray im_array;
             IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
 
+            // Window-filter into FrameBuffers once for all algos. IM is
+            // already in 1/K0 from save_to_buffs — no scan_id→IM conversion
+            // needed here (unlike the aggregated path). scan_ids carried
+            // through for HillBased max_scan_gap and the isotopic prefilter.
+            FrameBuffers buf;
+            buf.reserve(frame.num_peaks);
             for (uint32_t p = 0; p < frame.num_peaks; ++p)
             {
-              if (inv_ion_mobilities[p] >= win->im_lower && inv_ion_mobilities[p] <= win->im_upper)
+              if (raw_ims[p] >= win->im_lower && raw_ims[p] <= win->im_upper)
               {
-                Peak1D peak;
-                peak.setMZ(mzs[p]);
-                peak.setIntensity(static_cast<double>(intensities[p]));
-                spec.push_back(peak);
-                im_array.push_back(static_cast<float>(inv_ion_mobilities[p]));
+                buf.mz.push_back(raw_mzs[p]);
+                buf.intensity.push_back(static_cast<double>(raw_intensities[p]));
+                buf.im.push_back(raw_ims[p]);
+                buf.scan_ids.push_back(raw_scan_ids[p]);
               }
+            }
+            if (buf.empty()) continue;
+
+            if (config.isotopic_prefilter)
+            {
+              const size_t before = buf.size();
+              const size_t dropped = isotopicPrefilter(buf, config.isotopic_prefilter_tol_ppm);
+              OPENMS_LOG_INFO << "Isotopic prefilter (DIA-MS2 raw, frame="
+                              << frame.id << " window=" << win->window_group
+                              << "): dropped " << dropped << " / " << before
+                              << " peaks ("
+                              << (100.0 * dropped / std::max<size_t>(1, before))
+                              << "%)" << std::endl;
+              if (buf.empty()) continue;
+            }
+
+            std::vector<float> b_im_lo, b_im_hi, b_mz_lo, b_mz_hi;
+            bool wrote_hill_bounds = false;
+            if (do_hill_raw)
+            {
+              std::vector<double> out_mz, out_int;
+              std::vector<float>  out_im;
+              const bool want_bounds = config.expose_hill_bounds;
+              HillBoundsOut bounds = want_bounds
+                  ? HillBoundsOut{&b_im_lo, &b_im_hi, &b_mz_lo, &b_mz_hi}
+                  : HillBoundsOut{nullptr, nullptr, nullptr, nullptr};
+              const bool produced = runMS2HillCentroider(
+                  config, buf.mz.data(), buf.intensity.data(), buf.im.data(),
+                  buf.size(), out_mz, out_int, out_im,
+                  buf.scan_ids.data(), bounds);
+              if (!produced) continue;
+              for (size_t k = 0; k < out_mz.size(); ++k)
+              {
+                spec.emplace_back(out_mz[k], static_cast<float>(out_int[k]));
+                im_array.push_back(out_im[k]);
+              }
+              spec.setIMPeakType(IMPeakType::IM_CENTROIDED);
+              wrote_hill_bounds = want_bounds;
+            }
+            else
+            {
+              // OFF (or Greedy2D in raw mode — falls through here per
+              // effectiveDIAMS2Algo: Greedy2D requires aggregation).
+              for (size_t k = 0; k < buf.size(); ++k)
+              {
+                spec.emplace_back(buf.mz[k], static_cast<float>(buf.intensity[k]));
+                im_array.push_back(static_cast<float>(buf.im[k]));
+              }
+              spec.setIMPeakType(IMPeakType::IM_PROFILE);
             }
 
             if (!spec.empty())
             {
               spec.getFloatDataArrays().push_back(std::move(im_array));
-              spec.setIMPeakType(IMPeakType::IM_PROFILE);
+              if (wrote_hill_bounds)
+                attachHillBoundsArrays(spec, b_im_lo, b_im_hi, b_mz_lo, b_mz_hi);
               exp.addSpectrum(std::move(spec));
             }
           }
