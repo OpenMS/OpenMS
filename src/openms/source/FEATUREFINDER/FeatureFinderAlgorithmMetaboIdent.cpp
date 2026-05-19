@@ -656,9 +656,10 @@ namespace OpenMS
       try
       {
         AdductInfo adduct_info = AdductInfo::parseAdductString(adduct_str);
-        if (!mass_given) // calculate m/z from formula (use neutral monoisotopic mass)
+        if (!mass_given) // calculate m/z from formula
         {
-          mz = adduct_info.getMZ(emp_formula.getMonoWeight()); // neutral mass without charge
+          // emp_formula has charge 0, so getMonoWeight() returns the neutral monoisotopic mass
+          mz = adduct_info.getMZ(emp_formula.getMonoWeight());
         }
         else
         {
@@ -675,7 +676,6 @@ namespace OpenMS
         {
           emp_formula.setCharge(*z_it);
           mz = abs(emp_formula.getMonoWeight() / *z_it);
-          emp_formula.setCharge(0); // reset
         }
         else
         {
