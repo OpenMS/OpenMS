@@ -6,6 +6,7 @@
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/FORMAT/AbsoluteQuantitationStandardsFile.h>
 #include <OpenMS/FORMAT/Base64.h>
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
@@ -144,6 +145,99 @@ NB_MODULE(_pyopenms_format, m) {
         .value("BYTEORDER_BIGENDIAN", OpenMS::Base64::ByteOrder::BYTEORDER_BIGENDIAN)
         .value("BYTEORDER_LITTLEENDIAN", OpenMS::Base64::ByteOrder::BYTEORDER_LITTLEENDIAN)
         .export_values();
+
+#ifdef WITH_OPENTIMS
+    // -----------------------------------------------------------------------
+    // BrukerTimsFile
+    // -----------------------------------------------------------------------
+    auto brukertimsfile_class = nb::class_<OpenMS::BrukerTimsFile>(m, "BrukerTimsFile",
+        R"doc(
+Reader for Bruker TimsTOF .d directories via opentims.
+
+Supports DDA-PASEF, DIA-PASEF, and raw frame-level 4D access.
+Ion mobility data is stored in VSSC (1/K0) units using IM_PEAK format
+for MS1 and DIA MS2, and scalar drift times for DDA MS2.
+
+This class is only available when OpenMS is built with
+``WITH_OPENTIMS=ON`` (the default). The Bruker SDK
+(``timsdata.dll`` / ``libtimsdata.so``) is not bundled with pyOpenMS;
+supply it via the ``OPENMS_BRUKER_SDK_PATH`` environment variable or
+``Config.bruker_sdk_path``.
+
+Use ``hasattr(pyopenms, "BrukerTimsFile")`` to feature-detect at
+runtime.
+)doc");
+    brukertimsfile_class
+        .def(nb::init<>())
+        .def("load", [](OpenMS::BrukerTimsFile& self, const OpenMS::String& path) {
+            OpenMS::MSExperiment exp; self.load(path, exp); return exp;
+        }, "path"_a, "Load a .d directory into a new MSExperiment using default configuration")
+        .def("load", [](OpenMS::BrukerTimsFile& self, const OpenMS::String& path, const OpenMS::BrukerTimsFile::Config& config) {
+            OpenMS::MSExperiment exp; self.load(path, exp, config); return exp;
+        }, "path"_a, "config"_a, "Load a .d directory into a new MSExperiment with explicit configuration")
+        .def("readDIAMetadata", [](OpenMS::BrukerTimsFile& self, const OpenMS::String& path) {
+            OpenMS::ExperimentalSettings settings;
+            auto meta = self.readDIAMetadata(path, settings);
+            return nb::make_tuple(meta, settings);
+        }, "path"_a, "Read DIA SWATH boundaries and spectrum counts (no peak data). Returns (DIAStreamingMetadata, ExperimentalSettings).")
+        .def("readDIAMetadata", [](OpenMS::BrukerTimsFile& self, const OpenMS::String& path, const OpenMS::BrukerTimsFile::Config& config) {
+            OpenMS::ExperimentalSettings settings;
+            auto meta = self.readDIAMetadata(path, settings, config);
+            return nb::make_tuple(meta, settings);
+        }, "path"_a, "config"_a, "Read DIA SWATH boundaries and spectrum counts with explicit configuration. Returns (DIAStreamingMetadata, ExperimentalSettings).")
+        ;
+    def_ProgressLogger<OpenMS::BrukerTimsFile>(brukertimsfile_class);
+
+    // Nested Config struct
+    auto brukertimsfile_config = nb::class_<OpenMS::BrukerTimsFile::Config>(brukertimsfile_class, "Config",
+        "Processing and export configuration for BrukerTimsFile.load() and readDIAMetadata()")
+        .def(nb::init<>())
+        .def_rw("calibration_tolerance", &OpenMS::BrukerTimsFile::Config::calibration_tolerance, "m/z recalibration tolerance in Da (0 = default 0.1 Da)")
+        .def_rw("calibrate", &OpenMS::BrukerTimsFile::Config::calibrate, "Enable m/z recalibration (off by default; may fail on some datasets)")
+        .def_rw("load_ms1", &OpenMS::BrukerTimsFile::Config::load_ms1, "Load MS1 spectra. Disable for MS2-only workflows.")
+        .def_rw("ms1_centroid_mz_ppm", &OpenMS::BrukerTimsFile::Config::ms1_centroid_mz_ppm, "MS1 IM-centroiding m/z tolerance in ppm (0 = disabled, suggested: 5.0)")
+        .def_rw("ms1_centroid_im_pct", &OpenMS::BrukerTimsFile::Config::ms1_centroid_im_pct, "MS1 IM-centroiding ion mobility tolerance in percent (0 = disabled, suggested: 3.0)")
+        .def_rw("ms1_centroid_max_peaks", &OpenMS::BrukerTimsFile::Config::ms1_centroid_max_peaks, "Upper bound on centroided peaks per MS1 spectrum")
+        .def_rw("dia_ms2_n_neighbors", &OpenMS::BrukerTimsFile::Config::dia_ms2_n_neighbors, "DIA MS2 frame aggregation: number of adjacent frames on each side (0 = disabled)")
+        .def_rw("dia_ms2_min_support", &OpenMS::BrukerTimsFile::Config::dia_ms2_min_support, "DIA MS2 denoising: minimum occupied neighbors in 3x3 (m/z x IM) grid")
+        .def_rw("dia_ms2_centroid", &OpenMS::BrukerTimsFile::Config::dia_ms2_centroid, "DIA MS2 2D peak picking: Gaussian smoothing + local maxima detection")
+        .def_rw("ms1_n_neighbors", &OpenMS::BrukerTimsFile::Config::ms1_n_neighbors, "MS1 frame aggregation: adjacent MS1 frames on each side (0 = disabled)")
+        .def_rw("ms1_min_support", &OpenMS::BrukerTimsFile::Config::ms1_min_support, "MS1 denoising after aggregation: min occupied 3x3 neighbors (0 = disabled)")
+        .def_rw("ms1_max_rt_distance_sec", &OpenMS::BrukerTimsFile::Config::ms1_max_rt_distance_sec, "Cap RT distance (s) between neighbor MS1 frame and center frame during aggregation (0 = no cap)")
+        .def_rw("export_mode", &OpenMS::BrukerTimsFile::Config::export_mode, "AUTO detects DDA vs DIA; SPECTRUM forces per-precursor; FRAME returns raw 4D frames")
+        .def_rw("tims_calibration_strategy", &OpenMS::BrukerTimsFile::Config::tims_calibration_strategy, "Strategy for converting TIMS scan indices to 1/K0 values")
+        .def_rw("pressure_compensation", &OpenMS::BrukerTimsFile::Config::pressure_compensation, "Pressure compensation strategy (only effective with BRUKER_SDK calibration)")
+        .def_rw("bruker_sdk_path", &OpenMS::BrukerTimsFile::Config::bruker_sdk_path, "Path to Bruker SDK library (empty = discover from OPENMS_BRUKER_SDK_PATH env var)")
+        ;
+
+    nb::enum_<OpenMS::BrukerTimsFile::Config::ExportMode>(brukertimsfile_config, "ExportMode")
+        .value("AUTO", OpenMS::BrukerTimsFile::Config::ExportMode::AUTO)
+        .value("SPECTRUM", OpenMS::BrukerTimsFile::Config::ExportMode::SPECTRUM)
+        .value("FRAME", OpenMS::BrukerTimsFile::Config::ExportMode::FRAME)
+        ;
+
+    nb::enum_<OpenMS::BrukerTimsFile::Config::TimsCalibrationStrategy>(brukertimsfile_config, "TimsCalibrationStrategy")
+        .value("AUTO", OpenMS::BrukerTimsFile::Config::TimsCalibrationStrategy::AUTO)
+        .value("BRUKER_SDK", OpenMS::BrukerTimsFile::Config::TimsCalibrationStrategy::BRUKER_SDK)
+        .value("RATIONAL", OpenMS::BrukerTimsFile::Config::TimsCalibrationStrategy::RATIONAL)
+        .value("LINEAR", OpenMS::BrukerTimsFile::Config::TimsCalibrationStrategy::LINEAR)
+        ;
+
+    nb::enum_<OpenMS::BrukerTimsFile::Config::PressureCompensation>(brukertimsfile_config, "PressureCompensation")
+        .value("NONE", OpenMS::BrukerTimsFile::Config::PressureCompensation::NONE)
+        .value("GLOBAL", OpenMS::BrukerTimsFile::Config::PressureCompensation::GLOBAL)
+        .value("PER_FRAME", OpenMS::BrukerTimsFile::Config::PressureCompensation::PER_FRAME)
+        ;
+
+    // Nested DIAStreamingMetadata struct
+    nb::class_<OpenMS::BrukerTimsFile::DIAStreamingMetadata>(brukertimsfile_class, "DIAStreamingMetadata",
+        "Metadata describing DIA SWATH layout for streaming consumers")
+        .def(nb::init<>())
+        .def_rw("boundaries", &OpenMS::BrukerTimsFile::DIAStreamingMetadata::boundaries, "One SwathMap per DIA window (MS2 only)")
+        .def_rw("nr_ms1_spectra", &OpenMS::BrukerTimsFile::DIAStreamingMetadata::nr_ms1_spectra, "Number of MS1 frames")
+        .def_rw("nr_ms2_spectra", &OpenMS::BrukerTimsFile::DIAStreamingMetadata::nr_ms2_spectra, "Per-window spectrum counts (parallel to boundaries)")
+        ;
+#endif // WITH_OPENTIMS
 
     // -----------------------------------------------------------------------
     // CachedSwathFileConsumer

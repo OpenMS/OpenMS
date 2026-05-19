@@ -172,6 +172,7 @@ set(format_executables_list
   AbsoluteQuantitationStandardsFile_test
   Base64_test
   BrukerTimsFile_test
+  PASEFHillCentroider_test
   MSNumpressCoder_test
   Bzip2Ifstream_test
   Bzip2InputStream_test
@@ -646,6 +647,12 @@ set(ionmobility_executables_list
   IMTypes_test
 )
 
+set(imaging_executables_list
+  IonImage_test
+  MSImagingGeometry_test
+  MSImagingExperiment_test
+)
+
 if(NOT DISABLE_OPENSWATH)
   set(swath_executables_list
     MRMAssay_test
@@ -680,6 +687,7 @@ if(NOT DISABLE_OPENSWATH)
     MRMFeatureFinderScoring_test
     MRMFeatureFilter_test
     MRMFeatureQC_test
+    OpenSwathExport_test
     PeptidoformInference_test
     SpectrumHelpers_test
     StatsHelpers_test
@@ -737,6 +745,7 @@ set(TEST_executables
     ${applications_executables_list}
     ${transformations_executables_list}
     ${ionmobility_executables_list}
+    ${imaging_executables_list}
     ${swath_executables_list}
     ${qc_executables_list}
 )
