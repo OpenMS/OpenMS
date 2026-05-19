@@ -180,6 +180,12 @@ if (TARGET OpenSwathOSWParquetRoundTrip_test)
     ${OPENMS_PARQUET_TARGET}
   )
 endif()
+if (TARGET OpenSwathExport_test)
+  target_link_libraries(OpenSwathExport_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
 if (TARGET ArrowSchemaRegistry_test)
   target_link_libraries(ArrowSchemaRegistry_test
     ${OPENMS_ARROW_TARGET}

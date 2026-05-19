@@ -1964,6 +1964,74 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_27_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_27")
 endif(NOT DISABLE_OPENSWATH)
 
+if(NOT DISABLE_OPENSWATH)
+  # OpenSwath inference/export tests
+  # The shared PyProphet-derived fixture is single-run only, so these tests
+  # deliberately avoid alignment-dependent options.
+  set(OPENSWATH_SHARED_INFERENCE_OSW ${OPENMS_HOST_DIRECTORY}/src/tests/class_tests/openms/data/PyProphet_inference_test.osw)
+
+  add_test("TOPP_OpenSwathInfer_1_prepare" ${CMAKE_COMMAND} -E copy_if_different ${OPENSWATH_SHARED_INFERENCE_OSW} ${TESTS_TEMP_DIR}/OpenSwathInfer_1_input.osw)
+  add_test("TOPP_OpenSwathInfer_1" ${TOPP_BIN_PATH}/OpenSwathInfer -test -in ${TESTS_TEMP_DIR}/OpenSwathInfer_1_input.osw
+    -peptidoform:run true
+    -peptidoform:ipf_ms1_scoring false
+    -peptidoform:ipf_ms2_scoring false
+    -peptidoform:propagate_signal_across_runs false
+    -peptide:global true
+    -peptide:experiment_wide false
+    -peptide:run_specific false
+    -protein:global true
+    -protein:experiment_wide false
+    -protein:run_specific false
+    -gene:global false
+    -gene:experiment_wide false
+    -gene:run_specific false)
+  add_test("TOPP_OpenSwathInfer_1_export" ${TOPP_BIN_PATH}/OpenSwathExport -test -in ${TESTS_TEMP_DIR}/OpenSwathInfer_1_input.osw -out_dir ${TESTS_TEMP_DIR}/OpenSwathInfer_1_out
+    -parquet:run false
+    -results:run true
+    -results:format tsv
+    -results:ipf peptidoform
+    -results:ipf_max_peptidoform_pep 1.0
+    -results:use_peptide_scores false
+    -results:use_protein_scores false
+    -results:use_gene_scores false
+    -results:use_alignment false
+    -matrix:precursor false
+    -matrix:peptide false
+    -matrix:protein false
+    -matrix:gene false)
+  add_test("TOPP_OpenSwathInfer_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenSwathInfer_1_out/OpenSwathInfer_1_input.results.tsv -in2 ${DATA_DIR_TOPP}/OpenSwathInfer_1_output.results.tsv)
+  set_tests_properties("TOPP_OpenSwathInfer_1" PROPERTIES DEPENDS "TOPP_OpenSwathInfer_1_prepare")
+  set_tests_properties("TOPP_OpenSwathInfer_1_export" PROPERTIES DEPENDS "TOPP_OpenSwathInfer_1")
+  set_tests_properties("TOPP_OpenSwathInfer_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathInfer_1_export")
+  add_test("TOPP_OpenSwathExport_1_prepare" ${CMAKE_COMMAND} -E copy_if_different ${OPENSWATH_SHARED_INFERENCE_OSW} ${TESTS_TEMP_DIR}/OpenSwathExport_1_input.osw)
+  add_test("TOPP_OpenSwathExport_1" ${TOPP_BIN_PATH}/OpenSwathExport -test -in ${TESTS_TEMP_DIR}/OpenSwathExport_1_input.osw -out_dir ${TESTS_TEMP_DIR}/OpenSwathExport_1_out
+    -parquet:run false
+    -results:run true
+    -results:format tsv
+    -results:ipf disable
+    -results:use_peptide_scores false
+    -results:use_protein_scores false
+    -results:use_gene_scores false
+    -results:use_alignment false
+    -matrix:precursor false
+    -matrix:peptide true
+    -matrix:protein true
+    -matrix:gene false
+    -matrix:format tsv
+    -matrix:ipf disable
+    -matrix:use_peptide_scores false
+    -matrix:use_protein_scores false
+    -matrix:use_gene_scores false
+    -matrix:use_alignment false)
+  add_test("TOPP_OpenSwathExport_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenSwathExport_1_out/OpenSwathExport_1_input.results.tsv -in2 ${DATA_DIR_TOPP}/OpenSwathExport_1_output.results.tsv)
+  add_test("TOPP_OpenSwathExport_1_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenSwathExport_1_out/OpenSwathExport_1_input.peptide.matrix.tsv -in2 ${DATA_DIR_TOPP}/OpenSwathExport_1_output.peptide.matrix.tsv)
+  add_test("TOPP_OpenSwathExport_1_out3" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenSwathExport_1_out/OpenSwathExport_1_input.protein.matrix.tsv -in2 ${DATA_DIR_TOPP}/OpenSwathExport_1_output.protein.matrix.tsv)
+  set_tests_properties("TOPP_OpenSwathExport_1" PROPERTIES DEPENDS "TOPP_OpenSwathExport_1_prepare")
+  set_tests_properties("TOPP_OpenSwathExport_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathExport_1")
+  set_tests_properties("TOPP_OpenSwathExport_1_out2" PROPERTIES DEPENDS "TOPP_OpenSwathExport_1")
+  set_tests_properties("TOPP_OpenSwathExport_1_out3" PROPERTIES DEPENDS "TOPP_OpenSwathExport_1")
+endif(NOT DISABLE_OPENSWATH)
+
 #------------------------------------------------------------------------------
 # NoiseFilter tests
 add_test("TOPP_NoiseFilterGaussian_1" ${TOPP_BIN_PATH}/NoiseFilterGaussian -test -ini ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_input.mzML -out ${TESTS_TEMP_DIR}/NoiseFilterGaussian_1.tmp.mzML)
