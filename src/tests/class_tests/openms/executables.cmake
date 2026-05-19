@@ -172,6 +172,7 @@ set(format_executables_list
   AbsoluteQuantitationStandardsFile_test
   Base64_test
   BrukerTimsFile_test
+  PASEFHillCentroider_test
   MSNumpressCoder_test
   Bzip2Ifstream_test
   Bzip2InputStream_test
@@ -679,6 +680,7 @@ if(NOT DISABLE_OPENSWATH)
     MRMFeatureFinderScoring_test
     MRMFeatureFilter_test
     MRMFeatureQC_test
+    OpenSwathExport_test
     PeptidoformInference_test
     SpectrumHelpers_test
     StatsHelpers_test
