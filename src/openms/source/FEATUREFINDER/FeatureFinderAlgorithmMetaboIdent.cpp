@@ -17,6 +17,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 
+#include <OpenMS/CHEMISTRY/AdductInfo.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
@@ -281,7 +282,7 @@ namespace OpenMS
     for (const auto& c : metaboIdentTable)
     {
       addTargetToLibrary_(c.getName(), c.getFormula(), c.getMass(), c.getCharges(), c.getRTs(), c.getRTRanges(),
-                      c.getIsotopeDistribution(), c.getIonMobilities());
+                      c.getIsotopeDistribution(), c.getIonMobilities(), c.getAdduct());
     }
 
     // initialize algorithm classes needed later:
@@ -523,7 +524,8 @@ namespace OpenMS
                            const vector<double>& rts,
                            vector<double> rt_ranges,
                            const vector<double>& iso_distrib,
-                           const vector<double>& ion_mobilities)
+                           const vector<double>& ion_mobilities,
+                           const String& adduct)
   {
     if ((mass <= 0) && formula.empty())
     {
@@ -633,15 +635,52 @@ namespace OpenMS
       }
       target.setChargeState(*z_it);
       double mz = 0.0;
-      if (!mass_given) // calculate m/z from formula
+
+      // Determine which adduct to use for m/z calculation
+      String adduct_str = adduct;
+      if (adduct_str.empty())
       {
-        emp_formula.setCharge(*z_it);
-        // "EmpiricalFormula::getMonoWeight()" already includes charges:
-        mz = abs(emp_formula.getMonoWeight() / *z_it);
+        // Default: [M+H]+ for positive charge, [M-H]- for negative charge (backward compatible)
+        if (*z_it > 0)
+        {
+          if (*z_it == 1) adduct_str = "M+H;1+";
+          else adduct_str = "M+" + String(*z_it) + "H;" + String(*z_it) + "+";
+        }
+        else
+        {
+          if (*z_it == -1) adduct_str = "M-H;1-";
+          else adduct_str = "M-" + String(abs(*z_it)) + "H;" + String(abs(*z_it)) + "-";
+        }
       }
-      else
+
+      try
       {
-        mz = calculateMZ_(mass, *z_it);
+        AdductInfo adduct_info = AdductInfo::parseAdductString(adduct_str);
+        if (!mass_given) // calculate m/z from formula (use neutral monoisotopic mass)
+        {
+          mz = adduct_info.getMZ(emp_formula.getMonoWeight()); // neutral mass without charge
+        }
+        else
+        {
+          mz = adduct_info.getMZ(mass);
+        }
+        target.setMetaValue("adduct", adduct_str);
+      }
+      catch (Exception::BaseException& e)
+      {
+        OPENMS_LOG_ERROR << "Error: Could not parse adduct string '" << adduct_str
+                         << "' for target '" << name << "': " << e.what()
+                         << " - falling back to default calculation." << endl;
+        if (!mass_given)
+        {
+          emp_formula.setCharge(*z_it);
+          mz = abs(emp_formula.getMonoWeight() / *z_it);
+          emp_formula.setCharge(0); // reset
+        }
+        else
+        {
+          mz = calculateMZ_(mass, *z_it);
+        }
       }
 
       for (Size i = 0; i < rts.size(); ++i)
@@ -733,6 +772,10 @@ namespace OpenMS
       feat.getPeptideIdentifications().clear();
       feat.setMetaValue("label", compound.getMetaValue("name"));
       feat.setMetaValue("sum_formula", compound.molecular_formula);
+      if (compound.metaValueExists("adduct"))
+      {
+        feat.setMetaValue("adduct", compound.getMetaValue("adduct"));
+      }
       feat.setMetaValue("expected_rt",
                             compound.getMetaValue("expected_rt"));
       // Add IM annotations if available
