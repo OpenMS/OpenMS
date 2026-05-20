@@ -12,6 +12,7 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 #include <cstdint>
+#include <limits>
 #include <string>
 
 class TimsDataHandle;
@@ -55,6 +56,34 @@ namespace OpenMS
       bool load_ms1 = true;                ///< Load MS1 spectra. Disable (false) for MS2-only workflows
                                            ///< (peptide database search) where MS1 surveys are not needed —
                                            ///< cuts memory and time substantially. Affects all export modes.
+
+      /// Frame ID range filter (inclusive). Only frames with
+      /// frame_id_min <= Id <= frame_id_max are read; all peak data for frames
+      /// outside the range is skipped, so memory and I/O scale with the range,
+      /// not the file size. TIMS frame IDs are 1-based and dense; set
+      /// frame_id_min == frame_id_max to load a single frame. Defaults
+      /// (0, UINT32_MAX) load the full file. Honored by load(), transform(),
+      /// loadDIAStreaming(), and readDIAMetadata() in all export modes.
+      ///
+      /// Interplay with other knobs (all unchanged at default range):
+      /// - Frame aggregation (ms1_n_neighbors, dia_ms2_n_neighbors) sees only
+      ///   in-range frames, so the neighbor window clamps at the range
+      ///   boundaries the same way it clamps at the file boundaries.
+      ///   Aggregated frames near a boundary therefore use an asymmetric /
+      ///   truncated neighborhood. Widen the range by n_neighbors on each
+      ///   side if you need unbiased aggregation throughout.
+      /// - Centroiding (ms1_centroid_algo, ms2_centroid_algo) is per-frame
+      ///   and has no inter-frame coupling, so it is unaffected beyond
+      ///   processing fewer frames.
+      /// - DDA: a precursor whose source MS2 frames straddle the range
+      ///   boundary is reconstructed from the in-range subset only — the
+      ///   resulting MS2 spectrum is partial. A one-shot warning reports
+      ///   how many precursors were affected.
+      /// - DDA OLS m/z recalibration (calibrate=true) is fit only from
+      ///   in-range precursors. If too few survive (<2), the fit is skipped
+      ///   and the default calibration is used.
+      uint32_t frame_id_min = 0;
+      uint32_t frame_id_max = std::numeric_limits<uint32_t>::max();
 
       /// Centroiding algorithms for IM-PASEF frames.
       ///   - Off:       no IM-axis centroiding (raw detector peaks pass through).
