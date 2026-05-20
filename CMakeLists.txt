@@ -68,7 +68,7 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64$" AND UNIX AND NOT APPLE)
   set(_openms_with_thermo_raw_default OFF)
 endif()
 option(WITH_THERMO_RAW "Build with Thermo RAW file reading support via openms-thermo-bridge" ${_openms_with_thermo_raw_default})
-option(ENABLE_THERMO_RAW_TESTS "Download Thermo RAW test data for integration tests" ON)
+option(ENABLE_THERMO_RAW_TESTS "Download Thermo RAW test data for integration tests" OFF)
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
 
@@ -123,13 +123,20 @@ endif()
 
 if (ENABLE_THERMO_RAW_TESTS AND WITH_THERMO_RAW)
   include(FetchContent)
+  # Angiotensin_AllScans.raw from PNNL-Comp-Mass-Spec/Thermo-Raw-File-Reader
+  # (BSD-2-Clause, (c) 2018 Battelle Memorial Institute). Pinned to a specific
+  # commit for reproducibility. Contains 87 MS1 (FTMS Full ms) plus hundreds of
+  # MS2 scans with HCD and supplemental-activation (ETD+HCD, ETD+CID) filters
+  # at precursor m/z 432.9 — exercises the full activation-method switch in
+  # ThermoRawFile.cpp and MS1+MSn round-trip via mzML.
   FetchContent_Declare(
     thermo_raw_testdata
-    URL "https://raw.githubusercontent.com/HegemanLab/small-thermo-raw-file-examples/cfac6a25b44913273dd458d5f5db9b20b0c1107d/ginkgotoxin-ms-positive.raw"
+    URL "https://raw.githubusercontent.com/PNNL-Comp-Mass-Spec/Thermo-Raw-File-Reader/1d8ff309f94704b850642374496c7ac28c491204/UnitTests/Docs/Angiotensin_AllScans.raw"
+    URL_HASH SHA256=3a0236f719e7c91e3c958f57f4e66ae422803ec3e6a997b9af4d2af395332b9f
     DOWNLOAD_NO_EXTRACT TRUE
   )
   FetchContent_MakeAvailable(thermo_raw_testdata)
-  set(THERMO_RAW_TEST_DATA "${thermo_raw_testdata_SOURCE_DIR}/ginkgotoxin-ms-positive.raw" CACHE PATH "Path to Thermo RAW test file")
+  set(THERMO_RAW_TEST_DATA "${thermo_raw_testdata_SOURCE_DIR}/Angiotensin_AllScans.raw" CACHE PATH "Path to Thermo RAW test file")
 endif()
 
 #------------------------------------------------------------------------------

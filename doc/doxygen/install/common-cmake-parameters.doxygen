@@ -153,7 +153,7 @@ The most important CMake variables are:
     <th valign="top">ENABLE_THERMO_RAW_TESTS=On/Off</td>
     <td>Download a small Thermo RAW test file and enable integration tests for the Thermo RAW reader.
     Requires <code>WITH_THERMO_RAW=On</code> and a working internet connection during CMake configuration.
-    (Default: On)</td>
+    (Default: Off)</td>
   </tr>
   <tr>
     <th valign="top">WITH_WNETALIGN=On/Off</td>
