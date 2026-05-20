@@ -781,8 +781,20 @@ namespace OpenMS
       {
         const uint32_t rt_fid_min = static_cast<uint32_t>(q.getColumn(0).getInt());
         const uint32_t rt_fid_max = static_cast<uint32_t>(q.getColumn(1).getInt());
+        // Save pre-intersection values to detect disjoint ranges
+        const uint32_t pre_min = eff.frame_id_min;
+        const uint32_t pre_max = eff.frame_id_max;
         eff.frame_id_min = std::max(eff.frame_id_min, rt_fid_min);
         eff.frame_id_max = std::min(eff.frame_id_max, rt_fid_max);
+        // Check if the intersection resulted in an empty range
+        if (pre_min <= pre_max && eff.frame_id_min > eff.frame_id_max)
+        {
+          OPENMS_LOG_WARN << "Warning: BrukerTimsFile::Config frame_id range ["
+                          << pre_min << ", " << pre_max
+                          << "] and RT range [" << config.rt_min_sec << ", "
+                          << config.rt_max_sec << "] s do not intersect. "
+                          << "No frames will be loaded." << std::endl;
+        }
       }
       else
       {
@@ -1908,7 +1920,7 @@ namespace OpenMS
     for (uint32_t fid = handle->min_frame_id(); fid <= handle->max_frame_id(); ++fid)
     {
       if (!frameInRange(fid, eff)) continue;
-      if (handle->has_frame(fid) && handle->get_frame(fid).msms_type == 0)
+      if (eff.load_ms1 && handle->has_frame(fid) && handle->get_frame(fid).msms_type == 0)
         ++meta.nr_ms1_spectra;
     }
 

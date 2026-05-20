@@ -591,8 +591,15 @@ START_SECTION(Bruker rt_min_sec/rt_max_sec range filter test)
   MSExperiment exp_full;
   f.load(OPENTIMS_DDA_TEST_DATA, exp_full, cfg_full);
   TEST_NOT_EQUAL(exp_full.size(), 0);
+  // Compute true RT bounds without assuming order
   double rt_lo = exp_full[0].getRT();
-  double rt_hi = exp_full[exp_full.size() - 1].getRT();
+  double rt_hi = rt_lo;
+  for (const auto& s : exp_full)
+  {
+    double rt = s.getRT();
+    if (rt < rt_lo) rt_lo = rt;
+    if (rt > rt_hi) rt_hi = rt;
+  }
   TEST_EQUAL(rt_lo <= rt_hi, true);
 
   // --- Sub-range: take the first half of the RT span ---
