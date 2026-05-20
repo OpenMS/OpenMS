@@ -467,6 +467,193 @@ START_SECTION(Bruker load_ms1=false test)
 }
 END_SECTION
 
+START_SECTION(Bruker frame_id range filter test)
+{
+  BrukerTimsFile f;
+
+  // --- Baseline (default range): full FRAME-mode load of DDA fixture ---
+  BrukerTimsFile::Config cfg_full;
+  cfg_full.export_mode = BrukerTimsFile::Config::FRAME;
+  MSExperiment exp_full;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_full, cfg_full);
+  TEST_NOT_EQUAL(exp_full.size(), 0);
+
+  // FRAME mode emits exactly one spectrum per frame, so spectrum count
+  // equals the file's frame count and we can map a frame-id range to an
+  // expected spectrum count.
+
+  // --- Explicit full range matches default ---
+  BrukerTimsFile::Config cfg_explicit_full;
+  cfg_explicit_full.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_explicit_full.frame_id_min = 0;
+  cfg_explicit_full.frame_id_max = std::numeric_limits<uint32_t>::max();
+  MSExperiment exp_explicit;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_explicit, cfg_explicit_full);
+  TEST_EQUAL(exp_explicit.size(), exp_full.size());
+
+  // --- Sub-range loads strictly fewer spectra ---
+  BrukerTimsFile::Config cfg_sub;
+  cfg_sub.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_sub.frame_id_min = 1;
+  cfg_sub.frame_id_max = 3;  // first three frames only
+  MSExperiment exp_sub;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_sub, cfg_sub);
+  TEST_EQUAL(exp_sub.size(), 3);
+  TEST_EQUAL(exp_sub.size() < exp_full.size(), true);
+
+  // --- Single frame range: exactly one spectrum ---
+  BrukerTimsFile::Config cfg_one;
+  cfg_one.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_one.frame_id_min = 1;
+  cfg_one.frame_id_max = 1;
+  MSExperiment exp_one;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_one, cfg_one);
+  TEST_EQUAL(exp_one.size(), 1);
+
+  // --- Range entirely above file max: zero spectra (warning emitted) ---
+  BrukerTimsFile::Config cfg_above;
+  cfg_above.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_above.frame_id_min = 999999999u;
+  cfg_above.frame_id_max = 999999999u;
+  MSExperiment exp_above;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_above, cfg_above);
+  TEST_EQUAL(exp_above.size(), 0);
+
+  // --- Inverted range (min > max): zero spectra (warning emitted) ---
+  BrukerTimsFile::Config cfg_inv;
+  cfg_inv.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_inv.frame_id_min = 10;
+  cfg_inv.frame_id_max = 5;
+  MSExperiment exp_inv;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_inv, cfg_inv);
+  TEST_EQUAL(exp_inv.size(), 0);
+
+  // --- DDA (SPECTRUM mode): range filters MS1 frames and precursor MS2 ---
+  BrukerTimsFile::Config cfg_dda;
+  MSExperiment exp_dda_full;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_dda_full, cfg_dda);
+
+  BrukerTimsFile::Config cfg_dda_sub = cfg_dda;
+  cfg_dda_sub.frame_id_min = 1;
+  cfg_dda_sub.frame_id_max = 5;
+  MSExperiment exp_dda_sub;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_dda_sub, cfg_dda_sub);
+  TEST_EQUAL(exp_dda_sub.size() < exp_dda_full.size(), true);
+
+#ifdef OPENTIMS_DIA_TEST_DATA
+  // --- DIA: range filters MS1 frames and per-WindowGroup MS2 frames ---
+  BrukerTimsFile::Config cfg_dia_full;
+  MSExperiment exp_dia_full;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_dia_full, cfg_dia_full);
+
+  BrukerTimsFile::Config cfg_dia_sub;
+  cfg_dia_sub.frame_id_min = 1;
+  cfg_dia_sub.frame_id_max = 10;
+  MSExperiment exp_dia_sub;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_dia_sub, cfg_dia_sub);
+  TEST_EQUAL(exp_dia_sub.size() < exp_dia_full.size(), true);
+
+  // --- readDIAMetadata also honors the range (counts must match what
+  //     loadDIAStreaming would actually emit; CachedSwathFileConsumer
+  //     uses these counts to size its buffers). ---
+  ExperimentalSettings settings_full;
+  auto meta_full = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings_full);
+
+  ExperimentalSettings settings_sub;
+  auto meta_sub = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings_sub, cfg_dia_sub);
+  TEST_EQUAL(meta_sub.nr_ms1_spectra <= meta_full.nr_ms1_spectra, true);
+  TEST_EQUAL(meta_sub.nr_ms2_spectra.size(), meta_full.nr_ms2_spectra.size());
+  // At least one window must have a smaller count after filtering
+  bool any_smaller = false;
+  for (Size i = 0; i < meta_sub.nr_ms2_spectra.size(); ++i)
+  {
+    if (meta_sub.nr_ms2_spectra[i] < meta_full.nr_ms2_spectra[i]) any_smaller = true;
+    TEST_EQUAL(meta_sub.nr_ms2_spectra[i] <= meta_full.nr_ms2_spectra[i], true);
+  }
+  TEST_EQUAL(any_smaller, true);
+#endif
+
+  STATUS("DDA full=" << exp_full.size() << " sub[1..3]=" << exp_sub.size()
+         << " single[1..1]=" << exp_one.size()
+         << " | DDA SPECTRUM full=" << exp_dda_full.size()
+         << " sub[1..5]=" << exp_dda_sub.size());
+}
+END_SECTION
+
+START_SECTION(Bruker rt_min_sec/rt_max_sec range filter test)
+{
+  BrukerTimsFile f;
+
+  // --- Baseline: full FRAME-mode load to discover the file's RT span. ---
+  BrukerTimsFile::Config cfg_full;
+  cfg_full.export_mode = BrukerTimsFile::Config::FRAME;
+  MSExperiment exp_full;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_full, cfg_full);
+  TEST_NOT_EQUAL(exp_full.size(), 0);
+  // Compute true RT bounds without assuming order
+  double rt_lo = exp_full[0].getRT();
+  double rt_hi = rt_lo;
+  for (const auto& s : exp_full)
+  {
+    double rt = s.getRT();
+    if (rt < rt_lo) rt_lo = rt;
+    if (rt > rt_hi) rt_hi = rt;
+  }
+  TEST_EQUAL(rt_lo <= rt_hi, true);
+
+  // --- Sub-range: take the first half of the RT span ---
+  const double rt_mid = rt_lo + 0.5 * (rt_hi - rt_lo);
+  BrukerTimsFile::Config cfg_rt_half;
+  cfg_rt_half.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_rt_half.rt_min_sec = rt_lo;
+  cfg_rt_half.rt_max_sec = rt_mid;
+  MSExperiment exp_rt_half;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_rt_half, cfg_rt_half);
+  TEST_NOT_EQUAL(exp_rt_half.size(), 0);
+  TEST_EQUAL(exp_rt_half.size() < exp_full.size(), true);
+  // All emitted spectra must have RT inside the requested window.
+  for (const auto& s : exp_rt_half)
+  {
+    TEST_EQUAL(s.getRT() >= rt_lo - 1e-6, true);
+    TEST_EQUAL(s.getRT() <= rt_mid + 1e-6, true);
+  }
+
+  // --- RT range that excludes all frames: empty experiment ---
+  BrukerTimsFile::Config cfg_rt_none;
+  cfg_rt_none.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_rt_none.rt_min_sec = rt_hi + 1e6;  // far past the last frame
+  cfg_rt_none.rt_max_sec = rt_hi + 2e6;
+  MSExperiment exp_rt_none;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_rt_none, cfg_rt_none);
+  TEST_EQUAL(exp_rt_none.size(), 0);
+
+  // --- Inverted RT range: empty (with warning) ---
+  BrukerTimsFile::Config cfg_rt_inv;
+  cfg_rt_inv.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_rt_inv.rt_min_sec = rt_hi;
+  cfg_rt_inv.rt_max_sec = rt_lo;
+  MSExperiment exp_rt_inv;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_rt_inv, cfg_rt_inv);
+  TEST_EQUAL(exp_rt_inv.size(), 0);
+
+  // --- Intersection of frame_id and rt ranges: the narrower wins ---
+  BrukerTimsFile::Config cfg_both;
+  cfg_both.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_both.frame_id_min = 1;
+  cfg_both.frame_id_max = 5;     // first 5 frames
+  cfg_both.rt_min_sec = rt_lo;
+  cfg_both.rt_max_sec = rt_hi;   // full RT (no extra constraint)
+  MSExperiment exp_both;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_both, cfg_both);
+  TEST_EQUAL(exp_both.size() <= 5, true);
+  TEST_NOT_EQUAL(exp_both.size(), 0);
+
+  STATUS("RT full=" << exp_full.size() << " (RT [" << rt_lo << ", " << rt_hi << "])"
+         << " half[" << rt_lo << ", " << rt_mid << "]=" << exp_rt_half.size()
+         << " intersection(frame[1..5] & rt_full)=" << exp_both.size());
+}
+END_SECTION
+
 START_SECTION(DDA round-trip test: load .d -> write mzML -> reload -> verify)
 {
   // Load from .d

@@ -700,6 +700,122 @@ namespace OpenMS
     spec.getFloatDataArrays().push_back(make(mz_upper, "m/z upper bound"));
   }
 
+  // Predicate for the Config::frame_id_min/frame_id_max filter. A default
+  // Config (0, UINT32_MAX) trivially matches every frame, so callers can
+  // gate every frame iteration on this without branching for the no-filter
+  // case.
+  static inline bool frameInRange(uint32_t fid, const BrukerTimsFile::Config& config)
+  {
+    return fid >= config.frame_id_min && fid <= config.frame_id_max;
+  }
+
+  // One-shot validation of the frame_id and RT ranges against the file's
+  // actual frame bounds + RT resolution. Called from each top-level public
+  // entry point. Returns an effective Config in which frame_id_min/max have
+  // been narrowed to the intersection of:
+  //   - the user-supplied frame_id range
+  //   - the frame_id range derived from the user-supplied RT range
+  //     (SELECT MIN/MAX Id FROM Frames WHERE Time IN [rt_min, rt_max])
+  // so downstream code only needs to honor frame_id_min/frame_id_max.
+  // Emits warnings for inverted or fully-out-of-bounds ranges.
+  static BrukerTimsFile::Config resolveEffectiveConfig(
+      SQLite::Database& db,
+      const BrukerTimsFile::Config& config,
+      uint32_t file_min, uint32_t file_max)
+  {
+    BrukerTimsFile::Config eff = config;
+
+    // --- 1) Validate frame_id range ---
+    const bool fid_set = (config.frame_id_min != 0) ||
+                         (config.frame_id_max != std::numeric_limits<uint32_t>::max());
+    if (fid_set)
+    {
+      if (config.frame_id_min > config.frame_id_max)
+      {
+        OPENMS_LOG_WARN << "Warning: BrukerTimsFile::Config::frame_id_min ("
+                        << config.frame_id_min << ") > frame_id_max ("
+                        << config.frame_id_max
+                        << "). No frames will be loaded." << std::endl;
+      }
+      else if (config.frame_id_max < file_min || config.frame_id_min > file_max)
+      {
+        OPENMS_LOG_WARN << "Warning: BrukerTimsFile::Config frame range ["
+                        << config.frame_id_min << ", " << config.frame_id_max
+                        << "] does not intersect file frame range ["
+                        << file_min << ", " << file_max
+                        << "]. No frames will be loaded." << std::endl;
+      }
+    }
+
+    // --- 2) Validate and resolve RT range ---
+    const bool rt_set = (config.rt_min_sec > 0.0) ||
+                        std::isfinite(config.rt_max_sec);
+    if (!rt_set) return eff;
+
+    if (config.rt_min_sec > config.rt_max_sec)
+    {
+      OPENMS_LOG_WARN << "Warning: BrukerTimsFile::Config::rt_min_sec ("
+                      << config.rt_min_sec << ") > rt_max_sec ("
+                      << config.rt_max_sec
+                      << "). No frames will be loaded." << std::endl;
+      // Force the effective frame_id range empty so downstream loops produce 0 spectra.
+      eff.frame_id_min = 1;
+      eff.frame_id_max = 0;
+      return eff;
+    }
+
+    try
+    {
+      // TIMS frame IDs are monotonic in acquisition time, so the matching
+      // (MIN Id, MAX Id) is a contiguous range. Use an inclusive
+      // Time filter; if the user's max is +inf, the comparison still works
+      // (SQLite stores doubles natively).
+      SQLite::Statement q(db,
+        "SELECT MIN(Id), MAX(Id) FROM Frames WHERE Time >= ? AND Time <= ?");
+      q.bind(1, config.rt_min_sec);
+      q.bind(2, std::isfinite(config.rt_max_sec)
+                  ? config.rt_max_sec
+                  : std::numeric_limits<double>::max());
+
+      if (q.executeStep() && !q.getColumn(0).isNull())
+      {
+        const uint32_t rt_fid_min = static_cast<uint32_t>(q.getColumn(0).getInt());
+        const uint32_t rt_fid_max = static_cast<uint32_t>(q.getColumn(1).getInt());
+        // Save pre-intersection values to detect disjoint ranges
+        const uint32_t pre_min = eff.frame_id_min;
+        const uint32_t pre_max = eff.frame_id_max;
+        eff.frame_id_min = std::max(eff.frame_id_min, rt_fid_min);
+        eff.frame_id_max = std::min(eff.frame_id_max, rt_fid_max);
+        // Check if the intersection resulted in an empty range
+        if (pre_min <= pre_max && eff.frame_id_min > eff.frame_id_max)
+        {
+          OPENMS_LOG_WARN << "Warning: BrukerTimsFile::Config frame_id range ["
+                          << pre_min << ", " << pre_max
+                          << "] and RT range [" << config.rt_min_sec << ", "
+                          << config.rt_max_sec << "] s do not intersect. "
+                          << "No frames will be loaded." << std::endl;
+        }
+      }
+      else
+      {
+        // No frame's Time falls in the user's RT range — produce empty output.
+        OPENMS_LOG_WARN << "Warning: BrukerTimsFile::Config RT range ["
+                        << config.rt_min_sec << ", " << config.rt_max_sec
+                        << "] s does not intersect any frame's acquisition "
+                        << "time. No frames will be loaded." << std::endl;
+        eff.frame_id_min = 1;
+        eff.frame_id_max = 0;
+      }
+    }
+    catch (const SQLite::Exception& ex)
+    {
+      OPENMS_LOG_WARN << "Warning: failed to resolve RT range via SQL: "
+                      << ex.what() << ". RT filter will be ignored." << std::endl;
+    }
+
+    return eff;
+  }
+
   // Emit one-shot partial-config warnings for the MS1 aggregation knobs.
   // Called once per top-level load path, after ms1_frame_ids is populated.
   static void warnPartialMS1AggregationConfig(const BrukerTimsFile::Config& config,
@@ -1250,32 +1366,47 @@ namespace OpenMS
       uint32_t ms2 = 0;
     };
 
-    FrameCounts readFrameCounts(SQLite::Database& db)
+    FrameCounts readFrameCounts(SQLite::Database& db,
+                                const BrukerTimsFile::Config& config)
     {
       FrameCounts counts;
 
-      SQLite::Statement q_total(db, "SELECT COUNT(*) FROM Frames");
+      const std::string range_clause =
+        " WHERE Id >= " + std::to_string(config.frame_id_min) +
+        " AND Id <= " + std::to_string(config.frame_id_max);
+
+      SQLite::Statement q_total(db, "SELECT COUNT(*) FROM Frames" + range_clause);
       if (q_total.executeStep())
         counts.total = static_cast<uint32_t>(q_total.getColumn(0).getInt());
 
-      SQLite::Statement q_ms1(db, "SELECT COUNT(*) FROM Frames WHERE MsMsType = 0");
+      SQLite::Statement q_ms1(db,
+        "SELECT COUNT(*) FROM Frames" + range_clause + " AND MsMsType = 0");
       if (q_ms1.executeStep())
         counts.ms1 = static_cast<uint32_t>(q_ms1.getColumn(0).getInt());
 
       // MS2 = everything that is not MS1 (MsMsType != 0)
-      SQLite::Statement q_ms2(db, "SELECT COUNT(*) FROM Frames WHERE MsMsType != 0");
+      SQLite::Statement q_ms2(db,
+        "SELECT COUNT(*) FROM Frames" + range_clause + " AND MsMsType != 0");
       if (q_ms2.executeStep())
         counts.ms2 = static_cast<uint32_t>(q_ms2.getColumn(0).getInt());
 
       return counts;
     }
 
-    // Count distinct precursors (for DDA MS2 spectrum count)
-    uint32_t countDDAPrecursors(SQLite::Database& db)
+    // Count MS2 spectra that loadDDA_ will emit under the active frame range:
+    // one spectrum per distinct precursor that still has at least one
+    // PasefFrameMsMsInfo row pointing at an in-range MS2 frame. With the
+    // default range [0, UINT32_MAX] this reduces to "every distinct
+    // precursor", matching the legacy behavior.
+    uint32_t countDDAPrecursors(SQLite::Database& db,
+                                const BrukerTimsFile::Config& config)
     {
       try
       {
-        SQLite::Statement q(db, "SELECT COUNT(*) FROM Precursors");
+        SQLite::Statement q(db,
+          "SELECT COUNT(DISTINCT Precursor) FROM PasefFrameMsMsInfo"
+          " WHERE Frame >= " + std::to_string(config.frame_id_min) +
+          " AND Frame <= " + std::to_string(config.frame_id_max));
         if (q.executeStep())
           return static_cast<uint32_t>(q.getColumn(0).getInt());
       }
@@ -1781,15 +1912,29 @@ namespace OpenMS
         false);                            // ms1 = false
     }
 
+    const auto eff = resolveEffectiveConfig(db, config,
+                                             handle->min_frame_id(),
+                                             handle->max_frame_id());
+
     // Count MS1 frames
     for (uint32_t fid = handle->min_frame_id(); fid <= handle->max_frame_id(); ++fid)
     {
-      if (handle->has_frame(fid) && handle->get_frame(fid).msms_type == 0)
+      if (!frameInRange(fid, eff)) continue;
+      if (eff.load_ms1 && handle->has_frame(fid) && handle->get_frame(fid).msms_type == 0)
         ++meta.nr_ms1_spectra;
     }
 
-    // Count MS2 spectra per window (= frames per WindowGroup)
+    // Count MS2 spectra per window (= frames per WindowGroup).
+    // Apply the frame range filter so counts match what loadDIAStreaming
+    // will actually emit (CachedSwathFileConsumer sizing depends on it).
     auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+    for (auto& [group, frame_ids] : group_to_frames)
+    {
+      frame_ids.erase(
+        std::remove_if(frame_ids.begin(), frame_ids.end(),
+                       [&eff](uint32_t fid) { return !frameInRange(fid, eff); }),
+        frame_ids.end());
+    }
     meta.nr_ms2_spectra.reserve(windows.size());
     for (const auto& w : windows)
     {
@@ -1816,6 +1961,10 @@ namespace OpenMS
     String tdf_path = handle->get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
+    const auto eff = resolveEffectiveConfig(db, config,
+                                             handle->min_frame_id(),
+                                             handle->max_frame_id());
+
     // --- MS1 frames ---
     FrameCentroider centroider;
     FrameAggregator ms1_aggregator(0.01);
@@ -1823,26 +1972,27 @@ namespace OpenMS
     std::vector<uint32_t> ms1_frame_ids;
     for (uint32_t fid = handle->min_frame_id(); fid <= handle->max_frame_id(); ++fid)
     {
+      if (!frameInRange(fid, eff)) continue;
       if (handle->has_frame(fid) && handle->get_frame(fid).msms_type == 0)
         ms1_frame_ids.push_back(fid);
     }
-    warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
-    if (config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
+    warnPartialMS1AggregationConfig(eff, ms1_frame_ids.size());
+    if (eff.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
 
-    const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
+    const size_t ms1_to_emit = eff.load_ms1 ? ms1_frame_ids.size() : 0;
     startProgress(0, ms1_to_emit, "Streaming DIA-PASEF MS1 frames");
     for (size_t i = 0; i < ms1_to_emit; ++i)
     {
       MSSpectrum spec;
-      if (config.ms1_n_neighbors > 0)
+      if (eff.ms1_n_neighbors > 0)
       {
-        loadAggregatedMS1Spectrum(*handle, ms1_frame_ids, i, config,
+        loadAggregatedMS1Spectrum(*handle, ms1_frame_ids, i, eff,
                                   ms1_aggregator, centroider, spec);
       }
       else
       {
         TimsFrame& frame = handle->get_frame(ms1_frame_ids[i]);
-        loadMS1Spectrum(frame, spec, config, centroider);
+        loadMS1Spectrum(frame, spec, eff, centroider);
       }
       // Sort peaks by m/z (and the associated IM float data array alongside).
       // TIMS save_to_buffs returns peaks in (scan_id, m/z-within-scan) order,
@@ -1856,7 +2006,7 @@ namespace OpenMS
       setProgress(i);
     }
     endProgress();
-    centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
+    centroider.reportCapSummary(static_cast<size_t>(eff.ms1_centroid_max_peaks));
 
     // --- MS2 frames: raw per-WindowGroup iteration (no aggregation) ---
     auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
@@ -1867,6 +2017,13 @@ namespace OpenMS
     }
 
     auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+    for (auto& [group, frame_ids] : group_to_frames)
+    {
+      frame_ids.erase(
+        std::remove_if(frame_ids.begin(), frame_ids.end(),
+                       [&eff](uint32_t fid) { return !frameInRange(fid, eff); }),
+        frame_ids.end());
+    }
 
     std::map<int, std::vector<const DIAWindow*>> group_to_windows;
     for (const auto& w : windows)
@@ -1967,20 +2124,31 @@ namespace OpenMS
     auto handle = openTimsDataHandle(path, config);
 
     String tdf_path = path + "/analysis.tdf";
+
+    // Resolve RT range (if any) to an effective frame_id range; also
+    // validates the user-supplied frame_id/rt ranges and emits warnings.
+    Config eff;
+    {
+      SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
+      eff = resolveEffectiveConfig(db, config,
+                                    handle->min_frame_id(),
+                                    handle->max_frame_id());
+    }
+
     bool is_dia = isDIA_(tdf_path);
-    Config::ExportMode mode = config.export_mode;
+    Config::ExportMode mode = eff.export_mode;
 
     if (mode == Config::FRAME)
     {
-      loadFrames_(*handle, exp, config);
+      loadFrames_(*handle, exp, eff);
     }
     else if (mode == Config::SPECTRUM || (mode == Config::AUTO && !is_dia))
     {
-      loadDDA_(*handle, exp, config);
+      loadDDA_(*handle, exp, eff);
     }
     else // AUTO + DIA
     {
-      loadDIA_(*handle, exp, config);
+      loadDIA_(*handle, exp, eff);
     }
 
     loadExperimentalSettings_(path, exp);
@@ -2005,13 +2173,17 @@ namespace OpenMS
     String tdf_path = path + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
+    const auto eff = resolveEffectiveConfig(db, config,
+                                             handle->min_frame_id(),
+                                             handle->max_frame_id());
+
     bool is_dia = isDIA(db);
-    Config::ExportMode mode = config.export_mode;
+    Config::ExportMode mode = eff.export_mode;
 
     // Compute expected size for consumer. Must mirror what loadFrames_/loadDIA_/
-    // loadDDA_ actually emit, which skip MS1 entirely when load_ms1=false.
-    FrameCounts counts = readFrameCounts(db);
-    const size_t ms1_emitted = config.load_ms1 ? counts.ms1 : 0;
+    // loadDDA_ actually emit under the active frame_id range and load_ms1 knob.
+    FrameCounts counts = readFrameCounts(db, eff);
+    const size_t ms1_emitted = eff.load_ms1 ? counts.ms1 : 0;
     size_t expected = 0;
     if (mode == Config::FRAME)
     {
@@ -2026,6 +2198,13 @@ namespace OpenMS
       // loadDIA_.
       auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
       auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+      for (auto& [group, frame_ids] : group_to_frames)
+      {
+        frame_ids.erase(
+          std::remove_if(frame_ids.begin(), frame_ids.end(),
+                         [&eff](uint32_t fid) { return !frameInRange(fid, eff); }),
+          frame_ids.end());
+      }
       std::map<int, size_t> group_window_count;
       for (const auto& w : windows) ++group_window_count[w.window_group];
       size_t dia_ms2_spectra = 0;
@@ -2040,7 +2219,7 @@ namespace OpenMS
     else
     {
       // DDA: MS1 frames + per-precursor MS2 spectra
-      uint32_t num_precursors = countDDAPrecursors(db);
+      uint32_t num_precursors = countDDAPrecursors(db, eff);
       expected = ms1_emitted + num_precursors;
     }
 
@@ -2057,11 +2236,11 @@ namespace OpenMS
     OPENMS_LOG_INFO << "BrukerTimsFile::transform(): loading full dataset (streaming optimization pending)" << std::endl;
     MSExperiment exp;
     if (mode == Config::FRAME)
-      loadFrames_(*handle, exp, config);
+      loadFrames_(*handle, exp, eff);
     else if (is_dia && mode != Config::SPECTRUM)
-      loadDIA_(*handle, exp, config);
+      loadDIA_(*handle, exp, eff);
     else
-      loadDDA_(*handle, exp, config);
+      loadDDA_(*handle, exp, eff);
 
     exp.sortSpectra(true);
     for (auto& spec : exp)
@@ -2084,6 +2263,7 @@ namespace OpenMS
 
     for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
     {
+      if (!frameInRange(fid, config)) continue;
       if (!handle.has_frame(fid)) continue;
       TimsFrame& frame = handle.get_frame(fid);
       if (frame.msms_type == 0)
@@ -2093,8 +2273,57 @@ namespace OpenMS
     }
     warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
 
-    // Read DDA precursors from SQL
+    // Read DDA precursors from SQL. Drop entries whose MS2 frame is outside
+    // the active range so the per-precursor MS2 spectra match what the
+    // ms2_frame_ids filter selected above; the existing has_frame() safety
+    // checks in the loops downstream silently skip any orphans, but stripping
+    // them here keeps progress counts and the precursor_groups loop honest.
     std::vector<DDAPrecursorInfo> precursor_entries = readDDAPrecursors(db);
+    const bool range_active =
+      (config.frame_id_min != 0) ||
+      (config.frame_id_max != std::numeric_limits<uint32_t>::max());
+    if (range_active)
+    {
+      // Tally how many distinct precursors had at least one source MS2 frame
+      // dropped by the range filter (= partial reconstruction). One-shot
+      // warning at the end so the user knows the reconstruction is partial
+      // at the range boundaries.
+      std::map<int, std::pair<size_t, size_t>> per_pid_kept_dropped;  // pid -> (kept, dropped)
+      for (const auto& e : precursor_entries)
+      {
+        auto& kd = per_pid_kept_dropped[e.precursor_id];
+        if (frameInRange(e.frame_id, config)) ++kd.first;
+        else                                   ++kd.second;
+      }
+      size_t partial = 0;
+      size_t fully_dropped = 0;
+      for (const auto& [pid, kd] : per_pid_kept_dropped)
+      {
+        if (kd.first == 0)                      ++fully_dropped;
+        else if (kd.second > 0)                 ++partial;
+      }
+      if (partial > 0)
+      {
+        OPENMS_LOG_WARN << "Warning: " << partial
+                        << " DDA precursor(s) had source MS2 frames outside the active "
+                        << "frame range [" << config.frame_id_min << ", "
+                        << config.frame_id_max << "]; their MS2 spectra will be "
+                        << "reconstructed from the in-range subset only (partial "
+                        << "spectra). Widen the range to avoid this." << std::endl;
+      }
+      if (fully_dropped > 0)
+      {
+        OPENMS_LOG_INFO << fully_dropped
+                        << " DDA precursor(s) fully outside the active frame range "
+                        << "were skipped." << std::endl;
+      }
+    }
+    precursor_entries.erase(
+      std::remove_if(precursor_entries.begin(), precursor_entries.end(),
+                     [&config](const DDAPrecursorInfo& e) {
+                       return !frameInRange(e.frame_id, config);
+                     }),
+      precursor_entries.end());
 
     // Group by precursor ID
     std::map<int, std::vector<const DDAPrecursorInfo*>> precursor_groups;
@@ -2630,6 +2859,7 @@ namespace OpenMS
 
     for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
     {
+      if (!frameInRange(fid, config)) continue;
       if (!handle.has_frame(fid)) continue;
       TimsFrame& frame = handle.get_frame(fid);
       if (frame.msms_type == 0)
@@ -2677,6 +2907,13 @@ namespace OpenMS
     // to exactly one WindowGroup, so we only produce spectra for valid
     // frame/window combinations (not the brute-force frames × all_windows).
     auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+    for (auto& [group, frame_ids] : group_to_frames)
+    {
+      frame_ids.erase(
+        std::remove_if(frame_ids.begin(), frame_ids.end(),
+                       [&config](uint32_t fid) { return !frameInRange(fid, config); }),
+        frame_ids.end());
+    }
 
     // Group DIAWindows by window_group
     std::map<int, std::vector<const DIAWindow*>> group_to_windows;
@@ -3010,6 +3247,7 @@ namespace OpenMS
       std::vector<uint32_t> frame_ids;
       for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
       {
+        if (!frameInRange(fid, config)) continue;
         if (!handle.has_frame(fid)) continue;
         TimsFrame& frame = handle.get_frame(fid);
         if ((level == 1 && frame.msms_type == 0) ||
