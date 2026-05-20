@@ -498,18 +498,17 @@ START_SECTION(Bruker frame_id range filter test)
   cfg_sub.frame_id_max = 3;  // first three frames only
   MSExperiment exp_sub;
   f.load(OPENTIMS_DDA_TEST_DATA, exp_sub, cfg_sub);
-  TEST_NOT_EQUAL(exp_sub.size(), 0);
-  TEST_EQUAL(exp_sub.size() <= 3, true);
+  TEST_EQUAL(exp_sub.size(), 3);
   TEST_EQUAL(exp_sub.size() < exp_full.size(), true);
 
-  // --- Single frame range: at most one spectrum ---
+  // --- Single frame range: exactly one spectrum ---
   BrukerTimsFile::Config cfg_one;
   cfg_one.export_mode = BrukerTimsFile::Config::FRAME;
   cfg_one.frame_id_min = 1;
   cfg_one.frame_id_max = 1;
   MSExperiment exp_one;
   f.load(OPENTIMS_DDA_TEST_DATA, exp_one, cfg_one);
-  TEST_EQUAL(exp_one.size() <= 1, true);
+  TEST_EQUAL(exp_one.size(), 1);
 
   // --- Range entirely above file max: zero spectra (warning emitted) ---
   BrukerTimsFile::Config cfg_above;
