@@ -56,6 +56,7 @@ brew update
 brew install \
   autoconf \
   automake \
+  icu4c \
   libtool \
   ninja \
   libomp \

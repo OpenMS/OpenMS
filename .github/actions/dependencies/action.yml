@@ -1,15 +1,8 @@
 name: "Install OpenMS Dependencies"
 description: "Central action for all dependency management"
 inputs:
-  os:
-    description: "The operating system to install dependencies for"
-    required: true
-    default: "Linux"
   compiler:
     description: "The name of the compiler to use"
-    required: true
-  compiler_ver:
-    description: "The version number for the compiler"
     required: true
 outputs:
   cmake_prefix:
@@ -20,7 +13,7 @@ runs:
   steps:
     - name: Identify contrib submodule revision for cache key
       id: contrib-rev
-      if: inputs.os == 'Windows'
+      if: runner.os == 'Windows'
       shell: bash
       run: |
         rev=$(git submodule status --cached -- contrib | sed -E 's/^-?//' | cut -d' ' -f1)
@@ -28,21 +21,21 @@ runs:
 
     - name: Cache contrib
       id: cache-contrib
-      if: inputs.os == 'Windows'
+      if: runner.os == 'Windows'
       uses: actions/cache@v5
       with:
         path: contrib/build
-        key: ${{ inputs.os }}-${{ steps.contrib-rev.outputs.rev }}
+        key: ${{ runner.os }}-${{ steps.contrib-rev.outputs.rev }}
 
     - name: Fetch contrib if not in cache
-      if: inputs.os == 'Windows' && steps.cache-contrib.outputs.cache-hit != 'true'
+      if: runner.os == 'Windows' && steps.cache-contrib.outputs.cache-hit != 'true'
       shell: bash
       run: |
         git submodule update --init -- contrib
         mkdir -p contrib/build
 
     - name: Build contrib if not in cache
-      if: inputs.os == 'Windows' && steps.cache-contrib.outputs.cache-hit != 'true'
+      if: runner.os == 'Windows' && steps.cache-contrib.outputs.cache-hit != 'true'
       shell: pwsh
       run: |
         $NPROC = $env:NUMBER_OF_PROCESSORS
@@ -85,7 +78,7 @@ runs:
           done
 
     - name: Install Conda
-      if: inputs.os == 'Windows'
+      if: runner.os == 'Windows'
       uses: conda-incubator/setup-miniconda@v3
       with:
         auto-update-conda: true
@@ -95,7 +88,7 @@ runs:
 
     - name: Install Dependencies via Conda
       id: conda-setup
-      if: inputs.os == 'Windows'
+      if: runner.os == 'Windows'
       # NOTE: This weird shell line is needed in order to activate
       # conda (and put it in this shell's PATH) since the way it's
       # installed requires a login shell :(
@@ -136,7 +129,7 @@ runs:
         conda init --reverse bash
 
     - name: Install Qt (Windows)
-      if: inputs.os == 'Windows'
+      if: runner.os == 'Windows'
       uses: jurplel/install-qt-action@v4
       with:
         version: '6.8.3'    ## Qt 6.8.3 ships no msvc2026 build; the win64_msvc2022_64 binaries are
@@ -147,7 +140,7 @@ runs:
 
     - name: "Dependencies: Windows"
       id: deps-windows
-      if: inputs.os == 'Windows'
+      if: runner.os == 'Windows'
       shell: bash
       run: |
         # NOTE: doxygen is installed via conda-forge in the Conda step above, not here:
@@ -167,20 +160,21 @@ runs:
 
     - name: "Dependencies: Linux"
       id: deps-linux
-      if: inputs.os == 'Linux'
+      if: runner.os == 'Linux'
       shell: bash
       run: |
         bash tools/ci/deps-ubuntu.sh
 
         if [[ "${{ inputs.compiler }}" == clang* ]]; then
-          sudo apt-get -qq install -y libomp-${{ inputs.compiler_ver }}-dev
+          major_ver=$(clang -dumpversion | cut -d. -f1)
+          sudo apt-get -qq install -y "libomp-${major_ver}-dev"
         fi
 
         echo "cmake_prefix=" >>$GITHUB_OUTPUT
 
     - name: "Dependencies: macOS"
       id: deps-macos
-      if: inputs.os == 'macOS'
+      if: runner.os == 'macOS'
       env:
         # We need to add this, otherwise brew "helpfully" updates all
         # of the GitHub preinstalled packages, which can cause issues:
@@ -190,8 +184,9 @@ runs:
         bash tools/ci/deps-macos.sh
         brew install ccache
 
-        echo "$(brew --prefix)/bin" >>"$GITHUB_PATH"
-        echo "cmake_prefix=$(brew --prefix);$(brew --prefix libomp)" >>"$GITHUB_OUTPUT"
+        brew_path=$(brew --prefix)
+        echo "$brew_path/bin" >>"$GITHUB_PATH"
+        echo "cmake_prefix=$brew_path" >>"$GITHUB_OUTPUT"
 
     # macOS runners do not ship a .NET SDK. OpenMSThermoBridge targets net8.0
     # and FindDotNetHost.cmake needs the nethost SDK pack for osx-arm64; the
