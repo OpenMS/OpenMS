@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
+#include <OpenMS/CHEMISTRY/AdductInfo.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -69,7 +70,8 @@ public:
         const std::vector<double>& _rts,
         const std::vector<double>& _rt_ranges,
         const std::vector<double>& _iso_distrib,
-        const std::vector<double>& _ion_mobilities = {}):
+        const std::vector<double>& _ion_mobilities = {},
+        const String& _adduct = ""):
       name_(_name),
       formula_(_formula),
       mass_(_mass),
@@ -77,7 +79,8 @@ public:
       rts_(_rts),
       rt_ranges_(_rt_ranges),
       iso_distrib_(_iso_distrib),
-      ion_mobilities_(_ion_mobilities)
+      ion_mobilities_(_ion_mobilities),
+      adduct_(_adduct)
       {
       }
 
@@ -90,6 +93,7 @@ public:
       std::vector<double> rt_ranges_;        ///< RT tolerance per @c rts_ entry; one-element broadcasts, empty falls back to the algorithm default.
       std::vector<double> iso_distrib_;      ///< Optional pre-computed isotope-intensity distribution; empty (or @c [0]) triggers computation from @c formula_.
       std::vector<double> ion_mobilities_;   ///< Optional ion-mobility values per @c rts_ entry; one-element broadcasts, empty disables IM filtering.
+      String adduct_;                        ///< Adduct string (e.g. @c "M+H;1+", @c "M+Na;1+", @c "M-H;1-"). Empty lets downstream logic infer defaults from charge polarity.
 
     public:
       /// Return the target name.
@@ -130,6 +134,10 @@ public:
       /// Return the optional ion-mobility values per @c rts_ entry (or a single broadcast value, or empty to disable IM filtering).
       const std::vector<double>& getIonMobilities() const {
         return ion_mobilities_;
+      }
+
+      const String& getAdduct() const {
+        return adduct_;
       }
   };
 
@@ -220,7 +228,8 @@ protected:
                            const std::vector<double>& rts,
                            std::vector<double> rt_ranges,
                            const std::vector<double>& iso_distrib,
-                           const std::vector<double>& ion_mobilities = {});
+                           const std::vector<double>& ion_mobilities = {},
+                           const String& adduct = "");
 
   /// Add "peptide" identifications with information about targets to features
   Size addTargetAnnotations_(FeatureMap& features);
