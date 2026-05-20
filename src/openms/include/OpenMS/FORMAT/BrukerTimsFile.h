@@ -65,6 +65,11 @@ namespace OpenMS
       /// (0, UINT32_MAX) load the full file. Honored by load(), transform(),
       /// loadDIAStreaming(), and readDIAMetadata() in all export modes.
       ///
+      /// Combine with rt_min_sec/rt_max_sec to constrain by retention time
+      /// instead of (or in addition to) raw frame index — the RT range is
+      /// resolved to a frame_id range via SQL at load time and intersected
+      /// with frame_id_min/frame_id_max.
+      ///
       /// Interplay with other knobs (all unchanged at default range):
       /// - Frame aggregation (ms1_n_neighbors, dia_ms2_n_neighbors) sees only
       ///   in-range frames, so the neighbor window clamps at the range
@@ -84,6 +89,16 @@ namespace OpenMS
       ///   and the default calibration is used.
       uint32_t frame_id_min = 0;
       uint32_t frame_id_max = std::numeric_limits<uint32_t>::max();
+
+      /// Retention time range filter (inclusive, in seconds). Resolved to a
+      /// frame_id range at load time via SQL (frames whose Frames.Time falls
+      /// within [rt_min_sec, rt_max_sec]) and intersected with
+      /// frame_id_min/frame_id_max. TIMS frame IDs are monotonic in
+      /// acquisition time, so an RT range maps to a contiguous frame_id
+      /// sub-range. Defaults (0.0, +inf) impose no RT filter. All other
+      /// interplay caveats listed on frame_id_min apply identically.
+      double rt_min_sec = 0.0;
+      double rt_max_sec = std::numeric_limits<double>::infinity();
 
       /// Centroiding algorithms for IM-PASEF frames.
       ///   - Off:       no IM-axis centroiding (raw detector peaks pass through).

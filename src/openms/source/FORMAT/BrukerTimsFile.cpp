@@ -709,30 +709,99 @@ namespace OpenMS
     return fid >= config.frame_id_min && fid <= config.frame_id_max;
   }
 
-  // One-shot validation of the frame_id range against the file's actual frame
-  // bounds. Called from each top-level public entry point.
-  static void warnInvalidFrameRange(const BrukerTimsFile::Config& config,
-                                    uint32_t file_min, uint32_t file_max)
+  // One-shot validation of the frame_id and RT ranges against the file's
+  // actual frame bounds + RT resolution. Called from each top-level public
+  // entry point. Returns an effective Config in which frame_id_min/max have
+  // been narrowed to the intersection of:
+  //   - the user-supplied frame_id range
+  //   - the frame_id range derived from the user-supplied RT range
+  //     (SELECT MIN/MAX Id FROM Frames WHERE Time IN [rt_min, rt_max])
+  // so downstream code only needs to honor frame_id_min/frame_id_max.
+  // Emits warnings for inverted or fully-out-of-bounds ranges.
+  static BrukerTimsFile::Config resolveEffectiveConfig(
+      SQLite::Database& db,
+      const BrukerTimsFile::Config& config,
+      uint32_t file_min, uint32_t file_max)
   {
-    const bool range_set = (config.frame_id_min != 0) ||
-                           (config.frame_id_max != std::numeric_limits<uint32_t>::max());
-    if (!range_set) return;
+    BrukerTimsFile::Config eff = config;
 
-    if (config.frame_id_min > config.frame_id_max)
+    // --- 1) Validate frame_id range ---
+    const bool fid_set = (config.frame_id_min != 0) ||
+                         (config.frame_id_max != std::numeric_limits<uint32_t>::max());
+    if (fid_set)
     {
-      OPENMS_LOG_WARN << "Warning: BrukerTimsFile::Config::frame_id_min ("
-                      << config.frame_id_min << ") > frame_id_max ("
-                      << config.frame_id_max
+      if (config.frame_id_min > config.frame_id_max)
+      {
+        OPENMS_LOG_WARN << "Warning: BrukerTimsFile::Config::frame_id_min ("
+                        << config.frame_id_min << ") > frame_id_max ("
+                        << config.frame_id_max
+                        << "). No frames will be loaded." << std::endl;
+      }
+      else if (config.frame_id_max < file_min || config.frame_id_min > file_max)
+      {
+        OPENMS_LOG_WARN << "Warning: BrukerTimsFile::Config frame range ["
+                        << config.frame_id_min << ", " << config.frame_id_max
+                        << "] does not intersect file frame range ["
+                        << file_min << ", " << file_max
+                        << "]. No frames will be loaded." << std::endl;
+      }
+    }
+
+    // --- 2) Validate and resolve RT range ---
+    const bool rt_set = (config.rt_min_sec > 0.0) ||
+                        std::isfinite(config.rt_max_sec);
+    if (!rt_set) return eff;
+
+    if (config.rt_min_sec > config.rt_max_sec)
+    {
+      OPENMS_LOG_WARN << "Warning: BrukerTimsFile::Config::rt_min_sec ("
+                      << config.rt_min_sec << ") > rt_max_sec ("
+                      << config.rt_max_sec
                       << "). No frames will be loaded." << std::endl;
+      // Force the effective frame_id range empty so downstream loops produce 0 spectra.
+      eff.frame_id_min = 1;
+      eff.frame_id_max = 0;
+      return eff;
     }
-    else if (config.frame_id_max < file_min || config.frame_id_min > file_max)
+
+    try
     {
-      OPENMS_LOG_WARN << "Warning: BrukerTimsFile::Config frame range ["
-                      << config.frame_id_min << ", " << config.frame_id_max
-                      << "] does not intersect file frame range ["
-                      << file_min << ", " << file_max
-                      << "]. No frames will be loaded." << std::endl;
+      // TIMS frame IDs are monotonic in acquisition time, so the matching
+      // (MIN Id, MAX Id) is a contiguous range. Use an inclusive
+      // Time filter; if the user's max is +inf, the comparison still works
+      // (SQLite stores doubles natively).
+      SQLite::Statement q(db,
+        "SELECT MIN(Id), MAX(Id) FROM Frames WHERE Time >= ? AND Time <= ?");
+      q.bind(1, config.rt_min_sec);
+      q.bind(2, std::isfinite(config.rt_max_sec)
+                  ? config.rt_max_sec
+                  : std::numeric_limits<double>::max());
+
+      if (q.executeStep() && !q.getColumn(0).isNull())
+      {
+        const uint32_t rt_fid_min = static_cast<uint32_t>(q.getColumn(0).getInt());
+        const uint32_t rt_fid_max = static_cast<uint32_t>(q.getColumn(1).getInt());
+        eff.frame_id_min = std::max(eff.frame_id_min, rt_fid_min);
+        eff.frame_id_max = std::min(eff.frame_id_max, rt_fid_max);
+      }
+      else
+      {
+        // No frame's Time falls in the user's RT range — produce empty output.
+        OPENMS_LOG_WARN << "Warning: BrukerTimsFile::Config RT range ["
+                        << config.rt_min_sec << ", " << config.rt_max_sec
+                        << "] s does not intersect any frame's acquisition "
+                        << "time. No frames will be loaded." << std::endl;
+        eff.frame_id_min = 1;
+        eff.frame_id_max = 0;
+      }
     }
+    catch (const SQLite::Exception& ex)
+    {
+      OPENMS_LOG_WARN << "Warning: failed to resolve RT range via SQL: "
+                      << ex.what() << ". RT filter will be ignored." << std::endl;
+    }
+
+    return eff;
   }
 
   // Emit one-shot partial-config warnings for the MS1 aggregation knobs.
@@ -1831,12 +1900,14 @@ namespace OpenMS
         false);                            // ms1 = false
     }
 
-    warnInvalidFrameRange(config, handle->min_frame_id(), handle->max_frame_id());
+    const auto eff = resolveEffectiveConfig(db, config,
+                                             handle->min_frame_id(),
+                                             handle->max_frame_id());
 
     // Count MS1 frames
     for (uint32_t fid = handle->min_frame_id(); fid <= handle->max_frame_id(); ++fid)
     {
-      if (!frameInRange(fid, config)) continue;
+      if (!frameInRange(fid, eff)) continue;
       if (handle->has_frame(fid) && handle->get_frame(fid).msms_type == 0)
         ++meta.nr_ms1_spectra;
     }
@@ -1849,7 +1920,7 @@ namespace OpenMS
     {
       frame_ids.erase(
         std::remove_if(frame_ids.begin(), frame_ids.end(),
-                       [&config](uint32_t fid) { return !frameInRange(fid, config); }),
+                       [&eff](uint32_t fid) { return !frameInRange(fid, eff); }),
         frame_ids.end());
     }
     meta.nr_ms2_spectra.reserve(windows.size());
@@ -1878,7 +1949,9 @@ namespace OpenMS
     String tdf_path = handle->get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
-    warnInvalidFrameRange(config, handle->min_frame_id(), handle->max_frame_id());
+    const auto eff = resolveEffectiveConfig(db, config,
+                                             handle->min_frame_id(),
+                                             handle->max_frame_id());
 
     // --- MS1 frames ---
     FrameCentroider centroider;
@@ -1887,27 +1960,27 @@ namespace OpenMS
     std::vector<uint32_t> ms1_frame_ids;
     for (uint32_t fid = handle->min_frame_id(); fid <= handle->max_frame_id(); ++fid)
     {
-      if (!frameInRange(fid, config)) continue;
+      if (!frameInRange(fid, eff)) continue;
       if (handle->has_frame(fid) && handle->get_frame(fid).msms_type == 0)
         ms1_frame_ids.push_back(fid);
     }
-    warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
-    if (config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
+    warnPartialMS1AggregationConfig(eff, ms1_frame_ids.size());
+    if (eff.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
 
-    const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
+    const size_t ms1_to_emit = eff.load_ms1 ? ms1_frame_ids.size() : 0;
     startProgress(0, ms1_to_emit, "Streaming DIA-PASEF MS1 frames");
     for (size_t i = 0; i < ms1_to_emit; ++i)
     {
       MSSpectrum spec;
-      if (config.ms1_n_neighbors > 0)
+      if (eff.ms1_n_neighbors > 0)
       {
-        loadAggregatedMS1Spectrum(*handle, ms1_frame_ids, i, config,
+        loadAggregatedMS1Spectrum(*handle, ms1_frame_ids, i, eff,
                                   ms1_aggregator, centroider, spec);
       }
       else
       {
         TimsFrame& frame = handle->get_frame(ms1_frame_ids[i]);
-        loadMS1Spectrum(frame, spec, config, centroider);
+        loadMS1Spectrum(frame, spec, eff, centroider);
       }
       // Sort peaks by m/z (and the associated IM float data array alongside).
       // TIMS save_to_buffs returns peaks in (scan_id, m/z-within-scan) order,
@@ -1921,7 +1994,7 @@ namespace OpenMS
       setProgress(i);
     }
     endProgress();
-    centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
+    centroider.reportCapSummary(static_cast<size_t>(eff.ms1_centroid_max_peaks));
 
     // --- MS2 frames: raw per-WindowGroup iteration (no aggregation) ---
     auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
@@ -1936,7 +2009,7 @@ namespace OpenMS
     {
       frame_ids.erase(
         std::remove_if(frame_ids.begin(), frame_ids.end(),
-                       [&config](uint32_t fid) { return !frameInRange(fid, config); }),
+                       [&eff](uint32_t fid) { return !frameInRange(fid, eff); }),
         frame_ids.end());
     }
 
@@ -2038,23 +2111,32 @@ namespace OpenMS
     exp.clear(true);
     auto handle = openTimsDataHandle(path, config);
 
-    warnInvalidFrameRange(config, handle->min_frame_id(), handle->max_frame_id());
-
     String tdf_path = path + "/analysis.tdf";
+
+    // Resolve RT range (if any) to an effective frame_id range; also
+    // validates the user-supplied frame_id/rt ranges and emits warnings.
+    Config eff;
+    {
+      SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
+      eff = resolveEffectiveConfig(db, config,
+                                    handle->min_frame_id(),
+                                    handle->max_frame_id());
+    }
+
     bool is_dia = isDIA_(tdf_path);
-    Config::ExportMode mode = config.export_mode;
+    Config::ExportMode mode = eff.export_mode;
 
     if (mode == Config::FRAME)
     {
-      loadFrames_(*handle, exp, config);
+      loadFrames_(*handle, exp, eff);
     }
     else if (mode == Config::SPECTRUM || (mode == Config::AUTO && !is_dia))
     {
-      loadDDA_(*handle, exp, config);
+      loadDDA_(*handle, exp, eff);
     }
     else // AUTO + DIA
     {
-      loadDIA_(*handle, exp, config);
+      loadDIA_(*handle, exp, eff);
     }
 
     loadExperimentalSettings_(path, exp);
@@ -2076,18 +2158,20 @@ namespace OpenMS
   {
     auto handle = openTimsDataHandle(path, config);
 
-    warnInvalidFrameRange(config, handle->min_frame_id(), handle->max_frame_id());
-
     String tdf_path = path + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
+    const auto eff = resolveEffectiveConfig(db, config,
+                                             handle->min_frame_id(),
+                                             handle->max_frame_id());
+
     bool is_dia = isDIA(db);
-    Config::ExportMode mode = config.export_mode;
+    Config::ExportMode mode = eff.export_mode;
 
     // Compute expected size for consumer. Must mirror what loadFrames_/loadDIA_/
     // loadDDA_ actually emit under the active frame_id range and load_ms1 knob.
-    FrameCounts counts = readFrameCounts(db, config);
-    const size_t ms1_emitted = config.load_ms1 ? counts.ms1 : 0;
+    FrameCounts counts = readFrameCounts(db, eff);
+    const size_t ms1_emitted = eff.load_ms1 ? counts.ms1 : 0;
     size_t expected = 0;
     if (mode == Config::FRAME)
     {
@@ -2106,7 +2190,7 @@ namespace OpenMS
       {
         frame_ids.erase(
           std::remove_if(frame_ids.begin(), frame_ids.end(),
-                         [&config](uint32_t fid) { return !frameInRange(fid, config); }),
+                         [&eff](uint32_t fid) { return !frameInRange(fid, eff); }),
           frame_ids.end());
       }
       std::map<int, size_t> group_window_count;
@@ -2123,7 +2207,7 @@ namespace OpenMS
     else
     {
       // DDA: MS1 frames + per-precursor MS2 spectra
-      uint32_t num_precursors = countDDAPrecursors(db, config);
+      uint32_t num_precursors = countDDAPrecursors(db, eff);
       expected = ms1_emitted + num_precursors;
     }
 
@@ -2140,11 +2224,11 @@ namespace OpenMS
     OPENMS_LOG_INFO << "BrukerTimsFile::transform(): loading full dataset (streaming optimization pending)" << std::endl;
     MSExperiment exp;
     if (mode == Config::FRAME)
-      loadFrames_(*handle, exp, config);
+      loadFrames_(*handle, exp, eff);
     else if (is_dia && mode != Config::SPECTRUM)
-      loadDIA_(*handle, exp, config);
+      loadDIA_(*handle, exp, eff);
     else
-      loadDDA_(*handle, exp, config);
+      loadDDA_(*handle, exp, eff);
 
     exp.sortSpectra(true);
     for (auto& spec : exp)

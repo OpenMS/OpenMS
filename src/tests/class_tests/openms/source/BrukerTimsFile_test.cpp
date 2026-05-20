@@ -581,6 +581,73 @@ START_SECTION(Bruker frame_id range filter test)
 }
 END_SECTION
 
+START_SECTION(Bruker rt_min_sec/rt_max_sec range filter test)
+{
+  BrukerTimsFile f;
+
+  // --- Baseline: full FRAME-mode load to discover the file's RT span. ---
+  BrukerTimsFile::Config cfg_full;
+  cfg_full.export_mode = BrukerTimsFile::Config::FRAME;
+  MSExperiment exp_full;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_full, cfg_full);
+  TEST_NOT_EQUAL(exp_full.size(), 0);
+  double rt_lo = exp_full[0].getRT();
+  double rt_hi = exp_full[exp_full.size() - 1].getRT();
+  TEST_EQUAL(rt_lo <= rt_hi, true);
+
+  // --- Sub-range: take the first half of the RT span ---
+  const double rt_mid = rt_lo + 0.5 * (rt_hi - rt_lo);
+  BrukerTimsFile::Config cfg_rt_half;
+  cfg_rt_half.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_rt_half.rt_min_sec = rt_lo;
+  cfg_rt_half.rt_max_sec = rt_mid;
+  MSExperiment exp_rt_half;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_rt_half, cfg_rt_half);
+  TEST_NOT_EQUAL(exp_rt_half.size(), 0);
+  TEST_EQUAL(exp_rt_half.size() < exp_full.size(), true);
+  // All emitted spectra must have RT inside the requested window.
+  for (const auto& s : exp_rt_half)
+  {
+    TEST_EQUAL(s.getRT() >= rt_lo - 1e-6, true);
+    TEST_EQUAL(s.getRT() <= rt_mid + 1e-6, true);
+  }
+
+  // --- RT range that excludes all frames: empty experiment ---
+  BrukerTimsFile::Config cfg_rt_none;
+  cfg_rt_none.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_rt_none.rt_min_sec = rt_hi + 1e6;  // far past the last frame
+  cfg_rt_none.rt_max_sec = rt_hi + 2e6;
+  MSExperiment exp_rt_none;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_rt_none, cfg_rt_none);
+  TEST_EQUAL(exp_rt_none.size(), 0);
+
+  // --- Inverted RT range: empty (with warning) ---
+  BrukerTimsFile::Config cfg_rt_inv;
+  cfg_rt_inv.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_rt_inv.rt_min_sec = rt_hi;
+  cfg_rt_inv.rt_max_sec = rt_lo;
+  MSExperiment exp_rt_inv;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_rt_inv, cfg_rt_inv);
+  TEST_EQUAL(exp_rt_inv.size(), 0);
+
+  // --- Intersection of frame_id and rt ranges: the narrower wins ---
+  BrukerTimsFile::Config cfg_both;
+  cfg_both.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_both.frame_id_min = 1;
+  cfg_both.frame_id_max = 5;     // first 5 frames
+  cfg_both.rt_min_sec = rt_lo;
+  cfg_both.rt_max_sec = rt_hi;   // full RT (no extra constraint)
+  MSExperiment exp_both;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_both, cfg_both);
+  TEST_EQUAL(exp_both.size() <= 5, true);
+  TEST_NOT_EQUAL(exp_both.size(), 0);
+
+  STATUS("RT full=" << exp_full.size() << " (RT [" << rt_lo << ", " << rt_hi << "])"
+         << " half[" << rt_lo << ", " << rt_mid << "]=" << exp_rt_half.size()
+         << " intersection(frame[1..5] & rt_full)=" << exp_both.size());
+}
+END_SECTION
+
 START_SECTION(DDA round-trip test: load .d -> write mzML -> reload -> verify)
 {
   // Load from .d
