@@ -89,7 +89,7 @@ END_TEST
 #else  // !WITH_THERMO_RAW
 
 // Placeholder main so the test target still links when the bridge is disabled
-// (e.g. macOS arm64 default). Returns 0 (treated as a passing no-op test).
+// (e.g. Linux aarch64 default). Returns 0 (treated as a passing no-op test).
 int main(int /*argc*/, const char** /*argv*/)
 {
   return 0;
