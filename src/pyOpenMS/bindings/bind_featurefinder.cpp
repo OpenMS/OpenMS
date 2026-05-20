@@ -289,8 +289,8 @@ estimated for arbitrary m/z using a spline interpolation.
         R"doc(
 Represents a compound in the assay library for FeatureFinderAlgorithmMetaboIdent.
 )doc")
-        .def(nb::init<const OpenMS::String&, const OpenMS::String&, double, const std::vector<int>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&>(),
-            "name"_a, "formula"_a, "mass"_a, "charges"_a, "rts"_a, "rt_ranges"_a, "iso_distrib"_a, "ion_mobilities"_a = std::vector<double>())
+        .def(nb::init<const OpenMS::String&, const OpenMS::String&, double, const std::vector<int>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const OpenMS::String&>(),
+            "name"_a, "formula"_a, "mass"_a, "charges"_a, "rts"_a, "rt_ranges"_a, "iso_distrib"_a, "ion_mobilities"_a = std::vector<double>(), "adduct"_a = OpenMS::String(""))
         .def("getName", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const OpenMS::String& { return self.getName(); }, nb::rv_policy::reference_internal, "Returns the compound name")
         .def("getFormula", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const OpenMS::String& { return self.getFormula(); }, nb::rv_policy::reference_internal, "Returns the molecular formula")
         .def("getMass", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) { return self.getMass(); }, "Returns the neutral mass")
@@ -299,6 +299,7 @@ Represents a compound in the assay library for FeatureFinderAlgorithmMetaboIdent
         .def("getRTRanges", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) { return self.getRTRanges(); }, "Returns the RT ranges")
         .def("getIsotopeDistribution", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<double>& { return self.getIsotopeDistribution(); }, nb::rv_policy::reference_internal, "Returns the isotope distribution")
         .def("getIonMobilities", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<double>& { return self.getIonMobilities(); }, nb::rv_policy::reference_internal, "Returns the expected ion mobility values")
+        .def("getAdduct", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const OpenMS::String& { return self.getAdduct(); }, nb::rv_policy::reference_internal, "Returns the adduct string (e.g. 'M+H;1+', 'M+Na;1+', 'M-H;1-')")
         ;
 
     // -----------------------------------------------------------------------
