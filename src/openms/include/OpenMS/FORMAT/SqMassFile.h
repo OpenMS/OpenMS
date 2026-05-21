@@ -103,6 +103,13 @@ public:
 
       @param[in] filename Path to the output @c sqMass file.
       @param[in] map      Experiment to serialise.
+
+      @throws Exception::IllegalArgument    When SQL commands fail during
+                                            table creation or data
+                                            insertion.
+      @throws Exception::SqlOperationFailed When the database file cannot
+                                            be created or opened for
+                                            writing.
     */
     void store(const String& filename, const MapType& map) const;
 
