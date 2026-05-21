@@ -591,7 +591,7 @@ if (WITH_THERMO_RAW)
       OpenMSThermoBridge
       GIT_REPOSITORY https://github.com/jpfeuffer/openms-thermo-bridge.git
       # Pin to a specific reviewed upstream revision to keep builds reproducible.
-      GIT_TAG        v0.2.1
+      GIT_TAG        v0.2.3
     )
 
     # Configure the thermo bridge build options
@@ -616,8 +616,6 @@ if (WITH_THERMO_RAW)
 
     # Place the bridge shared library next to libOpenMS in the build tree so
     # test executables find it via RPATH without extra configuration.
-    # The bridge's own CMakeLists.txt handles symbol visibility via
-    # generate_export_header(), so no visibility overrides are needed here.
     if(TARGET openms_thermo_bridge)
       set_target_properties(openms_thermo_bridge PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
@@ -626,8 +624,13 @@ if (WITH_THERMO_RAW)
       )
     endif()
 
-    # Install the bridge alongside libOpenMS and register for export so
-    # downstream find_package(OpenMS) can resolve the dependency.
+    # Install the bridge alongside libOpenMS and register it in the CMake export
+    # set so OpenMSTargets.cmake includes it as an imported shared library.
+    # Downstream consumers (e.g. pyOpenMS) don't link it directly — it is a
+    # PRIVATE dependency of libOpenMS and is resolved at runtime via RPATH.
+    # DotNetHost::nethost is PRIVATE in the bridge's own CMakeLists, so it does
+    # NOT appear in the bridge's exported INTERFACE and won't be required from
+    # consumers that don't have the .NET SDK.
     install_library(openms_thermo_bridge)
     openms_register_export_target(openms_thermo_bridge)
 
