@@ -184,10 +184,23 @@ public:
     */
     void runAccurateMassSearch(FeatureMap& input, OpenMS::MzTab& output);
 
-    /// Return the band centres used by @ref mergeAlongTime — @c {bin_step, 2*bin_step, ..., (n-1)*bin_step} where @c n @c = @c max_mz @c / @c bin_step. Refreshed by @ref updateMembers_ when relevant parameters change.
+    /**
+      @brief Return the band centres used by @ref mergeAlongTime.
+
+      The list contains @c {bin_step, 2*bin_step, ..., (n-1)*bin_step} where
+      @c n @c = @c max_mz @c / @c bin_step.
+
+      @return Const reference to the vector of band centres. Refreshed by @ref updateMembers_ when parameters change.
+    */
     const std::vector<float>& getMZs();
 
-    /// Return the per-band sliding bin sizes used by @ref mergeAlongTime — @c bin_size[i] @c = @c mzs_[i] @c / @c (resolution @c * @c 4). Parallel to @ref getMZs.
+    /**
+      @brief Return the per-band sliding bin sizes used by @ref mergeAlongTime.
+
+      Each bin size is computed as @c bin_size[i] @c = @c mzs_[i] @c / @c (resolution @c * @c 4).
+
+      @return Const reference to the vector of sliding bin sizes, parallel to @ref getMZs.
+    */
     const std::vector<float>& getBinSizes();
 
 protected:
@@ -204,8 +217,12 @@ private:
       @brief Write @p input to @p filename as a single-spectrum mzML file via @c FileHandler.
 
       Used by @ref run to persist the merged spectrum, picked spectrum, and signal-to-noise
-      spectrum. Throws whatever @c FileHandler::storeExperiment throws on I/O failure
-      (no in-class guard).
+      spectrum.
+
+      @param[in] input    Spectrum to store.
+      @param[in] filename Output path for the mzML file.
+
+      @throws Exception Propagates exceptions from @c FileHandler::storeExperiment on I/O failure (no in-class guard).
     */
     void storeSpectrum_(const MSSpectrum& input, const String& filename);
 
