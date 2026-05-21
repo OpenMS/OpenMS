@@ -98,7 +98,7 @@ namespace OpenMS
       @param[in,out] meta mzTab metadata section to extend.
       @param[in]     tics TIC results to serialise; empty entries are skipped.
     */
-    void addMetaDataMetricsToMzTab(MzTabMetaData& meta, std::vector<Result>& tics);
+    void addMetaDataMetricsToMzTab(MzTabMetaData& meta, const std::vector<Result>& tics);
 
   private:
     const String name_ = "TIC";
