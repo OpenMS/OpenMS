@@ -33,25 +33,7 @@
 #include <set>
 #include <unordered_map>
 #include <optional>
-
-// [DIAGNOSTIC #9392] surface the actual typeinfo of any non-std::exception
-// that escapes openTimsDataHandle on macOS. Remove with the diagnostic
-// catches below once the root cause is found. Itanium-ABI only; on MSVC
-// the file fails compile (no cxxabi.h) and the diag is irrelevant anyway
-// (the bug only reproduces on macOS).
-#if !defined(_MSC_VER)
-#  include <cxxabi.h>
-#  define OPENMS_DIAG_9392 1
-#else
-#  define OPENMS_DIAG_9392 0
-#endif
-#include <iostream>
-#include <typeinfo>
-#include <exception>
 #include <stdexcept>
-#include <system_error>
-#include <cstring>
-#include <cstdio>
 
 // Open-addressing flat hash map (Boost 1.81+). Used in FrameAggregator's
 // hot path because it eliminates per-node allocations and pointer chasing,
@@ -1333,105 +1315,34 @@ namespace OpenMS
     auto& tof_factory = OpenSourceTof2MzConverterFactory::instance();
     auto& im_factory = OpenSourceScan2ImConverterFactory::instance();
 
-    // [DIAGNOSTIC #9392] mark entry so we can tell from CI logs whether
-    // the throw site is inside the constructor's try-block or downstream.
-    std::cerr << "[DIAG #9392] openTimsDataHandle: entered for path='" << path << "'" << std::endl;
-
     std::unique_ptr<TimsDataHandle> handle;
     try
     {
       handle = std::make_unique<TimsDataHandle>(
         path_string, NoPressureCompensation, &tof_factory, &im_factory);
     }
+    // The runtime_error arm catches the actual throws opentims emits on
+    // macOS xcode when WITH_THERMO_RAW=ON; the bridge's linkage introduces a
+    // duplicate typeinfo for std::exception inside libOpenMS.dylib that
+    // doesn't coalesce with libc++abi.dylib's copy, so catch(std::exception&)
+    // alone misses the throw. catch(std::runtime_error&) still works because
+    // runtime_error's typeinfo is shared. See issue #9392 for the full
+    // diagnosis (typeinfo-address measurements + progressive-catch probe).
+    catch (const std::runtime_error& e)
+    {
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        path + " (opentims: " + String(e.what()) + ")");
+    }
     catch (const std::exception& e)
     {
-      std::cerr << "[DIAG #9392] openTimsDataHandle: caught std::exception='" << e.what()
-                << "' typeid='" << typeid(e).name() << "'" << std::endl;
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         path + " (opentims: " + String(e.what()) + ")");
     }
     catch (...)
     {
-#if OPENMS_DIAG_9392
-      // [DIAGNOSTIC #9392] direct test of the typeinfo-identity hypothesis.
-      // Prints (a) the thrown type's typeinfo address, (b) the addresses of
-      // typeid(std::exception/runtime_error/system_error) as seen from THIS
-      // translation unit, (c) the names of each. If the thrown type's
-      // typeinfo address equals the local typeid(std::system_error) address,
-      // the typeinfo is shared and the bug is elsewhere. If they differ but
-      // the *names* match, that proves there are multiple non-coalesced
-      // copies of the same typeinfo inside libOpenMS.dylib.
-      const std::type_info* thrown_ti = abi::__cxa_current_exception_type();
-      const std::type_info& te_exc = typeid(std::exception);
-      const std::type_info& te_re  = typeid(std::runtime_error);
-      const std::type_info& te_se  = typeid(std::system_error);
-
-      auto P = [](const void* p) {
-        char buf[32]; std::snprintf(buf, sizeof(buf), "%p", p); return std::string(buf);
-      };
-
-      std::cerr << "[DIAG #9392] typeinfo addresses (from BrukerTimsFile.cpp TU):\n"
-                << "  thrown_ti              = " << P(thrown_ti) << "  name='"
-                << (thrown_ti ? thrown_ti->name() : "<null>") << "'\n"
-                << "  &typeid(std::exception)    = " << P(&te_exc)
-                << "  name='" << te_exc.name() << "'\n"
-                << "  &typeid(std::runtime_error)= " << P(&te_re)
-                << "  name='" << te_re.name() << "'\n"
-                << "  &typeid(std::system_error) = " << P(&te_se)
-                << "  name='" << te_se.name() << "'\n"
-                << "  thrown_ti == &typeid(std::system_error)? "
-                << ((thrown_ti && thrown_ti == &te_se) ? "YES" : "NO") << "\n"
-                << "  name-eq    == &typeid(std::system_error)? "
-                << ((thrown_ti && std::strcmp(thrown_ti->name(), te_se.name()) == 0) ? "YES" : "NO")
-                << std::endl;
-
-      // Try a dynamic_cast through std::exception_ptr -- uses the same
-      // typeinfo machinery as catch, but lets us inspect the result.
-      std::exception_ptr cur = std::current_exception();
-      try { std::rethrow_exception(cur); }
-      catch (const std::exception& e)
-      {
-        std::cerr << "[DIAG #9392] rethrow_exception => caught as std::exception, what()='"
-                  << e.what() << "', &typeid(e)=" << P(&typeid(e)) << std::endl;
-      }
-      catch (...)
-      {
-        std::cerr << "[DIAG #9392] rethrow_exception => STILL not caught as std::exception"
-                  << std::endl;
-      }
-
-      // Progressive catch probe: rethrow and try each level of the chain.
-      // Tells us exactly where the chain walk breaks without needing access
-      // to libc++abi's internal __si_class_type_info struct (Apple's
-      // <cxxabi.h> doesn't expose it publicly).
-      //
-      // - If catch (system_error) matches but catch (runtime_error) doesn't,
-      //   the divergence is between system_error and runtime_error.
-      // - If catch (runtime_error) matches but catch (exception) doesn't,
-      //   the divergence is between runtime_error and exception.
-      // - If neither matches, runtime_error's typeinfo itself is split.
-      const char* probe_result = "<not run>";
-      try { std::rethrow_exception(cur); }
-      catch (const std::system_error& e)
-      { probe_result = "caught as std::system_error"; (void)e; }
-      catch (...) { probe_result = "NOT caught as std::system_error"; }
-      std::cerr << "[DIAG #9392] catch-probe std::system_error    : " << probe_result << std::endl;
-
-      try { std::rethrow_exception(cur); }
-      catch (const std::runtime_error& e)
-      { probe_result = "caught as std::runtime_error"; (void)e; }
-      catch (...) { probe_result = "NOT caught as std::runtime_error"; }
-      std::cerr << "[DIAG #9392] catch-probe std::runtime_error   : " << probe_result << std::endl;
-
-      try { std::rethrow_exception(cur); }
-      catch (const std::exception& e)
-      { probe_result = "caught as std::exception"; (void)e; }
-      catch (...) { probe_result = "NOT caught as std::exception"; }
-      std::cerr << "[DIAG #9392] catch-probe std::exception       : " << probe_result << std::endl;
-#endif
-      throw;
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        path + " (opentims: unknown error)");
     }
-    std::cerr << "[DIAG #9392] openTimsDataHandle: TimsDataHandle ctor returned OK" << std::endl;
 
     using Strategy = Config::TimsCalibrationStrategy;
     auto strategy = config.tims_calibration_strategy;
