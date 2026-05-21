@@ -39,6 +39,12 @@
 // catches below once the root cause is found.
 #include <cxxabi.h>
 #include <iostream>
+#include <typeinfo>
+#include <exception>
+#include <stdexcept>
+#include <system_error>
+#include <cstring>
+#include <cstdio>
 
 // Open-addressing flat hash map (Boost 1.81+). Used in FrameAggregator's
 // hot path because it eliminates per-node allocations and pointer chasing,
@@ -1339,19 +1345,53 @@ namespace OpenMS
     }
     catch (...)
     {
-      // [DIAGNOSTIC #9392] catches any non-std::exception leaking from
-      // TimsDataHandle's constructor. Prints the typeinfo name (demangled
-      // where possible) and rethrows so the test still surfaces a failure
-      // we can attribute.
-      std::type_info* ti = abi::__cxa_current_exception_type();
-      const char* mangled = ti ? ti->name() : "<null>";
-      int status = 0;
-      char* demangled = ti ? abi::__cxa_demangle(mangled, nullptr, nullptr, &status) : nullptr;
-      std::cerr << "[DIAG #9392] openTimsDataHandle: caught NON-std::exception"
-                << " typeid_mangled='" << mangled << "'"
-                << " demangled='" << (demangled ? demangled : mangled) << "'"
+      // [DIAGNOSTIC #9392] direct test of the typeinfo-identity hypothesis.
+      // Prints (a) the thrown type's typeinfo address, (b) the addresses of
+      // typeid(std::exception/runtime_error/system_error) as seen from THIS
+      // translation unit, (c) the names of each. If the thrown type's
+      // typeinfo address equals the local typeid(std::system_error) address,
+      // the typeinfo is shared and the bug is elsewhere. If they differ but
+      // the *names* match, that proves there are multiple non-coalesced
+      // copies of the same typeinfo inside libOpenMS.dylib.
+      const std::type_info* thrown_ti = abi::__cxa_current_exception_type();
+      const std::type_info& te_exc = typeid(std::exception);
+      const std::type_info& te_re  = typeid(std::runtime_error);
+      const std::type_info& te_se  = typeid(std::system_error);
+
+      auto P = [](const void* p) {
+        char buf[32]; std::snprintf(buf, sizeof(buf), "%p", p); return std::string(buf);
+      };
+
+      std::cerr << "[DIAG #9392] typeinfo addresses (from BrukerTimsFile.cpp TU):\n"
+                << "  thrown_ti              = " << P(thrown_ti) << "  name='"
+                << (thrown_ti ? thrown_ti->name() : "<null>") << "'\n"
+                << "  &typeid(std::exception)    = " << P(&te_exc)
+                << "  name='" << te_exc.name() << "'\n"
+                << "  &typeid(std::runtime_error)= " << P(&te_re)
+                << "  name='" << te_re.name() << "'\n"
+                << "  &typeid(std::system_error) = " << P(&te_se)
+                << "  name='" << te_se.name() << "'\n"
+                << "  thrown_ti == &typeid(std::system_error)? "
+                << ((thrown_ti && thrown_ti == &te_se) ? "YES" : "NO") << "\n"
+                << "  name-eq    == &typeid(std::system_error)? "
+                << ((thrown_ti && std::strcmp(thrown_ti->name(), te_se.name()) == 0) ? "YES" : "NO")
                 << std::endl;
-      std::free(demangled);
+
+      // Try a dynamic_cast through std::exception_ptr -- uses the same
+      // typeinfo machinery as catch, but lets us inspect the result.
+      std::exception_ptr cur = std::current_exception();
+      try { std::rethrow_exception(cur); }
+      catch (const std::exception& e)
+      {
+        std::cerr << "[DIAG #9392] rethrow_exception => caught as std::exception, what()='"
+                  << e.what() << "', &typeid(e)=" << P(&typeid(e)) << std::endl;
+      }
+      catch (...)
+      {
+        std::cerr << "[DIAG #9392] rethrow_exception => STILL not caught as std::exception"
+                  << std::endl;
+      }
+
       throw;
     }
     std::cerr << "[DIAG #9392] openTimsDataHandle: TimsDataHandle ctor returned OK" << std::endl;
