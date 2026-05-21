@@ -52,6 +52,9 @@ General:
   - pyOpenMS: BrukerTimsFile bindings (nanobind) exposing load() / readDIAMetadata() with the nested Config struct (incl. ExportMode, TimsCalibrationStrategy, PressureCompensation enums) and DIAStreamingMetadata; gated by the WITH_OPENTIMS CMake flag and feature-detectable via hasattr(pyopenms, "BrukerTimsFile"). Streaming consumer paths (loadDIAStreaming, transform) deferred. The Bruker SDK (timsdata.dll / libtimsdata.so) is not bundled in the wheel; supply it via OPENMS_BRUKER_SDK_PATH or Config.bruker_sdk_path at runtime. (#9379)
   - BrukerTimsFile: IM-axis hill centroiding via new PASEFHillCentroider class; detects peaks along the ion-mobility axis using hill detection with valley splitting, configurable m/z linking tolerance (pasef_hill_mz_linking_ppm), minimum hill length, and maximum scan gap; applied to MS1 and DIA/DDA MS2; exposed in BrukerTimsFile::Config (centroid_algorithm = HILL) and via FileConverter (-bruker:centroid_algorithm hill) and PeakPickerIM (-algorithm hill); modeled on Biosaur2 hill detection (#9380)
   - New IMAGING module for imaging mass spectrometry: IonImage (dense W×H×D intensity grid with per-pixel validity mask and m/z extraction window), MSImagingGeometry (pixel list with (x,y,z)→spectrum-index lookup and pixel-size metadata), and MSImagingExperiment (integrates MSExperiment with MSImagingGeometry for pixel-based spectrum access and sum-based ion-image extraction); pyOpenMS bindings included (#9381)
+  - New BrukerTimsImagingFile class for loading Bruker .d MALDI imaging data: reads pixel-layout metadata from MaldiApplicationInfo (x/y offsets and pixel size), maps each spot to an (x, y) coordinate in MSImagingGeometry, and populates an MSImagingExperiment; supports CENTROID and PROFILE export modes; gated by WITH_OPENTIMS (#9383)
+  - BrukerTimsFile: new Config fields frame_id_min/frame_id_max for raw frame-ID range filtering and rt_min_sec/rt_max_sec for retention-time range filtering; the RT range is resolved to a frame-ID sub-range at load time via SQL; honored by load(), transform(), loadDIAStreaming(), and readDIAMetadata(); memory and I/O now scale with the requested range rather than the full file size (#9387)
+  - Fix: SwathMapMassCorrection: removed null-pointer dereference and memory leak in correctMZ/correctIM when fetchSpectrumSwath returns an empty spectrum; empty-spectrum iterations are now skipped cleanly via continue or a null-pointer guard (#9386)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -279,6 +282,8 @@ TOPP tools:
       - Reworked the underlying algorithm to omit a RAM-costly copy statement. RAM usage is now reduced by around 20% (#9159)
     FeatureFinderAlgorithmPicked:
       - Fix: `mass_trace:mz_tolerance` and `isotopic_pattern:mz_tolerance` parameters were swapped in updateMembers_(); pattern_tolerance_ (used for isotopic-pattern scoring) received the mass-trace value and vice versa; had no effect with default values (both 0.03) but caused incorrect behavior when users tuned the parameters independently (#9247, #9250)
+    FeatureFinderMetaboIdent:
+      - Added optional "Adduct" column to the TSV input format; uses AdductInfo for m/z calculation from any supported adduct notation (e.g. [M+Na]+, [M-H]-, [2M+H]+); output features are annotated with the adduct; backward-compatible (defaults to [M+H]+ / [M-H]- when omitted) (#9382)
     IDMerger:
       - Added .idparquet input support; -in now accepts .idparquet bundles in addition to idXML and oms (#9232)
       - Fix: merged output now preserves input file order; previously IdentificationRuns were sorted alphabetically by run identifier rather than emitted in the order the input files were given (#9240)
