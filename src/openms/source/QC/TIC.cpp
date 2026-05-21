@@ -78,7 +78,7 @@ namespace OpenMS
     return QCBase::Status(QCBase::Requires::RAWMZML);
   }
 
-  void TIC::addMetaDataMetricsToMzTab(OpenMS::MzTabMetaData& meta, vector<TIC::Result>& tics)
+  void TIC::addMetaDataMetricsToMzTab(OpenMS::MzTabMetaData& meta, const vector<TIC::Result>& tics)
   {
     // Adding TIC information to meta data
     for (Size i = 0; i < tics.size(); ++i)
