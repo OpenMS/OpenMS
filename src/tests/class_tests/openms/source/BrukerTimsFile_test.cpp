@@ -23,6 +23,88 @@
 using namespace OpenMS;
 using namespace std;
 
+namespace
+{
+  // Stats collected from one MSExperiment; used by the three-way (Off vs.
+  // Greedy2D vs. HillBased) comparison sections to assert relationships.
+  struct CentroidStats
+  {
+    Size n_ms1_spectra = 0;
+    Size n_ms2_spectra = 0;
+    Size total_ms1_peaks = 0;
+    Size total_ms2_peaks = 0;
+    double total_ms1_intensity = 0.0;
+    double total_ms2_intensity = 0.0;
+  };
+
+  [[maybe_unused]] CentroidStats collectStats(const MSExperiment& exp)
+  {
+    CentroidStats s;
+    for (const auto& sp : exp)
+    {
+      const Size n = sp.size();
+      double intsum = 0.0;
+      for (Size i = 0; i < n; ++i) intsum += sp[i].getIntensity();
+      if (sp.getMSLevel() == 1)
+      {
+        ++s.n_ms1_spectra;
+        s.total_ms1_peaks += n;
+        s.total_ms1_intensity += intsum;
+      }
+      else if (sp.getMSLevel() == 2)
+      {
+        ++s.n_ms2_spectra;
+        s.total_ms2_peaks += n;
+        s.total_ms2_intensity += intsum;
+      }
+    }
+    return s;
+  }
+
+  // Verify the standard centroided-MS1 invariants on the first non-empty MS1
+  // spectrum: CENTROID type, IM data present, IM array length == peak count,
+  // and m/z-sorted output. Matches the convention used in the existing
+  // "DDA MS1 centroiding test" section (around line 494).
+  [[maybe_unused]] void assertFirstMS1Centroided(const MSExperiment& exp)
+  {
+    bool checked = false;
+    for (const auto& sp : exp)
+    {
+      if (sp.getMSLevel() != 1 || sp.empty()) continue;
+      TEST_EQUAL(sp.getType(), SpectrumSettings::SpectrumType::CENTROID);
+      TEST_EQUAL(sp.containsIMData(), true);
+      const auto& fda = sp.getFloatDataArrays();
+      TEST_EQUAL(fda.empty(), false);
+      TEST_EQUAL(fda[0].size(), sp.size());
+      bool sorted = true;
+      for (Size j = 1; j < sp.size(); ++j)
+        if (sp[j].getMZ() < sp[j-1].getMZ()) { sorted = false; break; }
+      TEST_EQUAL(sorted, true);
+      checked = true;
+      break;
+    }
+    TEST_EQUAL(checked, true);
+  }
+
+  // Same for the first non-empty DIA-MS2 spectrum.
+  [[maybe_unused]] void assertFirstDIAMS2Centroided(const MSExperiment& exp)
+  {
+    bool checked = false;
+    for (const auto& sp : exp)
+    {
+      if (sp.getMSLevel() != 2 || sp.empty()) continue;
+      TEST_EQUAL(sp.getType(), SpectrumSettings::SpectrumType::CENTROID);
+      TEST_EQUAL(sp.containsIMData(), true);
+      const auto& fda = sp.getFloatDataArrays();
+      TEST_EQUAL(fda.empty(), false);
+      TEST_EQUAL(fda[0].size(), sp.size());
+      checked = true;
+      break;
+    }
+    TEST_EQUAL(checked, true);
+  }
+} // anon
+
 START_TEST(BrukerTimsFile, "$Id$")
 
 START_SECTION(void load(const String& path, MSExperiment& exp, const Config& config))
@@ -385,6 +467,193 @@ START_SECTION(Bruker load_ms1=false test)
 }
 END_SECTION
 
+START_SECTION(Bruker frame_id range filter test)
+{
+  BrukerTimsFile f;
+
+  // --- Baseline (default range): full FRAME-mode load of DDA fixture ---
+  BrukerTimsFile::Config cfg_full;
+  cfg_full.export_mode = BrukerTimsFile::Config::FRAME;
+  MSExperiment exp_full;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_full, cfg_full);
+  TEST_NOT_EQUAL(exp_full.size(), 0);
+
+  // FRAME mode emits exactly one spectrum per frame, so spectrum count
+  // equals the file's frame count and we can map a frame-id range to an
+  // expected spectrum count.
+
+  // --- Explicit full range matches default ---
+  BrukerTimsFile::Config cfg_explicit_full;
+  cfg_explicit_full.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_explicit_full.frame_id_min = 0;
+  cfg_explicit_full.frame_id_max = std::numeric_limits<uint32_t>::max();
+  MSExperiment exp_explicit;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_explicit, cfg_explicit_full);
+  TEST_EQUAL(exp_explicit.size(), exp_full.size());
+
+  // --- Sub-range loads strictly fewer spectra ---
+  BrukerTimsFile::Config cfg_sub;
+  cfg_sub.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_sub.frame_id_min = 1;
+  cfg_sub.frame_id_max = 3;  // first three frames only
+  MSExperiment exp_sub;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_sub, cfg_sub);
+  TEST_EQUAL(exp_sub.size(), 3);
+  TEST_EQUAL(exp_sub.size() < exp_full.size(), true);
+
+  // --- Single frame range: exactly one spectrum ---
+  BrukerTimsFile::Config cfg_one;
+  cfg_one.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_one.frame_id_min = 1;
+  cfg_one.frame_id_max = 1;
+  MSExperiment exp_one;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_one, cfg_one);
+  TEST_EQUAL(exp_one.size(), 1);
+
+  // --- Range entirely above file max: zero spectra (warning emitted) ---
+  BrukerTimsFile::Config cfg_above;
+  cfg_above.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_above.frame_id_min = 999999999u;
+  cfg_above.frame_id_max = 999999999u;
+  MSExperiment exp_above;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_above, cfg_above);
+  TEST_EQUAL(exp_above.size(), 0);
+
+  // --- Inverted range (min > max): zero spectra (warning emitted) ---
+  BrukerTimsFile::Config cfg_inv;
+  cfg_inv.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_inv.frame_id_min = 10;
+  cfg_inv.frame_id_max = 5;
+  MSExperiment exp_inv;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_inv, cfg_inv);
+  TEST_EQUAL(exp_inv.size(), 0);
+
+  // --- DDA (SPECTRUM mode): range filters MS1 frames and precursor MS2 ---
+  BrukerTimsFile::Config cfg_dda;
+  MSExperiment exp_dda_full;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_dda_full, cfg_dda);
+
+  BrukerTimsFile::Config cfg_dda_sub = cfg_dda;
+  cfg_dda_sub.frame_id_min = 1;
+  cfg_dda_sub.frame_id_max = 5;
+  MSExperiment exp_dda_sub;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_dda_sub, cfg_dda_sub);
+  TEST_EQUAL(exp_dda_sub.size() < exp_dda_full.size(), true);
+
+#ifdef OPENTIMS_DIA_TEST_DATA
+  // --- DIA: range filters MS1 frames and per-WindowGroup MS2 frames ---
+  BrukerTimsFile::Config cfg_dia_full;
+  MSExperiment exp_dia_full;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_dia_full, cfg_dia_full);
+
+  BrukerTimsFile::Config cfg_dia_sub;
+  cfg_dia_sub.frame_id_min = 1;
+  cfg_dia_sub.frame_id_max = 10;
+  MSExperiment exp_dia_sub;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_dia_sub, cfg_dia_sub);
+  TEST_EQUAL(exp_dia_sub.size() < exp_dia_full.size(), true);
+
+  // --- readDIAMetadata also honors the range (counts must match what
+  //     loadDIAStreaming would actually emit; CachedSwathFileConsumer
+  //     uses these counts to size its buffers). ---
+  ExperimentalSettings settings_full;
+  auto meta_full = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings_full);
+
+  ExperimentalSettings settings_sub;
+  auto meta_sub = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings_sub, cfg_dia_sub);
+  TEST_EQUAL(meta_sub.nr_ms1_spectra <= meta_full.nr_ms1_spectra, true);
+  TEST_EQUAL(meta_sub.nr_ms2_spectra.size(), meta_full.nr_ms2_spectra.size());
+  // At least one window must have a smaller count after filtering
+  bool any_smaller = false;
+  for (Size i = 0; i < meta_sub.nr_ms2_spectra.size(); ++i)
+  {
+    if (meta_sub.nr_ms2_spectra[i] < meta_full.nr_ms2_spectra[i]) any_smaller = true;
+    TEST_EQUAL(meta_sub.nr_ms2_spectra[i] <= meta_full.nr_ms2_spectra[i], true);
+  }
+  TEST_EQUAL(any_smaller, true);
+#endif
+
+  STATUS("DDA full=" << exp_full.size() << " sub[1..3]=" << exp_sub.size()
+         << " single[1..1]=" << exp_one.size()
+         << " | DDA SPECTRUM full=" << exp_dda_full.size()
+         << " sub[1..5]=" << exp_dda_sub.size());
+}
+END_SECTION
+
+START_SECTION(Bruker rt_min_sec/rt_max_sec range filter test)
+{
+  BrukerTimsFile f;
+
+  // --- Baseline: full FRAME-mode load to discover the file's RT span. ---
+  BrukerTimsFile::Config cfg_full;
+  cfg_full.export_mode = BrukerTimsFile::Config::FRAME;
+  MSExperiment exp_full;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_full, cfg_full);
+  TEST_NOT_EQUAL(exp_full.size(), 0);
+  // Compute true RT bounds without assuming order
+  double rt_lo = exp_full[0].getRT();
+  double rt_hi = rt_lo;
+  for (const auto& s : exp_full)
+  {
+    double rt = s.getRT();
+    if (rt < rt_lo) rt_lo = rt;
+    if (rt > rt_hi) rt_hi = rt;
+  }
+  TEST_EQUAL(rt_lo <= rt_hi, true);
+
+  // --- Sub-range: take the first half of the RT span ---
+  const double rt_mid = rt_lo + 0.5 * (rt_hi - rt_lo);
+  BrukerTimsFile::Config cfg_rt_half;
+  cfg_rt_half.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_rt_half.rt_min_sec = rt_lo;
+  cfg_rt_half.rt_max_sec = rt_mid;
+  MSExperiment exp_rt_half;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_rt_half, cfg_rt_half);
+  TEST_NOT_EQUAL(exp_rt_half.size(), 0);
+  TEST_EQUAL(exp_rt_half.size() < exp_full.size(), true);
+  // All emitted spectra must have RT inside the requested window.
+  for (const auto& s : exp_rt_half)
+  {
+    TEST_EQUAL(s.getRT() >= rt_lo - 1e-6, true);
+    TEST_EQUAL(s.getRT() <= rt_mid + 1e-6, true);
+  }
+
+  // --- RT range that excludes all frames: empty experiment ---
+  BrukerTimsFile::Config cfg_rt_none;
+  cfg_rt_none.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_rt_none.rt_min_sec = rt_hi + 1e6;  // far past the last frame
+  cfg_rt_none.rt_max_sec = rt_hi + 2e6;
+  MSExperiment exp_rt_none;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_rt_none, cfg_rt_none);
+  TEST_EQUAL(exp_rt_none.size(), 0);
+
+  // --- Inverted RT range: empty (with warning) ---
+  BrukerTimsFile::Config cfg_rt_inv;
+  cfg_rt_inv.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_rt_inv.rt_min_sec = rt_hi;
+  cfg_rt_inv.rt_max_sec = rt_lo;
+  MSExperiment exp_rt_inv;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_rt_inv, cfg_rt_inv);
+  TEST_EQUAL(exp_rt_inv.size(), 0);
+
+  // --- Intersection of frame_id and rt ranges: the narrower wins ---
+  BrukerTimsFile::Config cfg_both;
+  cfg_both.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_both.frame_id_min = 1;
+  cfg_both.frame_id_max = 5;     // first 5 frames
+  cfg_both.rt_min_sec = rt_lo;
+  cfg_both.rt_max_sec = rt_hi;   // full RT (no extra constraint)
+  MSExperiment exp_both;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_both, cfg_both);
+  TEST_EQUAL(exp_both.size() <= 5, true);
+  TEST_NOT_EQUAL(exp_both.size(), 0);
+
+  STATUS("RT full=" << exp_full.size() << " (RT [" << rt_lo << ", " << rt_hi << "])"
+         << " half[" << rt_lo << ", " << rt_mid << "]=" << exp_rt_half.size()
+         << " intersection(frame[1..5] & rt_full)=" << exp_both.size());
+}
+END_SECTION
+
 START_SECTION(DDA round-trip test: load .d -> write mzML -> reload -> verify)
 {
   // Load from .d
@@ -708,6 +977,198 @@ START_SECTION(DDA MS1 aggregation with RT cap test)
 }
 END_SECTION
 
+START_SECTION(DDA MS2 HillBased centroiding comparison)
+{
+  // DDA-MS2 hill: bypasses the TOF-domain pipeline (sort/group/smooth/
+  // local-max in TOF space) and runs IM-axis hill detection on per-precursor
+  // (m/z, intensity, IM) triples. Output schema is unchanged: scalar
+  // drift_time, no per-peak IM array.
+  using CA = BrukerTimsFile::Config::CentroidAlgo;
+
+  BrukerTimsFile f;
+
+  // Baseline: default DDA-MS2 (TOF-domain pipeline).
+  BrukerTimsFile::Config cfg_default;
+  MSExperiment exp_default;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_default, cfg_default);
+
+  // HillBased DDA-MS2 with the DDA-PASEF recommended override
+  // ms2_centroid_min_hill_length=1 (single-scan ions are common in DDA's
+  // narrow precursor IM range; the default value of 2 is DIA-PASEF-tuned
+  // and would drop ~93% of DDA peaks).
+  BrukerTimsFile::Config cfg_hill;
+  cfg_hill.ms2_centroid_algo            = CA::HILL_BASED;
+  cfg_hill.ms2_centroid_mz_ppm          = 20.0f;
+  cfg_hill.ms2_centroid_min_hill_length = 1;
+  cfg_hill.centroid_valley_factor       = 1.3;
+  MSExperiment exp_hill;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_hill, cfg_hill);
+
+  // Spectrum count invariant.
+  TEST_EQUAL(exp_default.size(), exp_hill.size());
+
+  // Count MS2 peaks and verify schema invariants on the first non-empty MS2.
+  Size n_ms2_default_peaks = 0, n_ms2_hill_peaks = 0;
+  Size n_ms2_default = 0, n_ms2_hill = 0;
+  bool checked_schema = false;
+  for (Size i = 0; i < exp_default.size(); ++i)
+  {
+    const auto& d = exp_default[i];
+    const auto& h = exp_hill[i];
+    if (d.getMSLevel() == 2)
+    {
+      ++n_ms2_default;
+      n_ms2_default_peaks += d.size();
+    }
+    if (h.getMSLevel() == 2)
+    {
+      ++n_ms2_hill;
+      n_ms2_hill_peaks += h.size();
+
+      if (!checked_schema && !h.empty())
+      {
+        // DDA-MS2 schema invariants (unchanged by hill centroiding):
+        TEST_EQUAL(h.getType(), SpectrumSettings::SpectrumType::CENTROID);
+        // Scalar drift time should be populated (intensity-weighted IM mean).
+        TEST_EQUAL(h.getDriftTime() > 0.0, true);
+        // No per-peak IM array on DDA-MS2 (in contrast to DIA-MS2).
+        TEST_EQUAL(h.containsIMData(), false);
+        // m/z sorted ascending.
+        bool sorted = true;
+        for (Size j = 1; j < h.size(); ++j)
+          if (h[j].getMZ() < h[j-1].getMZ()) { sorted = false; break; }
+        TEST_EQUAL(sorted, true);
+        // Precursor metadata preserved.
+        TEST_EQUAL(h.getPrecursors().empty(), false);
+        checked_schema = true;
+      }
+    }
+  }
+  // With ms2_centroid_min_hill_length=1 default, hill keeps every input peak
+  // → spectrum count matches default TOF-domain pipeline exactly.
+  TEST_EQUAL(n_ms2_default, n_ms2_hill);
+  TEST_EQUAL(n_ms2_hill > 0, true);
+  TEST_EQUAL(n_ms2_hill_peaks > 0, true);
+  TEST_EQUAL(checked_schema, true);
+
+  // Hill MS2 peak count: structurally different algorithm (IM-axis trace
+  // linking vs. TOF-axis local maxima), so the ratio can vary substantially.
+  // Soft bounds allow either direction; primary check is "non-empty and
+  // schema-correct" above.
+  const double ms2_count_ratio = static_cast<double>(n_ms2_hill_peaks) /
+                                 static_cast<double>(n_ms2_default_peaks);
+  TEST_EQUAL(ms2_count_ratio > 0.05 && ms2_count_ratio < 20.0, true);
+
+  STATUS("DDA MS2 default(TOF-domain)=" << n_ms2_default_peaks
+         << " hill=" << n_ms2_hill_peaks
+         << " ratio=" << ms2_count_ratio
+         << " spectra default=" << n_ms2_default
+         << " hill=" << n_ms2_hill
+         << " kept_frac=" << (static_cast<double>(n_ms2_hill) / n_ms2_default));
+}
+END_SECTION
+
+START_SECTION(DDA MS1 hill-vs-greedy centroiding comparison)
+{
+  // Hill-vs-greedy comparison on real .d data. Asserts cross-algorithm
+  // relationships rather than pinned absolute numbers (those drift with
+  // opentims/SDK updates). Skips the raw baseline to keep load count low —
+  // raw-vs-greedy is already covered by the "DDA MS1 centroiding test"
+  // section above.
+  //
+  // On TIMS detector-centroided data, hill linking with min_hill_length=1
+  // is appropriate: greedy uses a fixed (mz_ppm, im_pct) box around each
+  // apex, which over-fragments ions whose IM peak width exceeds im_pct
+  // (typical FWHM ~3-5% in 1/K0). Hill chains across all IM scans of an
+  // ion regardless of width, so hill output count is *lower* than greedy,
+  // not higher. min_hill_length=1 keeps single-scan ions whose m/z chain
+  // breaks (e.g., due to detector centroiding scatter scan-to-scan).
+  using CA = BrukerTimsFile::Config::CentroidAlgo;
+
+  BrukerTimsFile f;
+
+  BrukerTimsFile::Config cfg_greedy;
+  cfg_greedy.ms1_centroid_algo      = CA::GREEDY2D;
+  cfg_greedy.ms1_centroid_mz_ppm    = 5.0f;
+  cfg_greedy.ms1_centroid_im_pct    = 3.0f;
+  cfg_greedy.ms1_centroid_max_peaks = 1000000;
+
+  BrukerTimsFile::Config cfg_hill;
+  cfg_hill.ms1_centroid_algo        = CA::HILL_BASED;
+  cfg_hill.ms1_centroid_mz_ppm      = 5.0f;
+  cfg_hill.centroid_valley_factor   = 1.3;
+  // ms1_centroid_min_hill_length defaults to 1 (sparse TIMS-PASEF MS1).
+
+  MSExperiment exp_greedy, exp_hill;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_greedy, cfg_greedy);
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_hill,   cfg_hill);
+
+  TEST_EQUAL(exp_greedy.size(), exp_hill.size());
+
+  const auto s_greedy = collectStats(exp_greedy);
+  const auto s_hill   = collectStats(exp_hill);
+
+  // Spectrum-level invariants.
+  TEST_EQUAL(s_greedy.n_ms1_spectra, s_hill.n_ms1_spectra);
+  TEST_EQUAL(s_greedy.n_ms2_spectra, s_hill.n_ms2_spectra);
+  // DDA-MS2 unchanged in this iteration.
+  TEST_EQUAL(s_greedy.total_ms2_peaks, s_hill.total_ms2_peaks);
+
+  TEST_EQUAL(s_hill.total_ms1_peaks > 0, true);
+
+  // Hill output count expected lower than greedy on TIMS data because hill
+  // re-groups what greedy fragments via its IM-box cut. Soft floor 0.05x
+  // greedy guards against catastrophic loss while remaining tolerant of
+  // wide ion-mobility peaks (where ratios of ~20:1 are typical).
+  const double count_ratio =
+      static_cast<double>(s_hill.total_ms1_peaks) /
+      static_cast<double>(s_greedy.total_ms1_peaks);
+  TEST_EQUAL(count_ratio > 0.05, true);
+  TEST_EQUAL(count_ratio < 1.5, true);
+
+  // Signal preservation: with min_hill_length=1, hill should retain the
+  // bulk of greedy's summed intensity. Lower bound 0.7 is loose because
+  // hill drops zero-mass-diff edge cases that greedy keeps; tighten in a
+  // follow-up after we have a few CI runs of actual values to read.
+  const double intensity_ratio =
+      s_hill.total_ms1_intensity / s_greedy.total_ms1_intensity;
+  TEST_EQUAL(intensity_ratio > 0.7, true);
+  TEST_EQUAL(intensity_ratio < 1.3, true);
+
+  // m/z-agreement spot check: hill-based apex peak's m/z must lie within
+  // 2x the configured tolerance of the nearest Greedy2D centroid in the
+  // same spectrum. Guards against gross m/z bias.
+  bool ran_mz_check = false;
+  for (Size i = 0; i < exp_hill.size() && !ran_mz_check; ++i)
+  {
+    if (exp_hill[i].getMSLevel() != 1 || exp_hill[i].empty()) continue;
+    if (exp_greedy[i].empty()) continue;
+    const auto& h = exp_hill[i];
+    Size apex = 0;
+    for (Size j = 1; j < h.size(); ++j)
+      if (h[j].getIntensity() > h[apex].getIntensity()) apex = j;
+    const double h_mz = h[apex].getMZ();
+    double best_dppm = 1e9;
+    for (Size j = 0; j < exp_greedy[i].size(); ++j)
+    {
+      const double dppm = std::abs(exp_greedy[i][j].getMZ() - h_mz) / h_mz * 1e6;
+      if (dppm < best_dppm) best_dppm = dppm;
+    }
+    TEST_EQUAL(best_dppm < 2.0 * cfg_hill.ms1_centroid_mz_ppm, true);
+    ran_mz_check = true;
+  }
+  TEST_EQUAL(ran_mz_check, true);
+
+  STATUS("DDA MS1 greedy=" << s_greedy.total_ms1_peaks
+         << " hill=" << s_hill.total_ms1_peaks
+         << " count_ratio=" << count_ratio
+         << " intensity_ratio=" << intensity_ratio);
+
+  assertFirstMS1Centroided(exp_greedy);
+  assertFirstMS1Centroided(exp_hill);
+}
+END_SECTION
+
 #endif // OPENTIMS_DDA_TEST_DATA
 
 #ifdef OPENTIMS_DIA_TEST_DATA
@@ -797,9 +1258,13 @@ START_SECTION(DIA MS2 aggregation test)
 {
   BrukerTimsFile f;
 
-  // Load without aggregation (baseline)
+  // Load without aggregation (baseline). The default dia_ms2_n_neighbors is
+  // 2 (DIA-PASEF-tuned); for this test we explicitly override to 0 to get
+  // the truly raw per-frame export.
+  BrukerTimsFile::Config cfg_raw;
+  cfg_raw.dia_ms2_n_neighbors = 0;
   MSExperiment exp_raw;
-  f.load(OPENTIMS_DIA_TEST_DATA, exp_raw);
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_raw, cfg_raw);
 
   // Load with aggregation (n_neighbors=1 → 3-frame sum)
   BrukerTimsFile::Config cfg;
@@ -1553,6 +2018,92 @@ START_SECTION(DIA MS1 streaming aggregation test)
   STATUS("DIA MS1 streaming aggregation: ref peaks=" << peaks_ref
          << " agg peaks=" << peaks_agg
          << " ratio=" << (static_cast<double>(peaks_agg) / peaks_ref));
+}
+END_SECTION
+
+START_SECTION(DIA MS1+MS2 hill-vs-greedy centroiding comparison)
+{
+  // Two-way comparison on DIA: HillBased vs. Greedy2D for both MS1 and the
+  // DIA-MS2 aggregated centroiding path. Skips the raw baseline to keep
+  // load count low (existing DIA sections already cover off-vs-greedy).
+  using CA = BrukerTimsFile::Config::CentroidAlgo;
+
+  BrukerTimsFile f;
+
+  BrukerTimsFile::Config cfg_greedy;
+  cfg_greedy.ms1_centroid_algo      = CA::GREEDY2D;
+  cfg_greedy.ms1_centroid_mz_ppm    = 5.0f;
+  cfg_greedy.ms1_centroid_im_pct    = 3.0f;
+  cfg_greedy.ms1_centroid_max_peaks = 1000000;
+  cfg_greedy.dia_ms2_n_neighbors    = 1;
+  cfg_greedy.dia_ms2_min_support    = 1;
+  cfg_greedy.dia_ms2_centroid       = true;   // legacy Greedy2D-equivalent MS2
+
+  BrukerTimsFile::Config cfg_hill;
+  cfg_hill.ms1_centroid_algo        = CA::HILL_BASED;
+  cfg_hill.ms1_centroid_mz_ppm      = 5.0f;
+  cfg_hill.ms2_centroid_algo        = CA::HILL_BASED;
+  cfg_hill.ms2_centroid_mz_ppm      = 20.0f;
+  cfg_hill.dia_ms2_n_neighbors      = 1;
+  cfg_hill.dia_ms2_min_support      = 1;
+  cfg_hill.centroid_valley_factor   = 1.3;
+  // ms1_centroid_min_hill_length defaults to 1 (sparse TIMS-PASEF MS1).
+  // For DIA-MS2 specifically, override to 2 — wider isolation windows + more
+  // IM-scan range produce ~33% multi-scan hills, so rejecting length-1
+  // singletons brings hill output volume in line with the legacy Gaussian-
+  // smooth + local-maxima path. (Default ms2_centroid_min_hill_length=1 is
+  // tuned for DDA-PASEF where narrow precursor IM range means most fragments
+  // are length-1 and min=2 would drop ~93% of peaks.)
+  cfg_hill.ms2_centroid_min_hill_length = 2;
+
+  MSExperiment exp_greedy, exp_hill;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_greedy, cfg_greedy);
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_hill,   cfg_hill);
+
+  const auto s_greedy = collectStats(exp_greedy);
+  const auto s_hill   = collectStats(exp_hill);
+
+  TEST_EQUAL(s_greedy.n_ms1_spectra, s_hill.n_ms1_spectra);
+  // HillBased MS2 can drop spectra whose hill output is entirely length-1
+  // under ms2_centroid_min_hill_length=2; allow up to 10% fewer spectra.
+  TEST_EQUAL(s_hill.n_ms2_spectra <= s_greedy.n_ms2_spectra, true);
+  TEST_EQUAL(static_cast<double>(s_hill.n_ms2_spectra) / s_greedy.n_ms2_spectra > 0.9, true);
+
+  TEST_EQUAL(s_hill.total_ms1_peaks > 0, true);
+  TEST_EQUAL(s_hill.total_ms2_peaks > 0, true);
+
+  // MS1 hill output is expected lower than greedy due to better grouping;
+  // soft bounds same as DDA section.
+  const double ms1_count_ratio = static_cast<double>(s_hill.total_ms1_peaks) /
+                                 static_cast<double>(s_greedy.total_ms1_peaks);
+  TEST_EQUAL(ms1_count_ratio > 0.05, true);
+  TEST_EQUAL(ms1_count_ratio < 1.5, true);
+
+  const double ms1_intensity_ratio = s_hill.total_ms1_intensity /
+                                     s_greedy.total_ms1_intensity;
+  TEST_EQUAL(ms1_intensity_ratio > 0.7, true);
+  TEST_EQUAL(ms1_intensity_ratio < 1.3, true);
+
+  // MS2: greedy uses Gaussian smoothing + local-maxima; hill uses trace
+  // linking. Different structural approaches, so allow a wide ratio window.
+  const double ms2_count_ratio = static_cast<double>(s_hill.total_ms2_peaks) /
+                                 static_cast<double>(s_greedy.total_ms2_peaks);
+  TEST_EQUAL(ms2_count_ratio > 0.1, true);
+  TEST_EQUAL(ms2_count_ratio < 10.0, true);
+
+  STATUS("DIA MS1 greedy=" << s_greedy.total_ms1_peaks
+         << " hill=" << s_hill.total_ms1_peaks
+         << " count_ratio=" << ms1_count_ratio
+         << " intensity_ratio=" << ms1_intensity_ratio);
+  STATUS("DIA MS2 greedy=" << s_greedy.total_ms2_peaks
+         << " hill=" << s_hill.total_ms2_peaks
+         << " count_ratio=" << ms2_count_ratio
+         << " spectra greedy=" << s_greedy.n_ms2_spectra
+         << " hill=" << s_hill.n_ms2_spectra
+         << " kept_frac=" << (static_cast<double>(s_hill.n_ms2_spectra) / s_greedy.n_ms2_spectra));
+
+  assertFirstMS1Centroided(exp_hill);
+  assertFirstDIAMS2Centroided(exp_hill);
 }
 END_SECTION
 

@@ -127,6 +127,7 @@ list(APPEND sources_list ArrowIOHelpers.cpp)
 
 if (WITH_OPENTIMS)
   list(APPEND sources_list BrukerTimsFile.cpp)
+  list(APPEND sources_list BrukerTimsImagingFile.cpp)
   list(APPEND sources_list RationalScan2ImConverter.cpp)
 endif()
 
