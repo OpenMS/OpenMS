@@ -34,6 +34,12 @@
 #include <unordered_map>
 #include <optional>
 
+// [DIAGNOSTIC #9392] surface the actual typeinfo of any non-std::exception
+// that escapes openTimsDataHandle on macOS. Remove with the diagnostic
+// catches below once the root cause is found.
+#include <cxxabi.h>
+#include <iostream>
+
 // Open-addressing flat hash map (Boost 1.81+). Used in FrameAggregator's
 // hot path because it eliminates per-node allocations and pointer chasing,
 // giving 2-3x faster lookup/insert vs std::unordered_map for small values.
@@ -1314,6 +1320,10 @@ namespace OpenMS
     auto& tof_factory = OpenSourceTof2MzConverterFactory::instance();
     auto& im_factory = OpenSourceScan2ImConverterFactory::instance();
 
+    // [DIAGNOSTIC #9392] mark entry so we can tell from CI logs whether
+    // the throw site is inside the constructor's try-block or downstream.
+    std::cerr << "[DIAG #9392] openTimsDataHandle: entered for path='" << path << "'" << std::endl;
+
     std::unique_ptr<TimsDataHandle> handle;
     try
     {
@@ -1322,9 +1332,29 @@ namespace OpenMS
     }
     catch (const std::exception& e)
     {
+      std::cerr << "[DIAG #9392] openTimsDataHandle: caught std::exception='" << e.what()
+                << "' typeid='" << typeid(e).name() << "'" << std::endl;
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         path + " (opentims: " + String(e.what()) + ")");
     }
+    catch (...)
+    {
+      // [DIAGNOSTIC #9392] catches any non-std::exception leaking from
+      // TimsDataHandle's constructor. Prints the typeinfo name (demangled
+      // where possible) and rethrows so the test still surfaces a failure
+      // we can attribute.
+      std::type_info* ti = abi::__cxa_current_exception_type();
+      const char* mangled = ti ? ti->name() : "<null>";
+      int status = 0;
+      char* demangled = ti ? abi::__cxa_demangle(mangled, nullptr, nullptr, &status) : nullptr;
+      std::cerr << "[DIAG #9392] openTimsDataHandle: caught NON-std::exception"
+                << " typeid_mangled='" << mangled << "'"
+                << " demangled='" << (demangled ? demangled : mangled) << "'"
+                << std::endl;
+      std::free(demangled);
+      throw;
+    }
+    std::cerr << "[DIAG #9392] openTimsDataHandle: TimsDataHandle ctor returned OK" << std::endl;
 
     using Strategy = Config::TimsCalibrationStrategy;
     auto strategy = config.tims_calibration_strategy;
