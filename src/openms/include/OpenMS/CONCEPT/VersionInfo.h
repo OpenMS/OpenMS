@@ -62,7 +62,7 @@ public:
       VersionDetails& operator=(const VersionDetails& other) = default;
 
       /**
-        @brief Parse a semver-style @c major[.minor[.patch[-pre_release]]] string into the struct.
+        @brief Parse a semver-style @c "X.Y[.Z[-PRE]]" string into the struct.
 
         Splits on @c '.' and the optional trailing @c '-':
           - At least one @c '.' is required — strings without a dot return @ref EMPTY.
@@ -83,16 +83,15 @@ public:
       static VersionDetails create(const String & version);
 
       /**
-        @brief Compare two versions in @em descending pre-release order.
+        @brief Compare two versions lexicographically by (major, minor, patch).
 
-        Compares lexicographically on @c (major, minor, patch). Tie-break on the pre-release
-        identifier follows the convention that "pre-release < release of the same triple",
-        but only checks presence — i.e. @c "1.0.0-alpha @c < @c 1.0.0" holds, while
-        @c "1.0.0-alpha @c < @c 1.0.0-beta" is @c false (both have a pre-release, so the
-        triples are compared as equal).
+        Versions are compared lexicographically by the (major, minor, patch) triple. A version
+        with a pre-release identifier is considered less than the same triple without a pre-release
+        (e.g., \c 1.0.0-alpha \c < \c 1.0.0). When both sides have a pre-release identifier, the
+        triples are treated as equal for ordering (e.g., \c 1.0.0-alpha is not \c < \c 1.0.0-beta).
 
         @param[in] rhs Version to compare against.
-        @return @c true if @c *this is strictly less than @p rhs by the rule above.
+        @return \c true if \c *this is strictly less than @p rhs by the rule above.
       */
       bool operator<(const VersionDetails & rhs) const;
       /**
