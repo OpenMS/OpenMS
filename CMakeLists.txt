@@ -67,6 +67,12 @@ set(_openms_with_thermo_raw_default ON)
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64$" AND UNIX AND NOT APPLE)
   set(_openms_with_thermo_raw_default OFF)
 endif()
+# [VALIDATE issue #9392] Temporarily default OFF on macOS to verify the
+# hypothesis that linking openms-thermo-bridge breaks BrukerTimsFile_test
+# via RTTI/visibility mismatch. Revert once confirmed/refuted.
+if(APPLE)
+  set(_openms_with_thermo_raw_default OFF)
+endif()
 option(WITH_THERMO_RAW "Build with Thermo RAW file reading support via openms-thermo-bridge" ${_openms_with_thermo_raw_default})
 option(ENABLE_THERMO_RAW_TESTS "Download Thermo RAW test data for integration tests" OFF)
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
