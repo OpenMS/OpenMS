@@ -1399,6 +1399,38 @@ namespace OpenMS
         std::cerr << "[DIAG #9392] rethrow_exception => STILL not caught as std::exception"
                   << std::endl;
       }
+
+      // Walk std::__1::system_error's base-class typeinfo chain via the
+      // Itanium ABI so we can print the actual `__base_type` address it
+      // stores. That tells us exactly which std::runtime_error / std::exception
+      // typeinfo the throw site bound to, and whether it matches the
+      // un-versioned ones we just printed above.
+      auto print_chain = [&P](const std::type_info* ti, int depth) {
+        auto recurse = [&P](const std::type_info* t, int d, auto& self) -> void {
+          if (!t) return;
+          std::cerr << "  " << std::string(d * 2, ' ')
+                    << "ti=" << P(t) << " name='" << t->name() << "'";
+          if (auto* si = dynamic_cast<const abi::__si_class_type_info*>(t))
+          {
+            std::cerr << "  [__si_class_type_info, single base]" << std::endl;
+            self(si->__base_type, d + 1, self);
+            return;
+          }
+          if (auto* vmi = dynamic_cast<const abi::__vmi_class_type_info*>(t))
+          {
+            std::cerr << "  [__vmi_class_type_info, " << vmi->__base_count
+                      << " base(s)]" << std::endl;
+            for (unsigned i = 0; i < vmi->__base_count; ++i)
+              self(vmi->__base_info[i].__base_type, d + 1, self);
+            return;
+          }
+          // Plain __class_type_info: no base.
+          std::cerr << "  [no base / __class_type_info]" << std::endl;
+        };
+        std::cerr << "[DIAG #9392] thrown_ti base-class chain:" << std::endl;
+        recurse(ti, 0, recurse);
+      };
+      print_chain(thrown_ti, 0);
 #endif
       throw;
     }
