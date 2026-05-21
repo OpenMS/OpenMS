@@ -628,22 +628,6 @@ if (WITH_THERMO_RAW)
       set_target_properties(openms_thermo_bridge PROPERTIES POSITION_INDEPENDENT_CODE ON)
     endif()
 
-    # Issue #9392: on macOS, linking the bridge into libOpenMS.dylib breaks
-    # `catch (const std::exception&)` on exceptions thrown from opentims's
-    # static lib (BrukerTimsFile_test reports "wrong exception thrown!"
-    # "No such file or directory"). Validation in #9393 confirmed the bridge
-    # linkage is the trigger. Most plausible cause is that hidden default
-    # visibility on the bridge's template-instantiated typeinfo (std::exception
-    # and chain) creates symbols that don't deduplicate with opentims's copies
-    # inside the same DSO. Override the bridge's visibility to `default` so its
-    # typeinfo participates in normal symbol resolution, matching the pattern
-    # used for HiGHS above.
-    if(TARGET openms_thermo_bridge)
-      set_target_properties(openms_thermo_bridge PROPERTIES
-        CXX_VISIBILITY_PRESET default
-        VISIBILITY_INLINES_HIDDEN OFF)
-    endif()
-
     # openms_thermo_bridge is a private implementation detail of libOpenMS — its
     # symbols are fully absorbed into libOpenMS.so (because we force it static
     # above). Downstream consumers only link libOpenMS; they never need to link
