@@ -36,8 +36,15 @@
 
 // [DIAGNOSTIC #9392] surface the actual typeinfo of any non-std::exception
 // that escapes openTimsDataHandle on macOS. Remove with the diagnostic
-// catches below once the root cause is found.
-#include <cxxabi.h>
+// catches below once the root cause is found. Itanium-ABI only; on MSVC
+// the file fails compile (no cxxabi.h) and the diag is irrelevant anyway
+// (the bug only reproduces on macOS).
+#if !defined(_MSC_VER)
+#  include <cxxabi.h>
+#  define OPENMS_DIAG_9392 1
+#else
+#  define OPENMS_DIAG_9392 0
+#endif
 #include <iostream>
 #include <typeinfo>
 #include <exception>
@@ -1345,6 +1352,7 @@ namespace OpenMS
     }
     catch (...)
     {
+#if OPENMS_DIAG_9392
       // [DIAGNOSTIC #9392] direct test of the typeinfo-identity hypothesis.
       // Prints (a) the thrown type's typeinfo address, (b) the addresses of
       // typeid(std::exception/runtime_error/system_error) as seen from THIS
@@ -1391,7 +1399,7 @@ namespace OpenMS
         std::cerr << "[DIAG #9392] rethrow_exception => STILL not caught as std::exception"
                   << std::endl;
       }
-
+#endif
       throw;
     }
     std::cerr << "[DIAG #9392] openTimsDataHandle: TimsDataHandle ctor returned OK" << std::endl;
