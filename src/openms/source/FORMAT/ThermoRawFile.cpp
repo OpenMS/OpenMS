@@ -96,13 +96,13 @@ namespace OpenMS
         const bool centroid = raw.is_centroid_scan(scan);
         spectrum.setType(centroid ? SpectrumSettings::SpectrumType::CENTROID : SpectrumSettings::SpectrumType::PROFILE);
 
-        // Polarity
+        // Polarity — Thermo PolarityType enum: Positive = 1, Negative = 2, Any = 0
         const int polarity = raw.polarity(scan);
-        if (polarity == 0)
+        if (polarity == 1)
         {
           spectrum.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
         }
-        else if (polarity == 1)
+        else if (polarity == 2)
         {
           spectrum.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE);
         }
@@ -133,19 +133,19 @@ namespace OpenMS
           {
             // Map activation type string to OpenMS activation method
             const std::string act_type = raw.activation_type(scan);
-            if (act_type == "CID")
+            if (act_type == "CID" || act_type == "CollisionInducedDissociation")
             {
               prec.getActivationMethods().insert(Precursor::ActivationMethod::CID);
             }
-            else if (act_type == "HCD")
+            else if (act_type == "HCD" || act_type == "HigherEnergyCollisionalDissociation")
             {
-              prec.getActivationMethods().insert(Precursor::ActivationMethod::HCD); // HCD = beam-type collision-induced dissociation
+              prec.getActivationMethods().insert(Precursor::ActivationMethod::HCD);
             }
-            else if (act_type == "ETD")
+            else if (act_type == "ETD" || act_type == "ElectronTransferDissociation")
             {
               prec.getActivationMethods().insert(Precursor::ActivationMethod::ETD);
             }
-            else if (act_type == "ECD")
+            else if (act_type == "ECD" || act_type == "ElectronCaptureDissociation")
             {
               prec.getActivationMethods().insert(Precursor::ActivationMethod::ECD);
             }

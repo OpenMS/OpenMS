@@ -1321,18 +1321,6 @@ namespace OpenMS
       handle = std::make_unique<TimsDataHandle>(
         path_string, NoPressureCompensation, &tof_factory, &im_factory);
     }
-    // The runtime_error arm catches the actual throws opentims emits on
-    // macOS xcode when WITH_THERMO_RAW=ON; the bridge's linkage introduces a
-    // duplicate typeinfo for std::exception inside libOpenMS.dylib that
-    // doesn't coalesce with libc++abi.dylib's copy, so catch(std::exception&)
-    // alone misses the throw. catch(std::runtime_error&) still works because
-    // runtime_error's typeinfo is shared. See issue #9392 for the full
-    // diagnosis (typeinfo-address measurements + progressive-catch probe).
-    catch (const std::runtime_error& e)
-    {
-      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        path + " (opentims: " + String(e.what()) + ")");
-    }
     catch (const std::exception& e)
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,

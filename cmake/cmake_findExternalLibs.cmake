@@ -591,7 +591,7 @@ if (WITH_THERMO_RAW)
       OpenMSThermoBridge
       GIT_REPOSITORY https://github.com/jpfeuffer/openms-thermo-bridge.git
       # Pin to a specific reviewed upstream revision to keep builds reproducible.
-      GIT_TAG        v0.2.0
+      GIT_TAG        v0.2.1
     )
 
     # Configure the thermo bridge build options
@@ -599,42 +599,37 @@ if (WITH_THERMO_RAW)
     set(OPENMS_THERMO_BRIDGE_ENABLE_VENDOR_DOWNLOAD ON CACHE BOOL "" FORCE)
     set(OPENMS_THERMO_BRIDGE_DOWNLOAD_TEST_DATA OFF CACHE BOOL "" FORCE)
 
-    # OpenMS sets BUILD_SHARED_LIBS=ON (to build libOpenMS.so). Without this
-    # override, openms_thermo_bridge would be built as a shared library. A shared
-    # bridge would land in _deps/openmsthermobridge-build/ rather than the system
-    # lib path, so TOPP tools linking libOpenMS.so would fail with "undefined
-    # reference" because libopenms_thermo_bridge.so is not in their link command.
-    # Force static so all bridge symbols are absorbed into libOpenMS.so at link time.
+    # Build the bridge as a shared library. This avoids a typeinfo duplication
+    # issue on macOS: when the bridge was static, its object files introduced a
+    # second copy of typeinfo for std::exception inside libOpenMS.dylib that
+    # didn't coalesce with libc++abi's copy, breaking catch(std::exception&) for
+    # exceptions thrown across translation-unit boundaries. As a shared library,
+    # the bridge resolves standard typeinfo from libc++abi at load time — no
+    # duplication.
     #
-    # Because the static bridge is ultimately linked into a shared library
-    # (libOpenMS.so), it must be compiled as position-independent code (-fPIC).
-    # Without this the linker emits:
-    #   relocation R_X86_64_PC32 ... can not be used when making a shared object;
-    #   recompile with -fPIC
-    set(_openms_saved_build_shared_libs ${BUILD_SHARED_LIBS})
-    set(_openms_saved_pic ${CMAKE_POSITION_INDEPENDENT_CODE})
+    # The bridge .so/.dylib is installed alongside libOpenMS and registered in
+    # the CMake export set so downstream consumers resolve it via RPATH.
     set(_openms_saved_build_testing ${BUILD_TESTING})
-    set(BUILD_SHARED_LIBS OFF)
-    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
     set(BUILD_TESTING OFF)
     FetchContent_MakeAvailable(OpenMSThermoBridge)
-    set(BUILD_SHARED_LIBS ${_openms_saved_build_shared_libs})
-    set(CMAKE_POSITION_INDEPENDENT_CODE ${_openms_saved_pic})
     set(BUILD_TESTING ${_openms_saved_build_testing})
 
-    # Belt-and-suspenders: also set PIC directly on the target in case the
-    # subproject CMakeLists.txt resets CMAKE_POSITION_INDEPENDENT_CODE internally.
+    # Place the bridge shared library next to libOpenMS in the build tree so
+    # test executables find it via RPATH without extra configuration.
+    # The bridge's own CMakeLists.txt handles symbol visibility via
+    # generate_export_header(), so no visibility overrides are needed here.
     if(TARGET openms_thermo_bridge)
-      set_target_properties(openms_thermo_bridge PROPERTIES POSITION_INDEPENDENT_CODE ON)
+      set_target_properties(openms_thermo_bridge PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}"
+      )
     endif()
 
-    # openms_thermo_bridge is a private implementation detail of libOpenMS — its
-    # symbols are fully absorbed into libOpenMS.so (because we force it static
-    # above). Downstream consumers only link libOpenMS; they never need to link
-    # openms_thermo_bridge directly. Therefore we do NOT install or export the
-    # bridge target. The managed .NET runtime files are copied as runtime
-    # artifacts by openms_thermo_bridge_copy_runtime_files (called in
-    # src/openms/CMakeLists.txt) and need no CMake export entry.
+    # Install the bridge alongside libOpenMS and register for export so
+    # downstream find_package(OpenMS) can resolve the dependency.
+    install_library(openms_thermo_bridge)
+    openms_register_export_target(openms_thermo_bridge)
 
     message(STATUS "openms-thermo-bridge: built from source (${OpenMSThermoBridge_SOURCE_DIR})")
 
