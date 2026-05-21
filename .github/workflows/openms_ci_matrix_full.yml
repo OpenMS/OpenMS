@@ -297,7 +297,7 @@ jobs:
           SIGNING_IDENTITY: "-"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
-          MT_ENABLE_OPENMP: "OFF" # TEMP: verify non-OpenMP build compiles; revert before merging
+          MT_ENABLE_OPENMP: "ON"
           BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}" # Ninja will otherwise use all cores (doesn't go well in GHA).
           CMAKE_CXX_COMPILER_LAUNCHER: "ccache"
