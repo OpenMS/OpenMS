@@ -87,7 +87,7 @@ This set of proteins can be given through a FASTA file (<tt>...:proteins</tt>) o
 Note that even in the case of a FASTA file, matching is only done by protein accession, not by sequence.
 If necessary, use @ref TOPP_PeptideIndexer to generate protein references for peptide hits via sequence look-up.
 
-@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML or idparquet using @ref TOPP_IDFileConverter if necessary.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_IDFilter.cli

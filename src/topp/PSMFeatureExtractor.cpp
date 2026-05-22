@@ -83,7 +83,7 @@ protected:
   {
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", true);
     setValidFormats_("in", ListUtils::create<String>("idXML,mzid,idparquet"));
-    registerOutputFile_("out", "<file>", "", "Output file in mzid or idXML format", true);
+    registerOutputFile_("out", "<file>", "", "Output file in idXML, mzid or idparquet format", true);
     setValidFormats_("out", ListUtils::create<String>("idXML,mzid,idparquet"));
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
     setValidStrings_("out_type", ListUtils::create<String>("idXML,mzid,idparquet"));
