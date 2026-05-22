@@ -187,6 +187,8 @@ protected:
 
     // Check for optional IM columns in header
     bool has_im_columns = String(line).hasSubstring("IonMobility");
+    // Check for optional Adduct column in header
+    bool has_adduct_column = String(line).hasSubstring("Adduct");
 
     Size line_count = 1;
     set<String> names;
@@ -225,6 +227,14 @@ protected:
         ion_mobilities = ListUtils::create<double>(parts[7]);
       }
 
+      // Parse optional Adduct column
+      String adduct;
+      Size adduct_col = has_im_columns ? 8 : 7; // Adduct column position depends on IM column presence
+      if (has_adduct_column && parts.size() > adduct_col)
+      {
+        adduct = parts[adduct_col].trim();
+      }
+
       metaboIdentTable.push_back(FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound(name,
                                  parts[1],
                                  parts[2].toDouble(),
@@ -232,7 +242,8 @@ protected:
                                  ListUtils::create<double>(parts[4]),
                                  ListUtils::create<double>(parts[5]),
                                  ListUtils::create<double>(parts[6]),
-                                 ion_mobilities));
+                                 ion_mobilities,
+                                 adduct));
     }
     return metaboIdentTable;
   }

@@ -17,81 +17,143 @@ namespace OpenMS
 {
   
   /**
-    @brief Base class for Search Engine Adapters
+    @brief Base class for TOPP search-engine adapters.
 
-    It is build on top of TOPPBase and provides convenience functions for regular tasks in SearchEngines.
+    Sits between @ref TOPPBase and concrete search-engine adapters
+    (CometAdapter, MSGFPlusAdapter, ...) and bundles a few conventions
+    that every adapter shares:
+      - common @c -in (spectra) and @c -database (FASTA) parameters with
+        helpers (@ref getRawfileName, @ref getDBFilename) that read
+        them and resolve them against the search-engine constraints,
+      - optional post-search reindexing via @ref PeptideIndexing with a
+        registered @c -reindex switch (@ref registerPeptideIndexingParameter_,
+        @ref reindex_).
 
-    This base class enforces a common parameter scheme upon each adapter.
-    E.g. '-database' and '-in'.
-    This might be extended/changed in the future.
-    
+    @ingroup Analysis_ID
   */
   class OPENMS_DLLAPI SearchEngineBase : public TOPPBase
   {
   public:
-    /// No default constructor
+    /// Default construction is disabled; a tool name and description are required.
     SearchEngineBase() = delete;
 
-    /// No default copy constructor.
+    /// Copy construction is disabled.
     SearchEngineBase(const SearchEngineBase&) = delete;
 
     /**
-      @brief Constructor
+      @brief Construct the adapter (signature mirrors @ref TOPPBase to forward arguments verbatim).
 
-      Must match TOPPBase' Ctor!
-
-      @param[in] name Tool name.
-      @param[in] description Short description of the tool (one line).
-      @param[in] official If this is an official TOPP tool contained in the OpenMS/TOPP release.
-             If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
-      @param[in] citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
-      @param[in] toolhandler_test Check if this tool is registered with the ToolHandler (disable for unit tests only)
+      @param[in] name             Tool name.
+      @param[in] description      One-line tool description.
+      @param[in] official         If @c true, the tool is treated as an
+                                  official TOPP tool: the name is
+                                  cross-checked against the TOPP-tool
+                                  list and a warning is printed if it
+                                  is missing.
+      @param[in] citations        Citations associated with this TOPP
+                                  tool; printed during @c --help.
+      @param[in] toolhandler_test Whether to check that the tool is
+                                  registered with the @ref ToolHandler.
+                                  Disable for unit tests only.
     */
     SearchEngineBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
 
-    /// Destructor
+    /// Destructor.
     ~SearchEngineBase() override;
 
     /**
-      @brief Reads the '-in' argument from internal parameters (usually an mzML file) and checks if MS2 spectra are present and are centroided.
+      @brief Resolve the @c -in argument and verify the spectra match a search engine's expectations.
 
-      If the file is an mzML file, the spectra annotation can be checked. If no MS2 or profile MS2 data is found, an exception is thrown.
-      If the file is any other format, the overhead of reading in the file is too large and we just issue a general warning that centroided data should be used.
+      Reads the @c -in parameter, identifies the file format and -- if
+      it is mzML -- inspects the per-MS-level centroid metadata to make
+      sure spectra of MS level @p ms_level are centroided. mzML
+      profile spectra trigger an @c IllegalArgument exception unless
+      the @c -force flag is set (in which case the call only logs a
+      warning and proceeds). Format-specific shortcuts: MGF and Bruker
+      TDF data are accepted without further inspection; for any other
+      format only a general warning is issued.
 
-      @param[in] ms_level The MS level to check for their type (centroided/profile)
+      @param[in] ms_level MS level to check for their peak type
+                          (centroided/profile).
+      @return @c -in path (relative or absolute as supplied).
 
-      @return A filename (might be a relative or absolute path)
-
-      @throws OpenMS::Exception::FileEmpty if no spectra are found (mzML only)
-      @throws OpenMS::Exception::IllegalArgument if spectra are not centroided (mzML only)
-
+      @throws OpenMS::Exception::FileEmpty       when the mzML file
+                                                 has no spectra of the
+                                                 requested level.
+      @throws OpenMS::Exception::IllegalArgument when the mzML file
+                                                 contains profile
+                                                 spectra at this level
+                                                 (or no centroided
+                                                 spectra) and the
+                                                 @c -force flag is not
+                                                 set.
     */
     String getRawfileName(int ms_level = 2) const;
 
 
     /**
-      @brief Reads the '-database' argument from internal parameters (or from @p db) and tries to find the db in search directories (if it cannot be found immediately). If not found, an exception is thrown.
-      
-      @param[in] db [Optional] Instead of reading the '-database', you can provide a custom name here (might be required for special db formats, see OMSSA)
-      @return filename for DB (might be a relative or absolute path)
- 
-      @throws OpenMS::Exception::FileNotFound if database name could not be resolved
+      @brief Resolve the search-database path.
+
+      Returns @p db if non-empty, otherwise the value of the
+      @c -database parameter. If the resulting path is not directly
+      readable, the OpenMS database search paths (see
+      @ref OpenMS::File::findDatabase) are scanned.
+
+      @param[in] db Optional explicit database name; used in place of
+                    the @c -database parameter when non-empty
+                    (occasionally required for special database
+                    formats, e.g. OMSSA).
+      @return Resolved database path (relative or absolute).
+
+      @throws OpenMS::Exception::FileNotFound when the name cannot be
+                                              resolved against the
+                                              OpenMS database paths.
     */
     String getDBFilename(const String& db = "") const;
 
 
     /**
-      @brief Adds option to reassociate peptides with proteins (and annotate target/decoy information)
+      @brief Register the @c -reindex switch and a hidden @c PeptideIndexing parameter sub-tree.
 
-      @param[in] peptide_indexing_parameter peptide indexer settings. May be modified to enable search engine specific defaults (e.g., not-tryptic etc.). 
+      Adds a @c -reindex string option (@c "true"/@c "false", default
+      @c "true") plus the @c PeptideIndexing parameter tree under
+      a @c PeptideIndexing: prefix. The supplied
+      @p peptide_indexing_parameter is patched in two ways before
+      being registered: @c missing_decoy_action is forced to @c "warn",
+      and a fixed list of advanced options
+      (@c decoy_string, @c decoy_string_position,
+      @c missing_decoy_action, @c enzyme:name, @c enzyme:specificity,
+      @c write_protein_sequence, @c write_protein_description,
+      @c keep_unreferenced_proteins, @c unmatched_action, @c aaa_max,
+      @c mismatches_max, @c IL_equivalent) are tagged @c "advanced".
+
+      @param[in] peptide_indexing_parameter Defaults for the indexer;
+                                            search-engine adapters can
+                                            customise these (e.g.
+                                            non-tryptic digestion)
+                                            before passing them in.
     */
     virtual void registerPeptideIndexingParameter_(Param peptide_indexing_parameter);
 
     /**
-      @brief Reindex peptide to protein association
+      @brief Optionally re-run @ref PeptideIndexing against the parsed identifications.
+
+      A no-op when the @c -reindex parameter is anything other than
+      @c "true". When enabled, runs @ref PeptideIndexing with the
+      adapter's @c PeptideIndexing: sub-tree merged onto the indexer's
+      defaults, against the database resolved via @ref getDBFilename.
+
+      @param[in,out] protein_identifications  Protein hits; updated in place.
+      @param[in,out] peptide_identifications  Peptide hits; updated in place.
+      @return @ref EXECUTION_OK on success or when @c -reindex is
+              disabled; @ref INPUT_FILE_EMPTY when the indexer reports
+              @c DATABASE_EMPTY; @ref UNEXPECTED_RESULT when the
+              indexer reports @c UNEXPECTED_RESULT; @ref UNKNOWN_ERROR
+              for any other non-OK indexer exit code (excluding
+              @c PEPTIDE_IDS_EMPTY, which is treated as success).
     */
     virtual SearchEngineBase::ExitCodes reindex_(
-      std::vector<ProteinIdentification>& protein_identifications, 
+      std::vector<ProteinIdentification>& protein_identifications,
       PeptideIdentificationList& peptide_identifications) const;
   }; // end SearchEngineBase
 

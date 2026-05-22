@@ -85,21 +85,44 @@ public:
       double score = 0.0;
     };
 
+    /**
+      @brief Abstract base interface for spectral-library scoring strategies consumed by @ref matchSpectrum.
+
+      Implementations cache a reference library on @ref init and then score query spectra
+      against it via @ref generateScores. The scoring direction is "higher is better" — the
+      @ref matchSpectrum caller sorts the returned pairs by descending score and keeps the
+      top entries. Implementations are free to interpret the @c options map however they
+      see fit; the caller passes user-supplied parameters through verbatim.
+    */
     class OPENMS_DLLAPI Comparator
     {
     public:
       virtual ~Comparator() = default;
+      /**
+        @brief Score @p spec against every entry of the cached library; keep only matches @c >= @p min_score.
+
+        @param[in]  spec      Query spectrum.
+        @param[out] scores    @c (library_index, score) pairs for matches that clear the threshold; unsorted.
+        @param[in]  min_score Lower bound on the kept score (inclusive).
+      */
       virtual void generateScores(
         const MSSpectrum& spec,
         std::vector<std::pair<Size,double>>& scores,
         double min_score
       ) const = 0;
 
+      /**
+        @brief Load the reference library and (re)configure the comparator.
+
+        @param[in] library Reference spectra to score against in subsequent @ref generateScores calls.
+        @param[in] options Implementation-specific knobs. @ref BinnedSpectrumComparator consults @c "bin_size", @c "peak_spread", @c "bin_offset" — see its override for details.
+      */
       virtual void init(
         const std::vector<MSSpectrum>& library,
         const std::map<String,DataValue>& options
       ) = 0;
 
+      /// Return the reference library passed to the most recent @ref init call.
       const std::vector<MSSpectrum>& getLibrary() const
       {
         return library_;
@@ -109,10 +132,30 @@ public:
       std::vector<MSSpectrum> library_;
     };
 
+    /**
+      @brief @ref Comparator implementation that scores query spectra against the library using @ref BinnedSpectralContrastAngle on pre-binned spectra.
+
+      The reference library is binned exactly once at @ref init time and the cached
+      @c BinnedSpectrum objects are reused across @ref generateScores calls; only the
+      query spectrum is re-binned on each call. Bin parameters can be overridden through
+      the @c options map passed to @ref init.
+    */
     class OPENMS_DLLAPI BinnedSpectrumComparator : public Comparator
     {
     public:
       ~BinnedSpectrumComparator() override = default;
+      /**
+        @brief Bin @p spec with the configured bin parameters and score it against every entry of the cached library; keep only matches @c >= @p min_score.
+
+        The query spectrum is wrapped in a new @c BinnedSpectrum with the current
+        @c bin_size, @c peak_spread, and @c bin_offset (no precursor m/z carried over)
+        and then compared one-by-one against the cached library bins via
+        @ref BinnedSpectralContrastAngle.
+
+        @param[in]  spec      Query spectrum to bin and score.
+        @param[out] scores    Cleared on entry, then filled with @c (library_index, score) pairs for matches that clear the threshold; unsorted.
+        @param[in]  min_score Lower bound on the kept score (inclusive).
+      */
       void generateScores (
         const MSSpectrum& spec,
         std::vector<std::pair<Size,double>>& scores,
@@ -131,6 +174,18 @@ public:
         }
       }
 
+      /**
+        @brief Cache @p library, pre-binning each spectrum with the current parameters, and apply any @c options overrides.
+
+        Honours three optional keys in @p options:
+          - @c "bin_size"    (double) — m/z bin width. Default @c 0.02 (suited for high-resolution data; the comment in the header lists @c 1.0 as the nominal-mass default).
+          - @c "peak_spread" (UInt)   — how many neighbour bins receive contributions from each peak. Default @c 0.
+          - @c "bin_offset"  (double) — m/z offset added to the bin boundaries. Default @c 0.0.
+
+        Both the inherited @c library_ vector and the internal @c bs_library_ vector of
+        @c BinnedSpectrum objects are cleared and rebuilt on every call. Emits one
+        @c OPENMS_LOG_INFO line reporting the loaded library size.
+      */
       void init(const std::vector<MSSpectrum>& library, const std::map<String,DataValue>& options) override;
 
     private:

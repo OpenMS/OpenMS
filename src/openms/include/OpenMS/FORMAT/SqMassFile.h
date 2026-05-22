@@ -17,42 +17,45 @@ namespace OpenMS
 {
 
   /**
-    @brief An class that uses on-disk SQLite database to read and write spectra and chromatograms
+    @brief Read and write mass-spectrometry data in the on-disk @c sqMass (SQLite) format.
 
-    This class provides functions to read and write spectra and chromatograms
-    to disk using a SQLite database and store them in sqMass format. This
-    allows users to access, select and filter spectra and chromatograms
-    on-demand even in a large collection of data.
+    Persists spectra and chromatograms in a single SQLite database so that
+    large collections can be queried, filtered, or streamed on demand
+    without loading the whole experiment into memory.
 
-    Spectra and chromatograms with precursor information will additionally load/store the metavalue
-    'peptide_sequence' from the first precursor (if any).
+    For spectra and chromatograms that carry precursor information, the
+    @c "peptide_sequence" meta-value of the first precursor (if any) is
+    round-tripped alongside the binary data.
 
+    Compression and meta-data options are configured via
+    @ref SqMassConfig (see @ref setConfig).
+
+    @ingroup FileIO
   */
   class OPENMS_DLLAPI SqMassFile
   {
 public:
 
-  /**
-    @brief Configuration class for SqMassFile
-
-    Contains configuration options for SQLite file
-  */
-    struct OPENMS_DLLAPI SqMassConfig 
+    /**
+      @brief Compression / metadata options used when reading or writing an @c sqMass file.
+    */
+    struct OPENMS_DLLAPI SqMassConfig
     {
-      bool write_full_meta{true}; ///< write full meta data
-      bool use_lossy_numpress{false}; ///< use lossy numpress compression
-      double linear_fp_mass_acc{-1}; ///< desired mass accuracy for numpress linear encoding (-1 no effect, use 0.0001 for 0.2 ppm accuracy @ 500 m/z)
+      bool write_full_meta{true};      ///< Write full meta data (verbose, lossless).
+      bool use_lossy_numpress{false};  ///< Use lossy numpress compression for the binary data arrays.
+      double linear_fp_mass_acc{-1};   ///< Target mass accuracy for numpress linear encoding (@c -1 has no effect; use e.g. @c 0.0001 for 0.2 ppm @c @ 500 m/z).
     };
 
+    /// Convenience alias used by @ref load / @ref store.
     typedef MSExperiment MapType;
 
     /** @name Constructors and Destructor
     */
     //@{
-    /// Default constructor
+    /// Default constructor.
     SqMassFile();
 
-    /// Default destructor
+    /// Destructor.
     ~SqMassFile();
     //@}
 
@@ -60,16 +63,90 @@ public:
     */
     //@{
 
+    /**
+      @brief Read the contents of an @c sqMass file into an @c MSExperiment.
+
+      Loads all spectra, chromatograms and experimental metadata from
+      @p filename into @p map. The current @ref SqMassConfig is applied
+      to the read.
+
+      @param[in]  filename Path to the @c sqMass file to read.
+      @param[out] map      Destination experiment; populated with the
+                           file's spectra, chromatograms and metadata.
+
+      @throws Exception::IllegalArgument    On malformed or inconsistent
+                                            rows in the sqMass tables
+                                            (mismatched native id,
+                                            missing data type, ...) or
+                                            when the file contains more
+                                            than one run.
+      @throws Exception::ConversionError    When a binary buffer's size
+                                            does not match its declared
+                                            data type.
+      @throws Exception::SqlOperationFailed When the file's @c RUN table
+                                            advertises an unsupported
+                                            configuration.
+    */
     void load(const String& filename, MapType& map) const;
 
     /**
-     @brief Store an MSExperiment in sqMass format
+      @brief Store an @c MSExperiment in @c sqMass format.
 
-     If you want a specific RUN::ID in the sqMass file,
-     make sure to populate MSExperiment::setSqlRunID(UInt64 id) before.
+      Writes the spectra, chromatograms and experimental metadata of
+      @p map to @p filename, creating the file (and the required SQLite
+      tables) if necessary. The current @ref SqMassConfig is applied.
+
+      The sqMass @c RUN::ID column is taken from
+      @c MSExperiment::getSqlRunID; populate it via
+      @c MSExperiment::setSqlRunID before calling @ref store if a
+      specific value is required.
+
+      @param[in] filename Path to the output @c sqMass file.
+      @param[in] map      Experiment to serialise.
+
+      @throws Exception::IllegalArgument    When SQL commands fail during
+                                            table creation or data
+                                            insertion.
+      @throws Exception::SqlOperationFailed When the database file cannot
+                                            be created or opened for
+                                            writing.
     */
     void store(const String& filename, const MapType& map) const;
 
+    /**
+      @brief Stream the spectra and chromatograms of an @c sqMass file through @p consumer.
+
+      Reads @p filename and feeds every spectrum and chromatogram to
+      @p consumer in input order. The consumer is informed of the
+      expected counts (via @c IMSDataConsumer::setExpectedSize) and of
+      the experimental metadata (via @c setExperimentalSettings) before
+      the per-element callbacks are invoked. The full experiment is not
+      held in memory.
+
+      @note The @p skip_full_count and @p skip_first_pass parameters are
+            currently unused and have no effect; they are retained for
+            API compatibility.
+
+      @param[in] filename_in     Path to the input @c sqMass file.
+      @param[in] consumer        Receives the streamed spectra and
+                                 chromatograms. Must remain valid for
+                                 the duration of the call.
+      @param[in] skip_full_count Currently ignored.
+      @param[in] skip_first_pass Currently ignored.
+
+      @throws Exception::IllegalArgument    On malformed or inconsistent
+                                            rows in the sqMass tables
+                                            (mismatched native id,
+                                            missing data type, ...) or
+                                            when the file contains more
+                                            than one run.
+      @throws Exception::ConversionError    When a binary buffer's size
+                                            does not match its declared
+                                            data type.
+      @throws Exception::SqlOperationFailed When the file's @c RUN table
+                                            advertises an unsupported
+                                            configuration.
+    */
     void transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count = false, bool skip_first_pass = false) const;
 
     /**
@@ -108,7 +185,12 @@ public:
                 const String& source_file = "",
                 const OpenSwath::LightTargetedExperiment& transition_exp = OpenSwath::LightTargetedExperiment()) const;
 
-    void setConfig(const SqMassConfig& config) 
+    /**
+      @brief Replace the compression / metadata configuration used by subsequent @ref load, @ref store and @ref transform calls.
+
+      @param[in] config New configuration.
+    */
+    void setConfig(const SqMassConfig& config)
     {
       config_ = config;
     }
