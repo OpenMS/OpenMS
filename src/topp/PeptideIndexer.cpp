@@ -87,13 +87,13 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input idXML file containing the identifications.");
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML,idparquet"));
     registerInputFile_("fasta", "<file>", "", "Input sequence database in FASTA format. "
                                               "Leave empty for using the same DB as used for the input idXML (this might fail). "
                                               "Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'", false, false, { "skipexists" });
     setValidFormats_("fasta", { "fasta" }, false);
     registerOutputFile_("out", "<file>", "", "Output idXML file.");
-    setValidFormats_("out", {"idXML"});
+    setValidFormats_("out", {"idXML","idparquet"});
 
     registerFullParam_(PeptideIndexing().getParameters());
    }
@@ -115,7 +115,7 @@ protected:
     std::vector<ProteinIdentification> prot_ids;
     PeptideIdentificationList pep_ids;
 
-    FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
+    FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
     if (db_name.empty())
     { // determine from metadata in idXML
@@ -176,7 +176,7 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
     if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY)
     {
