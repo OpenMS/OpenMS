@@ -121,9 +121,9 @@ protected:
     specificity.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + 3); //only allow none,semi,full for now
 
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", {"idXML","consensusXML"});
+    setValidFormats_("in", {"idXML","consensusXML","idparquet"});
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", {"idXML","consensusXML"});
+    setValidFormats_("out", {"idXML","consensusXML","idparquet"});
 
     registerTOPPSubsection_("precursor", "Filtering by precursor attributes (RT, m/z, charge, length)");
     registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract [s].", false);
@@ -151,7 +151,7 @@ protected:
     setValidFormats_("whitelist:proteins", {"fasta"});
     registerStringList_("whitelist:protein_accessions", "<accessions>", vector<String>(), "All peptides that do not reference at least one of the provided protein accession are removed.\nOnly proteins of the provided list are retained.", false);
     registerInputFile_("whitelist:peptides", "<file>", "", "Only peptides with the same sequence and modification assignment as any peptide in this file are kept. Use with 'whitelist:ignore_modifications' to only compare by sequence.\n", false);
-    setValidFormats_("whitelist:peptides", {"idXML"});
+    setValidFormats_("whitelist:peptides", {"idXML","idparquet"});
     registerFlag_("whitelist:ignore_modifications", "Compare whitelisted peptides by sequence only.", true);
     registerStringList_("whitelist:modifications", "<selection>", vector<String>(), "Keep only peptides with sequences that contain (any of) the selected modification(s)", false, true);
     setValidStrings_("whitelist:modifications", all_mods);
@@ -163,7 +163,7 @@ protected:
     setValidFormats_("blacklist:proteins", {"fasta"});
     registerStringList_("blacklist:protein_accessions", "<accessions>", vector<String>(), "All peptides that reference at least one of the provided protein accession are removed.\nOnly proteins not in the provided list are retained.", false);
     registerInputFile_("blacklist:peptides", "<file>", "", "Peptides with the same sequence and modification assignment as any peptide in this file are filtered out. Use with 'blacklist:ignore_modifications' to only compare by sequence.\n", false);
-    setValidFormats_("blacklist:peptides", {"idXML"});
+    setValidFormats_("blacklist:peptides", {"idXML","idparquet"});
     registerFlag_("blacklist:ignore_modifications", "Compare blacklisted peptides by sequence only.", true);
     registerStringList_("blacklist:modifications", "<selection>", vector<String>(), "Remove all peptides with sequences that contain (any of) the selected modification(s)", false, true);
     setValidStrings_("blacklist:modifications", all_mods);
@@ -242,9 +242,9 @@ protected:
     unordered_map<UInt64, ConsensusFeature*> id_to_featureref;
 
     const auto& infiletype = FileHandler::getType(inputfile_name);
-    if (infiletype == FileTypes::IDXML)
+    if (infiletype == FileTypes::IDXML || infiletype == FileTypes::IDPARQUET)
     {
-      FileHandler().loadIdentifications(inputfile_name, proteins, peptides, {FileTypes::IDXML});
+      FileHandler().loadIdentifications(inputfile_name, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
     }
     else if (infiletype == FileTypes::CONSENSUSXML)
     {
@@ -375,7 +375,7 @@ protected:
       PeptideIdentificationList inclusion_peptides;
       vector<ProteinIdentification> inclusion_proteins; // ignored
       FileHandler().loadIdentifications(whitelist_peptides, inclusion_proteins,
-                       inclusion_peptides, {FileTypes::IDXML});
+                       inclusion_peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
       bool ignore_mods = getFlag_("whitelist:ignore_modifications");
       IDFilter::keepPeptidesWithMatchingSequences(peptides, inclusion_peptides,
                                                   ignore_mods);
@@ -425,7 +425,7 @@ protected:
       PeptideIdentificationList exclusion_peptides;
       vector<ProteinIdentification> exclusion_proteins; // ignored
       FileHandler().loadIdentifications(blacklist_peptides, exclusion_proteins,
-                       exclusion_peptides, {FileTypes::IDXML});
+                       exclusion_peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
       bool ignore_mods = getFlag_("blacklist:ignore_modifications");
       IDFilter::removePeptidesWithMatchingSequences(
         peptides, exclusion_peptides, ignore_mods);
@@ -828,9 +828,9 @@ protected:
              << peptides.size() << " spectra identified with "
              << IDFilter::countHits(peptides) << " spectrum matches." << endl;
 
-    if (infiletype == FileTypes::IDXML)
+    if (infiletype == FileTypes::IDXML || infiletype == FileTypes::IDPARQUET)
     {
-      FileHandler().storeIdentifications(outputfile_name, proteins, peptides, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(outputfile_name, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
     }
     else if (infiletype == FileTypes::CONSENSUSXML)
     {
