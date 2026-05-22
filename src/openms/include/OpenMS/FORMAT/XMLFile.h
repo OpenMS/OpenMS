@@ -39,7 +39,7 @@ namespace OpenMS
 
 public:
 
-      /// Construct without schema info; @ref isValid is unusable until a derived class assigns @c schema_location_ via the other constructor.
+      /// Construct an @ref XMLFile without schema info; @c schema_location_ remains unset, so @ref isValid cannot be used until derived-class logic initializes @c schema_location_ before calling @ref isValid.
       XMLFile();
 
       /**
@@ -148,5 +148,4 @@ protected:
     String OPENMS_DLLAPI encodeTab(const String& to_encode);
   }   // namespace Internal
 } // namespace OpenMS
-
 
