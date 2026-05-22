@@ -92,20 +92,50 @@ namespace OpenMS
       Optional columns:
       - traml_id (string)
       - annotation (string)
+
+      @ingroup FileIO
   */
   class OPENMS_DLLAPI TransitionParquetFile
   {
   public:
-    /// Default constructor
+    /// Default constructor (the class is stateless; API consists of the two convert* methods)
     TransitionParquetFile() = default;
 
     /// Default destructor
     ~TransitionParquetFile() = default;
 
-    /// Read a .oswpq library directory and populate a LightTargetedExperiment
+    /**
+      @brief Read a @c .oswpq library and populate a @ref OpenSwath::LightTargetedExperiment.
+
+      Opens @c library/precursors.parquet and @c library/transitions.parquet from @p oswpq_dir
+      (zip archive or extracted directory), validates each table against the
+      @ref OSWPrecursorSchema / @ref OSWTransitionSchema in subset mode (extra columns are
+      tolerated), and materialises the rows into @p targeted_exp.
+
+      @p targeted_exp is **reset** to an empty @ref OpenSwath::LightTargetedExperiment at the
+      start of the call — pre-existing contents are discarded rather than appended to.
+
+      @param[in]  oswpq_dir    Path to a @c .oswpq archive or to an already-extracted directory containing @c library/.
+      @param[out] targeted_exp Populated targeted experiment; cleared before being filled.
+      @throws Exception::MissingInformation If a required parquet entry (precursors / transitions) cannot be located inside @p oswpq_dir.
+      @throws Exception::InvalidValue If a loaded parquet table fails schema validation against the precursor / transition schema, or if any other required row-level field is missing during materialisation.
+    */
     void convertParquetToTargetedExperiment(const String& oswpq_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const;
 
-    /// Write a LightTargetedExperiment to a .oswpq library (zip file or directory)
+    /**
+      @brief Write a @ref OpenSwath::LightTargetedExperiment to a @c .oswpq library.
+
+      Output target depends on @p oswpq_path: if it points at an existing directory, the
+      parquet files are written directly under @c \<oswpq_path\>/library/. Otherwise the writer
+      stages the layout in a temporary directory, then assembles a zip archive at
+      @p oswpq_path via a @c .tmp staging archive that is renamed into place once complete.
+
+      @param[in] oswpq_path  Destination — existing directory or zip-file path.
+      @param[in] targeted_exp Library to serialise.
+      @throws Exception::FileNotWritable If a generated file inside the staging area cannot be written.
+      @throws Exception::MissingInformation If required per-row data (e.g. a transition lacking a peptide ref) is missing from @p targeted_exp.
+      @throws Exception::InvalidValue If row-level invariants are violated (e.g. duplicate precursor ids, schema-incompatible values).
+    */
     void convertLightTargetedExperimentToParquet(const String& oswpq_path, const OpenSwath::LightTargetedExperiment& targeted_exp) const;
   };
 
