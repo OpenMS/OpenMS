@@ -67,14 +67,14 @@ Spectra are expected in centroided or profile mode. Only MS1 level spectra are c
 The targets to quantify have to be specified in a tab-separated text file that is passed via the @p id parameter.
 This file has to start with the following header line, defining its columns:
 <pre>
-<TT>CompoundName    SumFormula    Mass    Charge    RetentionTime    RetentionTimeRange    IsoDistribution    [IonMobility]</TT>
+<TT>CompoundName    SumFormula    Mass    Charge    RetentionTime    RetentionTimeRange    IsoDistribution    [IonMobility]    [Adduct]</TT>
 </pre>
 
 Every subsequent line defines a target.
 (Except lines starting with "#", which are considered as comments and skipped.)
 The following requirements apply:
 - @p CompoundName: unique name for the target compound
-- @p SumFormula [optional]: chemical sum formula (see @ref OpenMS::EmpiricalFormula) to compute mass, protonation in positive mode and deprotonation in negative mode is used; if you have other adducts, modify the SumFormula (e.g. Na1H-1), or provide the neutral mass in the 'Mass' column
+- @p SumFormula [optional]: chemical sum formula (see @ref OpenMS::EmpiricalFormula) to compute mass; if no @p Adduct column is provided, protonation ([M+H]+) is assumed in positive mode and deprotonation ([M-H]-) in negative mode
 - @p Mass: neutral mass; if zero calculated from @p Formula 
 - @p Charge: charge state, or comma-separated list of multiple charges. Use negative values (-1, -2, etc.) for negative ionization mode.
 - @p RetentionTime: retention time (RT), or comma-separated list of multiple RTs
@@ -82,6 +82,8 @@ The following requirements apply:
 - @p IsoDistribution: comma-separated list of relative abundances of isotopologues (see @ref OpenMS::IsotopeDistribution); if zero calculated from @p Formula
 - @p IonMobility [optional]: ion mobility value, or comma-separated list of multiple values (one per RT entry); if not provided or zero, no IM
 filtering is performed. The extraction window is controlled by parameter @p extract:im_window.
+- @p Adduct [optional]: adduct string in standard notation (e.g. @c [M+H]+, @c [M+Na]+, @c [M-H]-, @c [2M+H]+); used to compute the target m/z via AdductInfo; if omitted, defaults to @c [M+H]+ for positive charges and @c [M-H]- for negative charges.
+When an @p Adduct column is present it takes precedence over the legacy workaround of encoding adducts in @p SumFormula (e.g. @c Na1H-1).
 
 In the simplest case, only @p CompoundName, @p SumFormula, @p Charge and @p RetentionTime need to be given, all other values may be zero.
 Every combination of compound (mass), RT and charge defines one target for feature detection.
