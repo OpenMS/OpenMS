@@ -59,9 +59,9 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML,idparquet"));
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML,idparquet"));
     registerFullParam_(switcher_.getParameters());
   }
 
@@ -74,7 +74,7 @@ protected:
     vector<ProteinIdentification> proteins;
     PeptideIdentificationList peptides;
 
-    FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML});
+    FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
     Size counter = 0;
     if (do_proteins_)
@@ -92,7 +92,7 @@ protected:
       }
     }
 
-    FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
     OPENMS_LOG_INFO << "Successfully switched " << counter << " "
              << (do_proteins_ ? "protein" : "PSM") << " scores." << endl;
