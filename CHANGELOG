@@ -55,6 +55,7 @@ General:
   - New BrukerTimsImagingFile class for loading Bruker .d MALDI imaging data: reads pixel-layout metadata from MaldiApplicationInfo (x/y offsets and pixel size), maps each spot to an (x, y) coordinate in MSImagingGeometry, and populates an MSImagingExperiment; supports CENTROID and PROFILE export modes; gated by WITH_OPENTIMS (#9383)
   - BrukerTimsFile: new Config fields frame_id_min/frame_id_max for raw frame-ID range filtering and rt_min_sec/rt_max_sec for retention-time range filtering; the RT range is resolved to a frame-ID sub-range at load time via SQL; honored by load(), transform(), loadDIAStreaming(), and readDIAMetadata(); memory and I/O now scale with the requested range rather than the full file size (#9387)
   - Fix: SwathMapMassCorrection: removed null-pointer dereference and memory leak in correctMZ/correctIM when fetchSpectrumSwath returns an empty spectrum; empty-spectrum iterations are now skipped cleanly via continue or a null-pointer guard (#9386)
+  - Fix: SimpleSearchEngineAlgorithm: removed default(none) from the OpenMP parallel-for pragma that unconditionally listed annotated_hits_lock in its shared() clause; on macOS/Xcode where _OPENMP is not defined, this caused "use of undeclared identifier" compile errors and prevented building on those platforms (#9388)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
