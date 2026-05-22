@@ -146,7 +146,7 @@ The most important CMake variables are:
     On Windows and macOS the required <code>nethost</code> library is bundled with the .NET SDK/runtime installer.
     On Linux you may need to install the additional <code>libnethost-dev</code> (Debian/Ubuntu) or
     <code>dotnet-runtime-8.0</code> package explicitly.
-    Disabled automatically on Linux/aarch64 and macOS/arm64 targets.
+    Disabled automatically on Linux/aarch64 targets.
     (Default: On on supported platforms)</td>
   </tr>
   <tr>
