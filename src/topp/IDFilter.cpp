@@ -121,9 +121,9 @@ protected:
     specificity.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + 3); //only allow none,semi,full for now
 
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", {"idXML","consensusXML","idparquet"});
+    setValidFormats_("in", {"idXML","consensusXML","idparquet","consensusparquet"});
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", {"idXML","consensusXML","idparquet"});
+    setValidFormats_("out", {"idXML","consensusXML","idparquet","consensusparquet"});
 
     registerTOPPSubsection_("precursor", "Filtering by precursor attributes (RT, m/z, charge, length)");
     registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract [s].", false);
@@ -246,9 +246,9 @@ protected:
     {
       FileHandler().loadIdentifications(inputfile_name, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
     }
-    else if (infiletype == FileTypes::CONSENSUSXML)
+    else if (infiletype == FileTypes::CONSENSUSXML || infiletype == FileTypes::CONSENSUSPARQUET)
     {
-      FileHandler().loadConsensusFeatures(inputfile_name, cmap, {FileTypes::CONSENSUSXML});
+      FileHandler().loadConsensusFeatures(inputfile_name, cmap, {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
       for (auto& f : cmap)
       {
         UInt64 id = f.getUniqueId();
@@ -832,7 +832,7 @@ protected:
     {
       FileHandler().storeIdentifications(outputfile_name, proteins, peptides, {infiletype});
     }
-    else if (infiletype == FileTypes::CONSENSUSXML)
+    else if (infiletype == FileTypes::CONSENSUSXML || infiletype == FileTypes::CONSENSUSPARQUET)
     {
       for (auto& p : peptides)
       {
@@ -852,7 +852,7 @@ protected:
       peptides.clear();
       std::swap(proteins, cmap.getProteinIdentifications());
       proteins.clear();
-      FileHandler().storeConsensusFeatures(outputfile_name, cmap, {FileTypes::CONSENSUSXML});
+      FileHandler().storeConsensusFeatures(outputfile_name, cmap, {infiletype});
     }
 
     return EXECUTION_OK;
