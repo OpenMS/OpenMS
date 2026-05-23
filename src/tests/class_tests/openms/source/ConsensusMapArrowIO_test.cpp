@@ -893,4 +893,63 @@ START_SECTION(exportToParquet / importFromParquet - metadata round-trip (Documen
 }
 END_SECTION
 
+/////////////////////////////////////////////////////////////
+// ConsensusMap-level MetaValue list-type round-trip (parity with FeatureMap)
+/////////////////////////////////////////////////////////////
+
+START_SECTION(exportToParquet / importFromParquet - ConsensusMap-level list-typed MetaValue round-trip)
+{
+  ConsensusMap cmap;
+
+  // Scalar coverage exists in the metadata round-trip test above; this section
+  // exercises the typed-list deserializer paths, which mirror FeatureMap's
+  // setPrimaryMSRunPath-via-spectra_data case (StringList round-trip).
+  cmap.setMetaValue("spectra_data_like", DataValue(StringList{"sample_A.mzML", "sample_B.mzML"}));
+  cmap.setMetaValue("scan_counts", DataValue(IntList{100, 200, 300}));
+  cmap.setMetaValue("rt_offsets", DataValue(DoubleList{1.5, -0.5}));
+
+  ConsensusFeature cf;
+  cf.setRT(100.0);
+  cf.setMZ(500.0);
+  cf.setIntensity(1000.0f);
+  cf.setCharge(2);
+  cf.setUniqueId(9999);
+  cmap.push_back(cf);
+
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_lists_test");
+  cmap.setProteinIdentifications({prot_id});
+
+  String tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".cmd";
+
+  TEST_EQUAL(ConsensusMapArrowIO::exportToParquet(cmap, tmp_dir), true)
+
+  ConsensusMap imported;
+  TEST_EQUAL(ConsensusMapArrowIO::importFromParquet(tmp_dir, imported), true)
+
+  // StringList -> survives as STRING_LIST.
+  TEST_EQUAL(imported.metaValueExists("spectra_data_like"), true)
+  TEST_EQUAL(imported.getMetaValue("spectra_data_like").valueType(), DataValue::STRING_LIST)
+  StringList out_sl = imported.getMetaValue("spectra_data_like");
+  TEST_EQUAL(out_sl.size(), 2)
+  TEST_EQUAL(out_sl[0], "sample_A.mzML")
+  TEST_EQUAL(out_sl[1], "sample_B.mzML")
+
+  // IntList round-trip.
+  TEST_EQUAL(imported.getMetaValue("scan_counts").valueType(), DataValue::INT_LIST)
+  IntList out_il = imported.getMetaValue("scan_counts");
+  TEST_EQUAL(out_il.size(), 3)
+  TEST_EQUAL(out_il[1], 200)
+
+  // DoubleList round-trip.
+  TEST_EQUAL(imported.getMetaValue("rt_offsets").valueType(), DataValue::DOUBLE_LIST)
+  DoubleList out_dl = imported.getMetaValue("rt_offsets");
+  TEST_EQUAL(out_dl.size(), 2)
+  TEST_REAL_SIMILAR(out_dl[0], 1.5)
+  TEST_REAL_SIMILAR(out_dl[1], -0.5)
+}
+END_SECTION
+
 END_TEST
