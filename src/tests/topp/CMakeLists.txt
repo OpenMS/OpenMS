@@ -575,6 +575,35 @@ add_test("TOPP_FileConverter_31" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA
 add_test("TOPP_FileConverter_31_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/FileConverter_31.tmp.msp -in2 ${DATA_DIR_TOPP}/FileConverter_31_output.msp)
 set_tests_properties("TOPP_FileConverter_31_out" PROPERTIES DEPENDS "TOPP_FileConverter_31")
 
+# TOPP_FileConverter_32: featureparquet -> featureXML round-trip; validates parquet->XML load path.
+add_test("TOPP_FileConverter_32" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_9_output.featureparquet -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_32.tmp.featureXML -out_type featureXML)
+add_test("TOPP_FileConverter_32_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FileConverter_32.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FileConverter_32_output.featureXML)
+set_tests_properties("TOPP_FileConverter_32_out1" PROPERTIES DEPENDS "TOPP_FileConverter_32")
+
+# TOPP_FileConverter_33: consensusparquet -> consensusXML round-trip; validates parquet->XML load path.
+add_test("TOPP_FileConverter_33" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_14_output.consensusparquet -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_33.tmp.consensusXML -out_type consensusXML)
+add_test("TOPP_FileConverter_33_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FileConverter_33.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FileConverter_33_output.consensusXML)
+set_tests_properties("TOPP_FileConverter_33_out1" PROPERTIES DEPENDS "TOPP_FileConverter_33")
+
+# TOPP_FileConverter_34: featureparquet -> consensusparquet (mhcquant parquet-lane promote); content verified via XML round-trip.
+add_test("TOPP_FileConverter_34" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_9_output.featureparquet -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_34.tmp.consensusparquet -out_type consensusparquet)
+add_test("TOPP_FileConverter_34_back" ${TOPP_BIN_PATH}/FileConverter -test -in ${TESTS_TEMP_DIR}/FileConverter_34.tmp.consensusparquet -in_type consensusparquet -out ${TESTS_TEMP_DIR}/FileConverter_34.back.tmp.consensusXML -out_type consensusXML)
+add_test("TOPP_FileConverter_34_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FileConverter_34.back.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FileConverter_34_output.consensusXML)
+set_tests_properties("TOPP_FileConverter_34_back" PROPERTIES DEPENDS "TOPP_FileConverter_34")
+set_tests_properties("TOPP_FileConverter_34_out1" PROPERTIES DEPENDS "TOPP_FileConverter_34_back")
+
+# TOPP_FileConverter_35: featureXML -> consensusparquet (cross-serialization); content verified via XML round-trip.
+add_test("TOPP_FileConverter_35" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_9_output.featureXML -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_35.tmp.consensusparquet -out_type consensusparquet)
+add_test("TOPP_FileConverter_35_back" ${TOPP_BIN_PATH}/FileConverter -test -in ${TESTS_TEMP_DIR}/FileConverter_35.tmp.consensusparquet -in_type consensusparquet -out ${TESTS_TEMP_DIR}/FileConverter_35.back.tmp.consensusXML -out_type consensusXML)
+add_test("TOPP_FileConverter_35_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FileConverter_35.back.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FileConverter_35_output.consensusXML)
+set_tests_properties("TOPP_FileConverter_35_back" PROPERTIES DEPENDS "TOPP_FileConverter_35")
+set_tests_properties("TOPP_FileConverter_35_out1" PROPERTIES DEPENDS "TOPP_FileConverter_35_back")
+
+# TOPP_FileConverter_36: featureparquet -> consensusXML (cross-serialization); validates rejection-guard correctness.
+add_test("TOPP_FileConverter_36" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_9_output.featureparquet -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_36.tmp.consensusXML -out_type consensusXML)
+add_test("TOPP_FileConverter_36_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FileConverter_36.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FileConverter_36_output.consensusXML)
+set_tests_properties("TOPP_FileConverter_36_out1" PROPERTIES DEPENDS "TOPP_FileConverter_36")
+
 #------------------------------------------------------------------------------
 # FileFilter tests
 add_test("TOPP_FileFilter_1" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out ${TESTS_TEMP_DIR}/FileFilter_1.tmp.mzML -rt :30 -mz :1000 -int :20000 -in_type mzML -out_type mzML)
