@@ -62,6 +62,7 @@ public:
       @param[in] _rt_ranges        RT tolerance per RT (parallel to @p _rts); a one-element vector is broadcast, an empty vector uses the algorithm default.
       @param[in] _iso_distrib      Pre-computed isotope-intensity distribution; empty (or first entry @c 0) triggers computation from @p _formula at library-build time.
       @param[in] _ion_mobilities   Optional ion-mobility values (parallel to @p _rts); a one-element vector is broadcast, an empty vector disables IM filtering for this target.
+      @param[in] _adduct           Adduct string (e.g. @c "M+H;1+", @c "M+Na;1+"); empty lets downstream logic infer defaults from charge polarity.
     */
     FeatureFinderMetaboIdentCompound(const String& _name,
         const String& _formula,
