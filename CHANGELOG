@@ -294,6 +294,14 @@ TOPP tools:
       - Added .idparquet output support; -out now accepts .idparquet format in addition to idXML (#9232)
     IDFileConverter:
       - Added .idparquet input/output support; can now convert to and from the native .idparquet identification Parquet bundle (#9232)
+    PeptideIndexer:
+      - Added .idparquet input/output support; -in and -out now accept .idparquet bundles in addition to idXML (#9396)
+    IDScoreSwitcher:
+      - Added .idparquet input/output support; -in and -out now accept .idparquet bundles in addition to idXML (#9396)
+    PSMFeatureExtractor:
+      - Added .idparquet input/output support; -in, -out and -out_type now accept .idparquet in addition to idXML and mzid (#9396)
+    IDFilter:
+      - Added .idparquet input/output support; -in, -out and the whitelist/blacklist peptide inputs now accept .idparquet bundles in addition to idXML (#9396)
     OpenSwathChromatogramExtractor:
       - Compound identifiers in output chromatograms for metabolite targets now use the CompoundName user-param (compound_name field) instead of the compound id, aligning with OpenSwathWorkflow behavior (#9271)
   New tools:
