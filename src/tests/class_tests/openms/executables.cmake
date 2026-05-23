@@ -261,6 +261,7 @@ set(format_executables_list
   SpecArrayFile_test
   SqMassFile_test
   MRMFile_test
+  ThermoRawFile_test
   SwathMapMassCorrection_test
   SwathFile_test
   SwathFileConsumer_test

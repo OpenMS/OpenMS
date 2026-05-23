@@ -33,6 +33,7 @@
 #include <set>
 #include <unordered_map>
 #include <optional>
+#include <stdexcept>
 
 // Open-addressing flat hash map (Boost 1.81+). Used in FrameAggregator's
 // hot path because it eliminates per-node allocations and pointer chasing,
@@ -1455,6 +1456,11 @@ namespace OpenMS
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         path + " (opentims: " + String(e.what()) + ")");
+    }
+    catch (...)
+    {
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        path + " (opentims: unknown error)");
     }
 
     using Strategy = Config::TimsCalibrationStrategy;
