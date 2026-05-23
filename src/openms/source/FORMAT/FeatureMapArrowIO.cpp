@@ -1210,6 +1210,10 @@ bool FeatureMapArrowIO::exportToParquet(
   const String& directory,
   const ParquetWriteConfig& config)
 {
+  // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
+  // so we never leave a partial .featureparquet behind. Throws Exception::InvalidValue.
+  ProteinIdentificationArrowIO::checkUniqueIdentifiers(feature_map.getProteinIdentifications());
+
   // 1. Create output directory
   try
   {
@@ -1826,6 +1830,23 @@ bool FeatureMapArrowIO::importFromParquet(
   if (!importPSMsFromArrow(psms_table, feature_map))
   {
     return false;
+  }
+
+  // 4. Synthesize fresh ProtID identifiers + apply rename to every pep_id collection
+  //    we own (per-feature + unassigned). Mirrors IdXMLFile.cpp:530 — the stored
+  //    identifier becomes informational; the in-memory identifier downstream sees
+  //    is freshly synthesized with a UniqueIdGenerator suffix.
+  {
+    auto& prot_ids = feature_map.getProteinIdentifications();
+    auto rename = ProteinIdentificationArrowIO::synthesizeRunIdentifiers(prot_ids);
+
+    for (auto& feature : feature_map)
+    {
+      ProteinIdentificationArrowIO::applyRunIdentifierRename(
+          rename, feature.getPeptideIdentifications());
+    }
+    ProteinIdentificationArrowIO::applyRunIdentifierRename(
+        rename, feature_map.getUnassignedPeptideIdentifications());
   }
 
   return true;

@@ -728,7 +728,14 @@ START_SECTION(exportToParquet / importFromParquet - full round-trip)
 
   // --- Verify protein identifications ---
   TEST_EQUAL(imported.getProteinIdentifications().size(), 1)
-  TEST_EQUAL(imported.getProteinIdentifications()[0].getIdentifier(), "run_full_1")
+  // Identifier synthesized on load per IdXMLFile.cpp:530 parity — stored "run_full_1"
+  // becomes `<search_engine>_<date>_<UniqueIdGenerator>`. All pep_id collections
+  // (per-feature + unassigned) are re-stamped in lock-step.
+  const String& fm_synth_id = imported.getProteinIdentifications()[0].getIdentifier();
+  TEST_NOT_EQUAL(fm_synth_id, "")
+  TEST_NOT_EQUAL(fm_synth_id, "run_full_1")
+  TEST_STRING_EQUAL(imported[0].getPeptideIdentifications()[0].getIdentifier(), fm_synth_id);
+  TEST_STRING_EQUAL(imported.getUnassignedPeptideIdentifications()[0].getIdentifier(), fm_synth_id);
   TEST_EQUAL(imported.getProteinIdentifications()[0].getSearchEngine(), "Comet")
   TEST_EQUAL(imported.getProteinIdentifications()[0].getHits().size(), 1)
   TEST_EQUAL(imported.getProteinIdentifications()[0].getHits()[0].getAccession(), "P12345")
@@ -1154,6 +1161,33 @@ START_SECTION(exportToParquet / importFromParquet - FeatureMap-level MetaValue r
   TEST_EQUAL(out_dl.size(), 2)
   TEST_REAL_SIMILAR(out_dl[0], 1.5)
   TEST_REAL_SIMILAR(out_dl[1], 2.5)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Fix #2b: exportToParquet rejects duplicate ProtID identifiers (XML-lane parity)
+/////////////////////////////////////////////////////////////
+
+START_SECTION(exportToParquet - duplicate ProteinIdentification identifiers throw Exception::InvalidValue)
+{
+  FeatureMap fm;
+
+  ProteinIdentification p1; p1.setIdentifier("dup");
+  ProteinIdentification p2; p2.setIdentifier("dup");
+  fm.setProteinIdentifications({p1, p2});
+
+  Feature f;
+  f.setRT(50.0); f.setMZ(400.0); f.setIntensity(500.0f); f.setCharge(1); f.setUniqueId(101);
+  fm.push_back(f);
+
+  String tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".fmd";
+
+  // The store-side check fires before any Arrow builder is allocated, so no
+  // partial .featureparquet exists on disk after the throw.
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 FeatureMapArrowIO::exportToParquet(fm, tmp_dir))
 }
 END_SECTION
 

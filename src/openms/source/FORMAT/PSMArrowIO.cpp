@@ -54,6 +54,10 @@ bool PSMArrowIO::exportToParquet(
   bool export_all_psms,
   const ParquetWriteConfig& config)
 {
+  // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
+  // so we never leave a partial .idparquet behind.
+  ProteinIdentificationArrowIO::checkUniqueIdentifiers(protein_identifications);
+
   if (!ensureDirectory_(dir)) { return false; }
 
   // PSMs (PSMSchema, lossless)
@@ -134,6 +138,13 @@ bool PSMArrowIO::importFromParquet(
   {
     return false;
   }
+
+  // Mirror IdXMLFile.cpp:530 — synthesize fresh ProtID identifiers on every load
+  // and re-stamp pep_ids in lock-step. Synthesis runs only after all 4 tables have
+  // loaded with stored identifiers as join keys; from here the in-memory identifier
+  // is what downstream tools see.
+  auto rename = ProteinIdentificationArrowIO::synthesizeRunIdentifiers(tmp_proteins);
+  ProteinIdentificationArrowIO::applyRunIdentifierRename(rename, tmp_peptides);
 
   protein_identifications.swap(tmp_proteins);
   peptide_identifications.swap(tmp_peptides);

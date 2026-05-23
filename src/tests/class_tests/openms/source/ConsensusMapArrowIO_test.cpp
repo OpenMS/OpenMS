@@ -741,7 +741,14 @@ START_SECTION(exportToParquet / importFromParquet - full round-trip)
 
   // --- Verify protein identifications ---
   TEST_EQUAL(imported.getProteinIdentifications().size(), 1)
-  TEST_EQUAL(imported.getProteinIdentifications()[0].getIdentifier(), "run_full_1")
+  // Identifier synthesized on load per IdXMLFile.cpp:530 parity — stored "run_full_1"
+  // becomes `<search_engine>_<date>_<UniqueIdGenerator>`. All pep_id collections
+  // (per-consensus-feature + unassigned) are re-stamped in lock-step.
+  const String& cm_synth_id = imported.getProteinIdentifications()[0].getIdentifier();
+  TEST_NOT_EQUAL(cm_synth_id, "")
+  TEST_NOT_EQUAL(cm_synth_id, "run_full_1")
+  TEST_STRING_EQUAL(imported[0].getPeptideIdentifications()[0].getIdentifier(), cm_synth_id);
+  TEST_STRING_EQUAL(imported.getUnassignedPeptideIdentifications()[0].getIdentifier(), cm_synth_id);
   TEST_EQUAL(imported.getProteinIdentifications()[0].getSearchEngine(), "Comet")
   TEST_EQUAL(imported.getProteinIdentifications()[0].getHits().size(), 1)
   TEST_EQUAL(imported.getProteinIdentifications()[0].getHits()[0].getAccession(), "P12345")
@@ -949,6 +956,31 @@ START_SECTION(exportToParquet / importFromParquet - ConsensusMap-level list-type
   TEST_EQUAL(out_dl.size(), 2)
   TEST_REAL_SIMILAR(out_dl[0], 1.5)
   TEST_REAL_SIMILAR(out_dl[1], -0.5)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Fix #2b: exportToParquet rejects duplicate ProtID identifiers (XML-lane parity)
+/////////////////////////////////////////////////////////////
+
+START_SECTION(exportToParquet - duplicate ProteinIdentification identifiers throw Exception::InvalidValue)
+{
+  ConsensusMap cmap;
+
+  ProteinIdentification p1; p1.setIdentifier("dup");
+  ProteinIdentification p2; p2.setIdentifier("dup");
+  cmap.setProteinIdentifications({p1, p2});
+
+  ConsensusFeature cf;
+  cf.setRT(50.0); cf.setMZ(400.0); cf.setIntensity(500.0f); cf.setCharge(1); cf.setUniqueId(101);
+  cmap.push_back(cf);
+
+  String tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".cmd";
+
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 ConsensusMapArrowIO::exportToParquet(cmap, tmp_dir))
 }
 END_SECTION
 

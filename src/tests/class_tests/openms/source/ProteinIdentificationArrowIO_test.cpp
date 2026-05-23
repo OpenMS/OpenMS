@@ -1349,6 +1349,115 @@ START_SECTION(protein groups with data arrays round trip)
 END_SECTION
 
 /////////////////////////////////////////////////////////////
+// Identifier handling parity helpers (synthesize / rename / check unique)
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] synthesizeRunIdentifiers + applyRunIdentifierRename - happy path))
+{
+  vector<ProteinIdentification> prot_ids(2);
+  prot_ids[0].setIdentifier("orig_run_A");
+  prot_ids[0].setSearchEngine("Comet");
+  prot_ids[0].setDateTime(DateTime::fromString("2025-08-01T12:00:00"));
+  prot_ids[1].setIdentifier("orig_run_B");
+  prot_ids[1].setSearchEngine("Mascot");
+  prot_ids[1].setDateTime(DateTime::fromString("2025-08-02T13:00:00"));
+
+  PeptideIdentificationList pep_ids;
+  PeptideIdentification p1; p1.setIdentifier("orig_run_A"); pep_ids.push_back(p1);
+  PeptideIdentification p2; p2.setIdentifier("orig_run_B"); pep_ids.push_back(p2);
+  PeptideIdentification p3; p3.setIdentifier("orphan");     pep_ids.push_back(p3);
+
+  auto rename = ProteinIdentificationArrowIO::synthesizeRunIdentifiers(prot_ids);
+
+  // Both ProtIDs get fresh identifiers; in-place mutation visible.
+  TEST_EQUAL(rename.size(), 2)
+  TEST_NOT_EQUAL(prot_ids[0].getIdentifier(), "orig_run_A")
+  TEST_NOT_EQUAL(prot_ids[1].getIdentifier(), "orig_run_B")
+  TEST_NOT_EQUAL(prot_ids[0].getIdentifier(), prot_ids[1].getIdentifier())
+
+  // Synthesized identifier shape: <search_engine>_<date>_<UniqueIdGenerator>.
+  TEST_TRUE(prot_ids[0].getIdentifier().hasPrefix("Comet_2025-08-01T12:00:00_"))
+  TEST_TRUE(prot_ids[1].getIdentifier().hasPrefix("Mascot_2025-08-02T13:00:00_"))
+
+  // Rename map agrees with the synthesized values.
+  TEST_STRING_EQUAL(rename["orig_run_A"], prot_ids[0].getIdentifier())
+  TEST_STRING_EQUAL(rename["orig_run_B"], prot_ids[1].getIdentifier())
+
+  // applyRunIdentifierRename re-stamps matching pep_ids; orphans untouched.
+  ProteinIdentificationArrowIO::applyRunIdentifierRename(rename, pep_ids);
+  TEST_STRING_EQUAL(pep_ids[0].getIdentifier(), prot_ids[0].getIdentifier())
+  TEST_STRING_EQUAL(pep_ids[1].getIdentifier(), prot_ids[1].getIdentifier())
+  TEST_STRING_EQUAL(pep_ids[2].getIdentifier(), "orphan")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] synthesizeRunIdentifiers - edge cases (empty search engine, invalid date)))
+{
+  vector<ProteinIdentification> prot_ids(2);
+  // Empty search engine -> prefix becomes "unknown_".
+  prot_ids[0].setIdentifier("emptySE");
+  prot_ids[0].setSearchEngine("");
+  prot_ids[0].setDateTime(DateTime::fromString("2025-09-09T09:09:09"));
+  // Invalid (default) DateTime -> placeholder "1900-01-01T00:00:00".
+  prot_ids[1].setIdentifier("noDate");
+  prot_ids[1].setSearchEngine("Sage");
+  prot_ids[1].setDateTime(DateTime{});
+
+  auto rename = ProteinIdentificationArrowIO::synthesizeRunIdentifiers(prot_ids);
+
+  TEST_TRUE(prot_ids[0].getIdentifier().hasPrefix("unknown_2025-09-09T09:09:09_"))
+  TEST_TRUE(prot_ids[1].getIdentifier().hasPrefix("Sage_1900-01-01T00:00:00_"))
+  TEST_EQUAL(rename.size(), 2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] synthesizeRunIdentifiers - duplicate stored identifiers collapse rename map with WARN))
+{
+  vector<ProteinIdentification> prot_ids(2);
+  // Both share stored identifier "dup" (pre-fix-#2b corruption scenario).
+  prot_ids[0].setIdentifier("dup");
+  prot_ids[0].setSearchEngine("Comet");
+  prot_ids[0].setDateTime(DateTime::fromString("2025-09-09T09:09:09"));
+  prot_ids[1].setIdentifier("dup");
+  prot_ids[1].setSearchEngine("Mascot");
+  prot_ids[1].setDateTime(DateTime::fromString("2025-09-09T09:09:09"));
+
+  auto rename = ProteinIdentificationArrowIO::synthesizeRunIdentifiers(prot_ids);
+
+  // Each ProtID gets its own distinct synthesized identifier ...
+  TEST_NOT_EQUAL(prot_ids[0].getIdentifier(), prot_ids[1].getIdentifier())
+  TEST_TRUE(prot_ids[0].getIdentifier().hasPrefix("Comet_"))
+  TEST_TRUE(prot_ids[1].getIdentifier().hasPrefix("Mascot_"))
+  // ... but rename map has 1 entry, last-seen wins. Pep_ids with stored
+  // identifier "dup" will all re-stamp to the LAST ProtID (the Mascot one).
+  TEST_EQUAL(rename.size(), 1)
+  TEST_STRING_EQUAL(rename["dup"], prot_ids[1].getIdentifier())
+}
+END_SECTION
+
+START_SECTION(static void checkUniqueIdentifiers(const std::vector<ProteinIdentification>&))
+{
+  // No duplicates -> no throw. (If the call throws, the test framework propagates it as a failure.)
+  vector<ProteinIdentification> ok(2);
+  ok[0].setIdentifier("run_X");
+  ok[1].setIdentifier("run_Y");
+  ProteinIdentificationArrowIO::checkUniqueIdentifiers(ok);
+  TEST_TRUE(true)  // reached only if the call above didn't throw
+
+  // Duplicate identifiers -> throws Exception::InvalidValue with the canonical
+  // message text used by XMLHandler::checkUniqueIdentifiers_ — log-grepping
+  // "ProteinIdentification run identifiers are not unique" finds both lanes.
+  vector<ProteinIdentification> dup(2);
+  dup[0].setIdentifier("dup");
+  dup[1].setIdentifier("dup");
+  TEST_EXCEPTION_WITH_MESSAGE(
+    Exception::InvalidValue,
+    ProteinIdentificationArrowIO::checkUniqueIdentifiers(dup),
+    "the value 'dup' was used but is not valid; ProteinIdentification run identifiers are not unique. This can lead to loss of unique PeptideIdentification assignment. Duplicated Protein-ID is:")
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
 END_TEST
