@@ -48,6 +48,7 @@ General:
   - Native .featureparquet and .consensusparquet formats: FileHandler now loads and stores FeatureMap as .featureparquet directory bundles and ConsensusMap as .consensusparquet directory bundles via Parquet, parallel to .idparquet; FileTypes::FEATUREPARQUET and FileTypes::CONSENSUSPARQUET registered with isDirectoryType() = true (#9242)
   - Fix: FeatureMapArrowIO: FeatureMap-level MetaValues are now preserved across .featureparquet store/load via a new fmap_metavalues key in file-level Parquet metadata; previously only document_id / loaded_file_path / loaded_file_type / data_processing round-tripped, so FeatureMap::setPrimaryMSRunPath (which stores its argument as a spectra_data meta-value on the map itself per FeatureMap.cpp:415) was silently dropped, propagating filename='UNKNOWN' to downstream FLUKD / TextExporter / MzTabExporter steps; mirrors the existing cmap_metavalues handling in ConsensusMapArrowIO (extends #9242)
   - Fix: ProteinIdentificationArrowIO: parquet load now synthesizes fresh ProteinIdentification run identifiers (`<search_engine>_<date>_<UniqueIdGenerator>`) mirroring IdXMLFile.cpp:530, wired into the 3 parquet load entry points (PSMArrowIO::importFromParquet, FeatureMapArrowIO::importFromParquet, ConsensusMapArrowIO::importFromParquet); each entry point re-stamps every owned PeptideIdentification collection via a new applyRunIdentifierRename helper. Complementary store-side defense via a new checkUniqueIdentifiers helper rejects duplicate identifiers before any Arrow builder is allocated (Exception::InvalidValue, message text mirroring XMLHandler::checkUniqueIdentifiers_); wired into the 3 parquet store entry points. Closes the post-IDRipper-then-IDMerger collision scenario that previously collapsed two ripped .idparquet files sharing a stored run_identifier into a single in-memory IdentificationRun. Stored identifiers on disk are now informational; existing .featureparquet / .consensusparquet / .idparquet files load unchanged (extends #9232)
+  - Document size-1 `.unknown` fallback contract on FileHandler::storeFeatures and storeConsensusFeatures (verbatim mirror of the wording added to storeIdentifications in 30d2f9ba58 for PR #9396); the size-1 fallback rule applies identically to all three store* overloads, and TOPP tools writing through TOPPAS pipelines must pass a single concrete type to avoid InvalidFileType on `.unknown` intermediates (#9405)
   - Fix: MapAlignmentAlgorithmIdentification::align() no longer leaks reference_ state between consecutive calls that use an internal reference (reference_index >= 0); previously checkParameters_ inspected the stale reference_ left over from the prior call, inflating the effective run count and, when min_run_occur was higher than the actual number of input maps, silently degrading subsequent alignments to identity transforms. MapAlignerTreeGuided's tree-walking align_algorithm_ reuse hit this latent bug; the fix clears reference_ at the top of align() when reference_index >= 0, before checkParameters_ runs.
   - Fix: MapAlignerTreeGuided exported transformations whose data points were synthesized from (original_RT, already_transformed_RT) pairs of the merged map, so a spline fit through those pairs essentially recovered the spline's own outputs and reported near-zero residuals; computeTrafosByOriginalRT() now re-aligns each original input map against the final tree-guided consensus via MapAlignmentAlgorithmIdentification, so exported transformations map original input RT to the final consensus RT scale and the alignment statistics reported by downstream consumers like ProteomicsLFQ become meaningful (transformed feature RTs may shift slightly compared to the previous per-feature approximation).
   - ProteomicsLFQ: re-enabled tree_guided as a valid value for -alignment_order. It had been disabled because the previous MapAlignerTreeGuided trafo was tautological, leaving max_alignment_diff (used to calibrate the linker's RT tolerance) at ~0 and effectively useless; with the trafo fix above, post-alignment residual statistics are now informative and the tree-guided code path is usable end-to-end. Default remains star.
@@ -239,6 +240,7 @@ TOPP tools:
       - Added MSP file format support (#8650)
       - Added OpenSwath sqMass to XIC Parquet conversion support (#8829)
       - Added experimental Bruker TimsTOF .d directory (BRUKER_TDF) to mzML conversion via BrukerTimsFile; requires WITH_TIMSRUST=ON (#8975)
+      - Added .featureparquet and .consensusparquet support to -in, -out, and -out_type; all in_type and out_type dispatch branches plus the three "out_type must be feature/consensus" rejection guards extended with the parquet variants. Five new TOPP-tests (FileConverter_32..36) cover the full conversion-cell matrix (featureparquet↔featureXML, consensusparquet↔consensusXML, featureparquet→consensusparquet promote, and the two cross-serialization paths) (#9405)
     IsobaricWorkflow:
       - Fixed mzTab export when processing multiple mzML/idXML pairs (#8519)
       - Handles MS2 spectra without corresponding MS3 in SPS-MS3 workflow (#8592)
@@ -271,6 +273,7 @@ TOPP tools:
       - Documented input/output file type combinations (#8615)
     TextExporter:
       - Added support for XIC Parquet files (#8737, #8738)
+      - Added .idparquet, .featureparquet, and .consensusparquet read support on -in (load-only; output is always tsv/csv/txt) (#9405)
     FeatureFinderMultiplex, MultiplexResolver:
       - BREAKING: Parameter `missed_cleavages` renamed to `max_nr_labelled_aas` (#8911)
       - Now errors out with INCOMPATIBLE_INPUT_DATA when given IM_PEAK format (per-peak ion mobility) data (#9018)
@@ -280,6 +283,7 @@ TOPP tools:
       - Added multimer detection (dimers, trimers, etc.) with new max_multimer and multimer_log_penalty parameters; features annotated with [nM+adduct]+ style strings (#8888)
     IDConflictResolver:
       - Added rank aggregation resolve method (--resolve_method rank_aggregation) for consensus replicate identifications (#8907)
+      - Added .featureparquet and .consensusparquet support on -in/-out; output format follows input format (#9405)
     GenericWrapper:
       - BREAKING: GenericWrapper tool removed; migrate to direct TOPP tool invocations or TOPPAS workflows (#8981)
     FeatureFinderCentroided:
@@ -305,6 +309,17 @@ TOPP tools:
       - Added .idparquet input/output support; -in, -out and -out_type now accept .idparquet in addition to idXML and mzid (#9396)
     IDFilter:
       - Added .idparquet input/output support; -in, -out and the whitelist/blacklist peptide inputs now accept .idparquet bundles in addition to idXML (#9396)
+      - Added .consensusparquet support on -in/-out; the existing CONSENSUSXML branch is extended with CONSENSUSPARQUET, mirroring the idparquet treatment from #9396 (#9405)
+    MapRTTransformer:
+      - Added .featureparquet, .consensusparquet, and .idparquet read/write support on -in/-out; existing featureXML/consensusXML/idXML dispatch branches extended with the parquet siblings; output format follows input format (#9405)
+    MapAlignerIdentification:
+      - Added .featureparquet, .consensusparquet, and .idparquet read/write support on -in/-out/-reference:file; loadInitialMaps_ and storeTransformedMaps_ helpers refactored from direct FeatureXMLFile/ConsensusXMLFile calls to FileHandler with `if constexpr` template specialization (preserves the "avoid code duplication" intent); output format follows input format; MapAlignerBase REF_FLEXIBLE bypasses the strict reference-format-must-match check, so heterogeneous parquet/XML reference files are accepted (#9405)
+    FeatureFinderIdentification:
+      - Added .idparquet support on -id/-id_ext and .featureparquet support on -out/-candidates_in/-candidates_out; output feature format derives from -id (main path) or -candidates_in (re-score path); FeatureFinderIdentificationAlgorithm::storeFeatures(candidates_out) now passes a single concrete type derived from the filename, fixing a latent .unknown TOPPAS regression risk in the algorithm library (#9405)
+    FeatureLinkerUnlabeled, FeatureLinkerUnlabeledKD, FeatureLinkerUnlabeledQT, FeatureLinkerLabeled, FeatureLinkerWNet:
+      - Added .featureparquet and .consensusparquet support on -in/-out (5 binaries via FeatureLinkerBase; FeatureLinkerLabeled and FeatureLinkerUnlabeled also patched locally since they override registerOptionsAndFlags_/main_ respectively). New consensusOutTypeFor() helper makes the cross-serialization mapping explicit: parquet inputs produce .consensusparquet output, XML/EDTA inputs produce .consensusXML output. FeatureLinkerUnlabeled additionally falls back to reference_index=0 for FEATUREPARQUET inputs because FeatureXMLFile::loadSize is XML-only (#9405)
+    MzTabExporter:
+      - Added .idparquet, .featureparquet, and .consensusparquet read support on -in (load-only; output is always mzTab) (#9405)
     OpenSwathChromatogramExtractor:
       - Compound identifiers in output chromatograms for metabolite targets now use the CompoundName user-param (compound_name field) instead of the compound id, aligning with OpenSwathWorkflow behavior (#9271)
   New tools:
