@@ -288,7 +288,7 @@ protected:
     OPENMS_LOG_INFO << "writing output file: " << out << endl;
     
 
-    FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::MZIDENTML, FileTypes::IDXML, FileTypes::IDPARQUET});
+    FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {out_type});
 
 
     writeLogInfo_("PSMFeatureExtractor finished successfully!");

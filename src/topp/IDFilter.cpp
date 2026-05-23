@@ -830,7 +830,7 @@ protected:
 
     if (infiletype == FileTypes::IDXML || infiletype == FileTypes::IDPARQUET)
     {
-      FileHandler().storeIdentifications(outputfile_name, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
+      FileHandler().storeIdentifications(outputfile_name, proteins, peptides, {infiletype});
     }
     else if (infiletype == FileTypes::CONSENSUSXML)
     {

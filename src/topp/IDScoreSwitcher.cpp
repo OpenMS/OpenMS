@@ -74,6 +74,7 @@ protected:
     vector<ProteinIdentification> proteins;
     PeptideIdentificationList peptides;
 
+    const FileTypes::Type in_type = FileHandler::getType(in);
     FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
     Size counter = 0;
@@ -92,7 +93,7 @@ protected:
       }
     }
 
-    FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
+    FileHandler().storeIdentifications(out, proteins, peptides, {in_type == FileTypes::IDPARQUET ? FileTypes::IDPARQUET : FileTypes::IDXML});
 
     OPENMS_LOG_INFO << "Successfully switched " << counter << " "
              << (do_proteins_ ? "protein" : "PSM") << " scores." << endl;

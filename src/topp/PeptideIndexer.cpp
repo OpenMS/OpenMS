@@ -115,6 +115,7 @@ protected:
     std::vector<ProteinIdentification> prot_ids;
     PeptideIdentificationList pep_ids;
 
+    const FileTypes::Type in_type = FileHandler::getType(in);
     FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
     if (db_name.empty())
@@ -176,7 +177,7 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML, FileTypes::IDPARQUET});
+    FileHandler().storeIdentifications(out, prot_ids, pep_ids, {in_type == FileTypes::IDPARQUET ? FileTypes::IDPARQUET : FileTypes::IDXML});
 
     if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY)
     {
