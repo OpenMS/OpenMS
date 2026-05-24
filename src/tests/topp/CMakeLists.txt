@@ -224,6 +224,37 @@ add_test("TOPP_IDRipper_idparquet_diff_1"
     -whitelist "IdentificationRun date")
 set_tests_properties("TOPP_IDRipper_idparquet_diff_1" PROPERTIES DEPENDS "TOPP_IDRipper_idparquet_convert_1")
 
+# IDRipper_4: Fix-#2a end-to-end. Input is a single merged .idparquet whose
+# stored run_identifier "TopPerc_test" the post-Percolator FFI->FLUKD chain
+# produces (memory: [[idparquet-quant-chain]] cause-2). IDRipper splits by
+# file_origin into 2 per-file .idparquet outputs that both carry the shared
+# stored identifier. IDMerger remerging them must produce 2 distinct
+# IdentificationRuns — only possible if loader-side synthesizeRunIdentifiers
+# (mirroring IdXMLFile.cpp:530) re-stamps each file's ProtID with a fresh
+# UniqueIdGenerator suffix. Without the fix, IDMerger would collapse to 1
+# IdentificationRun. Fixture regenerated via IDRipper_4_input_generate.py.
+file(MAKE_DIRECTORY ${TESTS_TEMP_DIR}/IDRipper_4_split)
+add_test("TOPP_IDRipper_4_split"
+  ${TOPP_BIN_PATH}/IDRipper -test
+    -in ${DATA_DIR_TOPP}/IDRipper_4_input.idparquet
+    -out ${TESTS_TEMP_DIR}/IDRipper_4_split)
+add_test("TOPP_IDRipper_4_remerge"
+  ${TOPP_BIN_PATH}/IDMerger -test
+    -in ${TESTS_TEMP_DIR}/IDRipper_4_split/fileA.idparquet
+        ${TESTS_TEMP_DIR}/IDRipper_4_split/fileB.idparquet
+    -out ${TESTS_TEMP_DIR}/IDRipper_4_remerged.tmp.idparquet)
+set_tests_properties("TOPP_IDRipper_4_remerge" PROPERTIES DEPENDS "TOPP_IDRipper_4_split")
+add_test("TOPP_IDRipper_4_convert"
+  ${TOPP_BIN_PATH}/IDFileConverter -test
+    -in ${TESTS_TEMP_DIR}/IDRipper_4_remerged.tmp.idparquet
+    -out ${TESTS_TEMP_DIR}/IDRipper_4_remerged.tmp.idXML)
+set_tests_properties("TOPP_IDRipper_4_convert" PROPERTIES DEPENDS "TOPP_IDRipper_4_remerge")
+# Count IdentificationRun elements directly — synthesized identifiers carry a
+# non-deterministic UniqueIdGenerator suffix that can't byte-DIFF.
+add_test("TOPP_IDRipper_4_assert"
+  bash -c "test $(grep -c '<IdentificationRun' ${TESTS_TEMP_DIR}/IDRipper_4_remerged.tmp.idXML) -eq 2")
+set_tests_properties("TOPP_IDRipper_4_assert" PROPERTIES DEPENDS "TOPP_IDRipper_4_convert")
+
 #------------------------------------------------------------------------------
 # BaselineFilter tests
 add_test("TOPP_BaselineFilter_1" ${TOPP_BIN_PATH}/BaselineFilter -test -in ${DATA_DIR_TOPP}/BaselineFilter_input.mzML -out ${TESTS_TEMP_DIR}/BaselineFilter.tmp.mzML -struc_elem_length 1.5)

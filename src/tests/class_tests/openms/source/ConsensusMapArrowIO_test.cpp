@@ -741,7 +741,14 @@ START_SECTION(exportToParquet / importFromParquet - full round-trip)
 
   // --- Verify protein identifications ---
   TEST_EQUAL(imported.getProteinIdentifications().size(), 1)
-  TEST_EQUAL(imported.getProteinIdentifications()[0].getIdentifier(), "run_full_1")
+  // Identifier synthesized on load per IdXMLFile.cpp:530 parity — stored "run_full_1"
+  // becomes `<search_engine>_<date>_<UniqueIdGenerator>`. All pep_id collections
+  // (per-consensus-feature + unassigned) are re-stamped in lock-step.
+  const String& cm_synth_id = imported.getProteinIdentifications()[0].getIdentifier();
+  TEST_NOT_EQUAL(cm_synth_id, "")
+  TEST_NOT_EQUAL(cm_synth_id, "run_full_1")
+  TEST_STRING_EQUAL(imported[0].getPeptideIdentifications()[0].getIdentifier(), cm_synth_id);
+  TEST_STRING_EQUAL(imported.getUnassignedPeptideIdentifications()[0].getIdentifier(), cm_synth_id);
   TEST_EQUAL(imported.getProteinIdentifications()[0].getSearchEngine(), "Comet")
   TEST_EQUAL(imported.getProteinIdentifications()[0].getHits().size(), 1)
   TEST_EQUAL(imported.getProteinIdentifications()[0].getHits()[0].getAccession(), "P12345")
@@ -890,6 +897,90 @@ START_SECTION(exportToParquet / importFromParquet - metadata round-trip (Documen
   TEST_EQUAL(out_dp2.getSoftware().getName(), "FeatureLinkerUnlabeledQT")
   TEST_EQUAL(out_dp2.getProcessingActions().count(DataProcessing::FEATURE_GROUPING), 1)
   TEST_REAL_SIMILAR(double(out_dp2.getMetaValue("max_rt_shift")), 300.5)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// ConsensusMap-level MetaValue list-type round-trip (parity with FeatureMap)
+/////////////////////////////////////////////////////////////
+
+START_SECTION(exportToParquet / importFromParquet - ConsensusMap-level list-typed MetaValue round-trip)
+{
+  ConsensusMap cmap;
+
+  // Scalar coverage exists in the metadata round-trip test above; this section
+  // exercises the typed-list deserializer paths, which mirror FeatureMap's
+  // setPrimaryMSRunPath-via-spectra_data case (StringList round-trip).
+  cmap.setMetaValue("spectra_data_like", DataValue(StringList{"sample_A.mzML", "sample_B.mzML"}));
+  cmap.setMetaValue("scan_counts", DataValue(IntList{100, 200, 300}));
+  cmap.setMetaValue("rt_offsets", DataValue(DoubleList{1.5, -0.5}));
+
+  ConsensusFeature cf;
+  cf.setRT(100.0);
+  cf.setMZ(500.0);
+  cf.setIntensity(1000.0f);
+  cf.setCharge(2);
+  cf.setUniqueId(9999);
+  cmap.push_back(cf);
+
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_lists_test");
+  cmap.setProteinIdentifications({prot_id});
+
+  String tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".cmd";
+
+  TEST_EQUAL(ConsensusMapArrowIO::exportToParquet(cmap, tmp_dir), true)
+
+  ConsensusMap imported;
+  TEST_EQUAL(ConsensusMapArrowIO::importFromParquet(tmp_dir, imported), true)
+
+  // StringList -> survives as STRING_LIST.
+  TEST_EQUAL(imported.metaValueExists("spectra_data_like"), true)
+  TEST_EQUAL(imported.getMetaValue("spectra_data_like").valueType(), DataValue::STRING_LIST)
+  StringList out_sl = imported.getMetaValue("spectra_data_like");
+  TEST_EQUAL(out_sl.size(), 2)
+  TEST_EQUAL(out_sl[0], "sample_A.mzML")
+  TEST_EQUAL(out_sl[1], "sample_B.mzML")
+
+  // IntList round-trip.
+  TEST_EQUAL(imported.getMetaValue("scan_counts").valueType(), DataValue::INT_LIST)
+  IntList out_il = imported.getMetaValue("scan_counts");
+  TEST_EQUAL(out_il.size(), 3)
+  TEST_EQUAL(out_il[1], 200)
+
+  // DoubleList round-trip.
+  TEST_EQUAL(imported.getMetaValue("rt_offsets").valueType(), DataValue::DOUBLE_LIST)
+  DoubleList out_dl = imported.getMetaValue("rt_offsets");
+  TEST_EQUAL(out_dl.size(), 2)
+  TEST_REAL_SIMILAR(out_dl[0], 1.5)
+  TEST_REAL_SIMILAR(out_dl[1], -0.5)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Fix #2b: exportToParquet rejects duplicate ProtID identifiers (XML-lane parity)
+/////////////////////////////////////////////////////////////
+
+START_SECTION(exportToParquet - duplicate ProteinIdentification identifiers throw Exception::InvalidValue)
+{
+  ConsensusMap cmap;
+
+  ProteinIdentification p1; p1.setIdentifier("dup");
+  ProteinIdentification p2; p2.setIdentifier("dup");
+  cmap.setProteinIdentifications({p1, p2});
+
+  ConsensusFeature cf;
+  cf.setRT(50.0); cf.setMZ(400.0); cf.setIntensity(500.0f); cf.setCharge(1); cf.setUniqueId(101);
+  cmap.push_back(cf);
+
+  String tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".cmd";
+
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 ConsensusMapArrowIO::exportToParquet(cmap, tmp_dir))
 }
 END_SECTION
 
