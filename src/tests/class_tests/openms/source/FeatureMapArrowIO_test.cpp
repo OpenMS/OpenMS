@@ -71,7 +71,7 @@ START_SECTION(exportFeaturesToArrow - single feature with convex hulls and metav
   points.push_back(DPosition<2>(102.0, 501.0));
   points.push_back(DPosition<2>(102.0, 499.5));
   hull.setHullPoints(points);
-  f.getConvexHulls().push_back(hull);
+  f.addConvexHull(hull);
 
   // Add metavalues
   f.setMetaValue("my_int", 42);
@@ -242,7 +242,7 @@ START_SECTION(importFeaturesFromArrow - round-trip with subordinates and hulls a
   pts1.push_back(DPosition<2>(51.0, 401.0));
   pts1.push_back(DPosition<2>(51.0, 399.0));
   hull1.setHullPoints(pts1);
-  f1.getConvexHulls().push_back(hull1);
+  f1.addConvexHull(hull1);
 
   // Metavalues (note: setWidth also adds FWHM metavalue)
   f1.setMetaValue("my_int", 42);
@@ -637,7 +637,7 @@ START_SECTION(exportToParquet / importFromParquet - full round-trip)
   ConvexHull2D hull;
   std::vector<DPosition<2>> pts = {{99.0, 499.0}, {99.0, 501.0}, {101.0, 501.0}, {101.0, 499.0}};
   hull.setHullPoints(pts);
-  f1.getConvexHulls().push_back(hull);
+  f1.addConvexHull(hull);
 
   // Subordinate
   Feature sub;

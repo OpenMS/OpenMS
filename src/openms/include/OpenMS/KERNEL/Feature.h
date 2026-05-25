@@ -86,10 +86,14 @@ public:
     //@{
     /// Non-mutable access to the convex hulls
     const std::vector<ConvexHull2D>& getConvexHulls() const;
-    /// Mutable access to the convex hulls of single mass traces
-    std::vector<ConvexHull2D>& getConvexHulls();
+    /// Mutable access to the convex hulls (marks cache as dirty)
+    std::vector<ConvexHull2D>& getMutableConvexHulls();
     /// Set the convex hulls of single mass traces
     void setConvexHulls(const std::vector<ConvexHull2D>& hulls);
+    /// Add a single convex hull
+    void addConvexHull(const ConvexHull2D& hull);
+    /// Remove all convex hulls
+    void clearConvexHulls();
 
     /**
       @brief Returns the overall convex hull of the feature (calculated from the convex hulls of the mass traces)

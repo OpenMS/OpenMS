@@ -66,7 +66,7 @@ void processFeatureForOutput(OpenMS::Feature& curr_feature, bool write_convex_hu
   // Save some space when writing out the featureXML
   if (!write_convex_hull_)
   {
-    curr_feature.getConvexHulls().clear();
+    curr_feature.clearConvexHulls();
   }
 
   // Ensure a unique id is present

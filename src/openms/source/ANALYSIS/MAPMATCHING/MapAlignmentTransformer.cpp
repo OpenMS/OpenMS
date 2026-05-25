@@ -109,7 +109,7 @@ namespace OpenMS
     applyToBaseFeature_(feature, trafo, store_original_rt);
 
     // loop over all convex hulls
-    vector<ConvexHull2D>& convex_hulls = feature.getConvexHulls();
+    vector<ConvexHull2D>& convex_hulls = feature.getMutableConvexHulls();
     for (vector<ConvexHull2D>::iterator chiter = convex_hulls.begin();
          chiter != convex_hulls.end(); ++chiter)
     {

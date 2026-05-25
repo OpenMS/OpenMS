@@ -895,7 +895,7 @@ public:
         f.setIntensity(peak_integral);
         ConvexHull2D hull;
         hull.setHullPoints(pa.hull_points);
-        f.getConvexHulls().push_back(hull);
+        f.addConvexHull(hull);
 
         f.setMZ(chromatogram.getProduct().getMZ());
         mrmFeature.setMZ(chromatogram.getPrecursor().getMZ());
@@ -1065,7 +1065,7 @@ public:
         f.setIntensity(peak_integral);
         ConvexHull2D hull;
         hull.setHullPoints(pa.hull_points);
-        f.getConvexHulls().push_back(hull);
+        f.addConvexHull(hull);
         f.setMetaValue(MRMTransitionGroupPickerMeta::nativeID(), chromatogram.getNativeID());
         f.setMetaValue(MRMTransitionGroupPickerMeta::peakApexInt(), peak_apex_int);
 

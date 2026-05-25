@@ -859,7 +859,7 @@ namespace // anonymous
       }
 
       hull.setHullPoints(hull_points);
-      feature.getConvexHulls().push_back(hull);
+      feature.addConvexHull(hull);
     }
   }
 

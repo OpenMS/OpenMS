@@ -78,7 +78,7 @@ namespace OpenMS
     return convex_hulls_;
   }
 
-  std::vector<ConvexHull2D>& Feature::getConvexHulls()
+  std::vector<ConvexHull2D>& Feature::getMutableConvexHulls()
   {
     convex_hulls_modified_ = true;
     return convex_hulls_;
@@ -88,6 +88,18 @@ namespace OpenMS
   {
     convex_hulls_modified_ = true;
     convex_hulls_ = hulls;
+  }
+
+  void Feature::addConvexHull(const ConvexHull2D& hull)
+  {
+    convex_hulls_modified_ = true;
+    convex_hulls_.push_back(hull);
+  }
+
+  void Feature::clearConvexHulls()
+  {
+    convex_hulls_modified_ = true;
+    convex_hulls_.clear();
   }
 
   ConvexHull2D& Feature::getConvexHull() const

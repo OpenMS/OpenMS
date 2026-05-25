@@ -3793,11 +3793,20 @@ Sets the quality score for a specific dimension
 :param index: The dimension index (0 for RT, 1 for m/z)
 :param q: Quality score to set (typically 0-1 range)
 )doc")
-        .def("getConvexHulls", [](OpenMS::Feature& self) -> std::vector<OpenMS::ConvexHull2D> & { return self.getConvexHulls(); }, nb::rv_policy::reference_internal,
+        .def("getConvexHulls", [](const OpenMS::Feature& self) -> const std::vector<OpenMS::ConvexHull2D> & { return self.getConvexHulls(); }, nb::rv_policy::copy,
             R"doc(
 Returns the convex hulls of individual mass traces
 :return: List of convex hulls, one for each isotopic mass trace
 Each isotopic peak typically has its own convex hull in RT-m/z space
+)doc")
+        .def("addConvexHull", [](OpenMS::Feature& self, const OpenMS::ConvexHull2D& hull) { self.addConvexHull(hull); }, "hull"_a,
+            R"doc(
+Adds a single convex hull to the feature
+:param hull: The convex hull to add
+)doc")
+        .def("clearConvexHulls", [](OpenMS::Feature& self) { self.clearConvexHulls(); },
+            R"doc(
+Removes all convex hulls from the feature
 )doc")
         .def("setConvexHulls", [](OpenMS::Feature& self, const std::vector<OpenMS::ConvexHull2D>& hulls) { return self.setConvexHulls(hulls); }, "hulls"_a,
             R"doc(

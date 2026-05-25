@@ -940,14 +940,15 @@ namespace OpenMS::Internal
       {
         Size hull_index = query_hull.getColumn("hull_index").getUInt();
         // first row should have max. hull index (sorted descending):
-        if (feature.getConvexHulls().size() <= hull_index)
+        auto& hulls = feature.getMutableConvexHulls();
+        if (hulls.size() <= hull_index)
         {
-          feature.getConvexHulls().resize(hull_index + 1);
+          hulls.resize(hull_index + 1);
         }
         ConvexHull2D::PointType point(query_hull.getColumn("point_x").getDouble(),
                                       query_hull.getColumn("point_y").getDouble());
         // @TODO: this may be inefficient (see implementation of "addPoint"):
-        feature.getConvexHulls()[hull_index].addPoint(point);
+        hulls[hull_index].addPoint(point);
       }
       query_hull.reset(); // get ready for new executeStep()
     }

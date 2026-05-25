@@ -210,7 +210,7 @@ protected:
             group = ft.getMetaValue(Constants::UserParam::ADDUCT_GROUP);
           }
           ft.getSubordinates().clear();
-          ft.getConvexHulls().clear();
+          ft.clearConvexHulls();
           ft.clearMetaInfo();
           if (!adduct.empty())
           {

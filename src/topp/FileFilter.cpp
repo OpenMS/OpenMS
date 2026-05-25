@@ -1149,7 +1149,7 @@ protected:
           bool const charge_ok = ((charge_l <= fm.getCharge()) && (fm.getCharge() <= charge_u));
           bool const size_ok = ((size_l <= fm.getSubordinates().size()) && (fm.getSubordinates().size() <= size_u));
           bool const q_ok = ((q_l <= fm.getOverallQuality()) && (fm.getOverallQuality() <= q_u));
-          if (remove_hulls) fm.getConvexHulls().clear();
+          if (remove_hulls) fm.clearConvexHulls();
 
           if (rt_ok && mz_ok && int_ok && charge_ok && size_ok && q_ok)
           {

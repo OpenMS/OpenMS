@@ -504,7 +504,7 @@ namespace OpenMS
       {
         for (Feature& sub : feat.getSubordinates())
         {
-          sub.getConvexHulls().clear();
+          sub.clearConvexHulls();
         }
       }
     }
@@ -815,7 +815,7 @@ namespace OpenMS
         hull.addPoint(DPosition<2>(rt_min, sub.getMZ() + abs_mz_tol));
         hull.addPoint(DPosition<2>(rt_max, sub.getMZ() - abs_mz_tol));
         hull.addPoint(DPosition<2>(rt_max, sub.getMZ() + abs_mz_tol));
-        feature.getConvexHulls().push_back(hull);
+        feature.addConvexHull(hull);
       }
     }
   }

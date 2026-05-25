@@ -794,7 +794,7 @@ namespace OpenMS
         //add convex hulls of mass traces
         for (Size j = 0; j < traces.size(); ++j)
         {
-          f.getConvexHulls().push_back(traces[j].getConvexhull());
+          f.addConvexHull(traces[j].getConvexhull());
         }
 
 #pragma omp critical(FeatureFinderAlgorithmPicked_TMPFEATUREMAP)

@@ -98,7 +98,7 @@ START_SECTION((const vector<ConvexHull2D>& getConvexHulls() const))
   TEST_EQUAL(tmp.getConvexHulls().size(),0)
 END_SECTION
 
-START_SECTION((vector<ConvexHull2D>& getConvexHulls()))
+START_SECTION((vector<ConvexHull2D>& getMutableConvexHulls()))
   Feature tmp;
   tmp.setConvexHulls(hulls);
   TEST_EQUAL(tmp.getConvexHulls().size(),2)
@@ -110,6 +110,22 @@ START_SECTION((vector<ConvexHull2D>& getConvexHulls()))
   TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getHullPoints()[0][1],0.0)
   TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getHullPoints()[1][0],1.0)
   TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getHullPoints()[1][1],1.0)
+END_SECTION
+
+START_SECTION((void addConvexHull(const ConvexHull2D& hull)))
+  Feature tmp;
+  tmp.addConvexHull(hulls[0]);
+  TEST_EQUAL(tmp.getConvexHulls().size(), 1)
+  tmp.addConvexHull(hulls[1]);
+  TEST_EQUAL(tmp.getConvexHulls().size(), 2)
+END_SECTION
+
+START_SECTION((void clearConvexHulls()))
+  Feature tmp;
+  tmp.setConvexHulls(hulls);
+  TEST_EQUAL(tmp.getConvexHulls().size(), 2)
+  tmp.clearConvexHulls();
+  TEST_EQUAL(tmp.getConvexHulls().size(), 0)
 END_SECTION
 
 START_SECTION((void setConvexHulls(const vector<ConvexHull2D>& hulls)))

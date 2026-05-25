@@ -318,7 +318,7 @@ protected:
         f.setRT(m_traces_final[i].getCentroidRT());
         f.setWidth(m_traces_final[i].estimateFWHM(use_epd));
         f.setOverallQuality(1 - (1.0 / m_traces_final[i].getSize()));
-        f.getConvexHulls().push_back(m_traces_final[i].getConvexhull());
+        f.addConvexHull(m_traces_final[i].getConvexhull());
         double sd = m_traces_final[i].getCentroidSD();
         f.setMetaValue(Constants::UserParam::SD, sd);
         f.setMetaValue(Constants::UserParam::SD_ppm, sd / f.getMZ() * 1e6);

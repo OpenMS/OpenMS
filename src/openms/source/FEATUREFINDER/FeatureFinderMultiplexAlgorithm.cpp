@@ -648,7 +648,7 @@ namespace OpenMS
               hull.addPoint(DPosition<2>(mass_trace.minX(), mass_trace.maxY()));
               hull.addPoint(DPosition<2>(mass_trace.maxX(), mass_trace.minY()));
               hull.addPoint(DPosition<2>(mass_trace.maxX(), mass_trace.maxY()));
-              feature.getConvexHulls().push_back(hull);
+              feature.addConvexHull(hull);
             }
           }
 
@@ -811,7 +811,7 @@ namespace OpenMS
               hull.addPoint(DPosition<2>(mass_trace.minX(), mass_trace.maxY()));
               hull.addPoint(DPosition<2>(mass_trace.maxX(), mass_trace.minY()));
               hull.addPoint(DPosition<2>(mass_trace.maxX(), mass_trace.maxY()));
-              feature.getConvexHulls().push_back(hull);
+              feature.addConvexHull(hull);
             }
           }
 

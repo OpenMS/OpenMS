@@ -73,7 +73,7 @@ namespace OpenSWATH_Test
       }
       ConvexHull2D hull;
       hull.setHullPoints(hull_points);
-      f.getConvexHulls().push_back(hull);
+      f.addConvexHull(hull);
       f.setIntensity(static_cast<float>(58.38450));
       feature.addFeature(f, "tr3");
     }
@@ -120,7 +120,7 @@ namespace OpenSWATH_Test
       ConvexHull2D hull;
       hull.setHullPoints(hull_points);
       f.setIntensity(782.38073);
-      f.getConvexHulls().push_back(hull);
+      f.addConvexHull(hull);
       feature.addFeature(f, "tr1");
     }
 
@@ -166,7 +166,7 @@ namespace OpenSWATH_Test
       ConvexHull2D hull;
       hull.setHullPoints(hull_points);
       f.setIntensity(static_cast<float>(58.38450));
-      f.getConvexHulls().push_back(hull);
+      f.addConvexHull(hull);
       feature.addFeature(f, "tr5");
     }
 

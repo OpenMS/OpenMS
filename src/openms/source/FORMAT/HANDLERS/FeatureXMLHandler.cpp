@@ -777,7 +777,7 @@ namespace OpenMS::Internal
     {
       ConvexHull2D hull;
       hull.setHullPoints(current_chull_);
-      current_feature_->getConvexHulls().push_back(hull);
+      current_feature_->addConvexHull(hull);
     }
     else if (tag == "subordinate")
     {

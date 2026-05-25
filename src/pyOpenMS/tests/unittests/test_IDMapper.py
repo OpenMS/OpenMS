@@ -134,9 +134,7 @@ class TestIDMapper(unittest.TestCase):
         hull.addPoint([510.0, 801.0])
         hull.addPoint([490.0, 801.0])
 
-        hulls = f.getConvexHulls()
-        hulls.append(hull)
-        f.setConvexHulls(hulls)
+        f.addConvexHull(hull)
 
         combinations = [(True, True), (True, False), (False, True), (False, False)]
 

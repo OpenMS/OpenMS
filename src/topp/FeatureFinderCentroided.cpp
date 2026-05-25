@@ -359,9 +359,10 @@ protected:
       for (Feature& ft : features)
       {
         ft.getConvexHull().expandToBoundingBox();
-        for (Size i = 0; i < ft.getConvexHulls().size(); ++i)
+        auto& hulls = ft.getMutableConvexHulls();
+        for (Size i = 0; i < hulls.size(); ++i)
         {
-          ft.getConvexHulls()[i].expandToBoundingBox();
+          hulls[i].expandToBoundingBox();
         }
         ft.getSubordinates().clear();
       }

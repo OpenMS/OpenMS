@@ -233,7 +233,7 @@ protected:
         std::vector<Feature> allFeatures = mrmfeature.getFeatures();
         for (std::vector<Feature>::iterator f_it = allFeatures.begin(); f_it != allFeatures.end(); ++f_it)
         {
-          f_it->getConvexHulls().clear();
+          f_it->clearConvexHulls();
           f_it->ensureUniqueId();
         }
         mrmfeature.setSubordinates(allFeatures); // add all the subfeatures as subordinates

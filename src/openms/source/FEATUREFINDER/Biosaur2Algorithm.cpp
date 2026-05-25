@@ -3075,7 +3075,7 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
 
         ConvexHull2D hull;
         hull.addPoints(hull_points);
-        feature.getConvexHulls().push_back(hull);
+        feature.addConvexHull(hull);
       }
       else
       {
@@ -3111,7 +3111,7 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
 
       ConvexHull2D hull;
       hull.addPoints(hull_points);
-      feature.getConvexHulls().push_back(hull);
+      feature.addConvexHull(hull);
     }
 
     // Fallback: if something went wrong while resolving hills, keep the
@@ -3126,7 +3126,7 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
 
       ConvexHull2D hull;
       hull.addPoints(hull_points);
-      feature.getConvexHulls().push_back(hull);
+      feature.addConvexHull(hull);
     }
 
     feature.setMetaValue("mass_calib", f.mass_calib);

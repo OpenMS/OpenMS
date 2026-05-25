@@ -41,7 +41,7 @@ namespace
       points.push_back(position);
     }
     hull.setHullPoints(points);
-    feature.getConvexHulls().push_back(hull);
+    feature.addConvexHull(hull);
     return feature;
   }
 
