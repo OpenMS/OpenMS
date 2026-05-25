@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
-#include <OpenMS/FORMAT/PSMParquetIO.h>
+#include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -61,11 +61,11 @@ bool PSMArrowIO::exportToParquet(
   if (!ensureDirectory_(dir)) { return false; }
 
   // PSMs (PSMSchema, lossless)
-  auto psm_table = PSMParquetIO::exportToArrow(
+  auto psm_table = QPXFile::exportToArrow(
     protein_identifications, peptide_identifications, export_all_psms);
   if (!psm_table)
   {
-    OPENMS_LOG_ERROR << "PSMArrowIO: PSMParquetIO::exportToArrow returned null" << std::endl;
+    OPENMS_LOG_ERROR << "PSMArrowIO: QPXFile::exportToArrow returned null" << std::endl;
     return false;
   }
   if (!ArrowIOHelpers::writeTableToParquet(psm_table, dir + "/" + kPSMs, config))
@@ -134,7 +134,7 @@ bool PSMArrowIO::importFromParquet(
     return false;
   }
 
-  if (!PSMParquetIO::importFromArrow(psm_table, tmp_proteins, tmp_peptides))
+  if (!QPXFile::importFromArrow(psm_table, tmp_proteins, tmp_peptides))
   {
     return false;
   }
