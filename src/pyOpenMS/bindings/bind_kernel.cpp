@@ -3813,11 +3813,35 @@ Removes all convex hulls from the feature
 Sets the convex hulls of individual mass traces
 :param hulls: List of convex hulls to associate with this feature
 )doc")
-        .def("getConvexHull", [](const OpenMS::Feature& self) { return self.getConvexHull(); },
+        .def("getBoundingBox", [](const OpenMS::Feature& self) { return self.getBoundingBox(); }, nb::rv_policy::copy,
             R"doc(
-Returns the overall convex hull of the feature
-:return: The overall 2D convex hull encompassing all mass traces
-This is the union of all individual mass trace convex hulls
+Returns the bounding box of the feature in RT and m/z dimensions
+:return: DBoundingBox2 with the feature's spatial extent
+)doc")
+        .def("setBoundingBox", [](OpenMS::Feature& self, const OpenMS::DBoundingBox<2>& box) { self.setBoundingBox(box); }, "box"_a,
+            R"doc(
+Sets the bounding box of the feature
+:param box: DBoundingBox2 with RT (dim 0) and m/z (dim 1) extents
+)doc")
+        .def("setBoundingBox", [](OpenMS::Feature& self, double rt_min, double mz_min, double rt_max, double mz_max) {
+                self.setBoundingBox(rt_min, mz_min, rt_max, mz_max);
+            }, "rt_min"_a, "mz_min"_a, "rt_max"_a, "mz_max"_a,
+            R"doc(
+Sets the bounding box from RT and m/z range values
+:param rt_min: Minimum retention time
+:param mz_min: Minimum m/z
+:param rt_max: Maximum retention time
+:param mz_max: Maximum m/z
+)doc")
+        .def("hasBoundingBox", [](const OpenMS::Feature& self) { return self.hasBoundingBox(); },
+            R"doc(
+Returns True if the feature has a bounding box set
+:return: True if bounding box is non-empty
+)doc")
+        .def("updateBoundingBoxFromConvexHulls", [](OpenMS::Feature& self) { return self.updateBoundingBoxFromConvexHulls(); },
+            R"doc(
+Computes and sets the bounding box from the per-trace convex hulls
+:return: True if the bounding box was updated, False if no traces exist
 )doc")
         .def("encloses", [](const OpenMS::Feature& self, double rt, double mz) { return self.encloses(rt, mz); }, "rt"_a, "mz"_a,
             R"doc(

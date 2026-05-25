@@ -222,11 +222,9 @@ def feature_map_to_dataframe(
             "width": feature.getWidth(),
         }
 
-        # Add convex hull bounds if available
-        hulls = feature.getConvexHulls()
-        if hulls:
-            hull = hulls[0]
-            bbox = hull.getBoundingBox()
+        # Add bounding box if available
+        if feature.hasBoundingBox():
+            bbox = feature.getBoundingBox()
             record["rt_start"] = bbox.minPosition()[0]
             record["rt_end"] = bbox.maxPosition()[0]
             record["mz_start"] = bbox.minPosition()[1]

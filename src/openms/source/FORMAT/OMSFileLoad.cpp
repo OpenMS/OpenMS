@@ -951,6 +951,7 @@ namespace OpenMS::Internal
         hulls[hull_index].addPoint(point);
       }
       query_hull.reset(); // get ready for new executeStep()
+      feature.updateBoundingBoxFromConvexHulls();
     }
     // subordinates:
     string from = (version_number_ < 5) ? "FEAT_Feature" : "FEAT_BaseFeature JOIN FEAT_Feature ON id = feature_id";

@@ -235,7 +235,7 @@ namespace OpenMS
         if (lf)
         {
           const FeatureMap& map = *lf->getFeatureMap();
-          const DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();
+          const DBoundingBox<2> bb = map[feature_index].getBoundingBox();
           range.RangeRT::operator=(RangeBase{bb.minPosition()[0], bb.maxPosition()[0]});
           range.RangeMZ::operator=(RangeBase{bb.minPosition()[1], bb.maxPosition()[1]});
         }

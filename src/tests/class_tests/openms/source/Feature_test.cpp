@@ -142,27 +142,38 @@ START_SECTION((void setConvexHulls(const vector<ConvexHull2D>& hulls)))
   TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getHullPoints()[1][1],1.0)
 END_SECTION
 
-START_SECTION((ConvexHull2D getConvexHull() const))
+START_SECTION((const DBoundingBox<2>& getBoundingBox() const))
   Feature tmp;
+  TEST_EQUAL(tmp.hasBoundingBox(), false)
+  TEST_EQUAL(tmp.getBoundingBox().isEmpty(), true)
+
+  tmp.setBoundingBox(1.0, 2.0, 3.0, 4.0);
+  TEST_EQUAL(tmp.hasBoundingBox(), true)
+  TEST_REAL_SIMILAR(tmp.getBoundingBox().minX(), 1.0)
+  TEST_REAL_SIMILAR(tmp.getBoundingBox().minY(), 2.0)
+  TEST_REAL_SIMILAR(tmp.getBoundingBox().maxX(), 3.0)
+  TEST_REAL_SIMILAR(tmp.getBoundingBox().maxY(), 4.0)
+END_SECTION
+
+START_SECTION((void setBoundingBox(const DBoundingBox<2>& box)))
+  Feature tmp;
+  DBoundingBox<2> box(DPosition<2>(0.5, 0.0), DPosition<2>(3.0, 4.0));
+  tmp.setBoundingBox(box);
+  TEST_EQUAL(tmp.hasBoundingBox(), true)
+  TEST_REAL_SIMILAR(tmp.getBoundingBox().minX(), 0.5)
+  TEST_REAL_SIMILAR(tmp.getBoundingBox().maxY(), 4.0)
+END_SECTION
+
+START_SECTION((bool updateBoundingBoxFromConvexHulls()))
+  Feature tmp;
+  TEST_EQUAL(tmp.updateBoundingBoxFromConvexHulls(), false)
+
   tmp.setConvexHulls(hulls);
-
-  //check if the bounding box is ok
-  DBoundingBox<2> bb = tmp.getConvexHull().getBoundingBox();
-  TEST_REAL_SIMILAR(bb.minPosition()[0],0.5)
-  TEST_REAL_SIMILAR(bb.minPosition()[1],0.0)
-  TEST_REAL_SIMILAR(bb.maxPosition()[0],3.0)
-  TEST_REAL_SIMILAR(bb.maxPosition()[1],4.0)
-
-  //check the convex hull points
-  TEST_EQUAL(tmp.getConvexHull().getHullPoints().size(),4)
-  TEST_REAL_SIMILAR(tmp.getConvexHull().getHullPoints()[0][0],0.5)
-  TEST_REAL_SIMILAR(tmp.getConvexHull().getHullPoints()[0][1],0.0)
-  TEST_REAL_SIMILAR(tmp.getConvexHull().getHullPoints()[1][0],3.0)
-  TEST_REAL_SIMILAR(tmp.getConvexHull().getHullPoints()[1][1],0.0)
-  TEST_REAL_SIMILAR(tmp.getConvexHull().getHullPoints()[2][0],3.0)
-  TEST_REAL_SIMILAR(tmp.getConvexHull().getHullPoints()[2][1],4.0)
-  TEST_REAL_SIMILAR(tmp.getConvexHull().getHullPoints()[3][0],0.5)
-  TEST_REAL_SIMILAR(tmp.getConvexHull().getHullPoints()[3][1],4.0)
+  TEST_EQUAL(tmp.updateBoundingBoxFromConvexHulls(), true)
+  TEST_REAL_SIMILAR(tmp.getBoundingBox().minPosition()[0], 0.5)
+  TEST_REAL_SIMILAR(tmp.getBoundingBox().minPosition()[1], 0.0)
+  TEST_REAL_SIMILAR(tmp.getBoundingBox().maxPosition()[0], 3.0)
+  TEST_REAL_SIMILAR(tmp.getBoundingBox().maxPosition()[1], 4.0)
 END_SECTION
 
 hulls[0].addPoint(DPosition<2>(3.0,2.0));
@@ -170,7 +181,7 @@ hulls[1].addPoint(DPosition<2>(2.0,1.0));
 
 START_SECTION((bool encloses(double rt, double mz) const))
   Feature tmp;
-  TEST_EQUAL(tmp.getConvexHull().getBoundingBox().isEmpty(), true)
+  TEST_EQUAL(tmp.hasBoundingBox(), false)
   tmp.setConvexHulls(hulls);
 
   TEST_EQUAL(tmp.encloses(0.0,0.0), false);
@@ -221,7 +232,7 @@ START_SECTION((Feature(const Feature &feature)))
   TEST_REAL_SIMILAR(q2, 0.1)
   q2 = copy_of_p.getQuality(1);
   TEST_REAL_SIMILAR(q2, 0.2)
-  TEST_EQUAL(copy_of_p.getConvexHull().getHullPoints().size(),p.getConvexHull().getHullPoints().size())
+  TEST_EQUAL(copy_of_p.getBoundingBox(), p.getBoundingBox())
   TEST_EQUAL(copy_of_p.getConvexHulls().size(),p.getConvexHulls().size())
 }
 END_SECTION
@@ -268,10 +279,9 @@ START_SECTION((Feature(const Feature&& source)))
   TEST_REAL_SIMILAR(q2, 0.1)
   q2 = copy_of_p.getQuality(1);
   TEST_REAL_SIMILAR(q2, 0.2)
-  TEST_EQUAL(copy_of_p.getConvexHull().getHullPoints().size(), orig.getConvexHull().getHullPoints().size())
+  TEST_EQUAL(copy_of_p.getBoundingBox(), orig.getBoundingBox())
   TEST_EQUAL(copy_of_p.getConvexHulls().size(), orig.getConvexHulls().size())
 
-  TEST_EQUAL(p.getConvexHull().getHullPoints().size(), 0)
   TEST_EQUAL(p.getConvexHulls().size(), 0)
 }
 END_SECTION
@@ -309,7 +319,7 @@ START_SECTION((Feature& operator = (const Feature& rhs)))
   TEST_REAL_SIMILAR(q2, 0.1)
   q2 = copy_of_p.getQuality(1);
   TEST_REAL_SIMILAR(q2, 0.2)
-  TEST_EQUAL(copy_of_p.getConvexHull().getHullPoints().size(),p.getConvexHull().getHullPoints().size())
+  TEST_EQUAL(copy_of_p.getBoundingBox(), p.getBoundingBox())
   TEST_EQUAL(copy_of_p.getConvexHulls().size(),p.getConvexHulls().size())
 END_SECTION
 

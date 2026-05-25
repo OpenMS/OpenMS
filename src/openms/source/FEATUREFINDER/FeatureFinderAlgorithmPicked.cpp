@@ -804,7 +804,7 @@ namespace OpenMS
 
         //----------------------------------------------------------------
         //Remember all seeds that lie inside the convex hull of the new feature
-        DBoundingBox<2> bb = f.getConvexHull().getBoundingBox();
+        DBoundingBox<2> bb = f.getBoundingBox();
         for (Size j = i + 1; j < seeds.size(); ++j)
         {
           double rt = map_[seeds[j].spectrum].getRT();
@@ -872,7 +872,7 @@ namespace OpenMS
 
     for (Size i = 0; i < (*features_).size(); ++i)
     {
-      bbs[i] = (*features_)[i].getConvexHull().getBoundingBox();
+      bbs[i] = (*features_)[i].getBoundingBox();
       if (bbs[i].height() > max_mz_span)
       {
         max_mz_span = bbs[i].height();

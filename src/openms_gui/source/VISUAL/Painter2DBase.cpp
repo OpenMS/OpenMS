@@ -639,7 +639,16 @@ namespace OpenMS
     {
       if (area.containsRT(f.getRT()) && area.containsMZ(f.getMZ()) && layer_->filters.passes(f))
       {
-        paintConvexHull_(*painter, canvas, f.getConvexHull(), !f.getPeptideIdentifications().empty() && !f.getPeptideIdentifications()[0].getHits().empty());
+        if (f.hasBoundingBox())
+        {
+          const auto& bb = f.getBoundingBox();
+          ConvexHull2D hull;
+          hull.addPoint({bb.minX(), bb.minY()});
+          hull.addPoint({bb.maxX(), bb.minY()});
+          hull.addPoint({bb.maxX(), bb.maxY()});
+          hull.addPoint({bb.minX(), bb.maxY()});
+          paintConvexHull_(*painter, canvas, hull, !f.getPeptideIdentifications().empty() && !f.getPeptideIdentifications()[0].getHits().empty());
+        }
       }
     }
   }

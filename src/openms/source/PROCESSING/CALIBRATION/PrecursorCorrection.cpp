@@ -385,7 +385,7 @@ namespace OpenMS
       }
 
       // get bounding box and extend by retention time tolerance
-      DBoundingBox<2> box = feature.getConvexHull().getBoundingBox();
+      DBoundingBox<2> box = feature.getBoundingBox();
       DPosition<2> extend_rt(rt_tolerance, 0.01);
       box.setMin(box.minPosition() - extend_rt);
       box.setMax(box.maxPosition() + extend_rt);

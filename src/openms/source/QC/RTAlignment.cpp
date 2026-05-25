@@ -48,10 +48,13 @@ namespace OpenMS
       }
       feature.setMetaValue("rt_align", trafo.apply(feature.getRT()));
       feature.setMetaValue("rt_raw", feature.getRT());
-      feature.setMetaValue("rt_align_start", trafo.apply(feature.getConvexHull().getBoundingBox().minX()));
-      feature.setMetaValue("rt_align_end", trafo.apply(feature.getConvexHull().getBoundingBox().maxX()));
-      feature.setMetaValue("rt_raw_start", feature.getConvexHull().getBoundingBox().minX());
-      feature.setMetaValue("rt_raw_end", feature.getConvexHull().getBoundingBox().maxX());
+      if (feature.hasBoundingBox())
+      {
+        feature.setMetaValue("rt_align_start", trafo.apply(feature.getBoundingBox().minX()));
+        feature.setMetaValue("rt_align_end", trafo.apply(feature.getBoundingBox().maxX()));
+        feature.setMetaValue("rt_raw_start", feature.getBoundingBox().minX());
+        feature.setMetaValue("rt_raw_end", feature.getBoundingBox().maxX());
+      }
     }
 
     // same for unassigned PepIDs

@@ -14,6 +14,7 @@ namespace OpenMS
 {
   Feature::Feature() :
     BaseFeature(),
+    bounding_box_(),
     convex_hulls_(),
     subordinates_()
   {
@@ -28,6 +29,7 @@ namespace OpenMS
 
   Feature::Feature(const Feature& feature) :
     BaseFeature(feature),
+    bounding_box_(feature.bounding_box_),
     convex_hulls_(feature.convex_hulls_),
     subordinates_(feature.subordinates_)
   {
@@ -36,6 +38,7 @@ namespace OpenMS
 
   Feature::Feature(Feature&& feature) noexcept :
     BaseFeature(std::move(feature)),
+    bounding_box_(feature.bounding_box_),
     convex_hulls_(std::move(feature.convex_hulls_)),
     subordinates_(std::move(feature.subordinates_))
   {
@@ -66,12 +69,49 @@ namespace OpenMS
     qualities_[index] = q;
   }
 
-  const std::vector<ConvexHull2D>& Feature::getConvexHulls() const
+  const DBoundingBox<2>& Feature::getBoundingBox() const
   {
-    return convex_hulls_;
+    return bounding_box_;
   }
 
-  std::vector<ConvexHull2D>& Feature::getMutableConvexHulls()
+  void Feature::setBoundingBox(const DBoundingBox<2>& box)
+  {
+    bounding_box_ = box;
+  }
+
+  void Feature::setBoundingBox(double rt_min, double mz_min, double rt_max, double mz_max)
+  {
+    bounding_box_ = DBoundingBox<2>(
+      DBoundingBox<2>::PositionType(rt_min, mz_min),
+      DBoundingBox<2>::PositionType(rt_max, mz_max));
+  }
+
+  bool Feature::hasBoundingBox() const
+  {
+    return !bounding_box_.isEmpty();
+  }
+
+  bool Feature::updateBoundingBoxFromConvexHulls()
+  {
+    if (convex_hulls_.empty())
+    {
+      return false;
+    }
+    DBoundingBox<2> box;
+    for (const auto& hull : convex_hulls_)
+    {
+      DBoundingBox<2> hb = hull.getBoundingBox();
+      if (!hb.isEmpty())
+      {
+        box.enlarge(hb.minPosition());
+        box.enlarge(hb.maxPosition());
+      }
+    }
+    bounding_box_ = box;
+    return true;
+  }
+
+  const std::vector<ConvexHull2D>& Feature::getConvexHulls() const
   {
     return convex_hulls_;
   }
@@ -91,40 +131,23 @@ namespace OpenMS
     convex_hulls_.clear();
   }
 
-  ConvexHull2D Feature::getConvexHull() const
-  {
-    if (convex_hulls_.size() == 1)
-    {
-      return convex_hulls_[0];
-    }
-
-    ConvexHull2D hull;
-    if (!convex_hulls_.empty())
-    {
-      DBoundingBox<2> box;
-      for (Size i = 0; i < convex_hulls_.size(); ++i)
-      {
-        box.enlarge(convex_hulls_[i].getBoundingBox().minPosition()[0], convex_hulls_[i].getBoundingBox().minPosition()[1]);
-        box.enlarge(convex_hulls_[i].getBoundingBox().maxPosition()[0], convex_hulls_[i].getBoundingBox().maxPosition()[1]);
-      }
-      hull.addPoint(ConvexHull2D::PointType(box.minX(), box.minY()));
-      hull.addPoint(ConvexHull2D::PointType(box.maxX(), box.minY()));
-      hull.addPoint(ConvexHull2D::PointType(box.minX(), box.maxY()));
-      hull.addPoint(ConvexHull2D::PointType(box.maxX(), box.maxY()));
-    }
-    return hull;
-  }
-
   bool Feature::encloses(double rt, double mz) const
   {
-    ConvexHull2D::PointType tmp(rt, mz);
-
-    for (const ConvexHull2D& hull : convex_hulls_)
+    if (!convex_hulls_.empty())
     {
-      if (hull.encloses(tmp))
+      ConvexHull2D::PointType tmp(rt, mz);
+      for (const ConvexHull2D& hull : convex_hulls_)
       {
-        return true;
+        if (hull.encloses(tmp))
+        {
+          return true;
+        }
       }
+      return false;
+    }
+    if (hasBoundingBox())
+    {
+      return bounding_box_.encloses(rt, mz);
     }
     return false;
   }
@@ -138,6 +161,7 @@ namespace OpenMS
 
     BaseFeature::operator=(rhs);
     std::copy(rhs.qualities_, rhs.qualities_ + 2, qualities_);
+    bounding_box_  = rhs.bounding_box_;
     convex_hulls_  = rhs.convex_hulls_;
     subordinates_  = rhs.subordinates_;
 
@@ -153,6 +177,7 @@ namespace OpenMS
 
     BaseFeature::operator=(std::move(rhs));
     std::copy(rhs.qualities_, rhs.qualities_ + 2, qualities_);
+    bounding_box_  = rhs.bounding_box_;
     convex_hulls_  = std::move(rhs.convex_hulls_);
     subordinates_  = std::move(rhs.subordinates_);
 
@@ -163,6 +188,7 @@ namespace OpenMS
   {
     return BaseFeature::operator==(rhs)
            && equal(qualities_, qualities_ + 2, rhs.qualities_)
+           && (bounding_box_ == rhs.bounding_box_)
            && (convex_hulls_ == rhs.convex_hulls_)
            && (subordinates_  == rhs.subordinates_);
   }

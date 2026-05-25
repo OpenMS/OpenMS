@@ -1455,6 +1455,10 @@ def testFeature():
      Feature.__ne__
      Feature.clearMetaInfo
 
+     Feature.getBoundingBox
+     Feature.setBoundingBox
+     Feature.hasBoundingBox
+     Feature.updateBoundingBoxFromConvexHulls
      Feature.getConvexHulls
      Feature.getSubordinates
      Feature.setConvexHulls
@@ -1474,10 +1478,18 @@ def testFeature():
     f.setSubordinates(f.getSubordinates())
     f.setUniqueId(12345)
 
+    assert not f.hasBoundingBox()
+    f.setBoundingBox(10.0, 100.0, 20.0, 200.0)
+    assert f.hasBoundingBox()
+    bb = f.getBoundingBox()
+    assert bb.minPosition()[0] == 10.0
+    assert bb.maxPosition()[1] == 200.0
+
     hull = pyopenms.ConvexHull2D()
     hull.addPoint([1.0, 2.0])
     f.addConvexHull(hull)
     assert len(f.getConvexHulls()) == 1
+    assert f.updateBoundingBoxFromConvexHulls()
     f.clearConvexHulls()
     assert len(f.getConvexHulls()) == 0
 

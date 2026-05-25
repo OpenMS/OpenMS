@@ -163,7 +163,7 @@ namespace OpenMS
       // For convex hull/trace modes, use full convex hull bounding boxes
       getBox = [](const Feature* f)
       {
-        const auto& bb = f->getConvexHull().getBoundingBox();
+        const auto& bb = f->getBoundingBox();
         return quadtree::Box<float>(bb.minY(), bb.minX(), bb.maxY()-bb.minY(), bb.maxX()-bb.minX());
       };
     }

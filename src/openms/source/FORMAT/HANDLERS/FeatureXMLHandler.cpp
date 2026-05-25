@@ -778,6 +778,7 @@ namespace OpenMS::Internal
       ConvexHull2D hull;
       hull.setHullPoints(current_chull_);
       current_feature_->addConvexHull(hull);
+      current_feature_->updateBoundingBoxFromConvexHulls();
     }
     else if (tag == "subordinate")
     {

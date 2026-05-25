@@ -153,8 +153,7 @@ protected:
     for (FeatureMap::Iterator feat_iter = feature_map.begin();
          feat_iter != feature_map.end(); ++feat_iter)
     {
-      const ConvexHull2D convex_hull = feat_iter->getConvexHull();
-      DBoundingBox<2> box = convex_hull.getBoundingBox();
+      DBoundingBox<2> box = feat_iter->getBoundingBox();
       double rt = feat_iter->getRT();
       double mz = feat_iter->getMZ();
       double lower_mz = box.minY();

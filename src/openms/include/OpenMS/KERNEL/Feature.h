@@ -23,12 +23,12 @@ namespace OpenMS
 
   The Feature class is used to describe the two-dimensional signal caused by an
   analyte. It can store a charge state and a list of peptide identifications
-  (for peptides). The area occupied by the Feature in the LC-MS data set is
-  represented by a list of convex hulls (one for each isotopic peak). There is
-  also a convex hull for the entire Feature. The model description can store
-  the parameters of a two-dimensional theoretical model of the underlying
-  signal in LC-MS. Currently, non-peptide compounds are also represented as
-  features.
+  (for peptides). The spatial extent of the Feature in the LC-MS data set is
+  represented by a bounding box (RT and m/z range). Optionally, a list of
+  convex hulls (one for each isotopic peak) provides per-trace detail. The
+  model description can store the parameters of a two-dimensional theoretical
+  model of the underlying signal in LC-MS. Currently, non-peptide compounds
+  are also represented as features.
 
   By convention in %OpenMS, the position of a feature is defined as maximum
   position of the model for the retention time dimension and the mass of the
@@ -82,12 +82,24 @@ public:
 
     //@}
 
-    ///@name Convex hulls and bounding box
+    ///@name Bounding box
+    //@{
+    /// Returns the bounding box of the feature in RT (dim 0) and m/z (dim 1)
+    const DBoundingBox<2>& getBoundingBox() const;
+    /// Sets the bounding box of the feature
+    void setBoundingBox(const DBoundingBox<2>& box);
+    /// Sets the bounding box from RT and m/z ranges
+    void setBoundingBox(double rt_min, double mz_min, double rt_max, double mz_max);
+    /// Returns true if a bounding box has been set
+    bool hasBoundingBox() const;
+    /// Compute and set the bounding box from the convex hulls; returns true if updated
+    bool updateBoundingBoxFromConvexHulls();
+    //@}
+
+    ///@name Mass traces (convex hulls)
     //@{
     /// Non-mutable access to the convex hulls
     const std::vector<ConvexHull2D>& getConvexHulls() const;
-    /// Mutable access to the convex hulls
-    std::vector<ConvexHull2D>& getMutableConvexHulls();
     /// Set the convex hulls of single mass traces
     void setConvexHulls(const std::vector<ConvexHull2D>& hulls);
     /// Add a single convex hull
@@ -95,14 +107,7 @@ public:
     /// Remove all convex hulls
     void clearConvexHulls();
 
-    /**
-      @brief Returns the overall convex hull of the feature (calculated from the convex hulls of the mass traces)
-
-      @note the bounding box of the feature can be accessed through the returned convex hull
-    */
-    ConvexHull2D getConvexHull() const;
-
-    /// Returns if the mass trace convex hulls of the feature enclose the position specified by @p rt and @p mz
+    /// Returns if the mass trace convex hulls (or bounding box) enclose the position specified by @p rt and @p mz
     bool encloses(double rt, double mz) const;
     //@}
 
@@ -173,7 +178,10 @@ protected:
     /// Quality measures for each dimension
     QualityType qualities_[2];
 
-    /// Array of convex hulls (one for each mass trace)
+    /// Bounding box in RT (dim 0) and m/z (dim 1)
+    DBoundingBox<2> bounding_box_;
+
+    /// Array of convex hulls (one for each mass trace, optional)
     std::vector<ConvexHull2D> convex_hulls_;
 
     /// subordinate features (e.g. features that represent alternative explanations, usually with lower quality)

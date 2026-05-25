@@ -275,7 +275,7 @@ namespace OpenMS
     // enlarge the range by the convex hull points
     for (Size i = 0; i < this->size(); ++i)
     {
-      const DBoundingBox<2>& box = this->operator[](i).getConvexHull().getBoundingBox();
+      const DBoundingBox<2>& box = this->operator[](i).getBoundingBox();
       if (!box.isEmpty())
       {
         extendRT(box.minPosition()[Peak2D::RT]);

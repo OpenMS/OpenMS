@@ -394,12 +394,12 @@ namespace OpenMS
         const Feature& f1 = fm_out[i_RT];
         const Feature& f2 = fm_out[i_RT_window];
 
-        if (!(f1.getConvexHull().getBoundingBox().isEmpty() || f2.getConvexHull().getBoundingBox().isEmpty()))
+        if (f1.hasBoundingBox() && f2.hasBoundingBox())
         {
-          double f_start1 = std::min(f1.getConvexHull().getBoundingBox().minX(), f2.getConvexHull().getBoundingBox().minX());
-          double f_start2 = std::max(f1.getConvexHull().getBoundingBox().minX(), f2.getConvexHull().getBoundingBox().minX());
-          double f_end1 = std::min(f1.getConvexHull().getBoundingBox().maxX(), f2.getConvexHull().getBoundingBox().maxX());
-          double f_end2 = std::max(f1.getConvexHull().getBoundingBox().maxX(), f2.getConvexHull().getBoundingBox().maxX());
+          double f_start1 = std::min(f1.getBoundingBox().minX(), f2.getBoundingBox().minX());
+          double f_start2 = std::max(f1.getBoundingBox().minX(), f2.getBoundingBox().minX());
+          double f_end1 = std::min(f1.getBoundingBox().maxX(), f2.getBoundingBox().maxX());
+          double f_end2 = std::max(f1.getBoundingBox().maxX(), f2.getBoundingBox().maxX());
 
           double union_length = f_end2 - f_start1;
           double intersect_length = std::max(0., f_end1 - f_start2);

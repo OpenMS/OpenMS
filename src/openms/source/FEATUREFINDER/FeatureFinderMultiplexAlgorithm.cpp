@@ -666,7 +666,7 @@ namespace OpenMS
           feature.setOverallQuality(1.0);
 
           // Check that the feature eluted long enough.
-          // DBoundingBox<2> box = feature.getConvexHull().getBoundingBox();    // convex hull of the entire peptide feature
+          // DBoundingBox<2> box = feature.getBoundingBox();    // bounding box of the entire peptide feature
           DBoundingBox<2> box = feature.getConvexHulls()[0].getBoundingBox();    // convex hull of the mono-isotopic mass trace
           if (box.maxX() - box.minX() < static_cast<double>(param_.getValue("algorithm:rt_min")))
           {
@@ -825,7 +825,7 @@ namespace OpenMS
           feature.setOverallQuality(1.0);
 
           // Check that the feature eluted long enough.
-          // DBoundingBox<2> box = feature.getConvexHull().getBoundingBox();    // convex hull of the entire peptide feature
+          // DBoundingBox<2> box = feature.getBoundingBox();    // bounding box of the entire peptide feature
           DBoundingBox<2> box = feature.getConvexHulls()[0].getBoundingBox();    // convex hull of the mono-isotopic mass trace
           if (box.maxX() - box.minX() < static_cast<double>(param_.getValue("algorithm:rt_min")))
           {

@@ -785,10 +785,10 @@ namespace OpenMS
 
     // set rt window if a bounding box has been set
     vector<MzTabDouble> window;
-    if (f.getConvexHull().getBoundingBox() != DBoundingBox<2>())
+    if (f.hasBoundingBox())
     {
-      window.emplace_back(f.getConvexHull().getBoundingBox().minX());
-      window.emplace_back(f.getConvexHull().getBoundingBox().maxX());
+      window.emplace_back(f.getBoundingBox().minX());
+      window.emplace_back(f.getBoundingBox().maxX());
     }
 
     MzTabDoubleList rt_window;

@@ -62,11 +62,12 @@ def to_df(self, columns=None, meta_values=None, export_peptide_identifications=T
     rows = []
     for f in self:
         # Compute bounding box from hull points
-        hull_pts = f.getConvexHull().getHullPoints()
-        if len(hull_pts) > 0:
-            pts = np.array(hull_pts)
-            rt_start, mz_start = pts.min(axis=0)
-            rt_end, mz_end = pts.max(axis=0)
+        if f.hasBoundingBox():
+            bb = f.getBoundingBox()
+            rt_start = bb.minPosition()[0]
+            mz_start = bb.minPosition()[1]
+            rt_end = bb.maxPosition()[0]
+            mz_end = bb.maxPosition()[1]
         else:
             rt_start = rt_end = f.getRT()
             mz_start = mz_end = f.getMZ()

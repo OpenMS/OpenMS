@@ -999,9 +999,9 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportFeaturesToArrow(
       (void)width_builder.Append(w);
     }
 
-    // === bounding box (nullable: null if no convex hulls) ===
+    // === bounding box (nullable: null if no bounding box set) ===
     const auto& hulls = feature.getConvexHulls();
-    if (hulls.empty())
+    if (!feature.hasBoundingBox())
     {
       (void)rt_bb_min_builder.AppendNull();
       (void)rt_bb_max_builder.AppendNull();
@@ -1010,7 +1010,7 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportFeaturesToArrow(
     }
     else
     {
-      auto bb = feature.getConvexHull().getBoundingBox();
+      const auto& bb = feature.getBoundingBox();
       (void)rt_bb_min_builder.Append(bb.minPosition()[0]);
       (void)rt_bb_max_builder.Append(bb.maxPosition()[0]);
       (void)mz_bb_min_builder.Append(bb.minPosition()[1]);

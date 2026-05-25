@@ -732,7 +732,7 @@ namespace OpenMS
       DBoundingBox<2> box;
       if (!(use_centroid_rt && use_centroid_mz))
       {
-        box = f_it.getConvexHull().getBoundingBox();
+        box = f_it.getBoundingBox();
       }
       if (use_centroid_rt)
       {
