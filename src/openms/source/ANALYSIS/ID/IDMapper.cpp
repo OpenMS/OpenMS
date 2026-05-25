@@ -841,7 +841,7 @@ namespace OpenMS
             }
             // else: check all the mass traces
             bool found_match = false;
-            for (vector<ConvexHull2D>::iterator ch_it =
+            for (vector<ConvexHull2D>::const_iterator ch_it =
                  feat.getConvexHulls().begin(); ch_it !=
                  feat.getConvexHulls().end(); ++ch_it)
             {
@@ -968,7 +968,7 @@ namespace OpenMS
             }
             // else: check all the mass traces
             bool found_match = false;
-            for (vector<ConvexHull2D>::iterator ch_it =
+            for (vector<ConvexHull2D>::const_iterator ch_it =
                   feat.getConvexHulls().begin(); ch_it !=
                   feat.getConvexHulls().end(); ++ch_it)
             {
