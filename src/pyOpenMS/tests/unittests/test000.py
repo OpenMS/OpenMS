@@ -1458,6 +1458,8 @@ def testFeature():
      Feature.getConvexHulls
      Feature.getSubordinates
      Feature.setConvexHulls
+     Feature.addConvexHull
+     Feature.clearConvexHulls
      Feature.setSubordinates
      Feature.setUniqueId
 
@@ -1471,6 +1473,13 @@ def testFeature():
     f.setConvexHulls(f.getConvexHulls())
     f.setSubordinates(f.getSubordinates())
     f.setUniqueId(12345)
+
+    hull = pyopenms.ConvexHull2D()
+    hull.addPoint([1.0, 2.0])
+    f.addConvexHull(hull)
+    assert len(f.getConvexHulls()) == 1
+    f.clearConvexHulls()
+    assert len(f.getConvexHulls()) == 0
 
     assert f == f
     assert not f != f
