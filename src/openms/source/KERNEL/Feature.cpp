@@ -15,8 +15,6 @@ namespace OpenMS
   Feature::Feature() :
     BaseFeature(),
     convex_hulls_(),
-    convex_hulls_modified_(true),
-    convex_hull_(),
     subordinates_()
   {
     std::fill(qualities_, qualities_ + 2, QualityType(0.0));
@@ -31,8 +29,6 @@ namespace OpenMS
   Feature::Feature(const Feature& feature) :
     BaseFeature(feature),
     convex_hulls_(feature.convex_hulls_),
-    convex_hulls_modified_(feature.convex_hulls_modified_),
-    convex_hull_(feature.convex_hull_),
     subordinates_(feature.subordinates_)
   {
     std::copy(feature.qualities_, feature.qualities_ + 2, qualities_);
@@ -41,11 +37,8 @@ namespace OpenMS
   Feature::Feature(Feature&& feature) noexcept :
     BaseFeature(std::move(feature)),
     convex_hulls_(std::move(feature.convex_hulls_)),
-    convex_hulls_modified_(std::move(feature.convex_hulls_modified_)),
-    convex_hull_(std::move(feature.convex_hull_)),
     subordinates_(std::move(feature.subordinates_))
   {
-    // TODO: no strong exception safety here
     std::copy(feature.qualities_, feature.qualities_ + 2, qualities_);
   }
 
@@ -80,71 +73,46 @@ namespace OpenMS
 
   std::vector<ConvexHull2D>& Feature::getMutableConvexHulls()
   {
-    convex_hulls_modified_ = true;
     return convex_hulls_;
   }
 
   void Feature::setConvexHulls(const std::vector<ConvexHull2D>& hulls)
   {
-    convex_hulls_modified_ = true;
     convex_hulls_ = hulls;
   }
 
   void Feature::addConvexHull(const ConvexHull2D& hull)
   {
-    convex_hulls_modified_ = true;
     convex_hulls_.push_back(hull);
   }
 
   void Feature::clearConvexHulls()
   {
-    convex_hulls_modified_ = true;
     convex_hulls_.clear();
   }
 
-  ConvexHull2D& Feature::getConvexHull() const
+  ConvexHull2D Feature::getConvexHull() const
   {
-    //recalculate convex hull if necessary
-    if (convex_hulls_modified_)
+    if (convex_hulls_.size() == 1)
     {
-      //only one mass trace convex hull => use it as overall convex hull
-      if (convex_hulls_.size() == 1)
-      {
-        convex_hull_ = convex_hulls_[0];
-      }
-      else
-      {
-        convex_hull_.clear();
-        if (!convex_hulls_.empty())
-        {
-          /*
-          -- this does not work with our current approach of "non-convex"hull computation as the mass traces of features cannot be combined
-          -- meaningfully. We thus print only the bounding box of the traces (for now)
-
-          for (Size hull=0; hull<convex_hulls_.size(); ++hull)
-          {
-              convex_hull_.addPoints(convex_hulls_[hull].getHullPoints());
-          }
-          */
-
-          DBoundingBox<2> box;
-          for (Size hull = 0; hull < convex_hulls_.size(); ++hull)
-          {
-            box.enlarge(convex_hulls_[hull].getBoundingBox().minPosition()[0], convex_hulls_[hull].getBoundingBox().minPosition()[1]);
-            box.enlarge(convex_hulls_[hull].getBoundingBox().maxPosition()[0], convex_hulls_[hull].getBoundingBox().maxPosition()[1]);
-          }
-          convex_hull_.addPoint(ConvexHull2D::PointType(box.minX(), box.minY()));
-          convex_hull_.addPoint(ConvexHull2D::PointType(box.maxX(), box.minY()));
-          convex_hull_.addPoint(ConvexHull2D::PointType(box.minX(), box.maxY()));
-          convex_hull_.addPoint(ConvexHull2D::PointType(box.maxX(), box.maxY()));
-        }
-
-      }
-
-      convex_hulls_modified_ = false;
+      return convex_hulls_[0];
     }
 
-    return convex_hull_;
+    ConvexHull2D hull;
+    if (!convex_hulls_.empty())
+    {
+      DBoundingBox<2> box;
+      for (Size i = 0; i < convex_hulls_.size(); ++i)
+      {
+        box.enlarge(convex_hulls_[i].getBoundingBox().minPosition()[0], convex_hulls_[i].getBoundingBox().minPosition()[1]);
+        box.enlarge(convex_hulls_[i].getBoundingBox().maxPosition()[0], convex_hulls_[i].getBoundingBox().maxPosition()[1]);
+      }
+      hull.addPoint(ConvexHull2D::PointType(box.minX(), box.minY()));
+      hull.addPoint(ConvexHull2D::PointType(box.maxX(), box.minY()));
+      hull.addPoint(ConvexHull2D::PointType(box.minX(), box.maxY()));
+      hull.addPoint(ConvexHull2D::PointType(box.maxX(), box.maxY()));
+    }
+    return hull;
   }
 
   bool Feature::encloses(double rt, double mz) const
@@ -170,10 +138,8 @@ namespace OpenMS
 
     BaseFeature::operator=(rhs);
     std::copy(rhs.qualities_, rhs.qualities_ + 2, qualities_);
-    convex_hulls_           = rhs.convex_hulls_;
-    convex_hulls_modified_  = rhs.convex_hulls_modified_;
-    convex_hull_            = rhs.convex_hull_;
-    subordinates_           = rhs.subordinates_;
+    convex_hulls_  = rhs.convex_hulls_;
+    subordinates_  = rhs.subordinates_;
 
     return *this;
   }
@@ -187,10 +153,8 @@ namespace OpenMS
 
     BaseFeature::operator=(std::move(rhs));
     std::copy(rhs.qualities_, rhs.qualities_ + 2, qualities_);
-    convex_hulls_           = std::move(rhs.convex_hulls_);
-    convex_hulls_modified_  = std::move(rhs.convex_hulls_modified_);
-    convex_hull_            = std::move(rhs.convex_hull_);
-    subordinates_           = std::move(rhs.subordinates_);
+    convex_hulls_  = std::move(rhs.convex_hulls_);
+    subordinates_  = std::move(rhs.subordinates_);
 
     return *this;
   }

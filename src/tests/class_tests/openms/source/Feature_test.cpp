@@ -142,7 +142,7 @@ START_SECTION((void setConvexHulls(const vector<ConvexHull2D>& hulls)))
   TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getHullPoints()[1][1],1.0)
 END_SECTION
 
-START_SECTION((ConvexHull2D& getConvexHull() const))
+START_SECTION((ConvexHull2D getConvexHull() const))
   Feature tmp;
   tmp.setConvexHulls(hulls);
 
@@ -199,7 +199,6 @@ START_SECTION((Feature(const Feature &feature)))
   p.setQuality( 0, (QualityType)0.1);
   p.setQuality( 1, (QualityType)0.2);
   p.setConvexHulls(hulls);
-  p.getConvexHull(); //this pre-calculates the overall convex hull
 
   Feature::PositionType pos2;
   Feature::IntensityType i2;
@@ -244,7 +243,6 @@ START_SECTION((Feature(const Feature&& source)))
   p.setQuality( 0, (QualityType)0.1);
   p.setQuality( 1, (QualityType)0.2);
   p.setConvexHulls(hulls);
-  p.getConvexHull(); //this pre-calculates the overall convex hull
 
   Feature::PositionType pos2;
   Feature::IntensityType i2;
@@ -295,7 +293,6 @@ START_SECTION((Feature& operator = (const Feature& rhs)))
   Feature::IntensityType i2;
 
   Feature copy_of_p;
-  copy_of_p.getConvexHull(); //this pre-calculates the overall convex hull in order to check that the recalculation flag is copied correctly
   copy_of_p = p;
 
   i2 = copy_of_p.getIntensity();

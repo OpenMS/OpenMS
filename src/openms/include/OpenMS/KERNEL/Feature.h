@@ -86,7 +86,7 @@ public:
     //@{
     /// Non-mutable access to the convex hulls
     const std::vector<ConvexHull2D>& getConvexHulls() const;
-    /// Mutable access to the convex hulls (marks cache as dirty)
+    /// Mutable access to the convex hulls
     std::vector<ConvexHull2D>& getMutableConvexHulls();
     /// Set the convex hulls of single mass traces
     void setConvexHulls(const std::vector<ConvexHull2D>& hulls);
@@ -100,7 +100,7 @@ public:
 
       @note the bounding box of the feature can be accessed through the returned convex hull
     */
-    ConvexHull2D& getConvexHull() const;
+    ConvexHull2D getConvexHull() const;
 
     /// Returns if the mass trace convex hulls of the feature enclose the position specified by @p rt and @p mz
     bool encloses(double rt, double mz) const;
@@ -175,12 +175,6 @@ protected:
 
     /// Array of convex hulls (one for each mass trace)
     std::vector<ConvexHull2D> convex_hulls_;
-
-    /// Flag that indicates if the overall convex hull needs to be recomputed (i.e. mass trace convex hulls were modified)
-    mutable bool convex_hulls_modified_{};
-
-    /// Overall convex hull of the feature
-    mutable ConvexHull2D convex_hull_;
 
     /// subordinate features (e.g. features that represent alternative explanations, usually with lower quality)
     std::vector<Feature> subordinates_;

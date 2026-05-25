@@ -358,7 +358,6 @@ protected:
     {
       for (Feature& ft : features)
       {
-        ft.getConvexHull().expandToBoundingBox();
         auto& hulls = ft.getMutableConvexHulls();
         for (Size i = 0; i < hulls.size(); ++i)
         {

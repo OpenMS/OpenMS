@@ -3813,7 +3813,7 @@ Removes all convex hulls from the feature
 Sets the convex hulls of individual mass traces
 :param hulls: List of convex hulls to associate with this feature
 )doc")
-        .def("getConvexHull", [](const OpenMS::Feature& self) -> OpenMS::ConvexHull2D & { return self.getConvexHull(); }, nb::rv_policy::reference_internal,
+        .def("getConvexHull", [](const OpenMS::Feature& self) { return self.getConvexHull(); },
             R"doc(
 Returns the overall convex hull of the feature
 :return: The overall 2D convex hull encompassing all mass traces
