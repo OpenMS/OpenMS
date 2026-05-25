@@ -1,0 +1,326 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: $
+// $Authors: Tilman Aurich $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFileManager.h>
+
+#include <fstream>
+#include <thread>
+
+///////////////////////////
+
+using namespace OpenMS;
+
+namespace
+{
+  String makeRegistryId(const String& prefix)
+  {
+    static Size id_counter = 0;
+    ++id_counter;
+    return prefix + "_" + String(id_counter);
+  }
+
+  // Compute expected registry file path for a given registry id and instance index
+  String computeRegistryPath(const String& registry_id, const Size instance_index = 1)
+  {
+    String temp_dir = File::getTempDirectory();
+    while (temp_dir.hasSuffix("/") || temp_dir.hasSuffix("\\"))
+    {
+      temp_dir = temp_dir.prefix(temp_dir.size() - 1);
+    }
+    return temp_dir + "/" + registry_id + "_" + String(instance_index) + ".list";
+  }
+
+  // Lock path should be registry path + ".lock"
+  String computeLockPath(const String& registry_id, const Size instance_index = 1)
+  {
+    return computeRegistryPath(registry_id, instance_index) + ".lock";
+  }
+
+  void writeTextFile(const String& file_path, const String& content)
+  {
+    std::ofstream os(file_path.c_str(), std::ios::out | std::ios::trunc);
+    os << content;
+  }
+
+  Size countNonEmptyLines(const String& file_path)
+  {
+    std::ifstream is(file_path.c_str());
+    Size count = 0;
+    String line;
+    while (std::getline(is, line))
+    {
+      if (!line.empty() && line.back() == '\r')
+      {
+        line.pop_back();
+      }
+      if (!line.empty())
+      {
+        ++count;
+      }
+    }
+    return count;
+  }
+}
+
+START_TEST(TempFileManager, "$Id$")
+
+START_SECTION((TempFileManager(const String& registry_id)))
+{
+  // construction with unique registry id should succeed
+  const String registry_id = makeRegistryId("temp_file_manager_ctor_test");
+  TempFileManager manager(registry_id);
+  // pass marker
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((TempFileManager(const String& registry_id)))
+{
+  // multiple instances with same registry id should get different slots and locks
+  const String registry_id = makeRegistryId("temp_file_manager_parallel_slots_test");
+  const String lock_1 = computeLockPath(registry_id, 1);
+  const String lock_2 = computeLockPath(registry_id, 2);
+
+  {
+    TempFileManager manager_a(registry_id);
+    TEST_TRUE(File::exists(lock_1))
+
+    TempFileManager manager_b(registry_id);
+    TEST_TRUE(File::exists(lock_2))
+  }
+
+  TEST_FALSE(File::exists(lock_1))
+  TEST_FALSE(File::exists(lock_2))
+}
+END_SECTION
+
+// addFile lifecycle test
+START_SECTION((void addFile(const String& file_path)))
+{
+  const String registry_id = makeRegistryId("temp_file_manager_add_test");
+  const String registry_path = computeRegistryPath(registry_id, 1);
+  const String lock_path = computeLockPath(registry_id, 1);
+  const String temp_file = File::getTempDirectory() + "/tfm_add_" + File::getUniqueName(false) + ".tmp";
+
+  writeTextFile(temp_file, "tmp");
+  TEST_TRUE(File::exists(temp_file))
+
+  {
+    TempFileManager manager(registry_id);
+    manager.addFile(temp_file);
+    TEST_TRUE(File::exists(registry_path))
+    TEST_TRUE(File::exists(lock_path))
+  }
+
+  // After manager destruction, the temp file and registry should be cleaned up
+  TEST_FALSE(File::exists(temp_file))
+  TEST_FALSE(File::exists(registry_path))
+  TEST_FALSE(File::exists(lock_path))
+}
+END_SECTION
+
+// concurrent add/release on same manager should not race or corrupt registry state
+START_SECTION((void addFile(const String& file_path)))
+{
+  const String registry_id = makeRegistryId("temp_file_manager_concurrent_add_release_test");
+  const String registry_path = computeRegistryPath(registry_id);
+  const String temp_file = File::getTempDirectory() + "/tfm_concurrent_" + File::getUniqueName(false) + ".tmp";
+
+  writeTextFile(temp_file, "tmp");
+  TEST_TRUE(File::exists(temp_file))
+
+  {
+    TempFileManager manager(registry_id);
+
+    const Size iterations = 30;
+    std::thread add_thread([&]()
+    {
+      for (Size i = 0; i < iterations; ++i)
+      {
+        manager.addFile(temp_file);
+      }
+    });
+
+    std::thread release_thread([&]()
+    {
+      for (Size i = 0; i < iterations; ++i)
+      {
+        manager.releaseFile(temp_file);
+      }
+    });
+
+    add_thread.join();
+    release_thread.join();
+
+    // Ensure manager can still operate after concurrent access
+    manager.addFile(temp_file);
+    TEST_TRUE(File::exists(temp_file))
+  }
+
+  TEST_FALSE(File::exists(temp_file))
+  TEST_FALSE(File::exists(registry_path))
+}
+END_SECTION
+
+// duplicate add should not create duplicate registry entries
+START_SECTION((void addFile(const String& file_path)))
+{
+  const String registry_id = makeRegistryId("temp_file_manager_add_idempotence_test");
+  const String registry_path = computeRegistryPath(registry_id);
+  const String temp_file = File::getTempDirectory() + "/tfm_add_idempotent_" + File::getUniqueName(false) + ".tmp";
+
+  writeTextFile(temp_file, "tmp");
+
+  {
+    TempFileManager manager(registry_id);
+    manager.addFile(temp_file);
+    manager.addFile(temp_file);
+
+    TEST_TRUE(File::exists(registry_path))
+    TEST_EQUAL(countNonEmptyLines(registry_path), 1)
+  }
+
+  TEST_FALSE(File::exists(temp_file))
+  TEST_FALSE(File::exists(registry_path))
+}
+END_SECTION
+
+// releaseFile lifecycle test
+START_SECTION((void releaseFile(const String& file_path)))
+{
+  const String registry_id = makeRegistryId("temp_file_manager_release_test");
+  const String registry_path = computeRegistryPath(registry_id);
+  const String temp_file = File::getTempDirectory() + "/tfm_release_" + File::getUniqueName(false) + ".tmp";
+
+  writeTextFile(temp_file, "tmp");
+  TEST_TRUE(File::exists(temp_file))
+
+  {
+    TempFileManager manager(registry_id);
+    manager.addFile(temp_file);
+    manager.releaseFile(temp_file);
+  }
+
+  // temp_file should still exist, but registry should be cleaned up
+  TEST_TRUE(File::exists(temp_file))
+  TEST_TRUE(File::remove(temp_file))
+  TEST_FALSE(File::exists(registry_path))
+}
+END_SECTION
+
+// releasing a non-registered path should not affect registered files
+START_SECTION((void releaseFile(const String& file_path)))
+{
+  const String registry_id = makeRegistryId("temp_file_manager_release_non_registered_test");
+  const String registry_path = computeRegistryPath(registry_id);
+  const String managed_file = File::getTempDirectory() + "/tfm_managed_" + File::getUniqueName(false) + ".tmp";
+  const String unmanaged_file = File::getTempDirectory() + "/tfm_unmanaged_" + File::getUniqueName(false) + ".tmp";
+
+  writeTextFile(managed_file, "managed");
+  writeTextFile(unmanaged_file, "unmanaged");
+
+  {
+    TempFileManager manager(registry_id);
+    manager.addFile(managed_file);
+    manager.releaseFile(unmanaged_file);
+  }
+
+  TEST_FALSE(File::exists(managed_file))
+  TEST_TRUE(File::exists(unmanaged_file))
+  TEST_TRUE(File::remove(unmanaged_file))
+  TEST_FALSE(File::exists(registry_path))
+}
+END_SECTION
+
+// test that releaseFile throws on empty input
+START_SECTION((void releaseFile(const String& file_path)))
+{
+  const String registry_id = makeRegistryId("temp_file_manager_release_empty_input_test");
+  TempFileManager manager(registry_id);
+  TEST_EXCEPTION(Exception::InvalidParameter, manager.releaseFile(""))
+}
+END_SECTION
+
+START_SECTION((bool removeFileNow(const String& file_path) noexcept))
+{
+  const String registry_id = makeRegistryId("temp_file_manager_remove_now_test");
+  const String temp_file = File::getTempDirectory() + "/tfm_remove_now_" + File::getUniqueName(false) + ".tmp";
+
+  writeTextFile(temp_file, "tmp");
+  TEST_EQUAL(File::exists(temp_file), true)
+
+  TempFileManager manager(registry_id);
+  manager.addFile(temp_file);
+
+  // check if removal works and returns true
+  TEST_TRUE(manager.removeFileNow(temp_file))
+  TEST_FALSE(File::exists(temp_file))
+}
+END_SECTION
+
+// destruction cleanup removes all files and registry correctly
+START_SECTION((virtual ~TempFileManager() noexcept))
+{
+  const String registry_id = makeRegistryId("temp_file_manager_cleanup_now_test");
+  const String registry_path = computeRegistryPath(registry_id);
+  const String temp_file = File::getTempDirectory() + "/tfm_cleanup_now_" + File::getUniqueName(false) + ".tmp";
+
+  writeTextFile(temp_file, "tmp");
+  writeTextFile(registry_path, temp_file + "\n");
+
+  TEST_TRUE(File::exists(temp_file))
+  TEST_TRUE(File::exists(registry_path))
+
+  {
+    TempFileManager manager(registry_id);
+  }
+
+  TEST_FALSE(File::exists(temp_file))
+  TEST_FALSE(File::exists(registry_path))
+}
+END_SECTION
+
+// destruction cleanup should merge persisted and in-memory entries and remove both
+START_SECTION((virtual ~TempFileManager() noexcept))
+{
+  const String registry_id = makeRegistryId("temp_file_manager_cleanup_merge_test");
+  const String registry_path = computeRegistryPath(registry_id);
+  const String persisted_file = File::getTempDirectory() + "/tfm_persisted_" + File::getUniqueName(false) + ".tmp";
+  const String in_memory_file = File::getTempDirectory() + "/tfm_in_memory_" + File::getUniqueName(false) + ".tmp";
+
+  writeTextFile(persisted_file, "persisted");
+  writeTextFile(in_memory_file, "in-memory");
+  writeTextFile(registry_path, persisted_file + "\n");
+
+  {
+    TempFileManager manager(registry_id);
+    manager.addFile(in_memory_file);
+  }
+
+  TEST_FALSE(File::exists(persisted_file))
+  TEST_FALSE(File::exists(in_memory_file))
+  TEST_FALSE(File::exists(registry_path))
+}
+END_SECTION
+
+// test that addFile throws on empty input
+START_SECTION((void addFile(const String& file_path)))
+{
+  const String registry_id = makeRegistryId("temp_file_manager_empty_input_test");
+  TempFileManager manager(registry_id);
+  TEST_EXCEPTION(Exception::InvalidParameter, manager.addFile(""))
+}
+END_SECTION
+
+END_TEST

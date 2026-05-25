@@ -127,11 +127,13 @@ set(metadata_executables_list
 set(system_executables_list
   ExternalProcess_test
   File_test
+  InterProcessFileLock_test
   Network_test
   JavaInfo_test
   PythonInfo_test
   StopWatch_test
   SysInfo_test
+  TempFileManager_test
 )
 
 set(kernel_executables_list

@@ -93,7 +93,8 @@ namespace OpenMS
     ws_(this),
     tab_bar_(this),
     recent_files_(),
-    menu_(this, &ws_, &recent_files_)
+    menu_(this, &ws_, &recent_files_),
+    temp_handler_("toppview")
   {
     setWindowTitle("TOPPView");
     setWindowIcon(QIcon(":/TOPPView.png"));
@@ -446,6 +447,8 @@ namespace OpenMS
     defaults_.setValidStrings(user_section + "use_cached_ms2", {"true","false"});
     defaults_.setValue(user_section + "use_cached_ms1", "false", "If possible, do not load MS1 spectra into memory spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
     defaults_.setValidStrings(user_section + "use_cached_ms1", {"true","false"});
+    defaults_.setValue(user_section + "instantcleanup", "true", "If enabled, temporary TOPP input/output data files are removed immediately after tool execution.");
+    defaults_.setValidStrings(user_section + "instantcleanup", {"true","false"});
 
     // FIXME: getCanvasParameters() depends on the exact naming of the param sections below!
     // 1d view
@@ -462,10 +465,6 @@ namespace OpenMS
     defaults_.setSectionDescription(user_section + "idview", "Settings for identification view.");
 
     // non-editable parameters
-
-    // not in Dialog (yet?)
-    defaults_.setValue("preferences:topp_cleanup", "true", "If the temporary files for calling of TOPP tools should be removed after the call.");
-    defaults_.setValidStrings("preferences:topp_cleanup", {"true", "false"});
 
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPView.ini is up-to-date");
     subsections_.emplace_back("preferences:RecentFiles");
@@ -833,8 +832,10 @@ namespace OpenMS
     // create dialog no matter if it is shown or not. It is used to determine the flags.
     TOPPViewOpenDialog dialog(caption, as_new_window, maps_as_2d, use_intensity_cutoff, this);
 
-    // disable opening in new window when there is no active window or feature/ID data is to be opened, but the current window is a 3D window
-    if (target_window == nullptr || (mergeable && dynamic_cast<Plot3DWidget*>(target_window)))
+    // disable opening in current window when there is no active window or when
+    // mergeable data (feature/consensus/identification) would be opened in an
+    // incompatible view type (1D/3D). These data types require a 2D canvas.
+    if (target_window == nullptr || (mergeable && (dynamic_cast<Plot1DWidget*>(target_window) || dynamic_cast<Plot3DWidget*>(target_window))))
     {
       dialog.disableLocation(true);
     }
@@ -887,6 +888,11 @@ namespace OpenMS
     }
 
     // determine the window to open the data in
+    // mergeable layers (feature/consensus/ID) require a Plot2DWidget target
+    if (!as_new_window && mergeable && dynamic_cast<Plot2DWidget*>(target_window) == nullptr)
+    {
+      as_new_window = true;
+    }
     if (as_new_window) // new window
     {
       if (maps_as_1d) // 2d in 1d window
@@ -1690,6 +1696,12 @@ namespace OpenMS
       topp_.file_name_in = topp_.file_name + "_in." + file_extension;
       // Get the output file extension
       topp_.file_name_out = topp_.file_name + "_out." + tools_dialog.getExtension();
+      // Store temporary file names for cleanup
+      temp_handler_.addFile(topp_.file_name + "_ini");
+      // Always register input/output temp files first. If TOPPView crashes before explicit
+      // cleanup, the registry still contains the files for cleanup in the next run.
+      temp_handler_.addFile(topp_.file_name_in);
+      temp_handler_.addFile(topp_.file_name_out);
       // run the tool
       runTOPPTool_();
     }
@@ -1716,6 +1728,18 @@ namespace OpenMS
   void TOPPViewBase::runTOPPTool_()
   {
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
+
+    // Ensure current TOPP temp input/output files are always tracked for cleanup.
+    // This is required for reruns after switching instantcleanup from true -> false,
+    // because previous instant cleanup may have removed these entries from the registry.
+    if (!topp_.file_name_in.empty())
+    {
+      temp_handler_.addFile(topp_.file_name_in);
+    }
+    if (!topp_.file_name_out.empty())
+    {
+      temp_handler_.addFile(topp_.file_name_out);
+    }
 
 
     // delete old input and output file
@@ -1746,7 +1770,44 @@ namespace OpenMS
       auto visitor_data = topp_.visible_area_only
                           ? layer.storeVisibleData(getActiveCanvas()->getVisibleArea().getAreaUnit(), layer.filters)
                           : layer.storeFullData();
-      visitor_data->saveToFile(topp_.file_name_in, ProgressLogger::GUI);
+      try
+      {
+        visitor_data->saveToFile(topp_.file_name_in, ProgressLogger::GUI);
+      }
+      catch (const Exception::UnableToCreateFile& e)
+      {
+        String layer_type = "unknown";
+        String requested_layer_type = "unknown";
+
+        const auto requested_type = FileTypes::typeToName(FileHandler::getTypeByFileName(topp_.file_name_in));
+        if (!requested_type.empty() && requested_type != "UNKNOWN")
+        {
+          requested_layer_type = requested_type;
+        }
+
+        switch (layer.type)
+        {
+          case LayerDataBase::DataType::DT_PEAK: layer_type = "MS experiment / mzML"; break;
+          case LayerDataBase::DataType::DT_CHROMATOGRAM: layer_type = "chromatogram / mzML"; break;
+          case LayerDataBase::DataType::DT_FEATURE: layer_type = "featureXML"; break;
+          case LayerDataBase::DataType::DT_CONSENSUS: layer_type = "consensusXML"; break;
+          case LayerDataBase::DataType::DT_IDENT: layer_type = "idXML"; break;
+          default: break;
+        }
+
+        const String error_text = String("The selected layer cannot be used to run / rerun the selected TOPP tool. Current layer type: ") +
+                                  layer_type + ", requested layer type: " + requested_layer_type +
+                                  ". Internal error: " + e.what();
+        log_->appendNewHeader(
+          LogWindow::LogState::CRITICAL,
+          "TOPP tool input could not be created",
+          error_text);
+        QMessageBox::critical(
+          this,
+          "TOPP tool input could not be created",
+          toQString(error_text));
+        return;
+      }
     }
 
     // compose argument list
@@ -1840,31 +1901,46 @@ namespace OpenMS
         auto l = getCurrentLayer();
         if (l)
         {
-          auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(topp_.file_name + "_in");
-          if (annotator.get() == nullptr)
-          { // no suitable annotator? open new layer/window
-            addDataFile(topp_.file_name + "_out", true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
+          const FileTypes::Type out_type = FileHandler::getType(topp_.file_name_out);
+
+          // featureXML outputs from most tools represent standalone feature layers.
+          // AMS annotation is only meaningful for AccurateMassSearch-generated featureXML.
+          if (out_type == FileTypes::FEATUREXML && topp_.tool != "AccurateMassSearch")
+          {
+            addDataFile(topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
           }
           else
-          { // we have an annotator ... let's annotate the current layer
-            annotator->annotateWithFilename(*l, *log_, topp_.out + "_out"); // ID tabs are automatically enabled
+          {
+            auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(topp_.file_name_out);
+            if (annotator.get() == nullptr)
+            { // no suitable annotator? open new layer/window
+              addDataFile(topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
+            }
+            else
+            { // we have an annotator ... let's annotate the current layer
+              const bool annotation_success = annotator->annotateWithFilename(*l, *log_, topp_.file_name_out); // ID tabs are automatically enabled
+              if (!annotation_success && out_type == FileTypes::FEATUREXML)
+              {
+                addDataFile(topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
+              }
+            }
           }
         }
       }
     }
 
     // clean up
+    const bool instant_cleanup = (param_.getValue(user_section + "instantcleanup").toBool());
+    if (instant_cleanup)
+    {
+      temp_handler_.removeFileNow(topp_.file_name_in);
+      temp_handler_.removeFileNow(topp_.file_name_out);
+    }
+
     delete topp_.process;
     topp_.process = nullptr;
     updateMenu();
 
-    // clean up temporary files
-    if (param_.getValue("preferences:topp_cleanup") == "true")
-    {
-      File::remove(topp_.file_name + "_ini");
-      File::remove(topp_.file_name_in);
-      File::remove(topp_.file_name_out);
-    }
   }
 
   const LayerDataBase* TOPPViewBase::getCurrentLayer() const
@@ -2032,7 +2108,7 @@ namespace OpenMS
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
     
     ExperimentSharedPtrType exp = std::make_shared<AnnotatedMSRun>();
-    exp.get()->getMSExperiment() = std::move(IMDataConverter::reshapeIMFrameToMany(spec));
+    exp.get()->getMSExperiment() = IMDataConverter::reshapeIMFrameToMany(spec);
     // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
     // for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
 
@@ -2191,7 +2267,6 @@ namespace OpenMS
       //- doesn't make sense for fragment scan
       //- build new Area with mz range equal to 1D visible range
       //- rt range either overall MS1 data range or some convenient window
-
     }
     else if (getActive2DWidget()) // switch from 2D to 3D
     {

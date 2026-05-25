@@ -7,6 +7,7 @@ BuildInfo.cpp
 CurlInit.cpp
 ExternalProcess.cpp
 File.cpp
+InterProcessFileLock.cpp
 JavaInfo.cpp
 Network.cpp
 NetworkGetRequest.cpp
@@ -14,6 +15,7 @@ PythonInfo.cpp
 RWrapper.cpp
 StopWatch.cpp
 SysInfo.cpp
+TempFileManager.cpp
 UpdateCheck.cpp
 )
 
@@ -28,4 +30,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\SYSTEM" FILES ${sources})
-
