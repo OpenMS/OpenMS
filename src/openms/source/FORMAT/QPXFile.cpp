@@ -267,12 +267,11 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       const PeptideHit& hit = hits[hit_idx];
       const auto& seq = hit.getSequence();
 
-      // === sequence ===
-      (void)sequence_builder.Append(seq.toUnmodifiedString());
+      // === sequence (full modified OpenMS format for fast round-trip) ===
+      (void)sequence_builder.Append(seq.toString());
 
-      // === peptidoform (ProForma canonical) ===
-      auto pf = ProForma::fromAASequence(seq);
-      (void)peptidoform_builder.Append(ProForma::toString(pf, ProForma::WriteMode::CANONICAL));
+      // === peptidoform (not used on internal path; ProForma only in QPX exchange) ===
+      (void)peptidoform_builder.AppendNull();
 
       // === modifications (structured) ===
       (void)modifications_builder.Append();
@@ -1448,7 +1447,6 @@ bool QPXFile::importFromArrow(
   if (num_rows == 0) { return true; }
 
   auto col_p_id = ArrowIOHelpers::getColumn(tbl, PSMSchema::PEPTIDE_IDENTIFICATION_INDEX);
-  auto col_peptidoform = ArrowIOHelpers::getColumn(tbl, PSMSchema::PEPTIDOFORM, /*required=*/false);
   auto col_sequence = ArrowIOHelpers::getColumn(tbl, PSMSchema::SEQUENCE, /*required=*/false);
   auto col_charge = ArrowIOHelpers::getColumn(tbl, PSMSchema::PRECURSOR_CHARGE);
   auto col_score = ArrowIOHelpers::getColumn(tbl, PSMSchema::SCORE);
@@ -1538,24 +1536,7 @@ bool QPXFile::importFromArrow(
     }
 
     PeptideHit hit;
-    bool sequence_set = false;
-    if (col_peptidoform && !ArrowIOHelpers::isNull(col_peptidoform, row))
-    {
-      const String peptidoform_str = ArrowIOHelpers::getStringValue(col_peptidoform, row);
-      if (!peptidoform_str.empty())
-      {
-        try
-        {
-          auto pf = ProForma::parse(peptidoform_str);
-          hit.setSequence(ProForma::toAASequence(pf, ProForma::ConversionPolicy::BEST_EFFORT));
-          sequence_set = true;
-        }
-        catch (...)
-        {
-        }
-      }
-    }
-    if (!sequence_set && col_sequence && !ArrowIOHelpers::isNull(col_sequence, row))
+    if (col_sequence && !ArrowIOHelpers::isNull(col_sequence, row))
     {
       hit.setSequence(AASequence::fromString(ArrowIOHelpers::getStringValue(col_sequence, row)));
     }
