@@ -2683,7 +2683,33 @@ namespace OpenMS
       return expandDIASpectra_(full_exp, ms2_to_ms1);
     }
 
-    // "auto" or "false": load MS2-only first (cheap — avoids holding MS1 in memory for DDA)
+    if (dia_mode_ == "auto")
+    {
+      // Cheap metadata-only load for DIA detection (skips peak data decoding)
+      PeakMap meta_only;
+      {
+        FileHandler f;
+        PeakFileOptions options;
+        options.clearMSLevels();
+        options.addMSLevel(2);
+        options.setFillData(false);
+        f.getOptions() = options;
+        f.loadExperiment(in_spectra, meta_only, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+      }
+
+      if (isDIAExperiment_(meta_only))
+      {
+        PeakMap full_exp;
+        FileHandler f;
+        f.loadExperiment(in_spectra, full_exp, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+        full_exp.sortSpectra(true);
+        OPENMS_LOG_INFO << "[ProSE] DIA mode auto-detected for " << in_spectra << std::endl;
+        auto ms2_to_ms1 = buildMS2ToMS1Map_(full_exp);
+        return expandDIASpectra_(full_exp, ms2_to_ms1);
+      }
+    }
+
+    // DDA (or dia:false): load MS2-only with peak data
     PeakMap spectra;
     {
       FileHandler f;
@@ -2694,20 +2720,6 @@ namespace OpenMS
       f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
       spectra.sortSpectra(true);
     }
-
-    if (dia_mode_ == "auto" && isDIAExperiment_(spectra))
-    {
-      // Auto-detected DIA: reload with MS1+MS2 for precursor extraction
-      spectra.clear(true);
-      PeakMap full_exp;
-      FileHandler f;
-      f.loadExperiment(in_spectra, full_exp, {FileTypes::MZML, FileTypes::BRUKER_TDF});
-      full_exp.sortSpectra(true);
-      OPENMS_LOG_INFO << "[ProSE] DIA mode auto-detected for " << in_spectra << std::endl;
-      auto ms2_to_ms1 = buildMS2ToMS1Map_(full_exp);
-      return expandDIASpectra_(full_exp, ms2_to_ms1);
-    }
-
     return spectra;
   }
 
