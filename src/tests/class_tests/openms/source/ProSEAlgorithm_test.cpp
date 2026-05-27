@@ -52,6 +52,16 @@ public:
   using ProSEAlgorithm::last_calibration_result_;
   using ProSEAlgorithm::last_mod_match_tolerance_used_;
   using ProSEAlgorithm::CalibrationResult_;
+
+  // DIA support
+  using ProSEAlgorithm::PrecursorCandidate_;
+  using ProSEAlgorithm::isDIAExperiment_;
+  using ProSEAlgorithm::buildMS2ToMS1Map_;
+  using ProSEAlgorithm::extractMS1PrecursorCandidates_;
+  using ProSEAlgorithm::assignChargeByIsotopeSpacing_;
+  using ProSEAlgorithm::expandDIASpectra_;
+  using ProSEAlgorithm::mergeDIAPseudoSpectraHits_;
+  using ProSEAlgorithm::AnnotatedHit_;
 };
 
 // --- Shared calibration fixture -------------------------------------------------
@@ -1380,6 +1390,345 @@ START_SECTION(([EXTRA] computeModMatchTolerance_ returns min(lower, upper)))
   p.setValue("precursor:mass_tolerance_upper", 2.0);
   algo.setParameters(p);
   TEST_REAL_SIMILAR(algo.computeModMatchTolerance_(), 0.5)
+}
+END_SECTION
+
+// =====================================================================
+// DIA support tests
+// =====================================================================
+
+START_SECTION(([EXTRA] DIA auto-detection - wide isolation windows))
+{
+  // Build a PeakMap with wide-window MS2 spectra (DIA-like)
+  PeakMap dia_exp;
+  for (int i = 0; i < 5; ++i)
+  {
+    MSSpectrum s;
+    s.setMSLevel(2);
+    s.setRT(100.0 + i);
+    Precursor p;
+    p.setMZ(500.0 + i * 25.0);
+    p.setIsolationWindowLowerOffset(12.5);
+    p.setIsolationWindowUpperOffset(12.5);
+    s.setPrecursors({p});
+    dia_exp.addSpectrum(s);
+  }
+
+  ProSEAlgorithm_test algo;
+  Param params = algo.getParameters();
+  params.setValue("dia:min_isolation_width", 4.0);
+  algo.setParameters(params);
+
+  TEST_EQUAL(algo.isDIAExperiment_(dia_exp), true)
+
+  // Narrow windows (DDA-like) should not trigger DIA
+  PeakMap dda_exp;
+  for (int i = 0; i < 5; ++i)
+  {
+    MSSpectrum s;
+    s.setMSLevel(2);
+    s.setRT(100.0 + i);
+    Precursor p;
+    p.setMZ(500.0 + i);
+    p.setIsolationWindowLowerOffset(0.7);
+    p.setIsolationWindowUpperOffset(0.7);
+    s.setPrecursors({p});
+    dda_exp.addSpectrum(s);
+  }
+  TEST_EQUAL(algo.isDIAExperiment_(dda_exp), false)
+
+  // No isolation window info should return false
+  PeakMap no_iso_exp;
+  for (int i = 0; i < 5; ++i)
+  {
+    MSSpectrum s;
+    s.setMSLevel(2);
+    s.setRT(100.0 + i);
+    Precursor p;
+    p.setMZ(500.0);
+    s.setPrecursors({p});
+    no_iso_exp.addSpectrum(s);
+  }
+  TEST_EQUAL(algo.isDIAExperiment_(no_iso_exp), false)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DIA buildMS2ToMS1Map))
+{
+  PeakMap exp;
+  // MS1 at index 0
+  MSSpectrum ms1_0;
+  ms1_0.setMSLevel(1);
+  ms1_0.setRT(10.0);
+  exp.addSpectrum(ms1_0);
+
+  // MS2 at index 1, 2 (children of MS1 at 0)
+  for (int i = 0; i < 2; ++i)
+  {
+    MSSpectrum ms2;
+    ms2.setMSLevel(2);
+    ms2.setRT(11.0 + i);
+    Precursor p;
+    p.setMZ(500.0);
+    ms2.setPrecursors({p});
+    exp.addSpectrum(ms2);
+  }
+
+  // MS1 at index 3
+  MSSpectrum ms1_1;
+  ms1_1.setMSLevel(1);
+  ms1_1.setRT(20.0);
+  exp.addSpectrum(ms1_1);
+
+  // MS2 at index 4 (child of MS1 at 3)
+  MSSpectrum ms2_3;
+  ms2_3.setMSLevel(2);
+  ms2_3.setRT(21.0);
+  Precursor p3;
+  p3.setMZ(600.0);
+  ms2_3.setPrecursors({p3});
+  exp.addSpectrum(ms2_3);
+
+  auto map = ProSEAlgorithm_test::buildMS2ToMS1Map_(exp);
+  TEST_EQUAL(map.size(), 5)
+  TEST_EQUAL(map[0], -1) // MS1 itself
+  TEST_EQUAL(map[1], 0)  // MS2 → MS1 at 0
+  TEST_EQUAL(map[2], 0)  // MS2 → MS1 at 0
+  TEST_EQUAL(map[3], -1) // MS1 itself
+  TEST_EQUAL(map[4], 3)  // MS2 → MS1 at 3
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DIA extractMS1PrecursorCandidates))
+{
+  // Build MS1 spectrum with known peaks
+  MSSpectrum ms1;
+  ms1.setMSLevel(1);
+  // Peaks at m/z 490, 495, 500 (high), 505 (highest), 510, 520 (outside window)
+  ms1.push_back(Peak1D(490.0, 100.0));
+  ms1.push_back(Peak1D(495.0, 200.0));
+  ms1.push_back(Peak1D(500.0, 800.0));
+  ms1.push_back(Peak1D(505.0, 1000.0));
+  ms1.push_back(Peak1D(510.0, 150.0));
+  ms1.push_back(Peak1D(520.0, 5000.0)); // outside window
+  ms1.sortByPosition();
+
+  // Precursor with isolation window [487.5, 512.5]
+  Precursor prec;
+  prec.setMZ(500.0);
+  prec.setIsolationWindowLowerOffset(12.5);
+  prec.setIsolationWindowUpperOffset(12.5);
+
+  auto candidates = ProSEAlgorithm_test::extractMS1PrecursorCandidates_(ms1, prec, 3);
+
+  // Should get top 3 by intensity, sorted desc: 505 (1000), 500 (800), 495 (200)
+  TEST_EQUAL(candidates.size(), 3)
+  TEST_REAL_SIMILAR(candidates[0].mz, 505.0)
+  TEST_REAL_SIMILAR(candidates[0].intensity, 1000.0)
+  TEST_REAL_SIMILAR(candidates[1].mz, 500.0)
+  TEST_REAL_SIMILAR(candidates[1].intensity, 800.0)
+  TEST_REAL_SIMILAR(candidates[2].mz, 495.0)
+  TEST_REAL_SIMILAR(candidates[2].intensity, 200.0)
+
+  // 520.0 should NOT appear (outside window)
+  for (const auto& c : candidates)
+  {
+    TEST_NOT_EQUAL(c.mz, 520.0)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DIA assignChargeByIsotopeSpacing - high charge first))
+{
+  // Build MS1 with a peak at 500.0 and isotope peaks for charge 2 and charge 3
+  MSSpectrum ms1;
+  ms1.setMSLevel(1);
+  double c13 = Constants::C13C12_MASSDIFF_U;
+
+  ms1.push_back(Peak1D(500.0, 1000.0));
+  // charge 2 isotope: +0.5017
+  ms1.push_back(Peak1D(500.0 + c13 / 2.0, 500.0));
+  // charge 3 isotope: +0.3345
+  ms1.push_back(Peak1D(500.0 + c13 / 3.0, 300.0));
+  ms1.sortByPosition();
+
+  // With max_charge=5, should find charge 3 first (testing high to low)
+  // because charge 5 and 4 won't find isotope peaks, but charge 3 will
+  int charge = ProSEAlgorithm_test::assignChargeByIsotopeSpacing_(ms1, 500.0, 2, 5, 20.0);
+  TEST_EQUAL(charge, 3)
+
+  // With max_charge=2, should find charge 2
+  charge = ProSEAlgorithm_test::assignChargeByIsotopeSpacing_(ms1, 500.0, 2, 2, 20.0);
+  TEST_EQUAL(charge, 2)
+
+  // Peak with no isotope neighbors should return 0
+  MSSpectrum ms1_single;
+  ms1_single.push_back(Peak1D(700.0, 1000.0));
+  ms1_single.push_back(Peak1D(800.0, 500.0)); // too far for any charge
+  ms1_single.sortByPosition();
+
+  charge = ProSEAlgorithm_test::assignChargeByIsotopeSpacing_(ms1_single, 700.0, 2, 5, 10.0);
+  TEST_EQUAL(charge, 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DIA expandDIASpectra))
+{
+  // Build a small DIA experiment: 1 MS1 + 2 MS2
+  PeakMap full_exp;
+
+  // MS1 with known peaks in both DIA windows
+  MSSpectrum ms1;
+  ms1.setMSLevel(1);
+  ms1.setRT(10.0);
+  double c13 = Constants::C13C12_MASSDIFF_U;
+  // Window 1 peaks (around 500)
+  ms1.push_back(Peak1D(498.0, 500.0));
+  ms1.push_back(Peak1D(498.0 + c13 / 2.0, 250.0)); // isotope for charge 2
+  ms1.push_back(Peak1D(502.0, 1000.0));
+  ms1.push_back(Peak1D(502.0 + c13 / 3.0, 400.0)); // isotope for charge 3
+  // Window 2 peaks (around 525)
+  ms1.push_back(Peak1D(523.0, 800.0));
+  ms1.sortByPosition();
+  full_exp.addSpectrum(ms1);
+
+  // MS2 window 1: isolation [487.5, 512.5]
+  MSSpectrum ms2_1;
+  ms2_1.setMSLevel(2);
+  ms2_1.setRT(11.0);
+  ms2_1.setNativeID("scan=1");
+  ms2_1.push_back(Peak1D(200.0, 100.0));
+  ms2_1.push_back(Peak1D(300.0, 200.0));
+  Precursor p1;
+  p1.setMZ(500.0);
+  p1.setIsolationWindowLowerOffset(12.5);
+  p1.setIsolationWindowUpperOffset(12.5);
+  ms2_1.setPrecursors({p1});
+  full_exp.addSpectrum(ms2_1);
+
+  // MS2 window 2: isolation [512.5, 537.5]
+  MSSpectrum ms2_2;
+  ms2_2.setMSLevel(2);
+  ms2_2.setRT(12.0);
+  ms2_2.setNativeID("scan=2");
+  ms2_2.push_back(Peak1D(250.0, 150.0));
+  Precursor p2;
+  p2.setMZ(525.0);
+  p2.setIsolationWindowLowerOffset(12.5);
+  p2.setIsolationWindowUpperOffset(12.5);
+  ms2_2.setPrecursors({p2});
+  full_exp.addSpectrum(ms2_2);
+
+  auto ms2_to_ms1 = ProSEAlgorithm_test::buildMS2ToMS1Map_(full_exp);
+
+  ProSEAlgorithm_test algo;
+  Param params = algo.getParameters();
+  params.setValue("dia:max_precursor_candidates", 20);
+  params.setValue("dia:isotope_tolerance_ppm", 20.0);
+  params.setValue("precursor:min_charge", 2);
+  params.setValue("precursor:max_charge", 5);
+  algo.setParameters(params);
+
+  std::vector<Size> pseudo_to_original;
+  PeakMap expanded = algo.expandDIASpectra_(full_exp, ms2_to_ms1, pseudo_to_original);
+
+  // Window 1 has 4 MS1 peaks in range, window 2 has 1
+  // (the isotope peaks also count as candidates)
+  TEST_EQUAL(expanded.size(), pseudo_to_original.size())
+  TEST_EQUAL(expanded.size() >= 2, true) // at least 1 per window
+
+  // All pseudo-spectra should be MS level 2
+  for (Size i = 0; i < expanded.size(); ++i)
+  {
+    TEST_EQUAL(expanded[i].getMSLevel(), 2)
+    TEST_EQUAL(expanded[i].getPrecursors().size(), 1)
+  }
+
+  // Check pseudo_to_original mapping: window 1 pseudo-spectra map to 0, window 2 to 1
+  for (Size i = 0; i < pseudo_to_original.size(); ++i)
+  {
+    TEST_EQUAL(pseudo_to_original[i] <= 1, true)
+  }
+
+  // The highest-intensity candidate (1000 @ 502.0) should appear first for window 1
+  // and should have charge 3 (isotope at +c13/3)
+  bool found_502 = false;
+  for (Size i = 0; i < expanded.size(); ++i)
+  {
+    if (pseudo_to_original[i] == 0) // window 1
+    {
+      double prec_mz = expanded[i].getPrecursors()[0].getMZ();
+      if (std::abs(prec_mz - 502.0) < 0.01)
+      {
+        found_502 = true;
+        TEST_EQUAL(expanded[i].getPrecursors()[0].getCharge(), 3)
+        // Fragment peaks should be copied from original MS2
+        TEST_EQUAL(expanded[i].size(), 2) // 200.0 and 300.0
+        break;
+      }
+    }
+  }
+  TEST_EQUAL(found_502, true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DIA mergeDIAPseudoSpectraHits))
+{
+  // Simulate 3 pseudo-spectra from 2 original scans:
+  // pseudo 0, 1 → original 0; pseudo 2 → original 1
+  std::vector<std::vector<ProSEAlgorithm_test::AnnotatedHit_>> pseudo_hits(3);
+
+  // pseudo 0: one hit with score 10
+  {
+    ProSEAlgorithm_test::AnnotatedHit_ h;
+    h.score = 10.0;
+    h.sequence = AASequence::fromString("PEPTIDE");
+    h.dia_precursor_mz = 500.0;
+    h.applied_charge = 2;
+    pseudo_hits[0].push_back(h);
+  }
+  // pseudo 1: one hit with score 20 (better, same original scan)
+  {
+    ProSEAlgorithm_test::AnnotatedHit_ h;
+    h.score = 20.0;
+    h.sequence = AASequence::fromString("PEPTIDER");
+    h.dia_precursor_mz = 502.0;
+    h.applied_charge = 3;
+    pseudo_hits[1].push_back(h);
+  }
+  // pseudo 2: one hit with score 15 (different original scan)
+  {
+    ProSEAlgorithm_test::AnnotatedHit_ h;
+    h.score = 15.0;
+    h.sequence = AASequence::fromString("ANOTHERSEQ");
+    h.dia_precursor_mz = 525.0;
+    h.applied_charge = 2;
+    pseudo_hits[2].push_back(h);
+  }
+
+  std::vector<Size> pseudo_to_original = {0, 0, 1};
+  std::vector<std::vector<ProSEAlgorithm_test::AnnotatedHit_>> merged;
+
+  ProSEAlgorithm_test::mergeDIAPseudoSpectraHits_(pseudo_hits, pseudo_to_original, 2, 1, merged);
+
+  TEST_EQUAL(merged.size(), 2)
+  // Original scan 0: should keep top-1 by score → score 20 (PEPTIDER)
+  TEST_EQUAL(merged[0].size(), 1)
+  TEST_REAL_SIMILAR(merged[0][0].score, 20.0)
+  TEST_EQUAL(merged[0][0].sequence.toString(), "PEPTIDER")
+  TEST_REAL_SIMILAR(merged[0][0].dia_precursor_mz, 502.0)
+  TEST_EQUAL(merged[0][0].applied_charge, 3)
+
+  // Original scan 1: single hit
+  TEST_EQUAL(merged[1].size(), 1)
+  TEST_REAL_SIMILAR(merged[1][0].score, 15.0)
+
+  // Test with top_hits=2: original scan 0 should keep both hits
+  ProSEAlgorithm_test::mergeDIAPseudoSpectraHits_(pseudo_hits, pseudo_to_original, 2, 2, merged);
+  TEST_EQUAL(merged[0].size(), 2)
+  // Sorted by score descending
+  TEST_REAL_SIMILAR(merged[0][0].score, 20.0)
+  TEST_REAL_SIMILAR(merged[0][1].score, 10.0)
 }
 END_SECTION
 
