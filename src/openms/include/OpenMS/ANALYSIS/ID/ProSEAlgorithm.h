@@ -349,6 +349,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       // Layout: doubles first, then floats, then int, then uint16_t — minimizes padding (40 bytes excluding AASequence)
       double score = 0; ///< main score
       double delta_mass = 0.0; ///< mass difference for open search (Da)
+      double dia_precursor_mz = 0.0; ///< DIA: winning precursor m/z from MS1 (0.0 = use spectrum metadata)
       float prefix_fraction = 0; ///< fraction of annotated prefix ions (a/b/c)
       float suffix_fraction = 0; ///< fraction of annotated suffix ions (x/y/z)
       float mean_error = 0.0f; ///< mean absolute fragment mass error
@@ -525,6 +526,12 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     double calibration_subset_ratio_{0.1};
     Size calibration_min_psms_{50};
 
+    // DIA (Data-Independent Acquisition) support
+    String dia_mode_{"auto"};
+    Size dia_max_precursor_candidates_{20};
+    double dia_isotope_tolerance_ppm_{10.0};
+    double dia_min_isolation_width_{4.0};
+
     /**
      * @brief Result of a calibration pass.
      *
@@ -607,6 +614,52 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                              precursor_mass_tolerance_upper_,
                                              precursor_mass_tolerance_unit_ == "ppm");
     }
+
+    // ======================= DIA support =======================
+
+    struct PrecursorCandidate_
+    {
+      double mz;
+      double intensity;
+      int charge; ///< 0 = unknown (will enumerate all charges)
+    };
+
+    /// Auto-detect DIA by checking isolation window widths on MS2 spectra.
+    bool isDIAExperiment_(const PeakMap& spectra) const;
+
+    /// Build map from spectrum index → parent MS1 spectrum index (-1 if none).
+    static std::vector<int> buildMS2ToMS1Map_(const PeakMap& full_exp);
+
+    /// Extract top-N MS1 peaks within the isolation window of an MS2 precursor.
+    static std::vector<PrecursorCandidate_> extractMS1PrecursorCandidates_(
+        const MSSpectrum& ms1_spectrum,
+        const Precursor& ms2_precursor,
+        Size max_candidates);
+
+    /// Assign charge by checking for isotope peaks at +1/z spacing.
+    /// Tests charges from max_charge down to min_charge; returns 0 if none found.
+    static int assignChargeByIsotopeSpacing_(
+        const MSSpectrum& ms1_spectrum,
+        double candidate_mz,
+        int min_charge,
+        int max_charge,
+        double mz_tolerance_ppm);
+
+    /// Expand DIA MS2 spectra into pseudo-spectra (one per precursor candidate).
+    /// pseudo_to_original maps each pseudo-spectrum index to its original MS2 index
+    /// (counting only MS2 spectra in the full experiment, in order).
+    PeakMap expandDIASpectra_(
+        const PeakMap& full_exp,
+        const std::vector<int>& ms2_to_ms1_map,
+        std::vector<Size>& pseudo_to_original) const;
+
+    /// Merge annotated hits from pseudo-spectra back to original DIA scans.
+    static void mergeDIAPseudoSpectraHits_(
+        const std::vector<std::vector<AnnotatedHit_>>& pseudo_hits,
+        const std::vector<Size>& pseudo_to_original,
+        Size num_original_scans,
+        Size top_hits,
+        std::vector<std::vector<AnnotatedHit_>>& merged_hits);
 };
 
 } // namespace

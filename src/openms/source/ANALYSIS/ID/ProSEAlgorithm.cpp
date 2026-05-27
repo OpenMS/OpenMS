@@ -242,6 +242,29 @@ namespace OpenMS
       "spectra estimates instrument-specific mass accuracy, then the main search uses the "
       "calibrated (typically tighter) tolerances for better discrimination.");
 
+    defaults_.setValue("dia:enabled", "auto",
+      "DIA (Data-Independent Acquisition) mode. 'auto' = detect from isolation window widths; "
+      "'true' = force DIA mode; 'false' = disable DIA processing.");
+    defaults_.setValidStrings("dia:enabled", {"auto", "true", "false"});
+    defaults_.setValue("dia:max_precursor_candidates", 20,
+      "Maximum number of precursor candidates to extract from the MS1 survey scan "
+      "within each DIA isolation window. Each candidate generates a pseudo-spectrum "
+      "that is searched independently against the database.");
+    defaults_.setMinInt("dia:max_precursor_candidates", 1);
+    defaults_.setMaxInt("dia:max_precursor_candidates", 100);
+    defaults_.setValue("dia:isotope_tolerance_ppm", 10.0,
+      "Tolerance in ppm for matching isotope peaks in the MS1 spectrum during "
+      "charge state assignment of precursor candidates.");
+    defaults_.setMinFloat("dia:isotope_tolerance_ppm", 1.0);
+    defaults_.setValue("dia:min_isolation_width", 4.0,
+      "Minimum total isolation window width (Da) for auto-detection of DIA mode. "
+      "Windows wider than this are classified as DIA windows.");
+    defaults_.setMinFloat("dia:min_isolation_width", 1.0);
+    defaults_.setSectionDescription("dia",
+      "Data-Independent Acquisition (DIA) support. When enabled, each wide-window "
+      "MS2 spectrum is expanded into multiple pseudo-spectra, one per precursor "
+      "candidate extracted from the parent MS1 survey scan.");
+
     defaultsToParam_();
   }
 
@@ -309,6 +332,11 @@ namespace OpenMS
     calibration_enabled_ = param_.getValue("calibration:enabled") == "true";
     calibration_subset_ratio_ = param_.getValue("calibration:subset_ratio");
     calibration_min_psms_ = param_.getValue("calibration:min_psms");
+
+    dia_mode_ = param_.getValue("dia:enabled").toString();
+    dia_max_precursor_candidates_ = param_.getValue("dia:max_precursor_candidates");
+    dia_isotope_tolerance_ppm_ = param_.getValue("dia:isotope_tolerance_ppm");
+    dia_min_isolation_width_ = param_.getValue("dia:min_isolation_width");
   }
 
   // static
@@ -981,11 +1009,12 @@ namespace OpenMS
         ah.matched_suffix_ions = static_cast<uint16_t>(detail.matched_suffix_ions);
         ah.isotope_error = sms.isotope_error_;
         ah.applied_charge = sms.precursor_charge_;
+        ah.dia_precursor_mz = exp_spectrum.getPrecursors()[0].getMZ();
         ah.delta_mass = 0.0;
         if (open_search_mode)
         {
           double theo_mh_plus = ah.sequence.getMZ(1);
-          double exp_mz = exp_spectrum.getPrecursors()[0].getMZ();
+          double exp_mz = ah.dia_precursor_mz;
           double exp_mh_plus = exp_mz * sms.precursor_charge_ - ((sms.precursor_charge_ - 1) * proton_mass_u);
           ah.delta_mass = exp_mh_plus - theo_mh_plus;
         }
@@ -1564,15 +1593,54 @@ namespace OpenMS
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
-    // load MS2 map
+    // Determine DIA mode: may need full experiment (MS1+MS2)
+    bool use_dia = false;
     PeakMap spectra;
-    FileHandler f;
-    PeakFileOptions options;
-    options.clearMSLevels();
-    options.addMSLevel(2);
-    f.getOptions() = options;
-    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
-    spectra.sortSpectra(true);
+
+    if (dia_mode_ == "true")
+    {
+      use_dia = true;
+    }
+    else if (dia_mode_ == "auto" || dia_mode_ == "false")
+    {
+      // Load MS2-only for auto-detection (and non-DIA path)
+      FileHandler f;
+      PeakFileOptions options;
+      options.clearMSLevels();
+      options.addMSLevel(2);
+      f.getOptions() = options;
+      f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+      spectra.sortSpectra(true);
+
+      if (dia_mode_ == "auto")
+      {
+        use_dia = isDIAExperiment_(spectra);
+      }
+    }
+
+    if (use_dia)
+    {
+      OPENMS_LOG_INFO << "[ProSE] DIA mode active. Loading full experiment (MS1+MS2)..." << std::endl;
+      PeakMap full_exp;
+      FileHandler f2;
+      f2.loadExperiment(in_spectra, full_exp, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+      full_exp.sortSpectra(true);
+
+      auto ms2_to_ms1 = buildMS2ToMS1Map_(full_exp);
+      std::vector<Size> pseudo_to_original;
+      spectra = expandDIASpectra_(full_exp, ms2_to_ms1, pseudo_to_original);
+    }
+    else if (spectra.empty())
+    {
+      // dia_mode_ == "true" skipped MS2-only load above; need to load now
+      FileHandler f;
+      PeakFileOptions options;
+      options.clearMSLevels();
+      options.addMSLevel(2);
+      f.getOptions() = options;
+      f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+      spectra.sortSpectra(true);
+    }
 
     // load FASTA
     vector<FASTAFile::FASTAEntry> fasta_db;
@@ -1726,18 +1794,52 @@ namespace OpenMS
                       << ", +" << precursor_mass_tolerance_upper_ << "] "
                       << precursor_mass_tolerance_unit_ << ")" << std::endl;
 
-      // Phase 1: Load + preprocess all files.
+      // Phase 1: Load + preprocess all files (with DIA expansion if needed).
       std::vector<PeakMap> all_spectra(in_spectra_files.size());
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         OPENMS_LOG_INFO << "[ProSE] Loading " << in_spectra_files[i] << std::endl;
-        FileHandler f;
-        PeakFileOptions options;
-        options.clearMSLevels();
-        options.addMSLevel(2);
-        f.getOptions() = options;
-        f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF});
-        all_spectra[i].sortSpectra(true);
+
+        bool file_is_dia = (dia_mode_ == "true");
+        if (dia_mode_ == "auto")
+        {
+          PeakMap ms2_only;
+          FileHandler f_ms2;
+          PeakFileOptions opts_ms2;
+          opts_ms2.clearMSLevels();
+          opts_ms2.addMSLevel(2);
+          f_ms2.getOptions() = opts_ms2;
+          f_ms2.loadExperiment(in_spectra_files[i], ms2_only, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+          file_is_dia = isDIAExperiment_(ms2_only);
+          if (!file_is_dia)
+          {
+            all_spectra[i] = std::move(ms2_only);
+            all_spectra[i].sortSpectra(true);
+          }
+        }
+
+        if (file_is_dia)
+        {
+          OPENMS_LOG_INFO << "[ProSE] DIA mode for " << in_spectra_files[i] << std::endl;
+          PeakMap full_exp;
+          FileHandler f_full;
+          f_full.loadExperiment(in_spectra_files[i], full_exp, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+          full_exp.sortSpectra(true);
+          auto ms2_to_ms1 = buildMS2ToMS1Map_(full_exp);
+          std::vector<Size> pseudo_to_original;
+          all_spectra[i] = expandDIASpectra_(full_exp, ms2_to_ms1, pseudo_to_original);
+        }
+        else if (all_spectra[i].empty())
+        {
+          FileHandler f;
+          PeakFileOptions options;
+          options.clearMSLevels();
+          options.addMSLevel(2);
+          f.getOptions() = options;
+          f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF});
+          all_spectra[i].sortSpectra(true);
+        }
+
         preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
       }
 
@@ -2025,6 +2127,35 @@ namespace OpenMS
                         << "] Searching " << in_spectra << std::endl;
 
         PeakMap spectra;
+        bool file_is_dia = (dia_mode_ == "true");
+        if (dia_mode_ == "auto")
+        {
+          PeakMap ms2_only;
+          FileHandler f_ms2;
+          PeakFileOptions opts_ms2;
+          opts_ms2.clearMSLevels();
+          opts_ms2.addMSLevel(2);
+          f_ms2.getOptions() = opts_ms2;
+          f_ms2.loadExperiment(in_spectra, ms2_only, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+          file_is_dia = isDIAExperiment_(ms2_only);
+          if (!file_is_dia)
+          {
+            spectra = std::move(ms2_only);
+          }
+        }
+
+        if (file_is_dia)
+        {
+          OPENMS_LOG_INFO << "[ProSE] DIA mode for " << in_spectra << std::endl;
+          PeakMap full_exp;
+          FileHandler f_full;
+          f_full.loadExperiment(in_spectra, full_exp, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+          full_exp.sortSpectra(true);
+          auto ms2_to_ms1 = buildMS2ToMS1Map_(full_exp);
+          std::vector<Size> pseudo_to_original;
+          spectra = expandDIASpectra_(full_exp, ms2_to_ms1, pseudo_to_original);
+        }
+        else if (spectra.empty())
         {
           FileHandler f;
           PeakFileOptions options;
@@ -2657,6 +2788,203 @@ namespace OpenMS
       OPENMS_LOG_INFO << "[ProSE] Statistics tables written to:" << std::endl;
       OPENMS_LOG_INFO << "  - " << output_base_name << "_ModificationAnalysis_DeltaMassStats.tsv" << std::endl;
       OPENMS_LOG_INFO << "  - " << output_base_name << "_ModificationAnalysis_PTMStats.tsv" << std::endl;
+    }
+  }
+
+  // =====================================================================
+  // DIA support: helper methods
+  // =====================================================================
+
+  bool ProSEAlgorithm::isDIAExperiment_(const PeakMap& spectra) const
+  {
+    std::vector<double> widths;
+    widths.reserve(10);
+    for (const auto& spec : spectra)
+    {
+      if (spec.getMSLevel() != 2) continue;
+      const auto& precs = spec.getPrecursors();
+      if (precs.empty()) continue;
+      double lo = precs[0].getIsolationWindowLowerOffset();
+      double hi = precs[0].getIsolationWindowUpperOffset();
+      if (lo <= 0.0 && hi <= 0.0) continue;
+      widths.push_back(lo + hi);
+      if (widths.size() >= 10) break;
+    }
+    if (widths.empty()) return false;
+    std::sort(widths.begin(), widths.end());
+    double median = widths[widths.size() / 2];
+    return median > dia_min_isolation_width_;
+  }
+
+  std::vector<int> ProSEAlgorithm::buildMS2ToMS1Map_(const PeakMap& full_exp)
+  {
+    std::vector<int> map(full_exp.size(), -1);
+    int last_ms1_idx = -1;
+    for (Size i = 0; i < full_exp.size(); ++i)
+    {
+      if (full_exp[i].getMSLevel() == 1)
+      {
+        last_ms1_idx = static_cast<int>(i);
+      }
+      else if (full_exp[i].getMSLevel() == 2)
+      {
+        map[i] = last_ms1_idx;
+      }
+    }
+    return map;
+  }
+
+  std::vector<ProSEAlgorithm::PrecursorCandidate_> ProSEAlgorithm::extractMS1PrecursorCandidates_(
+      const MSSpectrum& ms1_spectrum,
+      const Precursor& ms2_precursor,
+      Size max_candidates)
+  {
+    double center = ms2_precursor.getMZ();
+    double lower_mz = center - ms2_precursor.getIsolationWindowLowerOffset();
+    double upper_mz = center + ms2_precursor.getIsolationWindowUpperOffset();
+
+    auto it_lo = ms1_spectrum.MZBegin(lower_mz);
+    auto it_hi = ms1_spectrum.MZEnd(upper_mz);
+
+    std::vector<PrecursorCandidate_> candidates;
+    for (auto it = it_lo; it != it_hi; ++it)
+    {
+      candidates.push_back({it->getMZ(), it->getIntensity(), 0});
+    }
+
+    std::sort(candidates.begin(), candidates.end(),
+              [](const PrecursorCandidate_& a, const PrecursorCandidate_& b)
+              { return a.intensity > b.intensity; });
+
+    if (candidates.size() > max_candidates)
+    {
+      candidates.resize(max_candidates);
+    }
+    return candidates;
+  }
+
+  int ProSEAlgorithm::assignChargeByIsotopeSpacing_(
+      const MSSpectrum& ms1_spectrum,
+      double candidate_mz,
+      int min_charge,
+      int max_charge,
+      double mz_tolerance_ppm)
+  {
+    for (int z = max_charge; z >= min_charge; --z)
+    {
+      double spacing = Constants::C13C12_MASSDIFF_U / static_cast<double>(z);
+      double expected_mz = candidate_mz + spacing;
+      double tol_da = expected_mz * mz_tolerance_ppm * 1e-6;
+      Size idx = ms1_spectrum.findNearest(expected_mz);
+      if (idx < ms1_spectrum.size())
+      {
+        double actual_mz = ms1_spectrum[idx].getMZ();
+        if (std::abs(actual_mz - expected_mz) <= tol_da)
+        {
+          return z;
+        }
+      }
+    }
+    return 0;
+  }
+
+  PeakMap ProSEAlgorithm::expandDIASpectra_(
+      const PeakMap& full_exp,
+      const std::vector<int>& ms2_to_ms1_map,
+      std::vector<Size>& pseudo_to_original) const
+  {
+    PeakMap expanded;
+    pseudo_to_original.clear();
+
+    Size ms2_count = 0;
+    for (Size i = 0; i < full_exp.size(); ++i)
+    {
+      if (full_exp[i].getMSLevel() != 2) continue;
+
+      const MSSpectrum& ms2 = full_exp[i];
+      int ms1_idx = ms2_to_ms1_map[i];
+      Size original_ms2_idx = ms2_count;
+      ++ms2_count;
+
+      if (ms1_idx < 0) continue;
+      const auto& precs = ms2.getPrecursors();
+      if (precs.empty()) continue;
+
+      const MSSpectrum& ms1 = full_exp[ms1_idx];
+      auto candidates = extractMS1PrecursorCandidates_(
+          ms1, precs[0], dia_max_precursor_candidates_);
+
+      for (auto& cand : candidates)
+      {
+        cand.charge = assignChargeByIsotopeSpacing_(
+            ms1, cand.mz,
+            static_cast<int>(precursor_min_charge_),
+            static_cast<int>(precursor_max_charge_),
+            dia_isotope_tolerance_ppm_);
+      }
+
+      for (Size k = 0; k < candidates.size(); ++k)
+      {
+        MSSpectrum pseudo;
+        pseudo.setRT(ms2.getRT());
+        pseudo.setMSLevel(2);
+        pseudo.setNativeID(ms2.getNativeID() + "_dia_" + String(k));
+        pseudo.insert(pseudo.end(), ms2.begin(), ms2.end());
+        pseudo.getFloatDataArrays() = ms2.getFloatDataArrays();
+        pseudo.getStringDataArrays() = ms2.getStringDataArrays();
+        pseudo.getIntegerDataArrays() = ms2.getIntegerDataArrays();
+
+        Precursor p;
+        p.setMZ(candidates[k].mz);
+        p.setCharge(candidates[k].charge);
+        p.setIntensity(candidates[k].intensity);
+        pseudo.setPrecursors({p});
+
+        expanded.addSpectrum(std::move(pseudo));
+        pseudo_to_original.push_back(original_ms2_idx);
+      }
+    }
+
+    OPENMS_LOG_INFO << "[ProSE-DIA] Expanded " << ms2_count << " DIA MS2 spectra into "
+                    << expanded.size() << " pseudo-spectra ("
+                    << dia_max_precursor_candidates_ << " max candidates per window)." << std::endl;
+    return expanded;
+  }
+
+  void ProSEAlgorithm::mergeDIAPseudoSpectraHits_(
+      const std::vector<std::vector<AnnotatedHit_>>& pseudo_hits,
+      const std::vector<Size>& pseudo_to_original,
+      Size num_original_scans,
+      Size top_hits,
+      std::vector<std::vector<AnnotatedHit_>>& merged_hits)
+  {
+    merged_hits.clear();
+    merged_hits.resize(num_original_scans);
+
+    for (Size pseudo_idx = 0; pseudo_idx < pseudo_hits.size(); ++pseudo_idx)
+    {
+      if (pseudo_idx >= pseudo_to_original.size()) break;
+      Size orig = pseudo_to_original[pseudo_idx];
+      if (orig >= num_original_scans) continue;
+
+      for (const auto& hit : pseudo_hits[pseudo_idx])
+      {
+        merged_hits[orig].push_back(hit);
+      }
+    }
+
+    for (auto& hits : merged_hits)
+    {
+      if (hits.size() > top_hits)
+      {
+        std::partial_sort(hits.begin(), hits.begin() + top_hits, hits.end(),
+                          AnnotatedHit_::hasBetterScore);
+        hits.resize(top_hits);
+      }
+      else
+      {
+        std::sort(hits.begin(), hits.end(), AnnotatedHit_::hasBetterScore);
+      }
     }
   }
 
