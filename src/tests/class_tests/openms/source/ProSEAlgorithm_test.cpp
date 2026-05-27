@@ -60,7 +60,6 @@ public:
   using ProSEAlgorithm::extractMS1PrecursorCandidates_;
   using ProSEAlgorithm::assignChargeByIsotopeSpacing_;
   using ProSEAlgorithm::expandDIASpectra_;
-  using ProSEAlgorithm::mergeDIAPseudoSpectraHits_;
   using ProSEAlgorithm::AnnotatedHit_;
 };
 
@@ -1629,8 +1628,7 @@ START_SECTION(([EXTRA] DIA expandDIASpectra))
   params.setValue("precursor:max_charge", 5);
   algo.setParameters(params);
 
-  std::vector<Size> pseudo_to_original;
-  PeakMap expanded = algo.expandDIASpectra_(full_exp, ms2_to_ms1, pseudo_to_original);
+  PeakMap expanded = algo.expandDIASpectra_(full_exp, ms2_to_ms1);
 
   // Multi-precursor mode: one spectrum per DIA window, multiple precursors per spectrum
   TEST_EQUAL(expanded.size(), 2) // one per DIA window
@@ -1652,66 +1650,6 @@ START_SECTION(([EXTRA] DIA expandDIASpectra))
   // Fragment peaks should be the original MS2 peaks (not duplicated)
   TEST_EQUAL(expanded[0].size(), 2) // 200.0 and 300.0
   TEST_EQUAL(expanded[1].size(), 1) // 250.0
-}
-END_SECTION
-
-START_SECTION(([EXTRA] DIA mergeDIAPseudoSpectraHits))
-{
-  // Simulate 3 pseudo-spectra from 2 original scans:
-  // pseudo 0, 1 → original 0; pseudo 2 → original 1
-  std::vector<std::vector<ProSEAlgorithm_test::AnnotatedHit_>> pseudo_hits(3);
-
-  // pseudo 0: one hit with score 10
-  {
-    ProSEAlgorithm_test::AnnotatedHit_ h;
-    h.score = 10.0;
-    h.sequence = AASequence::fromString("PEPTIDE");
-    h.dia_precursor_mz = 500.0;
-    h.applied_charge = 2;
-    pseudo_hits[0].push_back(h);
-  }
-  // pseudo 1: one hit with score 20 (better, same original scan)
-  {
-    ProSEAlgorithm_test::AnnotatedHit_ h;
-    h.score = 20.0;
-    h.sequence = AASequence::fromString("PEPTIDER");
-    h.dia_precursor_mz = 502.0;
-    h.applied_charge = 3;
-    pseudo_hits[1].push_back(h);
-  }
-  // pseudo 2: one hit with score 15 (different original scan)
-  {
-    ProSEAlgorithm_test::AnnotatedHit_ h;
-    h.score = 15.0;
-    h.sequence = AASequence::fromString("ANOTHERSEQ");
-    h.dia_precursor_mz = 525.0;
-    h.applied_charge = 2;
-    pseudo_hits[2].push_back(h);
-  }
-
-  std::vector<Size> pseudo_to_original = {0, 0, 1};
-  std::vector<std::vector<ProSEAlgorithm_test::AnnotatedHit_>> merged;
-
-  ProSEAlgorithm_test::mergeDIAPseudoSpectraHits_(pseudo_hits, pseudo_to_original, 2, 1, merged);
-
-  TEST_EQUAL(merged.size(), 2)
-  // Original scan 0: should keep top-1 by score → score 20 (PEPTIDER)
-  TEST_EQUAL(merged[0].size(), 1)
-  TEST_REAL_SIMILAR(merged[0][0].score, 20.0)
-  TEST_EQUAL(merged[0][0].sequence.toString(), "PEPTIDER")
-  TEST_REAL_SIMILAR(merged[0][0].dia_precursor_mz, 502.0)
-  TEST_EQUAL(merged[0][0].applied_charge, 3)
-
-  // Original scan 1: single hit
-  TEST_EQUAL(merged[1].size(), 1)
-  TEST_REAL_SIMILAR(merged[1][0].score, 15.0)
-
-  // Test with top_hits=2: original scan 0 should keep both hits
-  ProSEAlgorithm_test::mergeDIAPseudoSpectraHits_(pseudo_hits, pseudo_to_original, 2, 2, merged);
-  TEST_EQUAL(merged[0].size(), 2)
-  // Sorted by score descending
-  TEST_REAL_SIMILAR(merged[0][0].score, 20.0)
-  TEST_REAL_SIMILAR(merged[0][1].score, 10.0)
 }
 END_SECTION
 

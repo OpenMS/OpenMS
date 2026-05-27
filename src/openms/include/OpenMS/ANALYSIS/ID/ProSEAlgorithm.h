@@ -645,21 +645,12 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         int max_charge,
         double mz_tolerance_ppm);
 
-    /// Expand DIA MS2 spectra into pseudo-spectra (one per precursor candidate).
-    /// pseudo_to_original maps each pseudo-spectrum index to its original MS2 index
-    /// (counting only MS2 spectra in the full experiment, in order).
+    /// Expand DIA MS2 spectra by replacing the isolation-window-center precursor
+    /// with multiple precursors (one per MS1 candidate). Returns a PeakMap where
+    /// each spectrum has N precursors; fragment peaks are shared (no duplication).
     PeakMap expandDIASpectra_(
         const PeakMap& full_exp,
-        const std::vector<int>& ms2_to_ms1_map,
-        std::vector<Size>& pseudo_to_original) const;
-
-    /// Merge annotated hits from pseudo-spectra back to original DIA scans.
-    static void mergeDIAPseudoSpectraHits_(
-        const std::vector<std::vector<AnnotatedHit_>>& pseudo_hits,
-        const std::vector<Size>& pseudo_to_original,
-        Size num_original_scans,
-        Size top_hits,
-        std::vector<std::vector<AnnotatedHit_>>& merged_hits);
+        const std::vector<int>& ms2_to_ms1_map) const;
 };
 
 } // namespace

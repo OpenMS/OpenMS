@@ -1722,7 +1722,12 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       }
       else
       {
-        charges = all_charges;
+        // Unknown charge: enumerate the full configured range (not just charges
+        // from other precursors, which would miss valid charge states).
+        for (uint16_t z = min_precursor_charge_; z <= max_precursor_charge_; ++z)
+        {
+          charges.push_back(z);
+        }
       }
 
     for (uint16_t charge : charges)
@@ -2081,7 +2086,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       for (uint16_t prec_idx = 0; prec_idx < static_cast<uint16_t>(precursors.size()); ++prec_idx)
       {
         vector<size_t> charges;
-        if (precursors[prec_idx].getCharge())
+        if (precursors[prec_idx].getCharge() > 0)
         {
           charges.push_back(precursors[prec_idx].getCharge());
         }

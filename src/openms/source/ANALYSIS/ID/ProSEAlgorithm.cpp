@@ -473,12 +473,8 @@ namespace OpenMS
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
         pi.setScoreType("ln(hyperscore)");
         pi.setHigherScoreBetter(true);
-        // Use the best hit's precursor m/z when available (multi-precursor DIA spectra);
-        // fall back to spectrum metadata for single-precursor (DDA) spectra.
         const auto& best_ah = annotated_hits[scan_index][0];
-        double mz = (best_ah.dia_precursor_mz > 0.0)
-            ? best_ah.dia_precursor_mz
-            : spec.getPrecursors()[0].getMZ();
+        double mz = best_ah.dia_precursor_mz;
         pi.setRT(spec.getRT());
         pi.setMZ(mz);
 
@@ -488,17 +484,17 @@ namespace OpenMS
           pi.setMetaValue(Constants::UserParam::IM, spec.getDriftTime());
         }
 
-        Size charge = (best_ah.applied_charge > 0)
-            ? static_cast<Size>(best_ah.applied_charge)
-            : spec.getPrecursors()[0].getCharge();
-
         // create full peptide hit structure from annotated hits
         vector<PeptideHit> phs;
         for (const auto& ah : annotated_hits[scan_index])
         {
           PeptideHit ph;
-          // Prefer spectrum charge; if absent (0), fall back to the charge actually used by FI for this candidate
-          const Size used_charge = (charge > 0) ? charge : static_cast<Size>(ah.applied_charge);
+          // Use per-hit charge from FragmentIndex (supports multi-precursor DIA where
+          // different hits come from different precursors at different charges).
+          // Fall back to spectrum metadata only when the hit has no charge assigned.
+          const Size used_charge = (ah.applied_charge > 0)
+              ? static_cast<Size>(ah.applied_charge)
+              : spec.getPrecursors()[0].getCharge();
           ph.setCharge(used_charge);
           ph.setScore(ah.score);
           ph.setSequence(ah.sequence);
@@ -518,7 +514,7 @@ namespace OpenMS
             tsg_param.setValue("add_first_prefix_ion", "true");
             tsg.setParameters(tsg_param);
 
-            const int max_frag_z = (charge >= 2) ? std::min<int>(charge - 1, 2) : 1;
+            const int max_frag_z = (used_charge >= 2) ? std::min<int>(used_charge - 1, 2) : 1;
             tsg.getSpectrum(theoretical_spec, ah.sequence, 1, max_frag_z);
             SpectrumAlignment sa;
             Param sa_param(sa.getParameters());
@@ -543,10 +539,7 @@ namespace OpenMS
 
           if (annotation_precursor_error_ppm)
           {
-            // Use per-hit precursor m/z (supports multi-precursor DIA spectra where
-            // each hit may come from a different precursor candidate).
-            const double hit_mz = (ah.dia_precursor_mz > 0.0) ? ah.dia_precursor_mz : mz;
-            const double corrected_mz = hit_mz
+            const double corrected_mz = ah.dia_precursor_mz
               + static_cast<double>(ah.isotope_error) * Constants::C13C12_MASSDIFF_U / used_charge;
             double theo_mz = ah.sequence.getMZ(used_charge);
             double ppm_difference = Math::getPPM(corrected_mz, theo_mz);
@@ -1631,8 +1624,7 @@ namespace OpenMS
       full_exp.sortSpectra(true);
 
       auto ms2_to_ms1 = buildMS2ToMS1Map_(full_exp);
-      std::vector<Size> pseudo_to_original;
-      spectra = expandDIASpectra_(full_exp, ms2_to_ms1, pseudo_to_original);
+      spectra = expandDIASpectra_(full_exp, ms2_to_ms1);
     }
     else if (spectra.empty())
     {
@@ -1830,8 +1822,7 @@ namespace OpenMS
           f_full.loadExperiment(in_spectra_files[i], full_exp, {FileTypes::MZML, FileTypes::BRUKER_TDF});
           full_exp.sortSpectra(true);
           auto ms2_to_ms1 = buildMS2ToMS1Map_(full_exp);
-          std::vector<Size> pseudo_to_original;
-          all_spectra[i] = expandDIASpectra_(full_exp, ms2_to_ms1, pseudo_to_original);
+          all_spectra[i] = expandDIASpectra_(full_exp, ms2_to_ms1);
         }
         else if (all_spectra[i].empty())
         {
@@ -2156,8 +2147,7 @@ namespace OpenMS
           f_full.loadExperiment(in_spectra, full_exp, {FileTypes::MZML, FileTypes::BRUKER_TDF});
           full_exp.sortSpectra(true);
           auto ms2_to_ms1 = buildMS2ToMS1Map_(full_exp);
-          std::vector<Size> pseudo_to_original;
-          spectra = expandDIASpectra_(full_exp, ms2_to_ms1, pseudo_to_original);
+          spectra = expandDIASpectra_(full_exp, ms2_to_ms1);
         }
         else if (spectra.empty())
         {
@@ -2810,7 +2800,7 @@ namespace OpenMS
       if (precs.empty()) continue;
       double lo = precs[0].getIsolationWindowLowerOffset();
       double hi = precs[0].getIsolationWindowUpperOffset();
-      if (lo <= 0.0 && hi <= 0.0) continue;
+      if (lo <= 0.0 || hi <= 0.0) continue;
       widths.push_back(lo + hi);
       if (widths.size() >= 10) break;
     }
@@ -2894,11 +2884,9 @@ namespace OpenMS
 
   PeakMap ProSEAlgorithm::expandDIASpectra_(
       const PeakMap& full_exp,
-      const std::vector<int>& ms2_to_ms1_map,
-      std::vector<Size>& pseudo_to_original) const
+      const std::vector<int>& ms2_to_ms1_map) const
   {
     PeakMap result;
-    pseudo_to_original.clear();
 
     Size ms2_count = 0;
     Size total_candidates = 0;
@@ -2910,15 +2898,26 @@ namespace OpenMS
       int ms1_idx = ms2_to_ms1_map[i];
       ++ms2_count;
 
-      if (ms1_idx < 0) continue;
       const auto& orig_precs = ms2.getPrecursors();
       if (orig_precs.empty()) continue;
+
+      if (ms1_idx < 0)
+      {
+        // No preceding MS1 — keep the original spectrum with its DIA precursor
+        result.addSpectrum(ms2);
+        continue;
+      }
 
       const MSSpectrum& ms1 = full_exp[ms1_idx];
       auto candidates = extractMS1PrecursorCandidates_(
           ms1, orig_precs[0], dia_max_precursor_candidates_);
 
-      if (candidates.empty()) continue;
+      if (candidates.empty())
+      {
+        // No MS1 peaks in isolation window — keep original spectrum
+        result.addSpectrum(ms2);
+        continue;
+      }
 
       for (auto& cand : candidates)
       {
@@ -2951,43 +2950,6 @@ namespace OpenMS
                     << total_candidates << " total precursor candidates, "
                     << dia_max_precursor_candidates_ << " max per window)." << std::endl;
     return result;
-  }
-
-  void ProSEAlgorithm::mergeDIAPseudoSpectraHits_(
-      const std::vector<std::vector<AnnotatedHit_>>& pseudo_hits,
-      const std::vector<Size>& pseudo_to_original,
-      Size num_original_scans,
-      Size top_hits,
-      std::vector<std::vector<AnnotatedHit_>>& merged_hits)
-  {
-    merged_hits.clear();
-    merged_hits.resize(num_original_scans);
-
-    for (Size pseudo_idx = 0; pseudo_idx < pseudo_hits.size(); ++pseudo_idx)
-    {
-      if (pseudo_idx >= pseudo_to_original.size()) break;
-      Size orig = pseudo_to_original[pseudo_idx];
-      if (orig >= num_original_scans) continue;
-
-      for (const auto& hit : pseudo_hits[pseudo_idx])
-      {
-        merged_hits[orig].push_back(hit);
-      }
-    }
-
-    for (auto& hits : merged_hits)
-    {
-      if (hits.size() > top_hits)
-      {
-        std::partial_sort(hits.begin(), hits.begin() + top_hits, hits.end(),
-                          AnnotatedHit_::hasBetterScore);
-        hits.resize(top_hits);
-      }
-      else
-      {
-        std::sort(hits.begin(), hits.end(), AnnotatedHit_::hasBetterScore);
-      }
-    }
   }
 
 } // namespace OpenMS
