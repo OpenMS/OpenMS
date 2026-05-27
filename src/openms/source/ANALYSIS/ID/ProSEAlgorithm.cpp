@@ -473,7 +473,12 @@ namespace OpenMS
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
         pi.setScoreType("ln(hyperscore)");
         pi.setHigherScoreBetter(true);
-        double mz = spec.getPrecursors()[0].getMZ();
+        // Use the best hit's precursor m/z when available (multi-precursor DIA spectra);
+        // fall back to spectrum metadata for single-precursor (DDA) spectra.
+        const auto& best_ah = annotated_hits[scan_index][0];
+        double mz = (best_ah.dia_precursor_mz > 0.0)
+            ? best_ah.dia_precursor_mz
+            : spec.getPrecursors()[0].getMZ();
         pi.setRT(spec.getRT());
         pi.setMZ(mz);
 
@@ -483,7 +488,9 @@ namespace OpenMS
           pi.setMetaValue(Constants::UserParam::IM, spec.getDriftTime());
         }
 
-        Size charge = spec.getPrecursors()[0].getCharge();
+        Size charge = (best_ah.applied_charge > 0)
+            ? static_cast<Size>(best_ah.applied_charge)
+            : spec.getPrecursors()[0].getCharge();
 
         // create full peptide hit structure from annotated hits
         vector<PeptideHit> phs;
@@ -536,13 +543,10 @@ namespace OpenMS
 
           if (annotation_precursor_error_ppm)
           {
-            // Subtract out the isotope offset FI matched at — FragmentIndex searches
-            // shifted_mass = precursor_mass + isotope_error * C13C12, so M_theo ≈ N_obs
-            // + isotope_error * C13C12, and the observed-to-monoiso correction in m/z is
-            //   corrected_mz = observed_mz + isotope_error * C13C12 / charge
-            // Without this, a ±1 Da FI match reports ~1000 ppm / charge for the Percolator
-            // feature, corrupting target/decoy discrimination.
-            const double corrected_mz = mz
+            // Use per-hit precursor m/z (supports multi-precursor DIA spectra where
+            // each hit may come from a different precursor candidate).
+            const double hit_mz = (ah.dia_precursor_mz > 0.0) ? ah.dia_precursor_mz : mz;
+            const double corrected_mz = hit_mz
               + static_cast<double>(ah.isotope_error) * Constants::C13C12_MASSDIFF_U / used_charge;
             double theo_mz = ah.sequence.getMZ(used_charge);
             double ppm_difference = Math::getPPM(corrected_mz, theo_mz);
@@ -951,7 +955,7 @@ namespace OpenMS
         {
           // Realize the sub-peptide at the length whose mass best matches the
           // observed precursor (iso-corrected per the FI's shifted-mass convention).
-          const double exp_mz = exp_spectrum.getPrecursors()[0].getMZ();
+          const double exp_mz = exp_spectrum.getPrecursors()[sms.precursor_idx_].getMZ();
           const double observed_mh_plus =
               exp_mz * sms.precursor_charge_ - (sms.precursor_charge_ - 1) * proton_mass_u;
           // SNES v1.1: subtract the variable-mod Σ from the realization target
@@ -1009,7 +1013,7 @@ namespace OpenMS
         ah.matched_suffix_ions = static_cast<uint16_t>(detail.matched_suffix_ions);
         ah.isotope_error = sms.isotope_error_;
         ah.applied_charge = sms.precursor_charge_;
-        ah.dia_precursor_mz = exp_spectrum.getPrecursors()[0].getMZ();
+        ah.dia_precursor_mz = exp_spectrum.getPrecursors()[sms.precursor_idx_].getMZ();
         ah.delta_mass = 0.0;
         if (open_search_mode)
         {
@@ -2893,26 +2897,28 @@ namespace OpenMS
       const std::vector<int>& ms2_to_ms1_map,
       std::vector<Size>& pseudo_to_original) const
   {
-    PeakMap expanded;
+    PeakMap result;
     pseudo_to_original.clear();
 
     Size ms2_count = 0;
+    Size total_candidates = 0;
     for (Size i = 0; i < full_exp.size(); ++i)
     {
       if (full_exp[i].getMSLevel() != 2) continue;
 
       const MSSpectrum& ms2 = full_exp[i];
       int ms1_idx = ms2_to_ms1_map[i];
-      Size original_ms2_idx = ms2_count;
       ++ms2_count;
 
       if (ms1_idx < 0) continue;
-      const auto& precs = ms2.getPrecursors();
-      if (precs.empty()) continue;
+      const auto& orig_precs = ms2.getPrecursors();
+      if (orig_precs.empty()) continue;
 
       const MSSpectrum& ms1 = full_exp[ms1_idx];
       auto candidates = extractMS1PrecursorCandidates_(
-          ms1, precs[0], dia_max_precursor_candidates_);
+          ms1, orig_precs[0], dia_max_precursor_candidates_);
+
+      if (candidates.empty()) continue;
 
       for (auto& cand : candidates)
       {
@@ -2923,32 +2929,28 @@ namespace OpenMS
             dia_isotope_tolerance_ppm_);
       }
 
-      for (Size k = 0; k < candidates.size(); ++k)
+      // Store one spectrum with multiple precursors (no peak duplication)
+      MSSpectrum spec(ms2);
+      std::vector<Precursor> new_precs;
+      new_precs.reserve(candidates.size());
+      for (const auto& cand : candidates)
       {
-        MSSpectrum pseudo;
-        pseudo.setRT(ms2.getRT());
-        pseudo.setMSLevel(2);
-        pseudo.setNativeID(ms2.getNativeID() + "_dia_" + String(k));
-        pseudo.insert(pseudo.end(), ms2.begin(), ms2.end());
-        pseudo.getFloatDataArrays() = ms2.getFloatDataArrays();
-        pseudo.getStringDataArrays() = ms2.getStringDataArrays();
-        pseudo.getIntegerDataArrays() = ms2.getIntegerDataArrays();
-
         Precursor p;
-        p.setMZ(candidates[k].mz);
-        p.setCharge(candidates[k].charge);
-        p.setIntensity(candidates[k].intensity);
-        pseudo.setPrecursors({p});
-
-        expanded.addSpectrum(std::move(pseudo));
-        pseudo_to_original.push_back(original_ms2_idx);
+        p.setMZ(cand.mz);
+        p.setCharge(cand.charge);
+        p.setIntensity(cand.intensity);
+        new_precs.push_back(std::move(p));
       }
+      spec.setPrecursors(std::move(new_precs));
+      result.addSpectrum(std::move(spec));
+      total_candidates += candidates.size();
     }
 
-    OPENMS_LOG_INFO << "[ProSE-DIA] Expanded " << ms2_count << " DIA MS2 spectra into "
-                    << expanded.size() << " pseudo-spectra ("
-                    << dia_max_precursor_candidates_ << " max candidates per window)." << std::endl;
-    return expanded;
+    OPENMS_LOG_INFO << "[ProSE-DIA] " << ms2_count << " DIA MS2 spectra, "
+                    << result.size() << " with MS1 candidates ("
+                    << total_candidates << " total precursor candidates, "
+                    << dia_max_precursor_candidates_ << " max per window)." << std::endl;
+    return result;
   }
 
   void ProSEAlgorithm::mergeDIAPseudoSpectraHits_(

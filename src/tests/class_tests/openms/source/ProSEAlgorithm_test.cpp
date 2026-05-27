@@ -1632,43 +1632,26 @@ START_SECTION(([EXTRA] DIA expandDIASpectra))
   std::vector<Size> pseudo_to_original;
   PeakMap expanded = algo.expandDIASpectra_(full_exp, ms2_to_ms1, pseudo_to_original);
 
-  // Window 1 has 4 MS1 peaks in range, window 2 has 1
-  // (the isotope peaks also count as candidates)
-  TEST_EQUAL(expanded.size(), pseudo_to_original.size())
-  TEST_EQUAL(expanded.size() >= 2, true) // at least 1 per window
+  // Multi-precursor mode: one spectrum per DIA window, multiple precursors per spectrum
+  TEST_EQUAL(expanded.size(), 2) // one per DIA window
 
-  // All pseudo-spectra should be MS level 2
-  for (Size i = 0; i < expanded.size(); ++i)
-  {
-    TEST_EQUAL(expanded[i].getMSLevel(), 2)
-    TEST_EQUAL(expanded[i].getPrecursors().size(), 1)
-  }
+  // Both should be MS level 2 with multiple precursors
+  TEST_EQUAL(expanded[0].getMSLevel(), 2)
+  TEST_EQUAL(expanded[1].getMSLevel(), 2)
 
-  // Check pseudo_to_original mapping: window 1 pseudo-spectra map to 0, window 2 to 1
-  for (Size i = 0; i < pseudo_to_original.size(); ++i)
-  {
-    TEST_EQUAL(pseudo_to_original[i] <= 1, true)
-  }
+  // Window 1 has 4 MS1 peaks in range (498.0, ~498.5, 502.0, ~502.33)
+  TEST_EQUAL(expanded[0].getPrecursors().size(), 4)
+  // Window 2 has 1 MS1 peak in range (523.0)
+  TEST_EQUAL(expanded[1].getPrecursors().size(), 1)
 
-  // The highest-intensity candidate (1000 @ 502.0) should appear first for window 1
-  // and should have charge 3 (isotope at +c13/3)
-  bool found_502 = false;
-  for (Size i = 0; i < expanded.size(); ++i)
-  {
-    if (pseudo_to_original[i] == 0) // window 1
-    {
-      double prec_mz = expanded[i].getPrecursors()[0].getMZ();
-      if (std::abs(prec_mz - 502.0) < 0.01)
-      {
-        found_502 = true;
-        TEST_EQUAL(expanded[i].getPrecursors()[0].getCharge(), 3)
-        // Fragment peaks should be copied from original MS2
-        TEST_EQUAL(expanded[i].size(), 2) // 200.0 and 300.0
-        break;
-      }
-    }
-  }
-  TEST_EQUAL(found_502, true)
+  // Precursors sorted by intensity descending: 502.0 (1000) should be first for window 1
+  const auto& w1_precs = expanded[0].getPrecursors();
+  TEST_REAL_SIMILAR(w1_precs[0].getMZ(), 502.0)
+  TEST_EQUAL(w1_precs[0].getCharge(), 3) // isotope at +c13/3
+
+  // Fragment peaks should be the original MS2 peaks (not duplicated)
+  TEST_EQUAL(expanded[0].size(), 2) // 200.0 and 300.0
+  TEST_EQUAL(expanded[1].size(), 1) // 250.0
 }
 END_SECTION
 
