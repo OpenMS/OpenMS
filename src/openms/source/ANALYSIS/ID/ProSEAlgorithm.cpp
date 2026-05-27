@@ -2671,9 +2671,21 @@ namespace OpenMS
 
   PeakMap ProSEAlgorithm::loadSpectraForSearch_(const String& in_spectra) const
   {
-    if (dia_mode_ == "false")
+    if (dia_mode_ == "true")
     {
-      PeakMap spectra;
+      // Forced DIA: load full experiment directly (need MS1 for precursor extraction)
+      PeakMap full_exp;
+      FileHandler f;
+      f.loadExperiment(in_spectra, full_exp, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+      full_exp.sortSpectra(true);
+      OPENMS_LOG_INFO << "[ProSE] DIA mode active for " << in_spectra << std::endl;
+      auto ms2_to_ms1 = buildMS2ToMS1Map_(full_exp);
+      return expandDIASpectra_(full_exp, ms2_to_ms1);
+    }
+
+    // "auto" or "false": load MS2-only first (cheap — avoids holding MS1 in memory for DDA)
+    PeakMap spectra;
+    {
       FileHandler f;
       PeakFileOptions options;
       options.clearMSLevels();
@@ -2681,31 +2693,22 @@ namespace OpenMS
       f.getOptions() = options;
       f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
       spectra.sortSpectra(true);
-      return spectra;
     }
 
-    // "auto" or "true": load full experiment (MS1+MS2) in a single pass.
-    PeakMap full_exp;
-    FileHandler f;
-    f.loadExperiment(in_spectra, full_exp, {FileTypes::MZML, FileTypes::BRUKER_TDF});
-    full_exp.sortSpectra(true);
-
-    bool use_dia = (dia_mode_ == "true") || isDIAExperiment_(full_exp);
-
-    if (use_dia)
+    if (dia_mode_ == "auto" && isDIAExperiment_(spectra))
     {
-      OPENMS_LOG_INFO << "[ProSE] DIA mode active for " << in_spectra << std::endl;
+      // Auto-detected DIA: reload with MS1+MS2 for precursor extraction
+      spectra.clear(true);
+      PeakMap full_exp;
+      FileHandler f;
+      f.loadExperiment(in_spectra, full_exp, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+      full_exp.sortSpectra(true);
+      OPENMS_LOG_INFO << "[ProSE] DIA mode auto-detected for " << in_spectra << std::endl;
       auto ms2_to_ms1 = buildMS2ToMS1Map_(full_exp);
       return expandDIASpectra_(full_exp, ms2_to_ms1);
     }
 
-    // Not DIA: extract MS2 spectra only
-    PeakMap ms2_only;
-    for (const auto& spec : full_exp)
-    {
-      if (spec.getMSLevel() == 2) ms2_only.addSpectrum(spec);
-    }
-    return ms2_only;
+    return spectra;
   }
 
   bool ProSEAlgorithm::isDIAExperiment_(const PeakMap& spectra) const
