@@ -651,6 +651,12 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     PeakMap expandDIASpectra_(
         const PeakMap& full_exp,
         const std::vector<int>& ms2_to_ms1_map) const;
+
+    /// Load spectra from file with DIA-aware handling. In DIA mode, loads the full
+    /// experiment (MS1+MS2), extracts precursor candidates from MS1, and returns
+    /// spectra with multiple precursors. In DDA mode, returns MS2-only spectra.
+    /// Avoids double file loading by detecting DIA from the full experiment.
+    PeakMap loadSpectraForSearch_(const String& in_spectra) const;
 };
 
 } // namespace

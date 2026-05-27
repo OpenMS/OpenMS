@@ -1590,53 +1590,7 @@ namespace OpenMS
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
-    // Determine DIA mode: may need full experiment (MS1+MS2)
-    bool use_dia = false;
-    PeakMap spectra;
-
-    if (dia_mode_ == "true")
-    {
-      use_dia = true;
-    }
-    else if (dia_mode_ == "auto" || dia_mode_ == "false")
-    {
-      // Load MS2-only for auto-detection (and non-DIA path)
-      FileHandler f;
-      PeakFileOptions options;
-      options.clearMSLevels();
-      options.addMSLevel(2);
-      f.getOptions() = options;
-      f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
-      spectra.sortSpectra(true);
-
-      if (dia_mode_ == "auto")
-      {
-        use_dia = isDIAExperiment_(spectra);
-      }
-    }
-
-    if (use_dia)
-    {
-      OPENMS_LOG_INFO << "[ProSE] DIA mode active. Loading full experiment (MS1+MS2)..." << std::endl;
-      PeakMap full_exp;
-      FileHandler f2;
-      f2.loadExperiment(in_spectra, full_exp, {FileTypes::MZML, FileTypes::BRUKER_TDF});
-      full_exp.sortSpectra(true);
-
-      auto ms2_to_ms1 = buildMS2ToMS1Map_(full_exp);
-      spectra = expandDIASpectra_(full_exp, ms2_to_ms1);
-    }
-    else if (spectra.empty())
-    {
-      // dia_mode_ == "true" skipped MS2-only load above; need to load now
-      FileHandler f;
-      PeakFileOptions options;
-      options.clearMSLevels();
-      options.addMSLevel(2);
-      f.getOptions() = options;
-      f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
-      spectra.sortSpectra(true);
-    }
+    PeakMap spectra = loadSpectraForSearch_(in_spectra);
 
     // load FASTA
     vector<FASTAFile::FASTAEntry> fasta_db;
@@ -1795,46 +1749,7 @@ namespace OpenMS
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         OPENMS_LOG_INFO << "[ProSE] Loading " << in_spectra_files[i] << std::endl;
-
-        bool file_is_dia = (dia_mode_ == "true");
-        if (dia_mode_ == "auto")
-        {
-          PeakMap ms2_only;
-          FileHandler f_ms2;
-          PeakFileOptions opts_ms2;
-          opts_ms2.clearMSLevels();
-          opts_ms2.addMSLevel(2);
-          f_ms2.getOptions() = opts_ms2;
-          f_ms2.loadExperiment(in_spectra_files[i], ms2_only, {FileTypes::MZML, FileTypes::BRUKER_TDF});
-          file_is_dia = isDIAExperiment_(ms2_only);
-          if (!file_is_dia)
-          {
-            all_spectra[i] = std::move(ms2_only);
-            all_spectra[i].sortSpectra(true);
-          }
-        }
-
-        if (file_is_dia)
-        {
-          OPENMS_LOG_INFO << "[ProSE] DIA mode for " << in_spectra_files[i] << std::endl;
-          PeakMap full_exp;
-          FileHandler f_full;
-          f_full.loadExperiment(in_spectra_files[i], full_exp, {FileTypes::MZML, FileTypes::BRUKER_TDF});
-          full_exp.sortSpectra(true);
-          auto ms2_to_ms1 = buildMS2ToMS1Map_(full_exp);
-          all_spectra[i] = expandDIASpectra_(full_exp, ms2_to_ms1);
-        }
-        else if (all_spectra[i].empty())
-        {
-          FileHandler f;
-          PeakFileOptions options;
-          options.clearMSLevels();
-          options.addMSLevel(2);
-          f.getOptions() = options;
-          f.loadExperiment(in_spectra_files[i], all_spectra[i], {FileTypes::MZML, FileTypes::BRUKER_TDF});
-          all_spectra[i].sortSpectra(true);
-        }
-
+        all_spectra[i] = loadSpectraForSearch_(in_spectra_files[i]);
         preprocessSpectra_(all_spectra[i], fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
       }
 
@@ -2121,44 +2036,7 @@ namespace OpenMS
         OPENMS_LOG_INFO << "[ProSE] [" << (i + 1) << "/" << in_spectra_files.size()
                         << "] Searching " << in_spectra << std::endl;
 
-        PeakMap spectra;
-        bool file_is_dia = (dia_mode_ == "true");
-        if (dia_mode_ == "auto")
-        {
-          PeakMap ms2_only;
-          FileHandler f_ms2;
-          PeakFileOptions opts_ms2;
-          opts_ms2.clearMSLevels();
-          opts_ms2.addMSLevel(2);
-          f_ms2.getOptions() = opts_ms2;
-          f_ms2.loadExperiment(in_spectra, ms2_only, {FileTypes::MZML, FileTypes::BRUKER_TDF});
-          file_is_dia = isDIAExperiment_(ms2_only);
-          if (!file_is_dia)
-          {
-            spectra = std::move(ms2_only);
-          }
-        }
-
-        if (file_is_dia)
-        {
-          OPENMS_LOG_INFO << "[ProSE] DIA mode for " << in_spectra << std::endl;
-          PeakMap full_exp;
-          FileHandler f_full;
-          f_full.loadExperiment(in_spectra, full_exp, {FileTypes::MZML, FileTypes::BRUKER_TDF});
-          full_exp.sortSpectra(true);
-          auto ms2_to_ms1 = buildMS2ToMS1Map_(full_exp);
-          spectra = expandDIASpectra_(full_exp, ms2_to_ms1);
-        }
-        else if (spectra.empty())
-        {
-          FileHandler f;
-          PeakFileOptions options;
-          options.clearMSLevels();
-          options.addMSLevel(2);
-          f.getOptions() = options;
-          f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
-        }
-        spectra.sortSpectra(true);
+        PeakMap spectra = loadSpectraForSearch_(in_spectra);
 
         SearchResult result;
         result.is_open_search = isOpenSearchMode_();
@@ -2519,6 +2397,7 @@ namespace OpenMS
       AASequence best_seq;
       int best_isotope_error = 0;
       uint16_t best_charge = 0;
+      uint16_t best_precursor_idx = 0;
       float best_mean_error = 0;
 
       for (const auto& sms : top_sms.hits_)
@@ -2539,6 +2418,7 @@ namespace OpenMS
           best_seq = std::move(seq);
           best_isotope_error = sms.isotope_error_;
           best_charge = sms.precursor_charge_;
+          best_precursor_idx = sms.precursor_idx_;
           best_mean_error = static_cast<float>(detail.mean_error);
         }
       }
@@ -2557,7 +2437,7 @@ namespace OpenMS
       // isotope_error * C13C12; the observed-to-monoiso m/z correction is
       //   corrected_mz = observed_mz + isotope_error * C13C12 / charge
       // Matches the sign used by postProcessHits_'s PRECURSOR_ERROR_PPM annotation.
-      double exp_mz = spec.getPrecursors()[0].getMZ();
+      double exp_mz = spec.getPrecursors()[best_precursor_idx].getMZ();
       double theo_mz = best_seq.getMZ(best_charge);
       double corrected_exp_mz = exp_mz + static_cast<double>(best_isotope_error)
                                           * Constants::C13C12_MASSDIFF_U / best_charge;
@@ -2788,6 +2668,45 @@ namespace OpenMS
   // =====================================================================
   // DIA support: helper methods
   // =====================================================================
+
+  PeakMap ProSEAlgorithm::loadSpectraForSearch_(const String& in_spectra) const
+  {
+    if (dia_mode_ == "false")
+    {
+      PeakMap spectra;
+      FileHandler f;
+      PeakFileOptions options;
+      options.clearMSLevels();
+      options.addMSLevel(2);
+      f.getOptions() = options;
+      f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+      spectra.sortSpectra(true);
+      return spectra;
+    }
+
+    // "auto" or "true": load full experiment (MS1+MS2) in a single pass.
+    PeakMap full_exp;
+    FileHandler f;
+    f.loadExperiment(in_spectra, full_exp, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+    full_exp.sortSpectra(true);
+
+    bool use_dia = (dia_mode_ == "true") || isDIAExperiment_(full_exp);
+
+    if (use_dia)
+    {
+      OPENMS_LOG_INFO << "[ProSE] DIA mode active for " << in_spectra << std::endl;
+      auto ms2_to_ms1 = buildMS2ToMS1Map_(full_exp);
+      return expandDIASpectra_(full_exp, ms2_to_ms1);
+    }
+
+    // Not DIA: extract MS2 spectra only
+    PeakMap ms2_only;
+    for (const auto& spec : full_exp)
+    {
+      if (spec.getMSLevel() == 2) ms2_only.addSpectrum(spec);
+    }
+    return ms2_only;
+  }
 
   bool ProSEAlgorithm::isDIAExperiment_(const PeakMap& spectra) const
   {
