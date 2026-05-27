@@ -3381,6 +3381,36 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
       DEPENDS "TOPP_IDPosteriorErrorProbability_SageDDA"
       TIMEOUT 300)
   endif()
+
+  # DIA search via ProSE with MS1-derived precursor candidates
+  if (OPENTIMS_DIA_TEST_DATA)
+    set(OPENTIMS_DIA_SYMLINK "${CMAKE_BINARY_DIR}/test_data/DIA_HeLa.d")
+    file(CREATE_LINK "${OPENTIMS_DIA_TEST_DATA}" "${OPENTIMS_DIA_SYMLINK}" SYMBOLIC)
+
+    add_test("TOPP_ProSE_DIA" ${TOPP_BIN_PATH}/ProSE -test
+      -in ${OPENTIMS_DIA_SYMLINK}
+      -database ${OPENTIMS_TEST_FASTA}
+      -out_idxml ${TESTS_TEMP_DIR}/ProSE_DIA_out.tmp.idXML
+      -Search:precursor:mass_tolerance_lower 20
+      -Search:precursor:mass_tolerance_upper 20
+      -Search:precursor:mass_tolerance_unit ppm
+      -Search:fragment:mass_tolerance 20
+      -Search:fragment:mass_tolerance_unit ppm
+      -Search:enzyme Trypsin/P
+      -Search:peptide:missed_cleavages 2
+      "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
+      -Search:decoys
+      -Search:dia:enabled true
+      -Search:dia:max_precursor_candidates 20)
+    set_tests_properties("TOPP_ProSE_DIA" PROPERTIES TIMEOUT 600)
+
+    add_test("TOPP_FalseDiscoveryRate_ProSEDIA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+      -in ${TESTS_TEMP_DIR}/ProSE_DIA_out.tmp.idXML
+      -out ${TESTS_TEMP_DIR}/ProSE_DIA_fdr.tmp.idXML
+      -FDR:PSM 0.01
+      -protein false)
+    set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDIA" PROPERTIES DEPENDS "TOPP_ProSE_DIA")
+  endif()
 endif()
 
 # FeatureFinderMetaboIdent:
