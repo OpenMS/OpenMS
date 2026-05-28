@@ -1571,23 +1571,53 @@ START_SECTION(([EXTRA] DIA extractMS1PrecursorCandidates - boundary cases))
     TEST_EQUAL(candidates[0].charge, 2)
   }
 
-  // Case 2: envelope with mono BELOW window — must NOT be reported as a candidate
-  // Without lower extension, the deisotoper would treat the +1 peak (in window)
-  // as a new (wrong) mono.
+  // Case 2: envelope with mono just below window — KEPT because isotopes
+  // reach into the window and contribute fragments. The candidate carries
+  // the true monoisotopic m/z (487.0), not a fabricated in-window mono.
   {
     MSSpectrum ms1;
     ms1.setMSLevel(1);
     // Charge-2 envelope at mono 487.0 (below lower_mz=487.5);
-    // peaks at 487.0, 487.5, 488.0 (the latter two are in the window)
+    // +1 at 487.50 — in window
     ms1.push_back(Peak1D(487.0, 1000.0));
-    ms1.push_back(Peak1D(487.0 + c13 / 2.0, 500.0));   // 487.50 — in window
-    ms1.push_back(Peak1D(487.0 + 2 * c13 / 2.0, 200.0)); // 488.00 — in window
+    ms1.push_back(Peak1D(487.0 + c13 / 2.0, 500.0));
+    ms1.push_back(Peak1D(487.0 + 2 * c13 / 2.0, 200.0));
     ms1.sortByPosition();
 
     auto candidates = ProSEAlgorithm_test::extractMS1PrecursorCandidates_(
         ms1, prec, 10, 2, 5, 20.0);
-    // mono (487.0) is below lower_mz → filtered out
-    // the +1/+2 in-window peaks are correctly attributed to the out-of-window mono → not new candidates
+    TEST_EQUAL(candidates.size(), 1)
+    TEST_REAL_SIMILAR(candidates[0].mz, 487.0)
+    TEST_EQUAL(candidates[0].charge, 2)
+  }
+
+  // Case 2b: envelope with mono FAR below window — excluded (no isotopes reach window)
+  {
+    MSSpectrum ms1;
+    ms1.setMSLevel(1);
+    // Charge-2 envelope at mono 480.0; +1 at 480.50, +2 at 481.00 — none in window
+    ms1.push_back(Peak1D(480.0, 1000.0));
+    ms1.push_back(Peak1D(480.0 + c13 / 2.0, 500.0));
+    ms1.push_back(Peak1D(480.0 + 2 * c13 / 2.0, 200.0));
+    ms1.sortByPosition();
+
+    auto candidates = ProSEAlgorithm_test::extractMS1PrecursorCandidates_(
+        ms1, prec, 10, 2, 5, 20.0);
+    TEST_EQUAL(candidates.size(), 0)
+  }
+
+  // Case 2c: envelope with mono above upper_mz — excluded (whole envelope above window)
+  {
+    MSSpectrum ms1;
+    ms1.setMSLevel(1);
+    // Mono at 513.0 (above upper_mz=512.5)
+    ms1.push_back(Peak1D(513.0, 1000.0));
+    ms1.push_back(Peak1D(513.0 + c13 / 2.0, 500.0));
+    ms1.push_back(Peak1D(513.0 + 2 * c13 / 2.0, 200.0));
+    ms1.sortByPosition();
+
+    auto candidates = ProSEAlgorithm_test::extractMS1PrecursorCandidates_(
+        ms1, prec, 10, 2, 5, 20.0);
     TEST_EQUAL(candidates.size(), 0)
   }
 

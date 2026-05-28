@@ -2826,17 +2826,27 @@ namespace OpenMS
     candidates.reserve(window.size());
     for (Size i = 0; i < window.size(); ++i)
     {
-      // Only keep monoisotopic peaks whose m/z falls in the actual isolation
-      // window. The envelope_extension margin was a working area for the
-      // deisotoper — peaks resolved there are precursors NOT isolated by this
-      // DIA window and must be dropped.
+      // Keep envelopes that overlap the actual isolation window. Real DIA
+      // windows have soft edges, and a peptide whose mono is just below the
+      // window can still contribute fragments via its isotope peaks that DO
+      // fall in the window.
+      //
+      // Filter:
+      //  - mono must be at or below upper_mz (otherwise the whole envelope
+      //    is above the window and no fragments are transmitted)
+      //  - mono + C13/charge must reach into the window (envelope's lowest
+      //    isotope is in or above lower_mz). For charge=0 (rare with
+      //    keep_only_deisotoped=true), fall back to max_charge spacing.
       const double mz = window[i].getMZ();
-      if (mz < lower_mz || mz > upper_mz) continue;
+      if (mz > upper_mz) continue;
       int charge = 0;
       if (charge_array_it != int_arrays.end() && i < charge_array_it->size())
       {
         charge = (*charge_array_it)[i];
       }
+      const int z_for_spacing = (charge > 0) ? charge : max_charge;
+      const double first_iso_mz = mz + Constants::C13C12_MASSDIFF_U / z_for_spacing;
+      if (first_iso_mz < lower_mz) continue;
       candidates.push_back({mz, window[i].getIntensity(), charge});
     }
 
