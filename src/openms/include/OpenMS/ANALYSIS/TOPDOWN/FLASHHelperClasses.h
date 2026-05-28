@@ -39,99 +39,189 @@ namespace OpenMS
 
   struct OPENMS_DLLAPI FLASHHelperClasses
   {
-    /// @brief Averagine patterns pre-calculated for speed up. Other variables are also calculated for fast cosine calculation
+    /**
+      @brief Pre-binned averagine isotope-distribution cache used by FLASHDeconv for fast cosine-similarity scoring.
+
+      Builds a table keyed by a mass bin index — one @c IsotopeDistribution plus its derived
+      quantities (apex index, left/right counts of significant isotopes, average / most-abundant
+      mass offsets, an SNR multiplication factor) per mass bin from @c min_mass to @c max_mass
+      at step @c delta. The constructor performs all the per-mass work up front; the accessors
+      are O(1) table lookups via @c massToIndex_(mass) (rounded to the nearest bin).
+
+      Bin lookup silently clamps: any mass below @c min_mass maps to bin @c 0 and any mass above
+      @c max_mass maps to the last bin, so the accessors never throw on out-of-range input.
+    */
     class OPENMS_DLLAPI PrecalculatedAveragine
     {
     private:
-      /// isotope distributions for different (binned) masses
+      /// Per-bin isotope distribution. After trimming and L2 normalisation in the constructor.
       std::vector<IsotopeDistribution> isotopes_;
-      /// L2 norms_ for masses - for quick isotope cosine calculation
+      /// Per-bin L2 norm — populated and consumed alongside @ref isotopes_ for fast cosine scoring (vestigial: not consumed by the public API in this header).
       std::vector<double> norms_;
-      /// mass differences between average mass and monoisotopic mass
+      /// Per-bin difference between the average mass and the monoisotopic mass of the trimmed distribution.
       std::vector<double> average_mono_mass_difference_;
-      /// mass differences between most abundant mass and monoisotopic mass
+      /// Per-bin difference between the most-abundant-isotope mass and the monoisotopic mass.
       std::vector<double> abundant_mono_mass_difference_;
-
+      /// Per-bin SNR multiplication factor: @c (sum-of-normalised-intensities)^2 of the trimmed distribution.
       std::vector<double> snr_mul_factor_;
-      /// Isotope start indices: isotopes of the indices less than them have very low intensities
+      /// Per-bin count of significant isotopes on the left side of the apex (running maximum across bins; see the @c PrecalculatedAveragine parameterised constructor for the unusual running-max semantics).
       std::vector<int> left_count_from_apex_;
-      /// Isotope end indices: isotopes of the indices larger than them have very low intensities
+      /// Per-bin count of significant isotopes on the right side of the apex (running maximum across bins; same caveat as @ref left_count_from_apex_).
       std::vector<int> right_count_from_apex_;
-      /// most abundant isotope index
+      /// Per-bin index of the most-abundant isotope inside the trimmed distribution.
       std::vector<Size> apex_index_;
 
-      /// max isotope index
+      /// Cap on the isotope index used externally by FLASHDeconv. NOT initialised by the constructor — call @ref setMaxIsotopeIndex before reading via @ref getMaxIsotopeIndex.
       Size max_isotope_index_;
-      /// mass interval for calculation
+      /// Bin step size (the @c delta passed to the constructor).
       double mass_interval_;
-      /// min mass for calculation
+      /// Lower bound of the cached mass range (the @c min_mass passed to the constructor).
       double min_mass_;
-      /// calculate the mass bin index from mass
+      /// Convert @p mass to a bin index. Clamps to @c [0, isotopes_.size()-1] for out-of-range inputs (no throw).
       Size massToIndex_(double mass) const;
 
     public:
-      /// default constructor
+      /// Default-construct an empty cache (no bins populated; the accessors are not safe until the parameterised ctor is used).
       PrecalculatedAveragine() = default;
 
       /**
-       @brief constructor with parameters such as mass ranges and bin size.
-       @param[in] min_mass the averagine distributions will be calculated from this min_mass
-       @param[in] max_mass to the max_mass
-       @param[in] delta with the bin size delta
-       @param[in] generator this generates (calculates) the distributions
-       @param[in] use_RNA_averagine if set, nucleotide-based isotope patters are calculated
-       @param[in] decoy_iso_distance if set to a positive value, nonsensical isotope patterns are generated - the distance between isotope = decoy_iso_distance * normal distance.
-    */
+        @brief Precompute averagine isotope distributions across @p min_mass .. @p max_mass in steps of @p delta.
+
+        For each bin mass @c m @c = @c i*delta in the range, calls
+        @c CoarseIsotopePatternGenerator::estimateFromPeptideMonoWeight(m) (or
+        @c estimateFromRNAMonoWeight(m) when @p use_RNA_averagine is @c true) and applies the
+        following processing:
+          - **Trimming**: iteratively drops the least-intense end peak (left or right) until
+            the trimmed-out power is below @c 0.0001 of the total, with a minimum kept length
+            of @c 2 peaks. Trimmed peaks have their intensity zeroed out, not removed from the
+            distribution.
+          - **L2 normalisation**: divides every remaining peak's intensity by
+            @c sqrt(total_pwr) of the kept set.
+          - **Decoy mode**: when @p decoy_iso_distance is @c > @c 0, every peak's m/z is
+            multiplied by @p decoy_iso_distance before trimming, then the distribution is
+            re-sorted by mass and renormalised. This produces a "stretched" pattern whose
+            inter-isotope spacing is @p decoy_iso_distance times the natural spacing.
+          - **Left/right counts**: clamped to a floor of @c 2 each, and then accumulated as a
+            running maximum across bins — so all bins end up with the same width (the maximum
+            seen so far during construction).
+
+        Per bin, the constructor records the trimmed distribution, the apex index, the
+        running-max left/right counts, the average-mono and most-abundant-mono mass deltas,
+        and the SNR multiplication factor @c (sum-of-normalised-intensities)^2.
+
+        @param[in]     min_mass            Lower bound of the cached mass range; bins are built starting at the first multiple of @p delta that is @c >= @c min_mass.
+        @param[in]     max_mass            Upper bound of the cached mass range; bin generation stops at the first multiple of @p delta that exceeds @c max_mass.
+        @param[in]     delta               Bin step size.
+        @param[in,out] generator           Isotope-pattern generator used to compute each per-mass distribution.
+        @param[in]     use_RNA_averagine   If @c true, use the RNA-mass averagine; otherwise use peptide averagine.
+        @param[in]     decoy_iso_distance  @c > @c 0 enables decoy mode (per-peak m/z multiplied by this value); @c <= @c 0 disables it. Default @c -1.
+      */
       PrecalculatedAveragine(double min_mass, double max_mass, double delta, CoarseIsotopePatternGenerator& generator, bool use_RNA_averagine, double decoy_iso_distance = -1);
 
-      /// copy constructor
+      /// Copy constructor.
       PrecalculatedAveragine(const PrecalculatedAveragine&) = default;
 
-      /// move constructor
+      /// Move constructor.
       PrecalculatedAveragine(PrecalculatedAveragine&& other) noexcept = default;
 
-      /// copy assignment operator
+      /// Copy assignment.
       PrecalculatedAveragine& operator=(const PrecalculatedAveragine& pc) = default;
 
-      /// move assignment operator
+      /// Move assignment.
       PrecalculatedAveragine& operator=(PrecalculatedAveragine&& pc) noexcept = default;
 
-      /// destructor
+      /// Destructor.
       ~PrecalculatedAveragine() = default;
 
 
-      /// get distribution for input mass. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
+      /**
+        @brief Return the cached trimmed + L2-normalised isotope distribution for the bin containing @p mass.
+
+        @param[in] mass Input mass to query. Out-of-range values are silently clamped to @c [min_mass, max_mass].
+        @return Cached isotope distribution for the resolved bin.
+      */
       IsotopeDistribution get(double mass) const;
 
-      /// get max isotope index
+      /**
+        @brief Return the externally-set isotope-index cap.
+
+        @warning The constructor does not initialise @c max_isotope_index_; reading this
+                 before @ref setMaxIsotopeIndex has been called returns an uninitialised value.
+
+        @return The most recent value passed to @ref setMaxIsotopeIndex.
+      */
       size_t getMaxIsotopeIndex() const;
 
-      /// set max isotope index
+      /**
+        @brief Set the isotope-index cap consulted by external callers. Does not influence the cached distributions or other accessors.
+
+        @param[in] index New isotope-index cap value.
+      */
       void setMaxIsotopeIndex(int index);
 
-      /// get isotope distance (from apex to the left direction) to consider. This is specified in the constructor. index. If input mass exceeds the
-      /// maximum mass (specified in constructor), output for the maximum mass
+      /**
+        @brief Return the number of significant isotopes to the left of the apex for the bin containing @p mass.
+
+        @note The stored value is a running maximum accumulated across bins during construction,
+              so it grows monotonically with @p mass (see the parameterised constructor's
+              left/right-count semantics).
+
+        @param[in] mass Input mass to query. Out-of-range values are silently clamped to @c [min_mass, max_mass].
+        @return Running-max left count of significant isotopes.
+      */
       Size getLeftCountFromApex(double mass) const;
 
-      /// get isotope distance (from apex to the right direction) to consider. This is specified in the constructor. index. If input mass exceeds the
-      /// maximum mass (specified in constructor), output for the maximum mass
+      /**
+        @brief Return the number of significant isotopes to the right of the apex for the bin containing @p mass.
+
+        @note Same running-maximum caveat as @ref getLeftCountFromApex.
+
+        @param[in] mass Input mass to query. Out-of-range values are silently clamped to @c [min_mass, max_mass].
+        @return Running-max right count of significant isotopes.
+      */
       Size getRightCountFromApex(double mass) const;
 
-      /// get index of most abundant isotope. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
+      /**
+        @brief Return the index of the most-abundant isotope inside the trimmed distribution for the bin containing @p mass.
+
+        @param[in] mass Input mass to query. Out-of-range values are silently clamped to @c [min_mass, max_mass].
+        @return Position of the apex peak inside the trimmed distribution.
+      */
       Size getApexIndex(double mass) const;
 
-      /// get index of last isotope. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
+      /**
+        @brief Return @c apex_index @c + @c right_count_from_apex for the bin containing @p mass — the index of the rightmost significant isotope.
+
+        @param[in] mass Input mass to query. Out-of-range values are silently clamped to @c [min_mass, max_mass].
+        @return Index of the rightmost significant isotope.
+      */
       Size getLastIndex(double mass) const;
 
-      /// get mass difference between avg and mono masses. If input mass exceeds the maximum mass (specified in constructor), output for the maximum
-      /// mass
+      /**
+        @brief Return @c (average_mass @c - @c monoisotopic_mass) for the bin's trimmed distribution.
+
+        @param[in] mass Input mass to query. Out-of-range values are silently clamped to @c [min_mass, max_mass].
+        @return Mass difference between the trimmed distribution's average mass and its monoisotopic mass.
+      */
       double getAverageMassDelta(double mass) const;
 
-      /// get mass difference between most abundant mass and mono masses. If input mass exceeds the maximum mass (specified in constructor), output for
-      /// the maximum mass
+      /**
+        @brief Return @c (most_abundant_mass @c - @c monoisotopic_mass) for the bin's trimmed distribution.
+
+        @param[in] mass Input mass to query. Out-of-range values are silently clamped to @c [min_mass, max_mass].
+        @return Mass difference between the trimmed distribution's most-abundant-isotope mass and its monoisotopic mass.
+      */
       double getMostAbundantMassDelta(double mass) const;
 
-      /// get the SNR multiplication factor - used for quick SNR calculation
+      /**
+        @brief Return the SNR multiplication factor for the bin containing @p mass.
+
+        @c (sum-of-normalised-intensities)^2 of the trimmed distribution. Used by FLASHDeconv
+        for fast SNR computation.
+
+        @param[in] mass Input mass to query. Out-of-range values are silently clamped to @c [min_mass, max_mass].
+        @return Squared sum of normalised peak intensities for the bin.
+      */
       double getSNRMultiplicationFactor(double mass) const;
     };
 

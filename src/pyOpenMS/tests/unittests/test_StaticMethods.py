@@ -300,6 +300,11 @@ class TestMZTrafoModelStaticMethods(unittest.TestCase):
         name = pyopenms.MZTrafoModel.enumToName(pyopenms.MZTrafoModel.MODELTYPE.LINEAR)
         self.assertEqual(name, "linear")
 
+    def test_setRANSACSeed(self):
+        """Test MZTrafoModel.setRANSACSeed static method."""
+        pyopenms.MZTrafoModel.setRANSACSeed(42)
+        pyopenms.MZTrafoModel.setRANSACSeed(0)
+
 
 class TestSpectrumHelperStaticMethods(unittest.TestCase):
     """Test static methods of SpectrumHelper class.

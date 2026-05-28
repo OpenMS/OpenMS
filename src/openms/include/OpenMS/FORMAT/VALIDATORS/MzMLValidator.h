@@ -18,14 +18,30 @@ namespace OpenMS
   {
 
     /**
-      @brief Semantically validates MzXML files.
+      @brief Semantic validator for mzML files.
+
+      Specialises @ref SemanticValidator with mzML-specific rules in addition to
+      the generic CV-mapping checks:
+      - Terms placed inside a @c referenceableParamGroup are remembered and
+        re-validated wherever the group is referenced via @c referenceableParamGroupRef.
+      - For each @c binaryDataArray, the data-array CV term and the data-type CV
+        term are cross-checked: the value type must be listed as a valid pairing
+        for the data array (otherwise an error is reported).
+      - The leading @c indexedmzML wrapper, if present, is stripped from the
+        reported element path so validation messages refer to the mzML body.
+      - GO and BTO terms are skipped because they use @c part_of relations
+        which the @c is_a-based inheritance check cannot evaluate.
+
+      Unit checking is enabled.
+
+      @ingroup FileIO
     */
     class OPENMS_DLLAPI MzMLValidator :
       public SemanticValidator
     {
 public:
       /**
-        @brief Constructor
+        @brief Constructor.
 
         @param[in] mapping The mapping rules
         @param[in] cv @em All controlled vocabularies required for the mapping

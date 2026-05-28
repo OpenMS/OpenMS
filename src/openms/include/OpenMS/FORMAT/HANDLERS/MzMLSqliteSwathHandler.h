@@ -23,12 +23,19 @@ namespace OpenMS
   {
 
     /**
-        @brief Sqlite handler for SWATH data sets
+        @brief Read-only accessor for SWATH/DIA spectrum indices stored in an sqMass file.
 
-        This class represents a single sqMass file acquired in SWATH / DIA mode
-        and provides some useful access to the indices of the individual SWATH
-        windows.
+        Exposes three lookups against a single sqMass file:
+          - @ref readSwathWindows -- the SWATH window definitions
+            (precursor isolation centre and lower/upper offsets),
+          - @ref readMS1Spectra -- the spectrum indices of all MS1 scans,
+          - @ref readSpectraForWindow -- the spectrum indices that belong
+            to a given SWATH window, identified by its centre m/z.
 
+        Internal helper class used by the OpenSWATH I/O stack; not part of
+        the stable public API.
+
+        @ingroup FileIO
     */
     class OPENMS_DLLAPI MzMLSqliteSwathHandler
     {
@@ -36,48 +43,79 @@ namespace OpenMS
 public:
 
       /**
-          @brief Constructor
+          @brief Construct from the path of an sqMass file.
 
-          @param[in] filename The sqMass filename
+          The file is not opened by the constructor; each accessor opens its
+          own connection on demand.
+
+          @param[in] filename Path of the sqMass file to read.
       */
       MzMLSqliteSwathHandler(const String& filename) :
         filename_(filename)
       {}
 
       /**
-          @brief Read SWATH windows boundaries from file
+          @brief Read the SWATH window boundaries from the file.
 
-          @return A vector populated with SwathMap, with the following attributes initialized: center, lower and upper
+          Returns one @c SwathMap entry per distinct precursor isolation
+          centre present at MS level 2; @c center, @c lower and @c upper
+          are filled. Other @c SwathMap fields are left at their default
+          values.
 
+          @return SWATH window definitions in the file's natural order.
+
+          @throws Exception::SqlOperationFailed if the sqMass file cannot
+                                                be opened.
+          @throws Exception::IllegalArgument    if preparing the SQL query
+                                                fails.
       */
       std::vector<OpenSwath::SwathMap> readSwathWindows();
 
       /**
-          @brief Read indices of MS1 spectra from file
+          @brief Read the indices of every MS1 spectrum.
 
-          @return A list of spectral indices for the MS1 spectra
+          @return Spectrum indices for the MS1 scans in the file's natural
+                  order.
+
+          @throws Exception::SqlOperationFailed if the sqMass file cannot
+                                                be opened.
+          @throws Exception::IllegalArgument    if preparing the SQL query
+                                                fails.
       */
       std::vector<int> readMS1Spectra();
 
       /**
-          @brief Read indices of spectra belonging to specified SWATH window from file
+          @brief Read the indices of every spectrum that belongs to a given
+                 SWATH window.
 
-          @param[in] swath_map Contains the upper/lower boundaries of the SWATH window
-          @return A list of spectral indices for the provided SWATH window
+          The window is identified by @p swath_map's @c center value;
+          spectra whose precursor isolation centre lies within a small fixed
+          tolerance (@c 0.01 m/z) of @c swath_map.center are returned.
 
+          @note Only @c swath_map.center is consulted; the @c lower and
+                @c upper fields are ignored.
+
+          @param[in] swath_map SWATH window to look up; only its @c center
+                               is used.
+          @return Spectrum indices that fall into the window, in the file's
+                  natural order.
+
+          @throws Exception::SqlOperationFailed if the sqMass file cannot
+                                                be opened.
+          @throws Exception::IllegalArgument    if preparing the SQL query
+                                                fails.
       */
       std::vector<int> readSpectraForWindow(const OpenSwath::SwathMap & swath_map);
 
 protected:
 
+      /// Path of the sqMass file passed in at construction time.
       String filename_;
 
-      /*
-       * These are spectra and chromatogram ids that are global for a specific
-       * database file. Keeping track of them allows us to append spectra and
-       * chromatograms multiple times to a database.
-      */
+      /// Next spectrum id used when appending spectra to the database; lets multiple append passes coexist on the same file.
       Int spec_id_;
+
+      /// Next chromatogram id used when appending chromatograms to the database; lets multiple append passes coexist on the same file.
       Int chrom_id_;
 
     };

@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
+#include <OpenMS/CHEMISTRY/AdductInfo.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -28,9 +29,41 @@ class OPENMS_DLLAPI FeatureFinderAlgorithmMetaboIdent :
   public DefaultParamHandler
 {
 public:
-  /// @brief represents a compound in the assay library
+  /**
+    @brief One target compound for the @ref FeatureFinderAlgorithmMetaboIdent assay library.
+
+    Plain data container. No validation is performed in the constructor or accessors —
+    the contract below is enforced when the compound is consumed by
+    @ref FeatureFinderAlgorithmMetaboIdent::run via the internal
+    @c addTargetToLibrary_ helper. Compounds that violate the contract are silently
+    dropped with an @c OPENMS_LOG_ERROR message at run time:
+      - Either @c mass @c > @c 0 or a non-empty @c formula is required (one of the two must
+        be present so the m/z can be derived).
+      - @c rts must be non-empty.
+      - For each entry in @c charges, the charge state must be non-zero.
+      - @c rt_ranges (when provided) and @c ion_mobilities (when provided) must have
+        either @c 1 entry (broadcast to every RT) or exactly @c rts.size() entries.
+
+    The struct stores the per-target data verbatim; the downstream library builder fills in
+    defaults (e.g. RT range @c 0.0, ion mobility sentinel @c -1.0 for "no IM filter") and
+    computes the isotope distribution from @c formula when @c iso_distrib is empty or its
+    first entry is @c 0.
+  */
   struct OPENMS_DLLAPI FeatureFinderMetaboIdentCompound
   {
+    /**
+      @brief Construct a target compound by aggregating its identification data.
+
+      @param[in] _name             Target name (used as a tag in the resulting assay library).
+      @param[in] _formula          Molecular formula (e.g. @c "C12H22O11"); empty when only @p _mass is provided.
+      @param[in] _mass             Monoisotopic mass; @c <= @c 0 means "derive from @p _formula".
+      @param[in] _charges          Charge states to register for this target; each non-zero entry produces one library transition.
+      @param[in] _rts              Expected retention times (one library entry per RT). Must be non-empty when the compound is fed into @ref FeatureFinderAlgorithmMetaboIdent::run.
+      @param[in] _rt_ranges        RT tolerance per RT (parallel to @p _rts); a one-element vector is broadcast, an empty vector uses the algorithm default.
+      @param[in] _iso_distrib      Pre-computed isotope-intensity distribution; empty (or first entry @c 0) triggers computation from @p _formula at library-build time.
+      @param[in] _ion_mobilities   Optional ion-mobility values (parallel to @p _rts); a one-element vector is broadcast, an empty vector disables IM filtering for this target.
+      @param[in] _adduct           Adduct string (e.g. @c "M+H;1+", @c "M+Na;1+"); empty lets downstream logic infer defaults from charge polarity.
+    */
     FeatureFinderMetaboIdentCompound(const String& _name,
         const String& _formula,
         double _mass,
@@ -38,7 +71,8 @@ public:
         const std::vector<double>& _rts,
         const std::vector<double>& _rt_ranges,
         const std::vector<double>& _iso_distrib,
-        const std::vector<double>& _ion_mobilities = {}):
+        const std::vector<double>& _ion_mobilities = {},
+        const String& _adduct = ""):
       name_(_name),
       formula_(_formula),
       mass_(_mass),
@@ -46,51 +80,65 @@ public:
       rts_(_rts),
       rt_ranges_(_rt_ranges),
       iso_distrib_(_iso_distrib),
-      ion_mobilities_(_ion_mobilities)
+      ion_mobilities_(_ion_mobilities),
+      adduct_(_adduct)
       {
       }
 
     private:
-      String name_;
-      String formula_;
-      double mass_;
-      std::vector<int> charges_;
-      std::vector<double> rts_;
-      std::vector<double> rt_ranges_;
-      std::vector<double> iso_distrib_;
-      std::vector<double> ion_mobilities_; ///< Expected ion mobility values (optional)
+      String name_;                          ///< Target name; used as the @c name meta value and in the auto-generated library ID.
+      String formula_;                       ///< Molecular formula; empty if the caller only provides @c mass_.
+      double mass_;                          ///< Monoisotopic mass; @c <= @c 0 means "compute from @c formula_".
+      std::vector<int> charges_;             ///< Charge states to register; entries @c == @c 0 are dropped at library-build time.
+      std::vector<double> rts_;              ///< Expected retention times; one library transition per entry.
+      std::vector<double> rt_ranges_;        ///< RT tolerance per @c rts_ entry; one-element broadcasts, empty falls back to the algorithm default.
+      std::vector<double> iso_distrib_;      ///< Optional pre-computed isotope-intensity distribution; empty (or @c [0]) triggers computation from @c formula_.
+      std::vector<double> ion_mobilities_;   ///< Optional ion-mobility values per @c rts_ entry; one-element broadcasts, empty disables IM filtering.
+      String adduct_;                        ///< Adduct string (e.g. @c "M+H;1+", @c "M+Na;1+", @c "M-H;1-"). Empty lets downstream logic infer defaults from charge polarity.
 
     public:
+      /// Return the target name.
       const String& getName() const {
         return name_;
       }
 
+      /// Return the molecular formula (may be empty if only @c mass was provided).
       const String& getFormula() const {
         return formula_;
       }
 
+      /// Return the monoisotopic mass; @c <= @c 0 means "compute from @c formula at library-build time".
       double getMass() const {
         return mass_;
       }
 
+      /// Return the list of charge states to register for this target.
       const std::vector<int>& getCharges() const {
         return charges_;
       }
 
+      /// Return the expected retention times (one library transition per entry).
       const std::vector<double>& getRTs() const {
         return rts_;
       }
 
-      const std::vector<double> getRTRanges() const {
+      /// Return the RT tolerance per @c rts_ entry (or a single broadcast value, or empty for the algorithm default).
+      const std::vector<double>& getRTRanges() const {
         return rt_ranges_;
       }
 
+      /// Return the pre-computed isotope-intensity distribution (or empty / @c [0] for runtime computation from @c formula).
       const std::vector<double>& getIsotopeDistribution() const {
         return iso_distrib_;
       }
 
+      /// Return the optional ion-mobility values per @c rts_ entry (or a single broadcast value, or empty to disable IM filtering).
       const std::vector<double>& getIonMobilities() const {
         return ion_mobilities_;
+      }
+
+      const String& getAdduct() const {
+        return adduct_;
       }
   };
 
@@ -181,7 +229,8 @@ protected:
                            const std::vector<double>& rts,
                            std::vector<double> rt_ranges,
                            const std::vector<double>& iso_distrib,
-                           const std::vector<double>& ion_mobilities = {});
+                           const std::vector<double>& ion_mobilities = {},
+                           const String& adduct = "");
 
   /// Add "peptide" identifications with information about targets to features
   Size addTargetAnnotations_(FeatureMap& features);

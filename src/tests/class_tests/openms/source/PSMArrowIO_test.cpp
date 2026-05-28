@@ -81,7 +81,12 @@ START_SECTION(([EXTRA] export_then_import_round_trip))
   TEST_TRUE(PSMArrowIO::importFromParquet(dir, prot_ids_in, pep_ids_in));
 
   TEST_EQUAL(prot_ids_in.size(), 1);
-  TEST_STRING_EQUAL(prot_ids_in[0].getIdentifier(), "run_1");
+  // Identifier is synthesized on load per IdXMLFile.cpp:530 parity — the stored
+  // "run_1" is replaced with `<search_engine>_<date>_<UniqueIdGenerator>`. The
+  // pep_id collection is re-stamped in lock-step so both sides agree.
+  TEST_NOT_EQUAL(prot_ids_in[0].getIdentifier(), "");
+  TEST_NOT_EQUAL(prot_ids_in[0].getIdentifier(), "run_1");
+  TEST_STRING_EQUAL(pep_ids_in[0].getIdentifier(), prot_ids_in[0].getIdentifier());
   TEST_STRING_EQUAL(prot_ids_in[0].getSearchParameters().digestion_enzyme.getName(), "Trypsin");
   TEST_STRING_EQUAL(String(prot_ids_in[0].getSearchParameters().getMetaValue("extra_features")),
                     "COMET:deltaCn,MS:1002049");

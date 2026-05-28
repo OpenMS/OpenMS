@@ -180,6 +180,12 @@ if (TARGET OpenSwathOSWParquetRoundTrip_test)
     ${OPENMS_PARQUET_TARGET}
   )
 endif()
+if (TARGET OpenSwathExport_test)
+  target_link_libraries(OpenSwathExport_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
 if (TARGET ArrowSchemaRegistry_test)
   target_link_libraries(ArrowSchemaRegistry_test
     ${OPENMS_ARROW_TARGET}
@@ -196,9 +202,25 @@ if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)
     OPENTIMS_DDA_TEST_DATA="${OPENTIMS_DDA_TEST_DATA}"
     OPENTIMS_DIA_TEST_DATA="${OPENTIMS_DIA_TEST_DATA}"
     OPENTIMS_TEST_FASTA="${OPENTIMS_TEST_FASTA}")
-  # This test loads real Bruker .d files (DDA + DIA) including frame aggregation
-  # and a peptide search engine run, so it needs a generous timeout.
-  set_tests_properties(BrukerTimsFile_test PROPERTIES TIMEOUT 1200)
+  # This test loads real Bruker .d files (DDA + DIA) including frame aggregation,
+  # a peptide search engine run, and three-way (greedy vs. hill) centroiding
+  # comparisons (which add 4 extra full-fixture loads), so it needs a generous timeout.
+  set_tests_properties(BrukerTimsFile_test PROPERTIES TIMEOUT 3600)
+endif()
+
+if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
+  target_compile_definitions(ThermoRawFile_test PRIVATE
+    THERMO_RAW_TEST_DATA="${THERMO_RAW_TEST_DATA}")
+  set_tests_properties(ThermoRawFile_test PROPERTIES TIMEOUT 1200)
+
+  # Copy the managed bridge runtime (.dll + .runtimeconfig.json) next to the
+  # test binary. The bridge looks first in the executable's own directory; on
+  # Windows the test exe is in src/tests/class_tests/bin (not next to
+  # libOpenMS), so the OpenMS-target POST_BUILD copy in src/openms/CMakeLists
+  # is in a different directory and would not be found at test runtime.
+  if (COMMAND openms_thermo_bridge_copy_runtime_files)
+    openms_thermo_bridge_copy_runtime_files(TARGET ThermoRawFile_test)
+  endif()
 endif()
 
 #------------------------------------------------------------------------------

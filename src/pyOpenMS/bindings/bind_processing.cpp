@@ -349,6 +349,7 @@ Outlier detection before model building via the RANSAC algorithm is supported fo
         .def_static("nameToEnum", [](const OpenMS::String& name) { return OpenMS::MZTrafoModel::nameToEnum(name); }, "name"_a)
         .def_static("enumToName", [](OpenMS::MZTrafoModel::MODELTYPE mt) { return OpenMS::MZTrafoModel::enumToName(mt); }, "mt"_a)
         .def_static("setRANSACParams", [](const OpenMS::Math::RANSACParam& p) { return OpenMS::MZTrafoModel::setRANSACParams(p); }, "p"_a)
+        .def_static("setRANSACSeed", [](int seed) { OpenMS::MZTrafoModel::setRANSACSeed(seed); }, "seed"_a)
         .def_static("setCoefficientLimits", [](double offset, double scale, double power) { return OpenMS::MZTrafoModel::setCoefficientLimits(offset, scale, power); }, "offset"_a, "scale"_a, "power"_a)
         .def_static("isValidModel", [](const OpenMS::MZTrafoModel& trafo) { return OpenMS::MZTrafoModel::isValidModel(trafo); }, "trafo"_a)
         .def("isTrained", [](const OpenMS::MZTrafoModel& self) { return self.isTrained(); }, "Returns true if the model have coefficients (i.e. was trained successfully)")
