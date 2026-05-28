@@ -60,6 +60,10 @@
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #endif
 
+#ifdef WITH_THERMO_RAW
+#include <OpenMS/FORMAT/ThermoRawFile.h>
+#endif
+
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
@@ -199,6 +203,13 @@ namespace OpenMS
     if (type == FileTypes::BRUKER_TDF)
     {
       return FileTypes::UNKNOWN; // .d format requires WITH_OPENTIMS
+    }
+#endif
+
+#ifndef WITH_THERMO_RAW
+    if (type == FileTypes::RAW)
+    {
+      return FileTypes::UNKNOWN; // .raw format requires WITH_THERMO_RAW
     }
 #endif
 
@@ -968,6 +979,25 @@ namespace OpenMS
               [this](const MSSpectrum& s) { return !options_.containsMSLevel(s.getMSLevel()); }),
             exp.getSpectra().end());
         }
+      }
+      break;
+#endif
+
+#ifdef WITH_THERMO_RAW
+      case FileTypes::RAW:
+      {
+        ThermoRawFile f;
+        f.setLogType(log);
+        f.load(filename, exp);
+        // Apply MS level filtering (ThermoRawFile loads all levels)
+        if (options_.hasMSLevels())
+        {
+          exp.getSpectra().erase(
+            std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+              [this](const MSSpectrum& s) { return !options_.containsMSLevel(s.getMSLevel()); }),
+            exp.getSpectra().end());
+        }
+        exp.updateRanges();
       }
       break;
 #endif

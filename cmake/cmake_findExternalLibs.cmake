@@ -574,3 +574,101 @@ if (WITH_OPENTIMS)
   endif()
 endif()
 #------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# openms-thermo-bridge (Thermo RAW file reading)
+if (WITH_THERMO_RAW)
+  find_package(OpenMSThermoBridge QUIET)
+
+  if(OpenMSThermoBridge_FOUND)
+    message(STATUS "openms-thermo-bridge: using system installation")
+  else()
+    # No system install found — fetch and build from source.
+    message(STATUS "openms-thermo-bridge: system installation not found, fetching from git")
+    include(FetchContent)
+
+    FetchContent_Declare(
+      OpenMSThermoBridge
+      GIT_REPOSITORY https://github.com/jpfeuffer/openms-thermo-bridge.git
+      # Pin to a specific reviewed upstream revision to keep builds reproducible.
+      GIT_TAG        v0.2.3
+    )
+
+    # Configure the thermo bridge build options
+    set(OPENMS_THERMO_BRIDGE_BUILD_CLI         OFF CACHE BOOL "" FORCE)
+    set(OPENMS_THERMO_BRIDGE_ENABLE_VENDOR_DOWNLOAD ON CACHE BOOL "" FORCE)
+    set(OPENMS_THERMO_BRIDGE_DOWNLOAD_TEST_DATA OFF CACHE BOOL "" FORCE)
+
+    # Build the bridge as a shared library. This avoids a typeinfo duplication
+    # issue on macOS: when the bridge was static, its object files introduced a
+    # second copy of typeinfo for std::exception inside libOpenMS.dylib that
+    # didn't coalesce with libc++abi's copy, breaking catch(std::exception&) for
+    # exceptions thrown across translation-unit boundaries. As a shared library,
+    # the bridge resolves standard typeinfo from libc++abi at load time — no
+    # duplication.
+    #
+    # The bridge .so/.dylib is installed alongside libOpenMS and registered in
+    # the CMake export set so downstream consumers resolve it via RPATH.
+    set(_openms_saved_build_testing ${BUILD_TESTING})
+    set(BUILD_TESTING OFF)
+    FetchContent_MakeAvailable(OpenMSThermoBridge)
+    set(BUILD_TESTING ${_openms_saved_build_testing})
+
+    # Place the bridge shared library next to libOpenMS in the build tree so
+    # test executables find it via RPATH without extra configuration.
+    if(TARGET openms_thermo_bridge)
+      set_target_properties(openms_thermo_bridge PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}"
+      )
+    endif()
+
+    # Install the bridge alongside libOpenMS and register it in the CMake export
+    # set so OpenMSTargets.cmake includes it as an imported shared library.
+    # Downstream consumers (e.g. pyOpenMS) don't link it directly — it is a
+    # PRIVATE dependency of libOpenMS and is resolved at runtime via RPATH.
+    # DotNetHost::nethost is PRIVATE in the bridge's own CMakeLists, so it does
+    # NOT appear in the bridge's exported INTERFACE and won't be required from
+    # consumers that don't have the .NET SDK.
+    install_library(openms_thermo_bridge)
+    openms_register_export_target(openms_thermo_bridge)
+
+    message(STATUS "openms-thermo-bridge: built from source (${OpenMSThermoBridge_SOURCE_DIR})")
+
+    # Download and install the Thermo Fisher RawFileReader license.
+    # OPENMS_THERMO_BRIDGE_THERMO_COMMIT is a CMake cache variable set inside
+    # the bridge's CMakeLists.txt and is visible here after FetchContent_MakeAvailable.
+    # We pin the download to that exact commit so we always get the license that
+    # corresponds to the vendored DLL packages being used.
+    if(OPENMS_THERMO_BRIDGE_THERMO_COMMIT)
+      set(_openms_thermo_license_url
+          "https://raw.githubusercontent.com/thermofisherlsms/RawFileReader/${OPENMS_THERMO_BRIDGE_THERMO_COMMIT}/License.doc")
+      set(_openms_thermo_license_file
+          "${CMAKE_CURRENT_BINARY_DIR}/ThermoRawFileReader-License.doc")
+      if(NOT EXISTS "${_openms_thermo_license_file}")
+        message(STATUS "openms-thermo-bridge: downloading Thermo RawFileReader license")
+        file(DOWNLOAD
+            "${_openms_thermo_license_url}"
+            "${_openms_thermo_license_file}"
+            STATUS _openms_thermo_license_status
+            TLS_VERIFY ON)
+        list(GET _openms_thermo_license_status 0 _openms_thermo_license_code)
+        list(GET _openms_thermo_license_status 1 _openms_thermo_license_message)
+        if(NOT _openms_thermo_license_code EQUAL 0)
+          file(REMOVE "${_openms_thermo_license_file}")
+          message(WARNING
+              "openms-thermo-bridge: failed to download Thermo RawFileReader license "
+              "(${_openms_thermo_license_message}). "
+              "The install will not include the license file.")
+        endif()
+      endif()
+      if(EXISTS "${_openms_thermo_license_file}")
+        install(FILES "${_openms_thermo_license_file}"
+                DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
+                RENAME "ThermoRawFileReader-License.doc")
+      endif()
+    endif()
+  endif()
+endif()
+#------------------------------------------------------------------------------

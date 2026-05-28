@@ -8,7 +8,9 @@
 
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
@@ -1756,6 +1758,80 @@ bool ProteinIdentificationArrowIO::importFromParquet(
   }
 
   return true;
+}
+
+
+// ==================== Identifier handling parity with XML lane ====================
+
+std::map<String, String> ProteinIdentificationArrowIO::synthesizeRunIdentifiers(
+  std::vector<ProteinIdentification>& protein_identifications)
+{
+  std::map<String, String> rename;
+  for (auto& prot_id : protein_identifications)
+  {
+    // Mirror IdXMLFile.cpp:530 — `<search_engine>_<date>_<UniqueIdGenerator>`.
+    const String se = prot_id.getSearchEngine().empty() ? String("unknown") : prot_id.getSearchEngine();
+    const String dt = prot_id.getDateTime().isValid()
+                          ? prot_id.getDateTime().toString()
+                          : String("1900-01-01T00:00:00");
+    const String stored = prot_id.getIdentifier();
+    const String synthesized = se + "_" + dt + "_" + String(UniqueIdGenerator::getUniqueId());
+
+    // Multiple ProtIDs sharing the stored identifier each get their own distinct
+    // synthesized identifier; the rename map collapses to the last-seen entry
+    // (matches XML-lane behavior should pre-fix files reach the loader). One
+    // ProtID ends up orphaned of its pep_ids; warn once per collision so the
+    // upstream data corruption is visible.
+    auto existing = rename.find(stored);
+    if (existing != rename.end())
+    {
+      OPENMS_LOG_WARN << "ProteinIdentificationArrowIO: multiple ProtIDs share stored identifier '"
+                      << stored << "'; pep_id assignment ambiguity resolved by load order — "
+                      << "regenerate input from a fixed-code build to eliminate." << std::endl;
+      existing->second = synthesized;
+    }
+    else
+    {
+      rename[stored] = synthesized;
+    }
+
+    prot_id.setIdentifier(synthesized);
+  }
+  return rename;
+}
+
+void ProteinIdentificationArrowIO::applyRunIdentifierRename(
+  const std::map<String, String>& rename,
+  PeptideIdentificationList& pep_ids)
+{
+  for (auto& pid : pep_ids)
+  {
+    auto it = rename.find(pid.getIdentifier());
+    if (it != rename.end())
+    {
+      pid.setIdentifier(it->second);
+    }
+    // Orphan pep_ids (no matching ProtID identifier) keep their stored identifier —
+    // same as the XML lane, where they organically surface upstream-corruption signals.
+  }
+}
+
+void ProteinIdentificationArrowIO::checkUniqueIdentifiers(
+  const std::vector<ProteinIdentification>& protein_identifications)
+{
+  // Mirror XMLHandler::checkUniqueIdentifiers_ exactly — identical message text
+  // so log-grepping finds both lanes.
+  std::set<String> s;
+  for (const auto& p : protein_identifications)
+  {
+    if (s.insert(p.getIdentifier()).second == false)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "ProteinIdentification run identifiers are not unique. This can lead to "
+        "loss of unique PeptideIdentification assignment. Duplicated Protein-ID is:",
+        p.getIdentifier());
+    }
+  }
 }
 
 

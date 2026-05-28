@@ -14,63 +14,109 @@
 
 namespace OpenMS
 {
-/**
-    @brief Decompresses a single-entry ZIP archive for streaming reading.
+  /**
+    @brief Streaming reader for the single non-directory entry of a ZIP archive.
 
-    Wraps libzip to stream bytes from the single non-directory entry in a ZIP file.
-    Directory entries (names ending with '/') are silently skipped. Exactly one
-    non-directory entry must be present; otherwise open() throws.
-*/
+    Backed by libzip. Directory entries (names ending in @c '/') are
+    silently ignored when scanning the archive; the archive must
+    contain exactly one non-directory entry, or @ref open will throw.
+    Bytes are then streamed lazily from that entry; the stream auto-
+    closes once the entry has been fully consumed.
+
+    @note When OpenMS is built without libzip, every call that
+          actually touches an archive (@ref open and consequently the
+          single-argument constructor, plus @ref read) throws
+          @c Exception::NotImplemented. The default constructor,
+          @ref close, @ref isOpen and @ref streamEnd remain usable.
+
+    Copy and move are deliberately suppressed.
+
+    @ingroup FileIO
+  */
   class OPENMS_DLLAPI ZipIfstream
   {
 public:
-    /// Default Constructor
+    /// Default constructor; leaves the instance in a closed state (@ref isOpen returns @c false, @ref streamEnd returns @c true).
     ZipIfstream();
 
-    /// Detailed constructor with filename
+    /**
+      @brief Construct and open @p filename in one step; see @ref open for the exact behaviour and exception set.
+
+      @param[in] filename Path of the ZIP archive to open.
+    */
     explicit ZipIfstream(const char* filename);
 
-    /// Destructor
+    /// Destructor; closes the archive and the entry handle.
     virtual ~ZipIfstream();
 
     /**
-      * @brief Reads n bytes from the zip entry into buffer s
-      *
-      * @param[out] s Buffer to be filled with the output
-      * @param[in] n The size of the buffer s
-      * @return The number of actually read bytes. If it is less than n, the end of the entry was reached and the stream is closed.
-      *
-      * @exception Exception::ParseError is thrown if decompression fails
-      * @exception Exception::IllegalArgument is thrown if no file for decompression is given
+      @brief Read up to @p n decompressed bytes from the open entry into @p s.
+
+      Returns the actual number of bytes written into @p s. A return
+      value smaller than @p n indicates that the end of the entry was
+      reached during this call and that the stream has been closed
+      automatically (@ref isOpen becomes @c false and @ref streamEnd
+      becomes @c true). Passing @c n == @c 0 is a no-op that returns
+      @c 0 without touching the entry.
+
+      @param[out] s Buffer that receives the decompressed bytes;
+                    must be at least @p n bytes long.
+      @param[in]  n Number of bytes to attempt to read.
+      @return Number of decompressed bytes actually written into @p s.
+
+      @throws Exception::ParseError      when @c zip_fread reports a
+                                         decompression error.
+      @throws Exception::IllegalArgument when called on an instance
+                                         that has no open entry
+                                         (default-constructed, or
+                                         already closed -- including
+                                         after a previous @ref read
+                                         drained the entry).
+      @throws Exception::NotImplemented  when OpenMS was built without
+                                         libzip.
     */
     size_t read(char* s, size_t n);
 
     /**
-      * @brief indicates whether the read function can be used safely
-      *
-      * @return true if end of entry was reached. Otherwise false.
+      @brief Whether the stream has been closed (end of entry reached or no archive opened).
+
+      @return @c true if no further @ref read calls should be issued, @c false otherwise.
     */
     bool streamEnd() const;
 
     /**
-      * @brief returns whether a file is open.
+      @brief Whether an archive entry is currently open for reading.
+
+      @return @c true if an entry is open, @c false otherwise.
     */
     bool isOpen() const;
 
     /**
-      * @brief opens a ZIP archive for reading from its single non-directory entry
-      *
-      * @note any previous open files will be closed first!
-      * @exception Exception::FileNotFound if file does not exist
-      * @exception Exception::FileNotReadable if file cannot be opened
-      * @exception Exception::FileEmpty if ZIP contains no non-directory entries
-      * @exception Exception::ParseError if ZIP contains more than one non-directory entry
+      @brief Open @p filename and select its single non-directory entry for reading.
+
+      Closes any previously open archive first, scans the new archive
+      for entries and selects the single non-directory one as the
+      streaming source.
+
+      @param[in] filename Path of the ZIP archive to open.
+
+      @throws Exception::FileNotFound    when @p filename does not exist.
+      @throws Exception::FileNotReadable when @p filename exists but
+                                         the archive cannot be opened
+                                         (or the selected entry cannot
+                                         be read).
+      @throws Exception::FileEmpty       when the archive contains no
+                                         non-directory entries.
+      @throws Exception::ParseError      when the archive contains more
+                                         than one non-directory entry.
+                                         The exception message lists
+                                         the conflicting entry names.
+      @throws Exception::NotImplemented  when OpenMS was built without
+                                         libzip.
     */
     void open(const char* filename);
 
-    /**
-      * @brief closes current file.
-    */
+    /// Close the currently open archive (no-op if none is open). After the call, @ref isOpen returns @c false and @ref streamEnd returns @c true.
     void close();
 
     ZipIfstream(const ZipIfstream&) = delete;
@@ -79,11 +125,9 @@ public:
     ZipIfstream& operator=(ZipIfstream&&) = delete;
 
 protected:
-    /// opaque pointers to libzip handles (void* to avoid including zip.h in header)
-    void* zip_archive_ = nullptr;
-    void* zip_entry_ = nullptr;
-    /// true if end of entry is reached
-    bool stream_at_end_ = true;
+    void* zip_archive_ = nullptr; ///< Opaque libzip @c zip_t* handle; @c nullptr when no archive is open. Typed as @c void* to keep @c zip.h out of the header.
+    void* zip_entry_ = nullptr;   ///< Opaque libzip @c zip_file_t* handle for the currently streamed entry; @c nullptr when no entry is open.
+    bool stream_at_end_ = true;   ///< @c true once the stream has been closed (either explicitly via @ref close or implicitly because the entry was fully consumed by @ref read).
   };
 
   inline bool ZipIfstream::isOpen() const

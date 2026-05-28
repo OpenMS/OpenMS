@@ -12,8 +12,10 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
 
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -208,6 +210,63 @@ public:
   static bool importProteinGroupsFromParquet(
     const String& filename,
     std::vector<ProteinIdentification>& protein_identifications);
+
+  // ==================== Identifier handling parity with XML lane ====================
+
+  /**
+    @brief Synthesize fresh run identifiers per ProteinIdentification, mirroring IdXMLFile.
+
+    Mirrors IdXMLFile.cpp:530: every load assigns each ProteinIdentification a fresh
+    identifier `<search_engine>_<date>_<UniqueIdGenerator>`. The stored identifier
+    on disk is informational; the in-memory identifier is regenerated. This is the
+    same defense FeatureXMLHandler / ConsensusXMLHandler / IdXMLFile apply on load
+    against downstream-collision-after-rip-and-merge scenarios.
+
+    The function mutates @p protein_identifications in place and returns the map
+    { stored_id -> synthesized_id } so the caller can apply the same rename to
+    each PeptideIdentification collection it owns (FeatureMap has 2: per-feature
+    and unassigned; ConsensusMap has 2; PSMArrowIO has 1).
+
+    Edge cases:
+      - empty getSearchEngine() falls back to literal "unknown"
+      - invalid getDateTime() uses placeholder "1900-01-01T00:00:00"
+      - multiple ProtIDs sharing one stored identifier each receive their own
+        distinct synthesized identifier; the returned map collapses to the
+        last-seen entry. An OPENMS_LOG_WARN is emitted once per such collision.
+
+    @param[in,out] protein_identifications ProtID vector whose identifiers will be replaced
+    @return Map from each stored identifier to its synthesized replacement.
+  */
+  static std::map<String, String> synthesizeRunIdentifiers(
+    std::vector<ProteinIdentification>& protein_identifications);
+
+  /**
+    @brief Apply a stored->synthesized identifier rename to a PeptideIdentification collection.
+
+    PeptideIdentifications whose stored identifier isn't present in @p rename are
+    left untouched. Mirrors the orphan-pep_id semantics of the XML lane (where
+    pep_ids that don't match any ProtID retain their stale identifier).
+
+    @param[in] rename Map produced by synthesizeRunIdentifiers
+    @param[in,out] pep_ids PeptideIdentification collection to re-stamp
+  */
+  static void applyRunIdentifierRename(
+    const std::map<String, String>& rename,
+    PeptideIdentificationList& pep_ids);
+
+  /**
+    @brief Reject a ProteinIdentification vector with duplicate identifiers (store-side check).
+
+    Mirrors XMLHandler::checkUniqueIdentifiers_ — throws Exception::InvalidValue
+    with the same message text used by the XML lane's fatalError. Called by every
+    parquet store entry point before any Arrow builder is allocated, so no
+    partial file is created on rejection.
+
+    @param[in] protein_identifications ProtID vector to check
+    @throw Exception::InvalidValue when duplicate identifiers are present
+  */
+  static void checkUniqueIdentifiers(
+    const std::vector<ProteinIdentification>& protein_identifications);
 };
 
 } // namespace OpenMS

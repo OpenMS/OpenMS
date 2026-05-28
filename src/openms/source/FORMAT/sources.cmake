@@ -127,7 +127,12 @@ list(APPEND sources_list ArrowIOHelpers.cpp)
 
 if (WITH_OPENTIMS)
   list(APPEND sources_list BrukerTimsFile.cpp)
+  list(APPEND sources_list BrukerTimsImagingFile.cpp)
   list(APPEND sources_list RationalScan2ImConverter.cpp)
+endif()
+
+if (WITH_THERMO_RAW)
+  list(APPEND sources_list ThermoRawFile.cpp)
 endif()
 
 ### add path to the filenames

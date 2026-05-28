@@ -100,7 +100,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::XQUESTXML, "xquest.xml", "xquest.xml file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::SPECXML, "spec.xml", "spec.xml file", {}),
     TypeNameBinding(FileTypes::JSON, "json", "JavaScript Object Notation file", {PROP::READABLE, PROP::WRITEABLE}),
-    TypeNameBinding(FileTypes::RAW, "raw", "(Thermo) Raw data file", {}),
+    TypeNameBinding(FileTypes::RAW, "raw", "(Thermo) Raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE}),
     TypeNameBinding(FileTypes::OMS, "oms", "OpenMS SQLite file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::PROVIDES_FEATURES, PROP::PROVIDES_CONSENSUSFEATURES}),
     TypeNameBinding(FileTypes::EXE, "exe", "Windows executable", {}),
     TypeNameBinding(FileTypes::BZ2, "bz2", "bzip2 compressed file", {PROP::READABLE}),
@@ -265,6 +265,7 @@ namespace OpenMS
       case FileTypes::MGF: return "Mascot MGF file";
       case FileTypes::XMASS: return "Bruker FID file";
       case FileTypes::BRUKER_TDF: return "Bruker TDF format";
+      case FileTypes::RAW: return "Thermo RAW format";
       default: return "";
     }
   }
