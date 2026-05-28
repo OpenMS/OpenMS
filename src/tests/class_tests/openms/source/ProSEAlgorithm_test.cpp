@@ -1545,6 +1545,70 @@ START_SECTION(([EXTRA] DIA extractMS1PrecursorCandidates - deisotopes envelopes)
 }
 END_SECTION
 
+START_SECTION(([EXTRA] DIA extractMS1PrecursorCandidates - boundary cases))
+{
+  // Isolation window [487.5, 512.5]
+  Precursor prec;
+  prec.setMZ(500.0);
+  prec.setIsolationWindowLowerOffset(12.5);
+  prec.setIsolationWindowUpperOffset(12.5);
+  const double c13 = Constants::C13C12_MASSDIFF_U;
+
+  // Case 1: envelope straddling upper edge — mono in window, +1 outside
+  {
+    MSSpectrum ms1;
+    ms1.setMSLevel(1);
+    // Charge-2 envelope at mono 512.0 (just inside upper edge); +1 at 512.5, +2 at 513.0
+    ms1.push_back(Peak1D(512.0, 1000.0));
+    ms1.push_back(Peak1D(512.0 + c13 / 2.0, 500.0));   // 512.50 — at edge
+    ms1.push_back(Peak1D(512.0 + 2 * c13 / 2.0, 200.0)); // 513.00 — outside
+    ms1.sortByPosition();
+
+    auto candidates = ProSEAlgorithm_test::extractMS1PrecursorCandidates_(
+        ms1, prec, 10, 2, 5, 20.0);
+    TEST_EQUAL(candidates.size(), 1)
+    TEST_REAL_SIMILAR(candidates[0].mz, 512.0)
+    TEST_EQUAL(candidates[0].charge, 2)
+  }
+
+  // Case 2: envelope with mono BELOW window — must NOT be reported as a candidate
+  // Without lower extension, the deisotoper would treat the +1 peak (in window)
+  // as a new (wrong) mono.
+  {
+    MSSpectrum ms1;
+    ms1.setMSLevel(1);
+    // Charge-2 envelope at mono 487.0 (below lower_mz=487.5);
+    // peaks at 487.0, 487.5, 488.0 (the latter two are in the window)
+    ms1.push_back(Peak1D(487.0, 1000.0));
+    ms1.push_back(Peak1D(487.0 + c13 / 2.0, 500.0));   // 487.50 — in window
+    ms1.push_back(Peak1D(487.0 + 2 * c13 / 2.0, 200.0)); // 488.00 — in window
+    ms1.sortByPosition();
+
+    auto candidates = ProSEAlgorithm_test::extractMS1PrecursorCandidates_(
+        ms1, prec, 10, 2, 5, 20.0);
+    // mono (487.0) is below lower_mz → filtered out
+    // the +1/+2 in-window peaks are correctly attributed to the out-of-window mono → not new candidates
+    TEST_EQUAL(candidates.size(), 0)
+  }
+
+  // Case 3: envelope with mono just at lower_mz — kept
+  {
+    MSSpectrum ms1;
+    ms1.setMSLevel(1);
+    ms1.push_back(Peak1D(487.5, 1000.0));
+    ms1.push_back(Peak1D(487.5 + c13 / 2.0, 500.0));
+    ms1.push_back(Peak1D(487.5 + 2 * c13 / 2.0, 200.0));
+    ms1.sortByPosition();
+
+    auto candidates = ProSEAlgorithm_test::extractMS1PrecursorCandidates_(
+        ms1, prec, 10, 2, 5, 20.0);
+    TEST_EQUAL(candidates.size(), 1)
+    TEST_REAL_SIMILAR(candidates[0].mz, 487.5)
+    TEST_EQUAL(candidates[0].charge, 2)
+  }
+}
+END_SECTION
+
 START_SECTION(([EXTRA] DIA expandDIASpectra))
 {
   // Build a small DIA experiment: 1 MS1 + 2 MS2

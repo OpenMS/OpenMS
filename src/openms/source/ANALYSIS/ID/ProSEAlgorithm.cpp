@@ -2774,15 +2774,20 @@ namespace OpenMS
     const double lower_mz = center - ms2_precursor.getIsolationWindowLowerOffset();
     const double upper_mz = center + ms2_precursor.getIsolationWindowUpperOffset();
 
-    // Copy peaks within the isolation window into a small spectrum for deisotoping.
-    // Extend the upper bound by max_isopeaks / min_charge Da so isotope envelopes
-    // straddling the window edge can be fully resolved.
+    // Extend the window symmetrically by max_isopeaks/min_charge Da so the
+    // deisotoper can resolve envelopes straddling either edge:
+    //  - Upper edge: an envelope with mono in-window but +1/+2 above upper_mz
+    //    is correctly collapsed to its mono (kept).
+    //  - Lower edge: an envelope with mono below lower_mz must be visible to
+    //    the deisotoper, otherwise it would mistake the in-window isotope
+    //    peaks for a new (wrong-mz, wrong-charge) envelope. The mono itself
+    //    is then filtered out by the final lower_mz <= mz <= upper_mz check.
     constexpr unsigned int max_isopeaks = 10;
     const double envelope_extension =
         static_cast<double>(max_isopeaks) * Constants::C13C12_MASSDIFF_U / std::max(min_charge, 1);
 
     MSSpectrum window;
-    auto it_lo = ms1_spectrum.MZBegin(lower_mz);
+    auto it_lo = ms1_spectrum.MZBegin(lower_mz - envelope_extension);
     auto it_hi = ms1_spectrum.MZEnd(upper_mz + envelope_extension);
     for (auto it = it_lo; it != it_hi; ++it)
     {
@@ -2821,15 +2826,18 @@ namespace OpenMS
     candidates.reserve(window.size());
     for (Size i = 0; i < window.size(); ++i)
     {
-      // Drop peaks outside the original window (the envelope_extension was just
-      // a working margin for the deisotoper).
-      if (window[i].getMZ() > upper_mz) continue;
+      // Only keep monoisotopic peaks whose m/z falls in the actual isolation
+      // window. The envelope_extension margin was a working area for the
+      // deisotoper — peaks resolved there are precursors NOT isolated by this
+      // DIA window and must be dropped.
+      const double mz = window[i].getMZ();
+      if (mz < lower_mz || mz > upper_mz) continue;
       int charge = 0;
       if (charge_array_it != int_arrays.end() && i < charge_array_it->size())
       {
         charge = (*charge_array_it)[i];
       }
-      candidates.push_back({window[i].getMZ(), window[i].getIntensity(), charge});
+      candidates.push_back({mz, window[i].getIntensity(), charge});
     }
 
     std::sort(candidates.begin(), candidates.end(),
