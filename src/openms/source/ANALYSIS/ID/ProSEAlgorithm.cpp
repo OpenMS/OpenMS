@@ -2765,55 +2765,79 @@ namespace OpenMS
   std::vector<ProSEAlgorithm::PrecursorCandidate_> ProSEAlgorithm::extractMS1PrecursorCandidates_(
       const MSSpectrum& ms1_spectrum,
       const Precursor& ms2_precursor,
-      Size max_candidates)
+      Size max_candidates,
+      int min_charge,
+      int max_charge,
+      double isotope_tolerance_ppm)
   {
-    double center = ms2_precursor.getMZ();
-    double lower_mz = center - ms2_precursor.getIsolationWindowLowerOffset();
-    double upper_mz = center + ms2_precursor.getIsolationWindowUpperOffset();
+    const double center = ms2_precursor.getMZ();
+    const double lower_mz = center - ms2_precursor.getIsolationWindowLowerOffset();
+    const double upper_mz = center + ms2_precursor.getIsolationWindowUpperOffset();
 
+    // Copy peaks within the isolation window into a small spectrum for deisotoping.
+    // Extend the upper bound by max_isopeaks / min_charge Da so isotope envelopes
+    // straddling the window edge can be fully resolved.
+    constexpr unsigned int max_isopeaks = 10;
+    const double envelope_extension =
+        static_cast<double>(max_isopeaks) * Constants::C13C12_MASSDIFF_U / std::max(min_charge, 1);
+
+    MSSpectrum window;
     auto it_lo = ms1_spectrum.MZBegin(lower_mz);
-    auto it_hi = ms1_spectrum.MZEnd(upper_mz);
-
-    std::vector<PrecursorCandidate_> candidates;
+    auto it_hi = ms1_spectrum.MZEnd(upper_mz + envelope_extension);
     for (auto it = it_lo; it != it_hi; ++it)
     {
-      candidates.push_back({it->getMZ(), it->getIntensity(), 0});
+      window.push_back(*it);
+    }
+    if (window.empty()) return {};
+
+    // Deisotope: collapse each envelope to a single monoisotopic peak,
+    // annotate charge, drop peaks without an isotope pattern (singletons).
+    // keep_only_deisotoped=true: drop peaks with no detected isotope pattern.
+    // A DIA precursor candidate without a +1 isotope peak is more likely to be
+    // noise than a low-abundance real precursor — the intensity-rank fallback
+    // would also push such peaks down anyway.
+    Deisotoper::deisotopeAndSingleCharge(
+        window,
+        isotope_tolerance_ppm,
+        /*fragment_unit_ppm=*/true,
+        min_charge,
+        max_charge,
+        /*keep_only_deisotoped=*/true,
+        /*min_isopeaks=*/2,
+        max_isopeaks,
+        /*make_single_charged=*/false,
+        /*annotate_charge=*/true,
+        /*annotate_iso_peak_count=*/false,
+        /*use_decreasing_model=*/true,
+        /*start_intensity_check=*/2);
+
+    // Read back charges from the annotated IntegerDataArray.
+    const auto& int_arrays = window.getIntegerDataArrays();
+    const auto charge_array_it = std::find_if(
+        int_arrays.begin(), int_arrays.end(),
+        [](const auto& a) { return a.getName() == "charge"; });
+
+    std::vector<PrecursorCandidate_> candidates;
+    candidates.reserve(window.size());
+    for (Size i = 0; i < window.size(); ++i)
+    {
+      // Drop peaks outside the original window (the envelope_extension was just
+      // a working margin for the deisotoper).
+      if (window[i].getMZ() > upper_mz) continue;
+      int charge = 0;
+      if (charge_array_it != int_arrays.end() && i < charge_array_it->size())
+      {
+        charge = (*charge_array_it)[i];
+      }
+      candidates.push_back({window[i].getMZ(), window[i].getIntensity(), charge});
     }
 
     std::sort(candidates.begin(), candidates.end(),
               [](const PrecursorCandidate_& a, const PrecursorCandidate_& b)
               { return a.intensity > b.intensity; });
 
-    if (candidates.size() > max_candidates)
-    {
-      candidates.resize(max_candidates);
-    }
+    if (candidates.size() > max_candidates) candidates.resize(max_candidates);
     return candidates;
-  }
-
-  int ProSEAlgorithm::assignChargeByIsotopeSpacing_(
-      const MSSpectrum& ms1_spectrum,
-      double candidate_mz,
-      int min_charge,
-      int max_charge,
-      double mz_tolerance_ppm)
-  {
-    for (int z = max_charge; z >= min_charge; --z)
-    {
-      double spacing = Constants::C13C12_MASSDIFF_U / static_cast<double>(z);
-      double expected_mz = candidate_mz + spacing;
-      double tol_da = expected_mz * mz_tolerance_ppm * 1e-6;
-      Size idx = ms1_spectrum.findNearest(expected_mz);
-      if (idx < ms1_spectrum.size())
-      {
-        double actual_mz = ms1_spectrum[idx].getMZ();
-        if (std::abs(actual_mz - expected_mz) <= tol_da)
-        {
-          return z;
-        }
-      }
-    }
-    return 0;
   }
 
   PeakMap ProSEAlgorithm::expandDIASpectra_(
@@ -2844,22 +2868,16 @@ namespace OpenMS
 
       const MSSpectrum& ms1 = full_exp[ms1_idx];
       auto candidates = extractMS1PrecursorCandidates_(
-          ms1, orig_precs[0], dia_max_precursor_candidates_);
+          ms1, orig_precs[0], dia_max_precursor_candidates_,
+          static_cast<int>(precursor_min_charge_),
+          static_cast<int>(precursor_max_charge_),
+          dia_isotope_tolerance_ppm_);
 
       if (candidates.empty())
       {
-        // No MS1 peaks in isolation window — keep original spectrum
+        // No MS1 candidates in isolation window — keep original spectrum
         result.addSpectrum(ms2);
         continue;
-      }
-
-      for (auto& cand : candidates)
-      {
-        cand.charge = assignChargeByIsotopeSpacing_(
-            ms1, cand.mz,
-            static_cast<int>(precursor_min_charge_),
-            static_cast<int>(precursor_max_charge_),
-            dia_isotope_tolerance_ppm_);
       }
 
       // Store one spectrum with multiple precursors (no peak duplication)

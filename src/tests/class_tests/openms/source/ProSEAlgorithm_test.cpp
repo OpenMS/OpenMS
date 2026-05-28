@@ -58,7 +58,6 @@ public:
   using ProSEAlgorithm::isDIAExperiment_;
   using ProSEAlgorithm::buildMS2ToMS1Map_;
   using ProSEAlgorithm::extractMS1PrecursorCandidates_;
-  using ProSEAlgorithm::assignChargeByIsotopeSpacing_;
   using ProSEAlgorithm::expandDIASpectra_;
   using ProSEAlgorithm::AnnotatedHit_;
 };
@@ -1498,76 +1497,51 @@ START_SECTION(([EXTRA] DIA buildMS2ToMS1Map))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] DIA extractMS1PrecursorCandidates))
+START_SECTION(([EXTRA] DIA extractMS1PrecursorCandidates - deisotopes envelopes))
 {
-  // Build MS1 spectrum with known peaks
+  // Build MS1 spectrum with two proper isotope envelopes inside the window
+  // plus an isolated peak outside the window.
   MSSpectrum ms1;
   ms1.setMSLevel(1);
-  // Peaks at m/z 490, 495, 500 (high), 505 (highest), 510, 520 (outside window)
-  ms1.push_back(Peak1D(490.0, 100.0));
-  ms1.push_back(Peak1D(495.0, 200.0));
-  ms1.push_back(Peak1D(500.0, 800.0));
-  ms1.push_back(Peak1D(505.0, 1000.0));
-  ms1.push_back(Peak1D(510.0, 150.0));
-  ms1.push_back(Peak1D(520.0, 5000.0)); // outside window
+  const double c13 = Constants::C13C12_MASSDIFF_U;
+
+  // Charge-2 envelope at mono 495.0 (peaks at 495.0, 495.5, 496.0)
+  ms1.push_back(Peak1D(495.0, 1000.0));
+  ms1.push_back(Peak1D(495.0 + c13 / 2.0, 500.0));
+  ms1.push_back(Peak1D(495.0 + 2 * c13 / 2.0, 200.0));
+
+  // Charge-3 envelope at mono 502.0 (peaks at 502.0, 502.334, 502.667)
+  ms1.push_back(Peak1D(502.0, 2000.0));
+  ms1.push_back(Peak1D(502.0 + c13 / 3.0, 800.0));
+  ms1.push_back(Peak1D(502.0 + 2 * c13 / 3.0, 300.0));
+
+  // Peak outside isolation window — must not appear in result
+  ms1.push_back(Peak1D(550.0, 5000.0));
   ms1.sortByPosition();
 
-  // Precursor with isolation window [487.5, 512.5]
+  // Isolation window [487.5, 512.5]
   Precursor prec;
   prec.setMZ(500.0);
   prec.setIsolationWindowLowerOffset(12.5);
   prec.setIsolationWindowUpperOffset(12.5);
 
-  auto candidates = ProSEAlgorithm_test::extractMS1PrecursorCandidates_(ms1, prec, 3);
+  auto candidates = ProSEAlgorithm_test::extractMS1PrecursorCandidates_(
+      ms1, prec, /*max=*/10, /*min_charge=*/2, /*max_charge=*/5, /*tol_ppm=*/20.0);
 
-  // Should get top 3 by intensity, sorted desc: 505 (1000), 500 (800), 495 (200)
-  TEST_EQUAL(candidates.size(), 3)
-  TEST_REAL_SIMILAR(candidates[0].mz, 505.0)
-  TEST_REAL_SIMILAR(candidates[0].intensity, 1000.0)
-  TEST_REAL_SIMILAR(candidates[1].mz, 500.0)
-  TEST_REAL_SIMILAR(candidates[1].intensity, 800.0)
-  TEST_REAL_SIMILAR(candidates[2].mz, 495.0)
-  TEST_REAL_SIMILAR(candidates[2].intensity, 200.0)
+  // Two monoisotopic precursors expected (envelopes collapsed)
+  TEST_EQUAL(candidates.size(), 2)
 
-  // 520.0 should NOT appear (outside window)
+  // Sorted by intensity: 502.0 (2000) first, 495.0 (1000) second
+  TEST_REAL_SIMILAR(candidates[0].mz, 502.0)
+  TEST_EQUAL(candidates[0].charge, 3)
+  TEST_REAL_SIMILAR(candidates[1].mz, 495.0)
+  TEST_EQUAL(candidates[1].charge, 2)
+
+  // Out-of-window peak must not appear
   for (const auto& c : candidates)
   {
-    TEST_NOT_EQUAL(c.mz, 520.0)
+    TEST_NOT_EQUAL(c.mz, 550.0)
   }
-}
-END_SECTION
-
-START_SECTION(([EXTRA] DIA assignChargeByIsotopeSpacing - high charge first))
-{
-  // Build MS1 with a peak at 500.0 and isotope peaks for charge 2 and charge 3
-  MSSpectrum ms1;
-  ms1.setMSLevel(1);
-  double c13 = Constants::C13C12_MASSDIFF_U;
-
-  ms1.push_back(Peak1D(500.0, 1000.0));
-  // charge 2 isotope: +0.5017
-  ms1.push_back(Peak1D(500.0 + c13 / 2.0, 500.0));
-  // charge 3 isotope: +0.3345
-  ms1.push_back(Peak1D(500.0 + c13 / 3.0, 300.0));
-  ms1.sortByPosition();
-
-  // With max_charge=5, should find charge 3 first (testing high to low)
-  // because charge 5 and 4 won't find isotope peaks, but charge 3 will
-  int charge = ProSEAlgorithm_test::assignChargeByIsotopeSpacing_(ms1, 500.0, 2, 5, 20.0);
-  TEST_EQUAL(charge, 3)
-
-  // With max_charge=2, should find charge 2
-  charge = ProSEAlgorithm_test::assignChargeByIsotopeSpacing_(ms1, 500.0, 2, 2, 20.0);
-  TEST_EQUAL(charge, 2)
-
-  // Peak with no isotope neighbors should return 0
-  MSSpectrum ms1_single;
-  ms1_single.push_back(Peak1D(700.0, 1000.0));
-  ms1_single.push_back(Peak1D(800.0, 500.0)); // too far for any charge
-  ms1_single.sortByPosition();
-
-  charge = ProSEAlgorithm_test::assignChargeByIsotopeSpacing_(ms1_single, 700.0, 2, 5, 10.0);
-  TEST_EQUAL(charge, 0)
 }
 END_SECTION
 
@@ -1576,18 +1550,21 @@ START_SECTION(([EXTRA] DIA expandDIASpectra))
   // Build a small DIA experiment: 1 MS1 + 2 MS2
   PeakMap full_exp;
 
-  // MS1 with known peaks in both DIA windows
+  // MS1 with isotope envelopes in both DIA windows
   MSSpectrum ms1;
   ms1.setMSLevel(1);
   ms1.setRT(10.0);
-  double c13 = Constants::C13C12_MASSDIFF_U;
-  // Window 1 peaks (around 500)
+  const double c13 = Constants::C13C12_MASSDIFF_U;
+  // Window 1: charge-2 envelope at 498.0, charge-3 envelope at 502.0
   ms1.push_back(Peak1D(498.0, 500.0));
-  ms1.push_back(Peak1D(498.0 + c13 / 2.0, 250.0)); // isotope for charge 2
+  ms1.push_back(Peak1D(498.0 + c13 / 2.0, 250.0));
+  ms1.push_back(Peak1D(498.0 + 2 * c13 / 2.0, 100.0));
   ms1.push_back(Peak1D(502.0, 1000.0));
-  ms1.push_back(Peak1D(502.0 + c13 / 3.0, 400.0)); // isotope for charge 3
-  // Window 2 peaks (around 525)
+  ms1.push_back(Peak1D(502.0 + c13 / 3.0, 400.0));
+  ms1.push_back(Peak1D(502.0 + 2 * c13 / 3.0, 150.0));
+  // Window 2: charge-2 envelope at 523.0
   ms1.push_back(Peak1D(523.0, 800.0));
+  ms1.push_back(Peak1D(523.0 + c13 / 2.0, 400.0));
   ms1.sortByPosition();
   full_exp.addSpectrum(ms1);
 
@@ -1637,17 +1614,23 @@ START_SECTION(([EXTRA] DIA expandDIASpectra))
   TEST_EQUAL(expanded[0].getMSLevel(), 2)
   TEST_EQUAL(expanded[1].getMSLevel(), 2)
 
-  // Window 1 has 4 MS1 peaks in range (498.0, ~498.5, 502.0, ~502.33)
-  TEST_EQUAL(expanded[0].getPrecursors().size(), 4)
-  // Window 2 has 1 MS1 peak in range (523.0)
+  // After deisotoping: window 1 has 2 monoisotopic precursors (498.0, 502.0),
+  // window 2 has 1 (523.0).
+  TEST_EQUAL(expanded[0].getPrecursors().size(), 2)
   TEST_EQUAL(expanded[1].getPrecursors().size(), 1)
 
-  // Precursors sorted by intensity descending: 502.0 (1000) should be first for window 1
+  // Window 1 precursors sorted by intensity descending: 502.0 (1000) first
   const auto& w1_precs = expanded[0].getPrecursors();
   TEST_REAL_SIMILAR(w1_precs[0].getMZ(), 502.0)
-  TEST_EQUAL(w1_precs[0].getCharge(), 3) // isotope at +c13/3
+  TEST_EQUAL(w1_precs[0].getCharge(), 3)
+  TEST_REAL_SIMILAR(w1_precs[1].getMZ(), 498.0)
+  TEST_EQUAL(w1_precs[1].getCharge(), 2)
 
-  // Fragment peaks should be the original MS2 peaks (not duplicated)
+  // Window 2 precursor
+  TEST_REAL_SIMILAR(expanded[1].getPrecursors()[0].getMZ(), 523.0)
+  TEST_EQUAL(expanded[1].getPrecursors()[0].getCharge(), 2)
+
+  // Fragment peaks unchanged (no duplication)
   TEST_EQUAL(expanded[0].size(), 2) // 200.0 and 300.0
   TEST_EQUAL(expanded[1].size(), 1) // 250.0
 }

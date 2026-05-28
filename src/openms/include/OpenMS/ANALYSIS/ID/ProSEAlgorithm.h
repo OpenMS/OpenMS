@@ -630,20 +630,17 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// Build map from spectrum index → parent MS1 spectrum index (-1 if none).
     static std::vector<int> buildMS2ToMS1Map_(const PeakMap& full_exp);
 
-    /// Extract top-N MS1 peaks within the isolation window of an MS2 precursor.
+    /// Extract top-N deisotoped MS1 peaks within the isolation window of an MS2
+    /// precursor. The Deisotoper collapses isotope envelopes to monoisotopic peaks
+    /// and assigns charges as a side effect; candidates whose charge could not be
+    /// determined are returned with charge=0 (FragmentIndex will enumerate charges).
     static std::vector<PrecursorCandidate_> extractMS1PrecursorCandidates_(
         const MSSpectrum& ms1_spectrum,
         const Precursor& ms2_precursor,
-        Size max_candidates);
-
-    /// Assign charge by checking for isotope peaks at +1/z spacing.
-    /// Tests charges from max_charge down to min_charge; returns 0 if none found.
-    static int assignChargeByIsotopeSpacing_(
-        const MSSpectrum& ms1_spectrum,
-        double candidate_mz,
+        Size max_candidates,
         int min_charge,
         int max_charge,
-        double mz_tolerance_ppm);
+        double isotope_tolerance_ppm);
 
     /// Expand DIA MS2 spectra by replacing the isolation-window-center precursor
     /// with multiple precursors (one per MS1 candidate). Returns a PeakMap where
