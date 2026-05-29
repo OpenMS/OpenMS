@@ -338,7 +338,7 @@ Gustav-Meyer-Allee 25
                                  value="false"/>
 
                         <!-- residue pair ref value="11.a" -->
-                        <cvParam cvRef="PSI-MS" accession="MS:XXXXXXX" value="11.a" name="Residue-pair ref"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1003344" value="11.a" name="residue-pair ref"/>
 
                     </SpectrumIdentificationItem>
                     <cvParam cvRef="PSI-MS" accession="MS:1000797" name="peak list scans" value="40560"/>
@@ -461,7 +461,7 @@ Gustav-Meyer-Allee 25
                                  name="group member with undefined relationship OR ortholog protein"/>
 
                         <cvParam cvRef="PSI-MS" accession="MS:1002676" name="protein-pair-level global FDR"
-                                 value="10.a:null:059:false"/>
+                                 value="10.a:null:0.059:false"/>
                         <cvParam cvRef="PSI-MS" accession="MS:1003341"
                                  name="protein-protein interaction passes threshold" value="10:false"/>
 

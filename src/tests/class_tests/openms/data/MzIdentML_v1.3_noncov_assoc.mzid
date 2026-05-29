@@ -33,17 +33,15 @@
         </ContactRole>
     </Provider>
     <AuditCollection>
-        <Person lastName="Fischer" firstName="Lutz" id="PERSON_DOC_OWNER">
-            <cvParam cvRef="PSI-MS" accession="MS:1000587" name="contact address" value="TIB Gebäude 17,
-Etage 4, Raum 474
-Gustav-Meyer-Allee 25
-13355 Berlin"/>
+        <Person lastName="Doe" firstName="Jane" id="PERSON_DOC_OWNER">
+            <cvParam cvRef="PSI-MS" accession="MS:1000587" name="contact address" value="123 Example Street
+00000 Example City"/>
             <cvParam cvRef="PSI-MS" accession="MS:1000589" name="contact email"
-                     value="lutz.fischer@tu-berlin.de"/>
+                     value="contact@example.org"/>
             <Affiliation organization_ref="ORG_DOC_OWNER"/>
         </Person>
-        <Organization id="ORG_DOC_OWNER" name="TU Berlin">
-            <cvParam cvRef="PSI-MS" accession="MS:1000586" name="contact name" value="TU Berlin"/>
+        <Organization id="ORG_DOC_OWNER" name="Example Organization">
+            <cvParam cvRef="PSI-MS" accession="MS:1000586" name="contact name" value="Example Organization"/>
         </Organization>
     </AuditCollection>
     <SequenceCollection>

@@ -201,7 +201,7 @@
                     <cvParam cvRef="PSI-MS" accession="MS:1003392" name="search modification id"
                              value="DSSO_crosslink_donor_n_term"/>
                     <cvParam accession="UNIMOD:1842" name="Xlink:DSSO" cvRef="UNIMOD"/>
-                    <cvParam cvRef="PSI-MS" accession="MS:1002510" name="crosslink donor"
+                    <cvParam cvRef="PSI-MS" accession="MS:1002509" name="crosslink donor"
                              value="3"/>
                     <cvParam accession="MS:1003390" name="crosslinker cleavage characteristics"
                              value="A:54.0105647:ST" cvRef="PSI-MS"/>
@@ -336,7 +336,7 @@
                     <cvParam cvRef="PSI-MS" accession="MS:1003392"
                              name="search modification id" value="DSSO_crosslink_donor_n_term"/>
                     <cvParam accession="UNIMOD:1842" name="Xlink:DSSO" cvRef="UNIMOD"/>
-                    <cvParam cvRef="PSI-MS" accession="MS:1002510" name="crosslink donor" value="3"/>
+                    <cvParam cvRef="PSI-MS" accession="MS:1002509" name="crosslink donor" value="3"/>
                     <cvParam accession="MS:1003390" name="crosslinker cleavage characteristics"
                              value="A:54.0105647:ST" cvRef="PSI-MS"/>
                     <cvParam accession="MS:1003390" name="crosslinker cleavage characteristics"
