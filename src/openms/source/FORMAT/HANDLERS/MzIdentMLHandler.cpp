@@ -198,11 +198,7 @@ namespace OpenMS::Internal
       cpro_id_(&pro_id),
       cpep_id_(&pep_id)
     {
-      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-      unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
-      // descendants only: the parent term MS:1001143 ("PSM-level search engine specific statistic")
-      // is non-numeric and must not be serialized as a scored cvParam (it is handled via the userParam fallback)
-      cv_.getAllChildTerms(peptide_result_details_, "MS:1001143");
+      initCvCaches_();
     }
 
     MzIdentMLHandler::MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const String& filename, const String& version, const ProgressLogger& logger) :
@@ -213,6 +209,11 @@ namespace OpenMS::Internal
       pep_id_(&pep_id),
       cpro_id_(nullptr),
       cpep_id_(nullptr)
+    {
+      initCvCaches_();
+    }
+
+    void MzIdentMLHandler::initCvCaches_()
     {
       cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
       unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
@@ -965,7 +966,8 @@ namespace OpenMS::Internal
       // XML header
       //--------------------------------------------------------------------------------------------
       String v_s = "1.3.0";
-      String v_short = v_s.substr(0, v_s.size() - 2);
+      // namespace uses only major.minor (e.g. "1.3" from "1.3.0"); derive it by dropping the patch component
+      String v_short = v_s.prefix(v_s.rfind('.'));
       os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
          << "<MzIdentML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
          << "\txsi:schemaLocation=\"http://psidev.info/psi/pi/mzIdentML/" << v_short << " "

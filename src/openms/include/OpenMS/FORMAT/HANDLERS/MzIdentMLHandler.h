@@ -352,6 +352,9 @@ protected:
 
 private:
       MzIdentMLHandler();
+
+      /// Load CVs and precompute the cached CV child-term set; shared by both constructors.
+      void initCvCaches_();
       MzIdentMLHandler(const MzIdentMLHandler& rhs);
       MzIdentMLHandler& operator=(const MzIdentMLHandler& rhs);
       std::map<String, AASequence> pep_sequences_;

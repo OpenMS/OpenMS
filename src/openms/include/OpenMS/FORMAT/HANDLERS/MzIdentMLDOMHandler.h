@@ -113,6 +113,9 @@ protected:
       /// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
       ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;
 
+      /// Precompute the CV child-term sets used per PSM (constant across a file); shared by both constructors.
+      void initScoreTermCaches_();
+
       /**@name Helper functions to build the internal id structures from the DOM tree */
       //@{
 

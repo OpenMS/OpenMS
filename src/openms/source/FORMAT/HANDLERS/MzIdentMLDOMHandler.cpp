@@ -72,11 +72,7 @@ namespace OpenMS::Internal
       xml_cvparam_tag_ptr_ = XMLString::transcode("cvParam");
       xml_name_attr_ptr_ = XMLString::transcode("option_a");
 
-      // precompute CV child term sets, used per PSM, but constant across the file
-      cv_.addAllChildTerms(q_score_child_terms_, "MS:1002354");
-      cv_.addAllChildTerms(e_score_child_terms_, "MS:1001872");
-      cv_.addAllChildTerms(e_score_child_terms_, "MS:1002353");
-      cv_.addAllChildTerms(specific_score_child_terms_, "MS:1001143");
+      initScoreTermCaches_();
     }
 
     MzIdentMLDOMHandler::MzIdentMLDOMHandler(vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const String& version, const ProgressLogger& logger) :
@@ -108,6 +104,11 @@ namespace OpenMS::Internal
       xml_cvparam_tag_ptr_ = XMLString::transcode("cvParam");
       xml_name_attr_ptr_ = XMLString::transcode("name");
 
+      initScoreTermCaches_();
+    }
+
+    void MzIdentMLDOMHandler::initScoreTermCaches_()
+    {
       // precompute CV child term sets, used per PSM, but constant across the file
       cv_.addAllChildTerms(q_score_child_terms_, "MS:1002354");
       cv_.addAllChildTerms(e_score_child_terms_, "MS:1001872");
@@ -1729,7 +1730,10 @@ namespace OpenMS::Internal
       double MZ_light = *std::min_element(exp_mzs.begin(), exp_mzs.end());
       double MZ_heavy = *std::max_element(exp_mzs.begin(), exp_mzs.end());
 
-      // are the cross-links labeled?
+      // Are the cross-links labeled? A labeled (light/heavy) cross-link is reported as a light and a heavy
+      // SII whose experimental m/z differ AND that reference two distinct spectra (comma-separated spectrumID).
+      // Requiring >1 spectrum avoids misclassifying a single spectrum whose SIIs merely happen to have
+      // differing experimental m/z as a labeled pair.
       bool labeled = MZ_light != MZ_heavy && spectrumIDs.size() > 1;
 
       for (Size i = 0; i < exp_mzs.size(); ++i)
