@@ -1541,14 +1541,14 @@ namespace OpenMS::Internal
         MetaInfoInterface copy_hit = hit;
         String st(it->getScoreType()); //scoretype
 
-        if (cv_.hasTermWithName(st))
+        // Only consume the score type here if it maps to a PSM-level search-engine statistic (MS:1001143 subtree).
+        // Otherwise fall through to the dedicated alias branches below (e.g. Mascot/OMSSA), which would
+        // otherwise be unreachable for score types that happen to be valid (non-score) PSI-MS term names.
+        if (const auto* term = cv_.checkAndGetTermByName(st);
+            term != nullptr && peptide_result_details_.find(term->id) != peptide_result_details_.end())
         {
-          const auto& term = cv_.getTermByName(st);
-          if (peptide_result_details_.find(term.id) != peptide_result_details_.end())
-          {
-            (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
-            copy_hit.removeMetaValue(term.id);
-          }
+          (sii_tmp += "\t\t\t\t\t") += term->toXMLString(cv_ns, sc);
+          copy_hit.removeMetaValue(term->id);
         }
         else if (cv_.exists(st) && peptide_result_details_.find(st) != peptide_result_details_.end())
         {
@@ -2187,14 +2187,13 @@ namespace OpenMS::Internal
       MetaInfoInterface copy_hit = hit;
       String st(it->getScoreType()); //scoretype
 
-      if (cv_.hasTermWithName(st))
+      // Only consume the score type here if it maps to a PSM-level search-engine statistic (MS:1001143 subtree);
+      // otherwise fall through to the dedicated alias branches below.
+      if (const auto* term = cv_.checkAndGetTermByName(st);
+          term != nullptr && peptide_result_details_.find(term->id) != peptide_result_details_.end())
       {
-        const auto& term = cv_.getTermByName(st);
-        if (peptide_result_details_.find(term.id) != peptide_result_details_.end())
-        {
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
-          copy_hit.removeMetaValue(term.id);
-        }
+        (sii_tmp += "\t\t\t\t\t") += term->toXMLString(cv_ns, sc);
+        copy_hit.removeMetaValue(term->id);
       }
       else if (cv_.exists(st) && peptide_result_details_.find(st) != peptide_result_details_.end())
       {

@@ -543,6 +543,7 @@ namespace OpenMS
 
   void ControlledVocabulary::addAllChildTerms(set<String>& terms, const String& parent) const
   {
+    getTerm(parent); // validate before mutating caller-owned output (throws if parent is unknown)
     terms.insert(parent);
     getAllChildTerms(terms, parent);
   }

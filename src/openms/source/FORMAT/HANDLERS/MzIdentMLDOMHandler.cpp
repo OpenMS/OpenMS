@@ -191,6 +191,12 @@ namespace OpenMS::Internal
       // we adopt/own the document so we can free it in case this DOMHandler is reused on another file.
       xercesc::DOMDocument* xmlDoc = mzid_parser_.adoptDocument();
 
+      // parse() failures above are only logged, so guard against a null document instead of crashing on malformed input.
+      if (xmlDoc == nullptr)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mzid_file, "Failed to parse mzIdentML file (no document produced).");
+      }
+
       try
       {
         // Catch special case: Cross-Linking MS
@@ -1442,6 +1448,10 @@ namespace OpenMS::Internal
         double exp_mz =StringManager::convert(cl_sii->getAttribute(CONST_XMLCH("experimentalMassToCharge"))).toDouble();
         exp_mzs.push_back(exp_mz);
 
+        // collect one RT entry per SII so RTs stays index-aligned with peptides/exp_mzs even when some SIIs lack MS:1000894
+        double rt = 0.0;
+        bool has_rt = false;
+
         if (rank == 0)
         {
           rank = StringManager::convert(cl_sii->getAttribute(CONST_XMLCH("rank"))).toInt();
@@ -1487,8 +1497,8 @@ namespace OpenMS::Internal
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1000894"))) // retention time
           {
-            double RT = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
-            RTs.push_back(RT);
+            rt = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
+            has_rt = true;
           }
         }
 
@@ -1509,6 +1519,12 @@ namespace OpenMS::Internal
         userParamNameLists.push_back(userParamNames);
         userParamValueLists.push_back(userParamValues);
         userParamUnitLists.push_back(userParamUnits);
+
+        RTs.push_back(rt);
+        if (!has_rt)
+        {
+          OPENMS_LOG_WARN << "No retention time found for cross-linked SpectrumIdentificationItem in '" << spectrumID << "'." << endl;
+        }
 
         // Fragmentation, does not matter where to get them. Look for them as long as the vector is empty
         if (frag_annotations.empty())
@@ -1678,11 +1694,7 @@ namespace OpenMS::Internal
       }
 
       // Generate and fill PeptideIdentification
-      if (RTs.empty())
-      {
-        RTs.resize(exp_mzs.size(), 0.0);
-        OPENMS_LOG_WARN << "No retention time found for cross-linked SpectrumIdentificationItems in '" << spectrumID << "'." << endl;
-      }
+      // RTs is now collected one entry per SII (see loop above), so it stays aligned with exp_mzs/peptides.
 
       vector<String> spectrumIDs;
       spectrumID.split(",", spectrumIDs);
@@ -1745,42 +1757,19 @@ namespace OpenMS::Internal
         current_pep_id.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectrumID);
         current_pep_id.setHigherScoreBetter(false);
 
-        for (Size i = 0; i < peptides.size(); ++i)
+        // Reuse the regular SII parser so per-SII score type/userParams/passThreshold/calcMZ handling and
+        // pro_id_ protein-hit population behave exactly like the normal non-XL path.
+        DOMElement* reg_sii = element_res->getFirstElementChild();
+        while (reg_sii)
         {
-          PeptideHit ph;
-          ph.setSequence(pep_map_[peptides[i]]);
-          ph.setCharge(charge);
-          ph.setScore(score);
-          ph.setRank(rank - 1);
-
-          // connect with PeptideEvidences and DBSequences
-          pair<multimap<String, String>::iterator, multimap<String, String>::iterator> pev_its;
-          pev_its = p_pv_map_.equal_range(peptides[i]);
-          for (multimap<String, String>::iterator pev_it = pev_its.first; pev_it != pev_its.second; ++pev_it)
+          if (XMLString::equals(reg_sii->getTagName(), CONST_XMLCH("SpectrumIdentificationItem")))
           {
-            OpenMS::PeptideEvidence pev;
-            if (pe_ev_map_.find(pev_it->second) != pe_ev_map_.end())
-            {
-              MzIdentMLDOMHandler::PeptideEvidence& pv = pe_ev_map_[pev_it->second];
-              if (pv.pre != '-') pev.setAABefore(pv.pre);
-              if (pv.post != '-') pev.setAAAfter(pv.post);
-              if (pv.start != OpenMS::PeptideEvidence::UNKNOWN_POSITION && pv.stop != OpenMS::PeptideEvidence::UNKNOWN_POSITION)
-              {
-                pev.setStart(pv.start);
-                pev.setEnd(pv.stop);
-              }
-            }
-            if (pv_db_map_.find(pev_it->second) != pv_db_map_.end())
-            {
-              String& dpv = pv_db_map_[pev_it->second];
-              DBSequence& db = db_sq_map_[dpv];
-              pev.setProteinAccession(db.accession);
-            }
-            ph.addPeptideEvidence(pev);
+            parseSpectrumIdentificationItemElement_(reg_sii, current_pep_id, sil);
           }
-          current_pep_id.insertHit(ph);
+          reg_sii = reg_sii->getNextElementSibling();
         }
         current_pep_id.setIdentifier(pro_id_->at(si_pro_map_[sil]).getIdentifier());
+        current_pep_id.sort();
         pep_id_->push_back(current_pep_id);
         return;
       }
@@ -2112,7 +2101,8 @@ namespace OpenMS::Internal
             break;
           }
         }
-        else if (specific_score_child_terms_.find(scoreit->first) != specific_score_child_terms_.end())
+        else if (scoreit->first != "MS:1001143" && // the parent term itself has no numeric value; handled in the special case below
+                 specific_score_child_terms_.find(scoreit->first) != specific_score_child_terms_.end())
         {
           score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scoreit->first)));

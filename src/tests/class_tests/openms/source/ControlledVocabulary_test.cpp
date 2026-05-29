@@ -157,6 +157,29 @@ START_SECTION((void getAllChildTerms(std::set<String>& terms, const String& pare
 	TEST_EQUAL(terms.find("OpenMS:5") == terms.end(), false)
 END_SECTION
 
+START_SECTION((void addAllChildTerms(std::set<String>& terms, const String& parent) const))
+	set<String> terms;
+	cv.addAllChildTerms(terms, "OpenMS:2");
+	// unlike getAllChildTerms, the parent term itself is included
+	TEST_EQUAL(terms.size(), 3)
+	TEST_EQUAL(terms.find("OpenMS:2") == terms.end(), false)
+	TEST_EQUAL(terms.find("OpenMS:5") == terms.end(), false)
+	TEST_EQUAL(terms.find("OpenMS:6") == terms.end(), false)
+
+	// appends to (does not overwrite) the provided set
+	cv.addAllChildTerms(terms, "OpenMS:3");
+	TEST_EQUAL(terms.size(), 5)
+	TEST_EQUAL(terms.find("OpenMS:3") == terms.end(), false)
+	TEST_EQUAL(terms.find("OpenMS:4") == terms.end(), false)
+
+	// an unknown parent must throw without leaving the output set partially modified
+	set<String> untouched;
+	untouched.insert("sentinel");
+	TEST_EXCEPTION(Exception::InvalidValue, cv.addAllChildTerms(untouched, "OpenMS:7"))
+	TEST_EQUAL(untouched.size(), 1)
+	TEST_EQUAL(untouched.find("sentinel") == untouched.end(), false)
+END_SECTION
+
 
 ControlledVocabulary::CVTerm * cvterm = nullptr;
 ControlledVocabulary::CVTerm * cvtermNullPointer = nullptr;
