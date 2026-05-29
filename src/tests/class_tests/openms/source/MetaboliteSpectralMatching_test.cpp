@@ -21,60 +21,6 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(MetaboliteSpectralMatching, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-MetaboliteSpectralMatching* ptr = nullptr;
-MetaboliteSpectralMatching* null_ptr = nullptr;
-START_SECTION(MetaboliteSpectralMatching())
-{
-	ptr = new MetaboliteSpectralMatching();
-	TEST_NOT_EQUAL(ptr, null_ptr)
-}
-END_SECTION
-
-START_SECTION(~MetaboliteSpectralMatching())
-{
-	delete ptr;
-}
-END_SECTION
-
-START_SECTION(SpectralMatch CCS getters and setters)
-{
-  SpectralMatch sm;
-  // default CCS values should be "not set"
-  TEST_REAL_SIMILAR(sm.getObservedCCS(), IMTypes::DRIFTTIME_NOT_SET)
-  TEST_REAL_SIMILAR(sm.getFoundCCS(), IMTypes::DRIFTTIME_NOT_SET)
-
-  sm.setObservedCCS(167.3);
-  sm.setFoundCCS(170.1);
-  TEST_REAL_SIMILAR(sm.getObservedCCS(), 167.3)
-  TEST_REAL_SIMILAR(sm.getFoundCCS(), 170.1)
-
-  // copy constructor
-  SpectralMatch sm2(sm);
-  TEST_REAL_SIMILAR(sm2.getObservedCCS(), 167.3)
-  TEST_REAL_SIMILAR(sm2.getFoundCCS(), 170.1)
-
-  // assignment operator
-  SpectralMatch sm3;
-  sm3 = sm;
-  TEST_REAL_SIMILAR(sm3.getObservedCCS(), 167.3)
-  TEST_REAL_SIMILAR(sm3.getFoundCCS(), 170.1)
-}
-END_SECTION
-
-START_SECTION(MetaboliteSpectralMatching default parameters)
-{
-  MetaboliteSpectralMatching msm;
-  Param p = msm.getDefaults();
-  // CCS filtering is disabled by default
-  TEST_REAL_SIMILAR((double)p.getValue("ccs_error_percent"), 0.0)
-}
-END_SECTION
-
 // helper to build a small spectral library with two compounds at almost identical precursor m/z
 // but different CCS values (compound_A: 150, compound_B: 200), stored as "CCS" meta value.
 static PeakMap makeLibrary()
@@ -128,6 +74,60 @@ static Param makeParams(double ccs_error_percent)
   params.setValue("ccs_error_percent", ccs_error_percent);
   return params;
 }
+
+START_TEST(MetaboliteSpectralMatching, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+MetaboliteSpectralMatching* ptr = nullptr;
+MetaboliteSpectralMatching* null_ptr = nullptr;
+START_SECTION(MetaboliteSpectralMatching())
+{
+	ptr = new MetaboliteSpectralMatching();
+	TEST_NOT_EQUAL(ptr, null_ptr)
+}
+END_SECTION
+
+START_SECTION(~MetaboliteSpectralMatching())
+{
+	delete ptr;
+}
+END_SECTION
+
+START_SECTION(SpectralMatch CCS getters and setters)
+{
+  SpectralMatch sm;
+  // default CCS values should be "not set"
+  TEST_REAL_SIMILAR(sm.getObservedCCS(), IMTypes::DRIFTTIME_NOT_SET)
+  TEST_REAL_SIMILAR(sm.getFoundCCS(), IMTypes::DRIFTTIME_NOT_SET)
+
+  sm.setObservedCCS(167.3);
+  sm.setFoundCCS(170.1);
+  TEST_REAL_SIMILAR(sm.getObservedCCS(), 167.3)
+  TEST_REAL_SIMILAR(sm.getFoundCCS(), 170.1)
+
+  // copy constructor
+  SpectralMatch sm2(sm);
+  TEST_REAL_SIMILAR(sm2.getObservedCCS(), 167.3)
+  TEST_REAL_SIMILAR(sm2.getFoundCCS(), 170.1)
+
+  // assignment operator
+  SpectralMatch sm3;
+  sm3 = sm;
+  TEST_REAL_SIMILAR(sm3.getObservedCCS(), 167.3)
+  TEST_REAL_SIMILAR(sm3.getFoundCCS(), 170.1)
+}
+END_SECTION
+
+START_SECTION(MetaboliteSpectralMatching default parameters)
+{
+  MetaboliteSpectralMatching msm;
+  Param p = msm.getDefaults();
+  // CCS filtering is disabled by default
+  TEST_REAL_SIMILAR((double)p.getValue("ccs_error_percent"), 0.0)
+}
+END_SECTION
 
 START_SECTION(CCS filtering disabled reports all matches with CCS columns)
 {
