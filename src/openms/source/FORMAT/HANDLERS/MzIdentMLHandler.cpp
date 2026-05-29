@@ -880,7 +880,9 @@ namespace OpenMS::Internal
         if (is_ppxl)
         {
           ProteinIdentification::SearchParameters search_params = cpro_id_->front().getSearchParameters();
-          ppxl_crosslink_mass = String(search_params.getMetaValue("cross_link:mass")).toDouble();
+          // use a default so a missing/empty cross_link:mass meta value does not throw a ConversionError
+          // (e.g. on a store after a load where the search parameter was not preserved)
+          ppxl_crosslink_mass = String(search_params.getMetaValue("cross_link:mass", "0")).toDouble();
         }
 
         for (std::vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
@@ -2282,7 +2284,8 @@ namespace OpenMS::Internal
         sii_tmp = sii_tmp.substitute("value=\"" + ert, "value=\"" + String(hit.getMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT)));
 
         ProteinIdentification::SearchParameters search_params = cpro_id_->front().getSearchParameters();
-        double iso_shift = String(search_params.getMetaValue("cross_link:mass_isoshift")).toDouble();
+        // default avoids a ConversionError when the isoshift meta value is absent/empty
+        double iso_shift = String(search_params.getMetaValue("cross_link:mass_isoshift", "0")).toDouble();
         double cmz_heavy = cmz.toDouble() + (iso_shift / hit.getCharge());
 
         sii_tmp = sii_tmp.substitute(String("calculatedMassToCharge=\"") + String(cmz),
