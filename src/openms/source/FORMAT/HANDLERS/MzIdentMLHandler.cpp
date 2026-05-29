@@ -200,7 +200,9 @@ namespace OpenMS::Internal
     {
       cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
       unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
-      cv_.addAllChildTerms(peptide_result_details_, "MS:1001143");
+      // descendants only: the parent term MS:1001143 ("PSM-level search engine specific statistic")
+      // is non-numeric and must not be serialized as a scored cvParam (it is handled via the userParam fallback)
+      cv_.getAllChildTerms(peptide_result_details_, "MS:1001143");
     }
 
     MzIdentMLHandler::MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const String& filename, const String& version, const ProgressLogger& logger) :
@@ -214,7 +216,9 @@ namespace OpenMS::Internal
     {
       cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
       unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
-      cv_.addAllChildTerms(peptide_result_details_, "MS:1001143");
+      // descendants only: the parent term MS:1001143 ("PSM-level search engine specific statistic")
+      // is non-numeric and must not be serialized as a scored cvParam (it is handled via the userParam fallback)
+      cv_.getAllChildTerms(peptide_result_details_, "MS:1001143");
     }
 
     //~ TODO create MzIdentML instances from MSExperiment which contains much of the information yet needed

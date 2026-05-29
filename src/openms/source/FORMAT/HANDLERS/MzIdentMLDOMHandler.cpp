@@ -1498,6 +1498,10 @@ namespace OpenMS::Internal
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1000894"))) // retention time
           {
             rt = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
+            if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("unitAccession")), CONST_XMLCH("UO:0000031"))) // minutes -> seconds (mirror non-XL path)
+            {
+              rt *= 60.0;
+            }
             has_rt = true;
           }
         }
