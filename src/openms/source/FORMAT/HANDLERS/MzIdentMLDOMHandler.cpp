@@ -31,12 +31,21 @@ namespace OpenMS::Internal
 
   namespace
   {
-    // (experimental|calculated)MassToCharge are optional mzIdentML attributes; a missing attribute is
-    // returned by Xerces as an empty string. Convert tolerantly so an absent value becomes NaN instead
-    // of throwing Exception::ConversionError while parsing (e.g. on store/load round-trips).
+    // (experimental|calculated)MassToCharge and retention time are optional mzIdentML attributes/values; a
+    // missing one is returned by Xerces as an empty string. For these position-like fields convert tolerantly
+    // so an absent value becomes NaN instead of throwing Exception::ConversionError while parsing (e.g. on
+    // store/load round-trips); NaN is the OpenMS sentinel for "no RT/MZ" (cf. PeptideIdentification::hasRT()).
     inline double toDoubleOrNaN_(const String& s)
     {
       return s.empty() ? std::numeric_limits<double>::quiet_NaN() : s.toDouble();
+    }
+
+    // For score values an empty value must NOT become NaN: PeptideHit has no "hasScore()" and defaults the
+    // score to 0.0, and a NaN score silently breaks sorting/FDR/IDFilter (every NaN comparison is false).
+    // Default to 0.0 to match PeptideHit's contract and the other identification parsers.
+    inline double toDoubleOrZero_(const String& s)
+    {
+      return s.empty() ? 0.0 : s.toDouble();
     }
   }
 
@@ -1483,31 +1492,31 @@ namespace OpenMS::Internal
           DOMElement* element_sii_cvp = dynamic_cast<xercesc::DOMElement*>(sii_cvp->item(i));
           if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002681"))) // OpenXQuest:combined score
           {
-            score = toDoubleOrNaN_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
+            score = toDoubleOrZero_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002682"))) // OpenXQuest: xcorr common
           {
-            xcorrx = toDoubleOrNaN_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
+            xcorrx = toDoubleOrZero_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002683"))) // OpenXQuest: xcorr xlink
           {
-            xcorrc = toDoubleOrNaN_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
+            xcorrc = toDoubleOrZero_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002684"))) // OpenXQuest: match-odds
           {
-            matchodds = toDoubleOrNaN_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
+            matchodds = toDoubleOrZero_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002685"))) // OpenXQuest: intsum
           {
-            intsum = toDoubleOrNaN_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
+            intsum = toDoubleOrZero_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002686"))) // OpenXQuest: wTIC
           {
-            wTIC = toDoubleOrNaN_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
+            wTIC = toDoubleOrZero_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1003024"))) // OpenPepXL:score
           {
-            score = toDoubleOrNaN_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
+            score = toDoubleOrZero_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1000894"))) // retention time
           {
@@ -2123,7 +2132,7 @@ namespace OpenMS::Internal
         {
           if (scoreit->first != "MS:1002055") // do not use peptide-level q-values for now
           {
-            score = toDoubleOrNaN_(scoreit->second.front().getValue().toString()); // cast fix needed as DataValue is init with XercesString
+            score = toDoubleOrZero_(scoreit->second.front().getValue().toString()); // cast fix needed as DataValue is init with XercesString
             spectrum_identification.setHigherScoreBetter(false);
             spectrum_identification.setScoreType("q-value"); //higherIsBetter = false
             scoretype = true;
@@ -2133,7 +2142,7 @@ namespace OpenMS::Internal
         else if (scoreit->first != "MS:1001143" && // the parent term itself has no numeric value; handled in the special case below
                  specific_score_child_terms_.find(scoreit->first) != specific_score_child_terms_.end())
         {
-          score = toDoubleOrNaN_(scoreit->second.front().getValue().toString()); // cast fix needed as DataValue is init with XercesString
+          score = toDoubleOrZero_(scoreit->second.front().getValue().toString()); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scoreit->first)));
           spectrum_identification.setScoreType(scoreit->second.front().getName());
           scoretype = true;
@@ -2141,7 +2150,7 @@ namespace OpenMS::Internal
         }
         else if (e_score_child_terms_.find(scoreit->first) != e_score_child_terms_.end())
         {
-          score = toDoubleOrNaN_(scoreit->second.front().getValue().toString()); // cast fix needed as DataValue is init with XercesString
+          score = toDoubleOrZero_(scoreit->second.front().getValue().toString()); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(false);
           spectrum_identification.setScoreType("E-value"); //higherIsBetter = false
           scoretype = true;
