@@ -10,7 +10,6 @@ Tests for newly bound CHEMISTRY methods in the nanobind build:
 import math
 import numpy as np
 import pyopenms as poms
-import pytest
 
 
 def test_empirical_formula_get_number_of():
