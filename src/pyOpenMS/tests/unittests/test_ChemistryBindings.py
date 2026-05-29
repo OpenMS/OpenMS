@@ -5,7 +5,6 @@ Tests for newly bound CHEMISTRY methods in the nanobind build:
 - EmpiricalFormula.getLightestIsotopeWeight()
 - Residue.getHydrophobicity(HydrophobicityScaleMethod) + the enum
 - TheoreticalSpectrumGenerator.getPrefixAndSuffixIonsMZ(peptide, charge)
-- ModificationsDB.searchModification(ResidueModification)
 """
 import math
 import numpy as np
@@ -54,12 +53,3 @@ def test_tsg_prefix_and_suffix_ions_mz():
     assert out.ndim == 1
     assert out.size > 0
     assert np.all(out > 0.0)
-
-
-def test_modificationsdb_search_modification():
-    db = poms.ModificationsDB.getInstance()
-    mod = db.getModification("Oxidation")
-    assert mod is not None
-    found = db.searchModification(mod)
-    assert found is not None
-    assert found.getId() == mod.getId()

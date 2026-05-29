@@ -984,9 +984,6 @@ The modifications are read from the unimod.xml file on construction.
             self.searchModificationsByDiffMonoMass(mods, mass, max_error, residue, static_cast<OpenMS::ResidueModification::TermSpecificity>(term_spec));
             return mods;
         }, "mass"_a, "max_error"_a, "residue"_a = "", "term_spec"_a = nb::int_(static_cast<int>(OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY)), "Search modifications by difference in mono mass (returns list of modification names)")
-        .def("searchModification", [](const OpenMS::ModificationsDB& self, const OpenMS::ResidueModification& mod_in) {
-            return self.searchModification(mod_in);
-        }, "mod_in"_a, nb::rv_policy::reference, "Returns a pointer to an exact match of the given modification if present in the DB (None otherwise)")
         .def("addModification", [](OpenMS::ModificationsDB& self, const OpenMS::ResidueModification& new_mod) {
             return self.addModification(new_mod);
         }, "new_mod"_a, nb::rv_policy::reference, "Add a new modification to the database (makes a copy)")
