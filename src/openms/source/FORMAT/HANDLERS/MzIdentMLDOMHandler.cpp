@@ -1696,6 +1696,14 @@ namespace OpenMS::Internal
       // Generate and fill PeptideIdentification
       // RTs is now collected one entry per SII (see loop above), so it stays aligned with exp_mzs/peptides.
 
+      // Guard against a SpectrumIdentificationResult without any SpectrumIdentificationItems: the
+      // min/max_element and light[0]/heavy[0] accesses below assume at least one experimental m/z.
+      if (exp_mzs.empty())
+      {
+        OPENMS_LOG_WARN << "SpectrumIdentificationResult '" << spectrumID << "' has no SpectrumIdentificationItems; skipping." << endl;
+        return;
+      }
+
       vector<String> spectrumIDs;
       spectrumID.split(",", spectrumIDs);
 
