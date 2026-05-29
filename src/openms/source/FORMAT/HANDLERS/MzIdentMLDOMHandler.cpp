@@ -21,6 +21,7 @@
 
 #include <sys/stat.h>
 #include <cerrno>
+#include <limits>
 
 using namespace std;
 using namespace xercesc;
@@ -1448,8 +1449,9 @@ namespace OpenMS::Internal
         double exp_mz =StringManager::convert(cl_sii->getAttribute(CONST_XMLCH("experimentalMassToCharge"))).toDouble();
         exp_mzs.push_back(exp_mz);
 
-        // collect one RT entry per SII so RTs stays index-aligned with peptides/exp_mzs even when some SIIs lack MS:1000894
-        double rt = 0.0;
+        // collect one RT entry per SII so RTs stays index-aligned with peptides/exp_mzs even when some SIIs lack MS:1000894;
+        // a missing RT stays NaN (mirrors the non-XL path and PeptideIdentification::hasRT()) so it is not confused with a real 0 s RT
+        double rt = std::numeric_limits<double>::quiet_NaN();
         bool has_rt = false;
 
         if (rank == 0)
