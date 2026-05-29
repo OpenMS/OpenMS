@@ -21,6 +21,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 
 namespace OpenMS
 {
@@ -351,6 +352,9 @@ protected:
 
 private:
       MzIdentMLHandler();
+
+      /// Load CVs and precompute the cached CV child-term set; shared by both constructors.
+      void initCvCaches_();
       MzIdentMLHandler(const MzIdentMLHandler& rhs);
       MzIdentMLHandler& operator=(const MzIdentMLHandler& rhs);
       std::map<String, AASequence> pep_sequences_;
@@ -362,6 +366,9 @@ private:
       AASequence actual_peptide_;
       Int current_mod_location_;
       ProteinHit actual_protein_;
+
+      /// cached CV child terms for "MS:1001143"
+      std::set<String> peptide_result_details_;
 
     };
   } // namespace Internal
