@@ -16,6 +16,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/MzTab.h>
 
 using namespace OpenMS;
@@ -31,6 +32,13 @@ static PeakMap makeLibrary()
   lib1.setName("compound_A");
   lib1.setMetaValue("Metabolite_Name", "compound_A");
   lib1.setMetaValue("CCS", "150.0");
+  // run() reads these string meta values for every scored candidate and converts them to String,
+  // which throws for non-string/absent values - so populate them as a real MSP/GNPS library would.
+  lib1.setMetaValue("HMDB_ID", "HMDB0000001");
+  lib1.setMetaValue(Constants::UserParam::MSM_SUM_FORMULA, "C10H15N");
+  lib1.setMetaValue(Constants::UserParam::MSM_INCHI_STRING, "InChI=1S/compoundA");
+  lib1.setMetaValue(Constants::UserParam::MSM_SMILES_STRING, "CCO");
+  lib1.setMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT, "[M+H]+");
   Precursor p1;
   p1.setMZ(300.0);
   p1.setCharge(1);
@@ -46,6 +54,11 @@ static PeakMap makeLibrary()
   lib2.setName("compound_B");
   lib2.setMetaValue("Metabolite_Name", "compound_B");
   lib2.setMetaValue("CCS", "200.0");
+  lib2.setMetaValue("HMDB_ID", "HMDB0000002");
+  lib2.setMetaValue(Constants::UserParam::MSM_SUM_FORMULA, "C12H17N");
+  lib2.setMetaValue(Constants::UserParam::MSM_INCHI_STRING, "InChI=1S/compoundB");
+  lib2.setMetaValue(Constants::UserParam::MSM_SMILES_STRING, "CCCO");
+  lib2.setMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT, "[M+H]+");
   Precursor p2;
   p2.setMZ(300.1);
   p2.setCharge(1);
