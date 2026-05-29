@@ -29,6 +29,17 @@ using namespace xercesc;
 namespace OpenMS::Internal
 {
 
+  namespace
+  {
+    // (experimental|calculated)MassToCharge are optional mzIdentML attributes; a missing attribute is
+    // returned by Xerces as an empty string. Convert tolerantly so an absent value becomes NaN instead
+    // of throwing Exception::ConversionError while parsing (e.g. on store/load round-trips).
+    inline double toDoubleOrNaN_(const String& s)
+    {
+      return s.empty() ? std::numeric_limits<double>::quiet_NaN() : s.toDouble();
+    }
+  }
+
     //TODO remodel CVTermList
     //TODO extend CVTermlist with CVCollection functionality for complete replacement??
     //TODO general id openms struct for overall parameter for one id run
@@ -1446,7 +1457,7 @@ namespace OpenMS::Internal
         // Attributes
         String peptide = StringManager::convert(cl_sii->getAttribute(CONST_XMLCH("peptide_ref")));
         peptides.push_back(peptide);
-        double exp_mz =StringManager::convert(cl_sii->getAttribute(CONST_XMLCH("experimentalMassToCharge"))).toDouble();
+        double exp_mz = toDoubleOrNaN_(StringManager::convert(cl_sii->getAttribute(CONST_XMLCH("experimentalMassToCharge"))));
         exp_mzs.push_back(exp_mz);
 
         // collect one RT entry per SII so RTs stays index-aligned with peptides/exp_mzs even when some SIIs lack MS:1000894;
@@ -2056,7 +2067,7 @@ namespace OpenMS::Internal
       String id = StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("id")));
       String name = StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("name")));
 
-      long double calculatedMassToCharge = StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("calculatedMassToCharge"))).toDouble();
+      long double calculatedMassToCharge = toDoubleOrNaN_(StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("calculatedMassToCharge"))));
 //      long double calculatedPI = StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("calculatedPI"))).toDouble();
       int chargeState = 0;
       try
@@ -2067,7 +2078,7 @@ namespace OpenMS::Internal
       {
         OPENMS_LOG_WARN << "Found unreadable 'chargeState'." << endl;
       }
-      long double experimentalMassToCharge = StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("experimentalMassToCharge"))).toDouble();
+      long double experimentalMassToCharge = toDoubleOrNaN_(StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("experimentalMassToCharge"))));
       int rank = 0;
       try
       {
@@ -2449,7 +2460,7 @@ namespace OpenMS::Internal
                   String donor_val = StringManager::convert(cvp->getAttribute(CONST_XMLCH("value")));
                   xl_id_donor_map_.insert(make_pair(pep_id, donor_val));
                   String massdelta = StringManager::convert(element_sib->getAttribute(CONST_XMLCH("monoisotopicMassDelta")));
-                  double monoisotopicMassDelta = massdelta.toDouble();
+                  double monoisotopicMassDelta = massdelta.empty() ? 0.0 : massdelta.toDouble();
                   xl_mass_map_.insert(make_pair(pep_id, monoisotopicMassDelta));
                   xl_donor_pos_map_.insert(make_pair(donor_val, index-1));
 
