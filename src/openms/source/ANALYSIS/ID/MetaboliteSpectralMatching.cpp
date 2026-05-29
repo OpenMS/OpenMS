@@ -322,12 +322,12 @@ namespace OpenMS
       }
     }
 
-    // (5) numeric "CCS" meta value
-    if (spectrum.metaValueExists("CCS"))
+    // (5) numeric "CCS" meta value (e.g. parsed from an MSP library by MSPGenericFile)
+    if (spectrum.metaValueExists(Constants::UserParam::MSM_CCS))
     {
       try
       {
-        return String(spectrum.getMetaValue("CCS").toString()).toDouble();
+        return String(spectrum.getMetaValue(Constants::UserParam::MSM_CCS).toString()).toDouble();
       }
       catch (const Exception::ConversionError&)
       {
