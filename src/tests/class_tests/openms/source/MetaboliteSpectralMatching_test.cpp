@@ -179,12 +179,12 @@ START_SECTION(CCS filtering disabled reports all matches with CCS columns)
     {
       if (opt.first == "opt_observed_ccs")
       {
-        TEST_EQUAL(opt.second.toCellString(), "152")
+        TEST_EQUAL(opt.second.toCellString(), "152.0")
         found_obs_ccs = true;
       }
       if (opt.first == "opt_library_ccs")
       {
-        TEST_EQUAL(opt.second.toCellString() == "150" || opt.second.toCellString() == "200", true)
+        TEST_EQUAL(opt.second.toCellString() == "150.0" || opt.second.toCellString() == "200.0", true)
         found_lib_ccs = true;
       }
       if (opt.first == "opt_ccs_error_percent")
@@ -233,8 +233,8 @@ START_SECTION(CCS filtering enabled keeps only within-tolerance matches)
   {
     for (const auto& opt : rows[0].opt_)
     {
-      if (opt.first == "opt_library_ccs") { TEST_EQUAL(opt.second.toCellString(), "150") }
-      if (opt.first == "opt_observed_ccs") { TEST_EQUAL(opt.second.toCellString(), "152") }
+      if (opt.first == "opt_library_ccs") { TEST_EQUAL(opt.second.toCellString(), "150.0") }
+      if (opt.first == "opt_observed_ccs") { TEST_EQUAL(opt.second.toCellString(), "152.0") }
     }
   }
 }
@@ -278,7 +278,7 @@ START_SECTION(CCS filtering converts 1/K0 (VSSC) drift time to CCS)
   {
     for (const auto& opt : rows[0].opt_)
     {
-      if (opt.first == "opt_library_ccs") { TEST_EQUAL(opt.second.toCellString(), "150") }
+      if (opt.first == "opt_library_ccs") { TEST_EQUAL(opt.second.toCellString(), "150.0") }
       if (opt.first == "opt_observed_ccs") { TEST_NOT_EQUAL(opt.second.toCellString(), "null") }
     }
   }

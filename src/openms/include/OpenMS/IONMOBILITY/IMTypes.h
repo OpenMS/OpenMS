@@ -140,7 +140,7 @@ namespace OpenMS
     static double oneOverK0ToCCS(double one_over_k0, double mz, int charge, double buffer_gas_mass = N2_BUFFER_GAS_MASS);
 
     /**
-      @brief Inverse of @ref oneOverK0ToCCS: convert a collision cross section (CCS) back to reduced inverse ion mobility (1/K0).
+      @brief Inverse of @ref oneOverK0ToCCS - convert a collision cross section (CCS) back to reduced inverse ion mobility (1/K0).
 
       @param[in] ccs             Collision cross section in square Angstrom (Angstrom^2); must be > 0.
       @param[in] mz              Precursor m/z of the ion; must be > 0.
