@@ -499,6 +499,7 @@ The elements are initialized with data from IUPAC tables.
         .def(nb::init<OpenMS::String>())
         .def("getMonoWeight", [](const OpenMS::EmpiricalFormula& self) { return self.getMonoWeight(); }, "Returns the mono isotopic weight of the formula (includes proton charges)")
         .def("getAverageWeight", [](const OpenMS::EmpiricalFormula& self) { return self.getAverageWeight(); }, "Returns the average weight of the formula (includes proton charges)")
+        .def("getLightestIsotopeWeight", [](const OpenMS::EmpiricalFormula& self) { return self.getLightestIsotopeWeight(); }, "Returns the sum of the lightest isotope weight of all elements in the formula (includes proton charges)")
         .def("calculateTheoreticalIsotopesNumber", [](const OpenMS::EmpiricalFormula& self) { return self.calculateTheoreticalIsotopesNumber(); })
         .def("estimateFromWeightAndComp", [](OpenMS::EmpiricalFormula& self, double average_weight, double C, double H, double N, double O, double S, double P) { return self.estimateFromWeightAndComp(average_weight, C, H, N, O, S, P); }, "average_weight"_a, "C"_a, "H"_a, "N"_a, "O"_a, "S"_a, "P"_a, "Fills this EmpiricalFormula with an approximate elemental composition for a given average weight and approximate elemental stoichiometry")
         .def("estimateFromWeightAndCompAndS", [](OpenMS::EmpiricalFormula& self, double average_weight, unsigned int S, double C, double H, double N, double O, double P) { return self.estimateFromWeightAndCompAndS(average_weight, S, C, H, N, O, P); }, "average_weight"_a, "S"_a, "C"_a, "H"_a, "N"_a, "O"_a, "P"_a, "Fills this EmpiricalFormula with an approximate elemental composition for a given average weight, exact number of sulfurs, and approximate elemental stoichiometry")
@@ -512,6 +513,7 @@ The elements are initialized with data from IUPAC tables.
         .def("isEmpty", [](const OpenMS::EmpiricalFormula& self) { return self.isEmpty(); }, "Returns true if the formula does not contain a element")
         .def("isCharged", [](const OpenMS::EmpiricalFormula& self) { return self.isCharged(); }, "Returns true if charge is not equal to zero")
         .def("hasElement", [](const OpenMS::EmpiricalFormula& self, OpenMS::Element * element) { return self.hasElement(element); }, "element"_a, "Returns true if the formula contains the element")
+        .def("getNumberOf", [](const OpenMS::EmpiricalFormula& self, OpenMS::Element * element) { return self.getNumberOf(element); }, "element"_a, "Returns the number of atoms of the given element (can be negative)")
         .def("contains", [](const OpenMS::EmpiricalFormula& self, const OpenMS::EmpiricalFormula& ef) { return self.contains(ef); }, "ef"_a, "Returns true if all elements from `ef` ( empirical formula ) are LESS abundant (negative allowed) than the corresponding elements of this EmpiricalFormula")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
@@ -1671,6 +1673,7 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .def("setBackboneBasicityRight", [](OpenMS::Residue& self, double gb_bb_r) { return self.setBackboneBasicityRight(gb_bb_r); }, "gb_bb_r"_a, "Sets the C-terminal direction backbone basicity")
         .def("hasNeutralLoss", [](const OpenMS::Residue& self) { return self.hasNeutralLoss(); }, "True if the residue has neutral loss")
         .def("hasNTermNeutralLosses", [](const OpenMS::Residue& self) { return self.hasNTermNeutralLosses(); }, "True if N-terminal neutral losses are set")
+        .def("getHydrophobicity", [](const OpenMS::Residue& self, OpenMS::HydrophobicityScaleMethod scale) { return self.getHydrophobicity(scale); }, "scale"_a, "Returns the hydrophobicity value of the residue for the given scale (throws for non-standard residues)")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def(nb::self == nb::self)
@@ -1712,6 +1715,17 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .value("NonIdentified", OpenMS::Residue::ResidueType::NonIdentified)
         .value("Unannotated", OpenMS::Residue::ResidueType::Unannotated)
         .value("SizeOfResidueType", OpenMS::Residue::ResidueType::SizeOfResidueType)
+        .export_values();
+
+    // HydrophobicityScaleMethod enum (namespace-scoped, used by Residue::getHydrophobicity)
+    nb::enum_<OpenMS::HydrophobicityScaleMethod>(m, "HydrophobicityScaleMethod", nb::is_arithmetic())
+        .value("KYTE_DOOLITTLE", OpenMS::HydrophobicityScaleMethod::KYTE_DOOLITTLE)
+        .value("EISENBERG", OpenMS::HydrophobicityScaleMethod::EISENBERG)
+        .value("HOPP_WOODS", OpenMS::HydrophobicityScaleMethod::HOPP_WOODS)
+        .value("BULL_BREESE", OpenMS::HydrophobicityScaleMethod::BULL_BREESE)
+        .value("BLACK_MOULD", OpenMS::HydrophobicityScaleMethod::BLACK_MOULD)
+        .value("GUY", OpenMS::HydrophobicityScaleMethod::GUY)
+        .value("EISENBERG_CONSENSUS", OpenMS::HydrophobicityScaleMethod::EISENBERG_CONSENSUS)
         .export_values();
 
     // -----------------------------------------------------------------------
