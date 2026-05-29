@@ -64,13 +64,13 @@ namespace OpenMS
         throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
     }
-    const Size BUFSIZE { 65536 };
-    char line[BUFSIZE];
+    // use std::string + std::getline to avoid silent truncation of long MSP fields (e.g. SMILES, synonyms)
+    std::string line;
     library.clear(true);
     MSSpectrum spectrum;
     spectrum.setMetaValue("is_valid", 0); // to avoid adding invalid spectra to the library
 
-    boost::cmatch m;
+    boost::smatch m;
     boost::regex re_name("(?:^Name|^NAME): (.+)", boost::regex::no_mod_s);
     boost::regex re_retention_time("(?:^Retention Time|^RETENTIONTIME): (.+)", boost::regex::no_mod_s);
     boost::regex re_synon("^synon(?:yms?)?: (.+)", boost::regex::no_mod_s | boost::regex::icase);
@@ -84,13 +84,14 @@ namespace OpenMS
     boost::regex re_smiles("^SMILES: (.+)");
     boost::regex re_sum_formula("^FORMULA: (.+)");
     boost::regex re_precursor_type("^PRECURSORTYPE: (.+)");
+    boost::regex re_ccs("^CCS: (.+)");
     // matches everything else
     boost::regex re_metadatum("^(.+): (.+)", boost::regex::no_mod_s);
     OPENMS_LOG_INFO << "\nLoading spectra from .msp file. Please wait." << std::endl;
 
     while (!ifs.eof())
     {
-      ifs.getline(line, BUFSIZE);
+      std::getline(ifs, line);
       // Peaks
       if (boost::regex_search(line, m, re_points_line))
       {
@@ -102,7 +103,7 @@ namespace OpenMS
           const double position { std::stod(m[1]) };
           const double intensity { std::stod(m[2]) };
           spectrum.push_back( Peak1D(position, intensity) );
-        } while ( boost::regex_search(m[0].second, m, re_point) );
+        } while ( boost::regex_search(m[0].second, line.cend(), m, re_point) );
       }
       // Synon
       else if (boost::regex_search(line, m, re_synon))
@@ -163,7 +164,24 @@ namespace OpenMS
       else if (boost::regex_search(line, m, re_precursor_type))
       {
         spectrum.setMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT, String(m[1]));
-      }      
+      }
+      // Collision cross section (CCS). Real MSP libraries (e.g. MS-DIAL, MoNA) store this as a
+      // plain number in Angstrom^2; parse it as a typed double so it round-trips cleanly through
+      // store() and can be used by MetaboliteSpectralMatching for ion-mobility filtering. A
+      // non-numeric value is kept verbatim as a string meta value (no data loss, not fatal).
+      else if (boost::regex_search(line, m, re_ccs))
+      {
+        String val(m[1].str());
+        val.trim();
+        try
+        {
+          spectrum.setMetaValue(Constants::UserParam::MSM_CCS, val.toDouble());
+        }
+        catch (const Exception::ConversionError&)
+        {
+          spectrum.setMetaValue(Constants::UserParam::MSM_CCS, val);
+        }
+      }
       // Other metadata, needs to be last, matches everything
       else if (boost::regex_search(line, m, re_metadatum))
       {

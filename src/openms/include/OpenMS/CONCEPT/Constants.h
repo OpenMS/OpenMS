@@ -636,6 +636,11 @@ namespace OpenMS
       */
       inline const std::string   MSM_SUM_FORMULA = "Sum_Formula";
 
+      /** User parameter name for the collision cross section (CCS, in Angstrom^2) of a metabolite. (Used by MetaboliteSpectralMatcher for ion-mobility filtering)
+              double
+      */
+      inline const std::string   MSM_CCS = "CCS";
+
       /** User parameter name for the base name which links to underlying peak map
               String
       */
