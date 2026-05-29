@@ -2119,7 +2119,7 @@ namespace OpenMS::Internal
         {
           if (scoreit->first != "MS:1002055") // do not use peptide-level q-values for now
           {
-            score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+            score = toDoubleOrNaN_(scoreit->second.front().getValue().toString()); // cast fix needed as DataValue is init with XercesString
             spectrum_identification.setHigherScoreBetter(false);
             spectrum_identification.setScoreType("q-value"); //higherIsBetter = false
             scoretype = true;
@@ -2129,7 +2129,7 @@ namespace OpenMS::Internal
         else if (scoreit->first != "MS:1001143" && // the parent term itself has no numeric value; handled in the special case below
                  specific_score_child_terms_.find(scoreit->first) != specific_score_child_terms_.end())
         {
-          score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+          score = toDoubleOrNaN_(scoreit->second.front().getValue().toString()); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scoreit->first)));
           spectrum_identification.setScoreType(scoreit->second.front().getName());
           scoretype = true;
@@ -2137,7 +2137,7 @@ namespace OpenMS::Internal
         }
         else if (e_score_child_terms_.find(scoreit->first) != e_score_child_terms_.end())
         {
-          score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+          score = toDoubleOrNaN_(scoreit->second.front().getValue().toString()); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(false);
           spectrum_identification.setScoreType("E-value"); //higherIsBetter = false
           scoretype = true;
