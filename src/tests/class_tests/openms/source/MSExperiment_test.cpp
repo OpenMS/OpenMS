@@ -2312,6 +2312,150 @@ START_SECTION((std::vector<std::vector<MSExperiment::CoordinateType>> aggregateF
 }
 END_SECTION
 
+START_SECTION((template<class MzReductionFunctionType> std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(const std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>>& mz_rt_im_ranges, unsigned int ms_level, MzReductionFunctionType func_mz_reduction) const))
+{
+    // Helper lambda to create a spectrum with per-peak IM data (CONCATENATED format)
+    auto createSpectrumWithIM = [](double rt, const std::vector<std::pair<double, double>>& mz_intensity,
+                                    const std::vector<float>& im_values) -> MSSpectrum {
+        MSSpectrum spec;
+        spec.setMSLevel(1);
+        spec.setRT(rt);
+        for (const auto& [mz, intensity] : mz_intensity) {
+            Peak1D p;
+            p.setMZ(mz);
+            p.setIntensity(intensity);
+            spec.push_back(p);
+        }
+        MSSpectrum::FloatDataArray im_array;
+        im_array.setName("Ion Mobility");
+        for (float im : im_values) {
+            im_array.push_back(im);
+        }
+        spec.getFloatDataArrays().push_back(im_array);
+        return spec;
+    };
+
+    // Test 1: Aggregate with IM filtering - single peak match
+    {
+        MSExperiment exp;
+        exp.resize(1);
+
+        exp[0] = createSpectrumWithIM(1.0,
+            {{100.0, 1000.0}, {101.0, 2000.0}, {102.0, 3000.0}},
+            {0.5f, 1.0f, 1.5f});
+
+        // IM range 0.8-1.2 should include only peak 2 (IM=1.0)
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 103.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(0.8, 1.2)
+        ));
+
+        auto result = exp.aggregate(ranges, 1);
+
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 1);
+        TEST_REAL_SIMILAR(result[0][0], 2000.0);  // Only peak 2 intensity
+    }
+
+    // Test 2: Aggregate with IM filtering - multiple peaks match
+    {
+        MSExperiment exp;
+        exp.resize(1);
+
+        exp[0] = createSpectrumWithIM(1.0,
+            {{100.0, 1000.0}, {101.0, 2000.0}, {102.0, 3000.0}},
+            {0.5f, 1.0f, 1.5f});
+
+        // IM range 0.8-1.6 should include peaks 2 and 3
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 103.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(0.8, 1.6)
+        ));
+
+        auto result = exp.aggregate(ranges, 1);
+
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 1);
+        TEST_REAL_SIMILAR(result[0][0], 5000.0);  // 2000 + 3000
+    }
+
+    // Test 3: Empty IM range should include all peaks
+    {
+        MSExperiment exp;
+        exp.resize(1);
+
+        exp[0] = createSpectrumWithIM(1.0,
+            {{100.0, 1000.0}, {101.0, 2000.0}},
+            {0.5f, 1.5f});
+
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 102.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility()  // Empty range
+        ));
+
+        auto result = exp.aggregate(ranges, 1);
+
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 1);
+        TEST_REAL_SIMILAR(result[0][0], 3000.0);  // 1000 + 2000
+    }
+
+    // Test 4: Exception when IM filtering requested but no per-peak IM data
+    {
+        MSExperiment exp;
+        exp.resize(1);
+
+        exp[0] = MSSpectrum{{100.0, 1000.0}};
+        exp[0].setMSLevel(1);
+        exp[0].setRT(1.0);
+
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 101.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(0.8, 1.2)
+        ));
+
+        TEST_EXCEPTION(Exception::MissingInformation, exp.aggregate(ranges, 1));
+    }
+
+    // Test 5: Multiple spectra with IM filtering
+    {
+        MSExperiment exp;
+        exp.resize(2);
+
+        exp[0] = createSpectrumWithIM(1.0,
+            {{100.0, 1000.0}, {101.0, 2000.0}},
+            {0.5f, 1.0f});
+
+        exp[1] = createSpectrumWithIM(2.0,
+            {{100.0, 1100.0}, {101.0, 2100.0}},
+            {0.5f, 1.0f});
+
+        // IM range 0.8-1.2 should include only peaks with IM=1.0
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 102.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(0.8, 1.2)
+        ));
+
+        auto result = exp.aggregate(ranges, 1);
+
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 2);
+        TEST_REAL_SIMILAR(result[0][0], 2000.0);  // Only IM=1.0 peak from spectrum 1
+        TEST_REAL_SIMILAR(result[0][1], 2100.0);  // Only IM=1.0 peak from spectrum 2
+    }
+}
+END_SECTION
+
 START_SECTION((std::vector<MSChromatogram> extractXICsFromMatrix(const Matrix<double>& ranges, unsigned int ms_level, const std::string& mz_agg) const))
 {
     // Create test experiment with known data
@@ -2323,7 +2467,7 @@ START_SECTION((std::vector<MSChromatogram> extractXICsFromMatrix(const Matrix<do
         {100.0, 1000.0},
         {200.0, 2000.0},
         {300.0, 3000.0}
-    };    
+    };
     exp[0].setRT(1.0);
     exp[0].setMSLevel(1);
 
@@ -2642,6 +2786,870 @@ START_SECTION((template<class MzReductionFunctionType> std::vector<MSChromatogra
     }
 }
 END_SECTION
+
+START_SECTION((template<class MzReductionFunctionType> std::vector<MSChromatogram> extractXICs(const std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>>& mz_rt_im_ranges, unsigned int ms_level, MzReductionFunctionType func_mz_reduction) const))
+{
+    // Helper lambda to create a spectrum with per-peak IM data (CONCATENATED format)
+    auto createSpectrumWithIM = [](double rt, const std::vector<std::pair<double, double>>& mz_intensity,
+                                    const std::vector<float>& im_values) -> MSSpectrum {
+        MSSpectrum spec;
+        spec.setMSLevel(1);
+        spec.setRT(rt);
+        for (const auto& [mz, intensity] : mz_intensity) {
+            Peak1D p;
+            p.setMZ(mz);
+            p.setIntensity(intensity);
+            spec.push_back(p);
+        }
+        MSSpectrum::FloatDataArray im_array;
+        im_array.setName("Ion Mobility");
+        for (float im : im_values) {
+            im_array.push_back(im);
+        }
+        spec.getFloatDataArrays().push_back(im_array);
+        return spec;
+    };
+
+    // Test 1: CONCATENATED format - filter by per-peak IM values (single peak match)
+    {
+        MSExperiment exp;
+        exp.resize(1);
+
+        // Create spectrum with peaks at different IM values
+        exp[0] = createSpectrumWithIM(1.0,
+            {{100.0, 1000.0}, {101.0, 2000.0}, {102.0, 3000.0}, {103.0, 4000.0}},
+            {0.5f, 1.0f, 1.5f, 2.0f});
+
+        // IM range 0.8-1.2 should include only peak 2 (IM=1.0)
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 104.0),  // Include all peaks by m/z
+            RangeRT(0.0, 5.0),
+            RangeMobility(0.8, 1.2)
+        ));
+
+        auto chromatograms = exp.extractXICs(ranges, 1);
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 1);  // 1 spectrum
+        TEST_REAL_SIMILAR(chromatograms[0][0].getRT(), 1.0);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 2000.0);  // Only peak 2 intensity
+    }
+
+    // Test 2: CONCATENATED format - wider IM range includes multiple peaks
+    {
+        MSExperiment exp;
+        exp.resize(1);
+
+        exp[0] = createSpectrumWithIM(1.0,
+            {{100.0, 1000.0}, {101.0, 2000.0}, {102.0, 3000.0}},
+            {0.5f, 1.0f, 1.5f});
+
+        // IM range 0.8-1.6 should include peaks 2 and 3
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 103.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(0.8, 1.6)
+        ));
+
+        auto chromatograms = exp.extractXICs(ranges, 1);
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 1);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 5000.0);  // 2000 + 3000
+    }
+
+    // Test 3: Empty IM range should include all peaks (no IM filtering)
+    {
+        MSExperiment exp;
+        exp.resize(1);
+
+        exp[0] = createSpectrumWithIM(1.0,
+            {{100.0, 1000.0}, {101.0, 2000.0}},
+            {0.5f, 1.5f});
+
+        // Empty IM range (default constructed)
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 102.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility()  // Empty range - no IM filtering
+        ));
+
+        auto chromatograms = exp.extractXICs(ranges, 1);
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 1);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 3000.0);  // All peaks included: 1000 + 2000
+    }
+
+    // Test 4: Multiple spectra with CONCATENATED IM data
+    {
+        MSExperiment exp;
+        exp.resize(2);
+
+        exp[0] = createSpectrumWithIM(1.0,
+            {{100.0, 1000.0}, {101.0, 2000.0}},
+            {0.5f, 1.0f});
+
+        exp[1] = createSpectrumWithIM(2.0,
+            {{100.0, 1100.0}, {101.0, 2100.0}},
+            {0.5f, 1.0f});
+
+        // IM range 0.8-1.2 should include only peaks with IM=1.0
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 102.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(0.8, 1.2)
+        ));
+
+        auto chromatograms = exp.extractXICs(ranges, 1);
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 2);  // 2 spectra
+        TEST_REAL_SIMILAR(chromatograms[0][0].getRT(), 1.0);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 2000.0);  // Only IM=1.0 peak from spectrum 1
+        TEST_REAL_SIMILAR(chromatograms[0][1].getRT(), 2.0);
+        TEST_REAL_SIMILAR(chromatograms[0][1].getIntensity(), 2100.0);  // Only IM=1.0 peak from spectrum 2
+    }
+
+    // Test 5: IM range excludes all peaks
+    {
+        MSExperiment exp;
+        exp.resize(1);
+
+        exp[0] = createSpectrumWithIM(1.0,
+            {{100.0, 1000.0}, {101.0, 2000.0}},
+            {0.5f, 0.6f});
+
+        // IM range 5.0-6.0 excludes all peaks
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 102.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(5.0, 6.0)
+        ));
+
+        auto chromatograms = exp.extractXICs(ranges, 1);
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 1);  // 1 spectrum but with 0 intensity
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 0.0);
+    }
+
+    // Test 6: Multiple ranges with different IM filters
+    {
+        MSExperiment exp;
+        exp.resize(1);
+
+        exp[0] = createSpectrumWithIM(1.0,
+            {{100.0, 1000.0}, {101.0, 2000.0}, {102.0, 3000.0}},
+            {0.5f, 1.0f, 1.5f});
+
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>> ranges;
+        // Range 1: IM 0.4-0.6 (only peak 1)
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 103.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(0.4, 0.6)
+        ));
+        // Range 2: IM 1.4-1.6 (only peak 3)
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 103.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(1.4, 1.6)
+        ));
+
+        auto chromatograms = exp.extractXICs(ranges, 1);
+
+        TEST_EQUAL(chromatograms.size(), 2);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 1000.0);  // Only peak 1
+        TEST_REAL_SIMILAR(chromatograms[1][0].getIntensity(), 3000.0);  // Only peak 3
+    }
+
+    // Test 7: Exception when IM filtering requested but no per-peak IM data
+    {
+        MSExperiment exp;
+        exp.resize(1);
+
+        // Spectrum WITHOUT per-peak IM data
+        exp[0] = MSSpectrum{{100.0, 1000.0}};
+        exp[0].setMSLevel(1);
+        exp[0].setRT(1.0);
+
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 101.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(0.8, 1.2)  // Non-empty IM range - requires CONCATENATED format
+        ));
+
+        TEST_EXCEPTION(Exception::MissingInformation, exp.extractXICs(ranges, 1));
+    }
+
+    // Test 8: No exception when IM range is empty (no IM filtering needed)
+    {
+        MSExperiment exp;
+        exp.resize(1);
+
+        // Spectrum WITHOUT per-peak IM data
+        exp[0] = MSSpectrum{{100.0, 1000.0}};
+        exp[0].setMSLevel(1);
+        exp[0].setRT(1.0);
+
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 101.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility()  // Empty IM range - no IM filtering
+        ));
+
+        // Should NOT throw - empty IM range means no IM filtering
+        auto chromatograms = exp.extractXICs(ranges, 1);
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 1);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 1000.0);
+    }
+
+    // Test 9: Mixed IM and non-IM ranges - throws if any spectrum lacks IM data
+    {
+        MSExperiment exp;
+        exp.resize(1);
+
+        // Spectrum WITHOUT per-peak IM data
+        exp[0] = MSSpectrum{{100.0, 1000.0}};
+        exp[0].setMSLevel(1);
+        exp[0].setRT(1.0);
+
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>> ranges;
+        // First range has no IM filtering
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 101.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility()
+        ));
+        // Second range has IM filtering - should trigger exception
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 101.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(0.8, 1.2)
+        ));
+
+        TEST_EXCEPTION(Exception::MissingInformation, exp.extractXICs(ranges, 1));
+    }
+}
+END_SECTION
+
+START_SECTION((template<class MzReductionFunctionType> std::vector<MSChromatogram> extractXICs(const std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>>& ranges, unsigned int ms_level, MzReductionFunctionType func_mz_reduction) const))
+{
+    // Helper lambda to create an MS2 spectrum with precursor and per-peak IM data (DIA/SWATH-like)
+    auto createMS2SpectrumWithIMAndPrecursor = [](double rt, double precursor_mz, double iso_window_lower, double iso_window_upper,
+                                                   const std::vector<std::pair<double, double>>& mz_intensity,
+                                                   const std::vector<float>& im_values) -> MSSpectrum {
+        MSSpectrum spec;
+        spec.setMSLevel(2);
+        spec.setRT(rt);
+
+        // Set precursor with isolation window
+        Precursor prec;
+        prec.setMZ(precursor_mz);
+        prec.setIsolationWindowLowerOffset(iso_window_lower);
+        prec.setIsolationWindowUpperOffset(iso_window_upper);
+        spec.getPrecursors().push_back(prec);
+
+        for (const auto& [mz, intensity] : mz_intensity) {
+            Peak1D p;
+            p.setMZ(mz);
+            p.setIntensity(intensity);
+            spec.push_back(p);
+        }
+
+        MSSpectrum::FloatDataArray im_array;
+        im_array.setName("Ion Mobility");
+        for (float im : im_values) {
+            im_array.push_back(im);
+        }
+        spec.getFloatDataArrays().push_back(im_array);
+        return spec;
+    };
+
+    // Test 1: DIA - filter by precursor isolation window (basic)
+    {
+        MSExperiment exp;
+        exp.resize(2);
+
+        // SWATH window 1: precursor m/z 400 +/- 12.5 (387.5-412.5)
+        exp[0] = createMS2SpectrumWithIMAndPrecursor(1.0, 400.0, 12.5, 12.5,
+            {{100.0, 1000.0}, {101.0, 2000.0}},
+            {1.0f, 1.0f});
+
+        // SWATH window 2: precursor m/z 500 +/- 12.5 (487.5-512.5)
+        exp[1] = createMS2SpectrumWithIMAndPrecursor(1.0, 500.0, 12.5, 12.5,
+            {{100.0, 3000.0}, {101.0, 4000.0}},
+            {1.0f, 1.0f});
+
+        // Query: look for precursor in range 390-410 (should match only window 1)
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 102.0),   // product m/z
+            RangeRT(0.0, 5.0),       // RT
+            RangeMobility(),         // no IM filtering
+            RangeMZ(390.0, 410.0)    // precursor m/z - matches window 1 only
+        ));
+
+        auto chromatograms = exp.extractXICs(ranges, 2);
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 1);  // Only 1 spectrum matches
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 3000.0);  // 1000 + 2000 from window 1
+    }
+
+    // Test 2: DIA - filter by both precursor and IM
+    {
+        MSExperiment exp;
+        exp.resize(2);
+
+        // SWATH window 1: precursor m/z 400
+        exp[0] = createMS2SpectrumWithIMAndPrecursor(1.0, 400.0, 12.5, 12.5,
+            {{100.0, 1000.0}, {101.0, 2000.0}},
+            {0.5f, 1.0f});  // Different IM values per peak
+
+        // SWATH window 2: precursor m/z 500
+        exp[1] = createMS2SpectrumWithIMAndPrecursor(1.0, 500.0, 12.5, 12.5,
+            {{100.0, 3000.0}, {101.0, 4000.0}},
+            {0.5f, 1.0f});
+
+        // Query: precursor 390-410 (window 1), IM 0.8-1.2 (only peak with IM=1.0)
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 102.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(0.8, 1.2),  // Only IM=1.0 peak
+            RangeMZ(390.0, 410.0)     // Window 1 only
+        ));
+
+        auto chromatograms = exp.extractXICs(ranges, 2);
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 1);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 2000.0);  // Only IM=1.0 peak from window 1
+    }
+
+    // Test 3: Empty precursor range - no precursor filtering (include all windows)
+    {
+        MSExperiment exp;
+        exp.resize(2);
+
+        exp[0] = createMS2SpectrumWithIMAndPrecursor(1.0, 400.0, 12.5, 12.5,
+            {{100.0, 1000.0}}, {1.0f});
+
+        exp[1] = createMS2SpectrumWithIMAndPrecursor(1.0, 500.0, 12.5, 12.5,
+            {{100.0, 2000.0}}, {1.0f});
+
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 101.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(),
+            RangeMZ()  // Empty - no precursor filtering
+        ));
+
+        auto chromatograms = exp.extractXICs(ranges, 2);
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 2);  // Both windows included
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 1000.0);
+        TEST_REAL_SIMILAR(chromatograms[0][1].getIntensity(), 2000.0);
+    }
+
+    // Test 4: Precursor range overlaps partially with isolation window
+    {
+        MSExperiment exp;
+        exp.resize(1);
+
+        // Isolation window: 400 +/- 12.5 = 387.5-412.5
+        exp[0] = createMS2SpectrumWithIMAndPrecursor(1.0, 400.0, 12.5, 12.5,
+            {{100.0, 1000.0}}, {1.0f});
+
+        // Query range: 385-395 (partial overlap with isolation window 387.5-412.5)
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 101.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(),
+            RangeMZ(385.0, 395.0)  // Partial overlap
+        ));
+
+        auto chromatograms = exp.extractXICs(ranges, 2);
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 1);  // Should match (overlap is sufficient)
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 1000.0);
+    }
+
+    // Test 5: Spectrum with no precursor info - should be skipped when precursor filtering
+    {
+        MSExperiment exp;
+        exp.resize(2);
+
+        // Spectrum WITH precursor
+        exp[0] = createMS2SpectrumWithIMAndPrecursor(1.0, 400.0, 12.5, 12.5,
+            {{100.0, 1000.0}}, {1.0f});
+
+        // Spectrum WITHOUT precursor (still MS2 but no precursor set)
+        exp[1].setMSLevel(2);
+        exp[1].setRT(2.0);
+        exp[1].push_back(Peak1D(100.0, 2000.0));
+        MSSpectrum::FloatDataArray im_array;
+        im_array.setName("Ion Mobility");
+        im_array.push_back(1.0f);
+        exp[1].getFloatDataArrays().push_back(im_array);
+
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 101.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(),
+            RangeMZ(390.0, 410.0)  // Non-empty - requires precursor matching
+        ));
+
+        auto chromatograms = exp.extractXICs(ranges, 2);
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 1);  // Only spectrum with matching precursor
+        TEST_REAL_SIMILAR(chromatograms[0][0].getRT(), 1.0);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 1000.0);
+    }
+
+    // Test 6: Multiple spectra at different RTs with same precursor window
+    {
+        MSExperiment exp;
+        exp.resize(3);
+
+        // Same SWATH window at different RTs
+        exp[0] = createMS2SpectrumWithIMAndPrecursor(1.0, 400.0, 12.5, 12.5,
+            {{100.0, 1000.0}}, {1.0f});
+        exp[1] = createMS2SpectrumWithIMAndPrecursor(2.0, 400.0, 12.5, 12.5,
+            {{100.0, 1500.0}}, {1.0f});
+        exp[2] = createMS2SpectrumWithIMAndPrecursor(3.0, 400.0, 12.5, 12.5,
+            {{100.0, 2000.0}}, {1.0f});
+
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 101.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(),
+            RangeMZ(390.0, 410.0)
+        ));
+
+        auto chromatograms = exp.extractXICs(ranges, 2);
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 3);  // All 3 spectra from same SWATH window
+        TEST_REAL_SIMILAR(chromatograms[0][0].getRT(), 1.0);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 1000.0);
+        TEST_REAL_SIMILAR(chromatograms[0][1].getRT(), 2.0);
+        TEST_REAL_SIMILAR(chromatograms[0][1].getIntensity(), 1500.0);
+        TEST_REAL_SIMILAR(chromatograms[0][2].getRT(), 3.0);
+        TEST_REAL_SIMILAR(chromatograms[0][2].getIntensity(), 2000.0);
+    }
+}
+END_SECTION
+
+START_SECTION((template<class MzReductionFunctionType> std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(const std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>>& ranges, unsigned int ms_level, MzReductionFunctionType func_mz_reduction) const))
+{
+    // Helper lambda to create an MS2 spectrum with precursor and per-peak IM data
+    auto createMS2SpectrumWithIMAndPrecursor = [](double rt, double precursor_mz, double iso_window_lower, double iso_window_upper,
+                                                   const std::vector<std::pair<double, double>>& mz_intensity,
+                                                   const std::vector<float>& im_values) -> MSSpectrum {
+        MSSpectrum spec;
+        spec.setMSLevel(2);
+        spec.setRT(rt);
+
+        Precursor prec;
+        prec.setMZ(precursor_mz);
+        prec.setIsolationWindowLowerOffset(iso_window_lower);
+        prec.setIsolationWindowUpperOffset(iso_window_upper);
+        spec.getPrecursors().push_back(prec);
+
+        for (const auto& [mz, intensity] : mz_intensity) {
+            Peak1D p;
+            p.setMZ(mz);
+            p.setIntensity(intensity);
+            spec.push_back(p);
+        }
+
+        MSSpectrum::FloatDataArray im_array;
+        im_array.setName("Ion Mobility");
+        for (float im : im_values) {
+            im_array.push_back(im);
+        }
+        spec.getFloatDataArrays().push_back(im_array);
+        return spec;
+    };
+
+    // Test 1: DIA aggregate - filter by precursor isolation window
+    {
+        MSExperiment exp;
+        exp.resize(2);
+
+        // SWATH window 1: precursor m/z 400
+        exp[0] = createMS2SpectrumWithIMAndPrecursor(1.0, 400.0, 12.5, 12.5,
+            {{100.0, 1000.0}, {101.0, 2000.0}},
+            {1.0f, 1.0f});
+
+        // SWATH window 2: precursor m/z 500
+        exp[1] = createMS2SpectrumWithIMAndPrecursor(1.0, 500.0, 12.5, 12.5,
+            {{100.0, 3000.0}, {101.0, 4000.0}},
+            {1.0f, 1.0f});
+
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 102.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(),
+            RangeMZ(390.0, 410.0)  // Window 1 only
+        ));
+
+        auto result = exp.aggregate(ranges, 2);
+
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 1);  // 1 spectrum matches
+        TEST_REAL_SIMILAR(result[0][0], 3000.0);  // 1000 + 2000 from window 1
+    }
+
+    // Test 2: DIA aggregate - filter by both precursor and IM
+    {
+        MSExperiment exp;
+        exp.resize(1);
+
+        exp[0] = createMS2SpectrumWithIMAndPrecursor(1.0, 400.0, 12.5, 12.5,
+            {{100.0, 1000.0}, {101.0, 2000.0}, {102.0, 3000.0}},
+            {0.5f, 1.0f, 1.5f});
+
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 103.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(0.8, 1.2),  // Only IM=1.0
+            RangeMZ(390.0, 410.0)
+        ));
+
+        auto result = exp.aggregate(ranges, 2);
+
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 1);
+        TEST_REAL_SIMILAR(result[0][0], 2000.0);  // Only IM=1.0 peak
+    }
+
+    // Test 3: Multiple SWATH windows with same precursor - aggregate from both
+    {
+        MSExperiment exp;
+        exp.resize(2);
+
+        // Same precursor window at different RTs
+        exp[0] = createMS2SpectrumWithIMAndPrecursor(1.0, 400.0, 12.5, 12.5,
+            {{100.0, 1000.0}}, {1.0f});
+        exp[1] = createMS2SpectrumWithIMAndPrecursor(2.0, 400.0, 12.5, 12.5,
+            {{100.0, 2000.0}}, {1.0f});
+
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 101.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(),
+            RangeMZ(390.0, 410.0)
+        ));
+
+        auto result = exp.aggregate(ranges, 2);
+
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 2);  // 2 spectra match
+        TEST_REAL_SIMILAR(result[0][0], 1000.0);
+        TEST_REAL_SIMILAR(result[0][1], 2000.0);
+    }
+
+    // Test 4: Empty precursor range - include all SWATH windows
+    {
+        MSExperiment exp;
+        exp.resize(2);
+
+        exp[0] = createMS2SpectrumWithIMAndPrecursor(1.0, 400.0, 12.5, 12.5,
+            {{100.0, 1000.0}}, {1.0f});
+        exp[1] = createMS2SpectrumWithIMAndPrecursor(1.0, 500.0, 12.5, 12.5,
+            {{100.0, 2000.0}}, {1.0f});
+
+        std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>> ranges;
+        ranges.push_back(std::make_tuple(
+            RangeMZ(99.0, 101.0),
+            RangeRT(0.0, 5.0),
+            RangeMobility(),
+            RangeMZ()  // Empty - no precursor filtering
+        ));
+
+        auto result = exp.aggregate(ranges, 2);
+
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 2);  // Both windows
+        TEST_REAL_SIMILAR(result[0][0], 1000.0);
+        TEST_REAL_SIMILAR(result[0][1], 2000.0);
+    }
+}
+END_SECTION
+
+START_SECTION((std::vector<MSChromatogram> extractXICsFromMatrixWithIMAndPrecursor(const Matrix<double>& ranges, unsigned int ms_level, const std::string& mz_agg) const))
+{
+    // Helper lambda to create an MS2 spectrum with precursor and per-peak IM data
+    auto createMS2SpectrumWithIMAndPrecursor = [](double rt, double precursor_mz, double iso_window_lower, double iso_window_upper,
+                                                   const std::vector<std::pair<double, double>>& mz_intensity,
+                                                   const std::vector<float>& im_values) -> MSSpectrum {
+        MSSpectrum spec;
+        spec.setMSLevel(2);
+        spec.setRT(rt);
+
+        Precursor prec;
+        prec.setMZ(precursor_mz);
+        prec.setIsolationWindowLowerOffset(iso_window_lower);
+        prec.setIsolationWindowUpperOffset(iso_window_upper);
+        spec.getPrecursors().push_back(prec);
+
+        for (const auto& [mz, intensity] : mz_intensity) {
+            Peak1D p;
+            p.setMZ(mz);
+            p.setIntensity(intensity);
+            spec.push_back(p);
+        }
+
+        MSSpectrum::FloatDataArray im_array;
+        im_array.setName("Ion Mobility");
+        for (float im : im_values) {
+            im_array.push_back(im);
+        }
+        spec.getFloatDataArrays().push_back(im_array);
+        return spec;
+    };
+
+    // Test 1: Basic matrix wrapper functionality
+    {
+        MSExperiment exp;
+        exp.resize(2);
+
+        exp[0] = createMS2SpectrumWithIMAndPrecursor(1.0, 400.0, 12.5, 12.5,
+            {{100.0, 1000.0}, {101.0, 2000.0}},
+            {1.0f, 1.0f});
+
+        exp[1] = createMS2SpectrumWithIMAndPrecursor(1.0, 500.0, 12.5, 12.5,
+            {{100.0, 3000.0}, {101.0, 4000.0}},
+            {1.0f, 1.0f});
+
+        // Matrix: [mz_min, mz_max, rt_min, rt_max, im_min, im_max, prec_mz_min, prec_mz_max]
+        Matrix<double> ranges(1, 8);
+        ranges(0, 0) = 99.0;   ranges(0, 1) = 102.0;   // m/z range
+        ranges(0, 2) = 0.0;    ranges(0, 3) = 5.0;     // RT range
+        ranges(0, 4) = 0.5;    ranges(0, 5) = 1.5;     // IM range (valid)
+        ranges(0, 6) = 390.0;  ranges(0, 7) = 410.0;   // Precursor range (window 1 only)
+
+        auto chromatograms = exp.extractXICsFromMatrixWithIMAndPrecursor(ranges, 2, "sum");
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 1);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 3000.0);  // 1000 + 2000
+    }
+
+    // Test 2: Invalid IM range (im_min > im_max) disables IM filtering
+    {
+        MSExperiment exp;
+        exp.resize(1);
+
+        exp[0] = createMS2SpectrumWithIMAndPrecursor(1.0, 400.0, 12.5, 12.5,
+            {{100.0, 1000.0}, {101.0, 2000.0}},
+            {0.5f, 1.5f});  // Different IM values
+
+        Matrix<double> ranges(1, 8);
+        ranges(0, 0) = 99.0;   ranges(0, 1) = 102.0;
+        ranges(0, 2) = 0.0;    ranges(0, 3) = 5.0;
+        ranges(0, 4) = 1.0;    ranges(0, 5) = 0.0;     // Invalid: im_min > im_max - disables IM filtering
+        ranges(0, 6) = 390.0;  ranges(0, 7) = 410.0;
+
+        auto chromatograms = exp.extractXICsFromMatrixWithIMAndPrecursor(ranges, 2, "sum");
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 1);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 3000.0);  // Both peaks included (no IM filter)
+    }
+
+    // Test 3: Invalid precursor range (prec_min > prec_max) disables precursor filtering
+    {
+        MSExperiment exp;
+        exp.resize(2);
+
+        exp[0] = createMS2SpectrumWithIMAndPrecursor(1.0, 400.0, 12.5, 12.5,
+            {{100.0, 1000.0}}, {1.0f});
+
+        exp[1] = createMS2SpectrumWithIMAndPrecursor(1.0, 500.0, 12.5, 12.5,
+            {{100.0, 2000.0}}, {1.0f});
+
+        Matrix<double> ranges(1, 8);
+        ranges(0, 0) = 99.0;   ranges(0, 1) = 101.0;
+        ranges(0, 2) = 0.0;    ranges(0, 3) = 5.0;
+        ranges(0, 4) = 0.5;    ranges(0, 5) = 1.5;     // Valid IM range
+        ranges(0, 6) = 1.0;    ranges(0, 7) = 0.0;     // Invalid: prec_min > prec_max - disables precursor filtering
+
+        auto chromatograms = exp.extractXICsFromMatrixWithIMAndPrecursor(ranges, 2, "sum");
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 2);  // Both windows included (no precursor filter)
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 1000.0);
+        TEST_REAL_SIMILAR(chromatograms[0][1].getIntensity(), 2000.0);
+    }
+
+    // Test 4: Both IM and precursor filtering disabled via invalid ranges
+    {
+        MSExperiment exp;
+        exp.resize(2);
+
+        exp[0] = createMS2SpectrumWithIMAndPrecursor(1.0, 400.0, 12.5, 12.5,
+            {{100.0, 1000.0}, {101.0, 2000.0}},
+            {0.5f, 1.5f});
+
+        exp[1] = createMS2SpectrumWithIMAndPrecursor(1.0, 500.0, 12.5, 12.5,
+            {{100.0, 3000.0}}, {1.0f});
+
+        Matrix<double> ranges(1, 8);
+        ranges(0, 0) = 99.0;   ranges(0, 1) = 102.0;
+        ranges(0, 2) = 0.0;    ranges(0, 3) = 5.0;
+        ranges(0, 4) = 1.0;    ranges(0, 5) = 0.0;     // Invalid IM
+        ranges(0, 6) = 1.0;    ranges(0, 7) = 0.0;     // Invalid precursor
+
+        auto chromatograms = exp.extractXICsFromMatrixWithIMAndPrecursor(ranges, 2, "sum");
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 2);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 3000.0);  // All peaks from window 1
+        TEST_REAL_SIMILAR(chromatograms[0][1].getIntensity(), 3000.0);  // All peaks from window 2
+    }
+
+    // Test 5: Wrong number of columns throws exception
+    {
+        MSExperiment exp;
+        Matrix<double> ranges(1, 6);  // Wrong: needs 8 columns
+        TEST_EXCEPTION(Exception::InvalidParameter, exp.extractXICsFromMatrixWithIMAndPrecursor(ranges, 2, "sum"));
+    }
+}
+END_SECTION
+
+START_SECTION((std::vector<std::vector<MSExperiment::CoordinateType>> aggregateFromMatrixWithIMAndPrecursor(const Matrix<double>& ranges, unsigned int ms_level, const std::string& mz_agg) const))
+{
+    // Helper lambda
+    auto createMS2SpectrumWithIMAndPrecursor = [](double rt, double precursor_mz, double iso_window_lower, double iso_window_upper,
+                                                   const std::vector<std::pair<double, double>>& mz_intensity,
+                                                   const std::vector<float>& im_values) -> MSSpectrum {
+        MSSpectrum spec;
+        spec.setMSLevel(2);
+        spec.setRT(rt);
+
+        Precursor prec;
+        prec.setMZ(precursor_mz);
+        prec.setIsolationWindowLowerOffset(iso_window_lower);
+        prec.setIsolationWindowUpperOffset(iso_window_upper);
+        spec.getPrecursors().push_back(prec);
+
+        for (const auto& [mz, intensity] : mz_intensity) {
+            Peak1D p;
+            p.setMZ(mz);
+            p.setIntensity(intensity);
+            spec.push_back(p);
+        }
+
+        MSSpectrum::FloatDataArray im_array;
+        im_array.setName("Ion Mobility");
+        for (float im : im_values) {
+            im_array.push_back(im);
+        }
+        spec.getFloatDataArrays().push_back(im_array);
+        return spec;
+    };
+
+    // Test 1: Basic matrix wrapper functionality
+    {
+        MSExperiment exp;
+        exp.resize(1);
+
+        exp[0] = createMS2SpectrumWithIMAndPrecursor(1.0, 400.0, 12.5, 12.5,
+            {{100.0, 1000.0}, {101.0, 2000.0}},
+            {0.5f, 1.0f});
+
+        Matrix<double> ranges(1, 8);
+        ranges(0, 0) = 99.0;   ranges(0, 1) = 102.0;
+        ranges(0, 2) = 0.0;    ranges(0, 3) = 5.0;
+        ranges(0, 4) = 0.8;    ranges(0, 5) = 1.2;     // IM range (only IM=1.0)
+        ranges(0, 6) = 390.0;  ranges(0, 7) = 410.0;
+
+        auto result = exp.aggregateFromMatrixWithIMAndPrecursor(ranges, 2, "sum");
+
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 1);
+        TEST_REAL_SIMILAR(result[0][0], 2000.0);  // Only IM=1.0 peak
+    }
+
+    // Test 2: Invalid IM range disables IM filtering
+    {
+        MSExperiment exp;
+        exp.resize(1);
+
+        exp[0] = createMS2SpectrumWithIMAndPrecursor(1.0, 400.0, 12.5, 12.5,
+            {{100.0, 1000.0}, {101.0, 2000.0}},
+            {0.5f, 1.5f});
+
+        Matrix<double> ranges(1, 8);
+        ranges(0, 0) = 99.0;   ranges(0, 1) = 102.0;
+        ranges(0, 2) = 0.0;    ranges(0, 3) = 5.0;
+        ranges(0, 4) = 1.0;    ranges(0, 5) = 0.0;     // Invalid: disables IM filtering
+        ranges(0, 6) = 390.0;  ranges(0, 7) = 410.0;
+
+        auto result = exp.aggregateFromMatrixWithIMAndPrecursor(ranges, 2, "sum");
+
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 1);
+        TEST_REAL_SIMILAR(result[0][0], 3000.0);  // Both peaks
+    }
+
+    // Test 3: Invalid precursor range disables precursor filtering
+    {
+        MSExperiment exp;
+        exp.resize(2);
+
+        exp[0] = createMS2SpectrumWithIMAndPrecursor(1.0, 400.0, 12.5, 12.5,
+            {{100.0, 1000.0}}, {1.0f});
+
+        exp[1] = createMS2SpectrumWithIMAndPrecursor(1.0, 500.0, 12.5, 12.5,
+            {{100.0, 2000.0}}, {1.0f});
+
+        Matrix<double> ranges(1, 8);
+        ranges(0, 0) = 99.0;   ranges(0, 1) = 101.0;
+        ranges(0, 2) = 0.0;    ranges(0, 3) = 5.0;
+        ranges(0, 4) = 0.5;    ranges(0, 5) = 1.5;
+        ranges(0, 6) = 1.0;    ranges(0, 7) = 0.0;     // Invalid: disables precursor filtering
+
+        auto result = exp.aggregateFromMatrixWithIMAndPrecursor(ranges, 2, "sum");
+
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 2);  // Both windows
+        TEST_REAL_SIMILAR(result[0][0], 1000.0);
+        TEST_REAL_SIMILAR(result[0][1], 2000.0);
+    }
+
+    // Test 4: Wrong number of columns throws exception
+    {
+        MSExperiment exp;
+        Matrix<double> ranges(1, 4);  // Wrong: needs 8 columns
+        TEST_EXCEPTION(Exception::InvalidParameter, exp.aggregateFromMatrixWithIMAndPrecursor(ranges, 2, "sum"));
+    }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 // Tests for dual-range system
 /////////////////////////////////////////////////////////////

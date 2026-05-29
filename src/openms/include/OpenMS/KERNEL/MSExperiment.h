@@ -672,6 +672,211 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
 }
 
 /**
+ * @brief Aggregates data over specified m/z, RT, and ion mobility ranges with IM filtering.
+ *
+ * This function processes spectra at a specified MS level and aggregates data within specified
+ * m/z, RT, and ion mobility ranges. It supports the CONCATENATED ion mobility data format where
+ * per-peak IM values are stored in a FloatDataArray.
+ *
+ * @tparam MzReductionFunctionType
+ *   A callable type that takes two iterators over peaks and returns a CoordinateType.
+ *
+ * @param[in] mz_rt_im_ranges
+ *   A vector of tuples of RangeMZ, RangeRT, and RangeMobility specifying the ranges.
+ *
+ * @param[in] ms_level
+ *   The MS level of the spectra to be processed.
+ *
+ * @param[in] func_mz_reduction
+ *   A function that performs the m/z reduction over filtered peaks.
+ *
+ * @return
+ *   A vector of vectors of CoordinateType. Each sub-vector corresponds to a range and contains
+ *   the aggregated results for each spectrum that falls within that RT range.
+ *
+ * @throws Exception::MissingInformation if IM filtering is requested but a spectrum
+ *         does not contain per-peak IM data (CONCATENATED format required).
+ *
+ * @note If the RangeMobility is empty (default constructed), no IM filtering is applied.
+ */
+template<class MzReductionFunctionType>
+std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
+    const std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>>& mz_rt_im_ranges,
+    unsigned int ms_level,
+    MzReductionFunctionType func_mz_reduction) const
+{
+    // Early exit if there are no ranges
+    if (mz_rt_im_ranges.empty())
+    {
+      return {};
+    }
+
+    // Check if any range has IM filtering enabled
+    bool needs_im_filtering = false;
+    for (const auto& range : mz_rt_im_ranges)
+    {
+      if (!std::get<2>(range).isEmpty())
+      {
+        needs_im_filtering = true;
+        break;
+      }
+    }
+
+    // Create a view of the spectra with given MS level
+    std::vector<std::reference_wrapper<const MSSpectrum>> spectra_view;
+    spectra_view.reserve(spectra_.size());
+    std::copy_if(spectra_.begin(), spectra_.end(),
+                 std::back_inserter(spectra_view),
+                 [ms_level](const auto& spec) {
+                     return spec.getMSLevel() == ms_level;
+                 });
+
+    // Early exit if there are no spectra with the given MS level
+    if (spectra_view.empty()) {
+      return {};
+    }
+
+    // If IM filtering is needed, verify all spectra have CONCATENATED IM data.
+    // Use containsIMData() (cheap presence check) instead of maybeGetIMData()
+    // here to avoid copying every spectrum's per-peak IM array just for validation.
+    if (needs_im_filtering)
+    {
+      for (const auto& spec_ref : spectra_view)
+      {
+        if (!spec_ref.get().containsIMData())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Ion mobility filtering requested but spectrum at RT=" +
+              String(spec_ref.get().getRT()) +
+              " does not contain per-peak IM data (CONCATENATED format required).");
+        }
+      }
+    }
+
+    // Get the indices of the spectra covered by the RT ranges
+    auto getCoveredSpectra = [](
+        const std::vector<std::reference_wrapper<const MSSpectrum>>& spectra_view,
+        const std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>>& mz_rt_im_ranges)
+        ->  std::vector<std::pair<size_t, size_t>>
+      {
+        std::vector<std::pair<size_t, size_t>> res;
+        res.reserve(mz_rt_im_ranges.size());
+
+        for (const auto & mz_rt_im : mz_rt_im_ranges)
+        {
+          const auto& rt_range = std::get<1>(mz_rt_im);
+          auto start_it = std::lower_bound(spectra_view.begin(), spectra_view.end(), rt_range.getMin(),
+            [](const auto& spec, double rt)
+            { return spec.get().getRT() < rt; });
+
+          auto stop_it = std::upper_bound(spectra_view.begin(), spectra_view.end(), rt_range.getMax(),
+            [](double rt, const auto& spec)
+            { return rt < spec.get().getRT(); });
+
+            res.emplace_back(
+                std::distance(spectra_view.begin(), start_it),
+                std::distance(spectra_view.begin(), stop_it)
+            );
+        }
+        return res;
+      };
+
+    // For each range, gets (spectrum start index, spectrum stop index)
+    const std::vector<std::pair<size_t, size_t>> rt_ranges_idcs = getCoveredSpectra(spectra_view, mz_rt_im_ranges);
+
+    // Initialize result vector
+    std::vector<std::vector<MSExperiment::CoordinateType>> result(mz_rt_im_ranges.size());
+
+    // Build spectrum to range index mapping
+    std::vector<std::vector<size_t>> spec_idx_to_range_idx(spectra_view.size());
+    for (size_t i = 0; i < rt_ranges_idcs.size(); ++i)
+    {
+        const auto& [start, stop] = rt_ranges_idcs[i];
+        result[i].resize(stop - start);
+        for (size_t j = start; j < stop; ++j)
+        {
+            spec_idx_to_range_idx[j].push_back(i);
+        }
+    }
+
+    #pragma omp parallel for schedule(dynamic)
+    for (Int64 i = 0; i < (Int64)spec_idx_to_range_idx.size(); ++i)
+    {
+      if (spec_idx_to_range_idx[i].empty()) continue;
+
+      const auto& spec = spectra_view[i].get();
+      auto spec_begin = spec.cbegin();
+      auto spec_end = spec.cend();
+
+      // Get IM data for this spectrum (CONCATENATED format)
+      // Reference the per-peak IM array (validated to exist above) instead of
+      // copying the whole array per spectrum as maybeGetIMData() would.
+      const MSSpectrum::FloatDataArray* im_array = nullptr;
+      if (needs_im_filtering)
+      {
+        im_array = &spec.getFloatDataArrays()[spec.getIMData().first];
+      }
+
+      // Reused across ranges of this spectrum to avoid per-range heap allocations
+      std::vector<Peak1D> filtered_peaks;
+
+      for (size_t range_idx : spec_idx_to_range_idx[i])
+      {
+        const auto& mz_range = std::get<0>(mz_rt_im_ranges[range_idx]);
+        const auto& im_range = std::get<2>(mz_rt_im_ranges[range_idx]);
+
+        // Find data points within MZ range
+        auto start_it = spec.PosBegin(spec_begin, mz_range.getMinMZ(), spec_end);
+        auto end_it = start_it;
+
+        while (end_it != spec_end && end_it->getPosition() <= mz_range.getMaxMZ())
+        {
+          ++end_it;
+        }
+
+        CoordinateType value;
+
+        if (!im_range.isEmpty())
+        {
+          // IM filtering enabled: filter peaks by IM value.
+          // peak_idx is tracked incrementally from the start offset (random-access
+          // iterators) instead of recomputing std::distance(cbegin, it) per peak.
+          filtered_peaks.clear();
+          filtered_peaks.reserve(std::distance(start_it, end_it));
+
+          size_t peak_idx = (size_t)std::distance(spec_begin, start_it);
+          for (auto it = start_it; it != end_it; ++it, ++peak_idx)
+          {
+            if (peak_idx < im_array->size() && im_range.containsMobility((*im_array)[peak_idx]))
+            {
+              filtered_peaks.push_back(*it);
+            }
+          }
+
+          value = func_mz_reduction(filtered_peaks.begin(), filtered_peaks.end());
+        }
+        else
+        {
+          // No IM filtering for this range
+          value = func_mz_reduction(start_it, end_it);
+        }
+
+        result[range_idx][i - rt_ranges_idcs[range_idx].first] = value;
+      }
+    }
+
+    return result;
+}
+
+// Overload without func_mz_reduction parameter for IM version
+std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
+    const std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>>& mz_rt_im_ranges,
+    unsigned int ms_level) const
+{
+    return aggregate(mz_rt_im_ranges, ms_level, SumIntensityReduction());
+}
+
+/**
  * @brief Extracts extracted ion chromatograms (XICs) from the MSExperiment.
  *
  * This function takes a vector of mz_rt_ranges, an ms_level, and a MzReductionFunctionType
@@ -802,6 +1007,733 @@ std::vector<MSChromatogram> extractXICs(
     return extractXICs(mz_rt_ranges, ms_level, SumIntensityReduction());
 }
 
+/**
+ * @brief Extracts extracted ion chromatograms (XICs) from the MSExperiment with ion mobility filtering.
+ *
+ * This function extracts XICs filtered by m/z, RT, and ion mobility ranges.
+ * It supports the CONCATENATED ion mobility data format where per-peak IM values are
+ * stored in a FloatDataArray and accessed via maybeGetIMData().
+ *
+ * @param[in] mz_rt_im_ranges A vector of tuples of RangeMZ, RangeRT, and RangeMobility.
+ * @param[in] ms_level The MS level of the spectra to consider.
+ * @param[in] func_mz_reduction The MzReductionFunctionType used to reduce the m/z values.
+ *
+ * @return A vector of MSChromatogram objects representing the extracted XICs.
+ *
+ * @throws Exception::MissingInformation if IM filtering is requested but a spectrum
+ *         does not contain per-peak IM data (CONCATENATED format required).
+ *
+ * @note If the RangeMobility is empty (default constructed), no IM filtering is applied.
+ */
+template<class MzReductionFunctionType>
+std::vector<MSChromatogram> extractXICs(
+    const std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>>& mz_rt_im_ranges,
+    unsigned int ms_level,
+    MzReductionFunctionType func_mz_reduction) const
+{
+    // Early exit if there are no ranges
+    if (mz_rt_im_ranges.empty())
+    {
+      return {};
+    }
+
+    // Check if any range has IM filtering enabled
+    bool needs_im_filtering = false;
+    for (const auto& range : mz_rt_im_ranges)
+    {
+      if (!std::get<2>(range).isEmpty())
+      {
+        needs_im_filtering = true;
+        break;
+      }
+    }
+
+    // Create a view of the spectra with given MS level
+    std::vector<std::reference_wrapper<const MSSpectrum>> spectra_view;
+    spectra_view.reserve(spectra_.size());
+    std::copy_if(spectra_.begin(), spectra_.end(),
+                 std::back_inserter(spectra_view),
+                 [ms_level](const auto& spec) {
+                     return spec.getMSLevel() == ms_level;
+                 });
+
+    // Early exit if there are no spectra with the given MS level
+    if (spectra_view.empty()) {
+      return {};
+    }
+
+    // If IM filtering is needed, verify all spectra have CONCATENATED IM data.
+    // Use containsIMData() (cheap presence check) instead of maybeGetIMData()
+    // here to avoid copying every spectrum's per-peak IM array just for validation.
+    if (needs_im_filtering)
+    {
+      for (const auto& spec_ref : spectra_view)
+      {
+        if (!spec_ref.get().containsIMData())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Ion mobility filtering requested but spectrum at RT=" +
+              String(spec_ref.get().getRT()) +
+              " does not contain per-peak IM data (CONCATENATED format required).");
+        }
+      }
+    }
+
+    // Get the indices of the spectra covered by the RT ranges
+    auto getCoveredSpectra = [](
+        const std::vector<std::reference_wrapper<const MSSpectrum>>& spectra_view,
+        const std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>>& mz_rt_im_ranges)
+        ->  std::vector<std::pair<size_t, size_t>>
+      {
+        std::vector<std::pair<size_t, size_t>> res;
+        res.reserve(mz_rt_im_ranges.size());
+
+        for (const auto & mz_rt_im : mz_rt_im_ranges)
+        {
+          const auto& rt_range = std::get<1>(mz_rt_im);
+          auto start_it = std::lower_bound(spectra_view.begin(), spectra_view.end(), rt_range.getMin(),
+            [](const auto& spec, double rt)
+            { return spec.get().getRT() < rt; });
+
+          auto stop_it = std::upper_bound(spectra_view.begin(), spectra_view.end(), rt_range.getMax(),
+            [](double rt, const auto& spec)
+            { return rt < spec.get().getRT(); });
+
+            res.emplace_back(
+                std::distance(spectra_view.begin(), start_it),
+                std::distance(spectra_view.begin(), stop_it)
+            );
+        }
+        return res;
+      };
+
+    // For each range, gets (spectrum start index, spectrum stop index)
+    const std::vector<std::pair<size_t, size_t>> rt_ranges_idcs = getCoveredSpectra(spectra_view, mz_rt_im_ranges);
+
+    // Initialize result vector
+    std::vector<MSChromatogram> result(mz_rt_im_ranges.size());
+
+    // We use temporary storage since we need thread-safe parallel insertion
+    std::vector<std::vector<ChromatogramPeak>> temp_results(mz_rt_im_ranges.size());
+
+    // Initialize chromatogram metadata
+    for (size_t i = 0; i < mz_rt_im_ranges.size(); ++i)
+    {
+        const auto& mz_range = std::get<0>(mz_rt_im_ranges[i]);
+        result[i].getProduct().setMZ((mz_range.getMinMZ() + mz_range.getMaxMZ()) / 2.0);
+    }
+
+    // Build spectrum to range index mapping
+    std::vector<std::vector<size_t>> spec_idx_to_range_idx(spectra_view.size());
+    for (size_t i = 0; i < rt_ranges_idcs.size(); ++i)
+    {
+        const auto& [start, stop] = rt_ranges_idcs[i];
+        for (size_t j = start; j < stop; ++j)
+        {
+          spec_idx_to_range_idx[j].push_back(i);
+        }
+    }
+
+    // Process spectra - we use critical sections for thread safety when appending to temp_results
+    #pragma omp parallel for schedule(dynamic)
+    for (Int64 i = 0; i < (Int64)spec_idx_to_range_idx.size(); ++i)
+    {
+      if (spec_idx_to_range_idx[i].empty()) continue;
+
+      const auto& spec = spectra_view[i].get();
+      const double rt = spec.getRT();
+      auto spec_begin = spec.cbegin();
+      auto spec_end = spec.cend();
+
+      // Get IM data for this spectrum (CONCATENATED format)
+      // Reference the per-peak IM array (validated to exist above) instead of
+      // copying the whole array per spectrum as maybeGetIMData() would.
+      const MSSpectrum::FloatDataArray* im_array = nullptr;
+      if (needs_im_filtering)
+      {
+        im_array = &spec.getFloatDataArrays()[spec.getIMData().first];
+      }
+
+      // Reused across ranges of this spectrum to avoid per-range heap allocations
+      std::vector<Peak1D> filtered_peaks;
+
+      for (size_t range_idx : spec_idx_to_range_idx[i])
+      {
+        const auto& mz_range = std::get<0>(mz_rt_im_ranges[range_idx]);
+        const auto& im_range = std::get<2>(mz_rt_im_ranges[range_idx]);
+
+        // Find data points within MZ range
+        auto start_it = spec.PosBegin(spec_begin, mz_range.getMinMZ(), spec_end);
+        auto end_it = start_it;
+
+        while (end_it != spec_end && end_it->getPosition() <= mz_range.getMaxMZ())
+        {
+          ++end_it;
+        }
+
+        double intensity_value = 0.0;
+
+        if (!im_range.isEmpty())
+        {
+          // IM filtering enabled: filter peaks by IM value.
+          // peak_idx is tracked incrementally from the start offset (random-access
+          // iterators) instead of recomputing std::distance(cbegin, it) per peak.
+          filtered_peaks.clear();
+          filtered_peaks.reserve(std::distance(start_it, end_it));
+
+          size_t peak_idx = (size_t)std::distance(spec_begin, start_it);
+          for (auto it = start_it; it != end_it; ++it, ++peak_idx)
+          {
+            if (peak_idx < im_array->size() && im_range.containsMobility((*im_array)[peak_idx]))
+            {
+              filtered_peaks.push_back(*it);
+            }
+          }
+
+          intensity_value = func_mz_reduction(filtered_peaks.begin(), filtered_peaks.end());
+        }
+        else
+        {
+          // No IM filtering for this range
+          intensity_value = func_mz_reduction(start_it, end_it);
+        }
+
+        #pragma omp critical
+        {
+          temp_results[range_idx].emplace_back(rt, intensity_value);
+        }
+      }
+    }
+
+    // Sort and move results to chromatograms
+    for (size_t i = 0; i < result.size(); ++i)
+    {
+      // Sort by RT since parallel insertion may be out of order
+      std::sort(temp_results[i].begin(), temp_results[i].end(),
+                [](const ChromatogramPeak& a, const ChromatogramPeak& b) {
+                  return a.getRT() < b.getRT();
+                });
+
+      result[i].insert(result[i].end(), temp_results[i].begin(), temp_results[i].end());
+      result[i].updateRanges();
+    }
+
+    return result;
+}
+
+// Overload without func_mz_reduction parameter for IM version
+std::vector<MSChromatogram> extractXICs(
+    const std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>>& mz_rt_im_ranges,
+    unsigned int ms_level) const
+{
+    return extractXICs(mz_rt_im_ranges, ms_level, SumIntensityReduction());
+}
+
+private:
+/**
+ * @brief Helper to check if a precursor m/z range overlaps with a spectrum's isolation window
+ *
+ * For DIA data, checks if the target precursor m/z falls within the spectrum's
+ * precursor isolation window. Returns true if:
+ * - The precursor range is empty (no filtering), or
+ * - Any of the spectrum's precursors have an isolation window that overlaps with the range
+ *
+ * @param[in] spec The spectrum to check
+ * @param[in] precursor_mz_range The target precursor m/z range
+ * @return true if the spectrum should be included, false otherwise
+ */
+static bool precursorInIsolationWindow_(const MSSpectrum& spec, const RangeMZ& precursor_mz_range)
+{
+    // Empty precursor range means no filtering
+    if (precursor_mz_range.isEmpty())
+    {
+        return true;
+    }
+
+    const auto& precursors = spec.getPrecursors();
+    if (precursors.empty())
+    {
+        return false;  // MS2 spectrum without precursor info - skip
+    }
+
+    // Check if any precursor's isolation window overlaps with the requested range
+    for (const auto& prec : precursors)
+    {
+        double iso_low = prec.getMZ() - prec.getIsolationWindowLowerOffset();
+        double iso_high = prec.getMZ() + prec.getIsolationWindowUpperOffset();
+
+        // Check overlap: requested range overlaps with isolation window
+        if (precursor_mz_range.getMinMZ() <= iso_high && precursor_mz_range.getMaxMZ() >= iso_low)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * @brief Helper to convert a matrix of ranges to a vector of tuples with IM and precursor filtering
+ *
+ * Converts an 8-column matrix [mz_min, mz_max, rt_min, rt_max, im_min, im_max, prec_mz_min, prec_mz_max]
+ * to a vector of tuples. If im_min > im_max, the IM range is left empty (no filtering).
+ * If prec_mz_min > prec_mz_max, the precursor range is left empty (no filtering).
+ *
+ * @param[in] ranges The input matrix with 8 columns
+ * @return Vector of tuples (RangeMZ, RangeRT, RangeMobility, RangeMZ)
+ * @throws Exception::InvalidParameter if the matrix doesn't have 8 columns
+ */
+static std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>>
+matrixToRangesWithIMAndPrecursor_(const Matrix<double>& ranges)
+{
+    if (ranges.cols() != 8)
+    {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Range matrix must have 8 columns [mz_min, mz_max, rt_min, rt_max, im_min, im_max, prec_mz_min, prec_mz_max]");
+    }
+
+    std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>> tuples;
+    tuples.reserve((Size)ranges.rows());
+
+    for (Size i = 0; i < (Size)ranges.rows(); ++i)
+    {
+        RangeMobility im_range;
+        if (ranges(i, 4) <= ranges(i, 5))
+        {
+            im_range = RangeMobility(ranges(i, 4), ranges(i, 5));
+        }
+
+        RangeMZ prec_range;
+        if (ranges(i, 6) <= ranges(i, 7))
+        {
+            prec_range = RangeMZ(ranges(i, 6), ranges(i, 7));
+        }
+
+        tuples.emplace_back(
+            RangeMZ(ranges(i, 0), ranges(i, 1)),
+            RangeRT(ranges(i, 2), ranges(i, 3)),
+            im_range,
+            prec_range
+        );
+    }
+
+    return tuples;
+}
+
+public:
+/**
+ * @brief Extracts XICs with ion mobility and precursor m/z filtering (for DIA MS2 data).
+ *
+ * This function extracts XICs filtered by product m/z, RT, ion mobility, and precursor m/z ranges.
+ * The precursor m/z filtering is essential for DIA data where MS2 spectra are acquired in
+ * predefined isolation windows (swaths). Only MS2 spectra whose isolation window contains
+ * the target precursor m/z will be included.
+ *
+ * @param[in] ranges A vector of tuples: (product_mz, rt, im, precursor_mz)
+ *   - product_mz: Fragment/product ion m/z range
+ *   - rt: Retention time range
+ *   - im: Ion mobility range (empty = no IM filtering)
+ *   - precursor_mz: Precursor m/z range for swath filtering (empty = no precursor filtering)
+ * @param[in] ms_level The MS level (typically 2 for DIA fragment extraction)
+ * @param[in] func_mz_reduction The reduction function for aggregating intensities
+ *
+ * @return A vector of MSChromatogram objects
+ *
+ * @throws Exception::MissingInformation if IM filtering is requested but spectra lack per-peak IM data
+ */
+template<class MzReductionFunctionType>
+std::vector<MSChromatogram> extractXICs(
+    const std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>>& ranges,
+    unsigned int ms_level,
+    MzReductionFunctionType func_mz_reduction) const
+{
+    if (ranges.empty())
+    {
+        return {};
+    }
+
+    // Check if any range has IM filtering enabled
+    bool needs_im_filtering = false;
+    for (const auto& range : ranges)
+    {
+        if (!std::get<2>(range).isEmpty())
+        {
+            needs_im_filtering = true;
+            break;
+        }
+    }
+
+    // Create a view of the spectra with given MS level
+    std::vector<std::reference_wrapper<const MSSpectrum>> spectra_view;
+    spectra_view.reserve(spectra_.size());
+    std::copy_if(spectra_.begin(), spectra_.end(),
+                 std::back_inserter(spectra_view),
+                 [ms_level](const auto& spec) {
+                     return spec.getMSLevel() == ms_level;
+                 });
+
+    if (spectra_view.empty())
+    {
+        return {};
+    }
+
+    // If IM filtering is needed, verify all spectra have CONCATENATED IM data
+    if (needs_im_filtering)
+    {
+        for (const auto& spec_ref : spectra_view)
+        {
+            // containsIMData() is a cheap presence check; avoids copying the
+            // per-peak IM array (as maybeGetIMData would) just for validation.
+            if (!spec_ref.get().containsIMData())
+            {
+                throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "Ion mobility filtering requested but spectrum at RT=" +
+                    String(spec_ref.get().getRT()) +
+                    " does not contain per-peak IM data (CONCATENATED format required).");
+            }
+        }
+    }
+
+    // Get RT range indices
+    auto getCoveredSpectra = [](
+        const std::vector<std::reference_wrapper<const MSSpectrum>>& spectra_view,
+        const std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>>& ranges)
+        -> std::vector<std::pair<size_t, size_t>>
+    {
+        std::vector<std::pair<size_t, size_t>> res;
+        res.reserve(ranges.size());
+
+        for (const auto& range : ranges)
+        {
+            const auto& rt_range = std::get<1>(range);
+            auto start_it = std::lower_bound(spectra_view.begin(), spectra_view.end(), rt_range.getMin(),
+                [](const auto& spec, double rt) { return spec.get().getRT() < rt; });
+            auto stop_it = std::upper_bound(spectra_view.begin(), spectra_view.end(), rt_range.getMax(),
+                [](double rt, const auto& spec) { return rt < spec.get().getRT(); });
+
+            res.emplace_back(
+                std::distance(spectra_view.begin(), start_it),
+                std::distance(spectra_view.begin(), stop_it)
+            );
+        }
+        return res;
+    };
+
+    const std::vector<std::pair<size_t, size_t>> rt_ranges_idcs = getCoveredSpectra(spectra_view, ranges);
+
+    std::vector<MSChromatogram> result(ranges.size());
+    std::vector<std::vector<ChromatogramPeak>> temp_results(ranges.size());
+
+    for (size_t i = 0; i < ranges.size(); ++i)
+    {
+        const auto& mz_range = std::get<0>(ranges[i]);
+        result[i].getProduct().setMZ((mz_range.getMinMZ() + mz_range.getMaxMZ()) / 2.0);
+    }
+
+    std::vector<std::vector<size_t>> spec_idx_to_range_idx(spectra_view.size());
+    for (size_t i = 0; i < rt_ranges_idcs.size(); ++i)
+    {
+        const auto& [start, stop] = rt_ranges_idcs[i];
+        for (size_t j = start; j < stop; ++j)
+        {
+            spec_idx_to_range_idx[j].push_back(i);
+        }
+    }
+
+    #pragma omp parallel for schedule(dynamic)
+    for (Int64 i = 0; i < (Int64)spec_idx_to_range_idx.size(); ++i)
+    {
+        if (spec_idx_to_range_idx[i].empty()) continue;
+
+        const auto& spec = spectra_view[i].get();
+        const double rt = spec.getRT();
+        auto spec_begin = spec.cbegin();
+        auto spec_end = spec.cend();
+
+        // Reference the per-peak IM array (validated to exist above) instead of
+        // copying the whole array per spectrum as maybeGetIMData() would.
+        const MSSpectrum::FloatDataArray* im_array = nullptr;
+        if (needs_im_filtering)
+        {
+            im_array = &spec.getFloatDataArrays()[spec.getIMData().first];
+        }
+
+        // Reused across ranges of this spectrum to avoid per-range heap allocations
+        std::vector<Peak1D> filtered_peaks;
+
+        for (size_t range_idx : spec_idx_to_range_idx[i])
+        {
+            const auto& mz_range = std::get<0>(ranges[range_idx]);
+            const auto& im_range = std::get<2>(ranges[range_idx]);
+            const auto& precursor_range = std::get<3>(ranges[range_idx]);
+
+            // Check precursor isolation window for DIA filtering
+            if (!precursorInIsolationWindow_(spec, precursor_range))
+            {
+                continue;
+            }
+
+            auto start_it = spec.PosBegin(spec_begin, mz_range.getMinMZ(), spec_end);
+            auto end_it = start_it;
+            while (end_it != spec_end && end_it->getPosition() <= mz_range.getMaxMZ())
+            {
+                ++end_it;
+            }
+
+            double intensity_value = 0.0;
+
+            if (!im_range.isEmpty())
+            {
+                // peak_idx tracked incrementally from the start offset instead of
+                // recomputing std::distance(cbegin, it) for every peak.
+                filtered_peaks.clear();
+                filtered_peaks.reserve(std::distance(start_it, end_it));
+
+                size_t peak_idx = (size_t)std::distance(spec_begin, start_it);
+                for (auto it = start_it; it != end_it; ++it, ++peak_idx)
+                {
+                    if (peak_idx < im_array->size() && im_range.containsMobility((*im_array)[peak_idx]))
+                    {
+                        filtered_peaks.push_back(*it);
+                    }
+                }
+                intensity_value = func_mz_reduction(filtered_peaks.begin(), filtered_peaks.end());
+            }
+            else
+            {
+                intensity_value = func_mz_reduction(start_it, end_it);
+            }
+
+            #pragma omp critical
+            {
+                temp_results[range_idx].emplace_back(rt, intensity_value);
+            }
+        }
+    }
+
+    for (size_t i = 0; i < result.size(); ++i)
+    {
+        std::sort(temp_results[i].begin(), temp_results[i].end(),
+                  [](const ChromatogramPeak& a, const ChromatogramPeak& b) {
+                      return a.getRT() < b.getRT();
+                  });
+        result[i].insert(result[i].end(), temp_results[i].begin(), temp_results[i].end());
+        result[i].updateRanges();
+    }
+
+    return result;
+}
+
+// Convenience overload without reduction function
+std::vector<MSChromatogram> extractXICs(
+    const std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>>& ranges,
+    unsigned int ms_level) const
+{
+    return extractXICs(ranges, ms_level, SumIntensityReduction());
+}
+
+/**
+ * @brief Aggregates data with ion mobility and precursor m/z filtering (for DIA MS2 data).
+ *
+ * @param[in] ranges A vector of tuples: (product_mz, rt, im, precursor_mz)
+ * @param[in] ms_level The MS level
+ * @param[in] func_mz_reduction The reduction function
+ *
+ * @return A vector of vectors of aggregated values
+ */
+template<class MzReductionFunctionType>
+std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
+    const std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>>& ranges,
+    unsigned int ms_level,
+    MzReductionFunctionType func_mz_reduction) const
+{
+    if (ranges.empty())
+    {
+        return {};
+    }
+
+    bool needs_im_filtering = false;
+    for (const auto& range : ranges)
+    {
+        if (!std::get<2>(range).isEmpty())
+        {
+            needs_im_filtering = true;
+            break;
+        }
+    }
+
+    std::vector<std::reference_wrapper<const MSSpectrum>> spectra_view;
+    spectra_view.reserve(spectra_.size());
+    std::copy_if(spectra_.begin(), spectra_.end(),
+                 std::back_inserter(spectra_view),
+                 [ms_level](const auto& spec) {
+                     return spec.getMSLevel() == ms_level;
+                 });
+
+    if (spectra_view.empty())
+    {
+        return {};
+    }
+
+    if (needs_im_filtering)
+    {
+        for (const auto& spec_ref : spectra_view)
+        {
+            // containsIMData() is a cheap presence check; avoids copying the
+            // per-peak IM array (as maybeGetIMData would) just for validation.
+            if (!spec_ref.get().containsIMData())
+            {
+                throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "Ion mobility filtering requested but spectrum at RT=" +
+                    String(spec_ref.get().getRT()) +
+                    " does not contain per-peak IM data (CONCATENATED format required).");
+            }
+        }
+    }
+
+    auto getCoveredSpectra = [](
+        const std::vector<std::reference_wrapper<const MSSpectrum>>& spectra_view,
+        const std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>>& ranges)
+        -> std::vector<std::pair<size_t, size_t>>
+    {
+        std::vector<std::pair<size_t, size_t>> res;
+        res.reserve(ranges.size());
+
+        for (const auto& range : ranges)
+        {
+            const auto& rt_range = std::get<1>(range);
+            auto start_it = std::lower_bound(spectra_view.begin(), spectra_view.end(), rt_range.getMin(),
+                [](const auto& spec, double rt) { return spec.get().getRT() < rt; });
+            auto stop_it = std::upper_bound(spectra_view.begin(), spectra_view.end(), rt_range.getMax(),
+                [](double rt, const auto& spec) { return rt < spec.get().getRT(); });
+
+            res.emplace_back(
+                std::distance(spectra_view.begin(), start_it),
+                std::distance(spectra_view.begin(), stop_it)
+            );
+        }
+        return res;
+    };
+
+    const std::vector<std::pair<size_t, size_t>> rt_ranges_idcs = getCoveredSpectra(spectra_view, ranges);
+
+    // Aggregate with precursor filtering: spectra may be skipped, so the result is
+    // compacted (only spectra passing precursor filtering contribute a value).
+    // We write into per-range slot arrays indexed by the spectrum's position within
+    // its RT window. Each parallel iteration i writes a distinct (range_idx, pos)
+    // slot, so the writes are disjoint and require no critical section (which would
+    // otherwise serialize every result write). A parallel mask records which slots
+    // were filled; results are compacted in ascending spectrum order afterwards.
+    std::vector<std::vector<MSExperiment::CoordinateType>> result(ranges.size());
+    std::vector<std::vector<CoordinateType>> slot_values(ranges.size());
+    std::vector<std::vector<char>> slot_filled(ranges.size());
+
+    std::vector<std::vector<size_t>> spec_idx_to_range_idx(spectra_view.size());
+    for (size_t i = 0; i < rt_ranges_idcs.size(); ++i)
+    {
+        const auto& [start, stop] = rt_ranges_idcs[i];
+        slot_values[i].assign(stop - start, CoordinateType());
+        slot_filled[i].assign(stop - start, 0);
+        for (size_t j = start; j < stop; ++j)
+        {
+            spec_idx_to_range_idx[j].push_back(i);
+        }
+    }
+
+    #pragma omp parallel for schedule(dynamic)
+    for (Int64 i = 0; i < (Int64)spec_idx_to_range_idx.size(); ++i)
+    {
+        if (spec_idx_to_range_idx[i].empty()) continue;
+
+        const auto& spec = spectra_view[i].get();
+        auto spec_begin = spec.cbegin();
+        auto spec_end = spec.cend();
+
+        // Reference the per-peak IM array (validated to exist above) instead of
+        // copying the whole array per spectrum as maybeGetIMData() would.
+        const MSSpectrum::FloatDataArray* im_array = nullptr;
+        if (needs_im_filtering)
+        {
+            im_array = &spec.getFloatDataArrays()[spec.getIMData().first];
+        }
+
+        // Reused across ranges of this spectrum to avoid per-range heap allocations
+        std::vector<Peak1D> filtered_peaks;
+
+        for (size_t range_idx : spec_idx_to_range_idx[i])
+        {
+            const auto& mz_range = std::get<0>(ranges[range_idx]);
+            const auto& im_range = std::get<2>(ranges[range_idx]);
+            const auto& precursor_range = std::get<3>(ranges[range_idx]);
+
+            if (!precursorInIsolationWindow_(spec, precursor_range))
+            {
+                continue;
+            }
+
+            auto start_it = spec.PosBegin(spec_begin, mz_range.getMinMZ(), spec_end);
+            auto end_it = start_it;
+            while (end_it != spec_end && end_it->getPosition() <= mz_range.getMaxMZ())
+            {
+                ++end_it;
+            }
+
+            CoordinateType value;
+
+            if (!im_range.isEmpty())
+            {
+                // peak_idx tracked incrementally from the start offset instead of
+                // recomputing std::distance(cbegin, it) for every peak.
+                filtered_peaks.clear();
+                filtered_peaks.reserve(std::distance(start_it, end_it));
+
+                size_t peak_idx = (size_t)std::distance(spec_begin, start_it);
+                for (auto it = start_it; it != end_it; ++it, ++peak_idx)
+                {
+                    if (peak_idx < im_array->size() && im_range.containsMobility((*im_array)[peak_idx]))
+                    {
+                        filtered_peaks.push_back(*it);
+                    }
+                }
+                value = func_mz_reduction(filtered_peaks.begin(), filtered_peaks.end());
+            }
+            else
+            {
+                value = func_mz_reduction(start_it, end_it);
+            }
+
+            // Disjoint write: position of this spectrum within range_idx's RT window.
+            // No two iterations write the same (range_idx, pos), so no lock is needed.
+            const size_t pos = (size_t)i - rt_ranges_idcs[range_idx].first;
+            slot_values[range_idx][pos] = value;
+            slot_filled[range_idx][pos] = 1;
+        }
+    }
+
+    // Compact in ascending spectrum order, keeping only spectra that passed filtering.
+    for (size_t r = 0; r < result.size(); ++r)
+    {
+        result[r].reserve(slot_values[r].size());
+        for (size_t pos = 0; pos < slot_values[r].size(); ++pos)
+        {
+            if (slot_filled[r][pos])
+            {
+                result[r].push_back(slot_values[r][pos]);
+            }
+        }
+    }
+
+    return result;
+}
+
+// Convenience overload without reduction function
+std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
+    const std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility, RangeMZ>>& ranges,
+    unsigned int ms_level) const
+{
+    return aggregate(ranges, ms_level, SumIntensityReduction());
+}
+
   /**
    * @brief Wrapper for aggregate function that takes a matrix of m/z and RT ranges
    *
@@ -886,6 +1818,99 @@ std::vector<MSChromatogram> extractXICs(
   }
 
   /**
+   * @brief Wrapper for aggregate function with ion mobility filtering
+   *
+   * @param[in] ranges Matrix where each row contains [mz_min, mz_max, rt_min, rt_max, im_min, im_max]
+   * @param[in] ms_level MS level to process
+   * @param[in] mz_agg Aggregation function for m/z values ("sum", "max", "min", "mean")
+   * @return Vector of vectors containing aggregated intensity values for each range
+   *
+   * @throws Exception::MissingInformation if IM filtering is requested but spectra lack per-peak IM data
+   * @note If im_min > im_max for a range, no IM filtering is applied for that range
+   */
+  std::vector<std::vector<MSExperiment::CoordinateType>> aggregateFromMatrixWithIM(
+      const Matrix<double>& ranges,
+      unsigned int ms_level,
+      const std::string& mz_agg) const
+  {
+      // Check matrix dimensions
+      if (ranges.cols() != 6)
+      {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Range matrix must have 6 columns [mz_min, mz_max, rt_min, rt_max, im_min, im_max]");
+      }
+
+      // Convert matrix rows to vector of tuples
+      std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>> mz_rt_im_ranges;
+      mz_rt_im_ranges.reserve((Size)ranges.rows());
+
+      for (Size i = 0; i < (Size)ranges.rows(); ++i)
+      {
+          RangeMobility im_range;
+          // Only set IM range if im_min <= im_max (valid range)
+          if (ranges(i, 4) <= ranges(i, 5))
+          {
+              im_range = RangeMobility(ranges(i, 4), ranges(i, 5));
+          }
+
+          mz_rt_im_ranges.emplace_back(
+              RangeMZ(ranges(i, 0), ranges(i, 1)),
+              RangeRT(ranges(i, 2), ranges(i, 3)),
+              im_range
+          );
+      }
+
+      // Call appropriate aggregate function based on mz_agg parameter
+      if (mz_agg == "sum")
+      {
+          return aggregate(mz_rt_im_ranges, ms_level,
+              [](auto begin_it, auto end_it)
+              {
+                  return std::accumulate(begin_it, end_it, 0.0,
+                      [](double a, const Peak1D& b) { return a + b.getIntensity(); });
+              });
+      }
+      else if (mz_agg == "max")
+      {
+          return aggregate(mz_rt_im_ranges, ms_level,
+              [](auto begin_it, auto end_it)->double
+              {
+                  if (begin_it == end_it) return 0.0;
+                  return std::max_element(begin_it, end_it,
+                      [](const Peak1D& a, const Peak1D& b) { return a.getIntensity() < b.getIntensity(); }
+                  )->getIntensity();
+              });
+      }
+      else if (mz_agg == "min")
+      {
+          return aggregate(mz_rt_im_ranges, ms_level,
+              [](auto begin_it, auto end_it)->double
+              {
+                  if (begin_it == end_it) return 0.0;
+                  return std::min_element(begin_it, end_it,
+                      [](const Peak1D& a, const Peak1D& b) { return a.getIntensity() < b.getIntensity(); }
+                  )->getIntensity();
+              });
+      }
+      else if (mz_agg == "mean")
+      {
+          return aggregate(mz_rt_im_ranges, ms_level,
+              [](auto begin_it, auto end_it)
+              {
+                  if (begin_it == end_it) return 0.0;
+                  double sum = std::accumulate(begin_it, end_it, 0.0,
+                      [](double a, const Peak1D& b) { return a + b.getIntensity(); });
+                  return sum / static_cast<double>(std::distance(begin_it, end_it));
+              });
+      }
+      else
+      {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Invalid aggregation function", mz_agg);
+      }
+  }
+
+  /**
    * @brief Wrapper for extractXICs function that takes a matrix of m/z and RT ranges
    *
    * @param[in] ranges Matrix where each row contains [mz_min, mz_max, rt_min, rt_max]
@@ -954,6 +1979,221 @@ std::vector<MSChromatogram> extractXICs(
           return extractXICs(mz_rt_ranges, ms_level,
               [](auto begin_it, auto end_it)
               {
+                  if (begin_it == end_it) return 0.0;
+                  double sum = std::accumulate(begin_it, end_it, 0.0,
+                      [](double a, const Peak1D& b) { return a + b.getIntensity(); });
+                  return sum / static_cast<double>(std::distance(begin_it, end_it));
+              });
+      }
+      else
+      {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Invalid aggregation function", mz_agg);
+      }
+  }
+
+  /**
+   * @brief Wrapper for extractXICs function with ion mobility filtering
+   *
+   * @param[in] ranges Matrix where each row contains [mz_min, mz_max, rt_min, rt_max, im_min, im_max]
+   * @param[in] ms_level MS level to process
+   * @param[in] mz_agg Aggregation function for m/z values ("sum", "max", "min", "mean")
+   * @return Vector of MSChromatogram objects, one for each range
+   *
+   * @note If im_min > im_max for a range, no IM filtering is applied for that range
+   */
+  std::vector<MSChromatogram> extractXICsFromMatrixWithIM(
+      const Matrix<double>& ranges,
+      unsigned int ms_level,
+      const std::string& mz_agg) const
+  {
+      // Check matrix dimensions
+      if (ranges.cols() != 6)
+      {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Range matrix must have 6 columns [mz_min, mz_max, rt_min, rt_max, im_min, im_max]");
+      }
+
+      // Convert matrix rows to vector of tuples
+      std::vector<std::tuple<RangeMZ, RangeRT, RangeMobility>> mz_rt_im_ranges;
+      mz_rt_im_ranges.reserve((Size)ranges.rows());
+
+      for (Size i = 0; i < (Size)ranges.rows(); ++i)
+      {
+          RangeMobility im_range;
+          // Only set IM range if im_min <= im_max (valid range)
+          if (ranges(i, 4) <= ranges(i, 5))
+          {
+              im_range = RangeMobility(ranges(i, 4), ranges(i, 5));
+          }
+          // else: im_range remains empty (no IM filtering)
+
+          mz_rt_im_ranges.emplace_back(
+              RangeMZ(ranges(i, 0), ranges(i, 1)),
+              RangeRT(ranges(i, 2), ranges(i, 3)),
+              im_range
+          );
+      }
+
+      // Call appropriate extractXICs function based on mz_agg parameter
+      if (mz_agg == "sum")
+      {
+          return extractXICs(mz_rt_im_ranges, ms_level,
+              [](auto begin_it, auto end_it)
+              {
+                  return std::accumulate(begin_it, end_it, 0.0,
+                      [](double a, const Peak1D& b) { return a + b.getIntensity(); });
+              });
+      }
+      else if (mz_agg == "max")
+      {
+          return extractXICs(mz_rt_im_ranges, ms_level,
+              [](auto begin_it, auto end_it)->double
+              {
+                  if (begin_it == end_it) return 0.0;
+                  return std::max_element(begin_it, end_it,
+                      [](const Peak1D& a, const Peak1D& b) { return a.getIntensity() < b.getIntensity(); }
+                  )->getIntensity();
+              });
+      }
+      else if (mz_agg == "min")
+      {
+          return extractXICs(mz_rt_im_ranges, ms_level,
+              [](auto begin_it, auto end_it)->double
+              {
+                  if (begin_it == end_it) return 0.0;
+                  return std::min_element(begin_it, end_it,
+                      [](const Peak1D& a, const Peak1D& b) { return a.getIntensity() < b.getIntensity(); }
+                  )->getIntensity();
+              });
+      }
+      else if (mz_agg == "mean")
+      {
+          return extractXICs(mz_rt_im_ranges, ms_level,
+              [](auto begin_it, auto end_it)
+              {
+                  if (begin_it == end_it) return 0.0;
+                  double sum = std::accumulate(begin_it, end_it, 0.0,
+                      [](double a, const Peak1D& b) { return a + b.getIntensity(); });
+                  return sum / static_cast<double>(std::distance(begin_it, end_it));
+              });
+      }
+      else
+      {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Invalid aggregation function", mz_agg);
+      }
+  }
+
+  /**
+   * @brief Wrapper for extractXICs with IM and precursor filtering (for DIA MS2 data)
+   *
+   * @param[in] ranges Matrix where each row contains [mz_min, mz_max, rt_min, rt_max, im_min, im_max, prec_mz_min, prec_mz_max]
+   * @param[in] ms_level MS level to process (typically 2 for DIA)
+   * @param[in] mz_agg Aggregation function ("sum", "max", "min", "mean")
+   * @return Vector of MSChromatogram objects
+   *
+   * @note If im_min > im_max, no IM filtering for that row. If prec_mz_min > prec_mz_max, no precursor filtering.
+   */
+  std::vector<MSChromatogram> extractXICsFromMatrixWithIMAndPrecursor(
+      const Matrix<double>& ranges,
+      unsigned int ms_level,
+      const std::string& mz_agg) const
+  {
+      auto tuples = matrixToRangesWithIMAndPrecursor_(ranges);
+
+      if (mz_agg == "sum")
+      {
+          return extractXICs(tuples, ms_level,
+              [](auto begin_it, auto end_it) {
+                  return std::accumulate(begin_it, end_it, 0.0,
+                      [](double a, const Peak1D& b) { return a + b.getIntensity(); });
+              });
+      }
+      else if (mz_agg == "max")
+      {
+          return extractXICs(tuples, ms_level,
+              [](auto begin_it, auto end_it)->double {
+                  if (begin_it == end_it) return 0.0;
+                  return std::max_element(begin_it, end_it,
+                      [](const Peak1D& a, const Peak1D& b) { return a.getIntensity() < b.getIntensity(); }
+                  )->getIntensity();
+              });
+      }
+      else if (mz_agg == "min")
+      {
+          return extractXICs(tuples, ms_level,
+              [](auto begin_it, auto end_it)->double {
+                  if (begin_it == end_it) return 0.0;
+                  return std::min_element(begin_it, end_it,
+                      [](const Peak1D& a, const Peak1D& b) { return a.getIntensity() < b.getIntensity(); }
+                  )->getIntensity();
+              });
+      }
+      else if (mz_agg == "mean")
+      {
+          return extractXICs(tuples, ms_level,
+              [](auto begin_it, auto end_it) {
+                  if (begin_it == end_it) return 0.0;
+                  double sum = std::accumulate(begin_it, end_it, 0.0,
+                      [](double a, const Peak1D& b) { return a + b.getIntensity(); });
+                  return sum / static_cast<double>(std::distance(begin_it, end_it));
+              });
+      }
+      else
+      {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Invalid aggregation function", mz_agg);
+      }
+  }
+
+  /**
+   * @brief Wrapper for aggregate with IM and precursor filtering (for DIA MS2 data)
+   *
+   * @param[in] ranges Matrix where each row contains [mz_min, mz_max, rt_min, rt_max, im_min, im_max, prec_mz_min, prec_mz_max]
+   * @param[in] ms_level MS level to process
+   * @param[in] mz_agg Aggregation function ("sum", "max", "min", "mean")
+   * @return Vector of vectors of aggregated intensity values
+   */
+  std::vector<std::vector<MSExperiment::CoordinateType>> aggregateFromMatrixWithIMAndPrecursor(
+      const Matrix<double>& ranges,
+      unsigned int ms_level,
+      const std::string& mz_agg) const
+  {
+      auto tuples = matrixToRangesWithIMAndPrecursor_(ranges);
+
+      if (mz_agg == "sum")
+      {
+          return aggregate(tuples, ms_level,
+              [](auto begin_it, auto end_it) {
+                  return std::accumulate(begin_it, end_it, 0.0,
+                      [](double a, const Peak1D& b) { return a + b.getIntensity(); });
+              });
+      }
+      else if (mz_agg == "max")
+      {
+          return aggregate(tuples, ms_level,
+              [](auto begin_it, auto end_it)->double {
+                  if (begin_it == end_it) return 0.0;
+                  return std::max_element(begin_it, end_it,
+                      [](const Peak1D& a, const Peak1D& b) { return a.getIntensity() < b.getIntensity(); }
+                  )->getIntensity();
+              });
+      }
+      else if (mz_agg == "min")
+      {
+          return aggregate(tuples, ms_level,
+              [](auto begin_it, auto end_it)->double {
+                  if (begin_it == end_it) return 0.0;
+                  return std::min_element(begin_it, end_it,
+                      [](const Peak1D& a, const Peak1D& b) { return a.getIntensity() < b.getIntensity(); }
+                  )->getIntensity();
+              });
+      }
+      else if (mz_agg == "mean")
+      {
+          return aggregate(tuples, ms_level,
+              [](auto begin_it, auto end_it) {
                   if (begin_it == end_it) return 0.0;
                   double sum = std::accumulate(begin_it, end_it, 0.0,
                       [](double a, const Peak1D& b) { return a + b.getIntensity(); });

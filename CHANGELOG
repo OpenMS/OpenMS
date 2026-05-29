@@ -332,6 +332,7 @@ OpenMS Library:
     - Fragment index open search expanded with modification discovery and FDR filtering (#8414)
     - CCS (collisional cross section) support for ion mobility data (#8735)
     - Rasterize2D function for MSExperiment to rasterize 2D ion mobility data (#8739)
+    - MSExperiment::extractXICs()/aggregate(): ion mobility and precursor m/z filtering for DIA/SWATH analysis; new 3-tuple (m/z, RT, IM) and 4-tuple (m/z, RT, IM, precursor m/z) overloads plus matrix wrappers (extractXICsFromMatrixWithIM/aggregateFromMatrixWithIM and ...WithIMAndPrecursor) exposed in pyOpenMS. Requires CONCATENATED per-peak IM data; empty ranges disable a filter dimension (#8695)
     - SequenceCoverage: Reusable API extracted for computing protein sequence coverage (#8728)
     - Arrow/DataFrame/Parquet export for ConsensusMap with batch and streaming APIs (#8729)
     - PSM DataFrame export from PeptideIdentificationList (#8632)
