@@ -4274,6 +4274,15 @@ DefaultParamHandler
         .def("getSpectrum", [](OpenMS::TheoreticalSpectrumGenerator& self, OpenMS::MSSpectrum& spec, const OpenMS::AASequence& peptide, int min_charge, int max_charge) {
             self.getSpectrum(spec, peptide, min_charge, max_charge);
         }, "spec"_a, "peptide"_a, "min_charge"_a, "max_charge"_a, "Generates a spectrum for a peptide sequence, with the ion types that are set in the tool parameters")
+        .def("getPrefixAndSuffixIonsMZ", [](const OpenMS::TheoreticalSpectrumGenerator& self, const OpenMS::AASequence& peptide, int charge) {
+            std::vector<float> spectrum;
+            self.getPrefixAndSuffixIonsMZ(spectrum, peptide, charge);
+            size_t n = spectrum.size();
+            float* data = new float[n];
+            std::copy(spectrum.begin(), spectrum.end(), data);
+            nb::capsule owner(data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
+            return nb::ndarray<nb::numpy, float, nb::ndim<1>>(data, {n}, owner);
+        }, "peptide"_a, "charge"_a, "Returns the prefix and suffix ion m/z values for a peptide as a numpy float array")
         ;
 
     // -----------------------------------------------------------------------
