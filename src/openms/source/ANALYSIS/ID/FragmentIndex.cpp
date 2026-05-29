@@ -1515,23 +1515,28 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
   {
     // Preconditions checked by the public entry point querySpectrum.
 
-    const auto& precursor = spectrum.getPrecursors()[0];
-    vector<uint16_t> charges;
-    // Precursor::getCharge() returns signed Int; treat non-positive (0 = unset,
-    // rare negative-mode encodings) as "unknown" and fall back to the
-    // configured min..max range. Without this guard, static_cast<uint16_t>(-1)
-    // would wrap to 65535 and be used as an actual charge downstream.
-    if (precursor.getCharge() > 0)
+    const auto& precursors_list = spectrum.getPrecursors();
+
+    // Build a global charge list from all precursors for the Phase 1 byte scan.
+    // Per-precursor charge selection happens in Phase 2.
+    vector<uint16_t> all_charges;
+    for (const auto& prec : precursors_list)
     {
-      charges.push_back(static_cast<uint16_t>(precursor.getCharge()));
+      if (prec.getCharge() > 0)
+      {
+        all_charges.push_back(static_cast<uint16_t>(prec.getCharge()));
+      }
     }
-    else
+    if (all_charges.empty())
     {
       for (uint16_t z = min_precursor_charge_; z <= max_precursor_charge_; ++z)
       {
-        charges.push_back(z);
+        all_charges.push_back(z);
       }
     }
+    // Deduplicate for Phase 1 byte scan max-charge computation
+    std::sort(all_charges.begin(), all_charges.end());
+    all_charges.erase(std::unique(all_charges.begin(), all_charges.end()), all_charges.end());
 
     // Phase 1 — byte-count scoring across ALL mothers.
     //
@@ -1549,7 +1554,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     // queryPeaks — using the static max_precursor_charge_ would inflate byte
     // counts with matches at fragment charges above the actual precursor charge.
     uint16_t byte_scan_max_frag_charge = 0;
-    for (uint16_t c : charges) byte_scan_max_frag_charge = std::max(byte_scan_max_frag_charge, c);
+    for (uint16_t c : all_charges) byte_scan_max_frag_charge = std::max(byte_scan_max_frag_charge, c);
     byte_scan_max_frag_charge = std::min(byte_scan_max_frag_charge, max_fragment_charge_);
 
     for (const Peak1D& peak : spectrum)
@@ -1616,10 +1621,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     thread_local std::vector<uint8_t> emitted;
     emitted.assign(fi_peptides_.size(), 0);
 
-    // Helper: compute the iso-shifted observed (M+H)+ for a given (charge, iso_err).
+    // Helper: compute the iso-shifted observed (M+H)+ for a given (precursor_idx, charge, iso_err).
     // Used by the subset-enumeration post-pass to reconstruct the realization target.
-    auto shifted_mh_for = [&](uint16_t charge, int16_t iso_err) -> float {
-      const float mh_plus = static_cast<float>(precursor.getMZ()) * charge
+    auto shifted_mh_for = [&](uint16_t prec_idx, uint16_t charge, int16_t iso_err) -> float {
+      const float mh_plus = static_cast<float>(precursors_list[prec_idx].getMZ()) * charge
         - (charge - 1) * static_cast<float>(Constants::PROTON_MASS_U);
       return mh_plus + static_cast<float>(iso_err) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
     };
@@ -1630,7 +1635,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     // max-collapse over-admitted ~20× on the tighter side.
     auto collect_candidates =
       [&](float target_mz, float tol_lo, float tol_hi, bool expect_single_c,
-          int16_t iso_err, uint16_t charge,
+          int16_t iso_err, uint16_t charge, uint16_t p_idx,
           SnesAnchor require_anchor, float sigma_tag)
     {
       auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(),
@@ -1676,6 +1681,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           sm.num_matched_ = score_table[id];
           sm.isotope_error_ = iso_err;
           sm.precursor_charge_ = charge;
+          sm.precursor_idx_ = p_idx;
           sm.sigma_delta_ = sigma_tag;
           sms.hits_.push_back(sm);
         }
@@ -1705,6 +1711,24 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         snes_sigma_delta_set_with_prot_nterm_, snes_sigma_delta_set_);
     const std::vector<double> prot_cterm_extra = set_difference_tol(
         snes_sigma_delta_set_with_prot_cterm_, snes_sigma_delta_set_);
+
+    for (uint16_t prec_idx = 0; prec_idx < static_cast<uint16_t>(precursors_list.size()); ++prec_idx)
+    {
+      const auto& precursor = precursors_list[prec_idx];
+      vector<uint16_t> charges;
+      if (precursor.getCharge() > 0)
+      {
+        charges.push_back(static_cast<uint16_t>(precursor.getCharge()));
+      }
+      else
+      {
+        // Unknown charge: enumerate the full configured range (not just charges
+        // from other precursors, which would miss valid charge states).
+        for (uint16_t z = min_precursor_charge_; z <= max_precursor_charge_; ++z)
+        {
+          charges.push_back(z);
+        }
+      }
 
     for (uint16_t charge : charges)
     {
@@ -1761,10 +1785,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           // configures Acetyl (N-term) / Amidated (C-term) / similar.
           collect_candidates(shifted_mh - static_cast<float>(water)
                                         - static_cast<float>(fixed_cterm_delta_) - s,
-                             prec_tol_lo, prec_tol_hi, /*expect_single_c=*/false, iso_err, charge,
+                             prec_tol_lo, prec_tol_hi, /*expect_single_c=*/false, iso_err, charge, prec_idx,
                              SnesAnchor::NONE, s);
           collect_candidates(shifted_mh - static_cast<float>(fixed_nterm_delta_) - s,
-                             prec_tol_lo, prec_tol_hi, /*expect_single_c=*/true, iso_err, charge,
+                             prec_tol_lo, prec_tol_hi, /*expect_single_c=*/true, iso_err, charge, prec_idx,
                              SnesAnchor::NONE, s);
 
           // Supplementary full-length realization at this Σ — recover b_L and y_L
@@ -1795,6 +1819,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
               sm.num_matched_ = score_table[id];
               sm.isotope_error_ = iso_err;
               sm.precursor_charge_ = charge;
+              sm.precursor_idx_ = prec_idx;
               sm.sigma_delta_ = s;
               sms.hits_.push_back(sm);
             }
@@ -1810,7 +1835,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           const float s = static_cast<float>(sigma);
           collect_candidates(shifted_mh - static_cast<float>(water)
                                         - static_cast<float>(fixed_cterm_delta_) - s,
-                             prec_tol_lo, prec_tol_hi, /*expect_single_c=*/false, iso_err, charge,
+                             prec_tol_lo, prec_tol_hi, /*expect_single_c=*/false, iso_err, charge, prec_idx,
                              SnesAnchor::PROT_NTERM, s);
           // Supplementary full-length at this Σ, PROT_NTERM-gated.
           {
@@ -1834,6 +1859,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
               sm.num_matched_ = score_table[id];
               sm.isotope_error_ = iso_err;
               sm.precursor_charge_ = charge;
+              sm.precursor_idx_ = prec_idx;
               sm.sigma_delta_ = s;
               sms.hits_.push_back(sm);
             }
@@ -1846,7 +1872,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           std::fill(emitted.begin(), emitted.end(), 0);
           const float s = static_cast<float>(sigma);
           collect_candidates(shifted_mh - static_cast<float>(fixed_nterm_delta_) - s,
-                             prec_tol_lo, prec_tol_hi, /*expect_single_c=*/true, iso_err, charge,
+                             prec_tol_lo, prec_tol_hi, /*expect_single_c=*/true, iso_err, charge, prec_idx,
                              SnesAnchor::PROT_CTERM, s);
           // Supplementary full-length at this Σ, PROT_CTERM-gated.
           {
@@ -1872,13 +1898,15 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
               sm.num_matched_ = score_table[id];
               sm.isotope_error_ = iso_err;
               sm.precursor_charge_ = charge;
+              sm.precursor_idx_ = prec_idx;
               sm.sigma_delta_ = s;
               sms.hits_.push_back(sm);
             }
           }
         }
       }
-    }
+    } // end charge loop
+    } // end precursor loop
 
     // SNES v1.1 subset enumeration: expand each (mother, Σ) hit in sms.hits_
     // into one SpectrumMatch per valid variable-mod subset on the realized
@@ -1902,7 +1930,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
         const Peptide& mother = fi_peptides_[sm_raw.peptide_idx_];
         const double iso_shifted_target =
-            static_cast<double>(shifted_mh_for(sm_raw.precursor_charge_, sm_raw.isotope_error_))
+            static_cast<double>(shifted_mh_for(sm_raw.precursor_idx_, sm_raw.precursor_charge_, sm_raw.isotope_error_))
             - static_cast<double>(sm_raw.sigma_delta_);
         const int realized_len = realizeSNESLength(
             mother, fasta_entries_ref, iso_shifted_target,
@@ -2041,10 +2069,9 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         return;
       }
 
-      const auto& precursor = spectrum.getPrecursors();
-      if (precursor.size() != 1)
+      const auto& precursors = spectrum.getPrecursors();
+      if (precursors.empty())
       {
-        OPENMS_LOG_WARN << "Number of precursors is not equal 1 \n";
         return;
       }
 
@@ -2054,29 +2081,32 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         return;
       }
 
-      // Non-SNES path: fasta_entries not needed.
-      // two posible modes. Precursor has a charge or we test all possible charges
-      vector<size_t> charges;
-      if (precursor[0].getCharge())
+      // Loop over all precursors (supports multi-precursor DIA spectra).
+      // For each precursor, determine charge(s) and query the index.
+      for (uint16_t prec_idx = 0; prec_idx < static_cast<uint16_t>(precursors.size()); ++prec_idx)
       {
-        charges.push_back(precursor[0].getCharge());
-      }
-      else
-      {
-        for (uint16_t i = min_precursor_charge_; i <= max_precursor_charge_; i++)
+        vector<size_t> charges;
+        if (precursors[prec_idx].getCharge() > 0)
         {
-          charges.push_back(i);
+          charges.push_back(precursors[prec_idx].getCharge());
         }
-      }
+        else
+        {
+          for (uint16_t i = min_precursor_charge_; i <= max_precursor_charge_; i++)
+          {
+            charges.push_back(i);
+          }
+        }
 
-      for (uint16_t charge : charges)
-      {
-        SpectrumMatchesTopN candidates_charge;
-        float mz;
-        mz = (float)precursor[0].getMZ() * charge - ((charge-1) * Constants::PROTON_MASS_U);
-        searchDifferentPrecursorRanges(spectrum, mz, candidates_charge, charge);
+        for (uint16_t charge : charges)
+        {
+          SpectrumMatchesTopN candidates_charge;
+          float mz = (float)precursors[prec_idx].getMZ() * charge - ((charge-1) * Constants::PROTON_MASS_U);
+          searchDifferentPrecursorRanges(spectrum, mz, candidates_charge, charge);
 
-        sms += candidates_charge;
+          for (auto& hit : candidates_charge.hits_) { hit.precursor_idx_ = prec_idx; }
+          sms += candidates_charge;
+        }
       }
       trimHits(sms);
   }

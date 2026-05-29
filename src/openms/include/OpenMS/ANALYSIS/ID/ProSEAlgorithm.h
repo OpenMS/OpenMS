@@ -349,6 +349,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       // Layout: doubles first, then floats, then int, then uint16_t — minimizes padding (40 bytes excluding AASequence)
       double score = 0; ///< main score
       double delta_mass = 0.0; ///< mass difference for open search (Da)
+      double dia_precursor_mz = 0.0; ///< DIA: winning precursor m/z from MS1 (0.0 = use spectrum metadata)
       float prefix_fraction = 0; ///< fraction of annotated prefix ions (a/b/c)
       float suffix_fraction = 0; ///< fraction of annotated suffix ions (x/y/z)
       float mean_error = 0.0f; ///< mean absolute fragment mass error
@@ -525,6 +526,12 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     double calibration_subset_ratio_{0.1};
     Size calibration_min_psms_{50};
 
+    // DIA (Data-Independent Acquisition) support
+    String dia_mode_{"auto"};
+    Size dia_max_precursor_candidates_{20};
+    double dia_isotope_tolerance_ppm_{10.0};
+    double dia_min_isolation_width_{4.0};
+
     /**
      * @brief Result of a calibration pass.
      *
@@ -607,6 +614,46 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                              precursor_mass_tolerance_upper_,
                                              precursor_mass_tolerance_unit_ == "ppm");
     }
+
+    // ======================= DIA support =======================
+
+    struct PrecursorCandidate_
+    {
+      double mz;
+      double intensity;
+      int charge; ///< 0 = unknown (will enumerate all charges)
+    };
+
+    /// Auto-detect DIA by checking isolation window widths on MS2 spectra.
+    bool isDIAExperiment_(const PeakMap& spectra) const;
+
+    /// Build map from spectrum index → parent MS1 spectrum index (-1 if none).
+    static std::vector<int> buildMS2ToMS1Map_(const PeakMap& full_exp);
+
+    /// Extract top-N deisotoped MS1 peaks within the isolation window of an MS2
+    /// precursor. The Deisotoper collapses isotope envelopes to monoisotopic peaks
+    /// and assigns charges as a side effect; candidates whose charge could not be
+    /// determined are returned with charge=0 (FragmentIndex will enumerate charges).
+    static std::vector<PrecursorCandidate_> extractMS1PrecursorCandidates_(
+        const MSSpectrum& ms1_spectrum,
+        const Precursor& ms2_precursor,
+        Size max_candidates,
+        int min_charge,
+        int max_charge,
+        double isotope_tolerance_ppm);
+
+    /// Expand DIA MS2 spectra by replacing the isolation-window-center precursor
+    /// with multiple precursors (one per MS1 candidate). Returns a PeakMap where
+    /// each spectrum has N precursors; fragment peaks are shared (no duplication).
+    PeakMap expandDIASpectra_(
+        const PeakMap& full_exp,
+        const std::vector<int>& ms2_to_ms1_map) const;
+
+    /// Load spectra from file with DIA-aware handling. In DIA mode, loads the full
+    /// experiment (MS1+MS2), extracts precursor candidates from MS1, and returns
+    /// spectra with multiple precursors. In DDA mode, returns MS2-only spectra.
+    /// Avoids double file loading by detecting DIA from the full experiment.
+    PeakMap loadSpectraForSearch_(const String& in_spectra) const;
 };
 
 } // namespace
