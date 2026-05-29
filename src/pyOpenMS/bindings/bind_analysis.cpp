@@ -2653,6 +2653,10 @@ params.select_transition_group = False
         .def("setSMILESString", [](OpenMS::SpectralMatch& self, const OpenMS::String& p0) { return self.setSMILESString(p0); })
         .def("getPrecursorAdduct", [](const OpenMS::SpectralMatch& self) { return self.getPrecursorAdduct(); })
         .def("setPrecursorAdduct", [](OpenMS::SpectralMatch& self, const OpenMS::String& p0) { return self.setPrecursorAdduct(p0); })
+        .def("getObservedCCS", [](const OpenMS::SpectralMatch& self) { return self.getObservedCCS(); })
+        .def("setObservedCCS", [](OpenMS::SpectralMatch& self, const double& p0) { return self.setObservedCCS(p0); })
+        .def("getFoundCCS", [](const OpenMS::SpectralMatch& self) { return self.getFoundCCS(); })
+        .def("setFoundCCS", [](OpenMS::SpectralMatch& self, const double& p0) { return self.setFoundCCS(p0); })
         ;
 
     // -----------------------------------------------------------------------
