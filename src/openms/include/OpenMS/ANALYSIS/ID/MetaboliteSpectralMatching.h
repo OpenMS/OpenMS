@@ -137,6 +137,16 @@ namespace OpenMS
     /// Setter for the precursor adduct
     void setPrecursorAdduct(const String&);
 
+    /// Observed collision cross section (CCS) of the experimental precursor in Angstrom^2; -1.0 if not available
+    double getObservedCCS() const;
+    /// Setter for the observed CCS (Angstrom^2); use -1.0 to indicate "not available"
+    void setObservedCCS(const double&);
+
+    /// CCS (Angstrom^2) of the matching DB-side spectrum; -1.0 if not available
+    double getFoundCCS() const;
+    /// Setter for the DB-side CCS (Angstrom^2); use -1.0 to indicate "not available"
+    void setFoundCCS(const double&);
+
 
   private:
     double observed_precursor_mass_;   ///< Observed-side precursor mass (Da)
@@ -156,6 +166,9 @@ namespace OpenMS
     String inchi_string_;   ///< InChI string
     String smiles_string_;  ///< SMILES string
     String precursor_adduct_; ///< DB-side precursor adduct annotation
+
+    double observed_ccs_;   ///< Observed-side collision cross section (Angstrom^2); -1.0 if not available
+    double found_ccs_;      ///< DB-side collision cross section (Angstrom^2); -1.0 if not available
 
   };
 
@@ -191,10 +204,19 @@ namespace OpenMS
          single best match per spectrum according to parameter @c "report_mode" (only
          @c "top3" or @c "best" are valid values) to MzTab.
 
+    Optionally, candidates can additionally be filtered by collision cross section (CCS / ion
+    mobility): when parameter @c "ccs_error_percent" is greater than 0, a candidate is discarded
+    if the relative CCS error @c |observed - library| / library * 100 exceeds the configured
+    percentage. The experimental CCS is taken (in this order) from a CCS-unit drift time, a
+    1/K0 (VSSC) drift time converted via @ref IMTypes::oneOverK0ToCCS, or a numeric @c "CCS"
+    meta value; the library CCS is taken from the DB-side spectrum the same way. If either side
+    has no CCS, the candidate is kept (CCS does not penalise data lacking ion mobility). The
+    observed/library CCS and the relative CCS error are always exported to MzTab when available.
+
     Configuration is exposed through @ref DefaultParamHandler — see the defaults installed
     by the constructor for the supported keys (@c "prec_mass_error_value",
     @c "frag_mass_error_value", @c "mass_error_unit", @c "ionization_mode", @c "report_mode",
-    @c "merge_spectra").
+    @c "merge_spectra", @c "ccs_error_percent").
 
     @ingroup Analysis_ID
   */
@@ -294,6 +316,8 @@ namespace OpenMS
     String report_mode_;            ///< Cached value of parameter @c "report_mode"; only @c "top3" or @c "best" are valid — controls whether the top 3 or only the single best match per spectrum is exported to MzTab
 
     bool merge_spectra_;            ///< If true, merge same-precursor MS2 spectra before searching
+
+    double ccs_error_percent_;      ///< Cached value of parameter @c "ccs_error_percent"; allowed CCS error in percent for filtering candidates (0 = filtering disabled)
   };
 
 }

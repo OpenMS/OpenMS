@@ -197,6 +197,46 @@ START_SECTION(determineIMFormat returns IM_PEAK for centroided IM data)
 }
 END_SECTION
 
+START_SECTION(static double oneOverK0ToCCS(double one_over_k0, double mz, int charge, double buffer_gas_mass))
+{
+  // Reserpine [M+H]+ (m/z 609.28, z=1): 1/K0 ~1.196 should give a CCS near the
+  // published N2 value of ~245 Angstrom^2.
+  TOLERANCE_ABSOLUTE(0.01)
+  double ccs = IMTypes::oneOverK0ToCCS(1.196, 609.28, 1);
+  TEST_REAL_SIMILAR(ccs, 244.9402)
+
+  // charge sign must not matter (|z| is used)
+  TEST_REAL_SIMILAR(IMTypes::oneOverK0ToCCS(0.9, 300.0, -1), IMTypes::oneOverK0ToCCS(0.9, 300.0, 1))
+
+  // larger 1/K0 -> larger CCS (monotonic)
+  TEST_EQUAL(IMTypes::oneOverK0ToCCS(1.2, 300.0, 1) > IMTypes::oneOverK0ToCCS(0.9, 300.0, 1), true)
+
+  // invalid inputs throw
+  TEST_EXCEPTION(Exception::InvalidValue, IMTypes::oneOverK0ToCCS(0.0, 300.0, 1))
+  TEST_EXCEPTION(Exception::InvalidValue, IMTypes::oneOverK0ToCCS(-1.0, 300.0, 1))
+  TEST_EXCEPTION(Exception::InvalidValue, IMTypes::oneOverK0ToCCS(0.9, 0.0, 1))
+  TEST_EXCEPTION(Exception::InvalidValue, IMTypes::oneOverK0ToCCS(0.9, 300.0, 0))
+}
+END_SECTION
+
+START_SECTION(static double ccsToOneOverK0(double ccs, double mz, int charge, double buffer_gas_mass))
+{
+  // round-trip: 1/K0 -> CCS -> 1/K0 must recover the original value
+  double one_over_k0 = 0.95;
+  double ccs = IMTypes::oneOverK0ToCCS(one_over_k0, 412.5, 1);
+  TEST_REAL_SIMILAR(IMTypes::ccsToOneOverK0(ccs, 412.5, 1), one_over_k0)
+
+  // round-trip for a multiply charged ion
+  double ok0_2 = 0.62;
+  double ccs2 = IMTypes::oneOverK0ToCCS(ok0_2, 524.3, 2);
+  TEST_REAL_SIMILAR(IMTypes::ccsToOneOverK0(ccs2, 524.3, 2), ok0_2)
+
+  // invalid inputs throw
+  TEST_EXCEPTION(Exception::InvalidValue, IMTypes::ccsToOneOverK0(0.0, 300.0, 1))
+  TEST_EXCEPTION(Exception::InvalidValue, IMTypes::ccsToOneOverK0(200.0, 300.0, 0))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
