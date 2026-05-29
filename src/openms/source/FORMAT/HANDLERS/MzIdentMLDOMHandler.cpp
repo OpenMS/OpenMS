@@ -1482,35 +1482,35 @@ namespace OpenMS::Internal
           DOMElement* element_sii_cvp = dynamic_cast<xercesc::DOMElement*>(sii_cvp->item(i));
           if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002681"))) // OpenXQuest:combined score
           {
-            score = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
+            score = toDoubleOrNaN_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002682"))) // OpenXQuest: xcorr common
           {
-            xcorrx = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
+            xcorrx = toDoubleOrNaN_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002683"))) // OpenXQuest: xcorr xlink
           {
-            xcorrc = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
+            xcorrc = toDoubleOrNaN_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002684"))) // OpenXQuest: match-odds
           {
-            matchodds = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
+            matchodds = toDoubleOrNaN_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002685"))) // OpenXQuest: intsum
           {
-            intsum = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
+            intsum = toDoubleOrNaN_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002686"))) // OpenXQuest: wTIC
           {
-            wTIC = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
+            wTIC = toDoubleOrNaN_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1003024"))) // OpenPepXL:score
           {
-            score = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
+            score = toDoubleOrNaN_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1000894"))) // retention time
           {
-            rt = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
+            rt = toDoubleOrNaN_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
             if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("unitAccession")), CONST_XMLCH("UO:0000031"))) // minutes -> seconds (mirror non-XL path)
             {
               rt *= 60.0;
@@ -1700,8 +1700,8 @@ namespace OpenMS::Internal
 
                 PeptideHit::PeakAnnotation frag_anno;
                 frag_anno.charge = ion_charge;
-                frag_anno.mz = positions[s].toDouble();
-                frag_anno.intensity = intensities[s].toDouble();
+                frag_anno.mz = positions[s].empty() ? 0.0 : positions[s].toDouble();
+                frag_anno.intensity = intensities[s].empty() ? 0.0 : intensities[s].toDouble();
                 frag_anno.annotation = annotation;
                 frag_annotations.push_back(frag_anno);
               }
