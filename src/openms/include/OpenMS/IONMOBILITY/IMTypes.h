@@ -108,10 +108,10 @@ namespace OpenMS
     static IMFormat determineIMFormat(const MSSpectrum& spec);
 
     /**
-     * \brief
-     * \param from Drift unit to convert from
-     * \return A more general DIM_UNIT (or exception)
-     * \throws Exception::ConversionError if @p from has invalid value (e.g. 'NONE')
+     * @brief Convert a DriftTimeUnit to the more general DIM_UNIT.
+     * @param[in] from Drift unit to convert from
+     * @return A more general DIM_UNIT
+     * @throws Exception::ConversionError if @p from has an invalid value (e.g. 'NONE')
      */
     static DIM_UNIT fromIMUnit(const DriftTimeUnit from);
 

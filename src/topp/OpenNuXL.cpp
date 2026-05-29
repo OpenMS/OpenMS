@@ -4581,11 +4581,23 @@ static void scoreXLIons_(
     OPENMS_LOG_INFO << "Converting 1/k0 to CCS values." << std::endl;
     for (auto& s : spectra)
     {
-      if (s.getPrecursors().empty()) { continue; }
+      // spectra without convertible IM (no precursor / no IM / missing charge) get their IM cleared,
+      // so downstream code (e.g. fillSpectrumID_) never mixes raw 1/K0 with CCS values.
+      if (s.getPrecursors().empty())
+      {
+        s.setDriftTime(0.0);
+        s.setDriftTimeUnit(DriftTimeUnit::NONE);
+        continue;
+      }
       const double IM = s.getDriftTime();
       const double mz = s.getPrecursors()[0].getMZ();
       const int charge = s.getPrecursors()[0].getCharge();
-      if (IM <= 0.0 || mz <= 0.0 || charge == 0) { continue; } // not convertible (no IM / missing charge)
+      if (IM <= 0.0 || mz <= 0.0 || charge == 0)
+      {
+        s.setDriftTime(0.0);
+        s.setDriftTimeUnit(DriftTimeUnit::NONE);
+        continue;
+      }
       const double CCS = IMTypes::oneOverK0ToCCS(IM, mz, charge); // Mason-Schamp equation
       s.setDriftTime(CCS);
       s.setDriftTimeUnit(DriftTimeUnit::CCS);

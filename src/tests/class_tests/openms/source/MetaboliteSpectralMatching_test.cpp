@@ -44,9 +44,9 @@ END_SECTION
 START_SECTION(SpectralMatch CCS getters and setters)
 {
   SpectralMatch sm;
-  // default CCS values should be "not set" (-1.0)
-  TEST_REAL_SIMILAR(sm.getObservedCCS(), -1.0)
-  TEST_REAL_SIMILAR(sm.getFoundCCS(), -1.0)
+  // default CCS values should be "not set"
+  TEST_REAL_SIMILAR(sm.getObservedCCS(), IMTypes::DRIFTTIME_NOT_SET)
+  TEST_REAL_SIMILAR(sm.getFoundCCS(), IMTypes::DRIFTTIME_NOT_SET)
 
   sm.setObservedCCS(167.3);
   sm.setFoundCCS(170.1);
@@ -116,14 +116,16 @@ static PeakMap makeLibrary()
 
 static Param makeParams(double ccs_error_percent)
 {
-  Param params;
-  params.setValue("prec_mass_error_value", 1.0, "");
-  params.setValue("frag_mass_error_value", 0.5, "");
-  params.setValue("mass_error_unit", "Da", "");
-  params.setValue("ionization_mode", "positive", "");
-  params.setValue("report_mode", "top3", "");
-  params.setValue("merge_spectra", "false", "");
-  params.setValue("ccs_error_percent", ccs_error_percent, "");
+  // start from the algorithm defaults so the fixture inherits future parameter additions,
+  // then override only the knobs these tests rely on.
+  Param params = MetaboliteSpectralMatching().getDefaults();
+  params.setValue("prec_mass_error_value", 1.0);
+  params.setValue("frag_mass_error_value", 0.5);
+  params.setValue("mass_error_unit", "Da");
+  params.setValue("ionization_mode", "positive");
+  params.setValue("report_mode", "top3");
+  params.setValue("merge_spectra", "false");
+  params.setValue("ccs_error_percent", ccs_error_percent);
   return params;
 }
 
@@ -214,10 +216,13 @@ START_SECTION(CCS filtering enabled keeps only within-tolerance matches)
   const auto& rows = mztab.getSmallMoleculeSectionRows();
   TEST_EQUAL(rows.size(), 1) // only compound_A matches
 
-  for (const auto& opt : rows[0].opt_)
+  if (rows.size() == 1)
   {
-    if (opt.first == "opt_library_ccs") { TEST_EQUAL(opt.second.toCellString(), "150") }
-    if (opt.first == "opt_observed_ccs") { TEST_EQUAL(opt.second.toCellString(), "152") }
+    for (const auto& opt : rows[0].opt_)
+    {
+      if (opt.first == "opt_library_ccs") { TEST_EQUAL(opt.second.toCellString(), "150") }
+      if (opt.first == "opt_observed_ccs") { TEST_EQUAL(opt.second.toCellString(), "152") }
+    }
   }
 }
 END_SECTION
@@ -256,10 +261,13 @@ START_SECTION(CCS filtering converts 1/K0 (VSSC) drift time to CCS)
   const auto& rows = mztab.getSmallMoleculeSectionRows();
   TEST_EQUAL(rows.size(), 1)
 
-  for (const auto& opt : rows[0].opt_)
+  if (rows.size() == 1)
   {
-    if (opt.first == "opt_library_ccs") { TEST_EQUAL(opt.second.toCellString(), "150") }
-    if (opt.first == "opt_observed_ccs") { TEST_NOT_EQUAL(opt.second.toCellString(), "null") }
+    for (const auto& opt : rows[0].opt_)
+    {
+      if (opt.first == "opt_library_ccs") { TEST_EQUAL(opt.second.toCellString(), "150") }
+      if (opt.first == "opt_observed_ccs") { TEST_NOT_EQUAL(opt.second.toCellString(), "null") }
+    }
   }
 }
 END_SECTION
