@@ -92,6 +92,7 @@ START_SECTION(static double computePI(const AASequence& seq, ProteomicsPkaScale 
   AASequence peptide = AASequence::fromString("PEPTIDE");
   double pi_peptide = IsoelectricPoint::computePI(peptide);
   double charge_at_pi = IsoelectricPoint::computeCharge(peptide, pi_peptide);
+  // computePI() uses a configurable bisection tolerance, so the returned pH only needs to yield a small residual charge.
   TOLERANCE_ABSOLUTE(1e-3)
   TEST_REAL_SIMILAR(charge_at_pi, 0.0);
   TOLERANCE_ABSOLUTE(1e-5)
