@@ -30,7 +30,7 @@ namespace OpenMS
     description(),
     synonyms(),
     unparsed(),
-    xref_type(NONE),
+    xref_type(XRefType::NONE),
     xref_binary()
   {
   }
@@ -60,25 +60,25 @@ namespace OpenMS
   {
     switch (type)
     {
-    case XSD_STRING: return "xsd:string";
+    case XRefType::XSD_STRING: return "xsd:string";
 
-    case XSD_INTEGER: return "xsd:integer";
+    case XRefType::XSD_INTEGER: return "xsd:integer";
 
-    case XSD_DECIMAL: return "xsd:decimal";
+    case XRefType::XSD_DECIMAL: return "xsd:decimal";
 
-    case XSD_NEGATIVE_INTEGER: return "xsd:negativeInteger";
+    case XRefType::XSD_NEGATIVE_INTEGER: return "xsd:negativeInteger";
 
-    case XSD_POSITIVE_INTEGER: return "xsd:positiveInteger";
+    case XRefType::XSD_POSITIVE_INTEGER: return "xsd:positiveInteger";
 
-    case XSD_NON_NEGATIVE_INTEGER: return "xsd:nonNegativeInteger";
+    case XRefType::XSD_NON_NEGATIVE_INTEGER: return "xsd:nonNegativeInteger";
 
-    case XSD_NON_POSITIVE_INTEGER: return "xsd:nonPositiveInteger";
+    case XRefType::XSD_NON_POSITIVE_INTEGER: return "xsd:nonPositiveInteger";
 
-    case XSD_BOOLEAN: return "xsd:boolean";
+    case XRefType::XSD_BOOLEAN: return "xsd:boolean";
 
-    case XSD_DATE: return "xsd:date";
+    case XRefType::XSD_DATE: return "xsd:date";
 
-    case XSD_ANYURI: return "xsd:anyURI";
+    case XRefType::XSD_ANYURI: return "xsd:anyURI";
 
     default: return "none";
     }
@@ -149,7 +149,18 @@ namespace OpenMS
     ifstream is(filename.c_str());
     if (!is)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      if (!File::exists(filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else if (!File::readable(filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
     }
 
     String line, line_wo_spaces;
@@ -332,54 +343,54 @@ namespace OpenMS
           line_wo_spaces.remove('\\');
           if (line_wo_spaces.hasSubstring("value-type:xsd:string"))
           {
-            term.xref_type = CVTerm::XSD_STRING;
+            term.xref_type = CVTerm::XRefType::XSD_STRING;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:integer") || line_wo_spaces.hasSubstring("value-type:xsd:int"))
           {
-            term.xref_type = CVTerm::XSD_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:decimal") ||
               line_wo_spaces.hasSubstring("value-type:xsd:float") ||
               line_wo_spaces.hasSubstring("value-type:xsd:double"))
           {
-            term.xref_type = CVTerm::XSD_DECIMAL;
+            term.xref_type = CVTerm::XRefType::XSD_DECIMAL;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:negativeInteger"))
           {
-            term.xref_type = CVTerm::XSD_NEGATIVE_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_NEGATIVE_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:positiveInteger"))
           {
-            term.xref_type = CVTerm::XSD_POSITIVE_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_POSITIVE_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:nonNegativeInteger"))
           {
-            term.xref_type = CVTerm::XSD_NON_NEGATIVE_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:nonPositiveInteger"))
           {
-            term.xref_type = CVTerm::XSD_NON_POSITIVE_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:boolean") || line_wo_spaces.hasSubstring("value-type:xsd:bool"))
           {
-            term.xref_type = CVTerm::XSD_BOOLEAN;
+            term.xref_type = CVTerm::XRefType::XSD_BOOLEAN;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:date"))
           {
-            term.xref_type = CVTerm::XSD_DATE;
+            term.xref_type = CVTerm::XRefType::XSD_DATE;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:anyURI"))
           {
-            term.xref_type = CVTerm::XSD_ANYURI;
+            term.xref_type = CVTerm::XRefType::XSD_ANYURI;
             continue;
           }
           cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";
@@ -388,56 +399,56 @@ namespace OpenMS
         {
           if (line_wo_spaces.hasSubstring("xsd:string"))
           {
-            term.xref_type = CVTerm::XSD_STRING;
+            term.xref_type = CVTerm::XRefType::XSD_STRING;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:integer") 
           || line_wo_spaces.hasSubstring("xsd:int"))
           {
-            term.xref_type = CVTerm::XSD_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:decimal") ||
               line_wo_spaces.hasSubstring("xsd:float") ||
               line_wo_spaces.hasSubstring("xsd:double"))
           {
-            term.xref_type = CVTerm::XSD_DECIMAL;
+            term.xref_type = CVTerm::XRefType::XSD_DECIMAL;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:negativeInteger"))
           {
-            term.xref_type = CVTerm::XSD_NEGATIVE_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_NEGATIVE_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:positiveInteger"))
           {
-            term.xref_type = CVTerm::XSD_POSITIVE_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_POSITIVE_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:nonNegativeInteger"))
           {
-            term.xref_type = CVTerm::XSD_NON_NEGATIVE_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:nonPositiveInteger"))
           {
-            term.xref_type = CVTerm::XSD_NON_POSITIVE_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:boolean") 
           || line_wo_spaces.hasSubstring("xsd:bool"))
           {
-            term.xref_type = CVTerm::XSD_BOOLEAN;
+            term.xref_type = CVTerm::XRefType::XSD_BOOLEAN;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:date"))
           {
-            term.xref_type = CVTerm::XSD_DATE;
+            term.xref_type = CVTerm::XRefType::XSD_DATE;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:anyURI"))
           {
-            term.xref_type = CVTerm::XSD_ANYURI;
+            term.xref_type = CVTerm::XRefType::XSD_ANYURI;
             continue;
           }
           if (
@@ -446,7 +457,7 @@ namespace OpenMS
             line_wo_spaces.hasSubstring("MS:1002713")
           )
           {
-            term.xref_type = CVTerm::XSD_STRING; // store list as string
+            term.xref_type = CVTerm::XRefType::XSD_STRING; // store list as string
             continue;
           }
           cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";
@@ -528,6 +539,13 @@ namespace OpenMS
       //TODO: This is not safe for cyclic graphs. Are they allowed in CVs?
       getAllChildTerms(terms, child);
     }
+  }
+
+  void ControlledVocabulary::addAllChildTerms(set<String>& terms, const String& parent) const
+  {
+    getTerm(parent); // validate before mutating caller-owned output (throws if parent is unknown)
+    terms.insert(parent);
+    getAllChildTerms(terms, parent);
   }
 
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTermByName(const String& name, const String& desc) const

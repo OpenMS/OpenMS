@@ -8,8 +8,10 @@
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Helpers.h>
-#include <boost/iterator/indirect_iterator.hpp> // for equality
+
+#include <algorithm>
 
 using namespace std;
 
@@ -17,22 +19,6 @@ namespace OpenMS
 {
 
   const std::string SpectrumSettings::NamesOfSpectrumType[] = {"Unknown", "Centroid", "Profile"};
-
-  SpectrumSettings::SpectrumSettings() :
-    MetaInfoInterface(),
-    type_(UNKNOWN),
-    native_id_(),
-    comment_(),
-    instrument_settings_(),
-    source_file_(),
-    acquisition_info_(),
-    precursors_(),
-    products_(),
-    data_processing_()
-  {
-  }
-
-  SpectrumSettings::~SpectrumSettings() = default;
 
   bool SpectrumSettings::operator==(const SpectrumSettings & rhs) const
   {
@@ -69,7 +55,7 @@ namespace OpenMS
 
     if (type_ != rhs.type_)
     {
-      type_ = UNKNOWN;                       // only keep if both are equal
+      type_ = SpectrumType::UNKNOWN;                       // only keep if both are equal
     }
     //native_id_ == rhs.native_id_ // keep
     comment_ += rhs.comment_;        // append
@@ -91,6 +77,26 @@ namespace OpenMS
     type_ = type;
   }
 
+  void SpectrumSettings::setIMFormat(const IMFormat& im_type)
+  {
+    im_type_ = im_type;
+  }
+  
+  IMFormat SpectrumSettings::getIMFormat() const
+  {
+    return im_type_;
+  }
+
+  void SpectrumSettings::setIMPeakType(IMPeakType im_peak_type)
+  {
+    im_peak_type_ = im_peak_type;
+  }
+
+  IMPeakType SpectrumSettings::getIMPeakType() const
+  {
+    return im_peak_type_;
+  }
+  
   const String & SpectrumSettings::getComment() const
   {
     return comment_;
@@ -203,9 +209,42 @@ namespace OpenMS
     return data_processing_;
   }
 
-  const std::vector< boost::shared_ptr<const DataProcessing > > SpectrumSettings::getDataProcessing() const
+  const std::vector< std::shared_ptr<const DataProcessing > > SpectrumSettings::getDataProcessing() const
   {
     return OpenMS::Helpers::constifyPointerVector(data_processing_);
   }
 
+  StringList SpectrumSettings::getAllNamesOfSpectrumType()
+  {
+    StringList names;
+    names.reserve(static_cast<size_t>(SpectrumType::SIZE_OF_SPECTRUMTYPE));
+    for (size_t i = 0; i < static_cast<size_t>(SpectrumType::SIZE_OF_SPECTRUMTYPE); ++i)
+    {
+      names.push_back(NamesOfSpectrumType[i]);
+    }
+    return names;
+  }
+
+  const std::string& SpectrumSettings::spectrumTypeToString(SpectrumType type)
+  {
+    if (type == SpectrumType::SIZE_OF_SPECTRUMTYPE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SPECTRUMTYPE");
+    }
+    return NamesOfSpectrumType[static_cast<size_t>(type)];
+  }
+
+  SpectrumSettings::SpectrumType SpectrumSettings::toSpectrumType(const std::string& name)
+  {
+    auto first = &NamesOfSpectrumType[0];
+    auto last = &NamesOfSpectrumType[static_cast<size_t>(SpectrumType::SIZE_OF_SPECTRUMTYPE)];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<SpectrumType>(it - first);
+  }
+
 }
+

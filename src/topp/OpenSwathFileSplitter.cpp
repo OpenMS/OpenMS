@@ -15,7 +15,6 @@
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QDir>
 
 using namespace OpenMS;
 
@@ -64,7 +63,7 @@ protected:
     setValidFormats_("out_qc", ListUtils::create<String>("json"));
   }
 
-  void loadSwathFiles(const String& file_in, const String& tmp, const String& readoptions, boost::shared_ptr<ExperimentalSettings>& exp_meta, std::vector<OpenSwath::SwathMap>& swath_maps,
+  void loadSwathFiles(const String& file_in, const String& tmp, const String& readoptions, std::shared_ptr<ExperimentalSettings>& exp_meta, std::vector<OpenSwath::SwathMap>& swath_maps,
                       Interfaces::IMSDataConsumer* plugin_consumer = nullptr)
   {
     SwathFile swath_file;
@@ -93,18 +92,17 @@ protected:
     String file_in = getStringOption_("in");
 
     // make sure tmp is a directory with proper separator at the end (downstream methods simply do path + filename)
-    // (do not use QDir::separator(), since its platform specific (/ or \) while absolutePath() will always use '/')
-    String tmp_dir = String(QDir(getStringOption_("outputDirectory").c_str()).absolutePath()).ensureLastChar('/');
+    // File::absolutePath() always uses '/' separators
+    String tmp_dir = File::absolutePath(getStringOption_("outputDirectory")).ensureLastChar('/');
 
-    QFileInfo fi(file_in.toQString());
-    String tmp = tmp_dir + String(fi.baseName());
+    String tmp = tmp_dir + File::stemName(file_in);
 
     String out_qc = getStringOption_("out_qc");
 
     ///////////////////////////////////
     // Load the SWATH files
     ///////////////////////////////////
-    boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
+    std::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
     std::vector<OpenSwath::SwathMap> swath_maps;
 
     // collect some QC data

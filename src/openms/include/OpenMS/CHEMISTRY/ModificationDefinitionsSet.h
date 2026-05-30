@@ -130,14 +130,14 @@ public:
     /**
        @brief Finds modifications in the set that match a given (delta) mass
 
-       @param matches Matching modifications (output), sorted by mass error
-       @param mass Query mass
-       @param residue Query residue
-       @param term_spec Query term specificity
-       @param consider_variable Consider the variable modifications?
-       @param consider_fixed Consider the fixed modifications?
-       @param is_delta Is @p mass a delta mass (mass difference)?
-       @param tolerance Numeric tolerance (in Da) for mass matching
+       @param[out] matches Matching modifications (output), sorted by mass error
+       @param[in] mass Query mass
+       @param[in] residue Query residue
+       @param[in] term_spec Query term specificity
+       @param[in] consider_variable Consider the variable modifications?
+       @param[in] consider_fixed Consider the fixed modifications?
+       @param[in] is_delta Is @p mass a delta mass (mass difference)?
+       @param[in] tolerance Numeric tolerance (in Da) for mass matching
 
        @throw Exception::IllegalArgument if both @p consider_variable and @p consider_fixed are false
     */

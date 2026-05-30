@@ -198,7 +198,7 @@ using namespace OpenMS;
     {
       OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry." << endl;
-      return INCOMPATIBLE_INPUT_DATA;
+      return ExitCodes::INCOMPATIBLE_INPUT_DATA;
     }
 
     //check if spectra are sorted
@@ -207,7 +207,7 @@ using namespace OpenMS;
       if (!unprocessed_spectra[i].isSorted())
       {
         OPENMS_LOG_WARN << "Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!" << endl;
-        return INCOMPATIBLE_INPUT_DATA;
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
       }
     }
 
@@ -220,7 +220,7 @@ using namespace OpenMS;
     unprocessed_spectra.clear(true);
 
     // Precursor Purity precalculation
-    map<String, PrecursorPurity::PurityScores> precursor_purities = PrecursorPurity::computePrecursorPurities(picked_spectra, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_);
+    unordered_map<String, PrecursorPurity::PurityScores> precursor_purities = PrecursorPurity::computePrecursorPurities(picked_spectra, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_);
 
     // preprocess spectra (filter out 0 values, sort by position)
     progresslogger.startProgress(0, 1, "Filtering spectra...");
@@ -299,7 +299,7 @@ using namespace OpenMS;
     search_params.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_name_));
     search_params.fixed_modifications = fixedModNames_;
     search_params.variable_modifications = varModNames_;
-    search_params.mass_type = ProteinIdentification::MONOISOTOPIC;
+    search_params.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
     search_params.missed_cleavages = missed_cleavages_;
     search_params.fragment_mass_tolerance = fragment_mass_tolerance_;
     search_params.fragment_mass_tolerance_ppm =  fragment_mass_tolerance_unit_ppm_;
@@ -854,9 +854,9 @@ using namespace OpenMS;
             auto num_iso_peaks_array_it = getDataArrayByName(all_peaks.getIntegerDataArrays(), "iso_peak_count");
             DataArrays::IntegerDataArray num_iso_peaks_array = *num_iso_peaks_array_it;
             auto num_iso_peaks_array_linear_it = getDataArrayByName(linear_peaks.getIntegerDataArrays(), "iso_peak_count");
-            DataArrays::IntegerDataArray num_iso_peaks_array_linear = *num_iso_peaks_array_linear_it;
+            const DataArrays::IntegerDataArray& num_iso_peaks_array_linear = *num_iso_peaks_array_linear_it;
             auto num_iso_peaks_array_xlinks_it = getDataArrayByName(xlink_peaks.getIntegerDataArrays(), "iso_peak_count");
-            DataArrays::IntegerDataArray num_iso_peaks_array_xlinks = *num_iso_peaks_array_xlinks_it;
+            const DataArrays::IntegerDataArray& num_iso_peaks_array_xlinks = *num_iso_peaks_array_xlinks_it;
 
             csm.num_iso_peaks_mean = Math::mean(num_iso_peaks_array.begin(), num_iso_peaks_array.end());
 

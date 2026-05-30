@@ -67,13 +67,13 @@ namespace OpenMS
       1.0 - peak is not monoisotopic (can only occur if 'lock_require_mono' is true)
       2.0 - peak has no +1 isotope (can only occur if 'lock_require_iso' is true)
 
-      @param exp Peak map containing the lock masses
-      @param ref_masses List of lock masses
-      @param tol_ppm Search window for lock masses in 'exp'
-      @param lock_require_mono Require that a lock mass is the monoisotopic peak (i.e. not an isotope peak) -- lock mass is rejected otherwise
-      @param lock_require_iso Require that a lock mass has isotope peaks to its right -- lock mass is rejected otherwise
-      @param failed_lock_masses Set of calibration masses which were not found, i.e. their expected m/z and RT positions;
-      @param verbose Print information on 'lock_require_XXX' matches during search
+      @param[in] exp Peak map containing the lock masses
+      @param[in] ref_masses List of lock masses
+      @param[in] tol_ppm Search window for lock masses in 'exp'
+      @param[in] lock_require_mono Require that a lock mass is the monoisotopic peak (i.e. not an isotope peak) -- lock mass is rejected otherwise
+      @param[in] lock_require_iso Require that a lock mass has isotope peaks to its right -- lock mass is rejected otherwise
+      @param[out] failed_lock_masses Set of calibration masses which were not found, i.e. their expected m/z and RT positions;
+      @param[in] verbose Print information on 'lock_require_XXX' matches during search
       @return Number of calibration masses found
 
     */
@@ -101,8 +101,8 @@ namespace OpenMS
       Since precursor masses could be annotated wrongly (e.g. isotope peak instead of mono),
       larger outliers are removed before accepting an ID as calibrant.
 
-      @param fm FeatureMap with peptide identifications
-      @param tol_ppm Only accept ID's whose theoretical mass deviates at most this much from annotated
+      @param[in] fm FeatureMap with peptide identifications
+      @param[in] tol_ppm Only accept ID's whose theoretical mass deviates at most this much from annotated
       @return Number of calibration masses found
 
     */
@@ -119,8 +119,8 @@ namespace OpenMS
       Since precursor masses could be annotated wrongly (e.g. isotope peak instead of mono),
       larger outliers are removed before accepting an ID as calibrant.
 
-      @param pep_ids Peptide ids (e.g. from an idXML file)
-      @param tol_ppm Only accept ID's whose theoretical mass deviates at most this much from annotated
+      @param[in] pep_ids Peptide ids (e.g. from an idXML file)
+      @param[in] tol_ppm Only accept ID's whose theoretical mass deviates at most this much from annotated
       @return Number of calibration masses found
     */
     Size fillCalibrants(const PeptideIdentificationList& pep_ids, double tol_ppm);
@@ -143,19 +143,19 @@ namespace OpenMS
 
       The MSExperiment will be sorted by RT and m/z if unsorted.
 
-      @param exp MSExperiment holding the Raw data to calibrate
-      @param target_mslvl MS-levels where calibration should be applied to
-      @param model_type Linear or quadratic model; select based on your instrument
-      @param rt_chunk RT-window size (one-sided) of calibration points to collect around each spectrum. 
+      @param[in,out] exp MSExperiment holding the Raw data to calibrate
+      @param[in] target_mslvl MS-levels where calibration should be applied to
+      @param[in] model_type Linear or quadratic model; select based on your instrument
+      @param[in] rt_chunk RT-window size (one-sided) of calibration points to collect around each spectrum.
              Set to negative values, to build one global model instead.
-      @param use_RANSAC Remove outliers before fitting a model?!
-      @param post_ppm_median The median ppm error of the calibrants must be at least this good after calibration; otherwise this method returns false(fail)
-      @param post_ppm_MAD The median absolute deviation of the calibrants must be at least this good after calibration; otherwise this method returns false(fail)
-      @param file_models Output CSV filename, where model parameters are written to (pass empty string to skip)
-      @param file_models_plot Output PNG image model parameters (pass empty string to skip)
-      @param file_residuals Output CSV filename, where ppm errors of calibrants before and after model fitting parameters are written to (pass empty string to skip)
-      @param file_residuals_plot Output PNG image of the ppm errors of calibrants (pass empty string to skip)
-      @param rscript_executable Full path to the Rscript executable
+      @param[in] use_RANSAC Remove outliers before fitting a model?!
+      @param[in] post_ppm_median The median ppm error of the calibrants must be at least this good after calibration; otherwise this method returns false(fail)
+      @param[in] post_ppm_MAD The median absolute deviation of the calibrants must be at least this good after calibration; otherwise this method returns false(fail)
+      @param[in] file_models Output CSV filename, where model parameters are written to (pass empty string to skip)
+      @param[in] file_models_plot Output PNG image model parameters (pass empty string to skip)
+      @param[in] file_residuals Output CSV filename, where ppm errors of calibrants before and after model fitting parameters are written to (pass empty string to skip)
+      @param[in] file_residuals_plot Output PNG image of the ppm errors of calibrants (pass empty string to skip)
+      @param[in] rscript_executable Full path to the Rscript executable
       @return true upon successful calibration
 
     */
@@ -177,8 +177,8 @@ namespace OpenMS
 
       Calibrate m/z of precursors.
 
-      @param pcs Uncalibrated Precursors
-      @param trafo The calibration function to apply
+      @param[in,out] pcs Uncalibrated Precursors
+      @param[in] trafo The calibration function to apply
     */
     static void applyTransformation(std::vector<Precursor>& pcs, const MZTrafoModel& trafo);
 
@@ -187,9 +187,9 @@ namespace OpenMS
 
       See applyTransformation(MSExperiment, ...) for details.
 
-      @param spec Uncalibrated MSSpectrum
-      @param target_mslvl List (can be unsorted) of MS levels to calibrate
-      @param trafo The calibration function to apply
+      @param[in,out] spec Uncalibrated MSSpectrum
+      @param[in] target_mslvl List (can be unsorted) of MS levels to calibrate
+      @param[in] trafo The calibration function to apply
     */
     static void applyTransformation(PeakMap::SpectrumType& spec, const IntList& target_mslvl, const MZTrafoModel& trafo);
 
@@ -206,9 +206,9 @@ namespace OpenMS
       If 'target_mslvl' = {1,2} all spectra and precursors are calibrated.
             
 
-      @param exp Uncalibrated peak map
-      @param target_mslvl List (can be unsorted) of MS levels to calibrate
-      @param trafo The calibration function to apply
+      @param[in,out] exp Uncalibrated peak map
+      @param[in] target_mslvl List (can be unsorted) of MS levels to calibrate
+      @param[in] trafo The calibration function to apply
     */
     static void applyTransformation(PeakMap& exp, const IntList& target_mslvl, const MZTrafoModel& trafo);
   
@@ -249,9 +249,9 @@ namespace OpenMS
       Since precursor masses could be annotated wrongly (e.g. isotope peak instead of mono),
       larger outliers are removed before accepting an ID as calibrant.
 
-      @param pep_id A single PeptideID (e.g. from an idXML file); only the top peptide hit is used
-      @param tol_ppm Only accept ID's whose theoretical mass deviates at most this much from annotated
-      @param stats Update stats, if calibrant cannot be used (no RT, no MZ, no sequence, out-of tolerance)
+      @param[in] pep_id A single PeptideID (e.g. from an idXML file); only the top peptide hit is used
+      @param[in] tol_ppm Only accept ID's whose theoretical mass deviates at most this much from annotated
+      @param[in,out] stats Update stats, if calibrant cannot be used (no RT, no MZ, no sequence, out-of tolerance)
 
     */
     void fillID_( const PeptideIdentification& pep_id, const double tol_ppm, CalibrantStats_& stats);

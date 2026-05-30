@@ -66,7 +66,7 @@ namespace OpenMS
     return *this;
   }
 
-  /// Add a.amount of Adduct @param a to Compomer's @param side and update its properties
+  /// Add a.amount of Adduct @param[in] a to Compomer's @param side and update its properties
   void Compomer::add(const Adduct& a, UInt side)
   {
     if (side >= BOTH)
@@ -101,9 +101,9 @@ namespace OpenMS
 
   /**
    *  indicates if these two compomers can coexist for one feature
-   * @param cmp The other Compomer we compare to
-   * @param side_this Indicates which "side"(negative or positive adducts) we are looking at. Negative adducts belong to the left side of the ChargePair.
-   * @param side_other See above.
+   * @param[in] cmp The other Compomer we compare to
+   * @param[in] side_this Indicates which "side"(negative or positive adducts) we are looking at. Negative adducts belong to the left side of the ChargePair.
+   * @param[in] side_other See above.
    */
   bool Compomer::isConflicting(const Compomer& cmp, UInt side_this, UInt side_other) const
   {
@@ -289,6 +289,21 @@ namespace OpenMS
     }
 
     return tmp;
+  }
+
+  double Compomer::getSideMass(const UInt side) const
+  {
+    if (side >= BOTH)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Compomer::getSideMass() only supports LEFT (0) or RIGHT (1), not: ", String(side));
+    }
+    double mass = 0.0;
+    for (const auto& [formula, adduct] : cmp_[side])
+    {
+      mass += adduct.getAmount() * adduct.getSingleMass();
+    }
+    return mass;
   }
 
   /// Adds @p add_side to this compomer.

@@ -13,8 +13,6 @@
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <fstream>
-#include <QtCore/QDir>
-#include <QtCore/QString>
 ///////////////////////////
 
 using namespace OpenMS;

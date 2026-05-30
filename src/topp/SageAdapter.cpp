@@ -14,6 +14,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
@@ -30,7 +31,6 @@
 #include <fstream>
 #include <regex>
 
-#include <QStringList>
 #include <chrono>
 #include <map>
 #include <vector>
@@ -410,19 +410,30 @@ protected:
       std::regex version_regex("Version ([0-9]+)\\.([0-9]+)\\.([0-9]+)");
 
       std::sregex_iterator it(multi_line_input.begin(), multi_line_input.end(), version_regex);
-      std::smatch match = *it;
-      std::cout << "Found Sage version string: " << match.str() << std::endl;      
-          
+      std::sregex_iterator end;
+      if (it == end)
+      {
+        throw std::runtime_error("Could not parse Sage version from output: " + multi_line_input.substr(0, 200));
+      }
+      std::cout << "Found Sage version string: " << it->str() << std::endl;
+
       return make_tuple(it->str(1), it->str(2), it->str(3)); // major, minor, patch
   }
 
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", { "mzML" } );
+    setValidFormats_("in", { "mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
 
-    registerOutputFile_("out", "<file>", "", "Single output file containing all search results.", true, false);
-    setValidFormats_("out", { "idXML" } );
+    registerOutputFile_("out", "<file>", "", "Output file (.idXML) or directory bundle (.idparquet) containing all search results.", true, false);
+    setValidFormats_("out", { "idXML", "idparquet" } );
 
     registerInputFile_("database", "<file>", "", "FASTA file", true, false, {"skipexists"});
     setValidFormats_("database", { "FASTA" } );
@@ -436,37 +447,36 @@ protected:
       #endif
       "The Sage executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
 
-    registerStringOption_("decoy_prefix", "<prefix>", "DECOY_", "Prefix on protein accession used to distinguish decoy from target proteins. NOTE: Decoy suffix is currently not supported by sage.", false, false);
-    registerIntOption_("batch_size", "<int>", 0, "Number of files to load and search in parallel (default = # of CPUs/2)", false, false);
+    registerStringOption_("decoy_prefix", "<prefix>", "DECOY_", "Prefix on protein accession used to distinguish decoy from target proteins. Decoy proteins in the FASTA file should have this prefix in their accession. NOTE: Decoy suffix is currently not supported by Sage.", false, false);
+    registerIntOption_("batch_size", "<int>", 0, "Number of files to load and search in parallel. Setting this to 0 (default) uses an automatic value (typically number of CPUs/2). Default: 0", false, false);
     
-    registerDoubleOption_("precursor_tol_left", "<double>", -6.0, "Start (left side) of the precursor tolerance window w.r.t. precursor location. Usually used with negative values smaller or equal to the 'right' counterpart.", false, false);
-    registerDoubleOption_("precursor_tol_right", "<double>", 6.0, "End (right side) of the precursor tolerance window w.r.t. precursor location. Usually used with positive values larger or equal to the 'left' counterpart.", false, false);
+    registerDoubleOption_("precursor_tol_left", "<double>", -6.0, "Start (left side) of the precursor tolerance window w.r.t. precursor location. This value is relative to the experimental precursor mass and used to define the lower bound of the search window. Must be negative (e.g., -6 ppm means 6 ppm below the observed mass).", false, false);
+    registerDoubleOption_("precursor_tol_right", "<double>", 6.0, "End (right side) of the precursor tolerance window w.r.t. precursor location. This value is added to the experimental precursor mass to define the upper bound of the search window. Must be positive (e.g., 6 ppm means 6 ppm above the observed mass).", false, false);
     registerStringOption_("precursor_tol_unit", "<unit>", "ppm", "Unit of precursor tolerance (ppm or Da)", false, false);
     setValidStrings_("precursor_tol_unit", ListUtils::create<String>("ppm,Da"));
 
-    registerDoubleOption_("fragment_tol_left", "<double>", -20.0, "Start (left side) of the fragment tolerance window w.r.t. precursor location. Usually used with negative values smaller or equal to the 'right' counterpart.", false, false);
-    registerDoubleOption_("fragment_tol_right", "<double>", 20.0, "End (right side) of the fragment tolerance window w.r.t. precursor location. Usually used with positive values larger or equal to the 'left' counterpart.", false, false);
+    registerDoubleOption_("fragment_tol_left", "<double>", -20.0, "Start (left side) of the fragment tolerance window w.r.t. fragment location. This value reduces the experimental fragment mass to define the lower bound of the search window. Must be negative (e.g., -20 ppm means 20 ppm below the observed mass).", false, false);
+    registerDoubleOption_("fragment_tol_right", "<double>", 20.0, "End (right side) of the fragment tolerance window w.r.t. fragment location. This value is added to the experimental fragment mass to define the upper bound of the search window. Must be positive (e.g., 20 ppm means 20 ppm above the observed mass).", false, false);
     registerStringOption_("fragment_tol_unit", "<unit>", "ppm", "Unit of fragment tolerance (ppm or Da)", false, false);
     setValidStrings_("fragment_tol_unit", ListUtils::create<String>("ppm,Da"));
 
     // add advanced options
-    registerIntOption_("min_matched_peaks", "<int>", min_matched_peaks, "Minimum number of b+y ions required to match for PSM to be reported", false, true);
-    registerIntOption_("min_peaks", "<int>", min_peaks, "Minimum number of peaks required for a spectrum to be considered", false, true);
-    registerIntOption_("max_peaks", "<int>", max_peaks, "Take the top N most intense MS2 peaks only for matching", false, true);
-    registerIntOption_("report_psms", "<int>", report_psms, "Number of hits (PSMs) to report for each spectrum", false, true);
-    registerIntOption_("bucket_size", "<int>", bucket_size, "How many fragments are in each internal mass bucket (default: 8192 for hi-res data). Try increasing it to 32k or 64k for low-res. See also: fragment_tol_*", false, true);
-    registerIntOption_("min_len", "<int>", min_len, "Minimum peptide length", false, true);
-    registerIntOption_("max_len", "<int>", max_len, "Maximum peptide length", false, true);
-    registerIntOption_("missed_cleavages", "<int>", missed_cleavages, "Number of missed cleavages", false, true);
-    registerDoubleOption_("fragment_min_mz", "<double>", fragment_min_mz, "Minimum fragment m/z", false, true);
-    registerDoubleOption_("fragment_max_mz", "<double>", fragment_max_mz, "Maximum fragment m/z", false, true);
-    registerDoubleOption_("peptide_min_mass", "<double>", peptide_min_mass, "Minimum monoisotopic peptide mass to consider a peptide from the DB", false, true);
-    registerDoubleOption_("peptide_max_mass", "<double>", peptide_max_mass, "Maximum monoisotopic peptide mass to consider a peptide from the DB", false, true);
-    registerIntOption_("min_ion_index", "<int>", min_ion_index, "Minimum ion index to consider for preliminary scoring. Default = 2 to skip b1/y1 AND (sic) b2/y2 ions that are often missing.", false, true);
-    registerIntOption_("max_variable_mods", "<int>", max_variable_mods, "Maximum number of variable modifications", false, true);  
-    registerStringOption_("isotope_error_range", "<start,end>", isotope_errors, "Range of (C13) isotope errors to consider for precursor."
-      "Can be negative. E.g. '-1,3' for considering '-1/0/1/2/3'", false, true);
-    registerStringOption_("charges", "<start,end>", charges_if_not_annotated, "Range of precursor charges to consider if not annotated in the file."
+    registerIntOption_("min_matched_peaks", "<int>", min_matched_peaks, "Minimum number of b+y ions required to match for PSM to be reported. Default: 6", false, true);
+    registerIntOption_("min_peaks", "<int>", min_peaks, "Minimum number of peaks required for a spectrum to be considered. Spectra with fewer peaks will be ignored. Default: 15", false, true);
+    registerIntOption_("max_peaks", "<int>", max_peaks, "Take the top N most intense MS2 peaks to search. Default: 150", false, true);
+    registerIntOption_("report_psms", "<int>", report_psms, "Number of peptide-spectrum matches (PSMs) to report for each spectrum. The top N scoring PSMs will be reported. Values higher than 1 can be useful for chimeric spectra but may affect downstream statistical analysis. Default: 1", false, true);
+    registerIntOption_("bucket_size", "<int>", bucket_size, "How many fragments are in each internal mass bucket. Default: 8192 (optimal for high-resolution data). Try increasing it to 32768 or 65536 for low-resolution data. See also: fragment_tol_*", false, true);
+    registerIntOption_("min_len", "<int>", min_len, "Minimum peptide length (in amino acids). Default: 5", false, true);
+    registerIntOption_("max_len", "<int>", max_len, "Maximum peptide length (in amino acids). Default: 50", false, true);
+    registerIntOption_("missed_cleavages", "<int>", missed_cleavages, "Maximum number of missed enzymatic cleavages to allow in peptide generation. Default: 2", false, true);
+    registerDoubleOption_("fragment_min_mz", "<double>", fragment_min_mz, "Minimum fragment m/z to consider. Fragment ions below this m/z will be ignored. Default: 200.0", false, true);
+    registerDoubleOption_("fragment_max_mz", "<double>", fragment_max_mz, "Maximum fragment m/z to consider. Fragment ions above this m/z will be ignored. Default: 2000.0", false, true);
+    registerDoubleOption_("peptide_min_mass", "<double>", peptide_min_mass, "Minimum monoisotopic peptide mass to consider for in silico digestion. Peptides below this mass will be excluded from the search database. Default: 500.0", false, true);
+    registerDoubleOption_("peptide_max_mass", "<double>", peptide_max_mass, "Maximum monoisotopic peptide mass to consider for in silico digestion. Peptides above this mass will be excluded from the search database. Default: 5000.0", false, true);
+    registerIntOption_("min_ion_index", "<int>", min_ion_index, "Minimum ion index to consider for preliminary scoring. This parameter controls which fragment ions are used in preliminary scoring. Default: 2 (skips b1/b2/y1/y2 ions, which are often missing or unreliable). Setting this to 1 would only skip b1/y1 ions. Does not affect the final scoring of PSMs.", false, true);
+    registerIntOption_("max_variable_mods", "<int>", max_variable_mods, "Maximum number of variable modifications allowed per peptide. Default: 2", false, true);  
+    registerStringOption_("isotope_error_range", "<start,end>", isotope_errors, "Range of C13 isotope errors to consider for precursor matching, specified as 'start,end' (e.g., '-1,3'). For a range of '-1,3', Sage will consider all isotope errors from -1 to +3 (i.e., -1, 0, 1, 2, 3). This is useful when the monoisotopic peak may not be selected. Can include negative values. Default: '-1,3'. Note: Searching with isotope errors is slower than using a wider precursor tolerance.", false, true);
+    registerStringOption_("charges", "<start,end>", charges_if_not_annotated, "Range of precursor charge states to consider if not annotated in the file, specified as 'start,end' (e.g., '2,5'). For a range of '2,5', Sage will consider charge states 2, 3, 4, and 5. This is only used when charge state information is missing from the input file. Default: '2,5'"
       , false, true);
     
 
@@ -486,14 +496,13 @@ protected:
 
     //FDR and misc 
 
-    registerDoubleOption_("q_value_threshold", "<double>", 1, "The FDR threshhold for filtering peptides", false, false); 
-    registerStringOption_("annotate_matches", "<bool>", "true", "If the matches should be annotated (default: false),", false, false); 
-    registerStringOption_("deisotope", "<bool>", "false", "Sets deisotope option (true or false), default: false", false, false ); 
-    registerStringOption_("chimera", "<bool>", "false", "Sets chimera option (true or false), default: false", false, false  ); 
-    registerStringOption_("predict_rt",  "<bool>", "false", "Sets predict_rt option (true or false), default: false", false, false ); 
-    registerStringOption_("wide_window", "<bool>", "false", "Sets wide_window option (true or false), default: false", false, false);
-    registerStringOption_("smoothing", "<bool>", "true", "Should the PTM histogram be smoothed and local maxima be picked. If false, uses raw data, default: false", false, false);  
-    registerIntOption_("threads", "<int>", 1, "Amount of threads available to the program", false, false); 
+    registerDoubleOption_("q_value_threshold", "<double>", 1, "The FDR (False Discovery Rate) threshold for filtering peptides. PSMs with q-values above this threshold will be excluded. Default: 1 (no filtering)", false, false); 
+    registerStringOption_("annotate_matches", "<bool>", "true", "Whether fragment ion matches should be annotated in the output. This provides additional information about which theoretical ions matched experimental peaks. Default: true", false, false); 
+    registerStringOption_("deisotope", "<bool>", "false", "Perform deisotoping and charge state deconvolution on MS2 spectra. Recommended for high-resolution MS2 data. May interfere with TMT-MS2 quantification. Default: false", false, false ); 
+    registerStringOption_("chimera", "<bool>", "false", "Enable chimeric spectra search mode. When enabled, multiple peptide identifications can be reported for each MS2 scan, useful for co-fragmenting peptides. Default: false", false, false  ); 
+    registerStringOption_("predict_rt",  "<bool>", "false", "Use retention time prediction model as a feature for machine learning scoring. Note: This is incompatible with label-free quantification (LFQ). Default: false", false, false ); 
+    registerStringOption_("wide_window", "<bool>", "false", "Enable wide-window/DIA search mode. When enabled, the precursor_tol parameter is ignored and a dynamic precursor tolerance is used. Default: false", false, false);
+    registerStringOption_("smoothing", "<bool>", "true", "Whether to smooth the PTM (post-translational modification) mass histogram and pick local maxima. If false, uses raw histogram data. Default: true", false, false);  
 
     // register peptide indexing parameter (with defaults for this search engine)
     registerPeptideIndexingParameter_(PeptideIndexing().getParameters());
@@ -506,23 +515,87 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
 
+    // Validate tolerance parameters
+    double precursor_tol_left = getDoubleOption_("precursor_tol_left");
+    double precursor_tol_right = getDoubleOption_("precursor_tol_right");
+    double fragment_tol_left = getDoubleOption_("fragment_tol_left");
+    double fragment_tol_right = getDoubleOption_("fragment_tol_right");
+
+    // Warn if tolerance parameters seem incorrect
+    if (precursor_tol_left > 0)
+    {
+      OPENMS_LOG_WARN << "WARNING: precursor_tol_left is positive (" << precursor_tol_left << "). "
+                      << "This parameter is used to reduce the experimental mass, so it should typically be negative. "
+                      << "A positive value will likely produce an incorrect search window." << std::endl;
+    }
+    if (precursor_tol_right < 0)
+    {
+      OPENMS_LOG_WARN << "WARNING: precursor_tol_right is negative (" << precursor_tol_right << "). "
+                      << "This parameter is ADDED to the experimental mass, so it should typically be positive. "
+                      << "A negative value will likely produce an incorrect search window." << std::endl;
+    }
+    if (fragment_tol_left > 0)
+    {
+      OPENMS_LOG_WARN << "WARNING: fragment_tol_left is positive (" << fragment_tol_left << "). "
+                      << "This parameter is used to reduce the experimental mass, so it should typically be negative. "
+                      << "A positive value will likely produce an incorrect search window." << std::endl;
+    }
+    if (fragment_tol_right < 0)
+    {
+      OPENMS_LOG_WARN << "WARNING: fragment_tol_right is negative (" << fragment_tol_right << "). "
+                      << "This parameter is ADDED to the experimental mass, so it should typically be positive. "
+                      << "A negative value will likely produce an incorrect search window." << std::endl;
+    }
+
     // do this early, to see if Sage is installed
     String sage_executable = getStringOption_("sage_executable");
     std::cout << sage_executable << " sage executable" << std::endl; 
     String proc_stdout, proc_stderr;
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(sage_executable.toQString(), QStringList() << "--help", proc_stdout, proc_stderr, "");
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(sage_executable, {"--help"}, proc_stdout, proc_stderr, "");
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;
     }
 
-    auto major_minor_patch = getVersionNumber_(proc_stdout);
+    std::tuple<std::string, std::string, std::string> major_minor_patch;
+    try
+    {
+      major_minor_patch = getVersionNumber_(proc_stdout);
+    }
+    catch (const std::runtime_error& e)
+    {
+      OPENMS_LOG_ERROR << "Could not determine Sage version: " << e.what() << "\nSage output was:\n" << proc_stdout << std::endl;
+      return EXTERNAL_PROGRAM_NOTFOUND;
+    }
     String sage_version = std::get<0>(major_minor_patch) + "." + std::get<1>(major_minor_patch) + "." + std::get<2>(major_minor_patch);
     
     //-------------------------------------------------------------
     // run sage
     //-------------------------------------------------------------
     StringList input_files = getStringList_("in");
+
+#ifdef WITH_THERMO_RAW
+    // Sage does not natively read Thermo .raw files. Pre-convert any .raw
+    // inputs to temp mzML via FileHandler (ThermoRawFile) before passing
+    // to Sage. Track the temp basename → original path mapping so we can
+    // restore the original .raw path in the output run metadata.
+    std::map<String, String> sage_tmp_basename_to_original;
+    for (auto& f : input_files)
+    {
+      if (FileHandler::getType(f) == FileTypes::RAW)
+      {
+        OPENMS_LOG_INFO << "Converting Thermo .raw to temp mzML for Sage: " << f << std::endl;
+        MSExperiment exp_raw;
+        FileHandler fh_raw;
+        fh_raw.loadExperiment(f, exp_raw, {FileTypes::RAW}, log_type_);
+        auto tmp_mzml = File::getTemporaryFile() + ".mzML";
+        MzMLFile().store(tmp_mzml, exp_raw);
+        sage_tmp_basename_to_original[File::basename(tmp_mzml)] = f;
+        f = tmp_mzml;
+      }
+    }
+#endif
+
     String output_file = getStringOption_("out");
     String output_folder = File::path(output_file);
     String fasta_file = getStringOption_("database");
@@ -552,40 +625,41 @@ protected:
 
     String annotation_check;    
 
-    QStringList arguments;
+    std::vector<String> arguments;
 
   if ( (getStringOption_("annotate_matches").compare("true")) == 0)
   {
-    arguments << config_file.toQString() 
-              << "-f" << fasta_file.toQString() 
-              << "-o" << output_folder.toQString() 
-              << "--annotate-matches"
-              << "--write-pin"; 
+    arguments.insert(arguments.end(), {config_file, "-f", fasta_file, "-o", output_folder, "--annotate-matches", "--write-pin"});
   }
   else
   {
-    arguments << config_file.toQString() 
-              << "-f" << fasta_file.toQString() 
-              << "-o" << output_folder.toQString() 
-              << "--write-pin"; 
+    arguments.insert(arguments.end(), {config_file, "-f", fasta_file, "-o", output_folder, "--write-pin"});
   }
 
-    if (batch >= 1) arguments << "--batch-size" << String(batch).toQString();
-    
-    for (auto s : input_files) arguments << s.toQString();
+    if (batch >= 1) { arguments.push_back("--batch-size"); arguments.push_back(String(batch)); }
 
-    OPENMS_LOG_INFO << "Sage command line: " << sage_executable << " " << arguments.join(' ').toStdString() << std::endl;
-    
-    //std::chrono lines for testing/writing purposes only! 
+    for (const auto& s : input_files) arguments.push_back(s);
+
+    {
+      String args_str;
+      for (const auto& a : arguments) { args_str += " " + a; }
+      OPENMS_LOG_INFO << "Sage command line: " << sage_executable << args_str << std::endl;
+    }
+
+    //std::chrono lines for testing/writing purposes only!
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    
+
     // Set RAYON_NUM_THREADS environment variable to control Sage's thread usage
-    std::map<QString, QString> sage_env;
-    sage_env["RAYON_NUM_THREADS"] = String(threads).toQString();
-    
+    // Only set if threads > 0; if threads == 0, let Rayon auto-detect (use all CPUs)
+    std::map<String, String> sage_env;
+    if (threads > 0)
+    {
+      sage_env["RAYON_NUM_THREADS"] = String(threads);
+    }
+
     // Sage execution with the executable and the arguments StringList
-    exit_code = runExternalProcess_(sage_executable.toQString(), arguments, "", sage_env);
+    exit_code = runExternalProcess_(sage_executable, arguments, "", sage_env);
     
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     #ifdef CHRONOSET
@@ -650,14 +724,19 @@ protected:
     // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
     IDFilter::filterPeptidesByCharge(peptide_identifications, 2, numeric_limits<int>::max());
     
-    if (filenames.empty()) filenames = getStringList_("in");
+    // Fallback uses input_files (not getStringList_("in")) so that for Thermo
+    // .raw inputs the fallback gives the temp mzML paths Sage actually saw —
+    // post-processing (native-ID repair, FAIMS) needs those basenames to match
+    // file2specnr2nativeid keys built below from input_files. Equivalent to
+    // getStringList_("in") for mzML/.d inputs where no pre-conversion happened.
+    if (filenames.empty()) filenames = input_files;
 
     // TODO: allow optional split and create multiple idXMLs one per input file
     vector<ProteinIdentification> protein_identifications(1, ProteinIdentification());
 
-    writeDebug_("write idXMLFile", 1);    
-    
-    protein_identifications[0].setPrimaryMSRunPath(filenames);  
+    writeDebug_("write idXMLFile", 1);
+
+    protein_identifications[0].setPrimaryMSRunPath(filenames);
     protein_identifications[0].setDateTime(DateTime::now());
     protein_identifications[0].setSearchEngine("Sage");
     protein_identifications[0].setSearchEngineVersion(sage_version);
@@ -686,7 +765,7 @@ protected:
 
     search_parameters.charges = "2:5"; // probably hard-coded in sage https://github.com/lazear/sage/blob/master/crates/sage/src/scoring.rs#L301
 
-    search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+    search_parameters.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
     search_parameters.fixed_modifications = getStringList_("fixed_modifications");
     search_parameters.variable_modifications = getStringList_("variable_modifications");
     search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
@@ -704,37 +783,45 @@ protected:
     // if "reindex" parameter is set to true: will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
-    map<String,unordered_map<int,String>> file2specnr2nativeid;
-    for (const auto& mzml : input_files)
-    {
-      // TODO stream mzml?
-      MzMLFile m;
-      MSExperiment exp;
-      auto opts = m.getOptions();
-      opts.setMSLevels({2,3});
-      opts.setFillData(false);
-      //opts.setMetadataOnly(true);
-      m.setOptions(opts);
-      m.load(mzml, exp);
-      String nIDType = "";
-      if (!exp.getSourceFiles().empty())
-      {
-        // TODO we could also guess the regex from the first nativeID if it is not stored here
-        //  but I refuse to link to Boost::regex just for this
-        //  Someone has to rework the API first!
-        nIDType = exp.getSourceFiles()[0].getNativeIDTypeAccession();
-      }
+    // Check if any input is a Bruker .d folder (not mzML) — skip mzML-specific post-processing
+    bool has_non_mzml_input = std::any_of(input_files.begin(), input_files.end(),
+      [](const String& f) { return !f.hasSuffix(".mzML"); });
 
-      for (const auto& spec : exp)
+    // Build native ID lookup from mzML files (not applicable for .d input)
+    map<String,unordered_map<int,String>> file2specnr2nativeid;
+    if (!has_non_mzml_input)
+    {
+      for (const auto& mzml : input_files)
       {
-        const String& nID = spec.getNativeID();
-        int nr = SpectrumLookup::extractScanNumber(nID, nIDType);
-        if (nr >= 0)
+        // TODO stream mzml?
+        MzMLFile m;
+        MSExperiment exp;
+        auto opts = m.getOptions();
+        opts.setMSLevels({2,3});
+        opts.setFillData(false);
+        //opts.setMetadataOnly(true);
+        m.setOptions(opts);
+        m.load(mzml, exp);
+        String nIDType = "";
+        if (!exp.getSourceFiles().empty())
         {
-          auto [it, inserted] = file2specnr2nativeid.emplace(File::basename(mzml), unordered_map<int,String>({{nr,nID}}));
-          if (!inserted)
+          // TODO we could also guess the regex from the first nativeID if it is not stored here
+          //  but I refuse to link to Boost::regex just for this
+          //  Someone has to rework the API first!
+          nIDType = exp.getSourceFiles()[0].getNativeIDTypeAccession();
+        }
+
+        for (const auto& spec : exp)
+        {
+          const String& nID = spec.getNativeID();
+          int nr = SpectrumLookup::extractScanNumber(nID, nIDType);
+          if (nr >= 0)
           {
-            it->second.emplace(nr,nID);
+            auto [it, inserted] = file2specnr2nativeid.emplace(File::basename(mzml), unordered_map<int,String>({{nr,nID}}));
+            if (!inserted)
+            {
+              it->second.emplace(nr,nID);
+            }
           }
         }
       }
@@ -753,18 +840,108 @@ protected:
     for (auto& id : peptide_identifications)
     {
       Int64 scanNrAsInt = 0;
-      
+
       try
-      { // check if spectrum reference is a string that just contains a number        
+      { // check if spectrum reference is a string that just contains a number
         scanNrAsInt = id.getSpectrumReference().toInt64();
         // no exception -> conversion to int was successful. Now lookup full native ID in corresponding file for given spectrum number.
-        id.setSpectrumReference( file2specnr2nativeid[idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]].at(scanNrAsInt) );                              
+        // idxToFile values can be full paths but file2specnr2nativeid keys are basenames, so normalize first
+        String file_basename = File::basename(idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]);
+        auto file_it = file2specnr2nativeid.find(file_basename);
+        if (file_it != file2specnr2nativeid.end())
+        {
+          id.setSpectrumReference(file_it->second.at(scanNrAsInt));
+        }
       }
       catch (...)
       {
       }
     }
-    IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
+
+    // Annotate FAIMS compensation voltage if present in any mzML input file
+    if (!has_non_mzml_input)
+    {
+      // Pre-group peptide indices by file for efficient lookup (avoids O(files * peptides))
+      std::map<Size, std::vector<Size>> file_to_peptide_indices;
+      for (Size i = 0; i < peptide_identifications.size(); ++i)
+      {
+        const auto& pep = peptide_identifications[i];
+        if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+        {
+          file_to_peptide_indices[pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)].push_back(i);
+        }
+      }
+
+      for (const auto& mzml : input_files)
+      {
+        // Find file index for this mzML
+        Size file_idx = 0;
+        for (const auto& [idx, fname] : idxToFile)
+        {
+          if (File::basename(fname) == File::basename(mzml))
+          {
+            file_idx = idx;
+            break;
+          }
+        }
+
+        // Skip if no peptides for this file
+        auto it = file_to_peptide_indices.find(file_idx);
+        if (it == file_to_peptide_indices.end() || it->second.empty())
+        {
+          continue;
+        }
+
+        // Load mzML metadata (no peak data needed)
+        MzMLFile m;
+        MSExperiment exp_full;
+        auto opts = m.getOptions();
+        opts.setFillData(false);
+        m.setOptions(opts);
+        m.load(mzml, exp_full);
+
+        // Collect peptide IDs for this file
+        PeptideIdentificationList file_peptides;
+        file_peptides.reserve(it->second.size());
+        for (Size idx : it->second)
+        {
+          file_peptides.push_back(peptide_identifications[idx]);
+        }
+
+        // Annotate FAIMS and copy back
+        SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(file_peptides, exp_full);
+        for (Size i = 0; i < file_peptides.size(); ++i)
+        {
+          if (file_peptides[i].metaValueExists(Constants::UserParam::FAIMS_CV))
+          {
+            peptide_identifications[it->second[i]].setMetaValue(
+              Constants::UserParam::FAIMS_CV,
+              file_peptides[i].getMetaValue(Constants::UserParam::FAIMS_CV));
+          }
+        }
+      }
+    }
+
+#ifdef WITH_THERMO_RAW
+    // After all mzML-based post-processing (native-ID repair, FAIMS annotation)
+    // is done — those steps need temp mzML basenames to match file2specnr2nativeid
+    // / input_files — restore original .raw paths in PrimaryMSRunPath for the
+    // output metadata.
+    if (!sage_tmp_basename_to_original.empty())
+    {
+      StringList run_paths;
+      protein_identifications[0].getPrimaryMSRunPath(run_paths);
+      for (auto& fn : run_paths)
+      {
+        auto it = sage_tmp_basename_to_original.find(File::basename(fn));
+        if (it != sage_tmp_basename_to_original.end()) fn = it->second;
+      }
+      protein_identifications[0].setPrimaryMSRunPath(run_paths);
+    }
+#endif
+
+    FileHandler().storeIdentifications(output_file, protein_identifications, peptide_identifications,
+      {FileTypes::IDXML, FileTypes::IDPARQUET});
     return EXECUTION_OK;
   }
 };

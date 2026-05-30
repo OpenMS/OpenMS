@@ -52,7 +52,7 @@ namespace OpenMS
 
       StringList getMzMLInputFiles() const;
 
-      QStringList getPyProphetOutputFileNames() const;
+      std::vector<String> getPyProphetOutputFileNames() const;
 
     private slots:
       void on_run_swath_clicked();
@@ -92,9 +92,9 @@ namespace OpenMS
 
 
       /// append text to the log tab
-      /// @param text The text to write
-      /// @param color Color of the text
-      /// @param new_section Start a new block with a date and time
+      /// @param[in] text The text to write
+      /// @param[in] color Color of the text
+      /// @param[in] new_section Start a new block with a date and time
       void writeLog_(const QString& text, const QColor& color = "#000000", bool new_section = false);
       /// @brief convenient overload for String
       void writeLog_(const String& text, const QColor& color = "#000000", bool new_section = false);

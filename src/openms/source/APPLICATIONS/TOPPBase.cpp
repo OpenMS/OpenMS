@@ -18,6 +18,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
@@ -40,8 +41,9 @@
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/SYSTEM/UpdateCheck.h>
 
-#include <QtCore/QDir>
+#include <OpenMS/SYSTEM/PathUtils.h>
 
+#include <filesystem>
 #include <iostream>
 
 // OpenMP support
@@ -63,7 +65,7 @@ namespace OpenMS
 
   using namespace Exception;
 
-  String TOPPBase::topp_ini_file_ = String(QDir::homePath()) + "/.TOPP.ini";
+  String TOPPBase::topp_ini_file_ = File::getOpenMSHomePath() + "/.TOPP.ini";
   const Citation TOPPBase::cite_openms
     = {"Pfeuffer, J., Bielow, C., Wein, S. et al.", "OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data",
        "Nat Methods (2024)", "10.1038/s41592-024-02197-7"};
@@ -77,6 +79,10 @@ namespace OpenMS
                                        )
   {
 #ifdef _OPENMP
+    if (num_threads <= 0)
+    {
+      num_threads = omp_get_num_procs();
+    }
     omp_set_num_threads(num_threads);
 #endif
   }
@@ -110,7 +116,7 @@ namespace OpenMS
     if (toolhandler_test_)
     {
       // check if tool is in official tools list
-      if (official_ && tool_name_ != "GenericWrapper" && !ToolHandler::getTOPPToolList().count(tool_name_))
+      if (official_ && !ToolHandler::getTOPPToolList().count(tool_name_))
       {
         throw Exception::InvalidValue(__FILE__,
                                       __LINE__,
@@ -149,7 +155,7 @@ namespace OpenMS
     registerStringOption_("log", "<file>", "", "Name of log file (created only when specified)", false, true);
     registerIntOption_("instance", "<n>", 1, "Instance number for the TOPP INI file", false, true);
     registerIntOption_("debug", "<n>", 0, "Sets the debug level", false, true);
-    registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool", false);
+    registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores)", false);
     registerStringOption_("write_ini", "<file>", "", "Writes the default configuration file", false);
     registerStringOption_("write_ctd", "<out_dir>", "", "Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>", false, true);
     registerStringOption_("write_nested_cwl", "<out_dir>", "", "Writes the Common Workflow Language file(s) (Toolname(s).cwl) to <out_dir>", false, true);
@@ -392,7 +398,7 @@ namespace OpenMS
         // note the copy(getIniLocation_(),..) as we want the param tree without instance
         // information
         param_ = this->getDefaultParameters_().copy(getIniLocation_(), true);
-        if (!param_.update(finalParam, false, false, true, true, OpenMS_Log_warn))
+        if (!param_.update(finalParam, false, false, true, true, getGlobalLogWarn()))
         {
           OPENMS_LOG_ERROR << "Parameters passed to '" << this->tool_name_ << "' are invalid. To prevent usage of wrong defaults, please update/fix the parameters!" << std::endl;
           return ILLEGAL_PARAMETERS;
@@ -448,7 +454,7 @@ namespace OpenMS
       //-------------------------------------------------------------
       debug_level_ = getParamAsInt_("debug", 0);
       writeDebug_(String("Debug level (after ini file): ") + String(debug_level_), 1);
-      if (debug_level_ > 0) OpenMS_Log_debug.insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
+      if (debug_level_ > 0) getGlobalLogDebug().insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
 
       //-------------------------------------------------------------
       //progress logging
@@ -1021,7 +1027,7 @@ namespace OpenMS
     StringList defaults;
 
     if (p.type == ParameterInformation::STRING)
-      defaults.push_back(String(p.default_value.toString()));
+      defaults.emplace_back(p.default_value.toString());
     else
       defaults = ListUtils::toStringList<std::string>(p.default_value);
 
@@ -1409,7 +1415,7 @@ namespace OpenMS
     // check if all input files are readable
     if (p.type == ParameterInformation::INPUT_FILE_LIST)
     {
-      for (String t : param_value)
+      for (const String& t : param_value)
       {
         if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(t, param_name);
 
@@ -1638,21 +1644,21 @@ namespace OpenMS
   {
     OPENMS_LOG_INFO << text << endl;
     enableLogging_();
-    log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text << endl;
+    log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
   }
 
   void TOPPBase::writeLogWarn_(const String& text) const
   {
     OPENMS_LOG_WARN << text << endl;
     enableLogging_();
-    log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text << endl;
+    log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
   }
 
   void TOPPBase::writeLogError_(const String& text) const
   {
     OPENMS_LOG_ERROR << text << endl;
     enableLogging_();
-    log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text << endl;
+    log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
   }
 
   void TOPPBase::writeDebug_(const String& text, UInt min_level) const
@@ -1661,7 +1667,7 @@ namespace OpenMS
     {
       OPENMS_LOG_DEBUG << text << endl;
       enableLogging_();
-      log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text << endl;
+      log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
     }
   }
 
@@ -1670,24 +1676,24 @@ namespace OpenMS
     if (debug_level_ >= (Int)min_level)
     {
       OPENMS_LOG_DEBUG << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
-                << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << " " << text << endl
+                << DateTime::now().get() << ' ' << getIniLocation_() << " " << text << endl
                 << param
                 << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
       enableLogging_();
       log_ << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
-           << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << " " << text << endl
+           << DateTime::now().get() << ' ' << getIniLocation_() << " " << text << endl
            << param
            << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
     }
   }
 
-  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir, const std::map<QString, QString>& env) const
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const String& executable, const std::vector<String>& arguments, const String& workdir, const std::map<String, String>& env) const
   {
     String proc_stdout, proc_stderr; // collect all output (might be useful if program crashes, see below)
     return runExternalProcess_(executable, arguments, proc_stdout, proc_stderr, workdir, env);
   }
 
-  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, String& proc_stdout, String& proc_stderr, const QString& workdir, const std::map<QString, QString>& env) const
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const String& executable, const std::vector<String>& arguments, String& proc_stdout, String& proc_stderr, const String& workdir, const std::map<String, String>& env) const
   {
     proc_stdout.clear();
     proc_stderr.clear();
@@ -1870,7 +1876,7 @@ namespace OpenMS
     if (debug_level_ >= 1)
     {
       cout << "Writing to '" << log_destination << '\'' << "\n";
-      log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << "Writing to '" << log_destination << '\'' <<  "\n";
+      log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << "Writing to '" << log_destination << '\'' <<  "\n";
     }
   }
 
@@ -2353,7 +2359,7 @@ namespace OpenMS
 
   void TOPPBase::addDataProcessing_(PeakMap& map, const DataProcessing& dp) const
   {
-    boost::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
+    std::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
     for (Size i = 0; i < map.size(); ++i)
     {
       map[i].getDataProcessing().push_back(dp_);
@@ -2385,19 +2391,19 @@ namespace OpenMS
   void TOPPBase::writeToolDescription_(Writer& writer, std::string write_type, std::string fileExtension)
   {
     //store ini-file content in ini_file_str
-    QString out_dir_str = String(param_cmdline_.getValue(write_type).toString()).toQString();
-    if (out_dir_str == "")
+    String out_dir_str = String(param_cmdline_.getValue(write_type).toString());
+    if (out_dir_str.empty())
     {
-      out_dir_str = QDir::currentPath();
+      out_dir_str = std::filesystem::current_path().generic_string();
     }
     StringList type_list = ToolHandler::getTypes(tool_name_);
     if (type_list.empty())
-      type_list.push_back(""); // no type for most tools (except GenericWrapper)
+      type_list.push_back(""); // no type for most tools
 
     for (Size i = 0; i < type_list.size(); ++i)
     {
       // check file is writable
-      QString write_file = out_dir_str + QDir::separator() + tool_name_.toQString() + type_list[i].toQString() + fileExtension.c_str();
+      String write_file = out_dir_str + "/" + tool_name_ + type_list[i] + fileExtension.c_str();
       outputFileWritable_(write_file, write_type);
 
       // set type on command line, so that getDefaultParameters_() does not fail (as it calls getSubSectionDefaults() of tool)
@@ -2438,7 +2444,7 @@ namespace OpenMS
       toolInfo.citations_   = citation_dois;
 
       // this will write the actual data to disk
-      writer.store(write_file.toStdString(), default_params, toolInfo);
+      writer.store(write_file, default_params, toolInfo);
     }
   }
 
@@ -2450,17 +2456,6 @@ namespace OpenMS
     // 'parameters_' contains all commandline params which were registered using 'registerOptionsAndFlags_()' + the common ones (-write_ini etc)
     // .. they are empty/default at this point
     // We now fetch the (so-far unknown) subsection parameters (since they can be addressed on command line as well)
-
-    // special case of GenericWrapper: since we need the subSectionDefaults before pushing the cmd arguments in there
-    //                                 but the 'type' is empty currently,
-    //                                 we extract and set it beforehand
-    StringList sl_args = StringList(argv, argv + argc);
-    StringList::iterator it_type = std::find(sl_args.begin(), sl_args.end(), "-type");
-    if (it_type != sl_args.end())
-    { // found it
-      ++it_type; // advance to next argument -- this should be the value of -type
-      if (it_type != sl_args.end()) param_.setValue("type", *it_type);
-    }
 
     // prepare map of parameters:
     typedef map<String, vector<ParameterInformation>::const_iterator> ParamMap;
@@ -2481,7 +2476,7 @@ namespace OpenMS
       }
     }
     catch (BaseException& e)
-    { // this only happens for GenericWrapper, if 'type' is not given or invalid (then we do not have subsection params) -- enough to issue a warning
+    { // this only happens if 'type' is not given or invalid (then we do not have subsection params) -- enough to issue a warning
       writeLogWarn_(String("Warning: Unable to fetch subsection parameters! Addressing subsection parameters will not work for this tool (did you forget to specify '-type'?)."));
       writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ")!", 1);
     }
@@ -2505,6 +2500,19 @@ namespace OpenMS
           if (pos->second->type == ParameterInformation::FLAG) // flag
           {
             value = "true";
+            // Check if there are trailing arguments after the flag - this is an error
+            if (!queue.empty())
+            {
+              // Collect the trailing arguments for the error message
+              String trailing_args;
+              for (list<String>::const_iterator it = queue.begin(); it != queue.end(); ++it)
+              {
+                if (it != queue.begin()) trailing_args += " ";
+                trailing_args += *it;
+              }
+              throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                String("Command line error: Trailing arguments after flag '") + arg + "': " + trailing_args);
+            }
           }
           else // option with argument(s)
           {
@@ -2572,7 +2580,21 @@ namespace OpenMS
               queue.pop_front(); // argument was already used
           }
           OPENMS_LOG_DEBUG << "Command line: setting parameter value: '" << pos->second->name << "' to '" << value << "'" << std::endl;
-          cmd_params.setValue(pos->second->name, value);
+          
+          // Check for duplicate parameters
+          // Note: This is intentionally allowed to support nextflow workflows where ${ext.args} 
+          // can be appended to command lines to allow users to override default arguments.
+          // Since we parse in reverse order, we only keep the first occurrence we encounter,
+          // which is the LAST occurrence on the command line.
+          if (cmd_params.exists(pos->second->name))
+          {
+            const ParamValue& existing_value = cmd_params.getValue(pos->second->name);
+            writeLogWarn_(String("Warning: Duplicate parameter '") + arg + "' given. Using last occurrence with value '" + String(existing_value.toString()) + "' (ignoring '" + String(value.toString()) + "').");
+          }
+          else
+          {
+            cmd_params.setValue(pos->second->name, value);
+          }
         }
         else // unknown argument -> append to "unknown" list
         {

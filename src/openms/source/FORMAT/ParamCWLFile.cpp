@@ -71,7 +71,7 @@ namespace OpenMS
     tdl_tool_info.metaInfo.docurl = tool_info.docurl_;
     tdl_tool_info.metaInfo.category = tool_info.category_;
     tdl_tool_info.metaInfo.description = tool_info.description_;
-    for (auto cite : tool_info.citations_)
+    for (const auto& cite : tool_info.citations_)
     {
       tdl::Citation tdl_citation;
       tdl_citation.doi = cite;
@@ -323,6 +323,9 @@ namespace OpenMS
 
     os << convertToCWL(tdl_tool_info) << "\n";
 #else
+    (void)os_ptr;
+    (void)param;
+    (void)tool_info;
     throw std::runtime_error{"TDL support is not available. Rebuild with -DENABLE_TDL=ON to enable this feature."};
 #endif
   }

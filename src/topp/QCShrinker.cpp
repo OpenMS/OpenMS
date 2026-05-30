@@ -12,12 +12,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/QcMLFile.h>
 
-#include <QByteArray>
-#include <QFile>
-#include <QString>
-#include <QFileInfo>
+#include <OpenMS/SYSTEM/File.h>
 
-//~ #include <QIODevice>
 #include <fstream>
 #include <vector>
 #include <map>
@@ -107,7 +103,7 @@ protected:
     //------------------------------------------------------------
     if (!target_file.empty())
     {
-      target_run = QFileInfo(QString::fromStdString(target_file)).baseName();
+      target_run = File::stemName(target_file);
     }
 
     //~ !getFlag_("tables")

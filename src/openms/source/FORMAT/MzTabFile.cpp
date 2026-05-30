@@ -9,13 +9,15 @@
 #include <OpenMS/FORMAT/MzTabFile.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
-#include <QtCore/QString>
 
 #include <boost/regex.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -23,8 +25,10 @@
 using namespace std;
 
 // TODO fix all the shadowed "String s"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 namespace OpenMS
 {
@@ -667,25 +671,25 @@ namespace OpenMS
       else if (meta_key.hasPrefix("colunit") && meta_key_fields[1] == "protein")
       {
         Int n = meta_key_fields[0].substitute("colunit[", "").substitute("]","").trim().toInt();
-        String s = cells[2];
+        const String& s = cells[2];
         mz_tab_metadata.colunit_protein[n] = s;
       }
       else if (meta_key.hasPrefix("colunit") && meta_key_fields[1] == "peptide")
       {
         Int n = meta_key_fields[0].substitute("colunit[", "").substitute("]","").trim().toInt();
-        String s = cells[2];
+        const String& s = cells[2];
         mz_tab_metadata.colunit_peptide[n] = s;
       }
       else if (meta_key.hasPrefix("colunit") && meta_key_fields[1] == "psm")
       {
         Int n = meta_key_fields[0].substitute("colunit[", "").substitute("]","").trim().toInt();
-        String s = cells[2];
+        const String& s = cells[2];
         mz_tab_metadata.colunit_psm[n] = s;
       }
       else if (meta_key.hasPrefix("colunit") && meta_key_fields[1] == "small_molecule")
       {
         Int n = meta_key_fields[0].substitute("colunit[", "").substitute("]","").trim().toInt();
-        String s = cells[2];
+        const String& s = cells[2];
         mz_tab_metadata.colunit_small_molecule[n] = s;
       }
     }
@@ -1041,7 +1045,7 @@ namespace OpenMS
         }
         else if (cells[i].hasPrefix("search_engine_score["))
         {
-          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i].toQString());
+          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i]);
           peptide_column_index_to_score_runs_pair[i] = pair;
         }
         else if (cells[i] == "reliability")
@@ -1409,7 +1413,7 @@ namespace OpenMS
         }
         else if (cells[i].hasPrefix("search_engine_score["))
         {
-          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i].toQString());
+          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i]);
           smallmolecule_column_index_to_score_runs_pair[i] = pair;
         }
         else if (cells[i] == "modifications")
@@ -3332,4 +3336,6 @@ namespace OpenMS
 
 }
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif

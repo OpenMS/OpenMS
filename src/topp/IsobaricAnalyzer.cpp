@@ -17,10 +17,13 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyFivePlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <memory> // for std::unique_ptr
@@ -57,7 +60,8 @@ using namespace std;
 
 The input MSn spectra have to be in centroid mode for the tool to work properly. Use e.g. @ref TOPP_PeakPickerHiRes to perform centroiding of profile data, if necessary.
 
-This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, and 18-plex as labeling methods.
+This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, 18-plex, 32-plex, and 35-plex as labeling methods.
+Note: TMT 32-plex and 35-plex default to an identity correction matrix (no isotope correction) until lot-specific values are provided via the correction_matrix parameter.
 It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
 in which each consensus feature represents one relevant MSn scan (e.g. HCD; see parameters @p select_activation and @p min_precursor_intensity).
 The MS level for quantification is chosen automatically, i.e. if MS3 is present, MS2 will be ignored.
@@ -155,6 +159,8 @@ public:
     addMethod_(make_unique<TMTElevenPlexQuantitationMethod>(), "TMT 11-plex");
     addMethod_(make_unique<TMTSixteenPlexQuantitationMethod>(), "TMT 16-plex");
     addMethod_(make_unique<TMTEighteenPlexQuantitationMethod>(), "TMT 18-plex");
+    addMethod_(make_unique<TMTThirtyTwoPlexQuantitationMethod>(), "TMT 32-plex");
+    addMethod_(make_unique<TMTThirtyFivePlexQuantitationMethod>(), "TMT 35-plex");
   }
 
 protected:

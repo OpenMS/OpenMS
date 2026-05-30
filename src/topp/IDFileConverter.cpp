@@ -14,6 +14,9 @@
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
@@ -208,10 +211,10 @@ protected:
                        "- a single file in fasta format (can only be used to generate a theoretical mzML),\n"
                        "- a single text file (tab separated) with one line for all peptide sequences matching a spectrum (top N hits),\n"
                        "- for Sequest results, a directory containing .out files.\n");
-    setValidFormats_("in", ListUtils::create<String>("oms,idXML,mzid,fasta,pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,xquest.xml"));
+    setValidFormats_("in", ListUtils::create<String>("oms,idXML,mzid,idparquet,fasta,pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,xquest.xml"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    String formats("oms,idXML,mzid,pepXML,fasta,xquest.xml,mzML");
+    String formats("oms,idXML,mzid,idparquet,pepXML,fasta,xquest.xml,mzML");
     setValidFormats_("out", ListUtils::create<String>(formats));
     registerStringOption_("out_type", "<type>", "", "Output file type (default: determined from file extension)", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
@@ -223,7 +226,7 @@ protected:
     registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename/path (extension will be removed) to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
     registerFlag_("peptideprophet_analyzed", "[pepXML output only] Write output in the format of a PeptideProphet analysis result. By default a 'raw' pepXML is produced that contains only search engine results.", false);
     registerStringOption_("score_type", "<choice>", PercolatorOutfile::score_type_names[0], "[Percolator only] Which of the Percolator scores to report as 'the' score for a peptide hit", false);
-    setValidStrings_("score_type", vector<String>(PercolatorOutfile::score_type_names, PercolatorOutfile::score_type_names + int(PercolatorOutfile::SIZE_OF_SCORETYPE)));
+    setValidStrings_("score_type", vector<String>(PercolatorOutfile::score_type_names, PercolatorOutfile::score_type_names + static_cast<int>(PercolatorOutfile::ScoreType::SIZE_OF_SCORETYPE)));
 
     registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
@@ -268,7 +271,12 @@ protected:
     logger.setLogType(ProgressLogger::CMD);
     logger.startProgress(0, 1, "Loading...");
 
-    if (File::isDirectory(in))
+    String in_for_type = in;
+    while (in_for_type.hasSuffix("/") || in_for_type.hasSuffix("\\"))
+    {
+      in_for_type = in_for_type.prefix(in_for_type.size() - 1);
+    }
+    if (File::isDirectory(in) && !FileTypes::isDirectoryType(FileHandler::getTypeByFileName(in_for_type)))
     {
       const String in_directory = File::absolutePath(in).ensureLastChar('/');
       const bool ignore_proteins_per_peptide = getFlag_("ignore_proteins_per_peptide");
@@ -451,6 +459,12 @@ protected:
       }
       break;
 
+      case FileTypes::IDPARQUET:
+      {
+        FileHandler().loadIdentifications(in, protein_identifications, peptide_identifications, {FileTypes::IDPARQUET});
+      }
+      break;
+
       case FileTypes::PROTXML:
       {
         FileHandler().loadIdentifications(in, protein_identifications,
@@ -525,7 +539,7 @@ protected:
       case FileTypes::PSMS: // Percolator
       {
         String score_type = getStringOption_("score_type");
-        enum PercolatorOutfile::ScoreType perc_score =
+        PercolatorOutfile::ScoreType perc_score =
           PercolatorOutfile::getScoreType(score_type);
         if (!mz_file.empty())
         {
@@ -703,6 +717,10 @@ protected:
     case FileTypes::MZIDENTML:
       FileHandler().storeIdentifications(out, protein_identifications,
                             peptide_identifications, {FileTypes::MZIDENTML});
+      break;
+
+    case FileTypes::IDPARQUET:
+      FileHandler().storeIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDPARQUET});
       break;
 
     case FileTypes::XQUESTXML:

@@ -34,7 +34,10 @@ namespace OpenMS
     /// how an sqlite db should be opened
     enum class SqlOpenMode
     {
-      READONLY,  ///< the DB must exist and is read-only
+      READ_ONLY,  ///< the DB must exist and is read-only
+#ifndef READONLY
+      READONLY = READ_ONLY, ///< compatibility alias for READ_ONLY
+#endif
       READWRITE, ///< the DB is readable and writable, but must exist when opening it
       READWRITE_OR_CREATE ///< the DB readable and writable and is created new if not present already
     };
@@ -234,8 +237,8 @@ namespace OpenMS
     /**
       @brief Opens a new SQLite database
 
-      @param filename Filename of the database
-      @param mode See SqlOpenMode
+      @param[in] filename Filename of the database
+      @param[in] mode See SqlOpenMode
 
       @note Call this only once!
     */
@@ -281,8 +284,8 @@ namespace OpenMS
         To avoid oversights, you can pass the old return value into the function again
         and get an Exception which will tell you that there is buggy code!
 
-        @param stmt Sqlite statement object
-        @param current Return value of the previous call to this function.
+        @param[in] stmt Sqlite statement object
+        @param[in] current Return value of the previous call to this function.
         @return one of SqlState::SQL_ROW or SqlState::SQL_DONE
         @throws Exception::SqlOperationFailed if state would be SqlState::ERROR
       */

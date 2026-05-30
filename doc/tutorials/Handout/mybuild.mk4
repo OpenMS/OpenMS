@@ -1,0 +1,10 @@
+if mode=="draft" then
+  Make:htlatex {}
+else
+  Make:htlatex {}
+  Make:bibtex {}
+  Make:htlatex {}
+  Make:htlatex {}
+  Make:htlatex {}
+end
+mkutils.copy("test.css","output/test.css")

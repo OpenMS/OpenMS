@@ -14,8 +14,8 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QtCore/QFileInfo>
-#include <QtCore/QString>
+#include <OpenMS/SYSTEM/PathUtils.h>
+#include <filesystem>
 #include <iostream>
 
 using namespace std;
@@ -25,21 +25,26 @@ namespace OpenMS
     String findSpectraFile(const String &spec_file, const String &tsv_file, const bool require_spectra_files)
     {
       String result;
-      QFileInfo spectra_file_info(spec_file.toQString());
-      if (spectra_file_info.isRelative())
+      namespace fs = std::filesystem;
+      // On Windows, std::filesystem treats "/data/foo" as relative (no drive letter),
+      // but Qt treated it as absolute. Check for '/' prefix to match Qt behavior.
+      bool is_relative = to_path(spec_file).is_relative();
+#ifdef OPENMS_WINDOWSPLATFORM
+      if (!spec_file.empty() && spec_file[0] == '/') is_relative = false;
+#endif
+      if (is_relative)
       {
         // file name is relative, so we need to figure out the correct folder
 
         // first check folder relative to folder of design file
         // to allow, for example, a design in ./design.tsv and spectra in ./spectra/a.mzML
         // where ./ is the same folder
-        QFileInfo design_file_info(tsv_file.toQString());
-        QString design_file_relative(design_file_info.absolutePath());
-        design_file_relative = design_file_relative + "/" + spec_file.toQString();
+        String design_file_dir = fs::absolute(to_path(tsv_file)).parent_path().generic_string();
+        String design_file_relative = design_file_dir + "/" + spec_file;
 
         if (File::exists(design_file_relative))
         {
-          result = design_file_relative.toStdString();
+          result = design_file_relative;
         }
         else
         {
@@ -227,6 +232,8 @@ namespace OpenMS
           int label = cells[fs_column_header_to_index["Label"]].toInt();
           int fraction = cells[fs_column_header_to_index["Fraction"]].toInt();
           int fraction_group = cells[fs_column_header_to_index["Fraction_Group"]].toInt();
+          parseErrorIf_(!has_sample && (label > 1), tsv_file,
+                        "Column 'Sample' is required for multiplexed one-table designs (Label > 1).");
 
           // read sample column
           Size sample = 1;
@@ -269,6 +276,7 @@ namespace OpenMS
           e.fraction = fraction;
           e.label = label;
           e.sample = sample;
+          e.sample_name = samplename;
 
           // Spectra files
           e.path = findSpectraFile(
@@ -462,4 +470,3 @@ namespace OpenMS
     }
 
 }
-

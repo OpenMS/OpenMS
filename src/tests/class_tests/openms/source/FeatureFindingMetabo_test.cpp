@@ -3,7 +3,7 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
-// $Authors: Erhan Kenar$
+// $Authors: Erhan Kenar, Mohammed Alhigaylan$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -103,6 +103,77 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
 }
 END_SECTION
 
+// Test with ion mobility data
+START_SECTION(([EXTRA] run with ion mobility data))
+{
+  // Load LC-IMS-MS data
+  PeakMap im_input;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("../../../topp/FeatureFinderMetabo_6_input.mzML"), im_input);
+
+  // Run MassTraceDetection with ion mobility tolerance
+  MassTraceDetection mtd_im;
+  Param mtd_p = mtd_im.getParameters();
+  mtd_p.setValue("mass_error_ppm", 10.0);
+  mtd_p.setValue("noise_threshold_int", 10.0);
+  mtd_p.setValue("ion_mobility_tolerance", 0.01);
+  mtd_im.setParameters(mtd_p);
+  std::vector<MassTrace> im_traces;
+  mtd_im.run(im_input, im_traces);
+  TEST_EQUAL(im_traces.empty(), false);
+
+  // Verify mass traces contain IM data
+  bool has_im = false;
+  for (const auto& mt : im_traces)
+  {
+    if (mt.containsIMData())
+    {
+      has_im = true;
+      break;
+    }
+  }
+  TEST_EQUAL(has_im, true);
+
+  // Run ElutionPeakDetection
+  ElutionPeakDetection epd_im;
+  std::vector<MassTrace> im_splitted;
+  epd_im.detectPeaks(im_traces, im_splitted);
+  TEST_EQUAL(im_splitted.empty(), false);
+
+  // Verify IM data survives elution peak detection splitting
+  has_im = false;
+  for (const auto& mt : im_splitted)
+  {
+    if (mt.containsIMData())
+    {
+      has_im = true;
+      break;
+    }
+  }
+  TEST_EQUAL(has_im, true);
+
+  // Run FeatureFindingMetabo with IM-aware settings
+  FeatureFindingMetabo ffm_im;
+  Param ffm_p = ffm_im.getParameters();
+  ffm_p.setValue("mz_scoring_13C", "true");
+  ffm_im.setParameters(ffm_p);
+  FeatureMap im_fm;
+  std::vector<std::vector<OpenMS::MSChromatogram>> im_chromatograms;
+  ffm_im.run(im_splitted, im_fm, im_chromatograms);
+  TEST_EQUAL(im_fm.empty(), false);
+
+  // Verify that output features contain ion mobility metadata
+  bool has_im_meta = false;
+  for (const auto& f : im_fm)
+  {
+    if (f.metaValueExists("masstrace_centroid_im"))
+    {
+      has_im_meta = true;
+      break;
+    }
+  }
+  TEST_EQUAL(has_im_meta, true);
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -64,8 +64,8 @@ public:
      *
      * @note The stream name must be unique. You cannot register the same stream name with two different types.
      *
-     * @param type  Type of the stream (e.g. FILE)
-     * @param stream_name Name of the stream (e.g. the file name for a file stream).
+     * @param[in] type  Type of the stream (e.g. FILE)
+     * @param[in] stream_name Name of the stream (e.g. the file name for a file stream).
      *
      * @return An integer indicating if the operation was completed successfully (@p value != 1 means a failure occurred).
      */
@@ -77,8 +77,8 @@ public:
      * It also decreases the reference counter for the named stream. If the counter
      * reaches 0. The stream will be closed.
      *
-     * @param type  Type of the stream (e.g. FILE)
-     * @param stream_name Name of the stream (e.g. the file name for a file stream).
+     * @param[in] type  Type of the stream (e.g. FILE)
+     * @param[in] stream_name Name of the stream (e.g. the file name for a file stream).
      *
      */
     void unregisterStream(StreamType const type, const String & stream_name);
@@ -88,8 +88,8 @@ public:
      *
      * If the stream was not registered before an ElementNotFoundException will be thrown.
      *
-     * @param type  Type of the stream (e.g. FILE)
-     * @param stream_name Name of the stream (e.g. the file name for a file stream).
+     * @param[in] type  Type of the stream (e.g. FILE)
+     * @param[in] stream_name Name of the stream (e.g. the file name for a file stream).
      *
      * @throw ElementNotFoundException
      *
@@ -101,8 +101,8 @@ public:
      * @brief Returns true if the stream @p stream_name with type @p type is
      * registered.
      *
-     * @param type  Type of the stream (e.g. FILE)
-     * @param stream_name Name of the stream (e.g. the file name for a file stream).
+     * @param[in] type  Type of the stream (e.g. FILE)
+     * @param[in] stream_name Name of the stream (e.g. the file name for a file stream).
      *
      * @return bool indication if the stream is known.
      */
@@ -117,8 +117,8 @@ protected:
     /**
      * @brief Creates a stream with the given type and the given name.
      *
-     * @param type  Type of the stream (e.g. FILE)
-     * @param stream_name Name of the stream (e.g. the file name for a file stream).
+     * @param[in] type  Type of the stream (e.g. FILE)
+     * @param[in] stream_name Name of the stream (e.g. the file name for a file stream).
      *
      * @return A pointer to the created stream.
      */

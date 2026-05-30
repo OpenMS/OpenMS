@@ -8,6 +8,7 @@
 
 #include <OpenMS/SYSTEM/UpdateCheck.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -19,22 +20,21 @@
 #endif
 
 #include <sys/stat.h>
+#include <filesystem>
+#include <fstream>
 
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
-#include <QtCore/QDir>
-#include <QtCore/QCoreApplication>
-#include <QtCore/QDateTime>
-#include <QtCore/QTimer>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 using namespace std;
-  
+namespace fs = std::filesystem;
+
 namespace OpenMS
 {
   void UpdateCheck::run(const String& tool_name, const String& version, int debug_level)
   {
-    String architecture = QSysInfo::WordSize == 32 ? "32" : "64";
+    String architecture = (sizeof(void*) == 4) ? "32" : "64";
 
     // if the revision info is meaningful, show it as well
     String revision("UNKNOWN");
@@ -83,36 +83,48 @@ namespace OpenMS
     if (!File::exists(version_file_name) || !File::readable(version_file_name))
     {
       // create OpenMS folder for .ver files
-      QDir dir(config_path.toQString());
-
-      if (!dir.exists())
+      std::error_code ec;
+      fs::create_directories(to_path(config_path), ec);
+      if (ec)
       {
-        dir.mkpath(".");
+        OPENMS_LOG_WARN << "Warning: Could not create config directory '"
+                        << config_path << "': " << ec.message()
+                        << ". Skipping update check." << std::endl;
+        return;
       }
 
       // touch file to create it and set initial modification time stamp
-      QFile f;
-      f.setFileName(version_file_name.toQString());
-      f.open(QIODevice::WriteOnly);
+      std::ofstream f(version_file_name.c_str());
       f.close();
       first_run = true;
     }
 
     if (File::readable(version_file_name))
     {
-      QDateTime last_modified_dt = QFileInfo(version_file_name.toQString()).lastModified();
-      QDateTime current_dt = QDateTime::currentDateTime();
+      // Get last modification time using std::filesystem
+      std::error_code ec;
+      auto last_modified_time = fs::last_write_time(to_path(version_file_name), ec);
+      auto current_time = fs::file_time_type::clock::now();
 
       // check if at least one day passed since last request
-      if (first_run || current_dt > last_modified_dt.addDays(1))
+      if (first_run || current_time > last_modified_time + std::chrono::hours(24))
       {
         // update modification time stamp
         struct stat old_stat;
-        struct utimbuf new_times;
-        stat(version_file_name.c_str(), &old_stat);
-        new_times.actime = old_stat.st_atime; // keep accession time unchanged 
-        new_times.modtime = time(nullptr);  // mod time to current time
-        utime(version_file_name.c_str(), &new_times);          
+        if (stat(version_file_name.c_str(), &old_stat) != 0)
+        {
+          OPENMS_LOG_WARN << "Warning: stat() failed for '" << version_file_name << "' (errno " << errno << ")" << std::endl;
+        }
+        else
+        {
+          struct utimbuf new_times;
+          new_times.actime = old_stat.st_atime; // keep accession time unchanged
+          new_times.modtime = time(nullptr);  // mod time to current time
+          if (utime(version_file_name.c_str(), &new_times) != 0)
+          {
+            OPENMS_LOG_WARN << "Warning: utime() failed for '" << version_file_name << "' (errno " << errno << ")" << std::endl;
+          }
+        }
 
         if (debug_level > 0)
         {
@@ -120,26 +132,20 @@ namespace OpenMS
           OPENMS_LOG_INFO << "We will never give out your personal data, but you may disable this functionality by " << endl;
           OPENMS_LOG_INFO << "setting the environmental variable OPENMS_DISABLE_UPDATE_CHECK to ON." << endl;
         }
-      
-        // We need to use a QCoreApplication to fire up the  QEventLoop to process the signals and slots.
-        char const * argv2[] = { "dummyname", nullptr };
-        int argc = 1;
-        QCoreApplication event_loop(argc, const_cast<char**>(argv2));
-        NetworkGetRequest* query = new NetworkGetRequest(&event_loop);
-        query->setUrl(QUrl(QString("http://openms-update.cs.uni-tuebingen.de/check/") + tool_version_string.toQString()));
-        QObject::connect(query, SIGNAL(done()), &event_loop, SLOT(quit()));
-        QTimer::singleShot(1000, query, SLOT(run()));          
-        QTimer::singleShot(5000, query, SLOT(timeOut()));
-        event_loop.exec();
 
-        if (!query->hasError())
+        NetworkGetRequest query;
+        query.setUrl("http://openms-update.cs.uni-tuebingen.de/check/" + tool_version_string);
+        query.setTimeout(5);
+        query.run();
+
+        if (!query.hasError())
         {
           if (debug_level > 0)
           {
             OPENMS_LOG_INFO << "Connecting to REST server successful. " << endl;
           }
 
-          QString response = query->getResponse();
+          String response = query.getResponse();
           VersionInfo::VersionDetails server_version = VersionInfo::VersionDetails::create(response);
           if (server_version != VersionInfo::VersionDetails::EMPTY)
           {
@@ -154,14 +160,11 @@ namespace OpenMS
           if (debug_level > 0)
           {
             OPENMS_LOG_INFO << "Connecting to REST server failed. Skipping update check." << endl;
-            OPENMS_LOG_INFO << "Error: " << String(query->getErrorString()) << endl;
+            OPENMS_LOG_INFO << "Error: " << query.getErrorString() << endl;
           }
         }
-        delete query;
-        event_loop.quit();
       }
     }
   }
 
 }
-

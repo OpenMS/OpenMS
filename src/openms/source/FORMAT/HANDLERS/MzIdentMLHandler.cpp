@@ -10,6 +10,9 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
@@ -195,8 +198,7 @@ namespace OpenMS::Internal
       cpro_id_(&pro_id),
       cpep_id_(&pep_id)
     {
-      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-      unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
+      initCvCaches_();
     }
 
     MzIdentMLHandler::MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const String& filename, const String& version, const ProgressLogger& logger) :
@@ -208,8 +210,16 @@ namespace OpenMS::Internal
       cpro_id_(nullptr),
       cpep_id_(nullptr)
     {
+      initCvCaches_();
+    }
+
+    void MzIdentMLHandler::initCvCaches_()
+    {
       cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
       unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
+      // descendants only: the parent term MS:1001143 ("PSM-level search engine specific statistic")
+      // is non-numeric and must not be serialized as a scored cvParam (it is handled via the userParam fallback)
+      cv_.getAllChildTerms(peptide_result_details_, "MS:1001143");
     }
 
     //~ TODO create MzIdentML instances from MSExperiment which contains much of the information yet needed
@@ -825,12 +835,12 @@ namespace OpenMS::Internal
               if (it->getMZ() != it->getMZ())
             {
               emz = "nan";
-              OPENMS_LOG_WARN << "Found no spectrum reference and no m/z position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
+              OPENMS_LOG_WARN << "Found no spectrum reference and no m/z position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right.\n";
             }
             if (it->getRT() != it->getRT())
             {
               ert = "nan";
-              OPENMS_LOG_WARN << "Found no spectrum reference and no RT position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
+              OPENMS_LOG_WARN << "Found no spectrum reference and no RT position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right.\n";
             }
             sid = String("MZ:") + emz + String("@RT:") + ert;
           }
@@ -849,7 +859,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          OPENMS_LOG_WARN << "Falling back to referencing first spectrum file given because file or identifier could not be mapped." << std::endl;
+          OPENMS_LOG_WARN << "Falling back to referencing first spectrum file given because file or identifier could not be mapped.\n";
         }
 
         sidres += String("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"")
@@ -871,7 +881,9 @@ namespace OpenMS::Internal
         if (is_ppxl)
         {
           ProteinIdentification::SearchParameters search_params = cpro_id_->front().getSearchParameters();
-          ppxl_crosslink_mass = String(search_params.getMetaValue("cross_link:mass")).toDouble();
+          // use a default so a missing/empty cross_link:mass meta value does not throw a ConversionError
+          // (e.g. on a store after a load where the search parameter was not preserved)
+          ppxl_crosslink_mass = String(search_params.getMetaValue("cross_link:mass", "0")).toDouble();
         }
 
         for (std::vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
@@ -917,7 +929,7 @@ namespace OpenMS::Internal
           else
           {
             //encountered a PeptideIdentification which is not linked to any ProteinIdentification
-            OPENMS_LOG_ERROR << "encountered a PeptideIdentification which is not linked to any ProteinIdentification" << std::endl;
+            OPENMS_LOG_ERROR << "encountered a PeptideIdentification which is not linked to any ProteinIdentification\n";
           }
         }
 
@@ -945,7 +957,7 @@ namespace OpenMS::Internal
           else
           {
             //encountered a PeptideIdentification which is not linked to any ProteinIdentification
-            OPENMS_LOG_ERROR << "encountered a PeptideIdentification crosslink information which is not linked to any ProteinIdentification" << std::endl;
+            OPENMS_LOG_ERROR << "encountered a PeptideIdentification crosslink information which is not linked to any ProteinIdentification\n";
           }
         }
       }
@@ -953,16 +965,14 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       // XML header
       //--------------------------------------------------------------------------------------------
-      String v_s = "1.1.0";
-      if (is_ppxl)
-      {
-         v_s = "1.2.0";
-      }
+      String v_s = "1.3.0";
+      // namespace uses only major.minor (e.g. "1.3" from "1.3.0"); derive it by dropping the patch component
+      String v_short = v_s.prefix(v_s.rfind('.'));
       os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
          << "<MzIdentML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
-         << "\txsi:schemaLocation=\"http://psidev.info/psi/pi/mzIdentML/"<< v_s.substr(0,v_s.size()-2) <<" "
-         << "https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/schema/mzIdentML"<< v_s <<".xsd\"\n"
-         << "\txmlns=\"http://psidev.info/psi/pi/mzIdentML/"<< v_s.substr(0,v_s.size()-2) <<"\"\n"
+         << "\txsi:schemaLocation=\"http://psidev.info/psi/pi/mzIdentML/" << v_short << " "
+         << "https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/schema/mzIdentML" << v_s << ".xsd\"\n"
+         << "\txmlns=\"http://psidev.info/psi/pi/mzIdentML/" << v_short << "\"\n"
          << "\tversion=\"" << v_s << "\"\n";
       os << "\tid=\"OpenMS_" << String(UniqueIdGenerator::getUniqueId()) << "\"\n"
          << "\tcreationDate=\"" << DateTime::now().getDate() << "T" << DateTime::now().getTime() << "\">\n";
@@ -1219,7 +1229,7 @@ namespace OpenMS::Internal
           // TODO find ways to represent additional fragment types or filter out known incompatible types
 
           // OPENMS_LOG_WARN << "Well, fudge you very much, there is no matching annotation. ";
-          // OPENMS_LOG_WARN << pep.annotation << std::endl;
+          // OPENMS_LOG_WARN << pep.annotation << '\n';
           continue;
         }
         String lt = "frag: " + iontype + " ion";
@@ -1227,28 +1237,26 @@ namespace OpenMS::Internal
         {
           lt += " - "+loss;
         }
-        if (annotation_map.find(pep.charge) == annotation_map.end())
+        auto& charge_map = annotation_map[pep.charge];
+        auto& lt_vec = charge_map[lt];
+        if (lt_vec.empty())
         {
-          annotation_map[pep.charge] = std::map<String, std::vector<StringList> >();
-        }
-        if (annotation_map[pep.charge].find(lt) == annotation_map[pep.charge].end())
-        {
-          annotation_map[pep.charge][lt] = std::vector<StringList> (3);
+          lt_vec.resize(3);
           if (is_ppxl)
           {
-            annotation_map[pep.charge][lt].push_back(StringList());  // alpha|beta
-            annotation_map[pep.charge][lt].push_back(StringList());  // ci|xi
+            lt_vec.push_back(StringList());
+            lt_vec.push_back(StringList());
           }
         }
-        annotation_map[pep.charge][lt][0].push_back(ionseries_index);
-        annotation_map[pep.charge][lt][1].push_back(String(pep.mz));
-        annotation_map[pep.charge][lt][2].push_back(String(pep.intensity));
+        lt_vec[0].push_back(ionseries_index);
+        lt_vec[1].emplace_back(pep.mz);
+        lt_vec[2].emplace_back(pep.intensity);
         if (is_ppxl)
         {
           String ab = ListUtils::contains<String>(extra ,String("alpha")) ? String("alpha"):String("beta");
           String cx = ListUtils::contains<String>(extra ,String("ci")) ? String("ci"):String("xi");
-          annotation_map[pep.charge][lt][3].push_back(ab);
-          annotation_map[pep.charge][lt][4].push_back(cx);
+          lt_vec[3].push_back(ab);
+          lt_vec[4].push_back(cx);
         }
       }
 
@@ -1453,7 +1461,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence." << std::endl;
+              OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence.\n";
             }
             if (pe->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
             {
@@ -1465,7 +1473,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              OPENMS_LOG_WARN << "Found no end position of peptide hit in protein sequence." << std::endl;
+              OPENMS_LOG_WARN << "Found no end position of peptide hit in protein sequence.\n";
             }
             if (!idec.empty())
             {
@@ -1489,7 +1497,7 @@ namespace OpenMS::Internal
         if (sc.empty())
         {
           sc = "NA";
-          OPENMS_LOG_WARN << "No score assigned to this PSM: " /*<< hit.getSequence().toString()*/ << std::endl;
+          OPENMS_LOG_WARN << "No score assigned to this PSM: " /*<< hit.getSequence().toString()*/ << '\n';
         }
         String c(hit.getCharge()); //charge
 
@@ -1498,15 +1506,19 @@ namespace OpenMS::Internal
         {
           pte = boost::lexical_cast<std::string>(hit.getMetaValue("pass_threshold"));
         }
-        else if (pp_identifier_2_thresh.find(it->getIdentifier())!= pp_identifier_2_thresh.end() && pp_identifier_2_thresh.find(it->getIdentifier())->second != 0.0)
-        {
-          double th = pp_identifier_2_thresh.find(it->getIdentifier())->second;
-          //threshold was 'set' in proteinIdentification (!= default value of member, now check pass
-          pte = boost::lexical_cast<std::string>(it->isHigherScoreBetter() ? hit.getScore() > th : hit.getScore() < th); //passThreshold-eval
-        }
         else
         {
-          pte = true;
+          auto thresh_it = pp_identifier_2_thresh.find(it->getIdentifier());
+          if (thresh_it != pp_identifier_2_thresh.end() && thresh_it->second != 0.0)
+          {
+            double th = thresh_it->second;
+            //threshold was 'set' in proteinIdentification (!= default value of member, now check pass
+            pte = boost::lexical_cast<std::string>(it->isHigherScoreBetter() ? hit.getScore() > th : hit.getScore() < th); //passThreshold-eval
+          }
+          else
+          {
+            pte = true;
+          }
         }
 
         //write SpectrumIdentificationItem elements
@@ -1522,7 +1534,7 @@ namespace OpenMS::Internal
 
         if (pevid_ids.empty())
         {
-          OPENMS_LOG_WARN << "PSM without peptide evidence registered in the given search database found. This will cause an invalid mzIdentML file (which OpenMS can still consume)." << std::endl;
+          OPENMS_LOG_WARN << "PSM without peptide evidence registered in the given search database found. This will cause an invalid mzIdentML file (which OpenMS can still consume).\n";
         }
         for (std::vector<String>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
         {
@@ -1534,60 +1546,71 @@ namespace OpenMS::Internal
           writeFragmentAnnotations_(sii_tmp, hit.getPeakAnnotations(), 5, false);
         }
 
-        std::set<String> peptide_result_details;
-        cv_.getAllChildTerms(peptide_result_details, "MS:1001143"); // search engine specific score for PSMs
         MetaInfoInterface copy_hit = hit;
         String st(it->getScoreType()); //scoretype
 
-        if (cv_.hasTermWithName(st) && peptide_result_details.find(cv_.getTermByName(st).id) != peptide_result_details.end())
+        // Only consume the score type here if it maps to a PSM-level search-engine statistic (MS:1001143 subtree).
+        // Otherwise fall through to the dedicated alias branches below (e.g. Mascot/OMSSA), which would
+        // otherwise be unreachable for score types that happen to be valid (non-score) PSI-MS term names.
+        if (const auto* term = cv_.checkAndGetTermByName(st);
+            term != nullptr && peptide_result_details_.find(term->id) != peptide_result_details_.end())
         {
-          sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName(st).toXMLString(cv_ns, sc);
-          copy_hit.removeMetaValue(cv_.getTermByName(st).id);
+          (sii_tmp += "\t\t\t\t\t") += term->toXMLString(cv_ns, sc);
+          copy_hit.removeMetaValue(term->id);
         }
-        else if (cv_.exists(st) && peptide_result_details.find(st) != peptide_result_details.end())
+        else if (cv_.exists(st) && peptide_result_details_.find(st) != peptide_result_details_.end())
         {
-          sii_tmp +=  "\t\t\t\t\t" + cv_.getTerm(st).toXMLString(cv_ns, sc);
-          copy_hit.removeMetaValue(cv_.getTerm(st).id);
+          const auto& term = cv_.getTerm(st);
+          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          copy_hit.removeMetaValue(term.id);
         }
         else if (st == "q-value" || st == "FDR")
         {
-          sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("PSM-level q-value").toXMLString(cv_ns, sc);
-          copy_hit.removeMetaValue(cv_.getTermByName("PSM-level q-value").id);
+          const auto& term = cv_.getTermByName("PSM-level q-value");
+          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          copy_hit.removeMetaValue(term.id);
         }
         else if (st == "Posterior Error Probability")
         {
-          sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("percolator:PEP").toXMLString(cv_ns, sc); // 'percolaror' was not a typo in the code but in the cv.
-          copy_hit.removeMetaValue(cv_.getTermByName("percolator:PEP").id);
+          const auto& term = cv_.getTermByName("percolator:PEP"); // 'percolaror' was not a typo in the code but in the cv.
+          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          copy_hit.removeMetaValue(term.id);
         }
         else if (st == "OMSSA")
         {
-          sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("OMSSA:evalue").toXMLString(cv_ns, sc);
-          copy_hit.removeMetaValue(cv_.getTermByName("OMSSA:evalue").id);
+          const auto& term = cv_.getTermByName("OMSSA:evalue");
+          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          copy_hit.removeMetaValue(term.id);
         }
         else if (st == "Mascot")
         {
-          sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("Mascot:score").toXMLString(cv_ns, sc);
-          copy_hit.removeMetaValue(cv_.getTermByName("Mascot:score").id);
+          const auto& term = cv_.getTermByName("Mascot:score");
+          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          copy_hit.removeMetaValue(term.id);
         }
         else if (st == "XTandem")
         {
-          sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("X\\!Tandem:hyperscore").toXMLString(cv_ns, sc);
-          copy_hit.removeMetaValue(cv_.getTermByName("X\\!Tandem:hyperscore").id);
+          const auto& term = cv_.getTermByName("X\\!Tandem:hyperscore");
+          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          copy_hit.removeMetaValue(term.id);
         }
         else if (st == "SEQUEST")
         {
-          sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("Sequest:xcorr").toXMLString(cv_ns, sc);
-          copy_hit.removeMetaValue(cv_.getTermByName("Sequest:xcorr").id);
+          const auto& term = cv_.getTermByName("Sequest:xcorr");
+          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          copy_hit.removeMetaValue(term.id);
         }
         else if (st == "MS-GF+")
         {
-          sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("MS-GF:RawScore").toXMLString(cv_ns, sc);
-          copy_hit.removeMetaValue(cv_.getTermByName("MS-GF:RawScore").id);
+          const auto& term = cv_.getTermByName("MS-GF:RawScore");
+          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          copy_hit.removeMetaValue(term.id);
         }
         else if (st == Constants::UserParam::OPENPEPXL_SCORE)
         {
-          sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName(st).toXMLString(cv_ns, sc);
-          copy_hit.removeMetaValue(cv_.getTermByName(st).id);
+          const auto& term = cv_.getTermByName(st);
+          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          copy_hit.removeMetaValue(term.id);
         }
         else
         {
@@ -1595,7 +1618,7 @@ namespace OpenMS::Internal
           sii_tmp += String(5, '\t') + cv_.getTermByName("PSM-level search engine specific statistic").toXMLString(cv_ns);
           sii_tmp += "\n" + String(5, '\t') + "<userParam name=\"" + score_name_placeholder
                        + "\" unitName=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
-          OPENMS_LOG_WARN << "Converting unknown score type to PSM-level search engine specific statistic from PSI controlled vocabulary." << std::endl;
+          OPENMS_LOG_WARN << "Converting unknown score type to PSM-level search engine specific statistic from PSI controlled vocabulary.\n";
         }
         sii_tmp += "\n";
 
@@ -2001,7 +2024,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence." << std::endl;
+              OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence.\n";
             }
             if (pe->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
             {
@@ -2013,7 +2036,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              OPENMS_LOG_WARN << "Found no end position of peptide hit in protein sequence." << std::endl;
+              OPENMS_LOG_WARN << "Found no end position of peptide hit in protein sequence.\n";
             }
             if (!idec.empty())
             {
@@ -2070,7 +2093,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence." << std::endl;
+              OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence.\n";
             }
             if (end[ev] != String(PeptideEvidence::UNKNOWN_POSITION))
             {
@@ -2078,7 +2101,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              OPENMS_LOG_WARN << "Found no end position of peptide hit in protein sequence." << std::endl;
+              OPENMS_LOG_WARN << "Found no end position of peptide hit in protein sequence.\n";
             }
             if (!idec.empty())
             {
@@ -2119,7 +2142,7 @@ namespace OpenMS::Internal
       if (sc.empty())
       {
         sc = "NA";
-        OPENMS_LOG_WARN << "No score assigned to this PSM: " /*<< hit.getSequence().toString()*/ << std::endl;
+        OPENMS_LOG_WARN << "No score assigned to this PSM: " /*<< hit.getSequence().toString()*/ << '\n';
       }
       String c(hit.getCharge()); //charge
 
@@ -2128,15 +2151,19 @@ namespace OpenMS::Internal
       {
         pte = boost::lexical_cast<std::string>(hit.getMetaValue("pass_threshold"));
       }
-      else if (pp_identifier_2_thresh.find(it->getIdentifier())!= pp_identifier_2_thresh.end() && pp_identifier_2_thresh.find(it->getIdentifier())->second != 0.0)
-      {
-        double th = pp_identifier_2_thresh.find(it->getIdentifier())->second;
-        //threshold was 'set' in proteinIdentification (!= default value of member, now check pass
-        pte = boost::lexical_cast<std::string>(it->isHigherScoreBetter() ? hit.getScore() > th : hit.getScore() < th); //passThreshold-eval
-      }
       else
       {
-        pte = true;
+        auto thresh_it = pp_identifier_2_thresh.find(it->getIdentifier());
+        if (thresh_it != pp_identifier_2_thresh.end() && thresh_it->second != 0.0)
+        {
+          double th = thresh_it->second;
+          //threshold was 'set' in proteinIdentification (!= default value of member, now check pass
+          pte = boost::lexical_cast<std::string>(it->isHigherScoreBetter() ? hit.getScore() > th : hit.getScore() < th); //passThreshold-eval
+        }
+        else
+        {
+          pte = true;
+        }
       }
 
       //write SpectrumIdentificationItem elements
@@ -2152,7 +2179,7 @@ namespace OpenMS::Internal
 
       if (pevid_ids.empty())
       {
-        OPENMS_LOG_WARN << "PSM without peptide evidence registered in the given search database found. This will cause an invalid mzIdentML file (which OpenMS can still consume)." << std::endl;
+        OPENMS_LOG_WARN << "PSM without peptide evidence registered in the given search database found. This will cause an invalid mzIdentML file (which OpenMS can still consume).\n";
       }
       for (std::vector<String>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
       {
@@ -2165,35 +2192,40 @@ namespace OpenMS::Internal
         writeFragmentAnnotations_(sii_tmp, hit.getPeakAnnotations(), 5, true);
       }
 
-      std::set<String> peptide_result_details;
-      cv_.getAllChildTerms(peptide_result_details, "MS:1001143"); // search engine specific score for PSMs
       MetaInfoInterface copy_hit = hit;
       String st(it->getScoreType()); //scoretype
 
-      if (cv_.hasTermWithName(st) && peptide_result_details.find(cv_.getTermByName(st).id) != peptide_result_details.end())
+      // Only consume the score type here if it maps to a PSM-level search-engine statistic (MS:1001143 subtree);
+      // otherwise fall through to the dedicated alias branches below.
+      if (const auto* term = cv_.checkAndGetTermByName(st);
+          term != nullptr && peptide_result_details_.find(term->id) != peptide_result_details_.end())
       {
-        sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName(st).toXMLString(cv_ns, sc);
-        copy_hit.removeMetaValue(cv_.getTermByName(st).id);
+        (sii_tmp += "\t\t\t\t\t") += term->toXMLString(cv_ns, sc);
+        copy_hit.removeMetaValue(term->id);
       }
-      else if (cv_.exists(st) && peptide_result_details.find(st) != peptide_result_details.end())
+      else if (cv_.exists(st) && peptide_result_details_.find(st) != peptide_result_details_.end())
       {
-        sii_tmp +=  "\t\t\t\t\t" + cv_.getTerm(st).toXMLString(cv_ns, sc);
-        copy_hit.removeMetaValue(cv_.getTerm(st).id);
+        const auto& term = cv_.getTerm(st);
+        (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+        copy_hit.removeMetaValue(term.id);
       }
       else if (st == "q-value" || st == "FDR")
       {
-        sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("PSM-level q-value").toXMLString(cv_ns, sc);
-        copy_hit.removeMetaValue(cv_.getTermByName("PSM-level q-value").id);
+        const auto& term = cv_.getTermByName("PSM-level q-value");
+        (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+        copy_hit.removeMetaValue(term.id);
       }
       else if (st == "Posterior Error Probability")
       {
-        sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("percolator:PEP").toXMLString(cv_ns, sc); // 'percolaror' was not a typo in the code but in the cv.
-        copy_hit.removeMetaValue(cv_.getTermByName("percolator:PEP").id);
+        const auto& term = cv_.getTermByName("percolator:PEP"); // 'percolaror' was not a typo in the code but in the cv.
+        (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+        copy_hit.removeMetaValue(term.id);
       }
       else if (st == Constants::UserParam::OPENPEPXL_SCORE)
       {
-        sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName(st).toXMLString(cv_ns, sc);
-        copy_hit.removeMetaValue(cv_.getTermByName(st).id);
+        const auto& term = cv_.getTermByName(st);
+        (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+        copy_hit.removeMetaValue(term.id);
       }
       else
       {
@@ -2201,7 +2233,7 @@ namespace OpenMS::Internal
         sii_tmp += String(5, '\t') + cv_.getTermByName("PSM-level search engine specific statistic").toXMLString(cv_ns);
         sii_tmp += "\n" + String(5, '\t') + "<userParam name=\"" + score_name_placeholder
                      + "\" unitName=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
-        OPENMS_LOG_WARN << "Converting unknown score type to PSM-level search engine specific statistic from PSI controlled vocabulary." << std::endl;
+        OPENMS_LOG_WARN << "Converting unknown score type to PSM-level search engine specific statistic from PSI controlled vocabulary.\n";
       }
       sii_tmp += "\n";
 
@@ -2254,7 +2286,8 @@ namespace OpenMS::Internal
         sii_tmp = sii_tmp.substitute("value=\"" + ert, "value=\"" + String(hit.getMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT)));
 
         ProteinIdentification::SearchParameters search_params = cpro_id_->front().getSearchParameters();
-        double iso_shift = String(search_params.getMetaValue("cross_link:mass_isoshift")).toDouble();
+        // default avoids a ConversionError when the isoshift meta value is absent/empty
+        double iso_shift = String(search_params.getMetaValue("cross_link:mass_isoshift", "0")).toDouble();
         double cmz_heavy = cmz.toDouble() + (iso_shift / hit.getCharge());
 
         sii_tmp = sii_tmp.substitute(String("calculatedMassToCharge=\"") + String(cmz),

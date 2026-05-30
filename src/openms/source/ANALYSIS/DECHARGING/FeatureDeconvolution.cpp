@@ -23,6 +23,9 @@
 #include <fstream>
 #include <OpenMS/ANALYSIS/DECHARGING/ChargeLadder.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #endif
 
 using namespace std;
@@ -66,12 +69,12 @@ namespace OpenMS
     // Comparator
     bool operator<(const CmpInfo_& other) const
     {
-      if (s_comp < other.s_comp) return true; else return false;
+      return s_comp < other.s_comp;
     }
 
     bool operator==(const CmpInfo_& other) const
     {
-      if (s_comp == other.s_comp) return true; else return false;
+      return s_comp == other.s_comp;
     }
 
   };
@@ -129,11 +132,11 @@ namespace OpenMS
     map_label_[0] = String(param_.getValue("default_map_label").toString());
 
     if (param_.getValue("q_try") == "feature")
-      q_try_ = QFROMFEATURE;
+      q_try_ = CHARGEMODE::QFROMFEATURE;
     else if (param_.getValue("q_try") == "heuristic")
-      q_try_ = QHEURISTIC;
+      q_try_ = CHARGEMODE::QHEURISTIC;
     else
-      q_try_ = QALL;
+      q_try_ = CHARGEMODE::QALL;
 
 
     StringList potential_adducts_s = ListUtils::toStringList<std::string>(param_.getValue("potential_adducts"));
@@ -678,13 +681,13 @@ namespace OpenMS
       if (!dirty)
       {
         scores_clean_edge.push_back(String(feature_relation[i].getEdgeScore()));
-        scores_clean_edge_idx.push_back(String(i));
+        scores_clean_edge_idx.emplace_back(i);
         ef_clean_edge += ef;
       }
       else
       {
         scores_dirty_edge.push_back(String(feature_relation[i].getEdgeScore()));
-        scores_dirty_edge_idx.push_back(String(i));
+        scores_dirty_edge_idx.emplace_back(i);
         ef_dirty_edge += ef;
       }
 
@@ -870,11 +873,11 @@ namespace OpenMS
           }
         }
 
-        scores_e_active_idx.push_back(String(i));
+        scores_e_active_idx.emplace_back(i);
       }
       else // inactive edges
       {
-        scores_e_inactive_idx.push_back(String(i));
+        scores_e_inactive_idx.emplace_back(i);
 
         // DEBUG
 #ifdef DC_DEVEL
@@ -1199,11 +1202,11 @@ namespace OpenMS
     }
 
     // if no charge given or all-charges is selected. Assume no charge detected -> charge 0
-    if ((feature_charge == 0) || (q_try_ == QALL))
+    if ((feature_charge == 0) || (q_try_ == CHARGEMODE::QALL))
     {
       return true;
     }
-    else if (q_try_ == QHEURISTIC)
+    else if (q_try_ == CHARGEMODE::QHEURISTIC)
     {
       // do not allow two charges to change at the same time
       if (!other_unchanged && feature_charge != putative_charge)
@@ -1220,7 +1223,7 @@ namespace OpenMS
 
       return false;
     }
-    else if (q_try_ == QFROMFEATURE)
+    else if (q_try_ == CHARGEMODE::QFROMFEATURE)
     {
       return feature_charge == putative_charge;
     }

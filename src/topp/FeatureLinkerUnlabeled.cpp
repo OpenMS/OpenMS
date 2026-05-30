@@ -130,18 +130,22 @@ protected:
     // load input
     ConsensusMap out_map;
     StringList ms_run_locations;
-    if (file_type == FileTypes::FEATUREXML)
+    if (file_type == FileTypes::FEATUREXML || file_type == FileTypes::FEATUREPARQUET)
     {
       // use map with highest number of features as reference:
-      Size max_count(0);
-      FeatureXMLFile f;
-      for (Size i = 0; i < ins.size(); ++i)
+      // FeatureXMLFile::loadSize is XML-only; for parquet fall back to index 0.
+      if (file_type == FileTypes::FEATUREXML)
       {
-        Size s = f.loadSize(ins[i]);
-        if (s > max_count)
+        Size max_count(0);
+        FeatureXMLFile f;
+        for (Size i = 0; i < ins.size(); ++i)
         {
-          max_count = s;
-          reference_index = i;
+          Size s = f.loadSize(ins[i]);
+          if (s > max_count)
+          {
+            max_count = s;
+            reference_index = i;
+          }
         }
       }
 
@@ -155,7 +159,7 @@ protected:
         FileHandler f_fxml_tmp;
         f_fxml_tmp.getFeatOptions().setLoadConvexHull(false);
         f_fxml_tmp.getFeatOptions().setLoadSubordinates(false);
-        f_fxml_tmp.loadFeatures(ins[reference_index], map_ref, {FileTypes::FEATUREXML});
+        f_fxml_tmp.loadFeatures(ins[reference_index], map_ref, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET});
         algorithm->setReference(reference_index, map_ref);
         ref_id = map_ref.getUniqueId();
         ref_size = map_ref.size();
@@ -172,7 +176,7 @@ protected:
         FeatureMap tmp_map;
         f_fxml_tmp.getFeatOptions().setLoadConvexHull(false);
         f_fxml_tmp.getFeatOptions().setLoadSubordinates(false);
-        f_fxml_tmp.loadFeatures(ins[i], tmp_map, {FileTypes::FEATUREXML});
+        f_fxml_tmp.loadFeatures(ins[i], tmp_map, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET});
 
         // copy over information on the primary MS run
         StringList ms_runs;
@@ -269,7 +273,7 @@ protected:
       FileHandler f;
       for (Size i = 0; i < ins.size(); ++i)
       {
-        f.loadConsensusFeatures(ins[i], maps[i],  {FileTypes::CONSENSUSXML});
+        f.loadConsensusFeatures(ins[i], maps[i], {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
         StringList ms_runs;
         maps[i].getPrimaryMSRunPath(ms_runs);
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
@@ -304,7 +308,7 @@ protected:
 
     out_map.setPrimaryMSRunPath(ms_run_locations);
     // write output
-    FileHandler().storeConsensusFeatures(out, out_map,  {FileTypes::CONSENSUSXML});
+    FileHandler().storeConsensusFeatures(out, out_map, {consensusOutTypeFor(file_type)});
 
     // some statistics
     map<Size, UInt> num_consfeat_of_size;

@@ -122,25 +122,28 @@ namespace OpenMS
     in.resize(in.size() + 4, '\0');
     // otherwise there are cases where register encoder isnt allowed to access last bytes
 
+    // IMPORTANT: The pointer cast must use simde__m128i* (not simde__m128*) to match the data type.
+    // Using the wrong SIMD pointer type (float vs integer) violates strict aliasing rules and
+    // causes undefined behavior that manifests as SIGBUS on ARM64 platforms.
     simde__m128i data {};
-    // loop  through input as long as it's safe to access memory
+
     for (int i = 0; i < loop; i++)
     {
-      // each time the last 4 out of 16 byte string data get lost through processing, therefore jumps of 12 bytes (/characters)
-      data = simde_mm_lddqu_si128((simde__m128i*)&in[12 * i]);
+      // Each iteration: 12 input bytes -> 16 output bytes (last 4 of 16 loaded bytes are discarded)
+      data = simde_mm_lddqu_si128(reinterpret_cast<const simde__m128i*>(&in[12 * i]));
       registerEncoder_(data);
-      simde_mm_storeu_si128((simde__m128*)&out[i * 16], data);
+      simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(&out[i * 16]), data);
     }
 
     size_t read = loop * 12;
     size_t written = loop * 16;
 
-    // create buffer to translate last bytes without accessing memory that hasn't been allocated
+    // Handle remaining bytes using a stack buffer to avoid out-of-bounds access
     std::array<char, 16> buffer {};
     memcpy(&buffer[0], &in[read], in.size() - read - 4); // minus 4 because of 4 appended null bytes
-    data = simde_mm_lddqu_si128((simde__m128i*)&buffer[0]);
+    data = simde_mm_lddqu_si128(reinterpret_cast<const simde__m128i*>(&buffer[0]));
     registerEncoder_(data);
-    simde_mm_storeu_si128((simde__m128*)&out[written], data);
+    simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(&out[written]), data);
 
     in.resize(in.size() - 4); // remove null bytes
 
@@ -173,27 +176,31 @@ namespace OpenMS
       g++;
 
     unsigned outsize = (in.size() / 16) * 12 + 16;
-    // not final size (final rezize later to cutoff unwanted characters)
+    // not final size (final resize later to cutoff unwanted characters)
     out.resize(outsize);
     char* outPtr = &out[0];
     int loop = in.size() / 16;
 
+    // Use unaligned SIMD load/store for portability (see stringSimdEncoder_ for rationale).
     for (int i = 0; i < loop; i++)
     {
-      simde__m128i data = simde_mm_lddqu_si128((simde__m128i*)(inPtr + i * 16));
+      // IMPORTANT: Pointer cast must use simde__m128i* to match data type (strict aliasing).
+      simde__m128i data = simde_mm_lddqu_si128(reinterpret_cast<const simde__m128i*>(inPtr + i * 16));
       registerDecoder_(data);
-      simde_mm_storeu_si128((simde__m128*)(outPtr + i * 12), data);
+      simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(outPtr + i * 12), data);
     }
 
     size_t read = loop * 16;
+    size_t written = loop * 12;
+
+    // Handle remaining bytes using a stack buffer padded with placeholder chars
     std::array<char, 16> rest;
     std::fill(rest.begin(), rest.end(), 'x');
     std::copy(in.begin() + read, in.end(), rest.begin());
 
-    simde__m128i data = simde_mm_lddqu_si128((simde__m128i*)&rest[0]);
+    simde__m128i data = simde_mm_lddqu_si128(reinterpret_cast<const simde__m128i*>(&rest[0]));
     registerDecoder_(data);
-    size_t written = loop * 12;
-    simde_mm_storeu_si128((simde__m128*)(outPtr + written), data);
+    simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(outPtr + written), data);
 
     // cutting off decoding of appendix
     outsize = (in.size() / 4) * 3 - g;
@@ -254,7 +261,7 @@ namespace OpenMS
      
       if (first_sep + 1 < next_sep) // non-empty string
       { 
-        out.push_back(String(first_sep, next_sep - first_sep));
+        out.emplace_back(first_sep, next_sep - first_sep);
       }
       first_sep = next_sep + 1; // move to substring
     }

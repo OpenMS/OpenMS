@@ -17,8 +17,6 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
-#include <QString>
-
 #include <sstream>
 #include <iostream>
 
@@ -145,12 +143,6 @@ END_SECTION
 
 START_SECTION((DataValue(const std::string&)))
   string s = "test string";
-  DataValue d(s);
-  TEST_EQUAL((String)d, "test string")
-END_SECTION
-
-START_SECTION((DataValue(const QString&)))
-  QString s = "test string";
   DataValue d(s);
   TEST_EQUAL((String)d, "test string")
 END_SECTION
@@ -739,25 +731,6 @@ START_SECTION((bool toBool() const))
   TEST_EXCEPTION(Exception::ConversionError, a.toBool() )
 END_SECTION
 
-START_SECTION((QString toQString() const))
-  DataValue a;
-  TEST_EQUAL(a.toQString().toStdString(), "")
-  a = DataValue("hello");
-  TEST_EQUAL(a.toQString().toStdString(),"hello")
-  a = DataValue(5);
-  TEST_EQUAL(a.toQString().toStdString(), "5")
-  a = DataValue(47.11);
-  TEST_EQUAL(a.toQString().toStdString(), "47.109999999999999")
-  a = DataValue(-23456.78);
-  TEST_EQUAL(a.toQString().toStdString(), "-2.345678e04")
-  a = DataValue(ListUtils::create<String>("test string,string2,last string"));
-  TEST_EQUAL(a.toQString().toStdString(), "[test string, string2, last string]")
-  a =DataValue(ListUtils::create<Int>("1,2,3"));
-  TEST_EQUAL(a.toQString().toStdString(), "[1, 2, 3]")
-  a = DataValue(ListUtils::create<double>("1.22,43.23232"));
-  TEST_EQUAL(a.toQString().toStdString(),"[1.22, 43.232320000000001]")
-END_SECTION
-
 START_SECTION(([EXTRA] friend std::ostream& operator<<(std::ostream&, const DataValue&)))
   DataValue a((Int)5), b((UInt)100), c((double)1.111), d((double)1.1), e("hello "), f(std::string("world")), g;
   std::ostringstream os;
@@ -879,15 +852,6 @@ END_SECTION
 START_SECTION((DataValue& operator=(const String&)))
 {
   String v = "value";
-  DataValue a("v");
-  a = v;
-  TEST_EQUAL((String)a, "value")
-}
-END_SECTION
-
-START_SECTION((DataValue& operator=(const QString&)))
-{
-  QString v = "value";
   DataValue a("v");
   a = v;
   TEST_EQUAL((String)a, "value")
@@ -1029,6 +993,83 @@ START_SECTION((DataValue& operator=(const unsigned long long)))
   DataValue a("v");
   a = v;
   TEST_EQUAL((unsigned long long)a, 2)
+}
+END_SECTION
+
+START_SECTION([EXTRA] Test improved error messages for EMPTY_VALUE conversions)
+{
+  DataValue empty_val;
+  
+  // Test EMPTY to double - should include type 'Empty'
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (double)empty_val, 
+    "Could not convert DataValue of type 'Empty' to double")
+  
+  // Test EMPTY to float - should include type 'Empty'
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (float)empty_val, 
+    "Could not convert DataValue of type 'Empty' to float")
+  
+  // Test EMPTY to long double - should include type 'Empty'
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (long double)empty_val, 
+    "Could not convert DataValue of type 'Empty' to long double")
+}
+END_SECTION
+
+START_SECTION([EXTRA] Test improved error messages for negative to unsigned conversions)
+{
+  // Test negative int to unsigned int - should include the value
+  DataValue neg_val(-42);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (unsigned int)neg_val, 
+    "Could not convert negative integer DataValue with value '-42' to unsigned int")
+  
+  // Test negative int to unsigned short - should include the value
+  DataValue neg_short(-100);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (unsigned short)neg_short, 
+    "Could not convert negative integer DataValue with value '-100' to unsigned short int")
+  
+  // Test negative int to unsigned long - should include the value
+  DataValue neg_long(-999);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (unsigned long)neg_long, 
+    "Could not convert negative integer DataValue with value '-999' to unsigned long int")
+  
+  // Test negative int to unsigned long long - should include the value
+  DataValue neg_longlong(-1234);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (unsigned long long)neg_longlong, 
+    "Could not convert negative integer DataValue with value '-1234' to unsigned long long")
+}
+END_SECTION
+
+START_SECTION([EXTRA] Test improved error messages for type mismatch conversions)
+{
+  // Test double to int - should include type and value
+  DataValue double_val(3.14159);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (int)double_val, 
+    "Could not convert non-integer DataValue of type 'Double' and value '3.14159' to int")
+  
+  // Test string to int - should include type and value
+  DataValue string_val("hello");
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (int)string_val, 
+    "Could not convert non-integer DataValue of type 'String' and value 'hello' to int")
+  
+  // Test int to string - should include type and value
+  DataValue int_val(42);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (std::string)int_val, 
+    "Could not convert non-string DataValue of type 'Int' and value '42' to string")
+  
+  // Test double to unsigned int - should include type and value
+  DataValue double_val2(5.5);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (unsigned int)double_val2, 
+    "Could not convert non-integer DataValue of type 'Double' and value '5.5' to unsigned int")
 }
 END_SECTION
 

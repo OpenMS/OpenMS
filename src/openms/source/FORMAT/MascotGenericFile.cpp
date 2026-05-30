@@ -16,11 +16,12 @@
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 
-#include <QtCore/QFileInfo>
-#include <QtCore/QRegularExpression>
+#include <filesystem>
 
 #include <iomanip>     // setw
+#include <regex>
 
 #define HIGH_PRECISION 5
 #define LOW_PRECISION 3
@@ -379,6 +380,15 @@ namespace OpenMS
         }
       }
 
+      // Mascot sequence-query field: emit one SEQ= line per stored sequence.
+      if (spec.metaValueExists("SEQ"))
+      {
+        for (const String& sequence : spec.getMetaValue("SEQ").toStringList())
+        {
+          os << "SEQ=" << sequence << "\n";
+        }
+      }
+
       if (!store_compact_)
       {
         for (PeakSpectrum::const_iterator it = spec.begin(); it != spec.end(); ++it)
@@ -421,9 +431,9 @@ namespace OpenMS
       os << enc.first;
     }
 
-    QFileInfo fileinfo(filename.c_str());
-    QString filtered_filename = fileinfo.completeBaseName();
-    filtered_filename.remove(QRegularExpression("[^a-zA-Z0-9]"));
+    static const std::regex non_alnum("[^a-zA-Z0-9]");
+    auto fileinfo = to_path(filename);
+    String filtered_filename = std::regex_replace(fileinfo.stem().string(), non_alnum, "");
 
 
     String native_id_type_accession;

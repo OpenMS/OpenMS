@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 using namespace std;
@@ -294,7 +295,7 @@ namespace OpenMS
 
     for (Size i = 0; i < map.size(); ++i)
     {
-      ConsensusFeature f = map[i];
+      const ConsensusFeature& f = map[i];
       // consensus
       String entry = String(f.getRT()) + "\t" + f.getMZ() + "\t" + f.getIntensity() + "\t" + f.getCharge();
       // sub-features

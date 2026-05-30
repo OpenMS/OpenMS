@@ -3,6 +3,7 @@ set(directory source/ANALYSIS/QUANTITATION)
 
 ### list all filenames of the directory here
 set(sources_list
+DDAWorkflowCommons.cpp
 IsobaricChannelExtractor.cpp
 IsobaricIsotopeCorrector.cpp
 IsobaricNormalizer.cpp
@@ -22,6 +23,8 @@ TMTSixteenPlexQuantitationMethod.cpp
 TMTElevenPlexQuantitationMethod.cpp
 TMTSixPlexQuantitationMethod.cpp
 TMTTenPlexQuantitationMethod.cpp
+TMTThirtyTwoPlexQuantitationMethod.cpp
+TMTThirtyFivePlexQuantitationMethod.cpp
 AbsoluteQuantitation.cpp
 AbsoluteQuantitationMethod.cpp
 )

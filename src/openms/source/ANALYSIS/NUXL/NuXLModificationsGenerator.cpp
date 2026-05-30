@@ -128,12 +128,12 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
 
     if (sit->second.size() == 1 && source == first_target) // trivial case e.g. A->A... no substitution needed
     {
-      map_source_to_targets.erase(sit++);
+      sit = map_source_to_targets.erase(sit);
     }
     else if (sit->second.size() == 1 && source != first_target) // simple rename e.g. A->X... simply substitute all in restriction sequence
     {
       sequence_restriction.substitute(source, first_target);
-      map_source_to_targets.erase(sit++);
+      sit = map_source_to_targets.erase(sit);
     }
     else // multiple targets
     {
@@ -379,7 +379,7 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
       // nucleotide style formula (e.g., AATU matches to more than one group (e.g., RNA and DNA))?
       if (found_in_n_groups > 1)
       {
-        violates_restriction.push_back({formula, s}); 
+        violates_restriction.emplace_back(formula, s); 
         continue;
       }
 
@@ -395,7 +395,7 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
 
       if (containment_violated)
       { 
-        violates_restriction.push_back({formula, s}); // chemical formula, nucleotide style formula pair violates restrictions
+        violates_restriction.emplace_back(formula, s); // chemical formula, nucleotide style formula pair violates restrictions
       }
 
       // last check: if the sorted nucleotide composition string and mass have already been added
@@ -405,11 +405,11 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
         unique_nucleotide_and_mod_composition.end(),
         make_pair(nucleotide_style_formula, mass)) != unique_nucleotide_and_mod_composition.end())
       {
-        violates_restriction.push_back({formula, s}); 
+        violates_restriction.emplace_back(formula, s); 
       }
 
       // record that nucleotide and mod combination has passed all filters and will be considered in further processing
-      unique_nucleotide_and_mod_composition.push_back({nucleotide_style_formula, mass});
+      unique_nucleotide_and_mod_composition.emplace_back(nucleotide_style_formula, mass);
     }
   }
 
@@ -429,11 +429,11 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
     if (mcit->second.empty())
     {
       result.formula2mass.erase(mcit->first); // remove from mod masses
-      result.mod_combinations.erase(mcit++); // don't change precedence !
+      mcit = result.mod_combinations.erase(mcit);
     }
     else
     {
-      ++mcit;   // don't change precedence !
+      ++mcit;
     }
   }
 

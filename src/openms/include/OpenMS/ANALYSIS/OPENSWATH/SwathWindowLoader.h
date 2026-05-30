@@ -17,35 +17,64 @@ namespace OpenMS
 {
 
   /**
-   * @brief Class to read a file describing the Swath Windows
-   *
-   * The file must of be tab delimited and of the following format:
-   *    window_lower window_upper
-   *    400 425
-   *    425 450
-   *    ...
-   *
-   * Note that the first line is a header and will be skipped.
-   *
-   */
+    @brief Reads a SWATH-window definition file and annotates SwathMaps with it.
+
+    The file format is tab- or space-delimited with two columns per row:
+\verbatim
+window_lower window_upper
+400 425
+425 450
+...
+\endverbatim
+
+    The first line is treated as a header only if its first token cannot
+    be parsed as a number; otherwise the first line is read as data. The
+    reader does not require any specific header text and accepts files
+    without a header row.
+
+    @ingroup FileIO
+  */
   class OPENMS_DLLAPI SwathWindowLoader
   {
 
   public:
 
     /**
-       @brief Annotate a Swath map using a Swath window file specifying the individual windows
-     
-       @note It is assumed that the files in the swath_maps vector are in the
-       same order as the windows in the provided file (usually from lowest to
-       highest).
+      @brief Overwrite the lower/upper precursor boundaries of @p swath_maps with the windows read from @p filename.
 
-       @param filename The filename of the tab delimited file
-       @param swath_maps The list of SWATH maps (assumed to be in the same order as in the file)
-       @param do_sort Sort the windows after reading in ascending order
-       @param force Force overriding the window boundaries, even if the new boundaries are wider than the data boundaries
-       
-       @throw Exception::IllegalArgument if the number of maps in the file and the provided input maps to not match, or if the new boundaries are outside of the data boundaries (unless force==true)
+      Walks @p swath_maps in order, skipping entries whose @c ms1 flag is
+      set, and replaces each remaining entry's @c lower and @c upper with
+      the corresponding row of the SWATH-window file. The number of
+      non-MS1 entries in @p swath_maps must equal the number of rows in
+      @p filename.
+
+      @note The non-MS1 entries in @p swath_maps and the rows of the file
+            are matched by position, so both must be in the same order
+            (usually low-to-high m/z). When @p do_sort is @c true,
+            @p swath_maps is sorted by its @c upper field before matching.
+
+      @param[in]     filename   Path of the SWATH-window file.
+      @param[in,out] swath_maps SWATH maps to annotate; their @c lower /
+                                @c upper fields are overwritten in place
+                                (and the vector may be reordered when
+                                @p do_sort is @c true).
+      @param[in]     do_sort    If @c true, sort @p swath_maps by ascending
+                                @c upper before matching against the file.
+      @param[in]     force      If @c true, a file window that extends
+                                beyond the corresponding map's data
+                                boundaries is logged as an error and
+                                applied anyway; if @c false the same
+                                situation throws.
+
+      @throws Exception::IllegalArgument if the number of non-MS1 entries
+                                         in @p swath_maps does not equal
+                                         the number of rows in
+                                         @p filename, or if a file window
+                                         extends beyond the corresponding
+                                         map's @c lower / @c upper and
+                                         @p force is @c false.
+      @throws Exception::InvalidValue    propagated from @ref readSwathWindows
+                                         when a row has @c lower >= @c upper.
     */
     static void annotateSwathMapsFromFile(const std::string& filename,
                                           std::vector<OpenSwath::SwathMap>& swath_maps,
@@ -53,26 +82,34 @@ namespace OpenMS
                                           bool force);
 
     /**
-      @brief Reading a tab delimited file specifying the SWATH windows
-     
-      The file must of be tab delimited and of the following format:
+      @brief Read a SWATH-window definition file into two parallel vectors.
+
+      The file format is two whitespace-separated columns
+      (@c window_lower @c window_upper) per row:
 \verbatim
 window_lower window_upper
 400 425
 425 450
 ...
 \endverbatim
-     
-      Note that the first line is a header and will be skipped.
-     
-      @param filename The filename of the tab delimited file
-      @param swath_prec_lower The output vector for the window start
-      @param swath_prec_upper The output vector for the window end
 
-      @throw Exception::InvalidValue if window's start >= end
+      A header row is detected automatically by trying to parse the first
+      token of the first line as a number; if parsing fails, the line is
+      treated as a header and skipped, otherwise the first line is read as
+      data. No specific header text is required.
 
-     *
-     */
+      @param[in]  filename         Path of the SWATH-window file. A
+                                   missing or unreadable file is not
+                                   reported as an exception; the output
+                                   vectors are left empty.
+      @param[out] swath_prec_lower Lower boundary of each window, in file
+                                   order.
+      @param[out] swath_prec_upper Upper boundary of each window, in file
+                                   order; same length as
+                                   @p swath_prec_lower.
+
+      @throws Exception::InvalidValue if a row has @c lower >= @c upper.
+    */
     static void readSwathWindows(const std::string& filename,
                                  std::vector<double>& swath_prec_lower,
                                  std::vector<double>& swath_prec_upper);

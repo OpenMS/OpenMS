@@ -42,10 +42,10 @@ public:
     /**
       @brief loads data from an X! Tandem XML file
 
-      @param filename the file to be loaded
-      @param protein_identification protein identifications belonging to the whole experiment
-      @param id_data the identifications with m/z and RT
-      @param mod_def_set Fixed and variable modifications defined for the search. May be extended with additional (X! Tandem default) modifications if those are found in the file.
+      @param[in] filename the file to be loaded
+      @param[in] protein_identification protein identifications belonging to the whole experiment
+      @param[in] id_data the identifications with m/z and RT
+      @param[in] mod_def_set Fixed and variable modifications defined for the search. May be extended with additional (X! Tandem default) modifications if those are found in the file.
 
       This class serves to read in an X! Tandem XML file. The information can be
       retrieved via the load function.

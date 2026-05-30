@@ -54,26 +54,79 @@ include(${PROJECT_SOURCE_DIR}/configh.cmake)
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
+# Vendored, namespace-isolated Percolator subtree.
+include(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/percolator/sources.cmake)
+list(APPEND OpenMS_sources ${OpenMS_percolator_sources})
+
+# Suppress upstream-originated warnings on vendored files only.
+# GCC/Clang use -Wno-*; MSVC needs /wd<code> with the corresponding warning
+# numbers and chokes on the -Wno-* spellings (D8021).
+if (MSVC)
+  # /wd4100 + /wd4189 explicitly defeat the project-wide /we4100 + /we4189
+  # ("unused parameter" and "unused-but-initialized local variable" elevated
+  # to errors) on the vendored upstream code, which has plenty of both.
+  set_source_files_properties(${OpenMS_percolator_sources}
+    PROPERTIES
+      COMPILE_FLAGS "/wd4018 /wd4100 /wd4189 /wd4244 /wd4267 /wd4996 /wd4458")
+else()
+  set_source_files_properties(${OpenMS_percolator_sources}
+    PROPERTIES
+      COMPILE_FLAGS "-Wno-sign-compare -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unused-variable -Wno-overloaded-virtual -Wno-reorder -Wno-reorder-ctor -Wno-uninitialized -Wno-ignored-qualifiers -Wno-unused-but-set-variable")
+  set_source_files_properties(${OpenMS_percolator_sources}
+    PROPERTIES COMPILE_OPTIONS "-fvisibility=hidden")
+endif()
+
+#------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
-set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Eigen3::Eigen Qt6::Core Qt6::Network)
+set(OPENMS_DEP_LIBRARIES
+  LibSVM::LibSVM
+  XercesC::XercesC
+  CURL::libcurl
+)
 
 ## setup the arguments to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
+## Note: Eigen3::Eigen is PRIVATE because Eigen types are not exposed in the public API
+## Note: Evergreen is PRIVATE because it's only used internally by BayesianProteinInferenceAlgorithm
 set(OPENMS_DEP_PRIVATE_LIBRARIES
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
-  $<$<BOOL:${WITH_PARQUET}>:Arrow::arrow_shared Parquet::parquet_shared>
   ${LPTARGET}
   BZip2::BZip2
   Boost::boost
   Boost::date_time
   Boost::iostreams
   Boost::regex
+  Eigen3::Eigen
+  Evergreen
   GTE
   Quadtree
   SIMDe
   SQLiteCpp
   ZLIB::ZLIB
+  libzip::zip
   nlohmann_json::nlohmann_json
+  IsoSpec
+  eol-bspline
   )
+
+# Parquet support requires Arrow core + compute (filter expressions) + Parquet.
+list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES
+     ${OPENMS_ARROW_TARGET}
+     ${OPENMS_ARROW_COMPUTE_TARGET}
+     ${OPENMS_PARQUET_TARGET})
+if (OPENMS_ARROW_DATASET_TARGET)
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ${OPENMS_ARROW_DATASET_TARGET})
+  # Dataset pushdown needs libxml2 when Arrow Dataset is linked statically.
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES LibXml2::LibXml2)
+endif()
+
+if (WITH_OPENTIMS)
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES opentims::opentims_cpp)
+endif()
+
+if (WITH_THERMO_RAW)
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES OpenMSThermoBridge::openms_thermo_bridge)
+endif()
+
 if (ENABLE_TDL)
 set(OPENMS_DEP_PRIVATE_LIBRARIES
     ${OPENMS_DEP_PRIVATE_LIBRARIES}
@@ -105,13 +158,29 @@ openms_add_library(TARGET_NAME  OpenMS
                                  ${OpenMS_configured_headers}
                    INTERNAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
-                   PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
-                                    ${ISOSPEC_INCLUDE_DIRECTORY}
+                   PRIVATE_INCLUDES
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
+
+# Vendored percolator headers are resolved via #include "X.h" (no subdir) —
+# add the dir PRIVATE so it's visible only to libOpenMS's own TUs.
+target_include_directories(OpenMS PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/percolator)
+
+if (OPENMS_ARROW_DATASET_TARGET)
+  target_compile_definitions(OpenMS PRIVATE WITH_ARROW_DATASET)
+endif()
+
+# When Arrow is statically linked, hide its bundled third-party symbols from
+# libOpenMS.so's dynamic symbol table to avoid conflicts with system libraries.
+# NOTE: We intentionally do NOT hide libarrow.a or libparquet.a symbols because
+# the OpenMS public API exposes arrow::Table etc., and downstream consumers
+# (including test executables) need to resolve those symbols from libOpenMS.so.
+if(ARROW_USE_STATIC AND NOT MSVC AND NOT APPLE)
+  target_link_options(OpenMS PRIVATE "LINKER:--exclude-libs,libarrow_bundled_dependencies.a")
+endif()
 
 if (MSVC)
   ## treat warning of unused function parameter as error, similar to -Werror=unused-variable on GCC
@@ -124,11 +193,32 @@ if (ENABLE_TDL)
     target_compile_definitions(OpenMS PUBLIC ENABLE_TDL)
 endif()
 
-# propagate Parquet support to the code (used to gate tools in ToolHandler, etc.)
-if (WITH_PARQUET)
-    target_compile_definitions(OpenMS PUBLIC WITH_PARQUET=1)
+# Use std::filesystem instead of boost::filesystem in boost::process (avoids linking boost_filesystem)
+# Requires Boost >= 1.81 (BOOST_PROCESS_USE_STD_FS was introduced in 1.78)
+target_compile_definitions(OpenMS PRIVATE BOOST_PROCESS_USE_STD_FS)
+
+if (WITH_OPENTIMS)
+    target_compile_definitions(OpenMS PUBLIC WITH_OPENTIMS=1)
 endif()
 
+if (WITH_THERMO_RAW)
+    target_compile_definitions(OpenMS PUBLIC WITH_THERMO_RAW=1)
+    # Copy the thermo bridge managed runtime files (.dll + .runtimeconfig.json)
+    # to the OpenMS library output directory so they can be found at runtime.
+    if (COMMAND openms_thermo_bridge_copy_runtime_files)
+      openms_thermo_bridge_copy_runtime_files(TARGET OpenMS)
+    endif()
+endif()
+
+if(WITH_WNETALIGN)
+  target_include_directories(OpenMS SYSTEM PRIVATE ${WNETALIGN_INCLUDE_DIRS})
+  target_compile_definitions(OpenMS PRIVATE LEMON_ONLY_TEMPLATES OPENMS_HAS_WNETALIGN)
+endif()
+
+## Enable test-only hooks when class tests are being built.
+if(ENABLE_CLASS_TESTING)
+  target_compile_definitions(OpenMS PRIVATE OPENMS_ENABLE_TESTING_HOOKS=1)
+endif()
 
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation
@@ -152,7 +242,7 @@ install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
 install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR} examples)
 
 # Devs also need our custom find modules
-install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_LIB_DIR}/cmake/OpenMS/Modules cmake)
+install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_CMAKE_DIR}/Modules cmake)
 file(COPY ${OPENMS_HOST_DIRECTORY}/cmake/Modules DESTINATION ${OPENMS_HOST_BINARY_DIRECTORY})
 
 #------------------------------------------------------------------------------

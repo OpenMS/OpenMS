@@ -10,14 +10,13 @@
 
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
-#include <OpenMS/METADATA/ID/Observation.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
@@ -28,13 +27,10 @@
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <exception>
-
 namespace OpenMS
 {
-  class ProteinIdentification;
+  class MSExperiment;
   class PeptideIdentification;
-  class DataProcessing;
 
   /// summary of the peptide identification assigned to each feature of this map.
   /// Each feature contributes one vote (=state)
@@ -139,7 +135,7 @@ namespace OpenMS
 
       For conflicting UID's, new UID's will be assigned.
 
-      @param rhs The feature to add to this one.
+      @param[in] rhs The feature to add to this one.
     */
     FeatureMap& operator+=(const FeatureMap& rhs);
 
@@ -185,6 +181,12 @@ namespace OpenMS
     /// sets the protein identifications
     void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
 
+    /// finds a protein identification by its identifier (returns nullptr if not found)
+    const ProteinIdentification* findProteinIdentification(const String& identifier) const;
+
+    /// finds a protein identification by its identifier (returns nullptr if not found)
+    ProteinIdentification* findProteinIdentification(const String& identifier);
+
     /// non-mutable access to the unassigned peptide identifications
     const PeptideIdentificationList& getUnassignedPeptideIdentifications() const;
 
@@ -217,7 +219,7 @@ namespace OpenMS
     /**
       @brief Clears all data and meta data
 
-      @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+      @param[in] clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data = true);
 

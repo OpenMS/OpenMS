@@ -3,6 +3,7 @@ set(directory include/OpenMS/ANALYSIS/QUANTITATION)
 
 ### list all header files of the directory here
 set(sources_list_h
+DDAWorkflowCommons.h
 IsobaricChannelExtractor.h
 IsobaricIsotopeCorrector.h
 IsobaricNormalizer.h
@@ -22,6 +23,8 @@ TMTElevenPlexQuantitationMethod.h
 TMTSixteenPlexQuantitationMethod.h
 TMTSixPlexQuantitationMethod.h
 TMTTenPlexQuantitationMethod.h
+TMTThirtyTwoPlexQuantitationMethod.h
+TMTThirtyFivePlexQuantitationMethod.h
 AbsoluteQuantitation.h
 AbsoluteQuantitationMethod.h
 )

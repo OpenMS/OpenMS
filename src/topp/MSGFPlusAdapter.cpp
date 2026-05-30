@@ -16,14 +16,16 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
-#include <QProcessEnvironment>
-#include <QLockFile>
+#include <boost/interprocess/sync/file_lock.hpp>
 
 #include <algorithm>
 #include <fstream>
@@ -134,8 +136,8 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file (MS-GF+ parameter '-s')");
     setValidFormats_("in", {"mzML", "mzXML", "mgf", "ms2" });
-    registerOutputFile_("out", "<file>", "", "Output file", false);
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    registerOutputFile_("out", "<file>", "", "Output file (.idXML) or directory bundle (.idparquet) containing the search results.", false);
+    setValidFormats_("out", {"idXML", "idparquet"});
     registerOutputFile_("mzid_out", "<file>", "", "Alternative output file (MS-GF+ parameter '-o')\nEither 'out' or 'mzid_out' are required. They can be used together.", false);
     setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
     registerInputFile_("executable", "<file>", "MSGFPlus.jar", "The MSGFPlus Java archive file. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
@@ -417,72 +419,79 @@ protected:
     id.setHigherScoreBetter(false);
   }
 
-  bool createLockedDBIndex(const String& db_name, const QString java_executable, const QString java_memory, const QString executable)
+  bool createLockedDBIndex(const String& db_name, const String& java_executable, const String& java_memory, const String& executable)
   {
     const String db_indexfile = FileHandler::stripExtension(db_name) + ".canno";
-    const QString lockfile = (db_name + ".lock").toQString();
-    QLockFile lock_db(lockfile);
+    const String lockfile_path = db_name + ".lock";
     OPENMS_LOG_DEBUG << "Checking for db index, using a lock file ..." << std::endl;
-    if (!lock_db.lock())
+
+    // Create the lock file if it doesn't exist (needed by boost::interprocess::file_lock)
     {
-      String msg;
-      switch (lock_db.error())
+      std::ofstream touch(lockfile_path.c_str(), std::ios::app);
+      if (!touch.is_open())
       {
-        case QLockFile::NoError:
-          msg = "The lock was acquired successfully.";
-          break;
-        case QLockFile::LockFailedError:
-          msg = "The lock could not be acquired because another process holds it.";
-          break;
-        case QLockFile::PermissionError: // if we cannot create the log, hopefully noone else can (who runs on different accounts anyways?)
-          // so we may dare to check for existance of the index (even though we are not locked right now)
-          msg = "The lock file could not be created, for lack of permissions in the parent directory.";
-          if (!File::exists(db_indexfile))
-          {
-            OPENMS_LOG_ERROR << msg << " Checking index anyway: No database index found! Please make the directory writable or pre-create an DB index." << std::endl;
-            return false;
-          }
-          OPENMS_LOG_DEBUG << msg << " Checking index anyway: found it!" << std::endl;
-          return true;
-        case QLockFile::UnknownError:
-          msg = "Another error happened, for instance a full partition prevented writing out the lock file.";
-      };
-      OPENMS_LOG_ERROR << "An error occurred while trying to acquire a file lock: " << msg << " using the file '" << lockfile.toStdString()
-                       << "'.\nPlease check the previous error message and contact OpenMS support if you cannot solve the problem.";
+        // Cannot create lock file - check if index already exists
+        String msg = "The lock file could not be created, for lack of permissions in the parent directory.";
+        if (!File::exists(db_indexfile))
+        {
+          OPENMS_LOG_ERROR << msg << " Checking index anyway: No database index found! Please make the directory writable or pre-create an DB index." << std::endl;
+          return false;
+        }
+        OPENMS_LOG_DEBUG << msg << " Checking index anyway: found it!" << std::endl;
+        return true;
+      }
+    }
+
+    try
+    {
+      boost::interprocess::file_lock lock_db(lockfile_path.c_str());
+      if (!lock_db.try_lock())
+      {
+        // Could not acquire lock - another process holds it. Wait for it (blocking).
+        lock_db.lock();
+      }
+
+      // we have a lock: now check if we need to create a new index (which only one instance should do)
+      if (!File::exists(db_indexfile))
+      {
+        OPENMS_LOG_INFO << "\nNo database index found! Creating index while holding a lock ..." << std::endl;
+        std::vector<String> process_params = {java_memory, "-cp", executable, "edu.ucsd.msjava.msdbsearch.BuildSA", "-d", db_name, "-tda", "0"};
+
+        // collect all output since MSGF+ might return 'success' even though it did not like the command arguments (e.g. if the version is too old)
+        // If no output file is produced, we can print the stderr below.
+        String proc_stdout, proc_stderr;
+
+        TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable, process_params, proc_stdout, proc_stderr);
+        if (exit_code != EXECUTION_OK)
+        {
+          // if there was sth like a segfault, runExternalProcess_ will write a warning about the type of error,
+          //  but not print the output of the program.
+          OPENMS_LOG_ERROR << "The output of MSGF+'s Index Database Creation was:\nSTDOUT:\n" << proc_stdout << "\nSTDERR:\n" << proc_stderr << endl;
+          lock_db.unlock();
+          return false;
+        }
+        // Verify index was actually created (BuildSA may return success without producing output)
+        if (!File::exists(db_indexfile))
+        {
+          OPENMS_LOG_ERROR << "MSGF+ BuildSA reported success but index file '" << db_indexfile << "' was not created.\nSTDOUT:\n" << proc_stdout << "\nSTDERR:\n" << proc_stderr << endl;
+          lock_db.unlock();
+          return false;
+        }
+        OPENMS_LOG_INFO << " ... done" << std::endl;
+      }
+
+      // free lock, since database index exists at this point
+      lock_db.unlock();
+      OPENMS_LOG_DEBUG << "... releasing DB lock" << std::endl;
+      return true;
+    }
+    catch (const boost::interprocess::interprocess_exception& e)
+    {
+      OPENMS_LOG_ERROR << "An error occurred while trying to acquire a file lock using the file '" << lockfile_path
+                       << "': " << e.what()
+                       << ".\nPlease check the previous error message and contact OpenMS support if you cannot solve the problem.";
       return false;
     }
-    // we have a lock: now check if we need to create a new index (which only one instance should do)
-    if (!File::exists(db_indexfile))
-    {
-      OPENMS_LOG_INFO << "\nNo database index found! Creating index while holding a lock ..." << std::endl;
-      QStringList process_params; // the actual process is Java, not MS-GF+!
-      // java -Xmx3500M -cp MSGFPlus.jar edu.ucsd.msjava.msdbsearch.BuildSA -d DatabaseFile
-      process_params << java_memory 
-                     << "-cp" << executable
-                     << "edu.ucsd.msjava.msdbsearch.BuildSA"
-                     << "-d" << db_name.toQString()
-                     << "-tda" << "0"; // do NOT add & index a reverse DB (i.e. '-tda=2'), since this DB may already contain FW+BW,
-                                       // and duplicating again will cause MSGF+ to error with 'too many redundant proteins'
-      
-      // collect all output since MSGF+ might return 'success' even though it did not like the command arguments (e.g. if the version is too old)
-      // If no output file is produced, we can print the stderr below.
-      String proc_stdout, proc_stderr;
-
-      TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable, process_params, proc_stdout, proc_stderr);
-      if (exit_code != EXECUTION_OK)
-      {
-        // if there was sth like a segfault, runExternalProcess_ will write a warning about the type of error,
-        //  but not print the output of the program.
-        OPENMS_LOG_ERROR << "The output of MSGF+'s Index Database Creation was:\nSTDOUT:\n" << proc_stdout << "\nSTDERR:\n" << proc_stderr << endl;
-        return false;
-      }
-      OPENMS_LOG_INFO << " ... done" << std::endl;
-    }
-
-    // free lock, since database index exists at this point
-    lock_db.unlock();
-    OPENMS_LOG_DEBUG << "... releasing DB lock" << std::endl;
-    return true;
   }
 
   ExitCodes main_(int, const char**) override
@@ -514,11 +523,11 @@ protected:
       writeLogWarn_("The installation of Java was not checked.");
     }
     
-    const QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
-    const QString executable = getStringOption_("executable").toQString();
-    
+    const String java_memory = "-Xmx" + String(getIntOption_("java_memory")) + "m";
+    const String executable = getStringOption_("executable");
+
     const String db_name = getDBFilename();
-    if (!createLockedDBIndex(db_name, java_executable.toQString(), java_memory, executable))
+    if (!createLockedDBIndex(db_name, java_executable, java_memory, executable))
     {
       OPENMS_LOG_ERROR << "Could not create/verify database index. Aborting ..." << std::endl;
       return ExitCodes::INTERNAL_ERROR;
@@ -565,38 +574,39 @@ protected:
     }
     Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
 
-    QStringList process_params; // the actual process is Java, not MS-GF+!
-    process_params << java_memory
-                   << "-jar" << executable
-                   << "-s" << in.toQString()
-                   << "-o" << mzid_temp.toQString()
-                   << "-d" << db_name.toQString()
-                   << "-t" << QString::number(precursor_mass_tol) + precursor_error_units.toQString()
-                   << "-ti" << getStringOption_("isotope_error_range").toQString()
-                   << "-m" << QString::number(fragment_method_code)
-                   << "-inst" << QString::number(instrument_code)
-                   << "-e" << QString::number(enzyme_code)
-                   << "-protocol" << QString::number(protocol_code)
-                   << "-ntt" << QString::number(tryptic_code)
-                   << "-minLength" << QString::number(getIntOption_("min_peptide_length"))
-                   << "-maxLength" << QString::number(getIntOption_("max_peptide_length"))
-                   << "-minNumPeaks" << QString::number(getIntOption_("min_peaks"))
-                   << "-minCharge" << QString::number(min_precursor_charge)
-                   << "-maxCharge" << QString::number(max_precursor_charge)
-                   << "-maxMissedCleavages" << QString::number(getIntOption_("max_missed_cleavages"))
-                   << "-n" << QString::number(getIntOption_("matches_per_spec"))
-                   << "-addFeatures" << QString::number(int((getParam_().getValue("add_features") == "true")))
-                   << "-tasks" << QString::number(getIntOption_("tasks"))
-                   << "-thread" << QString::number(getIntOption_("threads"));
+    std::vector<String> process_params = { // the actual process is Java, not MS-GF+!
+      java_memory,
+      "-jar", executable,
+      "-s", in,
+      "-o", mzid_temp,
+      "-d", db_name,
+      "-t", String(precursor_mass_tol) + precursor_error_units,
+      "-ti", getStringOption_("isotope_error_range"),
+      "-m", String(fragment_method_code),
+      "-inst", String(instrument_code),
+      "-e", String(enzyme_code),
+      "-protocol", String(protocol_code),
+      "-ntt", String(tryptic_code),
+      "-minLength", String(getIntOption_("min_peptide_length")),
+      "-maxLength", String(getIntOption_("max_peptide_length")),
+      "-minNumPeaks", String(getIntOption_("min_peaks")),
+      "-minCharge", String(min_precursor_charge),
+      "-maxCharge", String(max_precursor_charge),
+      "-maxMissedCleavages", String(getIntOption_("max_missed_cleavages")),
+      "-n", String(getIntOption_("matches_per_spec")),
+      "-addFeatures", String(int((getParam_().getValue("add_features") == "true"))),
+      "-tasks", String(getIntOption_("tasks")),
+      "-thread", String(getIntOption_("threads"))
+    };
     String conf = getStringOption_("conf");
     if (!conf.empty())
     {
-      process_params << "-conf" << conf.toQString();
+      process_params.push_back("-conf"); process_params.push_back(conf);
     }
 
     if (!mod_file.empty())
     {
-      process_params << "-mod" << mod_file.toQString();
+      process_params.push_back("-mod"); process_params.push_back(mod_file);
     }
 
     //-------------------------------------------------------------
@@ -608,9 +618,9 @@ protected:
     writeLogInfo_("Running MSGFPlus search...");
     // collect all output since MSGF+ might return 'success' even though it did not like the command arguments (e.g. if the version is too old)
     // If no output file is produced, we can print the stderr below.
-    String proc_stdout, proc_stderr; 
-    
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params, proc_stdout, proc_stderr);
+    String proc_stdout, proc_stderr;
+
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable, process_params, proc_stdout, proc_stderr);
     if (exit_code != EXECUTION_OK)
     {
       // if there was sth like a segfault, runExternalProcess_ will write a warning about the type of error,
@@ -640,19 +650,19 @@ protected:
         String tsv_out = tmp_dir.getPath() + "msgfplus_converted.tsv";
         int java_permgen = getIntOption_("java_permgen");
         process_params.clear();
-        process_params << java_memory;
+        process_params.push_back(java_memory);
         if (java_permgen > 0)
         {
-          process_params << "-XX:MaxPermSize=" + QString::number(java_permgen) + "m";
+          process_params.push_back("-XX:MaxPermSize=" + String(java_permgen) + "m");
         }
-        process_params << "-cp" << executable << "edu.ucsd.msjava.ui.MzIDToTsv"
-                       << "-i" << mzid_temp.toQString()
-                       << "-o" << tsv_out.toQString()
-                       << "-showQValue" << "1"
-                       << "-showDecoy" << "1"
-                       << "-unroll" << "1";
+        process_params.insert(process_params.end(), {"-cp", executable, "edu.ucsd.msjava.ui.MzIDToTsv",
+                       "-i", mzid_temp,
+                       "-o", tsv_out,
+                       "-showQValue", "1",
+                       "-showDecoy", "1",
+                       "-unroll", "1"});
         writeLogInfo_("Running MzIDToTSVConverter...");
-        exit_code = runExternalProcess_(java_executable.toQString(), process_params);
+        exit_code = runExternalProcess_(java_executable, process_params);
         if (exit_code != EXECUTION_OK)
         {
           return exit_code;
@@ -666,7 +676,7 @@ protected:
         ProteinIdentification::SearchParameters search_parameters;
         search_parameters.db = db_name;
         search_parameters.charges = "+" + String(min_precursor_charge) + "-+" + String(max_precursor_charge);
-        search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+        search_parameters.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
         search_parameters.fixed_modifications = fixed_mods;
         search_parameters.variable_modifications = variable_mods;
         search_parameters.precursor_mass_tolerance = precursor_mass_tol;
@@ -836,12 +846,16 @@ protected:
           switchScores_(pep);
         }
 
-        // add missing RTs to peptide IDs
+        // add missing RTs and FAIMS CVs to peptide IDs
         MSExperiment exp;
         MzMLFile mzml_file{};
-        mzml_file.getOptions().setMetadataOnly(true);
-    		mzml_file.load(in, exp); 
+        // Load spectrum metadata (not just file metadata) but skip peak data
+        mzml_file.getOptions().setMetadataOnly(false);
+        mzml_file.getOptions().setFillData(false);
+        mzml_file.load(in, exp);
         SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, exp);
+        // Annotate FAIMS compensation voltage if present
+        SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, exp);
       }
 
       // use OpenMS meta value key
@@ -870,7 +884,7 @@ protected:
       PercolatorFeatureSetHelper::addMSGFFeatures(peptide_ids, feature_set);
       protein_ids.front().getSearchParameters().setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
 
-      FileHandler().storeIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML, FileTypes::IDPARQUET});
     }
 
     //-------------------------------------------------------------

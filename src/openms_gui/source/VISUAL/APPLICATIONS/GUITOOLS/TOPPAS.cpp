@@ -45,6 +45,7 @@
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 //STL
 #include <iostream>
@@ -70,7 +71,7 @@ const char* tool_name = "TOPPAS";
 // description of the usage of this TOPP tool
 //-------------------------------------------------------------
 
-void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
+void print_usage(Logger::LogStream& stream = getGlobalLogInfo())
 {
   stream << "\n"
          << tool_name << " -- An assistant for GUI-driven TOPP workflow design." << "\n"
@@ -114,7 +115,7 @@ int main(int argc, const char** argv)
   if (param.exists("debug"))
   {
     OPENMS_LOG_INFO << "Debug flag provided. Enabling 'OPENMS_LOG_DEBUG' ..." << std::endl;
-    OpenMS_Log_debug.insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
+    getGlobalLogDebug().insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
   }
 
   // test if unknown options were given
@@ -126,7 +127,7 @@ int main(int argc, const char** argv)
     if (!(String(param.getValue("unknown").toString()).hasSubstring("-psn") && !String(param.getValue("unknown").toString()).hasSubstring(", ")))
     {
       OPENMS_LOG_ERROR << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
-      print_usage(OpenMS_Log_error);
+      print_usage(getGlobalLogError());
       return 1;
     }
   }
@@ -154,7 +155,7 @@ int main(int argc, const char** argv)
     pt_ver.setFont(QFont("Helvetica [Cronyx]", 15, 2, true));
     pt_ver.setPen(Qt::black);
     // draw version number dynamcially on top left corner
-    pt_ver.drawText(5, 5+15, VersionInfo::getVersion().toQString());
+    pt_ver.drawText(5, 5+15, toQString(VersionInfo::getVersion()));
     QSplashScreen splash_screen(qpm);
     splash_screen.show();
     

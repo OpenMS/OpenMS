@@ -14,6 +14,10 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 
+#include <QtCore/QString>
+#include <QtCore/QStringList>
+#include <QtCore/QProcess> // for qputenv
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -24,13 +28,26 @@ using namespace Internal;
 
 void convertINI2HTML(const Param& p, ostream& os)
 {
-  // the .css file is included via the Header.html (see doc/doxygen/common/Header.html)
-  // TODO add some general description on how to handle subsections, what each column means, what the tags mean, etc.
   os << "<div class=\"ini_global\">\n";
   os << "<div class=\"legend\">\n";
   os << "<b>Legend:</b><br>\n";
   os << " <div class=\"item item_required\">required parameter</div>\n";
   os << " <div class=\"item item_advanced\">advanced parameter</div>\n";
+  os << "</div>\n";
+  os << "<div class=\"ini_description\">\n";
+  os << "<p>This section lists all parameters supported by the tool. Parameters are organized into hierarchical subsections that group related settings together. Subsections may contain further subsections or individual parameters.</p>\n";
+  os << "<p>Each parameter entry contains the following information:</p>\n";
+  os << "<ul>\n";
+  os << "<li><b>Name</b>  The identifier used in configuration files and on the command line.</li>\n";
+  os << "<li><b>Default value</b>  The value used if the parameter is not explicitly specified.</li>\n";
+  os << "<li><b>Description</b>  A short explanation describing the purpose and behavior of the parameter.</li>\n";
+  os << "<li><b>Tags</b>  Additional metadata associated with the parameter.</li>\n";
+  os << "<li><b>Restrictions</b>  Allowed value ranges for numeric parameters or valid options for string parameters.</li>\n";
+  os << "</ul>\n";
+  os << "<p><b>Parameter tags</b> provide additional information about how a parameter is used. ";
+  os << "Some tags indicate whether a parameter is required or intended for advanced configuration, ";
+  os << "while others may be used internally by OpenMS or workflow tools.</p>\n";
+  os << "<p>Parameters highlighted as <span class=\"item_required\">required</span> must be specified for the tool to run successfully. Parameters marked as <span class=\"item_advanced\">advanced</span> allow fine-tuning of algorithm behavior and are typically not needed for standard workflows.</p>\n";
   os << "</div>\n";
 
   Param::ParamIterator it = p.begin();
@@ -158,10 +175,20 @@ void convertINI2HTML(const Param& p, ostream& os)
       if (!it->valid_strings.empty())
       {
         // make sure browsers can word wrap with additional whitespace
-        // TODO: If param name is *modification* just add a link to 
+        // TODO: If param name is *modification* just add a link to
         //  a page with all modifications otherwise you get a HUGE list.
         //  Also think about a different separator, in case the restrictions have commas.
         restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
+      }
+      else if (value_type == ParamValue::STRING_VALUE)
+      {
+        // Issue #8475: Flag parameters are written as type="bool" in INI, which loads
+        // as STRING_VALUE with no valid_strings. Detect these by checking if value is boolean.
+        String val = it->value.toString();
+        if (val == "true" || val == "false")
+        {
+          restrictions = "(flag)";
+        }
       }
       break;
 
@@ -220,14 +247,14 @@ bool generate(const ToolListType& tools, const String& prefix, const String& bin
       ExternalProcess ep([&](const String& s) { f << s; }, 
                          [&](const String& s) { f << s; });
       String error_msg;
-      if (ep.run(command.toQString(), QStringList() << "--help", "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE)
+      if (ep.run(command, std::vector<String>{"--help"}, "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE)
             != ExternalProcess::RETURNSTATE::SUCCESS)
       { // error while generation cli docu
         stringstream ss;
         ss << "Errors occurred while generating the command line documentation for " << it->first << "!" << endl;
         ss << "Output was: \n";
         ep.setCallbacks([&](const String& s) { ss << s; }, [&](const String& s) { ss << s; });
-        ep.run(command.toQString(), QStringList() << "--help", "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE);
+        ep.run(command, std::vector<String>{"--help"}, "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE);
         ss << "\nCommand line was: \n " << command << endl;
         f << ss.str();
         cerr << ss.str();
@@ -241,22 +268,23 @@ bool generate(const ToolListType& tools, const String& prefix, const String& bin
     //////
     // get the INI file and convert it into HTML
     //////
-    if (it->first != "GenericWrapper" && // does not support -write_ini without a type
-        it->first != "TOPPView" && // do not support -write_ini
+    if (it->first != "TOPPView" && // do not support -write_ini
         it->first != "TOPPAS")
     {
       String tmp_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_" + it->first + ".ini";
-      const auto ini_command_args = QStringList() << "-write_ini" << tmp_file.toQString();
-      
+      const std::vector<String> ini_command_args = {"-write_ini", tmp_file};
+
       ExternalProcess ep([&](const String& s) { f << s; }, [&](const String& s) { f << s; });
       String error_msg;
-      if (ep.run(command.toQString(), ini_command_args, "", false, error_msg,
+      if (ep.run(command, ini_command_args, "", false, error_msg,
                  ExternalProcess::IO_MODE::READ_WRITE)
             != ExternalProcess::RETURNSTATE::SUCCESS
           || ! File::exists(tmp_file))
       { // error while generation cli docu
         std::cerr << "Errors occurred while writing ini file for " << it->first << "!" << std::endl;
-        std::cerr << "Command line was: \n " << command << ini_command_args.join(" ").toStdString() << std::endl;
+        String args_str;
+        for (const auto& a : ini_command_args) args_str += " " + a;
+        std::cerr << "Command line was: \n " << command << args_str << std::endl;
         errors_occured = true;
         continue;
       }
@@ -291,7 +319,7 @@ int main(int argc, char** argv)
   }
 
   //TOPP tools
-  ToolListType topp_tools = ToolHandler::getTOPPToolList(true); // include GenericWrapper (can be called with --help without error, even though it has a type)
+  ToolListType topp_tools = ToolHandler::getTOPPToolList();
   topp_tools["TOPPView"] = Internal::ToolDescription(); // these two need to be excluded from writing an INI file later!
   topp_tools["TOPPAS"] = Internal::ToolDescription();
 

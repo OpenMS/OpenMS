@@ -51,10 +51,10 @@ public:
      * The function will replace the pointers stored in swath_maps with a
      * transforming map that will contain corrected m/z values.
      *
-     * @param transition_group_map A MRMFeatureFinderScoring result map
-     * @param targeted_exp The corresponding spectral library (required for extraction coordinates)
-     * @param swath_maps The raw swath maps from the current run, will be modified (replaced with a corrected version)
-     * @param pasef Whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
+     * @param[out] transition_group_map A MRMFeatureFinderScoring result map
+     * @param[in] targeted_exp The corresponding spectral library (required for extraction coordinates)
+     * @param[in] swath_maps The raw swath maps from the current run, will be modified (replaced with a corrected version)
+     * @param[in] pasef Whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
      */
     void correctMZ(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *>& transition_group_map,
                    const OpenSwath::LightTargetedExperiment & targeted_exp,
@@ -69,11 +69,11 @@ public:
      * the theoretically expected drift time. The resulting linear
      * transformation is stored using a TransformationDescription object.
      *
-     * @param transition_group_map A MRMFeatureFinderScoring result map
-     * @param swath_maps The raw swath maps from the current run
-     * @param targeted_exp The corresponding spectral library (required for extraction coordinates)
-     * @param pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
-     * @param im_trafo The resulting map containing the transformation
+     * @param[out] transition_group_map A MRMFeatureFinderScoring result map
+     * @param[in,out] swath_maps The raw swath maps from the current run
+     * @param[in] targeted_exp The corresponding spectral library (required for extraction coordinates)
+     * @param[in] pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
+     * @param[out] im_trafo The resulting map containing the transformation
      */
     void correctIM(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
                    const OpenSwath::LightTargetedExperiment & targeted_exp,
@@ -94,6 +94,56 @@ public:
     std::vector<OpenSwath::SwathMap> findSwathMapsPasef(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
                                                          const std::vector< OpenSwath::SwathMap > & swath_maps);
 
+    /**
+      @brief Estimate an extraction window from absolute residuals.
+
+      Treats the input @p residuals as absolute errors (e.g., |delta ppm| for m/z).
+      We compute an adaptive half-width using OpenMS::Math::adaptiveQuantile
+      (Tukey k=1.5; blend raw vs winsorized by tail density), and return
+      either the half-width or the full width (2×half).
+
+      Notes:
+        - Empty input yields 0.0.
+        - Ensure @p residuals contain absolute values; non-absolute inputs will be
+          converted via std::abs internally.
+
+      @param[in] residuals   Absolute residuals (e.g., |delta ppm|).
+      @param[in] quantile    Quantile of the half-width distribution to use (default 0.99).
+      @param[in] full_width  If true, return 2×half-width; if false, return half-width.
+      @param[in] padding_factor A padding factor to add to the estimated window.
+      @return            Estimated window (same units as @p residuals; 0.0 if empty).
+    */
+    static double estimateWindow(
+      std::vector<double> residuals,
+      double quantile = 0.99,
+      bool full_width = true,
+      double padding_factor = 1.0
+    );
+
+    /// Retrieve the estimated fragment m/z extraction window (ppm)
+    double getFragmentMzWindow() const;
+
+    /// Set the estimated fragment m/z extraction window (ppm_
+    void setFragmentMzWindow(double fragmentMzWindow);
+
+    /// Retrieve the estimated fragment ion mobility extraction window
+    double getFragmentImWindow() const;
+
+    /// Set the estimated fragment ion mobility extraction window
+    void setFragmentImWindow(double fragmentImWindow);
+
+    /// Retrieve the estimated precursor m/z extraction window (ppm)
+    double getPrecursorMzWindow() const;
+
+    /// Set the estimated precursor m/z extraction window (ppm)
+    void setPrecursorMzWindow(double precursorMzWindow);
+
+    /// Retrieve the estimated precursor ion mobility extraction window
+    double getPrecursorImWindow() const;
+
+    /// Set the estimated precursor ion mobility extraction window
+    void setPrecursorImWindow(double precursorImWindow);
+
   private:
     double mz_extraction_window_;
     bool mz_extraction_window_ppm_;
@@ -104,6 +154,15 @@ public:
     String debug_im_file_;
     String debug_mz_file_;
 
+    /// fields for estimated mz and ion mobility windows
+    double mz_estimation_padding_factor_ = 1.0;
+    double im_estimation_padding_factor_ = 1.0;
+    double mz_estimation_percentile_ = 99.0;
+    double im_estimation_percentile_ = 99.0;
+    double fragment_mz_window_ = -1;
+    double fragment_im_window_ = -1;
+    double precursor_mz_window_ = -1;
+    double precursor_im_window_ = -1;
   };
 }
 

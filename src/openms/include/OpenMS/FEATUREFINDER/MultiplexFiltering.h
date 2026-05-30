@@ -64,18 +64,18 @@ public:
     /**
      * @brief constructor
      *
-     * @param exp_centroided    experimental data in centroid mode
-     * @param patterns    patterns of isotopic peaks to be searched for
-     * @param isotopes_per_peptide_min    minimum number of isotopic peaks in peptides
-     * @param isotopes_per_peptide_max    maximum number of isotopic peaks in peptides
-     * @param intensity_cutoff    intensity cutoff
-     * @param rt_band    RT range used for filtering
-     * @param mz_tolerance    error margin in m/z for matching expected patterns to experimental data
-     * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
-     * @param peptide_similarity    similarity score for two peptides in the same multiplet
-     * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
-     * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p).
-     * @param averagine_type Averagine model to use: 'peptide', 'RNA', 'DNA'
+     * @param[in] exp_centroided    experimental data in centroid mode
+     * @param[in] patterns    patterns of isotopic peaks to be searched for
+     * @param[in] isotopes_per_peptide_min    minimum number of isotopic peaks in peptides
+     * @param[in] isotopes_per_peptide_max    maximum number of isotopic peaks in peptides
+     * @param[in] intensity_cutoff    intensity cutoff
+     * @param[in] rt_band    RT range used for filtering
+     * @param[in] mz_tolerance    error margin in m/z for matching expected patterns to experimental data
+     * @param[in] mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
+     * @param[in] peptide_similarity    similarity score for two peptides in the same multiplet
+     * @param[in] averagine_similarity    similarity score for peptide isotope pattern and averagine model
+     * @param[in] averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p).
+     * @param[in] averagine_type Averagine model to use: 'peptide', 'RNA', 'DNA'
      */
     MultiplexFiltering(const MSExperiment& exp_centroided, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min,
                        int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit,
@@ -103,10 +103,10 @@ protected:
     /**
      * @brief check for significant peak
      *
-     * @param mz    position where the peak is expected
-     * @param mz_tolerance    m/z tolerance within the peak may lie
-     * @param it_rt    pointer to the spectrum
-     * @param intensity_first_peak    intensity to compare to
+     * @param[in] mz    position where the peak is expected
+     * @param[in] mz_tolerance    m/z tolerance within the peak may lie
+     * @param[in] it_rt    pointer to the spectrum
+     * @param[in] intensity_first_peak    intensity to compare to
      *
      * @return -1 (if there is no significant peak), or peak index mz_idx (if there is a significant peak)
      */
@@ -118,12 +118,12 @@ protected:
      * Checks if there are peaks at m/z positions corresponding to the pattern
      * and that the primary peak position is not blacklisted.
      *
-     * @param mz    m/z of the primary peak
-     * @param it_rt_begin    RT iterator of the very first spectrum of the experiment (needed to determine indices)
-     * @param it_rt_band_begin    RT iterator of the first spectrum in the RT band
-     * @param it_rt_band_end    RT iterator of the spectrum after the last spectrum in the RT band
-     * @param pattern    m/z pattern to search for
-     * @param peak    filter result output
+     * @param[in] mz    m/z of the primary peak
+     * @param[in] it_rt_begin    RT iterator of the very first spectrum of the experiment (needed to determine indices)
+     * @param[in] it_rt_band_begin    RT iterator of the first spectrum in the RT band
+     * @param[in] it_rt_band_end    RT iterator of the spectrum after the last spectrum in the RT band
+     * @param[in] pattern    m/z pattern to search for
+     * @param[out] peak    filter result output
      *
      * @return boolean if this filter was passed i.e. there are @em isotopes_per_peptide_min_ or more mass traces which form the pattern.
      */
@@ -131,22 +131,22 @@ protected:
 
     /**
      * @brief blacklist this peak
-     * 
+     *
      * Blacklist all satellites associated with this peak.
-     * 
-     * @param peak    peak to be blacklisted
+     *
+     * @param[in] peak    peak to be blacklisted
      */
     void blacklistPeak_(const MultiplexFilteredPeak& peak);
 
     /**
      * @brief blacklist this peak
-     * 
+     *
      * Each of the satellites is associated with a specific mass trace. We blacklist
      * all peaks in these mass traces (even if they are not a satellite) extending them
      * by a margin @em rt_band_.
-     * 
-     * @param peak    peak to be blacklisted
-     * @param pattern_idx    index of the pattern in @em patterns_
+     *
+     * @param[in] peak    peak to be blacklisted
+     * @param[in] pattern_idx    index of the pattern in @em patterns_
      */
     void blacklistPeak_(const MultiplexFilteredPeak& peak, unsigned pattern_idx);
     
@@ -156,8 +156,8 @@ protected:
      * Check if the intensities of the satellite peaks correlate with the peak intensities
      * of the averagine model. We check both Pearson and Spearman rank correlation.
      *
-     * @param pattern    m/z pattern to search for
-     * @param peak    peak with set of satellite peaks
+     * @param[in] pattern    m/z pattern to search for
+     * @param[in] peak    peak with set of satellite peaks
      *
      * @return boolean if this filter was passed i.e. the correlation coefficient is greater than @em averagine_similarity_
      */
@@ -170,8 +170,8 @@ protected:
      * isotope distributions. The filter checks if satellite peaks corresponding to different isotopes in different peptide
      * features show a strong correlation. The filter is of course ignored for singlet feature detection.
      *
-     * @param pattern    m/z pattern to search for
-     * @param peak    peak with set of satellite peaks
+     * @param[in] pattern    m/z pattern to search for
+     * @param[in] peak    peak with set of satellite peaks
      *
      * @return boolean if this filter was passed i.e. the correlation coefficient is greater than @em peptide_similarity_
      */

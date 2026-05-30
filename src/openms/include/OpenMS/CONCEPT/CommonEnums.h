@@ -24,10 +24,11 @@ namespace OpenMS
     IM_MS,    ///< ion mobility milliseconds
     IM_VSSC,  ///< volt-second per square centimeter (i.e. 1/K_0)
     FAIMS_CV, ///< FAIMS compensation voltage
+    IM_CCS,   ///< collisional cross section (square angstrom)
     SIZE_OF_DIM_UNITS
   };
-  inline std::string_view DIM_NAMES[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT [s]", "m/z [Th]", "intensity", "IM [milliseconds]", "IM [vs / cm2]", "FAIMS CV"};
-  inline std::string_view DIM_NAMES_SHORT[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT", "m/z", "int", "IM", "IM", "FCV"};
+  inline std::string_view DIM_NAMES[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT [s]", "m/z [Th]", "intensity", "IM [milliseconds]", "IM [vs / cm2]", "FAIMS CV", "CCS [angstrom^2]"};
+  inline std::string_view DIM_NAMES_SHORT[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT", "m/z", "int", "IM", "IM", "FCV", "CCS"};
 
 
   enum class MZ_UNITS
@@ -37,5 +38,23 @@ namespace OpenMS
     SIZE_OF_MZ_UNITS
   };
   inline std::string_view MZ_UNIT_NAMES[(int)MZ_UNITS::SIZE_OF_MZ_UNITS] = {"Da", "ppm"};
+
+  /**
+  @brief Enum for different hydrophobicity scales
+
+  If a new scale is introduced, append it to the list below and assign it an enum value equal to the current maximum enum value plus one.
+
+  Add the data for this scale here: @ref Residue::getHydrophobicity
+  */
+  enum class HydrophobicityScaleMethod 
+    {
+      KYTE_DOOLITTLE = 0,
+      EISENBERG = 1,
+      HOPP_WOODS = 2,
+      BULL_BREESE = 3,
+      BLACK_MOULD = 4,
+      GUY = 5,
+      EISENBERG_CONSENSUS = 6
+    }; 
 
 } // namespace OpenMS

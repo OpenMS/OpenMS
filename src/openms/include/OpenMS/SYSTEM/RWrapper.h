@@ -9,15 +9,12 @@
 #pragma once
 
 #include <OpenMS/config.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <QtCore/QString>
-
-#include <QtCore/qcontainerfwd.h> // for QStringList
+#include <vector>
 
 namespace OpenMS
 {
-
-  class String;
 
   /**
       @brief R-Wrapper Class.
@@ -31,18 +28,18 @@ namespace OpenMS
   {
 public:
 
- 
+
     /**
       @brief Look for an R script in the share/OpenMS/SCRIPT folder
-      
+
       The script filename can be an absolute filename (in which case the filename is returned unchanged),
       or a relative filename or just a filename. In the latter cases, the script will be searched
       in the OpenMS 'SCRIPTS' path (share/OpenMS/SCRIPTS) and the full filename will be returned.
 
       An exception will be thrown if the file cannot be found.
 
-      @param script_file Name of the R script
-      @param verbose Print error message to OPENMS_LOG_ERROR upon FileNotFound
+      @param[in] script_file Name of the R script
+      @param[in] verbose Print error message to OPENMS_LOG_ERROR upon FileNotFound
       @return Full filename with absolute path
       @throw Exception::FileNotFound
     */
@@ -51,11 +48,11 @@ public:
     /**
       @brief Check for presence of 'Rscript'.
 
-      @param executable Name of the R interpreter
-      @param verbose Print failure information?
+      @param[in] executable Name of the R interpreter
+      @param[in] verbose Print failure information?
       @return Success status
     */
-    static bool findR(const QString& executable = QString("Rscript"), bool verbose = true);
+    static bool findR(const String& executable = "Rscript", bool verbose = true);
 
 
     /**
@@ -65,20 +62,20 @@ public:
          1) [optional] 'Rscript' executable is searched (see findR() -- set @p find_R to true)
          2) The script_file is searched in 'OpenMS/share/SCRIPTS' (see findScript()).
          3) The script is run as $ Rscript &lt;path/to/script&gt; &lt;arg1&gt; &lt;arg2&gt; ...
-      
+
       If any of the above steps fail, an error message is printed and false is returned.
 
       The 'cmd_args' are passed via commandline and should be read by the R script using R' commandArgs() function.
       Usually, the args are input and output filenames.
 
-      @param script_file Filename of the R script
-      @param cmd_args Command line arguments to the script
-      @param executable Name of the R interpreter
-      @param find_R Run findR()? May be skipped if runScript() is run repeatedly
-      @param verbose Print status information; also passed internally to findR() and findScript().
+      @param[in] script_file Filename of the R script
+      @param[in] cmd_args Command line arguments to the script
+      @param[in] executable Name of the R interpreter
+      @param[in] find_R Run findR()? May be skipped if runScript() is run repeatedly
+      @param[in] verbose Print status information; also passed internally to findR() and findScript().
       @return Success status
     */
-    static bool runScript(const String& script_file, const QStringList& cmd_args, const QString& executable = QString("Rscript"), bool find_R = false, bool verbose = true);
+    static bool runScript(const String& script_file, const std::vector<String>& cmd_args, const String& executable = "Rscript", bool find_R = false, bool verbose = true);
 
   };
 

@@ -8,6 +8,8 @@
 
 #include <OpenMS/FORMAT/TextFile.h>
 
+#include <OpenMS/SYSTEM/File.h>
+
 #include <fstream>
 
 using namespace std;
@@ -31,7 +33,18 @@ namespace OpenMS
     ifstream is(filename.c_str(), ios_base::in | ios_base::binary);
     if (!is)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      if (!File::exists(filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else if (!File::readable(filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
     }
 
     buffer_.clear();

@@ -77,9 +77,9 @@ public:
       does not require a full first pass through the file to compute the
       correct number of spectra and chromatograms in the input file.
 
-      @param filename_in Filename of input mzML file to transform 
-      @param consumer Consumer class to operate on the input filename (implementing a transformation)
-      @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file 
+      @param[in] filename_in Filename of input mzML file to transform 
+      @param[in] consumer Consumer class to operate on the input filename (implementing a transformation)
+      @param[in] skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file 
     */
     void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false);
 
@@ -92,10 +92,10 @@ public:
       applied to the data before storing them in a map (e.g. if data-reduction
       should be applied to the data before loading all data into memory).
 
-      @param filename_in Filename of input mzXML file to transform 
-      @param consumer Consumer class to operate on the input filename (implementing a transformation)
-      @param map Map to store the resulting spectra and chromatograms
-      @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file 
+      @param[in] filename_in Filename of input mzXML file to transform 
+      @param[in] consumer Consumer class to operate on the input filename (implementing a transformation)
+      @param[out] map Map to store the resulting spectra and chromatograms
+      @param[in] skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file 
     */
     void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, MapType& map, bool skip_full_count = false);
 

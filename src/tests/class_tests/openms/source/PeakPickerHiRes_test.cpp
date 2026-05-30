@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 ///////////////////////////
@@ -59,7 +60,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap_sn1_out.mzML
 //set data type (this is not stored correctly in mzData)
 for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 {
-  output[scan_idx].setType(SpectrumSettings::CENTROID);
+  output[scan_idx].setType(SpectrumSettings::SpectrumType::CENTROID);
 }
 
 // PeakPickerHiRes config
@@ -103,7 +104,7 @@ START_SECTION((template <typename PeakType> void pick(const MSSpectrum& input, M
     input.emplace_back(100.04, 200);
 
     input.getFloatDataArrays().resize(1);
-    input.getFloatDataArrays()[0].setName("Ion Mobility");
+    input.getFloatDataArrays()[0].setName(Constants::UserParam::ION_MOBILITY);
     input.getFloatDataArrays()[0].push_back(100.0);
     input.getFloatDataArrays()[0].push_back(150.0);
     input.getFloatDataArrays()[0].push_back(150.0);
@@ -219,7 +220,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap_sn4_out.mzML
 //set data type (this is not stored correctly in mzData)
 for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 {
-  output[scan_idx].setType(SpectrumSettings::CENTROID);
+  output[scan_idx].setType(SpectrumSettings::SpectrumType::CENTROID);
 }
 
 //set up PeakPicker
@@ -287,7 +288,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_ftms_sn1_out.mzML"),o
 //set data type (this is not stored correctly in mzML)
 for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 {
-  output[scan_idx].setType(SpectrumSettings::CENTROID);
+  output[scan_idx].setType(SpectrumSettings::SpectrumType::CENTROID);
 }
 
 // PeakPickerHiRes config
@@ -327,7 +328,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_ftms_sn4_out.mzML"),o
 //set data type (this is not stored correctly in mzML)
 for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 {
-  output[scan_idx].setType(SpectrumSettings::CENTROID);
+  output[scan_idx].setType(SpectrumSettings::SpectrumType::CENTROID);
 }
 
 //set up PeakPicker
@@ -545,6 +546,140 @@ START_SECTION(void pick(const MSSpectrum& input, MSSpectrum& output, std::vector
   TEST_REAL_SIMILAR(it_mz->getMZ(),370.219596356153);
   TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,370.215301513672); // Same as max of previous peak.
   TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,370.223358154297);
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Tests for allow_missing_flank parameter (TimsTOF support)
+/////////////////////////////////////////////////////////////
+
+START_SECTION([EXTRA] test allow_missing_flank parameter)
+{
+  // Test the allow_missing_flank parameter which allows picking peaks
+  // that don't have valid flanking data points on both sides.
+  // This is important for TimsTOF data where profile peaks may be
+  // missing the leading or trailing edge.
+
+  PeakPickerHiRes pp;
+  Param p;
+  p.setValue("signal_to_noise", 0.0);
+  // Use default spacing_difference of 1.5
+
+  // Test 1: Symmetric peak - should be picked regardless of allow_missing_flank setting
+  {
+    MSSpectrum in, out;
+    // Symmetric spacing: 0.01 on both sides
+    in.emplace_back(100.00, 200);
+    in.emplace_back(100.01, 250);
+    in.emplace_back(100.02, 450);  // central peak
+    in.emplace_back(100.03, 250);
+    in.emplace_back(100.04, 200);
+
+    // With allow_missing_flank = false (default)
+    p.setValue("allow_missing_flank", "false");
+    pp.setParameters(p);
+    pp.pick(in, out);
+    TEST_EQUAL(out.size(), 1)
+    TEST_REAL_SIMILAR(out[0].getMZ(), 100.02)
+
+    // With allow_missing_flank = true
+    out.clear(true);
+    p.setValue("allow_missing_flank", "true");
+    pp.setParameters(p);
+    pp.pick(in, out);
+    TEST_EQUAL(out.size(), 1)
+    TEST_REAL_SIMILAR(out[0].getMZ(), 100.02)
+  }
+
+  // Test 2: Peak with missing left flank (large gap on left side)
+  // Spacing: left_to_central = 0.03, central_to_right = 0.01
+  // min_spacing = 0.01, threshold = 1.5 * 0.01 = 0.015
+  // left_to_central (0.03) > threshold (0.015) -> left neighbor "missing"
+  {
+    MSSpectrum in, out;
+    in.emplace_back(100.00, 200);
+    in.emplace_back(100.03, 250);   // left neighbor - far from central
+    in.emplace_back(100.06, 450);   // central peak
+    in.emplace_back(100.07, 250);   // right neighbor - close to central
+    in.emplace_back(100.08, 200);
+
+    // With allow_missing_flank = false: should NOT pick the peak
+    p.setValue("allow_missing_flank", "false");
+    pp.setParameters(p);
+    pp.pick(in, out);
+    TEST_EQUAL(out.size(), 0)
+
+    // With allow_missing_flank = true: should pick the peak
+    out.clear(true);
+    p.setValue("allow_missing_flank", "true");
+    pp.setParameters(p);
+    pp.pick(in, out);
+    TEST_EQUAL(out.size(), 1)
+    TEST_REAL_SIMILAR(out[0].getMZ(), 100.06)
+  }
+
+  // Test 3: Peak with missing right flank (large gap on right side)
+  // Spacing: left_to_central = 0.01, central_to_right = 0.03
+  // min_spacing = 0.01, threshold = 1.5 * 0.01 = 0.015
+  // central_to_right (0.03) > threshold (0.015) -> right neighbor "missing"
+  {
+    MSSpectrum in, out;
+    in.emplace_back(100.00, 200);
+    in.emplace_back(100.01, 250);   // left neighbor - close to central
+    in.emplace_back(100.02, 450);   // central peak
+    in.emplace_back(100.05, 250);   // right neighbor - far from central
+    in.emplace_back(100.06, 200);
+
+    // With allow_missing_flank = false: should NOT pick the peak
+    p.setValue("allow_missing_flank", "false");
+    pp.setParameters(p);
+    pp.pick(in, out);
+    TEST_EQUAL(out.size(), 0)
+
+    // With allow_missing_flank = true: should pick the peak
+    out.clear(true);
+    p.setValue("allow_missing_flank", "true");
+    pp.setParameters(p);
+    pp.pick(in, out);
+    TEST_EQUAL(out.size(), 1)
+    TEST_REAL_SIMILAR(out[0].getMZ(), 100.02)
+  }
+
+  // Note: It's mathematically impossible for both neighbors to fail the spacing_difference
+  // check simultaneously, since min_spacing is always the smaller of the two spacings,
+  // and that spacing will always pass (spacing < 1.5 * spacing is always true).
+
+  // Test 4: Test with ion mobility data - ensure IM values are handled correctly
+  // when allow_missing_flank is true
+  {
+    MSSpectrum in, out;
+    // Peak with missing left flank
+    in.emplace_back(100.00, 200);
+    in.emplace_back(100.03, 250);   // left neighbor - far
+    in.emplace_back(100.06, 450);   // central peak
+    in.emplace_back(100.07, 250);   // right neighbor - close
+    in.emplace_back(100.08, 200);
+
+    in.getFloatDataArrays().resize(1);
+    in.getFloatDataArrays()[0].setName(Constants::UserParam::ION_MOBILITY);
+    in.getFloatDataArrays()[0].push_back(1.0);
+    in.getFloatDataArrays()[0].push_back(1.1);
+    in.getFloatDataArrays()[0].push_back(1.2);
+    in.getFloatDataArrays()[0].push_back(1.3);
+    in.getFloatDataArrays()[0].push_back(1.4);
+
+    p.setValue("allow_missing_flank", "true");
+    pp.setParameters(p);
+    pp.pick(in, out);
+    TEST_EQUAL(out.size(), 1)
+    TEST_EQUAL(out.getFloatDataArrays().size(), 1)
+    TEST_EQUAL(out.getFloatDataArrays()[0].getName(), "Ion Mobility")
+    // IM should be weighted average of core (central + right neighbor) plus extended points
+    // Core: central (450 @ 1.2) + right neighbor (250 @ 1.3)
+    // Extension adds rightmost point (200 @ 1.4) since gap (0.01) < spacing_difference_gap * min_spacing
+    // = (450*1.2 + 250*1.3 + 200*1.4) / (450 + 250 + 200) = 1145 / 900 = 1.2722...
+    TEST_REAL_SIMILAR(out.getFloatDataArrays()[0][0], 1.27222)
+  }
 }
 END_SECTION
 

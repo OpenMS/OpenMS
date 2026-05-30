@@ -36,7 +36,7 @@ namespace OpenMS
     int flags = 0;
     switch (mode)
     {
-      case SqlOpenMode::READONLY:
+      case SqlOpenMode::READ_ONLY:
         flags = SQLITE_OPEN_READONLY;
         break;
       case SqlOpenMode::READWRITE:
@@ -320,5 +320,4 @@ namespace OpenMS
     }
 
 }
-
 

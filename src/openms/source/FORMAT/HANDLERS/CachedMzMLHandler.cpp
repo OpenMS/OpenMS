@@ -10,6 +10,7 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS::Internal
 {
@@ -61,7 +62,18 @@ namespace OpenMS::Internal
     std::ifstream ifs(filename.c_str(), std::ios::binary);
     if (ifs.fail())
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      if (!File::exists(filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else if (!File::readable(filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
     }
 
     Size exp_size, chrom_size;
@@ -119,7 +131,18 @@ namespace OpenMS::Internal
     std::ifstream ifs(filename.c_str(), std::ios::binary);
     if (ifs.fail())
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      if (!File::exists(filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else if (!File::readable(filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
     }
 
     Size exp_size, chrom_size;
@@ -216,7 +239,7 @@ namespace OpenMS::Internal
     if (addCacheMetaValue)
     {
       // set dataprocessing on each spectrum/chromatogram
-      boost::shared_ptr< DataProcessing > dp = boost::shared_ptr< DataProcessing >(new DataProcessing);
+      std::shared_ptr< DataProcessing > dp = std::shared_ptr< DataProcessing >(new DataProcessing);
       std::set<DataProcessing::ProcessingAction> actions;
       actions.insert(DataProcessing::FORMAT_CONVERSION);
       dp->setProcessingActions(actions);
@@ -259,7 +282,7 @@ namespace OpenMS::Internal
     if (addCacheMetaValue)
     {
       // set dataprocessing on each spectrum/chromatogram
-      boost::shared_ptr< DataProcessing > dp = boost::shared_ptr< DataProcessing >(new DataProcessing);
+      std::shared_ptr< DataProcessing > dp = std::shared_ptr< DataProcessing >(new DataProcessing);
       std::set<DataProcessing::ProcessingAction> actions;
       actions.insert(DataProcessing::FORMAT_CONVERSION);
       dp->setProcessingActions(actions);
@@ -389,7 +412,7 @@ namespace OpenMS::Internal
 
     for (Size j = 2; j < data.size(); j++)
     {
-      spectrum.getFloatDataArrays().push_back(MSSpectrum::FloatDataArray());
+      spectrum.getFloatDataArrays().emplace_back();
       spectrum.getFloatDataArrays().back().reserve(data[j]->data.size());
       spectrum.getFloatDataArrays().back().setName(data[j]->description);
       for (const auto& k : data[j]->data) spectrum.getFloatDataArrays().back().push_back(k);

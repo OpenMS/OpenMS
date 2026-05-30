@@ -13,6 +13,8 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
@@ -35,7 +37,7 @@ using namespace std;
 /**
 @page TOPP_MzTabExporter MzTabExporter
 
-@brief This application converts several %OpenMS XML formats (featureXML, consensusXML, and idXML) to mzTab.
+@brief This application converts several %OpenMS formats (featureXML/featureparquet, consensusXML/consensusparquet, and idXML/idparquet) to mzTab.
 
 <CENTER>
   <table>
@@ -55,7 +57,7 @@ See the mzTab specification for details on the format.
 
 @experimental This algorithm and underlying format is work in progress and might change.
 
-@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Convert mzid files to/from idXML or idparquet using @ref TOPP_IDFileConverter if necessary.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_MzTabExporter.cli
@@ -65,9 +67,10 @@ See the mzTab specification for details on the format.
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 namespace OpenMS
 {
@@ -76,7 +79,7 @@ namespace OpenMS
   {
 public:
     TOPPMzTabExporter() :
-      TOPPBase("MzTabExporter", "Exports various XML formats to an mzTab file.")
+      TOPPBase("MzTabExporter", "Exports various OpenMS XML and parquet formats to an mzTab file.")
     {
     }
 
@@ -85,7 +88,7 @@ protected:
     void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "", "Input files used to generate the mzTab file.", false);
-      setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzid"));
+      setValidFormats_("in", ListUtils::create<String>("featureXML,featureparquet,consensusXML,consensusparquet,idXML,idparquet,mzid"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
       setValidFormats_("out", ListUtils::create<String>("mzTab"));
       registerFlag_("first_run_inference_only", "Does the first IdentificationRun in the file "
@@ -109,14 +112,14 @@ protected:
 
       MzTab mztab;
 
-      if (in_type == FileTypes::FEATUREXML)
+      if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::FEATUREPARQUET)
       {
-        // For featureXML we export a "Summary Quantification" file. This means we don't need to report feature quantification values at the assay level
+        // For featureXML/featureparquet we export a "Summary Quantification" file. This means we don't need to report feature quantification values at the assay level
         // but only at the (single) study variable variable level.
 
-        // load featureXML
+        // load featureXML/featureparquet
         FeatureMap feature_map;
-        FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML});
+        FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET});
 
         // calculate coverage
         PeptideIdentificationList pep_ids;
@@ -146,12 +149,12 @@ protected:
         mztab = MzTab::exportFeatureMapToMzTab(feature_map, in);
       }
 
-      // export identification data from idXML
-      if (in_type == FileTypes::IDXML)
+      // export identification data from idXML/idparquet
+      if (in_type == FileTypes::IDXML || in_type == FileTypes::IDPARQUET)
       {
         vector<ProteinIdentification> prot_ids;
         PeptideIdentificationList pep_ids;
-        FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
+        FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
         MzTabFile().store(out,
           prot_ids,
@@ -180,10 +183,10 @@ protected:
       }
 
       // export quantification data
-      if (in_type == FileTypes::CONSENSUSXML)
+      if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET)
       {
         ConsensusMap consensus_map;
-        FileHandler().loadConsensusFeatures(in, consensus_map, {FileTypes::CONSENSUSXML});
+        FileHandler().loadConsensusFeatures(in, consensus_map, {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
         IDFilter::removeEmptyIdentifications(consensus_map); // MzTab stream exporter currently doesn't support IDs with empty hits.
         MzTabFile().store(out,
            consensus_map,
@@ -202,7 +205,9 @@ protected:
   };
 } //namespace OpenMS
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif
 
 int main(int argc, const char** argv)
 {

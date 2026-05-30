@@ -9,9 +9,11 @@
 // Consumers
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 
 // Files
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
@@ -20,6 +22,11 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
+#include <OpenMS/FORMAT/ParquetFile.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
+#include <OpenMS/config.h>
+#include <filesystem>
 #include <OpenMS/SYSTEM/File.h>
 
 // Kernel and implementations
@@ -40,11 +47,17 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
+#include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
+#include <algorithm>
 #include <cassert>
 #include <limits>
+#include <memory>
 
 // #define OPENSWATH_WORKFLOW_DEBUG
 
@@ -56,7 +69,7 @@ using namespace OpenMS;
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 
-#include <QDir>
+#include <unordered_map>
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -75,8 +88,8 @@ http://openswath.org/ for additional documentation.
 It executes the following steps in order, which is implemented in @ref OpenMS::OpenSwathWorkflow "OpenSwathWorkflow":
 
 <ul>
-  <li>Reading of input files, which can be provided as one single mzML or multiple "split" mzMLs (one per SWATH)</li>
-  <li>Computing the retention time transformation using RT-normalization peptides</li>
+  <li>Reading of input SRM/MRM/PRM/DIA(PASEF) mzML files or Bruker .d (TDF) directories (requires WITH_OPENTIMS)</li>
+  <li>Computing the retention time transformation, mass-to-charge and ion mobility correction using calibrant peptides</li>
   <li>Reading of the transition list</li>
   <li>Extracting the specified transitions</li>
   <li>Scoring the peak groups in the extracted ion chromatograms (XIC)</li>
@@ -86,35 +99,57 @@ It executes the following steps in order, which is implemented in @ref OpenMS::O
 
 See below or have a look at the INI file (via "OpenSwathWorkflow -write_ini myini.ini") for available parameters and more functionality.
 
-<h3>Input: SWATH maps and assay library (transition list) </h3>
-SWATH maps can be provided as mzML files, either as single file directly from
-the machine (this assumes that the SWATH method has 1 MS1 and then n MS2
-spectra which are ordered the same way for each cycle). E.g. a valid method
-would be MS1, MS2 [400-425], MS2 [425-450], MS1, MS2 [400-425], MS2 [425-450]
-while an invalid method would be MS1, MS2 [400-425], MS2 [425-450], MS1, MS2
-[425-450], MS2 [400-425] where MS2 [xx-yy] indicates an MS2 scan with an
-isolation window starting at xx and ending at yy. OpenSwathWorkflow will try
-to read the SWATH windows from the data, if this is not possible please
-provide a tab-separated list with the correct windows using the
--swath_windows_file parameter (this is recommended). Note that the software
-expects extraction windows (e.g. which peptides to extract from
-which window) which cannot have overlaps, otherwise peptides will be
-extracted from two different windows.
+<h3>Input</h3>
 
-Alternatively, a set of split files (n+1 mzML files) can be provided, each
-containing one SWATH map (or MS1 map).
+<h4>DIA (including diaPASEF)</h4>
+DIA data (commonly referred to as SWATH) can be provided as full-scan mzML
+files produced by the instrument. In single-file mode the tool expects the
+acquisition to contain consistent cycles of MS1 and MS2 spectra (for example:
+MS1, MS2 [400-425], MS2 [425-450], MS1, MS2 [400-425], MS2 [425-450]). Each
+MS2 window is identified by its isolation lower/upper bounds. OpenSwathWorkflow
+will attempt to read the SWATH windows from the file; if this is not possible
+please supply a tab-separated SWATH windows file via the
+`-swath_windows_file` parameter. Note: extraction windows must not overlap —
+overlapping windows lead to peptides being extracted from more than one
+window and produce ambiguous assignments.
 
-Since the file size can become rather large, it is recommended to not load the
-whole file into memory but rather cache it somewhere on the disk using a
-fast-access data format. This can be specified using the -readOptions cache
-parameter (this is recommended!).
+Split-file input is supported via the `-split_file_input` flag: in this mode
+each SWATH window (and optionally the MS1 map) may be provided as a separate
+mzML file (n+1 files). This is useful for very large datasets or when the
+instrument exports individual window files.
+
+Since files can be large, it is recommended to avoid loading whole datasets
+into memory; use the `-readOptions` (for example `cacheWorkingInMemory`) to
+cache or reduce data in advance.
+
+<h4>Bruker .d (diaPASEF, requires WITH_OPENTIMS)</h4>
+Bruker TimsTOF .d directories containing DIA-PASEF data can be passed directly
+without prior mzML conversion when OpenMS is built with the WITH_OPENTIMS option.
+The tool automatically discovers SWATH windows from the TDF metadata and
+partitions spectra accordingly. Ion mobility lower/upper limits are attached as
+spectrum meta values so that PASEF windows sharing the same m/z range but
+differing in ion mobility are correctly distinguished.
+
+<h4>PRM</h4>
+PRM (parallel reaction monitoring) is a targeted MS2 acquisition mode. PRM
+data typically contains MS2 traces targeted to specific precursors and may
+have windows that overlap or differ in ordering from classic SWATH runs.
+When analyzing PRM-like data consider using the `-matching_window_only` option
+to restrict extraction to the best-matching window for each assay. PRM
+datasets can be provided as single-file mzMLs or as split files as described
+above.
+
+<h4>SRM / MRM (targeted chromatogram input)</h4>
+SRM/MRM are supported as targeted chromatogram input. These inputs often consist of chromatogram-only mzMLfiles (exported XICs) rather than full spectra. The targeted data loader in OpenMS will read chromatogram-only mzMLs and attempt to map chromatograms to assays using the supplied transition list. When providing pre-extracted chromatograms, note that MS1 extraction (`-enable_ms1`) does not apply — the tool will operate on the supplied chromatograms and use the mapping logic to associate traces with transitions.
+
 
 The assay library (transition list) is provided through the @p -tr parameter and can be in one of the following formats:
 
   <ul>
-    <li> @ref OpenMS::TraMLFile "TraML" </li>
+    <li> @ref OpenMS::TransitionPQPFile "OpenSWATH PQP SQLite files" (Recommended) </li>
     <li> @ref OpenMS::TransitionTSVFile "OpenSWATH TSV transition lists" </li>
-    <li> @ref OpenMS::TransitionPQPFile "OpenSWATH PQP SQLite files" </li>
+    <li> @ref OpenMS::TransitionParquetFile "OpenSWATH Parquet library (.oswpq)" </li>
+    <li> @ref OpenMS::TraMLFile "TraML" </li>
     <li> SpectraST MRM transition lists </li>
     <li> Skyline transition lists </li>
     <li> Spectronaut transition lists </li>
@@ -141,234 +176,27 @@ can adjust the smoothing parameters for the peak picking, by adjusting
 Gaussian smoothing based on your estimated peak width. Adjusting the signal
 to noise threshold will make the peaks wider or smaller.
 
-<h3>Output: Feature list and chromatograms </h3>
-The output of the OpenSwathWorkflow is a feature list, either as FeatureXML
-or as tsv (use @p -out_features or @p -out_tsv) while the latter is more memory
-friendly and can be directly used as input to other tools such as mProphet or
-pyProphet. If you analyze large datasets, it is recommended to only use @p
--out_tsv and not @p -out_features. For downstream analysis (e.g. using mProphet
- or pyProphet) also the @p -out_tsv format is recommended.
-
-The feature list generated by @p -out_tsv is a tab-separated file. It can be
-used directly as input to the mProphet or pyProphet (a Python
+<h3>Output: Feature list, chromatograms, and ion mobilograms </h3>
+The output of the OpenSwathWorkflow is a feature list, either as FeatureXML,
+a @ref OpenMS::OSWFile "OpenSWATH SQLite file", or an OpenSWATH Parquet output
+(use @p -out_features) while the SQLite output is more memory
+friendly and can be directly used as input to other tools such as pyProphet (a Python
 re-implementation of mProphet) software tool, see Reiter et al (2011, Nature
 Methods).
+If you analyze large datasets, it is recommended to only use the @ref OpenMS::OSWFile "OSWFile format".
+For downstream analysis (e.g. using pyProphet) the @ref OpenMS::OSWFile "OSWFile format" is recommended.
 
 In addition, the extracted chromatograms can be written out using the
 @p -out_chrom parameter.
 
+When processing ion mobility (diaPASEF) data, the extracted ion mobilograms
+(XIMs) can optionally be saved to a Parquet file using the @p -out_mobilogram
+parameter. The output file must have the @p .xim extension. The resulting file can be
+read back using the @ref OpenMS::XIMParquetFile "XIMParquetFile" class.
+
 <h4> Feature list output format </h4>
 
-The tab-separated feature output contains the following information:
-
-<CENTER>
-  <table>
-    <tr>
-      <td ALIGN = "left" BGCOLOR="#EBEBEB"> Header row </td>
-      <td ALIGN = "left" BGCOLOR="#EBEBEB"> Format </td>
-      <td ALIGN = "left" BGCOLOR="#EBEBEB"> Description </td>
-    </tr>
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> transition_group_id </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> A unique id for the transition group (all chromatographic traces that are analyzed together)</td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> peptide_group_label </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> A unique id for the peptide group (will be the same for each charge state and heavy/light status) </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> run_id </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> An identifier for the run (currently always 0)</td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> filename </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The input filename </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> RT </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Peak group retention time </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> id </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> A unique identifier for the peak group</td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Sequence </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Peptide sequence (no modifications) </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> MC </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Int </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Missed cleavages of the sequence (assuming Trypsin as protease) </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> FullPeptideName </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Full peptide sequence including modifications in Unimod format</td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Charge </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Int </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Assumed charge state</td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> m/z </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Precursor m/z</td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> masserror_ppm </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float List </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Pairs of fragment masses (m/z) and their associated error in ppm for all transitions</td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Intensity </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Peak group intensity (sum of all transitions)</td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> ProteinName </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Name of the associated protein</td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> decoy </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Whether the transition is decoy or not (0 = false, 1 = true) </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> assay_rt </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The expected RT in seconds (based on normalized iRT value) </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> delta_rt </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The difference between the expected RT and the peak group RT in seconds </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> leftWidth </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The start of the peak group (left side) in seconds </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> main_var_xx_swath_prelim_score </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Initial score </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> norm_RT </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The peak group retention time in normalized (iRT) space </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> nr_peaks </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Int </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The number of transitions used </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> peak_apices_sum </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The sum of all peak apices (may be used as alternative intensity) </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> potentialOutlier </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Potential outlier transitions (or "none" if none was detected)</td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> rightWidth </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The end of the peak group (left side) in seconds </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> rt_score </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The raw RT score (unnormalized) </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> sn_ratio </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The raw S/N ratio </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> total_xic </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The total XIC of the chromatogram </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> var_... </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> One of multiple sub-scores used by OpenSWATH to describe the peak group </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> aggr_prec_Peak_Area </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Intensity (peak area) of MS1 traces separated by semicolon </td>
-    </tr>
-
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> aggr_prec_Peak_Apex </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Intensity (peak apex) of MS1 traces separated by semicolon </td>
-    </tr>
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> aggr_prec_Fragment_Annotation </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Annotation of MS1 traces separated by semicolon </td>
-    </tr>
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> aggr_Peak_Area </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Intensity (peak area) of fragment ion traces separated by semicolon </td>
-    </tr>
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> aggr_Peak_Apex </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Intensity (peak apex) of fragment ion traces separated by semicolon </td>
-    </tr>
-    <tr>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> aggr_Fragment_Annotation </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Annotation of fragment ion traces separated by semicolon </td>
-    </tr>
-  </table>
-</CENTER>
+For more information on the feature tables in the @ref OpenMS::OSWFile "OpenSWATH SQLite file output", see @ref OpenMS::OpenSwathOSWWriter "the OpenSwathOSWWriter class".
 
 <h3>Execution flow:</h3>
 
@@ -389,7 +217,21 @@ class TOPPOpenSwathWorkflow
 public:
 
   TOPPOpenSwathWorkflow()
-    : TOPPOpenSwathBase("OpenSwathWorkflow", "Complete workflow to run OpenSWATH", true)
+    : TOPPOpenSwathBase("OpenSwathWorkflow", "Complete workflow to run OpenSWATH", true,
+                        {
+                          {"Roest, H.L. et al.",
+                           "OpenSWATH enables automated, targeted analysis of data-independent acquisition MS data",
+                           "Nature Biotechnology volume 32, pages 219–223 (2014)",
+                           "https://doi.org/10.1038/nbt.2841"},
+                          {"Rosenberger, G. et al.",
+                           "Inference and quantification of peptidoforms in large sample cohorts by SWATH-MS",
+                           "Nature Biotechnology volume 35, pages 781–788 (2017)",
+                           "https://doi.org/10.1038/nbt.3908"},
+                          {"Meier, F. et al.",
+                           "diaPASEF: parallel accumulation–serial fragmentation combined with data-independent acquisition",
+                           "Nature Methods volume 17, pages 1229–1236 (2020)",
+                           "https://doi.org/10.1038/s41592-020-00998-0"}
+                        })
   {
   }
 
@@ -398,17 +240,21 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,sqMass"));
+    StringList in_formats = {"mzML", "mzXML", "sqMass"};
+#ifdef WITH_OPENTIMS
+    in_formats.push_back("d");
+#endif
+#ifdef WITH_THERMO_RAW
+    in_formats.push_back("raw");
+#endif
+    setValidFormats_("in", in_formats);
 
-    registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','pqp')");
-    setValidFormats_("tr", ListUtils::create<String>("traML,tsv,pqp"));
+    registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','pqp','oswpq')");
+    StringList tr_formats = {"traML", "tsv", "pqp"};
+    tr_formats.push_back("oswpq");
+    setValidFormats_("tr", tr_formats);
     registerStringOption_("tr_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-    setValidStrings_("tr_type", ListUtils::create<String>("traML,tsv,pqp"));
-
-    // iRT calibration
-    registerStringOption_("auto_irt", "<true|false>", "true",
-                          "Whether to sample iRTs on‐the‐fly (true) from the input targeted transition file (instead of passing specific iRT files). This may be useful if standard iRTs (Biognosys iRT kit) were not spiked-in. If set to false, and no additional iRT files are provided via `-tr_irt` / `-tr_irt_nonlinear`, and no transformation is provided via `-rt_norm`, then no calibration is performed.", false, true);
-    setValidStrings_("auto_irt", ListUtils::create<String>("true,false"));
+    setValidStrings_("tr_type", tr_formats);
 
     registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab-separated file containing the SWATH windows for extraction: lower_offset upper_offset. Note that the first line is a header and will be skipped.", false);
     registerFlag_("sort_swath_maps", "Sort input SWATH files when matching to SWATH windows from swath_windows_file", true);
@@ -419,14 +265,19 @@ protected:
     registerStringOption_("enable_ipf", "<true|false>", "true", "Enable additional scoring of identification assays using IPF (see online documentation)", false, true);
     setValidStrings_("enable_ipf", ListUtils::create<String>("true,false"));
 
-    registerOutputFile_("out_features", "<file>", "", "feature output file, either .osw (PyProphet-compatible SQLite file) or .featureXML", false);
-    setValidFormats_("out_features", ListUtils::create<String>("osw,featureXML"));
+    registerOutputFile_("out_features", "<file>", "", "feature output file, either .osw (PyProphet-compatible SQLite file), .oswpq, or .featureXML", false);
+    std::vector<String> out_feature_formats = {"osw", "featureXML"};
+    out_feature_formats.push_back("oswpq");
+    setValidFormats_("out_features", out_feature_formats);
 
     registerStringOption_("out_features_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-    setValidStrings_("out_features_type", {"osw","featureXML"});
+    setValidStrings_("out_features_type", out_feature_formats);
 
-    registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML) or sqMass (SQLite format)", false, true);
-    setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass"));
+    registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML), sqMass (SQLite format) or xic (Parquet)", false, true);
+    setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass,xic"));
+
+    registerOutputFile_("out_mobilogram", "<file>", "", "Also output extracted ion mobilograms in Parquet format", false, true);
+    setValidFormats_("out_mobilogram", ListUtils::create<String>("xim"));
 
     // additional QC data
     registerOutputFile_("out_qc", "<file>", "", "Optional QC meta data (charge distribution in MS1). Only works with mzML input files.", false, true);
@@ -437,11 +288,10 @@ protected:
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the upper edge of a Swath window to still consider a precursor, in Thomson", false, true);
     registerFlag_("pasef", "data is PASEF data");
 
-    // RT, mz and IM windows
     registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
     registerDoubleOption_("extra_rt_extraction_window", "<double>", 0.0, "Output an XIC with a RT-window by this much larger (e.g. to visually inspect a larger area of the chromatogram)", false, true);
     setMinFloat_("extra_rt_extraction_window", 0.0);
-    registerDoubleOption_("ion_mobility_window", "<double>", -1, "Extraction window in ion mobility dimension (in 1/k0 or milliseconds depending on library). This is the full window size, e.g. a value of 10 milliseconds would extract 5 milliseconds on either side. -1 means extract over the whole range or ion mobility is not present. (Default for diaPASEF data: 0.06 1/k0)", false);
+    registerDoubleOption_("ion_mobility_window", "<double>", -1, "Extraction window in ion mobility dimension (in 1/K0, milliseconds, or CCS depending on library). This is the full window size, e.g. a value of 10 milliseconds would extract 5 milliseconds on either side. -1 means extract over the whole range or ion mobility is not present. (Default for diaPASEF data: 0.06 1/K0, or ~10 CCS)", false);
     registerDoubleOption_("mz_extraction_window", "<double>", 50, "Extraction window in Thomson or ppm (see mz_extraction_window_unit)", false);
     setMinFloat_("mz_extraction_window", 0.0);
     registerStringOption_("mz_extraction_window_unit", "<name>", "ppm", "Unit for mz extraction", false, true);
@@ -452,7 +302,7 @@ protected:
     setMinFloat_("mz_extraction_window_ms1", 0.0);
     registerStringOption_("mz_extraction_window_ms1_unit", "<name>", "ppm", "Unit of the MS1 m/z extraction window", false, true);
     setValidStrings_("mz_extraction_window_ms1_unit", ListUtils::create<String>("ppm,Th"));
-    registerDoubleOption_("im_extraction_window_ms1", "<double>", -1, "Extraction window in ion mobility dimension for MS1 (in 1/k0 or milliseconds depending on library). -1 means this is not ion mobility data.", false);
+    registerDoubleOption_("im_extraction_window_ms1", "<double>", -1, "Extraction window in ion mobility dimension for MS1 (in 1/K0, milliseconds, or CCS depending on library). -1 means this is not ion mobility data.", false);
 
     registerStringOption_("use_ms1_ion_mobility", "<name>", "true", "Also perform precursor extraction using the same ion mobility window as for fragment ion extraction", false, true);
     setValidStrings_("use_ms1_ion_mobility", ListUtils::create<String>("true,false"));
@@ -466,29 +316,44 @@ protected:
     registerStringOption_("irt_mz_extraction_window_unit", "<name>", "ppm", "Unit for mz extraction", false, true);
     setValidStrings_("irt_mz_extraction_window_unit", ListUtils::create<String>("Th,ppm"));
     registerDoubleOption_("irt_im_extraction_window", "<double>", -1, "Ion mobility extraction window used for iRT (in 1/K0 or milliseconds depending on library). -1 means do not perform ion mobility calibration", false, true);
-    registerDoubleOption_("irt_nonlinear_rt_extraction_window", "<double>", 600.0, "Only extract RT around this value for non linear iRT calibration (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false, true);
-    setMinFloat_("irt_nonlinear_rt_extraction_window", -1.0); // means extract over the whole range
-
-    registerDoubleOption_("min_rsq", "<double>", 0.95, "Minimum r-squared of RT peptides regression", false, true);
-    registerDoubleOption_("min_coverage", "<double>", 0.6, "Minimum relative amount of RT peptides to keep", false, true);
 
     registerFlag_("split_file_input", "The input files each contain one single SWATH (alternatively: all SWATH are in separate files)", true);
     registerFlag_("use_elution_model_score", "Turn on elution model score (EMG fit to peak)", true);
 
+    registerFlag_("append_oswpq", "If out_features is an oswpq archive, optionally append to the existing .oswpq archive instead of overwriting. This may be useful if you run separate instances of OpenSwathWorkflow for separate input files. (default: overwrite)", true);
+
     registerStringOption_("readOptions", "<name>", "normal", "Whether to run OpenSWATH directly on the input data, cache data to disk first or to perform a datareduction step first. If you choose cache, make sure to also set tempDirectory", false, true);
     setValidStrings_("readOptions", ListUtils::create<String>("normal,cache,cacheWorkingInMemory,workingInMemory"));
 
-    registerStringOption_("mz_correction_function", "<name>", "none", "Use the retention time normalization peptide MS2 masses to perform a mass correction (linear, weighted by intensity linear or quadratic) of all spectra.", false, true);
-    setValidStrings_("mz_correction_function", ListUtils::create<String>("none,regression_delta_ppm,unweighted_regression,weighted_regression,quadratic_regression,weighted_quadratic_regression,weighted_quadratic_regression_delta_ppm,quadratic_regression_delta_ppm"));
-
     registerStringOption_("tempDirectory", "<tmp>", File::getTempDirectory(), "Temporary directory to store cached files for example", false, true);
+    registerFlag_("keep_cached_files", "If set, do not remove cached files created in tempDirectory (disable automated cleanup)", false);
 
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
     setValidStrings_("extraction_function", ListUtils::create<String>("tophat,bartlett"));
 
-    registerIntOption_("batchSize", "<number>", 1000, "The batch size of chromatograms to process (0 means to only have one batch, sensible values are around 250-1000)", false, true);
+    registerIntOption_("batchSize", "<number>", 0,
+                       "Compound batch size for the legacy per-SWATH extraction/scoring path. "
+                       "0 enables automatic scheduling: with in-memory reads (cacheWorkingInMemory or workingInMemory) "
+                       "this uses the SWATH wave scheduler; otherwise it uses automatic "
+                       "inner batches in the legacy path. Set a positive value to force the legacy batch scheduler "
+                       "(typical legacy values are 250-1000).",
+                       false, true);
     setMinInt_("batchSize", 0);
-    registerIntOption_("outer_loop_threads", "<number>", -1, "How many threads should be used for the outer loop (-1 use all threads, use 4 to analyze 4 SWATH windows in memory at once).", false, true);
+    registerIntOption_("innerBatchSize", "<number>", -1,
+                       "Inner scoring batch size for automatic/wave scheduling (<=0 enables automatic sizing based on input and memory).",
+                       false, true);
+    setMinInt_("innerBatchSize", -1);
+    registerIntOption_("maxConcurrentSwaths", "<number>", -1,
+                       "Maximum concurrent non-MS1 SWATH maps to keep in memory for automatic/wave scheduling "
+                       "(-1 auto compute based on free memory and transition density).",
+                       false, true);
+    setMinInt_("maxConcurrentSwaths", -1);
+    registerIntOption_("outer_loop_threads", "<number>", -1,
+                       "Legacy nested OpenMP outer-loop thread count. This is only relevant for the old per-SWATH "
+                       "parallel path and only when OpenMS was built with nested OpenMP support. Leave -1 to allow "
+                       "automatic scheduling; with batchSize 0 and in-memory reads this permits the SWATH wave scheduler. "
+                       "Setting this >=0 requests legacy outer-loop parallelism and disables the wave scheduler in nested OpenMP builds.",
+                       false, true);
 
     registerIntOption_("ms1_isotopes", "<number>", 3, "The number of MS1 isotopes used for extraction", false, true);
     setMinInt_("ms1_isotopes", 0);
@@ -499,12 +364,22 @@ protected:
     registerSubsection_("Calibration", "Parameters for calibrant iRT peptides for RT normalization and mass / ion mobility correction.");
     registerSubsection_("Calibration:RTNormalization", "Parameters for the RTNormalization for iRT peptides. This specifies how the RT alignment is performed and how outlier detection is applied. Outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
     registerSubsection_("Calibration:MassIMCorrection", "Parameters for the m/z and ion mobility calibration.");
+  registerSubsection_("MRMMapping", "Parameters for mapping chromatograms to transitions (SRM/MRM data).");
 
     registerTOPPSubsection_("Debugging", "Debugging");
     registerOutputFile_("Debugging:irt_mzml", "<file>", "", "Chromatogram mzML containing the iRT peptides", false);
     setValidFormats_("Debugging:irt_mzml", ListUtils::create<String>("mzML"));
     registerOutputFile_("Debugging:irt_trafo", "<file>", "", "Transformation file for RT transform", false);
     setValidFormats_("Debugging:irt_trafo", ListUtils::create<String>("trafoXML"));
+    registerStringList_("Debugging:disable_features", "<list>", StringList(),
+      "Selectively disable features for debugging/benchmarking. "
+      "Valid values: "
+      "'no_IM_calibration' (skip ion mobility calibration by iRT peptides), "
+      "'no_IM_windowing' (extract chromatograms over the full IM range and disable PASEF window matching; "
+      "does not affect IM calibration -- use no_IM_calibration for that). "
+      "Note: IM scoring is controlled separately via -Scoring:Scores:use_ion_mobility_scores (auto/true/false).", false, true);
+    setValidStrings_("Debugging:disable_features",
+      ListUtils::create<String>("no_IM_calibration,no_IM_windowing"));
   }
 
   Param getSubsectionDefaults_(const String& name) const override
@@ -546,6 +421,14 @@ protected:
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerChromatogram:sn_bin_count");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerChromatogram:stop_after_feature");
 
+      // IM scoring: use "auto" so OpenSwathWorkflow can auto-enable for PASEF
+      // while still respecting explicit "true"/"false" from the user.
+      // Resolved to "true"/"false" before passing to MRMFeatureFinderScoring.
+      feature_finder_param.setValue("Scores:use_ion_mobility_scores", "auto",
+        "Use ion mobility scores. 'auto' enables for PASEF data and disables otherwise; "
+        "'true'/'false' override auto-detection.");
+      feature_finder_param.setValidStrings("Scores:use_ion_mobility_scores", {"true", "false", "auto"});
+
       // EMG Scoring - turn off by default since it is very CPU-intensive
       feature_finder_param.remove("Scores:use_elution_model_score");
       feature_finder_param.setValue("EMGScoring:max_iteration", 10);
@@ -564,28 +447,14 @@ protected:
     }
     else if (name == "Calibration")
     {
-      Param p;
-
-      p.setValue("irt_bins", 100, "Number of RT bins for sampling. (When `auto_irt` is set to 'true')");
-      p.setMinInt("irt_bins", 5);
-      p.setValue("irt_peptides_per_bin",  5, "Peptides sampled per bin. (When `auto_irt` is set to 'true')");
-      p.setMinInt("irt_peptides_per_bin", 1);
-      p.setValue("irt_seed",  5489, "RNG seed (0 = non‐deterministic). (When `auto_irt` is set to 'true')");
-      p.setMinInt("irt_seed", 0);
-
-      p.setValue("irt_bins_nonlinear",  2000, "Number of RT bins for sampling. (When `auto_irt` is set to 'true')");
-      p.setMinInt("irt_bins_nonlinear", 5);
-      p.setValue("irt_peptides_per_bin_nonlinear",  50, "Peptides sampled per bin for additional nonlinear calibration. If 0, nonlinear calibration will not be performed. (When `auto_irt` is set to 'true')");
-      p.setMinInt("irt_peptides_per_bin_nonlinear", 0);
-
-      // one of the following two needs to be set
-      p.setValue("tr_irt", "", "transition file ('TraML') for linear iRTs. Takes precedent even when `auto_rt` is set to 'true'");
-
-      // one of the following two needs to be set
-      p.setValue("tr_irt_nonlinear", "", "additional nonlinear transition file ('TraML'). Takes precedent even when `auto_rt` is set to 'true'");
-
+      // Use CalibrationWorkflow's defaults and add OpenSwathWorkflow-specific parameters
+      CalibrationWorkflow cal_wf;
+      Param p = cal_wf.getDefaults();
+      
+      // Add OpenSwathWorkflow-specific parameters that aren't in CalibrationWorkflow
+      p.setValue("tr_irt_priority_sampling", "", "Optional custom transition file (TSV format only) containing additional priority peptides for iRT sampling. These peptides will be prioritized alongside the built-in irtkit and cirtkit peptides when `auto_irt` is enabled. Useful for including project-specific or custom iRT peptides.");
       p.setValue("rt_norm", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.");
-
+      
       return p;
     }
     else if (name == "Calibration:RTNormalization")
@@ -594,14 +463,18 @@ protected:
 
       p.setValue("alignmentMethod", "linear", "How to perform the alignment to the normalized RT space using anchor points. 'linear': perform linear regression (for few anchor points). 'interpolated': Interpolate between anchor points (for few, noise-free anchor points). 'lowess' Use local regression (for many, noisy anchor points). 'b_spline' use b splines for smoothing.");
       p.setValidStrings("alignmentMethod", {"linear","interpolated","lowess","b_spline"});
+      p.setValue("lowess:auto_span", "true", "If true, or if 'span' is 0, automatically select LOWESS span by cross-validation.");
+      p.setValidStrings("lowess:auto_span", {"true","false"});
       p.setValue("lowess:span", 0.05, "Span parameter for lowess");
       p.setMinFloat("lowess:span", 0.0);
       p.setMaxFloat("lowess:span", 1.0);
+      p.setValue("lowess:auto_span_min", 0.15,"Lower bound for auto-selected span.");
+      p.setMinFloat("lowess:auto_span_min", 0.001);
+      p.setValue("lowess:auto_span_max", 0.80,"Upper bound for auto-selected span.");
+      p.setMaxFloat("lowess:auto_span_max", 0.99);
+      p.setValue("lowess:auto_span_grid", "0.005,0.01,0.05,0.15,0.25,0.30,0.50,0.70,0.90", "Optional explicit grid of span candidates in (0,1]. Comma-separated list, e.g. '0.2,0.3,0.5'.  If empty, a default grid is used.");
       p.setValue("b_spline:num_nodes", 5, "Number of nodes for b spline");
       p.setMinInt("b_spline:num_nodes", 0);
-
-      p.setValue("outlierMethod", "iter_residual", "Which outlier detection method to use (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none'). Iterative methods remove one outlier at a time. Jackknife approach optimizes for maximum r-squared improvement while 'iter_residual' removes the datapoint with the largest residual error (removal by residual is computationally cheaper, use this with lots of peptides).");
-      p.setValidStrings("outlierMethod", {"iter_residual","iter_jackknife","ransac","none"});
 
       p.setValue("useIterativeChauvenet", "false", "Whether to use Chauvenet's criterion when using iterative methods. This should be used if the algorithm removes too many datapoints but it may lead to true outliers being retained.");
       p.setValidStrings("useIterativeChauvenet", {"true","false"});
@@ -620,6 +493,24 @@ protected:
       p.setValue("MinBinsFilled", 8, "Minimal number of bins required to be covered");
       return p;
     }
+    else if (name == "MRMMapping")
+    {
+      Param p;
+
+      p.setValue("precursor_tolerance", 0.9, "Precursor tolerance when mapping (in Th)");
+      p.setValue("product_tolerance", 1.2, "Product tolerance when mapping (in Th)");
+
+      p.setValue("irt_precursor_tolerance", 1.5, "Precursor tolerance when mapping iRT transitions (in Th)");
+      p.setValue("irt_product_tolerance", 1.5, "Product tolerance when mapping iRT transitions (in Th)");
+      
+      p.setValue("map_multiple_assays", "false", "Allow to map multiple assays to chromatograms and duplicate these chromatograms in the output.");
+      p.setValidStrings("map_multiple_assays", {"true","false"});
+      
+      p.setValue("error_on_unmapped", "false", "Treat remaining, unmapped chromatograms as an error");
+      p.setValidStrings("error_on_unmapped", {"true","false"});
+
+      return p;
+    }
     else if (name == "Calibration:MassIMCorrection")
     {
       Param p = SwathMapMassCorrection().getDefaults();
@@ -631,8 +522,67 @@ protected:
     }
   }
 
+  /**
+    @brief Load priority peptide sequences from TSV files (irtkit and cirtkit)
+    
+    Loads peptide sequences from the specified TSV files and returns them as a
+    set for quick lookup. Used to prioritize common iRT peptides during sampling.
+    
+    @param[in] tsv_files Vector of file paths to TSV files to load
+    @param[in] tsv_reader_param Parameters for the TSV reader
+    
+    @return Set of unique peptide sequences from the loaded files
+  */
+  std::unordered_set<std::string> loadPriorityPeptideSequences(
+    const std::vector<String>& tsv_files,
+    const Param& tsv_reader_param)
+  {
+    std::unordered_set<std::string> priority_sequences;
+    
+    for (const auto& tsv_file : tsv_files)
+    {
+      if (tsv_file.empty() || !File::exists(tsv_file))
+      {
+        OPENMS_LOG_WARN << "Priority peptide file not found: " << tsv_file << std::endl;
+        continue;
+      }
+      
+      try
+      {
+        FileTypes::Type file_type = FileHandler::getType(tsv_file);
+        OpenSwath::LightTargetedExperiment priority_exp = loadTransitionList(file_type, tsv_file, tsv_reader_param);
+        
+        for (const auto& compound : priority_exp.getCompounds())
+        {
+          if (!compound.sequence.empty())
+          {
+            priority_sequences.insert(compound.sequence);
+          }
+        }
+        
+        OPENMS_LOG_INFO << "Loaded " << priority_exp.getCompounds().size() 
+                        << " compounds from priority file: " << tsv_file << std::endl;
+      }
+      catch (const Exception::BaseException& e)
+      {
+        OPENMS_LOG_WARN << "Failed to load priority peptide file " << tsv_file 
+                        << ": " << e.what() << std::endl;
+      }
+    }
+    
+    OPENMS_LOG_INFO << "Total unique priority peptide sequences: " 
+                    << priority_sequences.size() << std::endl;
+    
+    return priority_sequences;
+  }
+
   ExitCodes main_(int, const char **) override
   {
+    // Suppress repeated resampling-spacing warnings only for the lifetime of
+    // this tool invocation so the global setting does not leak across reuse in
+    // a shared process.
+    Internal::ScopedResamplingWarningSuppression scoped_resampling_warning_suppression;
+    
     ///////////////////////////////////
     // Prepare Parameters
     ///////////////////////////////////
@@ -667,24 +617,39 @@ protected:
       writeLogError_("Error: Could not determine input file type for '-out_features' !");
       return PARSE_ERROR;
     }
-
     String out_qc = getStringOption_("out_qc");
 
-    bool auto_irt = (getStringOption_("auto_irt") == "true");
-
     Param irt_calibration_params = getParam_().copy("Calibration:", true);
-    UInt irt_seed  = irt_calibration_params.getValue("irt_seed");
-    UInt irt_bins_lin = irt_calibration_params.getValue("irt_bins");
-    UInt irt_pep_lin  = irt_calibration_params.getValue("irt_peptides_per_bin");
-    UInt irt_bins_nl  = irt_calibration_params.getValue("irt_bins_nonlinear");
-    UInt irt_pep_nl   = irt_calibration_params.getValue("irt_peptides_per_bin_nonlinear");
+    bool auto_irt = (irt_calibration_params.getValue("auto_irt:enabled").toString() == "true");
 
-    String irt_tr_file = irt_calibration_params.getValue("tr_irt").toString();
-    String nonlinear_irt_tr_file = irt_calibration_params.getValue("tr_irt_nonlinear").toString();
+    // Extract only the parameters needed for OpenSwathWorkflow-specific validation and logic
+    String irt_tr_file = irt_calibration_params.getValue("files:linear_irt_file").toString();
+    String priority_sampling_irt_tr_file = irt_calibration_params.getValue("tr_irt_priority_sampling").toString();
     String trafo_in = irt_calibration_params.getValue("rt_norm").toString();
+    
+    // Extract parameters needed for OpenSwathWorkflow validation logic
+    UInt irt_bins_lin = irt_calibration_params.getValue("auto_irt:irt_bins");
+    UInt irt_pep_lin  = irt_calibration_params.getValue("auto_irt:irt_peptides_per_bin");
+
+    // If a linear iRT file is explicitly provided, auto_irt must be disabled
+    // and any priority sampling iRT file should be ignored.
+    if (!irt_tr_file.empty())
+    {
+      if (auto_irt || !priority_sampling_irt_tr_file.empty())
+      {
+        OPENMS_LOG_WARN << "Calibration:files:linear_irt_file provided -> disabling auto_irt and ignoring tr_irt_priority_sampling." << std::endl;
+      }
+      auto_irt = false;
+      irt_calibration_params.setValue("auto_irt:enabled", "false");
+      // clear the priority sampling file so downstream logic won't attempt to use/validate it
+      priority_sampling_irt_tr_file.clear();
+      irt_calibration_params.setValue("tr_irt_priority_sampling", "");
+    }
+    
     String swath_windows_file = getStringOption_("swath_windows_file");
 
     String out_chrom = getStringOption_("out_chrom");
+    String out_mobilogram = getStringOption_("out_mobilogram");
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
     bool force = getFlag_("force");
@@ -695,19 +660,22 @@ protected:
     int batchSize = (int)getIntOption_("batchSize");
     int outer_loop_threads = (int)getIntOption_("outer_loop_threads");
     int ms1_isotopes = (int)getIntOption_("ms1_isotopes");
+    int innerBatchSize = (int)getIntOption_("innerBatchSize");
+    int maxConcurrentSwaths = (int)getIntOption_("maxConcurrentSwaths");
     Size debug_level = (Size)getIntOption_("debug");
-
-    double min_rsq = getDoubleOption_("min_rsq");
-    double min_coverage = getDoubleOption_("min_coverage");
 
     Param debug_params = getParam_().copy("Debugging:", true);
 
+    StringList disable_features = getStringList_("Debugging:disable_features");
+    bool disable_im_calibration = std::find(disable_features.begin(), disable_features.end(), "no_IM_calibration") != disable_features.end();
+    bool disable_im_windowing   = std::find(disable_features.begin(), disable_features.end(), "no_IM_windowing")   != disable_features.end();
+
     String readoptions = getStringOption_("readOptions");
-    String mz_correction_function = getStringOption_("mz_correction_function");
+    bool keep_cached_files = getFlag_("keep_cached_files");
 
     // make sure tmp is a directory with proper separator at the end (downstream methods simply do path + filename)
-    // (do not use QDir::separator(), since its platform specific (/ or \) while absolutePath() will always use '/')
-    String tmp_dir = String(QDir(getStringOption_("tempDirectory").c_str()).absolutePath()).ensureLastChar('/');
+    // File::absolutePath() always uses '/' separators
+    String tmp_dir = File::absolutePath(getStringOption_("tempDirectory")).ensureLastChar('/');
 
     ///////////////////////////////////
     // Parameter validation
@@ -754,6 +722,32 @@ protected:
         return PARSE_ERROR;
       }
     }
+    
+    // Validate priority iRT sampling file format if provided and if auto_irt is enabled
+    if (!priority_sampling_irt_tr_file.empty())
+    {
+      if (!auto_irt)
+      {
+        // auto_irt disabled (possibly due to explicit linear iRT file); ignore provided priority sampling file
+        OPENMS_LOG_WARN << "Priority iRT sampling file provided but auto_irt is disabled; ignoring: " << priority_sampling_irt_tr_file << std::endl;
+      }
+      else
+      {
+        if (!File::exists(priority_sampling_irt_tr_file))
+        {
+          writeLogError_("Parameter error: Priority iRT file does not exist: " + priority_sampling_irt_tr_file);
+          return PARSE_ERROR;
+        }
+        
+        FileTypes::Type priority_file_type = FileHandler::getType(priority_sampling_irt_tr_file);
+        if (priority_file_type != FileTypes::TSV)
+        {
+          writeLogError_("Parameter error: Priority iRT file must be in TSV format. Provided: " + 
+                         FileTypes::typeToName(priority_file_type));
+          return PARSE_ERROR;
+        }
+      }
+    }
 
     // Check swath window input
     if (!swath_windows_file.empty())
@@ -787,7 +781,12 @@ protected:
     cp_irt.mz_extraction_window = getDoubleOption_("irt_mz_extraction_window");
     cp_irt.im_extraction_window = getDoubleOption_("irt_im_extraction_window");
 
-    if ( (cp_irt.im_extraction_window == -1) & (cp.im_extraction_window != -1) )
+    if (disable_im_calibration)
+    {
+      cp_irt.im_extraction_window = -1;
+      OPENMS_LOG_INFO << "Debugging: no_IM_calibration active -- forcing irt_im_extraction_window = -1 (skipping IM calibration)." << std::endl;
+    }
+    else if ( (cp_irt.im_extraction_window == -1) && (cp.im_extraction_window != -1) )
     {
       OPENMS_LOG_WARN << "Warning: -irt_im_extraction_window is not set, this will lead to no ion mobility calibration" << std::endl;
     }
@@ -799,8 +798,16 @@ protected:
     cp_ms1.ppm                   = getStringOption_("mz_extraction_window_ms1_unit") == "ppm";
     cp_ms1.im_extraction_window  = (use_ms1_im) ? getDoubleOption_("im_extraction_window_ms1") : -1;
 
+    if (disable_im_windowing)
+    {
+      cp.im_extraction_window = -1;
+      cp_ms1.im_extraction_window = -1;
+      OPENMS_LOG_INFO << "Debugging: no_IM_windowing active -- forcing im_extraction_window = -1 for MS2 and MS1 (using full IM range)." << std::endl;
+    }
+
     Param feature_finder_param = getParam_().copy("Scoring:", true);
     feature_finder_param.setValue("use_ms1_ion_mobility", getStringOption_("use_ms1_ion_mobility"));
+
 
     Param tsv_reader_param = getParam_().copy("Library:", true);
     if (use_emg_score)
@@ -826,6 +833,20 @@ protected:
     {
       feature_finder_param.setValue("Scores:use_peak_shape_metrics", "true");
     }
+
+    // Extract MRMMapping-related options from the CLI subsection and pass them to the workflow
+    Param tmp_mrm_map_param = getParam_().copy("MRMMapping:", true);
+    Param irt_mrm_map_param = OpenMS::MRMMapping().getDefaults();
+    irt_mrm_map_param.setValue("precursor_tolerance", tmp_mrm_map_param.getValue("irt_precursor_tolerance"));
+    irt_mrm_map_param.setValue("product_tolerance", tmp_mrm_map_param.getValue("irt_product_tolerance"));
+    irt_mrm_map_param.setValue("map_multiple_assays", tmp_mrm_map_param.getValue("map_multiple_assays"));
+    irt_mrm_map_param.setValue("error_on_unmapped", tmp_mrm_map_param.getValue("error_on_unmapped"));
+
+    Param mrm_map_param = OpenMS::MRMMapping().getDefaults();
+    mrm_map_param.setValue("precursor_tolerance", tmp_mrm_map_param.getValue("precursor_tolerance"));
+    mrm_map_param.setValue("product_tolerance", tmp_mrm_map_param.getValue("product_tolerance"));
+    mrm_map_param.setValue("map_multiple_assays", tmp_mrm_map_param.getValue("map_multiple_assays"));
+    mrm_map_param.setValue("error_on_unmapped", tmp_mrm_map_param.getValue("error_on_unmapped"));
 
     ///////////////////////////////////
     // Load the transitions
@@ -883,6 +904,37 @@ protected:
           }
         }
       }
+      else if (tr_type == FileTypes::OSWPQ)
+      {
+        // Convert parquet library to .PQP for OSW output
+        TransitionPQPFile().convertLightTargetedExperimentToPQP(out_features.c_str(), transition_exp);
+
+        auto precursor_traml_to_pqp = TransitionPQPFile().getPQPIDToTraMLIDMap(out_features.c_str(), "PRECURSOR");
+        auto transition_traml_to_pqp = TransitionPQPFile().getPQPIDToTraMLIDMap(out_features.c_str(), "TRANSITION");
+
+        for (auto & prec : transition_exp.getCompounds())
+        {
+          if (auto id = precursor_traml_to_pqp.find(prec.id); id != precursor_traml_to_pqp.end())
+          {
+            prec.id = id->second;
+          }
+        }
+
+        for (auto & tr : transition_exp.getTransitions())
+        {
+          auto pep = precursor_traml_to_pqp.find(tr.getPeptideRef());
+          if (pep != precursor_traml_to_pqp.end())
+          {
+            tr.peptide_ref = pep->second;
+          }
+
+          auto id = transition_traml_to_pqp.find(tr.transition_name);
+          if (id != transition_traml_to_pqp.end())
+          {
+            tr.transition_name = id->second;
+          }
+        }
+      }
       else if (tr_type == FileTypes::TRAML)
       {
         if (out_features_type == FileTypes::OSW)
@@ -892,228 +944,502 @@ protected:
       }
     }
 
-    // If pasef flag is set, validate that IM is present
-    if (pasef)
+    // Load priority peptide sequences from irtkit and cirtkit if auto_irt is enabled
+    std::unordered_set<std::string> priority_peptides;
+    if (auto_irt)
     {
-      auto transitions = transition_exp.getTransitions();
-
-      for ( Size k=0; k < (Size)transitions.size(); k++ )
+      String data_path = File::getOpenMSDataPath();
+      std::vector<String> priority_files;
+      
+      String irtkit_path = data_path + "/CHEMISTRY/irtkit.tsv";
+      String cirtkit_path = data_path + "/CHEMISTRY/cirtkit.tsv";
+      
+      if (File::exists(irtkit_path))
       {
-        if (transitions[k].precursor_im == -1)
+        priority_files.push_back(irtkit_path);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "irtkit.tsv not found at: " << irtkit_path << std::endl;
+      }
+      
+      if (File::exists(cirtkit_path))
+      {
+        priority_files.push_back(cirtkit_path);
+      }
+
+      // Check if tr_irt_priority_sampling is enabled
+      if (!priority_sampling_irt_tr_file.empty())
+      {
+        priority_files.push_back(priority_sampling_irt_tr_file);
+      }
+      
+      if (!priority_files.empty())
+      {
+        Param priority_tsv_param = TransitionTSVFile().getDefaults();
+        priority_peptides = loadPriorityPeptideSequences(priority_files, priority_tsv_param);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "No priority peptide files found. Continuing without priority sampling." << std::endl;
+      }
+    }
+
+    OPENMS_LOG_INFO << std::endl;
+
+    ///////////////////////////////////
+    // Create run groups based on split_file_input flag
+    ///////////////////////////////////
+
+    std::vector<StringList> run_groups;
+    if (split_file)
+    {
+      // split_file_input mode: one run with all files grouped together (split-window)
+      run_groups.push_back(file_list);
+    }
+    else
+    {
+      // multi-run mode: N runs, each with single file
+      for (const String& file : file_list)
+      {
+        run_groups.push_back({file});
+      }
+    }
+
+    ///////////////////////////////////
+    // Iterate over each run group and process individually
+    ///////////////////////////////////
+
+    // Set up shared output objects that persist across files
+    FeatureMap out_featureFile;  // only featureXML output accumulates features across files
+    const bool write_osw = (out_features_type == FileTypes::OSW);
+    const bool write_parquet = (out_features_type == FileTypes::OSWPQ);
+    const bool write_featurexml = (out_features_type == FileTypes::FEATUREXML);
+    String osw_out_filename = write_osw ? out_features : "";
+    OpenSwathOSWWriter oswwriter(osw_out_filename, enable_uis_scoring);
+
+    String parquet_dir = out_features;
+    bool parquet_zip_output = false;
+    std::unique_ptr<File::TempDir> parquet_temp_dir;
+    OpenSwathOSWParquetWriter parquet_writer;
+    // Configure writer append behavior from CLI flag
+    parquet_writer.setPreserveExisting(getFlag_("append_oswpq"));
+    if (write_parquet)
+    {
+      parquet_zip_output = out_features.hasSuffix(".oswpq");
+      if (parquet_zip_output)
+      {
+        if (getFlag_("append_oswpq") && File::exists(out_features))
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Transition " + transitions[k].getNativeID() +  " does not have a valid IM value, this must be set to use the -pasef flag");
+          // Extract existing archive so prior run data is preserved when appending.
+          parquet_dir = ZipArchiveFile::unzipDirectory(out_features, parquet_temp_dir);
+        }
+        else
+        {
+          parquet_temp_dir = std::make_unique<File::TempDir>();
+          parquet_dir = parquet_temp_dir->getPath() + "/oswpq_output";
+          File::makeDir(parquet_dir);
         }
       }
     }
 
-    ///////////////////////////////////
-    // Load the SWATH files
-    ///////////////////////////////////
-    boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
-    std::vector< OpenSwath::SwathMap > swath_maps;
-
-    // collect some QC data
-    if (!out_qc.empty())
+    // Write DB schema once (only for first file)
+    if (write_osw)
     {
-      OpenSwath::SwathQC qc(30, 0.04);
-      MSDataTransformingConsumer qc_consumer; // apply some transformation
-      qc_consumer.setSpectraProcessingFunc(qc.getSpectraProcessingFunc());
-      qc_consumer.setExperimentalSettingsFunc(qc.getExpSettingsFunc());
-      if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions,
-                          swath_windows_file, min_upper_edge_dist, force,
-                          sort_swath_maps, prm, pasef, &qc_consumer))
+      oswwriter.writeHeader();
+    }
+
+    const bool user_pasef = pasef;
+
+    Size run_index = 0;
+    for (const StringList& current_run_files : run_groups)
+    {
+      OPENMS_LOG_INFO << "Processing Run " << (run_index + 1) << "/" << run_groups.size() << std::endl;
+      
+      // Create fresh copies of parameters for each run to avoid carry-over
+      pasef = user_pasef;
+      ChromExtractParams cp_current = cp;
+      ChromExtractParams cp_ms1_current = cp_ms1;
+      ChromExtractParams cp_irt_current = cp_irt;
+      Param feature_finder_param_run = feature_finder_param;
+      
+      ///////////////////////////////////
+      // Per-run temporary cache directory (created only when using cache readOptions)
+      // Use File::TempDir for RAII-based cleanup: destructor removes dir (unless keep_cached_files is true)
+      String per_run_tmp = tmp_dir;
+      std::unique_ptr<File::TempDir> per_run_temp_dir;
+      if (readoptions == "cache")
       {
-        return PARSE_ERROR;
+        per_run_temp_dir = std::make_unique<File::TempDir>(tmp_dir, keep_cached_files);
+        per_run_tmp = per_run_temp_dir->getPath();
       }
-      qc.storeJSON(out_qc);
-    }
-    else
-    {
-      if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions,
-                          swath_windows_file, min_upper_edge_dist, force,
-                          sort_swath_maps, prm, pasef))
+
+      // Load the SWATH files (if split data, otherwise load single experiment mzML)
+      ///////////////////////////////////
+      std::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
+      std::vector< OpenSwath::SwathMap > swath_maps;
+      std::vector<String> swath_map_sources;
+
+      StringList single_file_list = current_run_files;
+
+      // collect some QC data (only for the first run if multiple runs)
+      if (!out_qc.empty() && run_index == 0)
       {
-        return PARSE_ERROR;
+        OpenSwath::SwathQC qc(30, 0.04);
+        MSDataTransformingConsumer qc_consumer; // apply some transformation
+        qc_consumer.setSpectraProcessingFunc(qc.getSpectraProcessingFunc());
+        qc_consumer.setExperimentalSettingsFunc(qc.getExpSettingsFunc());
+        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, per_run_tmp, readoptions,
+                swath_windows_file, min_upper_edge_dist, force,
+                sort_swath_maps, prm, &qc_consumer))
+        {
+          OPENMS_LOG_ERROR << "Failed to load SWATH files for Run " << (run_index + 1)
+                           << ": " << ListUtils::concatenate(single_file_list, ", ") << std::endl
+                           << "  (split_file=" << (split_file ? "true" : "false") << ", tmp_dir='" << tmp_dir << "', readoptions='" << readoptions << "')"
+                           << std::endl
+                           << "  Please check that the input files exist, are valid mzML/sqMass files, and that read options are correct." << std::endl;
+          return PARSE_ERROR;
+        }
+        qc.storeJSON(out_qc);
       }
-    }
-
-
-    ///////////////////////////////////
-    // Get the transformation information (using iRT peptides)
-    ///////////////////////////////////
-    String irt_trafo_out = debug_params.getValue("irt_trafo").toString();
-    String irt_mzml_out = debug_params.getValue("irt_mzml").toString();
-    Param irt_detection_param = getParam_().copy("Calibration:RTNormalization:", true);
-    Param calibration_param = getParam_().copy("Calibration:MassIMCorrection", true);
-    calibration_param.setValue("mz_extraction_window", cp_irt.mz_extraction_window);
-    calibration_param.setValue("mz_extraction_window_ppm", cp_irt.ppm ? "true" : "false");
-    calibration_param.setValue("im_extraction_window", cp_irt.im_extraction_window);
-    calibration_param.setValue("mz_correction_function", mz_correction_function);
-
-    // 1) Prepare in‐memory iRT experiments for linear + nonlinear
-    OpenSwath::LightTargetedExperiment lin_irt_exp;
-    if (!irt_tr_file.empty())
-    {
-      // user‐supplied linear iRT file takes absolute precedence
-      FileTypes::Type irt_tr_type = FileHandler::getType(irt_tr_file);
-      Param irt_tsv_reader_param = TransitionTSVFile().getDefaults();
-      lin_irt_exp = loadTransitionList(irt_tr_type, irt_tr_file, irt_tsv_reader_param);
-    }
-    else if (auto_irt)
-    {
-      OPENMS_LOG_INFO << "Linear iRT Calibration: Sampling input transition experiment for " << irt_bins_lin << " bins across the RT with " << irt_pep_lin << " peptides per bin" << std::endl;
-      // sampled transtion_exp on‐the‐fly
-      // Note1: We sort the targetedExperiment peptides by the aggregated total intensity (i.e. sum of fragment library intensities per peptide),
-      //         in order to reduce the sampling space to the top N fraction of highly intense peptides
-      // Note2: For linear iRTs we set top fraction to 40%, that is, we reduce the space of peptides to sample for 40% of the highest intense peptides.
-      //          The reason for restricting the space a lot more for linear iRTs is to ensure that we sample the most intense peptides which
-      //          are going to be more likely detected.
-      lin_irt_exp = OpenSwathHelper::sampleExperiment(
-        transition_exp,
-        irt_bins_lin,
-        irt_pep_lin,
-        irt_seed,
-        true,
-        0.4
-      );
-    }
-
-    OpenSwath::LightTargetedExperiment nl_irt_exp;
-    if (!nonlinear_irt_tr_file.empty())
-    {
-      // user‐supplied nonlinear iRT file
-      FileTypes::Type irt_nl_tr_type = FileHandler::getType(nonlinear_irt_tr_file);
-      Param irt_nl_tsv_reader_param = TransitionTSVFile().getDefaults();
-      nl_irt_exp = loadTransitionList(irt_nl_tr_type, nonlinear_irt_tr_file, irt_nl_tsv_reader_param);
-    }
-    else if (auto_irt && irt_pep_nl > 0)
-    {
-      OPENMS_LOG_INFO << "NonLinear iRT Calibration: Sampling input transition experiment for " << irt_bins_nl << " bins across the RT with " << irt_pep_nl << " peptides per bin" << std::endl;
-      // sampled transtion_exp on‐the‐fly for nonlinear (only if >0)
-      // Note1: We sort the targetedExperiment peptides by the aggregated total intensity (i.e. sum of fragment library intensities per peptide),
-      //         in order to reduce the sampling space to the top N fraction of highly intense peptides
-      // Note2: For the additional nonlinear iRTs we set top fraction to 80%, that is, we reduce the space of peptides to sample for 80% of the highest intense peptides.
-      //          The reason for being less restrictive of the sampling space for nonlinear iRTs, is because we can be more liberal with the quality of the
-      //          nonlinear iRTs.
-      nl_irt_exp = OpenSwathHelper::sampleExperiment(
-        transition_exp,
-        irt_bins_nl,
-        irt_pep_nl,
-        irt_seed,
-        true,
-        0.7
-      );
-    }
-
-    // 2) Launch either just linear or linear+nonlinear
-    TransformationDescription trafo_rtnorm;
-    if (nl_irt_exp.getTransitions().empty())
-    {
-      // --- single, linear calibration ---
-      trafo_rtnorm = performCalibration(
-        trafo_in,
-        lin_irt_exp,
-        swath_maps,
-        min_rsq,
-        min_coverage,
-        feature_finder_param,
-        cp_irt,
-        irt_detection_param,
-        calibration_param,
-        debug_level,
-        pasef,
-        load_into_memory,
-        irt_trafo_out,
-        irt_mzml_out);
-    }
-    else
-    {
-      // --- 1) linear pass ---
-      Param lin_param = irt_detection_param;
-      lin_param.setValue("alignmentMethod", "linear");
-      Param no_cal   = calibration_param;
-      no_cal.setValue("mz_correction_function", "none");
-
-      trafo_rtnorm = performCalibration(
-        trafo_in,
-        lin_irt_exp,
-        swath_maps,
-        min_rsq,
-        min_coverage,
-        feature_finder_param,
-        cp_irt,
-        lin_param,
-        no_cal,
-        debug_level,
-        pasef,
-        load_into_memory,
-        irt_trafo_out,
-        irt_mzml_out);
-
-      // adjust extraction window for non-linear step
-      cp_irt.rt_extraction_window =
-        getDoubleOption_("irt_nonlinear_rt_extraction_window");
-
-      // --- 2) nonlinear pass ---
-      OpenSwathCalibrationWorkflow wf;
-      wf.setLogType(log_type_);
-      std::vector<OpenMS::MSChromatogram> chroms;
-      wf.simpleExtractChromatograms_(
-        swath_maps,
-        nl_irt_exp,
-        chroms,
-        trafo_rtnorm,
-        cp_irt,
-        pasef,
-        load_into_memory);
-
-      Param nl_param = irt_detection_param;
-      nl_param.setValue("estimateBestPeptides", "true");
-
-      TransformationDescription im_trafo;
-      trafo_rtnorm = wf.doDataNormalization_(
-        nl_irt_exp,
-        chroms,
-        im_trafo,
-        swath_maps,
-        min_rsq,
-        min_coverage,
-        feature_finder_param,
-        nl_param,
-        calibration_param,
-        pasef);
-
-      // apply IM‐correction back to the library
-      TransformationDescription im_trafo_inv = im_trafo;
-      im_trafo_inv.invert();
-      for (auto & cmp : transition_exp.getCompounds())
+      else
       {
-        cmp.drift_time = im_trafo_inv.apply(cmp.drift_time);
+        if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, per_run_tmp, readoptions,
+                swath_windows_file, min_upper_edge_dist, force,
+                sort_swath_maps, prm))
+        {
+          OPENMS_LOG_ERROR << "Failed to load SWATH files for Run " << (run_index + 1)
+                           << ": " << ListUtils::concatenate(single_file_list, ", ") << std::endl
+                           << "  (split_file=" << (split_file ? "true" : "false") << ", tmp_dir='" << tmp_dir << "', readoptions='" << readoptions << "')"
+                           << std::endl
+                           << "  Please check that the input files exist, are valid mzML/sqMass files, and that read options are correct." << std::endl;
+          return PARSE_ERROR;
+        }
       }
-    }
+
+      // Auto-detect PASEF data from swath maps if user didn't explicitly set -pasef
+      if (!pasef)
+      {
+        bool has_im_windows = std::any_of(swath_maps.begin(), swath_maps.end(),
+          [](const OpenSwath::SwathMap& m) { return !m.ms1 && m.imLower >= 0 && m.imUpper >= 0; });
+        if (has_im_windows)
+        {
+          OPENMS_LOG_INFO << "Auto-detected ion mobility (PASEF) data from SWATH windows. "
+                          << "Enabling PASEF mode automatically." << std::endl;
+          pasef = true;
+        }
+      }
+
+      // Override: disable PASEF window matching if no_IM_windowing is active
+      if (disable_im_windowing && pasef)
+      {
+        OPENMS_LOG_INFO << "Debugging: no_IM_windowing active -- forcing pasef = false (disabling PASEF window matching)." << std::endl;
+        pasef = false;
+      }
+
+      // Resolve "auto" for ion mobility scoring: enable for PASEF data, disable otherwise.
+      // Explicit "true"/"false" from the user is always respected.
+      {
+        String im_score_setting = feature_finder_param_run.getValue("Scores:use_ion_mobility_scores").toString();
+        if (im_score_setting == "auto")
+        {
+          if (pasef)
+          {
+            OPENMS_LOG_INFO << "PASEF mode active: automatically enabling ion mobility scores "
+                            << "(Scoring:Scores:use_ion_mobility_scores = auto -> true)." << std::endl;
+            feature_finder_param_run.setValue("Scores:use_ion_mobility_scores", "true");
+          }
+          else
+          {
+            feature_finder_param_run.setValue("Scores:use_ion_mobility_scores", "false");
+            if (disable_im_windowing)
+            {
+              OPENMS_LOG_INFO << "IM scoring auto-disabled because no_IM_windowing forced pasef = false. "
+                              << "Pass -Scoring:Scores:use_ion_mobility_scores true to keep IM scoring." << std::endl;
+            }
+          }
+        }
+      }
+
+      // Validate that transitions have IM values when PASEF mode is active
+      if (pasef)
+      {
+        for (const auto& tr : transition_exp.getTransitions())
+        {
+          if (tr.precursor_im < 0)
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Error: Transition " + tr.getNativeID() +
+              " does not have a valid IM value, this must be set to use PASEF mode (auto-detected or via -pasef flag)");
+          }
+        }
+      }
+
+      ///////////////////////////////////
+      // Get the transformation information (using iRT peptides) - per file
+      ///////////////////////////////////
+
+      // Create a basename for this run's outputs (used for multi-run scenarios)
+      String file_basename;
+      if (run_groups.size() > 1)
+      {
+        // Extract basename from input file path (remove directory and extension)
+        // For multi-run mode, each run has exactly one file
+        String filename = File::basename(current_run_files[0]);
+        Size dot_pos = filename.find_last_of('.');
+        if (dot_pos != String::npos)
+        {
+          file_basename = filename.substr(0, dot_pos);
+        }
+        else
+        {
+          file_basename = filename;
+        }
+      }
+
+      String irt_trafo_out = debug_params.getValue("irt_trafo").toString();
+      if (!irt_trafo_out.empty() && run_groups.size() > 1)
+      {
+        // For multi-run, use basename prefix to make unique filenames
+        String base_name = irt_trafo_out.substr(0, irt_trafo_out.find_last_of('.'));
+        String extension = irt_trafo_out.substr(irt_trafo_out.find_last_of('.'));
+        irt_trafo_out = file_basename + "_" + base_name + extension;
+      }
+
+      String irt_mzml_out = debug_params.getValue("irt_mzml").toString();
+      if (!irt_mzml_out.empty() && run_groups.size() > 1)
+      {
+        // For multi-run, use basename prefix to make unique filenames
+        String base_name = irt_mzml_out.substr(0, irt_mzml_out.find_last_of('.'));
+        String extension = irt_mzml_out.substr(irt_mzml_out.find_last_of('.'));
+        irt_mzml_out = file_basename + "_" + base_name + extension;
+      }
+
+      Param irt_detection_param = getParam_().copy("Calibration:RTNormalization:", true);
+      Param calibration_param = getParam_().copy("Calibration:MassIMCorrection:", true);
+      calibration_param.setValue("mz_extraction_window", cp_irt_current.mz_extraction_window);
+      calibration_param.setValue("mz_extraction_window_ppm", cp_irt_current.ppm ? "true" : "false");
+      calibration_param.setValue("im_extraction_window", cp_irt_current.im_extraction_window);
+
+      // Detect SRM/MRM mode: check if all swath_maps are chromatogram-only (no spectra, not MS1)
+      
+      bool mrm_mode = true;
+      for (const auto& sm : swath_maps)
+      {
+        if (sm.ms1 || sm.sptr->getNrSpectra() > 0)
+        {
+          mrm_mode = false;
+          break;
+        }
+      }
+
+      ///////////////////////////////////
+      // RT transformation: Load existing trafo or perform calibration
+      ///////////////////////////////////
+      
+      TransformationDescription trafo_rtnorm;
+      
+      if (!trafo_in.empty())
+      {
+        // Load existing RT transformation file using FileHandler so any metadata is preserved
+        // and fit the selected model using the RTNormalization parameters so behavior
+        // matches the original implementation.
+        FileHandler().loadTransformations(trafo_in, trafo_rtnorm, false, {FileTypes::TRANSFORMATIONXML});
+
+        // Prepare model parameters from RTNormalization section
+        Param model_params;
+        model_params.setValue("symmetric_regression", "false");
+        // copy span and num_nodes from the RTNormalization detection params
+        model_params.setValue("span", irt_detection_param.getValue("lowess:span"));
+        model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
+        String model_type = irt_detection_param.getValue("alignmentMethod").toString();
+
+        // Fit the model to the loaded transformation
+        trafo_rtnorm.fitModel(model_type, model_params);
+
+        // Note: When using existing RT transformation, no m/z or IM calibration is performed
+        OPENMS_LOG_WARN << "Using existing RT transformation - which has no m/z and ion mobility calibration" << std::endl;
+      }
+      else
+      {      
+        // Setup CalibrationWorkflow configuration from TOPP parameters
+        CalibrationWorkflow calibration_wf;
+        
+        // Filter parameters to exclude MassIMCorrection and RTNormalization parameters, these are passed as their own separate parameter objects
+        // Pass everything else to CalibrationWorkflow
+        Param cal_params = irt_calibration_params.copy("", false);
+        
+        // Remove the sections that don't belong to CalibrationWorkflow
+        cal_params.remove("MassIMCorrection:");
+        cal_params.remove("RTNormalization:");
+        // Top-level parameters handled by OpenSwathWorkflow
+        cal_params.remove("rt_norm");  
+        cal_params.remove("tr_irt_priority_sampling");  
+        
+        calibration_wf.setParameters(cal_params);
+        calibration_wf.setLogType(log_type_);
+        
+        // Determine iRT strategy based on configured parameters and multi-run context
+        IrtStrategy strategy = calibration_wf.determineIrtStrategy(
+          transition_exp, run_groups.size());
+        
+        // Prepare iRT experiments for this run
+        std::vector<String> priority_pep_strings;
+        priority_pep_strings.reserve(priority_peptides.size());
+        for (const auto& pep : priority_peptides)
+        {
+          priority_pep_strings.push_back(String(pep));
+        }
+        
+        CalibrationWorkflow::IrtExperiments irt_experiments = calibration_wf.prepareIrtExperiments(
+          strategy, transition_exp, priority_pep_strings, run_index);
+        
+        // Single modular calibration call - handles all scenarios  
+        auto calibration_result = calibration_wf.performCalibration(
+          swath_maps,         // SWATH data maps  
+          transition_exp,     // Target transition experiment (may be modified for IM)
+          cp_current,         // Extraction parameters (may be updated with estimates)
+          cp_ms1_current,     // MS1 extraction parameters (may be updated)
+          irt_experiments,    // Pre-prepared iRT experiments
+          feature_finder_param_run,  // Feature finder parameters (per-run copy)
+          cp_irt_current,     // iRT extraction parameters
+          irt_detection_param, // iRT detection parameters
+          calibration_param,  // Calibration parameters (m/z, IM correction)
+          irt_mrm_map_param,  // MRM mapping parameters
+          pasef,              // PASEF data flag
+          load_into_memory,   // Load data into memory flag
+          irt_trafo_out,      // Transformation output file
+          irt_mzml_out,       // iRT chromatograms output file
+          debug_level         // Debug level for iRT chromatogram output
+        );
+        
+        // Extract results
+        trafo_rtnorm = calibration_result.rt_trafo;
+      }
 
     ///////////////////////////////////
-    // Set up chromatogram output
+    // perform extraction on current file
+    ///////////////////////////////////
+
+    // Create one run ID per input run and reuse it across all run-level outputs.
+    UInt64 cur_run = OpenMS::UniqueIdGenerator::getUniqueId();
+
+    // Set up chromatogram output for this file
     // Either use chrom.mzML or sqliteDB (sqMass)
-    ///////////////////////////////////
     Interfaces::IMSDataConsumer* chromatogramConsumer;
-    UInt64 run_id = OpenMS::UniqueIdGenerator::getUniqueId();
-    prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom, run_id);
+    String out_chrom_current = out_chrom;
+    if (!out_chrom.empty() && run_groups.size() > 1)
+    {
+      // Preserve parent directory when creating per-run filenames.
+      // Split path and filename first, then prepend the run prefix to the filename only.
+      String parent = File::path(out_chrom);
+      String filename = File::basename(out_chrom);
+      String stem = filename.substr(0, filename.find_last_of('.'));
+      String extension = filename.substr(filename.find_last_of('.'));
+      String fname_with_prefix = file_basename + "_" + stem + extension;
+      out_chrom_current = (parent == "." ? fname_with_prefix : parent + "/" + fname_with_prefix);
+    }
+    prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, cur_run, current_run_files[0]);
 
-    ///////////////////////////////////
-    // Set up peakgroup file output .osw file
-    ///////////////////////////////////
+    // Prepare mobilogram output (per-run)
+    std::unique_ptr<MobilogramParquetConsumer> mobilogramConsumer;
+    String out_mobilogram_current = out_mobilogram;
+    if (!out_mobilogram.empty() && run_groups.size() > 1)
+    {
+      // Preserve parent directory when creating per-run filenames.
+      // Split path and filename first, then prepend the run prefix to the filename only.
+      String parent = File::path(out_mobilogram);
+      String filename = File::basename(out_mobilogram);
+      String stem = filename.substr(0, filename.find_last_of('.'));
+      String extension = filename.substr(filename.find_last_of('.'));
+      String fname_with_prefix = file_basename + "_" + stem + extension;
+      out_mobilogram_current = (parent == "." ? fname_with_prefix : parent + "/" + fname_with_prefix);
+    }
+    prepareMobilogramOutput(mobilogramConsumer, exp_meta, transition_exp, out_mobilogram_current, cur_run, current_run_files[0]);
 
-    FeatureMap out_featureFile;
-    // store features if not writing to .featureXML
-    bool store_features = (out_features_type != FileTypes::FEATUREXML);
-    String osw_out_filename = store_features ? out_features : "";
-    OpenSwathOSWWriter oswwriter(osw_out_filename, run_id, file_list[0], enable_uis_scoring);
+    // Register the same run ID in OSW.
+    // For OSW, use the first file in the run group as the representative filename
+    if (write_osw)
+    {
+      oswwriter.addRun(cur_run, current_run_files[0]);
+    }
+    // Also register run in chromatogram consumer if it is a SQL consumer
+    MSDataSqlConsumer* sql_cons = dynamic_cast<MSDataSqlConsumer*>(chromatogramConsumer);
+    if (sql_cons != nullptr)
+    {
+      sql_cons->addRun(current_run_files[0], cur_run);
+    }
 
-    OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, outer_loop_threads);
-    wf.setLogType(log_type_);
-    wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
-        out_featureFile, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory);
+    // set current run id in writer
+    oswwriter.setRunId(cur_run);
+    // set current run id for sqMass writer as well (reuse previous cast)
+    if (sql_cons != nullptr)
+    {
+      sql_cons->setRunId(cur_run);
+    }
+
+    FeatureMap run_featureFile;
+    FeatureMap& active_feature_map = write_featurexml ? out_featureFile : run_featureFile;
+    const bool store_features_in_feature_file = write_featurexml || write_parquet;
+
+    {
+      OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
+      wf.setLogType(log_type_);
+
+      // OSW output is streamed by the writer during extraction. Avoid retaining
+      // the same peak groups in a FeatureMap across runs.
+      wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run, transition_exp,
+           active_feature_map, store_features_in_feature_file, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes,
+           load_into_memory, mrm_map_param, mobilogramConsumer.get(), innerBatchSize, maxConcurrentSwaths);
+    }
+
+    swath_maps.clear();
+    swath_maps.shrink_to_fit();
+
+    if (mobilogramConsumer)
+    {
+      mobilogramConsumer->finalize();
+      mobilogramConsumer.reset();
+    }
+
+    //// Write out data
+
+    delete chromatogramConsumer;
+
+    if (write_parquet)
+    {
+      parquet_writer.write(parquet_dir, transition_exp, active_feature_map,
+                           cur_run, current_run_files[0], enable_uis_scoring);
+    }
+
+    OPENMS_LOG_INFO << std::endl;
+
+    ++run_index;
+    } // end for each run
+
+    if (write_parquet && parquet_zip_output)
+    {
+      // Stream files into the zip archive instead of unzipping/rezipping the
+      // whole directory. This uses ZipArchiveFile::addOrReplaceFromFile which
+      // streams from disk and avoids loading large parquet blobs into memory.
+      const std::filesystem::path dirpath = std::filesystem::path(std::string(parquet_dir));
+      const String output_zip_abs = File::absolutePath(out_features);
+      if (File::exists(output_zip_abs))
+      {
+        File::remove(output_zip_abs);
+      }
+
+      for (auto it = std::filesystem::recursive_directory_iterator(dirpath); it != std::filesystem::recursive_directory_iterator(); ++it)
+      {
+        if (it->is_directory()) continue;
+        const auto full = it->path();
+        std::string rel = std::filesystem::relative(full, dirpath).generic_string();
+        ZipArchiveFile::addOrReplaceFromFile(out_features, String(rel), String(full.string()));
+      }
+      // Write the embedded sidecar index that enables random-access reads
+      // directly from the archive without extracting (RAF pattern).
+      ZipArchiveFile::writeSidecarIndex(output_zip_abs);
+    }
 
     if ( out_features_type == FileTypes::FEATUREXML )
     {
@@ -1122,8 +1448,6 @@ protected:
       out_featureFile.ensureUniqueId();
       FileHandler().storeFeatures(out_features, out_featureFile, {FileTypes::FEATUREXML});
     }
-
-    delete chromatogramConsumer;
 
     return EXECUTION_OK;
   }

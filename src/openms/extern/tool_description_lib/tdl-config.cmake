@@ -22,7 +22,7 @@ if (ADDRESS_SANITIZER)
     endif()
 endif()
 
-find_package (yaml-cpp 0.8.0 QUIET)
+find_package (yaml-cpp 0.9.0 QUIET)
 if (NOT yaml-cpp_FOUND)
     if (NOT ${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY)
         message (STATUS "Fetching yaml-cpp")
@@ -32,8 +32,7 @@ if (NOT yaml-cpp_FOUND)
     FetchContent_Declare (
         yaml-cpp_fetch_content
         GIT_REPOSITORY "https://github.com/jbeder/yaml-cpp.git"
-        # !WORKAROUND Points to first commit after 0.8.0: Fixes CMake deprecation warnings (cmake_minimum_required)
-        GIT_TAG "c2680200486572baf8221ba052ef50b58ecd816e")
+        GIT_TAG "56e3bb550c91fd7005566f19c079cb7a503223cf")
     option (YAML_CPP_BUILD_CONTRIB "" OFF)
     option (YAML_CPP_BUILD_TOOLS "" OFF)
     option (YAML_BUILD_SHARED_LIBS "" OFF)

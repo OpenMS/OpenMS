@@ -12,8 +12,6 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <QtCore/qcontainerfwd.h> // for QStringList
-
 namespace OpenMS
 {
 
@@ -38,18 +36,15 @@ public:
     typedef std::vector<String>::const_reverse_iterator ConstReverseIterator;
     //@}
 
-    /// Creates a StringList from a QStringList
-    static StringList fromQStringList(const QStringList& rhs);
-
     ///@name Search methods
     //@{
     /**
       @brief Searches for the first line that starts with @p text beginning at line @p start
 
-      @param start Iterator pointing to the initial position to search. (note: that this does not need to correspond to the beginning of the container.
-      @param end Iterator pointing to the end final position of the sequence to search.
-      @param text The text to find
-      @param trim Whether the line is trimmed before
+      @param[in] start Iterator pointing to the initial position to search. (note: that this does not need to correspond to the beginning of the container.
+      @param[in] end Iterator pointing to the end final position of the sequence to search.
+      @param[in] text The text to find
+      @param[in] trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
     static Iterator searchPrefix(const Iterator& start, const Iterator& end, const String& text, bool trim = false);
@@ -57,10 +52,10 @@ public:
     /**
       @brief Searches for the first line that starts with @p text beginning at line @p start
 
-      @param start Iterator pointing to the initial position to search. (note: that this does not need to correspond to the beginning of the container.
-      @param end Iterator pointing to the end final position of the sequence to search.
-      @param text The text to find
-      @param trim Whether the line is trimmed before
+      @param[in] start Iterator pointing to the initial position to search. (note: that this does not need to correspond to the beginning of the container.
+      @param[in] end Iterator pointing to the end final position of the sequence to search.
+      @param[in] text The text to find
+      @param[in] trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
     static ConstIterator searchPrefix(const ConstIterator& start, const ConstIterator& end, const String& text, bool trim = false);
@@ -68,9 +63,9 @@ public:
     /**
       @brief Searches for the first line that starts with @p text in the StringList @p container.
 
-      @param container The StringList that should be searched.
-      @param text The text to find
-      @param trim Whether the line is trimmed before
+      @param[in] container The StringList that should be searched.
+      @param[in] text The text to find
+      @param[in] trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
     static ConstIterator searchPrefix(const StringList& container, const String& text, bool trim = false);
@@ -78,9 +73,9 @@ public:
     /**
       @brief Searches for the first line that starts with @p text in the StringList @p container.
 
-      @param container The StringList that should be searched.
-      @param text The text to find
-      @param trim Whether the line is trimmed before
+      @param[in] container The StringList that should be searched.
+      @param[in] text The text to find
+      @param[in] trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
     static Iterator searchPrefix(StringList& container, const String& text, bool trim = false);
@@ -88,10 +83,10 @@ public:
     /**
       @brief Searches for the first line that ends with @p text beginning at line @p start
 
-      @param start Iterator pointing to the initial position to search. (note: that this does not need to correspond to the beginning of the container.
-      @param end Iterator pointing to the end final position of the sequence to search.
-      @param text The text to find
-      @param trim Whether the line is trimmed before
+      @param[in] start Iterator pointing to the initial position to search. (note: that this does not need to correspond to the beginning of the container.
+      @param[in] end Iterator pointing to the end final position of the sequence to search.
+      @param[in] text The text to find
+      @param[in] trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
     static Iterator searchSuffix(const Iterator& start, const Iterator& end, const String& text, bool trim = false);
@@ -99,10 +94,10 @@ public:
     /**
       @brief Searches for the first line that ends with @p text beginning at line @p start
 
-      @param start Iterator pointing to the initial position to search. (note: that this does not need to correspond to the beginning of the container.
-      @param end Iterator pointing to the end final position of the sequence to search.
-      @param text The text to find
-      @param trim Whether the line is trimmed before
+      @param[in] start Iterator pointing to the initial position to search. (note: that this does not need to correspond to the beginning of the container.
+      @param[in] end Iterator pointing to the end final position of the sequence to search.
+      @param[in] text The text to find
+      @param[in] trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
     static ConstIterator searchSuffix(const ConstIterator& start, const ConstIterator& end, const String& text, bool trim = false);
@@ -110,9 +105,9 @@ public:
     /**
       @brief Searches for the first line that ends with @p text in the StringList @p container.
 
-      @param container The StringList that should be searched.
-      @param text The text to find
-      @param trim Whether the line is trimmed before
+      @param[in] container The StringList that should be searched.
+      @param[in] text The text to find
+      @param[in] trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
     static ConstIterator searchSuffix(const StringList& container, const String& text, bool trim = false);
@@ -120,9 +115,9 @@ public:
     /**
       @brief Searches for the first line that ends with @p text in the StringList @p container.
 
-      @param container The StringList that should be searched.
-      @param text The text to find
-      @param trim Whether the line is trimmed before
+      @param[in] container The StringList that should be searched.
+      @param[in] text The text to find
+      @param[in] trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
     static Iterator searchSuffix(StringList& container, const String& text, bool trim = false);
@@ -133,14 +128,14 @@ public:
     /**
       @brief Transforms all strings contained in the passed StringList to upper case.
 
-      @param sl The StringList to convert to upper case.
+      @param[in] sl The StringList to convert to upper case.
     */
     static void toUpper(StringList& sl);
 
     /**
       @brief Transforms all strings contained in the passed StringList to lower case.
 
-      @param sl The StringList to convert to lower case.
+      @param[in] sl The StringList to convert to lower case.
     */
     static void toLower(StringList& sl);
 
@@ -187,7 +182,7 @@ protected:
       /**
         @brief Returns true if the (trimmed) value has the prefix @p target_.
 
-        @param value The value to test.
+        @param[in] value The value to test.
         @return true if value has prefix target, false otherwise.
       */
       inline bool operator()(const String& value)
@@ -208,7 +203,7 @@ protected:
       /**
        @brief Returns true if the (trimmed) value has the suffix @p target_.
 
-       @param value The value to test.
+       @param[in] value The value to test.
        @return true if value has suffix target, false otherwise.
        */
       inline bool operator()(const String& value)

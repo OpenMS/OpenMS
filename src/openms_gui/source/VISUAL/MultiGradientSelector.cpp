@@ -116,7 +116,7 @@ namespace OpenMS
       Int pos = Int(float(gradient_.position(i)) / 100.0 * gradient_area_width_ + margin_ + 1);
 
       // mouse pointer over lever?
-      if (e->x() >= pos - 3 && e->x() <= pos + 4 && e->y() >= height() - margin_ - lever_area_height_ + 8 && e->y() <= height() - margin_ - lever_area_height_ + 15)
+      if (e->position().toPoint().x() >= pos - 3 && e->position().toPoint().x() <= pos + 4 && e->position().toPoint().y() >= height() - margin_ - lever_area_height_ + 8 && e->position().toPoint().y() <= height() - margin_ - lever_area_height_ + 15)
       {
         selected_ = gradient_.position(i);
         selected_color_ = gradient_.color(i);
@@ -126,9 +126,9 @@ namespace OpenMS
     }
 
     //create new lever
-    if (e->x() >= margin_ && e->x() <= width() - margin_ && e->y() >= height() - margin_ - lever_area_height_ && e->y() <= height() - margin_)
+    if (e->position().toPoint().x() >= margin_ && e->position().toPoint().x() <= width() - margin_ && e->position().toPoint().y() >= height() - margin_ - lever_area_height_ && e->position().toPoint().y() <= height() - margin_)
     {
-      Int pos = Int(100 * (e->x() - margin_) / float(gradient_area_width_));
+      Int pos = Int(100 * (e->position().toPoint().x() - margin_) / float(gradient_area_width_));
       gradient_.insert(pos, selected_color_);
       selected_ = pos;
       repaint();
@@ -140,9 +140,9 @@ namespace OpenMS
     if (left_button_pressed_ && selected_ > 0 && selected_ < 100) // don't move first or last lever
     {
       //inside lever area
-      if (e->x() >= margin_ && e->x() <= width() - margin_ && e->y() >= height() - margin_ - lever_area_height_ && e->y() <= height() - margin_)
+      if (e->position().toPoint().x() >= margin_ && e->position().toPoint().x() <= width() - margin_ && e->position().toPoint().y() >= height() - margin_ - lever_area_height_ && e->position().toPoint().y() <= height() - margin_)
       {
-        Int pos = Int(100 * (e->x() - margin_) / float(gradient_area_width_));
+        Int pos = Int(100 * (e->position().toPoint().x() - margin_) / float(gradient_area_width_));
         if (pos != selected_ && !gradient_.exists(pos))        // lever has been moved AND no other lever at the new position?
         {
           gradient_.remove(selected_);
@@ -169,7 +169,7 @@ namespace OpenMS
     for (UInt i = 0; i < (UInt)gradient_.size(); ++i)
     {
       Int pos = Int(float(gradient_.position(i)) / 100.0 * gradient_area_width_ + margin_ + 1);
-      if (e->x() >= pos - 3 && e->x() <= pos + 4 && e->y() >= height() - margin_ - lever_area_height_ + 8 && e->y() <= height() - margin_ - lever_area_height_ + 15)
+      if (e->position().toPoint().x() >= pos - 3 && e->position().toPoint().x() <= pos + 4 && e->position().toPoint().y() >= height() - margin_ - lever_area_height_ + 8 && e->position().toPoint().y() <= height() - margin_ - lever_area_height_ + 15)
       {
         gradient_.insert(gradient_.position(i), QColorDialog::getColor(gradient_.color(i), this));
         if (Int(gradient_.position(i)) == selected_)

@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 
 using namespace std;

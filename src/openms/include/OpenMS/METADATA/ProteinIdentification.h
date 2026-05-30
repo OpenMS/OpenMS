@@ -8,22 +8,26 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/DataArrays.h>
-#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
+#include <functional>
 #include <set>
+#include <algorithm>
 
 namespace OpenMS
 {
   class MSExperiment;
   class PeptideIdentification;
+  class PeptideIdentificationList;
   class PeptideEvidence;
   class ConsensusMap;
 
@@ -53,51 +57,14 @@ public:
     /// Hit type definition
     typedef ProteinHit HitType;
 
-    /// two way mapping from ms-run-path to protID|pepID-identifier
-    struct Mapping
-    {
-      std::map<String, StringList> identifier_to_msrunpath;
-      std::map<StringList, String> runpath_to_identifier;
+    /**
+      @brief Type alias for IdentifierMSRunMapper for backwards compatibility.
 
-      Mapping() = default;
+      See IdentifierMSRunMapper for the full documentation.
 
-      explicit Mapping(const std::vector<ProteinIdentification>& prot_ids)
-      {
-        create(prot_ids);
-      }
-
-      void create(const std::vector<ProteinIdentification>& prot_ids)
-      {
-        identifier_to_msrunpath.clear();
-        runpath_to_identifier.clear();
-        StringList filenames;
-        for (const ProteinIdentification& prot_id : prot_ids)
-        {
-          prot_id.getPrimaryMSRunPath(filenames);
-          if (filenames.empty())
-          {
-            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS run path annotated in ProteinIdentification.");
-          }
-          identifier_to_msrunpath[prot_id.getIdentifier()] = filenames;
-          const auto& it = runpath_to_identifier.find(filenames);
-          if (it != runpath_to_identifier.end())
-          {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Multiple protein identifications with the same ms-run-path in Consensus/FeatureXML. Check input!\n",
-                                          ListUtils::concatenate(filenames, ","));
-          }
-          runpath_to_identifier[filenames] = prot_id.getIdentifier();
-        }
-      }
-
-      String getPrimaryMSRunPath(const PeptideIdentification& pepid) const
-      { 
-        // if a merge index n is annotated, we use the filename annotated at index n in the protein identification, otherwise the one at index 0        
-        size_t merge_index = pepid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX, 0);
-        const auto& filenames = identifier_to_msrunpath.at(pepid.getIdentifier());        
-        return (merge_index < filenames.size()) ?  filenames[merge_index] : ""; // return filename or empty string if missing
-      }
-    };
+      @see IdentifierMSRunMapper
+    */
+    using Mapping = IdentifierMSRunMapper;
 
     /**
         @brief Bundles multiple (e.g. indistinguishable) proteins in a group
@@ -179,45 +146,75 @@ public:
       void setIntegerDataArrays(const IntegerDataArrays& ida);
 
       /// Returns a mutable reference to the first integer meta data array with the given name
-      inline IntegerDataArray& getIntegerDataArrayByName(String name)
+      inline IntegerDataArray& getIntegerDataArrayByName(const String& name)
       {
-        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
+        auto it = std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
           [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+        if (it == integer_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IntegerDataArray: ") + name);
+        }
+        return *it;
       }
 
       /// Returns a mutable reference to the first string meta data array with the given name
-      inline StringDataArray& getStringDataArrayByName(String name)
+      inline StringDataArray& getStringDataArrayByName(const String& name)
       {
-        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
+        auto it = std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
           [&name](const StringDataArray& da) { return da.getName() == name; } );
+        if (it == string_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("StringDataArray: ") + name);
+        }
+        return *it;
       }
 
       /// Returns a mutable reference to the first float meta data array with the given name
-      inline FloatDataArray& getFloatDataArrayByName(String name)
+      inline FloatDataArray& getFloatDataArrayByName(const String& name)
       {
-        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
+        auto it = std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
           [&name](const FloatDataArray& da) { return da.getName() == name; } );
+        if (it == float_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("FloatDataArray: ") + name);
+        }
+        return *it;
       }
 
       /// Returns a const reference to the first integer meta data array with the given name
-      inline const IntegerDataArray& getIntegerDataArrayByName(String name) const
+      inline const IntegerDataArray& getIntegerDataArrayByName(const String& name) const
       {
-        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
+        auto it = std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
           [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+        if (it == integer_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IntegerDataArray: ") + name);
+        }
+        return *it;
       }
 
       /// Returns a const reference to the first string meta data array with the given name
-      inline const StringDataArray& getStringDataArrayByName(String name) const
+      inline const StringDataArray& getStringDataArrayByName(const String& name) const
       {
-        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
+        auto it = std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
           [&name](const StringDataArray& da) { return da.getName() == name; } );
+        if (it == string_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("StringDataArray: ") + name);
+        }
+        return *it;
       }
 
       /// Returns a const reference to the first float meta data array with the given name
-      inline const FloatDataArray& getFloatDataArrayByName(String name) const
+      inline const FloatDataArray& getFloatDataArrayByName(const String& name) const
       {
-        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
+        auto it = std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
           [&name](const FloatDataArray& da) { return da.getName() == name; } );
+        if (it == float_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("FloatDataArray: ") + name);
+        }
+        return *it;
       }
 
     private:
@@ -232,7 +229,7 @@ public:
     };
 
     /// Peak mass type
-    enum PeakMassType
+    enum class PeakMassType
     {
       MONOISOTOPIC,
       AVERAGE,
@@ -240,7 +237,10 @@ public:
     };
 
     /// Names corresponding to peak mass types
-    static const std::string NamesOfPeakMassType[SIZE_OF_PEAKMASSTYPE];
+    static const std::string NamesOfPeakMassType[static_cast<size_t>(PeakMassType::SIZE_OF_PEAKMASSTYPE)];
+
+    /// returns all peak mass type names known to OpenMS
+    static StringList getAllNamesOfPeakMassType();
 
     /// Search parameters of the DB search
     struct OPENMS_DLLAPI SearchParameters :
@@ -430,8 +430,8 @@ public:
     /**
        Set the file paths to the primary MS runs (usually the mzML files obtained after data conversion from raw files)
 
-       @param s The file paths
-       @param raw Store paths to the raw files (or equivalent) rather than mzMLs
+       @param[in] s The file paths
+       @param[in] raw Store paths to the raw files (or equivalent) rather than mzMLs
     */
     void setPrimaryMSRunPath(const StringList& s, bool raw = false);
 
@@ -444,7 +444,7 @@ public:
        Get the file paths to the primary MS runs
 
        @param[out] output The file paths
-       @param raw Get raw files (or equivalent) instead of mzMLs
+       @param[in] raw Get raw files (or equivalent) instead of mzMLs
     */
     void getPrimaryMSRunPath(StringList& output, bool raw = false) const;
 
@@ -503,3 +503,100 @@ protected:
 
 
 } //namespace OpenMS
+
+// Hash function specializations
+namespace std
+{
+  /// std::hash specialization for ProteinIdentification::ProteinGroup
+  template<>
+  struct hash<OpenMS::ProteinIdentification::ProteinGroup>
+  {
+    std::size_t operator()(const OpenMS::ProteinIdentification::ProteinGroup& pg) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_float(pg.probability);
+      for (const auto& acc : pg.accessions)
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(acc));
+      }
+      return seed;
+    }
+  };
+
+  /// std::hash specialization for ProteinIdentification::SearchParameters
+  template<>
+  struct hash<OpenMS::ProteinIdentification::SearchParameters>
+  {
+    std::size_t operator()(const OpenMS::ProteinIdentification::SearchParameters& sp) const noexcept
+    {
+      std::size_t seed = OpenMS::fnv1a_hash_string(sp.db);
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sp.db_version));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sp.taxonomy));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sp.charges));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(sp.mass_type)));
+      // Hash fixed_modifications
+      for (const auto& mod : sp.fixed_modifications)
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(mod));
+      }
+      // Hash variable_modifications
+      for (const auto& mod : sp.variable_modifications)
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(mod));
+      }
+      OpenMS::hash_combine(seed, OpenMS::hash_int(sp.missed_cleavages));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(sp.fragment_mass_tolerance));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(sp.fragment_mass_tolerance_ppm)));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(sp.precursor_mass_tolerance));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(sp.precursor_mass_tolerance_ppm)));
+      // Hash digestion_enzyme using the base class hash
+      OpenMS::hash_combine(seed, std::hash<OpenMS::DigestionEnzyme>{}(sp.digestion_enzyme));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(sp.enzyme_term_specificity)));
+      // Hash MetaInfoInterface base class
+      OpenMS::hash_combine(seed, std::hash<OpenMS::MetaInfoInterface>{}(sp));
+      return seed;
+    }
+  };
+
+  /// std::hash specialization for ProteinIdentification
+  template<>
+  struct hash<OpenMS::ProteinIdentification>
+  {
+    std::size_t operator()(const OpenMS::ProteinIdentification& pi) const noexcept
+    {
+      // Hash identifier and search engine info
+      std::size_t seed = OpenMS::fnv1a_hash_string(pi.getIdentifier());
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pi.getSearchEngine()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pi.getSearchEngineVersion()));
+      // Hash SearchParameters
+      OpenMS::hash_combine(seed, std::hash<OpenMS::ProteinIdentification::SearchParameters>{}(pi.getSearchParameters()));
+      // Hash DateTime
+      OpenMS::hash_combine(seed, std::hash<OpenMS::DateTime>{}(pi.getDateTime()));
+      // Hash protein_hits
+      for (const auto& hit : pi.getHits())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(hit.getScore()));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(hit.getRank()));
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(hit.getAccession()));
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(hit.getSequence()));
+        OpenMS::hash_combine(seed, OpenMS::hash_float(hit.getCoverage()));
+      }
+      // Hash protein_groups
+      for (const auto& group : pi.getProteinGroups())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::ProteinIdentification::ProteinGroup>{}(group));
+      }
+      // Hash indistinguishable_proteins
+      for (const auto& group : pi.getIndistinguishableProteins())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::ProteinIdentification::ProteinGroup>{}(group));
+      }
+      // Hash score type and threshold
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pi.getScoreType()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(pi.getSignificanceThreshold()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(pi.isHigherScoreBetter())));
+      // Hash MetaInfoInterface base class
+      OpenMS::hash_combine(seed, std::hash<OpenMS::MetaInfoInterface>{}(pi));
+      return seed;
+    }
+  };
+} // namespace std

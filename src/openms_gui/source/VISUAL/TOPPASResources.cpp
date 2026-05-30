@@ -9,6 +9,7 @@
 #include <OpenMS/VISUAL/TOPPASResources.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <iostream>
 #include <map>
@@ -42,7 +43,7 @@ namespace OpenMS
   {
     Param load_param;
     ParamXMLFile paramFile;
-    paramFile.load(String(file_name), load_param);
+    paramFile.load(fromQString(file_name), load_param);
 
     for (Param::ParamIterator it = load_param.begin(); it != load_param.end(); ++it)
     {
@@ -56,12 +57,12 @@ namespace OpenMS
         return;
       }
 
-      QString key = (substrings[0]).toQString();
+      QString key = toQString(substrings[0]);
       StringList url_list = ListUtils::toStringList<std::string>(it->value);
       QList<TOPPASResource> resource_list;
       for (StringList::const_iterator it = url_list.begin(); it != url_list.end(); ++it)
       {
-        resource_list << TOPPASResource(QUrl(it->toQString()));
+        resource_list << TOPPASResource(QUrl(toQString(*it)));
       }
 
       add(key, resource_list);
@@ -79,7 +80,7 @@ namespace OpenMS
 
     for (std::map<QString, QList<TOPPASResource> >::const_iterator it = map_.begin(); it != map_.end(); ++it)
     {
-      const String& key = String(it->first);
+      const String key = fromQString(it->first);
       const QList<TOPPASResource>& resource_list = it->second;
       std::vector<std::string> url_list;
       for (const TOPPASResource &res : resource_list)
@@ -90,7 +91,7 @@ namespace OpenMS
     }
 
     ParamXMLFile paramFile;
-    paramFile.store(String(file_name), save_param);
+    paramFile.store(fromQString(file_name), save_param);
   }
 
   const QList<TOPPASResource>& TOPPASResources::get(const QString& key) const

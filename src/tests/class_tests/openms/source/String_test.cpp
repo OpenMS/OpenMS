@@ -15,6 +15,7 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 
 #include <limits>
@@ -22,8 +23,6 @@
 #include <iomanip>
 #include <random>
 #include <vector>
-
-#include <QtCore/QString>
 
 using namespace OpenMS;
 using namespace std;
@@ -33,9 +32,10 @@ using namespace std;
 START_TEST(String, "$Id$")
 
 /////////////////////////////////////////////////////////////
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 String* s_ptr = nullptr;
 String* s_nullPointer = nullptr;
@@ -46,18 +46,6 @@ END_SECTION
 
 START_SECTION(([EXTRA] ~String()))
   delete s_ptr;
-END_SECTION
-
-START_SECTION((String(const QString &s)))
-  QString qs("bla");
-  String s(qs);
-  TEST_EQUAL(s=="bla",true)
-END_SECTION
-
-START_SECTION((QString toQString() const))
-  QString qs("bla");
-  String s("bla");
-  TEST_EQUAL(s.toQString()==qs,true)
 END_SECTION
 
 START_SECTION((String(const char* s, SizeType length)))
@@ -1119,5 +1107,7 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 END_TEST
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif
 

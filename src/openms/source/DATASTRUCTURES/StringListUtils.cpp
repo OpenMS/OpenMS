@@ -8,25 +8,11 @@
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <boost/mem_fn.hpp>
-#include <QtCore/QStringList>
 
 using namespace std;
 
 namespace OpenMS
 {
-
-  StringList StringListUtils::fromQStringList(const QStringList& rhs)
-  {
-    StringList sl;
-    sl.reserve(rhs.size());
-
-    for (const auto& item : rhs)
-    {
-      sl.push_back(item.toStdString());
-    }
-
-    return sl;
-  }
 
   void StringListUtils::toUpper(StringList& sl)
   {

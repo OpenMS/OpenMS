@@ -11,6 +11,10 @@
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
 
 #------------------------------------------------------------------------------
+## export a single option indicating if Arrow/Parquet static libs should be preferred
+option(ARROW_USE_STATIC "Use Arrow/Parquet static libraries." ON)
+
+#------------------------------------------------------------------------------
 ## Wraps the common find boost code into a single call
 ## @param .. simply add all required components to the call
 ## @note This macro will define BOOST_MOC_ARGS that should be added to all moc
@@ -30,13 +34,15 @@ macro(find_boost)
 
   # help boost finding it's packages
   set(Boost_ADDITIONAL_VERSIONS
-    "1.78.1" "1.78.0" "1.78"
-    "1.77.1" "1.77.0" "1.77"
-    "1.76.1" "1.76.0" "1.76"
-    "1.75.1" "1.75.0" "1.75"
-    "1.74.1" "1.74.0" "1.74")
+    "1.87.1" "1.87.0" "1.87"
+    "1.86.1" "1.86.0" "1.86"
+    "1.85.1" "1.85.0" "1.85"
+    "1.84.1" "1.84.0" "1.84"
+    "1.83.1" "1.83.0" "1.83"
+    "1.82.1" "1.82.0" "1.82"
+    "1.81.1" "1.81.0" "1.81")
 
-  find_package(Boost 1.74.0 COMPONENTS ${ARGN} REQUIRED CONFIG)
+  find_package(Boost 1.81.0 COMPONENTS ${ARGN} REQUIRED CONFIG)
 
 endmacro(find_boost)
 

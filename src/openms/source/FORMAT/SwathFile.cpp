@@ -13,6 +13,8 @@
 #include <OpenMS/FORMAT/DATAACCESS/MSDataChainingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 //TODO remove MzML after we get transform support for our handlers
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
@@ -21,6 +23,12 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/SYSTEM/File.h>
+
+#ifdef WITH_OPENTIMS
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
+#endif
+
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 
 #include <memory> // for make_shared
 
@@ -32,7 +40,7 @@ namespace OpenMS
   /// Loads a Swath run from a list of split mzML files
   std::vector<OpenSwath::SwathMap> SwathFile::loadSplit(StringList file_list,
         const String& tmp,
-    boost::shared_ptr<ExperimentalSettings>& exp_meta,
+    std::shared_ptr<ExperimentalSettings>& exp_meta,
     const String& readoptions)
   {
     int progress = 0;
@@ -49,12 +57,12 @@ namespace OpenMS
 #pragma omp critical (OPENMS_SwathFile_loadSplit)
 #endif
       {
-        std::cout << "Loading file " << i << " with name " << file_list[i] << " using readoptions " << readoptions << std::endl;
+        std::cout << "Loading file " << i << " with name " << file_list[i] << " using readoptions " << readoptions << '\n';
       }
 
       String tmp_fname = "openswath_tmpfile_" + String(i) + ".mzML";
 
-      boost::shared_ptr<PeakMap > exp(new PeakMap);
+      std::shared_ptr<PeakMap > exp(new PeakMap);
       OpenSwath::SpectrumAccessPtr spectra_ptr;
 
       // Populate meta-data
@@ -90,7 +98,7 @@ namespace OpenMS
       }
       if (exp->getSpectra()[0].getPrecursors().empty())
       {
-        std::cout << "NOTE: File " << file_list[i] << "\n does not have any precursors - I will assume it is the MS1 scan." << std::endl;
+        std::cout << "NOTE: File " << file_list[i] << "\n does not have any precursors - I will assume it is the MS1 scan.\n";
         ms1 = true;
       }
       else
@@ -108,7 +116,7 @@ namespace OpenMS
 #pragma omp critical (OPENMS_SwathFile_loadSplit)
 #endif
       {
-        OPENMS_LOG_DEBUG << "Adding Swath file " << file_list[i] << " with " << swath_map.lower << " to " << swath_map.upper << std::endl;
+        OPENMS_LOG_DEBUG << "Adding Swath file " << file_list[i] << " with " << swath_map.lower << " to " << swath_map.upper << '\n';
         swath_maps[i] = swath_map;
         setProgress(progress++);
       }
@@ -120,26 +128,26 @@ namespace OpenMS
   /// Loads a Swath run from a single mzML file
   std::vector<OpenSwath::SwathMap> SwathFile::loadMzML(const String& file,
                                                        const String& tmp,
-                                                       boost::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                       std::shared_ptr<ExperimentalSettings>& exp_meta,
                                                        const String& readoptions,
                                                        Interfaces::IMSDataConsumer* plugin_consumer)
   {
-    std::cout << "Loading mzML file " << file << " using readoptions " << readoptions << std::endl;
+    std::cout << "Loading mzML file " << file << " using readoptions " << readoptions << '\n';
     String tmp_fname = tmp.hasSuffix('/') ? File::getUniqueName() : ""; // use tmp-filename if just a directory was given
 
     startProgress(0, 1, "Loading metadata file " + file);
-    boost::shared_ptr<PeakMap> exp_stripped = populateMetaData_(file);
+    std::shared_ptr<PeakMap> exp_stripped = populateMetaData_(file);
     exp_meta = exp_stripped;
 
     // First pass through the file -> get the meta data
-    std::cout << "Will analyze the metadata first to determine the number of SWATH windows and the window sizes." << std::endl;
+    std::cout << "Will analyze the metadata first to determine the number of SWATH windows and the window sizes.\n";
     std::vector<int> swath_counter;
     int nr_ms1_spectra;
     std::vector<OpenSwath::SwathMap> known_window_boundaries;
 
     countScansInSwath_(exp_stripped->getSpectra(), swath_counter, nr_ms1_spectra, known_window_boundaries);
     std::cout << "Determined there to be " << swath_counter.size()
-              << " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra" << std::endl;
+              << " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
     endProgress();
 
     std::shared_ptr<FullSwathFileConsumer> dataConsumer;
@@ -180,24 +188,78 @@ namespace OpenMS
     MSDataChainingConsumer chaining_consumer(consumer_list);
     MzMLFile().transform(file, &chaining_consumer, false, true); // we do not need to reload metadata, it has already been loaded
 
-    OPENMS_LOG_DEBUG << "Finished parsing Swath file " << std::endl;
+    OPENMS_LOG_DEBUG << "Finished parsing Swath file \n";
     std::vector<OpenSwath::SwathMap> swath_maps;
     dataConsumer->retrieveSwathMaps(swath_maps);
     endProgress();
     return swath_maps;
   }
 
+  /// Loads a Swath run from a pre-loaded in-memory MSExperiment
+  std::vector<OpenSwath::SwathMap> SwathFile::loadFromMSExperiment(
+      const std::shared_ptr<PeakMap>& exp,
+      const String& tmp,
+      std::shared_ptr<ExperimentalSettings>& exp_meta,
+      const String& readoptions)
+  {
+    OPENMS_LOG_INFO << "Loading Swath run from in-memory MSExperiment with " << exp->size()
+                    << " spectra using readoptions " << readoptions << '\n';
+    String tmp_fname = tmp.hasSuffix('/') ? File::getUniqueName() : "";
+
+    // The provided experiment already contains all metadata + data.
+    exp_meta = exp;
+
+    std::vector<int> swath_counter;
+    int nr_ms1_spectra;
+    std::vector<OpenSwath::SwathMap> known_window_boundaries;
+    countScansInSwath_(exp->getSpectra(), swath_counter, nr_ms1_spectra, known_window_boundaries);
+    OPENMS_LOG_INFO << "Determined there to be " << swath_counter.size()
+                    << " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
+
+    std::shared_ptr<FullSwathFileConsumer> dataConsumer;
+    if (readoptions == "normal")
+    {
+      dataConsumer = std::make_shared<RegularSwathFileConsumer>(known_window_boundaries);
+    }
+    else if (readoptions == "cache")
+    {
+      dataConsumer = std::make_shared<CachedSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+    }
+    else
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Unknown or unsupported option " + readoptions);
+    }
+    dataConsumer->setExperimentalSettings(*exp_meta.get());
+
+    // Feed spectra directly to the consumer — no file I/O.
+    startProgress(0, exp->size(), "Building Swath maps from in-memory experiment");
+    Size progress = 0;
+    for (auto& spec : exp->getSpectra())
+    {
+      // consumeSpectrum takes a non-const ref; copy to a local since exp is shared.
+      auto spec_copy = spec;
+      dataConsumer->consumeSpectrum(spec_copy);
+      setProgress(progress++);
+    }
+    endProgress();
+
+    std::vector<OpenSwath::SwathMap> swath_maps;
+    dataConsumer->retrieveSwathMaps(swath_maps);
+    return swath_maps;
+  }
+
   /// Loads a Swath run from a single mzXML file
   std::vector<OpenSwath::SwathMap> SwathFile::loadMzXML(const String& file,
     const String& tmp,
-    boost::shared_ptr<ExperimentalSettings>& exp_meta,
+    std::shared_ptr<ExperimentalSettings>& exp_meta,
     const String& readoptions)
   {
-    std::cout << "Loading mzXML file " << file << " using readoptions " << readoptions << std::endl;
+    std::cout << "Loading mzXML file " << file << " using readoptions " << readoptions << '\n';
     String tmp_fname = "openswath_tmpfile";
 
     startProgress(0, 1, "Loading metadata file " + file);
-    boost::shared_ptr<PeakMap > experiment_metadata(new PeakMap);
+    std::shared_ptr<PeakMap > experiment_metadata(new PeakMap);
     FileHandler f;
     f.getOptions().setAlwaysAppendData(true);
     f.getOptions().setFillData(false);
@@ -205,48 +267,47 @@ namespace OpenMS
     exp_meta = experiment_metadata;
 
     // First pass through the file -> get the meta data
-    std::cout << "Will analyze the metadata first to determine the number of SWATH windows and the window sizes." << std::endl;
+    std::cout << "Will analyze the metadata first to determine the number of SWATH windows and the window sizes.\n";
     std::vector<int> swath_counter;
     int nr_ms1_spectra;
     std::vector<OpenSwath::SwathMap> known_window_boundaries;
     countScansInSwath_(experiment_metadata->getSpectra(), swath_counter, nr_ms1_spectra, known_window_boundaries);
     std::cout << "Determined there to be " << swath_counter.size() <<
-      " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra" << std::endl;
+      " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
     endProgress();
 
-    FullSwathFileConsumer* dataConsumer;
+    std::unique_ptr<FullSwathFileConsumer> dataConsumer;
     startProgress(0, 1, "Loading data file " + file);
     if (readoptions == "normal")
     {
-      dataConsumer = new RegularSwathFileConsumer(known_window_boundaries);
-      MzXMLFile().transform(file, dataConsumer);
+      dataConsumer = std::make_unique<RegularSwathFileConsumer>(known_window_boundaries);
+      MzXMLFile().transform(file, dataConsumer.get());
     }
     else if (readoptions == "cache")
     {
-      dataConsumer = new CachedSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-      MzXMLFile().transform(file, dataConsumer);
+      dataConsumer = std::make_unique<CachedSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+      MzXMLFile().transform(file, dataConsumer.get());
     }
     else if (readoptions == "split")
     {
-      dataConsumer = new MzMLSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-      MzXMLFile().transform(file, dataConsumer);
+      dataConsumer = std::make_unique<MzMLSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+      MzXMLFile().transform(file, dataConsumer.get());
     }
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Unknown or unsupported option " + readoptions);
     }
-    OPENMS_LOG_DEBUG << "Finished parsing Swath file " << std::endl;
+    OPENMS_LOG_DEBUG << "Finished parsing Swath file \n";
     std::vector<OpenSwath::SwathMap> swath_maps;
     dataConsumer->retrieveSwathMaps(swath_maps);
-    delete dataConsumer;
 
     endProgress();
     return swath_maps;
   }
 
   /// Loads a Swath run from a single sqMass file
-  std::vector<OpenSwath::SwathMap> SwathFile::loadSqMass(const String& file, boost::shared_ptr<ExperimentalSettings>& /* exp_meta */)
+  std::vector<OpenSwath::SwathMap> SwathFile::loadSqMass(const String& file, std::shared_ptr<ExperimentalSettings>& /* exp_meta */)
   {
     startProgress(0, 1, "Loading sqmass data file " + file);
 
@@ -271,15 +332,78 @@ namespace OpenMS
     endProgress();
 
     std::cout << "Determined there to be " << swath_maps.size() <<
-      " SWATH windows and in total " << indices.size() << " MS1 spectra" << std::endl;
+      " SWATH windows and in total " << indices.size() << " MS1 spectra\n";
 
     return swath_maps;
   }
 
 
+#ifdef WITH_OPENTIMS
+  std::vector<OpenSwath::SwathMap> SwathFile::loadBrukerTdf(
+    const String& file,
+    const String& tmp,
+    std::shared_ptr<ExperimentalSettings>& exp_meta,
+    const String& readoptions)
+  {
+    OPENMS_LOG_INFO << "Loading Bruker TDF file " << file
+                    << " using readoptions " << readoptions << '\n';
+    startProgress(0, 1, "Loading Bruker TDF file " + file);
+
+    BrukerTimsFile bruker_reader;
+    bruker_reader.setLogType(this->getLogType());
+
+    // Step 1: metadata from SQL (no peak data)
+    ExperimentalSettings settings;
+    auto meta = bruker_reader.readDIAMetadata(file, settings);
+    auto exp_meta_ptr = std::make_shared<PeakMap>();
+    static_cast<ExperimentalSettings&>(*exp_meta_ptr) = settings;
+    exp_meta = exp_meta_ptr;
+
+    OPENMS_LOG_INFO << "Bruker TDF: " << meta.boundaries.size()
+                    << " SWATH windows and " << meta.nr_ms1_spectra
+                    << " MS1 spectra" << std::endl;
+
+    // Step 2: construct consumer based on readoptions
+    String tmp_fname = tmp.hasSuffix('/') ? File::getUniqueName() : "";
+    std::shared_ptr<FullSwathFileConsumer> consumer;
+    if (readoptions == "normal")
+    {
+      consumer = std::make_shared<RegularSwathFileConsumer>(meta.boundaries);
+    }
+    else if (readoptions == "cache")
+    {
+      consumer = std::make_shared<CachedSwathFileConsumer>(
+        meta.boundaries, tmp, tmp_fname, meta.nr_ms1_spectra, meta.nr_ms2_spectra);
+    }
+    else
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "readoption '" + readoptions + "' is not supported for Bruker TDF (only 'normal' and 'cache' are available)");
+    }
+    consumer->setExperimentalSettings(settings);
+
+    // Step 3: stream spectra to consumer
+    bruker_reader.loadDIAStreaming(file, *consumer);
+
+    // Step 4: finalize and retrieve SwathMaps
+    std::vector<OpenSwath::SwathMap> swath_maps;
+    consumer->retrieveSwathMaps(swath_maps);
+
+    endProgress();
+    return swath_maps;
+  }
+
+  std::vector<OpenSwath::SwathMap> SwathFile::loadBrukerTdf(
+    const String& file,
+    std::shared_ptr<ExperimentalSettings>& exp_meta)
+  {
+    return loadBrukerTdf(file, File::getTempDirectory(), exp_meta, "normal");
+  }
+#endif
+
   /// Cache a file to disk
   OpenSwath::SpectrumAccessPtr SwathFile::doCacheFile_(const String& in, const String& tmp, const String& tmp_fname,
-    const boost::shared_ptr<PeakMap >& experiment_metadata)
+    const std::shared_ptr<PeakMap >& experiment_metadata)
   {
     String cached_file = tmp + tmp_fname + ".cached";
     String meta_file = tmp + tmp_fname;
@@ -291,15 +415,15 @@ namespace OpenMS
       Internal::CachedMzMLHandler().writeMetadata(*experiment_metadata.get(), meta_file, true);
     } // ensure that filestream gets closed
 
-    boost::shared_ptr<PeakMap > exp(new PeakMap);
+    std::shared_ptr<PeakMap > exp(new PeakMap);
     FileHandler().loadExperiment(meta_file, *exp.get(), {FileTypes::MZML});
     return SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
   }
 
   /// Only read the meta data from a file and use it to populate exp_meta
-  boost::shared_ptr< PeakMap > SwathFile::populateMetaData_(const String& file)
+  std::shared_ptr< PeakMap > SwathFile::populateMetaData_(const String& file)
   {
-    boost::shared_ptr<PeakMap > experiment_metadata(new PeakMap);
+    std::shared_ptr<PeakMap > experiment_metadata(new PeakMap);
     FileHandler f;
     f.getOptions().setAlwaysAppendData(true);
     f.getOptions().setFillData(false);
@@ -328,7 +452,7 @@ namespace OpenMS
             throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "Found SWATH scan (MS level 2 scan) without a precursor. Cannot determine SWATH window.");
           }
-          const std::vector<Precursor> prec = s.getPrecursors();
+          const std::vector<Precursor>& prec = s.getPrecursors();
 
           // set ion mobility if exists, otherwise will take default value of -1
           double imLower, imUpper;
@@ -368,7 +492,7 @@ namespace OpenMS
 
             OPENMS_LOG_DEBUG << "Adding Swath centered at " << boundary.center
               << " m/z with an isolation window of " << boundary.lower << " to " << boundary.upper
-              << " m/z and IM start of " << boundary.imLower << " and IM end of " << boundary.imUpper << std::endl;
+              << " m/z and IM start of " << boundary.imLower << " and IM end of " << boundary.imUpper << '\n';
           }
         }
       }
@@ -376,6 +500,6 @@ namespace OpenMS
     nr_ms1_spectra = ms1_counter;
 
     std::cout << "Determined there to be " << swath_counter.size() <<
-      " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra" << std::endl;
+      " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
   }
 }

@@ -11,6 +11,7 @@
 #include <iostream> // for "cout"
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 using namespace OpenMS;
 using namespace std;

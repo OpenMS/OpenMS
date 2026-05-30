@@ -24,6 +24,9 @@
 // file types
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
@@ -31,6 +34,7 @@
 // digestion enzymes
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
+#include <OpenMS/SYSTEM/File.h>
 
 // ribonucleotides
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
@@ -53,8 +57,6 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 
-
-#include <QtCore/QProcess>
 
 #include <algorithm>
 #include <iostream>
@@ -781,7 +783,7 @@ protected:
     IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType("hyperscore");
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
-    fdr_params.setValue("use_all_hits", only_top_hits ? "true" : "false");
+    fdr_params.setValue("use_all_hits", only_top_hits ? "false" : "true");
     bool remove_decoys = getFlag_("fdr:remove_decoys");
     fdr_params.setValue("add_decoy_peptides", remove_decoys ? "false" : "true");
     fdr.setParameters(fdr_params);

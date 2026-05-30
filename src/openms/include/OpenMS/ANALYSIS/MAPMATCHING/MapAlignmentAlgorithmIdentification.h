@@ -83,9 +83,9 @@ public:
     /**
       @brief Align feature maps, consensus maps, or peptide identifications.
 
-      @param data Vector of input data (FeatureMap, ConsensusMap, or @p PeptideIdentificationList) that should be aligned.
-      @param transformations Vector of RT transformations that will be computed.
-      @param reference_index Index in @p data of the reference to align to, if any
+      @param[in] data Vector of input data (FeatureMap, ConsensusMap, or @p PeptideIdentificationList) that should be aligned.
+      @param[in] transformations Vector of RT transformations that will be computed.
+      @param[in] reference_index Index in @p data of the reference to align to, if any
 
       @throw Exception::MissingInformation Not enough suitable RT data to perform alignment
     */
@@ -94,12 +94,18 @@ public:
                std::vector<TransformationDescription>& transformations,
                Int reference_index = -1)
     {
+      // is reference one of the input files?
+      bool use_internal_reference = (reference_index >= 0);
+      // Drop any reference_ left over from a previous align() call before
+      // checkParameters_ counts it as an extra run; setReference() further
+      // down repopulates reference_ for this invocation. External references
+      // set explicitly via setReference() are preserved (reference_index < 0).
+      if (use_internal_reference) reference_.clear();
+
       checkParameters_(data.size());
       startProgress(0, 3, "aligning maps");
 
       reference_index_ = reference_index;
-      // is reference one of the input files?
-      bool use_internal_reference = (reference_index >= 0);
       if (use_internal_reference)
       {
         if (reference_index >= Int(data.size()))
@@ -169,9 +175,9 @@ protected:
     /**
       @brief Compute the median retention time for each peptide sequence
 
-      @param rt_data Lists of RT values for diff. peptide sequences (input, will be sorted)
-      @param medians Median RT values for the peptide sequences (output)
-      @param sorted Are RT lists already sorted?
+      @param[in] rt_data Lists of RT values for diff. peptide sequences (input, will be sorted)
+      @param[out] medians Median RT values for the peptide sequences (output)
+      @param[in] sorted Are RT lists already sorted?
 
       @throw Exception::IllegalArgument if the input list is empty
     */
@@ -181,8 +187,8 @@ protected:
     /**
       @brief Collect retention time data from peptide IDs
 
-      @param peptides Input peptide IDs (lists of peptide hits will be sorted)
-      @param rt_data Lists of RT values for diff. peptide sequences (output)
+      @param[in] peptides Input peptide IDs (lists of peptide hits will be sorted)
+      @param[out] rt_data Lists of RT values for diff. peptide sequences (output)
 
       @return Are the RTs already sorted? (Here: false)
     */
@@ -192,8 +198,8 @@ protected:
     /**
       @brief Collect retention time data from spectrum matches
 
-      @param id_data Input identification data
-      @param rt_data Lists of RT values for diff. spectrum matches (output)
+      @param[in] id_data Input identification data
+      @param[out] rt_data Lists of RT values for diff. spectrum matches (output)
 
       @return Are the RTs already sorted? (Here: false)
     */
@@ -209,8 +215,8 @@ protected:
       Depending on @p score_cutoff and min_score, only peptide IDs with minimum score X are used. Higher score better is
       determined from the first PeptideID encountered. Make sure they are the same. This param is useless with use_feature_rt yet.
 
-      @param features Input features for RT data
-      @param rt_data Lists of RT values for diff. peptide sequences (output)
+      @param[in] features Input features for RT data
+      @param[out] rt_data Lists of RT values for diff. peptide sequences (output)
 
       @return Are the RTs already sorted? (Here: true)
     */
@@ -293,9 +299,9 @@ protected:
     /**
       @brief Compute retention time transformations from RT data grouped by peptide sequence
 
-      @param rt_data Lists of RT values for diff. peptide sequences, per dataset (input, will be sorted)
-      @param transforms Resulting transformations, per dataset (output)
-      @param sorted Are RT lists already sorted?
+      @param[in] rt_data Lists of RT values for diff. peptide sequences, per dataset (input, will be sorted)
+      @param[out] transforms Resulting transformations, per dataset (output)
+      @param[in] sorted Are RT lists already sorted?
     */
     void computeTransformations_(std::vector<SeqToList>& rt_data,
                                  std::vector<TransformationDescription>&
@@ -306,7 +312,7 @@ protected:
 
       Currently only 'min_run_occur' is checked.
 
-      @param runs Number of runs (input files) to be aligned
+      @param[in] runs Number of runs (input files) to be aligned
     */
     void checkParameters_(const Size runs);
 
@@ -327,8 +333,8 @@ protected:
     /**
       @brief Get the best-scoring PeptideHit from a list of hits
 
-      @param hits List of peptide hits
-      @param is_higher_score_better Decides if higher score is better in deciding best scoring hit
+      @param[in] hits List of peptide hits
+      @param[in] is_higher_score_better Decides if higher score is better in deciding best scoring hit
 
       @return Pointer to the best-scoring hit, or nullptr if the list is empty
     */

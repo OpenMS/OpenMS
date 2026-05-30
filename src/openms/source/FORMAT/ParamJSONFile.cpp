@@ -7,6 +7,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ParamJSONFile.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -44,7 +45,18 @@ namespace OpenMS
     std::ifstream ifs {filename};
     if (!ifs.good())
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      if (!File::exists(filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else if (!File::readable(filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
     }
     try
     {
@@ -309,6 +321,8 @@ namespace OpenMS
 
     os << jsonDoc.dump(2);
 #else
+    (void)os_ptr;
+    (void)param;
     throw std::runtime_error{"TDL support is not available. Rebuild with -DENABLE_TDL=ON to enable this feature."};
 #endif
   }

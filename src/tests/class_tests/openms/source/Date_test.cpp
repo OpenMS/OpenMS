@@ -36,9 +36,9 @@ START_SECTION(([EXTRA]~Date()))
 	delete s_ptr;
 END_SECTION
 
-START_SECTION(Date(const QDate &date))
-	QDate qd(1999,12,24);
-	Date d(qd);
+START_SECTION(([EXTRA] Date constructed from set()))
+	Date d;
+	d.set(12, 24, 1999);
 	TEST_EQUAL(d.year(),1999)
 	TEST_EQUAL(d.month(),12)
 	TEST_EQUAL(d.day(),24)

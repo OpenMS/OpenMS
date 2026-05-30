@@ -12,7 +12,9 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 
@@ -36,7 +38,7 @@ namespace OpenMS
 
   TransformationDescription::~TransformationDescription()
   {
-    delete model_;
+    // model_ is unique_ptr, deleted automatically
   }
 
   TransformationDescription::TransformationDescription(
@@ -45,7 +47,7 @@ namespace OpenMS
     data_ = rhs.data_;
     model_type_ = "none";
     model_ = nullptr; // initialize this before the "delete" call in "fitModel"!
-    Param params = rhs.getModelParameters();
+    const Param& params = rhs.getModelParameters();
     fitModel(rhs.model_type_, params);
   }
 
@@ -57,7 +59,7 @@ namespace OpenMS
 
     data_ = rhs.data_;
     model_type_ = "none";
-    Param params = rhs.getModelParameters();
+    const Param& params = rhs.getModelParameters();
     fitModel(rhs.model_type_, params);
 
     return *this;
@@ -69,37 +71,34 @@ namespace OpenMS
     // if (previous) transformation is the identity, don't fit another model:
     if (model_type_ == "identity") return;
 
-    delete model_;
-    model_ = nullptr; // avoid segmentation fault in case of exception
+    std::unique_ptr<TransformationModel> next_model;
+
     if ((model_type == "none") || (model_type == "identity"))
     {
-      model_ = new TransformationModel();
+      next_model = std::make_unique<TransformationModel>();
     }
     else if (model_type == "linear")
     {
-      model_ = new TransformationModelLinear(data_, params);
-      // // debug output:
-      // double slope, intercept;
-      // TransformationModelLinear* lm = dynamic_cast<TransformationModelLinear*>(model_);
-      // lm->getParameters(slope, intercept);
-      // cout << "slope: " << slope << ", intercept: " << intercept << endl;
+      next_model = std::make_unique<TransformationModelLinear>(data_, params);
     }
     else if (model_type == "b_spline")
     {
-      model_ = new TransformationModelBSpline(data_, params);
+      next_model = std::make_unique<TransformationModelBSpline>(data_, params);
     }
     else if (model_type == "lowess")
     {
-      model_ = new TransformationModelLowess(data_, params);
+      next_model = std::make_unique<TransformationModelLowess>(data_, params);
     }
     else if (model_type == "interpolated")
     {
-      model_ = new TransformationModelInterpolated(data_, params);
+      next_model = std::make_unique<TransformationModelInterpolated>(data_, params);
     }
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "unknown model type '" + model_type + "'");
     }
+
+    model_ = std::move(next_model);
     model_type_ = model_type;
   }
 
@@ -123,8 +122,8 @@ namespace OpenMS
   {
     data_ = data;
     model_type_ = "none"; // reset the model even if it was "identity"
-    delete model_;
-    model_ = new TransformationModel();
+    // model_ is unique_ptr, deleted automatically
+    model_ = std::make_unique<TransformationModel>();
   }
 
   void TransformationDescription::setDataPoints(const vector<pair<double, double> >& data)
@@ -135,8 +134,8 @@ namespace OpenMS
       data_[i] = data[i];
     }
     model_type_ = "none"; // reset the model even if it was "identity"
-    delete model_;
-    model_ = new TransformationModel();
+    // model_ is unique_ptr, deleted automatically
+    model_ = std::make_unique<TransformationModel>();
   }
 
   const TransformationDescription::DataPoints&
@@ -162,7 +161,7 @@ namespace OpenMS
     if ((model_type_ == "linear") && data_.empty())
     {
       TransformationModelLinear* lm =
-        dynamic_cast<TransformationModelLinear*>(model_);
+        dynamic_cast<TransformationModelLinear*>(model_.get());
       lm->invert();
     }
     else
@@ -274,5 +273,61 @@ namespace OpenMS
     }
     os << endl;
   }
+
+
+  double TransformationDescription::estimateWindow(double quantile,
+                                                   bool invert,
+                                                   bool full_window,
+                                                   double padding_factor) const
+  {
+    // Work on a copy so we don't mutate the original
+    TransformationDescription tmp(*this);
+    if (invert)
+    {
+      // Map iRT→RT and refit the inverse model so residuals are measured in RT space
+      tmp.invert();
+    }
+
+    // Compute absolute residuals | y - f(x) | in the (possibly inverted) space
+    std::vector<double> diffs;
+    tmp.getDeviations(diffs, /*do_apply=*/true, /*do_sort=*/false);
+
+    // Drop non-finite values defensively
+    diffs.erase(std::remove_if(diffs.begin(), diffs.end(),
+                               [](double v){ return !std::isfinite(v); }),
+                diffs.end());
+
+    if (diffs.empty())
+    {
+      OPENMS_LOG_DEBUG << "[estimateWindow] no residuals; returning 0" << std::endl;
+      return 0.0;
+    }
+
+    // Compute adaptive quantile (Tukey k=1.5, r_sparse=1%, r_dense=10%)
+    // k=1.5 uses the standard Tukey upper fence (Q3 + 1.5·IQR) to cap sparse extremes proposed in Exploratory Data Analysis by John W. Tukey (1977)
+    // r_sparse=0.01 means if ≤1% of |residuals| exceed the fence, treat them as outliers (favor robust quantile);
+    // r_dense=0.10 means if ≥10% exceed the fence, tails are genuinely broad (favor raw quantile).
+    // These values are conservative, widely used in stats.
+    OpenMS::Math::AdaptiveQuantileResult adaptive_quantile_res = OpenMS::Math::adaptiveQuantile(
+      diffs.begin(), diffs.end(), quantile,
+      /*k=*/1.5, /*r_sparse=*/0.01, /*r_dense=*/0.10);
+
+    const double full = (full_window ? (2.0 * adaptive_quantile_res.blended) : adaptive_quantile_res.blended) * padding_factor;
+
+    OPENMS_LOG_DEBUG
+      << "[estimateWindow] n=" << diffs.size()
+      << " q=" << quantile
+      << " half_raw=" << adaptive_quantile_res.half_raw
+      << " half_rob=" << adaptive_quantile_res.half_rob
+      << " UF=" << adaptive_quantile_res.upper_fence
+      << " tail_frac=" << adaptive_quantile_res.tail_fraction
+      << " => half_adapt=" << adaptive_quantile_res.blended
+      << " full=" << full
+      << " invert=" << (invert ? "true" : "false")
+      << std::endl;
+
+    return full;
+  }
+
 
 } // end of namespace OpenMS

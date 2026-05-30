@@ -31,7 +31,7 @@ namespace OpenMS
     precursor_(),
     product_(),
     data_processing_(),
-    type_(MASS_CHROMATOGRAM)
+    type_(ChromatogramType::MASS_CHROMATOGRAM)
   {
   }
 
@@ -183,7 +183,7 @@ namespace OpenMS
     return data_processing_;
   }
 
-  const std::vector< boost::shared_ptr<const DataProcessing > > ChromatogramSettings::getDataProcessing() const 
+  const std::vector< std::shared_ptr<const DataProcessing > > ChromatogramSettings::getDataProcessing() const 
   {
     return OpenMS::Helpers::constifyPointerVector(data_processing_);
   }

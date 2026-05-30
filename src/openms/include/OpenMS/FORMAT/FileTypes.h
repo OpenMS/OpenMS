@@ -62,6 +62,7 @@ namespace OpenMS
       HARDKLOER,          ///< hardkloer file (.hardkloer)
       KROENIK,            ///< kroenik file (.kroenik)
       FASTA,              ///< FASTA file (.fasta)
+      PEFF,               ///< PEFF file (.peff)
       EDTA,               ///< enhanced comma separated files (RT, m/z, Intensity, [meta])
       CSV,                ///< general comma separated files format (might also be tab or space separated!!!), data should be regular, i.e. matrix form
       TXT,                ///< any text format, which has only loose definition of what it actually contains -- thus it is usually hard to say where the file actually came from (e.g. PepNovo).
@@ -73,6 +74,9 @@ namespace OpenMS
       MRM,                ///< SpectraST MRM List
       SQMASS,             ///< SqLite format for mass and chromatograms, see SqMassFile
       PQP,                ///< OpenSWATH Peptide Query Parameter (PQP) SQLite DB, see TransitionPQPFile
+      CHROMPARQUET,       ///< OpenSWATH Parquet chromatogram output (.xic)
+      MOBILPARQUET,       ///< OpenSWATH Parquet mobilogram output (.xim)
+      OSWPQ,              ///< OpenSWATH Parquet bundle (.oswpq) for library and/or feature output
       MS,                 ///< SIRIUS file format (.ms)
       OSW,                ///< OpenSWATH OpenSWATH report (OSW) SQLite DB
       PSMS,               ///< Percolator tab-delimited output (PSM level)
@@ -89,7 +93,12 @@ namespace OpenMS
       XML,                ///< any XML format
       BZ2,                ///< any BZ2 compressed file
       GZ,                 ///< any Gzipped file
+      ZIP,                ///< any ZIP compressed file
       PARQUET,            ///< Apache Parquet file format (.parquet, .pqt)
+      IDPARQUET,          ///< OpenMS internal identification parquet bundle (directory: psms.parquet + proteins.parquet + protein_groups.parquet + search_params.parquet)
+      FEATUREPARQUET,     ///< OpenMS internal feature map parquet bundle (directory: features.parquet + psms.parquet + proteins.parquet + protein_groups.parquet + search_params.parquet)
+      CONSENSUSPARQUET,   ///< OpenMS internal consensus map parquet bundle (directory: consensus_features.parquet + psms.parquet + proteins.parquet + protein_groups.parquet + search_params.parquet)
+      BRUKER_TDF,         ///< Bruker TimsTOF .d directory (TDF format)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 
@@ -117,12 +126,15 @@ namespace OpenMS
     /// MZML becomes "mzML raw data file", but FEATUREXML becomes "OpenMS feature map"
     static String typeToDescription(Type type);
     
-    /// Converts a file type name into a Type 
-    /// @param name A case-insensitive name (e.g. FASTA or Fasta, etc.)
+    /// Converts a file type name into a Type
+    /// @param[in] name A case-insensitive name (e.g. FASTA or Fasta, etc.)
     static Type nameToType(const String& name);
 
     /// Returns the mzML name (TODO: switch to accession since they are more stable!)
     static String typeToMZML(Type type);
+
+    /// Returns true if @p type represents a directory-shaped format (e.g. BRUKER_TDF, IDPARQUET, FEATUREPARQUET, CONSENSUSPARQUET).
+    static bool isDirectoryType(Type type);
   };
 
  enum class FilterLayout
@@ -151,8 +163,8 @@ namespace OpenMS
 
     /// converts the array into a Qt-compatible filter for selecting files in a user dialog.
     /// e.g. "all readable files (*.mzML *.mzXML);;". See Filter enum.
-    /// @param style Create a combined filter, or single filters, or both
-    /// @param add_all_filter Add 'all files (*)' as a single filter at the end?
+    /// @param[in] style Create a combined filter, or single filters, or both
+    /// @param[in] add_all_filter Add 'all files (*)' as a single filter at the end?
     String toFileDialogFilter(const FilterLayout style, bool add_all_filter) const;
 
     /**
@@ -164,8 +176,8 @@ namespace OpenMS
 
       If the type is UNKNOWN, then the fallback is returned (by default also UNKNOWN). This is useful if you want a default type to fall back to.
 
-      @param filter The filter returned by 'QFileDialog::getSaveFileName' and others, i.e. an item from the result of 'toFileDialogFilter'.
-      @param fallback If the filter is ambiguous, return this type instead
+      @param[in] filter The filter returned by 'QFileDialog::getSaveFileName' and others, i.e. an item from the result of 'toFileDialogFilter'.
+      @param[in] fallback If the filter is ambiguous, return this type instead
       @return The type associated to the filter or the fallback
       @throw Exception::ElementNotFound if the given @p filter is not a filter produced by toFileDialogFilter()
     **/
@@ -175,8 +187,8 @@ namespace OpenMS
     /**
       @brief Get a std::vector<FileTypes::Type> with all fileTypes that support a set of features.
 
-      
-      @param features A set of features that must be supported
+
+      @param[in] features A set of features that must be supported
       @return A std::vector<FileTypes::Type> with the files that support features
     **/
     static std::vector<FileTypes::Type> typesWithProperties(const std::vector<FileTypes::FileProperties> features);
@@ -189,12 +201,11 @@ namespace OpenMS
       std::vector<FileTypes::Type> types;
     };
     /// creates Qt filters and the corresponding elements from type_list_
-    /// @param style Create a combined filter, or single filters, or both
-    /// @param add_all_filter Add 'all files (*)' as a single filter at the end?
+    /// @param[in] style Create a combined filter, or single filters, or both
+    /// @param[in] add_all_filter Add 'all files (*)' as a single filter at the end?
     FilterElements_ asFilterElements_(const FilterLayout style, bool add_all_filter) const;
 
     std::vector<FileTypes::Type> type_list_;
   };
 
 } // namespace OpenMS
-

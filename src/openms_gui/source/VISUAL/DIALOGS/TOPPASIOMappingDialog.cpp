@@ -24,6 +24,7 @@
 #include <iostream>
 #include <sstream>
 #include <OpenMS/VISUAL/TOPPASOutputFolderVertex.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 namespace OpenMS
 {
@@ -103,7 +104,7 @@ namespace OpenMS
         if (info.type != TOPPASToolVertex::IOInfo::IOT_DIR) continue;
 
         String item_name = "Directory: " + info.param_name + " ";
-        ui_->source_combo->addItem(item_name.toQString(), source_output_dirs.indexOf(info));
+        ui_->source_combo->addItem(toQString(item_name), source_output_dirs.indexOf(info));
       }
       if (ui_->source_combo->count() == 1) // no directories found; return empty to signal invalid edge
       {
@@ -114,17 +115,17 @@ namespace OpenMS
     else if (source_tool)
     {
       QVector<TOPPASToolVertex::IOInfo> source_output_files = source_tool->getOutputParameters();
-      ui_->source_label->setText(source_tool->getName().toQString());
+      ui_->source_label->setText(toQString(source_tool->getName()));
       if (!source_tool->getType().empty())
       {
-        ui_->source_type_label->setText("(" + source_tool->getType().toQString() + ")");
+        ui_->source_type_label->setText("(" + toQString(source_tool->getType()) + ")");
       }
       else
       {
         ui_->source_type_label->setVisible(false);
       }
       ui_->source_combo->addItem("<select>");
-      for (TOPPASToolVertex::IOInfo info : source_output_files)
+      for (const TOPPASToolVertex::IOInfo& info : source_output_files)
       {
         if (info.type == TOPPASToolVertex::IOInfo::IOT_DIR) continue;
         String item_name;
@@ -142,7 +143,7 @@ namespace OpenMS
         ss << info.valid_types;
         item_name += ss.str();
 
-        ui_->source_combo->addItem(item_name.toQString(), source_output_files.indexOf(info));
+        ui_->source_combo->addItem(toQString(item_name), source_output_files.indexOf(info));
       }
     }
     else if (source_list || source_merger || source_splitter)
@@ -167,17 +168,17 @@ namespace OpenMS
     if (target_tool)
     {
       QVector<TOPPASToolVertex::IOInfo> target_input_files = target_tool->getInputParameters();
-      ui_->target_label->setText(target_tool->getName().toQString());
+      ui_->target_label->setText(toQString(target_tool->getName()));
       if (!target_tool->getType().empty())
       {
-        ui_->target_type_label->setText("(" + target_tool->getType().toQString() + ")");
+        ui_->target_type_label->setText("(" + toQString(target_tool->getType()) + ")");
       }
       else
       {
         ui_->target_type_label->setVisible(false);
       }
       ui_->target_combo->addItem("<select>");
-      for (TOPPASToolVertex::IOInfo info : target_input_files)
+      for (const TOPPASToolVertex::IOInfo& info : target_input_files)
       {
         // check if parameter occupied by another edge already
         bool occupied = false;
@@ -213,7 +214,7 @@ namespace OpenMS
         ss << info.valid_types;
         item_name += ss.str();
 
-        ui_->target_combo->addItem(item_name.toQString(), target_input_files.indexOf(info));
+        ui_->target_combo->addItem(toQString(item_name), target_input_files.indexOf(info));
       }
     }
     else if (target_list || target_dir || target_merger || target_splitter)

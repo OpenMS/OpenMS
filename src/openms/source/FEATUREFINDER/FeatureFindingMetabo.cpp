@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Erhan Kenar, Holger Franken $
+// $Authors: Erhan Kenar, Holger Franken, Mohammed Alhigaylan $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FEATUREFINDER/FeatureFindingMetabo.h>
@@ -15,6 +15,7 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
 #include <fstream>
 
 #include <boost/dynamic_bitset.hpp>
@@ -120,7 +121,7 @@ namespace OpenMS
       }
       chromatogram.setNativeID(String(feature_id) + "_" + String(mt_idx));
       chromatogram.setName(String(feature_id) + "_" + String(mt_idx));
-      chromatogram.setChromatogramType(ChromatogramSettings::BASEPEAK_CHROMATOGRAM);
+      chromatogram.setChromatogramType(ChromatogramSettings::ChromatogramType::BASEPEAK_CHROMATOGRAM);
       chromatogram.setPrecursor(prec);
       chromatogram.sortByPosition();
 
@@ -198,6 +199,17 @@ namespace OpenMS
     return tmp;
   }
 
+  /// formulate a feature with meta values containing MassTrace IM values
+  std::vector<double> FeatureHypothesis::getAllCentroidIM() const
+  {
+    std::vector<double> tmp;
+    for (Size i = 0; i < iso_pattern_.size(); ++i)
+    {
+      tmp.push_back(iso_pattern_[i]->getCentroidIM());
+    }
+    return tmp;
+  }
+
   std::vector<double> FeatureHypothesis::getIsotopeDistances() const
   {
     std::vector<double> tmp;
@@ -248,6 +260,7 @@ namespace OpenMS
     DefaultParamHandler("FeatureFindingMetabo"), ProgressLogger()
   {
     defaults_.setValue("local_rt_range", 10.0, "RT range where to look for coeluting mass traces", {"advanced"}); // 5.0
+    defaults_.setValue("local_im_range", 0.02, "IM range where to look for coeluting mass traces", {"advanced"});
     defaults_.setValue("local_mz_range", 6.5, "MZ range where to look for isotopic mass traces", {"advanced"}); // 6.5
     defaults_.setValue("charge_lower_bound", 1, "Lowest charge state to consider"); // 1
     defaults_.setValue("charge_upper_bound", 3, "Highest charge state to consider"); // 3
@@ -298,6 +311,7 @@ namespace OpenMS
   void FeatureFindingMetabo::updateMembers_()
   {
     local_rt_range_ = (double)param_.getValue("local_rt_range");
+    local_im_range_ = (double)param_.getValue("local_im_range");
     local_mz_range_ = (double)param_.getValue("local_mz_range");
     chrom_fwhm_ = (double)param_.getValue("chrom_fwhm");
 
@@ -312,7 +326,7 @@ namespace OpenMS
     bool use_smoothed = param_.getValue("use_smoothed_intensities").toBool();
     bool report_smoothed = param_.getValue("report_smoothed_intensities").toBool();
     if (report_smoothed && !use_smoothed) {
-      OPENMS_LOG_WARN << "Warning: 'report_smoothed_intensities' is set to true, but 'use_smoothed_intensities' is false. Ignoring 'report_smoothed_intensities'." << std::endl;
+      OPENMS_LOG_WARN << "Warning: 'report_smoothed_intensities' is set to true, but 'use_smoothed_intensities' is false. Ignoring 'report_smoothed_intensities'.\n";
       report_smoothed = false;
     }
     use_smoothed_intensities_ = use_smoothed;
@@ -346,7 +360,7 @@ namespace OpenMS
     auto isodist = solver.estimateFromPeptideWeight(mol_weight);
     // isodist.renormalize();
 
-    IsotopeDistribution::ContainerType averagine_dist = isodist.getContainer();
+    const IsotopeDistribution::ContainerType& averagine_dist = isodist.getContainer();
     double max_int(0.0), theo_max_int(0.0);
     for (Size i = 0; i < hypo_ints.size(); ++i)
     {
@@ -434,17 +448,17 @@ namespace OpenMS
     nodes[FEAT_NUM].value = 0;
 
     // debug output
-    //    std::cout << "isocheck for " << feat_hypo.getLabel() << " " << feat_hypo.getSize() << std::endl;
+    //    std::cout << "isocheck for " << feat_hypo.getLabel() << " " << feat_hypo.getSize() << '\n';
     //    for (Size i = 0; i < FEAT_NUM + 1; ++i)
     //    {
-    //        std::cout << "idx: " << nodes[i].index << " val: " << nodes[i].value << std::endl;
+    //        std::cout << "idx: " << nodes[i].index << " val: " << nodes[i].value << '\n';
     //    }
 
     // Use SVM model to predict the category in which the current trace group
     // belongs ...
     double predict = svm_predict(isotope_filt_svm_, nodes);
 
-    // std::cout << "predict: " << predict << std::endl;
+    // std::cout << "predict: " << predict << '\n';
     delete[] nodes;
 
     return (predict == 2.0) ? 1 : 0;
@@ -554,7 +568,7 @@ namespace OpenMS
     //standard deviation including the estimated isotope deviation
     double score_sigma(std::sqrt(std::exp(2 * std::log(sd)) + mt_variances));
 
-    // std::cout << std::setprecision(15) << "old " << score_sigma_old << " new " << score_sigma << std::endl;
+    // std::cout << std::setprecision(15) << "old " << score_sigma_old << " new " << score_sigma << '\n';
 
     if ((diff_mz < mu + sigma_mult * score_sigma) && (diff_mz > mu - sigma_mult * score_sigma))
     {
@@ -614,8 +628,8 @@ namespace OpenMS
     std::pair<Size, Size> tr1_fwhm_idx(tr1.getFWHMborders());
     std::pair<Size, Size> tr2_fwhm_idx(tr2.getFWHMborders());
 
-    //    std::cout << tr1_fwhm_idx.first << " " << tr1_fwhm_idx.second << std::endl;
-    //    std::cout << tr2_fwhm_idx.first << " " << tr2_fwhm_idx.second << std::endl;
+    //    std::cout << tr1_fwhm_idx.first << " " << tr1_fwhm_idx.second << '\n';
+    //    std::cout << tr2_fwhm_idx.first << " " << tr2_fwhm_idx.second << '\n';
 
     //    Size tr1_fwhm_size(tr1_fwhm_idx.second - tr1_fwhm_idx.first);
     //    Size tr2_fwhm_size(tr2_fwhm_idx.second - tr2_fwhm_idx.first);
@@ -626,7 +640,7 @@ namespace OpenMS
     double tr2_length(tr2.getFWHM());
     double max_length = (tr1_length > tr2_length) ? tr1_length : tr2_length;
 
-    // std::cout << "tr1 " << tr1_length << " tr2 " << tr2_length << std::endl;
+    // std::cout << "tr1 " << tr1_length << " tr2 " << tr2_length << '\n';
 
     // Extract peak shape between FWHM borders for both peaks
     for (Size i = tr1_fwhm_idx.first; i <= tr1_fwhm_idx.second; ++i)
@@ -777,7 +791,7 @@ namespace OpenMS
 
 #ifdef FFM_DEBUG
           std::cout << "scoring " << candidates[0]->getLabel() << " " << candidates[0]->getCentroidMZ() << 
-            " with " << candidates[mt_idx]->getLabel() << " " << candidates[mt_idx]->getCentroidMZ() << std::endl;
+            " with " << candidates[mt_idx]->getLabel() << " " << candidates[mt_idx]->getCentroidMZ() << '\n';
 #endif
 
           // Score current mass trace candidates against hypothesis
@@ -798,7 +812,7 @@ namespace OpenMS
 #ifdef FFM_DEBUG
           std::cout << fh_tmp.getLabel() << "_" << candidates[mt_idx]->getLabel() << 
             "\t" << "ch: " << charge << " isopos: " << iso_pos << " rt: " << 
-            rt_score << "mz: " << mz_score << "int: " << int_score << std::endl;
+            rt_score << "mz: " << mz_score << "int: " << int_score << '\n';
 #endif
 
           double total_pair_score(0.0);
@@ -839,7 +853,7 @@ namespace OpenMS
       } // end for iso_pos
 
 #ifdef FFM_DEBUG
-      std::cout << "best found for ch " << charge << ":" << fh_tmp.getLabel() << " score: " << fh_tmp.getScore() << std::endl;
+      std::cout << "best found for ch " << charge << ":" << fh_tmp.getLabel() << " score: " << fh_tmp.getScore() << '\n';
 #endif
     } // end for charge
   } // end of findLocalFeatures_(...)
@@ -851,17 +865,21 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "Isotope filtering is not supported, when using the mz scoring by elements.\n"
                       << "The parameter isotope_filtering_model will be set to 'none'."
-                      << std::endl;
+                      << '\n';
       isotope_filtering_model_ = "none";
     }
 
     output_featmap.clear();
     output_chromatograms.clear();
 
-    if (input_mtraces.empty()) 
+    if (input_mtraces.empty())
     {
       return;
     }
+
+    // Detect whether the input mass traces contain ion mobility data.
+    has_im_data_ = std::any_of(input_mtraces.begin(), input_mtraces.end(),
+      [](const MassTrace& mt) { return mt.containsIMData(); });
 
     // mass traces must be sorted by their centroid MZ
     std::sort(input_mtraces.begin(), input_mtraces.end(), CmpMassTraceByMZ());
@@ -873,12 +891,12 @@ namespace OpenMS
     // *********************************************************** //
     if (isotope_filtering_model_ == "metabolites (2% RMS)")
     {
-      OPENMS_LOG_INFO << "Loading metabolite isotope model with 2% RMS error" << std::endl;
+      OPENMS_LOG_INFO << "Loading metabolite isotope model with 2% RMS error\n";
       loadIsotopeModel_("MetaboliteIsoModelNoised2");
     }
     else if (isotope_filtering_model_ == "metabolites (5% RMS)")
     {
-      OPENMS_LOG_INFO << "Loading metabolite isotope model with 5% RMS error" << std::endl;
+      OPENMS_LOG_INFO << "Loading metabolite isotope model with 5% RMS error\n";
       loadIsotopeModel_("MetaboliteIsoModelNoised5");
     }
 
@@ -921,9 +939,9 @@ namespace OpenMS
           break;
         }
         double diff_rt = std::fabs(input_mtraces[ext_idx].getCentroidRT() - ref_trace_rt);
-        if (diff_rt <= local_rt_range_)
+        if (diff_rt <= local_rt_range_
+            && (!has_im_data_ || std::fabs(input_mtraces[ext_idx].getCentroidIM() - input_mtraces[i].getCentroidIM()) <= local_im_range_))
         {
-          // std::cout << " accepted!" << std::endl;
           local_traces.push_back(&input_mtraces[ext_idx]);
         }
       }
@@ -935,13 +953,13 @@ namespace OpenMS
     std::sort(feat_hypos.begin(), feat_hypos.end(), CmpHypothesesByScore());
 
 #ifdef FFM_DEBUG
-    std::cout << "size of hypotheses: " << feat_hypos.size() << std::endl;
+    std::cout << "size of hypotheses: " << feat_hypos.size() << '\n';
     // output all hypotheses:
     for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++ hypo_idx)
     {
       bool legal = isLegalIsotopePattern_(feat_hypos[hypo_idx]) > 0;
       std::cout << feat_hypos[hypo_idx].getLabel() << " ch: " << feat_hypos[hypo_idx].getCharge() << 
-        " score: " << feat_hypos[hypo_idx].getScore() << " legal: " << legal << std::endl;
+        " score: " << feat_hypos[hypo_idx].getScore() << " legal: " << legal << '\n';
     }
 #endif
 
@@ -953,7 +971,7 @@ namespace OpenMS
     std::map<String, bool> trace_excl_map;
     for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++hypo_idx)
     {
-      // std::cout << "score now: " <<  feat_hypos[hypo_idx].getScore() << std::endl;
+      // std::cout << "score now: " <<  feat_hypos[hypo_idx].getScore() << '\n';
       std::vector<String> labels(feat_hypos[hypo_idx].getLabels());
       bool trace_coll = false;   // trace collision?
       for (Size lab_idx = 0; lab_idx < labels.size(); ++lab_idx)
@@ -970,12 +988,12 @@ namespace OpenMS
       {
         std::cout << "check for collision: " << trace_coll << " " << 
           feat_hypos[hypo_idx].getLabel() << " " << isLegalIsotopePattern_(feat_hypos[hypo_idx]) << 
-          " " << feat_hypos[hypo_idx].getScore() << std::endl;
+          " " << feat_hypos[hypo_idx].getScore() << '\n';
       }
 #endif
 
       // Skip hypotheses that contain a mass trace that has already been used
-      if (trace_coll) 
+      if (trace_coll)
       {
         continue;
       }
@@ -989,7 +1007,7 @@ namespace OpenMS
         pass_isotope_filter = isLegalIsotopePattern_(feat_hypos[hypo_idx]);
       }
     
-      // std::cout << "\nlegal iso? " << feat_hypos[hypo_idx].getLabel() << " score: " << feat_hypos[hypo_idx].getScore() << " " << result << std::endl;
+      // std::cout << "\nlegal iso? " << feat_hypos[hypo_idx].getLabel() << " score: " << feat_hypos[hypo_idx].getScore() << " " << result << '\n';
 
       if (pass_isotope_filter == 0) // not passing filter
       {
@@ -1018,7 +1036,7 @@ namespace OpenMS
       {
         f.setIntensity(feat_hypos[hypo_idx].getMonoisotopicFeatureIntensity(report_smoothed_intensities_));
       }
-      
+
       f.setWidth(feat_hypos[hypo_idx].getFWHM());
       f.setCharge(feat_hypos[hypo_idx].getCharge());
       f.setMetaValue(3, feat_hypos[hypo_idx].getLabel());
@@ -1031,7 +1049,8 @@ namespace OpenMS
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
       f.setMetaValue("masstrace_intensity", all_ints);
       f.setMetaValue("masstrace_centroid_rt", feat_hypos[hypo_idx].getAllCentroidRT());
-      f.setMetaValue("masstrace_centroid_mz", feat_hypos[hypo_idx].getAllCentroidMZ());;
+      f.setMetaValue("masstrace_centroid_mz", feat_hypos[hypo_idx].getAllCentroidMZ());
+      if (has_im_data_) f.setMetaValue("masstrace_centroid_im", feat_hypos[hypo_idx].getAllCentroidIM());
       f.setMetaValue("isotope_distances", feat_hypos[hypo_idx].getIsotopeDistances());
       f.setMetaValue("legal_isotope_pattern", pass_isotope_filter);
       f.applyMemberFunction(&UniqueIdInterface::setUniqueId);

@@ -1,0 +1,15 @@
+# PEFF 1.0
+# //
+# DbName=TestDB
+# Prefix=test
+# DbDescription=Test database for CustomKeyDef usage
+# Decoy=false
+# DbSource=https://example.com/testdb
+# DbVersion=1.0
+# NumberOfEntries=1
+# SequenceType=AA
+# CustomKeyDef=(KeyName=SecondaryStructure|Description="Secondary structure information"|ConceptCURIE=BAO:0000014|FieldNames=StartPosition,EndPosition,CURIE,Description,OptionalTag|FieldTypes=integer,integer,string,string,string)
+# CustomKeyDef=(KeyName=EnumTest|Description="Enumeration test"|FieldNames=Kind|FieldTypes=enumeration(alpha|beta|gamma))
+# //
+>test:P00001 \PName=(Minimal Test) \SecondaryStructure=(1|2|ncithesaurus:C47937|Helix|Abcg2\|meta\\x10) \EnumTest=alpha
+SEQUENCE

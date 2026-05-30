@@ -11,6 +11,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/DataProcessing.h>
@@ -122,11 +123,11 @@ namespace OpenMS::Internal
          << "db=\"" << writeXMLEscape(search_param.db) << "\" "
          << "db_version=\"" << writeXMLEscape(search_param.db_version) << "\" "
          << "taxonomy=\"" << writeXMLEscape(search_param.taxonomy) << "\" ";
-      if (search_param.mass_type == ProteinIdentification::MONOISOTOPIC)
+      if (search_param.mass_type == ProteinIdentification::PeakMassType::MONOISOTOPIC)
       {
         os << "mass_type=\"monoisotopic\" ";
       }
-      else if (search_param.mass_type == ProteinIdentification::AVERAGE)
+      else if (search_param.mass_type == ProteinIdentification::PeakMassType::AVERAGE)
       {
         os << "mass_type=\"average\" ";
       }
@@ -474,11 +475,11 @@ namespace OpenMS::Internal
       String mass_type = attributeAsString_(attributes, "mass_type");
       if (mass_type == "monoisotopic")
       {
-        search_param_.mass_type = ProteinIdentification::MONOISOTOPIC;
+        search_param_.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
       }
       else if (mass_type == "average")
       {
-        search_param_.mass_type = ProteinIdentification::AVERAGE;
+        search_param_.mass_type = ProteinIdentification::PeakMassType::AVERAGE;
       }
       //enzyme
       String enzyme;
@@ -896,7 +897,7 @@ namespace OpenMS::Internal
     os << indent << "\t\t\t<charge>" << feat.getCharge() << "</charge>\n";
 
     // write convex hull
-    vector<ConvexHull2D> hulls = feat.getConvexHulls();
+    const vector<ConvexHull2D>& hulls = feat.getConvexHulls();
 
     Size hulls_count = hulls.size();
 

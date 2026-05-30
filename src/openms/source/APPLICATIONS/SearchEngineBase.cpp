@@ -11,6 +11,8 @@
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -75,6 +77,9 @@ namespace OpenMS
       case FileTypes::MGF:
         // no warning required. MGF files should be centroided by definition
         break;
+      case FileTypes::BRUKER_TDF:
+        // no warning required. TimsTOF data is inherently centroided
+        break;
       default:
         OPENMS_LOG_WARN << "Warning: make sure that MS" << ms_level << " spectra in '" << inputfile_name << "' are centroided. Otherwise the results may be undefined!";
     }
@@ -105,20 +110,20 @@ namespace OpenMS
       
       Param param_pi = indexer.getParameters();
       // copy search engine specific default parameter for peptide indexing into param_pi
-      param_pi.update(param, false, false, false, false, OpenMS_Log_debug); // suppress param. update message
+      param_pi.update(param, false, false, false, false, getGlobalLogDebug()); // suppress param. update message
       indexer.setParameters(param_pi);
       indexer.setLogType(this->log_type_);
       FASTAContainer<TFI_File> proteins(getDBFilename());
       PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, protein_identifications, peptide_identifications);
 
-      if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
-          (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+      if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
+          (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
       {
-        if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+        if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY)
         {
-          return INPUT_FILE_EMPTY;       
+          return INPUT_FILE_EMPTY;
         }
-        else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+        else if (indexer_exit == PeptideIndexing::ExitCodes::UNEXPECTED_RESULT)
         {
           return UNEXPECTED_RESULT;
         }

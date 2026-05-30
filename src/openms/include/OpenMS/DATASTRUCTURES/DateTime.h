@@ -9,17 +9,15 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <memory> // unique_ptr
+#include <functional>
 #include <string>
-
-// foward declarations
-class QDateTime; 
 
 namespace OpenMS
 {
-  class String;
 
   /**
       @brief DateTime Class.
@@ -41,19 +39,19 @@ public:
     DateTime();
 
     /// Copy constructor
-    DateTime(const DateTime& date);
+    DateTime(const DateTime& date) = default;
 
     /// Move constructor
-    DateTime(DateTime&&) noexcept;
+    DateTime(DateTime&&) noexcept = default;
 
     /// Assignment operator
-    DateTime& operator=(const DateTime& source);
+    DateTime& operator=(const DateTime& source) = default;
 
     /// Move assignment operator
-    DateTime& operator=(DateTime&&) & noexcept;
+    DateTime& operator=(DateTime&&) & noexcept = default;
 
     /// Destructor
-    ~DateTime();
+    ~DateTime() = default;
 
     /// equal operator
     bool operator==(const DateTime& rhs) const;
@@ -137,7 +135,7 @@ public:
     */
     void getTime(UInt& hour, UInt& minute, UInt& second) const;
 
-    // add @param s seconds to date time
+    // add @param[in] s seconds to date time
     DateTime& addSecs(int s);
 
     /**
@@ -150,6 +148,9 @@ public:
     /// Returns the current date and time
     static DateTime now();
 
+    /// Returns the current date and time in UTC
+    static DateTime nowUTC();
+
     /// Returns true if the date time is valid
     bool isValid() const;
 
@@ -160,12 +161,12 @@ public:
     void clear();
 
     /* @brief Returns a string representation of the DateTime object.
-       @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
+       @param[in] format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
 	  */
 	  String toString(const std::string& format = "yyyy-MM-ddThh:mm:ss") const;
 
     /* @brief Creates a DateTime object from string representation.
-       @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
+       @param[in] format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
 	  */
       static DateTime fromString(const std::string& date, const std::string& format = "yyyy-MM-ddThh:mm:ss");
 
@@ -192,7 +193,26 @@ public:
       void set(const String& date);
 
     private:
-      std::unique_ptr<QDateTime> dt_; // use PImpl, to avoid costly #include
+      struct Fields {
+        int year = 0, month = 0, day = 0;
+        int hour = 0, minute = 0, second = 0, millisecond = 0;
+        bool valid = false;
+      } fields_;
   };
 
-} // namespace OPENMS
+} // namespace OpenMS
+
+// Hash function specialization for DateTime
+namespace std
+{
+  template<>
+  struct hash<OpenMS::DateTime>
+  {
+    std::size_t operator()(const OpenMS::DateTime& dt) const noexcept
+    {
+      // Hash the date/time components including milliseconds to match operator==
+      std::string datetime_str = dt.toString("yyyy-MM-ddThh:mm:ss.zzz");
+      return OpenMS::fnv1a_hash_string(datetime_str);
+    }
+  };
+} // namespace std

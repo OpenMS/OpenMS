@@ -8,15 +8,10 @@ include(GNUInstallDirs)
 # List all TOPP tools
 set(executables ${TOPP_TOOLS})
 
-# Tools that can't export proper CWL files
-list(REMOVE_ITEM executables
-  GenericWrapper # External tool wrapper, would need information about the external tools
-)
-
-# Ensure cwltool is installed
+# Try to find cwltool for validation (optional)
 find_program(CWLTOOL_EXECUTABLE cwltool)
 if(NOT CWLTOOL_EXECUTABLE)
-  message(FATAL_ERROR "cwltool not found. Please install cwltool to validate CWL files.")
+  message(WARNING "cwltool not found. CWL file validation will be skipped.")
 endif()
 
 # Create a custom target
@@ -34,11 +29,13 @@ foreach(TOOL ${executables})
     TARGET  generate_cwl_files POST_BUILD
     COMMAND ${OPENMS_BINARY_DIR}/${TOOL} -write_cwl ${OPENMS_SHARE_DIR}/commonwl
   )
-  #add_custom_command(
-    #TARGET generate_cwl_files POST_BUILD
-    ##TODO: remove the no-warning flag
-    #COMMAND ${CWLTOOL_EXECUTABLE} --no-warning --validate ${OPENMS_SHARE_DIR}/commonwl/${TOOL}.cwl
-    #COMMENT "Validating ${CWL_FILE}"
-  #)
+  if(CWLTOOL_EXECUTABLE)
+    add_custom_command(
+      TARGET generate_cwl_files POST_BUILD
+      # TODO: remove the no-warning flag
+      COMMAND ${CWLTOOL_EXECUTABLE} --no-warning --validate ${OPENMS_SHARE_DIR}/commonwl/${TOOL}.cwl
+      COMMENT "Validating ${OPENMS_SHARE_DIR}/commonwl/${TOOL}.cwl"
+    )
+  endif()
 
 endforeach()

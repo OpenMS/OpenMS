@@ -10,6 +10,10 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/SYSTEM/File.h>
+
+#include <algorithm>
+#include <fstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -77,6 +81,8 @@ protected:
     setMinInt_("tab_width", 1);
     registerIntOption_("first_column", "<int>", 1, "number of first column, used for calculation of column numbers", false, false);
     setMinInt_("first_column", 0);
+    addEmptyLine_();
+    registerFlag_("sort", "sort the input files before comparison (useful for tabular files where row order may vary). The first line of each file is assumed to be a header and is not sorted.");
   }
 
   ExitCodes main_(int, const char **) override
@@ -95,6 +101,7 @@ protected:
     int verbose_level = getIntOption_("verbose");
     int tab_width = getIntOption_("tab_width");
     int first_column = getIntOption_("first_column");
+    bool do_sort = getFlag_("sort");
 
     // This is for debugging the parsing of whitelist_ from cmdline or ini file.  Converting StringList back to String is intentional.
     writeDebug_(String("whitelist: ") + String(whitelist) + " (size: " + whitelist.size() + ")", 1);
@@ -126,7 +133,70 @@ protected:
     fsc.setTabWidth(tab_width);
     fsc.setFirstColumn(first_column);
 
-    if (fsc.compareFiles(in1, in2))
+    // If sorting is requested, sort both files (keeping header) and write to temp files
+    String compare_in1 = in1;
+    String compare_in2 = in2;
+    String temp_file1, temp_file2;
+
+    if (do_sort)
+    {
+      auto sortFile = [](const String& input_file, String& output_file)
+      {
+        std::ifstream infile(input_file);
+        if (!infile)
+        {
+          throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, input_file);
+        }
+
+        std::string header;
+        std::vector<std::string> lines;
+
+        // Read header (first line)
+        if (std::getline(infile, header))
+        {
+          // Read remaining lines
+          std::string line;
+          while (std::getline(infile, line))
+          {
+            lines.push_back(line);
+          }
+        }
+        infile.close();
+
+        // Sort data lines
+        std::sort(lines.begin(), lines.end());
+
+        // Write to temp file
+        output_file = File::getTempDirectory() + "/" + File::basename(input_file) + ".sorted." + File::getUniqueName() + ".tmp";
+        std::ofstream outfile(output_file);
+        if (!outfile)
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, output_file);
+        }
+        outfile << header << "\n";
+        for (const auto& l : lines)
+        {
+          outfile << l << "\n";
+        }
+        outfile.close();
+      };
+
+      sortFile(in1, temp_file1);
+      sortFile(in2, temp_file2);
+      compare_in1 = temp_file1;
+      compare_in2 = temp_file2;
+    }
+
+    bool result = fsc.compareFiles(compare_in1, compare_in2);
+
+    // Clean up temp files
+    if (do_sort)
+    {
+      File::remove(temp_file1);
+      File::remove(temp_file2);
+    }
+
+    if (result)
     {
       return EXECUTION_OK;
     }

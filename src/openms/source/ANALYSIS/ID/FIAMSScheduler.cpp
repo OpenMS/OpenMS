@@ -11,8 +11,9 @@
 #include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <QDir>
+#include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS {
   /// default constructor
@@ -57,8 +58,7 @@ namespace OpenMS {
       Param p;
       p.setValue("filename", samples_[i].at("filename"));
       p.setValue("dir_output", output_dir_ + samples_[i].at("dir_output"));
-      QDir qd;
-      qd.mkpath(p.getValue("dir_output").toString().c_str());
+      File::makeDir(p.getValue("dir_output").toString());
       p.setValue("resolution", std::stof(samples_[i].at("resolution")));
       p.setValue("polarity", samples_[i].at("charge"));
       p.setValue("db:mapping", std::vector<std::string>{base_dir_ + samples_[i].at("db_mapping")});

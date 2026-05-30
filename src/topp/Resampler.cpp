@@ -9,12 +9,11 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/VISUAL/MultiGradient.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
-
-#include <QtGui/QImage>
 
 using namespace OpenMS;
 using namespace std;
@@ -102,11 +101,25 @@ protected:
 
     FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
+    // Check for unsupported per-peak ion mobility data
+    for (const auto& spec : exp)
+    {
+      IMFormat im_format = IMTypes::determineIMFormat(spec);
+      if (im_format == IMFormat::IM_PEAK)
+      {
+        OPENMS_LOG_ERROR << "Error: Input contains per-peak ion mobility data (IM_PEAK, "
+                         << imPeakTypeToString(spec.getIMPeakType())
+                         << ") which is not supported by Resampler. "
+                         << "Preprocess with IonMobilityBinning or PeakPickerIM first." << std::endl;
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+    }
+
     Param resampler_param;
     resampler_param.setValue("spacing", sampling_rate);
     resampler_param.setValue("ppm", ppm ? "true" : "false");
 
-    LinearResamplerAlign lin_resampler; // LinearResampler does not know about ppm!
+    LinearResamplerAlign lin_resampler;
     lin_resampler.setParameters(resampler_param);
     if (!align_sampling)
     {

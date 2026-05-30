@@ -57,9 +57,35 @@ option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
 option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
-option(WITH_PARQUET "Build Parquet parts of OpenMS." OFF)
-option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." ON)
+option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
+option(ENABLE_OPENTIMS_TESTS "Download Bruker test data for opentims integration tests" OFF)
+set(_openms_with_thermo_raw_default ON)
+# Thermo's RawFileReader does not ship native dependencies for Linux aarch64,
+# so the .NET runtime can build the bridge but throws a managed exception when
+# actually opening a RAW file. Default OFF on that platform.
+# macOS arm64 is natively supported as of openms-thermo-bridge v0.2.0.
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64$" AND UNIX AND NOT APPLE)
+  set(_openms_with_thermo_raw_default OFF)
+endif()
+option(WITH_THERMO_RAW "Build with Thermo RAW file reading support via openms-thermo-bridge" ${_openms_with_thermo_raw_default})
+option(ENABLE_THERMO_RAW_TESTS "Download Thermo RAW test data for integration tests" OFF)
+option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
+
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64$" AND UNIX AND NOT APPLE)
+  if(WITH_THERMO_RAW)
+    message(WARNING
+      "Thermo RAW support is disabled by default on Linux aarch64 because "
+      "Thermo RawFileReader native dependencies are not available there. You explicitly "
+      "enabled WITH_THERMO_RAW=ON. Please vote on https://github.com/thermofisherlsms/RawFileReader/issues/21 "
+      "and contact Thermo Fisher support by email if this support matters for your workflow.")
+  else()
+    message(STATUS
+      "Thermo RAW support defaults to OFF on Linux aarch64. Please vote on "
+      "https://github.com/thermofisherlsms/RawFileReader/issues/21 and contact Thermo Fisher "
+      "support by email if native support matters for your workflow.")
+  endif()
+endif()
 
 if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
     message(FATAL_ERROR "ENABLE_CWL_GENERATION requires ENABLE_TDL to be ON.")
@@ -69,6 +95,48 @@ if(MSVC)
   option(MT_ENABLE_NESTED_OPENMP "Enable nested parallelism." OFF)
 else()
   option(MT_ENABLE_NESTED_OPENMP "Enable nested parallelism." ON)
+endif()
+
+if (ENABLE_OPENTIMS_TESTS AND WITH_OPENTIMS)
+  include(FetchContent)
+  set(OPENTIMS_TESTDATA_URL "https://github.com/OpenMS/timsrust_cpp_bridge/releases/download/test-data-v1")
+  FetchContent_Declare(
+    opentims_testdata_dda
+    URL "${OPENTIMS_TESTDATA_URL}/DDA_HeLa_50ng_5_6min.d.zip"
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
+  FetchContent_Declare(
+    opentims_testdata_dia
+    URL "${OPENTIMS_TESTDATA_URL}/DIA_HeLa_50ng_5_6min.d.zip"
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
+  FetchContent_Declare(
+    opentims_testdata_fasta
+    URL "${OPENTIMS_TESTDATA_URL}/human_sp.fasta"
+    DOWNLOAD_NO_EXTRACT TRUE
+  )
+  FetchContent_MakeAvailable(opentims_testdata_dda opentims_testdata_dia opentims_testdata_fasta)
+  set(OPENTIMS_DDA_TEST_DATA "${opentims_testdata_dda_SOURCE_DIR}" CACHE PATH "Path to DDA test .d directory")
+  set(OPENTIMS_DIA_TEST_DATA "${opentims_testdata_dia_SOURCE_DIR}" CACHE PATH "Path to DIA test .d directory")
+  set(OPENTIMS_TEST_FASTA "${opentims_testdata_fasta_SOURCE_DIR}/human_sp.fasta" CACHE PATH "Path to human Swiss-Prot FASTA for search tests")
+endif()
+
+if (ENABLE_THERMO_RAW_TESTS AND WITH_THERMO_RAW)
+  include(FetchContent)
+  # Angiotensin_AllScans.raw from PNNL-Comp-Mass-Spec/Thermo-Raw-File-Reader
+  # (BSD-2-Clause, (c) 2018 Battelle Memorial Institute). Pinned to a specific
+  # commit for reproducibility. Contains 87 MS1 (FTMS Full ms) plus hundreds of
+  # MS2 scans with HCD and supplemental-activation (ETD+HCD, ETD+CID) filters
+  # at precursor m/z 432.9 — exercises the full activation-method switch in
+  # ThermoRawFile.cpp and MS1+MSn round-trip via mzML.
+  FetchContent_Declare(
+    thermo_raw_testdata
+    URL "https://raw.githubusercontent.com/PNNL-Comp-Mass-Spec/Thermo-Raw-File-Reader/1d8ff309f94704b850642374496c7ac28c491204/UnitTests/Docs/Angiotensin_AllScans.raw"
+    URL_HASH SHA256=3a0236f719e7c91e3c958f57f4e66ae422803ec3e6a997b9af4d2af395332b9f
+    DOWNLOAD_NO_EXTRACT TRUE
+  )
+  FetchContent_MakeAvailable(thermo_raw_testdata)
+  set(THERMO_RAW_TEST_DATA "${thermo_raw_testdata_SOURCE_DIR}/Angiotensin_AllScans.raw" CACHE PATH "Path to Thermo RAW test file")
 endif()
 
 #------------------------------------------------------------------------------
@@ -86,7 +154,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 #------------------------------------------------------------------------------
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "3")
-set(OPENMS_PACKAGE_VERSION_MINOR "5")
+set(OPENMS_PACKAGE_VERSION_MINOR "6")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 set(OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
 
@@ -306,16 +374,28 @@ set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_T
 message(STATUS "Package type is '${PACKAGE_TYPE}'")
 is_valid_package(${PACKAGE_TYPE})
 
-## Warn here because you need the signing identity before the app bundles are defined in the
-## src subfolder
+## macOS code signing and notarization configuration
+## Required for code signing:
+##   SIGNING_IDENTITY - Developer ID Application certificate identity (e.g., "Developer ID Application: Your Name (TEAMID)")
+## Required for notarization (in addition to signing):
+##   SIGNING_EMAIL - Apple ID email for notarization
+##   CPACK_PRODUCTBUILD_IDENTITY_NAME - Developer ID Installer certificate identity (for .pkg)
+##   APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD environment variable - App-specific password for notarization
 if("${PACKAGE_TYPE}" STREQUAL "dmg" OR "${PACKAGE_TYPE}" STREQUAL "pkg")
-  if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "" OR NOT DEFINED SIGNING_EMAIL OR "${SIGNING_EMAIL}" STREQUAL "")
-    message(WARNING "Trying to create macOS package/image without SIGNING_IDENTITY and SIGNING_EMAIL being set. "
-                    "Using ad hoc (https://developer.apple.com/documentation/security/seccodesignatureflags/adhoc) identity.")
+  if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "" OR "${SIGNING_IDENTITY}" STREQUAL "-")
+    message(WARNING "Trying to create macOS package/image without SIGNING_IDENTITY being set. "
+                    "Using ad hoc (https://developer.apple.com/documentation/security/seccodesignatureflags/adhoc) identity. "
+                    "The package will NOT be notarized and users may have trouble running it.")
     set(CPACK_BUNDLE_APPLE_CERT_APP "-")
   else()
     ## CPack has a special variable for the identity
     set(CPACK_BUNDLE_APPLE_CERT_APP "${SIGNING_IDENTITY}")
+    message(STATUS "Code signing identity: ${SIGNING_IDENTITY}")
+  endif()
+
+  ## Check notarization prerequisites (optional, only warns)
+  if (NOT DEFINED SIGNING_EMAIL OR "${SIGNING_EMAIL}" STREQUAL "")
+    message(STATUS "SIGNING_EMAIL not set. Notarization will be skipped.")
   endif()
 endif()
 

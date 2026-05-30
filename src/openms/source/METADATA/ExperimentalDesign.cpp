@@ -14,11 +14,9 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <QtCore/QString>
-#include <QtCore/QFileInfo>
 
 #include <algorithm>
 #include <iostream>
@@ -128,8 +126,10 @@ namespace OpenMS
         }
 
         msfile_section.push_back(r);
-        if (!sample_section.hasSample(r.sample))
-          sample_section.addSample(r.sample);
+        if (!sample_section.hasSample(r.sample_name))
+        {
+          sample_section.addSample(r.sample_name);
+        }
 
       }
 
@@ -268,8 +268,19 @@ namespace OpenMS
       for (MSFileSectionEntry const& r : msfile_section_)
       {
         const String path = String(r.path);
-        pair<String, unsigned> tpl = make_pair((basename ? File::basename(path) : path), r.label);
-        ret[tpl] = f(r);
+        const pair<String, unsigned> tpl = make_pair((basename ? File::basename(path) : path), r.label);
+        const unsigned mapped_value = f(r);
+        const auto [it, inserted] = ret.emplace(tpl, mapped_value);
+        if (!inserted && it->second != mapped_value)
+        {
+          const String key_type = basename ? "basename" : "path";
+          throw Exception::InvalidValue(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Ambiguous " + key_type + "+label mapping.",
+            "'" + tpl.first + "', label " + String(tpl.second));
+        }
       }
       return ret;
     }
@@ -605,7 +616,7 @@ namespace OpenMS
       for (const MSFileSectionEntry& row : msfile_section_)
       {
         const String path = String(row.path);
-        filenames.push_back(basename ? path : File::basename(path));
+        filenames.push_back(basename ? File::basename(path) : path);
       }
       return filenames;
     }
@@ -747,7 +758,7 @@ namespace OpenMS
         return bns.find(File::basename(e.path)) == bns.end();
       }), msfile_section_.end());
 
-      int diff = before - msfile_section_.size();
+      const Size diff = before - msfile_section_.size();
       if (diff > 0)
       {
         OPENMS_LOG_WARN << "Removed " << diff << " files from design to match given mzML/idXML subset." << std::endl;
@@ -758,7 +769,63 @@ namespace OpenMS
         OPENMS_LOG_FATAL_ERROR << "Given basename set does not overlap with design. Design would be empty." << std::endl;
       }
 
-      return (before - msfile_section_.size());
+      // Rebuild sample section and sample indices to stay consistent with the filtered MS file section.
+      vector<String> ordered_samples;
+      std::set<String> visited_samples;
+      for (const auto& row : msfile_section_)
+      {
+        if (visited_samples.insert(row.sample_name).second)
+        {
+          ordered_samples.push_back(row.sample_name);
+        }
+      }
+
+      vector<String> ordered_factors;
+      const auto factors = sample_section_.getFactors();
+      ordered_factors.reserve(factors.size());
+      for (const auto& factor : factors)
+      {
+        ordered_factors.push_back(factor);
+      }
+      std::sort(ordered_factors.begin(), ordered_factors.end(),
+        [this](const String& lhs, const String& rhs)
+        {
+          return sample_section_.getFactorColIdx(lhs) < sample_section_.getFactorColIdx(rhs);
+        });
+
+      std::map<String, Size> sample_to_rowindex;
+      std::vector<std::vector<String>> sample_content;
+      sample_content.reserve(ordered_samples.size());
+
+      std::map<String, Size> sample_columnname_to_columnindex;
+      for (Size idx = 0; idx < ordered_factors.size(); ++idx)
+      {
+        sample_columnname_to_columnindex[ordered_factors[idx]] = idx;
+      }
+
+      for (const auto& sample_name : ordered_samples)
+      {
+        sample_to_rowindex[sample_name] = sample_content.size();
+
+        std::vector<String> row_content(ordered_factors.size());
+        if (sample_section_.hasSample(sample_name))
+        {
+          for (Size idx = 0; idx < ordered_factors.size(); ++idx)
+          {
+            row_content[idx] = sample_section_.getFactorValue(sample_name, ordered_factors[idx]);
+          }
+        }
+        sample_content.push_back(std::move(row_content));
+      }
+
+      sample_section_ = SampleSection(sample_content, sample_to_rowindex, sample_columnname_to_columnindex);
+
+      for (auto& row : msfile_section_)
+      {
+        row.sample = sample_to_rowindex.at(row.sample_name);
+      }
+
+      return diff;
     }
 
     /* Implementations of SampleSection */

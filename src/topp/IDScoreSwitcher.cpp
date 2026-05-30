@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
@@ -30,7 +31,7 @@ In the idXML file format and in OpenMS' internal representation of identificatio
 
 By default this tool operates on PSM scores; to consider protein scores instead, set the @p proteins flag. The meta value that is supposed to replace the PSM/protein score - given by parameter @p new_score - has to be numeric (type "float") and exist for every peptide or protein hit, respectively. The old score will be stored as a meta value, the name for which is given by the parameter @p old_score. It is an error if a meta value with this name already exists for any hit, unless that meta value already stores the same score.
 
-@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML or idparquet using @ref TOPP_IDFileConverter if necessary.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_IDScoreSwitcher.cli
@@ -58,9 +59,9 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML,idparquet"));
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML,idparquet"));
     registerFullParam_(switcher_.getParameters());
   }
 
@@ -73,7 +74,8 @@ protected:
     vector<ProteinIdentification> proteins;
     PeptideIdentificationList peptides;
 
-    FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML});
+    const FileTypes::Type in_type = FileHandler::getType(in);
+    FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
     Size counter = 0;
     if (do_proteins_)
@@ -91,7 +93,7 @@ protected:
       }
     }
 
-    FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, proteins, peptides, {in_type == FileTypes::IDPARQUET ? FileTypes::IDPARQUET : FileTypes::IDXML});
 
     OPENMS_LOG_INFO << "Successfully switched " << counter << " "
              << (do_proteins_ ? "protein" : "PSM") << " scores." << endl;

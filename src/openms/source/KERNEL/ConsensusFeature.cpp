@@ -63,9 +63,11 @@ namespace OpenMS
 
   void ConsensusFeature::insert(FeatureHandle&& handle)
   {
+    auto map_index = handle.getMapIndex();
+    auto unique_id = handle.getUniqueId();
     if (!(handles_.insert(std::move(handle)).second))
     {
-      String key = String("map") + handle.getMapIndex() + "/feature" + handle.getUniqueId();
+      String key = String("map") + map_index + "/feature" + unique_id;
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The set already contained an element with this key.", key);
     }
   }
@@ -389,28 +391,28 @@ namespace OpenMS
   std::ostream& operator<<(std::ostream& os, const ConsensusFeature& cons)
   {
     os << "---------- CONSENSUS ELEMENT BEGIN -----------------\n";
-    os << "Position: " << cons.getPosition() << std::endl;
-    os << "Intensity " << precisionWrapper(cons.getIntensity()) << std::endl;
-    os << "Quality " << precisionWrapper(cons.getQuality()) << std::endl;
-    os << "Grouped features: " << std::endl;
+    os << "Position: " << cons.getPosition() << '\n';
+    os << "Intensity " << precisionWrapper(cons.getIntensity()) << '\n';
+    os << "Quality " << precisionWrapper(cons.getQuality()) << '\n';
+    os << "Grouped features: \n";
 
     for (ConsensusFeature::HandleSetType::const_iterator it = cons.begin(); it != cons.end(); ++it)
     {
-      os << " - Map index: " << it->getMapIndex() << std::endl
-         << "   Feature id: " << it->getUniqueId() << std::endl
-         << "   RT: " << precisionWrapper(it->getRT()) << std::endl
-         << "   m/z: " << precisionWrapper(it->getMZ()) << std::endl
-         << "   Intensity: " << precisionWrapper(it->getIntensity()) << std::endl;
+      os << " - Map index: " << it->getMapIndex() << '\n'
+         << "   Feature id: " << it->getUniqueId() << '\n'
+         << "   RT: " << precisionWrapper(it->getRT()) << '\n'
+         << "   m/z: " << precisionWrapper(it->getMZ()) << '\n'
+         << "   Intensity: " << precisionWrapper(it->getIntensity()) << '\n';
     }
 
-    os << "Meta information: " << std::endl;
+    os << "Meta information: \n";
     std::vector<String> keys;
     cons.getKeys(keys);
     for (const String& it : keys)
     {
-      os << "   " << (it) << ": " << cons.getMetaValue(it) << std::endl;
+      os << "   " << (it) << ": " << cons.getMetaValue(it) << '\n';
     }
-    os << "---------- CONSENSUS ELEMENT END ----------------- " << std::endl;
+    os << "---------- CONSENSUS ELEMENT END ----------------- \n";
 
     return os;
   }

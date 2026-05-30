@@ -57,8 +57,8 @@ namespace OpenMS
     /**
         @brief Computes the AScore and returns all computed phospho-sites. The saved sequences contain only phospho information. All other modifications are dropped due to simplicity.
 
-        @param	hit a PeptideHit
-        @param real_spectrum spectrum mapped to hit
+        @param[in] hit a PeptideHit
+        @param[in,out] real_spectrum spectrum mapped to hit
 
         @note the original sequence is saved in the PeptideHits as MetaValue Search_engine_sequence.
     */

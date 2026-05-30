@@ -84,12 +84,25 @@ function(openms_add_compiler_flags target_name)
   endif()
   
   # SIMD extensions (PUBLIC for binary compatibility)
-  if(MSVC AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}")
-    target_compile_options(${target_name} PUBLIC /arch:AVX)
-  elseif(NOT MSVC AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}")
+  # MSVC x64 defaults to SSE2 (128-bit); do NOT use /arch:AVX here because
+  # AVX's 256-bit reductions change Eigen's floating-point evaluation order
+  # vs the 128-bit paths used by GCC/Clang, causing cross-platform numeric
+  # divergence in sensitive algorithms (e.g. normalizedCrossCorrelation).
+  if(NOT MSVC AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}")
     target_compile_options(${target_name} PUBLIC -mssse3)
   endif()
-  
+
+  # When full OpenMP isn't available (typically Apple clang without libomp),
+  # multithreading.cmake sets OPENMS_OMP_SIMD_FALLBACK_FLAG to -fopenmp-simd
+  # so #pragma omp simd vectorization still works inside OpenMS. Applied PRIVATE:
+  # no installed public OpenMS header contains `#pragma omp simd`, so downstream
+  # consumers don't need this flag. Propagating it PUBLIC could break downstream
+  # builds whose compiler doesn't accept -fopenmp-simd.
+  # Not gated on architecture: -fopenmp-simd is useful on ARM too (NEON).
+  if(DEFINED OPENMS_OMP_SIMD_FALLBACK_FLAG)
+    target_compile_options(${target_name} PRIVATE ${OPENMS_OMP_SIMD_FALLBACK_FLAG})
+  endif()
+
   #------------------------------------------------------------------------------
   # PRIVATE flags (not propagated to dependent targets)
   #------------------------------------------------------------------------------
@@ -99,8 +112,9 @@ function(openms_add_compiler_flags target_name)
     target_compile_options(${target_name} PRIVATE
       -Wall -Wextra
       -Wno-unknown-pragmas
-
+      -ffp-contract=off
       -Wno-unused-function
+      -Wno-psabi
     )
     
     if(ENABLE_GCC_WERROR)

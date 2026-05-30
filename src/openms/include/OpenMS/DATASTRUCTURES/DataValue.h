@@ -12,9 +12,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/OpenMSConfig.h>
-
-class QString;
 
 namespace OpenMS
 {
@@ -75,8 +74,6 @@ public:
     DataValue(const std::string&);
     /// specific constructor for string values
     DataValue(const String&);
-    /// specific constructor for QString values
-    DataValue(const QString&);
     /// specific constructor for string lists
     DataValue(const StringList&);
     /// specific constructor for integer lists
@@ -301,8 +298,6 @@ public:
     DataValue& operator=(const std::string&);
     /// specific assignment for string values
     DataValue& operator=(const String&);
-    /// specific assignment for QString values
-    DataValue& operator=(const QString&);
     /// specific assignment for string lists
     DataValue& operator=(const StringList&);
     /// specific assignment for integer lists
@@ -344,8 +339,6 @@ public:
     **/
     String toString(bool full_precision = true) const;
 
-    ///Conversion to QString
-    QString toQString() const;
     //@}
 
     /// returns the type of value stored
@@ -420,5 +413,62 @@ private:
     /// Clears the current state of the DataValue and release every used memory.
     void clear_() noexcept;
   };
-}
+} // namespace OpenMS
+
+// Hash function specialization for DataValue
+namespace std
+{
+  /**
+   * @brief Hash function for DataValue.
+   *
+   * Hashes based on the value type, value content, and unit information.
+   * This ensures consistency with operator== which compares all these fields.
+   *
+   * @note For DOUBLE_VALUE, operator== uses epsilon comparison (fabs < 1e-6),
+   *       so we round to 6 decimal places before hashing to maintain consistency.
+   *       For DOUBLE_LIST, we use toString() since list comparison is exact.
+   */
+  template<>
+  struct hash<OpenMS::DataValue>
+  {
+    std::size_t operator()(const OpenMS::DataValue& dv) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash the value type
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(dv.valueType())));
+
+      // Hash the value content based on type
+      if (!dv.isEmpty())
+      {
+        switch (dv.valueType())
+        {
+          case OpenMS::DataValue::DOUBLE_VALUE:
+          {
+            // operator== uses fabs(a - b) < 1e-6 for doubles, so we round to 6 decimal places
+            // to ensure equal values (per operator==) produce identical hashes
+            double val = static_cast<double>(dv);
+            // Round to 6 decimal places: multiply by 1e6, round, then hash as int64
+            int64_t rounded = static_cast<int64_t>(std::round(val * 1e6));
+            OpenMS::hash_combine(seed, OpenMS::hash_int(rounded));
+            break;
+          }
+          default:
+            // For all other types (string, int, lists), use toString() which is consistent with operator==
+            OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(dv.toString()));
+            break;
+        }
+      }
+
+      // Hash unit information if present
+      if (dv.hasUnit())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(dv.getUnitType())));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(dv.getUnit()));
+      }
+
+      return seed;
+    }
+  };
+} // namespace std
 

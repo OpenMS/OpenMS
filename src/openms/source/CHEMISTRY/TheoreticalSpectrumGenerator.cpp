@@ -232,7 +232,7 @@ namespace OpenMS
     spectrum.setMSLevel(2);
 
     // set spectrum type
-    spectrum.setType(MSSpectrum::SpectrumSettings::CENTROID);
+    spectrum.setType(MSSpectrum::SpectrumSettings::SpectrumType::CENTROID);
 
     // set precursor
     Precursor prec;
@@ -322,7 +322,7 @@ namespace OpenMS
         ion_names.emplace_back("iP+");
         charges.push_back(1);
       }
-      spectrum.emplace_back(70.0656, 1.0); // emplace_back(MZ, intensity)
+      spectrum.emplace_back(70.0656, 1.0f); // emplace_back(MZ, intensity)
     }
 
     // Cysteine (C2H6NS)
@@ -333,7 +333,7 @@ namespace OpenMS
         ion_names.emplace_back("iC+");
         charges.push_back(1);
       }
-      spectrum.emplace_back(76.0221, 1.0);
+      spectrum.emplace_back(76.0221, 1.0f);
     }
 
     // Iso/Leucin immonium ion (same mass for immonium ion)
@@ -344,7 +344,7 @@ namespace OpenMS
         ion_names.emplace_back("iL/I+");
         charges.push_back(1);
       }
-      spectrum.emplace_back(86.09698, 1.0);
+      spectrum.emplace_back(86.09698, 1.0f);
     }
 
     // Histidin immonium ion (C5H8N3)
@@ -355,7 +355,7 @@ namespace OpenMS
         ion_names.emplace_back("iH+");
         charges.push_back(1);
       }
-      spectrum.emplace_back(110.0718, 1.0);
+      spectrum.emplace_back(110.0718, 1.0f);
     }
 
     // Phenylalanin immonium ion (C8H10N)
@@ -366,7 +366,7 @@ namespace OpenMS
         ion_names.emplace_back("iF+");
         charges.push_back(1);
       }
-      spectrum.emplace_back(120.0813, 1.0);
+      spectrum.emplace_back(120.0813, 1.0f);
     }
 
     // Tyrosine immonium ion (C8H10NO)
@@ -377,7 +377,7 @@ namespace OpenMS
         ion_names.emplace_back("iY+");
         charges.push_back(1);
       }
-      spectrum.emplace_back(136.0762, 1.0);
+      spectrum.emplace_back(136.0762, 1.0f);
     }
 
     // Tryptophan immonium ion
@@ -388,7 +388,7 @@ namespace OpenMS
         ion_names.emplace_back("iW+");
         charges.push_back(1);
       }
-      spectrum.emplace_back(159.0922, 1.0);
+      spectrum.emplace_back(159.0922, 1.0f);
     }
   }
 
@@ -447,7 +447,7 @@ namespace OpenMS
     // TODO why do you need a separate set for the losses? Just use the keys from the formula_str_cache?
     for (const auto& formula : f_losses)
     {
-      spectrum.emplace_back((mz - formula.getMonoWeight()) / (double)charge, intensity);
+      spectrum.emplace_back((mz - formula.getMonoWeight()) / (double)charge, static_cast<float>(intensity));
 
       if (add_metainfo)
       {
@@ -535,7 +535,7 @@ namespace OpenMS
             ion_names.push_back(ion_name);
             charges.push_back(charge);
           }
-          spectrum.emplace_back(iso.getMZ() / (double)charge, intensity * rel_loss_intensity_ * iso.getIntensity());
+          spectrum.emplace_back(iso.getMZ() / (double)charge, static_cast<float>(intensity * rel_loss_intensity_ * iso.getIntensity()));
         }
       }
       else
@@ -545,7 +545,7 @@ namespace OpenMS
           ion_names.push_back(ion_name);
           charges.push_back(charge);
         }
-        spectrum.emplace_back(loss_pos / (double)charge, intensity * rel_loss_intensity_);
+        spectrum.emplace_back(loss_pos / (double)charge, static_cast<float>(intensity * rel_loss_intensity_));
       }
     }
   }
@@ -639,7 +639,7 @@ namespace OpenMS
         }
         pos = (pos + ion_offset) / charge;
 
-        spectrum.emplace_back(pos, intensity);
+        spectrum.emplace_back(pos, static_cast<float>(intensity));
         if (add_metainfo_)
         {
           if (res_type == Residue::AIon)
@@ -718,8 +718,8 @@ namespace OpenMS
     {
       case Residue::AIon: intensity = a_intensity_; break;
       case Residue::BIon: intensity = b_intensity_; break;
-      case Residue::CIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); intensity = c_intensity_; break;
-      case Residue::XIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); intensity = x_intensity_; break;
+      case Residue::CIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1, "peptide must have at least 2 residues for c-ion generation"); intensity = c_intensity_; break;
+      case Residue::XIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1, "peptide must have at least 2 residues for x-ion generation"); intensity = x_intensity_; break;
       case Residue::YIon: intensity = y_intensity_; break;
       case Residue::ZIon: intensity = z_intensity_; break;
       // TODO use different intensities?
@@ -810,7 +810,7 @@ namespace OpenMS
           }
           pos = (pos + ion_offset) / charge;
 
-          spectrum.emplace_back(pos, intensity);
+          spectrum.emplace_back(pos, static_cast<float>(intensity));
           if (add_metainfo_)
           {
             ion_names.emplace_back(ion_name_str);
@@ -830,7 +830,19 @@ namespace OpenMS
             fx_losses.insert(EmpiricalFormula("H2O")); // HCD water loss at N-term
           }
 
-          for (i = Size(!add_first_prefix_ion_); i < peptide.size() - 1; ++i)
+          // Re-apply preamble for peptide[0] (same as plain-ion loop above)
+          // so that the running mass includes the first residue. (#9078)
+          i = Size(!add_first_prefix_ion_);
+          if (i == 1)
+          {
+            mono_weight += peptide[0].getMonoWeight(Residue::Internal);
+            if (peptide[0].hasNeutralLoss())
+            {
+              for (const auto& formula : peptide[0].getLossFormulas()) fx_losses.insert(formula);
+            }
+          }
+
+          for (; i < peptide.size() - 1; ++i)
           {
             mono_weight += peptide[i].getMonoWeight(Residue::Internal); // standard internal residue including named modifications: c
 
@@ -910,7 +922,7 @@ namespace OpenMS
           }
           pos = (pos + ion_offset) / charge;
 
-          spectrum.emplace_back(pos, intensity);
+          spectrum.emplace_back(pos, static_cast<float>(intensity));
           if (add_metainfo_)
           {
             ion_names.emplace_back(ion_name_str);
@@ -1025,7 +1037,7 @@ namespace OpenMS
           ion_names.push_back(ion_name);
           charges.push_back(charge);
         }
-        spectrum.emplace_back(it->getMZ() / (double)charge, pre_int_ * it->getIntensity());
+        spectrum.emplace_back(it->getMZ() / (double)charge, static_cast<float>(pre_int_ * it->getIntensity()));
       }
     }
     else
@@ -1035,7 +1047,7 @@ namespace OpenMS
         ion_names.push_back(ion_name);
         charges.push_back(charge);
       }
-      spectrum.emplace_back(mono_pos / (double)charge, pre_int_);
+      spectrum.emplace_back(mono_pos / (double)charge, static_cast<float>(pre_int_));
     }
     // loss peaks of the precursor
 
@@ -1074,7 +1086,7 @@ namespace OpenMS
           ion_names.push_back(ion_name);
           charges.push_back(charge);
         }
-        spectrum.emplace_back(it->getMZ() / charge, pre_int_H2O_ * it->getIntensity());
+        spectrum.emplace_back(it->getMZ() / charge, static_cast<float>(pre_int_H2O_ * it->getIntensity()));
       }
     }
     else
@@ -1093,7 +1105,7 @@ namespace OpenMS
         ion_names.push_back(ion_name);
         charges.push_back(charge);
       }
-      spectrum.emplace_back(mono_pos / (double)charge, pre_int_H2O_);
+      spectrum.emplace_back(mono_pos / (double)charge, static_cast<float>(pre_int_H2O_));
     }
 
     //loss of ammonia
@@ -1133,7 +1145,7 @@ namespace OpenMS
           ion_names.push_back(ion_name);
           charges.push_back(charge);
         }
-        spectrum.emplace_back(it->getMZ() / (double)charge, pre_int_NH3_ * it->getIntensity());
+        spectrum.emplace_back(it->getMZ() / (double)charge, static_cast<float>(pre_int_NH3_ * it->getIntensity()));
       }
     }
     else
@@ -1152,7 +1164,7 @@ namespace OpenMS
         ion_names.push_back(ion_name);
         charges.push_back(charge);
       }
-      spectrum.emplace_back(mono_pos / (double)charge, pre_int_NH3_);
+      spectrum.emplace_back(mono_pos / (double)charge, static_cast<float>(pre_int_NH3_));
     }
   }
 

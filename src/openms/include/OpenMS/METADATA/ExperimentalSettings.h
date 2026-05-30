@@ -15,7 +15,7 @@
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/METADATA/Instrument.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 #include <vector>
 

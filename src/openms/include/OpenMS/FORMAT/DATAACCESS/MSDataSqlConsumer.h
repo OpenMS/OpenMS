@@ -45,12 +45,12 @@ namespace OpenMS
 
         Opens the SQLite file and writes the tables.
 
-        @param sql_filename The filename of the SQLite database
-        @param run_id Unique identifier which links the sqMass and OSW file
-        @param buffer_size How large the internal buffer size should be (defaults to 500 spectra / chromatograms)
-        @param full_meta Whether to write the full meta-data in the SQLite header
-        @param lossy_compression Whether to use lossy compression (numpress)
-        @param linear_mass_acc Desired mass accuracy for RT or m/z space (absolute value)
+        @param[in] sql_filename The filename of the SQLite database
+        @param[in] run_id Unique identifier which links the sqMass and OSW file
+        @param[in] buffer_size How large the internal buffer size should be (defaults to 500 spectra / chromatograms)
+        @param[in] full_meta Whether to write the full meta-data in the SQLite header
+        @param[in] lossy_compression Whether to use lossy compression (numpress)
+        @param[in] linear_mass_acc Desired mass accuracy for RT or m/z space (absolute value)
       */
       MSDataSqlConsumer(const String& sql_filename, UInt64 run_id, int buffer_size = 500, bool full_meta = true, bool lossy_compression=false, double linear_mass_acc=1e-4);
 
@@ -68,6 +68,11 @@ namespace OpenMS
         class is still able to receive new data.
       */
       void flush();
+
+      /// Add/insert a RUN entry into the sqMass file (ID and filename)
+      void addRun(const String& filename, const UInt64 run_id);
+      /// Change the current run id used for subsequent chromatogram/spectrum writes
+      void setRunId(const UInt64 run_id);
 
       /**
         @brief Write a spectrum to the output file
@@ -94,6 +99,7 @@ namespace OpenMS
       std::vector<ChromatogramType> chromatograms_;
 
       MSExperiment peak_meta_;
+      bool wrote_any_run_ = false;
     };
 
 } //end namespace OpenMS

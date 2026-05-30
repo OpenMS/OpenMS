@@ -10,8 +10,12 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+
+#include <cstdint>
+#include <functional>
 
 namespace OpenMS
 {
@@ -108,4 +112,34 @@ protected:
   };
 
 } // namespace OpenMS
+
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::ModificationDefinition.
+   *
+   * Computes a hash based on all fields used in operator==:
+   * - mod_ pointer (pointer identity, not content)
+   * - fixed_modification_ (bool)
+   * - max_occurrences_ (UInt)
+   *
+   * @note Since operator== compares pointer addresses (not dereferencing),
+   *       this hash uses pointer identity. Hash is consistent within a process
+   *       but not reproducible across process runs due to address space layout.
+   */
+  template<>
+  struct hash<OpenMS::ModificationDefinition>
+  {
+    std::size_t operator()(const OpenMS::ModificationDefinition& md) const noexcept
+    {
+      // Hash the modification pointer as uintptr_t (matches pointer comparison in operator==)
+      std::size_t seed = OpenMS::hash_int(reinterpret_cast<std::uintptr_t>(&md.getModification()));
+      // Hash fixed_modification_ flag
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(md.isFixedModification())));
+      // Hash max_occurrences_
+      OpenMS::hash_combine(seed, OpenMS::hash_int(md.getMaxOccurrences()));
+      return seed;
+    }
+  };
+} // namespace std
 

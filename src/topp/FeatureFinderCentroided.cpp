@@ -7,12 +7,19 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
+#include <cmath>
 #include <limits>
 
 using namespace OpenMS;
@@ -139,6 +146,13 @@ protected:
     setValidFormats_("seeds", ListUtils::create<String>("featureXML"));
 
     addEmptyLine_();
+    registerStringOption_("faims_merge_features", "<true/false>", "true",
+      "For FAIMS data with multiple compensation voltages: Merge features representing the same analyte "
+      "detected at different CV values into a single feature. Only features with DIFFERENT FAIMS CV values "
+      "are merged (same CV = different analytes). Has no effect on non-FAIMS data.", false);
+    setValidStrings_("faims_merge_features", {"true", "false"});
+
+    addEmptyLine_();
 
     registerSubsection_("algorithm", "Algorithm section");
   }
@@ -177,10 +191,24 @@ protected:
       throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
     }
 
-    // determine type of spectral data (profile or centroided)
-    SpectrumSettings::SpectrumType  spectrum_type = exp[0].getType();
+    // Check for unsupported per-peak ion mobility data
+    for (const auto& spec : exp)
+    {
+      IMFormat im_format = IMTypes::determineIMFormat(spec);
+      if (im_format == IMFormat::IM_PEAK)
+      {
+        OPENMS_LOG_ERROR << "Error: Input contains per-peak ion mobility data (IM_PEAK, "
+                         << imPeakTypeToString(spec.getIMPeakType())
+                         << ") which is not supported by FeatureFinderCentroided. "
+                         << "Preprocess with IonMobilityBinning or PeakPickerIM first." << std::endl;
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+    }
 
-    if (spectrum_type == SpectrumSettings::PROFILE)
+    // determine type of spectral data (profile or centroided)
+    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
+
+    if (spectrum_type == SpectrumSettings::SpectrumType::PROFILE)
     {
       if (!getFlag_("force"))
       {
@@ -195,29 +223,104 @@ protected:
       FileHandler().loadFeatures(getStringOption_("seeds"), seeds, {FileTypes::FEATUREXML});
     }
 
-    //setup of FeatureFinder
-    FeatureFinderAlgorithmPicked ff;
-    //ff.setLogType(log_type_); TODO
-
-    // A map for the resulting features
-    FeatureMap features;
-
-    if (getFlag_("test"))
-    {
-      // if test mode set, add file without path so we can compare it
-      features.setPrimaryMSRunPath({"file://" + File::basename(in)}, exp);
-    }
-    else
-    {
-      features.setPrimaryMSRunPath({in}, exp);
-    }    
-    
     // get parameters specific for the feature finder
     Param feafi_param = getParam_().copy("algorithm:", true);
     writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 
-    // Apply the feature finder
-    ff.run(exp, features, feafi_param, seeds);
+    //-------------------------------------------------------------
+    // Split by FAIMS CV (returns single NaN-keyed element for non-FAIMS data)
+    //-------------------------------------------------------------
+    auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(exp));
+
+    const bool has_faims = faims_groups.size() > 1 || !std::isnan(faims_groups[0].first);
+    if (has_faims)
+    {
+      OPENMS_LOG_INFO << "FAIMS data detected with " << faims_groups.size() << " compensation voltage(s)." << endl;
+    }
+
+    // A map for the resulting features
+    FeatureMap features;
+
+    // Process each FAIMS CV group (or single group for non-FAIMS data)
+    for (auto& [group_cv, faims_group] : faims_groups)
+    {
+      if (has_faims)
+      {
+        OPENMS_LOG_INFO << "Processing FAIMS CV group: " << group_cv << " V (" << faims_group.size() << " spectra)" << endl;
+      }
+
+      // Filter seeds for this FAIMS CV group (if FAIMS data and seeds provided)
+      FeatureMap seeds_cv;
+      if (has_faims && !seeds.empty())
+      {
+        for (const auto& seed : seeds)
+        {
+          if (seed.metaValueExists(Constants::UserParam::FAIMS_CV))
+          {
+            double seed_cv = seed.getMetaValue(Constants::UserParam::FAIMS_CV);
+            if (std::abs(seed_cv - group_cv) < 0.01)
+            {
+              seeds_cv.push_back(seed);
+            }
+          }
+          else
+          {
+            // Seeds without FAIMS_CV annotation - include in all groups (backward compatibility)
+            seeds_cv.push_back(seed);
+          }
+        }
+      }
+      else
+      {
+        seeds_cv = seeds;
+      }
+
+      // Setup FeatureFinder for this group
+      FeatureFinderAlgorithmPicked ff;
+      //ff.setLogType(log_type_); TODO
+
+      // A map for features from this group
+      FeatureMap features_cv;
+
+      // Apply the feature finder
+      ff.run(std::move(faims_group), features_cv, feafi_param, seeds_cv);
+
+      // Annotate features with FAIMS CV (if FAIMS data) and add to results
+      for (auto& feat : features_cv)
+      {
+        if (has_faims)
+        {
+          feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        }
+        features.push_back(feat);
+      }
+    }
+
+    if (has_faims)
+    {
+      OPENMS_LOG_INFO << "Combined " << features.size() << " features from all FAIMS CV groups." << endl;
+
+      // Optionally merge features representing the same analyte at different CV values
+      if (getStringOption_("faims_merge_features") == "true")
+      {
+        Size before_merge = features.size();
+        FeatureOverlapFilter::mergeFAIMSFeatures(features, 5.0, 0.05);
+        OPENMS_LOG_INFO << "FAIMS feature merge: " << before_merge << " -> " << features.size()
+                        << " features (merged " << (before_merge - features.size()) << ")" << endl;
+      }
+    }
+
+    // Set primary MS run path and ensure unique IDs
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      features.setPrimaryMSRunPath({"file://" + File::basename(in)});
+    }
+    else
+    {
+      features.setPrimaryMSRunPath({in});
+    }
+    features.ensureUniqueId();
     features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // DEBUG

@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
@@ -17,6 +18,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
@@ -28,6 +30,9 @@
 #include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -100,13 +105,19 @@ namespace OpenMS
     defaults_.setValidStrings("decoys", {"true","false"} );
 
     defaults_.setValue("annotate:PSM",  std::vector<std::string>{"ALL"}, "Annotations added to each PSM.");
-    defaults_.setValidStrings("annotate:PSM", 
+    defaults_.setValidStrings("annotate:PSM",
       std::vector<std::string>{
         "ALL",
-        Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, 
+        Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM,
         Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
         Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION,
-        Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION}
+        Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION,
+        Constants::UserParam::NUM_MATCHED_PEAKS,
+        Constants::UserParam::MATCHED_PREFIX_IONS,
+        Constants::UserParam::MATCHED_SUFFIX_IONS,
+        Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE,
+        Constants::UserParam::MATCHED_ION_CURRENT,
+        Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM}
       );
 
     defaults_.setSectionDescription("annotate", "Annotation Options");
@@ -114,11 +125,25 @@ namespace OpenMS
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
     defaults_.setValue("peptide:max_size", 40, "Maximum size a peptide must have after digestion to be considered in the search (0 = disabled).");
     defaults_.setValue("peptide:missed_cleavages", 1, "Number of missed cleavages.");
+    defaults_.setValue("peptide:enzyme_specificity", "full",
+      "Enzyme cleavage specificity required for both peptide termini.\n"
+      "  'full' : both termini must be enzyme-specific (canonical, e.g. tryptic).\n"
+      "  'semi' : only one terminus needs to be enzyme-specific (semi-tryptic).\n"
+      "  'none' : no enzyme constraint at either terminus; every substring of length\n"
+      "           [min_size, max_size] is enumerated. Use this for immunopeptidomics\n"
+      "           (e.g. HLA peptides 8..12mers). For very large search spaces consider\n"
+      "           tightening 'peptide:min_size'/'peptide:max_size'.");
+    defaults_.setValidStrings("peptide:enzyme_specificity", {"full", "semi", "none"});
     defaults_.setValue("peptide:motif", "", "If set, only peptides that contain this motif (provided as RegEx) will be considered.");
     defaults_.setSectionDescription("peptide", "Peptide Options");
 
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
+
+    defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Requires '-decoys' to be set.");
+    defaults_.setMinFloat("FDR:PSM", 0.0);
+    defaults_.setMaxFloat("FDR:PSM", 1.0);
+    defaults_.setSectionDescription("FDR", "False Discovery Rate control (requires decoys)");
 
     defaultsToParam_();
   }
@@ -160,12 +185,15 @@ namespace OpenMS
     peptide_min_size_ = param_.getValue("peptide:min_size");
     peptide_max_size_ = param_.getValue("peptide:max_size");
     peptide_missed_cleavages_ = param_.getValue("peptide:missed_cleavages");
+    peptide_enzyme_specificity_ = EnzymaticDigestion::getSpecificityByName(
+      param_.getValue("peptide:enzyme_specificity").toString());
     peptide_motif_ = param_.getValue("peptide:motif").toString();
 
     report_top_hits_ = param_.getValue("report:top_hits");
 
     decoys_ = param_.getValue("decoys") == "true";
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
+    fdr_psm_ = param_.getValue("FDR:PSM");
   }
 
   // static
@@ -250,6 +278,12 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     bool annotation_fragment_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM) != annotate_psm_.end();
     bool annotation_prefix_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION) != annotate_psm_.end();
     bool annotation_suffix_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION) != annotate_psm_.end();
+    bool annotation_num_matched_peaks = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::NUM_MATCHED_PEAKS) != annotate_psm_.end();
+    bool annotation_matched_prefix_ions = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_PREFIX_IONS) != annotate_psm_.end();
+    bool annotation_matched_suffix_ions = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_SUFFIX_IONS) != annotate_psm_.end();
+    bool annotation_longest_ion_run = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE) != annotate_psm_.end();
+    bool annotation_matched_ion_current = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_ION_CURRENT) != annotate_psm_.end();
+    bool annotation_fragment_annotations = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM) != annotate_psm_.end();
 
     // "ALL" adds all annotations
     if (std::find(annotate_psm_.begin(), annotate_psm_.end(), "ALL") != annotate_psm_.end())
@@ -258,7 +292,16 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       annotation_fragment_error_ppm = true;
       annotation_prefix_fraction = true;
       annotation_suffix_fraction = true;
+      annotation_num_matched_peaks = true;
+      annotation_matched_prefix_ions = true;
+      annotation_matched_suffix_ions = true;
+      annotation_longest_ion_run = true;
+      annotation_matched_ion_current = true;
+      annotation_fragment_annotations = true;
     }
+
+    // Alignment is needed for fragment error, fragment annotations, longest ion run, and MIC
+    const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current;
 
 #pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
@@ -275,6 +318,13 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         double mz = spec.getPrecursors()[0].getMZ();
         pi.setRT(spec.getRT());
         pi.setMZ(mz);
+
+        // Annotate ion mobility if spectrum has a single drift time (DDA-PASEF)
+        if (IMTypes::determineIMFormat(spec) == IMFormat::IM_SPECTRUM)
+        {
+          pi.setMetaValue(Constants::UserParam::IM, spec.getDriftTime());
+        }
+
         Size charge = spec.getPrecursors()[0].getCharge();
 
         // create full peptide hit structure from annotated hits
@@ -298,16 +348,26 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           ph.setScore(ah.score);
           ph.setSequence(fixed_and_variable_modified_peptide);
 
-          if (annotation_fragment_error_ppm)
+          // Generate theoretical spectrum + alignment for annotations that need it
+          std::vector<std::pair<Size, Size>> alignment;
+          MSSpectrum theoretical_spec;
+          if (need_alignment)
           {
             TheoreticalSpectrumGenerator tsg;
-            vector<pair<Size, Size> > alignment;
-            MSSpectrum theoretical_spec;
-            tsg.getSpectrum(theoretical_spec, fixed_and_variable_modified_peptide, 1, std::min((int)charge - 1, 2));
+            Param tsg_param(tsg.getParameters());
+            tsg_param.setValue("add_metainfo", "true");
+            tsg_param.setValue("add_first_prefix_ion", "true");
+            tsg.setParameters(tsg_param);
+
+            const int max_frag_z = (charge >= 2) ? std::min<int>(charge - 1, 2) : 1;
+            tsg.getSpectrum(theoretical_spec, fixed_and_variable_modified_peptide, 1, max_frag_z);
             SpectrumAlignment sa;
             sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
+          }
 
-            vector<double> err;
+          if (annotation_fragment_error_ppm)
+          {
+            std::vector<double> err;
             for (const auto& match : alignment)
             {
               double fragment_error = fabs(Math::getPPM(spec[match.second].getMZ(), theoretical_spec[match.first].getMZ()));
@@ -333,6 +393,103 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           if (annotation_suffix_fraction)
           {
             ph.setMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION, ah.suffix_fraction);
+          }
+
+          // Matched ion counts (from scoring, no alignment needed)
+          if (annotation_num_matched_peaks)
+          {
+            ph.setMetaValue(Constants::UserParam::NUM_MATCHED_PEAKS, static_cast<int>(ah.matched_prefix_ions + ah.matched_suffix_ions));
+          }
+          if (annotation_matched_prefix_ions)
+          {
+            ph.setMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS, static_cast<int>(ah.matched_prefix_ions));
+          }
+          if (annotation_matched_suffix_ions)
+          {
+            ph.setMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS, static_cast<int>(ah.matched_suffix_ions));
+          }
+
+          // Fragment annotations, longest ion run, and MIC all iterate the alignment + ion names
+          if (annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current)
+          {
+            const auto& ion_names = theoretical_spec.getStringDataArrays()[0];
+            const auto& ion_charges = theoretical_spec.getIntegerDataArrays()[0];
+
+            // Build PeakAnnotation vector + collect ion ordinals for longest run.
+            // Prefix = a/b/c (N-terminal), suffix = x/y/z (C-terminal). Ordinals
+            // at the same backbone position across ion types (e.g. a3 + b3) are
+            // merged via std::unique below.
+            std::vector<PeptideHit::PeakAnnotation> peak_annotations;
+            std::vector<int> prefix_ordinals, suffix_ordinals;
+            double matched_ion_current = 0.0;
+            peak_annotations.reserve(alignment.size());
+
+            for (const auto& [theo_idx, exp_idx] : alignment)
+            {
+              if (annotation_fragment_annotations)
+              {
+                PeptideHit::PeakAnnotation pa;
+                pa.mz = spec[exp_idx].getMZ();
+                pa.intensity = spec[exp_idx].getIntensity();
+                pa.annotation = ion_names[theo_idx];
+                pa.charge = ion_charges[theo_idx];
+                peak_annotations.push_back(pa);
+              }
+
+              if (annotation_matched_ion_current)
+              {
+                // See ProSEAlgorithm.cpp for the 1-to-1 alignment assumption.
+                matched_ion_current += spec[exp_idx].getIntensity();
+              }
+
+              if (annotation_longest_ion_run && ion_names[theo_idx].size() >= 2)
+              {
+                const String& name = ion_names[theo_idx];
+                const char c = name[0];
+                const bool is_prefix = (c == 'a' || c == 'b' || c == 'c');
+                const bool is_suffix = (c == 'x' || c == 'y' || c == 'z');
+                if (is_prefix || is_suffix)
+                {
+                  // Extract ordinal: "b5", "y3-H2O1+", "c12++" -> 5, 3, 12
+                  Size pos = 1;
+                  while (pos < name.size() && name[pos] >= '0' && name[pos] <= '9') ++pos;
+                  if (pos > 1)
+                  {
+                    int ordinal = String(name.substr(1, pos - 1)).toInt();
+                    (is_prefix ? prefix_ordinals : suffix_ordinals).push_back(ordinal);
+                  }
+                }
+              }
+            }
+
+            if (annotation_fragment_annotations)
+            {
+              ph.setPeakAnnotations(std::move(peak_annotations));
+            }
+
+            if (annotation_matched_ion_current)
+            {
+              ph.setMetaValue(Constants::UserParam::MATCHED_ION_CURRENT, matched_ion_current);
+            }
+
+            if (annotation_longest_ion_run)
+            {
+              // Compute longest consecutive run across prefix (a/b/c) and suffix (x/y/z) series
+              auto longestRun = [](std::vector<int>& v) -> int {
+                if (v.empty()) return 0;
+                std::sort(v.begin(), v.end());
+                v.erase(std::unique(v.begin(), v.end()), v.end());
+                int best = 1, run = 1;
+                for (Size i = 1; i < v.size(); ++i)
+                {
+                  if (v[i] == v[i - 1] + 1) { ++run; if (run > best) best = run; }
+                  else run = 1;
+                }
+                return best;
+              };
+              int longest = std::max(longestRun(prefix_ordinals), longestRun(suffix_ordinals));
+              ph.setMetaValue(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE, longest);
+            }
           }
 
           // store PSM
@@ -375,7 +532,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     search_parameters.db = database_name;
     search_parameters.charges = String(precursor_min_charge) + ":" + String(precursor_max_charge);
 
-    ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
+    ProteinIdentification::PeakMassType mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
     search_parameters.mass_type = mass_type;
     search_parameters.fixed_modifications = modifications_fixed;
     search_parameters.variable_modifications = modifications_variable;
@@ -394,8 +551,22 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
 
-    search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
+    search_parameters.enzyme_term_specificity = peptide_enzyme_specificity_;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
+
+    // Annotate IM unit on ProteinIdentification if all PeptideIdentifications have IM
+    if (!peptide_ids.empty())
+    {
+      bool all_have_im = std::all_of(
+        peptide_ids.begin(), peptide_ids.end(),
+        [](const PeptideIdentification& pid) { return pid.metaValueExists(Constants::UserParam::IM); });
+
+      if (all_have_im)
+      {
+        protein_ids[0].setMetaValue(Constants::UserParam::IM,
+          exp[0].getDriftTimeUnitAsString());
+      }
+    }
   }
 
 
@@ -440,7 +611,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     return multimap_mass_2_scan_index;
   }
 
-  SimpleSearchEngineAlgorithm::ExitCodes SimpleSearchEngineAlgorithm::search(const String& in_mzML, const String& in_db, vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) const
+  SimpleSearchEngineAlgorithm::ExitCodes SimpleSearchEngineAlgorithm::search(const String& in_spectra, const String& in_db, vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) const
   {
     boost::regex peptide_motif_regex(peptide_motif_);
 
@@ -459,7 +630,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_mzML, spectra, {FileTypes::MZML});
+    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
     spectra.sortSpectra(true);
 
     startProgress(0, 1, "Filtering spectra...");
@@ -504,7 +675,16 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       for (size_t i = 0; i != old_size; ++i)
       {
         FASTAFile::FASTAEntry e = fasta_db[i];
-        e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
+        // Non-specific search: plain reverse (no enzyme boundaries to preserve).
+        // Enzyme-specific search: reverse within enzymatic peptide boundaries.
+        if (peptide_enzyme_specificity_ == EnzymaticDigestion::SPEC_NONE)
+        {
+          e.sequence = decoy_generator.reverseProtein(AASequence::fromString(e.sequence)).toString();
+        }
+        else
+        {
+          e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
+        }
         e.identifier = "DECOY_" + e.identifier;
         fasta_db.push_back(std::move(e));
       }
@@ -517,6 +697,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme_);
     digestor.setMissedCleavages(peptide_missed_cleavages_);
+    digestor.setSpecificity(peptide_enzyme_specificity_);
     startProgress(0, fasta_db.size(), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
@@ -524,7 +705,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     Size count_proteins(0), count_peptides(0);
 
-#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, spectrum_generator, multimap_mass_2_scan_index, fixed_modifications, variable_modifications, fasta_db, digestor, processed_petides, count_proteins, count_peptides, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, peptide_motif_regex, spectra, annotated_hits_lock)
+#pragma omp parallel for schedule(static)
       for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
       {
 
@@ -634,9 +815,11 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             ah.sequence = c;
             ah.peptide_mod_index = mod_pep_idx;
             ah.score = score;
-            ah.prefix_fraction = (double)detail.matched_b_ions/(double)c.size();
-            ah.suffix_fraction = (double)detail.matched_y_ions/(double)c.size();
-            ah.mean_error = detail.mean_error;
+            ah.prefix_fraction = static_cast<float>((double)detail.matched_prefix_ions / (double)c.size());
+            ah.suffix_fraction = static_cast<float>((double)detail.matched_suffix_ions / (double)c.size());
+            ah.mean_error = static_cast<float>(detail.mean_error);
+            ah.matched_prefix_ions = static_cast<uint16_t>(detail.matched_prefix_ions);
+            ah.matched_suffix_ions = static_cast<uint16_t>(detail.matched_suffix_ions);
             ah.isotope_error = low_it->second.second;
 
 #ifdef _OPENMP
@@ -689,28 +872,32 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     endProgress();
 
     // add meta data on spectra file
-    protein_ids[0].setPrimaryMSRunPath({in_mzML}, spectra);
+    protein_ids[0].setPrimaryMSRunPath({in_spectra}, spectra);
 
-    // reindex peptides to proteins
+    // reindex peptides to proteins.
+    // The PeptideIndexer uses isValidProduct() to drop peptides whose termini do not
+    // match the configured specificity, so it must agree with the search-time setting —
+    // otherwise semi/non-specific hits would be silently filtered out here.
     PeptideIndexing indexer;
     Param param_pi = indexer.getParameters();
     param_pi.setValue("decoy_string", "DECOY_");
     param_pi.setValue("decoy_string_position", "prefix");
     param_pi.setValue("enzyme:name", enzyme_);
-    param_pi.setValue("enzyme:specificity", "full");
+    param_pi.setValue("enzyme:specificity",
+                      EnzymaticDigestion::NamesOfSpecificity[peptide_enzyme_specificity_]);
     param_pi.setValue("missing_decoy_action", "silent");
     indexer.setParameters(param_pi);
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, protein_ids, peptide_ids);
 
-    if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
-        (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+    if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
+        (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
     {
-      if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+      if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY)
       {
-        return ExitCodes::INPUT_FILE_EMPTY;       
+        return ExitCodes::INPUT_FILE_EMPTY;
       }
-      else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+      else if (indexer_exit == PeptideIndexing::ExitCodes::UNEXPECTED_RESULT)
       {
         return ExitCodes::UNEXPECTED_RESULT;
       }
@@ -718,11 +905,26 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       {
         return ExitCodes::UNKNOWN_ERROR;
       }
-    } 
+    }
+
+    // PSM-level FDR filtering (requires decoys)
+    if (fdr_psm_ > 0.0 && decoys_)
+    {
+      FalseDiscoveryRate fdr;
+      fdr.apply(peptide_ids);
+      IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
+      IDFilter::removeDecoyHits(peptide_ids);
+      IDFilter::removeEmptyIdentifications(peptide_ids);
+      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+    }
+    else if (fdr_psm_ > 0.0 && !decoys_)
+    {
+      OPENMS_LOG_WARN << "FDR:PSM is set but decoys are disabled. Skipping FDR filtering." << endl;
+    }
 
 #ifdef _OPENMP
     // free locks
-    for (size_t i = 0; i != annotated_hits_lock.size(); i++) 
+    for (size_t i = 0; i != annotated_hits_lock.size(); i++)
     {
       omp_destroy_lock(&(annotated_hits_lock[i]));
     }

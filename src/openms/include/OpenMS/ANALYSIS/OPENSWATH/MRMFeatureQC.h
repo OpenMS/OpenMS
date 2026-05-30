@@ -18,16 +18,43 @@ namespace OpenMS
 {
 
   /**
+    @brief The MRMFeatureQC is a class to handle the parameters and options for MRMFeatureFilter.
 
-    @brief The MRMFeatureQC is a class to handle the parameters and options for
-     MRMFeatureFilter.
+    The format is based loosely on the TraML format and can be stored and loaded to disk using MRMFeatureQCFile.
 
-     The format is based loosely on the TraML format and can be stored and loaded to disk using MRMFeatureQCFile.
+    Quality control parameters are available on multiple levels:
+    - **Component level** (ComponentQCs): QC for individual transitions - RT, intensity, quality bounds, and custom meta-values
+    - **Component group level** (ComponentGroupQCs): QC for transition groups - includes label counts (heavy/light),
+      transition type counts (detecting/quantifying/identifying), and ion ratios
+    - **Component group pair level** (ComponentGroupPairQCs): QC for pairs of groups - resolution and RT difference bounds
 
-     Quality control parameters are available on multiple levels:
-       - the level of a single component (or transition) representing a single transition
-       - the level of a component group (or transition group) representing a single chemical entity
-       - the level of component group pairs (e.g. isotopic pairs) representing multiple chemical entities that may be related by isotopic pairing
+    @section MRMFeatureQC_example Example Usage
+
+    @code
+    MRMFeatureQC qc;
+
+    // Add component QC
+    MRMFeatureQC::ComponentQCs comp_qc;
+    comp_qc.component_name = "heavy_13C6_glucose";
+    comp_qc.retention_time_l = 5.0;
+    comp_qc.retention_time_u = 7.0;
+    comp_qc.intensity_l = 1000.0;
+    qc.component_qcs.push_back(comp_qc);
+
+    // Add component group QC with ion ratio
+    MRMFeatureQC::ComponentGroupQCs group_qc;
+    group_qc.component_group_name = "glucose";
+    group_qc.ion_ratio_pair_name_1 = "quantifier";
+    group_qc.ion_ratio_pair_name_2 = "qualifier";
+    group_qc.ion_ratio_l = 0.8;
+    group_qc.ion_ratio_u = 1.2;
+    qc.component_group_qcs.push_back(group_qc);
+    @endcode
+
+    @see MRMFeatureFilter for applying QC filtering
+    @see MRMFeatureQCFile for file I/O
+
+    @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI MRMFeatureQC
   {

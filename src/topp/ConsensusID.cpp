@@ -18,8 +18,13 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <unordered_set>
 
 using namespace OpenMS;
@@ -640,7 +645,7 @@ protected:
     {
       consensus = new ConsensusIDAlgorithmRanks();
     }
-    algo_params.update(getParam_(), false, OpenMS_Log_debug); // update general params.
+    algo_params.update(getParam_(), false, getGlobalLogDebug()); // update general params.
     consensus->setParameters(algo_params);
 
     //----------------------------------------------------------------
@@ -679,7 +684,7 @@ protected:
             for (auto& f : original_files)
             {
               std::replace( f.begin(), f.end(), '\\', '/');
-              f = FileHandler::stripExtension(File::basename(f)); // some SE adapters write full paths, some may use raw
+              f = File::stemName(f); // some SE adapters write full paths, some may use raw
             }
             if (original_files.size() != 1)
             {
@@ -746,7 +751,7 @@ protected:
             for (auto& f : original_files)
             {
               std::replace( f.begin(), f.end(), '\\', '/');
-              f = FileHandler::stripExtension(File::basename(f)); // some SE adapters write full paths, some may use raw
+              f = File::stemName(f); // some SE adapters write full paths, some may use raw
             }
             String original_file = original_files[0];
             auto iter_inserted = grouping_per_file.emplace(original_file, unordered_map<String,PeptideIdentificationList>{});

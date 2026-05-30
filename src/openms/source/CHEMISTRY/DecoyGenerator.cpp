@@ -59,6 +59,45 @@ AASequence DecoyGenerator::reversePeptides(const AASequence& protein, const Stri
   return AASequence::fromString(pseudo_reversed);
 }
 
+// generate decoy protein sequences
+std::vector<AASequence> DecoyGenerator::shuffle(const AASequence& protein, const String& protease, int decoy_factor)
+{
+  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
+  
+  ProteaseDigestion digestor;
+  digestor.setEnzyme(protease);
+  digestor.setMissedCleavages(0);  // for decoy generation disable missed cleavages
+  digestor.setSpecificity(EnzymaticDigestion::SPEC_FULL);
+
+  std::vector<AASequence> output;
+  digestor.digest(protein, output);
+
+  // generate decoy_factor number of complete decoy proteins
+  std::vector<AASequence> decoy_proteins;
+  for (int variant = 0; variant < decoy_factor; ++variant)
+  {
+    String decoy_sequence;
+    for (const auto & aas : output)
+    {
+      if (aas.size() <= 2)
+      {
+        decoy_sequence += aas.toUnmodifiedString();
+        continue;
+      }
+
+      // Important: create DecoyGenerator instance per peptide with same seed
+      // Otherwise same peptides end up creating different decoys -> much more decoys than targets
+      // But: we add variant to seed to get different decoys in multiple decoy generation
+      DecoyGenerator dg;
+      dg.setSeed(4711 + variant); // + variant to get different decoys in multiple decoy generation
+      decoy_sequence += dg.shufflePeptides(aas, protease).toUnmodifiedString();
+    }
+    decoy_proteins.push_back(AASequence::fromString(decoy_sequence));
+  }
+  
+  return decoy_proteins;
+}
+
 AASequence DecoyGenerator::shufflePeptides(
         const AASequence& protein,
         const String& protease,
@@ -81,8 +120,9 @@ AASequence DecoyGenerator::shufflePeptides(
     bool cached(false);
     #pragma omp critical (td_cache_)
     {
-      if (auto it = td_cache_.find(peptide_string); it != td_cache_.end())
-      {      
+      auto it = td_cache_.find(peptide_string);
+      if (it != td_cache_.end())
+      {
         protein_shuffled += it->second; // add if cached
         cached = true;
       }
@@ -120,8 +160,9 @@ AASequence DecoyGenerator::shufflePeptides(
   bool cached(false);
   #pragma omp critical (td_cache_)
   {
-    if (auto it = td_cache_.find(peptide_string); it != td_cache_.end())
-    {      
+    auto it = td_cache_.find(peptide_string);
+    if (it != td_cache_.end())
+    {
       protein_shuffled += it->second; // add if cached
       cached = true;
     }

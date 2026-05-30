@@ -10,6 +10,8 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
@@ -95,6 +97,12 @@ protected:
       registerFlag_(param_labeled_reference_peptides,
                     "If set, IsotopeLabelType is 'H', else 'L'");
 
+      // Whether to remove shared peptides
+      registerStringOption_(param_remove_shared_peptides, "<true/false>", "true",
+                    "If true, shared peptides (mapping to multiple indistinguishable protein groups) "
+                    "will be removed. Set to false to keep shared peptides in the output.", false, true);
+      setValidStrings_(param_remove_shared_peptides, ListUtils::create<String>("true,false"));
+
       // Specifies how peptide ions eluding at different retention times should be resolved
       registerStringOption_(param_retention_time_summarization_method,
                             "<retention_time_summarization_method>", "max",
@@ -142,6 +150,7 @@ protected:
         String condition = getStringOption_(param_msstats_condition);
         String mixture = getStringOption_(param_msstats_mixture);
         String retention_time_summarization_method = getStringOption_(param_retention_time_summarization_method);
+        bool remove_shared_peptides = (getStringOption_(param_remove_shared_peptides) == "true");
 
         MSstatsFile msStatsFile;
 
@@ -149,13 +158,15 @@ protected:
         {
             msStatsFile.storeLFQ(arg_out, consensus_map, design,
                                  reannotate_filenames, is_isotope_label_type,
-                                 bioreplicate, condition, retention_time_summarization_method);
+                                 bioreplicate, condition, retention_time_summarization_method,
+                                 remove_shared_peptides);
         }
         else if (arg_method == "ISO")
         {
             msStatsFile.storeISO(arg_out, consensus_map, design,
-                                 reannotate_filenames, bioreplicate, condition, 
-                                 mixture, retention_time_summarization_method);
+                                 reannotate_filenames, bioreplicate, condition,
+                                 mixture, retention_time_summarization_method,
+                                 remove_shared_peptides);
         }
         return EXECUTION_OK;
       }
@@ -176,6 +187,7 @@ protected:
     static const String param_labeled_reference_peptides;
     static const String param_retention_time_summarization_method;
     static const String param_reannotate_filenames;
+    static const String param_remove_shared_peptides;
 
 private:
     static void fatalErrorIf_(const bool error_condition, const String &message, const int exit_code)
@@ -198,6 +210,7 @@ const String TOPPMSstatsConverter::param_out = "out";
 const String TOPPMSstatsConverter::param_labeled_reference_peptides = "labeled_reference_peptides";
 const String TOPPMSstatsConverter::param_retention_time_summarization_method = "retention_time_summarization_method";
 const String TOPPMSstatsConverter::param_reannotate_filenames = "reannotate_filenames";
+const String TOPPMSstatsConverter::param_remove_shared_peptides = "remove_shared_peptides";
 
 // the actual main function needed to create an executable
 int main(int argc, const char **argv)

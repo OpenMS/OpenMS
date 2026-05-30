@@ -12,12 +12,14 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <fstream>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 using namespace OpenMS;
 using namespace std;
@@ -165,7 +167,7 @@ protected:
     Param feature_finder_param = getParam_().copy("algorithm:", true);
 
     // Create the output map, load the input TraML file and the chromatograms
-    boost::shared_ptr<MapType> exp (new MapType());
+    std::shared_ptr<MapType> exp (new MapType());
     FeatureMap out_featureFile;
     OpenSwath::LightTargetedExperiment transition_exp;
     std::cout << "Loading TraML file" << std::endl;
@@ -202,7 +204,7 @@ protected:
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
     {
       MRMFeatureFinderScoring featureFinder;
-      boost::shared_ptr<MapType> swath_map (new MapType());
+      std::shared_ptr<MapType> swath_map (new MapType());
       FeatureMap featureFile;
       cout << "Loading file " << file_list[i] << endl;
 

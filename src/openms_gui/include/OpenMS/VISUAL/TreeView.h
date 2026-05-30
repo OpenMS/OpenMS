@@ -37,7 +37,7 @@ namespace OpenMS
     /**
        @brief Obtain header names, either from all, or only the visible columns
 
-       @param which With or without invisible columns?
+       @param[in] which With or without invisible columns?
        @return List of header names
     */
     QStringList getHeaderNames(const WidgetHeader which) const;

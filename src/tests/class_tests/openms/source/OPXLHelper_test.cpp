@@ -23,7 +23,6 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/Tagger.h>
-#include <QStringList>
 
 using namespace OpenMS;
 
@@ -42,21 +41,13 @@ digestor.setMissedCleavages(2);
 
 Size min_peptide_length = 5;
 
-QStringList q_str_list1;
-QStringList q_str_list2;
-q_str_list1 << "Carbamidomethyl (C)" << "Carbamidomethyl (T)";
-q_str_list2 << "Oxidation (M)" << "Oxidation (Y)";
-StringList fixedModNames = StringListUtils::fromQStringList(q_str_list1);
-StringList varModNames = StringListUtils::fromQStringList(q_str_list2);
+StringList fixedModNames = {"Carbamidomethyl (C)", "Carbamidomethyl (T)"};
+StringList varModNames = {"Oxidation (M)", "Oxidation (Y)"};
 const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications = ModifiedPeptideGenerator::getModifications(fixedModNames);
 const ModifiedPeptideGenerator::MapToResidueType& variable_modifications = ModifiedPeptideGenerator::getModifications(varModNames);
 
-QStringList q_str_list3;
-QStringList q_str_list4;
-q_str_list3 << "K" << "E";
-q_str_list4 << "D" << "E" << "C-term";
-StringList cross_link_residue1 = StringListUtils::fromQStringList(q_str_list3);
-StringList cross_link_residue2 = StringListUtils::fromQStringList(q_str_list4);
+StringList cross_link_residue1 = {"K", "E"};
+StringList cross_link_residue2 = {"D", "E", "C-term"};
 
 Size max_variable_mods_per_peptide = 5;
 

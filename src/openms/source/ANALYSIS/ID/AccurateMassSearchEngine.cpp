@@ -19,6 +19,7 @@
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
 #include <numeric>
 
 namespace OpenMS
@@ -334,17 +335,22 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Ion mode cannot be set to '") + ion_mode + "'. Must be 'positive' or 'negative'!");
     }
 
+    // If a specific adduct is provided, narrow the range to just that adduct.
+    if (!observed_adduct.isEmpty())
+    {
+      auto it = std::find_if(it_s, it_e, [&observed_adduct](const AdductInfo& a) {
+        return a.getEmpiricalFormula() == observed_adduct;
+      });
+      it_s = it;
+      if (it != it_e) { it_e = it + 1; }
+    }
+
     std::pair<Size, Size> hit_idx;
     for (std::vector<AdductInfo>::const_iterator it = it_s; it != it_e; ++it)
     {
       if (observed_charge != 0 && (std::abs(observed_charge) != std::abs(it->getCharge())))
       { // charge of evidence and adduct must match in absolute terms (absolute, since any FeatureFinder gives only positive charges, even for negative-mode spectra)
         // observed_charge==0 will pass, since we basically do not know its real charge (apparently, no isotopes were found)
-        continue;
-      }
-
-      if ((observed_adduct != EmpiricalFormula()) && (observed_adduct != it->getEmpiricalFormula()))
-      { // If feature has no adduct annotation, method call defaults to empty EF(). If feature is annotated with an adduct, it must match.
         continue;
       }
 
@@ -695,7 +701,7 @@ namespace OpenMS
     // filter FeatureMap to only have entries with an identification
     if (!keep_unidentified_masses_)
     {
-      fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](Feature f){ return f.getPeptideIdentifications().size() == 0; }), fmap.end());
+      fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](Feature f){ return f.getPeptideIdentifications().empty(); }), fmap.end());
     }
 
     // add dummy ProteinIdentification which is required to keep PeptideHits alive during store()
@@ -783,7 +789,7 @@ namespace OpenMS
         match.setMetaValue("mz_error_Da", mass_error_Da);
 
         // add adduct to the ObservationMatch
-        String adduct = r.getFoundAdduct(); // M+Na;1+
+        const String& adduct = r.getFoundAdduct(); // M+Na;1+
         if (!adduct.empty() && adduct != "null")
         {
           AdductInfo ainfo = AdductInfo::parseAdductString(adduct);
@@ -944,7 +950,7 @@ namespace OpenMS
         {
           MzTabSmallMoleculeSectionRow mztab_row_record;
           // set the identifier field
-          String hid_temp = matching_ids[id_idx];
+          const String& hid_temp = matching_ids[id_idx];
           bool db_hit = (hid_temp != "null");
           if (db_hit)
           {

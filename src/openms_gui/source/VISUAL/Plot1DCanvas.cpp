@@ -19,6 +19,7 @@
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/COMPARISON/SpectrumAlignmentScore.h>
@@ -27,6 +28,7 @@
 
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/LayerData1DChrom.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 // Qt
 #include <QElapsedTimer>
@@ -50,7 +52,7 @@ namespace OpenMS
   Plot1DCanvas::ExperimentSharedPtrType prepareChromatogram(Size index, const Plot1DCanvas::ExperimentSharedPtrType& exp_sptr, const Plot1DCanvas::ODExperimentSharedPtrType& ondisc_sptr)
   {
     // create a managed pointer fill it with a spectrum containing the chromatographic data
-    auto chrom_exp_sptr = boost::make_shared<AnnotatedMSRun>();
+    auto chrom_exp_sptr = std::make_shared<AnnotatedMSRun>();
 
     chrom_exp_sptr->getMSExperiment().setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
     LayerDataBase::ExperimentType::SpectrumType spectrum;
@@ -618,7 +620,7 @@ namespace OpenMS
 
     // clear
     painter->fillRect(0, 0, this->width(), this->height(),
-                      QColor(String(param_.getValue("background_color").toString()).toQString()));
+                      QColor(toQString(String(param_.getValue("background_color").toString()))));
 
     // we are done if no layer is present
     if (getLayerCount() == 0)
@@ -717,7 +719,7 @@ namespace OpenMS
     if (!peak.isValid()) return;
     const auto sel_xy = getLayer(layer_index).peakIndexToXY(peak, unit_mapper_);
 
-    painter.setPen(QPen(QColor(String(param_.getValue("highlighted_peak_color").toString()).toQString()), 2));
+    painter.setPen(QPen(QColor(toQString(String(param_.getValue("highlighted_peak_color").toString()))), 2));
 
     recalculatePercentageFactor_(layer_index);
 
@@ -734,7 +736,7 @@ namespace OpenMS
     if (draw_elongation)
     {
       QPoint top_end = (getLayer(layer_index).flipped) ? gr_.gravitateMax(begin, canvasPixelArea()) : gr_.gravitateMin(begin, canvasPixelArea());
-      Painter1DBase::drawDashedLine(begin, top_end, &painter, String(param_.getValue("highlighted_peak_color").toString()).toQString());
+      Painter1DBase::drawDashedLine(begin, top_end, &painter, toQString(String(param_.getValue("highlighted_peak_color").toString())));
     }
   }
 
@@ -816,8 +818,8 @@ namespace OpenMS
     }              
     const auto xy_point = getCurrentLayer().peakIndexToXY(peak, unit_mapper_);
     QStringList lines;
-    lines << unit_mapper_.getDim(DIM::X).formattedValue(xy_point.getX()).toQString();
-    lines << unit_mapper_.getDim(DIM::Y).formattedValue(xy_point.getY()).toQString();
+    lines << toQString(unit_mapper_.getDim(DIM::X).formattedValue(xy_point.getX()));
+    lines << toQString(unit_mapper_.getDim(DIM::Y).formattedValue(xy_point.getY()));
     drawText_(painter, lines);
   }
 
@@ -845,11 +847,11 @@ namespace OpenMS
       QString result;
       if (ratio)
       {
-        result = dim.formattedValue(end_pos / start_pos, " ratio ").toQString();
+        result = toQString(dim.formattedValue(end_pos / start_pos, " ratio "));
       }
       else
       {
-        result = dim.formattedValue(end_pos - start_pos, " delta ").toQString();
+        result = toQString(dim.formattedValue(end_pos - start_pos, " delta "));
         if (dim.getUnit() == DIM_UNIT::MZ)
         {
           auto ppm = Math::getPPM(end_pos, start_pos);
@@ -904,11 +906,11 @@ namespace OpenMS
     ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
     ColorSelector* selected_color = dlg.findChild<ColorSelector*>("selected_color");
 
-    peak_color->setColor(QColor(String(layer.param.getValue("peak_color").toString()).toQString()));
-    icon_color->setColor(QColor(String(layer.param.getValue("icon_color").toString()).toQString()));
-    annotation_color->setColor(QColor(String(layer.param.getValue("annotation_color").toString()).toQString()));
-    bg_color->setColor(QColor(String(param_.getValue("background_color").toString()).toQString()));
-    selected_color->setColor(QColor(String(param_.getValue("highlighted_peak_color").toString()).toQString()));
+    peak_color->setColor(QColor(toQString(String(layer.param.getValue("peak_color").toString()))));
+    icon_color->setColor(QColor(toQString(String(layer.param.getValue("icon_color").toString()))));
+    annotation_color->setColor(QColor(toQString(String(layer.param.getValue("annotation_color").toString()))));
+    bg_color->setColor(QColor(toQString(String(param_.getValue("background_color").toString()))));
+    selected_color->setColor(QColor(toQString(String(param_.getValue("highlighted_peak_color").toString()))));
 
     if (dlg.exec())
     {
@@ -953,7 +955,7 @@ namespace OpenMS
       {
         layer_name += " (invisible)";
       }
-      context_menu->addAction(layer_name.toQString())->setEnabled(false);
+      context_menu->addAction(toQString(layer_name))->setEnabled(false);
 
       context_menu->addSeparator();
       
@@ -966,10 +968,10 @@ namespace OpenMS
         addUserPeakAnnotation_(near_peak);
       })->setEnabled(near_peak.isValid());
       
-      context_menu->addAction((String("Add peak annotation ") + String(getNonGravityDim().getDimNameShort())).toQString(), [&]() {
+      context_menu->addAction(toQString((String("Add peak annotation ") + String(getNonGravityDim().getDimNameShort()))), [&]() {
         const auto xy_point = getCurrentLayer().peakIndexToXY(near_peak, unit_mapper_);
-        QString label = getNonGravityDim().formattedValue(gr_.swap().gravityValue(xy_point)).toQString();
-        addPeakAnnotation(near_peak, label, String(getCurrentLayer().param.getValue("peak_color").toString()).toQString());
+        QString label = toQString(getNonGravityDim().formattedValue(gr_.swap().gravityValue(xy_point)));
+        addPeakAnnotation(near_peak, label, toQString(String(getCurrentLayer().param.getValue("peak_color").toString())));
       })->setEnabled(near_peak.isValid());
       
       context_menu->addSeparator();
@@ -1128,7 +1130,7 @@ namespace OpenMS
     QString text = QInputDialog::getText(this, "Add peak annotation", "Enter text:", QLineEdit::Normal, "", &ok);
     if (ok && !text.isEmpty())
     {
-      addPeakAnnotation(near_peak, text, QColor(String(getCurrentLayer().param.getValue("peak_color").toString()).toQString()));
+      addPeakAnnotation(near_peak, text, QColor(toQString(String(getCurrentLayer().param.getValue("peak_color").toString()))));
     }
   }
 
@@ -1471,6 +1473,11 @@ namespace OpenMS
         area.extend(getLayer(i).getRangeForArea(area));
       }
       auto& intensity = getGravityDim().map(area); // make sure y-axis spans [0, max * TOP_MARGIN]
+      if (intensity.isEmpty())
+      { // no peaks/data in the visible non-gravity range (e.g. extreme zoom). Fall back to the
+        // overall layer intensity range so the y-axis stays sane and dataToWidget_ doesn't divide by zero.
+        intensity = getGravityDim().map(overall_data_range_1d_);
+      }
       intensity.setMin(0); // make sure we start at 0
       intensity.extend(intensity.getMax() * TOP_MARGIN);
     }

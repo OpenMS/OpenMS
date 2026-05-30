@@ -65,7 +65,7 @@ namespace OpenMS
     /// Which axis is pulling a point downwards (e.g. when plotting sticks)
     /// Note that pulling (see gravitateDown()) will only change the value for the gravity axis.
     /// E.g. with gravity on Y, a Point(X=10, Y=10), will be pulled to Point(X=10, Y=min)
-    /// @param axis Either X, or Y
+    /// @param[in] axis Either X, or Y
     /// @throws Exception::InvalidValue if @p axis is not X or Y
     void setGravityAxis(DIM axis)
     {
@@ -78,7 +78,7 @@ namespace OpenMS
 
     /**
      * @brief Convenience function, which picks the Intensity dimension from a DimMapper as gravity axis
-     * @param unit_mapper
+     * @param[in] unit_mapper
      * @throw Exception::NotImplemented if @p unit_mapper does not have an Intensity dimension
      */
     void setIntensityAsGravity(const DimMapper<2>& unit_mapper)
@@ -114,8 +114,8 @@ namespace OpenMS
 
     /// Pull the point @p p to the current gravity axis, i.e. the lowest point on the Area
     ///
-    /// @param p A X-Y data point 
-    /// @param area An area which contains the min/max range of X and Y axis
+    /// @param[in] p A X-Y data point 
+    /// @param[in] area An area which contains the min/max range of X and Y axis
     /// @return A X-Y data point identical to @p p, but with its gravity-axis value changed to the minimum given in @p area
     QPoint gravitateMin(QPoint p, const AreaXYType& area) const
     {
@@ -132,8 +132,8 @@ namespace OpenMS
 
     /// Add value of @p delta's gravity dimension to the gravity dimension of point @p p. Other dimensions remain untouched.
     ///
-    /// @param p A X-Y data point
-    /// @param delta A distance, of which we only use the gravity dimension's part.
+    /// @param[in] p A X-Y data point
+    /// @param[in] delta A distance, of which we only use the gravity dimension's part.
     /// @return A X-Y data point identical to @p p, but with its gravity-axis value changed by adding delta.
     QPoint gravitateWith(QPoint p, const QPoint& delta) const
     {
@@ -158,8 +158,8 @@ namespace OpenMS
 
     /// Change the value of @p p's gravity dimension to the value of @p targets'. Other dimensions remain untouched.
     ///
-    /// @param p A X-Y data point
-    /// @param target A target value, of which we only use the gravity dimension's part.
+    /// @param[in] p A X-Y data point
+    /// @param[out] target A target value, of which we only use the gravity dimension's part.
     /// @return A X-Y data point identical to @p p, but with its gravity-axis value changed by target's value.
     QPoint gravitateTo(QPoint p, const QPoint& target) const
     {
@@ -199,7 +199,7 @@ namespace OpenMS
 
     /// Pull the point @p p to zero (0) on the current gravity axis.
     ///
-    /// @param p A X-Y data point
+    /// @param[in] p A X-Y data point
     /// @return A X-Y data point with its gravity axis set to '0'
     QPoint gravitateZero(QPoint p) const
     {
@@ -216,7 +216,7 @@ namespace OpenMS
 
     /// Pull the point @p p to zero (0) on the current gravity axis.
     ///
-    /// @param p A X-Y data point
+    /// @param[in] p A X-Y data point
     /// @return A X-Y data point with its gravity axis set to '0'
     template<UInt D>
     DPosition<D> gravitateZero(DPosition<D> p) const
@@ -227,7 +227,7 @@ namespace OpenMS
 
     /// Pull the point @p p to NAN on the current gravity axis.
     ///
-    /// @param p A X-Y data point
+    /// @param[in] p A X-Y data point
     /// @return A X-Y data point with its gravity axis set to NAN
     template<UInt D>
     DPosition<D> gravitateNAN(DPosition<D> p) const
@@ -238,7 +238,7 @@ namespace OpenMS
 
     /// Get the value of the gravity dimension
     ///
-    /// @param p A X-Y data point
+    /// @param[in] p A X-Y data point
     /// @return Either the X or Y component, depending on gravity
     int gravityValue(const QPoint& p) const
     {
@@ -255,7 +255,7 @@ namespace OpenMS
     }
     /// Get the value of the gravity dimension
     ///
-    /// @param p A X-Y data point
+    /// @param[in] p A X-Y data point
     /// @return Either the X or Y component, depending on gravity
     template<UInt D>
     int gravityValue(const DPosition<D>& p) const
@@ -265,8 +265,8 @@ namespace OpenMS
 
     /// Get the difference of values in the gravity dimension
     ///
-    /// @param start The start point in XY coordinates
-    /// @param end The end point in XY coordinates
+    /// @param[in] start The start point in XY coordinates
+    /// @param[in] end The end point in XY coordinates
     /// @return The difference of (end-start) in the X or Y component, depending on gravity
     template<UInt D>
     auto gravityDiff(const DPosition<D>& start, const DPosition<D>& end) const
@@ -334,13 +334,13 @@ public:
     const DimBase& getNonGravityDim() const;
 
     /// add a chromatogram layer
-    /// @param chrom_exp_sptr An MSExperiment with chromatograms
-    /// @param ondisc_sptr OnDisk experiment, as fallback to read the chromatogram from, should @p chrom_exp_sptr.getChromatograms(index) be empty
-    /// @param chrom_annotation If OSWData was loaded, pass the shared_pointer from the LayerData. Otherwise leave empty.
-    /// @param index Index of the chromatogram to show
-    /// @param filename For file change watcher (can be empty, if need be)
-    /// @param basename Name of layer (usually the basename of the file)
-    /// @param basename_extra Optional suffix of the layer name (e.g. a peptide sequence, or an index '[39]).
+    /// @param[in] chrom_exp_sptr An MSExperiment with chromatograms
+    /// @param[in] ondisc_sptr OnDisk experiment, as fallback to read the chromatogram from, should @p chrom_exp_sptr.getChromatograms(index) be empty
+    /// @param[in] chrom_annotation If OSWData was loaded, pass the shared_pointer from the LayerData. Otherwise leave empty.
+    /// @param[in] index Index of the chromatogram to show
+    /// @param[in] filename For file change watcher (can be empty, if need be)
+    /// @param[in] basename Name of layer (usually the basename of the file)
+    /// @param[in] basename_extra Optional suffix of the layer name (e.g. a peptide sequence, or an index '[39]).
     /// @return true on success, false if data was missing etc
     /// @note: this does NOT trigger layerActivated signal for efficiency-reasons. Do it manually afterwards!
     bool addChromLayer(ExperimentSharedPtrType chrom_exp_sptr,
@@ -541,9 +541,9 @@ protected:
       @brief Convert chart to widget coordinates
 
       Translates chart (unit) coordinates to widget (pixel) coordinates.
-      @param x the chart coordinate x
-      @param y the chart coordinate y
-      @param point returned widget coordinates
+      @param[in] x the chart coordinate x
+      @param[in] y the chart coordinate y
+      @param[out] point returned widget coordinates
     */
     void dataToWidget_(double x, double y, QPoint& point)
     {
@@ -616,7 +616,7 @@ protected:
 
         Sets the visible area to the initial value, such that all data (for the current spec/chrom/...) is shown.
 
-        @param repaint If @em true a repaint is forced. Otherwise only the new area is set.
+        @param[in] repaint If @em true a repaint is forced. Otherwise only the new area is set.
     */
     void resetZoom(bool repaint = true) override
     {

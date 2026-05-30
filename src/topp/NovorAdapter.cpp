@@ -21,12 +21,14 @@
 // TODO remove once we have store spectrum in handler
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
-#include <QFileInfo>
+#include <filesystem>
 
 #include <fstream>
 
@@ -173,11 +175,11 @@ protected:
     // determine the executable
     //-------------------------------------------------------------
     const String java_executable = getStringOption_("java_executable");
-    QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
+    String java_memory = "-Xmx" + String(getIntOption_("java_memory")) + "m";
 
-    QString executable = getStringOption_("executable").toQString();   
+    String executable = getStringOption_("executable");
 
-    if (executable.isEmpty())
+    if (executable.empty())
     {
       const char* novor_path_env = getenv("NOVOR_PATH");
       if (novor_path_env == nullptr || strlen(novor_path_env) == 0)
@@ -189,11 +191,19 @@ protected:
     }
 
     // Normalize file path
-    QFileInfo file_info(executable);
-    executable = file_info.canonicalFilePath();
+    try
+    {
+      auto canon = std::filesystem::canonical(std::filesystem::path(static_cast<std::string>(executable)));
+      executable = canon.string();
+    }
+    catch (const std::filesystem::filesystem_error&)
+    {
+      writeLogError_("FATAL: Executable of Novor not found at '" + executable + "'. Please provide a valid path via '-executable' or NOVOR_PATH env variable!");
+      return MISSING_PARAMETERS;
+    }
 
     writeLogInfo_("Executable is: " + executable);
-    const QString & path_to_executable = File::path(executable).toQString();
+    const String path_to_executable = File::path(executable);
     
     //-------------------------------------------------------------
     // reading input
@@ -248,17 +258,10 @@ protected:
 
     String tmp_out = tmp_dir.getPath() + "tmp_out_novor.csv";
 
-    QStringList process_params;
-    process_params << java_memory
-                   << "-jar" << executable
-                   << "-f" 
-                   << "-o" << tmp_out.toQString()               
-                   << "-p" << tmp_param.toQString()
-                   << tmp_mgf.toQString();
-
+    std::vector<String> process_params = {java_memory, "-jar", executable, "-f", "-o", tmp_out, "-p", tmp_param, tmp_mgf};
 
     // print novor command line
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params, path_to_executable);
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable, process_params, path_to_executable);
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;
@@ -315,7 +318,7 @@ protected:
       ph.setMetaValue("pepMass(denovo)", sl[5].toDouble());
       ph.setMetaValue("err(data-denovo)", sl[6].toDouble());
       ph.setMetaValue("ppm(1e6*err/(mz*z))", sl[7].toDouble());
-      ph.setMetaValue("aaScore", sl[10].toQString());
+      ph.setMetaValue("aaScore", sl[10]);
 
       pi.getHits().push_back(std::move(ph));   
       peptide_ids.push_back(std::move(pi));
@@ -336,7 +339,7 @@ protected:
 
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.db = "denovo";
-    search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+    search_parameters.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
     
     // if a parameter file is used the modifications need to be parsed from the novor output csv
     search_parameters.fixed_modifications = getStringList_("fixed_modifications");

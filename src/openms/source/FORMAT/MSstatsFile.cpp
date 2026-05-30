@@ -183,7 +183,8 @@ void MSstatsFile::storeLFQ(const String& filename,
                                    const bool is_isotope_label_type,
                                    const String& bioreplicate,
                                    const String& condition,
-                                   const String& retention_time_summarization_method)
+                                   const String& retention_time_summarization_method,
+                                   const bool remove_shared_peptides)
 {
   // Experimental Design file
   const ExperimentalDesign::SampleSection& sampleSection = design.getSampleSection();
@@ -232,30 +233,51 @@ void MSstatsFile::storeLFQ(const String& filename,
   const bool has_fraction = design.isFractionated();
 
   //vector< BaseFeature> features{};
-  vector< String > spectra_paths{};
+  //vector< BaseFeature> features{};
+  vector< String > spectra_paths;
+  vector< String > raw_spectra_paths;
 
   //features.reserve(consensus_map.size());
 
   if (reannotate_filenames.empty())
   {
-    consensus_map.getPrimaryMSRunPath(spectra_paths);
+    consensus_map.getPrimaryMSRunPath(raw_spectra_paths);
   }
   else
   {
-    spectra_paths = reannotate_filenames;
+    raw_spectra_paths = reannotate_filenames;
   }
 
-  // Reduce spectra path to the basename of the files
-  for (Size i = 0; i < spectra_paths.size(); ++i)
+  // FileFilter leaves gaps in the map indices.
+  Size max_map_index = 0;
+  for (const auto& kv : consensus_map.getColumnHeaders())
   {
-    spectra_paths[i] = File::basename(spectra_paths[i]);
+    max_map_index = std::max(max_map_index, (Size)kv.first);
   }
 
-  if (!checkUnorderedContent_(spectra_paths, design_filenames))
+  spectra_paths.assign(max_map_index + 1, "");
+  Size file_idx = 0;
+  for (const auto& kv : consensus_map.getColumnHeaders())
+  {
+    if (file_idx < raw_spectra_paths.size())
+    {
+      spectra_paths[kv.first] = File::basename(raw_spectra_paths[file_idx++]);
+    }
+  }
+
+  // --- NEW FIX: Extract only the active paths that weren't removed by FileFilter ---
+  std::vector<String> active_spectra_paths;
+  for (const auto& kv : consensus_map.getColumnHeaders())
+  {
+    active_spectra_paths.push_back(spectra_paths[kv.first]);
+  }
+
+  // Check the active paths against the design instead of the raw spectra_paths
+  if (!isSubsetOf_(active_spectra_paths, design_filenames))
   {
     OPENMS_LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
     OPENMS_LOG_FATAL_ERROR << "Spectra files (consensus map): \n";
-    for (auto const & s : spectra_paths)
+    for (auto const & s : active_spectra_paths)
     {
       OPENMS_LOG_FATAL_ERROR << s << endl;
     }
@@ -265,6 +287,10 @@ void MSstatsFile::storeLFQ(const String& filename,
       OPENMS_LOG_FATAL_ERROR << s << endl;
     }
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design");
+  }
+  else if (active_spectra_paths.size() < design_filenames.size())
+  {
+    warnOnSubsetFiles_(active_spectra_paths, design_filenames);
   }
 
   // Extract information from the consensus features.
@@ -321,6 +347,7 @@ void MSstatsFile::storeLFQ(const String& filename,
   // To aggregate/uniquify on peptide sequence-level and save if a peptide is quantifyable
   std::set<String> peptideseq_quantifyable; //set for deterministic ordering
 
+  Size n_shared_peptides_dropped = 0;
 
   // Stores all the lines that will be present in the final MSstats output
   // Several things needs to be considered:
@@ -355,14 +382,12 @@ void MSstatsFile::storeLFQ(const String& filename,
         // we check if the map is already set at this sequence since
         // it cannot happen that two peptides with the same sequence map to different proteins unless something is wrong.
         // Also, I think MSstats cannot handle different associations to proteins across conditions.
-        if (isQuantifyable_(accs, accession_to_group))
+        if (remove_shared_peptides && !isQuantifyable_(accs, accession_to_group))
         {
-          peptideseq_quantifyable.emplace(sequence);
-        }
-        else
-        {
+          ++n_shared_peptides_dropped;
           continue; // we don't need the rest of the loop
         }
+        peptideseq_quantifyable.emplace(sequence);
 
         // Variables of the peptide hit
         // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
@@ -419,6 +444,14 @@ void MSstatsFile::storeLFQ(const String& filename,
     }
   }
 
+  if (n_shared_peptides_dropped > 0)
+  {
+    OPENMS_LOG_WARN << "WARNING: " << n_shared_peptides_dropped
+                    << " peptide hit(s) were dropped because they map to proteins in different"
+                    << " indistinguishable protein groups (shared peptides)."
+                    << " Use -remove_shared_peptides false to keep them." << endl;
+  }
+
   // Print the run mapping between MSstats and OpenMS
   for (const auto& run_mapping : msstats_run_to_openms_fractiongroup)
   {
@@ -443,7 +476,8 @@ void MSstatsFile::storeISO(const String& filename,
                                    const String& bioreplicate,
                                    const String& condition,
                                    const String& mixture,
-                                   const String& retention_time_summarization_method)
+                                   const String& retention_time_summarization_method,
+                                   const bool remove_shared_peptides)
 {
   // Experimental Design file
   const ExperimentalDesign::SampleSection& sampleSection = design.getSampleSection();
@@ -500,30 +534,50 @@ void MSstatsFile::storeISO(const String& filename,
   }
 
   vector< BaseFeature> features;
-  vector< String > spectra_paths;
-
   features.reserve(consensus_map.size());
+
+  vector< String > spectra_paths;
+  vector< String > raw_spectra_paths;
 
   if (reannotate_filenames.empty())
   {
-    consensus_map.getPrimaryMSRunPath(spectra_paths);
+    consensus_map.getPrimaryMSRunPath(raw_spectra_paths);
   }
   else
   {
-    spectra_paths = reannotate_filenames;
+    raw_spectra_paths = reannotate_filenames;
   }
 
-  // Reduce spectra path to the basename of the files
-  for (Size i = 0; i < spectra_paths.size(); ++i)
+  // FileFilter leaves gaps in the map indices.
+  Size max_map_index = 0;
+  for (const auto& kv : consensus_map.getColumnHeaders())
   {
-    spectra_paths[i] = File::basename(spectra_paths[i]);
+    max_map_index = std::max(max_map_index, (Size)kv.first);
   }
 
-  if (!checkUnorderedContent_(spectra_paths, design_filenames))
+  spectra_paths.assign(max_map_index + 1, "");
+  Size file_idx = 0;
+  for (const auto& kv : consensus_map.getColumnHeaders())
+  {
+    if (file_idx < raw_spectra_paths.size())
+    {
+      spectra_paths[kv.first] = File::basename(raw_spectra_paths[file_idx++]);
+    }
+  }
+
+  // --- NEW FIX: Extract only the active paths that weren't removed by FileFilter ---
+  std::vector<String> active_spectra_paths;
+  for (const auto& kv : consensus_map.getColumnHeaders())
+  {
+    active_spectra_paths.push_back(spectra_paths[kv.first]);
+  }
+
+  // Check the active paths against the design instead of the raw spectra_paths
+  if (!isSubsetOf_(active_spectra_paths, design_filenames))
   {
     OPENMS_LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
     OPENMS_LOG_FATAL_ERROR << "Spectra files (consensus map): \n";
-    for (auto const & s : spectra_paths)
+    for (auto const & s : active_spectra_paths)
     {
       OPENMS_LOG_FATAL_ERROR << s << endl;
     }
@@ -533,6 +587,10 @@ void MSstatsFile::storeISO(const String& filename,
       OPENMS_LOG_FATAL_ERROR << s << endl;
     }
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design");
+  }
+  else if (active_spectra_paths.size() < design_filenames.size())
+  {
+    warnOnSubsetFiles_(active_spectra_paths, design_filenames);
   }
 
   // Extract information from the consensus features.
@@ -553,6 +611,8 @@ void MSstatsFile::storeISO(const String& filename,
   std::unordered_map< String, const IndProtGrp* > accession_to_group = getAccessionToGroupMap_(ind_prots);
 
   std::set<String> peptideseq_quantifyable; //set for deterministic ordering
+
+  Size n_shared_peptides_dropped = 0;
 
   // Stores all the lines that will be present in the final MSstats output,
   // We need to map peptide sequences to full features, because then we can ignore peptides
@@ -592,14 +652,12 @@ void MSstatsFile::storeISO(const String& filename,
         // When using extractProteinAccessionSet, we do not really need to loop over Evidences
         // anymore since MSStats does not care about anything else but the Protein accessions
 
-        if (isQuantifyable_(accs, accession_to_group))
+        if (remove_shared_peptides && !isQuantifyable_(accs, accession_to_group))
         {
-          peptideseq_quantifyable.emplace(sequence);
-        }
-        else
-        {
+          ++n_shared_peptides_dropped;
           continue; // we don't need the rest of the loop
         }
+        peptideseq_quantifyable.emplace(sequence);
 
         String accession = ListUtils::concatenate(accs,accdelim_);
         if (accession.empty()) accession = na_string_; //shouldn't really matter since we skip unquantifiable peptides
@@ -649,6 +707,14 @@ void MSstatsFile::storeISO(const String& filename,
   }
 
   // Print the run mapping between MSstats and OpenMS
+  if (n_shared_peptides_dropped > 0)
+  {
+    OPENMS_LOG_WARN << "WARNING: " << n_shared_peptides_dropped
+                    << " peptide hit(s) were dropped because they map to proteins in different"
+                    << " indistinguishable protein groups (shared peptides)."
+                    << " Use -remove_shared_peptides false to keep them." << endl;
+  }
+
   for (const auto& run_mapping : msstats_run_to_openms_fractiongroup)
   {
     cout << "MSstats run " << String(run_mapping.first)
@@ -665,12 +731,13 @@ void MSstatsFile::storeISO(const String& filename,
   csv_out.store(filename);
 }
 
-bool MSstatsFile::checkUnorderedContent_(const std::vector<String> &first, const std::vector<String> &second)
+bool MSstatsFile::isSubsetOf_(const std::vector<String> &first, const std::vector<String> &second)
 {
   const std::set< String > lhs(first.begin(), first.end());
   const std::set< String > rhs(second.begin(), second.end());
-  return lhs == rhs
-         && std::equal(lhs.begin(), lhs.end(), rhs.begin());
+
+  // Return true if lhs (consensus map files) is a subset of rhs (design files)
+  return std::includes(rhs.begin(), rhs.end(), lhs.begin(), lhs.end());
 }
 
 void MSstatsFile::assembleRunMap_(
@@ -743,6 +810,28 @@ bool MSstatsFile::isQuantifyable_(
       return false;
     }
   }
-  
+
   return true;
 }
+
+void MSstatsFile::warnOnSubsetFiles_(const std::vector<String>& spectra_paths, const std::vector<String>& design_filenames)
+  {
+    std::vector<String> missing_files;
+    std::set<String> design_set(design_filenames.begin(), design_filenames.end());
+    std::set<String> spectra_set(spectra_paths.begin(), spectra_paths.end());
+
+    std::set_difference(design_set.begin(), design_set.end(),
+                        spectra_set.begin(), spectra_set.end(),
+                        std::inserter(missing_files, missing_files.begin()));
+
+    OPENMS_LOG_WARN << "Warning: The consensus map contains " << spectra_paths.size()
+                    << " of " << design_filenames.size() << " files from the experimental design.\n"
+                    << "Missing files: ";
+
+    // Using OpenMS 'Size' type instead of 'size_t' to satisfy the portability guideline
+    for (Size i = 0; i < missing_files.size(); ++i)
+    {
+      OPENMS_LOG_WARN << missing_files[i] << (i < missing_files.size() - 1 ? ", " : "");
+    }
+    OPENMS_LOG_WARN << "\nProceeding with the available subset.\n";
+  }

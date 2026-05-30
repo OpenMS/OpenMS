@@ -8,6 +8,7 @@
 
 
 #include <OpenMS/VISUAL/VISUALIZER/SampleVisualizer.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 //QT
 #include <QtWidgets/QTextEdit>
@@ -44,12 +45,12 @@ namespace OpenMS
   {
     if (!isEditable())
     {
-      fillComboBox_(samplestate_, &temp_.NamesOfSampleState[temp_.getState()], 1);
+      fillComboBox_(samplestate_, &temp_.NamesOfSampleState[static_cast<size_t>(temp_.getState())], 1);
     }
     else
     {
-      fillComboBox_(samplestate_, temp_.NamesOfSampleState, Sample::SIZE_OF_SAMPLESTATE);
-      samplestate_->setCurrentIndex(temp_.getState());
+      fillComboBox_(samplestate_, temp_.NamesOfSampleState, static_cast<size_t>(Sample::SampleState::SIZE_OF_SAMPLESTATE));
+      samplestate_->setCurrentIndex(static_cast<int>(temp_.getState()));
     }
 
     samplename_->setText(temp_.getName().c_str());
@@ -64,10 +65,10 @@ namespace OpenMS
 
   void SampleVisualizer::store()
   {
-    ptr_->setName(samplename_->text());
-    ptr_->setNumber(samplenumber_->text());
-    ptr_->setOrganism(sampleorganism_->text());
-    ptr_->setComment(samplecomment_->toPlainText());
+    ptr_->setName(fromQString(samplename_->text()));
+    ptr_->setNumber(fromQString(samplenumber_->text()));
+    ptr_->setOrganism(fromQString(sampleorganism_->text()));
+    ptr_->setComment(fromQString(samplecomment_->toPlainText()));
     ptr_->setState((Sample::SampleState)samplestate_->currentIndex());
     ptr_->setMass(samplemass_->text().toFloat());
     ptr_->setVolume(samplevolume_->text().toFloat());

@@ -18,6 +18,8 @@
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>
 
 #include <boost/assign/std/vector.hpp>
 
@@ -456,6 +458,30 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
       TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_position"), 14);
       TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 16); // consensus = 7
       TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 7);
+
+      // Regression test for GitHub issue #9138: with use_consensus=false,
+      // hull_points must be equal-sized so cross-correlation scoring does
+      // not read past the end of the shorter vector (segfault in release).
+      Size hp1 = mrmfeature.getFeature("1").getConvexHulls()[0].getHullPoints().size();
+      Size hp2 = mrmfeature.getFeature("2").getConvexHulls()[0].getHullPoints().size();
+      Size hp3 = mrmfeature.getFeature("3").getConvexHulls()[0].getHullPoints().size();
+      TEST_EQUAL(hp1, hp2)
+      TEST_EQUAL(hp1, hp3)
+      TEST_TRUE(hp1 > 0)
+
+      // Exercise the actual crash path: wrap in MRMFeatureOpenMS and run
+      // cross-correlation scoring (this segfaulted before the fix).
+      {
+        OpenSwath::IMRMFeature* imrmfeature = new MRMFeatureOpenMS(mrmfeature);
+        std::vector<std::string> native_ids = {"1", "2", "3"};
+        OpenSwath::MRMScoring mrmscore;
+        mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
+        // If we get here without crashing, the fix works.
+        // Verify scores are finite.
+        TEST_TRUE(std::isfinite(mrmscore.calcXcorrCoelutionScore()))
+        TEST_TRUE(std::isfinite(mrmscore.calcXcorrShapeScore()))
+        delete imrmfeature;
+      }
     }
 
     {

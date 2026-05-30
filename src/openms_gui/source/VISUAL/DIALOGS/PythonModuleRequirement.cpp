@@ -11,6 +11,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/PythonInfo.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QString>
 #include <QtWidgets/QFileDialog>
@@ -37,7 +38,7 @@ namespace OpenMS
       ui_->lbl_modules->setText(" ... updating ... ");
       for (const auto& s : required_modules_)
       {
-        if (PythonInfo::isPackageInstalled(python_exe, s)) valid_modules.push_back(s);
+        if (PythonInfo::isPackageInstalled(fromQString(python_exe), fromQString(s))) valid_modules.push_back(s);
         else missing_modules.push_back(s);
       }
       emit valueChanged(valid_modules, missing_modules);

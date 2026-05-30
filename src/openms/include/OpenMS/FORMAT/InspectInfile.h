@@ -41,15 +41,15 @@ public:
     bool operator==(const InspectInfile& inspect_infile) const;
 
     /** stores the experiment data in an Inspect input file that can be used as input for Inspect shell execution
-      @param filename set the given filename
+      @param[in] filename set the given filename
       @throw UnableToCreateFile is thrown if the file could not be created
     */
     void store(const String& filename);
 
     /** retrieves the name, mass change, affected residues, type and position for all modifications from a string
-      @param modification_line
-      @param modifications_filename
-      @param monoisotopic if true, masses are considered to be monoisotopic
+      @param[in] modification_line
+      @param[in] modifications_filename
+      @param[in] monoisotopic if true, masses are considered to be monoisotopic
       @throw FileNotReadable if the modifications_filename could not be read
       @throw FileNotFound if modifications_filename could not be found
       @throw ParseError if modifications_filename could not be parsed

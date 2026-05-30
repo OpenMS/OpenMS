@@ -352,8 +352,8 @@ START_SECTION(void setQuery(const std::string& haystack))
   TEST_EQUAL(state.getQuery(), q);
   TEST_EQUAL(state.hits.size(), 0);
   TEST_EQUAL(state.tree_pos(), 0);
-  TEST_EQUAL(state.textPosIt() == state.getQuery().cbegin(), true);
-  TEST_EQUAL(state.spawns.empty(), true);
+  TEST_TRUE(*state.textPosIt() == *state.getQuery().cbegin());
+  TEST_TRUE(state.scouts.empty());
   TEST_EQUAL(state.textPos(), 0);
 END_SECTION
 

@@ -16,6 +16,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
 
@@ -388,7 +389,7 @@ namespace OpenMS
     // The mz-File (if given)
     if (!mz_file.empty())
     {
-      base_name = FileHandler::stripExtension(File::basename(mz_file));
+      base_name = File::stemName(mz_file);
       raw_data = FileTypes::typeToName(FileHandler::getTypeByFileName(mz_file));
 
       PeakMap experiment;
@@ -398,7 +399,7 @@ namespace OpenMS
     }
     else
     {
-      base_name = FileHandler::stripExtension(File::basename(filename));
+      base_name = File::stemName(filename);
       raw_data = "mzML";
     }
     // mz_name is input from IDFileConverter for 'base_name' attribute, only necessary if different from 'mz_file'.
@@ -439,7 +440,7 @@ namespace OpenMS
     f << "\t<search_summary base_name=\"" << base_name;
     f << "\" search_engine=\"" << search_engine_name;
     f << "\" precursor_mass_type=\"";
-    if (search_params.mass_type == ProteinIdentification::MONOISOTOPIC)
+    if (search_params.mass_type == ProteinIdentification::PeakMassType::MONOISOTOPIC)
     {
       f << "monoisotopic";
     }
@@ -448,7 +449,7 @@ namespace OpenMS
       f << "average";
     }
     f << "\" fragment_mass_type=\"";
-    if (search_params.mass_type == ProteinIdentification::MONOISOTOPIC)
+    if (search_params.mass_type == ProteinIdentification::PeakMassType::MONOISOTOPIC)
     {
       f << "monoisotopic";
     }
@@ -550,7 +551,7 @@ namespace OpenMS
       }
       for (const PeptideHit& hit : pep.getHits())
       {
-        PeptideHit h = hit;
+        const PeptideHit& h = hit;
         const AASequence& seq = h.getSequence();
         double precursor_neutral_mass = seq.getMonoWeight();
 
@@ -631,7 +632,7 @@ namespace OpenMS
         f << ">\n";
         f << "\t<search_result>" << "\n";
 
-        vector<PeptideEvidence> pes = h.getPeptideEvidences();
+        const vector<PeptideEvidence>& pes = h.getPeptideEvidences();
 
         // select first one if multiple are present as "leader"
         PeptideEvidence pe;
@@ -1861,13 +1862,13 @@ namespace OpenMS
       mass_type = attributeAsString_(attributes, "fragment_mass_type");
       if (mass_type == "monoisotopic")
       {
-        params_.mass_type = ProteinIdentification::MONOISOTOPIC;
+        params_.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
       }
       else
       {
         if (mass_type == "average")
         {
-          params_.mass_type = ProteinIdentification::AVERAGE;
+          params_.mass_type = ProteinIdentification::PeakMassType::AVERAGE;
         }
         else
         {
@@ -2104,12 +2105,6 @@ namespace OpenMS
           if (!temp_aa_sequence.hasNTerminalModification())
           {
             temp_aa_sequence.setNTerminalModification(mod.getRegisteredMod());
-          }
-          else
-          {
-            warning(LOAD, "Trying to add a fixed N-term modification from the search_summary to an already"
-                          " annotated and modified N-terminus of " + current_sequence_
-                          + " ... skipping.");
           }
         }
         else if (mod.getRegisteredMod()->getTermSpecificity() == ResidueModification::C_TERM ||

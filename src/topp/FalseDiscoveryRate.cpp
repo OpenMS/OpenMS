@@ -12,6 +12,9 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -265,7 +268,7 @@ protected:
         IDFilter::removeUnreferencedProteins(prot_ids, pep_ids);
       }
       //remove_psms_without_proteins
-      IDFilter::updateProteinReferences(pep_ids,
+      IDFilter::removeDanglingProteinReferences(pep_ids,
                                         prot_ids,
                                         getStringOption_("FDR:cleanup:remove_psms_without_proteins") == "true");
       //remove_spectra_without_psms

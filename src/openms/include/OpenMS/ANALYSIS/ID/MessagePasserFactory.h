@@ -49,21 +49,21 @@ namespace OpenMS
     evergreen::TableDependency<Label> createProteinFactor(Label id, double prior, int nrMissingPeps = 0);
 
     /// Peptide Factor initialized with:
-    /// @param id ID for the LabeledPMF
-    /// @param prob peptide evidence probability
+    /// @param[in] id ID for the LabeledPMF
+    /// @param[in] prob peptide evidence probability
     evergreen::TableDependency<Label> createPeptideEvidenceFactor(Label id, double prob);
 
     /// Conditional probability table of peptide given number of parent proteins, based on model params.
     /// Additionally regularizes on the amount of parent proteins.
-    /// @param nr_parents (maximum) number of parent proteins
-    /// @param id ID for the LabeledPMF    
-    /// @param pep_id ID for the LabeledPMF    
+    /// @param[in] nr_parents (maximum) number of parent proteins
+    /// @param[in] id ID for the LabeledPMF    
+    /// @param[in] pep_id ID for the LabeledPMF    
     evergreen::TableDependency<Label> createRegularizingSumEvidenceFactor(size_t nr_parents, Label id, Label pep_id);
 
     /// Conditional probability table of peptide given number of parent proteins, based on model params.
-    /// @param nr_parents (maximum) number of parent proteins
-    /// @param id ID for the LabeledPMF    
-    /// @param pep_id ID for the LabeledPMF    
+    /// @param[in] nr_parents (maximum) number of parent proteins
+    /// @param[in] id ID for the LabeledPMF    
+    /// @param[in] pep_id ID for the LabeledPMF    
     evergreen::TableDependency<Label> createSumEvidenceFactor(size_t nr_parents, Label id, Label pep_id);
 
     //For extended model. @todo currently unused
@@ -80,11 +80,11 @@ namespace OpenMS
 
     /**
      * @brief Constructor
-     * @param alpha Peptide emission probability
-     * @param beta Spurious peptide emission probability
-     * @param gamma Protein prior
-     * @param p Marginalization norm
-     * @param pep_prior Peptide prior (defines at which evidence probability, additional evidence is beneficial)
+     * @param[in] alpha Peptide emission probability
+     * @param[in] beta Spurious peptide emission probability
+     * @param[in] gamma Protein prior
+     * @param[in] p Marginalization norm
+     * @param[in] pep_prior Peptide prior (defines at which evidence probability, additional evidence is beneficial)
      */
     MessagePasserFactory(double alpha, double beta, double gamma, double p, double pep_prior);
 

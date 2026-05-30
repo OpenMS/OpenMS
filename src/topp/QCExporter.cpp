@@ -14,12 +14,6 @@
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QByteArray>
-#include <QFile>
-#include <QString>
-#include <QFileInfo>
-
-//~ #include <QIODevice>
 #include <iostream>
 #include <fstream>
 #include <vector>

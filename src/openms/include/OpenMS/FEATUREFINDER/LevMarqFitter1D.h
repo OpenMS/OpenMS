@@ -11,15 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FEATUREFINDER/Fitter1D.h>
 #include <algorithm>
-
-// forward decl
-namespace Eigen
-{
-  template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-  class Matrix;
-  using MatrixXd = Matrix<double, -1, -1, 0, -1, -1>;
-  using VectorXd = Matrix<double, -1, 1, 0, -1, 1>;
-} // namespace Eigen
+#include <vector>
 
 namespace OpenMS
 {
@@ -32,7 +24,10 @@ namespace OpenMS
   public:
     typedef std::vector<double> ContainerType;
 
-    /** Generic functor for LM-Optimization */
+    /** Generic functor for LM-Optimization
+     *  Uses raw pointer interface to avoid Eigen in public headers.
+     *  Implementations should use Eigen::Map to wrap these pointers.
+     */
     // TODO: This is copy and paste from TraceFitter.h. Make a generic wrapper for LM optimization
     class GenericFunctor
     {
@@ -54,10 +49,11 @@ namespace OpenMS
       {
       }
 
-      virtual int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) const = 0;
+      /// Compute residuals. x has size inputs(), fvec has size values()
+      virtual int operator()(const double* x, double* fvec) const = 0;
 
-      // compute Jacobian matrix for the different parameters
-      virtual int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) const = 0;
+      /// Compute Jacobian matrix. x has size inputs(), J is values() x inputs() (column-major)
+      virtual int df(const double* x, double* J) const = 0;
 
     protected:
       const int m_inputs, m_values;
@@ -102,7 +98,7 @@ namespace OpenMS
 
         @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    void optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor) const;
+    void optimize_(std::vector<double>& x_init, GenericFunctor& functor) const;
 
     void updateMembers_() override;
   };

@@ -71,7 +71,7 @@
     <b>Alternatively (no admin account required)</b>, compile Qt from sources. We cannot cover all the details here. See https://wiki.qt.io/Building_Qt_6_from_Git for details.
     
     Finally, add the Qt bin directory (i.e the location of <b>Qt6Core.dll</b>, e.g. `C:\dev\qt6\6.7.1\msvc2019_64\bin`)to your Windows PATH Environment variable.
-    If you forget this, starting any %OpenMS executable will result in an error such as `The program can't start because Qt6Networkd.dll is missing from your computer.`
+    If you forget this, starting any %OpenMS executable will result in an error such as `The program can't start because Qt6Cored.dll is missing from your computer.`
     
     In addition, to run any of %OpenMS' GUI apps (such as TOPPView), you need set the `QT_PLUGIN_PATH` environment variable to the `plugins` subdir of your Qt installation.
     E.g. set `QT_PLUGIN_PATH` to `c:\dev\qt6_2\6.7.3\msvc2019_64\plugins`.
@@ -154,7 +154,7 @@
 
   This section is optional. If you can live with the online documentation, you do not need to build your own.
 
-  In order to build the class documentation (<tt>doc</tt> & <tt>doc_internal</tt> targets), TOPP tutorials (<tt>doc_tutorials</tt> target) and more,
+  In order to build the class documentation (<tt>doc</tt> target), TOPP tutorials (<tt>doc_tutorials</tt> target) and more,
   you will need to install three programs:
 
   <ol>

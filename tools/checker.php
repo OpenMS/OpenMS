@@ -16,7 +16,6 @@ function printUsage() {
   print "Usage: checker.php <OpenMS src path> <OpenMS build path> [-u \"user name\"] [-t test] [options]\n";
   print "\n";
   print "This script works only if an OpenMS copy is used, where\n";
-  print "- the internal documentation was built (doc_internal),\n";
   print "- the XML documentation was built (doc_xml),\n";
   print "- all tests were executed.\n";
   print "\n";
@@ -94,7 +93,6 @@ $GLOBALS["all_tests"] = array(
   "coding"               => "check if coding convention is followed",
   "defaults"             => "check if DefautParamHandler classes all have a linked parameters section",
   "license"              => "check if the license header is correctly included in the file",
-  "inactive-maintainers" => "checks if the found maintainers are listed in the ACTIVE_MAINTAINERS list",
 );
 
 $options = array(
@@ -261,7 +259,7 @@ if (in_array("doxygen_errors", $tests))
   if (!file_exists("$bin_path/doc/doxygen/doxygen-error.log"))
   {
     print "Error: For the 'doxygen_errors' test, the file '$bin_path/doc/doxygen/doxygen-error.log' is needed!\n";
-    print "       Please execute 'make doc_internal' first!'.\n";
+    print "       Please execute 'make doc' first!.\n";
     $abort = true;
   }
 }
@@ -329,23 +327,6 @@ if ($ctestReporting)
       $abort = true;
     }
   }
-}
-
-# read active maintainers file
-$activemaintainers = array();
-if (!file_exists("$src_path/tools/ACTIVE_MAINTAINERS"))
-{
-  print "Error: Missing $src_path/tools/ACTIVE_MAINTAINERS file!\n";
-  $abort = true;
-}
-else
-{
-  exec("cat $src_path/tools/ACTIVE_MAINTAINERS", $activemaintainers);
-}
-
-if ($abort)
-{
-  exit;
 }
 
 ########################### MAINTAINERS ################################
@@ -589,38 +570,6 @@ foreach ($files_todo as $f)
       }
     }
   }
-  ########################### (in)active maintainer #####################################
-  if (in_array("inactive-maintainers", $tests))
-  {
-    if (endsWith($f, ".h"))
-    {
-      # check if the maintainer is set
-      if (isset($file_maintainers[$f]) && $file_maintainers[$f] != '')
-      {
-        $all_active = true;
-        $maintainers = explode(',', $file_maintainers[$f]);
-        foreach ($maintainers as $m)
-        {
-          $realMaintainer = trim($m);
-          if (!in_array($realMaintainer, $activemaintainers))
-          {
-            reportTestResult("Inactive maintainer ($realMaintainer) given in '$f'.", $user, "active_maintainer", $f, false);
-            realOutput("Inactive maintainer ($realMaintainer) given in '$f'.", $user, $f);
-            $all_active = false;
-          }
-        }
-        if ($all_active)
-        {
-          reportTestResult("All maintainers given in '$f' are active maintainers.", $user, "active_maintainer", $f, true);
-        }
-      }
-      else
-      {
-        reportTestResult("No maintainer given in '$f'.", $user, "active_maintainer", $f, false);
-      }
-    }
-  }
-
 
   ########################### missing tests  #####################################
   if (in_array("missing_tests", $tests))

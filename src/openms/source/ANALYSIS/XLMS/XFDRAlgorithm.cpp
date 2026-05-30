@@ -225,7 +225,7 @@ using namespace OpenMS;
         for (StringList::const_iterator crosslink_types_it = crosslink_types.begin();
             crosslink_types_it != crosslink_types.end(); ++crosslink_types_it)
         {
-          String current_crosslink_type = *crosslink_types_it;
+          const String& current_crosslink_type = *crosslink_types_it;
           Size idx = std::floor((score - this->min_score_) / arg_binsize_);
           if (   current_crosslink_type == crosslink_class_fulldecoysinterlinks_
               || current_crosslink_type == crosslink_class_hybriddecoysinterlinks_
@@ -263,15 +263,15 @@ using namespace OpenMS;
         }
       }
     }
-    return EXECUTION_OK;
+    return ExitCodes::EXECUTION_OK;
   }
 
   void XFDRAlgorithm::initDataStructures_(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id)
   {
-    const String prot_identifier = protein_id.getIdentifier();
+    const String& prot_identifier = protein_id.getIdentifier();
 
     // if the metaValue exists in search_params and the default value for XFDR was not changed, use the one in search_params
-    ProteinIdentification::SearchParameters search_params = protein_id.getSearchParameters();
+    const ProteinIdentification::SearchParameters& search_params = protein_id.getSearchParameters();
     if (search_params.metaValueExists("decoy_string") && decoy_string_ == "DECOY_")
     {
       decoy_string_ = search_params.getMetaValue("decoy_string");
@@ -316,7 +316,7 @@ using namespace OpenMS;
         {
           StringList alpha_prots;
           const std::vector<PeptideEvidence> pevs_alpha = ph.getPeptideEvidences();
-          for (PeptideEvidence pev : pevs_alpha)
+          for (const PeptideEvidence& pev : pevs_alpha)
           {
             alpha_prots.push_back(pev.getProteinAccession());
           }
@@ -538,9 +538,9 @@ using namespace OpenMS;
     if (arg_minborder_ >= arg_maxborder_)
     {
       std::cout << "Minborder cannot be larger or equal than Maxboder!" << std::endl;
-      return ILLEGAL_PARAMETERS;
+      return ExitCodes::ILLEGAL_PARAMETERS;
     }
-    return EXECUTION_OK;
+    return ExitCodes::EXECUTION_OK;
   }
 
   String XFDRAlgorithm::getId_(const PeptideHit& ph) const

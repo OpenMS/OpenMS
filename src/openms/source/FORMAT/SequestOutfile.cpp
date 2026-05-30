@@ -153,7 +153,18 @@ namespace OpenMS
     ifstream result_file(result_filename.c_str());
     if (!result_file)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      if (!File::exists(result_filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      }
+      else if (!File::readable(result_filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      }
     }
 
     while (getline(result_file, line)) // skip all lines until the one with '---'
@@ -487,7 +498,18 @@ namespace OpenMS
     ifstream database_file(database_filename.c_str());
     if (!database_file)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, database_filename);
+      if (!File::exists(database_filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, database_filename);
+      }
+      else if (!File::readable(database_filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, database_filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, database_filename);
+      }
     }
 
     String line, accession, accession_type, sequence;
@@ -765,7 +787,18 @@ namespace OpenMS
     ifstream result_file(result_filename.c_str());
     if (!result_file)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      if (!File::exists(result_filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      }
+      else if (!File::readable(result_filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      }
     }
 
     String line, buffer;

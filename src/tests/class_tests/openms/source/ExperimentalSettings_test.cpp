@@ -11,6 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/METADATA/ExperimentalSettings.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 ///////////////////////////
 
 using namespace OpenMS;

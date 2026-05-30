@@ -29,11 +29,11 @@ namespace OpenMS
 
       Add context to an SQL error encountered by Qt and throw it as a FailedAPICall exception.
 
-      @param error The error that occurred
-      @param line Line in the code where error occurred
-      @param function Name of the function where error occurred
-      @param context Context for the error
-      @param query Text of the query that was executed (optional)
+      @param[in] error The error that occurred
+      @param[in] line Line in the code where error occurred
+      @param[in] function Name of the function where error occurred
+      @param[in] context Context for the error
+      @param[in] query Text of the query that was executed (optional)
 
       @throw Exception::FailedAPICall Throw this exception
     */
@@ -67,8 +67,8 @@ namespace OpenMS
         Deletes the output file if it exists, then creates an SQLite database in its place.
         Opens the database and configures it for fast writing.
 
-        @param filename Path to the .oms output file (SQLite database)
-        @param log_type Type of logging to use
+        @param[out] filename Path to the .oms output file (SQLite database)
+        @param[in] log_type Type of logging to use
 
         @throw Exception::FailedAPICall Database cannot be opened
       */
@@ -94,9 +94,9 @@ namespace OpenMS
       /*!
         @brief Helper function to create a database table
 
-        @param name Name of the new table
-        @param definition Table definition in SQL
-        @param may_exist If true, the table may already exist (otherwise this is an error)
+        @param[in] name Name of the new table
+        @param[in] definition Table definition in SQL
+        @param[in] may_exist If true, the table may already exist (otherwise this is an error)
       */
       void createTable_(const String& name, const String& definition, bool may_exist = false);
 

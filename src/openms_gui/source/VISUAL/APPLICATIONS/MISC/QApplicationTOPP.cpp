@@ -18,6 +18,7 @@
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 //Qt
 #include <QApplication>
@@ -57,7 +58,7 @@ namespace OpenMS
 
     // customize look and feel via Qt style sheets
     String filename = File::find("GUISTYLE/qtStyleSheet.qss");
-    QFile fh(filename.toQString());
+    QFile fh(toQString(filename));
     fh.open(QFile::ReadOnly);
     QString style_string = QLatin1String(fh.readAll());
     //std::cerr << "Stylesheet content: " << style_string.toStdString() << "\n\n\n";
@@ -82,7 +83,7 @@ namespace OpenMS
     {
       String msg = String("Caught exception: '") + e.getName() + "' with message '" + e.what() + "'";
       OPENMS_LOG_ERROR << msg << "\n";
-      QMessageBox::warning(nullptr, QString("Unexpected error occurred"), msg.toQString());
+      QMessageBox::warning(nullptr, QString("Unexpected error occurred"), toQString(msg));
       return false;
       // we could also exit() here... but no for now
     }
@@ -130,9 +131,9 @@ namespace OpenMS
                            "<BR>"
                            "Any published work based on TOPP and OpenMS shall cite:<BR>%4")
     .arg(toolname)
-    .arg(VersionInfo::getVersion().toQString())
+    .arg(toQString(VersionInfo::getVersion()))
     .arg( // if we have a revision, embed it also into the shown version number
-      VersionInfo::getRevision().empty() ? "" : QString(" (") + VersionInfo::getRevision().toQString() + ")")
+      VersionInfo::getRevision().empty() ? "" : QString(" (") + toQString(VersionInfo::getRevision()) + ")")
     .arg((TOPPBase::cite_openms.title + "<BR>" + TOPPBase::cite_openms.when_where + "<BR>doi:" + TOPPBase::cite_openms.doi).c_str());
 
     label = new QLabel(text, dlg);

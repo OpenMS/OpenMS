@@ -6,17 +6,13 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
-#include <cstdlib>  // for "rand"
-#include <ctime>    // for "time" (seeding of random number generator)
-#include <iterator> // for "inserter", "back_inserter"
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -120,7 +116,27 @@ The fitted models are checked for plausibility before they are accepted.
 
 Finally the results (feature maps, parameter @p out) are returned.
 
-@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+<B>Ion Mobility Support (experimental)</B>
+
+This tool supports two types of ion mobility data:
+
+@b FAIMS (Field Asymmetric Ion Mobility Spectrometry):
+FAIMS data is automatically detected based on compensation voltage (CV) annotations in the mzML file.
+The data is split by CV and processed separately for each voltage group.
+Features representing the same analyte detected at different CV values are merged by default (controlled by @p faims:merge_features).
+No special preparation of the input mzML file is required.
+
+@b Bruker @b TimsTOF (trapped ion mobility):
+TimsTOF data requires special preparation of the mzML file. The ion mobility spectra must be concatenated into
+single spectra per frame using msconvert with the @p --combineIonMobilitySpectra option:
+@code
+msconvert input.d --mzML --combineIonMobilitySpectra -o output_dir
+@endcode
+The resulting mzML file contains one spectrum per frame with ion mobility values stored per peak.
+Ion mobility values from peptide identifications (if present in the idXML) are used for IM-aware feature detection.
+The extraction window is controlled by @p extract:IM_window.
+
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML or idparquet using @ref TOPP_IDFileConverter if necessary.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_FeatureFinderIdentification.cli
@@ -150,21 +166,21 @@ protected:
     registerInputFile_("in", "<file>", "", "Input file: LC-MS raw data");
     setValidFormats_("in", {"mzML"});
     registerInputFile_("id", "<file>", "", "Input file: Peptide identifications derived directly from 'in'");
-    setValidFormats_("id", {"idXML"});
+    setValidFormats_("id", {"idXML", "idparquet"});
     registerInputFile_("id_ext", "<file>", "", "Input file: 'External' peptide identifications (e.g. from aligned runs)", false);
-    setValidFormats_("id_ext", {"idXML"});
+    setValidFormats_("id_ext", {"idXML", "idparquet"});
     registerOutputFile_("out", "<file>", "", "Output file: Features");
-    setValidFormats_("out", {"featureXML"});
+    setValidFormats_("out", {"featureXML", "featureparquet"});
     registerOutputFile_("lib_out", "<file>", "", "Output file: Assay library", false);
     setValidFormats_("lib_out", {"traML"});
     registerOutputFile_("chrom_out", "<file>", "", "Output file: Chromatograms", false);
     setValidFormats_("chrom_out", {"mzML"});
     registerOutputFile_("candidates_out", "<file>", "", "Output file: Feature candidates (before filtering and model fitting)", false);
-    setValidFormats_("candidates_out", {"featureXML"});
+    setValidFormats_("candidates_out", {"featureXML", "featureparquet"});
     registerInputFile_("candidates_in", "<file>", "",
                        "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.",
                        false, true);
-    setValidFormats_("candidates_in", {"featureXML"});
+    setValidFormats_("candidates_in", {"featureXML", "featureparquet"});
 
     Param algo_with_subsection;
     Param subsection = FeatureFinderIdentificationAlgorithm().getDefaults();
@@ -182,17 +198,30 @@ protected:
     //-------------------------------------------------------------
     String out = getStringOption_("out");
     String candidates_out = getStringOption_("candidates_out");
-
     String candidates_in = getStringOption_("candidates_in");
+    String id = getStringOption_("id");
 
     FeatureFinderIdentificationAlgorithm ffid_algo;
     ffid_algo.getProgressLogger().setLogType(log_type_);
     ffid_algo.setParameters(getParam_().copySubset(FeatureFinderIdentificationAlgorithm().getDefaults()));
 
+    // Determine output feature type once, before branches diverge.
+    // Main path: derive from -id; re-score path: derive from -candidates_in.
+    FileTypes::Type out_feature_type = FileTypes::FEATUREXML; // default
+    if (candidates_in.empty())
+    {
+      if (FileHandler::getType(id) == FileTypes::IDPARQUET)
+        out_feature_type = FileTypes::FEATUREPARQUET;
+    }
+    else
+    {
+      if (FileHandler::getType(candidates_in) == FileTypes::FEATUREPARQUET)
+        out_feature_type = FileTypes::FEATUREPARQUET;
+    }
+
     if (candidates_in.empty())
     {
       String in = getStringOption_("in");
-      String id = getStringOption_("id");
       String id_ext = getStringOption_("id_ext");
       String lib_out = getStringOption_("lib_out");
       String chrom_out = getStringOption_("chrom_out");
@@ -201,43 +230,44 @@ protected:
       // load input
       //-------------------------------------------------------------
       OPENMS_LOG_INFO << "Loading input data..." << endl;
+      PeakMap ms_data_full;
       FileHandler mzml;
       mzml.getOptions().addMSLevel(1);
-      mzml.loadExperiment(in, ffid_algo.getMSData(), {FileTypes::MZML}, log_type_);
+      mzml.loadExperiment(in, ms_data_full, {FileTypes::MZML}, log_type_);
 
       PeptideIdentificationList peptides, peptides_ext;
       vector<ProteinIdentification> proteins, proteins_ext;
 
       // "internal" IDs:
-      FileHandler().loadIdentifications(id, proteins, peptides, {FileTypes::IDXML});
+      FileHandler().loadIdentifications(id, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
       // "external" IDs:
       if (!id_ext.empty())
       {
-        FileHandler().loadIdentifications(id_ext, proteins_ext, peptides_ext, {FileTypes::IDXML});
+        FileHandler().loadIdentifications(id_ext, proteins_ext, peptides_ext, {FileTypes::IDXML, FileTypes::IDPARQUET});
       }
 
       //-------------------------------------------------------------
-      // run feature detection
+      // Run feature detection (FAIMS handling is done internally)
       //-------------------------------------------------------------
-      ffid_algo.run(peptides, proteins, peptides_ext, proteins_ext, features, FeatureMap(), in);
+      FeatureFinderIdentificationAlgorithm ffid_algo_run;
+      ffid_algo_run.getProgressLogger().setLogType(log_type_);
+      ffid_algo_run.setParameters(getParam_().copySubset(FeatureFinderIdentificationAlgorithm().getDefaults()));
+      ffid_algo_run.setMSData(std::move(ms_data_full));
 
-      // write auxiliary output:
-      bool keep_chromatograms = !chrom_out.empty();
-      bool keep_library = !lib_out.empty();
+      ffid_algo_run.run(peptides, proteins, peptides_ext, proteins_ext, features, FeatureMap(), in);
 
-      // keep assay data for output?
-      if (keep_library)
+      // write auxiliary output (library is empty for multi-FAIMS data):
+      if (!lib_out.empty())
       {
-        FileHandler().storeTransitions(lib_out, ffid_algo.getLibrary(), {FileTypes::TRAML});
+        FileHandler().storeTransitions(lib_out, ffid_algo_run.getLibrary(), {FileTypes::TRAML});
       }
 
-      // keep chromatogram data for output?
-      if (keep_chromatograms)
+      if (!chrom_out.empty())
       {
-        addDataProcessing_(ffid_algo.getChromatograms(), getProcessingInfo_(DataProcessing::FILTERING));
-        FileHandler().storeExperiment(chrom_out, ffid_algo.getChromatograms(), {FileTypes::MZML});
-        ffid_algo.getChromatograms().clear(true);
+        PeakMap chrom_data = ffid_algo_run.getChromatograms();
+        addDataProcessing_(chrom_data, getProcessingInfo_(DataProcessing::FILTERING));
+        FileHandler().storeExperiment(chrom_out, chrom_data, {FileTypes::MZML});
       }
 
       addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
@@ -248,7 +278,7 @@ protected:
       // load feature candidates
       //-------------------------------------------------------------
       OPENMS_LOG_INFO << "Reading feature candidates from a previous run..." << endl;
-      FileHandler().loadFeatures(candidates_in, features, {FileTypes::FEATUREXML});
+      FileHandler().loadFeatures(candidates_in, features, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET});
       OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total." << endl;
       ffid_algo.runOnCandidates(features);
     }
@@ -258,7 +288,7 @@ protected:
     //-------------------------------------------------------------
 
     OPENMS_LOG_INFO << "Writing final results..." << endl;
-    FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
+    FileHandler().storeFeatures(out, features, {out_feature_type});
 
 
     return EXECUTION_OK;

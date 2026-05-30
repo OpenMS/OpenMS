@@ -10,7 +10,7 @@
 
 #include <string>
 #include <vector>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
@@ -50,7 +50,7 @@ namespace OpenSwath
     std::string description;
   };
   typedef OSBinaryDataArray BinaryDataArray;
-  typedef boost::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
+  typedef std::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
 
   /// Identifying information for a chromatogram
   struct OPENSWATHALGO_DLLAPI OSChromatogramMeta
@@ -66,7 +66,7 @@ namespace OpenSwath
 
   };
   typedef OSChromatogramMeta ChromatogramMeta;
-  typedef boost::shared_ptr<ChromatogramMeta> ChromatogramMetaPtr;
+  typedef std::shared_ptr<ChromatogramMeta> ChromatogramMetaPtr;
 
   /// A single chromatogram.
   struct OPENSWATHALGO_DLLAPI OSChromatogram
@@ -141,9 +141,16 @@ public:
       return binaryDataArrayPtrs;
     }
 
+    /// set all binary data arrays
+    /// @param[in] val Vector of binary data arrays to be set
+    void setDataArrays(std::vector<BinaryDataArrayPtr>& val)
+    {
+      binaryDataArrayPtrs = val;
+    }
+
   };
   typedef OSChromatogram Chromatogram;
-  typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;
+  typedef std::shared_ptr<Chromatogram> ChromatogramPtr;
 
   /// Identifying information for a spectrum
   struct OPENSWATHALGO_DLLAPI OSSpectrumMeta
@@ -174,7 +181,7 @@ public:
 
   };
   typedef OSSpectrumMeta SpectrumMeta;
-  typedef boost::shared_ptr<SpectrumMeta> SpectrumMetaPtr;
+  typedef std::shared_ptr<SpectrumMeta> SpectrumMetaPtr;
 
   /// The structure that captures the generation of a peak list (including the underlying acquisitions)
   struct OPENSWATHALGO_DLLAPI OSSpectrum
@@ -240,18 +247,19 @@ public:
     /// get drift time array (may be null)
     BinaryDataArrayPtr getDriftTimeArray() const
     {
-      // The array name starts with "Ion Mobility", but may carry additional
-      // information such as the actual unit in which it was measured (seconds,
-      // milliseconds, volt-second per square centimeter). We currently ignore
-      // the unit but return the correct array.
-      // For diaPASEF data converted with proteowizard ion mobility arrays are stored in "inverse reduced ion mobility"
+      // Ion mobility arrays can have different names depending on source:
+      //   - "Ion Mobility" / "Ion Mobility Centroid" (OpenMS legacy, PeakPickerIM)
+      //   - "mean inverse reduced ion mobility array" (ProteoWizard diaPASEF)
+      //   - "raw inverse reduced ion mobility array" (BrukerTimsFile via CV MS:1003008)
+      //   - "inverse reduced ion mobility" (MSConvert legacy)
+      //   - "mean ion mobility array" (IMDataConverter for millisecond IM)
+      // We match: starts with "Ion Mobility", or contains "inverse reduced ion mobility",
+      // or contains "ion mobility array".
       for (auto & bda : binaryDataArrayPtrs)
       {
-        if (bda->description.find("Ion Mobility") == 0)
-        {
-          return bda;
-        }
-        else if (bda->description.find("mean inverse reduced ion mobility array") == 0)
+        if (bda->description.find("Ion Mobility") == 0
+            || bda->description.find("inverse reduced ion mobility") != std::string::npos
+            || bda->description.find("ion mobility array") != std::string::npos)
         {
           return bda;
         }
@@ -271,8 +279,15 @@ public:
       return binaryDataArrayPtrs;
     }
 
+    /// set all binary data arrays
+    /// @param[in] val Vector of binary data arrays to be set
+    void setDataArrays(std::vector<BinaryDataArrayPtr>& val)
+    {
+      binaryDataArrayPtrs = val;
+    }
+
   };
   typedef OSSpectrum Spectrum;
-  typedef boost::shared_ptr<Spectrum> SpectrumPtr;
+  typedef std::shared_ptr<Spectrum> SpectrumPtr;
 } //end Namespace OpenSwath
 

@@ -17,7 +17,6 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QDir>
 
 #include <fstream>
 #include <filesystem>
@@ -118,7 +117,78 @@ START_SECTION((static String basename(const String &file)))
   TEST_EQUAL(File::basename("/source/config/bla/bluff.h"), "bluff.h");
   TEST_EQUAL(File::basename("filename_only.h"), "filename_only.h");
   TEST_EQUAL(File::basename("/path/only/"), "");
-  END_SECTION
+END_SECTION
+
+START_SECTION((static String stemName(const String &file)))
+  // basic: strips known extension from full path
+  TEST_EQUAL(File::stemName("/path/to/sample.mzML"), "sample");
+  // compound extension: .mzML.gz is a known compound extension
+  TEST_EQUAL(File::stemName("/path/to/sample.mzML.gz"), "sample");
+  // unknown extension: strips last dot segment
+  TEST_EQUAL(File::stemName("/path/to/file.txt"), "file");
+  // unknown compound: only strips known part
+  TEST_EQUAL(File::stemName("/path/to/file.txt.tgz"), "file.txt");
+  // no extension
+  TEST_EQUAL(File::stemName("/path/to/file"), "file");
+  // filename only (no path)
+  TEST_EQUAL(File::stemName("experiment.featureXML"), "experiment");
+  // empty string
+  TEST_EQUAL(File::stemName(""), "");
+  // dotted directory, no extension on file
+  TEST_EQUAL(File::stemName("/home.with.dot/filename"), "filename");
+  // Windows path
+  TEST_EQUAL(File::stemName("c:\\data\\sample.idXML"), "sample");
+  // extension-only name
+  TEST_EQUAL(File::stemName(".mzML"), "");
+END_SECTION
+
+START_SECTION((static String extension(const String &file)))
+  // known extension
+  TEST_EQUAL(File::extension("/path/to/sample.mzML"), ".mzML");
+  // compound extension
+  TEST_EQUAL(File::extension("/path/to/sample.mzML.gz"), ".mzML.gz");
+  // unknown extension
+  TEST_EQUAL(File::extension("/path/to/file.txt"), ".txt");
+  // no extension
+  TEST_EQUAL(File::extension("/path/to/file"), "");
+  // filename only
+  TEST_EQUAL(File::extension("experiment.featureXML"), ".featureXML");
+  // empty string
+  TEST_EQUAL(File::extension(""), "");
+  // dotted directory, no extension on file
+  TEST_EQUAL(File::extension("/home.with.dot/filename"), "");
+  // Windows path
+  TEST_EQUAL(File::extension("c:\\data\\sample.idXML"), ".idXML");
+  // extension-only name
+  TEST_EQUAL(File::extension(".mzML"), ".mzML");
+END_SECTION
+
+START_SECTION((static StringList listDirectories(const String &dir)))
+  // create temp structure with subdirectories
+  File::TempDir tdir;
+  String base = tdir.getPath();
+  File::makeDir(base + "/subA");
+  File::makeDir(base + "/subB");
+  // also create a file (should NOT appear in results)
+  {
+    std::ofstream f(std::string(base + "/afile.txt"));
+    f << "test";
+  }
+
+  StringList dirs = File::listDirectories(base);
+  TEST_EQUAL(dirs.size(), 2);
+  // results are sorted
+  TEST_TRUE(dirs[0].hasSuffix("subA"));
+  TEST_TRUE(dirs[1].hasSuffix("subB"));
+
+  // non-existent directory returns empty list
+  StringList empty = File::listDirectories("/nonexistent_path_xyz");
+  TEST_EQUAL(empty.size(), 0);
+
+  // empty string returns empty list (not a directory)
+  StringList from_empty = File::listDirectories("");
+  // just verify it doesn't crash - result depends on cwd
+END_SECTION
 
 START_SECTION((static bool fileList(const String &dir, const String &file_pattern, StringList &output, bool full_path=false)))
   StringList vec;
@@ -156,14 +226,14 @@ END_SECTION
 
 // make source directory and copy it to new location
 // check copy function and if file exists in target path
-START_SECTION(static bool copyDirRecursively(const QString &fromDir, const QString &toDir,File::CopyOptions option = CopyOptions::OVERWRITE))
+START_SECTION(static bool copyDirRecursively(const String &fromDir, const String &toDir, File::CopyOptions option = CopyOptions::OVERWRITE))
   // folder OpenMS/src/tests/class_tests/openms/data/XMassFile_test 
   String source_name = OPENMS_GET_TEST_DATA_PATH("XMassFile_test");
   String target_name = File::getTempDirectory() + "/" + File::getUniqueName() + "/"; 
   // test canonical path
-  TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),source_name.toQString()),false)
+  TEST_EQUAL(File::copyDirRecursively(source_name,source_name),false)
   // test default
-  TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString()),true)
+  TEST_EQUAL(File::copyDirRecursively(source_name,target_name),true)
   TEST_EQUAL(File::exists(target_name + "/pdata/1/proc"),true);
   // overwrite file content 
   std::ofstream ow_ofs;
@@ -178,29 +248,28 @@ START_SECTION(static bool copyDirRecursively(const QString &fromDir, const QStri
   infile.close();
   TEST_EQUAL(file_size,50)
   // test option skip
-  TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString(), File::CopyOptions::SKIP),true)
+  TEST_EQUAL(File::copyDirRecursively(source_name,target_name, File::CopyOptions::SKIP),true)
   infile.open(target_name + "/pdata/1/proc"); 
   infile.seekg(0,infile.end);
   file_size = infile.tellg();
   infile.close();
   TEST_EQUAL(file_size,50)
   // test option overwrite
-  TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString(), File::CopyOptions::OVERWRITE),true)
+  TEST_EQUAL(File::copyDirRecursively(source_name,target_name, File::CopyOptions::OVERWRITE),true)
   infile.open(target_name + "/pdata/1/proc"); 
   infile.seekg(0,infile.end);
   file_size = infile.tellg();
   infile.close();
   TEST_EQUAL(file_size,3558)
   // test option cancel 
-  TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString(), File::CopyOptions::CANCEL),false)
+  TEST_EQUAL(File::copyDirRecursively(source_name,target_name, File::CopyOptions::CANCEL),false)
   // remove temporary directory after testing
   File::removeDirRecursively(target_name);
 END_SECTION
 
 START_SECTION(static bool removeDirRecursively(const String &dir_name))
-  QDir d;
   String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/" + File::getUniqueName() + "/";
-  TEST_TRUE(d.mkpath(dirname.toQString()));
+  TEST_TRUE(File::makeDir(dirname));
   TextFile tf;
   tf.store(dirname + "test.txt");
   TEST_EQUAL(File::removeDirRecursively(dirname), true)
@@ -236,9 +305,8 @@ START_SECTION(static String getUserDirectory())
 
   // set user directory to a path set by environmental variable and test that
   // it is correctly set (no changes on the file system occur)
-  QDir d;
   String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
-  TEST_EQUAL(d.mkpath(dirname.toQString()), true);
+  TEST_EQUAL(File::makeDir(dirname), true);
 #ifdef OPENMS_WINDOWSPLATFORM
   _putenv_s("OPENMS_HOME_PATH", dirname.c_str());  
 #else
@@ -325,32 +393,17 @@ START_SECTION(File::~TempDir())
     TEST_EQUAL(File::exists(path), 1)
   }
   TEST_EQUAL(File::exists(path), 0)
-  if (File::exists(path)) File::removeDir(path.toQString());
+  if (File::exists(path)) File::removeDir(path);
   {
     File::TempDir dir2(true);
     path = dir2.getPath();
     TEST_EQUAL(File::exists(path), 1)
   }
   TEST_EQUAL(File::exists(path), 1)
-  if (File::exists(path)) File::removeDir(path.toQString());
+  if (File::exists(path)) File::removeDir(path);
 }
 END_SECTION
 
-
-START_SECTION(File::download(std::string url, std::string filename))
-{
-  std::string url = R"(http://raw.githubusercontent.com/OpenMS/OpenMS/refs/heads/develop/README.md)";
-  std::string folder = File::getTempDirectory();
-  File::download(url, folder);
-  std::string output_file_path = folder + "/README.md";
-
-  TEST_EQUAL(File::exists(output_file_path), 1);
-  if (File::exists(output_file_path))
-  {
-    File::removeDir(QString(output_file_path.c_str()));
-  }
-}
-END_SECTION
 
 START_SECTION(static File::MatchingFileListsStatus validateMatchingFileNames(const StringList& sl1, const StringList& sl2, bool basename, bool ignore_extension))
 {

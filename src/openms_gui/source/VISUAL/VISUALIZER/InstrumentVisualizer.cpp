@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------s
 
 #include <OpenMS/VISUAL/VISUALIZER/InstrumentVisualizer.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 //QT
 #include <QtWidgets/QLineEdit>
@@ -46,20 +47,20 @@ namespace OpenMS
 
     if (!isEditable())
     {
-      fillComboBox_(ion_optics_, &temp_.NamesOfIonOpticsType[temp_.getIonOptics()], 1);
+      fillComboBox_(ion_optics_, &temp_.NamesOfIonOpticsType[static_cast<size_t>(temp_.getIonOptics())], 1);
     }
     else
     {
-      fillComboBox_(ion_optics_, temp_.NamesOfIonOpticsType, Instrument::SIZE_OF_IONOPTICSTYPE);
+      fillComboBox_(ion_optics_, temp_.NamesOfIonOpticsType, static_cast<int>(Instrument::IonOpticsType::SIZE_OF_IONOPTICSTYPE));
     }
   }
 
   void InstrumentVisualizer::store()
   {
-    ptr_->setName(name_->text());
-    ptr_->setVendor(vendor_->text());
-    ptr_->setModel(model_->text());
-    ptr_->setCustomizations(customizations_->toPlainText());
+    ptr_->setName(fromQString(name_->text()));
+    ptr_->setVendor(fromQString(vendor_->text()));
+    ptr_->setModel(fromQString(model_->text()));
+    ptr_->setCustomizations(fromQString(customizations_->toPlainText()));
     ptr_->setIonOptics((Instrument::IonOpticsType)ion_optics_->currentIndex());
 
     temp_ = (*ptr_);

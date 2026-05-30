@@ -8,12 +8,12 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-
-#include <QtCore/QString>
 
 #include <OpenMS/MATH/StatisticFunctions.h>
 

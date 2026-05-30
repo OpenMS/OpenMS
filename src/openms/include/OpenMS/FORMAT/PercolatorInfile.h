@@ -12,6 +12,8 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
+#include <set>
+#include <utility>
 #include <vector>
 
 namespace OpenMS
@@ -40,20 +42,20 @@ namespace OpenMS
       * specified thresholds and handling decoy targets as needed.
       * Note: If a filename column is encountered the set of @p filenames is filled in the order of appearance and PeptideIdentifications annotated with the id_merge_index meta value to link them to the filename (similar to a merged idXML file). 
       * 
-      * @param pin_file he path to the Percolator input file with a `.pin` extension.
+      * @param[in] pin_file he path to the Percolator input file with a `.pin` extension.
       * 
-      * @param higher_score_better A boolean flag indicating whether higher scores are considered better (`true`) or lower scores are better (`false`).
+      * @param[in] higher_score_better A boolean flag indicating whether higher scores are considered better (`true`) or lower scores are better (`false`).
       * 
-      * @param score_name The name of the primary score to be used for ranking peptide hits.
+      * @param[in] score_name The name of the primary score to be used for ranking peptide hits.
       * 
-      * @param extra_scores A list of additional score names that should be extracted and stored in each `PeptideHit`.
+      * @param[out] extra_scores A list of additional score names that should be extracted and stored in each `PeptideHit`.
       * 
-      * @param filenames Will be populated with the unique raw file names extracted from the input data.
+      * @param[out] filenames Will be populated with the unique raw file names extracted from the input data.
       * 
-      * @param decoy_prefix The prefix used to identify decoy protein accessions. Proteins with accessions starting with this prefix are marked as decoys. Otherwise, it assumes that the pin file already contains the correctly annotated decoy status.
-      * @param threshold A double value representing the threshold for the `spectrum_q` value. Only spectra with `spectrum_q` below this threshold are processed.
+      * @param[in] decoy_prefix The prefix used to identify decoy protein accessions. Proteins with accessions starting with this prefix are marked as decoys. Otherwise, it assumes that the pin file already contains the correctly annotated decoy status.
+      * @param[in] threshold A double value representing the threshold for the `spectrum_q` value. Only spectra with `spectrum_q` below this threshold are processed.
                          Implemented to allow prefiltering of Sage results.
-      * @param SageAnnotation A boolean value used to determine if the pin file is coming from Sage or not 
+      * @param[in] SageAnnotation A boolean value used to determine if the pin file is coming from Sage or not 
       * @return A `std::vector` of `PeptideIdentification` objects containing the peptide identifications.
       
       * @throws `Exception::ParseError` if any line in the input file does not have the expected number of columns.
@@ -70,7 +72,51 @@ namespace OpenMS
 
       // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
       static String getScanIdentifier(const PeptideIdentification& pid, size_t index);
-      
+
+      /**
+       * @brief Returns the standard Percolator feature columns every .pin file should declare.
+       *
+       * The list contains the three mandatory header columns (SpecId, Label, ScanNr)
+       * followed by the standard per-PSM features that @ref preparePin_ computes and
+       * sets on every hit: ExpMass, CalcMass, mass, peplen, charge{min..max}, enzN,
+       * enzC, enzInt, dm, absdm. Callers should append their search-engine-specific
+       * extra_features (and finally Peptide, Proteins) to this list before calling @ref store.
+       * This is the single source of truth used by PercolatorAdapter and any other
+       * tool that emits .pin for external percolator consumption.
+       */
+      static StringList getStandardFeatureSet(int min_charge, int max_charge);
+
+      /**
+       * @brief Compute and stamp PIN-equivalent meta values on every PeptideHit.
+       *
+       * Runs the same per-hit computation that @ref preparePin_ applies when
+       * writing a .pin file — but mutates the PeptideIdentifications in place
+       * instead of writing to a text file. After this call, each kept hit
+       * carries the full set of PIN meta values:
+       *   SpecId, ScanNr, Label, CalcMass, ExpMass, deltamass, retentiontime,
+       *   mass, score, peplen, charge1..chargeN, enzN, enzC, enzInt, dm,
+       *   absdm, Peptide, Proteins.
+       *
+       * Useful for in-process Percolator training (see OpenMS::Percolator):
+       * callers can then train on the exact same feature vectors the
+       * subprocess path would have seen via the .pin round-trip.
+       *
+       * Hits with empty PeptideEvidences or UNKNOWN target/decoy status are
+       * left untouched; their (pid_index, hit_index) pairs are returned so
+       * callers know to skip them.
+       *
+       * @param peptide_ids Mutated in place; each kept hit gets new meta values.
+       * @param enz         Enzyme name (same values accepted as for @ref store).
+       * @param min_charge  Lower bound for the charge{N} one-hot features.
+       * @param max_charge  Upper bound for the charge{N} one-hot features.
+       * @return Indices of skipped hits as (pid_index, hit_index) pairs.
+       */
+      static std::set<std::pair<size_t, size_t>> stampPinFeaturesOnHits(
+        PeptideIdentificationList& peptide_ids,
+        const std::string& enz,
+        int min_charge,
+        int max_charge);
+
     protected:
 
       //id <tab> label <tab> scannr <tab> calcmass <tab> expmass <tab> feature1 <tab> ... <tab> featureN <tab> peptide <tab> proteinId1 <tab> .. <tab> proteinIdM

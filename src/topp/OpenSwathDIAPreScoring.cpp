@@ -19,6 +19,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -56,7 +57,7 @@ public:
 protected:
 
   typedef PeakMap MapType;
-  typedef boost::shared_ptr<PeakMap> MapTypePtr;
+  typedef std::shared_ptr<PeakMap> MapTypePtr;
 
   void registerOptionsAndFlags_() override
   {

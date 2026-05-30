@@ -3,6 +3,7 @@
 //
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/VISUAL/LayerDataBase.h>
@@ -11,7 +12,7 @@
 #include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 #include <QApplication>
 
-#include <boost/make_shared.hpp>
+#include <memory>
 
 using namespace OpenMS;
 using namespace std;
@@ -23,7 +24,7 @@ Int main(int argc, const char** argv)
   QApplication app(argc, const_cast<char**>(argv));
 
   AnnotatedMSRun exp;
-  auto exp_sptr = boost::make_shared<AnnotatedMSRun>();
+  auto exp_sptr = std::make_shared<AnnotatedMSRun>();
   MSSpectrum spec;
   // demonstrating how to load a single spectrum from file formats which only contain a single spec
   // alternatively: use FileHandler().loadExperiment() if you need an experiment anyway

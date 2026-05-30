@@ -7,6 +7,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/FORMAT/DTA2DFile.h>
@@ -34,6 +41,9 @@
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/FORMAT/PSMArrowIO.h>
+#include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
 
 #include <OpenMS/FORMAT/MsInspectFile.h>
 #include <OpenMS/FORMAT/SpecArrayFile.h>
@@ -43,14 +53,111 @@
 
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
+#include <OpenMS/FORMAT/ZipIfstream.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
 
-#include <QtCore/QFile>
-#include <QtCore/QCryptographicHash>
+#ifdef WITH_OPENTIMS
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
+#endif
+
+#ifdef WITH_THERMO_RAW
+#include <OpenMS/FORMAT/ThermoRawFile.h>
+#endif
+
+#include <cstdint>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <iomanip>
+#include <sstream>
 
 using namespace std;
 
 namespace OpenMS
 {
+
+  namespace // SHA-1 implementation per RFC 3174
+  {
+    inline uint32_t sha1_left_rotate(uint32_t x, uint32_t n)
+    {
+      return (x << n) | (x >> (32 - n));
+    }
+
+    struct SHA1
+    {
+      uint32_t h[5] = {0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0};
+      uint64_t total_bytes = 0;
+      uint8_t block[64] = {};
+      size_t block_len = 0;
+
+      void process_block()
+      {
+        uint32_t w[80];
+        for (int i = 0; i < 16; ++i)
+        {
+          w[i] = (uint32_t(block[i * 4]) << 24) | (uint32_t(block[i * 4 + 1]) << 16) |
+                 (uint32_t(block[i * 4 + 2]) << 8) | uint32_t(block[i * 4 + 3]);
+        }
+        for (int i = 16; i < 80; ++i)
+        {
+          w[i] = sha1_left_rotate(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
+        }
+
+        uint32_t a = h[0], b = h[1], c = h[2], d = h[3], e = h[4];
+        for (int i = 0; i < 80; ++i)
+        {
+          uint32_t f, k;
+          if (i < 20)      { f = (b & c) | (~b & d);           k = 0x5A827999; }
+          else if (i < 40) { f = b ^ c ^ d;                    k = 0x6ED9EBA1; }
+          else if (i < 60) { f = (b & c) | (b & d) | (c & d); k = 0x8F1BBCDC; }
+          else              { f = b ^ c ^ d;                    k = 0xCA62C1D6; }
+          uint32_t temp = sha1_left_rotate(a, 5) + f + e + k + w[i];
+          e = d; d = c; c = sha1_left_rotate(b, 30); b = a; a = temp;
+        }
+        h[0] += a; h[1] += b; h[2] += c; h[3] += d; h[4] += e;
+      }
+
+      void update(const void* data, size_t len)
+      {
+        auto* p = static_cast<const uint8_t*>(data);
+        total_bytes += len;
+        while (len > 0)
+        {
+          size_t n = std::min(len, size_t(64) - block_len);
+          std::memcpy(block + block_len, p, n);
+          block_len += n;
+          p += n;
+          len -= n;
+          if (block_len == 64)
+          {
+            process_block();
+            block_len = 0;
+          }
+        }
+      }
+
+      void finalize(uint32_t digest[5])
+      {
+        uint64_t total_bits = total_bytes * 8;
+        uint8_t pad = 0x80;
+        update(&pad, 1);
+        pad = 0;
+        while (block_len != 56)
+        {
+          update(&pad, 1);
+        }
+        uint8_t len_be[8];
+        for (int i = 7; i >= 0; --i)
+        {
+          len_be[i] = uint8_t(total_bits);
+          total_bits >>= 8;
+        }
+        update(len_be, 8);
+        std::memcpy(digest, h, sizeof(h));
+      }
+    };
+  } // anonymous namespace
+
   String allowedToString_(vector<FileTypes::Type> types)
   {
     String aStrings;
@@ -66,10 +173,49 @@ namespace OpenMS
 
   FileTypes::Type FileHandler::getType(const String& filename)
   {
-    FileTypes::Type type = getTypeByFileName(filename);
+    // Strip trailing directory separators (important for directory-based formats
+    // like .d where shell tab-completion appends '/')
+    String normalized = filename;
+    while (normalized.hasSuffix("/") || normalized.hasSuffix("\\"))
+    {
+      normalized = normalized.prefix(normalized.size() - 1);
+    }
+
+    FileTypes::Type type = getTypeByFileName(normalized);
+
+    // Directory-based formats: validate marker files before returning.
+    // Must happen before getTypeByContent() which would fail on directories.
+#ifdef WITH_OPENTIMS
+    if (type == FileTypes::BRUKER_TDF)
+    {
+      if (File::exists(normalized + "/analysis.tdf") || File::exists(normalized + "/analysis.tdf_bin"))
+      {
+        return FileTypes::BRUKER_TDF;
+      }
+      // Check for .d.zip: a ZIP archive containing a Bruker .d directory
+      if (File::exists(normalized) && !File::isDirectory(normalized) && String(normalized).toLower().hasSuffix(".zip"))
+      {
+        return FileTypes::BRUKER_TDF;
+      }
+      return FileTypes::UNKNOWN; // .d suffix but not a TDF directory
+    }
+#else
+    if (type == FileTypes::BRUKER_TDF)
+    {
+      return FileTypes::UNKNOWN; // .d format requires WITH_OPENTIMS
+    }
+#endif
+
+#ifndef WITH_THERMO_RAW
+    if (type == FileTypes::RAW)
+    {
+      return FileTypes::UNKNOWN; // .raw format requires WITH_THERMO_RAW
+    }
+#endif
+
     if (type == FileTypes::UNKNOWN)
     {
-      type = getTypeByContent(filename);
+      type = getTypeByContent(normalized);
     }
     return type;
   }
@@ -109,7 +255,7 @@ namespace OpenMS
       return FileTypes::UNKNOWN;
     }
     tmp.toUpper();
-    if (tmp == "BZ2" || tmp == "GZ") // todo ZIP (not supported yet):       || tmp == "ZIP"
+    if (tmp == "BZ2" || tmp == "GZ" || tmp == "ZIP")
     {
       // do not use getTypeByContent() here, as this is deadly for output files!
       return getTypeByFileName(filename.prefix(filename.size() - tmp.size() - 1)); // check name without compression suffix (e.g. bla.mzML.gz --> bla.mzML)
@@ -201,10 +347,10 @@ namespace OpenMS
     // so far, compression is only supported for XML files
     vector<String> complete_file;
 
-    // test whether the file is compressed (bzip2 or gzip)
+    // test whether the file is compressed (bzip2, gzip, or zip)
     ifstream compressed_file(filename.c_str());
-    char bz[2];
-    compressed_file.read(bz, 2);
+    char bz[4] = {};
+    compressed_file.read(bz, 4);
     char g1 = 0x1f;
     char g2 = 0;
     g2 |= 1 << 7;
@@ -252,7 +398,26 @@ namespace OpenMS
       all_simple = first_line + ' ' + two_five;
       complete_file = split;
     }
-    //else {} // TODO: ZIP
+    else if (bz[0] == 'P' && bz[1] == 'K' && bz[2] == 0x03 && bz[3] == 0x04) // ZIP local file header
+    {
+      ZipIfstream zip_file(filename.c_str());
+
+      // read in 1024 bytes (keep last byte for zero to end string)
+      char buffer[1024];
+      size_t bytes_read = zip_file.read(buffer, 1024-1);
+      buffer[bytes_read] = '\0';
+
+      // get first five lines
+      String buffer_str(buffer);
+      vector<String> split;
+      buffer_str.split('\n', split);
+      split.resize(5);
+
+      first_line = split[0];
+      two_five = split[1] + ' ' + split[2] + ' ' + split[3] + ' ' + split[4];
+      all_simple = first_line + ' ' + two_five;
+      complete_file = split;
+    }
     else // uncompressed
     {
       //load first 5 lines
@@ -584,14 +749,26 @@ namespace OpenMS
 
   String FileHandler::computeFileHash(const String& filename)
   {
-    QCryptographicHash crypto(QCryptographicHash::Sha1);
-    QFile file(filename.toQString());
-    file.open(QFile::ReadOnly);
-    while (!file.atEnd())
+    std::ifstream file{std::filesystem::path{std::string(filename)}, std::ios::binary};
+    if (!file.is_open())
     {
-      crypto.addData(file.read(8192));
+      return "";
     }
-    return String((QString)crypto.result().toHex());
+    SHA1 sha;
+    char buffer[8192];
+    while (file.read(buffer, sizeof(buffer)) || file.gcount() > 0)
+    {
+      sha.update(buffer, static_cast<std::size_t>(file.gcount()));
+    }
+    uint32_t digest[5];
+    sha.finalize(digest);
+
+    std::ostringstream result;
+    for (int i = 0; i < 5; ++i)
+    {
+      result << std::hex << std::setfill('0') << std::setw(8) << digest[i];
+    }
+    return result.str();
   }
 
   void FileHandler::loadSpectrum(const String& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types)
@@ -599,7 +776,7 @@ namespace OpenMS
     // determine file type
     FileTypes::Type type = getType(filename);
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {    
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -635,7 +812,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -672,7 +849,7 @@ namespace OpenMS
     // determine file type
     FileTypes::Type type = getType(filename);
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -759,13 +936,73 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::MSP: 
+      case FileTypes::MSP:
       {
         MSPGenericFile().load(filename, exp);
       }
       break;
 
-      default: 
+#ifdef WITH_OPENTIMS
+      case FileTypes::BRUKER_TDF:
+      {
+        // If the input is a .d.zip archive, extract to a temp directory first.
+        std::unique_ptr<File::TempDir> temp_dir;
+        String load_path = filename;
+        if (!File::isDirectory(filename) && String(filename).toLower().hasSuffix(".zip"))
+        {
+          load_path = ZipArchiveFile::unzipDirectory(filename, temp_dir);
+          // Find the .d directory inside the extracted archive (may be nested)
+          bool found_d = false;
+          for (const auto& entry : std::filesystem::recursive_directory_iterator(std::string(load_path)))
+          {
+            if (entry.is_directory() && entry.path().extension() == ".d")
+            {
+              load_path = entry.path().string();
+              found_d = true;
+              break;
+            }
+          }
+          if (!found_d)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              filename, "ZIP archive does not contain a .d directory");
+          }
+        }
+        BrukerTimsFile f;
+        f.setLogType(log);
+        f.load(load_path, exp);
+        // Apply MS level filtering (BrukerTimsFile loads all levels)
+        if (options_.hasMSLevels())
+        {
+          exp.getSpectra().erase(
+            std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+              [this](const MSSpectrum& s) { return !options_.containsMSLevel(s.getMSLevel()); }),
+            exp.getSpectra().end());
+        }
+      }
+      break;
+#endif
+
+#ifdef WITH_THERMO_RAW
+      case FileTypes::RAW:
+      {
+        ThermoRawFile f;
+        f.setLogType(log);
+        f.load(filename, exp);
+        // Apply MS level filtering (ThermoRawFile loads all levels)
+        if (options_.hasMSLevels())
+        {
+          exp.getSpectra().erase(
+            std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+              [this](const MSSpectrum& s) { return !options_.containsMSLevel(s.getMSLevel()); }),
+            exp.getSpectra().end());
+        }
+        exp.updateRanges();
+      }
+      break;
+#endif
+
+      default:
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading experiments");
       }
@@ -786,8 +1023,12 @@ namespace OpenMS
         src_file = exp.getSourceFiles()[0];
       }
 
-      src_file.setNameOfFile(File::basename(filename));
-      String path_to_file = File::path(File::absolutePath(filename)); // convert to absolute path and strip file name
+      // Normalize directory paths: strip trailing slashes for basename and URI
+      String normalized_name = filename;
+      while (normalized_name.hasSuffix("/") || normalized_name.hasSuffix("\\"))
+        normalized_name = normalized_name.prefix(normalized_name.size() - 1);
+      src_file.setNameOfFile(File::basename(normalized_name));
+      String path_to_file = File::path(File::absolutePath(normalized_name)); // convert to absolute path and strip file name
 
       // make sure we end up with at most 3 forward slashes
       String uri = path_to_file.hasPrefix("/") ? String("file://") + path_to_file : String("file:///") + path_to_file;
@@ -796,9 +1037,9 @@ namespace OpenMS
       // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
       src_file.setFileType(FileTypes::typeToMZML(type));
 
-      if (compute_hash)
+      if (compute_hash && type != FileTypes::BRUKER_TDF)
       {
-        src_file.setChecksum(computeFileHash(filename), SourceFile::SHA1);
+        src_file.setChecksum(computeFileHash(filename), SourceFile::ChecksumType::SHA1);
       }
 
       exp.getSourceFiles().clear();
@@ -814,7 +1055,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -920,7 +1161,7 @@ namespace OpenMS
   {
     // determine file type
     FileTypes::Type type = getType(filename);
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -958,7 +1199,7 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::OMS: 
+      case FileTypes::OMS:
       {
         OMSFile f;
         f.setLogType(log);
@@ -966,7 +1207,17 @@ namespace OpenMS
       }
       break;
 
-      default: 
+      case FileTypes::FEATUREPARQUET:
+      {
+        if (!FeatureMapArrowIO::importFromParquet(filename, map))
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                      "FeatureMapArrowIO::importFromParquet failed");
+        }
+      }
+      break;
+
+      default:
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,"type: " + FileTypes::typeToName(type) + " is not supported for loading features");
       }
@@ -982,7 +1233,7 @@ namespace OpenMS
     }
 
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1035,6 +1286,16 @@ namespace OpenMS
       }
       break;
 
+      case FileTypes::FEATUREPARQUET:
+      {
+        if (!FeatureMapArrowIO::exportToParquet(map, filename))
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                              "FeatureMapArrowIO::exportToParquet failed");
+        }
+      }
+      break;
+
       default:
       {
           throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing features");
@@ -1048,7 +1309,7 @@ namespace OpenMS
     //determine file type
     FileTypes::Type type = getType(filename);
 
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1074,11 +1335,21 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::OMS: 
+      case FileTypes::OMS:
       {
         OMSFile f;
         f.setLogType(log);
         f.load(filename, map);
+      }
+      break;
+
+      case FileTypes::CONSENSUSPARQUET:
+      {
+        if (!ConsensusMapArrowIO::importFromParquet(filename, map))
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                      "ConsensusMapArrowIO::importFromParquet failed");
+        }
       }
       break;
 
@@ -1097,7 +1368,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1128,9 +1399,19 @@ namespace OpenMS
         f.store(filename, map);
       }
       break;
-      
+
+      case FileTypes::CONSENSUSPARQUET:
+      {
+        if (!ConsensusMapArrowIO::exportToParquet(map, filename))
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                              "ConsensusMapArrowIO::exportToParquet failed");
+        }
+      }
+      break;
+
       default:
-      {        
+      {
         throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing consensus features");
       }
     }
@@ -1141,7 +1422,7 @@ namespace OpenMS
     
     //determine file type
     FileTypes::Type type = getType(filename);
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1208,6 +1489,16 @@ namespace OpenMS
       }
       break;
 
+      case FileTypes::IDPARQUET:
+      {
+        if (!PSMArrowIO::importFromParquet(filename, additional_proteins, additional_peptides))
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                      "PSMArrowIO::importFromParquet failed");
+        }
+      }
+      break;
+
       default:
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for loading identifications");
     }   
@@ -1221,7 +1512,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1265,18 +1556,28 @@ namespace OpenMS
       }
       break;
 
+      case FileTypes::IDPARQUET:
+      {
+        if (!PSMArrowIO::exportToParquet(additional_proteins, additional_peptides, filename))
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                              "PSMArrowIO::exportToParquet failed");
+        }
+      }
+      break;
+
       default:
       {
         throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing Identifications");
       }
-    }   
+    }
   }
 
   void FileHandler::loadTransitions(const String& filename,TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     //determine file type
     FileTypes::Type type = getType(filename);
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1309,7 +1610,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1337,7 +1638,7 @@ namespace OpenMS
   {
     //determine file type
     FileTypes::Type type = getType(filename);
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1367,7 +1668,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1411,7 +1712,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {

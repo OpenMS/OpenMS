@@ -203,13 +203,6 @@ if(ENABLE_DOCS)
 
     add_dependencies(doc_param_internal doc_progs)
 
-    if(NOT WITH_PARQUET)
-      add_custom_command(TARGET doc_param_internal POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E echo "Creating placeholder documentation for tools disabled due to missing dependencies..."
-      COMMAND ${CMAKE_COMMAND} -E echo "<html><body><h2>Tool not available</h2><p>QuantmsIOConverter requires Parquet support which was disabled during compilation (WITH_PARQUET=OFF).</p></body></html>" > ${CMAKE_CURRENT_BINARY_DIR}/doxygen/parameters/output/TOPP_QuantmsIOConverter.html
-      COMMENT "Generate placeholder HTML for disabled tools"
-      VERBATIM)
-    endif()
 
     #------------------------------------------------------------------------------
     # doc(_html) generation code reused in two independent targets
@@ -251,7 +244,7 @@ if(ENABLE_DOCS)
                       VERBATIM)
 
     #------------------------------------------------------------------------------
-    # doc_internal target
+    # doc_xml target
     add_custom_target(doc_xml
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"

@@ -12,6 +12,10 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
@@ -23,6 +27,10 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <cmath>
+
+#include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
+#include <OpenMS/FORMAT/QPXFile.h>
+#include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -343,6 +351,8 @@ protected:
     registerOutputFile_("mztab", "<file>", "", "Output file (mzTab)", false);
     setValidFormats_("mztab", ListUtils::create<String>("mzTab"));
 
+    registerOutputDir_("out_qpx", "<directory>", "", "Output directory for QPX Parquet files (quantms.feature.parquet, quantms.psm.parquet, quantms.pg.parquet). Only supported for consensusXML input.", false, false);
+
     // algorithm parameters:
     addEmptyLine_();
     Param temp = PeptideAndProteinQuant().getParameters();
@@ -373,7 +383,7 @@ protected:
     map<UInt64, String> design_filenames;
     for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
     {
-      const String fn = FileHandler::stripExtension(File::basename(f.path));      
+      const String fn = File::stemName(f.path);      
       design_filenames[f.fraction_group] = fn;
     }
     
@@ -558,7 +568,7 @@ protected:
     UInt64 n_files = 0;
     for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
     {
-      const String fn = FileHandler::stripExtension(File::basename(f.path));
+      const String fn = File::stemName(f.path);
       design_group_fraction_filename[f.fraction_group][f.fraction] = fn;
       n_files++;
     }
@@ -621,7 +631,7 @@ protected:
           {
             // Process each filename within the fraction group
             // important: strip file extension and path to find the entry
-            design_filename = FileHandler::stripExtension(File::basename(design_filename));
+            design_filename = File::stemName(design_filename);
             
             #ifdef DEBUG_PROTEINQUANTIFIER
             std::cout 
@@ -760,7 +770,7 @@ protected:
       map<String, String> sample_id_to_filename;
       for (const auto& e : ms_section)
       {
-        String ed_filename = FileHandler::stripExtension(File::basename(e.path));
+        String ed_filename = File::stemName(e.path);
         String ed_label = e.label;
         String ed_sample = e.sample;
         sample_id_to_filename[e.sample] = ed_filename; // should be 0,...,n_samples-1
@@ -924,7 +934,7 @@ protected:
 
   /// Process ConsensusXML input and perform quantification
   ExperimentalDesign processConsensusXMLInput_(const String& in, const String& design_file, const String& mztab,
-                                              PeptideAndProteinQuant& quantifier)
+                                              const String& out_qpx, PeptideAndProteinQuant& quantifier)
   {
     ConsensusMap consensus;
     FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
@@ -973,7 +983,58 @@ protected:
         report_unmapped,
         report_subfeatures);
     }
-    
+
+    if (!out_qpx.empty())
+    {
+      OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
+
+      // Ensure protein quants are annotated (if not already done for mzTab)
+      if (mztab.empty())
+      {
+        auto const& protein_quants = quantifier.getProteinResults();
+        quantifier.annotateQuantificationsToProteins(protein_quants, proteins_);
+        if (!inference_in_cxml)
+        {
+          auto& prots = consensus.getProteinIdentifications();
+          prots.insert(prots.begin(), proteins_);
+        }
+        else
+        {
+          std::swap(consensus.getProteinIdentifications()[0], proteins_);
+        }
+      }
+
+      // Feature-level export
+      if (!ConsensusMapArrowExport::exportToParquet(consensus, out_qpx + "/quantms.feature.parquet"))
+      {
+        OPENMS_LOG_ERROR << "Failed to write features Parquet file" << std::endl;
+      }
+
+      // PSM-level export
+      PeptideIdentificationList all_pepids;
+      for (const auto& feature : consensus)
+      {
+        for (const auto& pepid : feature.getPeptideIdentifications())
+        {
+          all_pepids.push_back(pepid);
+        }
+      }
+      for (const auto& pepid : consensus.getUnassignedPeptideIdentifications())
+      {
+        all_pepids.push_back(pepid);
+      }
+      if (!QPXFile::exportToParquet(consensus.getProteinIdentifications(), all_pepids, out_qpx + "/quantms.psm.parquet"))
+      {
+        OPENMS_LOG_ERROR << "Failed to write PSM Parquet file" << std::endl;
+      }
+
+      // Protein group export
+      if (!ProteinGroupArrowExport::exportToParquet(consensus, out_qpx + "/quantms.pg.parquet"))
+      {
+        OPENMS_LOG_ERROR << "Failed to write protein groups Parquet file" << std::endl;
+      }
+    }
+
     return ed;
   }
 
@@ -986,11 +1047,13 @@ protected:
     String design_file = getStringOption_("design");
     bool greedy_group_resolution = getStringOption_("greedy_group_resolution") == "true";
 
-    if (out.empty() && peptide_out.empty())
+    String out_qpx = getOutputDirOption("out_qpx");
+
+    if (out.empty() && peptide_out.empty() && out_qpx.empty())
     {
       throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__,
                                                  OPENMS_PRETTY_FUNCTION,
-                                                 "out/peptide_out");
+                                                 "out/peptide_out/out_qpx");
     }
 
     String protein_groups = getStringOption_("protein_groups");
@@ -1042,6 +1105,20 @@ protected:
 
     ExperimentalDesign ed;
 
+    // Validate QPX export is only used with consensusXML
+    if (!out_qpx.empty() && in_type != FileTypes::CONSENSUSXML)
+    {
+      if (out.empty() && peptide_out.empty())
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "QPX Parquet export (out_qpx) is only supported for consensusXML input, "
+          "and no other output was requested. Please provide consensusXML input or "
+          "specify 'out' or 'peptide_out'.");
+      }
+      OPENMS_LOG_WARN << "QPX Parquet export is only supported for consensusXML input. Skipping QPX export." << std::endl;
+    }
+
     // Process input based on file type
     if (in_type == FileTypes::FEATUREXML)
     {
@@ -1053,7 +1130,7 @@ protected:
     }
     else // consensusXML
     {
-      ed = processConsensusXMLInput_(in, design_file, mztab, quantifier);
+      ed = processConsensusXMLInput_(in, design_file, mztab, out_qpx, quantifier);
     }
 
     // output:
