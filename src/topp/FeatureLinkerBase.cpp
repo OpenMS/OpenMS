@@ -74,7 +74,7 @@ protected:
     registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
     setValidFormats_("design", ListUtils::create<String>("tsv"));
     addEmptyLine_();
-    registerFlag_("keep_subelements", "For consensusXML input only: If set, the sub-features of the inputs are transferred to the output.");
+    registerFlag_("keep_subelements", "For consensusXML/consensusparquet input only: If set, the sub-features of the inputs are transferred to the output.");
   }
 
   ExitCodes common_main_(FeatureGroupingAlgorithm * algorithm,
@@ -132,7 +132,7 @@ protected:
 
     if ((file_type == FileTypes::CONSENSUSXML || file_type == FileTypes::CONSENSUSPARQUET) && !design_file.empty())
     {
-      writeLogError_("Error: Using fractionated design with consensusXML als input is not supported!");
+      writeLogError_("Error: Using fractionated design with consensusXML/consensusparquet as input is not supported!");
       return ILLEGAL_PARAMETERS;
     }
   

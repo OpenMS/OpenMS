@@ -79,7 +79,7 @@ namespace OpenMS
   {
 public:
     TOPPMzTabExporter() :
-      TOPPBase("MzTabExporter", "Exports various XML formats to an mzTab file.")
+      TOPPBase("MzTabExporter", "Exports various OpenMS XML and parquet formats to an mzTab file.")
     {
     }
 

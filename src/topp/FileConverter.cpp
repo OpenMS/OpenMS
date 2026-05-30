@@ -915,9 +915,9 @@ protected:
       // conversion is requested
 
       // IBSpectra selected as output type
-      if (in_type != FileTypes::CONSENSUSXML)
+      if (in_type != FileTypes::CONSENSUSXML && in_type != FileTypes::CONSENSUSPARQUET)
       {
-        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert consensusXML files to ibspectra format.";
+        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert consensusXML/consensusparquet files to ibspectra format.";
         return INCOMPATIBLE_INPUT_DATA;
       }
 
@@ -1021,19 +1021,19 @@ protected:
     }
     else if (out_type == FileTypes::OMS)
     {
-      if (in_type == FileTypes::FEATUREXML)
+      if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::FEATUREPARQUET)
       {
         IdentificationDataConverter::importFeatureIDs(fm);
         FileHandler().storeFeatures(out, fm, {FileTypes::OMS}, log_type_);
       }
-      else if (in_type == FileTypes::CONSENSUSXML)
+      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET)
       {
         IdentificationDataConverter::importConsensusIDs(cm);
         FileHandler().storeConsensusFeatures(out, cm, {FileTypes::OMS}, log_type_);
       }
       else
       {
-        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert featureXML and consensusXML files to oms format.";
+        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert featureXML/featureparquet and consensusXML/consensusparquet files to oms format.";
         return INCOMPATIBLE_INPUT_DATA;
       }
     }

@@ -601,7 +601,7 @@ namespace OpenMS
   {
 public:
     TOPPTextExporter() :
-      TOPPBase("TextExporter", "Exports various XML formats to a text file.")
+      TOPPBase("TextExporter", "Exports various OpenMS XML and parquet formats to a text file.")
     {
     }
 
