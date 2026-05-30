@@ -39,6 +39,20 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
+// Output is always a ConsensusMap. The serialization track follows the input:
+// parquet inputs → consensusparquet; XML (or other) inputs → consensusXML.
+static FileTypes::Type consensusOutTypeFor(FileTypes::Type in_type)
+{
+  switch (in_type)
+  {
+    case FileTypes::FEATUREPARQUET:
+    case FileTypes::CONSENSUSPARQUET:
+      return FileTypes::CONSENSUSPARQUET;
+    default:
+      return FileTypes::CONSENSUSXML;
+  }
+}
+
 class TOPPFeatureLinkerBase :
   public TOPPBase, 
   public ProgressLogger
@@ -54,13 +68,13 @@ protected:
   void registerOptionsAndFlags_() override   // only for "unlabeled" algorithms!
   {
     registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "input files separated by blanks", true);
-    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,featureparquet,consensusparquet"));
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("consensusXML,consensusparquet"));
     registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
     setValidFormats_("design", ListUtils::create<String>("tsv"));
     addEmptyLine_();
-    registerFlag_("keep_subelements", "For consensusXML input only: If set, the sub-features of the inputs are transferred to the output.");
+    registerFlag_("keep_subelements", "For consensusXML/consensusparquet input only: If set, the sub-features of the inputs are transferred to the output.");
   }
 
   ExitCodes common_main_(FeatureGroupingAlgorithm * algorithm,
@@ -116,15 +130,15 @@ protected:
       design_file = getStringOption_("design");
     }
 
-    if (file_type == FileTypes::CONSENSUSXML && !design_file.empty())
+    if ((file_type == FileTypes::CONSENSUSXML || file_type == FileTypes::CONSENSUSPARQUET) && !design_file.empty())
     {
-      writeLogError_("Error: Using fractionated design with consensusXML als input is not supported!");
+      writeLogError_("Error: Using fractionated design with consensusXML/consensusparquet as input is not supported!");
       return ILLEGAL_PARAMETERS;
     }
   
-    if (file_type == FileTypes::FEATUREXML)
+    if (file_type == FileTypes::FEATUREXML || file_type == FileTypes::FEATUREPARQUET)
     {
-      OPENMS_LOG_INFO << "Linking " << ins.size() << " featureXMLs." << endl;
+      OPENMS_LOG_INFO << "Linking " << ins.size() << " feature maps." << endl;
   
       //-------------------------------------------------------------
       // Extract (optional) fraction identifiers and associate with featureXMLs
@@ -173,7 +187,7 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
         FeatureMap tmp;
-        f.loadFeatures(ins[i], tmp, {FileTypes::FEATUREXML});
+        f.loadFeatures(ins[i], tmp, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET});
 
         StringList ms_runs;
         tmp.getPrimaryMSRunPath(ms_runs);
@@ -271,7 +285,7 @@ protected:
       FileHandler f;
       for (Size i = 0; i < ins.size(); ++i)
       {
-        f.loadConsensusFeatures(ins[i], maps[i], {FileTypes::CONSENSUSXML});
+        f.loadConsensusFeatures(ins[i], maps[i], {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
         maps[i].updateRanges();
         // copy over information on the primary MS run
         StringList ms_runs;
@@ -329,7 +343,7 @@ protected:
     out_map.sortPeptideIdentificationsByMapIndex();
 
     // write output
-    FileHandler().storeConsensusFeatures(out, out_map, {FileTypes::CONSENSUSXML});
+    FileHandler().storeConsensusFeatures(out, out_map, {consensusOutTypeFor(file_type)});
 
     // some statistics
     map<Size, UInt> num_consfeat_of_size;

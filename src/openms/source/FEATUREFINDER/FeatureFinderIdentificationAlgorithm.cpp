@@ -953,7 +953,10 @@ namespace OpenMS
     // store feature candidates before filtering
     if (!candidates_out_.empty())
     {
-      FileHandler().storeFeatures(candidates_out_, features);
+      FileTypes::Type candidates_out_type = FileHandler::getType(candidates_out_);
+      if (candidates_out_type != FileTypes::FEATUREPARQUET)
+        candidates_out_type = FileTypes::FEATUREXML;
+      FileHandler().storeFeatures(candidates_out_, features, {candidates_out_type});
     }
 
     // Use ExternalIDHandler for feature filtering
