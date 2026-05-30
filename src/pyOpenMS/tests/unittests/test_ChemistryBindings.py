@@ -53,3 +53,45 @@ def test_tsg_prefix_and_suffix_ions_mz():
     assert out.ndim == 1
     assert out.size > 0
     assert np.all(out > 0.0)
+
+
+def test_proteomics_pka_scale_enum():
+    # enum is exposed at module scope and convertible to int
+    assert int(poms.ProteomicsPkaScale.LEHNINGER) == 0
+    assert int(poms.ProteomicsPkaScale.EMBOSS) == 1
+    assert int(poms.ProteomicsPkaScale.SILLERO) == 2
+
+
+def test_isoelectric_point_compute_charge():
+    seq = poms.AASequence.fromString("PEPTIDE")
+    # At low pH, peptide should be positively charged
+    charge_low = poms.IsoelectricPoint.computeCharge(seq, 1.0)
+    assert charge_low > 0.0
+    # At high pH, peptide should be negatively charged
+    charge_high = poms.IsoelectricPoint.computeCharge(seq, 14.0)
+    assert charge_high < 0.0
+
+
+def test_isoelectric_point_compute_pi():
+    seq = poms.AASequence.fromString("PEPTIDE")
+    pi = poms.IsoelectricPoint.computePI(seq)
+    # pI should be between 0 and 14
+    assert 0.0 < pi < 14.0
+    # At the pI, the charge should be approximately zero
+    charge_at_pi = poms.IsoelectricPoint.computeCharge(seq, pi)
+    assert math.isclose(charge_at_pi, 0.0, abs_tol=0.01)
+
+
+def test_isoelectric_point_alanine():
+    ala = poms.AASequence.fromString("A")
+    pi = poms.IsoelectricPoint.computePI(ala)
+    # Lehninger: (9.69 + 2.34)/2 = 6.015
+    assert math.isclose(pi, 6.015, abs_tol=0.01)
+
+
+def test_isoelectric_point_emboss_scale():
+    seq = poms.AASequence.fromString("ACDEFGHIKLMNPQRSTVWY")
+    pi_leh = poms.IsoelectricPoint.computePI(seq, poms.ProteomicsPkaScale.LEHNINGER)
+    pi_emb = poms.IsoelectricPoint.computePI(seq, poms.ProteomicsPkaScale.EMBOSS)
+    # Different scales should yield different pI values
+    assert not math.isclose(pi_leh, pi_emb, abs_tol=0.001)

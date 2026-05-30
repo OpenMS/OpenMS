@@ -14,6 +14,7 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/IsoelectricPoint.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
@@ -1727,6 +1728,30 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .value("GUY", OpenMS::HydrophobicityScaleMethod::GUY)
         .value("EISENBERG_CONSENSUS", OpenMS::HydrophobicityScaleMethod::EISENBERG_CONSENSUS)
         .export_values();
+
+    // ProteomicsPkaScale enum (namespace-scoped, used by IsoelectricPoint)
+    nb::enum_<OpenMS::ProteomicsPkaScale>(m, "ProteomicsPkaScale", nb::is_arithmetic())
+        .value("LEHNINGER", OpenMS::ProteomicsPkaScale::LEHNINGER)
+        .value("EMBOSS", OpenMS::ProteomicsPkaScale::EMBOSS)
+        .value("SILLERO", OpenMS::ProteomicsPkaScale::SILLERO)
+        .export_values();
+
+    // IsoelectricPoint
+    auto isoelectricpoint_class = nb::class_<OpenMS::IsoelectricPoint>(m, "IsoelectricPoint",
+        "Utility class for computing isoelectric point (pI) and net charge of peptides")
+        .def_static("computeCharge",
+            [](const OpenMS::AASequence& seq, double pH, OpenMS::ProteomicsPkaScale scale) {
+                return OpenMS::IsoelectricPoint::computeCharge(seq, pH, scale);
+            },
+            "seq"_a, "pH"_a, "scale"_a = OpenMS::ProteomicsPkaScale::LEHNINGER,
+            "Computes the net charge of an amino acid sequence at a given pH")
+        .def_static("computePI",
+            [](const OpenMS::AASequence& seq, OpenMS::ProteomicsPkaScale scale, double tolerance) {
+                return OpenMS::IsoelectricPoint::computePI(seq, scale, tolerance);
+            },
+            "seq"_a, "scale"_a = OpenMS::ProteomicsPkaScale::LEHNINGER, "tolerance"_a = 1e-4,
+            "Computes the isoelectric point (pI) of an amino acid sequence via bisection")
+        ;
 
     // -----------------------------------------------------------------------
     // ResidueDB
