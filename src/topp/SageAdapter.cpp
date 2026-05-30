@@ -724,17 +724,12 @@ protected:
     // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
     IDFilter::filterPeptidesByCharge(peptide_identifications, 2, numeric_limits<int>::max());
     
-    if (filenames.empty()) filenames = getStringList_("in");
-
-#ifdef WITH_THERMO_RAW
-    // Sage's PIN output references the temp mzML paths we passed in. Translate
-    // them back to the original .raw paths for the output run metadata.
-    for (auto& fn : filenames)
-    {
-      auto it = sage_tmp_basename_to_original.find(File::basename(fn));
-      if (it != sage_tmp_basename_to_original.end()) fn = it->second;
-    }
-#endif
+    // Fallback uses input_files (not getStringList_("in")) so that for Thermo
+    // .raw inputs the fallback gives the temp mzML paths Sage actually saw —
+    // post-processing (native-ID repair, FAIMS) needs those basenames to match
+    // file2specnr2nativeid keys built below from input_files. Equivalent to
+    // getStringList_("in") for mzML/.d inputs where no pre-conversion happened.
+    if (filenames.empty()) filenames = input_files;
 
     // TODO: allow optional split and create multiple idXMLs one per input file
     vector<ProteinIdentification> protein_identifications(1, ProteinIdentification());
@@ -926,6 +921,24 @@ protected:
         }
       }
     }
+
+#ifdef WITH_THERMO_RAW
+    // After all mzML-based post-processing (native-ID repair, FAIMS annotation)
+    // is done — those steps need temp mzML basenames to match file2specnr2nativeid
+    // / input_files — restore original .raw paths in PrimaryMSRunPath for the
+    // output metadata.
+    if (!sage_tmp_basename_to_original.empty())
+    {
+      StringList run_paths;
+      protein_identifications[0].getPrimaryMSRunPath(run_paths);
+      for (auto& fn : run_paths)
+      {
+        auto it = sage_tmp_basename_to_original.find(File::basename(fn));
+        if (it != sage_tmp_basename_to_original.end()) fn = it->second;
+      }
+      protein_identifications[0].setPrimaryMSRunPath(run_paths);
+    }
+#endif
 
     FileHandler().storeIdentifications(output_file, protein_identifications, peptide_identifications,
       {FileTypes::IDXML, FileTypes::IDPARQUET});
