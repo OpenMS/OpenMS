@@ -22,7 +22,7 @@ namespace OpenMS
   const IsoelectricPoint::PkaValues& IsoelectricPoint::getPkaValues_(ProteomicsPkaScale scale)
   {
     // Lehninger: Nelson DL, Cox MM. Lehninger Principles of Biochemistry. 6th ed., Table 3-1.
-    // ResidueDB uses slightly different side-chain values for D/E/Y from another source.
+    // ResidueDB uses slightly different side-chain values for D/E/Y than this 6th-edition table.
     static const PkaValues lehninger = {9.69, 2.34, 3.65, 4.25, 8.18, 10.07, 6.00, 10.53, 12.48};
     // EMBOSS: used by pepstats (EMBOSS suite)
     static const PkaValues emboss = {8.6, 3.6, 3.9, 4.1, 8.5, 10.1, 6.5, 10.8, 12.5};

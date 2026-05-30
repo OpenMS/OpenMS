@@ -39,7 +39,7 @@ namespace OpenMS
   - Nelson DL, Cox MM. Lehninger Principles of Biochemistry. 6th ed. (2013).
   - Sillero A, Ribeiro JM. Isoelectric points of proteins... Anal Biochem. 1989;179:319-325.
 
-  @todo Add the Bjellqvist scale with residue-dependent N-terminal pKa values.
+  @todo Timo Sachsenberg Add the Bjellqvist scale with residue-dependent N-terminal pKa values.
   */
 
   /// @brief Enum for pKa scales used in isoelectric point calculation

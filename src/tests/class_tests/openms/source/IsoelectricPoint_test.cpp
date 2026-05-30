@@ -114,7 +114,7 @@ START_SECTION(static double computePI(const AASequence& seq, ProteomicsPkaScale 
 
   AASequence polybasic = AASequence::fromString(String(100, 'R'));
   double pi_polybasic = IsoelectricPoint::computePI(polybasic);
-  TEST_REAL_EQUAL(pi_polybasic, 14.0)
+  TEST_REAL_EQUAL(pi_polybasic, 14.0);
 
   TEST_EXCEPTION(Exception::InvalidValue, IsoelectricPoint::computePI(AASequence::fromString("O")));
 }
