@@ -134,6 +134,9 @@ protected:
 #ifdef WITH_OPENTIMS
       "d",
 #endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
     });
     registerOutputFile_("out", "<file>", "", "Output file (.idXML) or directory bundle (.idparquet) containing the search results.");
     setValidFormats_("out", { "idXML", "idparquet"} );
@@ -695,8 +698,39 @@ protected:
     MSExperiment exp;
     String input_file_with_index = inputfile_name;
 
+#ifdef WITH_THERMO_RAW
+    const bool is_thermo_raw = (FileHandler::getType(inputfile_name) == FileTypes::RAW);
+#endif
 #ifdef WITH_OPENTIMS
     const bool is_bruker_d = (FileHandler::getType(inputfile_name) == FileTypes::BRUKER_TDF);
+#endif
+
+#ifdef WITH_THERMO_RAW
+    if (is_thermo_raw)
+    {
+      // Load .raw via FileHandler (dispatches to ThermoRawFile).
+      // Only target MS level is loaded.
+      FileHandler fh;
+      fh.getOptions().clearMSLevels();
+      fh.getOptions().addMSLevel(ms_level);
+      fh.loadExperiment(inputfile_name, exp, {FileTypes::RAW}, log_type_);
+
+      OPENMS_LOG_INFO << "Loaded " << exp.size() << " MS" << ms_level
+                      << " spectra from Thermo .raw file." << std::endl;
+
+      // Thermo native IDs are "scan=N" with monotonic N — mzParser handles
+      // them correctly, so no native ID rewriting is needed (unlike the
+      // Bruker path below where "frame=F scan=S" triggers a sort UB).
+      auto tmp_mzml = File::getTemporaryFile() + ".mzML";
+      MzMLFile().store(tmp_mzml, exp);
+      input_file_with_index = tmp_mzml;
+
+      // Free peak data but keep spectrum metadata for post-processing.
+      for (auto& spec : exp.getSpectra()) { spec.clear(false); }
+    }
+    else
+#endif
+#ifdef WITH_OPENTIMS
     if (is_bruker_d)
     {
       // Load .d via BrukerTimsFile. Skip MS1 loading for MS2 searches since

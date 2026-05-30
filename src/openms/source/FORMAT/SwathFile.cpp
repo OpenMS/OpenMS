@@ -195,6 +195,60 @@ namespace OpenMS
     return swath_maps;
   }
 
+  /// Loads a Swath run from a pre-loaded in-memory MSExperiment
+  std::vector<OpenSwath::SwathMap> SwathFile::loadFromMSExperiment(
+      const std::shared_ptr<PeakMap>& exp,
+      const String& tmp,
+      std::shared_ptr<ExperimentalSettings>& exp_meta,
+      const String& readoptions)
+  {
+    OPENMS_LOG_INFO << "Loading Swath run from in-memory MSExperiment with " << exp->size()
+                    << " spectra using readoptions " << readoptions << '\n';
+    String tmp_fname = tmp.hasSuffix('/') ? File::getUniqueName() : "";
+
+    // The provided experiment already contains all metadata + data.
+    exp_meta = exp;
+
+    std::vector<int> swath_counter;
+    int nr_ms1_spectra;
+    std::vector<OpenSwath::SwathMap> known_window_boundaries;
+    countScansInSwath_(exp->getSpectra(), swath_counter, nr_ms1_spectra, known_window_boundaries);
+    OPENMS_LOG_INFO << "Determined there to be " << swath_counter.size()
+                    << " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
+
+    std::shared_ptr<FullSwathFileConsumer> dataConsumer;
+    if (readoptions == "normal")
+    {
+      dataConsumer = std::make_shared<RegularSwathFileConsumer>(known_window_boundaries);
+    }
+    else if (readoptions == "cache")
+    {
+      dataConsumer = std::make_shared<CachedSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+    }
+    else
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Unknown or unsupported option " + readoptions);
+    }
+    dataConsumer->setExperimentalSettings(*exp_meta.get());
+
+    // Feed spectra directly to the consumer — no file I/O.
+    startProgress(0, exp->size(), "Building Swath maps from in-memory experiment");
+    Size progress = 0;
+    for (auto& spec : exp->getSpectra())
+    {
+      // consumeSpectrum takes a non-const ref; copy to a local since exp is shared.
+      auto spec_copy = spec;
+      dataConsumer->consumeSpectrum(spec_copy);
+      setProgress(progress++);
+    }
+    endProgress();
+
+    std::vector<OpenSwath::SwathMap> swath_maps;
+    dataConsumer->retrieveSwathMaps(swath_maps);
+    return swath_maps;
+  }
+
   /// Loads a Swath run from a single mzXML file
   std::vector<OpenSwath::SwathMap> SwathFile::loadMzXML(const String& file,
     const String& tmp,

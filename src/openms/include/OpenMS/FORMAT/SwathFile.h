@@ -72,8 +72,26 @@ public:
                                               const String& readoptions = "normal",
                                               Interfaces::IMSDataConsumer* plugin_consumer = nullptr);
 
+    /**
+      @brief Loads a Swath run from a pre-loaded in-memory MSExperiment
+
+      Used when the input format does not have a streaming reader (e.g. Thermo .raw
+      via openms-thermo-bridge), so the full experiment has already been materialized.
+      Avoids the round-trip through a temporary mzML file.
+
+      @param[in] exp The pre-loaded experiment (must contain all spectra and metadata)
+      @param[in] tmp Temporary directory (used only for readoptions=="cache")
+      @param[out] exp_meta ExperimentalSettings extracted from @p exp
+      @param[in] readoptions "normal" (in-memory) or "cache" (disk-cached)
+      @return Swath maps for MS2 and MS1
+    */
+    std::vector<OpenSwath::SwathMap> loadFromMSExperiment(const std::shared_ptr<PeakMap>& exp,
+                                                          const String& tmp,
+                                                          std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                          const String& readoptions = "normal");
+
     /// Loads a Swath run from a single mzXML file
-    std::vector<OpenSwath::SwathMap> loadMzXML(const String& file, 
+    std::vector<OpenSwath::SwathMap> loadMzXML(const String& file,
                                                const String& tmp,
                                                std::shared_ptr<ExperimentalSettings>& exp_meta,
                                                const String& readoptions = "normal");
