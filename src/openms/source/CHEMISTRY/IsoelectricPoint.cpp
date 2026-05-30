@@ -16,6 +16,7 @@ namespace OpenMS
   namespace
   {
     // ResidueDB already stores this literature-aligned selenocysteine side-chain pKa.
+    // Keep a local constant here so the proteomics scale tables remain explicit and self-contained.
     constexpr double SELENOCYSTEINE_SIDE_CHAIN_PKA = 5.73;
   }
 
@@ -153,7 +154,9 @@ namespace OpenMS
 
     if ((charge_low > 0.0 && charge_high > 0.0) || (charge_low < 0.0 && charge_high < 0.0))
     {
-      OPENMS_LOG_WARN << "IsoelectricPoint::computePI(): sequence pI lies outside the supported [0, 14] interval. Returning the closer boundary value." << std::endl;
+      OPENMS_LOG_WARN << "IsoelectricPoint::computePI(): sequence net charge stays "
+                      << ((charge_low > 0.0) ? "positive" : "negative")
+                      << " over the supported [0, 14] interval. Returning the closer boundary value." << std::endl;
       return (std::abs(charge_low) <= std::abs(charge_high)) ? pH_low : pH_high;
     }
 

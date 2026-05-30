@@ -58,8 +58,8 @@ START_SECTION(static double computeCharge(const AASequence& seq, double pH, Prot
   AASequence sec = AASequence::fromString("U");
   TEST_EQUAL(IsoelectricPoint::computeCharge(sec, 7.0) < IsoelectricPoint::computeCharge(AASequence::fromString("C"), 7.0), true);
 
-  const auto invalid_scale = static_cast<ProteomicsPkaScale>(static_cast<Int>(ProteomicsPkaScale::SIZE_OF_PROTEOMICS_PKA_SCALES));
-  TEST_EXCEPTION(Exception::InvalidValue, IsoelectricPoint::computeCharge(ala, 7.0, invalid_scale));
+  const auto invalid_enum_value = static_cast<ProteomicsPkaScale>(static_cast<Int>(ProteomicsPkaScale::SIZE_OF_PROTEOMICS_PKA_SCALES));
+  TEST_EXCEPTION(Exception::InvalidValue, IsoelectricPoint::computeCharge(ala, 7.0, invalid_enum_value));
 
   TEST_EXCEPTION(Exception::InvalidValue, IsoelectricPoint::computeCharge(AASequence::fromString("O"), 7.0));
 }
