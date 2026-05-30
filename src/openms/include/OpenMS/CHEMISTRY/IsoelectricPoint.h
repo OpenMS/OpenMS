@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: OpenMS Team $
 // --------------------------------------------------------------------------
 
@@ -23,17 +23,23 @@ namespace OpenMS
   - The isoelectric point (pI), i.e. the pH at which the net charge is zero, found via bisection
 
   The calculation considers:
-  - The N-terminal amino group (pKa)
-  - The C-terminal carboxyl group (pKa)
-  - Ionizable side chains of D, E, C, Y, H, K, R
+  - The N-terminal amino group (pKa), unless the peptide has an N-terminal modification
+  - The C-terminal carboxyl group (pKa), unless the peptide has a C-terminal modification
+  - Ionizable side chains of D, E, C, U, Y, H, K, R
 
   The default pK values follow the Lehninger scale (Nelson & Cox, Lehninger Principles of Biochemistry).
-  Other scales (EMBOSS, Sillero, etc.) can be selected via the ProteomicsPkaScale enum.
+  Other supported scales (EMBOSS, Sillero) can be selected via the ProteomicsPkaScale enum.
+
+  Side-chain PTM-specific pKa shifts are currently not modeled; modified residues are evaluated using the
+  parent residue one-letter code. Pyrrolysine (O) is not supported and raises Exception::InvalidValue.
+  If the zero crossing lies outside the searched pH interval [0, 14], computePI() returns the closer boundary
+  and logs a warning.
 
   References:
   - Nelson DL, Cox MM. Lehninger Principles of Biochemistry. 6th ed. (2013).
-  - Bjellqvist B, et al. The focusing positions of polypeptides in immobilized pH gradients... Electrophoresis. 1993;14:1023-1031.
   - Sillero A, Ribeiro JM. Isoelectric points of proteins... Anal Biochem. 1989;179:319-325.
+
+  @todo Add the Bjellqvist scale with residue-dependent N-terminal pKa values.
   */
 
   /// @brief Enum for pKa scales used in isoelectric point calculation

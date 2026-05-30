@@ -1,7 +1,7 @@
 // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: OpenMS Team $
 // --------------------------------------------------------------------------
 
@@ -47,6 +47,21 @@ START_SECTION(static double computeCharge(const AASequence& seq, double pH, Prot
   double charge_lehninger = IsoelectricPoint::computeCharge(seq, 7.0, ProteomicsPkaScale::LEHNINGER);
   double charge_emboss = IsoelectricPoint::computeCharge(seq, 7.0, ProteomicsPkaScale::EMBOSS);
   TEST_NOT_EQUAL(charge_lehninger, charge_emboss);
+
+  AASequence y = AASequence::fromString("Y");
+  AASequence acetyl_y = AASequence::fromString(".(Acetyl)Y");
+  TEST_EQUAL(IsoelectricPoint::computeCharge(acetyl_y, 1.0) < IsoelectricPoint::computeCharge(y, 1.0), true);
+
+  AASequence amidated_y = AASequence::fromString("Y.(Amidated)");
+  TEST_EQUAL(IsoelectricPoint::computeCharge(amidated_y, 14.0) > IsoelectricPoint::computeCharge(y, 14.0), true);
+
+  AASequence sec = AASequence::fromString("U");
+  TEST_EQUAL(IsoelectricPoint::computeCharge(sec, 7.0) < IsoelectricPoint::computeCharge(AASequence::fromString("C"), 7.0), true);
+
+  const auto invalid_scale = static_cast<ProteomicsPkaScale>(static_cast<Int>(ProteomicsPkaScale::SIZE_OF_PROTEOMICS_PKA_SCALES));
+  TEST_EXCEPTION(Exception::InvalidValue, IsoelectricPoint::computeCharge(ala, 7.0, invalid_scale));
+
+  TEST_EXCEPTION(Exception::InvalidValue, IsoelectricPoint::computeCharge(AASequence::fromString("O"), 7.0));
 }
 END_SECTION
 
@@ -77,7 +92,9 @@ START_SECTION(static double computePI(const AASequence& seq, ProteomicsPkaScale 
   AASequence peptide = AASequence::fromString("PEPTIDE");
   double pi_peptide = IsoelectricPoint::computePI(peptide);
   double charge_at_pi = IsoelectricPoint::computeCharge(peptide, pi_peptide);
+  TOLERANCE_ABSOLUTE(1e-3)
   TEST_REAL_SIMILAR(charge_at_pi, 0.0);
+  TOLERANCE_ABSOLUTE(1e-5)
 
   // pI must be between 0 and 14
   TEST_EQUAL(pi_peptide > 0.0, true);
@@ -89,6 +106,17 @@ START_SECTION(static double computePI(const AASequence& seq, ProteomicsPkaScale 
   // Both should be reasonable but not identical
   TEST_EQUAL(pi_emboss > 0.0, true);
   TEST_EQUAL(pi_emboss < 14.0, true);
+  TEST_NOT_EQUAL(pi_emboss, pi_lehninger);
+
+  AASequence sec = AASequence::fromString("U");
+  double pi_sec = IsoelectricPoint::computePI(sec);
+  TEST_REAL_SIMILAR(pi_sec, 4.035);
+
+  AASequence polybasic = AASequence::fromString(String(100, 'R'));
+  double pi_polybasic = IsoelectricPoint::computePI(polybasic);
+  TEST_REAL_EQUAL(pi_polybasic, 14.0)
+
+  TEST_EXCEPTION(Exception::InvalidValue, IsoelectricPoint::computePI(AASequence::fromString("O")));
 }
 END_SECTION
 
