@@ -343,6 +343,15 @@ protected:
     registerFlag_("RawToMzML:no_peak_picking", "Disables vendor peak picking for raw files.", true);
     registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem.", true);
     registerFlag_("RawToMzML:include_noise", "Include noise data in mzML output.", true);
+    registerStringOption_("RawToMzML:reader", "<mode>", "external",
+      "Reader for Thermo .raw files. 'external' uses ThermoRawFileParser (external .NET process, mzML output only); "
+      "'inprocess' uses the built-in ThermoRawFile (in-process, supports any output format; requires WITH_THERMO_RAW build).",
+      false, true);
+    std::vector<String> raw_reader_modes = {"external"};
+#ifdef WITH_THERMO_RAW
+    raw_reader_modes.push_back("inprocess");
+#endif
+    setValidStrings_("RawToMzML:reader", raw_reader_modes);
     
   // OpenSwath / chromatogram options: allow passing a transition library to map extracted ion chromatograms to their matching metadata in the transition list
   registerTOPPSubsection_("OpenSwathWorkflow", "Options for loading OpenSWATH transition libraries used for chromatogram metadata");
@@ -483,6 +492,22 @@ protected:
     }
     else if (in_type == FileTypes::RAW)
     {
+      String raw_reader = getStringOption_("RawToMzML:reader");
+#ifdef WITH_THERMO_RAW
+      if (raw_reader == "inprocess")
+      {
+        if (getFlag_("RawToMzML:no_peak_picking") || getFlag_("RawToMzML:no_zlib_compression") || getFlag_("RawToMzML:include_noise"))
+        {
+          OPENMS_LOG_WARN << "RawToMzML:no_peak_picking, no_zlib_compression, and include_noise are "
+                          << "specific to the external ThermoRawFileParser; they are ignored when "
+                          << "RawToMzML:reader=inprocess." << std::endl;
+        }
+        // Fall through to generic output writing — supports any output format.
+        fh.loadExperiment(in, exp, {FileTypes::RAW}, log_type_, true, true);
+      }
+      else
+#endif
+      {
       if (out_type != FileTypes::MZML)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -525,6 +550,7 @@ protected:
         arguments.push_back("--noiseData");
       }
       return runExternalProcess_(net_executable, arguments);
+      } // close raw_reader == "external" block
     }
     else if (in_type == FileTypes::EDTA)
     {

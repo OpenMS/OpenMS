@@ -630,7 +630,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
+    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
     spectra.sortSpectra(true);
 
     startProgress(0, 1, "Filtering spectra...");

@@ -161,6 +161,9 @@ protected:
 #ifdef WITH_OPENTIMS
       ",d"
 #endif
+#ifdef WITH_THERMO_RAW
+      ",raw"
+#endif
     ));
     registerInputFileList_("in_feat", "<files>", StringList(), "Optional input featureXML files containing pre-computed features. Bypasses internal feature finding. Must match the number of '-in' files.", false, false);
     setValidFormats_("in_feat", ListUtils::create<String>("featureXML"));
@@ -407,7 +410,7 @@ protected:
     // load raw file
 
     PeakMap ms_raw;
-    FileHandler().loadExperiment(mz_file, ms_raw, {FileTypes::MZML}, log_type_);
+    FileHandler().loadExperiment(mz_file, ms_raw, {FileTypes::MZML, FileTypes::RAW}, log_type_);
     ms_raw.clearMetaDataArrays();
     ms_raw.updateRanges();
 
