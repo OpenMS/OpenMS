@@ -515,7 +515,10 @@ include(cmake/cmake_findExternalLibs.cmake)
 
 #------------------------------------------------------------------------------
 # find the Doxygen (required by /doc and /src/OpenMS)
-find_package(Doxygen) ## defines 'DOXYGEN_HAVE_DOT', 'DOXYGEN_VERSION' etc
+## 'dot' (Graphviz) is requested as an OPTIONAL component so that machines without it still
+## build all non-dot documentation targets. Provides the Doxygen::doxygen / Doxygen::dot imported
+## targets and the modern Doxygen_FOUND, Doxygen_VERSION, Doxygen_dot_FOUND result variables.
+find_package(Doxygen OPTIONAL_COMPONENTS dot)
 
 
 #------------------------------------------------------------------------------
