@@ -115,6 +115,7 @@ PyOpenMS:
     - MSExperiment.rasterize2D() for rasterizing 2D ion mobility data (#8739)
     - FAIMSHelper: getCompensationVoltages(PeakMap) and filterPeptidesByFAIMSCV(PeptideIdentificationList, target_cv, cv_tolerance) for FAIMS compensation voltage detection and per-CV peptide ID filtering (#9275)
     - MZTrafoModel.setRANSACSeed(seed) for reproducible RANSAC-based m/z calibration (#9407)
+    - EmpiricalFormula.getNumberOf(Element), EmpiricalFormula.getLightestIsotopeWeight(), Residue.getHydrophobicity(HydrophobicityScaleMethod) + new HydrophobicityScaleMethod enum, TheoreticalSpectrumGenerator.getPrefixAndSuffixIonsMZ(peptide, charge) returning a numpy float array, and SpectralMatch CCS accessors (getCCS/setFoundCCS) added (#9415, #9412)
   - String handling: Functions now accept both str and bytes via libcpp_utf8_string (#8602, #8604)
   - Backward compatibility restored for file I/O methods in IdXMLFile, PepXMLFile, MzIdentMLFile (#8553)
   - Static methods modernized using @staticmethod decorator (#8562)
@@ -310,6 +311,8 @@ TOPP tools:
       - Added .idparquet input/output support; -in, -out and the whitelist/blacklist peptide inputs now accept .idparquet bundles in addition to idXML (#9396)
     OpenSwathChromatogramExtractor:
       - Compound identifiers in output chromatograms for metabolite targets now use the CompoundName user-param (compound_name field) instead of the compound id, aligning with OpenSwathWorkflow behavior (#9271)
+    MetaboliteSpectralMatcher:
+      - New ccs_error_percent parameter (default 0 = disabled) filters spectral-library candidates by relative CCS error |observed − library| / library × 100 %; missing observed CCS is non-filtering (Skyline convention); mzTab output gains opt_observed_ccs, opt_library_ccs, and opt_ccs_error_percent columns; 1/K0 drift times are converted to CCS automatically (#8784, #9412)
   New tools:
     - FeatureLinkerWNet: groups corresponding features across multiple label-free maps using Wasserstein (optimal transport) distance over (m/z, RT) space; solves a minimum-cost network flow problem via the wnetalign library; supports Da and ppm m/z tolerances, L1/L2/L∞ distance metrics, and intensity normalization
     - OpenSwathInfer: Added topp tool for performing peptidoform, peptide, protein and gene inference for OpenSwath analysis. (#9280) 
