@@ -172,6 +172,7 @@ TOPP tools:
       - Added Bruker TimsTOF .d DDA-PASEF input support; .d directories are converted to mzML on-the-fly via BrukerTimsFile before search; requires WITH_TIMSRUST=ON (#9126)
       - Fix: Bruker native-ID rewrite (index=N workaround for Comet's mzParser) now also applied when the input is an mzML file previously converted from a .d directory; detects "frame=" in spectrum native IDs and rewrites them to monotonic index=N before handing to Comet (#9168)
       - Added .idparquet output support; -out now accepts .idparquet format in addition to idXML (#9232)
+      - Added Thermo .raw input support; .raw files are loaded in-process via ThermoRawFile and converted to a temp mzML before search; requires WITH_THERMO_RAW=ON; native-ID rewriting is skipped (Thermo scan=N IDs are already monotonic) (#9418)
     ProSE:
       - BREAKING: renamed from PeptideDataBaseSearchFI to ProSE; the old executable name is no longer available (#9137)
       - BREAKING: precursor tolerance schema changed to asymmetric positive-magnitude pair (#9108, #9132)
@@ -211,6 +212,7 @@ TOPP tools:
       - Fix: PercolatorAdapter sibling binary is now resolved via File::findSiblingTOPPExecutable before the per-file search loop; previously the bare name "PercolatorAdapter" was passed to boost::process which only searches $PATH, causing silent fallback to HyperScore results in dev builds or installs where the OpenMS bin/ directory is not on PATH (#9204)
       - Fix: -out_merged write failure no longer discards per-file outputs. Per-file -out_idxml/-out_pin/-out_qpx/-out_parquet writes now complete before the merged write is attempted, and the merged write is wrapped in try/catch (#9205, #9197 item 1a)
       - Fix: merged idXML write no longer crashes with "Invalid protein reference 'DECOY_...'" when target+decoy shared peptides are present and protein FDR is enabled. Added IDFilter::removeDanglingProteinReferences pass after decoy/protein cleanup (#9205, #9197 item 1b)
+      - Added Thermo .raw input support; .raw files are accepted directly for all search modes; requires WITH_THERMO_RAW=ON (#9418)
     PercolatorAdapter:
       - In-process rescoring backend: PercolatorAdapter now defaults to running Percolator in-process via the new OpenMS::Percolator class (vendored Percolator 3.08 + TRON solver) without requiring an external percolator binary; covers idXML/mzid input with PSM-level FDR; use -use_subprocess true to revert to the external binary path; OSW input, protein-level FDR, and peptide-level FDR still require the subprocess (#9218)
       - -percolator_executable is now optional (not required) when -use_subprocess false (the default); the parameter is still validated when -use_subprocess true (#9218)
@@ -220,6 +222,7 @@ TOPP tools:
     SimpleSearchEngine:
       - Added peptide:enzyme_specificity parameter (full/semi/none) to enable semi-tryptic and non-specific searches (#9112)
       - New annotate:PSM options: num_matched_peaks, matched_b_ions, matched_y_ions, longest_peptide_ion_sequence, fragment_annotation (#9117)
+      - Added Thermo .raw input support; .raw files are accepted directly by passing FileTypes::RAW to FileHandler::loadExperiment; requires WITH_THERMO_RAW=ON (#9418)
     ProteomicsLFQ:
       - Removed unnecessary group reindexing, added stricter validation (#8752)
       - Arrow/DataFrame/Parquet export for ConsensusMap (#8729)
@@ -228,6 +231,7 @@ TOPP tools:
       - Added Bruker TimsTOF .d (BRUKER_TDF) input support with Biosaur2-based seed generation; IM_PEAK data path with automatic FWHM estimation and skip of PeakPickerHiRes/PrecursorCorrection; new Seeding:algorithm parameter (#9030)
       - Added PeptideQuantification:seed_apex_rt_tolerance parameter (default 5.0 s, advanced) to FeatureFinderIdentificationAlgorithm; seed features whose detected apex RT deviates more than the tolerance from the seed apex are discarded, removing unreliable extractions (#9102)
       - Added .idparquet and .mzId input support; -ids now accepts .idparquet directories and .mzId files in addition to idXML (#9236)
+      - Added Thermo .raw input support; .raw is accepted directly alongside .mzML and .d; requires WITH_THERMO_RAW=ON (#9418)
     MetaProSIP:
       - Added detailed documentation of CSV output column formats (#4400)
         Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
@@ -245,6 +249,7 @@ TOPP tools:
       - Added OpenSwath sqMass to XIC Parquet conversion support (#8829)
       - Added experimental Bruker TimsTOF .d directory (BRUKER_TDF) to mzML conversion via BrukerTimsFile; requires WITH_TIMSRUST=ON (#8975)
       - Added .featureparquet and .consensusparquet support to -in, -out, and -out_type; all in_type and out_type dispatch branches plus the three "out_type must be feature/consensus" rejection guards extended with the parquet variants. Five new TOPP-tests (FileConverter_32..36) cover the full conversion-cell matrix (featureparquet↔featureXML, consensusparquet↔consensusXML, featureparquet→consensusparquet promote, and the two cross-serialization paths) (#9405)
+      - Added Thermo .raw input support via new RawToMzML:reader parameter (external|inprocess, default inprocess); the inprocess path loads .raw via ThermoRawFile and falls through to the generic output writer, enabling conversion to any supported output format; requires WITH_THERMO_RAW=ON (#9418)
     IsobaricWorkflow:
       - Fixed mzTab export when processing multiple mzML/idXML pairs (#8519)
       - Handles MS2 spectra without corresponding MS3 in SPS-MS3 workflow (#8592)
@@ -255,6 +260,7 @@ TOPP tools:
     SageAdapter:
       - Fixed thread handling - removed duplicate parameter registration (#8441)
       - Added .idparquet output support; -out now accepts .idparquet format in addition to idXML (#9232)
+      - Added Thermo .raw input support; .raw files are loaded in-process via ThermoRawFile, written to a temp mzML for Sage, and original .raw paths are preserved in PrimaryMSRunPath; requires WITH_THERMO_RAW=ON (#9418)
     OpenSwathWorkflow:
       - Priority peptide sampling for iRT calibration (#8373)
       - Decoy generation speed optimizations (#8569)
@@ -264,6 +270,7 @@ TOPP tools:
       - Performance: new automatic SWATH wave scheduler reduces wall time on large spectral libraries; batchSize=0 (default) now selects the wave scheduler automatically when working in memory; new advanced parameters innerBatchSize (inner scoring batch size, <=0 for auto), maxConcurrentSwaths (max concurrent SWATH maps in memory, -1 for auto), and outer_loop_threads (legacy nested-OpenMP outer threads, -1 for auto) expose tuning knobs; OSW output is written via a memory-aware buffered writer that flushes when free system RAM falls below a configurable threshold (#9190)
       - Fix: OSW RUN.ID column now stored as INTEGER instead of BLOB; the previous BLOB type caused JOIN queries between the FEATURE and RUN tables to return 0 rows (#9190)
       - Fix: duplicate TLS initialization symbol for PickerPoolShared on macOS arm64/clang; g_picker_pool_shared moved from inline thread_local in MRMTransitionGroupPicker.h to a single definition in MRMTransitionGroupPicker.cpp to avoid multiple weak-symbol emission under Mach-O, which caused linker errors on macOS arm64 (#9223)
+      - Added Thermo .raw input support; new SwathFile::loadFromMSExperiment() builds SwathMaps directly from a pre-loaded MSExperiment, avoiding a temp mzML round-trip; dispatched from OpenSwathBase for .raw input; requires WITH_THERMO_RAW=ON (#9418)
     PeakPickerHiRes:
       - New parameter to allow peak cores with no leading flank peaks (#8649)
       - Warns when given IM_PEAK format (per-peak ion mobility) data; partial support via intensity-weighted mean IM per picked peak (#9018)
