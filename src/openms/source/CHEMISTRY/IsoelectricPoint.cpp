@@ -30,6 +30,30 @@ namespace OpenMS
     static const PkaValues emboss = {8.6, 3.6, 3.9, 4.1, 8.5, 10.1, 6.5, 10.8, 12.5};
     // Sillero: Sillero & Ribeiro, Anal Biochem 1989
     static const PkaValues sillero = {8.2, 3.2, 4.0, 4.5, 9.0, 10.0, 6.4, 10.4, 12.0};
+    // Bjellqvist: Bjellqvist et al. Electrophoresis 1993, 14:1023-1031.
+    // N-terminal pKa depends on the identity of the N-terminal residue; C-terminal pKa for D and E differs.
+    static const PkaValues bjellqvist = {
+      7.50, // nterm: fallback for unrecognized N-terminal residue
+      3.55, // cterm: default (D/E overridden per residue below)
+      4.05, // D
+      4.45, // E
+      9.0,  // C
+      10.0, // Y
+      5.98, // H
+      10.0, // K
+      12.0, // R
+      // N-terminal pKa per residue
+      {
+        {'A', 7.59}, {'R', 7.70}, {'N', 7.50}, {'D', 7.50}, {'C', 8.00},
+        {'E', 7.70}, {'Q', 7.50}, {'G', 7.50}, {'H', 7.50}, {'I', 7.50},
+        {'L', 7.50}, {'K', 7.50}, {'M', 7.00}, {'F', 7.50}, {'P', 8.36},
+        {'S', 6.93}, {'T', 6.82}, {'W', 7.50}, {'Y', 7.50}, {'V', 7.44}
+      },
+      // C-terminal pKa per residue (D and E differ from default 3.55)
+      {
+        {'D', 4.55}, {'E', 4.75}
+      }
+    };
 
     switch (scale)
     {
@@ -39,6 +63,8 @@ namespace OpenMS
         return emboss;
       case ProteomicsPkaScale::SILLERO:
         return sillero;
+      case ProteomicsPkaScale::BJELLQVIST:
+        return bjellqvist;
       default:
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Unsupported ProteomicsPkaScale value", String(static_cast<Int>(scale)));
@@ -74,11 +100,31 @@ namespace OpenMS
     double charge = 0.0;
     if (!seq.hasNTerminalModification())
     {
-      charge += chargeBasic_(pH, pka.nterm);
+      double nterm_pka = pka.nterm;
+      if (!pka.nterm_by_residue.empty())
+      {
+        const char first_olc = seq[0].getOneLetterCode()[0];
+        const auto it = pka.nterm_by_residue.find(first_olc);
+        if (it != pka.nterm_by_residue.end())
+        {
+          nterm_pka = it->second;
+        }
+      }
+      charge += chargeBasic_(pH, nterm_pka);
     }
     if (!seq.hasCTerminalModification())
     {
-      charge += chargeAcidic_(pH, pka.cterm);
+      double cterm_pka = pka.cterm;
+      if (!pka.cterm_by_residue.empty())
+      {
+        const char last_olc = seq[seq.size() - 1].getOneLetterCode()[0];
+        const auto it = pka.cterm_by_residue.find(last_olc);
+        if (it != pka.cterm_by_residue.end())
+        {
+          cterm_pka = it->second;
+        }
+      }
+      charge += chargeAcidic_(pH, cterm_pka);
     }
 
     // Add side chain contributions

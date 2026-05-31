@@ -1734,6 +1734,7 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .value("LEHNINGER", OpenMS::ProteomicsPkaScale::LEHNINGER)
         .value("EMBOSS", OpenMS::ProteomicsPkaScale::EMBOSS)
         .value("SILLERO", OpenMS::ProteomicsPkaScale::SILLERO)
+        .value("BJELLQVIST", OpenMS::ProteomicsPkaScale::BJELLQVIST)
         .export_values();
 
     // IsoelectricPoint

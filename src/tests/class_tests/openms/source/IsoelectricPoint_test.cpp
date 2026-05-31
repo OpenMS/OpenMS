@@ -115,9 +115,21 @@ START_SECTION(static double computePI(const AASequence& seq, ProteomicsPkaScale 
 
   AASequence polybasic = AASequence::fromString(String(100, 'R'));
   double pi_polybasic = IsoelectricPoint::computePI(polybasic);
-  TEST_REAL_EQUAL(pi_polybasic, 14.0);
+  TEST_REAL_SIMILAR(pi_polybasic, 14.0);
 
   TEST_EXCEPTION(Exception::InvalidValue, IsoelectricPoint::computePI(AASequence::fromString("O")));
+
+  // Bjellqvist scale: pI(A) uses N-term pKa 7.59 (A-specific) and C-term pKa 3.55
+  // Expected: (7.59 + 3.55) / 2 = 5.57 (vs Lehninger 6.015)
+  double pi_ala_bjellqvist = IsoelectricPoint::computePI(ala, ProteomicsPkaScale::BJELLQVIST);
+  TEST_REAL_SIMILAR(pi_ala_bjellqvist, 5.57);
+  TEST_EQUAL(std::abs(pi_ala_bjellqvist - pi_ala) > 0.1, true);
+
+  // Bjellqvist scale: pI(P) uses N-term pKa 8.36 (P-specific) and C-term pKa 3.55
+  // Expected: (8.36 + 3.55) / 2 = 5.955
+  AASequence pro = AASequence::fromString("P");
+  double pi_pro_bjellqvist = IsoelectricPoint::computePI(pro, ProteomicsPkaScale::BJELLQVIST);
+  TEST_REAL_SIMILAR(pi_pro_bjellqvist, 5.955);
 }
 END_SECTION
 

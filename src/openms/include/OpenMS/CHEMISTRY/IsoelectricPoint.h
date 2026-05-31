@@ -10,6 +10,7 @@
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -28,7 +29,10 @@ namespace OpenMS
   - Ionizable side chains of D, E, C, U, Y, H, K, R
 
   The default pK values follow the Lehninger scale (Nelson & Cox, Lehninger Principles of Biochemistry).
-  Other supported scales (EMBOSS, Sillero) can be selected via the ProteomicsPkaScale enum.
+  Other supported scales (EMBOSS, Sillero, Bjellqvist) can be selected via the ProteomicsPkaScale enum.
+
+  The Bjellqvist scale uses N-terminal-residue-dependent pKa values for the N-terminus (one value per
+  N-terminal residue identity) and residue-dependent C-terminal pKas for D and E.
 
   Side-chain PTM-specific pKa shifts are currently not modeled; modified residues are evaluated using the
   parent residue one-letter code. Pyrrolysine (O) is not supported and raises Exception::InvalidValue.
@@ -38,16 +42,16 @@ namespace OpenMS
   References:
   - Nelson DL, Cox MM. Lehninger Principles of Biochemistry. 6th ed. (2013).
   - Sillero A, Ribeiro JM. Isoelectric points of proteins... Anal Biochem. 1989;179:319-325.
-
-  @todo Timo Sachsenberg Add the Bjellqvist scale with residue-dependent N-terminal pKa values.
+  - Bjellqvist B et al. Isoelectric focusing in immobilized pH gradients... Electrophoresis 1993;14:1023-1031.
   */
 
   /// @brief Enum for pKa scales used in isoelectric point calculation
   enum class ProteomicsPkaScale
   {
-    LEHNINGER = 0, ///< Lehninger (Nelson & Cox) scale
-    EMBOSS = 1,    ///< EMBOSS scale (used by pepstats)
-    SILLERO = 2,   ///< Sillero & Ribeiro scale
+    LEHNINGER = 0,  ///< Lehninger (Nelson & Cox) scale
+    EMBOSS = 1,     ///< EMBOSS scale (used by pepstats)
+    SILLERO = 2,    ///< Sillero & Ribeiro scale
+    BJELLQVIST = 3, ///< Bjellqvist scale with N-terminal-residue-dependent pKa values
     SIZE_OF_PROTEOMICS_PKA_SCALES
   };
 
@@ -82,8 +86,8 @@ namespace OpenMS
     /// Internal struct holding pKa values for a given scale
     struct PkaValues
     {
-      double nterm;  ///< pKa of the N-terminal amino group
-      double cterm;  ///< pKa of the C-terminal carboxyl group
+      double nterm;  ///< pKa of the N-terminal amino group (default; overridden per residue when nterm_by_residue is non-empty)
+      double cterm;  ///< pKa of the C-terminal carboxyl group (default; overridden per residue when cterm_by_residue is non-empty)
       double D;      ///< Aspartate side chain
       double E;      ///< Glutamate side chain
       double C;      ///< Cysteine side chain
@@ -91,6 +95,10 @@ namespace OpenMS
       double H;      ///< Histidine side chain
       double K;      ///< Lysine side chain
       double R;      ///< Arginine side chain
+      /// Per-residue N-terminal pKa (Bjellqvist scale). Overrides nterm for the first residue when non-empty.
+      std::unordered_map<char, double> nterm_by_residue;
+      /// Per-residue C-terminal pKa (Bjellqvist scale). Overrides cterm for the last residue when non-empty.
+      std::unordered_map<char, double> cterm_by_residue;
     };
 
     /// Returns the pKa values for the specified scale
