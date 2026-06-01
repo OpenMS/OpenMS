@@ -61,14 +61,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", {"mzML",
-#ifdef WITH_OPENTIMS
-      "d",
-#endif
-#ifdef WITH_THERMO_RAW
-      "raw",
-#endif
-    });
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output file ");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
   }
@@ -89,7 +82,7 @@ protected:
 
     PeakMap exp;
     FileHandler f;
-    f.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
+    f.loadExperiment(in, exp, {FileTypes::MZML});
 
     //-------------------------------------------------------------
     // calculations
