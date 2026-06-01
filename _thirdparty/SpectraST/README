@@ -1,0 +1,11 @@
+Compiled with the following specifications:
+    * gcc (Ubuntu 5.4.0-6ubuntu1~16.04.5) 5.4.0 20160609
+    * 64bit
+    * expat-2.0.1
+    * gsl-1.14
+    * zlib-1.2.5
+    * statically-linked  (g++ -static)
+
+Repository for building SpectraST statically is here:
+https://github.com/lukaszimmermann/SpectraST.git
+
