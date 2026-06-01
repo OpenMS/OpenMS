@@ -121,9 +121,6 @@ protected:
     // input files
     registerInputFile_("in", "<file>", "", "Input file containing the spectra.", true, false);
     setValidFormats_("in", {"mzML",
-#ifdef WITH_OPENTIMS
-      "d",
-#endif
 #ifdef WITH_THERMO_RAW
       "raw",
 #endif
@@ -180,7 +177,7 @@ protected:
     options.addMSLevel(1);
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_mzml, unprocessed_spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
+    f.loadExperiment(in_mzml, unprocessed_spectra, {FileTypes::MZML, FileTypes::RAW}, log_type_);
 
     // load linked features
     ConsensusMap cfeatures;

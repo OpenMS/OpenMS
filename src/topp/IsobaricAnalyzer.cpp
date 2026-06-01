@@ -177,9 +177,6 @@ protected:
 
     registerInputFile_("in", "<file>", "", "input raw/picked data file ");
     setValidFormats_("in", {"mzML",
-#ifdef WITH_OPENTIMS
-      "d",
-#endif
 #ifdef WITH_THERMO_RAW
       "raw",
 #endif
@@ -232,7 +229,7 @@ protected:
     //-------------------------------------------------------------
 
     PeakMap exp;
-    FileHandler().loadExperiment(in, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
 
     //-------------------------------------------------------------
     // init quant method

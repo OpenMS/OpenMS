@@ -298,6 +298,22 @@ protected:
       return INCOMPATIBLE_INPUT_DATA;
     }
 
+    // FeatureFinderMetabo resolves ion mobility via MassTraceDetection (m/z + IM grouping)
+    // and assembles isotope patterns within an IM window, so IM-centroided per-peak IM data
+    // (IM_CENTROIDED, the default for Bruker .d) is handled correctly. Raw per-frame IM data
+    // (IM_PROFILE) is NOT IM-centroided here and would fragment traces / undercount intensity.
+    for (const auto& spec : ms_peakmap)
+    {
+      if (IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK && spec.getIMPeakType() != IMPeakType::IM_CENTROIDED)
+      {
+        OPENMS_LOG_WARN << "Warning: Input contains raw (un-centroided) per-peak ion mobility data (IM_PEAK, "
+                        << imPeakTypeToString(spec.getIMPeakType())
+                        << "). FeatureFinderMetabo resolves ion mobility but does not centroid it; raw frames "
+                        << "may fragment mass traces. IM-centroid first (PeakPickerIM, or load .d with default centroiding)." << std::endl;
+        break; // warn once
+      }
+    }
+
     // determine type of spectral data (profile or centroided)
     SpectrumSettings::SpectrumType spectrum_type = ms_peakmap[0].getType();
 

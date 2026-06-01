@@ -135,14 +135,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (MS-GF+ parameter '-s')");
-    setValidFormats_("in", {"mzML", "mzXML", "mgf", "ms2",
-#ifdef WITH_OPENTIMS
-      "d",
-#endif
-#ifdef WITH_THERMO_RAW
-      "raw",
-#endif
-    });
+    setValidFormats_("in", {"mzML", "mzXML", "mgf", "ms2" });
     registerOutputFile_("out", "<file>", "", "Output file (.idXML) or directory bundle (.idparquet) containing the search results.", false);
     setValidFormats_("out", {"idXML", "idparquet"});
     registerOutputFile_("mzid_out", "<file>", "", "Alternative output file (MS-GF+ parameter '-o')\nEither 'out' or 'mzid_out' are required. They can be used together.", false);
@@ -322,7 +315,7 @@ protected:
       FileHandler f;
       f.getOptions().addMSLevel(2);
       f.getOptions().setFillData(false);
-      f.loadExperiment(exp_name, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
+      f.loadExperiment(exp_name, exp, {FileTypes::MZML});
       exp.getPrimaryMSRunPath(primary_ms_run_path_);
       // if no primary run is assigned, the mzML file is the (unprocessed) primary file
       if (primary_ms_run_path_.empty())

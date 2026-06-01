@@ -10,6 +10,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -114,6 +115,20 @@ protected:
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }
+
+    // Warn about per-peak ion mobility data (BaselineFilter operates in m/z only)
+    for (const auto& spec : ms_exp)
+    {
+      if (IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK)
+      {
+        OPENMS_LOG_WARN << "Warning: Input contains per-peak ion mobility data (IM_PEAK, "
+                        << imPeakTypeToString(spec.getIMPeakType())
+                        << "). BaselineFilter operates in m/z only and will mix IM-separated signals, "
+                        << "producing incorrect results. Consider IonMobilityBinning or PeakPickerIM first." << std::endl;
+        break; // warn once
+      }
+    }
+
     // check for peak type (raw data required)
     if (ms_exp[0].getType(true) == SpectrumSettings::SpectrumType::CENTROID)
     {

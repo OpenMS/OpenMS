@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -258,6 +259,20 @@ protected:
 
     fh.setOptions(opt);
     fh.loadExperiment(in_file, map, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
+
+    // Reject per-peak ion mobility data: deconvolution operates in m/z only and
+    // would merge IM-separated species, yielding incorrect masses.
+    for (const auto& spec : map)
+    {
+      if (IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK)
+      {
+        OPENMS_LOG_ERROR << "Error: Input contains per-peak ion mobility data (IM_PEAK, "
+                         << imPeakTypeToString(spec.getIMPeakType())
+                         << ") which is not supported by FLASHDeconv. "
+                         << "Preprocess with IonMobilityBinning or PeakPickerIM first." << std::endl;
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+    }
 
     std::vector<DeconvolvedSpectrum> deconvolved_spectra;
     std::vector<FLASHHelperClasses::MassFeature> deconvolved_features;

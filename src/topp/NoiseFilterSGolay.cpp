@@ -12,6 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 // TODO remove needed here for transform
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
@@ -183,6 +184,20 @@ public:
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }
+
+    // Warn about per-peak ion mobility data (NoiseFilterSGolay operates in m/z only)
+    for (const auto& spec : exp)
+    {
+      if (IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK)
+      {
+        OPENMS_LOG_WARN << "Warning: Input contains per-peak ion mobility data (IM_PEAK, "
+                        << imPeakTypeToString(spec.getIMPeakType())
+                        << "). NoiseFilterSGolay smooths in m/z only and will mix IM-separated signals, "
+                        << "producing incorrect results. Consider IonMobilityBinning or PeakPickerIM first." << std::endl;
+        break; // warn once
+      }
+    }
+
     //check for peak type (profile data required)
     if (!exp.empty() && exp[0].getType(true) == SpectrumSettings::SpectrumType::CENTROID)
     {

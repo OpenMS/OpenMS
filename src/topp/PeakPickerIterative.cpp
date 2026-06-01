@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h>
@@ -108,6 +109,20 @@ class TOPPPeakPickerIterative
     Param picker_param = getParam_().copy("algorithm:", true);
 
     FileHandler().loadExperiment(in,exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
+
+    // Warn about per-peak ion mobility data (PeakPickerIterative picks m/z only)
+    for (const auto& spec : exp)
+    {
+      if (IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK)
+      {
+        OPENMS_LOG_WARN << "Warning: Input contains per-peak ion mobility data (IM_PEAK, "
+                        << imPeakTypeToString(spec.getIMPeakType())
+                        << "). PeakPickerIterative picks in m/z only and will mix IM-separated signals, "
+                        << "producing incorrect results on unbinned data. Consider IonMobilityBinning or PeakPickerIM first." << std::endl;
+        break; // warn once
+      }
+    }
+
     PeakPickerIterative pp;
     pp.setParameters(picker_param);
     pp.setLogType(log_type_);

@@ -12,6 +12,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MathFunctions.h>
@@ -144,6 +145,19 @@ class TOPPHiResPrecursorMassCorrector :
 
       PeakMap exp;
       FileHandler().loadExperiment(in_mzml, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
+
+      // Warn about per-peak ion mobility data (HighResPrecursorMassCorrector operates in m/z only)
+      for (const auto& spec : exp)
+      {
+        if (IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK)
+        {
+          OPENMS_LOG_WARN << "Warning: Input contains per-peak ion mobility data (IM_PEAK, "
+                          << imPeakTypeToString(spec.getIMPeakType())
+                          << "). HighResPrecursorMassCorrector locates precursor peaks in m/z only and will mix "
+                          << "IM-separated signals, producing incorrect results. Consider IonMobilityBinning or PeakPickerIM first." << std::endl;
+          break; // warn once
+        }
+      }
 
       cout << setprecision(12);
 

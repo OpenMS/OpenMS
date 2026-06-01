@@ -9,6 +9,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <algorithm>
@@ -110,6 +111,19 @@ protected:
     fh.loadExperiment(in, exp, {in_type}, log_type_);
     exp.sortSpectra();
     exp.updateRanges();
+
+    // Reject per-peak ion mobility data: merging would blend IM-separated species.
+    for (const auto& spec : exp)
+    {
+      if (IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK)
+      {
+        OPENMS_LOG_ERROR << "Error: Input contains per-peak ion mobility data (IM_PEAK, "
+                         << imPeakTypeToString(spec.getIMPeakType())
+                         << ") which is not supported by SpectraMerger (merging would blend "
+                         << "IM-separated species). Preprocess with IonMobilityBinning or PeakPickerIM first." << std::endl;
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+    }
 
     auto levels = exp.getMSLevels();
     if (levels.empty()) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, levels.size(), "experiment has no MS levels");

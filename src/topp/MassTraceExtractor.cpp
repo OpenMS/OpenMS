@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -155,6 +156,21 @@ protected:
       OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
+    }
+
+    // MassTraceDetection resolves ion mobility (m/z + IM grouping), so IM-centroided per-peak
+    // IM data (IM_CENTROIDED, the default for Bruker .d) is handled correctly. Raw per-frame IM
+    // data (IM_PROFILE) is NOT IM-centroided here and would fragment traces / undercount intensity.
+    for (const auto& spec : ms_peakmap)
+    {
+      if (IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK && spec.getIMPeakType() != IMPeakType::IM_CENTROIDED)
+      {
+        OPENMS_LOG_WARN << "Warning: Input contains raw (un-centroided) per-peak ion mobility data (IM_PEAK, "
+                        << imPeakTypeToString(spec.getIMPeakType())
+                        << "). MassTraceExtractor resolves ion mobility but does not centroid it; raw frames "
+                        << "may fragment mass traces. IM-centroid first (PeakPickerIM, or load .d with default centroiding)." << std::endl;
+        break; // warn once
+      }
     }
 
     // make sure that the spectra are sorted by m/z
