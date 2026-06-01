@@ -145,7 +145,14 @@ protected:
   {
     // data
     registerInputFile_("in", "<file>", "", "Input peak file");
-    setValidFormats_("in", {"mzML"});
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
     registerOutputFile_("out", "<file>", "", "Output file ");
     setValidFormats_("out", {"mzML"});
     registerInputFile_("rscript_executable", "<file>", "Rscript", "Path to the Rscript executable (default: 'Rscript').", false, false, {"is_executable"});

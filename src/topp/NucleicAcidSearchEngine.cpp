@@ -134,7 +134,14 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file: spectra");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
 
     registerInputFile_("database", "<file>", "", "Input file: sequence database. Required unless 'digest' is set.", false);
     setValidFormats_("database", ListUtils::create<String>("fasta"));

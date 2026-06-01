@@ -120,7 +120,14 @@ protected:
   {
     // input files
     registerInputFile_("in", "<file>", "", "Input file containing the spectra.", true, false);
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
 
     registerInputFile_("consensus", "<file>", "", "Input file containing the linked mass peaks.", true, false);
     setValidFormats_("consensus", ListUtils::create<String>("consensusXML"));

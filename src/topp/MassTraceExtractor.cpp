@@ -79,7 +79,14 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input centroided mzML file");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
     registerOutputFile_("out", "<file>", "", "output featureXML file with mass traces");
     setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
     registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content", false);

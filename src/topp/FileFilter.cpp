@@ -395,6 +395,12 @@ protected:
   void registerOptionsAndFlags_() override
   {
     std::vector<String> formats = ListUtils::create<String>("mzML,featureXML,consensusXML");
+#ifdef WITH_OPENTIMS
+    formats.push_back("d");
+#endif
+#ifdef WITH_THERMO_RAW
+    formats.push_back("raw");
+#endif
 
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", formats);

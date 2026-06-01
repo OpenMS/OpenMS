@@ -83,7 +83,14 @@ class TOPPHiResPrecursorMassCorrector :
     {
       // input files
       registerInputFile_("in", "<file>", "", "Input file (centroided data)");
-      setValidFormats_("in", ListUtils::create<String>("mzML"));
+      setValidFormats_("in", {"mzML",
+#ifdef WITH_OPENTIMS
+        "d",
+#endif
+#ifdef WITH_THERMO_RAW
+        "raw",
+#endif
+      });
 
       registerOutputFile_("out", "<file>", "", "Output file");
       setValidFormats_("out", ListUtils::create<String>("mzML"));
