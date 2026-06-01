@@ -117,6 +117,7 @@ PyOpenMS:
     - FAIMSHelper: getCompensationVoltages(PeakMap) and filterPeptidesByFAIMSCV(PeptideIdentificationList, target_cv, cv_tolerance) for FAIMS compensation voltage detection and per-CV peptide ID filtering (#9275)
     - MZTrafoModel.setRANSACSeed(seed) for reproducible RANSAC-based m/z calibration (#9407)
     - EmpiricalFormula.getNumberOf(Element), EmpiricalFormula.getLightestIsotopeWeight(), Residue.getHydrophobicity(HydrophobicityScaleMethod) + new HydrophobicityScaleMethod enum, TheoreticalSpectrumGenerator.getPrefixAndSuffixIonsMZ(peptide, charge) returning a numpy float array, and SpectralMatch CCS accessors (getCCS/setFoundCCS) added (#9415, #9412)
+    - IsoelectricPoint.computeCharge(seq, pH, scale) and IsoelectricPoint.computePI(seq, scale, tolerance) for peptide net-charge and isoelectric point calculation; ProteomicsPkaScale enum (LEHNINGER/EMBOSS/SILLERO/BJELLQVIST) (#9419)
   - String handling: Functions now accept both str and bytes via libcpp_utf8_string (#8602, #8604)
   - Backward compatibility restored for file I/O methods in IdXMLFile, PepXMLFile, MzIdentMLFile (#8553)
   - Static methods modernized using @staticmethod decorator (#8562)
@@ -396,6 +397,7 @@ OpenMS Library:
     - BrukerTimsFile: tiered scan→1/K0 calibration with three fallback levels: Bruker SDK → rational function from TimsCalibration table (open-source) → linear; RationalScan2ImConverter added for the rational function model (#8999)
     - TMTThirtyTwoPlexQuantitationMethod, TMTThirtyFivePlexQuantitationMethod: new classes for TMT 32-plex and 35-plex isobaric quantitation; isotope correction matrix defaults to identity until calibrated values are provided (#9003)
     - IMPeakType enum (IM_PROFILE, IM_CENTROIDED, UNKNOWN) added to SpectrumSettings to track per-peak ion mobility processing state independently of data layout (IMFormat); IMFormat::CENTROIDED deprecated (#9007)
+    - IsoelectricPoint: new CHEMISTRY class for computing the isoelectric point (pI) and net charge of peptides via the Henderson-Hasselbalch equation; supports four pKa scales (ProteomicsPkaScale enum: LEHNINGER, EMBOSS, SILLERO, BJELLQVIST); pI found by bisection over [0, 14]; pyOpenMS bindings included (#9419)
   Changes:
     - BREAKING: Matrix<T> no longer inherits from Eigen; uses std::vector<T> for storage (#8511)
     - BREAKING: Eigen moved from PUBLIC to PRIVATE linking - downstream users no longer need Eigen headers (#8511)
