@@ -1113,12 +1113,16 @@ std::vector<MSChromatogram> extractXICs(
     // Initialize result vector
     std::vector<MSChromatogram> result(mz_rt_im_ranges.size());
 
-    // We use temporary storage since we need thread-safe parallel insertion
-    std::vector<std::vector<ChromatogramPeak>> temp_results(mz_rt_im_ranges.size());
-
-    // Initialize chromatogram metadata
-    for (size_t i = 0; i < mz_rt_im_ranges.size(); ++i)
+    // Each covered spectrum contributes exactly one point per range (no spectra are
+    // skipped here), so we pre-size each chromatogram and write directly into the
+    // slot for this spectrum's position within the RT window. Writes are disjoint
+    // across OpenMP iterations (distinct (range_idx, pos)), so no critical section
+    // or post-sort is needed and the output is deterministic even when several
+    // spectra share the same RT.
+    for (size_t i = 0; i < rt_ranges_idcs.size(); ++i)
     {
+        const auto& [start, stop] = rt_ranges_idcs[i];
+        result[i].resize(stop - start);
         const auto& mz_range = std::get<0>(mz_rt_im_ranges[i]);
         result[i].getProduct().setMZ((mz_range.getMinMZ() + mz_range.getMaxMZ()) / 2.0);
     }
@@ -1134,7 +1138,6 @@ std::vector<MSChromatogram> extractXICs(
         }
     }
 
-    // Process spectra - we use critical sections for thread safety when appending to temp_results
     #pragma omp parallel for schedule(dynamic)
     for (Int64 i = 0; i < (Int64)spec_idx_to_range_idx.size(); ++i)
     {
@@ -1198,23 +1201,13 @@ std::vector<MSChromatogram> extractXICs(
           intensity_value = func_mz_reduction(start_it, end_it);
         }
 
-        #pragma omp critical
-        {
-          temp_results[range_idx].emplace_back(rt, intensity_value);
-        }
+        // Disjoint write into this spectrum's slot within range_idx's RT window.
+        result[range_idx][i - rt_ranges_idcs[range_idx].first] = ChromatogramPeak(rt, intensity_value);
       }
     }
 
-    // Sort and move results to chromatograms
     for (size_t i = 0; i < result.size(); ++i)
     {
-      // Sort by RT since parallel insertion may be out of order
-      std::sort(temp_results[i].begin(), temp_results[i].end(),
-                [](const ChromatogramPeak& a, const ChromatogramPeak& b) {
-                  return a.getRT() < b.getRT();
-                });
-
-      result[i].insert(result[i].end(), temp_results[i].begin(), temp_results[i].end());
       result[i].updateRanges();
     }
 
@@ -1422,18 +1415,23 @@ std::vector<MSChromatogram> extractXICs(
     const std::vector<std::pair<size_t, size_t>> rt_ranges_idcs = getCoveredSpectra(spectra_view, ranges);
 
     std::vector<MSChromatogram> result(ranges.size());
-    std::vector<std::vector<ChromatogramPeak>> temp_results(ranges.size());
 
-    for (size_t i = 0; i < ranges.size(); ++i)
-    {
-        const auto& mz_range = std::get<0>(ranges[i]);
-        result[i].getProduct().setMZ((mz_range.getMinMZ() + mz_range.getMaxMZ()) / 2.0);
-    }
+    // Spectra may be skipped (precursor filtering), so the chromatogram is compacted.
+    // We write each spectrum's point into the slot for its position within the RT
+    // window and record filled slots in a mask. Writes are disjoint across OpenMP
+    // iterations, so no critical section is needed; compacting in ascending position
+    // order afterwards yields deterministic RT order even when spectra share an RT.
+    std::vector<std::vector<ChromatogramPeak>> slot_peaks(ranges.size());
+    std::vector<std::vector<char>> slot_filled(ranges.size());
 
     std::vector<std::vector<size_t>> spec_idx_to_range_idx(spectra_view.size());
     for (size_t i = 0; i < rt_ranges_idcs.size(); ++i)
     {
         const auto& [start, stop] = rt_ranges_idcs[i];
+        slot_peaks[i].assign(stop - start, ChromatogramPeak());
+        slot_filled[i].assign(stop - start, 0);
+        const auto& mz_range = std::get<0>(ranges[i]);
+        result[i].getProduct().setMZ((mz_range.getMinMZ() + mz_range.getMaxMZ()) / 2.0);
         for (size_t j = start; j < stop; ++j)
         {
             spec_idx_to_range_idx[j].push_back(i);
@@ -1504,21 +1502,24 @@ std::vector<MSChromatogram> extractXICs(
                 intensity_value = func_mz_reduction(start_it, end_it);
             }
 
-            #pragma omp critical
-            {
-                temp_results[range_idx].emplace_back(rt, intensity_value);
-            }
+            // Disjoint write: this spectrum's slot within range_idx's RT window.
+            const size_t pos = (size_t)i - rt_ranges_idcs[range_idx].first;
+            slot_peaks[range_idx][pos] = ChromatogramPeak(rt, intensity_value);
+            slot_filled[range_idx][pos] = 1;
         }
     }
 
-    for (size_t i = 0; i < result.size(); ++i)
+    // Compact in ascending spectrum order, keeping only spectra that passed filtering.
+    for (size_t r = 0; r < result.size(); ++r)
     {
-        std::sort(temp_results[i].begin(), temp_results[i].end(),
-                  [](const ChromatogramPeak& a, const ChromatogramPeak& b) {
-                      return a.getRT() < b.getRT();
-                  });
-        result[i].insert(result[i].end(), temp_results[i].begin(), temp_results[i].end());
-        result[i].updateRanges();
+        for (size_t pos = 0; pos < slot_peaks[r].size(); ++pos)
+        {
+            if (slot_filled[r][pos])
+            {
+                result[r].push_back(slot_peaks[r][pos]);
+            }
+        }
+        result[r].updateRanges();
     }
 
     return result;
