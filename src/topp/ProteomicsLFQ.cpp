@@ -410,7 +410,7 @@ protected:
     // load raw file
 
     PeakMap ms_raw;
-    FileHandler().loadExperiment(mz_file, ms_raw, {FileTypes::MZML, FileTypes::RAW}, log_type_);
+    FileHandler().loadExperiment(mz_file, ms_raw, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
     ms_raw.clearMetaDataArrays();
     ms_raw.updateRanges();
 

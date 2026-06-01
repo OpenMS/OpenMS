@@ -172,7 +172,7 @@ public:
     // loading input
     //-------------------------------------------------------------
     PeakMap exp;
-    FileHandler().loadExperiment(in, exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
 
     if (exp.empty() && exp.getChromatograms().empty())
     {

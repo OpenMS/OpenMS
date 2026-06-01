@@ -217,7 +217,7 @@ protected:
     // loading input
     //-------------------------------------------------------------
     PeakMap ms_exp_raw;
-    FileHandler().loadExperiment(in, ms_exp_raw, {FileTypes::MZML, FileTypes::RAW}, log_type_);
+    FileHandler().loadExperiment(in, ms_exp_raw, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
 
     // Warn about per-peak ion mobility data (PeakPickerHiRes picks m/z only)
     for (const auto& spec : ms_exp_raw)

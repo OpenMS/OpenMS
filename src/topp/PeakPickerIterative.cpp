@@ -107,7 +107,7 @@ class TOPPPeakPickerIterative
 
     Param picker_param = getParam_().copy("algorithm:", true);
 
-    FileHandler().loadExperiment(in,exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
+    FileHandler().loadExperiment(in,exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
     PeakPickerIterative pp;
     pp.setParameters(picker_param);
     pp.setLogType(log_type_);

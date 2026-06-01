@@ -148,7 +148,7 @@ protected:
     PeakMap ms_peakmap;
     std::vector<Int> ms_level(1, 1);
     (mz_data_file.getOptions()).setMSLevels(ms_level);
-    mz_data_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML, FileTypes::RAW}, log_type_);
+    mz_data_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
 
     if (ms_peakmap.empty())
     {

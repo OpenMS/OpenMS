@@ -143,7 +143,7 @@ class TOPPHiResPrecursorMassCorrector :
       const bool highest_intensity_peak_ppm = getStringOption_("highest_intensity_peak:mz_tolerance_unit") == "ppm" ? true : false;
 
       PeakMap exp;
-      FileHandler().loadExperiment(in_mzml, exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
+      FileHandler().loadExperiment(in_mzml, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
 
       cout << setprecision(12);
 

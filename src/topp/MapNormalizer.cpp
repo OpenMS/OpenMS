@@ -89,7 +89,7 @@ protected:
 
     PeakMap exp;
     FileHandler f;
-    f.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::RAW});
+    f.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
 
     //-------------------------------------------------------------
     // calculations

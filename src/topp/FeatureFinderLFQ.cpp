@@ -137,7 +137,7 @@ protected:
     options.clearMSLevels();
     options.addMSLevel(1); // only load MS1 level for feature finding
     fh.setOptions(options);
-    fh.loadExperiment(in, algorithm_.getMSData(), {FileTypes::MZML, FileTypes::RAW}, log_type_);
+    fh.loadExperiment(in, algorithm_.getMSData(), {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
     progresslogger.setProgress(1);
     progresslogger.endProgress();
     stopwatch.stop();

@@ -260,7 +260,7 @@ public:
     file.getOptions().setMSLevels(levels);
 
     OPENMS_LOG_DEBUG << "Loading input..." << endl;
-    file.loadExperiment(in_, exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
+    file.loadExperiment(in_, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
 
     // Check for unsupported per-peak ion mobility data
     for (const auto& spec : exp)

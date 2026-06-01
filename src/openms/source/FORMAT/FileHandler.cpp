@@ -971,7 +971,10 @@ namespace OpenMS
         BrukerTimsFile f;
         f.setLogType(log);
         f.load(load_path, exp);
-        // Apply MS level filtering (BrukerTimsFile loads all levels)
+
+        // BrukerTimsFile loads everything; apply PeakFileOptions filters post-load.
+
+        // Filter by MS level
         if (options_.hasMSLevels())
         {
           exp.getSpectra().erase(
@@ -979,6 +982,64 @@ namespace OpenMS
               [this](const MSSpectrum& s) { return !options_.containsMSLevel(s.getMSLevel()); }),
             exp.getSpectra().end());
         }
+
+        // Filter by RT range
+        if (options_.hasRTRange())
+        {
+          const auto& rt_range = options_.getRTRange();
+          exp.getSpectra().erase(
+            std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+              [&rt_range](const MSSpectrum& s) { return !rt_range.encloses(DPosition<1>(s.getRT())); }),
+            exp.getSpectra().end());
+        }
+
+        // Filter by precursor m/z range (for MSn spectra)
+        if (options_.hasPrecursorMZRange())
+        {
+          const auto& prec_range = options_.getPrecursorMZRange();
+          exp.getSpectra().erase(
+            std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+              [&prec_range](const MSSpectrum& s)
+              {
+                if (s.getMSLevel() <= 1) { return false; } // keep MS1
+                if (s.getPrecursors().empty()) { return false; }
+                return !prec_range.encloses(DPosition<1>(s.getPrecursors()[0].getMZ()));
+              }),
+            exp.getSpectra().end());
+        }
+
+        // Filter peaks by m/z range and intensity range within each spectrum
+        if (options_.hasMZRange() || options_.hasIntensityRange())
+        {
+          const bool filter_mz = options_.hasMZRange();
+          const bool filter_int = options_.hasIntensityRange();
+          const auto& mz_range = options_.getMZRange();
+          const auto& int_range = options_.getIntensityRange();
+
+          for (auto& spectrum : exp.getSpectra())
+          {
+            spectrum.erase(
+              std::remove_if(spectrum.begin(), spectrum.end(),
+                [&](const Peak1D& p)
+                {
+                  if (filter_mz && !mz_range.encloses(DPosition<1>(p.getMZ()))) { return true; }
+                  if (filter_int && !int_range.encloses(DPosition<1>(p.getIntensity()))) { return true; }
+                  return false;
+                }),
+              spectrum.end());
+          }
+        }
+
+        // Metadata only: strip peak data
+        if (options_.getMetadataOnly())
+        {
+          for (auto& spectrum : exp.getSpectra())
+          {
+            spectrum.clear(false); // clear data but keep metadata
+          }
+        }
+
+        exp.updateRanges();
       }
       break;
 #endif

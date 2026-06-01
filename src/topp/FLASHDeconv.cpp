@@ -257,7 +257,7 @@ protected:
     }
 
     fh.setOptions(opt);
-    fh.loadExperiment(in_file, map, {FileTypes::MZML, FileTypes::RAW}, log_type_);
+    fh.loadExperiment(in_file, map, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
 
     std::vector<DeconvolvedSpectrum> deconvolved_spectra;
     std::vector<FLASHHelperClasses::MassFeature> deconvolved_features;

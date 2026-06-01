@@ -240,7 +240,7 @@ protected:
       PeakMap ms_data_full;
       FileHandler mzml;
       mzml.getOptions().addMSLevel(1);
-      mzml.loadExperiment(in, ms_data_full, {FileTypes::MZML, FileTypes::RAW}, log_type_);
+      mzml.loadExperiment(in, ms_data_full, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
 
       PeptideIdentificationList peptides, peptides_ext;
       vector<ProteinIdentification> proteins, proteins_ext;
