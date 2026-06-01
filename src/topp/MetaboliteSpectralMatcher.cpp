@@ -128,7 +128,7 @@ protected:
     mz_file.getOptions().setMSLevels(ms_level);
 
     PeakMap ms_peakmap;
-    mz_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML}, log_type_);
+    mz_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML, FileTypes::RAW}, log_type_);
 
     if (ms_peakmap.empty())
     {

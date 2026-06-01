@@ -47,7 +47,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FEATUREFINDER/Biosaur2Algorithm.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
@@ -132,12 +132,12 @@ protected:
 
     progresslogger.startProgress(0, 1, "Loading input mzML");
     stopwatch.start();
-    MzMLFile mzml_file;
+    FileHandler fh;
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(1); // only load MS1 level for feature finding
-    mzml_file.setOptions(options);
-    mzml_file.load(in, algorithm_.getMSData());
+    fh.setOptions(options);
+    fh.loadExperiment(in, algorithm_.getMSData(), {FileTypes::MZML, FileTypes::RAW}, log_type_);
     progresslogger.setProgress(1);
     progresslogger.endProgress();
     stopwatch.stop();

@@ -991,7 +991,7 @@ protected:
     options.clearMSLevels();
     options.addMSLevel(2);
     f.setOptions(options);
-    f.loadExperiment(in_mzml, spectra, {FileTypes::MZML}, log_type_);
+    f.loadExperiment(in_mzml, spectra, {FileTypes::MZML, FileTypes::RAW}, log_type_);
     spectra.sortSpectra(true);
 
     // input file meta data:

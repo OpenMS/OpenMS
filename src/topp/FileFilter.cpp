@@ -829,7 +829,7 @@ protected:
       f.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
 
       MapType exp;
-      f.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
+      f.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
 
       // Apply RT filtering with block-aware modes if not using exact mode
       if (rt_block_mode != RTBlockMode::AS_IS && ! rt.empty())

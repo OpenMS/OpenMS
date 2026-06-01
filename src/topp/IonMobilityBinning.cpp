@@ -142,7 +142,7 @@ protected:
     MZ_UNITS mz_binning_width_unit = getStringOption_("SpectraMerging:mz_binning_width_unit") == "Da" ? MZ_UNITS::DA : MZ_UNITS::PPM;
 
     PeakMap experiment;
-    FileHandler().loadExperiment(input_file, experiment, {FileTypes::MZML}, log_type_);
+    FileHandler().loadExperiment(input_file, experiment, {FileTypes::MZML, FileTypes::RAW}, log_type_);
 
     // Decide FAIMS vs. regular IM processing first (avoid moving 'experiment' before branching)
     const auto cvs = FAIMSHelper::getCompensationVoltages(experiment);

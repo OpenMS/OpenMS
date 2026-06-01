@@ -287,7 +287,7 @@ protected:
     PeakMap exp;
     FileHandler mzml;
     mzml.getOptions().addMSLevel(1);
-    mzml.loadExperiment(in, exp, {FileTypes::MZML});
+    mzml.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::RAW});
     if (exp.empty() && !force)
     {
       OPENMS_LOG_ERROR << "Error: No MS1 scans in '"

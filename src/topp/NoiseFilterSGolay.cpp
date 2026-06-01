@@ -175,7 +175,7 @@ public:
     //-------------------------------------------------------------
     FileHandler mz_data_file;
     PeakMap exp;
-    mz_data_file.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
+    mz_data_file.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
 
     if (exp.empty() && exp.getChromatograms().empty())
     {

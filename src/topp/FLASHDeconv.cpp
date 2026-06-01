@@ -11,7 +11,7 @@
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -234,10 +234,10 @@ protected:
     constexpr double MAX_RANGE_VALUE = 1e7; // effectively unlimited upper bound for RT/m/z ranges
 
     MSExperiment map;
-    MzMLFile mzml;
+    FileHandler fh;
 
     // reading mzMLs with m/z and rt criteria.
-    PeakFileOptions opt = mzml.getOptions();
+    PeakFileOptions opt = fh.getOptions();
     if (min_rt > 0 || max_rt > 0)
     {
       if (min_rt > 0 && max_rt < 0) max_rt = MAX_RANGE_VALUE;
@@ -256,9 +256,9 @@ protected:
       opt.setMSLevels(ms_levels);
     }
 
-    mzml.setLogType(log_type_);
-    mzml.setOptions(opt);
-    mzml.load(in_file, map);
+    fh.setLogType(log_type_);
+    fh.setOptions(opt);
+    fh.loadExperiment(in_file, map, {FileTypes::MZML, FileTypes::RAW}, log_type_);
 
     std::vector<DeconvolvedSpectrum> deconvolved_spectra;
     std::vector<FLASHHelperClasses::MassFeature> deconvolved_features;

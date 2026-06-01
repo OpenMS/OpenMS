@@ -106,7 +106,7 @@ protected:
     //-------------------------------------------------------------
 
     PeakMap ms_exp;
-    FileHandler().loadExperiment(in, ms_exp, {FileTypes::MZML}, log_type_);
+    FileHandler().loadExperiment(in, ms_exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
 
     if (ms_exp.empty())
     {

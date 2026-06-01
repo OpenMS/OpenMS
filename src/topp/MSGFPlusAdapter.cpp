@@ -322,7 +322,7 @@ protected:
       FileHandler f;
       f.getOptions().addMSLevel(2);
       f.getOptions().setFillData(false);
-      f.loadExperiment(exp_name, exp, {FileTypes::MZML});
+      f.loadExperiment(exp_name, exp, {FileTypes::MZML, FileTypes::RAW});
       exp.getPrimaryMSRunPath(primary_ms_run_path_);
       // if no primary run is assigned, the mzML file is the (unprocessed) primary file
       if (primary_ms_run_path_.empty())

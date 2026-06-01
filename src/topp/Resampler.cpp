@@ -106,7 +106,7 @@ protected:
     PeakMap exp;
     exp.updateRanges();
 
-    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
 
     // Check for unsupported per-peak ion mobility data
     for (const auto& spec : exp)

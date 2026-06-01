@@ -241,7 +241,7 @@ protected:
     // Raw data
     PeakMap exp;
     FileHandler mz_file;
-    mz_file.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
+    mz_file.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
 
     InternalCalibration ic;
     ic.setLogType(log_type_);

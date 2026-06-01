@@ -232,7 +232,7 @@ protected:
     //-------------------------------------------------------------
 
     PeakMap exp;
-    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
 
     //-------------------------------------------------------------
     // init quant method

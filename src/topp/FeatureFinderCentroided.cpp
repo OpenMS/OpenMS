@@ -190,7 +190,7 @@ protected:
     f.getOptions() = options;
 
     PeakMap exp;
-    f.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
+    f.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
     exp.updateRanges();
 
     if (exp.getSpectra().empty())
