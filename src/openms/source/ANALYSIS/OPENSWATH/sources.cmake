@@ -32,6 +32,7 @@ set(sources_list
   OpenSwathScores.cpp
   OpenSwathScoring.cpp
   OpenSwathOSWParquetReader.cpp
+  OpenSwathPercolatorScoring.cpp
   OpenSwathOSWParquetWriter.cpp
   OpenSwathOSWWriter.cpp
   OpenSwathResultsExporter.cpp
