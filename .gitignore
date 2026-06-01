@@ -1,4 +1,5 @@
 # Build artifacts and generated files
+.ccache/
 *.cached
 *.deb
 *.pyc
