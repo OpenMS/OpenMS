@@ -3,6 +3,7 @@ set(directory include/OpenMS/ANALYSIS/OPENSWATH)
 
 ### list all header files of the directory here
 set(sources_list_h
+  CalibrationWorkflow.h
   ChromatogramExtractor.h
   ChromatogramExtractorAlgorithm.h
   ConfidenceScoring.h
@@ -10,6 +11,7 @@ set(sources_list_h
   DIAPrescoring.h
   DIAScoring.h
   IonMobilityScoring.h
+  LevelContextInference.h
   MasstraceCorrelator.h
   MRMAssay.h
   MRMDecoy.h
@@ -23,21 +25,35 @@ set(sources_list_h
   MRMRTNormalizer.h
   MRMScoring.h
   MRMTransitionGroupPicker.h
+  OpenSwathGeneInference.h
   OpenSwathHelper.h
+  OpenSwathExportConfig.h
+  OpenSwathExportData.h
+  OpenSwathMatrixExporter.h
+  OpenSwathParquetExporter.h
+  OpenSwathInferenceConfig.h
+  OpenSwathInferenceData.h
   OpenSwathScores.h
   OpenSwathScoring.h
-  OpenSwathTSVWriter.h
+  OpenSwathOSWParquetReader.h
+  OpenSwathOSWParquetWriter.h
   OpenSwathOSWWriter.h
+  OpenSwathResultsExporter.h
   OpenSwathWorkflow.h
+  OpenSwathWorkflowScheduler.h
   PeakIntegrator.h
-  PeakPickerMRM.h
-  SONARScoring.h
+  PeakPickerChromatogram.h
+  PeakPickerMobilogram.h
+  OpenSwathPeptideInference.h
+  OpenSwathPeptidoformInference.h
+  OpenSwathProteinInference.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h
   SwathQC.h
   SpectrumAddition.h
   TargetedSpectraExtractor.h
   TransitionTSVFile.h
+  TransitionParquetFile.h
   TransitionPQPFile.h
 )
 

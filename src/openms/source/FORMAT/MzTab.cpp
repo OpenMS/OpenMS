@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -44,8 +18,11 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 
 #include <tuple>
@@ -416,6 +393,16 @@ namespace OpenMS
   MzTabPSMSectionRows& MzTab::getPSMSectionRows()
   {
     return psm_data_;
+  }
+
+  size_t MzTab::getNumberOfPSMs() const
+  {
+    std::unordered_set<Int> psm_ids;
+    for (const auto& psm : psm_data_)
+    {
+      psm_ids.insert(psm.PSM_ID.get());
+    }
+    return psm_ids.size();
   }
 
   void MzTab::setPSMSectionRows(const MzTabPSMSectionRows& psd)
@@ -822,7 +809,7 @@ namespace OpenMS
     // create and fill opt_ columns for feature (peptide) user values
     addMetaInfoToOptionalColumns(feature_user_value_keys, row.opt_, String("global"), f);
 
-    const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
+    const PeptideIdentificationList& pep_ids = f.getPeptideIdentifications();
     if (pep_ids.empty())
     {
       // still add empty opt_ columns before returning
@@ -850,7 +837,7 @@ namespace OpenMS
     // create new peptide id object to assist in sorting
     PeptideIdentification new_pep_id = pep_ids[0];
     new_pep_id.setHits(all_hits);
-    new_pep_id.assignRanks();
+    new_pep_id.sort();
 
     const PeptideHit& best_ph = new_pep_id.getHits()[0];
     const AASequence& aas = best_ph.getSequence();
@@ -974,7 +961,7 @@ namespace OpenMS
       row.search_engine_score_ms_run[1][ms_run] = MzTabDouble();
     }
 
-    ConsensusFeature::HandleSetType fs = c.getFeatures();
+    const ConsensusFeature::HandleSetType& fs = c.getFeatures();
     for (auto fit = fs.begin(); fit != fs.end(); ++fit)
     {
       UInt study_variable{1};
@@ -1005,7 +992,7 @@ namespace OpenMS
         }
       }
 
-    const vector<PeptideIdentification>& curr_pep_ids = c.getPeptideIdentifications();
+    const PeptideIdentificationList& curr_pep_ids = c.getPeptideIdentifications();
     if (!curr_pep_ids.empty())
     {
       checkSequenceUniqueness_(curr_pep_ids);
@@ -1099,9 +1086,9 @@ namespace OpenMS
         }
         else
         {
-          if (pep.metaValueExists("id_merge_index"))
+          if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
           {
-            id_merge_index = pep.getMetaValue("id_merge_index");
+            id_merge_index = pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
             msfile_index = map_run_fileidx_2_msfileidx.at({spec_run_index, id_merge_index});
           }
           else
@@ -1133,7 +1120,7 @@ namespace OpenMS
           best_score = curr_score;
           if (pep.metaValueExists("spectrum_reference"))
           {
-            row.spectra_ref.setSpecRef(pep.getMetaValue("spectrum_reference").toString());
+            row.spectra_ref.setSpecRef(pep.getSpectrumReference());
             row.spectra_ref.setMSFile(msfile_index);
           }
         }
@@ -1182,12 +1169,14 @@ namespace OpenMS
     // meta data on peptide identifications
     vector<String> pid_keys;
     pid.getKeys(pid_keys);
-
     set<String> pid_key_set(pid_keys.begin(), pid_keys.end());
+    // remove key that only exists for backwards compatibility (will likely be deprecated in the future)
+    pid_key_set.erase(Constants::UserParam::SIGNIFICANCE_THRESHOLD);    
+    
     addMetaInfoToOptionalColumns(pid_key_set, row.opt_, String("global"), pid);
 
     // link to spectrum in MS run
-    String spectrum_nativeID = pid.getMetaValue("spectrum_reference").toString();
+    String spectrum_nativeID = pid.getSpectrumReference();
     size_t run_index = idrun_2_run_index.at(pid.getIdentifier());
     StringList filenames;
     prot_ids[run_index]->getPrimaryMSRunPath(filenames);
@@ -1205,9 +1194,9 @@ namespace OpenMS
     }
     else
     {
-      if (pid.metaValueExists("id_merge_index"))
+      if (pid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
       {
-        msfile_index = map_run_fileidx_2_msfileidx[{run_index, pid.getMetaValue("id_merge_index")}];
+        msfile_index = map_run_fileidx_2_msfileidx[{run_index, pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)}];
       }
       else
       {
@@ -1240,9 +1229,9 @@ namespace OpenMS
     if (!export_all_psms)
     {
       // only consider best peptide hit for export
-      vector<PeptideIdentification> dummy;
+      PeptideIdentificationList dummy;
       dummy.push_back(pid);
-      IDFilter::getBestHit<PeptideIdentification>(dummy, false, current_ph); // TODO: add getBestHit for PeptideHits so no copying to dummy is needed
+      IDFilter::getBestHit<PeptideIdentification>(dummy.getData(), false, current_ph); // TODO: add getBestHit for PeptideHits so no copying to dummy is needed
     }
     else
     {
@@ -2330,7 +2319,7 @@ state0:
 
   MzTab MzTab::exportIdentificationsToMzTab(
     const vector<ProteinIdentification>& prot_ids,
-    const vector<PeptideIdentification>& peptide_ids,
+    const PeptideIdentificationList& peptide_ids,
     const String& filename,
     bool first_run_inference_only,
     bool export_empty_pep_ids,
@@ -2453,7 +2442,7 @@ state0:
 
       feature_user_value_keys.insert(keys.begin(), keys.end());
 
-      const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
+      const PeptideIdentificationList& pep_ids = f.getPeptideIdentifications();
       for (PeptideIdentification const & pep_id : pep_ids)
       {
         vector<String> pep_keys;
@@ -2470,10 +2459,11 @@ state0:
     }
     // we don't want spectrum reference to show up as meta value (already in dedicated column)
     peptide_hit_user_value_keys.erase("spectrum_reference");
+    peptide_identification_user_value_keys.erase(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
   }
 
   // local helper to extract meta values with space substituted with '_'
-  void extractMetaValuesFromIDs(const vector<PeptideIdentification> & curr_pep_ids, 
+  void extractMetaValuesFromIDs(const PeptideIdentificationList & curr_pep_ids, 
     set<String>& peptide_identification_user_value_keys,
     set<String>& peptide_hit_user_value_keys)
     {
@@ -2527,7 +2517,7 @@ state0:
     set<String>& peptide_hit_user_value_keys)
   {
     // extract meta values from unassigned peptide identifications
-    const vector<PeptideIdentification> & curr_pep_ids = consensus_map.getUnassignedPeptideIdentifications();
+    const PeptideIdentificationList & curr_pep_ids = consensus_map.getUnassignedPeptideIdentifications();
     extractMetaValuesFromIDs(curr_pep_ids, peptide_identification_user_value_keys, peptide_hit_user_value_keys);
 
     for (ConsensusFeature const & c : consensus_map)
@@ -2540,12 +2530,13 @@ state0:
       consensus_feature_user_value_keys.insert(keys.begin(), keys.end());
 
       // extract meta values from assigned peptide identifications
-      const vector<PeptideIdentification> & curr_pep_ids = c.getPeptideIdentifications();
+      const PeptideIdentificationList & curr_pep_ids = c.getPeptideIdentifications();
       extractMetaValuesFromIDs(curr_pep_ids, peptide_identification_user_value_keys, peptide_hit_user_value_keys);
     }
 
     // we don't want spectrum reference to show up as meta value (already in dedicated column)
     peptide_identification_user_value_keys.erase("spectrum_reference");
+    peptide_identification_user_value_keys.erase(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
   }
 
   void MzTab::getIdentificationMetaValues_(
@@ -2568,6 +2559,7 @@ state0:
     }
 
     extractMetaValuesFromIDPointers(peptide_ids_, peptide_id_user_value_keys, peptide_hit_user_value_keys);
+    peptide_id_user_value_keys.erase(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
   }
 
   void MzTab::getSearchModifications_(const vector<const ProteinIdentification*>& prot_ids, StringList& var_mods, StringList& fixed_mods)
@@ -2614,21 +2606,31 @@ state0:
     {
       prot_ids_.push_back(&i);
     }
- 
+
+    // pre-reserve to prevent reallocations
+    size_t new_size = peptide_ids_.size();
+
+    for (const auto& elem : consensus_map) new_size += elem.getPeptideIdentifications().size();
+
+    if (export_unassigned_ids)
+    {
+      new_size += consensus_map.getUnassignedPeptideIdentifications().size();
+    }
+
+    peptide_ids_.reserve(new_size);
+
     // extract mapped IDs
     for (Size i = 0; i < consensus_map.size(); ++i)
     {
       const ConsensusFeature& c = consensus_map[i];
-      const vector<PeptideIdentification>& p = c.getPeptideIdentifications();
-      peptide_ids_.reserve(peptide_ids_.size() + p.size());
+      const PeptideIdentificationList& p = c.getPeptideIdentifications();
       for (const PeptideIdentification& pi : p) { peptide_ids_.push_back(&pi); }
     }
 
     // also export PSMs of unassigned peptide identifications
     if (export_unassigned_ids)
     {
-      const vector<PeptideIdentification>& up = consensus_map.getUnassignedPeptideIdentifications();
-      peptide_ids_.reserve(peptide_ids_.size() + up.size());
+      const PeptideIdentificationList& up = consensus_map.getUnassignedPeptideIdentifications();
       for (const PeptideIdentification& pi : up) { peptide_ids_.push_back(&pi); }
     }
 
@@ -3157,7 +3159,7 @@ state0:
     return m;
   }
 
-  void MzTab::checkSequenceUniqueness_(const vector<PeptideIdentification>& curr_pep_ids)
+  void MzTab::checkSequenceUniqueness_(const PeptideIdentificationList& curr_pep_ids)
   {
     const auto& refseq = curr_pep_ids[0].getHits()[0].getSequence();
     for (const auto& pep : curr_pep_ids)

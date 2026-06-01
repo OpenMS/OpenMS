@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -53,7 +27,7 @@ namespace OpenMS
     @brief File adapter for MSstats files
     @ingroup FileIO
   */
-  
+
     class OPENMS_DLLAPI MSstatsFile
     {
     public:
@@ -62,25 +36,49 @@ namespace OpenMS
         /// Destructor
         ~MSstatsFile() = default;
 
-        /// store label free experiment (MSstats)
-        void storeLFQ(const String& filename, 
+        /**
+         * @brief Store label free experiment (MSstats)
+         * @param[in] filename Output filename
+         * @param[in] consensus_map ConsensusMap with quantification data
+         * @param[in] design ExperimentalDesign file
+         * @param[in] reannotate_filenames Optional filenames for reannotation
+         * @param[in] is_isotope_label_type If true, IsotopeLabelType is 'H', else 'L'
+         * @param[in] bioreplicate Column name for biological replicate in design
+         * @param[in] condition Column name for condition in design
+         * @param[in] retention_time_summarization_method Method for RT summarization
+         * @param[in] remove_shared_peptides If true, shared peptides mapping to multiple indistinguishable protein groups are removed (default)
+         */
+        void storeLFQ(const String& filename,
                       const ConsensusMap &consensus_map, // we might add singleton protein groups
                       const ExperimentalDesign& design,
                       const StringList& reannotate_filenames,
                       const bool is_isotope_label_type,
                       const String& bioreplicate,
                       const String& condition,
-                      const String& retention_time_summarization_method);
-        
-        /// store isobaric experiment (MSstatsTMT)
-        void storeISO(const String& filename, 
+                      const String& retention_time_summarization_method,
+                      const bool remove_shared_peptides = true);
+
+        /**
+         * @brief Store isobaric experiment (MSstatsTMT)
+         * @param[in] filename Output filename
+         * @param[in] consensus_map ConsensusMap with quantification data
+         * @param[in] design ExperimentalDesign file
+         * @param[in] reannotate_filenames Optional filenames for reannotation
+         * @param[in] bioreplicate Column name for biological replicate in design
+         * @param[in] condition Column name for condition in design
+         * @param[in] mixture Column name for mixture in design (used for TMT experiments)
+         * @param[in] retention_time_summarization_method Method for RT summarization
+         * @param[in] remove_shared_peptides If true, shared peptides mapping to multiple indistinguishable protein groups are removed (default)
+         */
+        void storeISO(const String& filename,
                       const ConsensusMap &consensus_map,
                       const ExperimentalDesign& design,
                       const StringList& reannotate_filenames,
                       const String& bioreplicate,
                       const String& condition,
                       const String& mixture,
-                      const String& retention_time_summarization_method);
+                      const String& retention_time_summarization_method,
+                      const bool remove_shared_peptides = true);
 
     private:
       typedef OpenMS::Peak2D::IntensityType Intensity;
@@ -131,9 +129,10 @@ namespace OpenMS
               const ExperimentalDesign &design);
 
       /*
-        * @brief checks two vectors for same content
+        * @brief checks if the first vector is a subset of the second
         */
-      static bool checkUnorderedContent_(const std::vector< String> &first, const std::vector< String > &second);
+      static bool isSubsetOf_(const std::vector< String> &first, const std::vector< String > &second);
+      static void warnOnSubsetFiles_(const std::vector<String>& spectra_paths, const std::vector<String>& design_filenames);
 
       OpenMS::Peak2D::IntensityType sumIntensity_(const std::set< OpenMS::Peak2D::IntensityType > &intensities) const
       {
@@ -287,7 +286,7 @@ namespace OpenMS
 
       /*
         *  @brief Constructs the lines and adds them to the TextFile
-        *  @param peptideseq_quantifyable Has to be a set (only) for deterministic  ordered output
+        *  @param[out] peptideseq_quantifyable Has to be a set (only) for deterministic  ordered output
         */
       template <class LineType>
       void constructFile_(const String& retention_time_summarization_method,

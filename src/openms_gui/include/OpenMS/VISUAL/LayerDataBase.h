@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -38,7 +12,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
+#include <OpenMS/PROCESSING/MISC/DataFilters.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -46,12 +20,13 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MISC/CommonDefs.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <bitset>
 #include <vector>
@@ -137,27 +112,27 @@ namespace OpenMS
     typedef FeatureMap FeatureMapType;
 
     /// SharedPtr on feature map
-    typedef boost::shared_ptr<FeatureMap> FeatureMapSharedPtrType;
+    typedef std::shared_ptr<FeatureMap> FeatureMapSharedPtrType;
 
     /// consensus features
     typedef ConsensusMap ConsensusMapType;
 
     /// SharedPtr on consensus features
-    typedef boost::shared_ptr<ConsensusMap> ConsensusMapSharedPtrType;
+    typedef std::shared_ptr<ConsensusMap> ConsensusMapSharedPtrType;
 
     /// Main data type (experiment)
-    typedef PeakMap ExperimentType;
+    typedef AnnotatedMSRun ExperimentType;
 
     /// SharedPtr on MSExperiment
-    typedef boost::shared_ptr<ExperimentType> ExperimentSharedPtrType;
+    typedef std::shared_ptr<ExperimentType> ExperimentSharedPtrType;
 
-    typedef boost::shared_ptr<const ExperimentType> ConstExperimentSharedPtrType;
+    typedef std::shared_ptr<const ExperimentType> ConstExperimentSharedPtrType;
 
     /// SharedPtr on On-Disc MSExperiment
-    typedef boost::shared_ptr<OnDiscMSExperiment> ODExperimentSharedPtrType;
+    typedef std::shared_ptr<OnDiscMSExperiment> ODExperimentSharedPtrType;
 
     /// SharedPtr on OSWData
-    typedef boost::shared_ptr<OSWData> OSWDataSharedPtrType;
+    typedef std::shared_ptr<OSWData> OSWDataSharedPtrType;
   };
 
   /**
@@ -188,6 +163,9 @@ namespace OpenMS
 
   @ingroup PlotWidgets
   */
+#ifdef _MSC_VER
+  #pragma warning(disable : 4250) // 'class1' : inherits 'class2::member' via dominance
+#endif
   class OPENMS_GUI_DLLAPI LayerDataBase : public LayerDataDefs
   {
   public:
@@ -248,8 +226,9 @@ namespace OpenMS
      * \param area Range to search in. Only dimensions used in the canvas are populated.
      * \return A proxy (e.g. scan + peak index in an MSExperiment) which points to the data
      */
-    virtual PeakIndex findClosestDataPoint(const RangeAllType& /*area*/) const
+    virtual PeakIndex findClosestDataPoint(const RangeAllType& area) const
     {
+      (void)area; // allow doxygen to document the param
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
@@ -258,8 +237,9 @@ namespace OpenMS
      * \param area Range to search in. Only dimensions used in the canvas are populated.
      * \return A proxy (e.g. scan + peak index in an MSExperiment) which points to the data
      */
-    virtual PeakIndex findHighestDataPoint(const RangeAllType& /*area*/) const
+    virtual PeakIndex findHighestDataPoint(const RangeAllType& area) const
     {
+      (void)area; // allow doxygen to document the param
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
@@ -280,15 +260,16 @@ namespace OpenMS
      * \param peak_index The datapoint
      * \return A string, e.g. "fwhm: 20, im: 3.3", depending on which float/string dataarrays are populated for the given datapoint
      */
-    virtual String getDataArrayDescription(const PeakIndex& /*peak_index*/)
+    virtual String getDataArrayDescription(const PeakIndex& peak_index)
     {
+      (void)peak_index; // allow doxygen to document the param
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     /// add peptide identifications to the layer
     /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
     /// Will return false otherwise.
-    virtual bool annotate(const std::vector<PeptideIdentification>& identifications,
+    virtual bool annotate(const PeptideIdentificationList& identifications,
                           const std::vector<ProteinIdentification>& protein_identifications);
 
 
@@ -310,17 +291,33 @@ namespace OpenMS
     /// If you need the data range for a 1D view (i.e. only a single spec/chrom/etc), call 'LayerDataBase1D::getRange1D()'
     virtual RangeAllType getRange() const = 0;
 
-    /// compute layer statistics (via visitor)
+    /// Compute layer statistics (via visitor)
     virtual std::unique_ptr<LayerStatistics> getStats() const = 0;
 
+    /// The name of the layer, usually the basename of the file
     const String& getName() const
     {
       return name_;
     }
+    /// Set the name of the layer, usually the basename of the file
     void setName(const String& new_name)
     {
       name_ = new_name;
     }
+
+    /// get the extra annotation to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
+    const String& getNameSuffix() const
+    {
+      return name_suffix_;
+    }
+    /// set an extra annotation as suffix to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
+    void setNameSuffix(const String& decorator)
+    {
+      name_suffix_ = decorator;
+    }
+
+    /// get name augmented with attributes, e.g. '*' if modified
+    virtual String getDecoratedName() const;
 
     /// if this layer is visible
     bool visible = true;
@@ -353,27 +350,30 @@ namespace OpenMS
     int peptide_id_index = -1;
     int peptide_hit_index = -1;
 
-    /// get name augmented with attributes, e.g. '*' if modified
-    virtual String getDecoratedName() const;
-
   private:
     /// layer name
     String name_;
+    /// an extra annotation as suffix to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
+    String name_suffix_;
   };
 
   /// A base class to annotate layers of specific types with (identification) data
-  /// @hint Add new derived classes to getAnnotatorWhichSupports() to enable automatic annotation in TOPPView
+  /// 
+  /// @note Add new derived classes to getAnnotatorWhichSupports() to enable automatic annotation in TOPPView
   class LayerAnnotatorBase
   {
   public:
     /**
         @brief C'tor with params
         
-        @param supported_types Which identification data types are allowed to be opened by the user in annotate()
-        @param file_dialog_text The header text of the file dialog shown to the user
-        @param gui_lock Optional GUI element which will be locked (disabled) during call to 'annotateWorker_'; can be null_ptr
+        @param[in] supported_types Which identification data types are allowed to be opened by the user in annotate()
+        @param[in] file_dialog_text The header text of the file dialog shown to the user
+        @param[in] gui_lock Optional GUI element which will be locked (disabled) during call to 'annotateWorker_'; can be null_ptr
       **/
     LayerAnnotatorBase(const FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock);
+    
+    /// Make D'tor virtual for correct destruction from pointers to base
+    virtual ~LayerAnnotatorBase() = default;
 
     /// Annotates a @p layer, writing messages to @p log and showing QMessageBoxes on errors.
     /// The input file is selected via a file-dialog which is opened with @p current_path as initial path.

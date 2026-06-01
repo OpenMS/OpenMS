@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -37,7 +11,8 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QDir>
+#include <OpenMS/SYSTEM/PathUtils.h>
+#include <filesystem>
 #include <fstream>
 #include <istream>
 #include <iomanip>
@@ -209,7 +184,7 @@ namespace OpenMS
         prefix << "  relative_acceptable: " << ratio_max_allowed_ << "\n" <<
         prefix << " --------------------------------\n" <<
         prefix << "  absolute_max:        " << absdiff_max_ << "\n" <<
-        prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
+        prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << '\n';
 
       writeWhitelistCases_(prefix);
 
@@ -217,28 +192,28 @@ namespace OpenMS
         << prefix << "\n"
         << prefix << "Offending lines:\t\t\t(tab_width = " << tab_width_ << ", first_column = " << first_column_ << ")\n"
         << prefix << "\n"
-        << prefix << "in1:  " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "   (line: " << line_num_1_ << ", position/column: " << input_line_1_.line_position_ << '/' << prefix1.line_column << ")\n"
+        << prefix << "in1:  " << to_path(File::absolutePath(input_1_name_)).make_preferred().string() << "   (line: " << line_num_1_ << ", position/column: " << input_line_1_.line_position_ << '/' << prefix1.line_column << ")\n"
         << prefix << prefix1.prefix << "!\n"
         << prefix << prefix1.prefix_whitespaces << OpenMS::String(input_line_1_.line_.str()).suffix(input_line_1_.line_.str().size() - prefix1.prefix.size()) << "\n"
         << prefix <<  "\n"
-        << prefix << "in2:  " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "   (line: " << line_num_2_ << ", position/column: " << input_line_2_.line_position_ << '/' << prefix2.line_column << ")\n"
+        << prefix << "in2:  " << to_path(File::absolutePath(input_2_name_)).make_preferred().string() << "   (line: " << line_num_2_ << ", position/column: " << input_line_2_.line_position_ << '/' << prefix2.line_column << ")\n"
         << prefix << prefix2.prefix << "!\n"
         << prefix << prefix2.prefix_whitespaces << OpenMS::String(input_line_2_.line_.str()).suffix(input_line_2_.line_.str().size() - prefix2.prefix.size()) << "\n"
         << prefix << "\n\n"
         << "Easy Access:" << "\n"
-        << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << ':' << line_num_1_ << ":" << prefix1.line_column << ":\n"
-        << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
+        << to_path(File::absolutePath(input_1_name_)).make_preferred().string() << ':' << line_num_1_ << ":" << prefix1.line_column << ":\n"
+        << to_path(File::absolutePath(input_2_name_)).make_preferred().string() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
         << "\n"
         #ifdef WIN32
         << "TortoiseGitMerge"
-        << " /base:\"" << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "\""
-        << " /mine:\"" << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "\""
+        << " /base:\"" << to_path(File::absolutePath(input_1_name_)).make_preferred().string() << "\""
+        << " /mine:\"" << to_path(File::absolutePath(input_2_name_)).make_preferred().string() << "\""
         #else
         << "diff"
-        << " " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString()
-        << " " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString()
+        << " " << to_path(File::absolutePath(input_1_name_)).make_preferred().string()
+        << " " << to_path(File::absolutePath(input_2_name_)).make_preferred().string()
         #endif
-        << std::endl;
+        << '\n';
     }
 
     // If verbose level is low, report only the first error.
@@ -267,27 +242,27 @@ namespace OpenMS
         prefix << "  relative_acceptable: " << ratio_max_allowed_ << '\n' <<
         prefix << '\n' <<
         prefix << "  absolute_max:        " << absdiff_max_ << '\n' <<
-        prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
+        prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << '\n';
 
       writeWhitelistCases_(prefix);
 
-      *log_dest_ << prefix << std::endl;
+      *log_dest_ << prefix << '\n';
 
       if (line_num_1_max_ == -1 && line_num_2_max_ == -1)
       {
         *log_dest_ <<
           prefix << "No numeric differences were found.\n" <<
-          prefix << std::endl;
+          prefix << '\n';
       }
       else
       {
         *log_dest_ <<
           prefix << "Maximum relative error was attained at these lines, enclosed in \"\":\n" <<
           prefix << '\n' <<
-          QDir::toNativeSeparators(input_1_name_.c_str()).toStdString() << ':' << line_num_1_max_ << ":\n" <<
+          to_path(input_1_name_).make_preferred().string() << ':' << line_num_1_max_ << ":\n" <<
           "\"" << line_str_1_max_ << "\"\n" <<
           '\n' <<
-          QDir::toNativeSeparators(input_2_name_.c_str()).toStdString() << ':' << line_num_2_max_ << ":\n" <<
+          to_path(input_2_name_).make_preferred().string() << ':' << line_num_2_max_ << ":\n" <<
           "\"" << line_str_2_max_ << "\"\n" <<
           std::endl;
       }
@@ -348,7 +323,7 @@ namespace OpenMS
           if (element_2_.is_number) // we are comparing numbers
           {
 #ifdef DEBUG_FUZZY
-            std::cout << "cmp number: " << String(element_1_.number) << " : " << String(element_2_.number) << std::endl;
+            std::cout << "cmp number: " << String(element_1_.number) << " : " << String(element_2_.number) << '\n';
 #endif
             if (element_1_.number == element_2_.number)
             {
@@ -414,7 +389,7 @@ namespace OpenMS
                     ratio = 1.0 / ratio;
                   }
 #ifdef DEBUG_FUZZY
-                  std::cout << " check ratio:  " << ratio << " vs " << ratio_max_ << std::endl;
+                  std::cout << " check ratio:  " << ratio << " vs " << ratio_max_ << '\n';
 #endif
 
                   // by now, we are sure that ratio >= 1
@@ -427,7 +402,7 @@ namespace OpenMS
                     if (ratio > ratio_max_allowed_)
                     {
 #ifdef DEBUG_FUZZY
-                      std::cout << "Ratio test failed: is larger than ratio_max " << std::endl;
+                      std::cout << "Ratio test failed: is larger than ratio_max \n";
 #endif
                       if (!is_absdiff_small_)
                       {
@@ -574,7 +549,7 @@ namespace OpenMS
       readNextLine_(input_2, line_str_2, line_num_2_);
 #ifdef DEBUG_FUZZY
       std::cout << "eof: " << input_2.eof() << " failbit: " << input_2.fail() << " badbit: " << input_2.bad() << " reading " << input_2.tellg () << "chars\n";
-      std::cout << line_str_1 << "\n" << line_str_2 << std::endl;
+      std::cout << line_str_1 << "\n" << line_str_2 << '\n';
 #endif
       // compare the two lines of input
       if (!compareLines_(line_str_1, line_str_2) && verbose_level_ < 3)

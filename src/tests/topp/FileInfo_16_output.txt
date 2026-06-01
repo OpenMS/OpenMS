@@ -1,7 +1,7 @@
 
 -- General information --
 
-File name: FileInfo_16_input.trafoXML
+File name: /home/samuel/git/OpenMS/src/tests/topp/FileInfo_16_input.trafoXML
 File type: trafoXML
 
 Transformation model: linear

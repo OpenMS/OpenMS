@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
@@ -42,75 +16,115 @@
 namespace OpenMS
 {
   /**
-    @brief cubic spline interpolation
-    as described in R.L. Burden, J.D. Faires, Numerical Analysis, 4th ed.
-    PWS-Kent, 1989, ISBN 0-53491-585-X, pp. 126-131.
-    
-    Construction of the spline takes by far the most time. Evaluating it is rather fast 
-    (one evaluation is about 50x faster than construction -- depending on number of points etc.).
-   
-   */
+    @brief Natural cubic-spline interpolation of a 2D data set.
+
+    Fits a piecewise cubic polynomial through the supplied (x, y)
+    knots so that the resulting spline is twice continuously
+    differentiable. The construction follows R.L. Burden, J.D. Faires,
+    @e Numerical @e Analysis, 4th ed., PWS-Kent 1989,
+    ISBN 0-53491-585-X, pp. 126-131.
+
+    Construction is the expensive step; subsequent evaluations are
+    roughly an order of magnitude (~50x) faster than construction in
+    typical cases. After construction, the spline can be sampled at
+    any @c x in the closed interval @c [x_first, x_last] via
+    @ref eval, and its first three derivatives are available via
+    @ref derivative / @ref derivatives.
+
+    @ingroup Math
+  */
   class OPENMS_DLLAPI CubicSpline2d
   {
 
-    std::vector<double> a_; ///< constant spline coefficients
-    std::vector<double> b_; ///< linear spline coefficients
-    std::vector<double> c_; ///< quadratic spline coefficients
-    std::vector<double> d_; ///< cubic spline coefficients
-    std::vector<double> x_; ///< knots
+    std::vector<double> a_; ///< Per-segment constant coefficient (degree 0); same value as the @c y at the segment's left knot.
+    std::vector<double> b_; ///< Per-segment linear coefficient (degree 1).
+    std::vector<double> c_; ///< Per-segment quadratic coefficient (degree 2); contains one extra trailing zero from the natural boundary condition.
+    std::vector<double> d_; ///< Per-segment cubic coefficient (degree 3).
+    std::vector<double> x_; ///< Sorted knot abscissae (length = number of segments + 1).
 
 public:
 
     /**
-     * @brief constructor of spline interpolation
-     *
-     * The coordinates must match by index. Both vectors must be
-     * the same size and sorted in x. Sortedness in x is required
-     * for @see SplinePackage.
-     *
-     * @param x x-coordinates of input data points (knots)
-     * @param y y-coordinates of input data points
-     */
+      @brief Build the spline from parallel @p x / @p y vectors.
+
+      @param[in] x Knot abscissae; must contain at least two entries
+                   and be sorted in non-decreasing order.
+      @param[in] y Knot ordinates; must have the same length as @p x.
+
+      @throws Exception::IllegalArgument when @p x and @p y differ in
+                                         length, when fewer than two
+                                         knots are supplied, or when
+                                         @p x is not non-decreasing.
+    */
     CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y);
 
     /**
-     * @brief constructor of spline interpolation
-     *
-     * @param m (x,y) coordinates of input data points
-     */
+      @brief Build the spline from a map of (x, y) knots.
+
+      The map is automatically sorted by @c x; passing an empty or
+      single-entry map is an error.
+
+      @param[in] m Knots as @c std::map<x, y>. Must contain at least two entries.
+
+      @throws Exception::IllegalArgument when @p m contains fewer than
+                                         two entries.
+    */
     CubicSpline2d(const std::map<double, double>& m);
 
     /**
-     * @brief evaluates the spline at position x
-     *
-     * @param x x-position
-     */
+      @brief Evaluate the spline at @p x.
+
+      @param[in] x Position; must lie in the closed interval @c [first_knot, last_knot].
+      @return Interpolated value at @p x.
+
+      @throws Exception::IllegalArgument when @p x lies outside the
+                                         knot range.
+    */
     double eval(double x) const;
 
     /**
-     * @brief evaluates first derivative of spline at position x
-     *
-     * @param x x-position
-     */
+      @brief First derivative of the spline at @p x.
+
+      Equivalent to @c derivatives(x, @c 1).
+
+      @param[in] x Position; must lie in the closed interval @c [first_knot, last_knot].
+      @return First derivative at @p x.
+
+      @throws Exception::IllegalArgument when @p x lies outside the
+                                         knot range.
+    */
     double derivative(double x) const;
 
     /**
-     * @brief evaluates derivative of spline at position x
-     *
-     * @param x x-position
-     * @param order order of the derivative
-     * Only order 1 or 2 make sense for cubic splines.
-     */
+      @brief Derivative of the spline at @p x.
+
+      @param[in] x     Position; must lie in the closed interval
+                       @c [first_knot, last_knot].
+      @param[in] order Derivative order. Cubic splines provide
+                       meaningful first, second, and third derivatives;
+                       this method accepts @c order in @c {1, 2, 3}.
+                       Higher orders are zero everywhere and are
+                       rejected with an exception.
+      @return @p order -th derivative of the spline at @p x.
+
+      @throws Exception::IllegalArgument when @p x lies outside the
+                                         knot range, or when @p order
+                                         is not @c 1, @c 2, or @c 3.
+    */
     double derivatives(double x, unsigned order) const;
 
 private:
 
     /**
-     * @brief initialize the spline
-     *
-     * @param x x-coordinates of input data points (knots)
-     * @param y y-coordinates of input data points
-     */
+      @brief Initialise the spline coefficients from the supplied knots.
+
+      Called from both public constructors after their argument
+      validation; assumes the caller has already verified that the
+      inputs are well-formed.
+
+      @param[in] x Knot abscissae.
+      @param[in] y Knot ordinates.
+    */
     void init_(const std::vector<double>& x, const std::vector<double>& y);
 
   };

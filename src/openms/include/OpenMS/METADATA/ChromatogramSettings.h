@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -41,7 +15,9 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/METADATA/Product.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
+#include <functional>
 #include <map>
 #include <vector>
 
@@ -64,7 +40,7 @@ public:
 
     /// List of chromatogram names, e.g., SELECTED_REACTION_MONITORING_CHROMATOGRAM.
     /// Actual names can be accessed using the ChromatogramNames[] array
-    enum ChromatogramType
+    enum class ChromatogramType
     {
       MASS_CHROMATOGRAM = 0,
       TOTAL_ION_CURRENT_CHROMATOGRAM,
@@ -79,7 +55,7 @@ public:
     };
 
     /// Names of chromatogram types corresponding to enum ChromatogramType
-    static const char * const ChromatogramNames[SIZE_OF_CHROMATOGRAM_TYPE+1]; // avoid string[], since it gets copied onto heap on initialization
+    static const char * const ChromatogramNames[static_cast<size_t>(ChromatogramType::SIZE_OF_CHROMATOGRAM_TYPE)+1]; // avoid string[], since it gets copied onto heap on initialization
 
     /// Constructor
     ChromatogramSettings();
@@ -158,7 +134,7 @@ public:
     std::vector< DataProcessingPtr > & getDataProcessing();
 
     /// returns a const reference to the description of the applied processing
-    const std::vector< boost::shared_ptr<const DataProcessing > > getDataProcessing() const;
+    const std::vector< std::shared_ptr<const DataProcessing > > getDataProcessing() const;
 
 protected:
 
@@ -177,4 +153,133 @@ protected:
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const ChromatogramSettings & spec);
 
 } // namespace OpenMS
+
+// Hash function specialization for ChromatogramSettings
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::ChromatogramSettings.
+   *
+   * Hashes all fields used in operator==:
+   * - MetaInfoInterface (base class - meta values)
+   * - native_id_ (string)
+   * - comment_ (string)
+   * - instrument_settings_ (scan mode, zoom scan, polarity, scan windows, and MetaInfo)
+   * - acquisition_info_ (method of combination, acquisitions, and MetaInfo)
+   * - source_file_ (file properties and CVTermList)
+   * - precursor_ (activation methods, windows, drift time, charge, and Peak1D/CVTermList)
+   * - product_ (uses std::hash<Product>)
+   * - data_processing_ (software, actions, completion time for each element)
+   * - type_ (chromatogram type enum)
+   *
+   * @note This hash implementation hashes the key identifying fields of nested types
+   *       and includes MetaInfoInterface. Consistent with operator==.
+   */
+  template<>
+  struct hash<OpenMS::ChromatogramSettings>
+  {
+    std::size_t operator()(const OpenMS::ChromatogramSettings& cs) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash native_id_ and comment_
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cs.getNativeID()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cs.getComment()));
+
+      // Hash instrument_settings_
+      const auto& is = cs.getInstrumentSettings();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(is.getScanMode())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(is.getZoomScan() ? 1 : 0));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(is.getPolarity())));
+      // Hash scan windows
+      const auto& scan_windows = is.getScanWindows();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(scan_windows.size()));
+      for (const auto& sw : scan_windows)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(sw.begin));
+        OpenMS::hash_combine(seed, OpenMS::hash_float(sw.end));
+      }
+
+      // Hash acquisition_info_
+      const auto& ai = cs.getAcquisitionInfo();
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(ai.getMethodOfCombination()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(ai.size()));
+      for (const auto& acq : ai)
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(acq.getIdentifier()));
+      }
+
+      // Hash source_file_
+      const auto& sf = cs.getSourceFile();
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getNameOfFile()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getPathToFile()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(static_cast<double>(sf.getFileSize())));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getFileType()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getChecksum()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(sf.getChecksumType())));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getNativeIDType()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getNativeIDTypeAccession()));
+
+      // Hash precursor_
+      const auto& prec = cs.getPrecursor();
+      // Hash activation methods
+      const auto& am = prec.getActivationMethods();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(am.size()));
+      for (const auto& method : am)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(method)));
+      }
+      OpenMS::hash_combine(seed, OpenMS::hash_float(prec.getActivationEnergy()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(prec.getIsolationWindowLowerOffset()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(prec.getIsolationWindowUpperOffset()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(prec.getDriftTime()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(prec.getDriftTimeWindowLowerOffset()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(prec.getDriftTimeWindowUpperOffset()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(prec.getDriftTimeUnit())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(prec.getCharge()));
+      // Hash possible charge states
+      const auto& pcs = prec.getPossibleChargeStates();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(pcs.size()));
+      for (const auto& charge : pcs)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(charge));
+      }
+      // Hash Peak1D part (MZ and intensity)
+      OpenMS::hash_combine(seed, OpenMS::hash_float(prec.getMZ()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(prec.getIntensity()));
+
+      // Hash product_ using existing std::hash<Product>
+      OpenMS::hash_combine(seed, std::hash<OpenMS::Product>{}(cs.getProduct()));
+
+      // Hash data_processing_
+      const auto dp = cs.getDataProcessing();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(dp.size()));
+      for (const auto& proc_ptr : dp)
+      {
+        if (proc_ptr)
+        {
+          // Hash software using std::hash<Software>
+          OpenMS::hash_combine(seed, std::hash<OpenMS::Software>{}(proc_ptr->getSoftware()));
+          // Hash processing actions
+          const auto& actions = proc_ptr->getProcessingActions();
+          OpenMS::hash_combine(seed, OpenMS::hash_int(actions.size()));
+          for (const auto& action : actions)
+          {
+            OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(action)));
+          }
+          // Hash completion time using std::hash<DateTime>
+          OpenMS::hash_combine(seed, std::hash<OpenMS::DateTime>{}(proc_ptr->getCompletionTime()));
+        }
+      }
+
+      // Hash type_
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(cs.getChromatogramType())));
+
+      // Hash MetaInfoInterface base class
+      OpenMS::hash_combine(seed, std::hash<OpenMS::MetaInfoInterface>{}(cs));
+
+      return seed;
+    }
+  };
+} // namespace std
 

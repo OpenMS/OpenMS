@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
@@ -42,24 +16,50 @@
 namespace OpenMS
 {
   /**
-    @brief Compute the area, background and shape metrics of a peak.
+    @brief Fit peaks to an Exponentially Modified Gaussian (EMG) model using gradient descent.
 
-    The area computation is performed in integratePeak() and it supports
-    integration by simple sum of the intensity, integration by Simpson's rule
-    implementations for an odd number of unequally spaced points or integration
-    by the trapezoid rule.
+    The exponentially modified Gaussian (EMG) function is a peak model used to
+    accurately fit chromatographic and spectral peaks, especially those showing
+    tailing behavior. This class provides methods to fit EMG parameters using
+    gradient descent and to compute peak areas based on the fitted model.
 
-    The background computation is performed in estimateBackground() and it
-    supports three different approaches to baseline correction, namely
-    computing a rectangular shape under the peak based on the minimum value of
-    the peak borders (vertical_division_min), a rectangular shape based on the
-    maximum value of the beak borders (vertical_division_max) or a trapezoidal
-    shape based on a straight line between the peak borders (base_to_base).
+    @section EmgGradientDescent_model The EMG Model
 
-    Peak shape metrics are computed in calculatePeakShapeMetrics() and multiple
-    metrics are supported.
+    The EMG model combines a Gaussian distribution with exponential decay, characterized by
+    four parameters:
+    - \b h (amplitude): Peak height
+    - \b mu (mean): Gaussian center position
+    - \b sigma (standard deviation): Gaussian width
+    - \b tau (exponential relaxation time): Controls the degree of tailing
 
-    The containers supported by the methods are MSChromatogram and MSSpectrum.
+    @section EmgGradientDescent_algorithm Algorithm
+
+    The fitting is performed using the iRprop+ algorithm, a variant of resilient
+    backpropagation that adapts step sizes based on gradient behavior:
+    - If gradient sign is consistent: increase step size (accelerate)
+    - If gradient sign changes: decrease step size and revert (avoid oscillation)
+    - Independent step sizes for each parameter
+
+    The algorithm automatically extracts a training set that avoids saturated points
+    and handles three different z-value regimes to maintain numerical stability.
+
+    @section EmgGradientDescent_usage Use Cases
+
+    EMG fitting is particularly useful for:
+    - **Saturated peaks**: Reconstruct true peak shape when detector saturates
+    - **Cutoff peaks**: Estimate full area when acquisition window is incomplete
+    - **Tailing peaks**: Model asymmetric peaks common in chromatography
+    - **Quality assessment**: Compare measured vs. ideal peak shape
+
+    @section EmgGradientDescent_reference Reference
+
+    Yuri Kalambet, Yuri Kozmin, Ksenia Mikhailova, Igor Nagaev, Pavel Tikhonov,
+    "Reconstruction of chromatographic peaks using the exponentially modified
+    Gaussian function," Journal of Chemometrics, 2011, 25, 352-356.
+
+    @see PeakIntegrator for integration using EMG fitting
+
+    @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI EmgGradientDescent :
     public DefaultParamHandler

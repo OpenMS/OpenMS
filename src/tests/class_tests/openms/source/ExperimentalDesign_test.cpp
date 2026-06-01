@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -43,6 +17,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/SYSTEM/File.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -177,6 +152,34 @@ START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelTo
 }
 END_SECTION
 
+START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToSampleMapping(bool) should reject ambiguous basename mappings))
+{
+  ExperimentalDesign::MSFileSection fs;
+  ExperimentalDesign::MSFileSectionEntry r1;
+  r1.fraction_group = 1;
+  r1.fraction = 1;
+  r1.path = "/tmp/run_a/shared_name.mzML";
+  r1.label = 1;
+  r1.sample = 0;
+  r1.sample_name = "S1";
+  fs.push_back(r1);
+
+  ExperimentalDesign::MSFileSectionEntry r2 = r1;
+  r2.fraction_group = 2;
+  r2.path = "/tmp/run_b/shared_name.mzML";
+  r2.sample = 1;
+  r2.sample_name = "S2";
+  fs.push_back(r2);
+
+  ExperimentalDesign::SampleSection ss;
+  ss.addSample("S1");
+  ss.addSample("S2");
+
+  ExperimentalDesign design(fs, ss);
+  TEST_EXCEPTION(Exception::InvalidValue, design.getPathLabelToSampleMapping(true));
+}
+END_SECTION
+
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionMapping(bool) const ))
 {
   const auto lf = labelfree_unfractionated_design.getPathLabelToFractionMapping(true);
@@ -242,9 +245,9 @@ START_SECTION((std::set< String > ExperimentalDesign::SampleSection::getFactors(
   TEST_EQUAL(lfacst.size(), 3)
   TEST_EQUAL(lfacstns.size(), 3)
 
-  TEST_EQUAL(lfac == lfacst, true)
-  TEST_EQUAL(lfac == lfacstns, true)
-  TEST_EQUAL(facplex == facplexst, true)
+  TEST_TRUE(lfac == lfacst)
+  TEST_TRUE(lfac == lfacstns)
+  TEST_TRUE(facplex == facplexst)
 
   auto l = lfac.begin();
   TEST_EQUAL(*l++, "MSstats_BioReplicate")
@@ -471,6 +474,22 @@ START_SECTION((bool sameNrOfMSFilesPerFraction() const ))
 }
 END_SECTION
 
+START_SECTION((Size filterByBasenames(const set<String>&) keeps sample and file section synchronized))
+{
+  ExperimentalDesign design = ExperimentalDesignFile::load(
+    OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_1.tsv"), false);
+
+  std::set<String> keep{
+    "JD_06232014_sample1-A.raw",
+    "JD_06232014_sample1_B.raw"
+  };
+  design.filterByBasenames(keep);
+
+  TEST_EQUAL(design.getMSFileSection().size(), 2);
+  TEST_EQUAL(design.getNumberOfSamples(), 2);
+}
+END_SECTION
+
 START_SECTION((static ExperimentalDesign fromConsensusMap(const ConsensusMap &c)))
 {
   ConsensusXMLFile cfile;
@@ -555,6 +574,54 @@ START_SECTION((static ExperimentalDesign fromConsensusMap(const ConsensusMap &c)
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).sample, 1);
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).path, "raw_file1.mzML");
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).path, "raw_file2.mzML");    
+}
+END_SECTION
+
+START_SECTION((static ExperimentalDesign fromConsensusMap(const ConsensusMap &c) keeps sample_name entries in SampleSection))
+{
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+
+  ConsensusMap::ColumnHeader h0;
+  h0.filename = "file_a.mzML";
+  h0.label = "label-free";
+  h0.setMetaValue("sample_name", "Sample_A");
+  cmap.getColumnHeaders()[0] = h0;
+
+  ConsensusMap::ColumnHeader h1;
+  h1.filename = "file_b.mzML";
+  h1.label = "label-free";
+  h1.setMetaValue("sample_name", "Sample_B");
+  cmap.getColumnHeaders()[1] = h1;
+
+  ExperimentalDesign design = ExperimentalDesign::fromConsensusMap(cmap);
+  TEST_EQUAL(design.getSampleSection().hasSample("Sample_A"), true);
+  TEST_EQUAL(design.getSampleSection().hasSample("Sample_B"), true);
+}
+END_SECTION
+
+START_SECTION((ProteomicsLFQ subset output keeps design fraction_group assignments across fractions))
+{
+  const String design_file = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_BSA_design_onetable_nonconsec.tsv");
+  const String subset_output = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML");
+  TEST_EQUAL(File::exists(design_file), true);
+  TEST_EQUAL(File::exists(subset_output), true);
+
+  ExperimentalDesign design = ExperimentalDesignFile::load(design_file, false);
+  const auto pl2fg = design.getPathLabelToFractionGroupMapping(true);
+
+  ConsensusMap cmap;
+  ConsensusXMLFile().load(subset_output, cmap);
+
+  for (const auto& [idx, col_header] : cmap.getColumnHeaders())
+  {
+    (void)idx;
+    TEST_EQUAL(col_header.metaValueExists("fraction_group"), true);
+    const unsigned observed_fg = static_cast<unsigned>(col_header.getMetaValue("fraction_group"));
+    const unsigned label = col_header.getLabelAsUInt(cmap.getExperimentType());
+    const unsigned expected_fg = pl2fg.at({File::basename(col_header.filename), label});
+    TEST_EQUAL(observed_fg, expected_fg);
+  }
 }
 END_SECTION
 

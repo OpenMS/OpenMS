@@ -14,13 +14,13 @@ set(sources_list
   MzDataHandler.cpp
   MzIdentMLHandler.cpp
   MzIdentMLDOMHandler.cpp
-  MzQuantMLHandler.cpp
   MzMLHandler.cpp
   MzMLHandlerHelper.cpp
   MzMLSpectrumDecoder.cpp
   MzMLSqliteHandler.cpp
   MzMLSqliteSwathHandler.cpp
   MzXMLHandler.cpp
+  PASEFHillCentroider.cpp
   PTMXMLHandler.cpp
   ParamXMLHandler.cpp
   ToolDescriptionHandler.cpp

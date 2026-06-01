@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -38,6 +12,8 @@
 ///////////////////////////
 #include <OpenMS/CHEMISTRY/ModificationDefinition.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <unordered_set>
+#include <unordered_map>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -182,7 +158,7 @@ END_SECTION
 START_SECTION((bool operator==(const ModificationDefinition& rhs) const))
 {
   ModificationDefinition m1, m2;
-  TEST_EQUAL(m1 == m2, true)
+  TEST_TRUE(m1 == m2)
   m1.setFixedModification(false);
   TEST_EQUAL(m1 == m2, false)
   m1.setFixedModification(true);
@@ -192,7 +168,7 @@ START_SECTION((bool operator==(const ModificationDefinition& rhs) const))
   m1.setModification("Oxidation (M)");
   TEST_EQUAL(m1 == m2, false)
   m2.setModification("Oxidation (M)");
-  TEST_EQUAL(m1 == m2, true)
+  TEST_TRUE(m1 == m2)
 }
 END_SECTION
 
@@ -201,13 +177,13 @@ START_SECTION((bool operator!=(const ModificationDefinition& rhs) const))
   ModificationDefinition m1, m2;
   TEST_EQUAL(m1 != m2, false)
   m1.setFixedModification(false);
-  TEST_EQUAL(m1 != m2, true)
+  TEST_FALSE(m1 == m2)
   m1.setFixedModification(true);
   m1.setMaxOccurrences(15);
-  TEST_EQUAL(m1 != m2, true)
+  TEST_FALSE(m1 == m2)
   m1.setMaxOccurrences(0);
   m1.setModification("Oxidation (M)");
-  TEST_EQUAL(m1 != m2, true)
+  TEST_FALSE(m1 == m2)
   m2.setModification("Oxidation (M)");
   TEST_EQUAL(m1 != m2, false)
 }
@@ -225,6 +201,100 @@ START_SECTION((bool operator<(const OpenMS::ModificationDefinition& rhs) const))
 END_SECTION
 
 delete ptr;
+
+/////////////////////////////////////////////////////////////
+// Hash tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] std::hash<ModificationDefinition>))
+{
+  // Test 1: Equal objects must have equal hashes
+  ModificationDefinition m1("Oxidation (M)", true, 3);
+  ModificationDefinition m2("Oxidation (M)", true, 3);
+  TEST_EQUAL(m1 == m2, true)
+  TEST_EQUAL(std::hash<ModificationDefinition>{}(m1), std::hash<ModificationDefinition>{}(m2))
+
+  // Test 2: Different modifications should (likely) have different hashes
+  ModificationDefinition m3("Acetyl (N-term)", true, 0);
+  // Not guaranteed, but extremely likely to be different
+  TEST_NOT_EQUAL(std::hash<ModificationDefinition>{}(m1), std::hash<ModificationDefinition>{}(m3))
+
+  // Test 3: Different fixed_modification should produce different hashes
+  ModificationDefinition m4("Oxidation (M)", false, 3);
+  TEST_EQUAL(m1 == m4, false)
+  TEST_NOT_EQUAL(std::hash<ModificationDefinition>{}(m1), std::hash<ModificationDefinition>{}(m4))
+
+  // Test 4: Different max_occurrences should produce different hashes
+  ModificationDefinition m5("Oxidation (M)", true, 5);
+  TEST_EQUAL(m1 == m5, false)
+  TEST_NOT_EQUAL(std::hash<ModificationDefinition>{}(m1), std::hash<ModificationDefinition>{}(m5))
+
+  // Test 5: Hash consistency - same object hashed multiple times
+  std::size_t hash1 = std::hash<ModificationDefinition>{}(m1);
+  std::size_t hash2 = std::hash<ModificationDefinition>{}(m1);
+  TEST_EQUAL(hash1, hash2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ModificationDefinition in std::unordered_set))
+{
+  std::unordered_set<ModificationDefinition> mod_set;
+
+  ModificationDefinition m1("Oxidation (M)", true, 0);
+  ModificationDefinition m2("Acetyl (N-term)", false, 2);
+  ModificationDefinition m3("Carboxymethyl (C)", true, 1);
+
+  // Insert modifications
+  mod_set.insert(m1);
+  mod_set.insert(m2);
+  mod_set.insert(m3);
+  TEST_EQUAL(mod_set.size(), 3)
+
+  // Insert duplicate - should not increase size
+  ModificationDefinition m1_copy("Oxidation (M)", true, 0);
+  mod_set.insert(m1_copy);
+  TEST_EQUAL(mod_set.size(), 3)
+
+  // Find operations
+  TEST_EQUAL(mod_set.find(m1) != mod_set.end(), true)
+  TEST_EQUAL(mod_set.find(m2) != mod_set.end(), true)
+  TEST_EQUAL(mod_set.count(m1_copy), 1)
+
+  // Non-existent element
+  ModificationDefinition m4("Phospho (S)", true, 0);
+  TEST_EQUAL(mod_set.find(m4) == mod_set.end(), true)
+  TEST_EQUAL(mod_set.count(m4), 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ModificationDefinition in std::unordered_map))
+{
+  std::unordered_map<ModificationDefinition, std::string> mod_map;
+
+  ModificationDefinition m1("Oxidation (M)", true, 0);
+  ModificationDefinition m2("Acetyl (N-term)", false, 2);
+
+  // Insert key-value pairs
+  mod_map[m1] = "oxidation_value";
+  mod_map[m2] = "acetyl_value";
+  TEST_EQUAL(mod_map.size(), 2)
+
+  // Access by key
+  TEST_EQUAL(mod_map[m1], "oxidation_value")
+  TEST_EQUAL(mod_map[m2], "acetyl_value")
+
+  // Update value
+  mod_map[m1] = "updated_value";
+  TEST_EQUAL(mod_map[m1], "updated_value")
+  TEST_EQUAL(mod_map.size(), 2)
+
+  // Find using equal object
+  ModificationDefinition m1_copy("Oxidation (M)", true, 0);
+  auto it = mod_map.find(m1_copy);
+  TEST_EQUAL(it != mod_map.end(), true)
+  TEST_EQUAL(it->second, "updated_value")
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

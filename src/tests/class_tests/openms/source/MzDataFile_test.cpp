@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -130,7 +104,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TEST_STRING_EQUAL(e[0].getNativeID(), "spectrum=10")
   TEST_STRING_EQUAL(e[1].getNativeID(), "spectrum=11")
   TEST_STRING_EQUAL(e[2].getNativeID(), "spectrum=12")
-  TEST_EQUAL(e[0].getType(), SpectrumSettings::UNKNOWN)
+  TEST_EQUAL(e[0].getType(), SpectrumSettings::SpectrumType::UNKNOWN)
 
   //---------------------------------------------------------------------------
   //meta data array meta data
@@ -171,7 +145,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TEST_EQUAL(e[1].getPrecursors()[0].getCharge(), 2)
   TEST_REAL_SIMILAR(e[1].getPrecursors()[0].getIntensity(), 2.3f)
   TEST_EQUAL(e[1].getPrecursors()[0].getMetaValue("IonSelectionComment"), "selected")
-  TEST_EQUAL(e[1].getPrecursors()[0].getActivationMethods().count(Precursor::CID), 1)
+  TEST_EQUAL(e[1].getPrecursors()[0].getActivationMethods().count(Precursor::ActivationMethod::CID), 1)
   TEST_REAL_SIMILAR(e[1].getPrecursors()[0].getActivationEnergy(), 3.4)
   TEST_EQUAL(e[1].getPrecursors()[0].getMetaValue("ActivationComment"), "active")
 
@@ -179,7 +153,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TEST_EQUAL(e[1].getPrecursors()[1].getCharge(), 3)
   TEST_REAL_SIMILAR(e[1].getPrecursors()[1].getIntensity(), 3.3f)
   TEST_EQUAL(e[1].getPrecursors()[1].getMetaValue("IonSelectionComment"), "selected2")
-  TEST_EQUAL(e[1].getPrecursors()[1].getActivationMethods().count(Precursor::SID), 1)
+  TEST_EQUAL(e[1].getPrecursors()[1].getActivationMethods().count(Precursor::ActivationMethod::SID), 1)
   TEST_REAL_SIMILAR(e[1].getPrecursors()[1].getActivationEnergy(), 4.4)
   TEST_EQUAL(e[1].getPrecursors()[1].getMetaValue("ActivationComment"), "active2")
 
@@ -192,12 +166,12 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TEST_EQUAL(e[0].getInstrumentSettings().getMetaValue("SpecComment"), "Spectrum 1")
   TEST_EQUAL(e[1].getInstrumentSettings().getMetaValue("SpecComment"), "Spectrum 2")
   TEST_EQUAL(e[2].getInstrumentSettings().metaValueExists("SpecComment"), false)
-  TEST_EQUAL(e[0].getInstrumentSettings().getScanMode(), InstrumentSettings::MASSSPECTRUM)
-  TEST_EQUAL(e[1].getInstrumentSettings().getScanMode(), InstrumentSettings::MASSSPECTRUM)
-  TEST_EQUAL(e[2].getInstrumentSettings().getScanMode(), InstrumentSettings::SIM)
-  TEST_EQUAL(e[0].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
-  TEST_EQUAL(e[1].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
-  TEST_EQUAL(e[2].getInstrumentSettings().getPolarity(), IonSource::NEGATIVE)
+  TEST_EQUAL(e[0].getInstrumentSettings().getScanMode(), InstrumentSettings::ScanMode::MASSSPECTRUM)
+  TEST_EQUAL(e[1].getInstrumentSettings().getScanMode(), InstrumentSettings::ScanMode::MASSSPECTRUM)
+  TEST_EQUAL(e[2].getInstrumentSettings().getScanMode(), InstrumentSettings::ScanMode::SIM)
+  TEST_EQUAL(e[0].getInstrumentSettings().getPolarity(), IonSource::Polarity::POSITIVE)
+  TEST_EQUAL(e[1].getInstrumentSettings().getPolarity(), IonSource::Polarity::POSITIVE)
+  TEST_EQUAL(e[2].getInstrumentSettings().getPolarity(), IonSource::Polarity::NEGATIVE)
   TEST_EQUAL(e[0].getInstrumentSettings().getScanWindows().size(), 0)
   TEST_EQUAL(e[1].getInstrumentSettings().getScanWindows().size(), 1)
   TEST_REAL_SIMILAR(e[1].getInstrumentSettings().getScanWindows()[0].begin, 110)
@@ -214,7 +188,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TEST_EQUAL(e[1].getAcquisitionInfo().size(), 2)
 
   ABORT_IF(e[1].getAcquisitionInfo().size() != 2);
-  TEST_EQUAL(e[1].getType(), SpectrumSettings::PROFILE)
+  TEST_EQUAL(e[1].getType(), SpectrumSettings::SpectrumType::PROFILE)
   TEST_EQUAL(e[1].getAcquisitionInfo().getMethodOfCombination(), "sum")
   TEST_EQUAL(e[1].getAcquisitionInfo()[0].getIdentifier(), "501")
   TEST_EQUAL(e[1].getAcquisitionInfo()[1].getIdentifier(), "502")
@@ -225,7 +199,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
 
   TEST_EQUAL(e[2].getAcquisitionInfo().size(), 1)
   ABORT_IF(e[2].getAcquisitionInfo().size() != 1);
-  TEST_EQUAL(e[2].getType(), SpectrumSettings::CENTROID)
+  TEST_EQUAL(e[2].getType(), SpectrumSettings::SpectrumType::CENTROID)
   TEST_EQUAL(e[2].getAcquisitionInfo().getMethodOfCombination(), "average")
   TEST_EQUAL(e[2].getAcquisitionInfo()[0].getIdentifier(), "601")
 
@@ -361,7 +335,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TEST_STRING_EQUAL(e.getSourceFiles()[0].getPathToFile(), "/share/data/");
   TEST_STRING_EQUAL(e.getSourceFiles()[0].getFileType(), "MS");
   TEST_STRING_EQUAL(e.getSourceFiles()[0].getChecksum(), "");
-  TEST_EQUAL(e.getSourceFiles()[0].getChecksumType(), SourceFile::UNKNOWN_CHECKSUM);
+  TEST_EQUAL(e.getSourceFiles()[0].getChecksumType(), SourceFile::ChecksumType::UNKNOWN_CHECKSUM);
 
   //---------------------------------------------------------------------------
   // conteact list
@@ -402,26 +376,26 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TEST_EQUAL(inst.getMetaValue("URL"), "www.open-ms.de")
   TEST_EQUAL(inst.getMetaValue("AdditionalComment"), "Additional")
   TEST_EQUAL(inst.getIonSources().size(), 1)
-  TEST_EQUAL(inst.getIonSources()[0].getIonizationMethod(), IonSource::ESI)
-  TEST_EQUAL(inst.getIonSources()[0].getInletType(), IonSource::DIRECT)
-  TEST_EQUAL(inst.getIonSources()[0].getPolarity(), IonSource::NEGATIVE)
+  TEST_EQUAL(inst.getIonSources()[0].getIonizationMethod(), IonSource::IonizationMethod::ESI)
+  TEST_EQUAL(inst.getIonSources()[0].getInletType(), IonSource::InletType::DIRECT)
+  TEST_EQUAL(inst.getIonSources()[0].getPolarity(), IonSource::Polarity::NEGATIVE)
   TEST_EQUAL(inst.getIonSources()[0].getMetaValue("URL"), "www.open-ms.de")
   TEST_EQUAL(inst.getIonSources()[0].getMetaValue("SourceComment"), "Source")
   TEST_EQUAL(inst.getIonDetectors().size(), 1)
-  TEST_EQUAL(inst.getIonDetectors()[0].getType(), IonDetector::FARADAYCUP)
-  TEST_EQUAL(inst.getIonDetectors()[0].getAcquisitionMode(), IonDetector::TDC)
+  TEST_EQUAL(inst.getIonDetectors()[0].getType(), IonDetector::Type::FARADAYCUP)
+  TEST_EQUAL(inst.getIonDetectors()[0].getAcquisitionMode(), IonDetector::AcquisitionMode::TDC)
   TEST_EQUAL(inst.getIonDetectors()[0].getResolution(), 0.815)
   TEST_EQUAL(inst.getIonDetectors()[0].getADCSamplingFrequency(), 11.22)
   TEST_EQUAL(inst.getIonDetectors()[0].getMetaValue("URL"), "www.open-ms.de")
   TEST_EQUAL(inst.getIonDetectors()[0].getMetaValue("DetectorComment"), "Detector")
   TEST_EQUAL(inst.getMassAnalyzers().size(), 2)
   ABORT_IF(inst.getMassAnalyzers().size() != 2);
-  TEST_EQUAL(inst.getMassAnalyzers()[0].getType(), MassAnalyzer::PAULIONTRAP)
-  TEST_EQUAL(inst.getMassAnalyzers()[0].getResolutionMethod(), MassAnalyzer::FWHM)
-  TEST_EQUAL(inst.getMassAnalyzers()[0].getResolutionType(), MassAnalyzer::CONSTANT)
-  TEST_EQUAL(inst.getMassAnalyzers()[0].getScanDirection(), MassAnalyzer::UP)
-  TEST_EQUAL(inst.getMassAnalyzers()[0].getScanLaw(), MassAnalyzer::LINEAR)
-  TEST_EQUAL(inst.getMassAnalyzers()[0].getReflectronState(), MassAnalyzer::OFF)
+  TEST_EQUAL(inst.getMassAnalyzers()[0].getType(), MassAnalyzer::AnalyzerType::PAULIONTRAP)
+  TEST_EQUAL(inst.getMassAnalyzers()[0].getResolutionMethod(), MassAnalyzer::ResolutionMethod::FWHM)
+  TEST_EQUAL(inst.getMassAnalyzers()[0].getResolutionType(), MassAnalyzer::ResolutionType::CONSTANT)
+  TEST_EQUAL(inst.getMassAnalyzers()[0].getScanDirection(), MassAnalyzer::ScanDirection::UP)
+  TEST_EQUAL(inst.getMassAnalyzers()[0].getScanLaw(), MassAnalyzer::ScanLaw::LINEAR)
+  TEST_EQUAL(inst.getMassAnalyzers()[0].getReflectronState(), MassAnalyzer::ReflectronState::OFF)
   TEST_EQUAL(inst.getMassAnalyzers()[0].getResolution(), 22.33)
   TEST_EQUAL(inst.getMassAnalyzers()[0].getAccuracy(), 33.44)
   TEST_EQUAL(inst.getMassAnalyzers()[0].getScanRate(), 44.55)
@@ -432,12 +406,12 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TEST_EQUAL(inst.getMassAnalyzers()[0].getMagneticFieldStrength(), 88.99)
   TEST_EQUAL(inst.getMassAnalyzers()[0].getMetaValue("URL"), "www.open-ms.de")
   TEST_EQUAL(inst.getMassAnalyzers()[0].getMetaValue("AnalyzerComment"), "Analyzer 1")
-  TEST_EQUAL(inst.getMassAnalyzers()[1].getType(), MassAnalyzer::QUADRUPOLE)
-  TEST_EQUAL(inst.getMassAnalyzers()[1].getResolutionMethod(), MassAnalyzer::BASELINE)
-  TEST_EQUAL(inst.getMassAnalyzers()[1].getResolutionType(), MassAnalyzer::PROPORTIONAL)
-  TEST_EQUAL(inst.getMassAnalyzers()[1].getScanDirection(), MassAnalyzer::DOWN)
-  TEST_EQUAL(inst.getMassAnalyzers()[1].getScanLaw(), MassAnalyzer::EXPONENTIAL)
-  TEST_EQUAL(inst.getMassAnalyzers()[1].getReflectronState(), MassAnalyzer::ON)
+  TEST_EQUAL(inst.getMassAnalyzers()[1].getType(), MassAnalyzer::AnalyzerType::QUADRUPOLE)
+  TEST_EQUAL(inst.getMassAnalyzers()[1].getResolutionMethod(), MassAnalyzer::ResolutionMethod::BASELINE)
+  TEST_EQUAL(inst.getMassAnalyzers()[1].getResolutionType(), MassAnalyzer::ResolutionType::PROPORTIONAL)
+  TEST_EQUAL(inst.getMassAnalyzers()[1].getScanDirection(), MassAnalyzer::ScanDirection::DOWN)
+  TEST_EQUAL(inst.getMassAnalyzers()[1].getScanLaw(), MassAnalyzer::ScanLaw::EXPONENTIAL)
+  TEST_EQUAL(inst.getMassAnalyzers()[1].getReflectronState(), MassAnalyzer::ReflectronState::ON)
   TEST_EQUAL(inst.getMassAnalyzers()[1].getResolution(), 12.3)
   TEST_EQUAL(inst.getMassAnalyzers()[1].getAccuracy(), 13.4)
   TEST_EQUAL(inst.getMassAnalyzers()[1].getScanRate(), 14.5)
@@ -454,7 +428,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   //---------------------------------------------------------------------------
   TEST_EQUAL(e.getSample().getName(), "MS-Sample")
   TEST_EQUAL(e.getSample().getNumber(), "0-815")
-  TEST_EQUAL(e.getSample().getState(), Sample::GAS)
+  TEST_EQUAL(e.getSample().getState(), Sample::SampleState::GAS)
   TEST_EQUAL(e.getSample().getMass(), 1.01)
   TEST_EQUAL(e.getSample().getVolume(), 2.02)
   TEST_EQUAL(e.getSample().getConcentration(), 3.03)
@@ -466,7 +440,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   //load a second time to make sure everything is re-initialized correctly
   PeakMap e2;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), e2);
-  TEST_EQUAL(e == e2, true)
+  TEST_TRUE(e == e2)
 
   //loading a minimal file containing one spectrum  - with whitespaces inside the base64 data
   PeakMap e3;
@@ -687,7 +661,7 @@ START_SECTION((template <typename MapType> void store(const String &filename, co
   e2[0].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));
   e2[1].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));
   e2[2].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));
-  TEST_EQUAL(e1 == e2, true);
+  TEST_TRUE(e1 == e2);
 }
 END_SECTION
 

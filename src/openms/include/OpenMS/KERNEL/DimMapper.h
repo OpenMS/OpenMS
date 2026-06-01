@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -176,6 +150,16 @@ namespace OpenMS
 
 
 
+  /**
+    @brief Dimension implementation for retention time values.
+    
+    This class implements the DimBase interface for the retention time dimension.
+    It provides methods to access RT values from various data structures and
+    convert between RT values and generic dimension values.
+
+    @see DimBase
+    @ingroup Kernel
+  */
   class OPENMS_DLLAPI DimRT final : public DimBase
   {
   public:
@@ -286,6 +270,16 @@ namespace OpenMS
     }
   };
 
+  /**
+    @brief Dimension implementation for m/z values.
+    
+    This class implements the DimBase interface for the mass-to-charge ratio dimension.
+    It provides methods to access m/z values from various data structures and
+    convert between m/z values and generic dimension values.
+    
+    @see DimBase
+    @ingroup Kernel
+  */
   class OPENMS_DLLAPI DimMZ final : public DimBase
   {
   public:
@@ -397,6 +391,16 @@ namespace OpenMS
     }
   };
 
+  /**
+    @brief Dimension implementation for intensity values.
+    
+    This class implements the DimBase interface for the intensity dimension.
+    It provides methods to access intensity values from various data structures and
+    convert between intensity values and generic dimension values.
+    
+    @see DimBase
+    @ingroup Kernel
+  */
   class OPENMS_DLLAPI DimINT final : public DimBase
   {
   public:
@@ -494,26 +498,39 @@ namespace OpenMS
     /// set the intensity of a Peak1D
     void fromXY(const ValueType in, Peak1D& p) const override
     {
-      p.setIntensity(in);
+      p.setIntensity(Peak1D::IntensityType(in));
     }
 
     /// set the intensity of a ChromatogramPeak
     void fromXY(const ValueType in, ChromatogramPeak& p) const override
     {
-      p.setIntensity(in);
+      p.setIntensity(ChromatogramPeak::IntensityType(in));
     }
     /// set the intensity of a MobilityPeak1D
     void fromXY(const ValueType in, MobilityPeak1D& p) const override
     {
-      p.setIntensity(in);
+      p.setIntensity(MobilityPeak1D::IntensityType(in));
     }
     /// set the intensity of a MobilityPeak2D
     void fromXY(const ValueType in, MobilityPeak2D& p) const override
     {
-      p.setIntensity(in);
+      p.setIntensity(MobilityPeak2D::IntensityType(in));
     }
   };
 
+  /**
+    @brief Dimension implementation for ion mobility values.
+    
+    This class implements the DimBase interface for the ion mobility dimension.
+    It provides methods to access ion mobility values from various data structures and
+    convert between ion mobility values and generic dimension values.
+    
+    Ion mobility dimensions support different units such as FAIMS compensation voltage,
+    linear ion mobility spectrometry, and trapped ion mobility spectrometry.
+    
+    @see DimBase
+    @ingroup Kernel
+  */
   class OPENMS_DLLAPI DimIM final : public DimBase
   {
   public:
@@ -787,6 +804,15 @@ namespace OpenMS
       return *dims_[(int)d];
     }
 
+    bool hasUnit(DIM_UNIT unit) const
+    {
+      for (int i = 0; i < N_DIM; ++i)
+      {
+        if (dims_[i]->getUnit() == unit) return true;
+      }
+      return false;
+    }
+
   protected:
     /// a minimal factory
     static std::unique_ptr<const DimBase> create_(DIM_UNIT u)
@@ -860,7 +886,7 @@ namespace OpenMS
     /**
        @brief Set the area using unit data (RT, m/z, ...)
 
-       @param data Area in units
+       @param[in] data Area in units
     */
     const Area& setArea(const RangeAllType& data)
     {
@@ -873,7 +899,7 @@ namespace OpenMS
     /**
        @brief Set the area using axis data (X and Y)
 
-       @param data Area as displayed on the axis
+       @param[in] data Area as displayed on the axis
     */
     const Area& setArea(const AreaXYType& data)
     {
@@ -896,7 +922,7 @@ namespace OpenMS
     /**
       @brief Clone the current object, set the area of the clone using axis data (X and Y) and return the clone.
 
-      @param data New area as displayed on the axis
+      @param[in] data New area as displayed on the axis
     */
     Area cloneWith(const AreaXYType& data) const
     {
@@ -908,7 +934,7 @@ namespace OpenMS
     /**
       @brief Clone the current object, set the area of the clone using unit data (RT, m/z, ...) and return the clone.
 
-      @param data New area in units
+      @param[in] data New area in units
     */
     Area cloneWith(const RangeAllType& data) const
     {

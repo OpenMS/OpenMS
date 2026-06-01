@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -103,9 +77,9 @@ public:
       does not require a full first pass through the file to compute the
       correct number of spectra and chromatograms in the input file.
 
-      @param filename_in Filename of input mzML file to transform 
-      @param consumer Consumer class to operate on the input filename (implementing a transformation)
-      @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file 
+      @param[in] filename_in Filename of input mzML file to transform 
+      @param[in] consumer Consumer class to operate on the input filename (implementing a transformation)
+      @param[in] skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file 
     */
     void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false);
 
@@ -118,10 +92,10 @@ public:
       applied to the data before storing them in a map (e.g. if data-reduction
       should be applied to the data before loading all data into memory).
 
-      @param filename_in Filename of input mzXML file to transform 
-      @param consumer Consumer class to operate on the input filename (implementing a transformation)
-      @param map Map to store the resulting spectra and chromatograms
-      @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file 
+      @param[in] filename_in Filename of input mzXML file to transform 
+      @param[in] consumer Consumer class to operate on the input filename (implementing a transformation)
+      @param[out] map Map to store the resulting spectra and chromatograms
+      @param[in] skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file 
     */
     void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, MapType& map, bool skip_full_count = false);
 

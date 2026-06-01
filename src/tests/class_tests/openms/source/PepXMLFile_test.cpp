@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow, Hendrik Weisser $
@@ -66,10 +40,10 @@ START_SECTION(~PepXMLFile())
 delete ptr;
 END_SECTION
 
-START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name, SpectrumMetaDataLookup& lookup))
+START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const String& experiment_name, SpectrumMetaDataLookup& lookup))
 {
   vector<ProteinIdentification> proteins;
-  vector<PeptideIdentification> peptides;
+  PeptideIdentificationList peptides;
   String pep_file = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.pepxml");
   String mz_file = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.mzML");
   String exp_name = "PepXMLFile_test";
@@ -88,10 +62,10 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 
 END_SECTION
 
-START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name = ""))
+START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const String& experiment_name = ""))
 {
   vector<ProteinIdentification> proteins;
-  vector<PeptideIdentification> peptides;
+  PeptideIdentificationList peptides;
   // file contains results from two search runs:
   String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.pepxml");
   String exp_name = "PepXMLFile_test";
@@ -119,7 +93,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   PeptideHit pep_hit = first.getHits()[0];
   TEST_EQUAL(pep_hit.getSequence().toString(), ".(Glu->pyro-Glu)ELNKEMAAEKAKAAAG");
   TEST_EQUAL(pep_hit.getSequence().toUnmodifiedString(), "ELNKEMAAEKAKAAAG");
-  TEST_EQUAL(pep_hit.getRank(), 1);
+  TEST_EQUAL(pep_hit.getRank(), 0);
 
   // no use checking score, because implementation may still change
   TEST_EQUAL(pep_hit.getCharge(), 3);
@@ -171,7 +145,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   // search parameters:
   ProteinIdentification::SearchParameters params = proteins[0].getSearchParameters();
   TEST_EQUAL(params.db, "./current.fasta");
-  TEST_EQUAL(params.mass_type, ProteinIdentification::MONOISOTOPIC);
+  TEST_EQUAL(params.mass_type, ProteinIdentification::PeakMassType::MONOISOTOPIC);
   TEST_EQUAL(params.digestion_enzyme.getName(), "Trypsin");
 
   vector<String> fix_mods(params.fixed_modifications), var_mods(params.variable_modifications);
@@ -216,10 +190,10 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 }
 END_SECTION
 
-START_SECTION([EXTRA] void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name = ""))
+START_SECTION([EXTRA] void load(const String& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const String& experiment_name = ""))
 {
   vector<ProteinIdentification> proteins;
-  vector<PeptideIdentification> peptides;
+  PeptideIdentificationList peptides;
   // file contains results from two search runs:
   String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_extended.pepxml");
   String exp_name = "PepXMLFile_test";
@@ -250,7 +224,7 @@ START_SECTION([EXTRA] void load(const String& filename, std::vector<ProteinIdent
   PeptideHit pep_hit = last.getHits()[0];
   TEST_EQUAL(pep_hit.getSequence().toString(), "VVITAPGGNDVK");
   TEST_EQUAL(pep_hit.getSequence().toUnmodifiedString(), "VVITAPGGNDVK");
-  TEST_EQUAL(pep_hit.getRank(), 1);
+  TEST_EQUAL(pep_hit.getRank(), 0);
   TEST_EQUAL(pep_hit.getCharge(), 2);
 
   // check the analysis scores
@@ -316,10 +290,10 @@ START_SECTION([EXTRA] void load(const String& filename, std::vector<ProteinIdent
 }
 END_SECTION
 
-START_SECTION(void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "", const String& mz_name = "", bool peptideprophet_analyzed = false))
+START_SECTION(void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const String& mz_file = "", const String& mz_name = "", bool peptideprophet_analyzed = false))
 {
   vector<ProteinIdentification> proteins;
-  vector<PeptideIdentification> peptides;
+  PeptideIdentificationList peptides;
   String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_store.pepxml");
   PepXMLFile().load(filename, proteins, peptides);
 
@@ -349,11 +323,11 @@ START_SECTION(void store(const String& filename, std::vector<ProteinIdentificati
 }
 END_SECTION
 
-START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "", const String& mz_name = "", bool peptideprophet_analyzed = false))
+START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const String& mz_file = "", const String& mz_name = "", bool peptideprophet_analyzed = false))
 {
   {  
     vector<ProteinIdentification> proteins;
-    vector<PeptideIdentification> peptides;
+    PeptideIdentificationList peptides;
     // file contains results from two search runs:
     String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_extended.pepxml");
     String exp_name = "PepXMLFile_test";
@@ -373,7 +347,7 @@ START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIden
 
     // And read it back in again
     vector<ProteinIdentification> proteins_new;
-    vector<PeptideIdentification> peptides_new;
+    PeptideIdentificationList peptides_new;
     file.load(cm_file_out, proteins_new, peptides_new, exp_name);
 
     TEST_EQUAL(proteins.size(), proteins_new.size())
@@ -393,7 +367,7 @@ START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIden
     PeptideHit pep_hit = last.getHits()[0];
     TEST_EQUAL(pep_hit.getSequence().toString(), "VVITAPGGNDVK");
     TEST_EQUAL(pep_hit.getSequence().toUnmodifiedString(), "VVITAPGGNDVK");
-    TEST_EQUAL(pep_hit.getRank(), 1);
+    TEST_EQUAL(pep_hit.getRank(), 0);
     TEST_EQUAL(pep_hit.getCharge(), 2);
 
     // test extra attributes (correctly read and written)
@@ -430,7 +404,7 @@ START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIden
   // test keep native spectrum name = false
   {  
     vector<ProteinIdentification> proteins;
-    vector<PeptideIdentification> peptides;
+    PeptideIdentificationList peptides;
     String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_extended.pepxml");
     String exp_name = "PepXMLFile_test";
     PepXMLFile file;
@@ -444,7 +418,7 @@ START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIden
 
     // And read it back in again
     vector<ProteinIdentification> proteins_new;
-    vector<PeptideIdentification> peptides_new;
+    PeptideIdentificationList peptides_new;
     file.load(cm_file_out, proteins_new, peptides_new, exp_name);
 
     // peptide IDs:
@@ -457,10 +431,10 @@ START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIden
 END_SECTION
 
 // store PepXML with mzML file information
-START_SECTION(void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "PepXMLFile_test.mzML", const String& mz_name = "", bool peptideprophet_analyzed = false))
+START_SECTION(void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const String& mz_file = "PepXMLFile_test.mzML", const String& mz_name = "", bool peptideprophet_analyzed = false))
 {
   vector<ProteinIdentification> proteins;
-  vector<PeptideIdentification> peptides;
+  PeptideIdentificationList peptides;
   String mzML_filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.mzML");
   String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_store.pepxml");
   PepXMLFile().load(filename, proteins, peptides);
@@ -492,7 +466,7 @@ START_SECTION(([EXTRA] checking pepxml transformation to reusable identification
 
   // PepXMLFile file; // shadow
   vector<ProteinIdentification> proteins, reread_proteins;
-  vector<PeptideIdentification> peptides, reread_peptides;
+  PeptideIdentificationList peptides, reread_peptides;
   String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_store.pepxml");
   PepXMLFile().load(filename, proteins, peptides);
 

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Veit $
@@ -39,7 +13,10 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QSvgRenderer>
 #include <QtCore/QFileInfo>
@@ -102,20 +79,26 @@ namespace OpenMS
   QStringList TOPPASVertex::TOPPASFilenames::getSuffixCounts() const
   {
     // display file type(s)
-    std::map<QString, Size> suffices;
-    for (const QString& fn : filenames_)
+    std::map<String, Size> suffices;
+    try 
     {
-      QStringList l = QFileInfo(fn).completeSuffix().split('.');
-      QString suf = ((l.size() > 1 && l[l.size() - 2].size() <= 4) ? l[l.size() - 2] + "." : QString()) + l.back(); // take up to two dots as suffix (the first only if its <=4 chars, e.g. we want ".prot.xml" or ".tar.gz", but not "stupid.filename.with.longdots.mzML")
-      ++suffices[suf];
+      for (const auto& fn : filenames_)
+      {
+        auto type = FileHandler::getType(fn.toStdString());
+        ++suffices[FileTypes::typeToName(type)];
+      }
+    }
+    catch (...)
+    { // in a dry-run, the file might not exist, so we cannot determine the type
+      ++suffices[FileTypes::typeToName(FileTypes::UNKNOWN)];
     }
     QStringList text_l;
-    for (std::map<QString, Size>::const_iterator sit = suffices.begin(); sit != suffices.end(); ++sit)
+    for (const auto& [suffix, count] : suffices)
     {
       if (suffices.size() > 1)
-        text_l.push_back("." + sit->first + "(" + String(sit->second).toQString() + ")");
+        text_l.push_back(toQString(String("." + suffix + "(" + String(count) + ")")));
       else
-        text_l.push_back("." + sit->first);
+        text_l.push_back("." + toQString(suffix));
     }
     return text_l;
   }
@@ -131,9 +114,9 @@ namespace OpenMS
     }
 #else
     // on Unix (Linux/Mac), constraint applies to the file name:
-    if (File::basename(filename).size() > max_filename_length)
+    if (File::basename(fromQString(filename)).size() > max_filename_length)
     {
-      throw Exception::FileNameTooLong(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, File::basename(filename), max_filename_length);
+      throw Exception::FileNameTooLong(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, File::basename(fromQString(filename)), max_filename_length);
     }
 #endif
   }
@@ -226,8 +209,8 @@ namespace OpenMS
     // recycling status
     if (this->allow_output_recycling_)
     {
-      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), nullptr);
-      svg_renderer->render(painter, QRectF(-7, boundingRect().y() + 9.0, 14, 14));
+      QSvgRenderer svg_renderer(QString(":/Recycling_symbol.svg"), nullptr);
+      svg_renderer.render(painter, QRectF(-7, boundingRect().y() + 9.0, 14, 14));
     }
   }
 
@@ -247,8 +230,6 @@ namespace OpenMS
       {
         // some tool that we depend on has not finished execution yet --> do not start yet
         debugOut_("Not run (parent not finished)");
-
-        __DEBUG_END_METHOD__
         return false;
       }
     }
@@ -661,4 +642,4 @@ namespace OpenMS
     return reachable_;
   }
 
-}
+} // namespace OpenMS

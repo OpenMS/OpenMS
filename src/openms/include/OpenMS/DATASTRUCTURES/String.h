@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -40,8 +14,6 @@
 #include <string>
 #include <cstring>
 #include <vector>
-
-class QString;
 
 namespace OpenMS
 {
@@ -95,8 +67,6 @@ public:
     OPENMS_DLLAPI String(const std::string& s);
     /// Constructor from std::string_view
     OPENMS_DLLAPI String(const std::string_view& sv);
-    /// Constructor from Qt QString
-    OPENMS_DLLAPI String(const QString& s);
     /// Constructor from char*
     OPENMS_DLLAPI String(const char* s);
     /// Constructor from a char
@@ -210,10 +180,10 @@ public:
     /**
      @brief Wrapper for the STL substr() method. Returns a String object with its contents initialized to a substring of the current object.
 
-     @param pos Position of a character in the current string object to be used as starting character for the substring.
+     @param[in] pos Position of a character in the current string object to be used as starting character for the substring.
      If the @p pos is past the end of the string, it is set to the end of the string.
 
-     @param n Length of the substring.
+     @param[in] n Length of the substring.
      If this value would make the substring to span past the end of the current string content, only those characters until the end of the string are used.
      npos is a static member constant value with the greatest possible value for an element of type size_t, therefore, when this value is used, all the
      characters between pos and the end of the string are used as the initialization substring.
@@ -226,7 +196,7 @@ public:
 
       If @p n is greater than size(), the result is an empty string.
 
-      @param n Number of characters that will be removed from the end of the string.
+      @param[in] n Number of characters that will be removed from the end of the string.
      */
     OPENMS_DLLAPI String chop(Size n) const;
 
@@ -356,9 +326,6 @@ public:
       @exception Exception::ConversionError is thrown if the string could not be converted to double
     */
     OPENMS_DLLAPI double toDouble() const;
-
-    /// Conversion to Qt QString
-    OPENMS_DLLAPI QString toQString() const;
 
     //@}
 

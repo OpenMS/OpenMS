@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -33,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <iostream>
+#include <algorithm>
 
 #include <OpenMS/CONCEPT/LogConfigHandler.h>
 
@@ -43,6 +18,12 @@ using std::endl;
 namespace OpenMS
 {
   String LogConfigHandler::PARAM_NAME = "log";
+  
+  namespace 
+  {
+    // Order of log levels from lowest to highest priority
+    const std::vector<String> LOG_LEVELS = {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR"};
+  }
 
   LogConfigHandler::LogConfigHandler()
   {
@@ -137,9 +118,10 @@ namespace OpenMS
           const String & stream_type = commands[3];
 
           // check if a stream with the same name, but different type was already registered
-          if (stream_type_map_.count(stream_name) != 0)
+          auto existing = stream_type_map_.find(stream_name);
+          if (existing != stream_type_map_.end())
           {
-            if (stream_type_map_[stream_name] != getStreamTypeByName_(stream_type))
+            if (existing->second != getStreamTypeByName_(stream_type))
             {
               throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "A stream with the same name but different type was already registered.");
             }
@@ -240,29 +222,96 @@ namespace OpenMS
     }
   }
 
+  void LogConfigHandler::setLogLevel(const String & log_level)
+  {
+    // Special case: "NONE" means disable all logging
+    if (log_level == "NONE")
+    {
+      for (const auto& lvl : LOG_LEVELS)
+      {
+        getLogStreamByName_(lvl).removeAllStreams();
+      }
+      return;
+    }
+    
+    // Find the index of the target log level
+    auto target_it = std::find(LOG_LEVELS.begin(), LOG_LEVELS.end(), log_level);
+    if (target_it == LOG_LEVELS.end())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                       "Invalid log level '" + log_level + "'. Valid levels are: DEBUG, INFO, WARNING, ERROR, FATAL_ERROR, NONE");
+    }
+    
+    size_t target_index = std::distance(LOG_LEVELS.begin(), target_it);
+    
+    // Remove streams from all levels below the target level
+    for (size_t i = 0; i < target_index; ++i)
+    {
+      getLogStreamByName_(LOG_LEVELS[i]).removeAllStreams();
+    }
+    
+    // Restore configured streams for the target level and all levels above it
+    for (size_t i = target_index; i < LOG_LEVELS.size(); ++i)
+    {
+      const String& lvl = LOG_LEVELS[i];
+      Logger::LogStream& log = getLogStreamByName_(lvl);
+      const std::set<String>& configured_streams = getConfigSetByName_(lvl);
+      
+      // First, remove all current streams
+      log.removeAllStreams();
+      
+      // Then add back the configured streams
+      for (const String& stream_name : configured_streams)
+      {
+        if (stream_name == "cout")
+        {
+          log.insert(cout);
+        }
+        else if (stream_name == "cerr")
+        {
+          log.insert(cerr);
+        }
+        else
+        {
+          // Handle file/string streams from StreamHandler
+          auto it = stream_type_map_.find(stream_name);
+          if (it != stream_type_map_.end())
+          {
+            StreamHandler::StreamType type = it->second;
+            if (STREAM_HANDLER.hasStream(type, stream_name))
+            {
+              log.insert(STREAM_HANDLER.getStream(type, stream_name));
+              log.setPrefix(STREAM_HANDLER.getStream(type, stream_name), "[%S] ");
+            }
+          }
+        }
+      }
+    }
+  }
+
   Logger::LogStream & LogConfigHandler::getLogStreamByName_(const String & stream_name)
   {
-    Logger::LogStream * log = &OpenMS_Log_debug; // default
+    Logger::LogStream * log = &getGlobalLogDebug(); // default
 
     if (stream_name == "DEBUG")
     {
-      log = &OpenMS_Log_debug;
+      log = &getGlobalLogDebug();
     }
     else if (stream_name == "INFO")
     {
-      log = &OpenMS_Log_info;
+      log = &getGlobalLogInfo();
     }
     else if (stream_name == "WARNING")
     {
-      log = &OpenMS_Log_warn;
+      log = &getGlobalLogWarn();
     }
     else if (stream_name == "ERROR")
     {
-      log = &OpenMS_Log_error;
+      log = &getGlobalLogError();
     }
     else if (stream_name == "FATAL_ERROR")
     {
-      log = &OpenMS_Log_fatal;
+      log = &getGlobalLogFatal();
     }
     else
     {
@@ -304,9 +353,10 @@ namespace OpenMS
 
   std::ostream & LogConfigHandler::getStream(const String & name)
   {
-    if (stream_type_map_.count(name) != 0)
+    auto it = stream_type_map_.find(name);
+    if (it != stream_type_map_.end())
     {
-      return STREAM_HANDLER.getStream(stream_type_map_[name], name);
+      return STREAM_HANDLER.getStream(it->second, name);
     }
     else
     {
@@ -366,7 +416,7 @@ namespace OpenMS
 
     printStreamConfig_(os, "OPENMS_LOG_DEBUG", lch.debug_streams_, lch.stream_type_map_);
     printStreamConfig_(os, "OPENMS_LOG_INFO", lch.info_streams_, lch.stream_type_map_);
-    printStreamConfig_(os, "LOG_WARNING", lch.warn_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_WARN", lch.warn_streams_, lch.stream_type_map_);
     printStreamConfig_(os, "OPENMS_LOG_ERROR", lch.error_streams_, lch.stream_type_map_);
     printStreamConfig_(os, "OPENMS_LOG_FATAL_ERROR", lch.fatal_streams_, lch.stream_type_map_);
 
@@ -375,13 +425,13 @@ namespace OpenMS
 
   LogConfigHandler * LogConfigHandler::instance_ = nullptr;
 
-  LogConfigHandler & LogConfigHandler::getInstance()
+  LogConfigHandler * LogConfigHandler::getInstance()
   {
     if (LogConfigHandler::instance_ == nullptr)
     {
       LogConfigHandler::instance_ = new LogConfigHandler();
     }
-    return *LogConfigHandler::instance_;
+    return LogConfigHandler::instance_;
   }
 
 } // end namespace OpenMS

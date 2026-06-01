@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -36,11 +10,13 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <QDesktopServices>
 #include <QGuiApplication>
 #include <QMessageBox>
 #include <QPainter>
 #include <QPoint>
+#include <QPointF>
 #include <QProcess>
 #include <QRectF>
 #include <QString>
@@ -76,25 +52,26 @@ namespace OpenMS
                                                         const FileTypes::Type fallback_extension)
   {
     QString selected_filter;
-    QString file_name = QFileDialog::getSaveFileName(parent, caption, dir, supported_file_types.toFileDialogFilter(FilterLayout::ONE_BY_ONE, add_all_filter).toQString(), &selected_filter);
+    QString file_name = QFileDialog::getSaveFileName(parent, caption, dir, toQString(supported_file_types.toFileDialogFilter(FilterLayout::ONE_BY_ONE, add_all_filter)), &selected_filter);
     if (file_name.isEmpty())
     {
       return file_name;
     }
     // check whether a file type suffix has been given, or fall back to @p fallback_extension (if 'all filter' was used)
-    file_name = FileHandler::swapExtension(file_name, supported_file_types.fromFileDialogFilter(selected_filter, fallback_extension)).toQString();
+    file_name = toQString(FileHandler::swapExtension(fromQString(file_name), supported_file_types.fromFileDialogFilter(fromQString(selected_filter), fallback_extension)));
     return file_name;
   }
 
-  void GUIHelpers::startTOPPView(const QStringList& args)
+
+
+  bool GUIHelpers::startTOPPView(QStringList args)
   {
-    QProcess p;
-    p.setProcessChannelMode(QProcess::ForwardedChannels);
+    QString app_path;
 #if defined(__APPLE__)
     // check if we can find the TOPPView.app
-    QString app_path = (File::getExecutablePath() + "../../../TOPPView.app").toQString();
+    app_path = toQString(File::getExecutablePath() + "../../../TOPPView.app");
 
-    if (File::exists(app_path))
+    if (File::exists(fromQString(app_path)))
     {
       // we found the app
       QStringList app_args;
@@ -102,29 +79,28 @@ namespace OpenMS
       app_args.append(app_path);
       app_args.append("--args");
       app_args.append(args);
-      p.start("/usr/bin/open", app_args);
+      args = app_args;
+      app_path = "/usr/bin/open";
     }
     else
-    {
-      // we could not find the app, try it the Linux way
-      QString toppview_executable = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
-      p.start(toppview_executable, args);
+    { // we could not find the app, try it the Linux way
+      app_path = toQString(File::findSiblingTOPPExecutable("TOPPView"));
     }
 #else
     // LINUX+WIN
-    QString toppview_executable = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
-    p.start(toppview_executable, args);
+    app_path = toQString(File::findSiblingTOPPExecutable("TOPPView"));
 #endif
 
-
-    if (!p.waitForStarted())
+    if (!QProcess::startDetached(app_path, args))
     {
       // execution failed
-      OPENMS_LOG_ERROR << p.errorString().toStdString() << std::endl;
-  #if defined(Q_WS_MAC)
+      OPENMS_LOG_ERROR << "Could not start '" << app_path.toStdString() << "'. Please see above for error messages." << std::endl;
+  #if defined(__APPLE__)
       OPENMS_LOG_ERROR << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
   #endif
+      return false;
     }
+    return true;
   }
 
   void GUIHelpers::openURL(const QString& target)
@@ -137,8 +113,8 @@ namespace OpenMS
       // we expect all unqualified urls to be file urls
       try
       {
-        String local_url = File::findDoc(target);
-        url_target = QUrl::fromLocalFile(local_url.toQString());
+        String local_url = File::findDoc(fromQString(target));
+        url_target = QUrl::fromLocalFile(toQString(local_url));
       }
       catch (Exception::FileNotFound&)
       {
@@ -192,13 +168,7 @@ namespace OpenMS
     int width = 4;
     for (int i = 0; i < text.size(); ++i)
     {
-      /*
-       * QFontMetrics::width() is deprecated after Qt 5.11. Use QFontMetrics::horizontalAdvance()
-       */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-      width = std::max(width, 4 + metrics.width(text[i]));
-#pragma GCC diagnostic pop
+      width = std::max(width, 4 + metrics.horizontalAdvance(text[i]));
     }
     return QRectF(0, 0, width, height);
   }
@@ -273,14 +243,14 @@ namespace OpenMS
   StringList GUIHelpers::convert(const QStringList& in)
   {
     StringList out;
-    for (const auto& s : in) out.push_back(s);
+    for (const auto& s : in) out.push_back(fromQString(s));
     return out;
   }
 
   QStringList GUIHelpers::convert(const StringList& in)
   {
     QStringList out;
-    for (const auto& s : in) out.push_back(s.toQString());
+    for (const auto& s : in) out.push_back(toQString(s));
     return out;
   }
 
@@ -319,7 +289,7 @@ namespace OpenMS
   GUIHelpers::OverlapDetector::OverlapDetector(int levels)
   {
     if (levels <= 0)
-      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, levels);
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, levels, "levels must be positive");
     rows_.resize(levels, 0);
   }
 

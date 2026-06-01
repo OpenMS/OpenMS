@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni, Svetlana Kutuzova $
@@ -42,10 +16,37 @@
 namespace OpenMS
 {
 
-  /** @class MRMFeatureSelector
+  /**
+    @brief A base class for selection of MRM Features through Linear Programming optimization.
 
-    A Base class (it contains a pure virtual function named `optimize()`) for
-    selection of MRM Features through Linear Programming.
+    This class provides the framework for optimal feature selection in MRM/SRM experiments
+    using Linear Programming (LP). The key idea is to select the best peak for each transition
+    while maintaining consistency with neighboring transitions based on retention time relationships.
+
+    Two derived implementations are provided:
+    - @ref MRMFeatureSelectorQMIP - Uses Quadratic Mixed Integer Programming based on relative RT
+    - @ref MRMFeatureSelectorScore - Uses score-weighted linear programming
+
+    @section MRMFeatureSelector_algorithm Algorithm Overview
+
+    1. Features are sorted by retention time
+    2. The RT range is divided into overlapping segments (sliding window)
+    3. For each segment, an LP problem is formulated and solved
+    4. Solutions from segments are merged to produce final selection
+
+    @section MRMFeatureSelector_params Key Parameters
+
+    - `nn_threshold`: Number of nearest neighbors to include in optimization
+    - `segment_window_length`: Size of sliding window
+    - `segment_step_length`: Step size between windows
+    - `variable_type`: INTEGER (exact) or CONTINUOUS (relaxed) LP
+    - `optimal_threshold`: Cutoff for considering a feature as selected (0-1)
+    - `score_weights`: Weights for different scoring functions (LINEAR, LOG, INVERSE, etc.)
+
+    @see MRMBatchFeatureSelector for iterative batch processing
+    @see LPWrapper for the underlying LP solver interface
+
+    @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI MRMFeatureSelector
   {
@@ -101,7 +102,7 @@ public:
       bool   locality_weight         = false; ///< Weight compounds with a nearer Tr greater than compounds with a further Tr
       bool   select_transition_group = true; ///< Use components groups instead of components for retention time optimization
       Int    segment_window_length   = 8; ///< Number of components or component groups to include in the network
-      Int    segment_step_length     = 4; ///< Number of of components or component groups to shift the `segment_window_length` at each loop
+      Int    segment_step_length     = 4; ///< Number of components or component groups to shift the `segment_window_length` at each loop
       MRMFeatureSelector::VariableType variable_type = MRMFeatureSelector::VariableType::CONTINUOUS; ///< INTEGER or CONTINUOUS
       double optimal_threshold       = 0.5; ///< Value above which the transition group or transition is considered optimal (0 < x < 1)
       std::map<String, MRMFeatureSelector::LambdaScore> score_weights; ///< Weights for the scores
@@ -235,20 +236,36 @@ private:
   };
 
   /**
-    Class used to select MRMFeatures based on relative retention time using a
-    quadratic mixed integer programming (QMIP) formulation.
-    The method is described in [TODO: update when published]
+    @brief @ref MRMFeatureSelector implementation that selects MRM features via a quadratic-programming formulation over relative retention time.
+
+    For each transition, considers neighbouring transitions inside
+    @ref MRMFeatureSelector::SelectorParameters::nn_threshold and adds locality-weighted
+    pairwise terms keyed on the expected retention-time delta. Per-feature score is
+    normalised by the @c nth root of the number of @c score_weights entries (with @c n
+    the number of weights) so multi-weight configurations don't dominate the QP.
+
+    Companion to @ref MRMFeatureSelectorScore (linear, no nearest-neighbour coupling).
+
+    @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI MRMFeatureSelectorQMIP : public MRMFeatureSelector
   {
 public:
     /**
-      Set up the linear programming problem and solve it.
+      @brief Build the quadratic LP problem for @p time_to_name and write the names of selected features to @p result.
 
-      @param[in] time_to_name Pairs representing a mapping of retention times to transition names
-      @param[in] feature_name_map Transitions' names to their features objects
-      @param[out] result Transitions' names filtered out of the LP problem
-      @param[in] parameters Parameters
+      Uses @c LPWrapper with @c LPWrapper::MIN objective sense. For each transition,
+      registers one binary (or continuous, depending on
+      @ref MRMFeatureSelector::SelectorParameters::variable_type) variable per feature,
+      then for every neighbour within @c nn_threshold adds a locality-weighted pairwise
+      term keyed on the expected RT delta. After solving, every column whose value is
+      @c >= @c parameters.optimal_threshold contributes its name to @p result.
+      @p result is cleared on entry.
+
+      @param[in]  time_to_name      Pairs of (retention time, transition name); the order of this vector defines the neighbour sliding window.
+      @param[in]  feature_name_map  Transition name → its candidate features.
+      @param[out] result            Names of the selected features (one per column whose solver value clears @c optimal_threshold). Cleared on entry.
+      @param[in]  parameters        Algorithm parameters (@c nn_threshold, @c locality_weight, @c variable_type, @c score_weights, @c optimal_threshold, ...).
     */
     void optimize(
       const std::vector<std::pair<double, String>>& time_to_name,
@@ -259,20 +276,35 @@ public:
   };
 
   /**
-    Class used to select MRMFeatures based on a linear programming where each
-    possible transition is weighted by a user defined score (most often retention
-    time and peak intensity). The method is described in [TODO: update when published].
+    @brief @ref MRMFeatureSelector implementation that selects MRM features via a linear program with score-weighted per-feature variables.
+
+    Simpler than @ref MRMFeatureSelectorQMIP — no nearest-neighbour coupling, no
+    pairwise quadratic terms. Each transition contributes one binary (or continuous)
+    variable per candidate feature plus an equality constraint forcing exactly one
+    feature to be picked per transition (sum @c == @c 1). The objective is the sum of
+    per-feature scores produced by @c computeScore_ from
+    @ref MRMFeatureSelector::SelectorParameters::score_weights.
+
+    @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI MRMFeatureSelectorScore : public MRMFeatureSelector
   {
 public:
     /**
-      Set up the linear programming problem and solve it.
+      @brief Build the linear program for @p time_to_name and write the names of selected features to @p result.
 
-      @param[in] time_to_name Pairs representing a mapping of retention times to transition names
-      @param[in] feature_name_map Transitions' names to their features objects
-      @param[out] result Transitions' names filtered out of the LP problem
-      @param[in] parameters Parameters
+      Uses @c LPWrapper with @c LPWrapper::MIN objective sense. For each transition,
+      registers one variable per candidate feature (binary or continuous, per
+      @c parameters.variable_type) scored by @c computeScore_, and adds a
+      @c DOUBLE_BOUNDED constraint with both bounds equal to @c 1.0 (i.e. exactly one
+      feature must be picked per transition). After solving, every column whose value
+      is @c >= @c parameters.optimal_threshold contributes its name to @p result.
+      @p result is cleared on entry.
+
+      @param[in]  time_to_name      Pairs of (retention time, transition name). Order is irrelevant — unlike the QMIP variant, no neighbour window is used.
+      @param[in]  feature_name_map  Transition name → its candidate features.
+      @param[out] result            Names of the selected features (one per column whose solver value clears @c optimal_threshold). Cleared on entry.
+      @param[in]  parameters        Algorithm parameters (@c variable_type, @c score_weights, @c optimal_threshold; @c nn_threshold and @c locality_weight are not consulted).
     */
     void optimize(
       const std::vector<std::pair<double, String>>& time_to_name,

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: $
@@ -48,17 +22,16 @@
 #define ISOSPEC_GOT_MMAN false
 #define ISOSPEC_BUILDING_OPENMS true
 
-#include <OpenMS/../../thirdparty/IsoSpec/IsoSpec/isoSpec++.h>
-
-#include "IsoSpec/allocator.cpp"
-#include "IsoSpec/dirtyAllocator.cpp"
-#include "IsoSpec/isoSpec++.cpp"
-#include "IsoSpec/isoMath.cpp"
-#include "IsoSpec/marginalTrek++.cpp"
-#include "IsoSpec/operators.cpp"
-#include "IsoSpec/element_tables.cpp"
-#include "IsoSpec/misc.cpp"
-#include "IsoSpec/fasta.cpp"
+// Include IsoSpec headers (library is now linked via CMake)
+#include "IsoSpec/allocator.h"
+#include "IsoSpec/dirtyAllocator.h"
+#include "IsoSpec/isoSpec++.h"
+#include "IsoSpec/isoMath.h"
+#include "IsoSpec/marginalTrek++.h"
+#include "IsoSpec/operators.h"
+#include "IsoSpec/element_tables.h"
+#include "IsoSpec/misc.h"
+#include "IsoSpec/fasta.h"
 
 using namespace std;
 using namespace IsoSpec;
@@ -89,7 +62,7 @@ namespace OpenMS
     // Convert vector of vector to double**
     std::unique_ptr<const double*[]> IM(new const double*[dimNumber]);
     std::unique_ptr<const double*[]> IP(new const double*[dimNumber]);
-    for (int i=0; i<dimNumber; i++)
+    for (int i = 0; i < dimNumber; i++)
     {
       IM[i] = isotopeMasses[i].data();
       IP[i] = isotopeProbabilities[i].data();
@@ -235,7 +208,7 @@ namespace OpenMS
     ITG->reset();
 
     while (ITG->advanceToNextConfiguration())
-        distribution.emplace_back(Peak1D(ITG->mass(), ITG->prob()));
+        distribution.emplace_back(ITG->mass(), ITG->prob());
 
     IsotopeDistribution ID;
 
@@ -287,7 +260,7 @@ namespace OpenMS
     {
         double p = ILG->prob();
         acc_prob += p;
-        distribution.emplace_back(Peak1D(ILG->mass(), p));
+        distribution.emplace_back(ILG->mass(), p);
     }
 
     if (do_p_trim)
@@ -295,7 +268,7 @@ namespace OpenMS
         // the p_trim: extract the rest of the last layer, and perform quickselect
 
         while (ILG->advanceToNextConfigurationWithinLayer())
-            distribution.emplace_back(Peak1D(ILG->mass(), ILG->prob()));
+            distribution.emplace_back(ILG->mass(), ILG->prob());
 
         size_t start = 0;
         size_t end = distribution.size();
@@ -336,5 +309,5 @@ namespace OpenMS
     IsotopeDistribution ID;
     ID.set(std::move(distribution));
     return ID;
-}
+  }
 }  // namespace OpenMS

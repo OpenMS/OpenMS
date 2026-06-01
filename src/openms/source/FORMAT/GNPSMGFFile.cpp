@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Dorrestein Lab - University of California San Diego - https://dorresteinlab.ucsd.edu/$
@@ -35,11 +9,14 @@
 //
 
 #include <OpenMS/FORMAT/GNPSMGFFile.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
+#include <OpenMS/COMPARISON/BinnedSpectralContrastAngle.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -74,9 +51,9 @@ namespace OpenMS
 
   /**
    * @brief Bin peaks by similar m/z position and averaged intensities
-   * @param peaks Vector of Peak1D peaks sorted by m/z position
-   * @param bin_width Size of bin
-   * @param binned_peaks Result vector with binned peaks passed in by reference
+   * @param[in] peaks Vector of Peak1D peaks sorted by m/z position
+   * @param[in] bin_width Size of bin
+   * @param[out] binned_peaks Result vector with binned peaks passed in by reference
    */
   void binPeaks_(
     const vector<Peak1D> &peaks,
@@ -116,9 +93,9 @@ namespace OpenMS
 
   /**
    * @brief Flatten spectra from MSExperiment into a single vector of Peak1D peaks
-   * @param exp MSExperiment containing at least 1 spectrum
-   * @param bin_width Size of binned scan (m/z)
-   * @param merged_peaks Result vector of peaks passed in by reference
+   * @param[in] exp MSExperiment containing at least 1 spectrum
+   * @param[in] bin_width Size of binned scan (m/z)
+   * @param[out] merged_peaks Result vector of peaks passed in by reference
    */
   void flattenAndBinSpectra_(
     MSExperiment &exp,
@@ -150,13 +127,13 @@ namespace OpenMS
 
   /**
    * @brief Private function that outputs MS/MS Block Header
-   * @param output_file Stream that will write to file
-   * @param scan_index Current scan index in GNPSExport formatted output
-   * @param feature_id ConsensusFeature Id found in input mzXML file
-   * @param feature_charge ConsensusFeature's highest charge as mentioned in the input mzXML file
-   * @param feature_mz m/z position of PeptideIdentification with highest intensity
-   * @param spec_index Spectrum index of PeptideIdentification with highest intensity
-   * @param feature_rt ConsensusFeature's retention time specified in input mzXML file
+   * @param[in] output_file Stream that will write to file
+   * @param[out] scan_index Current scan index in GNPSExport formatted output
+   * @param[in] feature_id ConsensusFeature Id found in input mzXML file
+   * @param[in] feature_charge ConsensusFeature's highest charge as mentioned in the input mzXML file
+   * @param[in] feature_mz m/z position of PeptideIdentification with highest intensity
+   * @param[in] spec_index Spectrum index of PeptideIdentification with highest intensity
+   * @param[in] feature_rt ConsensusFeature's retention time specified in input mzXML file
    */
   void writeMSMSBlockHeader_(
     ofstream &output_file,
@@ -176,7 +153,7 @@ namespace OpenMS
                   << "SCANS=" << scan_index << "\n"
                   << "FEATURE_ID=e_" << feature_id << "\n"
                   << "MSLEVEL=2" << "\n"
-                  << "CHARGE=" << to_string(feature_charge == 0 ? 1 : feature_charge) << "+" << "\n"
+                  << "CHARGE=" << to_string(feature_charge == 0 ? 1 : abs(feature_charge))+(feature_charge >= 0 ? "+" : "-") << "\n"
                   << "PEPMASS=" << feature_mz << "\n"
                   << "FILE_INDEX=" << spec_index << "\n"
                   << "RTINSECONDS=" << feature_rt << "\n";
@@ -185,8 +162,8 @@ namespace OpenMS
 
   /**
    * @brief Private function to write peak mass and intensity to output file
-   * @param output_file Stream that will write to file
-   * @param peaks Vector of peaks that will be outputted
+   * @param[in] output_file Stream that will write to file
+   * @param[out] peaks Vector of peaks that will be outputted
    */
   void writeMSMSBlock_(
     ofstream &output_file,
@@ -207,8 +184,8 @@ namespace OpenMS
 
   /**
    * @brief Private method used to sort PeptideIdentification map indices in order of annotation's intensity
-   * @param feature ConsensusFeature annotated with PeptideIdentifications
-   * @param featureMaps_sortedByInt Result vector of map indices in order of PeptideIdentification intensity
+   * @param[in] feature ConsensusFeature annotated with PeptideIdentifications
+   * @param[out] featureMaps_sortedByInt Result vector of map indices in order of PeptideIdentification intensity
    */
   void sortElementMapsByIntensity_(const ConsensusFeature& feature, vector<pair<int,double>>& element_maps)
   {
@@ -229,9 +206,9 @@ namespace OpenMS
 
   /**
    * @brief Retrieve list of PeptideIdentification parameters from ConsensusFeature metadata, sorted by map intensity
-   * @param feature ConsensusFeature feature containing PeptideIdentification annotations
-   * @param sorted_element_maps Sorted list of element_maps
-   * @param pepts Result vector of <map_index,spectrum_index> of PeptideIdentification annotations sorted by map intensity in feature
+   * @param[in] feature ConsensusFeature feature containing PeptideIdentification annotations
+   * @param[in] sorted_element_maps Sorted list of element_maps
+   * @param[out] pepts Result vector of <map_index,spectrum_index> of PeptideIdentification annotations sorted by map intensity in feature
    */
   void getElementPeptideIdentificationsByElementIntensity_(
     const ConsensusFeature& feature,
@@ -242,7 +219,7 @@ namespace OpenMS
     for (pair<int,double>& element_pair : sorted_element_maps)
     {
       int element_map = element_pair.first;
-      vector<PeptideIdentification> feature_pepts = feature.getPeptideIdentifications();
+      PeptideIdentificationList feature_pepts = feature.getPeptideIdentifications();
       for (PeptideIdentification& pept_id : feature_pepts)
       {
         if (pept_id.metaValueExists("spectrum_index") && pept_id.metaValueExists("map_index")
@@ -255,7 +232,7 @@ namespace OpenMS
         }
       }
     }
-    // return will be reformatted vector<PeptideIdentification> pepts passed in by value
+    // return will be reformatted PeptideIdentificationList pepts passed in by value
   }
 
   void GNPSMGFFile::store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const
@@ -274,9 +251,8 @@ namespace OpenMS
     // reading input
     //-------------------------------------------------------------
     // ConsensusMap
-    ConsensusXMLFile consensus_file;
     ConsensusMap consensus_map;
-    consensus_file.load(consensus_file_path, consensus_map);
+    FileHandler().loadConsensusFeatures(consensus_file_path, consensus_map, {FileTypes::CONSENSUSXML});
 
     //-------------------------------------------------------------
     // open on-disc data (=spectra are only loaded on demand to safe memory)
@@ -338,6 +314,8 @@ namespace OpenMS
       const int best_speci = pepts[0].second;
       auto best_spec = specs_list[map_index2file_index[best_mapi]][best_speci];
 
+      if (best_spec.empty()) continue; // some Bruker files have MS2 spectra without peaks. skip those during exprot
+
       // write block output header
       writeMSMSBlockHeader_(
         output_file,
@@ -349,6 +327,8 @@ namespace OpenMS
         best_speci,
         best_spec.getRT()
       );
+
+      // OPENMS_LOG_DEBUG << "Best spectrum (index/RT): " << best_speci << "\t" << best_spec.getRT() << std::endl;
 
       // store outputted spectra in MSExperiment
       MSExperiment exp;

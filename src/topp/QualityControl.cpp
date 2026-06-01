@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -36,18 +10,18 @@
 
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/QC/Contaminants.h>
 #include <OpenMS/QC/FragmentMassError.h>
@@ -63,7 +37,6 @@
 #include <OpenMS/QC/MQEvidenceExporter.h>
 #include <OpenMS/QC/MQMsmsExporter.h>
 #include <OpenMS/QC/MQExporterHelper.h>
-#include <cstdio>
 
 #include <map>
 
@@ -83,9 +56,9 @@ using namespace std;
 <CENTER>
 <table>
 <tr>
-<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+<th ALIGN = "center"> pot. predecessor tools </td>
 <td VALIGN="middle" ROWSPAN=4> &rarr; QualityControl &rarr;</td>
-<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+<th ALIGN = "center"> pot. successor tools </td>
 </tr>
 <tr>
 <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinkerUnlabeledKD (or FLs; for consensusXML)</td>
@@ -99,8 +72,6 @@ using namespace std;
 </tr>
 </table>
 </CENTER>
-
-See @ref TOPP_example_qualitycontrol for details.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_QualityControl.cli
@@ -116,7 +87,7 @@ class TOPPQualityControl : public TOPPBase
 {
 public:
   TOPPQualityControl()
-      : TOPPBase("QualityControl", "Computes various QC metrics from many possible input files (only the consensusXML is required). The more optional files you provide, the more metrics you get.", true)
+      : TOPPBase("QualityControl", "Computes various QC metrics.\nMany input formats are supported only the consensusXML is required.\nThe more optional files you provide, the more metrics you get.", true)
   {
   }
 protected:
@@ -148,8 +119,11 @@ protected:
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
     registerFlag_("MS2_id_rate:assume_all_target", "Forces the metric to run even if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
-    registerStringOption_("out_evd", "<Path>", "", "If a Path is given, a MQEvidence txt-file will be created in this directory. If the directory does not exist, it will be created as well.", false);
-    registerStringOption_("out_msms", "<Path>", "", "If a Path is given, a MQMsms txt-file will be created in this directory. If the directory does not exist, it will be created as well.", false);
+    // MaxQuant-compatible output
+    registerTOPPSubsection_("out_txt", "Write MaxQuant-compatible .txt files");
+    registerOutputDir_("out_txt:directory", "<Path>", "", "If a Path is given, '.txt' files compatible with MaxQuant will be created in this directory. If the directory does not exist, it will be created.", false);
+    registerFlag_("out_txt:omit_mq_evidence", "Do NOT write the evidence.txt into 'out_txt:directory'?", false);
+    registerFlag_("out_txt:omit_mq_msms", "Do NOT write the msms.txt into 'out_txt:directory'?", false);
 
     //TODO get ProteinQuantifier output for PRT section
   }
@@ -188,7 +162,7 @@ protected:
 
     ConsensusMap cmap;
     String in_cm = getStringOption_("in_cm");
-    ConsensusXMLFile().load(in_cm, cmap);
+    FileHandler().loadConsensusFeatures(in_cm, cmap, {FileTypes::CONSENSUSXML});
     for (ConsensusFeature & cf: cmap) // make sure that the first PeptideIdentification of a ConsensusFeature is the one with the highest Score
     {
       sortVectorOfPeptideIDsbyScore_(cf.getPeptideIdentifications());
@@ -211,6 +185,8 @@ protected:
       }
       else // unlabeled == LFQ mode
       {
+        OPENMS_LOG_INFO << "Unlabeled data detected in ConsensusXML detected! This functionality is currently only supported if you also provide the featureXML files!"
+                        << std::endl;
         throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         // currently missing:
         // - invert RT of all features+their PepIDs to allow RTmetric to work (if TrafoXMLs are provided) -- or even better: delegate this to the RTMetric
@@ -283,19 +259,18 @@ protected:
     PSMExplainedIonCurrent qc_psm_corr;
     TIC qc_tic;
     Ms2SpectrumStats qc_ms2stats;
-    MzMLFile mzml_file;
     PeakMap exp;
     QCBase::SpectraMap spec_map;
 
     // Loop through featuremaps...
-    vector<PeptideIdentification> all_new_upep_ids;
+    PeptideIdentificationList all_new_upep_ids;
 
 
-    String out_evidence = getStringOption_("out_evd");
-    MQEvidence export_evidence(out_evidence);
-
-    String out_msms = getStringOption_("out_msms");
-    MQMsms export_msms(out_msms);
+    String out_txt_dir = getOutputDirOption("out_txt:directory");
+    const bool write_mq_evidence = !getFlag_("out_txt:omit_mq_evidence");
+    const bool write_mq_msms = !getFlag_("out_txt:omit_mq_msms");
+    MQEvidence export_evidence(write_mq_evidence ? out_txt_dir : "");
+    MQMsms export_msms(write_mq_msms ? out_txt_dir : "");
 
     vector<TIC::Result> tic_results;
     for (Size i = 0; i < number_exps; ++i)
@@ -305,16 +280,15 @@ protected:
       //-------------------------------------------------------------
       if (i < in_raw.size())
       { // we either have 'n' or 1 mzML ... use the correct one in each iteration
-        mzml_file.load(in_raw[i], exp);
+        FileHandler().loadExperiment(in_raw[i], exp, {FileTypes::MZML}, log_type_);
         spec_map.calculateMap(exp);
       }
 
       ProteinIdentification::Mapping mp_f;
-      FeatureXMLFile fxml_file;
       FeatureMap fmap_local;
       if (!in_postFDR.empty())
       {
-        fxml_file.load(in_postFDR[i], fmap_local);
+        FileHandler().loadFeatures(in_postFDR[i], fmap_local, {FileTypes::FEATUREXML}, log_type_);
         fmap = &fmap_local;
       }
       else
@@ -327,11 +301,10 @@ protected:
       }
       mp_f.create(fmap->getProteinIdentifications());
 
-      TransformationXMLFile trafo_file;
       TransformationDescription trafo_descr;
       if (!in_trafo.empty())
       {
-        trafo_file.load(in_trafo[i], trafo_descr);
+        FileHandler().loadTransformations(in_trafo[i], trafo_descr, true, {FileTypes::TRANSFORMATIONXML});
       }
       //-------------------------------------------------------------
       // calculations
@@ -391,18 +364,25 @@ protected:
       if (qc_ms2stats.isRunnable(status))
       {
         // copies FWHM metavalue to PepIDs as well
-        vector<PeptideIdentification> new_upep_ids = qc_ms2stats.compute(exp, *fmap, spec_map);
+        PeptideIdentificationList new_upep_ids = qc_ms2stats.compute(exp, *fmap, spec_map);
         // use identifier of CMap for just calculated pepIDs (via common MS-run-path)
-        const auto& f_runpath = mp_f.runpath_to_identifier.begin()->first; // just get any runpath from fmap
-        const auto ptr_cmap = mp_c.runpath_to_identifier.find(f_runpath);
-        if (ptr_cmap == mp_c.runpath_to_identifier.end())
+        // Get the first identifier from the feature map and its corresponding MS run paths
+        const auto f_identifiers = mp_f.getIdentifiers();
+        if (f_identifiers.empty())
+        {
+          OPENMS_LOG_ERROR << "FeatureXML has no protein identifications with MS run paths.\n";
+          return ILLEGAL_PARAMETERS;
+        }
+        const StringList& f_runpath = mp_f.getMSRunPaths(f_identifiers[0]);
+        String cmap_identifier;
+        if (!mp_c.tryGetIdentifier(f_runpath, cmap_identifier))
         {
           OPENMS_LOG_ERROR << "FeatureXML (MS run '" << ListUtils::concatenate(f_runpath, ", ") << "') does not correspond to ConsensusXML (run not found). Check input!\n";
           return ILLEGAL_PARAMETERS;
         }
         for (PeptideIdentification& pep_id : new_upep_ids)
         {
-          pep_id.setIdentifier(ptr_cmap->second);
+          pep_id.setIdentifier(cmap_identifier);
         }
 
         // annotate the RT alignment
@@ -419,22 +399,22 @@ protected:
       StringList out_feat = getStringList_("out_feat");
       if (!out_feat.empty())
       {
-        FeatureXMLFile().store(out_feat[i], *fmap);
+        FileHandler().storeFeatures(out_feat[i], *fmap, {FileTypes::FEATUREXML}, log_type_);
       }
       //-------------------------------------------------------------
       // Annotate calculated meta values from FeatureMap to given ConsensusMap
       //-------------------------------------------------------------
 
       // copy MetaValues of unassigned PepIDs
-      addPepIDMetaValues_(fmap->getUnassignedPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath, cmap);
+      addPepIDMetaValues_(fmap->getUnassignedPeptideIdentifications(), customID_to_cpepID, mp_f, cmap);
 
       // copy MetaValues of assigned PepIDs
       for (Feature& feature : *fmap)
       {
-        addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath, cmap);
+        addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f, cmap);
       }
 
-      if (MQExporterHelper::isValid(out_evidence) || MQExporterHelper::isValid(out_msms))
+      if (MQExporterHelper::isValid(out_txt_dir))
       {
         //if the user provided no fastafile, we can try this as a last resort
         const auto& cmap_prot_ids = cmap.getProteinIdentifications();
@@ -452,12 +432,12 @@ protected:
         indexFasta(prot_description, fasta_map);
 
 
-        if (MQExporterHelper::isValid(out_evidence))
+        if (write_mq_evidence)
         {
           OPENMS_LOG_INFO << "Exporting FeatureMap for evidence..." << std::endl;
           export_evidence.exportFeatureMap(*fmap,cmap,exp,fasta_map);
         }
-        if (MQExporterHelper::isValid(out_msms))
+        if (write_mq_msms)
         {
           OPENMS_LOG_INFO << "Exporting FeatureMap for msms..." << std::endl;
           export_msms.exportFeatureMap(*fmap,cmap,exp,fasta_map);
@@ -492,7 +472,7 @@ protected:
     String out_cm = getStringOption_("out_cm");
     if (!out_cm.empty())
     {
-      ConsensusXMLFile().store(out_cm, cmap);
+      FileHandler().storeConsensusFeatures(out_cm, cmap, {FileTypes::CONSENSUSXML}, log_type_);
     }
 
     String out = getStringOption_("out");
@@ -531,7 +511,7 @@ private:
     return files;
   }
 
-  void sortVectorOfPeptideIDsbyScore_(std::vector<PeptideIdentification>& pep_ids)
+  void sortVectorOfPeptideIDsbyScore_(PeptideIdentificationList& pep_ids)
   {
     for (PeptideIdentification& pep_id : pep_ids)
     {
@@ -548,9 +528,9 @@ private:
   }
 
   void addPepIDMetaValues_(
-    const vector<PeptideIdentification>& f_pep_ids,
+    const PeptideIdentificationList& f_pep_ids,
     const multimap<String, pair<Size, Size>>& customID_to_cpepID,
-    const map<String, StringList>& fidentifier_to_msrunpath,
+    const IdentifierMSRunMapper& mapping,
     ConsensusMap& cmap) const
   {
     for (const PeptideIdentification& f_pep_id : f_pep_ids)
@@ -560,7 +540,7 @@ private:
       {
         continue;
       }
-      String UID = PeptideIdentification::buildUIDFromPepID(f_pep_id,fidentifier_to_msrunpath);
+      String UID = PeptideIdentification::buildUIDFromPepID(f_pep_id, mapping);
       const auto range = customID_to_cpepID.equal_range(UID);
 
       for (auto it_pep = range.first; it_pep != range.second; ++it_pep) // OMS_CODING_TEST_EXCLUDE

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Rost $
@@ -217,11 +191,11 @@ public:
     /**
       * @brief Constructor
       *
-      * @param isotopeNumbers A vector of how many isotopes each element has, e.g. [2, 2, 3])
-      * @param atomCounts How many atoms of each we have [e.g. 12, 6, 6 for Glucose]
-      * @param isotopeMasses Array with the individual elements isotopic masses
-      * @param isotopeProbabilities Array with the individual elements isotopic probabilities
-      * @param p Total coverage of probability space desired, usually close to 1 (e.g. 0.99)
+      * @param[in] isotopeNumbers A vector of how many isotopes each element has, e.g. [2, 2, 3])
+      * @param[in] atomCounts How many atoms of each we have [e.g. 12, 6, 6 for Glucose]
+      * @param[in] isotopeMasses Array with the individual elements isotopic masses
+      * @param[in] isotopeProbabilities Array with the individual elements isotopic probabilities
+      * @param[in] p Total coverage of probability space desired, usually close to 1 (e.g. 0.99)
       *
       * @note This constructor is only useful if you need to define non-standard abundances
       *       of isotopes, for other uses the one accepting EmpiricalFormula is easier to use.
@@ -281,12 +255,12 @@ public:
     /**
       * @brief Constructor
       *
-      * @param isotopeNumbers A vector of how many isotopes each element has, e.g. [2, 2, 3])
-      * @param atomCounts How many atoms of each we have [e.g. 12, 6, 6 for Glucose]
-      * @param isotopeMasses Array with the individual elements isotopic masses
-      * @param isotopeProbabilities Array with the individual elements isotopic probabilities
-      * @param threshold Intensity threshold: will only compute peaks above this threshold
-      * @param absolute Whether the threshold is absolute or relative (relative to the most intense peak)
+      * @param[in] isotopeNumbers A vector of how many isotopes each element has, e.g. [2, 2, 3])
+      * @param[in] atomCounts How many atoms of each we have [e.g. 12, 6, 6 for Glucose]
+      * @param[in] isotopeMasses Array with the individual elements isotopic masses
+      * @param[in] isotopeProbabilities Array with the individual elements isotopic probabilities
+      * @param[in] threshold Intensity threshold: will only compute peaks above this threshold
+      * @param[in] absolute Whether the threshold is absolute or relative (relative to the most intense peak)
       *
       * @note This constructor is only useful if you need to define non-standard abundances
       *       of isotopes, for other uses the one accepting EmpiricalFormula is easier to use.
@@ -344,10 +318,10 @@ public:
     /**
       * @brief Constructor
       *
-      * @param isotopeNumbers A vector of how many isotopes each element has, e.g. [2, 2, 3])
-      * @param atomCounts How many atoms of each we have [e.g. 12, 6, 6 for Glucose]
-      * @param isotopeMasses Array with the individual elements isotopic masses
-      * @param isotopeProbabilities Array with the individual elements isotopic probabilities
+      * @param[in] isotopeNumbers A vector of how many isotopes each element has, e.g. [2, 2, 3])
+      * @param[in] atomCounts How many atoms of each we have [e.g. 12, 6, 6 for Glucose]
+      * @param[in] isotopeMasses Array with the individual elements isotopic masses
+      * @param[in] isotopeProbabilities Array with the individual elements isotopic probabilities
       *
       **/
   IsoSpecOrderedGeneratorWrapper(const std::vector<int>& isotopeNumbers,
@@ -406,12 +380,12 @@ public:
     /**
       * @brief Constructor
       *
-      * @param isotopeNumbers A vector of how many isotopes each element has, e.g. [2, 2, 3])
-      * @param atomCounts How many atoms of each we have [e.g. 12, 6, 6 for Glucose]
-      * @param isotopeMasses Array with the individual elements isotopic masses
-      * @param isotopeProbabilities Array with the individual elements isotopic probabilities
-      * @param p Total coverage of probability space desired, usually close to 1 (e.g. 0.99)
-      * @param do_p_trim Whether to discard extra configurations that have been computed
+      * @param[in] isotopeNumbers A vector of how many isotopes each element has, e.g. [2, 2, 3])
+      * @param[in] atomCounts How many atoms of each we have [e.g. 12, 6, 6 for Glucose]
+      * @param[in] isotopeMasses Array with the individual elements isotopic masses
+      * @param[in] isotopeProbabilities Array with the individual elements isotopic probabilities
+      * @param[in] p Total coverage of probability space desired, usually close to 1 (e.g. 0.99)
+      * @param[in] do_p_trim Whether to discard extra configurations that have been computed
       *
       * @note This constructor is only useful if you need to define non-standard abundances
       *       of isotopes, for other uses the one accepting EmpiricalFormula is easier to use.
@@ -470,12 +444,12 @@ public:
     /**
       * @brief Constructor
       *
-      * @param isotopeNumbers A vector of how many isotopes each element has, e.g. [2, 2, 3])
-      * @param atomCounts How many atoms of each we have [e.g. 12, 6, 6 for Glucose]
-      * @param isotopeMasses Array with the individual elements isotopic masses
-      * @param isotopeProbabilities Array with the individual elements isotopic probabilities
-      * @param threshold Intensity threshold: will only compute peaks above this threshold
-      * @param absolute Whether the threshold is absolute or relative (relative to the most intense peak)
+      * @param[in] isotopeNumbers A vector of how many isotopes each element has, e.g. [2, 2, 3])
+      * @param[in] atomCounts How many atoms of each we have [e.g. 12, 6, 6 for Glucose]
+      * @param[in] isotopeMasses Array with the individual elements isotopic masses
+      * @param[in] isotopeProbabilities Array with the individual elements isotopic probabilities
+      * @param[in] threshold Intensity threshold: will only compute peaks above this threshold
+      * @param[in] absolute Whether the threshold is absolute or relative (relative to the most intense peak)
       *
       * @note This constructor is only useful if you need to define non-standard abundances
       *       of isotopes, for other uses the one accepting EmpiricalFormula is easier to use.

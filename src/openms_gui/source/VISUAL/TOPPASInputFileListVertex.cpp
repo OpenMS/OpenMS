@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Veit $
@@ -41,6 +15,7 @@
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
@@ -50,6 +25,11 @@ namespace OpenMS
   TOPPASInputFileListVertex::TOPPASInputFileListVertex(const QStringList& files)
   {
     setFilenames(files);
+  }
+
+  std::unique_ptr<TOPPASVertex> TOPPASInputFileListVertex::clone() const
+  {
+    return std::make_unique<TOPPASInputFileListVertex>(*this);
   }
 
   String TOPPASInputFileListVertex::getName() const
@@ -97,7 +77,7 @@ namespace OpenMS
     QStringList text_l = TOPPASVertex::TOPPASFilenames(getFileNames()).getSuffixCounts();
     text = text_l.join(" | ");
     // might get very long, especially if node was not reached yet, so trim
-    text = text.left(15) + " ...";
+    if (text.length() > 19) text = text.left(15) + " ...";
     text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);
     painter->drawText(-(int)(text_boundings.width() / 2.0), 35 - (int)(text_boundings.height() / 4.0), text);
   }
@@ -110,10 +90,19 @@ namespace OpenMS
   bool TOPPASInputFileListVertex::fileNamesValid()
   {
     QStringList fl = getFileNames();
-    foreach(const QString& file, fl)
+    std::set<std::string> unique_names;
+    for (const QString& file : fl)
     {
-      if (!File::exists(file))
+      if (!File::exists(fromQString(file)))
       {
+        return false;
+      }
+      QFileInfo fi(file);
+      const auto& [it_unique, was_inserted] = unique_names.insert(fi.canonicalFilePath().toStdString());
+      if (!was_inserted) // duplicate
+      {
+        const auto path = *it_unique;  // working around 'error: reference to local binding 'it_unique' declared in enclosing function' on Clang (capture of structured binding problem)
+        OPENMS_LOG_ERROR << "File '" << file.toStdString() << "' (resolved to '" << path << "') appears twice in the input list!" << std::endl;
         return false;
       }
     }
@@ -127,13 +116,13 @@ namespace OpenMS
     for (int i = 0; i < fl.size(); ++i) // collect unique directories
     {
       QFileInfo fi(fl[i]);
-      directories.insert(String(QFileInfo(fi.canonicalFilePath()).path()));
+      directories.insert(fromQString(QFileInfo(fi.canonicalFilePath()).path()));
     }
 
     // open them
     for (std::set<String>::const_iterator it = directories.begin(); it != directories.end(); ++it)
     {
-      QString path = QDir::toNativeSeparators(it->toQString());
+      QString path = QDir::toNativeSeparators(toQString(*it));
       GUIHelpers::openFolder(path);
     }
   }
@@ -184,7 +173,7 @@ namespace OpenMS
     setToolTip(files.join("\n"));
 
     // set current working dir when opening files to the last file
-    cwd_ = File::path(files.back()).toQString();
+    cwd_ = toQString(File::path(fromQString(files.back())));
   }
 
   void TOPPASInputFileListVertex::outEdgeHasChanged()

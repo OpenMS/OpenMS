@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -34,9 +8,10 @@
 
 #pragma once
 
-#include "OpenMS/CHEMISTRY/AASequence.h"
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/ModificationDataProvider.h>
 
 #include <set>
 #include <memory>  // unique_ptr
@@ -80,10 +55,23 @@ public:
     static ModificationsDB* getInstance();
 
     /// Initializes the modification DB with non-default modification files (can only be done once)
-    static ModificationsDB* initializeModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
+    static ModificationsDB* initializeModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String custommod_file = "CHEMISTRY/custom_mods.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
 
     /// Check whether ModificationsDB was instantiated before
     static bool isInstantiated();
+
+    /**
+      @brief Construct from data providers (no file I/O performed by this constructor).
+
+      Use this constructor for dependency injection, e.g., with InMemoryDataProvider
+      for testing or custom providers for alternative data sources.
+
+      @param providers Vector of data providers; each will be called once to load modifications.
+    */
+    explicit ModificationsDB(std::vector<std::unique_ptr<ModificationDataProvider>> providers);
+
+    /// Destructor (public so non-singleton instances created via provider constructor can be destroyed)
+    virtual ~ModificationsDB();
 
     friend class CrossLinksDB;
     // for access to addNewModification_ (without checking presence)
@@ -135,7 +123,7 @@ public:
 
        @return The matching modification given the constraints. Returns nullptr
        if no modification exists that fulfills the criteria. If multiple
-       modifications are found, the @multiple_matches flag will be set.
+       modifications are found, the @p multiple_matches flag will be set.
     */
     const ResidueModification* searchModificationsFast(const String& mod_name,
                                                        bool& multiple_matches,
@@ -165,7 +153,7 @@ public:
        If the modification already exists (based on its fullID) it is not added.
        @return a pointer to the modification in the ModificationDB (which can differ from input if mod was already present).
 
-       @param new_mod Owning pointer, which transfers ownership to ModificationsDB (mod might get deleted if already present!)
+       @param[in] new_mod Owning pointer, which transfers ownership to ModificationsDB (mod might get deleted if already present!)
     */
     const ResidueModification* addModification(std::unique_ptr<ResidueModification> new_mod);
 
@@ -174,7 +162,7 @@ public:
        If the modification already exists (based on its fullID) it is not added. A copy will be made on the heap and added to the ModificationsDB otherwise.
        @return a pointer to the modification in the ModificationDB (which can differ from input if mod was already present).
 
-       @param new_mod The new modification object. A copy will be made on the heap and added to the ModificationsDB if not already present.
+       @param[in] new_mod The new modification object. A copy will be made on the heap and added to the ModificationsDB if not already present.
     */
     const ResidueModification* addModification(const ResidueModification& new_mod);
 
@@ -221,9 +209,10 @@ public:
         will choose the _first_ match which defaults to the first matching
         UniMod entry.
 
-        @param residue The residue at which the modifications occurs
-        @param mass The monoisotopic mass of the residue including the mass of the modification
-        @param max_error The maximal mass error in the modification search
+        @param[in] mass The monoisotopic mass of the residue including the mass of the modification
+        @param[in] max_error The maximal mass error in the modification search
+        @param[in] residue The residue at which the modifications occurs
+        @param[in] term_spec Only modifications with matching term specificity are considered.
 
         @return A pointer to the best matching modification (or NULL if none was found)
 
@@ -265,22 +254,8 @@ public:
 
 private:
 
-    /** @name Constructors and Destructors
-
-        @param unimod_file Path to the Unimod XML file
-        @param psimod_file Path to the PSI-MOD OBO file
-        @param xlmod_file Path to the XLMOD OBO file
-
-     */
-    //@{
-    explicit ModificationsDB(const OpenMS::String& unimod_file = "CHEMISTRY/unimod.xml", const OpenMS::String& psimod_file = "CHEMISTRY/PSI-MOD.obo", const OpenMS::String& xlmod_file = "CHEMISTRY/XLMOD.obo");
-
-    /// Copy constructor
+    /// Copy constructor (disabled)
     ModificationsDB(const ModificationsDB& residue_db);
-
-    /// Destructor
-    virtual ~ModificationsDB();
-    //@}
 
     /** @name Assignment
      */
@@ -292,18 +267,11 @@ private:
     /**
        @brief Add a new modification to ModificationsDB without checking if it was inside already.
 
-       @param new_mod A copy will be made on the heap and added to the modification if not already present.
+       @param[in] new_mod A copy will be made on the heap and added to the modification if not already present.
     */
     const ResidueModification* addNewModification_(const ResidueModification& new_mod);
 
-    /**
-       @brief Adds modifications from a given file in OBO format
-
-       @throw Exception::ParseError if the file cannot be parsed correctly
-    */
-    void readFromOBOFile(const String& filename);
-
-    /// Adds modifications from a given file in Unimod XML format
-    void readFromUnimodXMLFile(const String& filename);
+    /// Loads and indexes modifications from the given providers
+    void loadFromProviders_(std::vector<std::unique_ptr<ModificationDataProvider>>& providers);
   };
 }

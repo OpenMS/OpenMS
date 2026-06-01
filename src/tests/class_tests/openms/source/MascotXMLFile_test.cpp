@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -61,8 +35,8 @@ using namespace std;
 MascotXMLFile xml_file;
 MascotXMLFile* ptr;
 ProteinIdentification protein_identification;
-vector<PeptideIdentification> peptide_identifications;
-vector<PeptideIdentification> peptide_identifications2;
+PeptideIdentificationList peptide_identifications;
+PeptideIdentificationList peptide_identifications2;
 DateTime date;
 PeptideHit peptide_hit;
 vector<String> references;
@@ -86,7 +60,7 @@ START_SECTION((static void initializeLookup(SpectrumMetaDataLookup& lookup, Peak
 }
 END_SECTION
 
-START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, SpectrumMetaDataLookup& lookup)))
+START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, SpectrumMetaDataLookup& lookup)))
 {
   SpectrumMetaDataLookup lookup;
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"),
@@ -96,7 +70,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     ProteinIdentification::SearchParameters search_parameters = protein_identification.getSearchParameters();
     TEST_EQUAL(search_parameters.missed_cleavages, 1);
     TEST_EQUAL(search_parameters.taxonomy, ". . Eukaryota (eucaryotes)");
-    TEST_EQUAL(search_parameters.mass_type, ProteinIdentification::AVERAGE);
+    TEST_EQUAL(search_parameters.mass_type, ProteinIdentification::PeakMassType::AVERAGE);
     TEST_EQUAL(search_parameters.db, "MSDB_chordata");
     TEST_EQUAL(search_parameters.db_version, "MSDB_chordata_20070910.fasta");
     TEST_EQUAL(search_parameters.fragment_mass_tolerance, 0.2);
@@ -174,7 +148,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     ProteinIdentification::SearchParameters search_parameters = protein_identification.getSearchParameters();
     TEST_EQUAL(search_parameters.missed_cleavages, 7);
     TEST_EQUAL(search_parameters.taxonomy, "All entries");
-    TEST_EQUAL(search_parameters.mass_type, ProteinIdentification::MONOISOTOPIC);
+    TEST_EQUAL(search_parameters.mass_type, ProteinIdentification::PeakMassType::MONOISOTOPIC);
     TEST_EQUAL(search_parameters.db, "IPI_human");
     TEST_EQUAL(search_parameters.db_version, "ipi.HUMAN.v3.61.fasta");
     TEST_EQUAL(search_parameters.fragment_mass_tolerance, 0.3);
@@ -258,7 +232,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
 }
 END_SECTION
 
-START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, std::map<String, std::vector<AASequence> >& peptides, SpectrumMetaDataLookup& lookup)))
+START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, std::map<String, std::vector<AASequence> >& peptides, SpectrumMetaDataLookup& lookup)))
   std::map<String, vector<AASequence> > modified_peptides;
   AASequence aa_sequence_1;
   AASequence aa_sequence_2;

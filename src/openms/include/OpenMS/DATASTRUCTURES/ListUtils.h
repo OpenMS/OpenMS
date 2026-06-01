@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -66,7 +40,7 @@ namespace OpenMS
    @brief Vector of String.
 
    @ingroup Datastructures
-   */
+  */
   typedef std::vector<String> StringList;
 
   /**
@@ -74,6 +48,7 @@ namespace OpenMS
 
     @ingroup Datastructures
   */
+
   class OPENMS_DLLAPI ListUtils
   {
 private:
@@ -90,7 +65,7 @@ private:
       /**
         @brief Returns true if \| @p value - @p target \| \< @p tolerance.
 
-        @param value The value to test.
+        @param[in] value The value to test.
         @return true if \| @p value - @p target \| \< @p tolerance, false otherwise.
       */
       inline bool operator()(const double& value) const
@@ -111,7 +86,8 @@ public:
       @note If converted to vector<String> the strings are not trimmed.
       @note The values get converted by boost::lexical_cast so a valid conversion from String to T needs to be available.
 
-      @param str The string that should be split and converted to a list.
+      @param[in] str The string that should be split and converted to a list.
+      @param[in] splitter The separator to look for in @p str
       @return A vector containing the elements of the string converted into type T.
     */
     template <typename T>
@@ -128,7 +104,7 @@ public:
       @note The strings are trimmed before conversion.
       @note The values get converted by boost::lexical_cast so a valid conversion from String to T needs to be available.
 
-      @param s The vector of strings that should be converted.
+      @param[in] s The vector of strings that should be converted.
       @return A vector containing the elements of input vector converted into type T.
     */
     template <typename T>
@@ -138,7 +114,7 @@ public:
     /**
   @brief Converts a vector of T's to a vector of Strings.
 
-  @param s The vector of T's that should be converted.
+  @param[in] s The vector of T's that should be converted.
   @return A vector containing the elements of input vector converted into Strings.
 */
     template <typename T>
@@ -153,8 +129,8 @@ public:
     /**
       @brief Checks whether the element @p elem is contained in the given container.
 
-      @param container The container to check.
-      @param elem The element to check whether it is in the container or not.
+      @param[in] container The container to check.
+      @param[in] elem The element to check whether it is in the container or not.
 
       @return True if @p elem is contained in @p container, false otherwise.
     */
@@ -167,9 +143,9 @@ public:
     /**
       @brief Checks whether the element @p elem is contained in the given container of floating point numbers.
 
-      @param container The container of doubles to check.
-      @param elem The element to check whether it is in the container or not.
-      @param tolerance The allowed tolerance for the double.
+      @param[in] container The container of doubles to check.
+      @param[in] elem The element to check whether it is in the container or not.
+      @param[in] tolerance The allowed tolerance for the double.
 
       @return True if @p elem is contained in @p container, false otherwise.
     */
@@ -183,15 +159,15 @@ public:
     /**
     @brief Checks whether the String @p elem is contained in the given container (potentially case insensitive)
 
-    @param container The container of String to check.
-    @param elem The element to check whether it is in the container or not.
-    @param case_sensitive Do the comparison case sensitive or insensitive
+    @param[in] container The container of String to check.
+    @param[in] elem The element to check whether it is in the container or not.
+    @param[in] case_sensitive Do the comparison case sensitive or insensitive
 
     @return True if @p elem is contained in @p container, false otherwise.
     */
-    static bool contains(const std::vector<String>& container, String elem, const CASE cs)
+    static bool contains(const std::vector<String>& container, String elem, const CASE case_sensitive)
     {
-      if (cs == CASE::SENSITIVE) return contains(container, elem);
+      if (case_sensitive == CASE::SENSITIVE) return contains(container, elem);
       // case insensitive ...
       elem.toLower();
       return find_if(container.begin(), container.end(), [&elem](String ce) {
@@ -202,8 +178,8 @@ public:
     /**
       @brief Concatenates all elements of the @p container and puts the @p glue string between elements.
 
-      @param container The container to concatenate;
-      @param glue The string to add in between elements.
+      @param[in] container The container to concatenate;
+      @param[in] glue The string to add in between elements.
     */
     template <typename T>
     static String concatenate(const std::vector<T>& container, const String& glue = "")
@@ -214,8 +190,8 @@ public:
     /**
       @brief Concatenates all elements of the @p container and puts the @p glue string between elements.
 
-      @param container The container <T> to concatenate; must have begin() and end() iterator.
-      @param glue The string to add in between elements.
+      @param[in] container The container to concatenate; must have begin() and end() iterator.
+      @param[in] glue The string to add in between elements.
     */
     template <typename T>
     static String concatenate(const T& container, const String& glue = "")
@@ -306,4 +282,3 @@ public:
   }
 
 } // namespace OpenMS
-

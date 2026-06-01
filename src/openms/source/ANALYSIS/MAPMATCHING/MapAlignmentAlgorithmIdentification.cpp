@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -35,7 +9,10 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 
 using namespace std;
 
@@ -117,17 +94,16 @@ namespace OpenMS
 
   // lists of peptide hits in "peptides" will be sorted
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-      vector<PeptideIdentification>& peptides, SeqToList& rt_data)
+      const PeptideIdentificationList& peptides, SeqToList& rt_data)
   {
-    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-         pep_it != peptides.end(); ++pep_it)
+    for (auto pep_it = peptides.cbegin(); pep_it != peptides.cend(); ++pep_it)
     {
       if (!pep_it->getHits().empty())
       {
-        pep_it->sort();
-        if (better_(pep_it->getHits()[0].getScore(), min_score_))
+        const PeptideHit* best_hit = getBestScoringHit(pep_it->getHits(), pep_it->isHigherScoreBetter());
+        if (better_(best_hit->getScore(), min_score_))
         {
-          const String& seq = pep_it->getHits()[0].getSequence().toString();
+          const String& seq = best_hit->getSequence().toString();
           rt_data[seq].push_back(pep_it->getRT());
         }
       }
@@ -138,7 +114,7 @@ namespace OpenMS
   IdentificationData::ScoreTypeRef
   MapAlignmentAlgorithmIdentification::handleIdDataScoreType_(const IdentificationData& id_data)
   {
-    IdentificationData::ScoreTypeRef score_ref = id_data.getScoreTypes().end();
+    IdentificationData::ScoreTypeRef score_ref;
     if (score_type_.empty()) // choose a score type
     {
       score_ref = id_data.pickScoreType(id_data.getObservationMatches());
@@ -166,7 +142,7 @@ namespace OpenMS
 
 
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-    IdentificationData& id_data, SeqToList& rt_data)
+    const IdentificationData& id_data, SeqToList& rt_data)
   {
     // @TODO: should this get handled as an error?
     if (id_data.getObservationMatches().empty()) return true;
@@ -199,19 +175,6 @@ namespace OpenMS
         rt_data[molecule].push_back(hit->observation_ref->rt);
       }
     }
-    return false;
-  }
-
-  // lists of peptide hits in "maps" will be sorted
-  bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-      PeakMap& experiment, SeqToList& rt_data)
-  {
-    for (PeakMap::Iterator exp_it = experiment.begin();
-         exp_it != experiment.end(); ++exp_it)
-    {
-      getRetentionTimes_(exp_it->getPeptideIdentifications(), rt_data);
-    }
-    // duplicate annotations should not be possible -> no need to remove them
     return false;
   }
 
@@ -285,9 +248,10 @@ namespace OpenMS
       temp.swap(medians_per_seq);
       computeMedians_(medians_per_seq, reference_);
     }
+
     if (reference_.empty())
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No reference RT information left after filtering");
+      OPENMS_LOG_WARN << "No reference RT information left after filtering!" << endl;
     }
 
     double max_rt_shift = (double)param_.getValue("max_rt_shift");
@@ -329,8 +293,17 @@ namespace OpenMS
                  << i + 1 << " (reference)\n";
         offset = 1;
       }
+
       if (i >= size) break;
 
+      if (reference_.empty())
+      {
+        TransformationDescription trafo;
+        trafo.fitModel("identity");
+        transforms.push_back(trafo);
+        continue;
+      }
+                
       // to be useful for the alignment, a peptide sequence has to occur in the
       // current run ("medians_per_run[i]"), but also in at least one other run
       // ("medians_overall"):
@@ -358,7 +331,7 @@ namespace OpenMS
       OPENMS_LOG_INFO << "- " << data.size() << " data points for sample "
                << i + offset + 1;
       if (n_outliers) OPENMS_LOG_INFO << " (" << n_outliers << " outliers removed)";
-      OPENMS_LOG_INFO << "\n";
+      OPENMS_LOG_INFO << "\n";    
     }
     OPENMS_LOG_INFO << endl;
 
@@ -367,10 +340,23 @@ namespace OpenMS
   }
 
   // explicit template instantiation for Windows DLL:
-  template bool OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_<>(ConsensusMap& features, SeqToList& rt_data);
+  template bool OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_<>(const ConsensusMap& features, SeqToList& rt_data);
 
   // explicit template instantiation for Windows DLL:
-  template bool OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_<>(FeatureMap& features, SeqToList& rt_data);
+  template bool OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_<>(const FeatureMap& features, SeqToList& rt_data);
 
+  const PeptideHit* MapAlignmentAlgorithmIdentification::getBestScoringHit(const std::vector<PeptideHit>& hits, const bool is_higher_score_better)
+  {
+    auto scoreComparator = PeptideIdentification::getScoreComparator(is_higher_score_better);
+    const PeptideHit* best_hit = nullptr;
+    for (const auto& hit : hits)
+    {
+      if (!best_hit || scoreComparator(hit, *best_hit))
+      {
+        best_hit = &hit;
+      }
+    }
+    return best_hit;
+  }
 
 } //namespace

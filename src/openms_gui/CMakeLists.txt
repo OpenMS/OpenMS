@@ -1,31 +1,5 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
 #
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche, Chris Bielow $
@@ -35,7 +9,7 @@
 project("OpenMS_GUI")
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
-set(CMAKE_AUTOUIC OFF) # leave off since this is broken, see qt5_wrap_ui below
+set(CMAKE_AUTOUIC ON) # convert .ui files to ui_....h files using CMake + Qt's UIC
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -47,14 +21,6 @@ include(add_mac_bundle.cmake)
 # --------------------------------------------------------------------------
 # big include file for headers and cpp files
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
-
-# --------------------------------------------------------------------------
-
-# manually extract .ui files and track them (trigger rebuild of ui_CLASS.h upon changing CLASS.ui)
-# see https://gitlab.kitware.com/cmake/cmake/issues/18741
-set(UI_SOURCES ${OpenMSVisual_sources}) # copy list of .cpp + .ui files
-list(FILTER UI_SOURCES INCLUDE REGEX "\\.ui$")
-qt5_wrap_ui(UI_SOURCES2 ${UI_SOURCES}) # transform .ui to ui_....h files and add them to OpenMSVisual_sources_h
 
 #------------------------------------------------------------------------------
 # add the library
@@ -78,6 +44,19 @@ if (MSVC)
   set_property(TARGET OpenMS_GUI APPEND PROPERTY LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
 endif()
 
+
+# --------------------------------------------------------------------------
+# some targets using OpenMS_GUI (e.g. in the GUI tests) need the ui_..h files, so add them to OpenMS_GUI's interface.
+get_property(_isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(_isMultiConfig)
+  set(AUTOGEN_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/OpenMS_GUI_autogen/include_$<CONFIG>)
+else()
+  set(AUTOGEN_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/OpenMS_GUI_autogen/include)
+endif()
+# add include-directories for UIC'd files (CMake does not do that automatically)
+target_include_directories(OpenMS_GUI INTERFACE $<BUILD_INTERFACE:${AUTOGEN_INCLUDE_DIR}>)
+
+
 #------------------------------------------------------------------------------
 # register relevant paths for the doxygen doc generation
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
@@ -90,18 +69,18 @@ include(${GUI_DIR}/executables.cmake)
 foreach(i ${GUI_executables})
   set(resource_file ${PROJECT_SOURCE_DIR}/${GUI_DIR}/${i}.rc)
   set(resource_dir ${PROJECT_SOURCE_DIR}/${GUI_DIR}/${i}-resources/)
-  ## add icons to TOPPView and INIFileEditor
+  ## add icons to TOPPView, INIFileEditor, etc.
   if (MSVC AND EXISTS ${resource_file})
     message(STATUS "Setting resource file ${resource_file} for ${i}")
     add_executable(${i} ${GUI_DIR}/${i}.cpp ${resource_file})
     install_tool(${i})
-  elseif(APPLE AND EXISTS ${resource_dir})
+  elseif (APPLE AND EXISTS ${resource_dir})
     add_mac_app_bundle(${i})
   else()
-    if(APPLE)
-      message(STATUS "No icon file (${i}.icns) found in ${resource_dir}. Will not build ${i} as app bundle.")
-    else()
+    if (MSVC)
       message(STATUS "No resource file (${resource_file}) found for ${i}. No icon will be embedded.")
+    elseif (APPLE)
+      message(STATUS "No icon file (${i}.icns) found in ${resource_dir}. Will not build ${i} as app bundle.")
     endif()
     add_executable(${i} ${GUI_DIR}/${i}.cpp)
     install_tool(${i})
@@ -111,9 +90,24 @@ foreach(i ${GUI_executables})
   target_link_libraries(${i} OpenMS_GUI)
 endforeach(i)
 
+# GUI TOPP tools also need direct OpenMS link for TOPPBase etc.
+foreach(i ExecutePipeline ImageCreator INIUpdater)
+  target_link_libraries(${i} OpenMS)
+endforeach()
+
+# Add GUI-based TOPP tools to the TOPP_TOOLS list for CWL/INI generation
+set(GUI_TOPP_TOOLS ExecutePipeline ImageCreator INIUpdater)
+set(TOPP_TOOLS ${TOPP_TOOLS} ${GUI_TOPP_TOOLS}
+    CACHE INTERNAL "OpenMS' TOPP tools" FORCE)
+
+# Make the TOPP collection target depend on GUI TOPP tools
+if(TARGET TOPP)
+  add_dependencies(TOPP ${GUI_TOPP_TOOLS})
+endif()
+
   ## install platform plugins. On Mac this is handled for every GUI app inside its app bundle.
   if(WIN32)
-      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QWindowsIntegrationPlugin"
+      install(IMPORTED_RUNTIME_ARTIFACTS "Qt6::QWindowsIntegrationPlugin"
               DESTINATION "${INSTALL_PLUGIN_DIR}/platforms"
               RUNTIME_DEPENDENCY_SET OPENMS_DEPS
               COMPONENT Dependencies)

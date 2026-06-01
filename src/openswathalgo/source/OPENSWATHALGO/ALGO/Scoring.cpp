@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -36,75 +10,47 @@
 #include <OpenMS/OPENSWATHALGO/Macros.h>
 #include <cmath>
 #include <algorithm>
-#include <unordered_map>
+#include <cstdint>
+#include <Eigen/Core>
+#include <Eigen/Dense>
 
 namespace OpenSwath::Scoring
 {
-    void normalize_sum(double x[], unsigned int n)
-    { 
-      double sumx = std::accumulate(&x[0], &x[0] + n, 0.0);
-      if (sumx == 0.0)
-      { // avoid divide by zero below
-        return;
-      }                           
-      auto inverse_sum = 1 / sumx; // precompute inverse since division is expensive!
-      for (unsigned int i = 0; i < n; ++i)
-      {
-        x[i] *= inverse_sum;
-      }
+    void normalize_sum(std::vector<double>& x)
+    {
+      Eigen::Map<Eigen::VectorXd> v(x.data(), x.size());
+      double s = v.sum();
+      if (s != 0.0) { v /= s; }
     }
 
-    double NormalizedManhattanDist(double x[], double y[], int n)
+    double NormalizedManhattanDist(std::vector<double>& x, std::vector<double>& y)
     {
-      OPENSWATH_PRECONDITION(n > 0, "Need at least one element");
-
-      double delta_ratio_sum = 0;
-      normalize_sum(x, n);
-      normalize_sum(y, n);
-      for (int i = 0; i < n; i++)
-      {
-        delta_ratio_sum += std::fabs(x[i] - y[i]);
-      }
-      return delta_ratio_sum / n;
+      OPENSWATH_PRECONDITION(x.size() == y.size() && !x.empty(), "Both vectors need to have the same non-zero length");
+      normalize_sum(x);
+      normalize_sum(y);
+      Eigen::Map<Eigen::VectorXd> vx(x.data(), x.size());
+      Eigen::Map<Eigen::VectorXd> vy(y.data(), y.size());
+      return (vx - vy).cwiseAbs().sum() / x.size();
     }
 
-    double RootMeanSquareDeviation(double x[], double y[], int n)
+    double RootMeanSquareDeviation(const std::vector<double>& x, const std::vector<double>& y)
     {
-      OPENSWATH_PRECONDITION(n > 0, "Need at least one element");
-
-      double result = 0;
-      for (int i = 0; i < n; i++)
-      {
-
-        result += (x[i] - y[i]) * (x[i] - y[i]);
-      }
-      return std::sqrt(result / n);
+      OPENSWATH_PRECONDITION(x.size() == y.size() && !x.empty(), "Both vectors need to have the same non-zero length");
+      Eigen::Map<const Eigen::VectorXd> vx(x.data(), x.size());
+      Eigen::Map<const Eigen::VectorXd> vy(y.data(), y.size());
+      return std::sqrt((vx - vy).squaredNorm() / x.size());
     }
 
-    double SpectralAngle(double x[], double y[], int n)
+    double SpectralAngle(const std::vector<double>& x, const std::vector<double>& y)
     {
-      OPENSWATH_PRECONDITION(n > 0, "Need at least one element");
-
-      double dotprod = 0;
-      double x_len = 0;
-      double y_len = 0;
-      for (int i = 0; i < n; i++)
-      {
-        dotprod += x[i] * y[i];
-        x_len += x[i] * x[i];
-        y_len += y[i] * y[i];
-      }
-      x_len = std::sqrt(x_len);
-      y_len = std::sqrt(y_len);
-
-      // normalise, avoiding a divide by zero. See unit tests for what happens
-      // when one of the vectors has a length of zero.
+      OPENSWATH_PRECONDITION(x.size() == y.size() && !x.empty(), "Both vectors need to have the same non-zero length");
+      Eigen::Map<const Eigen::VectorXd> vx(x.data(), x.size());
+      Eigen::Map<const Eigen::VectorXd> vy(y.data(), y.size());
+      double x_len = vx.norm();
+      double y_len = vy.norm();
       double denominator = x_len * y_len;
-      double theta = (denominator == 0) ? 0.0 : dotprod / denominator;
-
-      // clip to range [-1, 1] to save acos blowing up
+      double theta = (denominator == 0) ? 0.0 : vx.dot(vy) / denominator;
       theta = std::max(-1.0, std::min(1.0, theta));
-
       return std::acos(theta);
     }
 
@@ -129,17 +75,12 @@ namespace OpenSwath::Scoring
     {
       if (data.empty())
       {
-	      return;
+        return;
       }
 
-      // subtract the mean and divide by the standard deviation
-      double mean = std::accumulate(data.begin(), data.end(), 0.0) / (double) data.size();
-      double sqsum = 0;
-      for (std::vector<double>::iterator it = data.begin(); it != data.end(); ++it)
-      {
-        sqsum += (*it - mean) * (*it - mean);
-      }
-      double stdev = sqrt(sqsum / data.size()); // standard deviation
+      Eigen::Map<Eigen::VectorXd> v(data.data(), data.size());
+      double mean = v.mean();
+      double stdev = std::sqrt((v.array() - mean).square().mean());
 
       if (mean == 0 && stdev == 0)
       {
@@ -149,10 +90,7 @@ namespace OpenSwath::Scoring
       {
         stdev = 1; // all data is equal
       }
-      for (std::size_t i = 0; i < data.size(); i++)
-      {
-        data[i] = (data[i] - mean) / stdev;
-      }
+      v.array() = (v.array() - mean) / stdev;
     }
 
     XCorrArrayType normalizedCrossCorrelation(std::vector<double>& data1,
@@ -185,90 +123,24 @@ namespace OpenSwath::Scoring
 
       XCorrArrayType result;
       result.data.reserve( (size_t)std::ceil((2*maxdelay + 1) / lag));
-      int datasize = static_cast<int>(data1.size());
-      int i, j, delay;
+      const int datasize = static_cast<int>(data1.size());
+      const double* __restrict d1 = data1.data();
+      const double* __restrict d2 = data2.data();
 
-      for (delay = -maxdelay; delay <= maxdelay; delay = delay + lag)
+      for (int delay = -maxdelay; delay <= maxdelay; delay += lag)
       {
-        double sxy = 0;
-        for (i = 0; i < datasize; ++i)
+        const int start = std::max(0, -delay);
+        const int end = std::min(datasize, datasize - delay);
+        const int len = end - start;
+
+        double sxy = 0.0;
+        if (len > 0)
         {
-          j = i + delay;
-          if (j < 0 || j >= datasize)
-          {
-            continue;
-          }
-          sxy += (data1[i]) * (data2[j]);
+          Eigen::Map<const Eigen::VectorXd> sub1(d1 + start, len);
+          Eigen::Map<const Eigen::VectorXd> sub2(d2 + start + delay, len);
+          sxy = sub1.dot(sub2);
         }
         result.data.push_back(std::make_pair(delay, sxy));
-      }
-      return result;
-    }
-
-    XCorrArrayType calcxcorr_legacy_mquest_(std::vector<double>& data1,
-                                            std::vector<double>& data2, bool normalize)
-    {
-      OPENSWATH_PRECONDITION(!data1.empty() && data1.size() == data2.size(), "Both data vectors need to have the same length");
-      int maxdelay = static_cast<int>(data1.size());
-      int lag = 1;
-
-      double mean1 = std::accumulate(data1.begin(), data1.end(), 0.) / (double)data1.size();
-      double mean2 = std::accumulate(data2.begin(), data2.end(), 0.) / (double)data2.size();
-      double denominator = 1.0;
-      int datasize = static_cast<int>(data1.size());
-      int i, j, delay;
-
-      // Normalized cross-correlation = subtract the mean and divide by the standard deviation
-      if (normalize)
-      {
-        double sqsum1 = 0;
-        double sqsum2 = 0;
-        for (std::vector<double>::iterator it = data1.begin(); it != data1.end(); ++it)
-        {
-          sqsum1 += (*it - mean1) * (*it - mean1);
-        }
-
-        for (std::vector<double>::iterator it = data2.begin(); it != data2.end(); ++it)
-        {
-          sqsum2 += (*it - mean2) * (*it - mean2);
-        }
-        // sigma_1 * sigma_2 * n
-        denominator = sqrt(sqsum1 * sqsum2);
-      }
-      //avoids division in the for loop
-      denominator = 1/denominator;
-      XCorrArrayType result;
-      result.data.reserve( (size_t)std::ceil((2*maxdelay + 1) / lag));
-      int cnt = 0;
-      for (delay = -maxdelay; delay <= maxdelay; delay = delay + lag, cnt++)
-      {
-        double sxy = 0;
-        for (i = 0; i < datasize; i++)
-        {
-          j = i + delay;
-          if (j < 0 || j >= datasize)
-          {
-            continue;
-          }
-          if (normalize)
-          {
-            sxy += (data1[i] - mean1) * (data2[j] - mean2);
-          }
-          else
-          {
-            sxy += (data1[i]) * (data2[j]);
-          }
-        }
-
-        if (denominator > 0)
-        {
-          result.data.emplace_back(delay, sxy*denominator);
-        }
-        else
-        {
-          // e.g. if all datapoints are zero
-          result.data.emplace_back(delay, 0);
-        }
       }
       return result;
     }
@@ -311,22 +183,41 @@ namespace OpenSwath::Scoring
     {
       OPENSWATH_PRECONDITION(ranked_data1.size() != 0 && ranked_data1.size() == ranked_data2.size(), "Both data vectors need to have the same length");
 
-      unsigned int inputVectorlength = ranked_data1.size();
-      unsigned int firstNumStates = max_rank1 + 1;
-      unsigned int secondNumStates = max_rank2 + 1;
-      std::vector<double> firstStateCounts(firstNumStates,0);
-      std::vector<double> secondStateCounts(secondNumStates,0);
-      std::unordered_map<pos2D, double, pair_hash> jointStateCounts{};
+      const unsigned int inputVectorlength = ranked_data1.size();
+      const unsigned int firstNumStates = max_rank1 + 1;
+      const unsigned int secondNumStates = max_rank2 + 1;
+      std::vector<unsigned int> firstStateCounts(firstNumStates, 0);
+      std::vector<unsigned int> secondStateCounts(secondNumStates, 0);
+      std::vector<std::uint64_t> jointStates;
+      jointStates.reserve(inputVectorlength);
 
-      for (unsigned int i = 0; i < inputVectorlength; i++) {
-        firstStateCounts[ranked_data1[i]] += 1;
-        secondStateCounts[ranked_data2[i]] += 1;
-        jointStateCounts[std::make_pair(ranked_data1[i], ranked_data2[i])] += 1;
+      for (unsigned int i = 0; i < inputVectorlength; i++)
+      {
+        const unsigned int first_rank = ranked_data1[i];
+        const unsigned int second_rank = ranked_data2[i];
+        ++firstStateCounts[first_rank];
+        ++secondStateCounts[second_rank];
+        jointStates.push_back(static_cast<std::uint64_t>(first_rank) * secondNumStates + second_rank);
       }
 
+      std::sort(jointStates.begin(), jointStates.end());
+
       double mutualInformation = 0.0;
-      for (const auto &[pos, jointStateCount_val]: jointStateCounts) {
-        mutualInformation += jointStateCount_val * log(jointStateCount_val / firstStateCounts[pos.first] / secondStateCounts[pos.second]);
+      for (std::size_t i = 0; i < jointStates.size();)
+      {
+        const std::uint64_t joint_state = jointStates[i];
+        std::size_t j = i + 1;
+        while (j < jointStates.size() && jointStates[j] == joint_state)
+        {
+          ++j;
+        }
+
+        const double jointStateCount_val = static_cast<double>(j - i);
+        const unsigned int first_rank = static_cast<unsigned int>(joint_state / secondNumStates);
+        const unsigned int second_rank = static_cast<unsigned int>(joint_state % secondNumStates);
+        mutualInformation += jointStateCount_val *
+          log(jointStateCount_val / firstStateCounts[first_rank] / secondStateCounts[second_rank]);
+        i = j;
       }
 
       mutualInformation /= inputVectorlength;

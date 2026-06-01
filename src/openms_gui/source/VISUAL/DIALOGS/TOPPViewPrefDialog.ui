@@ -220,7 +220,7 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
        <item row="3" column="0">
-        <widget class="QLabel" name="label_2">
+        <widget class="QLabel" name="label_23">
          <property name="text">
           <string>Plugins path:</string>
          </property>
@@ -303,17 +303,30 @@ p, li { white-space: pre-wrap; }
        <string>2D View</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_13">
-         <property name="text">
-          <string>Peak gradient:</string>
-         </property>
-        </widget>
-       </item>
        <item row="0" column="1">
         <widget class="OpenMS::MultiGradientSelector" name="peak_2D" native="true"/>
        </item>
-       <item row="0" column="2" rowspan="4">
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_21">
+         <property name="text">
+          <string>feature icon:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0" colspan="3">
+        <spacer>
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>71</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="2" rowspan="3">
         <spacer>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -326,41 +339,31 @@ p, li { white-space: pre-wrap; }
          </property>
         </spacer>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_17">
-         <property name="text">
-          <string>m/z axis:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QComboBox" name="mapping_2D">
-         <property name="maximumSize">
-          <size>
-           <width>120</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <item>
-          <property name="text">
-           <string>x_axis</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>y_axis</string>
-          </property>
-         </item>
-        </widget>
-       </item>
        <item row="2" column="0">
-        <widget class="QLabel" name="label_21">
+        <widget class="QLabel" name="label_22">
          <property name="text">
-          <string>feature icon:</string>
+          <string>feature icon size:</string>
          </property>
         </widget>
        </item>
        <item row="2" column="1">
+        <widget class="QSpinBox" name="feature_icon_size_2D">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="value">
+          <number>3</number>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_13">
+         <property name="text">
+          <string>Peak gradient:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
         <widget class="QComboBox" name="feature_icon_2D">
          <item>
           <property name="text">
@@ -383,36 +386,6 @@ p, li { white-space: pre-wrap; }
           </property>
          </item>
         </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_22">
-         <property name="text">
-          <string>feature icon size:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QSpinBox" name="feature_icon_size_2D">
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="value">
-          <number>3</number>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0" colspan="3">
-        <spacer>
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>71</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>
@@ -588,7 +561,6 @@ p, li { white-space: pre-wrap; }
   <tabstop>default_path</tabstop>
   <tabstop>browse_default</tabstop>
   <tabstop>map_cutoff</tabstop>
-  <tabstop>mapping_2D</tabstop>
   <tabstop>shade_3D</tabstop>
   <tabstop>line_width_3D</tabstop>
  </tabstops>

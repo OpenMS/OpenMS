@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julianus Pfeuffer $
@@ -140,7 +114,7 @@ namespace OpenMS
 
 
   IDBoostGraph::IDBoostGraph(ProteinIdentification& proteins,
-                             std::vector<PeptideIdentification>& idedSpectra,
+                             PeptideIdentificationList& idedSpectra,
                              Size use_top_psms,
                              bool use_run_info,
                              bool best_psms_annotated,
@@ -257,9 +231,9 @@ namespace OpenMS
     Size idx(0);
     Size pfg(0);
 
-    if (spectrum.metaValueExists("id_merge_index"))
+    if (spectrum.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
     {
-      idx = spectrum.getMetaValue("id_merge_index");
+      idx = spectrum.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
       auto find_it = indexToPrefractionationGroup.find(idx);
       if (find_it == indexToPrefractionationGroup.end())
       {
@@ -374,7 +348,7 @@ namespace OpenMS
   }
 
   void IDBoostGraph::buildGraphWithRunInfo_(ProteinIdentification& proteins,
-                                           std::vector<PeptideIdentification>& idedSpectra,
+                                           PeptideIdentificationList& idedSpectra,
                                            Size use_top_psms,
                                            const ExperimentalDesign& ed)
   {
@@ -420,7 +394,7 @@ namespace OpenMS
   //TODO actually to build the graph, the inputs could be passed const. But if you want to do sth
   // on the graph later it needs to be non-const. Overload the next functions or somehow make sure it can be used const.
   void IDBoostGraph::buildGraph_(ProteinIdentification& proteins,
-                                std::vector<PeptideIdentification>& idedSpectra,
+                                PeptideIdentificationList& idedSpectra,
                                 Size use_top_psms,
                                 bool best_psms_annotated)
   {
@@ -819,7 +793,7 @@ namespace OpenMS
     // Cluster proteins
     for (; ui != ui_end; ++ui)
     {
-      IDBoostGraph::IDPointer curr_idObj = fg[*ui];
+      const IDBoostGraph::IDPointer& curr_idObj = fg[*ui];
       //TODO introduce an enum for the types to make it more clear.
       // Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
       if (curr_idObj.which() == 0) //protein: find indist. ones
@@ -1168,7 +1142,7 @@ namespace OpenMS
           "No connected components annotated. Run computeConnectedComponents first!");
     }
 
-    #pragma omp parallel for schedule(dynamic) default(none) shared(chargeRange, OpenMS_Log_info)
+    #pragma omp parallel for schedule(dynamic) default(none) shared(chargeRange)
     for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
     {
       Graph& curr_cc = ccs_[i];

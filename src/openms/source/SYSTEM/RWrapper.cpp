@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -38,18 +12,40 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtCore/QProcess>
+#include <boost/version.hpp>
+
+// Boost.Process v1 compatibility shims removed in Boost 1.88; use v1/ prefix for 1.88+
+#if BOOST_VERSION >= 108800
+#include <boost/process/v1/child.hpp>
+#include <boost/process/v1/args.hpp>
+#include <boost/process/v1/io.hpp>
+#include <boost/process/v1/search_path.hpp>
+#else
+#include <boost/process/child.hpp>
+#include <boost/process/args.hpp>
+#include <boost/process/io.hpp>
+#include <boost/process/search_path.hpp>
+#endif
+
+#include <string>
+#include <thread>
+
+#if BOOST_VERSION >= 108800
+namespace bp = boost::process::v1;
+#else
+namespace bp = boost::process;
+#endif
 
 namespace OpenMS
 {
 
-  bool RWrapper::runScript( const String& script_file, const QStringList& cmd_args, const QString& executable /*= "Rscript"*/, bool find_R /*= false */, bool verbose /*= true */)
+  bool RWrapper::runScript(const String& script_file, const std::vector<String>& cmd_args, const String& executable /*= "Rscript"*/, bool find_R /*= false */, bool verbose /*= true */)
   {
     if (find_R && !findR(executable, verbose))
     {
       return false;
     }
-    
+
     String fullscript;
     try
     {
@@ -64,27 +60,68 @@ namespace OpenMS
     {
       OPENMS_LOG_INFO << "Running R script '" << fullscript << "' ...";
     }
-    QStringList args;
-    args << "--vanilla" << "--quiet" << fullscript.toQString();
-    args.append(cmd_args);
 
-    QProcess p;
-    p.start(executable, args);
-    p.waitForFinished(-1);
+    // Build argument list: --vanilla --quiet <script> <cmd_args...>
+    std::vector<std::string> args;
+    args.push_back("--vanilla");
+    args.push_back("--quiet");
+    args.push_back(static_cast<std::string>(fullscript));
+    for (const auto& a : cmd_args)
+    {
+      args.push_back(static_cast<std::string>(a));
+    }
 
-    if (p.error() == QProcess::FailedToStart || p.exitStatus() == QProcess::CrashExit || p.exitCode() != 0)
+    try
+    {
+      bp::ipstream pipe_out;
+      bp::ipstream pipe_err;
+      bp::child child(
+        bp::search_path(static_cast<std::string>(executable)),
+        bp::args(args),
+        bp::std_out > pipe_out,
+        bp::std_err > pipe_err
+      );
+
+      // Drain both pipes concurrently to prevent deadlock
+      // (child may block if pipe buffer fills before we read)
+      std::string stdout_content, stderr_content;
+      auto drain_out = [&pipe_out, &stdout_content]() {
+        std::string line;
+        while (std::getline(pipe_out, line)) { stdout_content += line + "\n"; }
+      };
+      auto drain_err = [&pipe_err, &stderr_content]() {
+        std::string line;
+        while (std::getline(pipe_err, line)) { stderr_content += line + "\n"; }
+      };
+      std::thread reader_err(drain_err); // start stderr reader first
+      drain_out();                        // read stdout on this thread
+      reader_err.join();
+
+      child.wait();
+
+      int exit_code = child.exit_code();
+      if (exit_code != 0)
+      {
+        if (verbose)
+        {
+          OPENMS_LOG_INFO << " failed" << std::endl;
+          OPENMS_LOG_ERROR << "\n--- ERROR MESSAGES ---\n" << stderr_content;
+          OPENMS_LOG_ERROR << "\n--- OTHER MESSAGES ---\n" << stdout_content;
+          OPENMS_LOG_ERROR << "\n\nScript failed. See above for an error description. " << std::endl;
+        }
+        return false;
+      }
+    }
+    catch (const bp::process_error&)
     {
       if (verbose)
       {
         OPENMS_LOG_INFO << " failed" << std::endl;
-        OPENMS_LOG_ERROR << "\n--- ERROR MESSAGES ---\n";
-        OPENMS_LOG_ERROR << QString(p.readAllStandardError()).toStdString();
-        OPENMS_LOG_ERROR << "\n--- OTHER MESSAGES ---\n";
-        OPENMS_LOG_ERROR << QString(p.readAllStandardOutput()).toStdString();
-        OPENMS_LOG_ERROR << "\n\nScript failed. See above for an error description. " << std::endl;
+        OPENMS_LOG_ERROR << "Error: Could not run '" << executable << "'. Is it installed and in PATH?" << std::endl;
       }
       return false;
     }
+
     if (verbose)
     {
       OPENMS_LOG_INFO << " success" << std::endl;
@@ -92,63 +129,83 @@ namespace OpenMS
     return true;
   }
 
-  bool RWrapper::findR( const QString& executable /*= "Rscript"*/, bool verbose /*= true*/ )
+  bool RWrapper::findR(const String& executable /*= "Rscript"*/, bool verbose /*= true*/)
   {
     if (verbose) OPENMS_LOG_INFO << "Finding R interpreter 'Rscript' ...";
 
-    QStringList args(QStringList() << "--vanilla" << "-e" << "sessionInfo()");
-    QProcess p;
-    p.setProcessChannelMode(QProcess::MergedChannels); // stdout receives all messages (stderr is empty)
-    p.start(executable, args);
-    p.waitForFinished(-1);
+    std::vector<std::string> args = {"--vanilla", "-e", "sessionInfo()"};
 
-    if (p.error() == QProcess::FailedToStart)
+    try
+    {
+      // Use both pipes to match Qt MergedChannels behavior (stderr merged into output)
+      bp::ipstream pipe_out;
+      bp::ipstream pipe_err;
+      bp::child child(
+        bp::search_path(static_cast<std::string>(executable)),
+        bp::args(args),
+        bp::std_out > pipe_out,
+        bp::std_err > pipe_err
+      );
+
+      // Drain both pipes before wait to prevent deadlock
+      std::string stdout_content, stderr_content;
+      std::thread reader_err([&pipe_err, &stderr_content]() {
+        std::string line;
+        while (std::getline(pipe_err, line)) { stderr_content += line + "\n"; }
+      });
+      {
+        std::string line;
+        while (std::getline(pipe_out, line)) { stdout_content += line + "\n"; }
+      }
+      reader_err.join();
+      // Merge like Qt MergedChannels
+      std::string merged_content = stdout_content + stderr_content;
+
+      child.wait();
+
+      if (child.exit_code() != 0)
+      {
+        if (verbose)
+        {
+          OPENMS_LOG_INFO << " failed" << std::endl;
+          // Construct args string for error message
+          std::string args_str;
+          for (const auto& a : args)
+          {
+            if (!args_str.empty()) args_str += " ";
+            args_str += a;
+          }
+          OPENMS_LOG_ERROR << "Error: 'Rscript' executable returned with error (command: 'Rscript " << args_str << "')\n";
+          OPENMS_LOG_ERROR << "Output was:\n------>\n" << merged_content
+                    << "\n<------\n"
+                    << "Make sure 'Rscript' is installed properly." << std::endl;
+        }
+        return false;
+      }
+    }
+    catch (const bp::process_error&)
     {
       if (verbose)
       {
         OPENMS_LOG_INFO << " failed" << std::endl;
-        String out = QString(p.readAllStandardOutput()).toStdString();
-        OPENMS_LOG_ERROR << "Error: Could not find or run '" << executable.toStdString() << "' executable (FailedToStart).\n";
-        if (!out.empty())
-        {
-          OPENMS_LOG_ERROR << "Output was:\n------>\n"
-                    << out
-                    << "\n<------\n";
-        }
+        OPENMS_LOG_ERROR << "Error: Could not find or run '" << executable << "' executable (FailedToStart).\n";
         OPENMS_LOG_ERROR << "Please install 'Rscript', make sure it's in PATH and is flagged as executable." << std::endl;
       }
+      return false;
+    }
 
-      return false;
-    }
     if (verbose)
     {
       OPENMS_LOG_INFO << " success" << std::endl;
     }
     if (verbose)
     {
-      OPENMS_LOG_INFO << "Trying to invoke 'Rscript' ...";
-    }
-    if (p.exitStatus() != QProcess::NormalExit || p.exitCode() != 0)
-    {
-      if (verbose)
-      {
-        OPENMS_LOG_INFO << " failed" << std::endl;
-        OPENMS_LOG_ERROR << "Error: 'Rscript' executable returned with error (command: 'Rscript " << args.join(" ").toStdString() << "')\n"
-                  << "Output was:\n------>\n"
-                  << QString(p.readAllStandardOutput()).toStdString()
-                  << "\n<------\n"
-                  << "Make sure 'Rscript' is installed properly." << std::endl;
-      }
-      return false;
-    }
-    if (verbose)
-    {
-      OPENMS_LOG_INFO << " success" << std::endl;
+      OPENMS_LOG_INFO << "Trying to invoke 'Rscript' ... success" << std::endl;
     }
     return true;
   }
 
-  OpenMS::String RWrapper::findScript( const String& script_file, bool verbose /*= true*/ )
+  OpenMS::String RWrapper::findScript(const String& script_file, bool verbose /*= true*/)
   {
     String s;
     try

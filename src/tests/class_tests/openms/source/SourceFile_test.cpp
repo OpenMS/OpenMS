@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -109,14 +83,14 @@ END_SECTION
 
 START_SECTION(ChecksumType getChecksumType() const)
   SourceFile tmp;
-  TEST_EQUAL(tmp.getChecksumType(), SourceFile::UNKNOWN_CHECKSUM);
+  TEST_EQUAL(tmp.getChecksumType(), SourceFile::ChecksumType::UNKNOWN_CHECKSUM);
 END_SECTION
 
 START_SECTION((void setChecksum(const String& checksum, ChecksumType type)))
   SourceFile tmp;
-  tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12",SourceFile::SHA1);
+  tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12",SourceFile::ChecksumType::SHA1);
   TEST_EQUAL(tmp.getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
-  TEST_EQUAL(tmp.getChecksumType(), SourceFile::SHA1);
+  TEST_EQUAL(tmp.getChecksumType(), SourceFile::ChecksumType::SHA1);
 END_SECTION
 
 START_SECTION((const String& getNativeIDType() const))
@@ -135,7 +109,7 @@ START_SECTION((SourceFile(const SourceFile& source)))
 	tmp.setFileType("CALIBRATIONINFO");
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
 	tmp.setPathToFile("/misc/sturm/mp3/");
-	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::MD5);
+	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::ChecksumType::MD5);
 	tmp.setMetaValue("bla",4.0);
 	
 	SourceFile tmp2(tmp);
@@ -143,7 +117,7 @@ START_SECTION((SourceFile(const SourceFile& source)))
 	TEST_EQUAL(tmp2.getNameOfFile(),"The White Stripes - Ball and Biscuit");
 	TEST_EQUAL(tmp2.getPathToFile(),"/misc/sturm/mp3/");
 	TEST_EQUAL(tmp2.getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
-	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::MD5);
+	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::ChecksumType::MD5);
 	TEST_REAL_SIMILAR(tmp2.getMetaValue("bla"), 4.0);
 END_SECTION
 
@@ -152,7 +126,7 @@ START_SECTION((SourceFile& operator= (const SourceFile& source)))
 	tmp.setFileType("PUBLICATION");
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
 	tmp.setPathToFile("/misc/sturm/mp3/");
-	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::MD5);
+	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::ChecksumType::MD5);
 	tmp.setMetaValue("bla",4.0);
 	
 	//normal assignment
@@ -162,7 +136,7 @@ START_SECTION((SourceFile& operator= (const SourceFile& source)))
 	TEST_EQUAL(tmp2.getNameOfFile(),"The White Stripes - Ball and Biscuit");
 	TEST_EQUAL(tmp2.getPathToFile(),"/misc/sturm/mp3/");
 	TEST_EQUAL(tmp2.getChecksum(),"2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
-	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::MD5);
+	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::ChecksumType::MD5);
 	TEST_REAL_SIMILAR(tmp2.getMetaValue("bla"), 4.0);
 	
 	//assignment of empty object
@@ -171,14 +145,14 @@ START_SECTION((SourceFile& operator= (const SourceFile& source)))
 	TEST_EQUAL(tmp2.getNameOfFile(),"");
 	TEST_EQUAL(tmp2.getPathToFile(),"");
 	TEST_EQUAL(tmp2.getChecksum(),"");
-	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::UNKNOWN_CHECKSUM);
+	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::ChecksumType::UNKNOWN_CHECKSUM);
 	TEST_EQUAL(tmp2.metaValueExists("bla"), false);
 END_SECTION
 
 START_SECTION((bool operator== (const SourceFile& rhs) const))
 	SourceFile tmp,tmp2;
 	
-	TEST_EQUAL(tmp==tmp2, true);
+	TEST_TRUE(tmp == tmp2);
 	
 	tmp2.setFileType("PARAMETERSFILE");
 	TEST_EQUAL(tmp==tmp2, false);
@@ -188,7 +162,7 @@ START_SECTION((bool operator== (const SourceFile& rhs) const))
 	TEST_EQUAL(tmp==tmp2, false);
 	
 	tmp2 = tmp;
-	tmp.setChecksum("", SourceFile::MD5);
+	tmp.setChecksum("", SourceFile::ChecksumType::MD5);
 	TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;
@@ -206,23 +180,30 @@ START_SECTION((bool operator!= (const SourceFile& rhs) const))
 	TEST_EQUAL(tmp!=tmp2, false);
 	
 	tmp2.setFileType("MISC");
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;
-	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::UNKNOWN_CHECKSUM);
-	TEST_EQUAL(tmp!=tmp2, true);
+	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::ChecksumType::UNKNOWN_CHECKSUM);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
 	tmp.setMetaValue("bla",4.0);
-	TEST_EQUAL(tmp!=tmp2, true);	
+	TEST_FALSE(tmp == tmp2);	
 
 	tmp2 = tmp;	
 	tmp.setPathToFile("/misc/sturm/mp3/");
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfChecksumType()))
+  StringList names = SourceFile::getAllNamesOfChecksumType();
+  TEST_EQUAL(names.size(), static_cast<size_t>(SourceFile::ChecksumType::SIZE_OF_CHECKSUMTYPE));
+  TEST_EQUAL(names[static_cast<size_t>(SourceFile::ChecksumType::SHA1)], "SHA-1");
+  TEST_EQUAL(names[static_cast<size_t>(SourceFile::ChecksumType::MD5)], "MD5");
 END_SECTION
 
 /////////////////////////////////////////////////////////////

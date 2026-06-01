@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -260,61 +234,149 @@ namespace OpenMS
 
     namespace UserParam
     {
+      /** User parameter name for general ion mobility values (e.g., if not further specified)
+              String
+      */
+      inline const std::string IM = "IM";
+
+      /** User parameter name for FAIMS compensation voltage values
+              Double (in volts)
+      */
+      inline const std::string FAIMS_CV = "FAIMS_CV";
+
+      /** MetaValue key for raw TimsTOF ion mobility array (from MSConvert).
+       * Note: TODO check. I saw files with other names as well (e.g. mean inverse ion mobility).
+       * PeakPickerIM expects to find 'Ion Mobility' array and will treat it as raw timsTOF data.
+       */
+      inline const std::string ION_MOBILITY = "Ion Mobility";
+
+      /** MetaValue key for inverse reduced ion mobility array (alternative name for 1/K0 from MSConvert).
+       * Uses the same CV term MS:1002815 as ION_MOBILITY.
+       */
+      inline const std::string INVERSE_REDUCED_ION_MOBILITY = "inverse reduced ion mobility";
+
+      /** Alternative MetaValue key for ion mobility data (inverse reduced ion mobility).
+       * Some files store ion mobility data with this prefix instead of "Ion Mobility".
+       * Unit is typically volt-seconds per square centimeter (Vs/cm^2) also known as 1/k0.
+       * CV Term MS:1003006
+       */
+      inline const std::string MEAN_INVERSE_REDUCED_ION_MOBILITY_ARRAY = "mean inverse reduced ion mobility array";
+
+      /** MetaValue key for centroided ion mobility data output by PeakPickerIM and MassTraceDetection.
+       * PeakPickerIM outputs centroided peaks with this array name.
+       * MassTraceDetection computes intensity-weighted ion mobility average of connected centroided peaks.
+       */
+      inline const std::string ION_MOBILITY_CENTROID = "Ion Mobility Centroid";
+
+
+      /** MetaValue key for storing PeakPickerIM ion mobility peak FWHM.
+       */
+      inline const std::string FWHM_IM = "IM Peak FWHM";
+
+      /** MetaValue key for storing MassTraceDetection im FWHM peak avrage
+       * PeakPickerIM outputs ion mobility peak FWHM 'FWHM_im' -- those will be averaged across one trace.
+       */
+      inline const std::string FWHM_IM_AVG = "FWHM_im_avg";
+
+      /** MetaValue key for storing PeakPickerHiRes m/z peak FWHM
+       */
+      inline const std::string FWHM_MZ_ppm = "FWHM_ppm";
+
+      /** MetaValue key for storing MassTraceDetection mz FWHM peak average
+       * if PeakPickerHiRes outputs m/z peak FWHM 'FWHM_ppm' -- those will be averaged across one trace.
+       */
+      inline const std::string FWHM_MZ_AVG = "FWHM_mz_avg";
+
+      /** MetaValue key for storing mass trace m/z standard deviation (in Dalton)
+       */
+      inline const std::string SD = "SD";
+
+      /** MetaValue key for storing mass trace m/z standard deviation (in ppm)
+       */
+      inline const std::string SD_ppm = "SD_ppm";
+
+      /** User parameter name for ion names (e.g., annotated by TheoreticalSpectrumGenerator)
+              String
+      */
+      inline const std::string IonNames = "IonNames";
+
       /** User parameter name for identifier of concatenated peptides
               String
       */
       inline const std::string CONCAT_PEPTIDE = "concatenated_peptides";
 
       /** Metavalue to list unimod modifications used in site localization
-      */    
-      inline const std::string   LOCALIZED_MODIFICATIONS_USERPARAM = "localized_modifications";
+      */
+      inline const std::string LOCALIZED_MODIFICATIONS_USERPARAM = "localized_modifications";
 
       /** User parameter name for the M/Z of other chromatograms which have been merged into this one
               String
        */
-      inline const std::string   MERGED_CHROMATOGRAM_MZS = "merged_chromatogram_mzs";
+      inline const std::string MERGED_CHROMATOGRAM_MZS = "merged_chromatogram_mzs";
 
       /** User parameter name for precursor mz error in ppm
               String
       */
-      inline const std::string   PRECURSOR_ERROR_PPM_USERPARAM = "precursor_mz_error_ppm";
+      inline const std::string PRECURSOR_ERROR_PPM_USERPARAM = "precursor_mz_error_ppm";
 
       /** User parameter name for median of fragment mz error in ppm
               String
       */
-      inline const std::string   FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM = "fragment_mz_error_median_ppm";
+      inline const std::string FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM = "fragment_mz_error_median_ppm";
 
 
       /** User parameter name for fragment mz error in ppm
               String
       */
-      inline const std::string   FRAGMENT_ERROR_PPM_USERPARAM = "fragment_mass_error_ppm";
+      inline const std::string FRAGMENT_ERROR_PPM_USERPARAM = "fragment_mass_error_ppm";
 
       /** User parameter name for fragment mz error in dalton
               String
       */
-      inline const std::string   FRAGMENT_ERROR_DA_USERPARAM = "fragment_mass_error_da";
+      inline const std::string FRAGMENT_ERROR_DA_USERPARAM = "fragment_mass_error_da";
 
       /** User parameter name for fragment annotations
               String
       */
-      inline const std::string   FRAGMENT_ANNOTATION_USERPARAM = "fragment_annotation";
+      inline const std::string FRAGMENT_ANNOTATION_USERPARAM = "fragment_annotation";
 
       /** User parameter name for annotation of PSMExlpainedIonCurrent
               String
       */
       inline const std::string   PSM_EXPLAINED_ION_CURRENT_USERPARAM = "PSM_explained_ion_current";
 
-      // User parameter name for the fraction of prefix ions that have been matched 
+      // User parameter name for the fraction of prefix ions that have been matched
       inline const std::string MATCHED_PREFIX_IONS_FRACTION = "matched_prefix_ions_fraction";
 
-      // User parameter name for the fraction of suffix ions that have been matched 
+      // User parameter name for the fraction of suffix ions that have been matched
       inline const std::string MATCHED_SUFFIX_IONS_FRACTION = "matched_suffix_ions_fraction";
 
-      /** User parameter name for the spectrum reference in PeptideIdentification (is is not yet treated as a class attribute)
+      // User parameter name for the number of matched prefix ions (a/b/c, absolute count)
+      inline const std::string MATCHED_PREFIX_IONS = "matched_prefix_ions";
+
+      // User parameter name for the number of matched suffix ions (x/y/z, absolute count)
+      inline const std::string MATCHED_SUFFIX_IONS = "matched_suffix_ions";
+
+      // User parameter name for the total number of matched fragment ions
+      inline const std::string NUM_MATCHED_PEAKS = "num_matched_peaks";
+
+      // User parameter name for the longest consecutive prefix (a/b/c) or suffix (x/y/z) ion series
+      inline const std::string LONGEST_PEPTIDE_ION_SEQUENCE = "longest_peptide_ion_sequence";
+
+      // User parameter name for the matched ion current (sum of experimental
+      // intensities over all matched fragment peaks, raw — not log-transformed)
+      inline const std::string MATCHED_ION_CURRENT = "matched_ion_current";
+
+      /** User parameter name for the spectrum reference in PeptideIdentification (it is not yet treated as a class attribute)
               String
       */
       inline const std::string   SPECTRUM_REFERENCE = "spectrum_reference";
+
+      /** User parameter name to store the index of the primary MS run associated with the PeptideIdentification (it is not yet treated as a class attribute).
+          Set by IDMerger algorithm or when reading ID files with info from multiple files (e.g., PercolatorInfile)
+              String
+      */
+      inline const std::string   ID_MERGE_INDEX = "id_merge_index";
 
       /** User parameter name for target/decoy annotation of a PeptideHit, e.g. as annotated by PeptideIndexer. One of: target, decoy, target+decoy
               String
@@ -330,6 +392,11 @@ namespace OpenMS
               String
       */
       inline const std::string   ISOTOPE_ERROR = "isotope_error";
+
+      /** User parameter name to indicate a peptide q-value
+              String
+      */
+      inline const std::string   PEPTIDE_Q_VALUE = "peptide q-value";
 
       // Cross-Linking Mass Spectrometry user parameters
       /** Name of OpenPepXL main score (PSI CV term)
@@ -442,8 +509,7 @@ namespace OpenMS
       */
       inline const std::string   OPENPEPXL_BETA_PEPEV_END = "BetaPepEv:end";
 
-      /** @name User parameters in/from Sirius annotated mzMLs
-        *  E.g., when running SiriusAdapter with annotation output
+      /** @name User parameters in spectra which have been annotated from subdirectories in SIRIUS workspace
        */
       ///@{
 
@@ -535,7 +601,7 @@ namespace OpenMS
       */
       inline const std::string   DC_CHARGE_ADDUCTS = "dc_charge_adducts";
 
-      /** User parameter name for the number of mass traces in a feature. (Required for SiriusAdapter)
+      /** User parameter name for the number of mass traces in a feature. (Required for SiriusExport)
               String
       */
       inline const std::string   NUM_OF_MASSTRACES = "num_of_masstraces";
@@ -569,6 +635,31 @@ namespace OpenMS
               String
       */
       inline const std::string   MSM_SUM_FORMULA = "Sum_Formula";
+
+      /** User parameter name for the collision cross section (CCS, in Angstrom^2) of a metabolite. (Used by MetaboliteSpectralMatcher for ion-mobility filtering)
+              double
+      */
+      inline const std::string   MSM_CCS = "CCS";
+
+      /** User parameter name for the base name which links to underlying peak map
+              String
+      */
+      inline const std::string   BASE_NAME = "base_name";
+
+      /** User parameter name for the significance threshold in PeptideIdentification
+              Double
+      */
+      inline const std::string   SIGNIFICANCE_THRESHOLD = "significance_threshold";
+      
+      /** User parameter name for the rank of a peptide hit
+              String
+      */
+      inline const std::string   RANK = "rank";
+
+      /** User parameter name for the number of peaks in a spectrum
+              String
+      */
+      inline const std::string   NUM_PEAKS = "num_peaks";
     }
 
     //@}

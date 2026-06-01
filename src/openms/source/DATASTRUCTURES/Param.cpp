@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -73,7 +47,7 @@ namespace OpenMS
     //check name
     if (name.find(':') != std::string::npos)
     {
-      std::cerr << "Error ParamEntry name must not contain ':' characters!" << std::endl;
+      OPENMS_LOG_ERROR << "Error ParamEntry name must not contain ':' characters!" << std::endl;
     }
   }
 
@@ -211,9 +185,9 @@ namespace OpenMS
     entries(),
     nodes()
   {
-      if (name.find(':') != std::string::npos) 
+      if (name.find(':') != std::string::npos)
       {
-        std::cerr << "Error ParamNode name must not contain ':' characters!" << std::endl;
+        OPENMS_LOG_WARN << "Error ParamNode name must not contain ':' characters!\n";
       }
   }
 
@@ -270,13 +244,13 @@ namespace OpenMS
 
   Param::ParamNode* Param::ParamNode::findParentOf(const std::string& local_name)
   {
-    //cout << "findParentOf nodename: " << this->name << " - nodes: " << this->nodes.size() << " - find: "<< name << std::endl;
+    //cout << "findParentOf nodename: " << this->name << " - nodes: " << this->nodes.size() << " - find: "<< name << '\n';
     if (local_name.find(':') != std::string::npos) //several subnodes to browse through
     {
         size_t pos = local_name.find(':');
         std::string prefix = local_name.substr(0, pos);
 
-        //cout << " - Prefix: '" << prefix << "'" << std::endl;
+        //cout << " - Prefix: '" << prefix << "'\n";
         NodeIterator it = findNode(prefix);
         if (it == nodes.end()) //subnode not found
         {
@@ -284,7 +258,7 @@ namespace OpenMS
         }
         //recursively call findNode for the rest of the path
         std::string new_name = local_name.substr(it->name.size() + 1);
-        //cout << " - Next name: '" << new_name << "'" << std::endl;
+        //cout << " - Next name: '" << new_name << "'\n";
         return it->findParentOf(new_name);
     }
     else // we are in the right child
@@ -327,7 +301,7 @@ namespace OpenMS
 
   void Param::ParamNode::insert(const ParamNode& node, const std::string& prefix)
   {
-    //std::cerr << "INSERT NODE  " << node.name << " (" << prefix << ")" << std::endl;
+    //std::cerr << "INSERT NODE  " << node.name << " (" << prefix << ")\n";
     std::string prefix2 = prefix + node.name;
 
     ParamNode* insert_node = this;
@@ -345,10 +319,21 @@ namespace OpenMS
       {
         insert_node->nodes.emplace_back(local_name, "");
         insert_node = &(insert_node->nodes.back());
-        //std::cerr << " - Created new node: " << insert_node->name << std::endl;
+        //std::cerr << " - Created new node: " << insert_node->name << '\n';
       }
       //remove prefix
       prefix2 = prefix2.substr(local_name.size() + 1);
+    }
+
+    // check if the node exists as ParamEntry
+    EntryIterator entry_it = insert_node->findEntry(prefix2);
+    if (entry_it != insert_node->entries.end()) {
+      std::string message = "Duplicate option \""
+                            + prefix
+                            + "\" into \""
+                            + name
+                            + "\", should not be added as ParamNode and ParamEntry at the same time (1).";
+      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
     }
 
     //check if the node already exists
@@ -378,16 +363,16 @@ namespace OpenMS
 
   void Param::ParamNode::insert(const ParamEntry& entry, const std::string& prefix)
   {
-    //std::cerr << "INSERT ENTRY " << entry.name << " (" << prefix << ")" << std::endl;
+    //std::cerr << "INSERT ENTRY " << entry.name << " (" << prefix << ")\n";
     std::string prefix2 = prefix + entry.name;
-    //std::cerr << " - inserting: " << prefix2 << std::endl;
+    //std::cerr << " - inserting: " << prefix2 << '\n';
 
     ParamNode* insert_node = this;
     while (prefix2.find(':') != std::string::npos)
     {
       size_t pos = prefix2.find(':');
       std::string local_name = prefix2.substr(0, pos);
-      //std::cerr << " - looking for node: " << name << std::endl;
+      //std::cerr << " - looking for node: " << name << '\n';
       //look up if the node already exists
       NodeIterator it = insert_node->findNode(local_name);
       if (it != insert_node->nodes.end()) //exists
@@ -398,15 +383,27 @@ namespace OpenMS
       {
         insert_node->nodes.emplace_back(local_name, "");
         insert_node = &(insert_node->nodes.back());
-        //std::cerr << " - Created new node: " << insert_node->name << std::endl;
+        //std::cerr << " - Created new node: " << insert_node->name << '\n';
       }
       //remove prefix
       prefix2 = prefix2.substr(local_name.size() + 1);
-      //std::cerr << " - new prefix: " << prefix2 << std::endl;
+      //std::cerr << " - new prefix: " << prefix2 << '\n';
+    }
+
+    // check if the entry exists as ParamNode
+    NodeIterator node_it = insert_node->findNode(prefix2);
+    if (node_it != insert_node->nodes.end())
+    {
+      std::string message = "Duplicate option \""
+                            + prefix
+                            + "\" into \""
+                            + name
+                            + "\", should not be added as ParamNode and ParamEntry at the same time (2).";
+      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
     }
 
     //check if the entry already exists
-    //std::cerr << " - final entry name: " << prefix2 << std::endl;
+    //std::cerr << " - final entry name: " << prefix2 << '\n';
     EntryIterator it = insert_node->findEntry(prefix2);
     if (it != insert_node->entries.end()) //overwrite entry
     {
@@ -569,7 +566,7 @@ namespace OpenMS
 
   void Param::insert(const std::string& prefix, const Param& param)
   {
-    //std::cerr << "INSERT PARAM (" << prefix << ")" << std::endl;
+    //std::cerr << "INSERT PARAM (" << prefix << ")\n";
     for (Param::ParamNode::NodeIterator it = param.root_.nodes.begin(); it != param.root_.nodes.end(); ++it)
     {
       root_.insert(*it, prefix);
@@ -597,7 +594,7 @@ namespace OpenMS
       if (!exists(prefix2 + it.getName()))
       {
         if (showMessage)
-          std::cerr << "Setting " << prefix2 + it.getName() << " to " << it->value << std::endl;
+          OPENMS_LOG_WARN << "Setting " << prefix2 + it.getName() << " to " << it->value << '\n';
         std::string name = prefix2 + it.getName();
         root_.insert(ParamEntry("", it->value, it->description), name);
         //copy tags
@@ -641,8 +638,8 @@ namespace OpenMS
           const std::string& description_new = defaults.getSectionDescription(real_pathname);
           if (description_old.empty())
           {
-            //std::cerr << "## Setting description of " << prefix+real_pathname << " to"<< std::endl;
-            //std::cerr << "## " << description_new << std::endl;
+            //std::cerr << "## Setting description of " << prefix+real_pathname << " to"<< '\n';
+            //std::cerr << "## " << description_new << '\n';
             setSectionDescription(prefix2 + real_pathname, description_new);
           }
         }
@@ -881,7 +878,7 @@ namespace OpenMS
       {
         arg1_is_option = true;
       }
-      //cout << "Parse: '"<< arg << "' '" << arg1 << "'" << std::endl;
+      //cout << "Parse: '"<< arg << "' '" << arg1 << "'\n";
 
       //flag (option without text argument)
       if (arg_is_option && arg1_is_option)
@@ -1046,7 +1043,7 @@ namespace OpenMS
       {
         os << " (" << it->description << ")";
       }
-      os << std::endl;
+      os << '\n';
     }
     return os;
   }
@@ -1205,7 +1202,7 @@ namespace OpenMS
 
   bool Param::update(const Param& p_outdated, const bool add_unknown)
   {
-    return update(p_outdated, add_unknown, OpenMS_Log_warn);
+    return update(p_outdated, add_unknown, getGlobalLogWarn());
   }
 
   bool Param::update(const Param& p_outdated, const bool add_unknown, Logger::LogStream& stream)
@@ -1240,8 +1237,8 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           continue;
         }
         // param 'type': do not override!
-        else if (suffix = ":type",
-                !(suffix.length() > it.getName().length()) &&
+        suffix = ":type";
+        if (!(suffix.length() > it.getName().length()) &&
                 it.getName().compare(it.getName().length() - suffix.length(), suffix.length(), suffix) == 0) // only for TOPP type (e.g. PeakPicker:1:type), any other 'type' param is ok
         {
           size_t first = it.getName().find(':');
@@ -1277,7 +1274,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           if (this->findNext(l1_entry.name, it_match) == this->end())
           {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-            stream << "Found '" << it.getName() << "' as '" << it_match.getName() << "' in new param." << std::endl;
+            stream << "Found '" << it.getName() << "' as '" << it_match.getName() << "' in new param.\n";
             new_entry = this->getEntry(it_match.getName());
             target_name = it_match.getName();
           }
@@ -1288,13 +1285,13 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           if (fail_on_unknown_parameters)
           {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file!" << std::endl;
+            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file!\n";
             is_update_success = false;
           }
           else if (add_unknown)
           {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Adding to current set." << std::endl;
+            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Adding to current set.\n";
             Param::ParamEntry local_entry = p_outdated.getEntry(it.getName());
             std::string prefix = "";
             if (it.getName().find(':') != std::string::npos)
@@ -1306,7 +1303,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           else if (verbose)
           {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Ignoring parameter. " << std::endl;
+            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Ignoring parameter. \n";
           }
           continue;
         }
@@ -1327,7 +1324,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
             if (verbose) 
             {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-                stream << "Default-Parameter '" << target_name << "' overridden: '" << default_value << "' --> '" << it->value << "'!" << std::endl;
+                stream << "Default-Parameter '" << target_name << "' overridden: '" << default_value << "' --> '" << it->value << "'!\n";
             }
             this->setValue(target_name, it->value, new_entry.description, this->getTags(target_name));
           }
@@ -1338,13 +1335,13 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
             if (fail_on_invalid_values)
             {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-              stream << " Updating failed!" << std::endl;
+              stream << " Updating failed!\n";
               is_update_success = false;
             }
             else
             {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-              stream << " Ignoring invalid value (using new default '" << default_value << "')!" << std::endl;
+              stream << " Ignoring invalid value (using new default '" << default_value << "')!\n";
               new_entry.value = default_value;
             }
           }
@@ -1361,13 +1358,13 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
         if (fail_on_invalid_values)
         {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-          stream << " Updating failed!" << std::endl;
+          stream << " Updating failed!\n";
           is_update_success = false;
         } 
         else
         {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-          stream << " Ignoring invalid value (using new default)!" << std::endl;
+          stream << " Ignoring invalid value (using new default)!\n";
         }
       }
 
@@ -1392,7 +1389,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       if (!this->exists(it.getName()))
       {
         Param::ParamEntry entry = *it;
-        OPENMS_LOG_DEBUG << "[Param::merge] merging " << it.getName() << std::endl;
+        OPENMS_LOG_DEBUG << "[Param::merge] merging " << it.getName() << '\n';
         this->root_.insert(entry, prefix);
       }
 
@@ -1402,12 +1399,12 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       {
         if (traceIt->opened)
         {
-          OPENMS_LOG_DEBUG << "[Param::merge] extending param trace " << traceIt->name << " (" << pathname << ")" << std::endl;
+          OPENMS_LOG_DEBUG << "[Param::merge] extending param trace " << traceIt->name << " (" << pathname << ")\n";
           pathname += traceIt->name + ":";
         }
         else
         {
-          OPENMS_LOG_DEBUG << "[Param::merge] reducing param trace " << traceIt->name << " (" << pathname << ")" << std::endl;
+          OPENMS_LOG_DEBUG << "[Param::merge] reducing param trace " << traceIt->name << " (" << pathname << ")\n";
           std::string suffix = traceIt->name + ":";
           if (suffix.size() <= pathname.size() && pathname.compare(pathname.size() - suffix.size(), suffix.size(), suffix) == 0)
             pathname.resize(pathname.size() - traceIt->name.size() - 1);
@@ -1514,12 +1511,12 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     {
       const Param::ParamNode* node = stack_.back();
 
-      //cout << "############ operator++ #### " << node->name << " ## " << current_ <<endl;
+      //std::cout << "############ operator++ #### " << node->name << " ## " << current_ << '\n';
 
       //check if there is a next entry in the current node
       if (current_ + 1 < (int)node->entries.size())
       {
-        //cout << " - next entry" <<endl;
+        //std::cout << " - next entry\n";
         ++current_;
         return *this;
       }
@@ -1528,7 +1525,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       {
         current_ = -1;
         stack_.push_back(&(node->nodes[0]));
-        //cout << " - entering into: " << node->nodes[0].name <<endl;
+        //std::cout << " - entering into: " << node->nodes[0].name << '\n';
         //track changes (enter a node)
         trace_.emplace_back(node->nodes[0].name, node->nodes[0].description, true);
 
@@ -1542,21 +1539,28 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
         {
           const Param::ParamNode* last = node;
           stack_.pop_back();
-          //cout << " - stack size: " << stack_.size() << endl;
+          //std::cout << " - stack size: " << stack_.size() << '\n';
           //we have reached the end
           if (stack_.empty())
           {
-            //cout << " - reached the end" << endl;
+            //std::cout << " - reached the end\n";
             root_ = nullptr;
             return *this;
           }
           node = stack_.back();
 
-          //cout << " - last was: " << last->name << endl;
-          //cout << " - descended to: " << node->name << endl;
+          //std::cout << " - last was: " << last->name << '\n';
+          //std::cout << " - descended to: " << node->name << '\n';
 
           //track changes (leave a node)
-          trace_.emplace_back(last->name, last->description, false);
+          if (!trace_.empty() && trace_.back().name == last->name && trace_.back().opened) // was empty subnode
+          {
+            trace_.pop_back();
+          }
+          else
+          {
+            trace_.emplace_back(last->name, last->description, false);
+          }
 
           //check of new subtree is accessible
           unsigned int next_index = (last - &(node->nodes[0])) + 1;

@@ -1,58 +1,36 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Marc Sturm, Lars Nilse, Chris Bielow, Hendrik Brauer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/ChromatogramTools.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/RangeUtils.h>
+
+
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
+#include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/ChromatogramTools.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
-#include <OpenMS/CONCEPT/Factory.h>
-
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-
+#include <algorithm>
+#include <iterator>
 #include <memory>
 
 using namespace OpenMS;
@@ -69,9 +47,9 @@ using namespace std;
 <center>
 <table>
     <tr>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+        <th ALIGN = "center"> pot. predecessor tools </td>
         <td VALIGN="middle" ROWSPAN=2> &rarr; FileFilter &rarr;</td>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        <th ALIGN = "center"> pot. successor tools </td>
     </tr>
     <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool yielding output @n in mzML, featureXML @n or consensusXML format</td>
@@ -83,12 +61,22 @@ using namespace std;
 With this tool it is possible to extract m/z, retention time and intensity ranges from an input file
 and to write all data that lies within the given ranges to an output file.
 
+The retention time filtering using `-rt from:to` can be performed in three different modes using the '-rt_block_mode' flag:
+- 'as_is' (default): Uses the exact RT range given in '-rt' for RT filtering
+- 'extend_to_preserve_full_cycle': Extends the given RT range (if required) such that consecutive blocks of spectra (i.e. a cycle) are kept intact. A block of spectra means that consecutive MS levels (1,2,3,4,....) constitute one block and a new block starts with the lowest MS level in the data
+- 'shrink_to_preserve_full_cycle': Same as above but only takes full blocks inside the given RT range (no extension of given RT boundaries)
+
 Depending on the input file type, additional specific operations are possible:
 - mzML
     - extract spectra of a certain MS level
     - filter by signal-to-noise estimation
     - filter by scan mode of the spectra
     - filter by scan polarity of the spectra
+    - filter by activation method of the spectra
+    - filter by collision energy of the spectra
+    - filter by isolation window width of the spectra
+    - select/remove zoom scans
+    - remove chromatograms, meta data arrays, and empty spectra
 - remove MS2 scans whose precursor matches identifications (from an idXML file in 'id:blacklist')
 - featureXML
     - filter by feature charge
@@ -123,9 +111,27 @@ If you want to extract an MS1 region with untouched MS2 spectra included, you wi
 @htmlinclude TOPP_FileFilter.html
 
 For the parameters of the S/N algorithm section see the class documentation there: @n
-    @ref OpenMS::SignalToNoiseEstimatorMedian "peak_options:sn"@n
+@ref OpenMS::SignalToNoiseEstimatorMedian "peak_options:sn"@n
 
 */
+
+
+//-------------------------------------------------------------
+// RT Cut Mode definitions
+//-------------------------------------------------------------
+
+enum class RTBlockMode
+{
+  AS_IS,
+  FULL_CYCLE_EXTEND,
+  FULL_CYCLE_SHRINK
+};
+
+const std::array<std::string, 3> RT_BLOCK_MODE_NAMES = {
+  "as_is",
+  "extend_to_preserve_full_cycle",
+  "shrink_to_preserve_full_cycle"
+};
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
@@ -239,7 +245,7 @@ private:
           }
         }
       }
-      feature.setPeptideIdentifications(vector<PeptideIdentification>(1, temp));
+      feature.setPeptideIdentifications(PeptideIdentificationList(1, temp));
       // not filtering sequences or accessions
       if (sequences.empty() && accessions.empty())
       {
@@ -293,6 +299,95 @@ private:
     return true;
   }
 
+  /**
+   * @brief Apply RT filtering with block-aware modes
+   * @param[in] exp The MSExperiment to filter; will be reloaded with actual data
+   * @param[in] f The filehandler with filtering options
+   * @param[in] rt_l Lower RT bound
+   * @param[in] rt_u Upper RT bound
+   * @param[in] rt_block_mode The RT cutting mode (RTBlockMode enum)
+   */
+  void applyRTBlockFiltering(PeakMap& exp, FileHandler& f, double rt_l, double rt_u, RTBlockMode rt_block_mode)
+  {
+    if (rt_block_mode == RTBlockMode::AS_IS)
+    {
+      return;
+    }
+    if (exp.empty()) return;
+
+    auto min_ms_level = *exp.getMSLevels().begin();
+
+    exp.sortSpectra(false); // only by RT, not by m/z
+
+    // Identify spectrum blocks
+    std::vector<std::pair<Size, Size>> blocks; // start_idx, end_idx pairs
+
+    auto first_spec = exp.RTBegin(rt_l);
+    auto last_spec = exp.RTBegin(rt_u);
+
+    if (rt_block_mode == RTBlockMode::FULL_CYCLE_EXTEND)
+    {
+      while (first_spec != exp.begin() && first_spec->getMSLevel() != min_ms_level) --first_spec;
+      
+      while (last_spec != exp.end() && last_spec->getMSLevel() != min_ms_level) ++last_spec;
+      // 'last_spec' now points to the start of a block, but we want it to point to the end of the previous block
+      if (last_spec == exp.begin())
+      { // edge case: no valid block found
+        OPENMS_LOG_WARN << "RTBlockMode: could not find a valid block boundary. Result is empty.\n";
+        exp.clear(true);
+        return;
+      }
+      --last_spec;
+    }
+    else if (rt_block_mode == RTBlockMode::FULL_CYCLE_SHRINK)
+    {
+      // first_spec may be inside the last block of exp... and will end up as first_spec == exp.end()
+      while (first_spec != exp.end() && first_spec->getMSLevel() != min_ms_level) ++first_spec;
+      
+      // last_spec points somewhere inside a block which contains 'rt_u'; let's move left to the start of this block
+      while (last_spec != exp.end() && // if this happens, rt_u is beyond the last spectrum and we don't need to shrink
+             last_spec != exp.begin() && last_spec->getMSLevel() != min_ms_level)
+        --last_spec;
+      // 'last_spec' now points to the start of the invalid block, but we want it to point to the end of the previous block
+      if (last_spec == exp.begin())
+      { // edge case: cannot go back further
+        OPENMS_LOG_WARN << "RTBlockMode: there is no full block in the range [" << rt_l << ", " << rt_u << "]. Result is empty. Please extend RT range or use another block strategy.\n";
+        exp.clear(true);
+        return;
+      }
+      --last_spec;
+      // in some cases, there was no full block inside [rt_l, rt_u]
+      if (first_spec >= last_spec)
+      {
+        OPENMS_LOG_WARN << "RTBlockMode: there is no full block in the range [" << rt_l << ", " << rt_u << "]. Result is empty. Please extend RT range or use another block strategy.\n";
+        exp.clear(true);
+        return;
+      }
+    }
+
+    OPENMS_LOG_INFO << "RTBlockMode: RT range changed from [" << rt_l << ", " << rt_u << "] to [" << first_spec->getRT() << " (MS " << first_spec->getMSLevel() << "), " << last_spec->getRT() << " (MS " << last_spec->getMSLevel() << ")]\n";
+    
+    assert(first_spec != exp.end());
+    assert(last_spec != exp.end());
+
+    // RT filtering uses a half-open interval [min, max), we thus need to move last_spec a tad to the right
+    double rt_u_new = last_spec->getRT();
+    if (std::next(last_spec) == exp.end())
+    {// last_spec was the last spectrum in exp; we need to extend the upper RT boundary a bit to include it
+      rt_u_new += 1.0;
+    }
+    else
+    {
+      rt_u_new = (rt_u_new + std::next(last_spec)->getRT()) / 2; // take midpoint to next spectrum
+    }
+
+    // reload with data and corrected rt range
+    f.getOptions().setRTRange(DRange<1>(first_spec->getRT(), rt_u_new));
+    f.getOptions().setFillData(true);
+    auto filename = exp.getLoadedFilePath();
+    f.loadExperiment(filename, exp);
+  }
+
 protected:
 
   typedef PeakMap MapType;
@@ -313,7 +408,9 @@ protected:
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content", false);
     setValidStrings_("out_type", formats);
 
-    registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract", false);
+    registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract [s]", false);
+    registerStringOption_("rt_block_mode", "<mode>", RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS], String("RT filtering mode: '") + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS] + "' uses RT range as given in '-rt'; '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_EXTEND] + "' extends RT range to keep complete spectrum blocks intact, '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_SHRINK] + "' only keeps complete blocks within the given RT range", false);
+    setValidStrings_("rt_block_mode", StringList(RT_BLOCK_MODE_NAMES.begin(), RT_BLOCK_MODE_NAMES.end()));
     registerStringOption_("mz", "[min]:[max]", ":", "m/z range to extract (applies to ALL ms levels!)", false);
     registerStringOption_("int", "[min]:[max]", ":", "Intensity range to extract", false);
 
@@ -329,6 +426,7 @@ protected:
     registerFlag_("peak_options:no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans");
     registerFlag_("peak_options:remove_chromatograms", "Removes chromatograms stored in a file");
     registerFlag_("peak_options:remove_empty", "Removes spectra and chromatograms without peaks.");
+    registerFlag_("peak_options:remove_metadataarrays", "Remove all binary data (e.g. ion mobility), except m/z and intensity.");
     registerStringOption_("peak_options:mz_precision", "32 or 64", 64, "Store base64 encoded m/z data using 32 or 64 bit precision", false);
     setValidStrings_("peak_options:mz_precision", ListUtils::create<String>("32,64"));
     registerStringOption_("peak_options:int_precision", "32 or 64", 32, "Store base64 encoded intensity data using 32 or 64 bit precision", false);
@@ -352,11 +450,11 @@ protected:
     registerFlag_("spectra:remove_zoom", "Remove zoom (enhanced resolution) scans");
 
     registerStringOption_("spectra:remove_mode", "<mode>", "", "Remove scans by scan mode", false);
-    setValidStrings_("spectra:remove_mode", InstrumentSettings::NamesOfScanMode, (int)InstrumentSettings::SIZE_OF_SCANMODE);
+    setValidStrings_("spectra:remove_mode", InstrumentSettings::NamesOfScanMode, (int)static_cast<size_t>(InstrumentSettings::ScanMode::SIZE_OF_SCANMODE));
 
     addEmptyLine_();
     registerStringOption_("spectra:remove_activation", "<activation>", "", "Remove MSn scans where any of its precursors features a certain activation method", false);
-    setValidStrings_("spectra:remove_activation", Precursor::NamesOfActivationMethod, (int)Precursor::SIZE_OF_ACTIVATIONMETHOD);
+    setValidStrings_("spectra:remove_activation", Precursor::NamesOfActivationMethod, (int)Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD);
 
     registerStringOption_("spectra:remove_collision_energy", "[min]:[max]", ":", "Remove MSn scans with a collision energy in the given interval", false);
     registerStringOption_("spectra:remove_isolation_window_width", "[min]:[max]", ":", "Remove MSn scans whose isolation window width is in the given interval", false);
@@ -364,15 +462,15 @@ protected:
     addEmptyLine_();
     registerFlag_("spectra:select_zoom", "Select zoom (enhanced resolution) scans");
     registerStringOption_("spectra:select_mode", "<mode>", "", "Selects scans by scan mode\n", false);
-    setValidStrings_("spectra:select_mode", InstrumentSettings::NamesOfScanMode, (int)InstrumentSettings::SIZE_OF_SCANMODE);
+    setValidStrings_("spectra:select_mode", InstrumentSettings::NamesOfScanMode, (int)static_cast<size_t>(InstrumentSettings::ScanMode::SIZE_OF_SCANMODE));
     registerStringOption_("spectra:select_activation", "<activation>", "", "Retain MSn scans where any of its precursors features a certain activation method", false);
-    setValidStrings_("spectra:select_activation", Precursor::NamesOfActivationMethod, (int)Precursor::SIZE_OF_ACTIVATIONMETHOD);
+    setValidStrings_("spectra:select_activation", Precursor::NamesOfActivationMethod, (int)Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD);
     registerStringOption_("spectra:select_collision_energy", "[min]:[max]", ":", "Select MSn scans with a collision energy in the given interval", false);
     registerStringOption_("spectra:select_isolation_window_width", "[min]:[max]", ":", "Select MSn scans whose isolation window width is in the given interval", false);
 
     addEmptyLine_();
     registerStringOption_("spectra:select_polarity", "<polarity>", "", "Retain MSn scans with a certain scan polarity", false);
-    setValidStrings_("spectra:select_polarity", IonSource::NamesOfPolarity, (int)IonSource::SIZE_OF_POLARITY);
+    setValidStrings_("spectra:select_polarity", IonSource::NamesOfPolarity, static_cast<int>(IonSource::Polarity::SIZE_OF_POLARITY));
 
     registerTOPPSubsection_("spectra:blackorwhitelist", "Black or white listing of of MS2 spectra by spectral similarity");
     registerInputFile_("spectra:blackorwhitelist:file", "<file>", "",   "Input file containing MS2 spectra that should be retained or removed from the mzML file!\n"
@@ -563,6 +661,7 @@ protected:
     mz_u = rt_u = it_u = charge_u = size_u = q_u = pc_right = select_collision_u = remove_collision_u = select_isolation_width_u = remove_isolation_width_u = replace_pc_charge_out = numeric_limits<double>::max();
 
     String rt = getStringOption_("rt");
+    RTBlockMode rt_block_mode = (RTBlockMode)Helpers::indexOf(RT_BLOCK_MODE_NAMES, getStringOption_("rt_block_mode"));
     String mz = getStringOption_("mz");
     String pc_mz_range = getStringOption_("peak_options:pc_mz_range");
     String it = getStringOption_("int");
@@ -674,9 +773,16 @@ protected:
       // loading input
       //-------------------------------------------------------------
 
-      MzMLFile f;
-      f.setLogType(log_type_);
-      f.getOptions().setRTRange(DRange<1>(rt_l, rt_u));
+      FileHandler f;
+      // Only apply RT filtering at load time if using exact mode
+      if (rt_block_mode == RTBlockMode::AS_IS)
+      {
+        f.getOptions().setRTRange(DRange<1>(rt_l, rt_u));
+      }
+      else
+      { // do not load data (yet)
+        f.getOptions().setFillData(false);
+      }
       f.getOptions().setMZRange(DRange<1>(mz_l, mz_u));
       f.getOptions().setIntensityRange(DRange<1>(it_l, it_u));
       f.getOptions().setMSLevels(levels);
@@ -708,7 +814,13 @@ protected:
       f.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
 
       MapType exp;
-      f.load(in, exp);
+      f.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
+
+      // Apply RT filtering with block-aware modes if not using exact mode
+      if (rt_block_mode != RTBlockMode::AS_IS && ! rt.empty())
+      {
+        applyRTBlockFiltering(exp, f, rt_l, rt_u, rt_block_mode);
+      }
 
       // remove spectra with meta values:
       if (remove_meta_enabled)
@@ -749,6 +861,16 @@ protected:
           ,chroms.end());
       }
 
+      bool remove_metadataarrays = getFlag_("peak_options:remove_metadataarrays");
+      if (remove_metadataarrays)
+      {
+        for (MapType::SpectrumType& spec : exp.getSpectra())
+        {
+          spec.getFloatDataArrays().clear();
+          spec.getStringDataArrays().clear();
+          spec.getIntegerDataArrays().clear();
+        }
+      }
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
@@ -757,20 +879,20 @@ protected:
       IntList rm_pc_charge = getIntList_("peak_options:rm_pc_charge");
       if (!rm_pc_charge.empty())
       {
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasPrecursorCharge<MapType::SpectrumType>(rm_pc_charge, false)), exp.end());
+        std::erase_if(exp.getSpectra(), HasPrecursorCharge<MapType::SpectrumType>(rm_pc_charge, false));
       }
 
       // remove precursors out of certain m/z range for all spectra with a precursor (MS2 and above)
       if (!pc_mz_range.empty())
       {
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), InPrecursorMZRange<MapType::SpectrumType>(pc_left, pc_right, true)), exp.end());
+        std::erase_if(exp.getSpectra(), InPrecursorMZRange<MapType::SpectrumType>(pc_left, pc_right, true));
       }
 
       // keep MS/MS spectra whose precursors cover at least of the given m/z values
       std::vector<double> vec_mz = getDoubleList_("peak_options:pc_mz_list");
       if (!vec_mz.empty())
       {
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindow<MapType::SpectrumType>(vec_mz, true)), exp.end());
+        std::erase_if(exp.getSpectra(), IsInIsolationWindow<MapType::SpectrumType>(vec_mz, true));
       }
 
 
@@ -779,11 +901,11 @@ protected:
       if (!remove_mode.empty())
       {
         writeDebug_("Removing mode: " + remove_mode, 3);
-        for (Size i = 0; i < InstrumentSettings::SIZE_OF_SCANMODE; ++i)
+        for (Size i = 0; i < static_cast<size_t>(InstrumentSettings::ScanMode::SIZE_OF_SCANMODE); ++i)
         {
           if (InstrumentSettings::NamesOfScanMode[i] == remove_mode)
           {
-            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i)), exp.end());
+            std::erase_if(exp.getSpectra(), HasScanMode<MapType::SpectrumType>(static_cast<Int>(i)));
           }
         }
       }
@@ -793,11 +915,11 @@ protected:
       if (!select_mode.empty())
       {
         writeDebug_("Selecting mode: " + select_mode, 3);
-        for (Size i = 0; i < InstrumentSettings::SIZE_OF_SCANMODE; ++i)
+        for (Size i = 0; i < static_cast<size_t>(InstrumentSettings::ScanMode::SIZE_OF_SCANMODE); ++i)
         {
           if (InstrumentSettings::NamesOfScanMode[i] == select_mode)
           {
-            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i, true)), exp.end());
+            std::erase_if(exp.getSpectra(), HasScanMode<MapType::SpectrumType>(static_cast<Int>(i), true));
           }
         }
       }
@@ -807,7 +929,7 @@ protected:
       if (!remove_activation.empty())
       {
         writeDebug_("Removing scans with activation mode: " + remove_activation, 3);
-        for (Size i = 0; i < Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
+        for (Size i = 0; i < static_cast<Size>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD); ++i)
         {
           if (Precursor::NamesOfActivationMethod[i] == remove_activation)
           {
@@ -821,7 +943,7 @@ protected:
       if (!select_activation.empty())
       {
         writeDebug_("Selecting scans with activation mode: " + select_activation, 3);
-        for (Size i = 0; i < Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
+        for (Size i = 0; i < static_cast<Size>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD); ++i)
         {
           if (Precursor::NamesOfActivationMethod[i] == select_activation)
           {
@@ -835,13 +957,8 @@ protected:
       if (!select_polarity.empty())
       {
         writeDebug_("Selecting polarity: " + select_polarity, 3);
-        for (Size i = 0; i < IonSource::SIZE_OF_POLARITY; ++i)
-        {
-          if (IonSource::NamesOfPolarity[i] == select_polarity)
-          {
-            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanPolarity<MapType::SpectrumType>((IonSource::Polarity)i, true)), exp.end());
-          }
-        }
+        IonSource::Polarity pol = IonSource::toPolarity(select_polarity);
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanPolarity<MapType::SpectrumType>(pol, true)), exp.end());
       }
 
       //remove zoom scans (might be a lot of spectra)
@@ -888,7 +1005,7 @@ protected:
       }        
 
       //remove empty scans
-      exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
+      std::erase_if(exp.getSpectra(), IsEmptySpectrum<MapType::SpectrumType>());
 
       //sort
       if (sort)
@@ -951,8 +1068,8 @@ protected:
         bool is_blacklist = getStringOption_("consensus:blackorwhitelist:blacklist") == "true" ? true : false;
         
         ConsensusMap consensus_map;
-        ConsensusXMLFile cxml_file;
-        cxml_file.load(consensus_blackorwhitelist, consensus_map);
+        FileHandler cxml_file;
+        cxml_file.loadConsensusFeatures(consensus_blackorwhitelist, consensus_map);
         consensus_map.sortByMZ();
 
         int ret = filterByBlackOrWhiteList(is_blacklist, exp, consensus_map, rt_tol, mz_tol, is_ppm, maps);
@@ -975,7 +1092,7 @@ protected:
         bool is_blacklist = getStringOption_("spectra:blackorwhitelist:blacklist") == "true" ? true : false;
 
         PeakMap lib_file;
-        MzMLFile().load(lib_file_name, lib_file);
+        FileHandler().loadExperiment(lib_file_name, lib_file, {FileTypes::MZML}, log_type_);
 
         int ret = filterByBlackOrWhiteList(is_blacklist, exp, lib_file, tol_rt, tol_mz, tol_sim, is_ppm);
         if (ret != EXECUTION_OK)
@@ -992,7 +1109,7 @@ protected:
 
       //annotate output with data processing info
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FILTERING));
-      f.store(out, exp);
+      f.storeExperiment(out, exp,{FileTypes::MZML}, log_type_);
     }
     else if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::CONSENSUSXML)
     {
@@ -1005,13 +1122,13 @@ protected:
         //-------------------------------------------------------------
 
         FeatureMap feature_map;
-        FeatureXMLFile f;
+        FileHandler f;
         //f.setLogType(log_type_);
         // this does not work yet implicitly - not supported by FeatureXMLFile
-        f.getOptions().setRTRange(DRange<1>(rt_l, rt_u));
-        f.getOptions().setMZRange(DRange<1>(mz_l, mz_u));
-        f.getOptions().setIntensityRange(DRange<1>(it_l, it_u));
-        f.load(in, feature_map);
+        f.getFeatOptions().setRTRange(DRange<1>(rt_l, rt_u));
+        f.getFeatOptions().setMZRange(DRange<1>(mz_l, mz_u));
+        f.getFeatOptions().setIntensityRange(DRange<1>(it_l, it_u));
+        f.loadFeatures(in, feature_map);
 
 
         //-------------------------------------------------------------
@@ -1026,9 +1143,9 @@ protected:
         // only keep charge ch_l:ch_u   (WARNING: feature files without charge information have charge=0, see Ctor of KERNEL/Feature.h)
         for (Feature& fm : feature_map)
         {
-          bool const rt_ok = f.getOptions().getRTRange().encloses(DPosition<1>(fm.getRT()));
-          bool const mz_ok = f.getOptions().getMZRange().encloses(DPosition<1>(fm.getMZ()));
-          bool const int_ok = f.getOptions().getIntensityRange().encloses(DPosition<1>(fm.getIntensity()));
+          bool const rt_ok = f.getFeatOptions().getRTRange().encloses(DPosition<1>(fm.getRT()));
+          bool const mz_ok = f.getFeatOptions().getMZRange().encloses(DPosition<1>(fm.getMZ()));
+          bool const int_ok = f.getFeatOptions().getIntensityRange().encloses(DPosition<1>(fm.getIntensity()));
           bool const charge_ok = ((charge_l <= fm.getCharge()) && (fm.getCharge() <= charge_u));
           bool const size_ok = ((size_l <= fm.getSubordinates().size()) && (fm.getSubordinates().size() <= size_u));
           bool const q_ok = ((q_l <= fm.getOverallQuality()) && (fm.getOverallQuality() <= q_u));
@@ -1065,7 +1182,7 @@ protected:
         //annotate output with data processing info
         addDataProcessing_(map_sm, getProcessingInfo_(DataProcessing::FILTERING));
 
-        f.store(out, map_sm);
+        f.storeFeatures(out, map_sm, {FileTypes::FEATUREXML});
       }
       else if (in_type == FileTypes::CONSENSUSXML)
       {
@@ -1074,12 +1191,12 @@ protected:
         //-------------------------------------------------------------
 
         ConsensusMap consensus_map;
-        ConsensusXMLFile f;
+        FileHandler f;
         //f.setLogType(log_type_);
         f.getOptions().setRTRange(DRange<1>(rt_l, rt_u));
         f.getOptions().setMZRange(DRange<1>(mz_l, mz_u));
         f.getOptions().setIntensityRange(DRange<1>(it_l, it_u));
-        f.load(in, consensus_map);
+        f.loadConsensusFeatures(in, consensus_map);
 
         //-------------------------------------------------------------
         // calculations
@@ -1125,7 +1242,7 @@ protected:
           if (maps.size() == 1) // When extracting a feature map from a consensus map, only one map ID should be specified. Hence 'maps' should contain only one integer.
           {
             FeatureMap feature_map_filtered;
-            FeatureXMLFile ff;
+            FileHandler ff;
 
             for (ConsensusMap::Iterator cm_it = consensus_map_filtered.begin(); cm_it != consensus_map_filtered.end(); ++cm_it)
             {
@@ -1153,7 +1270,7 @@ protected:
 
             feature_map_filtered.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
-            ff.store(out, feature_map_filtered);
+            ff.storeFeatures(out, feature_map_filtered, {FileTypes::FEATUREXML});
           }
           else
           {
@@ -1211,14 +1328,14 @@ protected:
             //annotate output with data processing info
             addDataProcessing_(consensus_map_filtered, getProcessingInfo_(DataProcessing::FILTERING));
 
-            f.store(out, consensus_map_filtered);
+            f.storeConsensusFeatures(out, consensus_map_filtered, {FileTypes::CONSENSUSXML});
           }
           else
           {
             //annotate output with data processing info
             addDataProcessing_(cm_new, getProcessingInfo_(DataProcessing::FILTERING));
 
-            f.store(out, cm_new);
+            f.storeConsensusFeatures(out, cm_new, {FileTypes::CONSENSUSXML});
           }
         }
       }
@@ -1242,8 +1359,8 @@ protected:
   ExitCodes filterByBlackList(MapType& exp, const String& id_blacklist, bool blacklist_imperfect, double rt_tol, double mz_tol)
   {
     vector<ProteinIdentification> protein_ids;
-    vector<PeptideIdentification> peptide_ids;
-    IdXMLFile().load(id_blacklist, protein_ids, peptide_ids);
+    PeptideIdentificationList peptide_ids;
+    FileHandler().loadIdentifications(id_blacklist, protein_ids, peptide_ids);
 
     // translate idXML entries into something more handy
     typedef std::vector<Peak2D> IdType;
@@ -1409,7 +1526,7 @@ protected:
     const bool enable_rt_check = (rt_tol >= 0);
     const bool enable_sim_check = (sim_tol > -1);
 
-    std::unique_ptr<PeakSpectrumCompareFunctor> comp_function(Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore"));
+    auto comp_function= std::unique_ptr<PeakSpectrumCompareFunctor>(new (ZhangSimilarityScore));
 
     set<Size> list_idx;
 

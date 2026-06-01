@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -41,30 +15,83 @@
 namespace OpenMS
 {
   /**
-      @brief This class is based on xercesc::LocalFileInputSource
+    @brief Xerces @c InputSource that opens a bzip2-, zip- or gzip-compressed file on demand.
+
+    Resolves the file path the same way as @c xercesc::LocalFileInputSource
+    (relative paths are completed against the current working directory),
+    but @ref makeStream picks an OpenMS decompression stream
+    (@ref Bzip2InputStream, @ref ZipInputStream or @ref GzipInputStream)
+    based on the first two bytes of the file as passed to the
+    constructor.
+
+    Copy construction, copy assignment and default construction are
+    deliberately suppressed.
+
+    @ingroup FileIO
   */
   class OPENMS_DLLAPI CompressedInputSource :
     public xercesc::InputSource
   {
 public:
-    ///Constructor
+    /**
+      @brief Construct from a UTF-8 @c String path.
+
+      @param[in] file_path Path to the compressed file; relative paths
+                           are completed against Xerces' current
+                           working directory.
+      @param[in] header    First two bytes of the file; @ref makeStream
+                           uses them to pick the decompressor.
+                           @c "BZ" selects bzip2, @c "PK" selects zip,
+                           anything else (including a header shorter
+                           than two characters, which is silently
+                           replaced with two NUL bytes) selects gzip.
+      @param[in] manager   Memory manager used for Xerces allocations.
+                           Defaults to the platform-wide manager.
+    */
     CompressedInputSource(const   String & file_path, const String & header, xercesc::MemoryManager * const manager = xercesc::XMLPlatformUtils::fgMemoryManager);
-    ///Constructor
+
+    /**
+      @brief Construct from a wide-character (@c XMLCh) path.
+
+      @param[in] file_path Path to the compressed file; relative paths
+                           are completed against Xerces' current
+                           working directory.
+      @param[in] header    Same semantics as the @c header argument of the @c String overload of this constructor.
+      @param[in] manager   Memory manager used for Xerces allocations.
+                           Defaults to the platform-wide manager.
+    */
     CompressedInputSource(const   XMLCh * const file_path, const String & header, xercesc::MemoryManager * const manager = xercesc::XMLPlatformUtils::fgMemoryManager);
-    ///Constructor
+
+    /// Destructor.
     ~CompressedInputSource() override;
 
     /**
-       @brief Depending on the header in the Constructor a Bzip2InputStream or a GzipInputStream object is returned
-       @note InputSource interface implementation
+      @brief Create the decompression input stream for this source.
+
+      Inspects the @c header passed to the constructor and returns a
+      newly-allocated @c BinInputStream of the matching type:
+        - @c "BZ" -> @ref Bzip2InputStream
+        - @c "PK" -> @ref ZipInputStream
+        - anything else (including the synthetic NUL pair injected when
+          the constructor received a header shorter than two characters)
+          -> @ref GzipInputStream
+
+      Ownership of the returned stream is transferred to the caller
+      (typically the Xerces parser).
+
+      @return A newly allocated decompression stream, or @c nullptr
+              when the chosen stream fails to open the file.
     */
     xercesc::BinInputStream * makeStream() const override;
 
 private:
-    String head_;
-    /// private CTor - not implemented
+    String head_; ///< Header bytes captured at construction; @ref makeStream uses the first two characters to pick a decompressor.
+
+    /// Default construction is deliberately suppressed (declared but not defined).
     CompressedInputSource();
+    /// Copy construction is deliberately suppressed (declared but not defined).
     CompressedInputSource(const CompressedInputSource & source);
+    /// Assignment is deliberately suppressed (declared but not defined).
     CompressedInputSource & operator=(const CompressedInputSource & source);
   };
 

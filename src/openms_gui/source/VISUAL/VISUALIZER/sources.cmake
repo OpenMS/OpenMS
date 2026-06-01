@@ -9,7 +9,6 @@ BaseVisualizer.cpp
 BaseVisualizerGUI.cpp
 ContactPersonVisualizer.cpp
 DataProcessingVisualizer.cpp
-DigestionVisualizer.cpp
 DocumentIdentifierVisualizer.cpp
 ExperimentalSettingsVisualizer.cpp
 GradientVisualizer.cpp
@@ -21,7 +20,6 @@ IonSourceVisualizer.cpp
 MassAnalyzerVisualizer.cpp
 MetaInfoDescriptionVisualizer.cpp
 MetaInfoVisualizer.cpp
-ModificationVisualizer.cpp
 PeptideHitVisualizer.cpp
 PeptideIdentificationVisualizer.cpp
 PrecursorVisualizer.cpp
@@ -32,7 +30,6 @@ ScanWindowVisualizer.cpp
 SoftwareVisualizer.cpp
 SourceFileVisualizer.cpp
 SpectrumSettingsVisualizer.cpp
-TaggingVisualizer.cpp
 ProductVisualizer.cpp
 )
 

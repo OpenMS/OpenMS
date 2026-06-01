@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -37,6 +11,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 //-------------------------------------------------------------
 // Doxygen docu
@@ -60,45 +35,85 @@ public:
   /** @brief Resolves ambiguous annotations of features with peptide identifications.
     The the filtered identifications are added to the vector of unassigned peptides
     and also reduced to a single best hit.
-    @param keep_matching Keeps all IDs that match the modified sequence of the best
+
+    @param[in] features Features to work on
+    @param[in,out] keep_matching Keeps all IDs that match the modified sequence of the best
     hit in the feature (e.g. keeps all IDs in a ConsensusMap if id'd same across multiple runs)
   **/
-  static void resolve(FeatureMap & features, bool keep_matching = false);
+  static void resolve(FeatureMap& features, bool keep_matching = false);
 
   /** @brief Resolves ambiguous annotations of consensus features with peptide identifications.
     The the filtered identifications are added to the vector of unassigned peptides
     and also reduced to a single best hit.
-    @param keep_matching Keeps all IDs that match the modified sequence of the best
+    
+    @param[in] features Features to work on
+    @param[in,out] keep_matching Keeps all IDs that match the modified sequence of the best
     hit in the feature (e.g. keeps all IDs in a ConsensusMap if id'd same across multiple runs)
   **/
-  static void resolve(ConsensusMap & features, bool keep_matching = false);
+  static void resolve(ConsensusMap& features, bool keep_matching = false);
+
+  /** @brief Resolves ambiguous annotations of features with peptide identifications using rank aggregation.
+
+    For each feature, peptide hits across all identifications are aggregated by rank.
+    Each unique sequence is assigned a rank in every identification in which it appears
+    (rank 0 = best hit, 1 = second best, etc.). Sequences not found in an identification
+    receive a penalty rank equal to the maximum number of considered hits. The aggregate
+    score for each sequence is computed as:
+    @code
+      1.0 - (sum_of_ranks + penalty_for_missing_runs) / (max_hits * n_runs)
+    @endcode
+    The sequence with the highest aggregate score is selected as the winner and the
+    corresponding best-scoring identification is kept with only that hit.
+    All other identifications are moved to the unassigned list.
+
+    @param[in] features FeatureMap to work on
+  **/
+  static void resolveAllHitRankAggregation(FeatureMap& features);
+
+  /** @brief Resolves ambiguous annotations of consensus features with peptide identifications using rank aggregation.
+
+    For each consensus feature, peptide hits across all identifications are aggregated by rank.
+    Each unique sequence is assigned a rank in every identification in which it appears
+    (rank 0 = best hit, 1 = second best, etc.). Sequences not found in an identification
+    receive a penalty rank equal to the maximum number of considered hits. The aggregate
+    score for each sequence is computed as:
+    @code
+      1.0 - (sum_of_ranks + penalty_for_missing_runs) / (max_hits * n_runs)
+    @endcode
+    The sequence with the highest aggregate score is selected as the winner and the
+    corresponding best-scoring identification is kept with only that hit.
+    All other identifications are moved to the unassigned list.
+
+    @param[in] features ConsensusMap to work on
+  **/
+  static void resolveAllHitRankAggregation(ConsensusMap& features);
 
   /** @brief In a single (feature/consensus) map, features with the same (possibly modified) sequence and charge state may appear.
    This filter removes the peptide sequence annotations from features, if a higher-intensity feature with the same (charge, sequence)
    combination exists in the map. The total number of features remains unchanged. In the final output, each (charge, sequence) combination
    appears only once, i.e. no multiplicities.
    **/
-  static void resolveBetweenFeatures(FeatureMap & features);
+  static void resolveBetweenFeatures(FeatureMap& features);
   
   /** @brief In a single (feature/consensus) map, features with the same (possibly modified) sequence and charge state may appear.
    This filter removes the peptide sequence annotations from features, if a higher-intensity feature with the same (charge, sequence)
    combination exists in the map. The total number of features remains unchanged. In the final output, each (charge, sequence) combination
    appears only once, i.e. no multiplicities.
    **/
-  static void resolveBetweenFeatures(ConsensusMap & features);
+  static void resolveBetweenFeatures(ConsensusMap& features);
   
 protected:
 
   template<class T>
-  static void resolveConflict_(T & map, bool keep_matching)
+  static void resolveConflict_(T& map, bool keep_matching)
   {
     // annotate as not part of the resolution
-    for (PeptideIdentification & p : map.getUnassignedPeptideIdentifications())
+    for (PeptideIdentification& p : map.getUnassignedPeptideIdentifications())
     {
       p.setMetaValue("feature_id", "not mapped"); // not mapped to a feature
     }
 
-    for (auto & c : map)
+    for (auto& c : map)
     {
       c.setMetaValue("feature_id", String(c.getUniqueId()));
       if (!keep_matching)
@@ -123,20 +138,43 @@ protected:
                           const PeptideIdentification & right);
 
   static void resolveConflict_(
-    std::vector<PeptideIdentification> & peptides,
-    std::vector<PeptideIdentification> & removed,
+    PeptideIdentificationList & peptides,
+    PeptideIdentificationList & removed,
     UInt64 uid);
 
   static void resolveConflictKeepMatching_(
-      std::vector<PeptideIdentification> & peptides,
-      std::vector<PeptideIdentification> & removed,
+      PeptideIdentificationList & peptides,
+      PeptideIdentificationList & removed,
       UInt64 uid);
-  
+
+  static void resolveAggregateConflict_(
+      PeptideIdentificationList & peptides,
+      PeptideIdentificationList & removed,
+      UInt64 uid);
+
+  template<class T>
+  static void rankAggregation_(T& map)
+  {
+    // annotate unassigned IDs as not part of the resolution
+    for (PeptideIdentification& p : map.getUnassignedPeptideIdentifications())
+    {
+      p.setMetaValue("feature_id", "not mapped"); // not mapped to a feature
+    }
+
+    for (auto& c : map)
+    {
+      c.setMetaValue("feature_id", String(c.getUniqueId()));
+      resolveAggregateConflict_(c.getPeptideIdentifications(),
+                                map.getUnassignedPeptideIdentifications(),
+                                c.getUniqueId());
+    }
+  }
+
   template<class T>
   static void resolveBetweenFeatures_(T & map)
   {
     // unassigned peptide identifications in this map
-    std::vector<PeptideIdentification>& unassigned = map.getUnassignedPeptideIdentifications();
+    PeptideIdentificationList& unassigned = map.getUnassignedPeptideIdentifications();
     
     // A std::map tracking the set of unique features.
     // Uniqueness criterion/key is a pair <charge, sequence> for each feature. The peptide sequence may be modified, i.e. is not stripped.
@@ -147,7 +185,7 @@ protected:
     // the feature with the highest intensity for this sequence.
     for (typename T::value_type& element : map)
     {
-      std::vector<PeptideIdentification>& pep_ids = element.getPeptideIdentifications();
+      PeptideIdentificationList& pep_ids = element.getPeptideIdentifications();
       
       if (!pep_ids.empty())
       {
@@ -180,9 +218,9 @@ protected:
             if (feature_in_set->second->getIntensity() < element.getIntensity())
             {
               // Remove annotations from the old low-intensity feature. But only after moving these annotations to the unassigned list.
-              std::vector<PeptideIdentification>& obsolete = feature_in_set->second->getPeptideIdentifications();
+              PeptideIdentificationList& obsolete = feature_in_set->second->getPeptideIdentifications();
               unassigned.insert(unassigned.end(), obsolete.begin(), obsolete.end());
-              std::vector<PeptideIdentification> pep_ids_empty;
+              PeptideIdentificationList pep_ids_empty;
               feature_in_set->second->setPeptideIdentifications(pep_ids_empty);
               
               // Replace feature in the set.
@@ -191,9 +229,9 @@ protected:
             else
             {
               // Remove annotations from the new low-intensity feature. But only after moving these annotations to the unassigned list.
-              std::vector<PeptideIdentification>& obsolete = element.getPeptideIdentifications();
+              PeptideIdentificationList& obsolete = element.getPeptideIdentifications();
               unassigned.insert(unassigned.end(), obsolete.begin(), obsolete.end());
-              std::vector<PeptideIdentification> pep_ids_empty;
+              PeptideIdentificationList pep_ids_empty;
               element.setPeptideIdentifications(pep_ids_empty);
             }
           }

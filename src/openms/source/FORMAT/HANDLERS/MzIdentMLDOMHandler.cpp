@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -41,11 +15,13 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <boost/lexical_cast.hpp>
 
 #include <sys/stat.h>
 #include <cerrno>
+#include <limits>
 
 using namespace std;
 using namespace xercesc;
@@ -53,21 +29,39 @@ using namespace xercesc;
 namespace OpenMS::Internal
 {
 
+  namespace
+  {
+    // (experimental|calculated)MassToCharge and retention time are optional mzIdentML attributes/values; a
+    // missing one is returned by Xerces as an empty string. For these position-like fields convert tolerantly
+    // so an absent value becomes NaN instead of throwing Exception::ConversionError while parsing (e.g. on
+    // store/load round-trips); NaN is the OpenMS sentinel for "no RT/MZ" (cf. PeptideIdentification::hasRT()).
+    inline double toDoubleOrNaN_(const String& s)
+    {
+      return s.empty() ? std::numeric_limits<double>::quiet_NaN() : s.toDouble();
+    }
+
+    // For score values an empty value must NOT become NaN: PeptideHit has no "hasScore()" and defaults the
+    // score to 0.0, and a NaN score silently breaks sorting/FDR/IDFilter (every NaN comparison is false).
+    // Default to 0.0 to match PeptideHit's contract and the other identification parsers.
+    inline double toDoubleOrZero_(const String& s)
+    {
+      return s.empty() ? 0.0 : s.toDouble();
+    }
+  }
+
     //TODO remodel CVTermList
     //TODO extend CVTermlist with CVCollection functionality for complete replacement??
     //TODO general id openms struct for overall parameter for one id run
-    MzIdentMLDOMHandler::MzIdentMLDOMHandler(const vector<ProteinIdentification>& pro_id, const vector<PeptideIdentification>& pep_id, const String& version, const ProgressLogger& logger) :
+    MzIdentMLDOMHandler::MzIdentMLDOMHandler(const vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const String& version, const ProgressLogger& logger) :
       logger_(logger),
+      cv_(ControlledVocabulary::getPSIMSCV()),
       //~ ms_exp_(0),
-      pro_id_(nullptr),
-      pep_id_(nullptr),
       cpro_id_(&pro_id),
       cpep_id_(&pep_id),
       schema_version_(version),
       mzid_parser_()
     {
       unimod_.loadFromOBO("UNIMOD", File::find("/CV/unimod.obo"));
-      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
 
       try
       {
@@ -87,20 +81,19 @@ namespace OpenMS::Internal
       xml_cvparam_tag_ptr_ = XMLString::transcode("cvParam");
       xml_name_attr_ptr_ = XMLString::transcode("option_a");
 
+      initScoreTermCaches_();
     }
 
-    MzIdentMLDOMHandler::MzIdentMLDOMHandler(vector<ProteinIdentification>& pro_id, vector<PeptideIdentification>& pep_id, const String& version, const ProgressLogger& logger) :
+    MzIdentMLDOMHandler::MzIdentMLDOMHandler(vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const String& version, const ProgressLogger& logger) :
       logger_(logger),
+      cv_(ControlledVocabulary::getPSIMSCV()),
       //~ ms_exp_(0),
       pro_id_(&pro_id),
       pep_id_(&pep_id),
-      cpro_id_(nullptr),
-      cpep_id_(nullptr),
       schema_version_(version),
       mzid_parser_(),
       xl_ms_search_(false)
     {
-      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
       unimod_.loadFromOBO("UNIMOD", File::find("/CV/unimod.obo"));
 
       try
@@ -120,6 +113,16 @@ namespace OpenMS::Internal
       xml_cvparam_tag_ptr_ = XMLString::transcode("cvParam");
       xml_name_attr_ptr_ = XMLString::transcode("name");
 
+      initScoreTermCaches_();
+    }
+
+    void MzIdentMLDOMHandler::initScoreTermCaches_()
+    {
+      // precompute CV child term sets, used per PSM, but constant across the file
+      cv_.addAllChildTerms(q_score_child_terms_, "MS:1002354");
+      cv_.addAllChildTerms(e_score_child_terms_, "MS:1001872");
+      cv_.addAllChildTerms(e_score_child_terms_, "MS:1002353");
+      cv_.addAllChildTerms(specific_score_child_terms_, "MS:1001143");
     }
 
     /*
@@ -161,6 +164,8 @@ namespace OpenMS::Internal
     {
       // Test to see if the file is ok.
       struct stat fileStatus;
+
+      xml_handler_ = make_unique<XMLHandler>(mzid_file, schema_version_);
 
       errno = 0;
       if (stat(mzid_file.c_str(), &fileStatus) == -1) // ==0 ok; ==-1 error
@@ -208,6 +213,12 @@ namespace OpenMS::Internal
       // we adopt/own the document so we can free it in case this DOMHandler is reused on another file.
       xercesc::DOMDocument* xmlDoc = mzid_parser_.adoptDocument();
 
+      // parse() failures above are only logged, so guard against a null document instead of crashing on malformed input.
+      if (xmlDoc == nullptr)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mzid_file, "Failed to parse mzIdentML file (no document produced).");
+      }
+
       try
       {
         // Catch special case: Cross-Linking MS
@@ -225,7 +236,7 @@ namespace OpenMS::Internal
           while (child && !xl_ms_search_)
           {
             String accession = StringManager::convert(child->getAttribute(CONST_XMLCH("accession")));
-            if (accession == "MS:1002494") // accession for "cross-linking search"
+            if (accession == "MS:1002494") // accession for "crosslinking search"
             {
               xl_ms_search_ = true;
             }
@@ -330,6 +341,8 @@ namespace OpenMS::Internal
 
     void MzIdentMLDOMHandler::writeMzIdentMLFile(const std::string& mzid_file)
     {
+      xml_handler_ = make_unique<XMLHandler>(mzid_file, schema_version_);
+
       DOMImplementation* impl =  DOMImplementationRegistry::getDOMImplementation(CONST_XMLCH("XML 1.0")); //XML 3?!
       if (impl != nullptr)
       {
@@ -383,7 +396,7 @@ namespace OpenMS::Internal
           }
 
           set<AASequence> pepset;
-          for (vector<PeptideIdentification>::const_iterator pi = cpep_id_->begin(); pi != cpep_id_->end(); ++pi)
+          for (PeptideIdentificationList::const_iterator pi = cpep_id_->begin(); pi != cpep_id_->end(); ++pi)
           {
             for (vector<PeptideHit>::const_iterator ph = pi->getHits().begin(); ph != pi->getHits().end(); ++ph)
             {
@@ -508,8 +521,8 @@ namespace OpenMS::Internal
 
     pair<CVTermList, map<String, DataValue> > MzIdentMLDOMHandler::parseParamGroup_(DOMNodeList* paramGroup)
     {
-      CVTermList ret_cv;
-      map<String, DataValue> ret_up;
+      CVTermList ret_cv;             // cvParam
+      map<String, DataValue> ret_up; // userParam
       const  XMLSize_t cv_node_count = paramGroup->getLength();
       for (XMLSize_t cvi = 0; cvi < cv_node_count; ++cvi)
       {
@@ -528,6 +541,7 @@ namespace OpenMS::Internal
           }
           else if (XMLString::equals(element_param->getTagName(), CONST_XMLCH("PeptideEvidence"))
                   || XMLString::equals(element_param->getTagName(), CONST_XMLCH("PeptideEvidenceRef"))
+                  || XMLString::equals(element_param->getTagName(), CONST_XMLCH("Fragmentation"))
                   || XMLString::equals(element_param->getTagName(), CONST_XMLCH("SpectrumIdentificationItem")))
           {
             //here it's okay to do nothing
@@ -581,38 +595,16 @@ namespace OpenMS::Internal
         //      <userParam name="Mascot User Comment" value="Example Mascot MS-MS search for PSI mzIdentML"/>
         String name = StringManager::convert(param->getAttribute(CONST_XMLCH("name")));
         String value = StringManager::convert(param->getAttribute(CONST_XMLCH("value")));
+        bool has_value = param->hasAttribute(CONST_XMLCH("value"));
         String unitAcc = StringManager::convert(param->getAttribute(CONST_XMLCH("unitAccession")));
         String unitName = StringManager::convert(param->getAttribute(CONST_XMLCH("unitName")));
         String unitCvRef = StringManager::convert(param->getAttribute(CONST_XMLCH("unitCvRef")));
         String type = StringManager::convert(param->getAttribute(CONST_XMLCH("type")));
 
-        DataValue dv;
-
-        if (type == "xsd:float" || type == "xsd:double")
+        DataValue dv = DataValue::EMPTY;
+        if (has_value)
         {
-          try
-          {
-            dv = value.toDouble();
-          }
-          catch (...)
-          {
-            OPENMS_LOG_ERROR << "Found float parameter not convertible to float type." << endl;
-          }
-        }
-        else if (type == "xsd:int" || type == "xsd:unsignedInt")
-        {
-          try
-          {
-            dv = value.toInt();
-          }
-          catch (...)
-          {
-            OPENMS_LOG_ERROR << "Found integer parameter not convertible to integer type." << endl;
-          }
-        }
-        else
-        {
-          dv = value;
+          dv = XMLHandler::fromXSDString(type, value);
         }
 
         // Add unit *after* creating the term
@@ -889,7 +881,7 @@ namespace OpenMS::Internal
           SpectrumIdentification temp_struct = {spectra_data_ref, searchDatabase_ref, spectrumIdentificationProtocol_ref, spectrumIdentificationList_ref};
           si_map_.insert(make_pair(id, temp_struct));
 
-          pro_id_->push_back(ProteinIdentification());
+          pro_id_->emplace_back();
           ProteinIdentification::SearchParameters sp;
           sp.db = db_map_[searchDatabase_ref].location;
           sp.db_version = db_map_[searchDatabase_ref].version;
@@ -987,12 +979,28 @@ namespace OpenMS::Internal
                 {
                   if (XMLString::equals(sub->getTagName(), CONST_XMLCH("cvParam")))
                   {
-                    mname = StringManager::convert(sub->getAttribute(CONST_XMLCH("name")));
-                   if (mname == "unknown modification")
-                   {
-                     // e.g. <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>
-                     mname = StringManager::convert(sub->getAttribute(CONST_XMLCH("value")));
-                   }
+                    // In v1.3, SearchModification may have multiple cvParams: the actual modification
+                    // plus PSI-MS annotations (MS:1003392 "search modification id",
+                    // MS:1003347 "UNIMOD derivative code", MS:1002509/MS:1002510 donor/acceptor)
+                    String cvref = StringManager::convert(sub->getAttribute(CONST_XMLCH("cvRef")));
+                    if (cvref == "UNIMOD" || cvref == "XLMOD")
+                    {
+                      mname = StringManager::convert(sub->getAttribute(CONST_XMLCH("name")));
+                      if (mname == "unknown modification")
+                      {
+                        // e.g. <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>
+                        mname = StringManager::convert(sub->getAttribute(CONST_XMLCH("value")));
+                      }
+                    }
+                    else if (mname.empty())
+                    {
+                      // fallback for files that may not specify cvRef
+                      mname = StringManager::convert(sub->getAttribute(CONST_XMLCH("name")));
+                      if (mname == "unknown modification")
+                      {
+                        mname = StringManager::convert(sub->getAttribute(CONST_XMLCH("value")));
+                      }
+                    }
                   }
                   else if (XMLString::equals(sub->getTagName(), CONST_XMLCH("SpecificityRules")))
                   {
@@ -1011,43 +1019,51 @@ namespace OpenMS::Internal
                   String mod;
                   String r = (residues != ".") ? residues : "";
 
-                  if (!specificity_rules.empty())
+                  try
                   {
-                    for (map<String, vector<CVTerm> >::const_iterator spci = specificity_rules.getCVTerms().begin(); spci != specificity_rules.getCVTerms().end(); ++spci)
+                    if (!specificity_rules.empty())
                     {
-                      if (spci->second.front().getAccession() == "MS:1001189")  // nterm
+                      for (map<String, vector<CVTerm> >::const_iterator spci = specificity_rules.getCVTerms().begin(); spci != specificity_rules.getCVTerms().end(); ++spci)
                       {
-                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::N_TERM);
-                        mod = m->getFullId();
-                      }
-                      else if (spci->second.front().getAccession() == "MS:1001190")  // cterm
-                      {
-                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::C_TERM);
-                        mod = m->getFullId();
-                      }
-                      else if (spci->second.front().getAccession() == "MS:1002057")  // protein nterm
-                      {
-                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_N_TERM);
-                        mod = m->getFullId();
-                      }
-                      else if (spci->second.front().getAccession() == "MS:1002058")  // protein cterm
-                      {
-                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_C_TERM);
-                        mod = m->getFullId();
+                        if (spci->second.front().getAccession() == "MS:1001189")  // nterm
+                        {
+                          const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::N_TERM);
+                          mod = m->getFullId();
+                        }
+                        else if (spci->second.front().getAccession() == "MS:1001190")  // cterm
+                        {
+                          const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::C_TERM);
+                          mod = m->getFullId();
+                        }
+                        else if (spci->second.front().getAccession() == "MS:1002057")  // protein nterm
+                        {
+                          const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_N_TERM);
+                          mod = m->getFullId();
+                        }
+                        else if (spci->second.front().getAccession() == "MS:1002058")  // protein cterm
+                        {
+                          const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_C_TERM);
+                          mod = m->getFullId();
+                        }
                       }
                     }
+                    else  // anywhere
+                    {
+                      const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r);
+                      mod = m->getFullId();
+                    }
                   }
-                  else  // anywhere
+                  catch (Exception::BaseException& e)
                   {
-                    const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r);
-                    mod = m->getFullId();
+                    OPENMS_LOG_WARN << "SearchModification '" << mname << "' not found in ModificationsDB"
+                                    << e.what() << endl;
                   }
 
-                  if (fixedMod)
+                  if (!mod.empty() && fixedMod)
                   {
                     fix.push_back(mod);
                   }
-                  else
+                  else if (!mod.empty())
                   {
                     var.push_back(mod);
                   }
@@ -1195,14 +1211,15 @@ namespace OpenMS::Internal
 //              String identi = search_engine+"_"+si_pro_map_[si_it->second.spectrum_identification_list_ref]->getDateTime().getDate()+"T"
 //                      +si_pro_map_[si_it->second.spectrum_identification_list_ref]->getDateTime().getTime();
 //              pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).setIdentifier(identi);
-              pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).setSearchEngine(search_engine);
-              pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).setSearchEngineVersion(search_engine_version);
-              sp.db = pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).getSearchParameters().db; // was previously set, but main parts of sp are set here
-              sp.db_version = pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).getSearchParameters().db_version; // was previously set, but main parts of sp are set here
-              pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).setSearchParameters(sp);
+              auto& pro = pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]);
+              pro.setSearchEngine(search_engine);
+              pro.setSearchEngineVersion(search_engine_version);
+              sp.db = pro.getSearchParameters().db; // was previously set, but main parts of sp are set here
+              sp.db_version = pro.getSearchParameters().db_version; // was previously set, but main parts of sp are set here
+              pro.setSearchParameters(sp);
               if (use_thresh)
               {
-                pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).setSignificanceThreshold(thresh);
+                pro.setSignificanceThreshold(thresh);
               }
             }
           }
@@ -1242,7 +1259,7 @@ namespace OpenMS::Internal
             DateTime releaseDate;
 //            releaseDate.set(StringManager::convert(element_in->getAttribute(CONST_XMLCH("releaseDate"))));
             String version = StringManager::convert(element_in->getAttribute(CONST_XMLCH("version")));
-            String dbname = "";
+            String dbname;
             DOMElement* element_dbn = element_in->getFirstElementChild();
             while (element_dbn)
             {
@@ -1251,15 +1268,17 @@ namespace OpenMS::Internal
                 DOMElement* databasename_param = element_dbn->getFirstElementChild();
                 while (databasename_param)
                 {
-                  if (XMLString::equals(databasename_param->getTagName(),CONST_XMLCH("userParam")))
+                  if (XMLString::equals(databasename_param->getTagName(), CONST_XMLCH("cvParam")))
                   {
                     CVTerm param = parseCvParam_(databasename_param);
                     dbname = param.getValue();
                   }
-                  else if (XMLString::equals(databasename_param->getTagName(),CONST_XMLCH("cvParam")))
+                  else if (XMLString::equals(databasename_param->getTagName(), CONST_XMLCH("userParam")))
                   {
                     pair<String, DataValue> param = parseUserParam_(databasename_param);
-                    dbname = param.second.toString();
+                    // issue #7099: mzID might have missing "value" for this element
+                    // in this case, just use the "name"
+                    dbname = param.second.isEmpty() ? dbname = param.first : param.second.toString();
                   }
                   databasename_param = databasename_param->getNextElementSibling();
                 }
@@ -1269,7 +1288,7 @@ namespace OpenMS::Internal
             }
             if (dbname.empty())
             {
-              OPENMS_LOG_WARN << "No DatabaseName element found, use read in results at own risk." << endl;
+              OPENMS_LOG_WARN << "No DatabaseName element found, use results at own risk." << endl;
               dbname = "unknown";
             }
             DatabaseInput temp_struct = {dbname, location, version, releaseDate};
@@ -1348,7 +1367,7 @@ namespace OpenMS::Internal
               {
                 pep_id_->push_back(PeptideIdentification());
                 pep_id_->back().setHigherScoreBetter(false); //either a q-value or an e-value, only if neither available there will be another
-                pep_id_->back().setMetaValue("spectrum_reference", spectrumID);  // SpectrumIdentificationResult attribute spectrumID is taken from the mz_file and should correspond to MSSpectrum.nativeID, thus spectrum_reference will serve as reference. As the format of the 'reference' widely varies from vendor to vendor, spectrum_reference as string will serve best, indices are not recommended.
+                pep_id_->back().setSpectrumReference( spectrumID);  // SpectrumIdentificationResult attribute spectrumID is taken from the mz_file and should correspond to MSSpectrum.nativeID, thus spectrum_reference will serve as reference. As the format of the 'reference' widely varies from vendor to vendor, spectrum_reference as string will serve best, indices are not recommended.
 
                 //fill pep_id_->back() with content
                 DOMElement* parent = dynamic_cast<xercesc::DOMElement*>(element_res->getParentNode());
@@ -1366,11 +1385,9 @@ namespace OpenMS::Internal
 
               } // end of "not-XLMS-results"
 
-              // TODO @mths: setSignificanceThreshold, but from where?
-
               pep_id_->back().setIdentifier(pro_id_->at(si_pro_map_[id]).getIdentifier());
 
-              pep_id_->back().sortByRank();
+              pep_id_->back().sort();
 
               //adopt cv s
               for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end(); ++cvit)
@@ -1450,8 +1467,13 @@ namespace OpenMS::Internal
         // Attributes
         String peptide = StringManager::convert(cl_sii->getAttribute(CONST_XMLCH("peptide_ref")));
         peptides.push_back(peptide);
-        double exp_mz =StringManager::convert(cl_sii->getAttribute(CONST_XMLCH("experimentalMassToCharge"))).toDouble();
+        double exp_mz = toDoubleOrNaN_(StringManager::convert(cl_sii->getAttribute(CONST_XMLCH("experimentalMassToCharge"))));
         exp_mzs.push_back(exp_mz);
+
+        // collect one RT entry per SII so RTs stays index-aligned with peptides/exp_mzs even when some SIIs lack MS:1000894;
+        // a missing RT stays NaN (mirrors the non-XL path and PeptideIdentification::hasRT()) so it is not confused with a real 0 s RT
+        double rt = std::numeric_limits<double>::quiet_NaN();
+        bool has_rt = false;
 
         if (rank == 0)
         {
@@ -1470,36 +1492,40 @@ namespace OpenMS::Internal
           DOMElement* element_sii_cvp = dynamic_cast<xercesc::DOMElement*>(sii_cvp->item(i));
           if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002681"))) // OpenXQuest:combined score
           {
-            score = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
+            score = toDoubleOrZero_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002682"))) // OpenXQuest: xcorr common
           {
-            xcorrx = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
+            xcorrx = toDoubleOrZero_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002683"))) // OpenXQuest: xcorr xlink
           {
-            xcorrc = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
+            xcorrc = toDoubleOrZero_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002684"))) // OpenXQuest: match-odds
           {
-            matchodds = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
+            matchodds = toDoubleOrZero_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002685"))) // OpenXQuest: intsum
           {
-            intsum = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
+            intsum = toDoubleOrZero_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002686"))) // OpenXQuest: wTIC
           {
-            wTIC = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
+            wTIC = toDoubleOrZero_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1003024"))) // OpenPepXL:score
           {
-            score = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
+            score = toDoubleOrZero_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
           }
           else if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1000894"))) // retention time
           {
-            double RT = StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))).toDouble();
-            RTs.push_back(RT);
+            rt = toDoubleOrNaN_(StringManager::convert(element_sii_cvp->getAttribute(CONST_XMLCH("value"))));
+            if (XMLString::equals(element_sii_cvp->getAttribute(CONST_XMLCH("unitAccession")), CONST_XMLCH("UO:0000031"))) // minutes -> seconds (mirror non-XL path)
+            {
+              rt *= 60.0;
+            }
+            has_rt = true;
           }
         }
 
@@ -1520,6 +1546,12 @@ namespace OpenMS::Internal
         userParamNameLists.push_back(userParamNames);
         userParamValueLists.push_back(userParamValues);
         userParamUnitLists.push_back(userParamUnits);
+
+        RTs.push_back(rt);
+        if (!has_rt)
+        {
+          OPENMS_LOG_WARN << "No retention time found for cross-linked SpectrumIdentificationItem in '" << spectrumID << "'." << endl;
+        }
 
         // Fragmentation, does not matter where to get them. Look for them as long as the vector is empty
         if (frag_annotations.empty())
@@ -1678,8 +1710,8 @@ namespace OpenMS::Internal
 
                 PeptideHit::PeakAnnotation frag_anno;
                 frag_anno.charge = ion_charge;
-                frag_anno.mz = positions[s].toDouble();
-                frag_anno.intensity = intensities[s].toDouble();
+                frag_anno.mz = positions[s].empty() ? 0.0 : positions[s].toDouble();
+                frag_anno.intensity = intensities[s].empty() ? 0.0 : intensities[s].toDouble();
                 frag_anno.annotation = annotation;
                 frag_annotations.push_back(frag_anno);
               }
@@ -1689,13 +1721,29 @@ namespace OpenMS::Internal
       }
 
       // Generate and fill PeptideIdentification
+      // RTs is now collected one entry per SII (see loop above), so it stays aligned with exp_mzs/peptides.
+
+      // Guard against a SpectrumIdentificationResult without any SpectrumIdentificationItems: the
+      // min/max_element and light[0]/heavy[0] accesses below assume at least one experimental m/z.
+      if (exp_mzs.empty())
+      {
+        OPENMS_LOG_WARN << "SpectrumIdentificationResult '" << spectrumID << "' has no SpectrumIdentificationItems; skipping." << endl;
+        return;
+      }
+
+      vector<String> spectrumIDs;
+      spectrumID.split(",", spectrumIDs);
+
       vector<Size> light;
       vector<Size> heavy;
       double MZ_light = *std::min_element(exp_mzs.begin(), exp_mzs.end());
       double MZ_heavy = *std::max_element(exp_mzs.begin(), exp_mzs.end());
 
-      // are the cross-links labeled?
-      bool labeled = MZ_light != MZ_heavy;
+      // Are the cross-links labeled? A labeled (light/heavy) cross-link is reported as a light and a heavy
+      // SII whose experimental m/z differ AND that reference two distinct spectra (comma-separated spectrumID).
+      // Requiring >1 spectrum avoids misclassifying a single spectrum whose SIIs merely happen to have
+      // differing experimental m/z as a labeled pair.
+      bool labeled = MZ_light != MZ_heavy && spectrumIDs.size() > 1;
 
       for (Size i = 0; i < exp_mzs.size(); ++i)
       {
@@ -1732,9 +1780,39 @@ namespace OpenMS::Internal
       }
       String xl_type = "mono-link";
 
+      // If no crosslink donors were found fall back to parsing each SII as a regular peptide identification
+      if (alpha.empty())
+      {
+        OPENMS_LOG_WARN << "No crosslink donor found for SIIs in '" << spectrumID
+                        << "'; parsing as regular (non-XLMS) peptide identifications." << endl;
+
+        DOMElement* parent = dynamic_cast<xercesc::DOMElement*>(element_res->getParentNode());
+        String sil = StringManager::convert(parent->getAttribute(CONST_XMLCH("id")));
+
+        PeptideIdentification current_pep_id;
+        current_pep_id.setRT(RTs.empty() ? 0.0 : RTs[0]);
+        current_pep_id.setMZ(exp_mzs.empty() ? 0.0 : exp_mzs[0]);
+        current_pep_id.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectrumID);
+        current_pep_id.setHigherScoreBetter(false);
+
+        // Reuse the regular SII parser so per-SII score type/userParams/passThreshold/calcMZ handling and
+        // pro_id_ protein-hit population behave exactly like the normal non-XL path.
+        DOMElement* reg_sii = element_res->getFirstElementChild();
+        while (reg_sii)
+        {
+          if (XMLString::equals(reg_sii->getTagName(), CONST_XMLCH("SpectrumIdentificationItem")))
+          {
+            parseSpectrumIdentificationItemElement_(reg_sii, current_pep_id, sil);
+          }
+          reg_sii = reg_sii->getNextElementSibling();
+        }
+        current_pep_id.setIdentifier(pro_id_->at(si_pro_map_[sil]).getIdentifier());
+        current_pep_id.sort();
+        pep_id_->push_back(current_pep_id);
+        return;
+      }
+
       SignedSize alpha_pos = xl_donor_pos_map_.at(xl_id_donor_map_.at(peptides[alpha[0]]));
-      vector<String> spectrumIDs;
-      spectrumID.split(",", spectrumIDs);
 
       if (alpha.size() == beta.size()) // if a beta exists at all, it must be cross-link. But they should also each have the same number of SIIs in the mzid
       {
@@ -1769,7 +1847,7 @@ namespace OpenMS::Internal
       ph_alpha.setSequence((*pep_map_.find(peptides[alpha[0]])).second);
       ph_alpha.setCharge(charge);
       ph_alpha.setScore(score);
-      ph_alpha.setRank(rank);
+      ph_alpha.setRank(rank - 1); // rank is 1-based in mzid, OpenMS uses 0-based
       ph_alpha.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectrumIDs[0]);
       ph_alpha.setMetaValue("xl_chain", "MS:1002509"); // donor
 
@@ -1795,18 +1873,7 @@ namespace OpenMS::Internal
 
       for (Size i = 0; i < userParamNames_alpha.size(); ++i)
       {
-        if (userParamUnits_alpha[i] == "xsd:double")
-        {
-          ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i].toDouble());
-        }
-        else if (userParamUnits_alpha[i] == "xsd:integer")
-        {
-          ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i].toInt());
-        }
-        else
-        {
-          ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i]);
-        }
+        ph_alpha.setMetaValue(userParamNames_alpha[i], XMLHandler::fromXSDString(userParamUnits_alpha[i], userParamValues_alpha[i]));
       }
 
       ph_alpha.setPeakAnnotations(frag_annotations);
@@ -1853,7 +1920,7 @@ namespace OpenMS::Internal
         ph_beta.setSequence((*pep_map_.find(peptides[beta[0]])).second);
         ph_beta.setCharge(charge);
         ph_beta.setScore(score);
-        ph_beta.setRank(rank);
+        ph_beta.setRank(rank - 1); // rank is 1-based in mzid, OpenMS uses 0-based
         ph_beta.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectrumIDs[0]);
         ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
 
@@ -1894,7 +1961,7 @@ namespace OpenMS::Internal
       for (Size pep = 0; pep < unique_peptides.size(); ++pep)
       {
 
-        String peptide_ref = unique_peptides[pep];
+        const String& peptide_ref = unique_peptides[pep];
 
         // Debug output
 //        cout << "peptides: ";
@@ -2005,7 +2072,7 @@ namespace OpenMS::Internal
       }
       current_pep_id.setHits(phs);
       pep_id_->push_back(current_pep_id);
-      pep_id_->back().sortByRank();
+      pep_id_->back().sort();
     }
 
     void MzIdentMLDOMHandler::parseSpectrumIdentificationItemElement_(DOMElement* spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, String& spectrumIdentificationList_ref)
@@ -2013,7 +2080,7 @@ namespace OpenMS::Internal
       String id = StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("id")));
       String name = StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("name")));
 
-      long double calculatedMassToCharge = StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("calculatedMassToCharge"))).toDouble();
+      long double calculatedMassToCharge = toDoubleOrNaN_(StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("calculatedMassToCharge"))));
 //      long double calculatedPI = StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("calculatedPI"))).toDouble();
       int chargeState = 0;
       try
@@ -2024,11 +2091,19 @@ namespace OpenMS::Internal
       {
         OPENMS_LOG_WARN << "Found unreadable 'chargeState'." << endl;
       }
-      long double experimentalMassToCharge = StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("experimentalMassToCharge"))).toDouble();
+      long double experimentalMassToCharge = toDoubleOrNaN_(StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("experimentalMassToCharge"))));
       int rank = 0;
       try
       {
         rank = StringManager::convert(spectrumIdentificationItemElement->getAttribute(CONST_XMLCH("rank"))).toInt();
+        if (rank == 0) 
+        {
+          // MzIdentML ranks are typically 1-based. For some special data (PMF) it can be 0. 
+          // In that case we treat it as 1-based as well otherwise it will underflow if converted to the 0-based OpenMS ranks.
+          rank = 1;
+          OPENMS_LOG_DEBUG << "Found rank 0. Assuming 1-based rank." << std::endl;
+        }
+        
       }
       catch (...)
       {
@@ -2049,40 +2124,33 @@ namespace OpenMS::Internal
       // TODO @all: where to store passThreshold value? set after score type eval in pass_threshold
 
       long double score = 0;
-      pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(spectrumIdentificationItemElement->getChildNodes());
-      set<String> q_score_terms;
-      set<String> e_score_terms,e_score_tmp;
-      set<String> specific_score_terms;
-      cv_.getAllChildTerms(q_score_terms, "MS:1002354"); //q-value for peptides
-      cv_.getAllChildTerms(e_score_terms, "MS:1001872");
-      cv_.getAllChildTerms(e_score_tmp, "MS:1002353");
-      e_score_terms.insert(e_score_tmp.begin(),e_score_tmp.end()); //E-value for peptides
-      cv_.getAllChildTerms(specific_score_terms, "MS:1001143"); //search engine specific score for PSMs
+      const auto& [param_cv, param_user] = parseParamGroup_(spectrumIdentificationItemElement->getChildNodes());
       bool scoretype = false;
-      for (map<String, vector<OpenMS::CVTerm> >::const_iterator scoreit = params.first.getCVTerms().begin(); scoreit != params.first.getCVTerms().end(); ++scoreit)
+      for (map<String, vector<OpenMS::CVTerm>>::const_iterator scoreit = param_cv.getCVTerms().begin(); scoreit != param_cv.getCVTerms().end(); ++scoreit)
       {
-        if (q_score_terms.find(scoreit->first) != q_score_terms.end() || scoreit->first == "MS:1002354")
+        if (q_score_child_terms_.find(scoreit->first) != q_score_child_terms_.end() || scoreit->first == "MS:1002354")
         {
           if (scoreit->first != "MS:1002055") // do not use peptide-level q-values for now
           {
-            score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+            score = toDoubleOrZero_(scoreit->second.front().getValue().toString()); // cast fix needed as DataValue is init with XercesString
             spectrum_identification.setHigherScoreBetter(false);
             spectrum_identification.setScoreType("q-value"); //higherIsBetter = false
             scoretype = true;
             break;
           }
         }
-        else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end())
+        else if (scoreit->first != "MS:1001143" && // the parent term itself has no numeric value; handled in the special case below
+                 specific_score_child_terms_.find(scoreit->first) != specific_score_child_terms_.end())
         {
-          score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+          score = toDoubleOrZero_(scoreit->second.front().getValue().toString()); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scoreit->first)));
           spectrum_identification.setScoreType(scoreit->second.front().getName());
           scoretype = true;
           break;
         }
-        else if (e_score_terms.find(scoreit->first) != e_score_terms.end())
+        else if (e_score_child_terms_.find(scoreit->first) != e_score_child_terms_.end())
         {
-          score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+          score = toDoubleOrZero_(scoreit->second.front().getValue().toString()); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(false);
           spectrum_identification.setScoreType("E-value"); //higherIsBetter = false
           scoretype = true;
@@ -2099,26 +2167,27 @@ namespace OpenMS::Internal
       if (scoretype) //else (i.e. no q/E/raw score or threshold not passed) no hit will be read TODO @mths: yielding no peptide hits will be error prone!!! what to do? remove and warn peptideidentifications with no hits inside?!
       {
         //build the PeptideHit from a SpectrumIdentificationItem
-        PeptideHit hit(score, rank, chargeState, pep_map_[peptide_ref]);
-        for (std::map<String, vector<CVTerm> >::const_iterator cvs = params.first.getCVTerms().begin(); cvs != params.first.getCVTerms().end(); ++cvs)
+        PeptideHit hit(score, rank - 1, chargeState, pep_map_[peptide_ref]); // rank in OpenMS is 0-based, in mzIdentML it is 1-based
+        for (const auto& cvs : param_cv.getCVTerms())
         {
-          for (vector<CVTerm>::const_iterator cv = cvs->second.begin(); cv != cvs->second.end(); ++cv)
+          for (const auto& cv : cvs.second) // if the same accession occurred multiple times...
           {
-            if (cvs->first == "MS:1002540")
+            if (cvs.first == "MS:1002540")
             {
-              hit.setMetaValue(cvs->first, cv->getValue().toString());
+              hit.setMetaValue(cvs.first, cv.getValue().toString());
             }
-            else if (cvs->first == "MS:1001143") // this is the CV term "PSM-level search engine specific statistic" and it doesn't have a value
+            else if (cvs.first == "MS:1001143") // this is the CV term "PSM-level search engine specific statistic" and it doesn't have a value
             {
               continue;
             }
             else
-            {
-              hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
+            { // value may be empty, e.g. <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+              auto value = xml_handler_->cvParamToValue(cv_, cv);
+              hit.setMetaValue(cvs.first, value);
             }
           }
         }
-        for (map<String, DataValue>::const_iterator up = params.second.begin(); up != params.second.end(); ++up)
+        for (map<String, DataValue>::const_iterator up = param_user.begin(); up != param_user.end(); ++up)
         {
           hit.setMetaValue(up->first, up->second);
         }
@@ -2399,21 +2468,37 @@ namespace OpenMS::Internal
 
               while (cvp)
               {
-                if (XMLString::equals(cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002509"))) // cross-link donor
+                if (XMLString::equals(cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002509"))) // crosslink donor
                 {
                   String donor_val = StringManager::convert(cvp->getAttribute(CONST_XMLCH("value")));
                   xl_id_donor_map_.insert(make_pair(pep_id, donor_val));
                   String massdelta = StringManager::convert(element_sib->getAttribute(CONST_XMLCH("monoisotopicMassDelta")));
-                  double monoisotopicMassDelta = massdelta.toDouble();
+                  double monoisotopicMassDelta = massdelta.empty() ? 0.0 : massdelta.toDouble();
                   xl_mass_map_.insert(make_pair(pep_id, monoisotopicMassDelta));
                   xl_donor_pos_map_.insert(make_pair(donor_val, index-1));
 
+                  // Find the actual modification name from UNIMOD/XLMOD cvParam
+                  String xl_mod_name;
                   DOMElement* cvp1 = element_sib->getFirstElementChild();
-                  String xl_mod_name = StringManager::convert(cvp1->getAttribute(CONST_XMLCH("name")));
+                  while (cvp1)
+                  {
+                    String cvref = StringManager::convert(cvp1->getAttribute(CONST_XMLCH("cvRef")));
+                    if (cvref == "UNIMOD" || cvref == "XLMOD")
+                    {
+                      xl_mod_name = StringManager::convert(cvp1->getAttribute(CONST_XMLCH("name")));
+                      break;
+                    }
+                    cvp1 = cvp1->getNextElementSibling();
+                  }
+                  if (xl_mod_name.empty())
+                  {
+                    // fallback
+                    xl_mod_name = StringManager::convert(element_sib->getFirstElementChild()->getAttribute(CONST_XMLCH("name")));
+                  }
                   xl_mod_map_.insert(make_pair(pep_id, xl_mod_name));
                   donor_acceptor_found = true;
                 }
-                else if (XMLString::equals(cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002510"))) // cross-link acceptor
+                else if (XMLString::equals(cvp->getAttribute(CONST_XMLCH("accession")), CONST_XMLCH("MS:1002510"))) // crosslink acceptor
                 {
                   String acceptor_val = StringManager::convert(cvp->getAttribute(CONST_XMLCH("value")));
                   xl_id_acceptor_map_.insert(make_pair(pep_id, acceptor_val));
@@ -2984,7 +3069,7 @@ namespace OpenMS::Internal
       current_sil->setAttribute(CONST_XMLCH("numSequencesSearched"), CONST_XMLCH("TBA"));
       // for now no FragmentationTable
 
-      for (vector<PeptideIdentification>::iterator pi = pep_id_->begin(); pi != pep_id_->end(); ++pi)
+      for (PeptideIdentificationList::iterator pi = pep_id_->begin(); pi != pep_id_->end(); ++pi)
       {
         DOMElement* current_sr = current_sil->getOwnerDocument()->createElement(CONST_XMLCH("SpectrumIdentificationResult"));
         current_sr->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(String(UniqueIdGenerator::getUniqueId())).get());
@@ -2998,7 +3083,7 @@ namespace OpenMS::Internal
           current_si->setAttribute(CONST_XMLCH("chargeState"), StringManager::convertPtr(String(ph->getCharge())).get());
           current_si->setAttribute(CONST_XMLCH("experimentalMassToCharge"), StringManager::convertPtr(String(ph->getSequence().getMonoWeight(Residue::Full, ph->getCharge()))).get()); //TODO @mths : this is not correct!1elf - these interfaces are BS!
           current_si->setAttribute(CONST_XMLCH("peptide_ref"), CONST_XMLCH("TBA"));
-          current_si->setAttribute(CONST_XMLCH("rank"), StringManager::convertPtr(String(ph->getRank())).get());
+          current_si->setAttribute(CONST_XMLCH("rank"), StringManager::convertPtr(String(ph->getRank() + 1)).get());
           current_si->setAttribute(CONST_XMLCH("passThreshold"), CONST_XMLCH("TBA"));
           current_si->setAttribute(CONST_XMLCH("sample_ref"), CONST_XMLCH("TBA"));
           // TODO cvs for score!

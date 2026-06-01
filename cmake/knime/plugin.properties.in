@@ -1,14 +1,19 @@
-# the name of the plugin
-pluginPackage=de.openms
+# The java package name of the plugin
+# In maven called the artifactId
+pluginPackage=@ID@
 
-# the name of the plugin
-pluginName=OpenMS
+# The human-readable name of the plugin
+pluginName=@NAME@
 
-# the version of the plugin
-pluginVersion=@CF_OPENMS_VERSION@
+# The version of the plugin
+pluginVersion=@VERSION@
 
-# the path (starting from KNIMEs Community Nodes node)
-nodeRepositoyRoot=community
+# The path for the nodes in the Node repository of KNIME
+# community = starting from KNIMEs Community Nodes "folder"
+# The plugin name will be used as the name for the added subfolder.
+# Then the tools names as noted in the Tool description (CTD).
+nodeRepositoryRoot=community
 
-executor=com.genericworkflownodes.knime.execution.impl.LocalToolExecutor
+executor=com.genericworkflownodes.knime.execution.impl.OpenMSToolExecutor
 commandGenerator=com.genericworkflownodes.knime.execution.impl.OpenMSCommandGenerator
+extraDependencies=de.openms.lib:@VERSION@

@@ -30,7 +30,8 @@ GNPSMGFFile.cpp
 GNPSQuantificationFile.cpp
 GzipIfstream.cpp
 GzipInputStream.cpp
-HDF5Connector.cpp
+ZipIfstream.cpp
+ZipInputStream.cpp
 IBSpectraFile.cpp
 IdXMLFile.cpp
 IndentedStream.cpp
@@ -38,7 +39,6 @@ IndexedMzMLFileLoader.cpp
 InspectInfile.cpp
 InspectOutfile.cpp
 KroenikFile.cpp
-LibSVMEncoder.cpp
 MRMFeaturePickerFile.cpp
 MRMFeatureQCFile.cpp
 MS2File.cpp
@@ -46,7 +46,6 @@ MSNumpressCoder.cpp
 MSPFile.cpp
 MSPGenericFile.cpp
 MSstatsFile.cpp
-MascotInfile.cpp
 MascotGenericFile.cpp
 MascotRemoteQuery.cpp
 MascotXMLFile.cpp
@@ -55,7 +54,6 @@ MzDataFile.cpp
 MzIdentMLFile.cpp
 MzMLFile.cpp
 MzQCFile.cpp
-MzQuantMLFile.cpp
 MzTab.cpp
 MzTabBase.cpp
 MzTabM.cpp
@@ -69,7 +67,10 @@ OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
 OSWFile.cpp
 ParamCTDFile.cpp
+ParamCWLFile.cpp
+ParamJSONFile.cpp
 ParamXMLFile.cpp
+PEFFFile.cpp
 PTMXMLFile.cpp
 PeakTypeEstimator.cpp
 PepNovoInfile.cpp
@@ -99,7 +100,40 @@ XQuestResultXMLFile.cpp
 XTandemInfile.cpp
 XTandemXMLFile.cpp
 ZlibCompression.cpp
+MRMFile.cpp
+TargetedDataFileLoader.cpp
 )
+
+if (WITH_HDF5)
+  list(APPEND sources_list HDF5Connector.cpp)
+endif()
+
+list(APPEND sources_list ZipArchiveFile.cpp)
+list(APPEND sources_list ZipRandomAccessFile.cpp)
+list(APPEND sources_list MSExperimentArrowExport.cpp)
+list(APPEND sources_list ConsensusMapArrowExport.cpp)
+list(APPEND sources_list ParquetFile.cpp)
+list(APPEND sources_list ParquetFilter.cpp)
+list(APPEND sources_list QPXFile.cpp)
+list(APPEND sources_list XICParquetFile.cpp)
+list(APPEND sources_list XIMParquetFile.cpp)
+list(APPEND sources_list ProteinGroupArrowExport.cpp)
+list(APPEND sources_list ProteinIdentificationArrowIO.cpp)
+list(APPEND sources_list FeatureMapArrowIO.cpp)
+list(APPEND sources_list ConsensusMapArrowIO.cpp)
+list(APPEND sources_list PSMArrowIO.cpp)
+list(APPEND sources_list ArrowSchemaRegistry.cpp)
+list(APPEND sources_list ArrowIOHelpers.cpp)
+
+if (WITH_OPENTIMS)
+  list(APPEND sources_list BrukerTimsFile.cpp)
+  list(APPEND sources_list BrukerTimsImagingFile.cpp)
+  list(APPEND sources_list RationalScan2ImConverter.cpp)
+endif()
+
+if (WITH_THERMO_RAW)
+  list(APPEND sources_list ThermoRawFile.cpp)
+endif()
 
 ### add path to the filenames
 set(sources)

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -60,13 +34,13 @@ END_SECTION
 
 START_SECTION((IonSource::Polarity getPolarity() const))
 	InstrumentSettings tmp;
-	TEST_EQUAL(tmp.getPolarity(),IonSource::POLNULL);
+	TEST_EQUAL(tmp.getPolarity(),IonSource::Polarity::POLNULL);
 END_SECTION
 
 START_SECTION((void setPolarity(IonSource::Polarity polarity)))
 	InstrumentSettings tmp;
-	tmp.setPolarity(IonSource::NEGATIVE);
-	TEST_EQUAL(tmp.getPolarity(),IonSource::NEGATIVE);
+	tmp.setPolarity(IonSource::Polarity::NEGATIVE);
+	TEST_EQUAL(tmp.getPolarity(),IonSource::Polarity::NEGATIVE);
 END_SECTION
 
 START_SECTION((const std::vector< ScanWindow >&  getScanWindows() const))
@@ -89,13 +63,13 @@ END_SECTION
 
 START_SECTION((ScanMode getScanMode() const))
 	InstrumentSettings tmp;
-	TEST_EQUAL(tmp.getScanMode(),InstrumentSettings::UNKNOWN);
+	TEST_EQUAL(tmp.getScanMode(),InstrumentSettings::ScanMode::UNKNOWN);
 END_SECTION
 
 START_SECTION((void setScanMode(ScanMode scan_mode)))
 	InstrumentSettings tmp;
-	tmp.setScanMode(InstrumentSettings::SIM);
-	TEST_EQUAL(tmp.getScanMode(),InstrumentSettings::SIM);
+	tmp.setScanMode(InstrumentSettings::ScanMode::SIM);
+	TEST_EQUAL(tmp.getScanMode(),InstrumentSettings::ScanMode::SIM);
 END_SECTION
 
 START_SECTION((bool getZoomScan() const))
@@ -111,40 +85,40 @@ END_SECTION
 
 START_SECTION((InstrumentSettings(const InstrumentSettings& source)))
   InstrumentSettings tmp;
-  tmp.setScanMode(InstrumentSettings::SIM);
+  tmp.setScanMode(InstrumentSettings::ScanMode::SIM);
   tmp.getScanWindows().resize(1);
-  tmp.setPolarity(IonSource::NEGATIVE);
+  tmp.setPolarity(IonSource::Polarity::NEGATIVE);
   tmp.setMetaValue("label",String("label"));
 	tmp.setZoomScan(true);
-  
+
   InstrumentSettings tmp2(tmp);
-  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::SIM);
+  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::ScanMode::SIM);
   TEST_EQUAL(tmp2.getScanWindows().size(),1);
-  TEST_EQUAL(tmp2.getPolarity(),IonSource::NEGATIVE);  
+  TEST_EQUAL(tmp2.getPolarity(),IonSource::Polarity::NEGATIVE);  
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
 	TEST_EQUAL(tmp2.getZoomScan(),true);
 END_SECTION
 
 START_SECTION((InstrumentSettings& operator= (const InstrumentSettings& source)))
   InstrumentSettings tmp;
-  tmp.setScanMode(InstrumentSettings::SIM);
+  tmp.setScanMode(InstrumentSettings::ScanMode::SIM);
   tmp.getScanWindows().resize(1);
-  tmp.setPolarity(IonSource::NEGATIVE);
+  tmp.setPolarity(IonSource::Polarity::NEGATIVE);
   tmp.setMetaValue("label",String("label"));
 	tmp.setZoomScan(true);
-  
+
   InstrumentSettings tmp2;
   tmp2 = tmp;
-  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::SIM);
+  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::ScanMode::SIM);
   TEST_EQUAL(tmp2.getScanWindows().size(),1);
-  TEST_EQUAL(tmp2.getPolarity(),IonSource::NEGATIVE);  
+  TEST_EQUAL(tmp2.getPolarity(),IonSource::Polarity::NEGATIVE);  
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 	TEST_EQUAL(tmp2.getZoomScan(),true);
   
   tmp2 = InstrumentSettings();
-  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::UNKNOWN);
+  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::ScanMode::UNKNOWN);
   TEST_EQUAL(tmp2.getScanWindows().size(),0);
-  TEST_EQUAL(tmp2.getPolarity(),IonSource::POLNULL);  
+  TEST_EQUAL(tmp2.getPolarity(),IonSource::Polarity::POLNULL);  
 	TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
 	TEST_EQUAL(tmp2.getZoomScan(),false);
 END_SECTION
@@ -153,8 +127,8 @@ START_SECTION((bool operator== (const InstrumentSettings& rhs) const))
   InstrumentSettings edit, empty;
   
   TEST_EQUAL(edit==empty,true);
-  
-  edit.setScanMode(InstrumentSettings::SIM);
+
+  edit.setScanMode(InstrumentSettings::ScanMode::SIM);
   TEST_EQUAL(edit==empty,false);
   
   edit = empty; 
@@ -162,7 +136,7 @@ START_SECTION((bool operator== (const InstrumentSettings& rhs) const))
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
-  edit.setPolarity(IonSource::NEGATIVE);
+  edit.setPolarity(IonSource::Polarity::NEGATIVE);
 	TEST_EQUAL(edit==empty,false);
 	
 	edit = empty;
@@ -178,8 +152,8 @@ START_SECTION((bool operator!= (const InstrumentSettings& rhs) const))
   InstrumentSettings edit, empty;
   
   TEST_EQUAL(edit!=empty,false);
-  
-  edit.setScanMode(InstrumentSettings::SIM);
+
+  edit.setScanMode(InstrumentSettings::ScanMode::SIM);
   TEST_EQUAL(edit!=empty,true);
   
   edit = empty;	
@@ -187,7 +161,7 @@ START_SECTION((bool operator!= (const InstrumentSettings& rhs) const))
   TEST_EQUAL(edit!=empty,true);
   
   edit = empty;
-  edit.setPolarity(IonSource::NEGATIVE);
+  edit.setPolarity(IonSource::Polarity::NEGATIVE);
 	TEST_EQUAL(edit!=empty,true);
 
 	edit = empty;
@@ -197,6 +171,12 @@ START_SECTION((bool operator!= (const InstrumentSettings& rhs) const))
 	edit = empty;
 	edit.setZoomScan(true);
 	TEST_EQUAL(edit!=empty,true);
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfScanMode()))
+  StringList names = InstrumentSettings::getAllNamesOfScanMode();
+  TEST_EQUAL(names.size(), static_cast<size_t>(InstrumentSettings::ScanMode::SIZE_OF_SCANMODE));
+  TEST_EQUAL(names[static_cast<size_t>(InstrumentSettings::ScanMode::MS1SPECTRUM)], "MS1Spectrum");
 END_SECTION
 
 

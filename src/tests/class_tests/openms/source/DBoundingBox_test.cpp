@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -41,7 +15,8 @@
 
 /////////////////////////////////////////////////////////////
 
-
+#include <unordered_set>
+#include <unordered_map>
 #include <sstream>
 
 using namespace OpenMS;
@@ -347,6 +322,59 @@ START_SECTION((template <UInt D> std::ostream & operator<<(std::ostream &os, con
 		"MIN --> 2.0\n"
 		"MAX --> 5.0\n"
 		"--DBOUNDINGBOX END--\n");
+}
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<DBoundingBox<D>>))
+{
+  // Test that equal bounding boxes have equal hashes
+  BB2 bb1(DPosition<2>(1.0, 2.0), DPosition<2>(3.0, 4.0));
+  BB2 bb2(DPosition<2>(1.0, 2.0), DPosition<2>(3.0, 4.0));
+  BB2 bb3(DPosition<2>(5.0, 6.0), DPosition<2>(7.0, 8.0));
+
+  std::hash<BB2> hasher;
+
+  // Equal objects must have equal hashes
+  TEST_EQUAL(bb1 == bb2, true)
+  TEST_EQUAL(hasher(bb1), hasher(bb2))
+
+  // Different objects should (likely) have different hashes
+  TEST_EQUAL(bb1 == bb3, false)
+  TEST_NOT_EQUAL(hasher(bb1), hasher(bb3))
+
+  // Test 1D bounding box hash
+  BB1 bb1d_a(DPosition<1>(1.0), DPosition<1>(5.0));
+  BB1 bb1d_b(DPosition<1>(1.0), DPosition<1>(5.0));
+  BB1 bb1d_c(DPosition<1>(2.0), DPosition<1>(6.0));
+
+  std::hash<BB1> hasher1d;
+  TEST_EQUAL(bb1d_a == bb1d_b, true)
+  TEST_EQUAL(hasher1d(bb1d_a), hasher1d(bb1d_b))
+  TEST_NOT_EQUAL(hasher1d(bb1d_a), hasher1d(bb1d_c))
+
+  // Test use in unordered_set
+  std::unordered_set<BB2> bb_set;
+  bb_set.insert(bb1);
+  bb_set.insert(bb2); // Should not be inserted (equal to bb1)
+  bb_set.insert(bb3);
+  TEST_EQUAL(bb_set.size(), 2)
+  TEST_EQUAL(bb_set.count(bb1), 1)
+  TEST_EQUAL(bb_set.count(bb3), 1)
+
+  // Test use in unordered_map
+  std::unordered_map<BB2, std::string> bb_map;
+  bb_map[bb1] = "first";
+  bb_map[bb2] = "second"; // Should overwrite bb1's value
+  bb_map[bb3] = "third";
+  TEST_EQUAL(bb_map.size(), 2)
+  TEST_EQUAL(bb_map[bb1], "second")
+  TEST_EQUAL(bb_map[bb3], "third")
+
+  // Test hash consistency with default-constructed (empty) bounding boxes
+  BB2 default1;
+  BB2 default2;
+  TEST_EQUAL(default1 == default2, true)
+  TEST_EQUAL(hasher(default1), hasher(default2))
 }
 END_SECTION
 

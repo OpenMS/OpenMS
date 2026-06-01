@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -63,17 +37,17 @@ START_SECTION(~FalseDiscoveryRate())
 }
 END_SECTION
 
-START_SECTION((void apply(std::vector<PeptideIdentification> &fwd_ids, std::vector<PeptideIdentification> &rev_ids)))
+START_SECTION((void apply(PeptideIdentificationList &fwd_ids, PeptideIdentificationList &rev_ids)))
 {
   ptr = new FalseDiscoveryRate();
   vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids;
-  vector<PeptideIdentification> fwd_pep_ids, rev_pep_ids;
+  PeptideIdentificationList fwd_pep_ids, rev_pep_ids;
   String document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids.idXML"), fwd_prot_ids, fwd_pep_ids, document_id);
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_rev_ids.idXML"), rev_prot_ids, rev_pep_ids, document_id);
   ptr->apply(fwd_pep_ids, rev_pep_ids);
   TOLERANCE_ABSOLUTE(0.0001)
-  for (vector<PeptideIdentification>::const_iterator it = fwd_pep_ids.begin(); it != fwd_pep_ids.end(); ++it)
+  for (PeptideIdentificationList::const_iterator it = fwd_pep_ids.begin(); it != fwd_pep_ids.end(); ++it)
   {
     if (!it->getHits().empty())
     {
@@ -97,7 +71,7 @@ END_SECTION
 START_SECTION((void apply(std::vector<ProteinIdentification> &fwd_ids, std::vector<ProteinIdentification> &rev_ids)))
 {
   vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids;
-  vector<PeptideIdentification> fwd_pep_ids, rev_pep_ids;
+  PeptideIdentificationList fwd_pep_ids, rev_pep_ids;
   String document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids_withProtScores.idXML"), fwd_prot_ids, fwd_pep_ids, document_id);
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_rev_ids_withProtScores.idXML"), rev_prot_ids, rev_pep_ids, document_id);
@@ -129,10 +103,10 @@ START_SECTION((void apply(std::vector<ProteinIdentification> &fwd_ids, std::vect
 }
 END_SECTION
 
-START_SECTION((void apply(std::vector<PeptideIdentification> &id)))
+START_SECTION((void apply(PeptideIdentificationList &id)))
 {
   vector<ProteinIdentification> prot_ids;
-  vector<PeptideIdentification> pep_ids;
+  PeptideIdentificationList pep_ids;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FalseDiscoveryRate_OMSSA.idXML"), prot_ids, pep_ids);
 
   ptr->apply(pep_ids);
@@ -140,7 +114,7 @@ START_SECTION((void apply(std::vector<PeptideIdentification> &id)))
 	
   for (Size z = 1; z <= 4; ++z)
   {
-    for (vector<PeptideIdentification>::const_iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+    for (PeptideIdentificationList::const_iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
   	{
       for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
       {
@@ -180,7 +154,7 @@ END_SECTION
 START_SECTION((void apply(std::vector<ProteinIdentification>& ids)))
 {
   vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids, prot_ids;
-  vector<PeptideIdentification> fwd_pep_ids, rev_pep_ids, pep_ids;
+  PeptideIdentificationList fwd_pep_ids, rev_pep_ids, pep_ids;
   String document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids.idXML"), fwd_prot_ids, fwd_pep_ids, document_id);
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_rev_ids.idXML"), rev_prot_ids, rev_pep_ids, document_id);
@@ -238,7 +212,7 @@ END_SECTION
 START_SECTION((void applyPicked(std::vector<ProteinIdentification>& ids)))
 {
   vector<ProteinIdentification> prot_ids;
-  vector<PeptideIdentification> pep_ids;
+  PeptideIdentificationList pep_ids;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FalseDiscoveryRate_picked_in.idXML"), prot_ids, pep_ids);
 
   ptr->applyPickedProteinFDR(prot_ids[0],"decoy_");
@@ -258,7 +232,7 @@ END_SECTION
 START_SECTION((void apply(std::vector<ProteinIdentification>& ids)))
 {
   vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids, prot_ids;
-  vector<PeptideIdentification> fwd_pep_ids, rev_pep_ids, pep_ids;
+  PeptideIdentificationList fwd_pep_ids, rev_pep_ids, pep_ids;
   String document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids.idXML"), fwd_prot_ids, fwd_pep_ids, document_id);
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_rev_ids.idXML"), rev_prot_ids, rev_pep_ids, document_id);

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -37,14 +11,14 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h> // StringList
+ 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <xercesc/util/XMLString.hpp>
-#include <xercesc/sax2/DefaultHandler.hpp>
 #include <xercesc/sax2/Attributes.hpp>
+#include <xercesc/sax2/DefaultHandler.hpp>
+#include <xercesc/util/XMLString.hpp>
 
 #include <iosfwd>
 #include <string>
@@ -53,8 +27,10 @@
 
 namespace OpenMS
 {
-  class ProteinIdentification;
+  class ControlledVocabulary;
+  class CVTerm;
   class MetaInfoInterface;
+  class ProteinIdentification;
 
   namespace Internal
   {
@@ -234,30 +210,43 @@ namespace OpenMS
 
       typedef std::basic_string<XMLCh> XercesString;
 
-      // Converts from a narrow-character string to a wide-character string.
+      /// Converts from a narrow-character string to a wide-character string.
       inline static unique_xerces_ptr<XMLCh> fromNative_(const char* str)
       {
         return unique_xerces_ptr<XMLCh>(xercesc::XMLString::transcode(str));
       }
 
-      // Converts from a narrow-character string to a wide-character string.
+      /// Converts from a narrow-character string to a wide-character string.
       inline static unique_xerces_ptr<XMLCh> fromNative_(const String& str)
       {
         return fromNative_(str.c_str());
       }
 
-      // Converts from a wide-character string to a narrow-character string.
+      /// Converts from a wide-character string to a narrow-character string.
       inline static String toNative_(const XMLCh* str)
-      {
-        return String(unique_xerces_ptr<char>(xercesc::XMLString::transcode(str)).get());
+      { 
+        String r;
+        XMLSize_t l = strLength(str);
+        if(isASCII(str, l))
+        {
+          appendASCII(str,l,r);
+        }
+        else
+        {
+          r = (unique_xerces_ptr<char>(xercesc::XMLString::transcode(str)).get());
+        }
+        return r;
       }
 
-      // Converts from a wide-character string to a narrow-character string.
+      /// Converts from a wide-character string to a narrow-character string.
       inline static String toNative_(const unique_xerces_ptr<XMLCh>& str)
       {
         return toNative_(str.get());
       }
 
+protected:
+      /// Compresses eight 8x16bit Chars in XMLCh* to 8x8bit Chars by cutting upper byte
+      static void compress64_ (const XMLCh * input_it, char* output_it);
 
 public:
       /// Constructor
@@ -265,6 +254,15 @@ public:
 
       /// Destructor
       ~StringManager();
+
+      /// Calculates the length of a XMLCh* string using SIMDe
+      // https://github.com/OpenMS/OpenMS/issues/8122
+      #if defined(__GNUC__)
+      __attribute__((no_sanitize("address")))
+      #elif defined(_MSC_VER)
+      __declspec(no_sanitize_address) 
+      #endif
+      static XMLSize_t strLength(const XMLCh* input_ptr);
 
       /// Transcode the supplied C string to a xerces string
       inline static XercesString convert(const char * str)
@@ -307,7 +305,11 @@ public:
       {
         return toNative_(str);
       }
+      /// Checks if supplied chars in XMLCh* can be encoded with ASCII (i.e. the upper byte of each char is 0)
+      static bool isASCII(const XMLCh * chars, const XMLSize_t length);
 
+      
+      
       /**
        * @brief Transcodes the supplied XMLCh* and appends it to the OpenMS String
        *
@@ -390,9 +392,6 @@ public:
       /// Writes the contents to a stream.
       virtual void writeTo(std::ostream & /*os*/);
 
-      /// Returns the last error description
-      String errorString();
-
       /// handler which support partial loading, implement this method
       virtual LOADDETAIL getLoadDetail() const;
 
@@ -426,8 +425,8 @@ public:
       *  Thus, if the @p value contains a large UInt64, conversion will fail.
       *  Value ranges are currently also not checked, only for XSD types which happen to match the internal representation.
       * 
-      *  @param type An XSD type. If the type is not supported, the returned type will be a string
-      *  @param value The value in sting format, e.g. "123.34"
+      *  @param[out] type An XSD type. If the type is not supported, the returned type will be a string
+      *  @param[in] value The value in sting format, e.g. "123.34"
       *  @return The Datavalue with the respective type (double, int or string)
       *  @throws Exception::ConversionError if the value does not fit into the internal representation or (for few types) exceeds the XSD specs.
       * 
@@ -464,14 +463,38 @@ public:
         return data_value;
       }
 
+
+      /**
+         @brief Convert the value of a <em>\<cvParam value=.\></em> (as commonly found in PSI schemata) to the DataValue with the correct type (e.g. int) according to
+                the type stored in the CV (usually PSI-MS CV), as well as set its unit.
+
+         @param[in] cv A CV, usually the PSI-MS CV, see ControlledVocabulary::getPSIMSCV()
+         @param[in] parent_tag The tag which encloses the \<cvParam\>
+         @param[in] accession The accession from the 'accession' attribute of the \<cvParam\>
+         @param[in] name The name from the 'name' attribute of the \<cvParam\>
+         @param[in] value The value from the 'value' attribute of the \<cvParam\>
+         @param[in] unit_accession The unit_accession from the 'unitAccession' attribute of the \<cvParam\>
+         @return DataValue::EMPTY if a conversion error occured (e.g. if @p value could not be converted to an integer for an @p accession which requires an integer) or the DataValue upon success
+      */
+      DataValue cvParamToValue(const ControlledVocabulary& cv, const String& parent_tag, 
+                               const String& accession, const String& name, const String& value,
+                               const String& unit_accession) const;
+
+      /**
+         @brief Convert the value of a <em>\<cvParam value=.\></em> (as commonly found in PSI schemata) to the DataValue with the correct type (e.g. int) according to
+                the type stored in the CV (usually PSI-MS CV), as well as set its unit.
+
+         @param[in] cv A CV, usually the PSI-MS CV, see ControlledVocabulary::getPSIMSCV()
+         @param[in] raw_term Represenation of the raw data (i.e. all strings) from a \<cvParam ...\> without the conversion to a specific value type
+         @return DataValue::EMPTY if a conversion error occured (e.g. if @p value could not be converted to an integer for an @p accession which requires an integer) or the DataValue upon success
+      */
+      DataValue cvParamToValue(const ControlledVocabulary& cv, const CVTerm& raw_term) const;
+
       /// throws a ParseError if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
       /// Should be called before writing any ProtIDs to file
       void checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids) const;
 
 protected:
-      /// Error message of the last error
-      mutable String error_message_;
-
       /// File name
       String file_;
 

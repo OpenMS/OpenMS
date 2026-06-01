@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -72,7 +46,7 @@ public:
     typedef std::map<Int, ChannelInfo> ChannelMapType;
 
     /// (user defined?) isotope correction matrix in (-2, -1, +1, +2) row style
-    typedef std::vector<Matrix<double> > IsotopeMatrices;
+    typedef std::vector<Matrix<double>> IsotopeMatrices;
 
     /// channel names for 4plex( 114, 115, 116, 117)
     static const Int CHANNELS_FOURPLEX[4][1];
@@ -98,8 +72,8 @@ public:
       Each line is converted into a string of the format &lt;channel&gt;:&lt;-2Da&gt;/&lt;-1Da&gt;/&lt;+1Da&gt;/&lt;+2Da&gt; ; e.g. '114:0/0.3/4/0'
       Useful for creating parameters or debug output.
 
-      @param itraq_type Which matrix to stringify. Should be of values from enum ITRAQ_TYPES
-      @param isotope_corrections Vector of the two matrices (4plex, 8plex).
+      @param[in] itraq_type Which matrix to stringify. Should be of values from enum ITRAQ_TYPES
+      @param[in] isotope_corrections Vector of the two matrices (4plex, 8plex).
     */
     static StringList getIsotopeMatrixAsStringList(const int itraq_type, const IsotopeMatrices & isotope_corrections);
 
@@ -111,9 +85,9 @@ public:
       Not all channels need to be present, missing channels will be left untouched.
       Useful to update the matrix with user isotope correction values.
 
-      @param itraq_type Which matrix to stringify. Should be of values from enum ITRAQ_TYPES
-      @param channels New channel isotope values as strings
-      @param isotope_corrections Vector of the two matrices (4plex, 8plex).
+      @param[in] itraq_type Which matrix to stringify. Should be of values from enum ITRAQ_TYPES
+      @param[in] channels New channel isotope values as strings
+      @param[in] isotope_corrections Vector of the two matrices (4plex, 8plex).
     */
     static void updateIsotopeMatrixFromStringList(const int itraq_type, const StringList & channels, IsotopeMatrices & isotope_corrections);
 
@@ -122,8 +96,8 @@ public:
 
       State, name and expected mz-position of iTRAQ channels are initialized.
 
-      @param itraq_type Should be of values from enum ITRAQ_TYPES
-      @param map Storage to initialize
+      @param[in] itraq_type Should be of values from enum ITRAQ_TYPES
+      @param[in] map Storage to initialize
     */
     static void initChannelMap(const int itraq_type, ChannelMapType & map);
 
@@ -133,8 +107,8 @@ public:
       State and description of iTRAQ channels are updated.
       Each input string must have the format &lt;channel&gt;:&lt;description&gt;, e.g. "114:myref","115:liver"
 
-      @param active_channels StringList with channel and description
-      @param map Storage to update
+      @param[in] active_channels StringList with channel and description
+      @param[in] map Storage to update
     */
     static void updateChannelMap(const StringList & active_channels, ChannelMapType & map);
 
@@ -144,8 +118,8 @@ public:
       Translates e.g. ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX matrix into a 8x8 matrix which
       maps how channel (row) distributes its tags onto other channels (columns).
 
-      @param itraq_type Should be of values from enum ITRAQ_TYPES
-      @param isotope_corrections isotope correction matrix in -2...+2 form
+      @param[in] itraq_type Should be of values from enum ITRAQ_TYPES
+      @param[in] isotope_corrections isotope correction matrix in -2...+2 form
     */
     static Matrix<double> translateIsotopeMatrix(const int & itraq_type, const IsotopeMatrices & isotope_corrections);
 

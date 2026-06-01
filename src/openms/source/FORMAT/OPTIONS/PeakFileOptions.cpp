@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -38,34 +12,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  PeakFileOptions::PeakFileOptions() :
-    metadata_only_(false),
-    force_maxquant_compatibility_(false),
-    force_tpp_compatibility_(false),
-    write_supplemental_data_(true),
-    has_rt_range_(false),
-    has_mz_range_(false),
-    has_intensity_range_(false),
-    mz_32_bit_(false),
-    int_32_bit_(true),
-    rt_range_(),
-    mz_range_(),
-    intensity_range_(),
-    ms_levels_(),
-    zlib_compression_(false),
-    always_append_data_(false),
-    skip_xml_checks_(false),
-    sort_spectra_by_mz_(true),
-    sort_chromatograms_by_rt_(true),
-    fill_data_(true),
-    write_index_(true),
-    np_config_mz_(),
-    np_config_int_(),
-    np_config_fda_(),
-    maximal_data_pool_size_(100),
-    precursor_mz_selected_ion_(true)
-  {
-  }
+  PeakFileOptions::PeakFileOptions() = default;
 
   PeakFileOptions::PeakFileOptions(const PeakFileOptions& options) = default;
 
@@ -157,6 +104,22 @@ namespace OpenMS
   const DRange<1>& PeakFileOptions::getIntensityRange() const
   {
     return intensity_range_;
+  }
+
+  void PeakFileOptions::setPrecursorMZRange(const DRange<1>& range)
+  {
+    precursor_mz_range_ = range;
+    has_precursor_mz_range_ = true;
+  }
+
+  bool PeakFileOptions::hasPrecursorMZRange() const
+  {
+    return has_precursor_mz_range_;
+  }
+
+  const DRange<1>& PeakFileOptions::getPrecursorMZRange() const
+  {
+    return precursor_mz_range_;
   }
 
   void PeakFileOptions::setMSLevels(const vector<Int>& levels)
@@ -335,7 +298,17 @@ namespace OpenMS
 
   bool PeakFileOptions::hasFilters() const
   {
-    return (has_rt_range_ || hasMSLevels());
+    return (has_rt_range_ || hasMSLevels() || has_precursor_mz_range_);
+  }
+
+  void PeakFileOptions::setSkipChromatograms(bool skip)
+  {
+    skip_chromatograms_ = skip;
+  }
+
+  bool PeakFileOptions::getSkipChromatograms() const
+  {
+    return skip_chromatograms_;
   }
 
 } // namespace OpenMS

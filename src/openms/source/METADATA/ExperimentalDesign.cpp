@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -40,11 +14,9 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <QtCore/QString>
-#include <QtCore/QFileInfo>
 
 #include <algorithm>
 #include <iostream>
@@ -91,8 +63,6 @@ namespace OpenMS
       ExperimentalDesign::MSFileSection msfile_section;
       ExperimentalDesign::SampleSection sample_section;
 
-      Size fraction_groups_assigned(0);
-
       // determine vector of ms file names (in order of appearance)
       vector<String> msfiles;
       std::map<pair<UInt,UInt>, UInt> fractiongroup_label_to_sample_mapping;
@@ -119,7 +89,6 @@ namespace OpenMS
           if (f.second.metaValueExists("fraction_group"))
           {
             r.fraction_group = static_cast<unsigned int>(f.second.getMetaValue("fraction_group"));
-            ++fraction_groups_assigned;
           }
           else
           {
@@ -157,8 +126,10 @@ namespace OpenMS
         }
 
         msfile_section.push_back(r);
-        if (!sample_section.hasSample(r.sample))
-          sample_section.addSample(r.sample);
+        if (!sample_section.hasSample(r.sample_name))
+        {
+          sample_section.addSample(r.sample_name);
+        }
 
       }
 
@@ -297,8 +268,19 @@ namespace OpenMS
       for (MSFileSectionEntry const& r : msfile_section_)
       {
         const String path = String(r.path);
-        pair<String, unsigned> tpl = make_pair((basename ? File::basename(path) : path), r.label);
-        ret[tpl] = f(r);
+        const pair<String, unsigned> tpl = make_pair((basename ? File::basename(path) : path), r.label);
+        const unsigned mapped_value = f(r);
+        const auto [it, inserted] = ret.emplace(tpl, mapped_value);
+        if (!inserted && it->second != mapped_value)
+        {
+          const String key_type = basename ? "basename" : "path";
+          throw Exception::InvalidValue(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Ambiguous " + key_type + "+label mapping.",
+            "'" + tpl.first + "', label " + String(tpl.second));
+        }
       }
       return ret;
     }
@@ -634,7 +616,7 @@ namespace OpenMS
       for (const MSFileSectionEntry& row : msfile_section_)
       {
         const String path = String(row.path);
-        filenames.push_back(basename ? path : File::basename(path));
+        filenames.push_back(basename ? File::basename(path) : path);
       }
       return filenames;
     }
@@ -776,7 +758,7 @@ namespace OpenMS
         return bns.find(File::basename(e.path)) == bns.end();
       }), msfile_section_.end());
 
-      int diff = before - msfile_section_.size();
+      const Size diff = before - msfile_section_.size();
       if (diff > 0)
       {
         OPENMS_LOG_WARN << "Removed " << diff << " files from design to match given mzML/idXML subset." << std::endl;
@@ -787,7 +769,63 @@ namespace OpenMS
         OPENMS_LOG_FATAL_ERROR << "Given basename set does not overlap with design. Design would be empty." << std::endl;
       }
 
-      return (before - msfile_section_.size());
+      // Rebuild sample section and sample indices to stay consistent with the filtered MS file section.
+      vector<String> ordered_samples;
+      std::set<String> visited_samples;
+      for (const auto& row : msfile_section_)
+      {
+        if (visited_samples.insert(row.sample_name).second)
+        {
+          ordered_samples.push_back(row.sample_name);
+        }
+      }
+
+      vector<String> ordered_factors;
+      const auto factors = sample_section_.getFactors();
+      ordered_factors.reserve(factors.size());
+      for (const auto& factor : factors)
+      {
+        ordered_factors.push_back(factor);
+      }
+      std::sort(ordered_factors.begin(), ordered_factors.end(),
+        [this](const String& lhs, const String& rhs)
+        {
+          return sample_section_.getFactorColIdx(lhs) < sample_section_.getFactorColIdx(rhs);
+        });
+
+      std::map<String, Size> sample_to_rowindex;
+      std::vector<std::vector<String>> sample_content;
+      sample_content.reserve(ordered_samples.size());
+
+      std::map<String, Size> sample_columnname_to_columnindex;
+      for (Size idx = 0; idx < ordered_factors.size(); ++idx)
+      {
+        sample_columnname_to_columnindex[ordered_factors[idx]] = idx;
+      }
+
+      for (const auto& sample_name : ordered_samples)
+      {
+        sample_to_rowindex[sample_name] = sample_content.size();
+
+        std::vector<String> row_content(ordered_factors.size());
+        if (sample_section_.hasSample(sample_name))
+        {
+          for (Size idx = 0; idx < ordered_factors.size(); ++idx)
+          {
+            row_content[idx] = sample_section_.getFactorValue(sample_name, ordered_factors[idx]);
+          }
+        }
+        sample_content.push_back(std::move(row_content));
+      }
+
+      sample_section_ = SampleSection(sample_content, sample_to_rowindex, sample_columnname_to_columnindex);
+
+      for (auto& row : msfile_section_)
+      {
+        row.sample = sample_to_rowindex.at(row.sample_name);
+      }
+
+      return diff;
     }
 
     /* Implementations of SampleSection */

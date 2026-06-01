@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -166,6 +140,49 @@ START_SECTION((void getParameters(Param& params) const))
              p_in.getValue("num_iterations"));
 }
 END_SECTION
+
+// auto-span selection via CV test
+START_SECTION((auto span selection chooses larger span on tie and persists params))
+{
+  using OpenMS::TransformationModel;
+  using OpenMS::TransformationModelLowess;
+  using OpenMS::Param;
+
+  // Create perfectly linear anchors: y = 2x + 1  (deterministic; LOO CV with n=11)
+  TransformationModel::DataPoints data;
+  for (int i = 0; i <= 10; ++i)
+  {
+    const double x = static_cast<double>(i);
+    data.push_back(std::make_pair(x, 2.0 * x + 1.0));
+  }
+
+  // Params: enable auto-span, provide a small grid, keep everything deterministic
+  Param p;
+  TransformationModelLowess::getDefaultParameters(p);
+  p.setValue("span", 0.0);                       // trigger auto when auto_span=true
+  p.setValue("auto_span", "true");
+  p.setValue("auto_span_grid", "0.3,0.8");       // two candidates
+  p.setValue("auto_metric", "mae");              // MAE on a perfect line → tie
+  p.setValue("num_iterations", 0);               // deterministic LOWESS (no robust loops)
+  p.setValue("delta", -1.0);                     // auto delta
+  p.setValue("interpolation_type", "cspline");
+  p.setValue("extrapolation_type", "four-point-linear");
+
+  TransformationModelLowess tm(data, p);
+
+  // 1) The selected span should be the larger one (tie broken by preferring larger span)
+  Param used = tm.getParameters();
+  TEST_EQUAL(used.getValue("auto_span").toString(), "false"); // auto turned off after selection
+  const double chosen_span = static_cast<double>(used.getValue("span"));
+  TEST_REAL_SIMILAR(chosen_span, 0.8);
+
+  // 2) The fitted model should reproduce the linear mapping (LOWESS reproduces degree-1 exactly)
+  TEST_REAL_SIMILAR(tm.evaluate(0.0),  1.0);
+  TEST_REAL_SIMILAR(tm.evaluate(5.0), 11.0);
+  TEST_REAL_SIMILAR(tm.evaluate(10.0), 21.0);
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -73,14 +47,14 @@ namespace OpenMS
   std::unique_ptr<LayerStoreData> LayerDataPeak::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
     auto ret = make_unique<LayerStoreDataPeakMapVisible>();
-    ret->storeVisibleExperiment(*peak_map_.get(), visible_range, layer_filters);
+    ret->storeVisibleExperiment(peak_map_->getMSExperiment(), visible_range, layer_filters);
     return ret;
   }
 
   std::unique_ptr<LayerStoreData> LayerDataPeak::storeFullData() const
   {
     auto ret = make_unique<LayerStoreDataPeakMapAll>();
-    ret->storeFullExperiment(*peak_map_.get());
+    ret->storeFullExperiment(peak_map_->getMSExperiment());
     return ret;
   }
 
@@ -106,10 +80,12 @@ namespace OpenMS
     Mobilogram projection_im;
     MSChromatogram projection_rt;
 
-    for (auto i = getPeakData()->areaBeginConst(area); i != getPeakData()->areaEndConst(); ++i)
+    const auto& exp = getPeakData()->getMSExperiment();
+    auto lvls = exp.getMSLevels(); // use for smallest MS level in the data (IM frames may have all level 1, or all level 2)
+    for (auto i = exp.areaBeginConst(area, lvls[0]); i != exp.areaEndConst(); ++i)
     {
       PeakIndex pi = i.getPeakIndex();
-      if (filters.passes((*getPeakData())[pi.spectrum], pi.peak))
+      if (filters.passes(exp[pi.spectrum], pi.peak))
       {
         // summary stats
         ++peak_count;
@@ -130,25 +106,42 @@ namespace OpenMS
       }
     }
 
-    // write to spectra/chrom
     projection_mz.resize(mzint.size() + 2);
-    projection_mz[0].setMZ(area.getMinMZ());
-    projection_mz[0].setIntensity(0.0);
-    projection_mz.back().setMZ(area.getMaxMZ());
-    projection_mz.back().setIntensity(0.0);
+    // write to spectra/chrom
+    try
+    { // may throw if m/z is not in area
+      projection_mz[0].setMZ(area.getMinMZ());
+      projection_mz[0].setIntensity(0.0);
+      projection_mz.back().setMZ(area.getMaxMZ());
+      projection_mz.back().setIntensity(0.0);
+    }
+    catch (...) { }
+
 
     projection_im.resize(mobility.size() + 2);
-    projection_im[0].setMobility(area.getMinMobility());
-    projection_im[0].setIntensity(0.0);
-    projection_im.back().setMobility(area.getMaxMobility());
-    projection_im.back().setIntensity(0.0);
-    
+    try
+    { // may throw if IM is not in area
+      projection_im[0].setMobility(area.getMinMobility());
+      projection_im[0].setIntensity(0.0);
+      projection_im.back().setMobility(area.getMaxMobility());
+      projection_im.back().setIntensity(0.0);
+    }
+    catch (...)
+    {
+    }
 
     projection_rt.resize(rt.size() + 2);
-    projection_rt[0].setRT(area.getMinRT());
-    projection_rt[0].setIntensity(0.0);
-    projection_rt.back().setRT(area.getMaxRT());
-    projection_rt.back().setIntensity(0.0);
+    try
+    { // may throw if RT is not in area
+      projection_rt[0].setRT(area.getMinRT());
+      projection_rt[0].setIntensity(0.0);
+      projection_rt.back().setRT(area.getMaxRT());
+      projection_rt.back().setIntensity(0.0);
+    }
+    catch (...)
+    {
+    }
+
 
     Size i = 1;
     auto intit = mzint.begin();
@@ -173,7 +166,7 @@ namespace OpenMS
     i = 1;
     for (auto it = rt.cbegin(); it != rt.cend(); ++it)
     {
-      projection_rt[i].setMZ(it->first);
+      projection_rt[i].setRT(it->first);
       projection_rt[i].setIntensity(it->second);
       ++i;
     }
@@ -234,10 +227,15 @@ namespace OpenMS
     using IntType = MSExperiment::ConstAreaIterator::PeakType::IntensityType;
     auto max_int = numeric_limits<IntType>::lowest();
     PeakIndex max_pi;
-    for (ExperimentType::ConstAreaIterator i = getPeakData()->areaBeginConst(area); i != getPeakData()->areaEndConst(); ++i)
+    
+    const auto& map = getPeakData()->getMSExperiment();
+    // for IM data, use whatever is there. For RT/mz data, use MSlevel 1
+    const UInt MS_LEVEL = (! map.empty() && map.isIMFrame()) ? map[0].getMSLevel() : 1;
+
+    for (auto i = map.areaBeginConst(area, MS_LEVEL); i != map.areaEndConst(); ++i)
     {
       PeakIndex pi = i.getPeakIndex();
-      if (i->getIntensity() > max_int && filters.passes((*getPeakData())[pi.spectrum], pi.peak))
+      if (i->getIntensity() > max_int && filters.passes((map)[pi.spectrum], pi.peak))
       {
         max_int = i->getIntensity();
         max_pi = pi;
@@ -282,10 +280,10 @@ namespace OpenMS
 
   std::unique_ptr<LayerStatistics> LayerDataPeak::getStats() const
   {
-    return make_unique<LayerStatisticsPeakMap>(*peak_map_);
+    return make_unique<LayerStatisticsPeakMap>(peak_map_->getMSExperiment());
   }
 
-  bool LayerDataPeak::annotate(const vector<PeptideIdentification>& identifications, const vector<ProteinIdentification>& protein_identifications)
+  bool LayerDataPeak::annotate(const PeptideIdentificationList& identifications, const vector<ProteinIdentification>& protein_identifications)
   {
     IDMapper mapper;
     Param p = mapper.getDefaults();
@@ -300,7 +298,7 @@ namespace OpenMS
   
   const LayerDataBase::ConstExperimentSharedPtrType LayerDataPeak::getPeakData() const
   {
-    return boost::static_pointer_cast<const ExperimentType>(peak_map_);
+    return std::static_pointer_cast<const ExperimentType>(peak_map_);
   }
 
 } // namespace OpenMS

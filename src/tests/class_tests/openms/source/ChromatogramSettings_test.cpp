@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -38,6 +12,9 @@
 ///////////////////////////
 #include <OpenMS/METADATA/ChromatogramSettings.h>
 ///////////////////////////
+
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace OpenMS;
 using namespace std;
@@ -69,7 +46,7 @@ START_SECTION((ChromatogramSettings(const ChromatogramSettings &source)))
   tmp.getInstrumentSettings().getScanWindows().resize(1);
   tmp.getPrecursor().setMZ(0.11);
   tmp.getProduct().setMZ(0.12);
-  tmp.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  tmp.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
   tmp.setComment("bla");
   tmp.setNativeID("nid");
   tmp.getDataProcessing().resize(1);
@@ -78,7 +55,7 @@ START_SECTION((ChromatogramSettings(const ChromatogramSettings &source)))
   ChromatogramSettings tmp2;
   tmp2 = tmp;
   TEST_EQUAL(tmp2.getComment(), "bla");
-  TEST_EQUAL(tmp2.getChromatogramType(), ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  TEST_EQUAL(tmp2.getChromatogramType(), ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
   TEST_REAL_SIMILAR(tmp2.getPrecursor().getMZ(), 0.11);
   TEST_REAL_SIMILAR(tmp2.getProduct().getMZ(), 0.12);
   TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);  
@@ -91,7 +68,7 @@ START_SECTION((ChromatogramSettings(const ChromatogramSettings &source)))
 
   tmp2 = ChromatogramSettings();
   TEST_EQUAL(tmp2.getComment(), "");
-  TEST_EQUAL(tmp2.getChromatogramType(), ChromatogramSettings::MASS_CHROMATOGRAM);
+  TEST_EQUAL(tmp2.getChromatogramType(), ChromatogramSettings::ChromatogramType::MASS_CHROMATOGRAM);
   TEST_REAL_SIMILAR(tmp2.getPrecursor().getMZ(), 0.0);
   TEST_REAL_SIMILAR(tmp2.getProduct().getMZ(), 0.0);
   TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), true);
@@ -111,14 +88,14 @@ START_SECTION((ChromatogramSettings& operator=(const ChromatogramSettings &sourc
   tmp.getInstrumentSettings().getScanWindows().resize(1);
   tmp.getPrecursor().setMZ(0.13);
   tmp.getProduct().setMZ(0.14);
-  tmp.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  tmp.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
   tmp.setComment("bla");
   tmp.setNativeID("nid");
   tmp.getDataProcessing().resize(1);
 
   ChromatogramSettings tmp2(tmp);
   TEST_EQUAL(tmp2.getComment(), "bla");
-  TEST_EQUAL(tmp2.getChromatogramType(), ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  TEST_EQUAL(tmp2.getChromatogramType(), ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
   TEST_REAL_SIMILAR(tmp2.getPrecursor().getMZ(), 0.13);
   TEST_REAL_SIMILAR(tmp2.getProduct().getMZ(), 0.14);
   TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);
@@ -134,7 +111,7 @@ START_SECTION((bool operator==(const ChromatogramSettings &rhs) const ))
 {
   ChromatogramSettings edit, empty;
 
-  TEST_EQUAL(edit==empty, true);
+  TEST_TRUE(edit == empty);
 
   edit.getAcquisitionInfo().setMethodOfCombination("test");
   TEST_EQUAL(edit==empty, false);
@@ -156,7 +133,7 @@ START_SECTION((bool operator==(const ChromatogramSettings &rhs) const ))
   TEST_EQUAL(edit==empty, false);
 
   edit = empty;
-  edit.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  edit.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
   TEST_EQUAL(edit==empty, false);
 
   edit = empty;
@@ -190,47 +167,47 @@ START_SECTION((bool operator!=(const ChromatogramSettings &rhs) const ))
   TEST_EQUAL(edit!=empty, false);
 
   edit.getAcquisitionInfo().setMethodOfCombination("test");
-  TEST_EQUAL(edit!=empty, true);
+  TEST_FALSE(edit == empty);
 
   edit = empty;
   edit.setNativeID("nid");
-  TEST_EQUAL(edit!=empty, true)
+  TEST_FALSE(edit == empty)
 
   edit = empty;
   edit.getInstrumentSettings().getScanWindows().resize(1);
-  TEST_EQUAL(edit!=empty, true);
+  TEST_FALSE(edit == empty);
 
   edit = empty;
   edit.setComment("comment");
-  TEST_EQUAL(edit != empty, true)
+  TEST_FALSE(edit == empty)
 
   edit = empty;
-  edit.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
-  TEST_EQUAL(edit!=empty, true);
+  edit.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  TEST_FALSE(edit == empty);
 
   edit = empty;
   edit.setComment("bla");
-  TEST_EQUAL(edit!=empty, true)
+  TEST_FALSE(edit == empty)
 
   edit = empty;
   Precursor prec;
   prec.setMZ(1.3);
   edit.setPrecursor(prec);
-  TEST_EQUAL(edit!=empty, true)
+  TEST_FALSE(edit == empty)
 
   edit = empty;
   Product prod;
   prod.setMZ(1.5);
   edit.setProduct(prod);
-  TEST_EQUAL(edit!=empty, true)
+  TEST_FALSE(edit == empty)
 
   edit = empty;
   edit.getDataProcessing().resize(1);
-  TEST_EQUAL(edit!=empty, true)
+  TEST_FALSE(edit == empty)
 
   edit = empty;
   edit.setMetaValue("bla","bluff");
-  TEST_EQUAL(edit!=empty, true)
+  TEST_FALSE(edit == empty)
 
 }
 END_SECTION
@@ -405,7 +382,7 @@ END_SECTION
 START_SECTION((std::vector<DataProcessing>& getDataProcessing()))
 {
   ChromatogramSettings tmp;
-  DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
+  DataProcessingPtr dp = std::shared_ptr<DataProcessing>(new DataProcessing); 
   tmp.getDataProcessing().push_back(dp);
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
 }
@@ -424,15 +401,15 @@ END_SECTION
 START_SECTION((ChromatogramType getChromatogramType() const ))
 {
   ChromatogramSettings tmp;
-  TEST_EQUAL(tmp.getChromatogramType(), ChromatogramSettings::MASS_CHROMATOGRAM)
+  TEST_EQUAL(tmp.getChromatogramType(), ChromatogramSettings::ChromatogramType::MASS_CHROMATOGRAM)
 }
 END_SECTION
 
 START_SECTION((void setChromatogramType(ChromatogramType type)))
 {
   ChromatogramSettings tmp;
-  tmp.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
-  TEST_EQUAL(tmp.getChromatogramType(), ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
+  tmp.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  TEST_EQUAL(tmp.getChromatogramType(), ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
 }
 END_SECTION
 
@@ -440,13 +417,99 @@ END_SECTION
 START_SECTION([EXTRA](ENUMs))
 {
   // extra stuff tested here:
-  TEST_EQUAL(ChromatogramSettings::SIZE_OF_CHROMATOGRAM_TYPE+1, sizeof( ChromatogramSettings::ChromatogramNames ) / sizeof( char* ))
-  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[ChromatogramSettings::MASS_CHROMATOGRAM]), String("mass chromatogram"))
-  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[ChromatogramSettings::EMISSION_CHROMATOGRAM]), String("emission chromatogram"))
-  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[ChromatogramSettings::SIZE_OF_CHROMATOGRAM_TYPE]), String("unknown chromatogram")) // should be the last entry
+  TEST_EQUAL(static_cast<size_t>(ChromatogramSettings::ChromatogramType::SIZE_OF_CHROMATOGRAM_TYPE)+1, sizeof( ChromatogramSettings::ChromatogramNames ) / sizeof( char* ))
+  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::MASS_CHROMATOGRAM)]), String("mass chromatogram"))
+  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::EMISSION_CHROMATOGRAM)]), String("emission chromatogram"))
+  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::SIZE_OF_CHROMATOGRAM_TYPE)]), String("unknown chromatogram")) // should be the last entry
 }
 END_SECTION
 
+START_SECTION([EXTRA] std::hash<ChromatogramSettings>)
+{
+  std::hash<ChromatogramSettings> hasher;
+
+  // Test that equal objects have equal hashes
+  ChromatogramSettings cs1, cs2;
+  TEST_EQUAL(cs1 == cs2, true)
+  TEST_EQUAL(hasher(cs1), hasher(cs2))
+
+  // Test with populated objects
+  cs1.setNativeID("native_id_1");
+  cs1.setComment("test comment");
+  cs1.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  cs1.getPrecursor().setMZ(500.5);
+  cs1.getProduct().setMZ(200.2);
+  cs1.getAcquisitionInfo().setMethodOfCombination("sum");
+  cs1.getInstrumentSettings().getScanWindows().resize(1);
+  cs1.getInstrumentSettings().getScanWindows()[0].begin = 100.0;
+  cs1.getInstrumentSettings().getScanWindows()[0].end = 1000.0;
+
+  cs2.setNativeID("native_id_1");
+  cs2.setComment("test comment");
+  cs2.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  cs2.getPrecursor().setMZ(500.5);
+  cs2.getProduct().setMZ(200.2);
+  cs2.getAcquisitionInfo().setMethodOfCombination("sum");
+  cs2.getInstrumentSettings().getScanWindows().resize(1);
+  cs2.getInstrumentSettings().getScanWindows()[0].begin = 100.0;
+  cs2.getInstrumentSettings().getScanWindows()[0].end = 1000.0;
+
+  TEST_EQUAL(cs1 == cs2, true)
+  TEST_EQUAL(hasher(cs1), hasher(cs2))
+
+  // Test that different objects produce different hashes (not guaranteed but highly likely)
+  ChromatogramSettings cs3;
+  cs3.setNativeID("different_id");
+  TEST_EQUAL(cs1 == cs3, false)
+  TEST_NOT_EQUAL(hasher(cs1), hasher(cs3))
+
+  // Test use in unordered_set
+  {
+    std::unordered_set<ChromatogramSettings> set;
+    ChromatogramSettings s1, s2, s3;
+    s1.setNativeID("id1");
+    s2.setNativeID("id2");
+    s3.setNativeID("id1"); // same as s1
+
+    set.insert(s1);
+    set.insert(s2);
+    TEST_EQUAL(set.size(), 2)
+
+    // s3 is equal to s1, so size should stay 2
+    set.insert(s3);
+    TEST_EQUAL(set.size(), 2)
+
+    TEST_EQUAL(set.count(s1), 1)
+    TEST_EQUAL(set.count(s2), 1)
+    TEST_EQUAL(set.count(s3), 1) // s3 == s1
+  }
+
+  // Test use in unordered_map
+  {
+    std::unordered_map<ChromatogramSettings, int> map;
+    ChromatogramSettings k1, k2, k3;
+    k1.setNativeID("key1");
+    k2.setNativeID("key2");
+    k3.setNativeID("key1"); // same as k1
+
+    map[k1] = 1;
+    map[k2] = 2;
+    TEST_EQUAL(map.size(), 2)
+
+    TEST_EQUAL(map[k1], 1)
+    TEST_EQUAL(map[k2], 2)
+    TEST_EQUAL(map[k3], 1) // k3 == k1
+
+    map[k3] = 3; // should update k1's value
+    TEST_EQUAL(map[k1], 3)
+  }
+
+  // Test hash consistency (same object hashed multiple times)
+  size_t hash1 = hasher(cs1);
+  size_t hash2 = hasher(cs1);
+  TEST_EQUAL(hash1, hash2)
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

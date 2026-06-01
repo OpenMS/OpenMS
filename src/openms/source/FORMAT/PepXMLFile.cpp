@@ -1,47 +1,22 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow, Hendrik Weisser $
 // $Authors: Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/CHEMISTRY/AASequence.h"
-#include "OpenMS/CHEMISTRY/Residue.h"
-#include "OpenMS/CONCEPT/Constants.h"
-#include "OpenMS/CONCEPT/Exception.h"
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
 
@@ -373,7 +348,7 @@ namespace OpenMS
 
   PepXMLFile::~PepXMLFile() = default;
 
-  void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file, const String& mz_name, bool peptideprophet_analyzed, double rt_tolerance)
+  void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const String& mz_file, const String& mz_name, bool peptideprophet_analyzed, double rt_tolerance)
   {
     ofstream f(filename.c_str());
     if (!f)
@@ -414,17 +389,17 @@ namespace OpenMS
     // The mz-File (if given)
     if (!mz_file.empty())
     {
-      base_name = FileHandler::stripExtension(File::basename(mz_file));
+      base_name = File::stemName(mz_file);
       raw_data = FileTypes::typeToName(FileHandler::getTypeByFileName(mz_file));
 
       PeakMap experiment;
       FileHandler fh;
-      fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, ProgressLogger::NONE, false, false);
+      fh.loadExperiment(mz_file, experiment, {}, ProgressLogger::NONE, false, false);
       lookup.readSpectra(experiment.getSpectra());
     }
     else
     {
-      base_name = FileHandler::stripExtension(File::basename(filename));
+      base_name = File::stemName(filename);
       raw_data = "mzML";
     }
     // mz_name is input from IDFileConverter for 'base_name' attribute, only necessary if different from 'mz_file'.
@@ -465,7 +440,7 @@ namespace OpenMS
     f << "\t<search_summary base_name=\"" << base_name;
     f << "\" search_engine=\"" << search_engine_name;
     f << "\" precursor_mass_type=\"";
-    if (search_params.mass_type == ProteinIdentification::MONOISOTOPIC)
+    if (search_params.mass_type == ProteinIdentification::PeakMassType::MONOISOTOPIC)
     {
       f << "monoisotopic";
     }
@@ -474,7 +449,7 @@ namespace OpenMS
       f << "average";
     }
     f << "\" fragment_mass_type=\"";
-    if (search_params.mass_type == ProteinIdentification::MONOISOTOPIC)
+    if (search_params.mass_type == ProteinIdentification::PeakMassType::MONOISOTOPIC)
     {
       f << "monoisotopic";
     }
@@ -489,7 +464,7 @@ namespace OpenMS
     // register modifications
     set<String> aa_mods;
     set<String> n_term_mods, c_term_mods;
-    for (vector<PeptideIdentification>::const_iterator it = peptide_ids.begin();
+    for (PeptideIdentificationList::const_iterator it = peptide_ids.begin();
          it != peptide_ids.end(); ++it)
     {
       if (!it->getHits().empty())
@@ -576,7 +551,7 @@ namespace OpenMS
       }
       for (const PeptideHit& hit : pep.getHits())
       {
-        PeptideHit h = hit;
+        const PeptideHit& h = hit;
         const AASequence& seq = h.getSequence();
         double precursor_neutral_mass = seq.getMonoWeight();
 
@@ -596,7 +571,7 @@ namespace OpenMS
           if (pep.metaValueExists("spectrum_reference"))
           {
             //findByNativeID will fall back to RT lookup if none of the regexes registered in lookup can extract a meaningful ID or scan nr
-            scan_index = lookup.findByNativeID(pep.getMetaValue("spectrum_reference"));
+            scan_index = lookup.findByNativeID(pep.getSpectrumReference());
           }
           else
           {
@@ -657,7 +632,7 @@ namespace OpenMS
         f << ">\n";
         f << "\t<search_result>" << "\n";
 
-        vector<PeptideEvidence> pes = h.getPeptideEvidences();
+        const vector<PeptideEvidence>& pes = h.getPeptideEvidences();
 
         // select first one if multiple are present as "leader"
         PeptideEvidence pe;
@@ -666,7 +641,7 @@ namespace OpenMS
           pe = pes[0];
         }
 
-        f << "\t\t<search_hit hit_rank=\"1\" peptide=\""
+        f << "\t\t<search_hit hit_rank=\"" << String(h.getRank() + 1) << "\" peptide=\"" // rank in pepXML is 1-based, 0-based in OpenMS
           << seq.toUnmodifiedString() << "\" peptide_prev_aa=\""
           << pe.getAABefore() << "\" peptide_next_aa=\"" << pe.getAAAfter()
           << "\" protein=\"";
@@ -993,7 +968,7 @@ namespace OpenMS
   }
 
   void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
-                        proteins, vector<PeptideIdentification>& peptides,
+                        proteins, PeptideIdentificationList& peptides,
                         const String& experiment_name
                         )
   {
@@ -1002,7 +977,7 @@ namespace OpenMS
   }
 
   void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
-                        proteins, vector<PeptideIdentification>& peptides,
+                        proteins, PeptideIdentificationList& peptides,
                         const String& experiment_name,
                         const SpectrumMetaDataLookup& lookup)
   {
@@ -1118,6 +1093,7 @@ namespace OpenMS
 
     if (element == "msms_run_summary") // parent: "msms_pipeline_analysis"
     {
+      String ms_run_path;
       if (!exp_name_.empty())
       {
         String base_name = attributeAsString_(attributes, "base_name");
@@ -1134,6 +1110,11 @@ namespace OpenMS
           wrong_experiment_ = false;
           checked_base_name_ = false;
         }
+        String raw_data = attributeAsString_(attributes, "raw_data");
+        if (!base_name.empty() && !raw_data.empty())
+        {
+          ms_run_path = base_name + "." + raw_data;
+        }
       }
       if (wrong_experiment_) return;
 
@@ -1145,6 +1126,10 @@ namespace OpenMS
       // "prot_id_" will be overwritten if elem. "search_summary" is present
       protein.setIdentifier(prot_id_);
       proteins_->push_back(protein);
+      if (!ms_run_path.empty())
+      {
+        protein.setPrimaryMSRunPath(StringList(1, ms_run_path));
+      }
       current_proteins_.clear();
       current_proteins_.push_back(--proteins_->end());
     }
@@ -1212,6 +1197,7 @@ namespace OpenMS
         if (search_engine_ == "Comet")
         {
           peptide_hit_.setMetaValue("MS:1002252", value); // name: Comet:xcorr
+          peptide_hit_.setMetaValue("COMET:xcorr", value); // name: COMET:xcorr
         }
         else
         {
@@ -1243,22 +1229,53 @@ namespace OpenMS
         {
           value = attributeAsDouble_(attributes, "value");
           peptide_hit_.setMetaValue("MS:1002253", value); // name: Comet:deltacn
+          peptide_hit_.setMetaValue("COMET:deltaCn", value);
         }
         else if (name == "spscore")
         {
           value = attributeAsDouble_(attributes, "value");
           peptide_hit_.setMetaValue("MS:1002255", value); // name: Comet:spscore
+          peptide_hit_.setMetaValue("COMET:spscore", value); // name: Comet:spscore
         }
         else if (name == "sprank")
         {
           value = attributeAsDouble_(attributes, "value");
           peptide_hit_.setMetaValue("MS:1002256", value); // name: Comet:sprank
+          peptide_hit_.setMetaValue("COMET:sprank", value); // name: Comet:sprank
         }
         else if (name == "deltacnstar")
         {
           value = attributeAsDouble_(attributes, "value");
           peptide_hit_.setMetaValue("MS:1002254", value); // name: Comet:deltacnstar
+          peptide_hit_.setMetaValue("COMET:deltacnstar", value); // name: Comet:deltacnstar
         }
+        else if (name == "lnrSp")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("Comet:lnrSp", value); // name: Comet:lnrSp
+          peptide_hit_.setMetaValue("COMET:lnRankSP", value); // name: COMET:lnRankSP
+        }              
+        else if (name == "deltLCn")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("COMET:deltaLCn", value); // name: Comet:deltLCn
+        }
+        else if (name == "lnExpect")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("COMET:lnExpect", value); // name: Comet:lnExpect          
+        }
+        else if (name == "IonFrac")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("Comet:IonFrac", value); // name: Comet:IonFrac
+          peptide_hit_.setMetaValue("COMET:IonFrac", value); // matched_ions / total_ions
+        }
+        else if (name == "lnNumSP")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("COMET:lnNumSP", value); // name: Comet:lnNumSP
+        }        
       }
       else if (parse_unknown_scores_)
       {
@@ -1288,7 +1305,8 @@ namespace OpenMS
       current_modifications_.clear();
       PeptideEvidence pe;
       peptide_hit_ = PeptideHit();
-      peptide_hit_.setRank(attributeAsInt_(attributes, "hit_rank"));
+      int rank = attributeAsInt_(attributes, "hit_rank");
+      peptide_hit_.setRank(rank - 1); // rank is 1-based in pepXML and 0-based in OpenMS
       peptide_hit_.setCharge(charge_); // from parent "spectrum_query" tag
       String prev_aa, next_aa;
       if (optionalAttributeAsString_(prev_aa, attributes, "peptide_prev_aa"))
@@ -1330,23 +1348,21 @@ namespace OpenMS
 
       if (has_decoys_)
       {
-        String curr_status("");
         bool current_prot_is_decoy = protein.hasPrefix(decoy_prefix_);
-        if (peptide_hit_.metaValueExists("target_decoy"))
+        auto current_type = peptide_hit_.getTargetDecoyType();
+        
+        if (current_type == PeptideHit::TargetDecoyType::UNKNOWN)
         {
-          curr_status = peptide_hit_.getMetaValue("target_decoy");
+          // No annotation yet, set based on current protein
+          peptide_hit_.setTargetDecoyType(current_prot_is_decoy ?
+            PeptideHit::TargetDecoyType::DECOY :
+            PeptideHit::TargetDecoyType::TARGET);
         }
-        if (curr_status.empty())
+        else if ((current_type == PeptideHit::TargetDecoyType::TARGET && current_prot_is_decoy) ||
+                 (current_type == PeptideHit::TargetDecoyType::DECOY && !current_prot_is_decoy))
         {
-          peptide_hit_.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
-        }
-        else if (curr_status == "target" && current_prot_is_decoy)
-        {
-          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
-        }
-        else if (curr_status == "decoy" && !current_prot_is_decoy)
-        {
-          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
+          // Peptide matches both target and decoy proteins
+          peptide_hit_.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET_DECOY);
         }
 
         hit.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
@@ -1380,11 +1396,11 @@ namespace OpenMS
       //TODO: we really need something uniform here, like scan number - and not in metainfointerface
       if (SpectrumLookup::isNativeID(native_spectrum_name_))
       {
-        current_peptide_.setMetaValue("spectrum_reference", native_spectrum_name_); 
+        current_peptide_.setSpectrumReference( native_spectrum_name_);
       }
       else if (scannr_ != 0)
       {
-        current_peptide_.setMetaValue("spectrum_reference", String("scan=") + String(scannr_));
+        current_peptide_.setSpectrumReference( String("scan=") + String(scannr_));
       }
       //TODO else error?
       
@@ -1423,8 +1439,6 @@ namespace OpenMS
       optionalAttributeAsString_(experiment_label_, attributes, "experiment_label");
       optionalAttributeAsString_(swath_assay_, attributes, "swath_assay");
       optionalAttributeAsString_(status_, attributes, "status");
-
-
     }
     else if (element == "analysis_result") // parent: "search_hit"
     {
@@ -1634,25 +1648,26 @@ namespace OpenMS
 
       if (has_decoys_)
       {
-        String curr_status("");
         bool current_prot_is_decoy = protein.hasPrefix(decoy_prefix_);
-        if (peptide_hit_.metaValueExists("target_decoy"))
+        auto current_type = peptide_hit_.getTargetDecoyType();
+        
+        if (current_type == PeptideHit::TargetDecoyType::UNKNOWN)
         {
-          curr_status = peptide_hit_.getMetaValue("target_decoy");
+          // No annotation yet, set based on current protein
+          peptide_hit_.setTargetDecoyType(current_prot_is_decoy ?
+            PeptideHit::TargetDecoyType::DECOY :
+            PeptideHit::TargetDecoyType::TARGET);
         }
-        if (curr_status.empty())
+        else if ((current_type == PeptideHit::TargetDecoyType::TARGET && current_prot_is_decoy) ||
+                 (current_type == PeptideHit::TargetDecoyType::DECOY && !current_prot_is_decoy))
         {
-          peptide_hit_.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
+          // Peptide matches both target and decoy proteins
+          peptide_hit_.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET_DECOY);
         }
-        else if (curr_status == "target" && current_prot_is_decoy)
-        {
-          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
-        }
-        else if (curr_status == "decoy" && !current_prot_is_decoy)
-        {
-          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
-        }
-        hit.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
+        
+        hit.setTargetDecoyType(current_prot_is_decoy ?
+          ProteinHit::TargetDecoyType::DECOY :
+          ProteinHit::TargetDecoyType::TARGET);
       }
       peptide_hit_.addPeptideEvidence(pe);
 
@@ -1847,13 +1862,13 @@ namespace OpenMS
       mass_type = attributeAsString_(attributes, "fragment_mass_type");
       if (mass_type == "monoisotopic")
       {
-        params_.mass_type = ProteinIdentification::MONOISOTOPIC;
+        params_.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
       }
       else
       {
         if (mass_type == "average")
         {
-          params_.mass_type = ProteinIdentification::AVERAGE;
+          params_.mass_type = ProteinIdentification::PeakMassType::AVERAGE;
         }
         else
         {
@@ -1898,6 +1913,9 @@ namespace OpenMS
     else if (element == "sample_enzyme") // parent: "msms_run_summary"
     { // special case: search parameter that occurs *before* "search_summary"!
       enzyme_ = attributeAsString_(attributes, "name");
+
+      if (enzyme_ == "stricttrypsin") enzyme_ = "Trypsin/P"; // MSFragger synonyme
+
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_.toLower()))
       {
         params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
@@ -1917,7 +1935,9 @@ namespace OpenMS
       //TODO we should not overwrite the enzyme here! Luckily in most files it is the same
       // enzyme as in sample_enzyme or something useless like "default".
       ///<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
-      enzyme_ = attributeAsString_(attributes, "enzyme");
+      enzyme_ = attributeAsString_(attributes, "enzyme");    
+      if (enzyme_ == "stricttrypsin") enzyme_ = "Trypsin/P"; // MSFragger synonyme
+
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
         DigestionEnzymeProtein enzyme_to_set = *(ProteaseDB::getInstance()->getEnzyme(enzyme_.toLower()));
@@ -2085,12 +2105,6 @@ namespace OpenMS
           if (!temp_aa_sequence.hasNTerminalModification())
           {
             temp_aa_sequence.setNTerminalModification(mod.getRegisteredMod());
-          }
-          else
-          {
-            warning(LOAD, "Trying to add a fixed N-term modification from the search_summary to an already"
-                          " annotated and modified N-terminus of " + current_sequence_
-                          + " ... skipping.");
           }
         }
         else if (mod.getRegisteredMod()->getTermSpecificity() == ResidueModification::C_TERM ||

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer  $
@@ -163,7 +137,7 @@ START_SECTION(bool isChildOf(const String& child, const String& parent) const)
 END_SECTION
 
 START_SECTION((const Map<String, CVTerm>& getTerms() const))
-  std::map<String, ControlledVocabulary::CVTerm> terms = cv.getTerms();
+  const auto& terms = cv.getTerms();
 	TEST_EQUAL(terms.size(), 6)
 	TEST_EQUAL(terms.find("OpenMS:1") != terms.end(), true)
 	TEST_EQUAL(terms.find("OpenMS:2") != terms.end(), true)
@@ -183,6 +157,29 @@ START_SECTION((void getAllChildTerms(std::set<String>& terms, const String& pare
 	TEST_EQUAL(terms.find("OpenMS:5") == terms.end(), false)
 END_SECTION
 
+START_SECTION((void addAllChildTerms(std::set<String>& terms, const String& parent) const))
+	set<String> terms;
+	cv.addAllChildTerms(terms, "OpenMS:2");
+	// unlike getAllChildTerms, the parent term itself is included
+	TEST_EQUAL(terms.size(), 3)
+	TEST_EQUAL(terms.find("OpenMS:2") == terms.end(), false)
+	TEST_EQUAL(terms.find("OpenMS:5") == terms.end(), false)
+	TEST_EQUAL(terms.find("OpenMS:6") == terms.end(), false)
+
+	// appends to (does not overwrite) the provided set
+	cv.addAllChildTerms(terms, "OpenMS:3");
+	TEST_EQUAL(terms.size(), 5)
+	TEST_EQUAL(terms.find("OpenMS:3") == terms.end(), false)
+	TEST_EQUAL(terms.find("OpenMS:4") == terms.end(), false)
+
+	// an unknown parent must throw without leaving the output set partially modified
+	set<String> untouched;
+	untouched.insert("sentinel");
+	TEST_EXCEPTION(Exception::InvalidValue, cv.addAllChildTerms(untouched, "OpenMS:7"))
+	TEST_EQUAL(untouched.size(), 1)
+	TEST_EQUAL(untouched.find("sentinel") == untouched.end(), false)
+END_SECTION
+
 
 ControlledVocabulary::CVTerm * cvterm = nullptr;
 ControlledVocabulary::CVTerm * cvtermNullPointer = nullptr;
@@ -198,16 +195,16 @@ END_SECTION
 
 START_SECTION(([ControlledVocabulary::CVTerm] static String getXRefTypeName(XRefType type)))
 {
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_STRING), "xsd:string")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_INTEGER), "xsd:integer")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_DECIMAL), "xsd:decimal")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_NEGATIVE_INTEGER), "xsd:negativeInteger")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_POSITIVE_INTEGER), "xsd:positiveInteger")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_NON_NEGATIVE_INTEGER), "xsd:nonNegativeInteger")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_NON_POSITIVE_INTEGER), "xsd:nonPositiveInteger")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_BOOLEAN), "xsd:boolean")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_DATE), "xsd:date")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_ANYURI), "xsd:anyURI")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_STRING), "xsd:string")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_INTEGER), "xsd:integer")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL), "xsd:decimal")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_NEGATIVE_INTEGER), "xsd:negativeInteger")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_POSITIVE_INTEGER), "xsd:positiveInteger")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER), "xsd:nonNegativeInteger")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER), "xsd:nonPositiveInteger")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_BOOLEAN), "xsd:boolean")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_DATE), "xsd:date")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_ANYURI), "xsd:anyURI")
 }
 END_SECTION
 
@@ -253,7 +250,7 @@ START_SECTION(([ControlledVocabulary::CVTerm] CVTerm(const CVTerm &rhs)))
   a.description = "test_description";
   a.synonyms = ListUtils::create<String>("test,synonyms");
   a.unparsed = ListUtils::create<String>("test,unparsed");
-  a.xref_type = ControlledVocabulary::CVTerm::XSD_DECIMAL;
+  a.xref_type = ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL;
   a.xref_binary = ListUtils::create<String>("test,xref_binary");
   a.units.insert("units");
 
@@ -285,7 +282,7 @@ START_SECTION(([ControlledVocabulary::CVTerm] CVTerm& operator=(const CVTerm &rh
   a.description = "test_description";
   a.synonyms = ListUtils::create<String>("test,synonyms");
   a.unparsed = ListUtils::create<String>("test,unparsed");
-  a.xref_type = ControlledVocabulary::CVTerm::XSD_DECIMAL;
+  a.xref_type = ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL;
   a.xref_binary = ListUtils::create<String>("test,xref_binary");
   a.units.insert("units");
 

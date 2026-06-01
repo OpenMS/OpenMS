@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -37,28 +11,55 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/METADATA/IdentifierMSRunMapper.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
+#include <OpenMS/METADATA/USI.h>
 
-
+#include <functional>
 #include <string>
 #include <map>
 
 namespace OpenMS
 {
     class ConsensusMap;
-  /**
-    @brief Represents the peptide hits for a spectrum
+    class PeptideIdentification;
 
-      This class is closely related to ProteinIdentification, which stores the protein hits
-      and the general information about the identification run. More than one PeptideIdentification
-      can belong to one ProteinIdentification. The general information about a
-      PeptideIdentification has to be looked up in the corresponding ProteinIndentification, using
-      the unique <i>identifier</i> that links the two.
-      When loading PeptideHit instances from a File, the retention time and mass-to-charge ratio
-      of the precursor spectrum can be accessed using getRT() and getMZ().
-      This information can be used to map the peptide hits to an MSExperiment, a FeatureMap
-      or a ConsensusMap using the IDMapper class.
+    using SpectrumIdentification = PeptideIdentification; // better name that might become the default in future version
 
-        @ingroup Metadata
+    /**
+    @brief Represents the set of candidates (SpectrumMatches) identified for a single precursor spectrum.
+
+    Typically encapsulates the results of searching one specific MS/MS spectrum
+    against a sequence database or spectral library. It primarily holds a list of PeptideHit objects,
+    each representing a potential match to the spectrum.
+
+    Crucially, a PeptideIdentification is typically associated with a parent ProteinIdentification
+    object. This parent object contains global information about the entire identification run,
+    such as the search parameters, database used, and the overall set of identified proteins. The
+    link between a PeptideIdentification and its parent ProteinIdentification is established
+    via a shared identifier string (see getIdentifier() and setIdentifier()). Multiple
+    PeptideIdentification instances (one per spectrum analyzed) can belong to the same
+    ProteinIdentification run.
+
+    Each PeptideIdentification stores the precursor ion's retention time (RT) and mass-to-charge
+    ratio (m/z) corresponding to the spectrum that was identified. This information (retrieved via
+    getRT() and getMZ()) is essential for mapping these identifications back to experimental data,
+    such as peaks in an MSExperiment, features in a FeatureMap, or consensus features in a
+    ConsensusMap. The IDMapper class is often used for this purpose.
+
+    The class also stores information about the scoring system used (getScoreType(),
+    isHigherScoreBetter()) and an optional significance threshold (getSignificanceThreshold())
+    for the peptide hits. The significance threshold is stored as a meta value with the key
+    Constants::UserParam::SIGNIFICANCE_THRESHOLD.
+
+    PeptideIdentification inherits from MetaInfoInterface, allowing arbitrary metadata (key-value pairs)
+    to be attached.
+
+    @deprecated Use SpectrumIdentification instead. PeptideIdentification may be removed in a future OpenMS version.
+
+    @see PeptideHit, ProteinIdentification, IDMapper, MetaInfoInterface
+
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI PeptideIdentification :
     public MetaInfoInterface
@@ -115,9 +116,9 @@ public:
     void setHits(const std::vector<PeptideHit>& hits);
     void setHits(std::vector<PeptideHit>&& hits);
 
-    /// returns the peptide significance threshold value
+    /// returns the peptide significance threshold value (stored as a meta value)
     double getSignificanceThreshold() const;
-    /// setting of the peptide significance threshold value
+    /// setting of the peptide significance threshold value (stored as a meta value)
     void setSignificanceThreshold(double value);
 
     /// returns the peptide score type
@@ -136,7 +137,7 @@ public:
     void setIdentifier(const String& id);
 
     /// returns the base name which links to underlying peak map
-    const String& getBaseName() const;
+    String getBaseName() const;
     /// sets the base name which links to underlying peak map
     void setBaseName(const String& base_name);
 
@@ -145,8 +146,17 @@ public:
     /// sets the experiment label for this identification
     void setExperimentLabel(const String& type);
 
-    /// Sorts the hits by score and assigns ranks according to the scores
-    void assignRanks();
+    /// returns the spectrum reference for this identification. Currently it should
+    /// almost always be the full native vendor ID.
+    // TODO make a mandatory data member, add to idXML schema, think about storing the
+    //  extracted spectrum "number" only!
+    String getSpectrumReference() const;
+    /// sets the spectrum reference for this identification. Currently it should
+    ///  almost always be the full native vendor ID.
+    void setSpectrumReference(const String& ref);
+
+    // Returns a higher or lower comparator based on @p higher_score_better_
+    static std::function<bool(const PeptideHit&, const PeptideHit&)> getScoreComparator(bool higher_score_better);
 
     /**
          @brief Sorts the hits by score
@@ -154,13 +164,6 @@ public:
          Sorting takes the score orientation (@p higher_score_better_) into account, i.e. after sorting, the best-scoring hit is the first.
     */
     void sort();
-
-    /**
-         @brief Sorts the hits by rank
-
-         Sorting hits by rank attribute, i.e. after sorting, the hits will be in ascending order of rank.
-    */
-    void sortByRank();
 
     /// Returns if this PeptideIdentification result is empty
     bool empty() const;
@@ -172,7 +175,7 @@ public:
       @brief Builds MultiMap over all PI's via their UID (as obtained from buildUIDFromPepID()),
              which is mapped to a index of PI therein, i.e. cm[p.first].getPeptideIdentifications()[p.second];
 
-      @param cmap All PI's of the CMap are enumerated and their UID -> pair mapping is computed
+      @param[in] cmap All PI's of the CMap are enumerated and their UID -> pair mapping is computed
 
       @return Returns the MultiMap
     */
@@ -180,37 +183,155 @@ public:
 
       /**
       @brief Builds UID from PeptideIdentification
-             The UID can be formed in two ways.
-             Either it is composed of the map_index and the spectrum-reference
-             or of the ms_run_path and the spectrum_references, if the path is unique.
-             The parts of the UID are separated by '|'.
+
+      The UID can be formed in two ways:
+      - If there's a single MS run path, it is composed of the ms_run_path and the spectrum_reference
+      - If there are multiple files, it is composed of the map_index and the spectrum_reference
+
+      The parts of the UID are separated by '|'.
 
       @throw Exception::MissingInformation if Spectrum reference missing at PeptideIdentification
       @throw Exception::MissingInformation if Multiple files in a run, but no map_index in PeptideIdentification found
 
-      @param pep_id  PeptideIdentification for which the UID is computed
-      @param identifier_to_msrunpath Mapping required to build UID. Can be obtained from
-             ProteinIdentification::Mapping::identifier_to_msrunpath which can be created
-             from the corresponding ProtID's
-
+      @param[in] pep_id  PeptideIdentification for which the UID is computed
+      @param[in] mapping IdentifierMSRunMapper built from the corresponding ProteinIdentifications
 
       @return Returns the UID for PeptideIdentification
     */
     static String buildUIDFromPepID(const PeptideIdentification& pep_id,
-                                    const std::map<String, StringList>& fidentifier_to_msrunpath);
+                                    const IdentifierMSRunMapper& mapping);
+
+    /**
+      @brief Builds a Universal Spectrum Identifier (USI) from the PeptideIdentification.
+
+      The USI format follows the PSI-MS specification (MS:1003063):
+      @code
+      mzspec:<collection>:<ms_run>:<index_type>:<index>[:interpretation]
+      @endcode
+
+      This method uses the spectrum reference (native ID) to extract the scan number.
+      If include_interpretation is true and hits are available, the first hit's peptide
+      sequence and charge are included in the USI. For best results when using
+      interpretation, call sort() before this method to ensure the best-scoring hit is first.
+
+      @note This method assumes a single MS run context. For merged files (e.g., from
+            ConsensusMap or multi-file workflows), use the overload that takes
+            IdentifierMSRunMapper to automatically resolve the correct source file.
+
+      @param ms_run_name Name of the MS run file (e.g., "sample.mzML")
+      @param dataset_id ProteomeXchange dataset identifier (e.g., "PXD000561") or "local" for unpublished data
+      @param include_interpretation If true and hits are available, include peptide sequence/charge from first hit
+
+      @return USI object representing this PeptideIdentification
+    */
+    USI buildUSI(const String& ms_run_name,
+                 const String& dataset_id = "local",
+                 bool include_interpretation = false) const;
+
+    /**
+      @brief Builds a USI with automatic source file resolution for merged files.
+
+      This overload automatically resolves the correct source file for PeptideIdentifications
+      from merged workflows (e.g., ConsensusMap). It uses the id_merge_index metadata
+      to select the appropriate file from the mapping.
+
+      Usage example:
+      @code
+      IdentifierMSRunMapper mapping(protein_ids);
+      USI usi = pep_id.buildUSI(mapping, "PXD000561");
+      @endcode
+
+      @note ProteinIdentification::Mapping is a type alias for IdentifierMSRunMapper,
+            so either can be used interchangeably.
+
+      @param mapping IdentifierMSRunMapper object that maps identifiers to MS run paths
+                     (constructed from vector of ProteinIdentifications)
+      @param dataset_id ProteomeXchange dataset identifier (e.g., "PXD000561") or "local" for unpublished data
+      @param include_interpretation If true and hits are available, include peptide sequence/charge from first hit
+
+      @return USI object (may be invalid if spectrum reference or mapping is missing)
+    */
+    USI buildUSI(const IdentifierMSRunMapper& mapping,
+                 const String& dataset_id = "local",
+                 bool include_interpretation = false) const;
 
 protected:
-
     String id_; ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
     std::vector<PeptideHit> hits_; ///< A list containing the peptide hits
-    double significance_threshold_; ///< the peptide significance threshold
     String score_type_; ///< The score type (Mascot, Sequest, e-value, p-value)
     bool higher_score_better_; ///< The score orientation
-    // hint: here is an alignment gap of 7 bytes <-- here --> use it when introducing new members with sizeof(m)<=4
-    String base_name_;
     double mz_;
     double rt_;
-
   };
 
 } //namespace OpenMS
+
+// Hash function specialization for PeptideIdentification
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::PeptideIdentification.
+   *
+   * Computes a hash consistent with operator==, which compares:
+   * - MetaInfoInterface (all meta values)
+   * - id_ (string identifier)
+   * - hits_ (vector of PeptideHit)
+   * - getSignificanceThreshold() (stored as meta value)
+   * - score_type_ (string)
+   * - higher_score_better_ (bool)
+   * - getExperimentLabel() (stored as meta value)
+   * - getBaseName() (stored as meta value)
+   * - mz_ (double, with NaN handling)
+   * - rt_ (double, with NaN handling)
+   *
+   * @note Hash is consistent with operator==.
+   */
+  template<>
+  struct hash<OpenMS::PeptideIdentification>
+  {
+    std::size_t operator()(const OpenMS::PeptideIdentification& pi) const noexcept
+    {
+      // Start with MetaInfoInterface hash (includes significance_threshold, experiment_label, base_name)
+      std::size_t seed = std::hash<OpenMS::MetaInfoInterface>{}(pi);
+
+      // Hash identifier
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pi.getIdentifier()));
+
+      // Hash all peptide hits
+      for (const auto& hit : pi.getHits())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::PeptideHit>{}(hit));
+      }
+
+      // Hash score type
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pi.getScoreType()));
+
+      // Hash higher_score_better
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(pi.isHigherScoreBetter())));
+
+      // Hash mz (with NaN handling - NaN values hash to same value)
+      if (pi.hasMZ())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(pi.getMZ()));
+      }
+      else
+      {
+        // Hash a sentinel value for NaN (consistent with operator== which treats NaN==NaN as true)
+        OpenMS::hash_combine(seed, OpenMS::hash_int(0xDEADBEEF));
+      }
+
+      // Hash rt (with NaN handling)
+      if (pi.hasRT())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(pi.getRT()));
+      }
+      else
+      {
+        // Hash a different sentinel value for NaN RT
+        OpenMS::hash_combine(seed, OpenMS::hash_int(0xCAFEBABE));
+      }
+
+      return seed;
+    }
+  };
+} // namespace std

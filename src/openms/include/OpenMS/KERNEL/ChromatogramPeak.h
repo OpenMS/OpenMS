@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -35,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <iosfwd>
@@ -60,11 +35,11 @@ public:
     /// Dimension
     enum {DIMENSION = 1};
     /// Intensity type
-    typedef double IntensityType;
+    using IntensityType = float;
     /// Position type
-    typedef DPosition<1> PositionType;
+    using PositionType = DPosition<1>;
     /// Coordinate type
-    typedef double CoordinateType;
+    using CoordinateType = double;
     //@}
 
     /**
@@ -78,10 +53,7 @@ public:
     {}
 
     /// Copy constructor
-    inline ChromatogramPeak(const ChromatogramPeak & p) :
-      position_(p.position_),
-      intensity_(p.intensity_)
-    {}
+    ChromatogramPeak(const ChromatogramPeak & p) = default;
 
     /// Constructor with position and intensity
     inline ChromatogramPeak(const PositionType retention_time, const IntensityType intensity) :
@@ -135,18 +107,6 @@ public:
       position_[0] = pos;
     }
 
-    /// Alias for getRT()
-    inline CoordinateType getMZ() const
-    {
-      return position_[0];
-    }
-
-    /// Alias for setRT()
-    inline void setMZ(CoordinateType rt)
-    {
-      position_[0] = rt;
-    }
-
     /// Non-mutable access to the position
     inline PositionType const & getPosition() const
     {
@@ -168,24 +128,10 @@ public:
     //@}
 
     /// Assignment operator
-    inline ChromatogramPeak & operator=(const ChromatogramPeak & rhs)
-    {
-      if (this == &rhs) return *this;
-
-      intensity_ = rhs.intensity_;
-      position_ = rhs.position_;
-
-      return *this;
-    }
+    ChromatogramPeak & operator=(const ChromatogramPeak & rhs) = default;
 
     /// Equality operator
-    inline bool operator==(const ChromatogramPeak & rhs) const
-    {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-      return intensity_ == rhs.intensity_ && position_ == rhs.position_;
-#pragma clang diagnostic pop
-    }
+    inline bool operator==(const ChromatogramPeak& rhs) const = default;
 
     /// Equality operator
     inline bool operator!=(const ChromatogramPeak & rhs) const
@@ -285,4 +231,19 @@ protected:
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const ChromatogramPeak & point);
 
 } // namespace OpenMS
+
+// Hash function specialization for ChromatogramPeak
+namespace std
+{
+  template<>
+  struct hash<OpenMS::ChromatogramPeak>
+  {
+    std::size_t operator()(const OpenMS::ChromatogramPeak& p) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_float(p.getRT());
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIntensity()));
+      return seed;
+    }
+  };
+} // namespace std
 

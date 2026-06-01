@@ -1,36 +1,11 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
+# 
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche, Chris Bielow $
 # $Authors: Andreas Bertsch, Chris Bielow, Stephan Aiche $
 # --------------------------------------------------------------------------
+
 
 project("OpenMS_doc")
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
@@ -93,7 +68,7 @@ if(ENABLE_DOCS)
 
   # collection target
   add_custom_target(doc_progs)
-  add_dependencies(doc_progs ${OpenMS_doc_executables} TOPP UTILS)
+  add_dependencies(doc_progs ${OpenMS_doc_executables} TOPP)
 
   if(WITH_GUI)
     add_dependencies(doc_progs GUI)
@@ -111,26 +86,37 @@ if(ENABLE_DOCS)
   make_doxygen_path(CF_STRIP_PATH OPENMS_DOCUMENTATION_DIRECTORIES)
 
   #------------------------------------------------------------------------------
-  # find the necessary packages
-  find_package(Doxygen)
-
-  #------------------------------------------------------------------------------
   # the doc targets
   #------------------------------------------------------------------------------
   # As soon as there is a TeX formula in the html documentation we need LaTeX, dvips and ghostscript.
   # Probably only affects class documentation.
 
-  if (DOXYGEN_FOUND)
-  
+  if (Doxygen_FOUND)
+
     # check doxygen for bug with generated latex files
     set(DOXYGEN_MIN_REQUIRED "1.8.13")
-    exec_program(${DOXYGEN_EXECUTABLE}
-      ARGS "--version"
-      OUTPUT_VARIABLE DOXYGEN_VERSION)
 
-    if (DOXYGEN_VERSION STRLESS DOXYGEN_MIN_REQUIRED )
-      message(STATUS "Warning: Doxygen ( vers. installed < 1.8.13 ) does not correctly process \\includedoc commands in developer's installation instructions. This will make them incomplete. Upgrade to Doxygen>=1.8.13 to fix.")
+    ## NOTE: keep the all-caps DOXYGEN_VERSION here. The mixed-case Doxygen_VERSION only exists in
+    ## CMake >= 4.2, while OpenMS still supports CMake 3.21; on older CMake it would be empty, making
+    ## this version check always fire and dropping the version argument passed to Doxygen_Warning_test
+    ## below. DOXYGEN_VERSION is set across the whole supported range (3.9 .. 4.2+).
+    if (DOXYGEN_VERSION VERSION_LESS DOXYGEN_MIN_REQUIRED )
+      message(STATUS "Warning: Doxygen ( vers. installed = ${DOXYGEN_VERSION} < ${DOXYGEN_MIN_REQUIRED}) does not correctly process \\include commands in developer's installation instructions. This will make them incomplete. Upgrade Doxygen to fix.")
     endif()
+
+    ## DOT (Graphviz) is an optional component. When present, substitute the full path to the dot
+    ## executable into the Doxyfile and enable HAVE_DOT; otherwise leave DOT_PATH empty (avoids
+    ## `warning: the dot tool could not be found ...` in doxygen-error.log) and set HAVE_DOT=NO.
+    ## Note: HAVE_DOT must be the literal YES/NO that doxygen expects, not the CMake TRUE/FALSE of
+    ## Doxygen_dot_FOUND, hence the explicit mapping below.
+    if (TARGET Doxygen::dot)
+      get_target_property(CF_DOXYGEN_DOT_EXECUTABLE Doxygen::dot IMPORTED_LOCATION)
+      set(DOXYGEN_HAVE_DOT "YES")
+    else()
+      set(CF_DOXYGEN_DOT_EXECUTABLE "")
+      set(DOXYGEN_HAVE_DOT "NO")
+    endif()
+      
     
     #------------------------------------------------------------------------------
     # configure doxygen configuration files
@@ -138,10 +124,6 @@ if(ENABLE_DOCS)
     configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile_dot.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile_dot)
     configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile_noclass.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile_noclass)
     configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile_xml.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile_xml)
-
-    #------------------------------------------------------------------------------
-    # create refman files for PDF tutorials
-    configure_file(${PROJECT_SOURCE_DIR}/OpenMS_tutorial/refman_overwrite.tex.in ${PROJECT_BINARY_DIR}/OpenMS_tutorial/refman_overwrite.tex)
 
     #------------------------------------------------------------------------------
     # doc paths (bin path, topp documenter, defaultparamhandler documenter)
@@ -198,7 +180,7 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E make_directory doxygen/parameters/output/
                       COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}
                       COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "Building TOPP/UTILS docu:"
+                      COMMAND ${CMAKE_COMMAND} -E echo "Building TOPP docu:"
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${TOPPDOCUMENTER_EXECUTABLE} ${BINARY_PATH}
                       COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -221,7 +203,7 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E make_directory doxygen/parameters/output/
                       COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${CMAKE_COMMAND} -E env "PATH=${DEP_BIN_DIRS}${pathsep}${DEP_LIB_DIRS}${pathsep}$ENV{PATH}" ${DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}
                       COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "Building TOPP/UTILS docu:"
+                      COMMAND ${CMAKE_COMMAND} -E echo "Building TOPP docu:"
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${CMAKE_COMMAND} -E env "PATH=${DEP_BIN_DIRS}${pathsep}${DEP_LIB_DIRS}${pathsep}$ENV{PATH}" ${TOPPDOCUMENTER_EXECUTABLE} ${BINARY_PATH}
                       COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -231,6 +213,7 @@ if(ENABLE_DOCS)
 
     add_dependencies(doc_param_internal doc_progs)
 
+
     #------------------------------------------------------------------------------
     # doc(_html) generation code reused in two independent targets
     set(_DOC_HTML_CODE
@@ -239,7 +222,7 @@ if(ENABLE_DOCS)
       COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation"
       COMMAND ${CMAKE_COMMAND} -E echo ""
       COMMAND ${CMAKE_COMMAND} -E remove_directory html
-      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile
+      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} $<TARGET_FILE:Doxygen::doxygen> doxygen/Doxyfile
       COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
       COMMAND ${CMAKE_COMMAND} -E echo ""
       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -249,12 +232,19 @@ if(ENABLE_DOCS)
       COMMENT "Build the doxygen documentation"
     )
 
-    # regular doc target executed to generate full class and tool documentation (without tutorials)
+    # regular doc target executed to generate full class and tool documentation
     add_custom_target(doc ${_DOC_ALL}
                       ${_DOC_HTML_CODE}
                       DEPENDS doc_param_internal
                       VERBATIM)
-
+                      
+    ## A test which inspects the doxygen-error.log and fails if Doxygen reports errors; also forwards the logfile content to CDash for inspection
+    add_executable(Doxygen_Warning_Checker doxygen/test/Doxygen_Warning_Checker.cpp)
+    ## this is a compile time dependency, but better than none. Currently, there is no way to have a test depend on a target ('doc') before its run.
+    #add_dependencies(Doxygen_Warning_Checker doc) ## disable, since CI seems to re-configure CMake after 'doc' and chokes on it
+    add_test(Doxygen_Warning_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Doxygen_Warning_Checker "${PROJECT_BINARY_DIR}/doxygen/doxygen-error.log" ${DOXYGEN_VERSION})
+    set_tests_properties(Doxygen_Warning_test PROPERTIES ATTACHED_FILES_ON_FAIL "${PROJECT_BINARY_DIR}/doxygen/doxygen-error.log")
+    
     # doc_html_only to generate only the doxygen documentation (e.g., when writing new documentation)
     add_custom_target(doc_class_only
                       ${_DOC_HTML_CODE}
@@ -264,14 +254,14 @@ if(ENABLE_DOCS)
                       VERBATIM)
 
     #------------------------------------------------------------------------------
-    # doc_internal target
+    # doc_xml target
     add_custom_target(doc_xml
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E echo "Creating XML documentation"
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E remove_directory xml_output
-                      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile_xml
+                      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} $<TARGET_FILE:Doxygen::doxygen> doxygen/Doxyfile_xml
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E echo "The XML documentation has been successfully created."
@@ -287,7 +277,7 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation without class documentation"
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E remove_directory html
-                      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile_noclass
+                      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} $<TARGET_FILE:Doxygen::doxygen> doxygen/Doxyfile_noclass
                       COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -303,10 +293,10 @@ if(ENABLE_DOCS)
     add_custom_target(doc_minimal ${_DOC_MINIMAL_ALL}
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                      COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation without class/TOPP/UTILS documentation"
+                      COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation without class/TOPP documentation"
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E remove_directory html
-                      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile_noclass
+                      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} $<TARGET_FILE:Doxygen::doxygen> doxygen/Doxyfile_noclass
                       COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -317,12 +307,12 @@ if(ENABLE_DOCS)
                       COMMENT "Build the doxygen documentation"
                       VERBATIM)
     #------------------------------------------------------------------------------
-    # add virtual dependency of doc_minimal on TOPP & UTILS
+    # add virtual dependency of doc_minimal on TOPP
     # this is not necessary but defers the generation of doc_minimal to a later
-    # stage to avoid confusion if doc_minimal is build first
-    add_dependencies(doc_minimal TOPP UTILS)
+    # stage to avoid confusion if doc_minimal is built first
+    add_dependencies(doc_minimal TOPP)
 
-    if (DOXYGEN_DOT_FOUND OR DOXYGEN_DOT_EXECUTABLE)
+    if (TARGET Doxygen::dot)
       #------------------------------------------------------------------------------
       # doc_dot target
       add_custom_target(doc_dot
@@ -331,7 +321,7 @@ if(ENABLE_DOCS)
                         COMMAND ${CMAKE_COMMAND} -E echo "Creating DOT html documentation"
                         COMMAND ${CMAKE_COMMAND} -E echo ""
                         COMMAND ${CMAKE_COMMAND} -E remove_directory html-dot
-                        COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile_dot
+                        COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} $<TARGET_FILE:Doxygen::doxygen> doxygen/Doxyfile_dot
                         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
                         COMMAND ${CMAKE_COMMAND} -E echo ""
                         COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -365,74 +355,6 @@ if(ENABLE_DOCS)
     # TODO would be cool to somehow have documentation optional
     #install_file(${PROJECT_BINARY_DIR}/index.html ${INSTALL_DOC_DIR} doc)
 
-    #------------------------------------------------------------------------------
-    # PDF Tutorials
-    #------------------------------------------------------------------------------
-    # DOXYGEN_FOUND is true. Otherwise we would not list any doc targets at all.
-    
-    if (ENABLE_TUTORIALS)
-      find_package(LATEX)
-      # Doxygen with formulas built with LaTeX actually also needs Ghostscript but there is no official find module for it, yet.
-      #find_package(Ghostscript)
-      if (PDFLATEX_COMPILER)
-        set(DOC_TUTORIALS_ACTIVE TRUE)
-
-        # configure doxyfiles for tutorials
-        configure_file(${PROJECT_SOURCE_DIR}/OpenMS_tutorial/Doxyfile.in ${PROJECT_BINARY_DIR}/OpenMS_tutorial/Doxyfile)
-
-        # check doxygen for bug with generated latex files
-        set(DOXYGEN_START_BUGGY "1.6.3")
-        set(DOXYGEN_END_BUGGY "1.7.2")
-        if (DOXYGEN_VERSION STRGREATER DOXYGEN_START_BUGGY AND DOXYGEN_VERSION STRLESS DOXYGEN_END_BUGGY )
-          message(STATUS "Warning: Doxygen ( 1.6.? < vers. installed < 1.7.3 ) disguises generated tex inputfiles and files will not be recognized")
-        endif()
-
-        #------------------------------------------------------------------------------
-        # doc_tutorials target
-        add_custom_target(doc_tutorials ALL
-                          COMMAND ${CMAKE_COMMAND} -E echo ""
-                          COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                          COMMAND ${CMAKE_COMMAND} -E echo "Creating OpenMS pdf tutorial"
-                          COMMAND ${CMAKE_COMMAND} -E echo ""
-                          COMMAND ${CMAKE_COMMAND} -E remove_directory OpenMS_tutorial/latex_output
-                          COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/ "${DOXYGEN_EXECUTABLE}" Doxyfile
-                          COMMAND ${CMAKE_COMMAND} -E copy OpenMS_tutorial/refman_overwrite.tex OpenMS_tutorial/latex_output/refman.tex
-                          COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
-                          COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  "${MAKEINDEX_COMPILER}" refman.idx
-                          COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
-                          COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
-                          COMMAND ${CMAKE_COMMAND} -E copy OpenMS_tutorial/latex_output/refman.pdf OpenMS_tutorial.pdf
-                          COMMAND ${CMAKE_COMMAND} -E echo ""
-                          COMMAND ${CMAKE_COMMAND} -E echo "The OpenMS tutorial in PDF format has been successfully created:"
-                          COMMAND ${CMAKE_COMMAND} -E echo "doc/OpenMS_tutorial.pdf"
-                          COMMAND ${CMAKE_COMMAND} -E echo ""
-                          COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                          COMMENT "Build the OpenMS/TOPP pdf tutorial"
-                          VERBATIM)
-
-        #------------------------------------------------------------------------------
-        # add virtual dependency of tutorials on TOPP & UTILS
-        # this is not necessary but defers the generation of the tutorials to a later
-        # stage to avoid confusion if tutorials are build first
-        add_dependencies(doc_tutorials TOPP UTILS)
-
-        #------------------------------------------------------------------------------
-        # install also the tutorial pdfs
-        install(FILES ${PROJECT_BINARY_DIR}/OpenMS_tutorial.pdf
-                DESTINATION ${INSTALL_DOC_DIR}
-                COMPONENT doc
-                OPTIONAL)
-
-        #------------------------------------------------------------------------------
-        # inform the user
-        message(STATUS "Enabled tutorials (-D ENABLE_TUTORIALS=On).")
-      else()
-        message(STATUS "PDFLaTeX missing. Disabling 'doc_tutorials' target!")
-      endif()
-    else()
-      set(DOC_TUTORIALS_ACTIVE FALSE)
-      message(STATUS "Disabled tutorials (-D ENABLE_TUTORIALS=Off).")
-    endif()
   else()
     message(STATUS "Doxygen not found. Disabling all documentation targets!")
     message(STATUS "Note that no documentation will be installed alongside OpenMS.")
@@ -441,10 +363,15 @@ if(ENABLE_DOCS)
   #------------------------------------------------------------------------------
   # Examples / Tutorials
   #------------------------------------------------------------------------------
-  option(BUILD_EXAMPLES "Compile OpenMS code examples" ON)
+  option(BUILD_EXAMPLES "Compile OpenMS code examples (C++ tutorials)" ON)
+  message(STATUS "Build C++ tutorials: ${BUILD_EXAMPLES} (-DBUILD_EXAMPLES=ON/OFF);")
   if(BUILD_EXAMPLES AND "${PACKAGE_TYPE}" STREQUAL "none")
     add_subdirectory(code_examples)
-  endif(BUILD_EXAMPLES AND "${PACKAGE_TYPE}" STREQUAL "none")
+    message(STATUS " --> Tutorials in '${PROJECT_SOURCE_DIR}/code_examples' will be built!")
+  else()
+    message(STATUS " --> Tutorials in '${PROJECT_SOURCE_DIR}/code_examples' will NOT be built! (since PACKAGE_TYPE=${PACKAGE_TYPE}, but must be 'none')")
+  endif()
+
 
 else()
   message(STATUS "Documentation is not built (-D ENABLE_DOCS=Off).")

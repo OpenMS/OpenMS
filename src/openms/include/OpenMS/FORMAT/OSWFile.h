@@ -1,40 +1,18 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: George Rosenberger $
+// $Maintainer: George Rosenberger, Justin Sing $
 // $Authors: George Rosenberger, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathExportConfig.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathExportData.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathInferenceConfig.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathInferenceData.h>
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
@@ -42,6 +20,7 @@
 
 #include <array>
 #include <map>
+#include <vector>
 
 namespace OpenMS
 {
@@ -92,8 +71,8 @@ namespace OpenMS
 
       Internally uses the proteins ID to search for cross referencing peptides and transitions in the OSW file.
 
-      @param swath_result OSWData obtained from the readMinimal() method
-      @param index Index into swath_result.getProteins()[index]. Make sure the index is within the vector's size.
+      @param[in] swath_result OSWData obtained from the readMinimal() method
+      @param[out] index Index into swath_result.getProteins()[index]. Make sure the index is within the vector's size.
       @throws Exception::InvalidValue if the protein at @p index does not have any peptides present in the OSW file
     */
     void readProtein(OSWData& swath_result, const Size index);
@@ -132,6 +111,47 @@ namespace OpenMS
     */
     static void writeFromPercolator(const std::string& osw_filename, const OSWFile::OSWLevel osw_level, const std::map< std::string, PercolatorFeature >& features);
 
+    /// Read peakgroup and precursor evidence required for peptidoform inference.
+    std::vector<IPFPrecursorRow> readIPFPrecursorData(const PeptidoformInferenceConfig& config) const;
+
+    /// Read transition-level evidence required for peptidoform inference.
+    std::vector<IPFTransitionRow> readIPFTransitionData(const PeptidoformInferenceConfig& config) const;
+
+    /// Read alignment-group membership required for optional across-run signal propagation from FEATURE_MS2_ALIGNMENT_CANDIDATE.
+    std::vector<IPFAlignmentRow> readIPFAlignmentData(const PeptidoformInferenceConfig& config) const;
+
+    /// Historical overload that reads legacy alignment-group membership from FEATURE_MS2_ALIGNMENT + SCORE_ALIGNMENT.
+    std::vector<IPFAlignmentRow> readIPFAlignmentData(double ipf_max_alignment_pep) const;
+
+    /// Write peptidoform inference results into SCORE_IPF, copying to @p output_filename first if requested.
+    void writeIPFResults(const String& output_filename, const std::vector<IPFResultRow>& results) const;
+
+    /// Read compact peptide-, protein-, or gene-level rows for context inference.
+    std::vector<LevelContextInputRow> readLevelContextData(InferenceLevel level, InferenceContext context) const;
+
+    /// Write context inference results into SCORE_PEPTIDE / SCORE_PROTEIN / SCORE_GENE.
+    void writeLevelContextResults(const String& output_filename,
+                                  InferenceLevel level,
+                                  InferenceContext context,
+                                  const std::vector<LevelContextResultRow>& results) const;
+
+    /// Read filtered feature rows for user-facing OpenSWATH results and matrix exports.
+    std::vector<OpenSwathExportRow> readOpenSwathExportRows(const OpenSwathExportFilterConfig& config) const;
+
+    /// Read scored feature rows for OpenSWATH Parquet export.
+    OpenSwathFeatureScoreTable readOpenSwathFeatureScoreTable(const OpenSwathParquetExportConfig& config) const;
+
+    /// Read optional transition-level score rows for OpenSWATH Parquet export.
+    OpenSwathTransitionScoreTable readOpenSwathTransitionScoreTable(const OpenSwathParquetExportConfig& config) const;
+
+    /**
+      @brief Read RUN IDs and convert their filenames to user-facing basenames.
+
+      The returned names are stripped to stem names when possible, so
+      @c sample.mzML.gz becomes @c sample.
+    */
+    std::map<Int64, String> readRunBasenames() const;
+
     /// extract the RUN::ID from the sqMass file
     /// @throws Exception::SqlOperationFailed more than on run exists
     UInt64 getRunID() const;
@@ -147,7 +167,7 @@ namespace OpenMS
       @brief fill one (@p prot_id) or all proteins into @p swath_result
 
       @param[out] swath_result Output data. Proteins are cleared before if ALL_PROTEINS is used.
-      @param prot_index Using ALL_PROTEINS queries all proteins (could take some time)
+      @param[in] prot_index Using ALL_PROTEINS queries all proteins (could take some time)
 
     */
     void getFullProteins_(OSWData& swath_result, Size prot_index = ALL_PROTEINS);
@@ -162,4 +182,3 @@ namespace OpenMS
   };
 
 } // namespace OpenMS
-

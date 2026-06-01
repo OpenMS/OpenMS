@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -129,7 +103,7 @@ public:
      @brief Match transitions with their "best" window across m/z and ion mobility, save results in a vector.
 
      @param[in] transition_exp Transition list for selection
-     @param[out] selected SWATH to extract transition from
+     @param[out] tr_win_map Mapping from transition (index) to the best matching entry in @p swath_maps
      @param[in] min_upper_edge_dist Distance in Th to the upper edge
      @param[in] swath_maps vector of SwathMap objects defining mz and im bounds
     */
@@ -148,10 +122,11 @@ public:
          extracting an XIC from them makes no sense)
 
       @param[in] swath_map Input SWATH map to check
-      @param[in] lower Lower edge of SWATH window (in Th)
-      @param[in] upper Upper edge of SWATH window (in Th)
+      @param[out] lower Lower edge of SWATH window (in Th)
+      @param[out] upper Upper edge of SWATH window (in Th)
+      @param[out] center Center of SWATH window (in Th)
 
-      @throw throws IllegalArgument exception if the sanity checks fail.
+      @throw IllegalArgument exception if the sanity checks fail.
     */
     static void checkSwathMap(const OpenMS::PeakMap& swath_map,
                               double& lower, double& upper, double& center);
@@ -184,7 +159,7 @@ public:
       double upper, lower, center;
       OpenSwathHelper::checkSwathMap(exp, lower, upper, center);
       OpenSwathHelper::selectSwathTransitions(targeted_exp, selected_transitions, min_upper_edge_dist, lower, upper);
-      if (selected_transitions.getTransitions().size() == 0)
+      if (selected_transitions.getTransitions().empty())
       {
         std::cerr << "WARNING: For File " << exp.getLoadedFilePath()
                   << " no transition were within the precursor window of " << lower << " to " << upper
@@ -207,6 +182,36 @@ public:
     static std::pair<double,double> estimateRTRange(const OpenSwath::LightTargetedExperiment & exp);
 
     /**
+     * @brief Sample a subset of peptides uniformly across the RT range.
+     *
+     * Splits the RT span (min→max) into @p bins and randomly picks up to
+     * @p peptides_per_bin compounds from each bin. Useful for on-the-fly
+     * iRT calibration without external .irt files.
+     *
+     * @param[in] exp               Full LightTargetedExperiment (the input peptide query parameter assay list for targeted extraction)
+     * @param[in] bins              Number of retention‐time bins (i.e. 10 bins across the RT range for linear iRT, 500-1000 bins across the RT for nonlinear iRT)
+     * @param[in] peptides_per_bin  How many peptides to draw per bin (i.e. 5 peptides for linear iRT, 25 - 50 for non-linear iRT)
+     * @param[in] seed              If non‐zero, used to seed the RNG (deterministic).
+     *                              If zero, will use std::random_device for non-deterministic.
+     * @param[in] sort_by_intensity     Whether to sort the assays by the highest cumulative intense transitions. This is useful for sampling the most intense peptides for iRTs.
+     * @param[in] top_fraction     Only sample from the top N fraction of sorted assays to narrow down on only really intense peptides. This is useful for selecting a few "high quality" peptides to use for linear iRTs.
+     * @param[in] priority_peptides Optional set of peptide sequences to prioritize during sampling. If provided, these peptides
+     *                              will be sampled first if found in @p exp, before the remaining quota is filled with regular sampling.
+     *                              Useful for ensuring common iRT peptides (e.g., from irtkit or cirtkit) are included when present.
+     *
+     * @return A new LightTargetedExperiment containing only the sampled
+     *         compounds, their transitions, and associated proteins.
+     */
+    static OpenSwath::LightTargetedExperiment sampleExperiment(
+      const OpenSwath::LightTargetedExperiment & exp,
+      Size bins,
+      Size peptides_per_bin,
+      unsigned int seed = 0,
+      bool sort_by_intensity = false,
+      double top_fraction = 1.0,
+      const std::unordered_set<std::string> & priority_peptides = std::unordered_set<std::string>());
+
+    /**
       @brief Returns the feature with the highest score for each transition group.
       
       Simple method to extract the best feature for each transition group (e.g.
@@ -214,8 +219,8 @@ public:
       features altogether.
 
       @param[in] transition_group_map Input data containing the picked and scored map
-      @param useQualCutoff Whether to apply a quality cutoff to the data
-      @param qualCutoff What quality cutoff should be applied (all data above the cutoff will be kept)
+      @param[in] useQualCutoff Whether to apply a quality cutoff to the data
+      @param[in] qualCutoff What quality cutoff should be applied (all data above the cutoff will be kept)
 
       @return Result of the best scoring peaks (stored as map of peptide id and RT)
 

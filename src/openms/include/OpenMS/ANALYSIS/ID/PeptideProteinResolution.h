@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julianus Pfeuffer $
@@ -38,8 +12,10 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <vector>
 #include <set>
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -98,58 +74,58 @@ namespace OpenMS
     /** represents the middle layer of an implicit tripartite graph:
     consists of single protein accessions and their mapping to the (indist.)
     group's indices */
-    std::map<String, Size> prot_acc_to_indist_prot_grp_;
+    std::unordered_map<String, Size> prot_acc_to_indist_prot_grp_;
     
     /// log debug information?
     bool statistics_;
     
   public:
     /// Constructor
-    /// @param statistics Specifies if the class stores/outputs info about statistics    
+    /// @param[in] statistics Specifies if the class stores/outputs info about statistics
     PeptideProteinResolution(bool statistics = false);
 
 
     /// A peptide-centric reimplementation of the resolution process. Can be used statically
     /// without building a bipartite graph first.
-    /// @param protein ProteinIdentification object storing IDs and groups
-    /// @param peptides vector of ProteinIdentifications with links to the proteins
-    /// @param resolve_ties If ties should be resolved or multiple best groups reported
-    /// @param targets_first If target groups should get picked first no matter the posterior
+    /// @param[in,out] protein ProteinIdentification object storing IDs and groups
+    /// @param[in,out] peptides vector of ProteinIdentifications with links to the proteins
+    /// @param[in] resolve_ties If ties should be resolved or multiple best groups reported
+    /// @param[in] targets_first If target groups should get picked first no matter the posterior
     /// @todo warning: all peptides are used (not filtered for matching protein ID run yet).
     static void resolve(ProteinIdentification& protein,
-                        std::vector<PeptideIdentification>& peptides,
+                        PeptideIdentificationList& peptides,
                         bool resolve_ties,
                         bool targets_first);
 
     /// Convenience function that performs graph building and group resolution.
     /// After resolution, all unreferenced proteins are removed and groups updated.
-    /// @param protein ProteinIdentification object storing IDs and groups
-    /// @param peptides vector of ProteinIdentifications with links to the proteins
-    static void run(std::vector<ProteinIdentification>& inferred_protein_id, 
-                    std::vector<PeptideIdentification>& inferred_peptide_ids);
+    /// @param[in,out] inferred_protein_id ProteinIdentification object storing IDs and groups
+    /// @param[in,out] inferred_peptide_ids Vector of ProteinIdentifications with links to the proteins
+    static void run(std::vector<ProteinIdentification>& inferred_protein_id,
+                    PeptideIdentificationList& inferred_peptide_ids);
 
     /// Initialize and store the graph (= maps), needs sorted groups for
     /// correct functionality. Therefore sorts the indist. protein groups
     /// if not skipped.
-    /// @param protein ProteinIdentification object storing IDs and groups
-    /// @param peptides vector of ProteinIdentifications with links to the proteins
-    /// @param skip_sort Skips sorting of groups, nothing is modified then.
+    /// @param[in,out] protein ProteinIdentification object storing IDs and groups
+    /// @param[in] peptides vector of ProteinIdentifications with links to the proteins
+    /// @param[in] skip_sort Skips sorting of groups, nothing is modified then.
     void buildGraph(ProteinIdentification& protein,
-                    const std::vector<PeptideIdentification>& peptides,
+                    const PeptideIdentificationList& peptides,
                     bool skip_sort = false);
-      
+
     /// Applies resolveConnectedComponent to every component of the graph and
     /// is able to write statistics when specified. Parameters will
     /// both be mutated in this method.
-    /// @param protein ProteinIdentification object storing IDs and groups
-    /// @param peptides vector of ProteinIdentifications with links to the proteins
+    /// @param[in,out] protein ProteinIdentification object storing IDs and groups
+    /// @param[in,out] peptides vector of ProteinIdentifications with links to the proteins
     /// @todo warning: all peptides are used (not filtered for matching protein ID run yet).
     void resolveGraph(ProteinIdentification& protein,
-                      std::vector<PeptideIdentification>& peptides);
-    
+                      PeptideIdentificationList& peptides);
+
     /// Does a BFS on the two maps (= two parts of the graph; indist. prot. groups
     /// and peptides), switching from one to the other in each step.
-    /// @param root_prot_grp Starts the BFS at this protein group index
+    /// @param[in,out] root_prot_grp Starts the BFS at this protein group index
     /// @return Returns a Connected Component as set of group and peptide indices.
     ConnectedComponent findConnectedComponent(Size& root_prot_grp);
     
@@ -163,13 +139,13 @@ namespace OpenMS
       PeptideIDs and iterating until each peptide is uniquely assigned.
       In accordance with Fido only the best hit (PSM) for an ID is considered.
       Probability ties resolved by taking protein with largest number of peptides.
-      @param conn_comp The component to be resolved
-      @param protein ProteinIdentification object storing IDs and groups
-      @param peptides vector of ProteinIdentifications with links to the proteins
+      @param[in,out] conn_comp The component to be resolved
+      @param[in,out] protein ProteinIdentification object storing IDs and groups
+      @param[in,out] peptides vector of ProteinIdentifications with links to the proteins
      */
     void resolveConnectedComponent(ConnectedComponent& conn_comp,
                                     ProteinIdentification& protein,
-                                    std::vector<PeptideIdentification>& peptides);
+                                    PeptideIdentificationList& peptides);
 };
   
 } //namespace OpenMS

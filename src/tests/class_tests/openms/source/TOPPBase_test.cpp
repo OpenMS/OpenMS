@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -44,8 +18,11 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <cstdlib>
+
+#include <vector>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -183,6 +160,11 @@ class TOPPBaseTest
     bool parseRange(const String& text, double& low, double& high) const
     {
       return parseRange_(text, low, high);
+    }
+
+    TOPPBase::ExitCodes runExternalProcess(const String& executable, const std::vector<String>& arguments, const String& workdir) const
+    {
+      return runExternalProcess_(executable, arguments, workdir);
     }
 
 };
@@ -527,7 +509,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setValue("TOPPBaseTest:1:flag","false","flag description");
   p2.setValue("TOPPBaseTest:1:log","","Name of log file (created only when specified)");
 	p2.setValue("TOPPBaseTest:1:debug",0,"Sets the debug level");
-	p2.setValue("TOPPBaseTest:1:threads",1, "Sets the number of threads allowed to be used by the TOPP tool");
+	p2.setValue("TOPPBaseTest:1:threads",1, "Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores)");
 	p2.setValue("TOPPBaseTest:1:no_progress","false","Disables progress logging to command line");
 	p2.setValue("TOPPBaseTest:1:force","false","Overwrite tool specific checks.");
 	p2.setValue("TOPPBaseTest:1:test","false","Enables the test mode (needed for software testing only)");
@@ -726,6 +708,33 @@ START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& 
 }
 END_SECTION
 
+START_SECTION(([EXTRA] TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const String& executable, const std::vector<String>& arguments, const String& workdir) const))
+{
+
+// we just need ANY commandline tool available on (hopefully) all boxes.
+// note that commands like "dir" or "type" are only known within cmd.exe and are not actual executables (unlike on Linux)
+#ifdef OPENMS_WINDOWSPLATFORM
+  const String exe = "cmd";
+  const std::vector<String> args = {"/C", "echo hi"};
+  const std::vector<String> args_broken = {"/C", "doesnotexist"};
+#else
+  const String exe = "ls";
+  const std::vector<String> args = {"-l"};
+  const std::vector<String> args_broken = {"-0"};
+#endif //
+
+  TOPPBaseTest topp;
+  auto result = topp.runExternalProcess("/path/does/not/exists.exe", {}, "");
+  TEST_EQUAL(result, TOPPBase::EXTERNAL_PROGRAM_NOTFOUND);
+
+  result = topp.runExternalProcess(exe, args_broken, "");
+  TEST_EQUAL(result, TOPPBase::EXTERNAL_PROGRAM_ERROR);
+
+  result = topp.runExternalProcess(exe, args, "");
+  TEST_EQUAL(result, TOPPBase::EXECUTION_OK);
+}
+END_SECTION
+
 START_SECTION(([EXTRA] data processing methods))
 	PeakMap exp;
 	exp.resize(2);
@@ -834,6 +843,50 @@ START_SECTION(([EXTRA] test subsection parameters))
   TEST_EQUAL(tmp3.getParam().getValue("algorithm:param2"), "param2_ini_value");
   TEST_EQUAL(tmp3.getParam().getValue("other:param3"), "param3_ini_value");
   TEST_EQUAL(tmp3.getParam().getValue("other:param4"), "val4");
+}
+END_SECTION
+
+START_SECTION(([EXTRA] test duplicate parameters))
+{
+  // Test duplicate parameters - last value should win with warning
+  const char* string_cl_dup[5] = {a1, a10, a12, a10, a16}; //command line: "TOPPBaseTest -stringoption commandline -stringoption 4711"
+  TOPPBaseTest tmp_dup;
+  TOPPBase::ExitCodes ec_dup = tmp_dup.main(5, string_cl_dup);
+  TEST_EQUAL(ec_dup, TOPPBase::EXECUTION_OK)
+  // Last value should be used
+  TEST_EQUAL(tmp_dup.getStringOption("stringoption"), "4711");
+  
+  // Test duplicate int option
+  const char* string_cl_dup2[5] = {a1, a14, a9, a14, a16}; //command line: "TOPPBaseTest -intoption 5 -intoption 4711"
+  TOPPBaseTest tmp_dup2;
+  TOPPBase::ExitCodes ec_dup2 = tmp_dup2.main(5, string_cl_dup2);
+  TEST_EQUAL(ec_dup2, TOPPBase::EXECUTION_OK)
+  // Last value should be used
+  TEST_EQUAL(tmp_dup2.getIntOption("intoption"), 4711);
+  
+  // Test duplicate double option
+  const char* string_cl_dup3[5] = {a1, a15, a20, a15, a13}; //command line: "TOPPBaseTest -doubleoption 0.411 -doubleoption 4.5"
+  TOPPBaseTest tmp_dup3;
+  TOPPBase::ExitCodes ec_dup3 = tmp_dup3.main(5, string_cl_dup3);
+  TEST_EQUAL(ec_dup3, TOPPBase::EXECUTION_OK)
+  // Last value should be used
+  TEST_REAL_SIMILAR(tmp_dup3.getDoubleOption("doubleoption"), 4.5);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] test flag with trailing arguments))
+{
+  // Test flag with trailing argument - should cause error
+  const char* string_cl_flag[4] = {a1, a11, a12, test}; //command line: "TOPPBaseTest -flag commandline -test"
+  TOPPBaseTest tmp_flag;
+  TOPPBase::ExitCodes ec_flag = tmp_flag.main(4, string_cl_flag);
+  TEST_EQUAL(ec_flag, TOPPBase::ILLEGAL_PARAMETERS)
+
+  // Test flag with multiple trailing arguments
+  const char* string_cl_flag2[6] = {a1, a11, a12, a16, a13, test}; //command line: "TOPPBaseTest -flag commandline 4711 4.5 -test"
+  TOPPBaseTest tmp_flag2;
+  TOPPBase::ExitCodes ec_flag2 = tmp_flag2.main(6, string_cl_flag2);
+  TEST_EQUAL(ec_flag2, TOPPBase::ILLEGAL_PARAMETERS)
 }
 END_SECTION
 

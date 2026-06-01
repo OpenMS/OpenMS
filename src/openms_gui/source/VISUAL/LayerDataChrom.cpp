@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -44,7 +18,9 @@
 #include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 
+#include <boost/make_shared.hpp>
 
 using namespace std;
 
@@ -67,14 +43,14 @@ namespace OpenMS
   std::unique_ptr<LayerStoreData> LayerDataChrom::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
     auto ret = make_unique<LayerStoreDataPeakMapVisible>();
-    ret->storeVisibleExperiment(*chromatogram_map_.get(), visible_range, layer_filters);
+    ret->storeVisibleExperiment(chromatogram_map_.get()->getMSExperiment(), visible_range, layer_filters);
     return ret;
   }
 
   std::unique_ptr<LayerStoreData> LayerDataChrom::storeFullData() const
   {
     auto ret = make_unique<LayerStoreDataPeakMapAll>();
-    ret->storeFullExperiment(*chromatogram_map_.get());
+    ret->storeFullExperiment(chromatogram_map_.get()->getMSExperiment());
     return ret;
   }
 
@@ -159,15 +135,17 @@ namespace OpenMS
 
     // projection for m/z
     auto ptr_mz = make_unique<LayerData1DPeak>();
-    MSExperiment exp_mz;
-    exp_mz.addSpectrum(std::move(projection_mz));
-    ptr_mz->setPeakData(ExperimentSharedPtrType(new ExperimentType(exp_mz)));
+
+    ExperimentSharedPtrType exp_mz = std::make_shared<ExperimentType>();
+    exp_mz->getMSExperiment().addSpectrum(std::move(projection_mz));
+    ptr_mz->setPeakData(exp_mz);
 
     // projection for RT
     auto ptr_rt = make_unique<LayerData1DChrom>();
-    MSExperiment exp_rt;
-    exp_mz.addChromatogram(std::move(projection_rt));
-    ptr_rt->setChromData(ExperimentSharedPtrType(new ExperimentType(exp_rt)));
+
+    exp_mz->getMSExperiment().addChromatogram(std::move(projection_rt));
+
+    ptr_rt->setChromData(std::make_shared<AnnotatedMSRun>());
 
     auto assign_axis = [&](auto unit, auto& layer) {
       switch (unit)
@@ -191,7 +169,7 @@ namespace OpenMS
 
   PeakIndex LayerDataChrom::findHighestDataPoint(const RangeAllType& area) const
   {
-    const PeakMap& exp = *getChromatogramData();
+    const PeakMap& exp = getChromatogramData().get()->getMSExperiment();
     int count {-1};
     for (const auto& chrom : exp.getChromatograms())
     {
@@ -257,6 +235,6 @@ namespace OpenMS
 
   std::unique_ptr<LayerStatistics> LayerDataChrom::getStats() const
   {
-    return make_unique<LayerStatisticsPeakMap>(*chromatogram_map_);
+    return make_unique<LayerStatisticsPeakMap>(chromatogram_map_->getMSExperiment());
   }
 } // namespace OpenMS

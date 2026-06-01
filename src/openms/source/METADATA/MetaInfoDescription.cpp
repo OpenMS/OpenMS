@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -46,7 +20,6 @@ namespace OpenMS
   bool MetaInfoDescription::operator==(const MetaInfoDescription & rhs) const
   {
     return MetaInfoInterface::operator==(rhs) &&
-           comment_ == rhs.comment_ &&
            name_ == rhs.name_ &&
            ( data_processing_.size() == rhs.data_processing_.size() &&
            std::equal(data_processing_.begin(),
@@ -54,6 +27,86 @@ namespace OpenMS
                       rhs.data_processing_.begin(),
                       OpenMS::Helpers::cmpPtrSafe<DataProcessingPtr>) );
   }
+
+  bool MetaInfoDescription::operator<(const MetaInfoDescription & rhs) const
+  {
+    // Compare data processing by size first (fast)
+    if (data_processing_.size() != rhs.data_processing_.size())
+      return data_processing_.size() < rhs.data_processing_.size();
+
+    // First compare the MetaInfoInterface base
+    if (MetaInfoInterface::operator!=(rhs))
+    {
+      // For MetaInfoInterface comparison, we need to create a deterministic ordering
+      // Compare by checking if one is empty and the other is not
+      bool lhs_empty = isMetaEmpty();
+      bool rhs_empty = rhs.isMetaEmpty();
+      if (lhs_empty != rhs_empty)
+      {
+        return lhs_empty < rhs_empty;
+      }
+
+      // Compare name
+      if (name_ != rhs.name_)
+        return name_ < rhs.name_;
+
+      // If both non-empty, compare by getting keys and comparing them
+      std::vector<UInt> lhs_keys, rhs_keys;
+      getKeys(lhs_keys);
+      rhs.getKeys(rhs_keys);
+      
+      if (lhs_keys != rhs_keys)
+        return lhs_keys < rhs_keys;
+      
+      // If keys are same, compare values for each key
+      for (UInt key : lhs_keys)
+      {
+        String lhs_val = getMetaValue(key).toString();
+        String rhs_val = rhs.getMetaValue(key).toString();
+        if (lhs_val != rhs_val)
+          return lhs_val < rhs_val;
+      }
+    }
+    
+    // Compare data processing elements (simplified comparison by comparing names)
+    for (size_t i = 0; i < data_processing_.size(); ++i)
+    {
+      if (data_processing_[i] && rhs.data_processing_[i])
+      {
+        size_t lhs_size = data_processing_[i]->getProcessingActions().size();
+        size_t rhs_size = rhs.data_processing_[i]->getProcessingActions().size();
+        if (lhs_size != rhs_size)
+          return lhs_size < rhs_size;
+      }
+      else if (data_processing_[i] != rhs.data_processing_[i])
+      {
+        return (data_processing_[i] == nullptr) < (rhs.data_processing_[i] == nullptr);
+      }
+    }
+    
+    return false; // Equal
+  }
+
+  bool MetaInfoDescription::operator<=(const MetaInfoDescription & rhs) const
+  {
+    return *this < rhs || *this == rhs;
+  }
+
+  bool MetaInfoDescription::operator>(const MetaInfoDescription & rhs) const
+  {
+    return !(*this <= rhs);
+  }
+
+  bool MetaInfoDescription::operator>=(const MetaInfoDescription & rhs) const
+  {
+    return !(*this < rhs);
+  }
+
+  bool MetaInfoDescription::operator!=(const MetaInfoDescription & rhs) const
+  {
+    return !(*this == rhs);
+  }
+
 
   void MetaInfoDescription::setName(const String & name)
   {

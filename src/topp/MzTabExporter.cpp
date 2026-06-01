@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -35,21 +9,19 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 
 #include <vector>
@@ -63,41 +35,42 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page TOPP_MzTabExporter MzTabExporter
+@page TOPP_MzTabExporter MzTabExporter
 
-   @brief This application converts several %OpenMS XML formats (featureXML, consensusXML, and idXML) to mzTab.
+@brief This application converts several %OpenMS formats (featureXML/featureparquet, consensusXML/consensusparquet, and idXML/idparquet) to mzTab.
 
-  <CENTER>
-    <table>
-     <tr>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-         <td VALIGN="middle" ROWSPAN=2> &rarr; MzTabExporter &rarr;</td>
-     <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
-    </tr>
-    <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> Any tool producing one of the input formats </td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> External tools (MS Excel, OpenOffice, Notepad)</td>
-    </tr>
-   </table>
-  </CENTER>
+<CENTER>
+  <table>
+   <tr>
+    <th ALIGN = "center"> pot. predecessor tools </td>
+       <td VALIGN="middle" ROWSPAN=2> &rarr; MzTabExporter &rarr;</td>
+   <th ALIGN = "center"> potential successor tools </td>
+  </tr>
+  <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> Any tool producing one of the input formats </td>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> External tools (MS Excel, OpenOffice, Notepad)</td>
+  </tr>
+ </table>
+</CENTER>
 
-  See the mzTab specification for details on the format.
+See the mzTab specification for details on the format.
 
-  @experimental This algorithm and underlying format is work in progress and might change.
+@experimental This algorithm and underlying format is work in progress and might change.
 
-  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Convert mzid files to/from idXML or idparquet using @ref TOPP_IDFileConverter if necessary.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_MzTabExporter.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_MzTabExporter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MzTabExporter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MzTabExporter.html
  */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 namespace OpenMS
 {
@@ -106,7 +79,7 @@ namespace OpenMS
   {
 public:
     TOPPMzTabExporter() :
-      TOPPBase("MzTabExporter", "Exports various XML formats to an mzTab file.")
+      TOPPBase("MzTabExporter", "Exports various OpenMS XML and parquet formats to an mzTab file.")
     {
     }
 
@@ -115,7 +88,7 @@ protected:
     void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "", "Input files used to generate the mzTab file.", false);
-      setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzid"));
+      setValidFormats_("in", ListUtils::create<String>("featureXML,featureparquet,consensusXML,consensusparquet,idXML,idparquet,mzid"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
       setValidFormats_("out", ListUtils::create<String>("mzTab"));
       registerFlag_("first_run_inference_only", "Does the first IdentificationRun in the file "
@@ -139,23 +112,22 @@ protected:
 
       MzTab mztab;
 
-      if (in_type == FileTypes::FEATUREXML)
+      if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::FEATUREPARQUET)
       {
-        // For featureXML we export a "Summary Quantification" file. This means we don't need to report feature quantification values at the assay level
+        // For featureXML/featureparquet we export a "Summary Quantification" file. This means we don't need to report feature quantification values at the assay level
         // but only at the (single) study variable variable level.
 
-        // load featureXML
+        // load featureXML/featureparquet
         FeatureMap feature_map;
-        FeatureXMLFile f;
-        f.load(in, feature_map);
+        FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET});
 
         // calculate coverage
-        vector<PeptideIdentification> pep_ids;
+        PeptideIdentificationList pep_ids;
         vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();        
 
         for (Size i = 0; i < feature_map.size(); ++i) // collect all (assigned and unassigned to a feature) peptide ids
         {
-          const vector<PeptideIdentification>& pep_ids_bf = feature_map[i].getPeptideIdentifications();
+          const PeptideIdentificationList& pep_ids_bf = feature_map[i].getPeptideIdentifications();
           pep_ids.insert(pep_ids.end(), pep_ids_bf.begin(), pep_ids_bf.end());
         }
 
@@ -177,13 +149,12 @@ protected:
         mztab = MzTab::exportFeatureMapToMzTab(feature_map, in);
       }
 
-      // export identification data from idXML
-      if (in_type == FileTypes::IDXML)
+      // export identification data from idXML/idparquet
+      if (in_type == FileTypes::IDXML || in_type == FileTypes::IDPARQUET)
       {
-        String document_id;
         vector<ProteinIdentification> prot_ids;
-        vector<PeptideIdentification> pep_ids;
-        IdXMLFile().load(in, prot_ids, pep_ids, document_id);
+        PeptideIdentificationList pep_ids;
+        FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
         MzTabFile().store(out,
           prot_ids,
@@ -199,8 +170,8 @@ protected:
       {
         String document_id;
         vector<ProteinIdentification> prot_ids;
-        vector<PeptideIdentification> pep_ids;
-        MzIdentMLFile().load(in, prot_ids, pep_ids);
+        PeptideIdentificationList pep_ids;
+        FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::MZIDENTML});
 
         MzTabFile().store(out,
 	        prot_ids,
@@ -212,11 +183,10 @@ protected:
       }
 
       // export quantification data
-      if (in_type == FileTypes::CONSENSUSXML)
+      if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET)
       {
         ConsensusMap consensus_map;
-        ConsensusXMLFile c;
-        c.load(in, consensus_map);
+        FileHandler().loadConsensusFeatures(in, consensus_map, {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
         IDFilter::removeEmptyIdentifications(consensus_map); // MzTab stream exporter currently doesn't support IDs with empty hits.
         MzTabFile().store(out,
            consensus_map,
@@ -235,7 +205,9 @@ protected:
   };
 } //namespace OpenMS
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif
 
 int main(int argc, const char** argv)
 {

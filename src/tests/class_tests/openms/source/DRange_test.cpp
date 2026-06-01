@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -38,6 +12,8 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <unordered_set>
+#include <unordered_map>
 
 /////////////////////////////////////////////////////////////
 
@@ -130,6 +106,9 @@ START_SECTION(DRange(CoordinateType minx, CoordinateType miny, CoordinateType ma
 	TEST_REAL_SIMILAR(r2.minPosition()[1],2.0f);
 	TEST_REAL_SIMILAR(r2.maxPosition()[0],3.0f);
 	TEST_REAL_SIMILAR(r2.maxPosition()[1],4.0f);
+  DRange<2> r {2, 3, -2, -3}; // min > max
+  TEST_EQUAL(r.minPosition(), DPosition<2>(-2, -3))
+  TEST_EQUAL(r.maxPosition(), DPosition<2>(2, 3))
 END_SECTION
 
 START_SECTION(bool operator == (const DRange& rhs) const )
@@ -429,6 +408,38 @@ p2[1]=4.0f;
   TEST_REAL_SIMILAR(other.maxPosition()[0], 5.0f);
 END_SECTION
 
+START_SECTION(DRange<D>& extend(typename Base::PositionType addition))
+  DRange<2> r(p1, p2);
+  /*
+  p1[0]=-1.0f;
+  p1[1]=-2.0f;
+  p2[0]=3.0f;
+  p2[1]=4.0f;
+  */
+  auto other = r.extend({2.0, 3.0});
+  TEST_REAL_SIMILAR(r.minPosition()[0], -2.0f);
+  TEST_REAL_SIMILAR(r.maxPosition()[0], 4.0f);
+  TEST_REAL_SIMILAR(r.minPosition()[1], -3.5f);
+  TEST_REAL_SIMILAR(r.maxPosition()[1], 5.5f);
+  TEST_REAL_SIMILAR(other.minPosition()[0], -2.0f);
+  TEST_REAL_SIMILAR(other.maxPosition()[0], 4.0f);
+
+  // test shrinking to a single point
+  r.extend({-200.0, 0.0});
+  TEST_REAL_SIMILAR(r.minPosition()[0], 1.0f);
+  TEST_REAL_SIMILAR(r.maxPosition()[0], 1.0f);
+  TEST_REAL_SIMILAR(r.minPosition()[1], -3.5f);
+  TEST_REAL_SIMILAR(r.maxPosition()[1], 5.5f);
+END_SECTION
+
+START_SECTION(DRange<D>& ensureMinSpan(typename  Base::PositionType min_span))
+  DRange<2> r(-0.1, 10, 0.1, 20);
+  r.ensureMinSpan({1.0, 3.0});
+  TEST_REAL_SIMILAR(r.minPosition()[0], -0.5f);
+  TEST_REAL_SIMILAR(r.maxPosition()[0], 0.5f);
+  TEST_REAL_SIMILAR(r.minPosition()[1], 10.0f);
+  TEST_REAL_SIMILAR(r.maxPosition()[1], 20.0f);
+END_SECTION
 
 START_SECTION(DRange<D>& swapDimensions())
 	DRange<2> r(p1, p2);
@@ -463,6 +474,59 @@ START_SECTION(void pullIn(DPosition<D>& point) const)
   r.pullIn(p_in);
   TEST_REAL_SIMILAR(p_in.getX(), 2)
   TEST_REAL_SIMILAR(p_in.getY(), 3)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<DRange<D>>))
+{
+  // Test that equal objects have equal hashes
+  DRange<2> r1(1.0, 2.0, 3.0, 4.0);
+  DRange<2> r2(1.0, 2.0, 3.0, 4.0);
+  DRange<2> r3(0.0, 0.0, 5.0, 5.0);
+
+  std::hash<DRange<2>> hasher;
+
+  TEST_EQUAL(r1 == r2, true)
+  TEST_EQUAL(hasher(r1), hasher(r2))
+
+  // Different ranges should (very likely) have different hashes
+  TEST_EQUAL(r1 == r3, false)
+  TEST_NOT_EQUAL(hasher(r1), hasher(r3))
+
+  // Test use in unordered_set
+  std::unordered_set<DRange<2>> range_set;
+  range_set.insert(r1);
+  range_set.insert(r2);  // duplicate, should not increase size
+  range_set.insert(r3);
+
+  TEST_EQUAL(range_set.size(), 2)
+  TEST_EQUAL(range_set.count(r1), 1)
+  TEST_EQUAL(range_set.count(r3), 1)
+
+  // Test use in unordered_map
+  std::unordered_map<DRange<2>, std::string> range_map;
+  range_map[r1] = "first";
+  range_map[r3] = "second";
+
+  TEST_EQUAL(range_map.size(), 2)
+  TEST_EQUAL(range_map[r1], "first")
+  TEST_EQUAL(range_map[r2], "first")  // r2 == r1, same key
+  TEST_EQUAL(range_map[r3], "second")
+
+  // Test with different dimensions (DRange<1>)
+  DRange<1> r1d_a, r1d_b;
+  r1d_a.setMin(DPosition<1>(1.0));
+  r1d_a.setMax(DPosition<1>(5.0));
+  r1d_b.setMin(DPosition<1>(1.0));
+  r1d_b.setMax(DPosition<1>(5.0));
+
+  std::hash<DRange<1>> hasher1d;
+  TEST_EQUAL(r1d_a == r1d_b, true)
+  TEST_EQUAL(hasher1d(r1d_a), hasher1d(r1d_b))
+
+  std::unordered_set<DRange<1>> range_set_1d;
+  range_set_1d.insert(r1d_a);
+  TEST_EQUAL(range_set_1d.count(r1d_b), 1)
 }
 END_SECTION
 /////////////////////////////////////////////////////////////

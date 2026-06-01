@@ -1,40 +1,16 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julianus Pfeuffer $
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/CONCEPT/LogStream.h"
+#include "OpenMS/METADATA/ProteinIdentification.h"
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <unordered_map>
+#include <algorithm>
 #include <array>
 
 using namespace std;
@@ -45,12 +21,13 @@ namespace OpenMS
   //TODO parameterize so it only adds/keeps best per peptide, peptide charge, modified peptide
   // How? Maybe keep a map here about the best scores and lookup before adding and update and insert only if better
   // proteins of this peptide could be skipped (if we assume same database as we do currently, it has to be there already)
-  IDMergerAlgorithm::IDMergerAlgorithm(const String& runIdentifier) :
+  IDMergerAlgorithm::IDMergerAlgorithm(const String& runIdentifier, bool addTimeStampToID) :
       IDMergerAlgorithm::DefaultParamHandler("IDMergerAlgorithm"),
       prot_result_(),
       pep_result_(),
       collected_protein_hits_(0, accessionHash_, accessionEqual_),
-      id_(runIdentifier)
+      id_(runIdentifier),
+      fixed_identifier_(!addTimeStampToID)
   {
     defaults_.setValue("annotate_origin",
                        "true",
@@ -61,17 +38,20 @@ namespace OpenMS
                        "Force merging of disagreeing runs. Use at your own risk.");
     defaults_.setValidStrings("allow_disagreeing_settings", {"true","false"});
     defaultsToParam_();
-    prot_result_.setIdentifier(getNewIdentifier_());
+    prot_result_.setIdentifier(getNewIdentifier_(addTimeStampToID));
   }
 
   //TODO overload to accept a set of specific runIDs only
   void IDMergerAlgorithm::insertRuns(
       std::vector<ProteinIdentification>&& prots,
-      std::vector<PeptideIdentification>&& peps
+      PeptideIdentificationList&& peps
       )
   {
-    if (prots.empty() || peps.empty()) return; //error?
-
+    if (prots.empty()) 
+    {
+      OPENMS_LOG_WARN << "No ProteinIdentification(Runs) given. Skipping.";
+      return;
+    }
     //TODO instead of only checking consistency, merge if possible (especially for SILAC mods)
     if (!filled_)
     {
@@ -94,13 +74,18 @@ namespace OpenMS
 
   void IDMergerAlgorithm::insertRuns(
       const std::vector<ProteinIdentification>& prots,
-      const std::vector<PeptideIdentification>& peps
+      const PeptideIdentificationList& peps
   )
   {
+    if (prots.empty()) 
+    {
+      OPENMS_LOG_WARN << "No ProteinIdentification(Runs) given. Skipping.";
+      return;
+    }
+
     //copy
     std::vector<ProteinIdentification> pr = prots;
-    std::vector<PeptideIdentification> pep = peps;
-    if (prots.empty() || peps.empty()) return; //error?
+    PeptideIdentificationList pep = peps;
 
     //TODO instead of only checking consistency, merge if possible (especially for SILAC mods)
     if (!filled_)
@@ -123,7 +108,7 @@ namespace OpenMS
 
   void IDMergerAlgorithm::returnResultsAndClear(
       ProteinIdentification& prots,
-      vector<PeptideIdentification>& peps)
+      PeptideIdentificationList& peps)
   {
     // convert the map from file origin to idx into
     // a vector
@@ -138,21 +123,24 @@ namespace OpenMS
     std::swap(peps, pep_result_);
     //reset so the new this class is reuseable
     prot_result_ = ProteinIdentification{};
-    prot_result_.setIdentifier(getNewIdentifier_());
+    prot_result_.setIdentifier(getNewIdentifier_(!fixed_identifier_));
     //clear, if user gave non-empty vector
     pep_result_.clear();
     //reset internals
     file_origin_to_idx_.clear();
 
-    for (auto& p : collected_protein_hits_)
-      prots.getHits().push_back(std::move(const_cast<ProteinHit&>(p)));
-    // above invalidates set but we clear right after
-
-    collected_protein_hits_.clear();
+    // Safely move hits out using node handles (empties the set)
+    while (!collected_protein_hits_.empty())
+    {
+      auto nh = collected_protein_hits_.extract(collected_protein_hits_.begin());
+      prots.getHits().push_back(std::move(nh.value()));
+    }
+    filled_ = false;
   }
 
-  String IDMergerAlgorithm::getNewIdentifier_() const
+  String IDMergerAlgorithm::getNewIdentifier_(bool addTimeStampToID) const
   {
+    if (!addTimeStampToID) return id_;
     std::array<char, 64> buffer;
     buffer.fill(0);
     time_t rawtime;
@@ -180,7 +168,7 @@ namespace OpenMS
   }
 
   void IDMergerAlgorithm::updateAndMovePepIDs_(
-      vector<PeptideIdentification>&& pepIDs,
+      PeptideIdentificationList&& pepIDs,
       const map<String, Size>& runID_to_runIdx,
       const vector<StringList>& originFiles,
       bool annotate_origin)
@@ -209,14 +197,14 @@ namespace OpenMS
         */
       }
 
-      bool annotated = pid.metaValueExists("id_merge_index");
+      bool annotated = pid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX);
       if (annotate_origin || annotated)
       {
         Size oldFileIdx(0);
         const StringList& origins = originFiles[runIdxIt->second];
         if (annotated)
         {
-          oldFileIdx = pid.getMetaValue("id_merge_index");
+          oldFileIdx = pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
         }
         else if (origins.size() > 1)
         {
@@ -241,7 +229,7 @@ namespace OpenMS
               "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
               " the index exceeds the number of files in the run.");
         }
-        pid.setMetaValue("id_merge_index", file_origin_to_idx_[origins[oldFileIdx]]);
+        pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, file_origin_to_idx_[origins[oldFileIdx]]);
       }
       pid.setIdentifier(prot_result_.getIdentifier());
       //move peptides into right vector
@@ -250,10 +238,10 @@ namespace OpenMS
   }
 
 
-  // this merges without checking the existence of a parent protein for the PeptideHits
-  // therefore it can merge peptides and proteins separately and a bit faster.
+  /// this merges without checking the existence of a parent protein for the PeptideHits
+  /// therefore it can merge peptides and proteins separately and a bit faster.
   void IDMergerAlgorithm::movePepIDsAndRefProteinsToResultFaster_(
-      vector<PeptideIdentification>&& pepIDs,
+      PeptideIdentificationList&& pepIDs,
       vector<ProteinIdentification>&& old_protRuns
   )
   {
@@ -298,7 +286,7 @@ namespace OpenMS
 
   /* Old version. Quite slower but only copies actually referenced proteins
   void IDMergerAlgorithm::movePepIDsAndRefProteinsToResult_(
-      vector<PeptideIdentification>&& pepIDs,
+      PeptideIdentificationList&& pepIDs,
       vector<ProteinIdentification>&& oldProtRuns
   )
   {
@@ -353,13 +341,13 @@ namespace OpenMS
 
       }
 
-      bool annotated = pid.metaValueExists("id_merge_index");
+      bool annotated = pid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX);
       if (annotate_origin || annotated)
       {
         Size oldFileIdx(0);
         if (annotated)
         {
-          oldFileIdx = pid.getMetaValue("id_merge_index");
+          oldFileIdx = pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
         }
           // If there is more than one possible file it might be from
           // and it is not annotated -> fail
@@ -373,7 +361,7 @@ namespace OpenMS
               "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
               "no old id_merge_index present");
         }
-        pid.setMetaValue("id_merge_index", file_origin_to_idx_[originFiles[oldProtRunIdx].at(oldFileIdx)]);
+        pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, file_origin_to_idx_[originFiles[oldProtRunIdx].at(oldFileIdx)]);
       }
       pid.setIdentifier(prot_result_.getIdentifier());
       for (auto &phit : pid.getHits())

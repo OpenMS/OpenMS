@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -36,14 +10,14 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
+#include <OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
 
 using namespace OpenMS;
@@ -87,7 +61,7 @@ START_SECTION(Size fillCalibrants(const PeakMap exp, const std::vector<InternalC
 
 END_SECTION
 
-std::vector<PeptideIdentification> peps;
+PeptideIdentificationList peps;
 std::vector<ProteinIdentification> prots;
 IdXMLFile().load(File::find("./examples/BSA/BSA1_OMSSA.idXML"), prots, peps);
 
@@ -104,7 +78,7 @@ START_SECTION(Size fillCalibrants(const FeatureMap& fm, double tol_ppm))
 
 END_SECTION
 
-START_SECTION(Size fillCalibrants(const std::vector<PeptideIdentification>& pep_ids, double tol_ppm))
+START_SECTION(Size fillCalibrants(const PeptideIdentificationList& pep_ids, double tol_ppm))
   InternalCalibration ic;
   Size cal_count = ic.fillCalibrants(peps, 100.0);
   TEST_EQUAL(cal_count, 44);
@@ -127,7 +101,7 @@ START_SECTION(bool calibrate(PeakMap& exp, const IntList& target_mslvl, MZTrafoM
   MzMLFile().load(File::find("./examples/BSA/BSA1.mzML"), exp);
   MZTrafoModel::setRANSACSeed(0);
   MZTrafoModel::setRANSACParams(Math::RANSACParam(2, 1000, 1.0, 30, true));
-  bool success = ic.calibrate(exp, std::vector<Int>(1, 1), MZTrafoModel::LINEAR, -1, true, 1.0, 1.0);
+  bool success = ic.calibrate(exp, std::vector<Int>(1, 1), MZTrafoModel::MODELTYPE::LINEAR, -1, true, 1.0, 1.0);
   TEST_EQUAL(success, true)
 END_SECTION
 

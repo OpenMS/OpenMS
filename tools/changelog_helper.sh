@@ -1,33 +1,7 @@
 #!/bin/bash
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
+# 
 # --------------------------------------------------------------------------
 # $Maintainer: Johannes Veit $
 # $Authors: Johannes Veit $
@@ -39,8 +13,9 @@
 #
 # - Discontinued tools
 # - New tools
-# - Tools with changed status (TOPP <-> UTIL)
 # - Parameter changes from generated INI files
+#
+# Output is in Markdown format.
 #
 # Worked for me on MacOS comparing release 2.0 (built from source) vs.
 # release 1.11.1 (installed using binary installer). Might not run
@@ -55,7 +30,7 @@ then
     exit 1
 fi
 
-# directories containing TOPP/UTILS binaries
+# directories containing TOPP binaries
 BIN_DIR_OLD=$1
 BIN_DIR_NEW=$2
 
@@ -74,7 +49,7 @@ TMP_FILE_COMM=${TMP_DIR}/common_tools.txt
 ls -la ${BIN_DIR_OLD}/ \
     | awk '{print $9}' \
     | sort \
-    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper\|SwathWizard\|Testing" \
+    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper\|SwathWizard\|FLASHDeconvWizard\|Testing" \
     | grep -v -e "\.$" \
     | grep -v -e "^$" \
     > ${TMP_FILE_OLD}
@@ -82,7 +57,7 @@ ls -la ${BIN_DIR_OLD}/ \
 ls -la ${BIN_DIR_NEW}/ \
     | awk '{print $9}' \
     | sort \
-    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper\|SwathWizard\|Testing" \
+    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper\|SwathWizard\|FLASHDeconvWizard\|Testing" \
     | grep -v -e "\.$" \
     | grep -v -e "^$"  \
     > ${TMP_FILE_NEW}
@@ -98,7 +73,7 @@ do
         GREP_CHAR="<"
     fi
     echo
-    echo "- $s:"
+    echo "## $s"
     echo
     diff ${TMP_FILE_OLD} ${TMP_FILE_NEW} \
         | grep -e "^${GREP_CHAR}" \
@@ -106,13 +81,12 @@ do
         | while read i
         do
             TOOL_NAME=$(echo $i | sed -E "s/^. //")
-            TOOL_DESCR=$(${BIN_DIR}/${TOOL_NAME} --help 2>&1 | grep " -- " | head -n 1 | sed -E 's/.* -- (.*)$/\1/' | sed -E 's/\.$//')
-            TOOL_STATUS=$(${BIN_DIR}/${TOOL_NAME} --help 2>&1 | grep -e "Common.*options" | sed -E 's/.*Common (.*) options.*/\1/')
+            TOOL_DESCR=$(LD_LIBRARY_PATH=${BIN_DIR}/../lib:${LD_LIBRARY_PATH} ${BIN_DIR}/${TOOL_NAME} --help 2>&1 | grep " -- " | head -n 1 | sed -E 's/.* -- (.*)$/\1/' | sed -E 's/\.$//')
             if [[ ${TOOL_DESCR} != "" ]]
             then
-                echo "  - ${TOOL_NAME} -- ${TOOL_DESCR} (${TOOL_STATUS})"
+                echo "- ${TOOL_NAME} -- ${TOOL_DESCR}"
             else
-                echo "  - ${TOOL_NAME} (${TOOL_STATUS})"
+                echo "- ${TOOL_NAME}"
             fi
 
 
@@ -123,25 +97,12 @@ done
 # store names of tools present in both old and new release in tmp file
 comm -12 ${TMP_FILE_OLD} ${TMP_FILE_NEW} > ${TMP_FILE_COMM}
 
-# find tools with changed status (TOPP / UTIL)
+# print changed parameters as markdown table
 echo
-echo "- STATUS CHANGED:"
+echo "## CHANGED PARAMETERS"
 echo
-cat ${TMP_FILE_COMM} | while read t
-do
-    OLD_STATUS=$(${BIN_DIR_OLD}/$t --help 2>&1 | grep -e "Common.*options" | sed -E 's/.*Common (.*) options.*/\1/')
-    NEW_STATUS=$(${BIN_DIR_NEW}/$t --help 2>&1 | grep -e "Common.*options" | sed -E 's/.*Common (.*) options.*/\1/')
-    if [[ ${OLD_STATUS} != ${NEW_STATUS} ]]
-    then
-        echo "$t (${OLD_STATUS} -> ${NEW_STATUS})"
-    fi
-done
-
-# print changed parameters as tab-separated table
-echo
-echo "- CHANGED PARAMETERS:"
-echo
-echo -e "Tool name\tAdded/removed\tParameter name\tType\tDefault value\tRestrictions\tSupported formats"
+echo "| Tool name | Added/removed | Parameter name | Type | Default value | Restrictions | Supported formats |"
+echo "|-----------|:-------------:|----------------|------|---------------|--------------|-------------------|"
 
 # write ini files for old and new tools, modify them on the fly:
 #
@@ -162,10 +123,11 @@ do
         # reset subsection prefix
         p=
         # generate pseudo ini file
-        ${BIN_DIR}/$t -write_ini - \
+        LD_LIBRARY_PATH=${BIN_DIR}/../lib:${LD_LIBRARY_PATH} ${BIN_DIR}/$t -write_ini - \
             | grep -v "name=\"version\"" \
             | sed -E 's/description="[^"]*"|required="[^"]*"|advanced="[^"]*"//g' \
             | sed -E 's/restrictions="[^"]*pyrophospho[^"]*"/ restrictions="..."/' \
+            | sed -E 's/tags="is_executable"//g' \
             | while read l
             do
                 # new NODE -> append subsection to prefix p
@@ -186,7 +148,7 @@ do
     sort ${TMP_DIR}/inis/new/$t.pseudo.ini -o ${TMP_DIR}/inis/new/$t.pseudo.ini
 done \
 
-# compute diffs of pseudo ini files and output tab-separated table of changed parameters
+# compute diffs of pseudo ini files and output markdown table of changed parameters
 cat ${TMP_FILE_COMM} | while read t
 do
     diff -d ${TMP_DIR}/inis/old/$t.pseudo.ini ${TMP_DIR}/inis/new/$t.pseudo.ini
@@ -204,7 +166,7 @@ done \
         P_VALUE=$(echo $l | grep "value=" | sed -E 's/.*value="([^"]*)".*/\1/')
         P_RESTRICTIONS=$(echo $l | grep "restrictions=" | sed -E 's/.*restrictions="([^"]*)".*/\1/')
         P_FORMATS=$(echo $l | grep "supported_formats=" | sed -E 's/.*supported_formats="([^"]*)".*/\1/')
-        echo -e "${T_NAME}\t${P_ADD_REM}\t${P_NAME}\t${P_TYPE}\t${P_VALUE}\t${P_RESTRICTIONS}\t${P_FORMATS}"
+        echo "| ${T_NAME} | ${P_ADD_REM} | ${P_NAME} | ${P_TYPE} | ${P_VALUE} | ${P_RESTRICTIONS} | ${P_FORMATS} |"
     done | sort
 
 #cleanup

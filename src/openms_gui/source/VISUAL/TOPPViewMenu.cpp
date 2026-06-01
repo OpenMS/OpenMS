@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -74,10 +48,13 @@ namespace OpenMS
     m_file->setToolTipsVisible(true);
     parent->menuBar()->addMenu(m_file);
 
-    m_file->addAction("&Open file", parent, &TOPPViewBase::openFilesByDialog, Qt::CTRL + Qt::Key_O);
-    m_file->addAction("Open &example file", parent, [parent]() { parent->openFilesByDialog(File::getOpenMSDataPath() + "/examples/"); }, Qt::CTRL + Qt::Key_E);
-    addAction_(m_file->addAction("&Close tab", parent, &TOPPViewBase::closeTab, Qt::CTRL + Qt::Key_W),
-               TV_STATUS::HAS_CANVAS);
+    // we explicitly pass an empty Path here using a Lambda, since using the default `..., parent, &TOPPViewBase::openFilesByDialog, ...`)
+    // passes a "0" as argument (Qt bug?)
+    m_file->addAction("&Open file", parent, [parent]() { parent->openFilesByDialog(""); })->setShortcut(Qt::CTRL | Qt::Key_O);
+    m_file->addAction("Open &example file", parent, [parent]() { parent->openFilesByDialog(File::getOpenMSDataPath() + "/examples/"); })->setShortcut(Qt::CTRL | Qt::Key_E);
+    action = m_file->addAction("&Close tab", parent, &TOPPViewBase::closeTab);
+    action->setShortcut(Qt::CTRL | Qt::Key_W);
+    addAction_(action, TV_STATUS::HAS_CANVAS);
     m_file->addSeparator();
 
     // Meta data
@@ -107,34 +84,42 @@ namespace OpenMS
     QMenu* m_tools = new QMenu("&Tools", parent);
     m_tools->setToolTipsVisible(true);
     parent->menuBar()->addMenu(m_tools);
-    addAction_(m_tools->addAction("&Select data range", parent, &TOPPViewBase::showGoToDialog, Qt::CTRL + Qt::Key_G),
-      TV_STATUS::HAS_LAYER);
-    addAction_(m_tools->addAction("&Edit meta data", parent, &TOPPViewBase::editMetadata, Qt::CTRL + Qt::Key_M),
-      TV_STATUS::HAS_LAYER);
+    action = m_tools->addAction("&Select data range", parent, &TOPPViewBase::showGoToDialog);
+    action->setShortcut(Qt::CTRL | Qt::Key_G);
+    addAction_(action, TV_STATUS::HAS_LAYER);
+    action = m_tools->addAction("&Edit meta data", parent, &TOPPViewBase::editMetadata);
+    action->setShortcut(Qt::CTRL | Qt::Key_M);
+    addAction_(action, TV_STATUS::HAS_LAYER);
     addAction_(m_tools->addAction("&Statistics", parent, &TOPPViewBase::layerStatistics),
       TV_STATUS::HAS_LAYER);
     m_tools->addSeparator();
-    action = addAction_(m_tools->addAction("Apply TOPP tool (whole layer)", parent, &TOPPViewBase::showTOPPDialog, Qt::CTRL + Qt::Key_T),
-        TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
+    action = m_tools->addAction("Apply TOPP tool (whole layer)", parent, &TOPPViewBase::showTOPPDialog);
+    action->setShortcut(Qt::CTRL | Qt::Key_T);
     action->setData(false);
-    action = addAction_(m_tools->addAction("Apply TOPP tool (visible layer data)", parent, &TOPPViewBase::showTOPPDialog, Qt::CTRL + Qt::SHIFT + Qt::Key_T),
-      TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
+    addAction_(action, TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
+    action = m_tools->addAction("Apply TOPP tool (visible layer data)", parent, &TOPPViewBase::showTOPPDialog);
+    action->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_T);
     action->setData(true);
-    addAction_(m_tools->addAction("Rerun TOPP tool", parent, &TOPPViewBase::rerunTOPPTool, Qt::Key_F4),
-      TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
+    addAction_(action, TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
+    action = m_tools->addAction("Rerun TOPP tool", parent, &TOPPViewBase::rerunTOPPTool);
+    action->setShortcut(Qt::Key_F4);
+    addAction_(action, TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
     m_tools->addSeparator();
-    
-    action = addAction_(m_tools->addAction("&Annotate with AccurateMassSearch results", parent, &TOPPViewBase::annotateWithAMS, Qt::CTRL + Qt::Key_A),
-      TV_STATUS::HAS_LAYER, FS_LAYER(LayerDataBase::DT_PEAK));
-    action->setToolTip("Annotate Peak layer with a featureXML from the AccurateMassSearch tool");
-    
-    action = addAction_(m_tools->addAction("&Annotate with peptide identifications", parent, &TOPPViewBase::annotateWithID, Qt::CTRL + Qt::Key_I),
-      TV_STATUS::HAS_LAYER, LayerDataBase::DT_PEAK + LayerDataBase::DT_FEATURE + LayerDataBase::DT_CONSENSUS);
-    action->setToolTip("Annotate a Peak or Feature or Consensus layer with peptide identifications");
 
-    action = addAction_(m_tools->addAction("&Annotate with OpenSwath transitions", parent, &TOPPViewBase::annotateWithOSW, Qt::CTRL + Qt::Key_P),
-      TV_STATUS::HAS_LAYER, FS_LAYER(LayerDataBase::DT_CHROMATOGRAM));
+    action = m_tools->addAction("&Annotate with AccurateMassSearch results", parent, &TOPPViewBase::annotateWithAMS);
+    action->setShortcut(Qt::CTRL | Qt::Key_A);
+    action->setToolTip("Annotate Peak layer with a featureXML from the AccurateMassSearch tool");
+    addAction_(action, TV_STATUS::HAS_LAYER, FS_LAYER(LayerDataBase::DT_PEAK));
+
+    action = m_tools->addAction("&Annotate with peptide identifications", parent, &TOPPViewBase::annotateWithID);
+    action->setShortcut(Qt::CTRL | Qt::Key_I);
+    action->setToolTip("Annotate a Peak or Feature or Consensus layer with peptide identifications");
+    addAction_(action, TV_STATUS::HAS_LAYER, LayerDataBase::DT_PEAK + LayerDataBase::DT_FEATURE + LayerDataBase::DT_CONSENSUS);
+
+    action = m_tools->addAction("&Annotate with OpenSwath transitions", parent, &TOPPViewBase::annotateWithOSW);
+    action->setShortcut(Qt::CTRL | Qt::Key_P);
     action->setToolTip("Annotate Chromatogram layer with OSW transition id data from OpenSwathWorkflow or pyProphet");
+    addAction_(action, TV_STATUS::HAS_LAYER, FS_LAYER(LayerDataBase::DT_CHROMATOGRAM));
     
     action = addAction_(m_tools->addAction("Align spectra", parent, &TOPPViewBase::showSpectrumAlignmentDialog),
       TV_STATUS::HAS_MIRROR_MODE);
@@ -146,15 +131,19 @@ namespace OpenMS
     QMenu* m_layer = new QMenu("&Layer", parent);
     m_layer->setToolTipsVisible(true);
     parent->menuBar()->addMenu(m_layer);
-    addAction_(m_layer->addAction("Save all data", parent, &TOPPViewBase::saveLayerAll, Qt::CTRL + Qt::Key_S),
-      TV_STATUS::HAS_LAYER);
-    addAction_(m_layer->addAction("Save visible data", parent, &TOPPViewBase::saveLayerVisible, Qt::CTRL + Qt::SHIFT + Qt::Key_S),
-      TV_STATUS::HAS_LAYER);
+    action = m_layer->addAction("Save all data", parent, &TOPPViewBase::saveLayerAll);
+    action->setShortcut(Qt::CTRL | Qt::Key_S);
+    addAction_(action, TV_STATUS::HAS_LAYER);
+    action = m_layer->addAction("Save visible data", parent, &TOPPViewBase::saveLayerVisible);
+    action->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_S);
+    addAction_(action, TV_STATUS::HAS_LAYER);
     m_layer->addSeparator();
-    addAction_(m_layer->addAction("Show/hide grid lines", parent, &TOPPViewBase::toggleGridLines, Qt::CTRL + Qt::Key_R),
-      TV_STATUS::HAS_LAYER);
-    addAction_(m_layer->addAction("Show/hide axis legends", parent, &TOPPViewBase::toggleAxisLegends, Qt::CTRL + Qt::Key_L),
-      TV_STATUS::HAS_CANVAS);
+    action = m_layer->addAction("Show/hide grid lines", parent, &TOPPViewBase::toggleGridLines);
+    action->setShortcut(Qt::CTRL | Qt::Key_R);
+    addAction_(action, TV_STATUS::HAS_LAYER);
+    action = m_layer->addAction("Show/hide axis legends", parent, &TOPPViewBase::toggleAxisLegends);
+    action->setShortcut(Qt::CTRL | Qt::Key_L);
+    addAction_(action, TV_STATUS::HAS_CANVAS);
     action = addAction_(m_layer->addAction("Show/hide automated m/z annotations", parent, &TOPPViewBase::toggleInterestingMZs),
       TV_STATUS::IS_1D_VIEW);
     action->setToolTip("Only available in 1D View");
@@ -184,7 +173,7 @@ namespace OpenMS
     m_help->addAction(QWhatsThis::createAction(m_help));
     m_help->addSeparator();
     m_help->addAction("OpenMS website", []() { GUIHelpers::openURL("http://www.OpenMS.de"); });
-    m_help->addAction("Tutorials and documentation", []() { GUIHelpers::openURL("html/index.html"); }, Qt::Key_F1);
+    m_help->addAction("Tutorials and documentation", []() { GUIHelpers::openURL("html/index.html"); })->setShortcut(Qt::Key_F1);
 
     m_help->addSeparator();
 

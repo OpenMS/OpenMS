@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -63,7 +37,7 @@ START_SECTION((Param parse(const StringList &setting)))
   settings.push_back("INFO add a.out");
   settings.push_back("FATAL_ERROR add cerr");
 
-  Param p = LogConfigHandler::getInstance().parse(settings);
+  Param p = LogConfigHandler::getInstance()->parse(settings);
 
   // p should contain a list of the above set commands
   std::vector<std::string> parsedConfigs = p.getValue(LogConfigHandler::PARAM_NAME);
@@ -76,12 +50,14 @@ START_SECTION((Param parse(const StringList &setting)))
   StringList settings2;
   settings2.push_back("DEBUG");
 
-  TEST_EXCEPTION(Exception::ParseError, LogConfigHandler::getInstance().parse(settings2));
+  TEST_EXCEPTION(Exception::ParseError, LogConfigHandler::getInstance()->parse(settings2));
 }
 END_SECTION
 
 START_SECTION((void configure(const Param &param)))
 {
+  // Note: LogConfigHandler configures the GLOBAL log streams, not thread-local streams.
+  // We must use global streams directly to test that configuration works correctly.
   std::vector<std::string> settings = {"INFO add testing_info_warn_stream STRING",
                                       "WARNING add testing_info_warn_stream STRING",
                                       "ERROR add only_error_string_stream STRING",
@@ -92,23 +68,24 @@ START_SECTION((void configure(const Param &param)))
   Param p;
   p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
 
-  LogConfigHandler::getInstance().configure(p);
+  LogConfigHandler::getInstance()->configure(p);
 
-  OPENMS_LOG_INFO << "1" << endl;
-  OPENMS_LOG_INFO << "2" << endl;
-  OPENMS_LOG_WARN << "3" << endl;
-  OPENMS_LOG_ERROR << "4" << endl;
+  // Use GLOBAL streams directly to test configuration (not OPENMS_LOG_* which use thread-local)
+  getGlobalLogInfo() << "1" << endl;
+  getGlobalLogInfo() << "2" << endl;
+  getGlobalLogWarn() << "3" << endl;
+  getGlobalLogError() << "4" << endl;
 
   settings.clear();
   settings.push_back("WARNING clear");
   p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
 
-  LogConfigHandler::getInstance().configure(p);
+  LogConfigHandler::getInstance()->configure(p);
 
-  // this should go into nowhere
-  OPENMS_LOG_WARN << "5" << endl;
+  // this should go into nowhere (warn stream was cleared)
+  getGlobalLogWarn() << "5" << endl;
 
-  ostringstream& info_warn_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance().getStream("testing_info_warn_stream"));
+  ostringstream& info_warn_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("testing_info_warn_stream"));
   String info_warn_stream_content(info_warn_stream.str());
   StringList info_warn_result;
   info_warn_stream_content.trim().split('\n', info_warn_result, true );
@@ -126,7 +103,7 @@ START_SECTION((void configure(const Param &param)))
     TEST_TRUE(regex_search(*it, rx)) // stream may be wrapped in ANSI color codes; only search infix
     ++i;
   }
-  ostringstream& error_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance().getStream("only_error_string_stream"));
+  ostringstream& error_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("only_error_string_stream"));
   String error_stream_content(error_stream.str());
   StringList error_result;
   error_stream_content.trim().split('\n', error_result, true );
@@ -142,17 +119,18 @@ END_SECTION
 
 START_SECTION((ostream& getStream(const String &stream_name)))
 {
+  // Use global streams directly to test LogConfigHandler configuration
   std::vector<std::string> settings;
   settings.push_back("INFO add testing_getStream STRING");
 
   Param p;
   p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
 
-  LogConfigHandler::getInstance().configure(p);
+  LogConfigHandler::getInstance()->configure(p);
 
-  OPENMS_LOG_INFO << "getStream 1" << endl;
+  getGlobalLogInfo() << "getStream 1" << endl;
 
-  ostringstream& info_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance().getStream("testing_getStream"));
+  ostringstream& info_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("testing_getStream"));
   String info_content(info_stream.str());
 
   StringList info_result;
@@ -168,9 +146,134 @@ START_SECTION((ostream& getStream(const String &stream_name)))
 END_SECTION
 
 LogConfigHandler* nullPointer = nullptr;
-START_SECTION((static LogConfigHandler& getInstance()))
+START_SECTION((static LogConfigHandler* getInstance()))
 {
-  TEST_NOT_EQUAL(&LogConfigHandler::getInstance(), nullPointer)
+  TEST_NOT_EQUAL(LogConfigHandler::getInstance(), nullPointer)
+}
+END_SECTION
+
+START_SECTION((void setLogLevel(const String &log_level) - restoring streams))
+{
+  // Test that setLogLevel can restore streams when lowering the log level
+  // Use global streams directly to test LogConfigHandler configuration
+
+  // Setup: Create a string stream for INFO level
+  std::vector<std::string> settings;
+  settings.push_back("INFO add test_setloglevel_stream STRING");
+
+  Param p;
+  p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
+  LogConfigHandler::getInstance()->configure(p);
+
+  // Write a message at INFO level - should appear
+  getGlobalLogInfo() << "message1" << endl;
+
+  // Set log level to ERROR (should remove INFO streams)
+  LogConfigHandler::getInstance()->setLogLevel("ERROR");
+
+  // Write a message at INFO level - should NOT appear
+  getGlobalLogInfo() << "message2" << endl;
+
+  // Lower log level back to INFO (should restore INFO streams)
+  LogConfigHandler::getInstance()->setLogLevel("INFO");
+
+  // Write a message at INFO level - should appear again
+  getGlobalLogInfo() << "message3" << endl;
+  
+  // Check the stream content
+  ostringstream& test_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_setloglevel_stream"));
+  String content(test_stream.str());
+  StringList result;
+  content.trim().split('\n', result, true);
+  
+  // Should have message1 and message3, but not message2
+  TEST_EQUAL(result.size(), 2)
+  TEST_TRUE(result[0].hasSubstring("message1"))
+  TEST_TRUE(result[1].hasSubstring("message3"))
+}
+END_SECTION
+
+START_SECTION((removeAllStreams flushes buffers))
+{
+  // Test that removeAllStreams flushes buffers before clearing
+  // Use global streams directly to test LogConfigHandler configuration
+
+  // Setup: Create a string stream for WARNING level
+  std::vector<std::string> settings;
+  settings.push_back("WARNING add test_flush_stream STRING");
+
+  Param p;
+  p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
+  LogConfigHandler::getInstance()->configure(p);
+
+  // Write without endl (no flush yet)
+  getGlobalLogWarn() << "unflushed_message";
+
+  // Set log level to ERROR (which calls removeAllStreams on WARNING)
+  // This should flush the buffer before removing streams
+  LogConfigHandler::getInstance()->setLogLevel("ERROR");
+  
+  // Check the stream content - the unflushed message should be there
+  ostringstream& test_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_flush_stream"));
+  String content(test_stream.str());
+  
+  // The message should be in the stream even though it wasn't flushed with endl
+  TEST_TRUE(content.hasSubstring("unflushed_message"))
+}
+END_SECTION
+
+START_SECTION((void setLogLevel(const String &log_level) - NONE level))
+{
+  // Test that setLogLevel("NONE") disables all logging and can be restored
+  // Use global streams directly to test LogConfigHandler configuration
+
+  // Setup: Create string streams for multiple levels
+  std::vector<std::string> settings;
+  settings.push_back("INFO add test_none_info_stream STRING");
+  settings.push_back("ERROR add test_none_error_stream STRING");
+
+  Param p;
+  p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
+  LogConfigHandler::getInstance()->configure(p);
+
+  // Write messages - should appear
+  getGlobalLogInfo() << "before_none_info" << endl;
+  getGlobalLogError() << "before_none_error" << endl;
+
+  // Set log level to NONE (should remove all streams)
+  LogConfigHandler::getInstance()->setLogLevel("NONE");
+
+  // Write messages - should NOT appear
+  getGlobalLogInfo() << "during_none_info" << endl;
+  getGlobalLogError() << "during_none_error" << endl;
+
+  // Restore log level to INFO (should restore INFO and higher streams)
+  LogConfigHandler::getInstance()->setLogLevel("INFO");
+
+  // Write messages - should appear again
+  getGlobalLogInfo() << "after_none_info" << endl;
+  getGlobalLogError() << "after_none_error" << endl;
+  
+  // Check INFO stream
+  ostringstream& info_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_none_info_stream"));
+  String info_content(info_stream.str());
+  TEST_TRUE(info_content.hasSubstring("before_none_info"))
+  TEST_FALSE(info_content.hasSubstring("during_none_info"))
+  TEST_TRUE(info_content.hasSubstring("after_none_info"))
+  
+  // Check ERROR stream
+  ostringstream& error_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_none_error_stream"));
+  String error_content(error_stream.str());
+  TEST_TRUE(error_content.hasSubstring("before_none_error"))
+  TEST_FALSE(error_content.hasSubstring("during_none_error"))
+  TEST_TRUE(error_content.hasSubstring("after_none_error"))
+}
+END_SECTION
+
+START_SECTION((void setLogLevel(const String &log_level) - invalid level))
+{
+  // Test that setLogLevel throws an exception for invalid log levels
+  TEST_EXCEPTION(Exception::IllegalArgument, LogConfigHandler::getInstance()->setLogLevel("INVALID_LEVEL"))
 }
 END_SECTION
 

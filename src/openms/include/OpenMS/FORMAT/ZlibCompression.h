@@ -1,35 +1,9 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Authors: Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -40,59 +14,84 @@
 
 #include <string>
 #include <vector>
-#include <QByteArray>
 
 namespace OpenMS
 {
   class String;
 
   /**
-    * @brief Compresses and uncompresses data using zlib
-    *
-    * @note The 'strings' here are not really null-terminated but rather
-    * containers of data. If you want safe conversions, use QtByteArray.
-    * 
+    @brief Compresses and uncompresses arbitrary byte buffers using zlib.
+
+    Static utility class. All methods treat the @c std::string / @c String
+    arguments as raw byte containers; the data is not assumed to be NUL-
+    terminated and may contain embedded zeros.
+
+    @note Only the raw zlib format is supported on the decompression side;
+          gzip-framed streams are rejected.
+
+    @ingroup FileIO
   */
   class OPENMS_DLLAPI ZlibCompression
   {
 public:
 
     /**
-      * @brief Compresses data using zlib directly
-      *
-      * @param raw_data Data to be compressed
-      * @param compressed_data Compressed result data
-      * 
+      @brief Compress @p raw_data into @p compressed_data using zlib.
+
+      @param[in]  raw_data        Data to compress (treated as a raw byte buffer; the reference is read-only despite the non-const type).
+      @param[out] compressed_data Receives the compressed payload; any previous contents are replaced.
+
+      @throws Exception::OutOfMemory     if zlib cannot allocate an output buffer of the worst-case size.
+      @throws Exception::InvalidValue    if the destination buffer turns out to be too small for the compressed output.
+      @throws Exception::ConversionError if zlib reports any other failure during compression.
     */
     static void compressString(std::string& raw_data, std::string& compressed_data);
 
     /**
-      * @brief Compresses data using Qt
-      *
-      * @param raw_data Data to be compressed
-      * @param compressed_data Compressed result data
-      * 
+      @brief Compress the @p in_length bytes pointed to by @p raw_data into @p compressed_data using zlib.
+
+      @param[in]  raw_data        Pointer to the bytes to compress.
+      @param[in]  in_length       Length of @p raw_data in bytes.
+      @param[out] compressed_data Receives the compressed payload; any previous contents are replaced.
+
+      @throws Exception::OutOfMemory     if zlib cannot allocate an output buffer of the worst-case size.
+      @throws Exception::InvalidValue    if the destination buffer turns out to be too small for the compressed output.
+      @throws Exception::ConversionError if zlib reports any other failure during compression.
     */
-    static void compressString(const QByteArray& raw_data, QByteArray& compressed_data);
+    static void compressData(const void* raw_data, const size_t in_length, std::string& compressed_data);
 
     /**
-      * @brief Uncompresses data using Qt (wrapper around Qt function)
-      *
-      * @param compressed_data Compressed data
-      * @param nr_bytes Number of bytes in compressed data
-      * @param raw_data Uncompressed result data
-      * 
+      @brief Uncompress @p compressed_data using zlib.
+
+      When the uncompressed size is known up front, pass it as @p output_size
+      to skip the iterative chunked path and decompress straight into a
+      single preallocated buffer. Pass @c 0 (the default) when the size is
+      not known; decompression then proceeds chunk by chunk.
+
+      @note Only zlib-format data is accepted; gzip-framed streams are
+            rejected with @c Exception::InternalToolError.
+
+      @param[in]  compressed_data Pointer to the zlib-compressed bytes.
+      @param[in]  nr_bytes        Length of @p compressed_data in bytes; passing @c 0 with a non-zero @p output_size results in an empty @p out.
+      @param[out] out             Receives the decompressed bytes; any previous contents are replaced.
+      @param[in]  output_size     Expected uncompressed size (optional). When @c 0, an iterative path is taken; when positive, @p out is sized to @p output_size up front. If the actual decompressed size turns out to be smaller, @p out is shrunk to match and an informational message is logged.
+
+      @throws Exception::InvalidValue      if @p output_size was specified (>0) but is smaller than the actual uncompressed size.
+      @throws Exception::InternalToolError if zlib cannot decompress the data (corrupted input, unsupported gzip framing, or any other zlib failure).
     */
-    static void uncompressString(const void * compressed_data, size_t nr_bytes, std::string& raw_data);
+    static void uncompressData(const void* compressed_data, size_t nr_bytes, std::string& out, size_t output_size = 0);
 
     /**
-      * @brief Uncompresses data using Qt
-      *
-      * @param compressed_data Compressed data
-      * @param raw_data Uncompressed result data
-      * 
+      @brief Convenience wrapper around @ref uncompressData that takes a @c String input.
+
+      @param[in]  in          Compressed input.
+      @param[out] out         Receives the decompressed bytes; any previous contents are replaced.
+      @param[in]  output_size Expected uncompressed size; see @ref uncompressData.
+
+      @throws Exception::InvalidValue      see @ref uncompressData.
+      @throws Exception::InternalToolError see @ref uncompressData.
     */
-    static void uncompressString(const QByteArray& compressed_data, QByteArray& raw_data);
+    static void uncompressString(const String& in, std::string& out, size_t output_size = 0);
 
   };
 

@@ -1,32 +1,5 @@
-
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -37,6 +10,8 @@
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+// LightTargetedExperiment is defined in openswathalgo
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 using namespace std;
 
@@ -79,6 +54,7 @@ namespace OpenMS
     output.setChromatograms(empty_chromats);
 
     int notmapped = 0;
+    int multi_mapped = 0;
     for (Size i = 0; i < chromatogram_map.getChromatograms().size(); i++)
     {
       // try to find the best matching transition for this chromatogram
@@ -90,12 +66,12 @@ namespace OpenMS
       {
         if (map_multiple_assays_)
         {
-          OPENMS_LOG_WARN << "Warning: Chromatogram " + 
-            String(chromatogram.getNativeID()) + " has no precursor or product m/z recorded, mapping may not work." << std::endl;
+          OPENMS_LOG_DEBUG << "Chromatogram " + String(chromatogram.getNativeID()) +
+            " has no precursor or product m/z recorded, mapping may not work." << std::endl;
         }
         else
         {
-          OPENMS_LOG_WARN << "Skip mapping for chromatogram " + 
+          OPENMS_LOG_DEBUG << "Skip mapping for chromatogram " +
             String(chromatogram.getNativeID()) + " since no precursor or product m/z was recorded." << std::endl;
           continue;
         }
@@ -145,7 +121,7 @@ namespace OpenMS
       //  - else append the first mapped chromatograms (if we don't allow multiple mappings)
       if (mapped_chroms.empty())
       {
-        OPENMS_LOG_WARN << "Did not find a mapping for chromatogram " + String(i) + " with transition " + String(chromatogram.getPrecursor().getMZ()) + \
+        OPENMS_LOG_DEBUG << "Did not find a mapping for chromatogram " + String(i) + " with transition " + String(chromatogram.getPrecursor().getMZ()) + \
           " -> " + String(chromatogram.getProduct().getMZ()) +  "! Maybe try to increase your mapping tolerance." << std::endl;
         notmapped++;
         if (error_on_unmapped_)
@@ -159,7 +135,8 @@ namespace OpenMS
         for (auto & c : mapped_chroms) output.addChromatogram(c);
         if (mapped_chroms.size() > 1)
         {
-          OPENMS_LOG_WARN << "Chromatogram " + String(chromatogram.getNativeID()) <<
+          ++multi_mapped;
+          OPENMS_LOG_DEBUG << "Chromatogram " + String(chromatogram.getNativeID()) <<
             " with " + String(chromatogram.getPrecursor().getMZ()) <<
             " -> " + String(chromatogram.getProduct().getMZ()) <<
             " maps to multiple assays!" << std::endl;
@@ -178,18 +155,68 @@ namespace OpenMS
       }
     }
 
-    if (notmapped > 0)
+    int total = static_cast<int>(chromatogram_map.getChromatograms().size());
+    int mapped = total - notmapped;
+    OPENMS_LOG_DEBUG << "MRMMapping: mapped=" << mapped << ", unmapped=" << notmapped << ", multi_mapped=" << multi_mapped << " chromatogram(s)." << std::endl;
+    if (notmapped > 0 && error_on_unmapped_)
     {
-      OPENMS_LOG_WARN << "Could not find mapping for " << notmapped  << " chromatogram(s)." << std::endl;
-      if (error_on_unmapped_)
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Found " + String(notmapped) + \
-            " unmapped chromatograms, disable error_on_unmapped to continue.");
-      }
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Found " + String(notmapped) + \
+          " unmapped chromatograms, disable error_on_unmapped to continue.");
     }
 
 
   }
+
+
+void MRMMapping::mapExperiment(const OpenMS::PeakMap& chromatogram_map,
+    const OpenSwath::LightTargetedExperiment& targeted_exp,
+    OpenMS::PeakMap& output) const
+{
+  // Convert LightTargetedExperiment -> TargetedExperiment (minimal conversion)
+  OpenMS::TargetedExperiment te;
+
+  // Convert compounds/peptides
+  for (const auto & lc : targeted_exp.getCompounds())
+  {
+    OpenMS::TargetedExperiment::Peptide p;
+    p.id = lc.id;
+    p.sequence = lc.sequence;
+    te.addPeptide(p);
+  }
+
+  // Convert proteins
+  for (const auto & lp : targeted_exp.getProteins())
+  {
+    OpenMS::TargetedExperiment::Protein prot;
+    prot.id = lp.id;
+    prot.sequence = lp.sequence;
+    te.addProtein(prot);
+  }
+
+  // Convert transitions
+  for (const auto & lt : targeted_exp.getTransitions())
+  {
+    OpenMS::ReactionMonitoringTransition tr;
+    tr.setNativeID(lt.getNativeID());
+    tr.setPeptideRef(lt.getPeptideRef());
+    tr.setPrecursorMZ(lt.precursor_mz);
+    tr.setProductMZ(lt.product_mz);
+    tr.setLibraryIntensity(lt.library_intensity);
+    // Flags: detecting / quantifying / identifying -> map to transition flags
+    tr.setDetectingTransition(lt.flags.detecting != 0);
+    tr.setQuantifyingTransition(lt.flags.quantifying != 0);
+    tr.setIdentifyingTransition(lt.flags.identifying != 0);
+    // Decoy flag
+    if (lt.getDecoy()) tr.setDecoyTransitionType(OpenMS::ReactionMonitoringTransition::DECOY);
+    else tr.setDecoyTransitionType(OpenMS::ReactionMonitoringTransition::TARGET);
+
+    te.addTransition(tr);
+  }
+
+  // Now call the existing implementation
+  mapExperiment(chromatogram_map, te, output);
+
+}
 
 } //namespace
 

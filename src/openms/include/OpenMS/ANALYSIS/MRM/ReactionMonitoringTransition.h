@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -35,9 +9,11 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/CVTermList.h>
 
+#include <functional>
 #include <vector>
 #include <bitset>
 
@@ -47,7 +23,7 @@ namespace OpenMS
   /**
     @brief This class stores a SRM/MRM transition
 
-    This class is capable of representing a <Transition> tag in a TraML
+    This class is capable of representing a \<Transition\> tag in a TraML
     document completely and contains all associated information.
 
     The default values for precursor m/z is 0.0 which indicates that it is
@@ -282,10 +258,7 @@ public:
     /// Comparator by Product ion MZ
     struct ProductMZLess
     {
-      inline bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const
-      {
-        return left.getProductMZ() < right.getProductMZ();
-      }
+      bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const;
     };
     //@}
 
@@ -297,10 +270,7 @@ public:
     /// Comparator by name
     struct NameLess
     {
-      inline bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const
-      {
-        return left.getName() < right.getName();
-      }
+      bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const;
     };
     //@}
 
@@ -318,7 +288,7 @@ protected:
     String peptide_ref_; ///< Reference to a specific peptide
     String compound_ref_; ///< Reference to a specific compound
 
-    /// Intensity of the product (q3) ion (stored in CV Term 1001226 inside the <Transition> tag)
+    /// Intensity of the product (q3) ion (stored in CV Term 1001226 inside the \<Transition\> tag)
     double library_intensity_;
 
     /// specific properties of a transition (e.g. specific CV terms)
@@ -359,5 +329,133 @@ protected:
     std::bitset<3> transition_flags_;
     //@}
   };
-}
+} // namespace OpenMS
+
+namespace std
+{
+  /// Hash function for ReactionMonitoringTransition
+  template<>
+  struct hash<OpenMS::ReactionMonitoringTransition>
+  {
+    std::size_t operator()(const OpenMS::ReactionMonitoringTransition& rmt) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash base class CVTermList - use the CV terms map
+      for (const auto& [accession, terms] : rmt.getCVTerms())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(terms.size()));
+        for (const auto& term : terms)
+        {
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(term.getAccession()));
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(term.getName()));
+        }
+      }
+
+      // Hash name_
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(rmt.getName()));
+
+      // Hash peptide_ref_
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(rmt.getPeptideRef()));
+
+      // Hash compound_ref_
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(rmt.getCompoundRef()));
+
+      // Hash precursor_mz_
+      OpenMS::hash_combine(seed, OpenMS::hash_float(rmt.getPrecursorMZ()));
+
+      // Hash precursor_cv_terms_ (pointer - check if present)
+      if (rmt.hasPrecursorCVTerms())
+      {
+        const auto& precursorTerms = rmt.getPrecursorCVTermList();
+        for (const auto& [accession, terms] : precursorTerms.getCVTerms())
+        {
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+          OpenMS::hash_combine(seed, OpenMS::hash_int(terms.size()));
+        }
+      }
+      else
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(0));
+      }
+
+      // Hash product_ - use getMZ and charge state
+      const auto& product = rmt.getProduct();
+      OpenMS::hash_combine(seed, OpenMS::hash_float(product.getMZ()));
+      if (product.hasCharge())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(product.getChargeState()));
+      }
+      // Hash product CV terms
+      for (const auto& [accession, terms] : product.getCVTerms())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(terms.size()));
+      }
+      // Hash configuration list size and interpretation list size
+      OpenMS::hash_combine(seed, OpenMS::hash_int(product.getConfigurationList().size()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(product.getInterpretationList().size()));
+
+      // Hash intermediate_products_ - use size and individual product m/z values
+      const auto& intermediates = rmt.getIntermediateProducts();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(intermediates.size()));
+      for (const auto& ip : intermediates)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(ip.getMZ()));
+        if (ip.hasCharge())
+        {
+          OpenMS::hash_combine(seed, OpenMS::hash_int(ip.getChargeState()));
+        }
+      }
+
+      // Hash rts (RetentionTime)
+      const auto& rt = rmt.getRetentionTime();
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(rt.software_ref));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(rt.retention_time_unit)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(rt.retention_time_type)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(rt.isRTset() ? 1 : 0));
+      if (rt.isRTset())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(rt.getRT()));
+      }
+      // Hash RetentionTime CV terms
+      for (const auto& [accession, terms] : rt.getCVTerms())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(terms.size()));
+      }
+
+      // Hash prediction_ (pointer - check if present)
+      if (rmt.hasPrediction())
+      {
+        const auto& pred = rmt.getPrediction();
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pred.software_ref));
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pred.contact_ref));
+        for (const auto& [accession, terms] : pred.getCVTerms())
+        {
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+          OpenMS::hash_combine(seed, OpenMS::hash_int(terms.size()));
+        }
+      }
+      else
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(0));
+      }
+
+      // Hash library_intensity_
+      OpenMS::hash_combine(seed, OpenMS::hash_float(rmt.getLibraryIntensity()));
+
+      // Hash decoy_type_
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(rmt.getDecoyTransitionType())));
+
+      // Hash transition_flags_ (bitset<3>) - use the boolean accessors
+      OpenMS::hash_combine(seed, OpenMS::hash_int(rmt.isDetectingTransition() ? 1 : 0));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(rmt.isIdentifyingTransition() ? 1 : 0));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(rmt.isQuantifyingTransition() ? 1 : 0));
+
+      return seed;
+    }
+  };
+} // namespace std
 

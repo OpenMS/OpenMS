@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -43,34 +17,49 @@ namespace OpenMS
 {
     class MSExperiment;
 
-    /// hierarchy levels of the OSWData tree
+    /**
+      @brief Hierarchy levels of the @ref OSWData tree.
+
+      Captures the four-level tree (Protein → Peptide → Feature → Transition) used by every
+      @c OSWData accessor that needs to talk about "which depth is being addressed",
+      together with a stable string table @c LevelName[] for log / UI output.
+
+      @ingroup TargetedQuantitation
+    */
     struct OPENMS_DLLAPI OSWHierarchy
     {
-      /// the actual levels
+      /// Tree levels in top-down order.
       enum Level
       {
-        PROTEIN,
-        PEPTIDE,
-        FEATURE,
-        TRANSITION,
-        SIZE_OF_VALUES
+        PROTEIN,         ///< Top-level protein record (@ref OSWProtein).
+        PEPTIDE,         ///< Charged peptide precursor under a protein (@ref OSWPeptidePrecursor).
+        FEATURE,         ///< One candidate peak group (chromatographic feature) under a peptide (@ref OSWPeakGroup).
+        TRANSITION,      ///< One fragment-ion transition under a feature (@ref OSWTransition).
+        SIZE_OF_VALUES   ///< Sentinel; total number of levels (also used by @ref OSWIndexTrace::lowest to mean "not set").
       };
-      /// strings matching 'Level'
+      /// Display strings parallel to @ref Level (indexed by enum value).
       static const char* LevelName[SIZE_OF_VALUES];
     };
 
-    /// Describes a node in the OSWData model tree. 
-    /// If a lower level, e.g. feature, is set, the upper levels need to be set as well.
-    /// The lowest level which is set, must be indicated by setting @p lowest.
+    /**
+      @brief Index path into the @ref OSWData tree from the root down to a specific node.
+
+      If a lower level is set (e.g. @c idx_feat), every level above it must also be set
+      (the indices form a path through the tree, not arbitrary points). The deepest level
+      whose index is meaningful is recorded in @c lowest; @c lowest == @c SIZE_OF_VALUES is
+      the default-constructed "not pointing anywhere" state.
+
+      @ingroup TargetedQuantitation
+    */
     struct OPENMS_DLLAPI OSWIndexTrace
     {
-      int idx_prot = -1;
-      int idx_pep = -1;
-      int idx_feat = -1;
-      int idx_trans = -1;
-      OSWHierarchy::Level lowest = OSWHierarchy::Level::SIZE_OF_VALUES;
+      int idx_prot  = -1;   ///< Index into @ref OSWData::getProteins, or -1 if not set
+      int idx_pep   = -1;   ///< Index into the parent protein's @c getPeptidePrecursors, or -1 if not set
+      int idx_feat  = -1;   ///< Index into the parent precursor's @c getFeatures, or -1 if not set
+      int idx_trans = -1;   ///< Index into the parent feature's @c getTransitionIDs, or -1 if not set
+      OSWHierarchy::Level lowest = OSWHierarchy::Level::SIZE_OF_VALUES;  ///< Deepest level whose index is meaningful; @c SIZE_OF_VALUES marks an unset trace
 
-      /// is the trace default constructed (=false), or does it point somewhere (=true)?
+      /// @c true if the trace points somewhere (@c lowest != @c SIZE_OF_VALUES); @c false if it is default-constructed.
       bool isSet() const
       {
         return lowest != OSWHierarchy::Level::SIZE_OF_VALUES;
@@ -78,7 +67,16 @@ namespace OpenMS
 
     };
 
-    /// high-level meta data of a transition
+    /**
+      @brief High-level meta-data of one fragment-ion transition referenced by an @ref OSWPeakGroup.
+
+      Immutable after construction (the only mutating ops are the defaulted move / copy
+      assignment overloads). The @c id field doubles as the chromatogram-native-id used to
+      resolve back into an sqMass chromatogram via @ref OSWData::fromNativeID after
+      @ref OSWData::buildNativeIDResolver has been called.
+
+      @ingroup TargetedQuantitation
+    */
     struct OPENMS_DLLAPI OSWTransition
     {
       public:
@@ -127,8 +125,12 @@ namespace OpenMS
     };
 
     /**
-      A peak group (also called feature) is defined on a small RT range (leftWidth to rightWidth) in a group of extracted transitions (chromatograms).
-      The same transitions can be used to defined multiple (usually non-overlapping in RT) peak groups, of which usually only one is correct (lowest q-value).
+      @brief A peak group (also called feature) is defined on a small RT range (leftWidth to rightWidth) in a group of extracted transitions (chromatograms).
+
+      The same transitions can be used to define multiple (usually non-overlapping in RT) peak
+      groups, of which usually only one is correct (lowest q-value).
+
+      @ingroup TargetedQuantitation
     */
     class OPENMS_DLLAPI OSWPeakGroup
     {
@@ -195,12 +197,14 @@ namespace OpenMS
     };
 
     /**
-      @brief A peptide with a charge state
+      @brief A peptide with a charge state.
 
-      An OSWProtein has one or more OSWPeptidePrecursors.
+      An @ref OSWProtein has one or more @c OSWPeptidePrecursors.
 
-      The OSWPeptidePrecursor contains multiple candidate features (peak groups) of type OSWPeakGroup, only one of which is usually true.
+      The @c OSWPeptidePrecursor contains multiple candidate features (peak groups) of type
+      @ref OSWPeakGroup, only one of which is usually true.
 
+      @ingroup TargetedQuantitation
     */
     class OPENMS_DLLAPI OSWPeptidePrecursor
     {
@@ -255,6 +259,7 @@ namespace OpenMS
     /**
       @brief A Protein is the highest entity and contains one or more peptides which were found/traced.
 
+      @ingroup TargetedQuantitation
     */
     class OPENMS_DLLAPI OSWProtein
     {
@@ -272,16 +277,19 @@ namespace OpenMS
         /// move assignment operator
         OSWProtein& operator=(OSWProtein&& rhs) = default;
 
+        /// Protein accession (UniProt-style identifier supplied at construction).
         const String& getAccession() const
         {
           return accession_;
         }
 
+        /// Protein ID as recorded by the OSW file (the @c PROTEIN_ID column in the sqlite schema).
         Size getID() const
         {
           return id_;
         }
 
+        /// Charged peptide precursors that map to this protein.
         const std::vector<OSWPeptidePrecursor>& getPeptidePrecursors() const
         {
           return peptides_;
@@ -295,11 +303,13 @@ namespace OpenMS
 
 
     /**
-      @brief Holds all or partial information from an OSW file
+      @brief Holds all or partial information from an OSW file.
 
-      First, fill in all transitions and only then add proteins (which reference transitions via their transition-ids deep down).
-      References will be checked and enforced (exception otherwise -- see addProtein()).
+      First, fill in all transitions and only then add proteins (which reference transitions
+      via their transition-ids deep down). References will be checked and enforced
+      (exception otherwise -- see @ref addProtein).
 
+      @ingroup TargetedQuantitation
     */
     class OPENMS_DLLAPI OSWData
     {
@@ -330,11 +340,11 @@ namespace OpenMS
           return proteins_;
         }
 
-        /// Replace existing protein at position @index
+        /// Replace existing protein at position @p index
         /// Note: this is NOT the protein ID, but the index into the internal protein vector. See getProteins()
-        /// 
-        /// @param index A valid index into the getProteins() vector
-        /// @param protein The protein to replace the existing one
+        ///
+        /// @param[in] index A valid index into the getProteins() vector
+        /// @param[in] protein The protein to replace the existing one
         /// @throws Exception::Precondition() if transition IDs within protein are unknown
         void setProtein(const Size index, OSWProtein&& protein)
         {
@@ -395,7 +405,7 @@ namespace OpenMS
 
           Make sure that the other OSW data is loaded (at least via OSWFile::readMinimal()) before building this mapping here.
 
-          @param chrom_traces The external sqMass file, which we build the mapping on
+          @param[in] chrom_traces The external sqMass file, which we build the mapping on
           @throws Exception::MissingInformation if any nativeID is not known internally
           @throws Exception::Precondition if the run_ids do not match
         */

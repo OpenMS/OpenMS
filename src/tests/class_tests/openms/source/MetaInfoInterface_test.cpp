@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -353,6 +327,23 @@ START_SECTION((void removeMetaValue(const String& name)))
 	i.removeMetaValue("icon");
 END_SECTION
 
+START_SECTION((void addMetaValues(const MetaInfoInterface& from)))
+  MetaInfoInterface m_new, m_base;
+
+  m_base.setMetaValue("label", String("old"));
+  m_base.setMetaValue("exists_no_overwrite", 5.2);
+  
+  m_new.setMetaValue("label", String("new")); // will be overwritten
+  m_new.setMetaValue("icon", 4.3);            // will be added
+  
+  m_base.addMetaValues(m_new);
+
+  TEST_EQUAL(m_base.getMetaValue("label"), String("new"));
+  TEST_EQUAL(m_base.getMetaValue("icon"), 4.3);
+  TEST_EQUAL(m_base.getMetaValue("exists_no_overwrite"), 5.2);
+
+END_SECTION
+
 START_SECTION((void swap(MetaInfoInterface&& rhs)))
 {
   MetaInfoInterface mi1, mi2;
@@ -363,6 +354,78 @@ START_SECTION((void swap(MetaInfoInterface&& rhs)))
   TEST_EQUAL(mi2.metaValueExists("b"), false);
   TEST_EQUAL(mi1.getMetaValue("b"), 2);
   TEST_EQUAL(mi2.getMetaValue("a"), 1);
+}
+END_SECTION
+
+START_SECTION((MetaInfoConstIterator metaBegin() const))
+{
+	// Test with empty meta info (null meta_)
+	MetaInfoInterface mi_empty;
+	TEST_EQUAL(mi_empty.metaBegin() == mi_empty.metaEnd(), true)
+
+	// Test with non-empty meta info
+	MetaInfoInterface mi_filled;
+	mi_filled.setMetaValue("test_key", 42);
+	TEST_EQUAL(mi_filled.metaBegin() != mi_filled.metaEnd(), true)
+	TEST_EQUAL(mi_filled.metaBegin()->second, DataValue(42))
+}
+END_SECTION
+
+START_SECTION((MetaInfoConstIterator metaEnd() const))
+	NOT_TESTABLE // tested with metaBegin()
+END_SECTION
+
+START_SECTION((Size metaSize() const))
+{
+	// Test with null meta_
+	MetaInfoInterface mi_empty;
+	TEST_EQUAL(mi_empty.metaSize(), 0)
+
+	// Test with non-null meta_
+	MetaInfoInterface mi_filled;
+	mi_filled.setMetaValue("key1", 1);
+	TEST_EQUAL(mi_filled.metaSize(), 1)
+	mi_filled.setMetaValue("key2", 2);
+	TEST_EQUAL(mi_filled.metaSize(), 2)
+	mi_filled.removeMetaValue("key1");
+	TEST_EQUAL(mi_filled.metaSize(), 1)
+	mi_filled.clearMetaInfo();
+	TEST_EQUAL(mi_filled.metaSize(), 0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] Range-based for loop iteration via iterators)
+{
+	MetaInfoInterface mi_iter;
+	mi_iter.setMetaValue("a", 1);
+	mi_iter.setMetaValue("b", 2);
+	mi_iter.setMetaValue("c", 3);
+
+	int count = 0;
+	for (auto it = mi_iter.metaBegin(); it != mi_iter.metaEnd(); ++it)
+	{
+		++count;
+		TEST_EQUAL(it->second.valueType() == DataValue::INT_VALUE, true)
+	}
+	TEST_EQUAL(count, 3)
+}
+END_SECTION
+
+START_SECTION([EXTRA] addMetaValues with empty source)
+{
+	MetaInfoInterface m_base, m_empty;
+	m_base.setMetaValue("key", 1);
+
+	// Adding empty to non-empty should not change anything
+	m_base.addMetaValues(m_empty);
+	TEST_EQUAL(m_base.metaSize(), 1)
+	TEST_EQUAL(m_base.getMetaValue("key"), DataValue(1))
+
+	// Adding non-empty to empty
+	MetaInfoInterface m_new;
+	m_new.addMetaValues(m_base);
+	TEST_EQUAL(m_new.metaSize(), 1)
+	TEST_EQUAL(m_new.getMetaValue("key"), DataValue(1))
 }
 END_SECTION
 

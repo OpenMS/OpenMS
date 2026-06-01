@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer:	Timo Sachsenberg $
@@ -92,150 +66,40 @@ namespace OpenMS
     For details on the MSstats columns please refer to the MSstats manual for details
     (https://www.bioconductor.org/packages/release/bioc/vignettes/MSstats/inst/doc/MSstats.html).
 
-    <table>
-    <tr>
-        <th>Fraction_Group</th>
-        <th>Fraction</th>
-        <th>Spectra_Filepath</th>
-        <th>Label</th>
-        <th>MSstats_Condition</th>
-        <th>MSstats_BioReplicate</th>
-    </tr>
-    <tr>
-        <td>1</td>
-        <td>1</td>
-        <td>UPS1_12500amol_R1.mzML</td>
-        <td>1</td>
-        <td>12500 amol</td>
-        <td>1</td>
-    </tr>
-    <tr>
-        <td>2</td>
-        <td>1</td>
-        <td>UPS1_12500amol_R2.mzML</td>
-        <td>1</td>
-        <td>12500 amol</td>
-        <td>2</td>
-    </tr>
-    <tr>
-        <td>3</td>
-        <td>1</td>
-        <td>UPS1_12500amol_R3.mzML</td>
-        <td>1</td>
-        <td>12500 amol</td>
-        <td>3</td>
-    </tr>
-    <tr>
-        <td>...</td>
-        <td>...<br></td>
-        <td>...</td>
-        <td>...<br></td>
-        <td>...<br></td>
-        <td>...<br></td>
-    </tr>
-    <tr>
-        <td>22</td>
-        <td>1</td>
-        <td>UPS1_500amol_R1.mzML</td>
-        <td>1</td>
-        <td>500 amol</td>
-        <td>1</td>
-    </tr>
-    <tr>
-        <td>23</td>
-        <td>1</td>
-        <td>UPS1_500amol_R2.mzML</td>
-        <td>1</td>
-        <td>500 amol</td>
-        <td>2</td>
-    </tr>
-    <tr>
-        <td>24</td>
-        <td>1</td>
-        <td>UPS1_500amol_R3.mzML</td>
-        <td>1</td>
-        <td>500 amol</td>
-        <td>3</td>
-    </tr>
-    </table>
-
-    Alternatively, the experimental design can be specified with a file consisting of two tables whose headers are separated
-    by a blank line. The two tables are:
-
-    - The file section table and the sample section table.
-    - The file section consists of columns Fraction_Group, Fraction, Spectra_Filepath, Label and Sample
-
-    The sample section consists of columns Sample, MSstats_Condition and MSstats_BioReplicate.
-
-    The content is the same as described for the one table format, except that the additional numeric sample column
-    allows referencing between file and sample section.
-
-    <table>
-    <tr>
-        <th>Fraction_Group</th>
-        <th>Fraction</th>
-        <th>Spectra_Filepath</th>
-        <th>Label</th>
-        <th>Sample</th>
-    </tr>
-    <tr>
-        <td>1</td>
-        <td>1</td>
-        <td>UPS1_12500amol_R1.mzML</td>
-        <td>1</td>
-        <td>1</td>
-    </tr>
-    <tr>
-        <td>2</td>
-        <td>1</td>
-        <td>UPS1_12500amol_R2.mzML</td>
-        <td>1</td>
-        <td>2</td>
-    </tr>
-    <tr>
-        <td>...</td>
-        <td>...<br></td>
-        <td>...</td>
-        <td>...<br></td>
-        <td>...<br></td>
-    </tr>
-    <tr>
-        <td>22</td>
-        <td>1</td>
-        <td>UPS1_500amol_R1.mzML</td>
-        <td>1</td>
-        <td>22</td>
-    </tr>
-    </table>
-
-    <table>
-    <tr>
-        <th>Sample</th>
-        <th>MSstats_Condition</th>
-        <th>MSstats_BioReplicate</th>        
-    </tr>
-    <tr>
-        <td>1</td>
-        <td>12500 amol</td>
-        <td>1</td>
-    </tr>
-    <tr>
-        <td>2</td>
-        <td>12500 amol</td>
-        <td>2</td>
-    </tr>
-    <tr>
-        <td>...</td>
-        <td>...<br></td>
-        <td>...<br></td>
-    </tr>
-    <tr>
-        <td>22</td>
-        <td>500 amol</td>
-        <td>3</td>
-    </tr>
-    </table>
-
+ | Fraction_Group | Fraction | Spectra_Filepath         | Label | MSstats_Condition | MSstats_BioReplicate |
+ |----------------|----------|---------------------------|-------|--------------------|------------------------|
+ | 1              | 1        | UPS1_12500amol_R1.mzML    | 1     | 12500 amol         | 1                      |
+ | 2              | 1        | UPS1_12500amol_R2.mzML    | 1     | 12500 amol         | 2                      |
+ | 3              | 1        | UPS1_12500amol_R3.mzML    | 1     | 12500 amol         | 3                      |
+ | ...            | ...      | ...                       | ...   | ...                | ...                    |
+ | 22             | 1        | UPS1_500amol_R1.mzML      | 1     | 500 amol           | 1                      |
+ | 23             | 1        | UPS1_500amol_R2.mzML      | 1     | 500 amol           | 2                      |
+ | 24             | 1        | UPS1_500amol_R3.mzML      | 1     | 500 amol           | 3                      |
+ 
+ Alternatively, the experimental design can be specified with a file consisting of two tables 
+ whose headers are separated by a blank line.
+ 
+ The two tables are:
+ - The file section table and the sample section table.
+ - The file section consists of columns `Fraction_Group`, `Fraction`, `Spectra_Filepath`, `Label`, and `Sample`
+ 
+ File section:
+ 
+ | Fraction_Group | Fraction | Spectra_Filepath         | Label | Sample |
+ |----------------|----------|---------------------------|-------|--------|
+ | 1              | 1        | UPS1_12500amol_R1.mzML    | 1     | 1      |
+ | 2              | 1        | UPS1_12500amol_R2.mzML    | 1     | 2      |
+ | ...            | ...      | ...                       | ...   | ...    |
+ | 22             | 1        | UPS1_500amol_R1.mzML      | 1     | 22     |
+ 
+ Sample section:
+ 
+ | Sample | MSstats_Condition | MSstats_BioReplicate |
+ |--------|--------------------|------------------------|
+ | 1      | 12500 amol         | 1                      |
+ | 2      | 12500 amol         | 2                      |
+ | ...    | ...                | ...                    |
+ | 22     | 500 amol           | 3                      |
 
   @ingroup Metadata
 

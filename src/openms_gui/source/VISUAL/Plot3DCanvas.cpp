@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -36,7 +10,7 @@
 #include <OpenMS/VISUAL/Plot3DCanvas.h>
 
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/FileWatcher.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot3DPrefDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
@@ -44,6 +18,7 @@
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QResizeEvent>
 #include <QtWidgets/QComboBox>
@@ -115,8 +90,8 @@ namespace OpenMS
 
     // Abort if no data points are contained
     auto& layer = dynamic_cast<LayerDataPeak&>(getCurrentLayer());
-      
-    if (layer.getPeakData()->empty())
+    const MSExperiment& peak_data = layer.getPeakData()->getMSExperiment();
+    if (peak_data.empty())
     {
       popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
       return false;
@@ -210,7 +185,7 @@ namespace OpenMS
     MultiGradientSelector * gradient = dlg.findChild<MultiGradientSelector *>("gradient");
     QSpinBox * width  = dlg.findChild<QSpinBox *>("width");
 
-    bg_color->setColor(QColor(String(param_.getValue("background_color").toString()).toQString()));
+    bg_color->setColor(QColor(toQString(String(param_.getValue("background_color").toString()))));
     shade->setCurrentIndex(layer.param.getValue("dot:shade_mode"));
     gradient->gradient().fromString(layer.param.getValue("dot:gradient"));
     width->setValue(UInt(layer.param.getValue("dot:line_width")));
@@ -251,7 +226,7 @@ namespace OpenMS
     {
       layer_name += " (invisible)";
     }
-    context_menu->addAction(layer_name.toQString())->setEnabled(false);
+    context_menu->addAction(toQString(layer_name))->setEnabled(false);
     context_menu->addSeparator();
     context_menu->addAction("Layer meta data");
 
@@ -334,22 +309,6 @@ namespace OpenMS
       openglwidget()->recalculateDotGradient_(layers_.getLayer(i));
     }
     PlotCanvas::intensityModeChange_();
-  }
-
-  void Plot3DCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)
-  {
-  }
-
-  void Plot3DCanvas::translateRight_(Qt::KeyboardModifiers /*m*/)
-  {
-  }
-
-  void Plot3DCanvas::translateForward_()
-  {
-  }
-
-  void Plot3DCanvas::translateBackward_()
-  {
   }
 
 } //namespace

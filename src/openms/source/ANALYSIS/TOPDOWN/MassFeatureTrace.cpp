@@ -1,51 +1,23 @@
-//--------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Kyowon Jeong, Jihyung Kim $
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
-
+#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 
 namespace OpenMS
 {
-  MassFeatureTrace::MassFeatureTrace() :
-      DefaultParamHandler("MassFeatureTrace")
+  MassFeatureTrace::MassFeatureTrace() : DefaultParamHandler("MassFeatureTrace")
   {
     Param mtd_defaults = MassTraceDetection().getDefaults();
-    mtd_defaults.setValue("min_sample_rate",
-                          .1,
-                          "Minimum fraction of scans along the feature trace that must contain a peak. To raise feature detection sensitivity, lower this value close to 0.");
-    mtd_defaults.setValue("min_trace_length", 10.0);
+    mtd_defaults.setValue("min_sample_rate", .1, "Minimum fraction of scans along the feature trace that must contain a peak. To raise feature detection sensitivity, lower this value close to 0.");
+    mtd_defaults.setValue(
+      "min_trace_length", 10.0,
+      "Minimum expected length of a mass trace (in seconds). Only for MS1 (or minimum MS level in the dataset) feature tracing. For MSn, all traces are kept regardless of this value.");
 
     mtd_defaults.setValue("chrom_peak_snr", .0);
     mtd_defaults.addTag("chrom_peak_snr", "advanced");
@@ -58,36 +30,58 @@ namespace OpenMS
     mtd_defaults.addTag("quant_method", "advanced"); // hide entry
 
     defaults_.insert("", mtd_defaults);
-    defaults_.setValue("min_isotope_cosine", .75, "cosine threshold between avg. and observed isotope pattern for MS1");
+    defaults_.setValue("min_cos", .75, "Cosine similarity threshold between avg. and observed isotope pattern.");
+
     defaultsToParam_();
   }
 
-  std::vector<FLASHDeconvHelperStructs::MassFeature> MassFeatureTrace::findFeatures(const PrecalculatedAveragine& averagine)
+  std::vector<FLASHHelperClasses::MassFeature> MassFeatureTrace::findFeaturesAndUpdateQscore2D(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
+                                                                                                     int ms_level, bool is_decoy)
   {
+    static uint findex = 1;
     MSExperiment map;
     std::map<int, MSSpectrum> index_spec_map;
     int min_abs_charge = INT_MAX;
     int max_abs_charge = INT_MIN;
     bool is_positive = true;
-    std::vector<FLASHDeconvHelperStructs::MassFeature> mass_features;
-    for (auto& item: peak_group_map_)
+    std::vector<FLASHHelperClasses::MassFeature> mass_features;
+    std::map<double, Size> rt_index_map;
+
+    std::map<int, int> prev_scans;
+    int prev_scan = 0;
+    for (Size i = 0; i < deconvolved_spectra.size(); i++)
     {
-      double rt = item.first;
+      auto deconvolved_spectrum = deconvolved_spectra[i];
+      if (deconvolved_spectrum.empty())
+        continue;
+      if ((int)deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != ms_level)
+        continue;
+      int scan = deconvolved_spectrum.getScanNumber();
+
+      if (scan > prev_scan)
+        prev_scans[scan] = prev_scan;
+
+      prev_scan = scan;
+      double rt = deconvolved_spectrum.getOriginalSpectrum().getRT();
+      rt_index_map[rt] = i;
       MSSpectrum deconv_spec;
       deconv_spec.setRT(rt);
-      for (auto& pg: item.second)
+      for (auto& pg : deconvolved_spectrum)
       {
-        is_positive = pg.second.isPositive();
-        auto crange = pg.second.getAbsChargeRange();
-        max_abs_charge = max_abs_charge > std::get<1>(crange) ? max_abs_charge : std::get<1>(crange);
-        min_abs_charge = min_abs_charge < std::get<0>(crange) ? min_abs_charge : std::get<0>(crange);
+        if (is_decoy && pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::target) continue;
+        if (!is_decoy && pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target) continue;
 
-        Peak1D tp(pg.first, (float) pg.second.getIntensity());
+        is_positive = pg.isPositive();
+        auto [z1, z2] = pg.getAbsChargeRange();
+        max_abs_charge = max_abs_charge > z2 ? max_abs_charge : z2;
+        min_abs_charge = min_abs_charge < z1 ? min_abs_charge : z1;
+
+        Peak1D tp(pg.getMonoMass(), (float)pg.getIntensity());
         deconv_spec.push_back(tp);
       }
       map.addSpectrum(deconv_spec);
     }
-
+    map.sortSpectra();
     // when map size is less than 3, MassTraceDetection aborts - too few spectra for mass tracing.
     if (map.size() < 3)
     {
@@ -96,76 +90,115 @@ namespace OpenMS
 
     MassTraceDetection mtdet;
     Param mtd_param = getParameters().copy("");
-    mtd_param.remove("min_isotope_cosine");
-
+    double cos_threshold = mtd_param.getValue("min_cos");
+    mtd_param.remove("min_cos");
     mtdet.setParameters(mtd_param);
     std::vector<MassTrace> m_traces;
 
-    mtdet.run(map, m_traces);  // m_traces : output of this function
+    mtdet.setLogType(ProgressLogger::NONE);
+    mtdet.run(map, m_traces); // m_traces : output of this function
     int charge_range = max_abs_charge - min_abs_charge + 1;
 
-    for (auto& mt: m_traces)
+    for (auto& mt : m_traces)
     {
-      double max_qscore = .0;
+      double qscore_2D = 1.0;
+      double tmp_qscore_2D = 1.0;
       int min_feature_abs_charge = INT_MAX; // min feature charge
       int max_feature_abs_charge = INT_MIN; // max feature charge
+      int min_scan_number = INT_MAX; // min feature charge
+      int max_scan_number = INT_MIN; // max feature charge
 
       auto per_isotope_intensity = std::vector<float>(averagine.getMaxIsotopeIndex(), .0f);
       auto per_charge_intensity = std::vector<float>(charge_range + min_abs_charge + 1, .0f);
 
-      double max_iso = 0;
+      double mass = mt.getCentroidMZ();
+
       boost::dynamic_bitset<> charges(charge_range + 1);
-      std::vector<PeakGroup> pgs;
+      std::vector<std::vector<PeakGroup>::iterator> pgs;
       pgs.reserve(mt.getSize());
+      std::vector<double> qscores;
 
-      for (auto& p2: mt)
+      prev_scan = 0;
+      for (auto& p2 : mt)
       {
-        auto& pg_map = peak_group_map_[p2.getRT()];
-        auto& pg = pg_map[p2.getMZ()];
-        auto crange = pg.getAbsChargeRange();
+        auto& dspec = deconvolved_spectra[rt_index_map[p2.getRT()]];
+        if (dspec.empty())
+          continue;
+        PeakGroup comp;
+        comp.setMonoisotopicMass(p2.getMZ() - 1e-7);
+        auto pg = std::lower_bound(dspec.begin(), dspec.end(), comp);
+        if (pg == dspec.end() || std::abs(pg->getMonoMass() - p2.getMZ()) > 1e-7)
+          continue;
 
-        min_feature_abs_charge =
-            min_feature_abs_charge < std::get<0>(crange) ? min_feature_abs_charge : std::get<0>(crange);
-        max_feature_abs_charge =
-            max_feature_abs_charge > std::get<1>(crange) ? max_feature_abs_charge : std::get<1>(crange);
+        if (is_decoy && pg->getTargetDecoyType() == PeakGroup::TargetDecoyType::target) continue;
+        if (!is_decoy && pg->getTargetDecoyType() != PeakGroup::TargetDecoyType::target) continue;
 
-        if (pg.getIsotopeCosine() > max_iso)
+        auto [z1, z2] = pg->getAbsChargeRange();
+        min_feature_abs_charge = min_feature_abs_charge < z1 ? min_feature_abs_charge : z1;
+        max_feature_abs_charge = max_feature_abs_charge > z2 ? max_feature_abs_charge : z2;
+        int scan = dspec.getScanNumber();
+        min_scan_number = std::min(min_scan_number, scan);
+        max_scan_number = std::max(max_scan_number, scan);
+
+        if (prev_scan != 0 && (prev_scans[scan] <= prev_scan)) // only when consecutive scans are connected.
         {
-          max_iso = pg.getIsotopeCosine();
+          tmp_qscore_2D *= (1.0 - pg->getQscore());
         }
+        else
+        {
+          tmp_qscore_2D = 1.0 - pg->getQscore();
+        }
+        qscore_2D = std::min(qscore_2D, tmp_qscore_2D);
+        prev_scan = scan;
         pgs.push_back(pg);
       }
-
-      for(auto& pg: pgs)
+      qscore_2D = 1.0 - qscore_2D;
+      for (auto& pg : pgs)
       {
-        for (auto& p: pg)
+        for (size_t z = min_abs_charge; z < per_charge_intensity.size(); z++)
         {
-          if (p.isotopeIndex < 0 || p.isotopeIndex >= (int)averagine.getMaxIsotopeIndex() || p.abs_charge < min_abs_charge ||
-              p.abs_charge >= charge_range + min_abs_charge + 1)
+          float zint = pg->getChargeIntensity((int)z);
+          if (zint <= 0)
           {
             continue;
           }
-
-          charges[p.abs_charge - min_abs_charge] = true;
-          per_charge_intensity[p.abs_charge] += (p.intensity);
-          per_isotope_intensity[p.isotopeIndex] += (p.intensity);
+          charges[z - min_abs_charge] = true;
+          per_charge_intensity[z] += zint;
         }
-
-        max_qscore = max_qscore < pg.getQScore() ? pg.getQScore() : max_qscore;
+        int iso_off = (int)round((pg->getMonoMass() - mass) / pg->getIsotopeDaDistance());
+        auto iso_int = pg->getIsotopeIntensities();
+        for (int i = 0; i + iso_off < (int)per_isotope_intensity.size(); i++)
+        {
+          if ((int)i + iso_off < 0 || i >= (int)iso_int.size())
+          {
+            continue;
+          }
+          per_isotope_intensity[i + iso_off] += iso_int[i];
+        }
       }
 
       int offset = 0;
-      double mass = mt.getCentroidMZ();
-      double isotope_score = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(mass,
-                                                                                            per_isotope_intensity,
-                                                                                            offset, averagine, 0);
+      float isotope_score = SpectralDeconvolution::getIsotopeCosineAndIsoOffset(mass, per_isotope_intensity, offset, averagine, 0, 0, std::vector<double>{});
 
-      if (isotope_score < min_isotope_cosine_)
+      if (isotope_score < cos_threshold)
       {
         continue;
       }
+      double max_int = 0;
+      PeakGroup rep_pg = *pgs[0];
+      for (auto& pg : pgs)
+      {
+        if (max_int <= pg->getIntensity())
+        {
+          rep_pg = *pg;
+          max_int = pg->getIntensity();
+        }
 
-      FLASHDeconvHelperStructs::MassFeature mass_feature;
+        pg->setFeatureIndex(findex);
+        if (findex > 0)
+          pg->setQscore2D(qscore_2D);
+      }
+      FLASHHelperClasses::MassFeature mass_feature;
       mass_feature.iso_offset = offset;
       mass += offset * Constants::ISOTOPE_MASSDIFF_55K_U;
 
@@ -173,65 +206,28 @@ namespace OpenMS
       mass_feature.mt = mt;
       mass_feature.charge_count = (int)charges.count();
       mass_feature.isotope_score = isotope_score;
-      mass_feature.min_charge = (is_positive ? min_feature_abs_charge : -max_feature_abs_charge) ;
-      mass_feature.max_charge = (is_positive ? max_feature_abs_charge : -min_feature_abs_charge) ;
-      mass_feature.qscore = max_qscore;
-
-      if(offset != 0)
-      {
-        per_isotope_intensity = std::vector<float>(averagine.getMaxIsotopeIndex(), .0f); // recalculate with updated offset
-        per_charge_intensity = std::vector<float>(charge_range + min_abs_charge + 1, .0f);
-
-        for (auto& pg : pgs)
-        {
-          for (auto& p : pg)
-          {
-            if (p.isotopeIndex < offset || p.isotopeIndex >= (int)averagine.getMaxIsotopeIndex() + offset || p.abs_charge < min_abs_charge || p.abs_charge >= charge_range + min_abs_charge + 1)
-            {
-              continue;
-            }
-
-            charges[p.abs_charge - min_abs_charge] = true;
-            per_charge_intensity[p.abs_charge] += (p.intensity);
-            per_isotope_intensity[p.isotopeIndex - offset] += (p.intensity);
-          }
-        }
-      }
+      mass_feature.min_charge = (is_positive ? min_feature_abs_charge : -max_feature_abs_charge);
+      mass_feature.max_charge = (is_positive ? max_feature_abs_charge : -min_feature_abs_charge);
+      mass_feature.qscore = qscore_2D;
 
       mass_feature.per_charge_intensity = per_charge_intensity;
       mass_feature.per_isotope_intensity = per_isotope_intensity;
 
-      auto apex = mt[mt.findMaxByIntPeak()];
-      auto& sub_pg_map = peak_group_map_[apex.getRT()];
-      auto& rep_pg = sub_pg_map[apex.getMZ()];
-      mass_feature.rep_mz = apex.getMZ();
+      mass_feature.rep_mz = mass_feature.avg_mass / rep_pg.getRepAbsCharge();
       mass_feature.scan_number = rep_pg.getScanNumber();
+      mass_feature.min_scan_number = min_scan_number;
+      mass_feature.max_scan_number = max_scan_number;
       mass_feature.rep_charge = rep_pg.getRepAbsCharge();
+      mass_feature.index = findex;
+      mass_feature.is_decoy = is_decoy;
+      mass_feature.ms_level = ms_level;
       mass_features.push_back(mass_feature);
+      findex++;
     }
     return mass_features;
- }
-
-  void MassFeatureTrace::storeInformationFromDeconvolvedSpectrum(DeconvolvedSpectrum& deconvolved_spectrum)
-  {
-    double rt = deconvolved_spectrum.getOriginalSpectrum().getRT();
-    if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != 1)
-    {
-      return;
-    }
-    else
-    {
-      peak_group_map_[rt] = std::map<double, PeakGroup>();
-      auto& sub_pg_map = peak_group_map_[rt];
-      for (auto& pg: deconvolved_spectrum)
-      {
-        sub_pg_map[pg.getMonoMass()] = pg;
-      }
-    }
   }
 
   void MassFeatureTrace::updateMembers_()
   {
-    min_isotope_cosine_ = param_.getValue("min_isotope_cosine");
   }
-}
+} // namespace OpenMS

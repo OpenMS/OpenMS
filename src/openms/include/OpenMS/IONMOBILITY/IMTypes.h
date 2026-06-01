@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -51,6 +25,7 @@ namespace OpenMS
     MILLISECOND,               ///< milliseconds
     VSSC,                      ///< volt-second per square centimeter (i.e. 1/K_0)
     FAIMS_COMPENSATION_VOLTAGE,///< compensation voltage
+    CCS,                       ///< collisional cross section (square angstrom)
     SIZE_OF_DRIFTTIMEUNIT
   };
 
@@ -63,15 +38,17 @@ namespace OpenMS
 
   /// convert a DriftTimeUnit enum to String
   /// @throws Exception::InvalidValue if @p value is SIZE_OF_DRIFTTIMEUNIT
-  OPENMS_DLLAPI const std::string& toString(const DriftTimeUnit value);
+  OPENMS_DLLAPI const std::string& driftTimeUnitToString(const DriftTimeUnit value);
 
   /// Different ways to represent ion mobility data in a spectrum
+  /// Note: UNKNOWN should be used if the format is not yet determined.
+  /// FileHandler or e.g. IM peak picker should ideally set the format a known value.
   enum class IMFormat
   {
     NONE,            ///< no ion mobility
-    CONCATENATED,    ///< ion mobility frame is stacked in a single spectrum (i.e. has an IM float data array)
-    MULTIPLE_SPECTRA,///< ion mobility is recorded as multiple spectra per frame (i.e. has one IM annotation per spectrum)
-    MIXED,           ///< an MSExperiment contains both CONCATENATED and MULTIPLE_SPECTRA
+    IM_PEAK,         ///< full TIMS frame / per-scan IM-resolved data: ion mobility is annotated per peak in a float data array
+    IM_SPECTRUM,     ///< conventional spectrum with one precursor IM value (i.e. has one IM annotation per spectrum via getDriftTime())
+    UNKNOWN,         ///< ion mobility format not yet determined.
     SIZE_OF_IMFORMAT
   };
   /// Names of IMFormat
@@ -82,7 +59,32 @@ namespace OpenMS
   OPENMS_DLLAPI IMFormat toIMFormat(const std::string& IM_format);
   /// convert an IMFormat enum to String
   /// @throws Exception::InvalidValue if @p value is SIZE_OF_IMFORMAT
-  OPENMS_DLLAPI const std::string& toString(const IMFormat value);
+  OPENMS_DLLAPI const std::string& imFormatToString(const IMFormat value);
+
+  /// Processing state of ion mobility data in the IM dimension.
+  /// Analogous to SpectrumSettings::SpectrumType for the m/z dimension.
+  enum class IMPeakType
+  {
+    IM_PROFILE,        ///< raw/unprocessed IM data (e.g. full TIMS frame before IM centroiding)
+    IM_CENTROIDED,     ///< IM data after centroiding in the IM dimension
+    UNKNOWN,           ///< IM peak type not yet determined
+    SIZE_OF_IMPEAKTYPE
+  };
+
+  /// Names of IMPeakType entries
+  OPENMS_DLLAPI extern const std::string NamesOfIMPeakType[(size_t) IMPeakType::SIZE_OF_IMPEAKTYPE];
+
+  /// @brief converts a string to IMPeakType
+  /// @param[in] im_peak_type string representation (e.g. "im_profile", "im_centroided", "unknown")
+  /// @return the corresponding IMPeakType enum value
+  /// @throws Exception::InvalidValue if the string does not match any known IMPeakType
+  OPENMS_DLLAPI IMPeakType toIMPeakType(const std::string& im_peak_type);
+
+  /// @brief converts an IMPeakType to a string
+  /// @param[in] im_peak_type the enum value to convert
+  /// @return reference to the string representation
+  /// @throws Exception::InvalidValue if the enum value is out of range
+  OPENMS_DLLAPI const std::string& imPeakTypeToString(IMPeakType im_peak_type);
 
   class OPENMS_DLLAPI IMTypes
   {
@@ -90,29 +92,64 @@ namespace OpenMS
     /// If drift time for a spectrum is unavailable (i.e. not an IM spectrum), it will have this value
     inline static constexpr double DRIFTTIME_NOT_SET = -1.0;
 
-    /// Checks the all spectra for their type (see overload)
-    /// and returns the common type (or IMFormat::MIXED if both CONCATENATED and MULTIPLE_SPECTRA are present)
-    /// If @p exp is empty or contains no IM spectra at all, IMFormat::NONE is returned
-    /// @throws Exception::InvalidValue if IM values are annotated as single drift time and float array for any single spectrum
-    static IMFormat determineIMFormat(const MSExperiment& exp);
+    /// Checks only spectra of the given MS level for their IM format and returns the common type.
+    /// If no spectra of @p ms_level exist or none have IM data, IMFormat::NONE is returned.
+    /// @throws Exception::InvalidValue if spectra of the given MS level have different IM formats
+    static IMFormat determineIMFormat(const MSExperiment& exp, int ms_level);
 
     /** 
         @brief Checks for existence of a single driftTime (using spec.getDriftTime()) or an ion-mobility float data array (using spec.hasIMData()) 
         
         If neither is found, IMFormat::NONE is returned.
-        If a single drift time (== IMFormat::MULTIPLE_SPECTRA) is found, but no unit, a warning is issued.
+        If a single drift time (== IMFormat::IM_SPECTRUM) is found, but no unit, a warning is issued.
 
         @throws Exception::InvalidValue if IM values are annotated as single drift time and float array in the given spectrum
     */
     static IMFormat determineIMFormat(const MSSpectrum& spec);
 
     /**
-     * \brief 
-     * \param from Drift unit to convert from
-     * \return A more general DIM_UNIT (or exception)
-     * \throws Exception::ConversionError if @p from has invalid value (e.g. 'NONE')
+     * @brief Convert a DriftTimeUnit to the more general DIM_UNIT.
+     * @param[in] from Drift unit to convert from
+     * @return A more general DIM_UNIT
+     * @throws Exception::ConversionError if @p from has an invalid value (e.g. 'NONE')
      */
     static DIM_UNIT fromIMUnit(const DriftTimeUnit from);
+
+    /// Mass of N2 (the most common drift/buffer gas) in Da; default buffer gas for the CCS conversions below.
+    /// The rounded value 28.0 is used (rather than 28.006148) to match the calibration constant below,
+    /// which was validated against the Bruker/alphatims and MaxQuant CCS values.
+    inline static constexpr double N2_BUFFER_GAS_MASS = 28.0;
+
+    /**
+      @brief Convert a reduced inverse ion mobility (1/K0) to a collision cross section (CCS) via the Mason-Schamp relation.
+
+      Uses the conventional single-temperature form
+        CCS = (C * |charge| / sqrt(mu)) * (1/K0)
+      with the Bruker calibration constant C = 1059.62245 (validated against alphatims and MaxQuant CCS
+      values for an N2 drift gas at the usual calibration temperature). @c mu is the ion-gas reduced mass
+        mu = (m_ion * m_gas) / (m_ion + m_gas),
+      with the ion mass approximated as m_ion = mz * |charge|.
+
+      @param[in] one_over_k0     Reduced inverse ion mobility 1/K0 in V*s/cm^2; must be > 0.
+      @param[in] mz              Precursor m/z of the ion; must be > 0.
+      @param[in] charge          Precursor charge; the sign is ignored (|charge| is used) and it must be non-zero.
+      @param[in] buffer_gas_mass Drift-gas mass in Da; defaults to N2 (@ref N2_BUFFER_GAS_MASS).
+      @return Collision cross section in square Angstrom (Angstrom^2).
+      @throws Exception::InvalidValue if @p one_over_k0 <= 0, @p mz <= 0, or @p charge == 0.
+    */
+    static double oneOverK0ToCCS(double one_over_k0, double mz, int charge, double buffer_gas_mass = N2_BUFFER_GAS_MASS);
+
+    /**
+      @brief Inverse of @ref oneOverK0ToCCS - convert a collision cross section (CCS) back to reduced inverse ion mobility (1/K0).
+
+      @param[in] ccs             Collision cross section in square Angstrom (Angstrom^2); must be > 0.
+      @param[in] mz              Precursor m/z of the ion; must be > 0.
+      @param[in] charge          Precursor charge; the sign is ignored (|charge| is used) and it must be non-zero.
+      @param[in] buffer_gas_mass Drift-gas mass in Da; defaults to N2 (@ref N2_BUFFER_GAS_MASS).
+      @return Reduced inverse ion mobility 1/K0 in V*s/cm^2.
+      @throws Exception::InvalidValue if @p ccs <= 0, @p mz <= 0, or @p charge == 0.
+    */
+    static double ccsToOneOverK0(double ccs, double mz, int charge, double buffer_gas_mass = N2_BUFFER_GAS_MASS);
   };
 
 };

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -35,8 +9,11 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
+
 #include <iosfwd>
+#include <functional>
 
 namespace OpenMS
 {
@@ -102,74 +79,38 @@ namespace OpenMS
     */
     ///@{
     /// Non-mutable access to the data point intensity (height)
-    IntensityType getIntensity() const
-    {
-      return intensity_;
-    }
+    IntensityType getIntensity() const;
     /// Mutable access to the data point intensity (height)
-    void setIntensity(IntensityType intensity)
-    {
-      intensity_ = intensity;
-    }
+    void setIntensity(IntensityType intensity);
 
     /// Non-mutable access to m/z
-    inline CoordinateType getMobility() const
-    {
-      return position_[0];
-    }
+    CoordinateType getMobility() const;
 
     /// Mutable access to mobility
-    inline void setMobility(CoordinateType mobility)
-    {
-      position_[0] = mobility;
-    }
+    void setMobility(CoordinateType mobility);
 
     /// Alias for getMobility()
-    inline CoordinateType getPos() const
-    {
-      return position_[0];
-    }
+    CoordinateType getPos() const;
 
     /// Alias for setMobility()
-    inline void setPos(CoordinateType pos)
-    {
-      position_[0] = pos;
-    }
+    void setPos(CoordinateType pos);
 
     /// Non-mutable access to the position
-    inline PositionType const& getPosition() const
-    {
-      return position_;
-    }
+    PositionType const& getPosition() const;
 
     /// Mutable access to the position
-    inline PositionType& getPosition()
-    {
-      return position_;
-    }
+    PositionType& getPosition();
 
     /// Mutable access to the position
-    inline void setPosition(PositionType const& position)
-    {
-      position_ = position;
-    }
+    void setPosition(PositionType const& position);
 
     ///@}
 
     /// Equality operator
-    bool operator==(const MobilityPeak1D& rhs) const
-    {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-      return intensity_ == rhs.intensity_ && position_ == rhs.position_;
-#pragma clang diagnostic pop
-    }
+    bool operator==(const MobilityPeak1D& rhs) const;
 
     /// Equality operator
-    bool operator!=(const MobilityPeak1D& rhs) const
-    {
-      return !(operator==(rhs));
-    }
+    bool operator!=(const MobilityPeak1D& rhs) const;
 
     /**
       @name Comparator classes. These classes implement binary predicates that can be used to
@@ -257,3 +198,18 @@ namespace OpenMS
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const MobilityPeak1D& point);
 
 } // namespace OpenMS
+
+// Hash function specialization for MobilityPeak1D
+namespace std
+{
+  template<>
+  struct hash<OpenMS::MobilityPeak1D>
+  {
+    std::size_t operator()(const OpenMS::MobilityPeak1D& p) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_float(p.getMobility());
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIntensity()));
+      return seed;
+    }
+  };
+} // namespace std

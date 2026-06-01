@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -35,6 +9,8 @@
 #include <OpenMS/FORMAT/SqMassFile.h>
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 namespace OpenMS
 {
@@ -50,7 +26,7 @@ namespace OpenMS
     sql_mass.readExperiment(map);
   }
 
-  void SqMassFile::store(const String& filename, MapType& map) const
+  void SqMassFile::store(const String& filename, const MapType& map) const
   {
     OpenMS::Internal::MzMLSqliteHandler sql_mass(filename, map.getSqlRunID());
     sql_mass.setConfig(config_.write_full_meta, config_.use_lossy_numpress, config_.linear_fp_mass_acc);
@@ -75,12 +51,11 @@ namespace OpenMS
       std::vector<int> indices;
       for (size_t batch_idx = 0; batch_idx <= (sql_mass.getNrSpectra() / batch_size); batch_idx++)
       {
-        int idx_start, idx_end;
-        idx_start = batch_idx * batch_size;
-        idx_end = std::max(batch_idx * (batch_size+1), sql_mass.getNrSpectra());
+        int idx_start = static_cast<int>(batch_idx * batch_size);
+        int idx_end = static_cast<int>(std::min((batch_idx + 1) * static_cast<size_t>(batch_size), sql_mass.getNrSpectra()));
 
         indices.resize(idx_end - idx_start);
-        for (int k = 0; k < idx_end-idx_start; k++)
+        for (int k = 0; k < idx_end - idx_start; k++)
         {
           indices[k] = idx_start + k;
         }
@@ -98,12 +73,11 @@ namespace OpenMS
       std::vector<int> indices;
       for (size_t batch_idx = 0; batch_idx <= (sql_mass.getNrChromatograms() / batch_size); batch_idx++)
       {
-        int idx_start, idx_end;
-        idx_start = batch_idx * batch_size;
-        idx_end = std::max(batch_idx * (batch_size+1), sql_mass.getNrChromatograms());
+        int idx_start = static_cast<int>(batch_idx * batch_size);
+        int idx_end = static_cast<int>(std::min((batch_idx + 1) * static_cast<size_t>(batch_size), sql_mass.getNrChromatograms()));
 
         indices.resize(idx_end - idx_start);
-        for (int k = 0; k < idx_end-idx_start; k++)
+        for (int k = 0; k < idx_end - idx_start; k++)
         {
           indices[k] = idx_start + k;
         }
@@ -115,6 +89,24 @@ namespace OpenMS
         }
       }
     }
+  }
+
+  void SqMassFile::convertToXICParquet(const String& filename_in, const String& xic_filename, UInt64 run_id, const String& source_file, const OpenSwath::LightTargetedExperiment& transition_exp) const
+  {
+    // source_file fallback to input filename if not provided
+    String src = source_file.empty() ? filename_in : source_file;
+
+    // Create an MSChromatogramParquetConsumer and stream chromatograms from the
+    // sqMass file. Callers must supply a populated transition experiment;
+    // chromatograms that reference missing metadata will cause the consumer to
+    // throw an InvalidValue exception.
+    MSChromatogramParquetConsumer parquet_consumer(xic_filename, run_id, src, transition_exp);
+
+    // Delegate to transform which will call setExpectedSize and then stream chromatograms
+    transform(filename_in, &parquet_consumer, /*skip_full_count=*/false, /*skip_first_pass=*/false);
+
+    // Ensure writer finalizes (flush and close)
+    parquet_consumer.finalize();
   }
 
 }

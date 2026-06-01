@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -64,10 +38,6 @@ namespace OpenMS
     LayerDataPeak(const LayerDataPeak& ld) = default;
     /// no assignment operator (should not be needed)
     LayerDataPeak& operator=(const LayerDataPeak& ld) = delete;
-    /// move Ctor
-    LayerDataPeak(LayerDataPeak&& ld) = default;
-    /// move assignment
-    LayerDataPeak& operator=(LayerDataPeak&& ld) = default;
 
     std::unique_ptr<Painter2DBase> getPainter2D() const override;
 
@@ -83,14 +53,14 @@ namespace OpenMS
 
     void updateRanges() override
     {
-      peak_map_->updateRanges();
+      peak_map_->getMSExperiment().updateRanges();
       // on_disc_peaks_->updateRanges(); // note: this is not going to work since its on disk! We currently don't have a good way to access these ranges
     }
 
     RangeAllType getRange() const override
     {
       RangeAllType r;
-      r.assign(*peak_map_);
+      r.assign(peak_map_->getMSExperiment().spectrumRanges());
       return r;
     }
 
@@ -100,13 +70,13 @@ namespace OpenMS
 
     std::unique_ptr<LayerStatistics> getStats() const override;
 
-    bool annotate(const std::vector<PeptideIdentification>& identifications, const std::vector<ProteinIdentification>& protein_identifications) override;
+    bool annotate(const PeptideIdentificationList& identifications, const std::vector<ProteinIdentification>& protein_identifications) override;
 
     const ExperimentType::SpectrumType& getSpectrum(Size spectrum_idx) const
     {
-      if ((*peak_map_)[spectrum_idx].size() > 0)
+      if (peak_map_->getMSExperiment()[spectrum_idx].size() > 0)
       {
-        return (*peak_map_)[spectrum_idx];
+        return peak_map_->getMSExperiment()[spectrum_idx];
       }
       if (!on_disc_peaks_->empty())
       {
@@ -114,7 +84,7 @@ namespace OpenMS
         local_spec = on_disc_peaks_->getSpectrum(spectrum_idx);
         return local_spec;
       }
-      return (*peak_map_)[spectrum_idx];
+      return peak_map_->getMSExperiment()[spectrum_idx];
     }
 
     /**
@@ -167,24 +137,30 @@ namespace OpenMS
     /// Check whether the current layer should be represented as ion mobility
     bool isIonMobilityData() const
     {
-      return this->getPeakData()->size() > 0 && this->getPeakData()->metaValueExists("is_ion_mobility") && this->getPeakData()->getMetaValue("is_ion_mobility").toBool();
+      const MSExperiment& exp = this->getPeakData()->getMSExperiment();
+      return exp.size() > 0 
+        && exp.metaValueExists("is_ion_mobility") 
+        && exp.getMetaValue("is_ion_mobility").toBool();
     }
 
     void labelAsIonMobilityData() const
     {
-      peak_map_->setMetaValue("is_ion_mobility", "true");
+      peak_map_->getMSExperiment().setMetaValue("is_ion_mobility", "true");
     }
 
     /// Check whether the current layer contains DIA (SWATH-MS) data
     bool isDIAData() const
     {
-      return this->getPeakData()->size() > 0 && this->getPeakData()->metaValueExists("is_dia_data") && this->getPeakData()->getMetaValue("is_dia_data").toBool();
+      const MSExperiment& exp = this->getPeakData()->getMSExperiment();
+      return exp.size() > 0 
+        && exp.metaValueExists("is_dia_data") 
+        && exp.getMetaValue("is_dia_data").toBool();
     }
 
     /// Label the current layer as DIA (SWATH-MS) data
     void labelAsDIAData()
     {
-      peak_map_->setMetaValue("is_dia_data", "true");
+      peak_map_->getMSExperiment().setMetaValue("is_dia_data", "true");
     }
 
     /**
@@ -197,13 +173,16 @@ namespace OpenMS
     */
     bool chromatogram_flag_set() const
     {
-      return this->getPeakData()->size() > 0 && this->getPeakData()->metaValueExists("is_chromatogram") && this->getPeakData()->getMetaValue("is_chromatogram").toBool();
+      const MSExperiment& exp = this->getPeakData()->getMSExperiment();
+      return exp.size() > 0 
+        && exp.metaValueExists("is_chromatogram") 
+        && exp.getMetaValue("is_chromatogram").toBool();
     }
 
     /// set the chromatogram flag
     void set_chromatogram_flag()
     {
-      peak_map_->setMetaValue("is_chromatogram", "true");
+      peak_map_->getMSExperiment().setMetaValue("is_chromatogram", "true");
     }
 
     /// remove the chromatogram flag
@@ -211,7 +190,7 @@ namespace OpenMS
     {
       if (this->chromatogram_flag_set())
       {
-        peak_map_->removeMetaValue("is_chromatogram");
+        peak_map_->getMSExperiment().removeMetaValue("is_chromatogram");
       }
     }
 

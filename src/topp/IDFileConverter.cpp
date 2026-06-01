@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -40,12 +14,14 @@
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
@@ -53,8 +29,11 @@
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #ifdef _OPENMP
@@ -76,9 +55,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+            <th ALIGN = "center"> potential predecessor tools </td>
             <td VALIGN="middle" ROWSPAN=3> &rarr; IDFileConverter &rarr;</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> TPP tools: PeptideProphet, ProteinProphet </td>
@@ -110,7 +89,7 @@ secondary or non-probability main scores will be written as "search_scores" only
 Support for conversion to/from mzIdentML (.mzid) is still experimental and may lose information.
 
 The xquest.xml format is very specific to Protein-Protein Cross-Linking MS (XL-MS) applications and is only considered useful for compatibility
-of OpenPepXL / OpenPepXLLF with the xQuest / xProphet / xTract pipeline. It will only have useful output when converting from idXML or mzid containg XL-MS data.
+of OpenPepXL with the xQuest / xProphet / xTract pipeline. It will only have useful output when converting from idXML or mzid containg XL-MS data.
 
 Also supports generation of .mzML files with theoretical spectra from a .FASTA input.
 
@@ -140,10 +119,10 @@ Some information about the supported input types:
 @li @ref OpenMS::PercolatorOutfile "Percolator tab-delimited output"
 
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_IDFileConverter.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_IDFileConverter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_IDFileConverter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_IDFileConverter.html
 
 */
 
@@ -156,12 +135,12 @@ class TOPPIDFileConverter :
 {
 public:
   TOPPIDFileConverter() :
-    TOPPBase("IDFileConverter", "Converts identification engine file formats.", true)
+    TOPPBase("IDFileConverter", "Converts identification engine file formats.")
   {
   }
 
 private:
-  bool add_ionmatches_(vector<PeptideIdentification>& peptide_identifications, String filename, double tolerance)
+  bool add_ionmatches_(PeptideIdentificationList& peptide_identifications, String filename, double tolerance)
   {
       TheoreticalSpectrumGenerator tg;
       Param tgp(tg.getDefaults());
@@ -184,7 +163,7 @@ private:
       bool ret = true;
       PeakMap expmap;
       SpectrumLookup lookup;
-      FileHandler().loadExperiment(filename, expmap);
+      FileHandler().loadExperiment(filename, expmap, {}, log_type_);
       lookup.readSpectra(expmap.getSpectra());
 
 #pragma omp parallel for
@@ -192,7 +171,7 @@ private:
       {
         try
         {
-          String ref = peptide_identifications[i].getMetaValue("spectrum_reference");
+          String ref = peptide_identifications[i].getSpectrumReference();
           Size index = lookup.findByNativeID(ref);
           annot.addIonMatchStatistics(peptide_identifications[i], expmap[index], tg, sa);
         }
@@ -232,10 +211,10 @@ protected:
                        "- a single file in fasta format (can only be used to generate a theoretical mzML),\n"
                        "- a single text file (tab separated) with one line for all peptide sequences matching a spectrum (top N hits),\n"
                        "- for Sequest results, a directory containing .out files.\n");
-    setValidFormats_("in", ListUtils::create<String>("oms,idXML,mzid,fasta,pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,xquest.xml"));
+    setValidFormats_("in", ListUtils::create<String>("oms,idXML,mzid,idparquet,fasta,pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,xquest.xml"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    String formats("oms,idXML,mzid,pepXML,fasta,xquest.xml,mzML");
+    String formats("oms,idXML,mzid,idparquet,pepXML,fasta,xquest.xml,mzML");
     setValidFormats_("out", ListUtils::create<String>(formats));
     registerStringOption_("out_type", "<type>", "", "Output file type (default: determined from file extension)", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
@@ -247,7 +226,7 @@ protected:
     registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename/path (extension will be removed) to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
     registerFlag_("peptideprophet_analyzed", "[pepXML output only] Write output in the format of a PeptideProphet analysis result. By default a 'raw' pepXML is produced that contains only search engine results.", false);
     registerStringOption_("score_type", "<choice>", PercolatorOutfile::score_type_names[0], "[Percolator only] Which of the Percolator scores to report as 'the' score for a peptide hit", false);
-    setValidStrings_("score_type", vector<String>(PercolatorOutfile::score_type_names, PercolatorOutfile::score_type_names + int(PercolatorOutfile::SIZE_OF_SCORETYPE)));
+    setValidStrings_("score_type", vector<String>(PercolatorOutfile::score_type_names, PercolatorOutfile::score_type_names + static_cast<int>(PercolatorOutfile::ScoreType::SIZE_OF_SCORETYPE)));
 
     registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
@@ -268,7 +247,7 @@ protected:
     // general variables and data
     //-------------------------------------------------------------
     FileHandler fh;
-    vector<PeptideIdentification> peptide_identifications;
+    PeptideIdentificationList peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
     SpectrumMetaDataLookup lookup;
     IdentificationData id_data;
@@ -292,7 +271,12 @@ protected:
     logger.setLogType(ProgressLogger::CMD);
     logger.startProgress(0, 1, "Loading...");
 
-    if (File::isDirectory(in))
+    String in_for_type = in;
+    while (in_for_type.hasSuffix("/") || in_for_type.hasSuffix("\\"))
+    {
+      in_for_type = in_for_type.prefix(in_for_type.size() - 1);
+    }
+    if (File::isDirectory(in) && !FileTypes::isDirectoryType(FileHandler::getTypeByFileName(in_for_type)))
     {
       const String in_directory = File::absolutePath(in).ensureLastChar('/');
       const bool ignore_proteins_per_peptide = getFlag_("ignore_proteins_per_peptide");
@@ -308,7 +292,7 @@ protected:
       if (!mz_file.empty())
       {
         type = fh.getTypeByFileName(mz_file);
-        fh.loadExperiment(mz_file, msexperiment, type, log_type_, false, false);
+        fh.loadExperiment(mz_file, msexperiment, {type}, log_type_, false, false);
 
         for (PeakMap::Iterator spectra_it = msexperiment.begin(); spectra_it != msexperiment.end(); ++spectra_it)
         {
@@ -335,7 +319,7 @@ protected:
       // Now get to work ...
       for (vector<String>::const_iterator in_files_it = in_files.begin(); in_files_it != in_files.end(); ++in_files_it)
       {
-        vector<PeptideIdentification> peptide_ids_seq;
+        PeptideIdentificationList peptide_ids_seq;
         ProteinIdentification protein_id_seq;
         vector<double> pvalues_seq;
         vector<String> in_file_vec;
@@ -415,7 +399,7 @@ protected:
         else
         {
           PeakMap exp;
-          fh.loadExperiment(mz_file, exp, FileTypes::UNKNOWN, log_type_, false,
+          fh.loadExperiment(mz_file, exp, {}, log_type_, false,
                             false);
           if (mz_name.empty()) mz_name = mz_file;
           String scan_regex = getStringOption_("scan_regex");
@@ -429,7 +413,7 @@ protected:
 
       case FileTypes::IDXML:
       {
-        IdXMLFile().load(in, protein_identifications, peptide_identifications);
+        FileHandler().loadIdentifications(in, protein_identifications, peptide_identifications, {FileTypes::IDXML});
         // get spectrum_references from the mz data, if necessary:
         if (!mz_file.empty())
         {
@@ -453,14 +437,18 @@ protected:
       case FileTypes::MZIDENTML:
       {
         OPENMS_LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
-        MzIdentMLFile().load(in, protein_identifications,
-                             peptide_identifications);
+		FileHandler().loadIdentifications(in, protein_identifications,
+                             peptide_identifications, {FileTypes::MZIDENTML});
 
         // get retention times from the mz data, if necessary:
         if (!mz_file.empty())
         {
-          SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(
-            peptide_identifications, mz_file, false);
+		  // Add RTs if missing
+		  MSExperiment exp;    
+		  MzMLFile mzml_file{};
+          mzml_file.getOptions().setMetadataOnly(true);
+		  mzml_file.load(mz_file, exp); 
+          SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_identifications, exp);
 
           double add_ions = getDoubleOption_("add_ionmatch_annotation");
           if (add_ions > 0)
@@ -471,20 +459,23 @@ protected:
       }
       break;
 
+      case FileTypes::IDPARQUET:
+      {
+        FileHandler().loadIdentifications(in, protein_identifications, peptide_identifications, {FileTypes::IDPARQUET});
+      }
+      break;
+
       case FileTypes::PROTXML:
       {
-        protein_identifications.resize(1);
-        peptide_identifications.resize(1);
-        ProtXMLFile().load(in, protein_identifications[0],
-                           peptide_identifications[0]);
+        FileHandler().loadIdentifications(in, protein_identifications,
+                           peptide_identifications, {FileTypes::PROTXML});
       }
       break;
 
       case FileTypes::OMSSAXML:
       {
-        protein_identifications.resize(1);
-        OMSSAXMLFile().load(in, protein_identifications[0],
-                            peptide_identifications, true);
+        FileHandler().loadIdentifications(in, protein_identifications,
+                            peptide_identifications);
       }
       break;
 
@@ -496,7 +487,7 @@ protected:
           PeakMap exp;
           // load only MS2 spectra:
           fh.getOptions().addMSLevel(2);
-          fh.loadExperiment(mz_file, exp, FileTypes::MZML, log_type_, false,
+          fh.loadExperiment(mz_file, exp, {}, log_type_, false,
                             false);
           MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
         }
@@ -519,7 +510,7 @@ protected:
         {
           PeakMap exp;
           fh.getOptions().addMSLevel(2);
-          fh.loadExperiment(mz_file, exp, FileTypes::MZML, log_type_, false,
+          fh.loadExperiment(mz_file, exp, {}, log_type_, false,
                             false);
           for (PeptideIdentification& pep : peptide_identifications)
           {
@@ -548,12 +539,12 @@ protected:
       case FileTypes::PSMS: // Percolator
       {
         String score_type = getStringOption_("score_type");
-        enum PercolatorOutfile::ScoreType perc_score =
+        PercolatorOutfile::ScoreType perc_score =
           PercolatorOutfile::getScoreType(score_type);
         if (!mz_file.empty())
         {
           PeakMap experiment;
-          fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, log_type_, false, false);
+          fh.loadExperiment(mz_file, experiment, {}, log_type_, false, false);
           lookup.readSpectra(experiment.getSpectra());
         }
         String scan_regex = getStringOption_("scan_regex");
@@ -597,7 +588,7 @@ protected:
 
       case FileTypes::XQUESTXML:
       {
-        XQuestResultXMLFile().load(in, peptide_identifications, protein_identifications);
+        FileHandler().loadIdentifications(in, protein_identifications, peptide_identifications, {FileTypes::XQUESTXML});
       }
       break;
 
@@ -678,8 +669,7 @@ protected:
 
         logger.startProgress(0, 1, "Storing...");
 
-        MzMLFile mz_file;
-        mz_file.store(out, exp);
+        FileHandler().storeExperiment(out, exp, {FileTypes::MZML});
 
         logger.endProgress();
 
@@ -721,17 +711,21 @@ protected:
     break;
 
     case FileTypes::IDXML:
-      IdXMLFile().store(out, protein_identifications, peptide_identifications);
+      FileHandler().storeIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDXML});
       break;
 
     case FileTypes::MZIDENTML:
-      MzIdentMLFile().store(out, protein_identifications,
-                            peptide_identifications);
+      FileHandler().storeIdentifications(out, protein_identifications,
+                            peptide_identifications, {FileTypes::MZIDENTML});
+      break;
+
+    case FileTypes::IDPARQUET:
+      FileHandler().storeIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDPARQUET});
       break;
 
     case FileTypes::XQUESTXML:
-      XQuestResultXMLFile().store(out, protein_identifications,
-                                  peptide_identifications);
+      FileHandler().storeIdentifications(out, protein_identifications,
+                                  peptide_identifications, {FileTypes::XQUESTXML});
       break;
 
     case FileTypes::FASTA:

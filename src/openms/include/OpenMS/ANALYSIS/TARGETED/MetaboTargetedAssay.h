@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
@@ -120,17 +94,17 @@ namespace OpenMS
 
     @return Vector of MetaboTargetedAssay
 
-    @param spectra Input of MSExperiment with spectra information
-    @param feature_ms2_spectra_map FeatureMapping class with associated MS2 spectra
-    @param precursor_rt_tol Retention time tolerance of the precursor
-    @param precursor_mz_distance Max m/z distance of the precursor entries of two spectra to be merged
-    @param cosine_sim_threshold Cosine similarity threshold for the usage of SpectraMerger
-    @param transition_threshold Intensity threshold for MS2 peak used in MetaboTargetedAssay
-    @param min_fragment_mz Minimum m/z a fragment ion has to have to be considered as a transition
-    @param max_fragment_mz Maximum m/z a fragment ion has to have to be considered as a transition
-    @param method_consensus_spectrum Boolean to use consensus spectrum method
-    @param exclude_ms2_precursor Boolean to exclude MS2 precursor from MetaboTargetedAssay
-    @param file_counter Count if multiple files are used.
+    @param[in] spectra Input of MSExperiment with spectra information
+    @param[in] feature_ms2_index FeatureMapping class to associated MS2 spectra
+    @param[in] precursor_rt_tol Retention time tolerance of the precursor
+    @param[in] precursor_mz_distance Max m/z distance of the precursor entries of two spectra to be merged
+    @param[in] cosine_sim_threshold Cosine similarity threshold for the usage of SpectraMerger
+    @param[in] transition_threshold Intensity threshold for MS2 peak used in MetaboTargetedAssay
+    @param[in] min_fragment_mz Minimum m/z a fragment ion has to have to be considered as a transition
+    @param[in] max_fragment_mz Maximum m/z a fragment ion has to have to be considered as a transition
+    @param[in] method_consensus_spectrum Boolean to use consensus spectrum method
+    @param[in] exclude_ms2_precursor Boolean to exclude MS2 precursor from MetaboTargetedAssay
+    @param[in] file_counter Count if multiple files are used.
     */
     static std::vector<MetaboTargetedAssay> extractMetaboTargetedAssay(const MSExperiment& spectra,
                                                                        const FeatureMapping::FeatureToMs2Indices& feature_ms2_index,
@@ -149,21 +123,19 @@ namespace OpenMS
 
     @return Vector of MetaboTargetedAssay
 
-    @param v_cmp_spec Vector of CompoundInfo with associated fragment annotated MSspectrum
-    @param transition_threshold Intensity threshold for MS2 peak used in MetaboTargetedAssay
-    @param min_fragment_mz Minimum m/z a fragment ion has to have to be considered as a transition
-    @param max_fragment_mz Maximum m/z a fragment ion has to have to be considered as a transition
-    @param use_exact_mass Boolean if exact mass should be used as peak mass for annotated fragments
-    @param exclude_ms2_precursor Boolean to exclude MS2 precursor from MetaboTargetedAssay
-    @param file_counter Count if multiple files are used.
+    @param[in] v_cmp_spec Vector of CompoundInfo with associated fragment annotated MSspectrum
+    @param[in] transition_threshold Intensity threshold for MS2 peak used in MetaboTargetedAssay
+    @param[in] min_fragment_mz Minimum m/z a fragment ion has to have to be considered as a transition
+    @param[in] max_fragment_mz Maximum m/z a fragment ion has to have to be considered as a transition
+    @param[in] use_exact_mass Boolean if exact mass should be used as peak mass for annotated fragments
+    @param[in] exclude_ms2_precursor Boolean to exclude MS2 precursor from MetaboTargetedAssay
     */
     static std::vector<MetaboTargetedAssay> extractMetaboTargetedAssayFragmentAnnotation(const std::vector< CompoundTargetDecoyPair >& v_cmp_spec,
                                                                                          const double& transition_threshold,
                                                                                          const double& min_fragment_mz,
                                                                                          const double& max_fragment_mz,
                                                                                          const bool& use_exact_mass,
-                                                                                         const bool& exclude_ms2_precursor,
-                                                                                         const unsigned int& file_counter);
+                                                                                         const bool& exclude_ms2_precursor);
 
     /**
     @brief Pair compound information (SiriusMSFile) with the annotated target and decoy spectrum from SIRIUS/Passatutto
@@ -171,24 +143,21 @@ namespace OpenMS
 
     @return Vector of MetaboTargetedAssay::CompoundTargetDecoyPair
 
-    @param v_cmpinfo Vector of SiriusMSFile::CompoundInfo
-    @param annotated_spectra Vector of SiriusTargetDecoySpectra
+    @param[in] v_cmpinfo Vector of SiriusMSFile::CompoundInfo
+    @param[in] annotated_spectra Vector of SiriusTargetDecoySpectra
     */
     static std::vector< MetaboTargetedAssay::CompoundTargetDecoyPair > pairCompoundWithAnnotatedTDSpectraPairs(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
                                                                                                                const std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra>& annotated_spectra);
-    static std::vector< MetaboTargetedAssay::CompoundSpectrumPair > pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
-                                                                                                     const std::vector<MSSpectrum>& annotated_spectra);
-
     /**
     @brief Perform feature linking to build ambiguity groups based on the target and decoy position in the vector of MetaboTargetedAssays
 
     @return Map of pair (mz, rt) and vector of ambiguities for this mz,rt combination (MetaboTargetedAssay)
 
-    @param v_mta Vector of MetaboTargetedAssay
-    @param ar_mz_tol FeatureGroupingAlgorithmQT parameter distance_MZ:max_difference
-    @param ar_rt_tol FeatureGroupingAlgorithmQT parameter distance_RT:max_difference
-    @param ar_mz_tol_unit_res FeatureGroupingAlgorithmQT parameter distance_MZ_unit (ppm, Da)
-    @param in_files_size Number of files which were processed in the vector of MetaboTargetedAssay (e.g. initially 5 different files in the vector<MetaboTargetedAssay>)
+    @param[in] v_mta Vector of MetaboTargetedAssay
+    @param[in] ar_mz_tol FeatureGroupingAlgorithmQT parameter distance_MZ:max_difference
+    @param[in] ar_rt_tol FeatureGroupingAlgorithmQT parameter distance_RT:max_difference
+    @param[in] ar_mz_tol_unit_res FeatureGroupingAlgorithmQT parameter distance_MZ_unit (ppm, Da)
+    @param[in] in_files_size Number of files which were processed in the vector of MetaboTargetedAssay (e.g. initially 5 different files in the vector<MetaboTargetedAssay>)
     */
     static std::unordered_map< UInt64, std::vector<MetaboTargetedAssay> > buildAmbiguityGroup(const std::vector<MetaboTargetedAssay>& v_mta,
                                                                                               const double& ar_mz_tol,
@@ -198,10 +167,9 @@ namespace OpenMS
     /**
     @brief Resolve ambiguity groups based on occurrence in samples (e.g. at least in 20% of the samples) and if multiple possible identifications are reported within one ambiguity group use the one with the highest occurrence
 
-    @return Map of pair (mz, rt) and vector of ambiguities for this mz,rt combination (MetaboTargetedAssay)
-
-    @param total_occurrence_filter Value which has to be reached for the ambiguity group to be reported (e.g. in 20 % of the samples)
-    @param in_files_size Number of files which were processed in the vector of MetaboTargetedAssay (e.g. initially 5 different files in the vector<MetaboTargetedAssay>)
+    @param[in,out] map_mta_filter Map of pair (mz, rt) and vector of ambiguities for this mz,rt combination (MetaboTargetedAssay)
+    @param[in] total_occurrence_filter Value which has to be reached for the ambiguity group to be reported (e.g. in 20 % of the samples)
+    @param[in] in_files_size Number of files which were processed in the vector of MetaboTargetedAssay (e.g. initially 5 different files in the vector<MetaboTargetedAssay>)
     */
     static void resolveAmbiguityGroup(std::unordered_map< UInt64, std::vector<MetaboTargetedAssay> >& map_mta_filter,
                                       const double& total_occurrence_filter,
@@ -225,17 +193,16 @@ namespace OpenMS
     /**
     @brief Filter one ambiguity group based on occurrence in samples (e.g. at least in 20% of the samples)
 
-    @return Vector of MetaboTargetedAssay
-
-    @param total_occurrence_filter Value which has to be reached for the ambiguity group to be reported (e.g. in 20 % of the samples)
-    @param in_files_size Number of files which were processed in the vector of MetaboTargetedAssay (e.g. initially 5 different files in the vector<MetaboTargetedAssay>)
+    @param[in,out] mta Either cleared or left untouched
+    @param[in] total_occurrence_filter Value which has to be reached for the ambiguity group to be reported (e.g. in 20 % of the samples)
+    @param[in] in_files_size Number of files which were processed in the vector of MetaboTargetedAssay (e.g. initially 5 different files in the vector<MetaboTargetedAssay>)
     */
     static void filterBasedOnTotalOccurrence_(std::vector<MetaboTargetedAssay>& mta, double total_occurrence_filter, size_t in_files_size);
 
     /**
     @brief Filter one ambiguity group with multiple possible identifications to use the one with the highest occurrence
 
-    @return Vector of MetaboTargetedAssay
+    @param[in,out] mta Vector of MetaboTargetedAssay
     */
     static void filterBasedOnMolFormAdductOccurrence_(std::vector<MetaboTargetedAssay>& mta);
 

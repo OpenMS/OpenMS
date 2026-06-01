@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -45,18 +19,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  Residue::Residue() :
-    name_("unknown"),
-    average_weight_(0.0f),
-    mono_weight_(0.0f),
-    modification_(nullptr),
-    loss_average_weight_(0.0f),
-    loss_mono_weight_(0.0f),
-    pka_(0.0),
-    pkb_(0.0),
-    pkc_(-1.0)
-  {
-  }
+
+  Residue::Residue() = default;
 
   Residue::Residue(const String& name,
             const String& three_letter_code,
@@ -69,7 +33,6 @@ namespace OpenMS
             double gb_bb_l,
             double gb_bb_r,
             const set<String>& synonyms):
-                
     name_(name),
     synonyms_(synonyms),
     three_letter_code_(three_letter_code),
@@ -77,9 +40,6 @@ namespace OpenMS
     formula_(formula),
     average_weight_(formula.getAverageWeight()),
     mono_weight_(formula.getMonoWeight()),
-    modification_(nullptr),
-    loss_average_weight_(0.0f),
-    loss_mono_weight_(0.0f),
     pka_(pka),
     pkb_(pkb),
     pkc_(pkc),
@@ -107,63 +67,7 @@ namespace OpenMS
 
   String Residue::getResidueTypeName(const Residue::ResidueType res_type)
   {
-    switch (res_type)
-    {
-    case Residue::Full:
-      return "full";
-
-    case Residue::Internal:
-      return "internal";
-
-    case Residue::NTerminal:
-      return "N-terminal";
-
-    case Residue::CTerminal:
-      return "C-terminal";
-
-    case Residue::AIon:
-      return "a-ion";
-
-    case Residue::BIon:
-      return "b-ion";
-
-    case Residue::CIon:
-      return "c-ion";
-
-    case Residue::XIon:
-      return "x-ion";
-
-    case Residue::YIon:
-      return "y-ion";
-
-    case Residue::ZIon:
-      return "z-ion";
-
-    case Residue::Precursor:
-      return "precursor-ion";
-
-    case Residue::BIonMinusH20:
-      return "b-H2O-ion";
-
-    case Residue::YIonMinusH20:
-      return "y-H2O-ion";
-
-    case Residue::BIonMinusNH3:
-      return "B-NH3-ion";
-
-    case Residue::YIonMinusNH3:
-      return "y-NH3-ion";
-
-    case Residue::NonIdentified:
-      return "Non-identified ion";
-
-    case Residue::Unannotated:
-      return "unannotated";
-
-    default:
-      cerr << "Error: Residue::getResidueTypeName - residue type has no name. The developer should add a residue name to Residue.cpp" << endl;
-    }
-    return "";
+    return names_of_residuetype[res_type];
   }
 
   void Residue::setSynonyms(const set<String>& synonyms)
@@ -360,6 +264,12 @@ namespace OpenMS
     case ZIon:
       return internal_formula_ + getInternalToZIon();
 
+    case Zp1Ion:
+      return internal_formula_ + getInternalToZp1Ion();
+
+    case Zp2Ion:
+      return internal_formula_ + getInternalToZp2Ion();
+
     default:
       cerr << "Residue::getFormula: unknown ResidueType" << endl;
       return formula_;
@@ -430,28 +340,34 @@ namespace OpenMS
       return mono_weight_ - internal_to_full_monoweight_;
 
     case NTerminal:
-      return mono_weight_ + internal_to_nterm_monoweight_;
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_nterm_monoweight_;
 
     case CTerminal:
-      return mono_weight_ + internal_to_cterm_monoweight_;
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_cterm_monoweight_;
 
     case BIon:
-      return mono_weight_ + internal_to_b_monoweight_;
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_b_monoweight_;
 
     case AIon:
-      return mono_weight_ + internal_to_a_monoweight_;
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_a_monoweight_;
 
     case CIon:
-      return mono_weight_ + internal_to_c_monoweight_;
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_c_monoweight_;
 
     case XIon:
-      return mono_weight_ + internal_to_x_monoweight_;
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_x_monoweight_;
 
     case YIon:
-      return mono_weight_ + internal_to_y_monoweight_;
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_y_monoweight_;
 
     case ZIon:
-      return mono_weight_ + internal_to_z_monoweight_;
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_z_monoweight_;
+
+    case Zp1Ion:
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_zp1_monoweight_;
+
+    case Zp2Ion:
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_zp2_monoweight_;
 
     default:
       cerr << "Residue::getMonoWeight: unknown ResidueType" << endl;
@@ -626,6 +542,9 @@ namespace OpenMS
 
   bool Residue::operator==(const Residue& residue) const
   {
+    // usually, its the same address (from ResidueDB)
+    if (this == &residue) return true;
+    // otherwise compare members
     return name_ == residue.name_ &&
            synonyms_ == residue.synonyms_ &&
            three_letter_code_ == residue.three_letter_code_ &&
@@ -638,8 +557,6 @@ namespace OpenMS
            loss_formulas_ == residue.loss_formulas_ &&
            NTerm_loss_names_ == residue.NTerm_loss_names_ &&
            NTerm_loss_formulas_ == residue.NTerm_loss_formulas_ &&
-           loss_average_weight_ == residue.loss_average_weight_ &&
-           loss_mono_weight_ == residue.loss_mono_weight_ &&
            low_mass_ions_ == residue.low_mass_ions_ &&
            pka_ == residue.pka_ &&
            pkb_ == residue.pkb_ &&
@@ -670,20 +587,22 @@ namespace OpenMS
     return residue_sets_.find(residue_set) != residue_sets_.end();
   }
 
-  char Residue::residueTypeToIonLetter(const Residue::ResidueType& res_type)
+  std::string Residue::residueTypeToIonLetter(const Residue::ResidueType& res_type)
   {
     switch (res_type)
     {
-      case Residue::AIon: return 'a';
-      case Residue::BIon: return 'b';
-      case Residue::CIon: return 'c';
-      case Residue::XIon: return 'x';
-      case Residue::YIon: return 'y';
-      case Residue::ZIon: return 'z';
+      case Residue::AIon: return "a";
+      case Residue::BIon: return "b";
+      case Residue::CIon: return "c";
+      case Residue::XIon: return "x";
+      case Residue::YIon: return "y";
+      case Residue::ZIon: return "z";
+      case Residue::Zp1Ion: return "z.";
+      case Residue::Zp2Ion: return "z'";
       default:
-       cerr << "Unknown residue type encountered. Can't map to ion letter." << endl;
+       OPENMS_LOG_ERROR << "Unknown residue type encountered. Can't map to ion letter." << endl;
     }
-    return ' ';
+    return "";
   }
 
   String Residue::toString() const
@@ -704,11 +623,105 @@ namespace OpenMS
 
   ostream& operator<<(ostream& os, const Residue& residue)
   {
-    os << residue.name_ << " "
-    << residue.three_letter_code_ << " "
-    << residue.one_letter_code_ << " "
-    << residue.formula_;
+    os << residue.name_ << ' '
+       << residue.three_letter_code_ << ' '
+       << residue.one_letter_code_ << ' '
+       << residue.formula_;
     return os;
   }
 
+  double Residue::getHydrophobicity(const HydrophobicityScaleMethod scale) const
+  {     
+    char amino_acid;
+    if (one_letter_code_.size() == 1)
+    {
+      amino_acid = one_letter_code_[0];
+    }
+    else 
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "One letter code for this residue is empty", "");
+    }
+    if (amino_acid < 'A' || amino_acid > 'Z') 
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No hydrophobicity value known for this residue", one_letter_code_);
+    }
+    static const double scales[7][26] = 
+    {
+      // KyteDoolitlle scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        1.800,   999, 2.500, -3.50, -3.50, 2.800, -0.40, -3.20, 4.500,   999, -3.90, 3.800, 1.900, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        -3.50,   999, -1.60, -3.50, -4.50, -0.80, -0.70,   999, 4.200, -0.90,   999, -1.30,   999
+      },
+      // Eisenberg normalized scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        0.620,   999, 0.290, -0.90, -0.74, 1.190, 0.480, -0.40, 1.380,   999, -1.50, 1.060, 0.640, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        -0.780,  999, 0.120, -0.85, -2.53, -0.18, -0.05,   999, 1.080, 0.810,   999, 0.260,   999
+      },
+      // HoppWoods scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        -0.50,   999, -1.00, 3.000, 3.000, -2.50, 0.000, -0.50, -1.80,   999, 3.000, -1.80, -1.30, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        0.200,   999, 0.000, 0.200, 3.000, 0.300, -0.40,   999, -1.50, -3.40,   999, -2.30,   999
+      },
+      // BullBreese scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        0.610,   999, 0.360, 0.610, 0.510, -1.52, 0.810, 0.690, -1.45,   999, 0.460, -1.65, -0.66, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        0.890,   999, -0.17, 0.970, 0.690, 0.420, 0.290,   999, -0.75, -1.20,   999, -1.43,   999
+      },
+      // BlackMould scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        0.616,   999, 0.680, 0.028, 0.043, 1.000, 0.501, 0.165, 0.943,   999, 0.283, 0.943, 0.738, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        0.236,   999, 0.711, 0.251, 0.000, 0.359, 0.450,   999, 0.825, 0.878,   999, 0.880,   999
+      },
+      // Guy scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        0.100,   999, -1.42, 0.780, 0.830, -2.12, 0.330, -0.500, -1.13,   999, 1.400, -1.18, -1.59, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        0.480,   999, 0.730, 0.950, 1.910, 0.520, 0.070,   999, -1.27, -0.51,   999, -0.21,   999
+      },
+      // Eisenberg consensus scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        0.250,   999, 0.040, -0.72, -0.62, 0.610, 0.160, -0.40, 0.730,   999, -1.10, 0.530, 0.260, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        -0.64,   999, -0.07, -0.69, -1.76, -0.26, -0.18,   999, 0.540, 0.370,   999, 0.020,   999
+      }   
+    };
+    const int scale_idx = static_cast<int>(scale);
+    if (scale_idx < 0 || scale_idx >= 7)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown hydrophobicity scale", String(scale_idx));
+    }
+    const double result = scales[scale_idx][amino_acid - 'A'];
+    if (result == 999)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No hydrophobicity value known for this residue", one_letter_code_);
+    }
+    return result;
+  }
+
+  // static members
+  // TODO They could actually be constexpr but EmpiricalFormula of a string literal is not constexpr yet
+  //  not sure if possible with current C++ standard
+  const double Residue::internal_to_full_monoweight_ = Residue::getInternalToFull().getMonoWeight();
+  const double Residue::internal_to_nterm_monoweight_ = Residue::getInternalToNTerm().getMonoWeight();
+  const double Residue::internal_to_cterm_monoweight_ = Residue::getInternalToCTerm().getMonoWeight();
+  const double Residue::internal_to_a_monoweight_ = Residue::getInternalToAIon().getMonoWeight();
+  const double Residue::internal_to_b_monoweight_ = Residue::getInternalToBIon().getMonoWeight();
+  const double Residue::internal_to_c_monoweight_ = Residue::getInternalToCIon().getMonoWeight();
+  const double Residue::internal_to_x_monoweight_ = Residue::getInternalToXIon().getMonoWeight();
+  const double Residue::internal_to_y_monoweight_ = Residue::getInternalToYIon().getMonoWeight();
+  const double Residue::internal_to_z_monoweight_ = Residue::getInternalToZIon().getMonoWeight();
+  const double Residue::internal_to_zp1_monoweight_ = Residue::getInternalToZp1Ion().getMonoWeight();
+  const double Residue::internal_to_zp2_monoweight_ = Residue::getInternalToZp2Ion().getMonoWeight();
 }

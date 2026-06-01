@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -37,8 +11,6 @@
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
-
-#include <QtCore/QRegExp>
 #include <map>
 
 using namespace xercesc;
@@ -344,7 +316,7 @@ namespace OpenMS::Internal
         {
           if (!parsed_term.has_unit_accession)
           {
-            errors_.push_back(String("CV term must have a unit: " + parsed_term.accession + " - " + parsed_term.name));
+            errors_.emplace_back("CV term must have a unit: " + parsed_term.accession + " - " + parsed_term.name);
           }
           else
           {
@@ -374,13 +346,13 @@ namespace OpenMS::Internal
 
                 if (!found_unit)
                 {
-                  errors_.push_back(String("Unit CV term not allowed: " + parsed_term.unit_accession + " - " + parsed_term.unit_name + " of term " + parsed_term.accession + " - " + parsed_term.name));
+                  errors_.emplace_back("Unit CV term not allowed: " + parsed_term.unit_accession + " - " + parsed_term.unit_name + " of term " + parsed_term.accession + " - " + parsed_term.name);
                 }
               }
             }
             else
             {
-              errors_.push_back(String("Unit CV term not found: " + parsed_term.unit_accession + " - " + parsed_term.unit_name + " of term " + parsed_term.accession + " - " + parsed_term.name));
+              errors_.emplace_back("Unit CV term not found: " + parsed_term.unit_accession + " - " + parsed_term.unit_name + " of term " + parsed_term.accession + " - " + parsed_term.name);
             }
           }
         }
@@ -389,7 +361,7 @@ namespace OpenMS::Internal
           // check whether unit was used
           if (parsed_term.has_unit_accession || parsed_term.has_unit_name)
           {
-            warnings_.push_back(String("Unit CV term used, but not allowed: " + parsed_term.unit_accession + " - " + parsed_term.unit_name + " of term " + parsed_term.accession + " - " + parsed_term.name));
+            warnings_.emplace_back("Unit CV term used, but not allowed: " + parsed_term.unit_accession + " - " + parsed_term.unit_name + " of term " + parsed_term.accession + " - " + parsed_term.name);
           }
         }
       }
@@ -421,10 +393,10 @@ namespace OpenMS::Internal
         ControlledVocabulary::CVTerm::XRefType type = cv_.getTerm(parsed_term.accession).xref_type;
 
         // get value, if it exists
-        if (parsed_term.has_value && (!parsed_term.value.empty() || type == ControlledVocabulary::CVTerm::XSD_STRING))
+        if (parsed_term.has_value && (!parsed_term.value.empty() || type == ControlledVocabulary::CVTerm::XRefType::XSD_STRING))
         {
           String value = parsed_term.value;
-          if (type == ControlledVocabulary::CVTerm::NONE)
+          if (type == ControlledVocabulary::CVTerm::XRefType::NONE)
           {
             //Quality CV does not state value type :(
             if (!parsed_term.accession.hasPrefix("PATO:"))
@@ -432,11 +404,11 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value of CV term not allowed: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_STRING)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_STRING)
           {
             // nothing to check
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_INTEGER)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_INTEGER)
           {
             try
             {
@@ -447,7 +419,7 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:integer: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_DECIMAL)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL)
           {
             try
             {
@@ -458,7 +430,7 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:decimal: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_NEGATIVE_INTEGER)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_NEGATIVE_INTEGER)
           {
             try
             {
@@ -473,7 +445,7 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:negativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_POSITIVE_INTEGER)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_POSITIVE_INTEGER)
           {
             try
             {
@@ -488,7 +460,7 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:positiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_NON_NEGATIVE_INTEGER)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER)
           {
             try
             {
@@ -503,7 +475,7 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:nonNegativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_NON_POSITIVE_INTEGER)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER)
           {
             try
             {
@@ -518,7 +490,7 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:nonPositiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_BOOLEAN)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_BOOLEAN)
           {
             String value_copy = value;
             value_copy.trim();
@@ -528,7 +500,7 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:boolean: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_DATE)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_DATE)
           {
             try
             {
@@ -540,21 +512,19 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:date: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_ANYURI)
-          {
-            QRegExp rx("*:*"); // according to RFC 2396 this is there must be a colon (looked only 2 minutes on it)
-            rx.setPatternSyntax(QRegExp::Wildcard);
-            if (!rx.exactMatch(value.c_str()))
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_ANYURI)
+          { // according to RFC 2396 this is there must be a colon (looked only 2 minutes on it)
+            if (!value.has(':'))
             {
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:anyURI (at least a colon is needed): '") + parsed_term.accession + " - " + parsed_term.name + "' value=" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else
           {
-            errors_.push_back(String("Value-type unknown (type #" + String(type) + "): '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+            errors_.push_back(String("Value-type unknown (type #" + String(static_cast<int>(type)) + "): '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
           }
         }
-        else if (cv_.getTerm(parsed_term.accession).xref_type != ControlledVocabulary::CVTerm::NONE)
+        else if (cv_.getTerm(parsed_term.accession).xref_type != ControlledVocabulary::CVTerm::XRefType::NONE)
         {
           errors_.push_back(String("Value-type required, but not given (" + ControlledVocabulary::CVTerm::getXRefTypeName(cv_.getTerm(parsed_term.accession).xref_type) + "): '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + parsed_term.value + "' at element '" + getPath_(1) + "'");
         }

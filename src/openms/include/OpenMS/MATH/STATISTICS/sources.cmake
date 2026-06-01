@@ -3,20 +3,16 @@ set(directory include/OpenMS/MATH/STATISTICS)
 
 ### list all header files of the directory here
 set(sources_list_h
-AsymmetricStatistics.h
-AveragePosition.h
 BasicStatistics.h
 GammaDistributionFitter.h
 GaussFitter.h
 GumbelDistributionFitter.h
 GumbelMaxLikelihoodFitter.h
 Histogram.h
-LinearRegression.h
-LinearRegressionWithoutIntercept.h
-QuadraticRegression.h
+KernelDensityEstimation.h
+MultipleTesting.h
 PosteriorErrorProbabilityModel.h
-ROCCurve.h
-StatisticFunctions.h
+RankData.h
 )
 
 ### add path to the filenames

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -42,6 +16,9 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+
+#include <unordered_set>
+#include <unordered_map>
 
 
 using namespace OpenMS;
@@ -170,6 +147,53 @@ END_SECTION
 
 
 delete e_ptr;
+
+/////////////////////////////////////////////////////////////
+// Hash tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] std::hash<Element>))
+{
+  // Test that equal objects have equal hashes
+  IsotopeDistribution dist1;
+  dist1.insert(12.0, 0.989);
+  dist1.insert(13.003355, 0.011);
+
+  Element e1("Carbon", "C", 6, 12.0107, 12.0, dist1);
+  Element e2("Carbon", "C", 6, 12.0107, 12.0, dist1);
+
+  std::hash<Element> hasher;
+  TEST_EQUAL(e1 == e2, true)
+  TEST_EQUAL(hasher(e1), hasher(e2))
+
+  // Test that different objects (likely) have different hashes
+  Element e3("Nitrogen", "N", 7, 14.0067, 14.003074, IsotopeDistribution());
+  TEST_EQUAL(e1 == e3, false)
+  // Note: Different objects should have different hashes (with very high probability)
+  TEST_NOT_EQUAL(hasher(e1), hasher(e3))
+
+  // Test consistency: same object hashes to same value
+  TEST_EQUAL(hasher(e1), hasher(e1))
+
+  // Test use in unordered_set
+  std::unordered_set<Element> element_set;
+  element_set.insert(e1);
+  element_set.insert(e2); // Should not increase size (duplicate)
+  element_set.insert(e3);
+  TEST_EQUAL(element_set.size(), 2)
+  TEST_EQUAL(element_set.count(e1), 1)
+  TEST_EQUAL(element_set.count(e3), 1)
+
+  // Test use in unordered_map
+  std::unordered_map<Element, std::string> element_map;
+  element_map[e1] = "first carbon";
+  element_map[e2] = "second carbon"; // Should overwrite
+  element_map[e3] = "nitrogen";
+  TEST_EQUAL(element_map.size(), 2)
+  TEST_EQUAL(element_map[e1], "second carbon")
+  TEST_EQUAL(element_map[e3], "nitrogen")
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

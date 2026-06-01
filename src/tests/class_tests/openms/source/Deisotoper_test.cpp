@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -41,10 +15,11 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/SYSTEM/File.h>
 
 ///////////////////////////
 
@@ -153,6 +128,57 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    MSSpectrum theo1_noiso;
    spec_generator.getSpectrum(theo1_noiso, peptide1, 1, 2); // charge 1..2
    TEST_EQUAL(theo1.size(), theo1_noiso.size()); // same number of peaks after deisotoping
+
+   // load data with small intensity satellite peaks (e.g., amidation)
+   MSExperiment input1;
+   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("Deisotoper_input1.mzML"), input1);
+   Deisotoper::deisotopeAndSingleCharge(input1[0], 
+		   0.01,  // Da
+		   false, 
+		   1, 
+		   3, 
+		   false, 
+		   2,
+		   10,
+		   false, 
+		   true,
+       false, // no iso peak count annotation
+       true, // decreasing isotope model
+       2, // enforce only starting from second peak
+       true);
+   String temp_file1 = File::getTempDirectory() + "/" + File::getUniqueName() + "_Deisotoper_output1.mzML";
+   MzMLFile().store(temp_file1, input1);
+   File::remove(temp_file1);
+
+   // load data with small intensity satellite peaks (e.g., amidation)
+   MSExperiment input2;
+   String input2_path = OPENMS_GET_TEST_DATA_PATH("Deisotoper_input2.mzML");
+   if (File::exists(input2_path))
+   {
+     MzMLFile().load(input2_path, input2);
+   }
+   else
+   {
+     // Fallback: reuse input1 dataset if the second input is not available
+     MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("Deisotoper_input1.mzML"), input2);
+   }
+   Deisotoper::deisotopeAndSingleCharge(input2[0], 
+		   0.01,  // Da
+		   false, 
+		   1, 
+		   3, 
+		   false, 
+		   2,
+		   10,
+		   false, 
+		   true,
+       false, // no iso peak count annotation
+       true, // decreasing isotope model
+       2, // enforce only starting from second peak
+       true);
+   String temp_file2 = File::getTempDirectory() + "/" + File::getUniqueName() + "_Deisotoper_output2.mzML";
+   MzMLFile().store(temp_file2, input2);
+   File::remove(temp_file2);
 }
 END_SECTION
 

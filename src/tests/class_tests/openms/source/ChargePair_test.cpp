@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -40,6 +14,9 @@
 
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
+
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace OpenMS;
 using namespace std;
@@ -212,7 +189,7 @@ START_SECTION((virtual bool operator==(const ChargePair &i) const))
 	TEST_EQUAL(cp3==cp4, false);
 	ChargePair cp5(34,15, 4,5, cmp, 12.34, false);
 	ChargePair cp6(34,15, 4,5, cmp, 12.34, false);
-	TEST_EQUAL(cp5==cp6, true);
+	TEST_TRUE(cp5 == cp6);
 	
 }
 END_SECTION
@@ -221,16 +198,118 @@ START_SECTION((virtual bool operator!=(const ChargePair &i) const))
 {
 	ChargePair cp1(34,45, 4,5, cmp, 12.34, false);
 	ChargePair cp2(34,15, 4,5, cmp, 12.34, false);
-	TEST_EQUAL(cp1!=cp2, true);
+	TEST_FALSE(cp1 == cp2);
 	ChargePair cp3(34,15, 4,5, cmp, 12.34, true);
 	ChargePair cp4(34,15, 4,5, cmp, 12.34, false);
-	TEST_EQUAL(cp3!=cp4, true);
+	TEST_FALSE(cp3 == cp4);
 	ChargePair cp5(34,15, 4,5, cmp, 12.34, false);
 	ChargePair cp6(34,15, 4,5, cmp, 12.34, false);
 	TEST_EQUAL(cp5!=cp6, false);
 }
 END_SECTION
 
+START_SECTION(([EXTRA] std::hash<ChargePair>))
+{
+  std::hash<ChargePair> hasher;
+
+  // Test that equal objects have equal hashes
+  ChargePair cp1(34,45, 4,5, cmp, 12.34, false);
+  ChargePair cp2(34,45, 4,5, cmp, 12.34, false);
+  TEST_TRUE(cp1 == cp2);
+  TEST_EQUAL(hasher(cp1), hasher(cp2));
+
+  // Test that different objects (likely) have different hashes
+  ChargePair cp3(34,15, 4,5, cmp, 12.34, false);
+  TEST_FALSE(cp1 == cp3);
+  TEST_NOT_EQUAL(hasher(cp1), hasher(cp3));
+
+  // Test with different charges
+  ChargePair cp4(34,45, 3,5, cmp, 12.34, false);
+  TEST_FALSE(cp1 == cp4);
+  TEST_NOT_EQUAL(hasher(cp1), hasher(cp4));
+
+  // Test with different active state
+  ChargePair cp5(34,45, 4,5, cmp, 12.34, true);
+  TEST_FALSE(cp1 == cp5);
+  TEST_NOT_EQUAL(hasher(cp1), hasher(cp5));
+
+  // Test with different mass_diff
+  ChargePair cp6(34,45, 4,5, cmp, 99.99, false);
+  TEST_FALSE(cp1 == cp6);
+  TEST_NOT_EQUAL(hasher(cp1), hasher(cp6));
+
+  // Test that score_ (not in operator==) does not affect hash
+  ChargePair cp7(34,45, 4,5, cmp, 12.34, false);
+  cp7.setEdgeScore(999.0);
+  ChargePair cp8(34,45, 4,5, cmp, 12.34, false);
+  cp8.setEdgeScore(1.0);
+  TEST_TRUE(cp7 == cp8);
+  TEST_EQUAL(hasher(cp7), hasher(cp8));
+
+  // Test use in unordered_set
+  std::unordered_set<ChargePair> cp_set;
+  cp_set.insert(cp1);
+  cp_set.insert(cp2); // duplicate, should not increase size
+  cp_set.insert(cp3);
+  TEST_EQUAL(cp_set.size(), 2);
+  TEST_EQUAL(cp_set.count(cp1), 1);
+  TEST_EQUAL(cp_set.count(cp3), 1);
+
+  // Test use in unordered_map
+  std::unordered_map<ChargePair, int> cp_map;
+  cp_map[cp1] = 100;
+  cp_map[cp3] = 200;
+  TEST_EQUAL(cp_map.size(), 2);
+  TEST_EQUAL(cp_map[cp1], 100);
+  TEST_EQUAL(cp_map[cp3], 200);
+  cp_map[cp2] = 150; // cp2 == cp1, should overwrite
+  TEST_EQUAL(cp_map.size(), 2);
+  TEST_EQUAL(cp_map[cp1], 150);
+}
+END_SECTION
+
+
+START_SECTION((Int getMolMultiplier(UInt pairID) const))
+{
+  // default constructor gives multiplier 1
+  ChargePair cp;
+  TEST_EQUAL(cp.getMolMultiplier(0), 1);
+  TEST_EQUAL(cp.getMolMultiplier(1), 1);
+}
+END_SECTION
+
+START_SECTION((void setMolMultiplier(UInt pairID, Int m)))
+{
+  ChargePair cp;
+  cp.setMolMultiplier(0, 2);
+  cp.setMolMultiplier(1, 3);
+  TEST_EQUAL(cp.getMolMultiplier(0), 2);
+  TEST_EQUAL(cp.getMolMultiplier(1), 3);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ChargePair multiplier in equality and hash))
+{
+  // multiplier affects equality
+  ChargePair cp1(34, 45, 4, 5, cmp, 12.34, false);
+  ChargePair cp2(34, 45, 4, 5, cmp, 12.34, false);
+  cp1.setMolMultiplier(0, 2);
+  TEST_FALSE(cp1 == cp2);
+
+  // same multiplier -> equal
+  cp2.setMolMultiplier(0, 2);
+  TEST_TRUE(cp1 == cp2);
+
+  // hash consistency
+  std::hash<ChargePair> hasher;
+  TEST_EQUAL(hasher(cp1), hasher(cp2));
+
+  // different multiplier -> different hash (likely)
+  cp2.setMolMultiplier(1, 3);
+  TEST_FALSE(cp1 == cp2);
+  TEST_NOT_EQUAL(hasher(cp1), hasher(cp2));
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

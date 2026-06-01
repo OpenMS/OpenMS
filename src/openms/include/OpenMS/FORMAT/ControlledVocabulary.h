@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -56,11 +30,26 @@ namespace OpenMS
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const ControlledVocabulary& cv);
 
 public:
+    /// ensure same hash on all platforms (for reproducibility)-
+    struct FNV1aHasher
+    {
+      size_t operator()(const String& key) const noexcept
+      {
+        size_t hash = 14695981039346656037ull;
+        for (auto c : key)
+        {
+          hash ^= static_cast<unsigned char>(c);
+          hash *= 1099511628211ull;
+        }
+        return hash;
+      }
+    };
+
     /// Representation of a CV term
     struct OPENMS_DLLAPI CVTerm
     {
       /// define xsd types allowed in cv term to specify their value-type
-      enum XRefType
+      enum class XRefType
       {
         XSD_STRING = 0, // xsd:string A string
         XSD_INTEGER, // xsd:integer Any integer
@@ -127,6 +116,9 @@ public:
     /**
         @brief Loads the CV from an OBO file
 
+        @param[in] name The CV name
+        @param[in] filename The OBO file path
+
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
@@ -161,13 +153,28 @@ public:
 
         If parent has child this method writes them recursively into the term object
 
+        @param[out] terms Output set of child term IDs
+        @param[in] parent_id The parent term ID
+
         @exception Exception::InvalidValue is thrown if the term is not present
     */
     void getAllChildTerms(std::set<String>& terms, const String& parent_id) const;
 
     /**
-        @brief Iterates over all children of parent recursively.
-        @param lbd Function that gets the child-Strings passed. Must return bool.
+        @brief Writes the parent term and all descendant term IDs into @p terms
+
+        @param[in,out] terms Output set extended with @p parent_id and all descendants
+        @param[in] parent_id The parent term ID
+
+        @exception Exception::InvalidValue is thrown if the term is not present
+    */
+    void addAllChildTerms(std::set<String>& terms, const String& parent_id) const;
+
+    /**
+        @brief Iterates over all children (incl. subchildren etc) of parent recursively, i.e. the whole subtree.
+
+        @param[in] parent_id Id of parent (to be passed to getTerm(), to obtain its children).
+        @param[in] lbd Function that gets the child-Ids passed. Must return bool.
                  Used for comparisons and / or to set captured variables.
                  If the lambda returns true, the iteration is exited prematurely.
                  E.g. if you have found your search, you don't need to continue searching.
@@ -188,12 +195,17 @@ public:
     /**
         @brief Searches the existing terms for the given @p name
 
+        @param[in] name The term name to search for
+
         @return const Pointer to found term. When term is not found, returns nullptr
     */
     const ControlledVocabulary::CVTerm* checkAndGetTermByName(const OpenMS::String& name) const;
 
     /**
         @brief Returns if @p child is a child of @p parent
+
+        @param[in] child_id The child term ID
+        @param[in] parent_id The parent term ID
 
         @exception Exception::InvalidValue is thrown if one of the terms is not present
     */
@@ -225,6 +237,7 @@ protected:
     bool checkName_(const String& id, const String& name, bool ignore_case = true) const;
 
     /// Map from ID to CVTerm
+    // note: unordered_map would be faster (5% for loading mzML), but order differs across platforms
     std::map<String, CVTerm> terms_;
     /// Map from name to id
     std::map<String, String> namesToIds_;

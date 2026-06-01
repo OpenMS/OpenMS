@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -35,7 +9,10 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DIntervalBase.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
+
+#include <functional>
 
 namespace OpenMS
 {
@@ -153,7 +130,7 @@ public:
     /**
         @brief Checks whether this range contains a certain point.
 
-        @param position The point's position.
+        @param[in] position The point's position.
         @returns true if point lies inside this area.
     */
     bool encloses(const PositionType& position) const
@@ -221,4 +198,31 @@ public:
   }
 
 } // namespace OpenMS
+
+// Hash function specialization for DBoundingBox
+namespace std
+{
+  template<OpenMS::UInt D>
+  struct hash<OpenMS::DBoundingBox<D>>
+  {
+    std::size_t operator()(const OpenMS::DBoundingBox<D>& bb) const noexcept
+    {
+      // Hash both min_ and max_ positions (fields used in operator==)
+      std::size_t seed = 0;
+      // Hash minPosition
+      const auto& min_pos = bb.minPosition();
+      for (OpenMS::UInt i = 0; i < D; ++i)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(min_pos[i]));
+      }
+      // Hash maxPosition
+      const auto& max_pos = bb.maxPosition();
+      for (OpenMS::UInt i = 0; i < D; ++i)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(max_pos[i]));
+      }
+      return seed;
+    }
+  };
+} // namespace std
 

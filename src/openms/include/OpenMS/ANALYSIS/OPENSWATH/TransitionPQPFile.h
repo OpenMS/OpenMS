@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: George Rosenberger $
@@ -35,6 +9,9 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+
+// Forward declaration for SQLite
+struct sqlite3;
 
 namespace OpenMS
 {
@@ -218,19 +195,54 @@ namespace OpenMS
 
 private:
 
+    /// Holds information about a PQP SQL query and optional column availability
+    struct PQPSqlQueryInfo
+    {
+      std::string select_sql;      ///< The complete SQL SELECT query
+      bool drift_time_exists;      ///< Whether LIBRARY_DRIFT_TIME column exists
+      bool gene_exists;            ///< Whether GENE table exists
+      bool compound_exists;        ///< Whether compound mappings exist
+      bool peptidoforms_exists;    ///< Whether transition-to-peptide mappings exist
+    };
+
+    /** @brief Build the SQL query for reading PQP transitions
+     *
+     * This helper builds the SQL query used by both readPQPInput_ and
+     * streamPQPToLightTargetedExperiment_ to avoid code duplication.
+     *
+     * @param[in] db The SQLite database connection
+     * @param[in] legacy_traml_id Whether to use legacy TraML IDs
+     * @param[in] stable_order Whether to apply the legacy deterministic row order
+     * @return PQPSqlQueryInfo containing the query and column availability flags
+     */
+    PQPSqlQueryInfo buildPQPSelectQuery_(sqlite3* db, bool legacy_traml_id, bool stable_order) const;
+
     /** @brief Read PQP SQLite file
      *
-     * @param filename The input file
-     * @param transition_list The output list of transitions
-     * @param legacy_traml_id Should legacy TraML IDs be used (boolean)?
+     * @param[in] filename The input file
+     * @param[out] transition_list The output list of transitions
+     * @param[in] legacy_traml_id Should legacy TraML IDs be used (boolean)?
      *
     */
     void readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list, bool legacy_traml_id = false);
 
+    /** @brief Stream PQP directly to LightTargetedExperiment (memory-efficient)
+     *
+     * This function reads the PQP file and directly populates the
+     * LightTargetedExperiment without creating an intermediate vector<TSVTransition>.
+     * This reduces peak memory usage by ~5x for large files.
+     *
+     * @param[in] filename The input file
+     * @param[out] exp The output LightTargetedExperiment
+     * @param[in] legacy_traml_id Should legacy TraML IDs be used (boolean)?
+     *
+    */
+    void streamPQPToLightTargetedExperiment_(const char* filename, OpenSwath::LightTargetedExperiment& exp, bool legacy_traml_id = false);
+
     /** @brief Write a TargetedExperiment to a file
      *
-     * @param filename Name of the output file
-     * @param targeted_exp The data structure to be written to the file
+     * @param[in] filename Name of the output file
+     * @param[out] targeted_exp The data structure to be written to the file
     */
     void writePQPOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
@@ -246,31 +258,44 @@ public:
 
     /** @brief Write out a targeted experiment (TraML structure) into a PQP file
      *
-      @param filename The output file
-      @param targeted_exp The targeted experiment
+      @param[in] filename The output file
+      @param[out] targeted_exp The targeted experiment
      *
     */
     void convertTargetedExperimentToPQP(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
+    /** @brief Write out a targeted experiment (Light structure) into a PQP file
+     *
+      @param[in] filename The output file
+      @param[in] targeted_exp The targeted experiment (Light structure)
+     *
+    */
+    void convertLightTargetedExperimentToPQP(const char* filename, const OpenSwath::LightTargetedExperiment& targeted_exp);
+
     /** @brief Read in a PQP file and construct a targeted experiment (TraML structure)
      *
-      @param filename The input file
-      @param targeted_exp The output targeted experiment
-      @param legacy_traml_id Should legacy TraML IDs be used (boolean)?
+      @param[out] filename The input file
+      @param[out] targeted_exp The output targeted experiment
+      @param[in] legacy_traml_id Should legacy TraML IDs be used (boolean)?
      *
     */
     void convertPQPToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp, bool legacy_traml_id = false);
 
     /** @brief Read in a PQP file and construct a targeted experiment (Light transition structure)
      *
-     * @param filename The input file
-     * @param targeted_exp The output targeted experiment
-     * @param legacy_traml_id Should legacy TraML IDs be used (boolean)?
+     * @param[out] filename The input file
+     * @param[out] targeted_exp The output targeted experiment
+     * @param[in] legacy_traml_id Should legacy TraML IDs be used (boolean)?
      *
     */
     void convertPQPToTargetedExperiment(const char* filename, OpenSwath::LightTargetedExperiment& targeted_exp, bool legacy_traml_id = false);
 
+    /** @brief Creates an undordered map between the traml_id and the pqp id
+     * 
+     * @param[in] filename The input file
+     * @param[in] tableName The name of the table (can be "PRECURSOR" or "TRANSITION" since theses are the only tables that have a TRAML_ID)
+     */
+    std::unordered_map<std::string, std::string> getPQPIDToTraMLIDMap(const char* filename, std::string tableName);
+
   };
 }
-
-

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -33,17 +7,17 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
+#include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -53,39 +27,39 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_MassTraceExtractor MassTraceExtractor
+@page TOPP_MassTraceExtractor MassTraceExtractor
 
-  @brief MassTraceExtractor extracts mass traces from a MSExperiment map and stores them into a FeatureXMLFile.
+@brief MassTraceExtractor extracts mass traces from a MSExperiment map and stores them into a FeatureXMLFile.
 
-  <CENTER>
-  <table>
-  <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=3> &rarr; MassTraceExtractor &rarr;</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo</td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_TextExporter </td>
-  </tr>
-  </table>
-  </CENTER>
+<CENTER>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=3> &rarr; MassTraceExtractor &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo</td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_TextExporter </td>
+</tr>
+</table>
+</CENTER>
 
 
-  This TOPP tool detects mass traces in centroided LC-MS maps and stores them as features in
-  a FeatureMap. These features may be either used directly as input for an metabolite ID approach or further
-  be assembled to aggregate features according to a theoretical isotope pattern. For metabolomics experiments,
-  the @ref TOPP_FeatureFinderMetabo tool offers both mass trace extraction and isotope pattern assembly.
-  For proteomics data, please refer to the @ref TOPP_FeatureFinderCentroided tool.
+This TOPP tool detects mass traces in centroided LC-MS maps and stores them as features in
+a FeatureMap. These features may be either used directly as input for an metabolite ID approach or further
+be assembled to aggregate features according to a theoretical isotope pattern. For metabolomics experiments,
+the @ref TOPP_FeatureFinderMetabo tool offers both mass trace extraction and isotope pattern assembly.
+For proteomics data, please refer to the @ref TOPP_FeatureFinderCentroided tool.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_MassTraceExtractor.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_MassTraceExtractor.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MassTraceExtractor.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MassTraceExtractor.html
 */
 
 // We do not want this class to show up in the docu:
@@ -163,12 +137,11 @@ protected:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MzMLFile mz_data_file;
-    mz_data_file.setLogType(log_type_);
+    FileHandler mz_data_file;
     PeakMap ms_peakmap;
     std::vector<Int> ms_level(1, 1);
     (mz_data_file.getOptions()).setMSLevels(ms_level);
-    mz_data_file.load(in, ms_peakmap);
+    mz_data_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML}, log_type_);
 
     if (ms_peakmap.empty())
     {
@@ -282,12 +255,30 @@ protected:
         fcons.setRT(m_traces_final[i].getCentroidRT());
         fcons.setMZ(m_traces_final[i].getCentroidMZ());
         fcons.setIntensity(m_traces_final[i].getIntensity(false));
+
+        // attach mz peak FWHM as meta array is available
+        if (mt_ext.hasFwhmMz())
+        {
+          fcons.setMetaValue(Constants::UserParam::FWHM_MZ_AVG, m_traces_final[i].fwhm_mz_avg);
+        }
+        // Similarly, check for ion mobility centroid presence. Annotate output with ion mobility
+        if (mt_ext.hasCentroidIm())
+        {
+          //fcons.setMetaValue("Ion Mobility Centroid", m_traces_final[i].getCentroidIM());
+          fcons.setMetaValue(Constants::UserParam::ION_MOBILITY_CENTROID, m_traces_final[i].getCentroidIM());
+        }
+        // if ion mobility peak FWHM is presnt, add to meta data
+        if (mt_ext.hasFwhmIm())
+        {
+          fcons.setMetaValue(Constants::UserParam::FWHM_IM_AVG, m_traces_final[i].fwhm_im_avg);
+        }
+
         consensus_map.push_back(fcons);
       }
       consensus_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
       addDataProcessing_(consensus_map, getProcessingInfo_(DataProcessing::QUANTITATION));
       consensus_map.setUniqueId();
-      ConsensusXMLFile().store(out, consensus_map);
+      FileHandler().storeConsensusFeatures(out, consensus_map, {FileTypes::CONSENSUSXML});
 
     }
     else //(out_type == FileTypes::FEATUREXML)
@@ -329,11 +320,20 @@ protected:
         f.setOverallQuality(1 - (1.0 / m_traces_final[i].getSize()));
         f.getConvexHulls().push_back(m_traces_final[i].getConvexhull());
         double sd = m_traces_final[i].getCentroidSD();
-        f.setMetaValue("SD", sd);
-        f.setMetaValue("SD_ppm", sd / f.getMZ() * 1e6);
-        if (m_traces_final[i].fwhm_mz_avg > 0)
+        f.setMetaValue(Constants::UserParam::SD, sd);
+        f.setMetaValue(Constants::UserParam::SD_ppm, sd / f.getMZ() * 1e6);
+        if (mt_ext.hasFwhmMz())
         {
-          f.setMetaValue("FWHM_mz_avg", m_traces_final[i].fwhm_mz_avg);
+          f.setMetaValue(Constants::UserParam::FWHM_MZ_AVG, m_traces_final[i].fwhm_mz_avg);
+        }
+        // Similarly, check for ion mobility centroid presence. Annotate output with ion mobility
+        if (mt_ext.hasCentroidIm())
+        {
+          f.setMetaValue(Constants::UserParam::ION_MOBILITY_CENTROID, m_traces_final[i].getCentroidIM());
+        }
+        if (mt_ext.hasFwhmIm())
+        {
+          f.setMetaValue(Constants::UserParam::FWHM_IM_AVG, m_traces_final[i].fwhm_im_avg);
         }
         stats_sd.push_back(m_traces_final[i].getCentroidSD());
         ms_feat_map.push_back(f);
@@ -351,6 +351,8 @@ protected:
 
 
       ms_feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+      // ensure data is sorted
+      ms_feat_map.sortByPosition();
 
       //-------------------------------------------------------------
       // writing output
@@ -360,7 +362,7 @@ protected:
       addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
       //ms_feat_map.setUniqueId();
 
-      FeatureXMLFile().store(out, ms_feat_map);
+      FileHandler().storeFeatures(out, ms_feat_map, {FileTypes::FEATUREXML});
     }
 
     return EXECUTION_OK;

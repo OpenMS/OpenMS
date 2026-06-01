@@ -1,40 +1,14 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Clemens Groepl, Steffen Sass $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -56,14 +30,28 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_FeatureLinkerBase FeatureLinkerBase
+@page TOPP_FeatureLinkerBase FeatureLinkerBase
 
-    @brief Base class for different FeatureLinker tools.
+@brief Base class for different FeatureLinker tools.
 
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
+
+// Output is always a ConsensusMap. The serialization track follows the input:
+// parquet inputs → consensusparquet; XML (or other) inputs → consensusXML.
+static FileTypes::Type consensusOutTypeFor(FileTypes::Type in_type)
+{
+  switch (in_type)
+  {
+    case FileTypes::FEATUREPARQUET:
+    case FileTypes::CONSENSUSPARQUET:
+      return FileTypes::CONSENSUSPARQUET;
+    default:
+      return FileTypes::CONSENSUSXML;
+  }
+}
 
 class TOPPFeatureLinkerBase :
   public TOPPBase, 
@@ -80,13 +68,13 @@ protected:
   void registerOptionsAndFlags_() override   // only for "unlabeled" algorithms!
   {
     registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "input files separated by blanks", true);
-    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,featureparquet,consensusparquet"));
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("consensusXML,consensusparquet"));
     registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
     setValidFormats_("design", ListUtils::create<String>("tsv"));
     addEmptyLine_();
-    registerFlag_("keep_subelements", "For consensusXML input only: If set, the sub-features of the inputs are transferred to the output.");
+    registerFlag_("keep_subelements", "For consensusXML/consensusparquet input only: If set, the sub-features of the inputs are transferred to the output.");
   }
 
   ExitCodes common_main_(FeatureGroupingAlgorithm * algorithm,
@@ -142,15 +130,15 @@ protected:
       design_file = getStringOption_("design");
     }
 
-    if (file_type == FileTypes::CONSENSUSXML && !design_file.empty())
+    if ((file_type == FileTypes::CONSENSUSXML || file_type == FileTypes::CONSENSUSPARQUET) && !design_file.empty())
     {
-      writeLogError_("Error: Using fractionated design with consensusXML als input is not supported!");
+      writeLogError_("Error: Using fractionated design with consensusXML/consensusparquet as input is not supported!");
       return ILLEGAL_PARAMETERS;
     }
   
-    if (file_type == FileTypes::FEATUREXML)
+    if (file_type == FileTypes::FEATUREXML || file_type == FileTypes::FEATUREPARQUET)
     {
-      OPENMS_LOG_INFO << "Linking " << ins.size() << " featureXMLs." << endl;
+      OPENMS_LOG_INFO << "Linking " << ins.size() << " feature maps." << endl;
   
       //-------------------------------------------------------------
       // Extract (optional) fraction identifiers and associate with featureXMLs
@@ -185,13 +173,13 @@ protected:
       }
 
       vector<FeatureMap > maps(ins.size());
-      FeatureXMLFile f;
-      FeatureFileOptions param = f.getOptions();
+      FileHandler f;
+      FeatureFileOptions param = f.getFeatOptions();
 
       // to save memory don't load convex hulls and subordinates
       param.setLoadSubordinates(false);
       param.setLoadConvexHull(false);
-      f.setOptions(param);
+      f.setFeatOptions(param);
 
       Size progress = 0;
       setLogType(ProgressLogger::CMD);
@@ -199,7 +187,7 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
         FeatureMap tmp;
-        f.load(ins[i], tmp);
+        f.loadFeatures(ins[i], tmp, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET});
 
         StringList ms_runs;
         tmp.getPrimaryMSRunPath(ms_runs);
@@ -294,10 +282,10 @@ protected:
       // Otherwise everyone has to remember e.g. to annotate the old map_index etc.
       bool keep_subelements = getFlag_("keep_subelements");
       vector<ConsensusMap> maps(ins.size());
-      ConsensusXMLFile f;
+      FileHandler f;
       for (Size i = 0; i < ins.size(); ++i)
       {
-        f.load(ins[i], maps[i]);
+        f.loadConsensusFeatures(ins[i], maps[i], {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
         maps[i].updateRanges();
         // copy over information on the primary MS run
         StringList ms_runs;
@@ -355,7 +343,7 @@ protected:
     out_map.sortPeptideIdentificationsByMapIndex();
 
     // write output
-    ConsensusXMLFile().store(out, out_map);
+    FileHandler().storeConsensusFeatures(out, out_map, {consensusOutTypeFor(file_type)});
 
     // some statistics
     map<Size, UInt> num_consfeat_of_size;

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -34,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -127,7 +102,7 @@ namespace OpenMS
       db_version(),
       taxonomy(),
       charges(),
-      mass_type(MONOISOTOPIC),
+      mass_type(PeakMassType::MONOISOTOPIC),
       fixed_modifications(),
       variable_modifications(),
       missed_cleavages(0),
@@ -505,7 +480,7 @@ namespace OpenMS
   {
     String se = getSearchEngine();
     return
-        se == "Fido" || // FidoAdapter overwrites when it merges several runs
+        se == "Fido" || // for downwards compatibility: FidoAdapter overwrites when it merges several runs
         se == "BayesianProteinInference" || // for backwards compatibility
         se == "Epifany" ||
         (se == "Percolator" && !indistinguishable_proteins_.empty()) || // be careful, Percolator could be run with or without protein inference
@@ -609,31 +584,8 @@ namespace OpenMS
     }
   }
 
-  void ProteinIdentification::assignRanks()
-  {
-    if (protein_hits_.empty())
-    {
-      return;
-    }
-    UInt rank = 1;
-    sort();
-    vector<ProteinHit>::iterator lit = protein_hits_.begin();
-    double tmpscore = lit->getScore();
-    while (lit != protein_hits_.end())
-    {
-      lit->setRank(rank);
-      ++lit;
-      if (lit != protein_hits_.end() && lit->getScore() != tmpscore)
-      {
-        ++rank;
-        tmpscore = lit->getScore();
-      }
-    }
-  }
-
-
   void ProteinIdentification::fillEvidenceMapping_(unordered_map<String, set<PeptideEvidence> >& map_acc_2_evidence,
-                                                   const std::vector<PeptideIdentification>& pep_ids) const
+                                                   const PeptideIdentificationList& pep_ids) const
   {
     //TODO check matching identifiers?
     for (const auto & peptide_id : pep_ids)
@@ -652,7 +604,7 @@ namespace OpenMS
     }
   }
 
-  void ProteinIdentification::computeCoverage(const std::vector<PeptideIdentification>& pep_ids)
+  void ProteinIdentification::computeCoverage(const PeptideIdentificationList& pep_ids)
   {
     // map protein accession to the corresponding peptide evidence
     unordered_map<String, set<PeptideEvidence> > map_acc_2_evidence;
@@ -721,7 +673,7 @@ namespace OpenMS
   }
 
   void ProteinIdentification::computeModifications(
-    const std::vector<PeptideIdentification>& pep_ids,
+    const PeptideIdentificationList& pep_ids,
     const StringList& skip_modifications)
   {
     // map protein accession to observed position,modifications pairs
@@ -763,7 +715,7 @@ namespace OpenMS
     }
   }
 
-  void ProteinIdentification::fillModMapping_(const vector<PeptideIdentification>& pep_ids, const StringList& skip_modifications,
+  void ProteinIdentification::fillModMapping_(const PeptideIdentificationList& pep_ids, const StringList& skip_modifications,
                                               unordered_map<String, set<pair<Size, ResidueModification>>>& prot2mod) const
   {
     for (const auto & peptide_id : pep_ids)
@@ -950,6 +902,31 @@ namespace OpenMS
       return search_engine_version_;
     }
     return "";
+  }
+
+  void ProteinIdentification::copyMetaDataOnly(const ProteinIdentification& p)
+  {
+    id_ = p.id_;
+    search_engine_ = p.search_engine_;
+    search_engine_version_ = p.search_engine_version_;
+    search_parameters_ = p.search_parameters_;
+    date_ = p.date_;
+
+    protein_score_type_ = p.protein_score_type_;
+    higher_score_better_ = p.higher_score_better_;
+    protein_significance_threshold_ = p.protein_significance_threshold_;
+    MetaInfoInterface::operator=(static_cast<MetaInfoInterface>(p));
+  }
+
+  StringList ProteinIdentification::getAllNamesOfPeakMassType()
+  {
+    StringList names;
+    names.reserve(static_cast<size_t>(PeakMassType::SIZE_OF_PEAKMASSTYPE));
+    for (size_t i = 0; i < static_cast<size_t>(PeakMassType::SIZE_OF_PEAKMASSTYPE); ++i)
+    {
+      names.push_back(NamesOfPeakMassType[i]);
+    }
+    return names;
   }
 
 } // namespace OpenMS

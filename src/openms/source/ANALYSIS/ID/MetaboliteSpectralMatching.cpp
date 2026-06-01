@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -36,15 +10,19 @@
 
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
+#include <cmath>
 #include <numeric>
 #include <boost/math/special_functions/factorials.hpp>
 
 #include <boost/dynamic_bitset.hpp>
 
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
+#include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 
 using namespace std;
 
@@ -66,7 +44,9 @@ namespace OpenMS
     sum_formula_(),
     inchi_string_(),
     smiles_string_(),
-    precursor_adduct_()
+    precursor_adduct_(),
+    observed_ccs_(IMTypes::DRIFTTIME_NOT_SET),
+    found_ccs_(IMTypes::DRIFTTIME_NOT_SET)
   {
   }
 
@@ -96,6 +76,8 @@ namespace OpenMS
     inchi_string_ = rhs.inchi_string_;
     smiles_string_ = rhs.smiles_string_;
     precursor_adduct_ = rhs.precursor_adduct_;
+    observed_ccs_ = rhs.observed_ccs_;
+    found_ccs_ = rhs.found_ccs_;
 
     return *this;
   }
@@ -280,6 +262,83 @@ namespace OpenMS
   }
 
 
+  double SpectralMatch::getObservedCCS() const
+  {
+    return observed_ccs_;
+  }
+
+
+  void SpectralMatch::setObservedCCS(const double& ccs)
+  {
+    observed_ccs_ = ccs;
+  }
+
+
+  double SpectralMatch::getFoundCCS() const
+  {
+    return found_ccs_;
+  }
+
+
+  void SpectralMatch::setFoundCCS(const double& ccs)
+  {
+    found_ccs_ = ccs;
+  }
+
+
+  /**
+    @brief Extract a collision cross section (CCS, Angstrom^2) for a spectrum, or -1.0 if unavailable.
+
+    Sources are tried in order: a CCS-unit drift time, a 1/K0 (VSSC) drift time converted via the
+    Mason-Schamp relation (@ref IMTypes::oneOverK0ToCCS, needs the precursor m/z and charge), and
+    finally a numeric @c "CCS" meta value. Both the spectrum-level and the first-precursor-level
+    drift time are inspected. @p mz and @p charge are only needed for the 1/K0 conversion.
+  */
+  static double extractCCS(const MSSpectrum& spectrum, double mz, int charge)
+  {
+    // (1) spectrum-level drift time, already in CCS units
+    if (spectrum.getDriftTimeUnit() == DriftTimeUnit::CCS && spectrum.getDriftTime() > 0.0)
+    {
+      return spectrum.getDriftTime();
+    }
+    // (2) spectrum-level drift time as 1/K0 -> convert to CCS (requires m/z and charge)
+    if (spectrum.getDriftTimeUnit() == DriftTimeUnit::VSSC && spectrum.getDriftTime() > 0.0 && mz > 0.0 && charge != 0)
+    {
+      return IMTypes::oneOverK0ToCCS(spectrum.getDriftTime(), mz, charge);
+    }
+
+    if (!spectrum.getPrecursors().empty())
+    {
+      const auto& prec = spectrum.getPrecursors()[0];
+      // (3) precursor-level drift time in CCS units
+      if (prec.getDriftTimeUnit() == DriftTimeUnit::CCS && prec.getDriftTime() > 0.0)
+      {
+        return prec.getDriftTime();
+      }
+      // (4) precursor-level drift time as 1/K0 -> convert to CCS
+      if (prec.getDriftTimeUnit() == DriftTimeUnit::VSSC && prec.getDriftTime() > 0.0 && mz > 0.0 && charge != 0)
+      {
+        return IMTypes::oneOverK0ToCCS(prec.getDriftTime(), mz, charge);
+      }
+    }
+
+    // (5) numeric "CCS" meta value (e.g. parsed from an MSP library by MSPGenericFile)
+    if (spectrum.metaValueExists(Constants::UserParam::MSM_CCS))
+    {
+      try
+      {
+        return String(spectrum.getMetaValue(Constants::UserParam::MSM_CCS).toString()).toDouble();
+      }
+      catch (const Exception::ConversionError&)
+      {
+        // ignore non-numeric CCS meta value
+      }
+    }
+
+    return IMTypes::DRIFTTIME_NOT_SET;
+  }
+
+
   MetaboliteSpectralMatching::MetaboliteSpectralMatching() :
     DefaultParamHandler("MetaboliteSpectralMatching"), ProgressLogger()
   {
@@ -297,6 +356,13 @@ namespace OpenMS
 
     defaults_.setValue("merge_spectra", "true", "Merge MS2 spectra with the same precursor mass.");
     defaults_.setValidStrings("merge_spectra", {"true","false"});
+
+    defaults_.setValue("ccs_error_percent", 0.0, "Allowed collision cross section (CCS) error in percent for filtering candidates "
+                       "(0 = filtering disabled). The relative error |observed - library| / library * 100 must not exceed this value. "
+                       "Typical values for confident identification are 1-3%. Candidates for which the experimental or the library CCS "
+                       "is missing are kept (not filtered). Requires CCS to be present as CCS-unit drift time, 1/K0 (converted to CCS), "
+                       "or a numeric 'CCS' meta value.");
+    defaults_.setMinFloat("ccs_error_percent", 0.0);
 
     defaultsToParam_();
 
@@ -470,7 +536,7 @@ namespace OpenMS
     // store the spectra if an output file path is given
     if (!out_spectra.empty())
     {
-      MzMLFile().store(out_spectra, msexp);
+      FileHandler().storeExperiment(out_spectra, msexp, {FileTypes::MZML});
     }
 
 
@@ -480,9 +546,13 @@ namespace OpenMS
     bool fragment_error_unit_ppm(true);
     if (mz_error_unit_ == "Da") { fragment_error_unit_ppm = false; }
 
+    // track whether any experimental CCS could be obtained, to warn if CCS filtering is enabled but inert
+    bool ccs_filtering_enabled = ccs_error_percent_ > 0.0;
+    bool any_obs_ccs_found = false;
+
     for (Size spec_idx = 0; spec_idx < msexp.size(); ++spec_idx)
     {
-      // cout << "merged spectrum no. " << spec_idx << " with #fragment ions: " << msexp[spec_idx].size() << endl;
+      OPENMS_LOG_DEBUG << "merged spectrum no. " << spec_idx << " with #fragment ions: " << msexp[spec_idx].size() << endl;
 
       // iterate over all precursor masses
       for (Size prec_idx = 0; prec_idx < msexp[spec_idx].getPrecursors().size(); ++prec_idx)
@@ -490,7 +560,12 @@ namespace OpenMS
         // get precursor m/z
         double precursor_mz(msexp[spec_idx].getPrecursors()[prec_idx].getMZ());
 
-        // cout << "precursor no. " << prec_idx << ": mz " << precursor_mz << " ";
+        // experimental CCS for this precursor (used for optional CCS filtering and MzTab export)
+        int obs_charge = msexp[spec_idx].getPrecursors()[prec_idx].getCharge();
+        double obs_ccs = extractCCS(msexp[spec_idx], precursor_mz, obs_charge);
+        if (obs_ccs > 0.0) { any_obs_ccs_found = true; }
+
+        OPENMS_LOG_DEBUG << "precursor no. " << prec_idx << ": mz " << precursor_mz << " ";
 
         double prec_mz_lowerbound, prec_mz_upperbound;
 
@@ -506,8 +581,8 @@ namespace OpenMS
           prec_mz_upperbound = precursor_mz + ppm_offset;
         }
 
-        // cout << "lower mz: " << prec_mz_lowerbound << " ";
-        // cout << "upper mz: " << prec_mz_upperbound << endl;
+        OPENMS_LOG_DEBUG << "lower mz: " << prec_mz_lowerbound << " ";
+        OPENMS_LOG_DEBUG << "upper mz: " << prec_mz_upperbound << endl;
 
         vector<double>::const_iterator lower_it = lower_bound(mz_keys.begin(), mz_keys.end(), prec_mz_lowerbound);
         vector<double>::const_iterator upper_it = upper_bound(mz_keys.begin(), mz_keys.end(), prec_mz_upperbound);
@@ -515,27 +590,82 @@ namespace OpenMS
         Size start_idx(lower_it - mz_keys.begin());
         Size end_idx(upper_it - mz_keys.begin());
 
-        //cout << "identifying " << msexp[spec_idx].getMetaValue("Massbank_Accession_ID") << endl;
+        {
+          String id_to_log = msexp[spec_idx].metaValueExists("GNPS_Spectrum_ID")
+            ? msexp[spec_idx].getMetaValue("GNPS_Spectrum_ID").toString()
+            : msexp[spec_idx].getNativeID();
+          OPENMS_LOG_DEBUG << "identifying " << id_to_log << endl;
+        }
 
         vector<SpectralMatch> partial_results;
 
         for (Size search_idx = start_idx; search_idx < end_idx; ++search_idx)
         {
           // do spectral matching
-          // cout << "scanning " << spec_db[search_idx].getPrecursors()[0].getMZ() << " " << spec_db[search_idx].getMetaValue("Metabolite_Name") << endl;
+          // Debug: list all available metadata keys
+          OPENMS_LOG_DEBUG << "Available metadata keys for spectrum " << search_idx << ":";
+          std::vector<String> keys;
+          spec_db[search_idx].getKeys(keys);
+          for (const auto& key : keys)
+          {
+            OPENMS_LOG_DEBUG << " " << key;
+          }
+          OPENMS_LOG_DEBUG << endl;
+          
+          String metabolite_name = "";
+          if (spec_db[search_idx].metaValueExists(Constants::UserParam::MSM_METABOLITE_NAME)) {
+            metabolite_name = spec_db[search_idx]
+                                .getMetaValue(Constants::UserParam::MSM_METABOLITE_NAME)
+                                .toString();
+          } else if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID")) {
+            metabolite_name = spec_db[search_idx]
+                                .getMetaValue("GNPS_Spectrum_ID")
+                                .toString();
+          }
 
+          OPENMS_LOG_DEBUG << "scanning "
+                           << spec_db[search_idx].getPrecursors()[0].getMZ()
+                           << " " << metabolite_name << endl;
           // check for charge state of precursor ions: do they match?
           if ( (ion_mode_ == "positive" && spec_db[search_idx].getPrecursors()[0].getCharge() < 0) || (ion_mode_ == "negative" && spec_db[search_idx].getPrecursors()[0].getCharge() > 0))
           {
             continue;
           }
 
+          // library CCS for this candidate (also reused below for the MzTab export)
+          double lib_ccs = extractCCS(spec_db[search_idx],
+                                      spec_db[search_idx].getPrecursors()[0].getMZ(),
+                                      spec_db[search_idx].getPrecursors()[0].getCharge());
+
+          // optional CCS filtering: skip candidates outside tolerance.
+          // If either CCS is missing, the candidate is kept (CCS does not penalise non-IM data).
+          if (ccs_filtering_enabled && obs_ccs > 0.0 && lib_ccs > 0.0)
+          {
+            double ccs_error = std::abs(obs_ccs - lib_ccs) / lib_ccs * 100.0;
+            if (ccs_error > ccs_error_percent_)
+            {
+              continue;
+            }
+          }
+
           double hyperscore(computeHyperScore(fragment_mz_error_, fragment_error_unit_ppm, msexp[spec_idx], spec_db[search_idx], 0.0));
 
-          // cout << " scored with " << hyperScore << endl;
+          OPENMS_LOG_DEBUG << " scored with " << hyperscore << endl;
           if (hyperscore > 0)
           {
-            // cout << "  ** detected " << spec_db[search_idx].getMetaValue("Massbank_Accession_ID") << " " << spec_db[search_idx].getMetaValue("Metabolite_Name") << " scored with " << hyperscore << endl;
+            String massbank_id = "";
+            String metabolite_name = "";
+            
+            if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID")) {
+              massbank_id = spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID").toString();
+            }
+            if (spec_db[search_idx].metaValueExists("Metabolite_Name")) {
+              metabolite_name = spec_db[search_idx].getMetaValue("Metabolite_Name").toString();
+            } else if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID")) {
+              metabolite_name = massbank_id; // Use GNPS_Spectrum_ID as name if no Metabolite_Name
+            }
+            
+            OPENMS_LOG_DEBUG << "  ** detected " << massbank_id << " " << metabolite_name << " scored with " << hyperscore << endl;
 
             // score result temporarily
             SpectralMatch tmp_match;
@@ -549,13 +679,34 @@ namespace OpenMS
             tmp_match.setMatchingSpectrumIndex(search_idx);
             tmp_match.setObservedSpectrumNativeID(msexp[spec_idx].getNativeID());
 
-            tmp_match.setPrimaryIdentifier(spec_db[search_idx].getMetaValue("Massbank_Accession_ID"));
+            String primary_id_value;
+            if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID"))
+            {
+              primary_id_value = spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID").toString();
+            }
+            else if (spec_db[search_idx].metaValueExists("Massbank_Accession_ID"))
+            {
+              primary_id_value = spec_db[search_idx].getMetaValue("Massbank_Accession_ID").toString();
+            }
+            else if (spec_db[search_idx].metaValueExists(Constants::UserParam::MSM_METABOLITE_NAME))
+            {
+              primary_id_value = spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_METABOLITE_NAME).toString();
+            }
+            else
+            {
+              primary_id_value = spec_db[search_idx].getNativeID();
+            }
+            tmp_match.setPrimaryIdentifier(primary_id_value);
             tmp_match.setSecondaryIdentifier(spec_db[search_idx].getMetaValue("HMDB_ID"));
             tmp_match.setSumFormula(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SUM_FORMULA));
-            tmp_match.setCommonName(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_METABOLITE_NAME));
+            tmp_match.setCommonName(metabolite_name);
             tmp_match.setInchiString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_INCHI_STRING));
             tmp_match.setSMILESString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SMILES_STRING));
             tmp_match.setPrecursorAdduct(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT));
+
+            // CCS values for the MzTab output (already extracted above for the optional filtering)
+            tmp_match.setObservedCCS(obs_ccs);
+            tmp_match.setFoundCCS(lib_ccs);
 
             partial_results.push_back(tmp_match);
           }
@@ -573,7 +724,7 @@ namespace OpenMS
 
           for (Size result_idx = 0; result_idx < last_result_idx; ++result_idx)
           {
-            // cout << "score: " << partial_results[result_idx].getMatchingScore() << " " << partial_results[result_idx].getMatchingSpectrumIndex() << endl;
+            OPENMS_LOG_DEBUG << "score: " << partial_results[result_idx].getMatchingScore() << " " << partial_results[result_idx].getMatchingSpectrumIndex() << endl;
             matching_results.push_back(partial_results[result_idx]);
           }
         }
@@ -588,6 +739,14 @@ namespace OpenMS
 
       } // end precursor loop
     } // end spectra loop
+
+    // warn if CCS filtering was requested but no experimental CCS was found anywhere (filter is inert)
+    if (ccs_filtering_enabled && !any_obs_ccs_found)
+    {
+      OPENMS_LOG_WARN << "Warning: 'ccs_error_percent' is set to " << ccs_error_percent_
+                      << " but no experimental CCS could be determined for any spectrum (no CCS-unit or 1/K0 drift time "
+                      << "and no numeric 'CCS' meta value). CCS filtering had no effect." << endl;
+    }
 
     // write final results to MzTab
     exportMzTab_(matching_results, mztab_out);
@@ -605,6 +764,7 @@ namespace OpenMS
     mz_error_unit_ = param_.getValue("mass_error_unit").toString();
     report_mode_ = param_.getValue("report_mode").toString();
     merge_spectra_ = (bool)param_.getValue("merge_spectra").toBool();
+    ccs_error_percent_ = (double)param_.getValue("ccs_error_percent");
   }
 
 
@@ -617,7 +777,7 @@ namespace OpenMS
 
     for (Size id_idx = 0; id_idx < overall_results.size(); ++id_idx)
     {
-      SpectralMatch current_id(overall_results[id_idx]);
+      const SpectralMatch& current_id(overall_results[id_idx]);
 
       MzTabSmallMoleculeSectionRow mztab_row_record;
 
@@ -801,6 +961,40 @@ namespace OpenMS
       col5.first = "opt_spec_native_id";
       col5.second = spec_native_id_str;
       optionals.push_back(col5);
+
+      // CCS columns (observed, library, and relative error in percent); "null" when unavailable.
+      // CCS values are rounded to two decimals, consistent with the opt_ppm_error column above.
+      const double obs_ccs = current_id.getObservedCCS();
+      const double lib_ccs = current_id.getFoundCCS();
+
+      MzTabString obs_ccs_str;
+      obs_ccs_str.set(obs_ccs > 0.0 ? String(floor(obs_ccs * 100) / 100) : "null");
+      MzTabOptionalColumnEntry col6;
+      col6.first = "opt_observed_ccs";
+      col6.second = obs_ccs_str;
+      optionals.push_back(col6);
+
+      MzTabString lib_ccs_str;
+      lib_ccs_str.set(lib_ccs > 0.0 ? String(floor(lib_ccs * 100) / 100) : "null");
+      MzTabOptionalColumnEntry col7;
+      col7.first = "opt_library_ccs";
+      col7.second = lib_ccs_str;
+      optionals.push_back(col7);
+
+      MzTabString ccs_err_str;
+      if (obs_ccs > 0.0 && lib_ccs > 0.0)
+      {
+        double ccs_err = std::abs(obs_ccs - lib_ccs) / lib_ccs * 100.0;
+        ccs_err_str.set(String(floor(ccs_err * 100) / 100));
+      }
+      else
+      {
+        ccs_err_str.set("null");
+      }
+      MzTabOptionalColumnEntry col8;
+      col8.first = "opt_ccs_error_percent";
+      col8.second = ccs_err_str;
+      optionals.push_back(col8);
 
       mztab_row_record.opt_ = optionals;
 

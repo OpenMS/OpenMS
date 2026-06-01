@@ -1,0 +1,7 @@
+index	1
+name	SiriusExport_2_output_0_10333458062711546021-664003--57--UNKNOWN
+ionMass	286.179028092823
+ionType	[M + ?]+
+detectedAdducts	MS1_PREPROCESSOR:{}
+rt	438.351:NaN,NaN
+rankingScoreType	sirius.scores.SiriusScore

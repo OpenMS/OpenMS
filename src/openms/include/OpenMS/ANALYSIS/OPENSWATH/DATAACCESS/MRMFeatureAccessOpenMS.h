@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -39,9 +13,14 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <boost/shared_ptr.hpp>
+#include <cstddef>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 // These classes are minimal implementations of the interfaces defined in ITransition:
 //  - IFeature
@@ -60,7 +39,7 @@ namespace OpenMS
   {
 public:
 
-    explicit FeatureOpenMS(Feature& feature);
+    explicit FeatureOpenMS(const Feature& feature);
 
     ~FeatureOpenMS() override;
 
@@ -73,7 +52,7 @@ public:
     double getRT() const override;
 
 private:
-    Feature* feature_;
+    const Feature* feature_;
   };
 
   /**
@@ -85,13 +64,34 @@ private:
   {
 public:
 
+    /// Build access lanes from the native-id maps stored in @p mrmfeature.
     explicit MRMFeatureOpenMS(MRMFeature& mrmfeature);
+
+    /// Build pointer-based access lanes from explicit fragment and precursor native-id lists.
+    MRMFeatureOpenMS(MRMFeature& mrmfeature,
+                     const std::vector<std::string>& feature_ids,
+                     const std::vector<std::string>& precursor_feature_ids);
+
+    /**
+      @brief Build access lanes with externally aligned native-id order.
+
+      The feature id vectors define the aligned order used for index-hint
+      fast paths. Fragment features are read directly from the underlying
+      MRMFeature storage, so the caller must ensure that @p feature_ids matches
+      that storage order. The lookup-id vectors are only used to validate and
+      initialize access to the underlying fragment and precursor features.
+    */
+    MRMFeatureOpenMS(MRMFeature& mrmfeature,
+                     const std::vector<std::string>& feature_ids,
+                     const std::vector<std::string>& precursor_feature_ids,
+                     const std::vector<String>& feature_lookup_ids,
+                     const std::vector<String>& precursor_feature_lookup_ids);
 
     ~MRMFeatureOpenMS() override;
 
-    boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID) override;
+    std::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID) override;
 
-    boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID) override;
+    std::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID) override;
 
     std::vector<std::string> getNativeIDs() const override;
 
@@ -101,12 +101,58 @@ public:
 
     double getRT() const override;
 
+    double getMetaValue(std::string name) const;
+
     size_t size() const override;
 
+    void getFeatureIntensities(const std::vector<std::string>& native_ids, std::vector<std::vector<double>>& intensities) const;
+
+    void getPrecursorFeatureIntensities(const std::vector<std::string>& native_ids, std::vector<std::vector<double>>& intensities) const;
+
+    /**
+      @brief Return the fragment-feature intensity for @p native_id.
+
+      The @p expected_index parameter is used as an optional fast-path hint.
+      It is only trusted when this object was constructed with externally
+      aligned feature ids. The default MRMFeature native-id order is map-based
+      and must not be assumed to match the underlying feature storage order.
+    */
+    float getFeatureIntensity(const std::string& native_id, Size expected_index) const;
+
 private:
+    /**
+      @brief Internal access lane for one set of features stored in an MRMFeature peak group.
+
+      A lane encapsulates the lookup and wrapper state for either:
+
+      - fragment-transition features, i.e. the per-transition peak features
+        stored in MRMFeature and addressed by transition native ids, or
+      - precursor features, i.e. the precursor/isotope peak features stored
+        alongside the fragment-transition features and addressed by precursor
+        native ids.
+
+      In other words, one MRMFeature peak group owns multiple individual
+      Feature objects, and a lane manages access to one of those two groups of
+      child features. The implementation lives in the .cpp to keep this header
+      compact, but conceptually each lane owns:
+
+      - optional aligned native-id storage used for index-hint fast paths
+      - either direct access to Feature storage or pointer-based lookup access
+      - native-id to index lookup state
+      - lazily materialized FeatureOpenMS wrappers
+
+      Fragment-transition and precursor-feature handling share the same
+      mechanics, so MRMFeatureOpenMS keeps one lane for fragment features and
+      one lane for precursor features instead of duplicating all lookup and
+      caching members in the outer class.
+    */
+    struct FeatureLane_;
+
     const MRMFeature& mrmfeature_;
-    std::map<std::string, boost::shared_ptr<FeatureOpenMS> > features_;
-    std::map<std::string, boost::shared_ptr<FeatureOpenMS> > precursor_features_;
+    /// Fragment-feature access lane. May use aligned ids when the caller provides storage-aligned feature ids.
+    std::unique_ptr<FeatureLane_> feature_lane_;
+    /// Precursor-feature access lane for precursor chromatogram features.
+    std::unique_ptr<FeatureLane_> precursor_feature_lane_;
   };
 
   /**
@@ -162,7 +208,7 @@ private:
   {
 public:
 
-    SignalToNoiseOpenMS(ContainerT& chromat,
+    SignalToNoiseOpenMS(const ContainerT& chromat,
                         double sn_win_len_, unsigned int sn_bin_count_, bool write_log_messages) :
       chromatogram_(chromat), sn_()
     {
@@ -189,7 +235,7 @@ public:
 
       // Note that MZBegin does not seem to return the same iterator on
       // different setups, see https://github.com/OpenMS/OpenMS/issues/1163
-      typename ContainerT::const_iterator iter = chromatogram_.MZEnd(RT);
+      auto iter = chromatogram_.PosEnd(RT);
 
       // ensure that iter is valid
       if (iter == chromatogram_.end()) 
@@ -197,13 +243,13 @@ public:
         iter--;
       }
 
-      typename ContainerT::const_iterator prev = iter;
-      if (prev != chromatogram_.begin() ) 
+      auto prev = iter;
+      if (prev != chromatogram_.begin()) 
       {
         prev--;
       }
 
-      if (std::fabs(prev->getMZ() - RT) < std::fabs(iter->getMZ() - RT) )
+      if (std::fabs(prev->getPos() - RT) < std::fabs(iter->getPos() - RT) )
       {
         // prev is closer to the apex
         return sn_.getSignalToNoise((Size) distance(chromatogram_.begin(),prev));
@@ -223,5 +269,3 @@ private:
   };
 
 }
-
-

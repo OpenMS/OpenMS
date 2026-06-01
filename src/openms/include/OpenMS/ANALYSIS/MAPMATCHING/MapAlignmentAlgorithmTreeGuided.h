@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julia Thueringer$
@@ -38,6 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 namespace OpenMS
 {
@@ -58,9 +33,9 @@ namespace OpenMS
     Additionally, the original retention times are stored in the meta information of each feature.
     The reference is combined with the transformed cluster.
 
-    The resulting map is used to extract transformation descriptions for each input map.
-    For each map cubic spline smoothing is used to convert the mapping to a smooth function.
-    Retention times of each map are transformed by applying the smoothed function.
+    The resulting consensus map is used as a reference and each original input map is re-aligned against it
+    using @ref OpenMS::MapAlignmentAlgorithmIdentification to compute the final transformation descriptions.
+    Retention times of each map are transformed by applying the fitted spline model.
 
     @htmlinclude OpenMS_MapAlignmentAlgorithmTreeGuided.parameters
 
@@ -81,20 +56,20 @@ public:
     /**
      * @brief Extract RTs given for individual features of each map, calculate distances for each pair of maps and cluster hierarchical using average linkage.
      *
-     * @param feature_maps Vector of input maps (FeatureMap) whose distance is to be calculated.
-     * @param tree Vector of BinaryTreeNodes that will be computed
-     * @param maps_ranges Vector to store all sorted RTs of extracted identifications for each map in @p feature_maps; needed to determine the 10/90 percentiles
+     * @param[in] feature_maps Vector of input maps (FeatureMap) whose distance is to be calculated.
+     * @param[in] tree Vector of BinaryTreeNodes that will be computed
+     * @param[out] maps_ranges Vector to store all sorted RTs of extracted identifications for each map in @p feature_maps; needed to determine the 10/90 percentiles
     */
     static void buildTree(std::vector<FeatureMap>& feature_maps, std::vector<BinaryTreeNode>& tree, std::vector<std::vector<double>>& maps_ranges);
 
     /**
      * @brief Align feature maps tree guided using align() of @ref OpenMS::MapAlignmentAlgorithmIdentification and use TreeNode with larger 10/90 percentile range as reference.
      *
-     * @param tree Vector of BinaryTreeNodes that contains order for alignment.
-     * @param feature_maps_transformed Vector with input maps for transformation process. Because the transformed maps are stored within this vector it's not const.
-     * @param maps_ranges Vector that contains all sorted RTs of extracted identifications for each map; needed to determine the 10/90 percentiles.
-     * @param map_transformed FeatureMap to store all features of combined maps with original and transformed RTs in order of alignment.
-     * @param trafo_order Vector to store indices of maps in order of alignment.
+     * @param[in] tree Vector of BinaryTreeNodes that contains order for alignment.
+     * @param[out] feature_maps_transformed Vector with input maps for transformation process. Because the transformed maps are stored within this vector it's not const.
+     * @param[in] maps_ranges Vector that contains all sorted RTs of extracted identifications for each map; needed to determine the 10/90 percentiles.
+     * @param[in] map_transformed FeatureMap to store all features of combined maps with original and transformed RTs in order of alignment.
+     * @param[in] trafo_order Vector to store indices of maps in order of alignment.
     */
     void treeGuidedAlignment(const std::vector<BinaryTreeNode>& tree, std::vector<FeatureMap>& feature_maps_transformed,
                              std::vector<std::vector<double>>& maps_ranges, FeatureMap& map_transformed,
@@ -107,21 +82,25 @@ public:
                std::vector<TransformationDescription>& transformations);
 
     /**
-     * @brief Extract original RT ("original_RT" MetaInfo) and transformed RT for each feature to compute RT transformations.
+     * @brief Compute RT transformations from the original input maps to the final tree-guided consensus RT scale.
      *
-     * @param feature_maps Vector of input maps for size information.
-     * @param map_transformed FeatureMap that contains all features of combined maps with original and transformed RTs in order of alignment.
-     * @param transformations Vector to store transformation descriptions for each map. (output)
-     * @param trafo_order Vector that contains the indices of aligned maps in order of alignment.
-    */
+     * The transformed consensus map returned by treeGuidedAlignment() is used as reference and each
+     * original input map is aligned against it using @ref OpenMS::MapAlignmentAlgorithmIdentification.
+     *
+     * @param[in] feature_maps Vector of original input maps.
+     * @param[in] map_transformed FeatureMap that contains all features of the final aligned map; used as reference.
+     * @param[in] transformations Vector to store transformation descriptions for each map. (output)
+     * @param[in] trafo_order Vector that contains the indices of aligned maps in order of alignment.
+     *   This parameter is kept for API compatibility but is not used anymore.
+     */
     void computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_maps, FeatureMap& map_transformed,
                                    std::vector<TransformationDescription>& transformations, const std::vector<Size>& trafo_order);
 
     /**
      * @brief Apply transformations on input maps.
      *
-     * @param feature_maps Vector of maps to be transformed (output)
-     * @param transformations Vector that contains TransformationDescriptions that are applied to input maps
+     * @param[in] feature_maps Vector of maps to be transformed (output)
+     * @param[out] transformations Vector that contains TransformationDescriptions that are applied to input maps
     */
     static void computeTransformedFeatureMaps(std::vector<FeatureMap>& feature_maps, const std::vector<TransformationDescription>& transformations);
 
@@ -153,20 +132,20 @@ protected:
     /**
      * @brief For given peptide identifications extract sequences and store with associated feature RT.
      *
-     * @param peptides Vector of peptide identifications to extract sequences.
-     * @param peptide_rts Map to store a list of feature RTs for each peptide sequence as key.
-     * @param map_range Vector in which all feature RTs are stored for given peptide identifications.
-     * @param feature_rt RT value of the feature to which the peptide identifications to be analysed belong.
+     * @param[in] peptides Vector of peptide identifications to extract sequences.
+     * @param[out] peptide_rts Map to store a list of feature RTs for each peptide sequence as key.
+     * @param[out] map_range Vector in which all feature RTs are stored for given peptide identifications.
+     * @param[in] feature_rt RT value of the feature to which the peptide identifications to be analysed belong.
      */
-    static void addPeptideSequences_(const std::vector<PeptideIdentification>& peptides, SeqAndRTList& peptide_rts,
+    static void addPeptideSequences_(const PeptideIdentificationList& peptides, SeqAndRTList& peptide_rts,
             std::vector<double>& map_range, double feature_rt);
 
     /**
      * @brief For each input map, extract peptide identifications (sequences) of existing features with associated feature RT.
      *
-     * @param feature_maps Vector of original maps containing peptide identifications.
-     * @param maps_seq_and_rt Vector of maps to store feature RTs given for individual peptide sequences for each feature map.
-     * @param maps_ranges Vector to store all feature RTs of extracted identifications for each map; needed to determine the 10/90 percentiles.
+     * @param[in] feature_maps Vector of original maps containing peptide identifications.
+     * @param[out] maps_seq_and_rt Vector of maps to store feature RTs given for individual peptide sequences for each feature map.
+     * @param[out] maps_ranges Vector to store all feature RTs of extracted identifications for each map; needed to determine the 10/90 percentiles.
      */
     static void extractSeqAndRt_(const std::vector<FeatureMap>& feature_maps, std::vector<SeqAndRTList>& maps_seq_and_rt,
             std::vector<std::vector<double>>& maps_ranges);

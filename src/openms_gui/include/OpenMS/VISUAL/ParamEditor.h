@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -46,7 +20,7 @@
 class QModelIndex;
 class QStyleOptionViewItem;
 class QAbstractItemModel;
-class QStringList;
+#include <QtCore/qcontainerfwd.h> // for QStringList
 class QString;
 
 namespace Ui
@@ -119,9 +93,6 @@ signals:
 protected:
       /// a shortcut to calling commit(), which calls setModelData(); useful for embedded editors, but not for QDialogs etc
       bool eventFilter(QObject* editor, QEvent* event) override;
-  
-      /// Checks if a @p name is valid for the entry corresponding to @p index (checks if it would be duplicate)
-      bool exists_(const QString& name, QModelIndex index) const;
 
 private slots:
       ///For closing any editor and updating ParamEditor
@@ -136,6 +107,8 @@ private:
       ParamEditorDelegate();
       /// used to modify value of output and input files( not for output and input lists)
       mutable QString fileName_;
+      /// holds a directory name (for output directories)
+      mutable QString dirName_;
       /// true if a QLineEdit is still open and has not committed its data yet (so storing the current param is a bad idea)
       mutable bool has_uncommited_data_;
     };
@@ -147,13 +120,13 @@ private:
       Q_OBJECT
 
 public:
-      ///Constructor
+      /// Constructor
       ParamTree(QWidget * parent);
       /// Overloaded edit method to activate F2 use
       bool edit(const QModelIndex & index, EditTrigger trigger, QEvent * event) override;
 
 signals:
-      ///Signal that is emitted when a new item is selected
+      /// Signal that is emitted when a new item is selected
       void selected(const QModelIndex & index);
 
 protected slots:

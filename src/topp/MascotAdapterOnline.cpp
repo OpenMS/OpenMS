@@ -1,54 +1,31 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
 #include <sstream>
-
-#include <QtCore/QFile>
-#include <QtCore/QCoreApplication>
-#include <QtCore/QTimer>
+#include <fstream>
+#include <filesystem>
+#include <memory>
 
 using namespace OpenMS;
 using namespace std;
@@ -59,16 +36,16 @@ using namespace std;
 
 /**
 
-    @page TOPP_MascotAdapterOnline MascotAdapterOnline
+@page TOPP_MascotAdapterOnline MascotAdapterOnline
 
-    @brief Identifies peptides in MS/MS spectra via Mascot.
+@brief Identifies peptides in MS/MS spectra via Mascot.
 
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
             <td VALIGN="middle" ROWSPAN=2> &rarr; MascotAdapterOnline &rarr;</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (that writes mzML format)</td>
@@ -77,43 +54,39 @@ using namespace std;
     </table>
 </CENTER>
 
-    This wrapper application generates peptide identifications for MS/MS
-    spectra using the search engine Mascot. It communicates with the Mascot
-    server over the network (i.e. it does not have to run on the server
-    itself).
+This wrapper application generates peptide identifications for MS/MS
+spectra using the search engine Mascot. It communicates with the Mascot
+server over the network (i.e. it does not have to run on the server
+itself).
 
-    The adapter supports Mascot security features as well as proxy connections.
-    Mascot versions 2.2.x up to 2.4.1 are supported and have been successfully
-    tested (to varying degrees).
+The adapter supports Mascot security features as well as proxy connections.
+Mascot versions 2.2.x up to 2.4.1 are supported and have been successfully
+tested (to varying degrees).
 
-    @bug Running the adapter on Mascot 2.4 (possibly also other versions) produces the following error messages, which should be ignored:\n
-    MascotRemoteQuery: An error occurred (requestId=11): Request aborted (QT Error Code: 7)\n
-    MascotRemoteQuery: An error occurred (requestId=12): Request aborted (QT Error Code: 7)
+@note Some Mascot server instances seem to fail without reporting back an
+error message. In such cases, try to run the search on another Mascot
+server or change/validate the search parameters (e.g. using modifications
+that are known to Mascot and can thus be set in the INI file, but which are
+unknown to Mascot, might pose a problem).
 
-    @note Some Mascot server instances seem to fail without reporting back an
-    error message. In such cases, try to run the search on another Mascot
-    server or change/validate the search parameters (e.g. using modifications
-    that are known to Mascot and can thus be set in the INI file, but which are
-    unknown to Mascot, might pose a problem).
+@note Mascot returns incomplete/incorrect protein assignments for most
+identified peptides (due to protein-level grouping/filtering). Thus,
+the protein associations are therefore not included in the output of this
+adapter, only the peptide sequences. @ref TOPP_PeptideIndexer should be run
+after this tool to get correct assignments.
 
-    @note Mascot returns incomplete/incorrect protein assignments for most
-    identified peptides (due to protein-level grouping/filtering). Thus,
-    the protein associations are therefore not included in the output of this
-    adapter, only the peptide sequences. @ref TOPP_PeptideIndexer should be run
-    after this tool to get correct assignments.
+@note Currently mzIdentML (mzid) is not directly supported as an
+input/output format of this tool. Convert mzid files to/from idXML using
+@ref TOPP_IDFileConverter if necessary.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an
-    input/output format of this tool. Convert mzid files to/from idXML using
-    @ref TOPP_IDFileConverter if necessary.
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MascotAdapterOnline.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MascotAdapterOnline.html
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_MascotAdapterOnline.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MascotAdapterOnline.html
-
-    For the parameters of the algorithm section see the algorithms documentation: @n
-    @ref OpenMS::MascotRemoteQuery "Mascot_server" @n
-    @ref OpenMS::MascotGenericFile "Mascot_parameters" @n
+For the parameters of the algorithm section see the algorithms documentation: @n
+@ref OpenMS::MascotRemoteQuery "Mascot_server" @n
+@ref OpenMS::MascotGenericFile "Mascot_parameters" @n
 
 */
 
@@ -162,21 +135,25 @@ protected:
     return Param();
   }
 
-  void parseMascotResponse_(const PeakMap& exp, bool decoy, MascotRemoteQuery* mascot_query, ProteinIdentification& prot_id, vector<PeptideIdentification>& pep_ids)
-  {   
+  void parseMascotResponse_(const PeakMap& exp, bool decoy, MascotRemoteQuery* mascot_query, ProteinIdentification& prot_id, PeptideIdentificationList& pep_ids)
+  {
     String mascot_tmp_file_name = decoy ? (File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_decoy_response") : (File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_response");
-    QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
-    mascot_tmp_file.open(QIODevice::WriteOnly);
-    if (decoy)
+
     {
-      mascot_tmp_file.write(mascot_query->getMascotXMLDecoyResponse());
+      const std::string& data = decoy ? mascot_query->getMascotXMLDecoyResponse() : mascot_query->getMascotXMLResponse();
+      std::ofstream ofs(mascot_tmp_file_name, std::ios::binary);
+      if (!ofs)
+      {
+        throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mascot_tmp_file_name);
+      }
+      ofs.write(data.data(), static_cast<std::streamsize>(data.size()));
+      if (!ofs)
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Failed to write Mascot response to: " + mascot_tmp_file_name);
+      }
     }
-    else
-    {
-      mascot_tmp_file.write(mascot_query->getMascotXMLResponse());
-    }
-    mascot_tmp_file.close();
-  
+
     writeDebug_(String("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
 
     // set up helper object for looking up spectrum meta data:
@@ -194,12 +171,17 @@ protected:
     }
     else
     {
-      mascot_tmp_file.remove(); // delete file
+      std::error_code ec;
+      std::filesystem::remove(std::filesystem::path(std::string(mascot_tmp_file_name)), ec);
+      if (ec)
+      {
+        OPENMS_LOG_WARN << "Warning: Failed to remove temporary file '" << mascot_tmp_file_name << "': " << ec.message() << std::endl;
+      }
     }
   }
 
   // merge b into a
-  void mergeIDs_(ProteinIdentification& p_a, const ProteinIdentification& p_b, vector<PeptideIdentification>& pep_a, const vector<PeptideIdentification>& pep_b)
+  void mergeIDs_(ProteinIdentification& p_a, const ProteinIdentification& p_b, PeptideIdentificationList& pep_a, const PeptideIdentificationList& pep_b)
   {
     // if p_a is empty use all meta values and hits from p_b to initialize p_a
     if (p_a.getHits().empty())
@@ -220,7 +202,7 @@ protected:
     String run_identifier;
     for (const PeptideIdentification& pep : pep_a)
     {
-      const String& native_id = pep.getMetaValue("spectrum_reference");
+      const String& native_id = pep.getSpectrumReference();
       native_id2id_index[native_id] = index;
       ++index;
       if (run_identifier.empty()) run_identifier = pep.getIdentifier();
@@ -228,7 +210,7 @@ protected:
 
     for (auto pep : pep_b) //OMS_CODING_TEST_EXCLUDE
     {
-      auto it = native_id2id_index.find(pep.getMetaValue("spectrum_reference"));
+      auto it = native_id2id_index.find(pep.getSpectrumReference());
       if (it == native_id2id_index.end()) // spectrum not yet identified? add decoy id
       {
         pep.setIdentifier(run_identifier);
@@ -245,7 +227,7 @@ protected:
         {
           pep_a[it->second].insertHit(h);
         }
-        pep_a[it->second].assignRanks();
+        pep_a[it->second].sort();
       }
     }
   }
@@ -268,7 +250,7 @@ protected:
     // keep only MS2 spectra
     FileHandler fh;
     fh.getOptions().setMSLevels({2});
-    fh.loadExperiment(in, exp, FileTypes::Type::MZML, log_type_, false, false);
+    fh.loadExperiment(in, exp, {FileTypes::Type::MZML}, log_type_, false, false);
     writeLogInfo_("Number of spectra loaded: " + String(exp.size()));
 
 
@@ -281,7 +263,7 @@ protected:
     // overwrite default search title with filename
     if (mascot_param.getValue("search_title") == "OpenMS_search")
     {
-      mascot_param.setValue("search_title", FileHandler::stripExtension(File::basename(in)));
+      mascot_param.setValue("search_title", File::stemName(in));
     }
 
     mascot_param.setValue("internal:HTTP_format", "true");
@@ -295,7 +277,7 @@ protected:
 
     vector<ProteinIdentification> all_prot_ids;
     ProteinIdentification all_prot_id;
-    vector<PeptideIdentification> all_pep_ids;
+    PeptideIdentificationList all_pep_ids;
 
     MSExperiment current_batch;
     for (size_t k = 0; k < chunks; ++k)
@@ -326,15 +308,10 @@ protected:
       stringstream ss;
       mgf_file.store(ss, in, current_batch, true); // write in compact format
 
-      // Usage of a QCoreApplication is overkill here (and ugly too), but we just use the
-      // QEventLoop to process the signals and slots and grab the results afterwards from
-      // the MascotRemotQuery instance
-      char** argv2 = const_cast<char**>(argv);
-      QCoreApplication event_loop(argc, argv2);
-      MascotRemoteQuery* mascot_query = new MascotRemoteQuery(&event_loop);
+      auto mascot_query = std::make_unique<MascotRemoteQuery>();
       writeDebug_("Setting parameters for Mascot query", 1);
       mascot_query->setParameters(mascot_query_param);
-      
+
       bool internal_decoys = mascot_param.getValue("decoy") == "true";
       // We used internal decoy search. Set that we want to retrieve decoy search results during export.
       if (internal_decoys)
@@ -348,27 +325,24 @@ protected:
       // remove unnecessary spectra
       ss.clear();
 
-      QObject::connect(mascot_query, SIGNAL(done()), &event_loop, SLOT(quit()));
-      QTimer::singleShot(1000, mascot_query, SLOT(run()));
       writeLogInfo_("Submitting Mascot query (now: " + DateTime::now().get() + ")...");
-      event_loop.exec();
+      mascot_query->run();
       writeLogInfo_("Mascot query finished");
 
       if (mascot_query->hasError())
       {
         writeLogError_("An error occurred during the query: " + mascot_query->getErrorMessage());
-        delete mascot_query;
         return EXTERNAL_PROGRAM_ERROR;
       }
 
-      vector<PeptideIdentification> pep_ids;
+      PeptideIdentificationList pep_ids;
       ProteinIdentification prot_id;
 
       if (!mascot_query_param.exists("skip_export") ||
           !mascot_query_param.getValue("skip_export").toBool())
       {
         // write Mascot response to file
-        parseMascotResponse_(current_batch, false, mascot_query, prot_id, pep_ids); // targets
+        parseMascotResponse_(current_batch, false, mascot_query.get(), prot_id, pep_ids); // targets
 
         // reannotate proper spectrum native id if missing
         for (auto& pep : pep_ids)
@@ -383,7 +357,7 @@ protected:
           try
           { 
             Size index = lookup.findByRT(pep.getRT());
-            pep.setMetaValue("spectrum_reference", exp[index].getNativeID());
+            pep.setSpectrumReference( exp[index].getNativeID());
           }
           catch (Exception::ElementNotFound&)
           {
@@ -393,9 +367,9 @@ protected:
 
         if (internal_decoys)
         {
-          vector<PeptideIdentification> decoy_pep_ids;
+          PeptideIdentificationList decoy_pep_ids;
           ProteinIdentification decoy_prot_id;
-          parseMascotResponse_(current_batch, true, mascot_query, decoy_prot_id, decoy_pep_ids);  // decoys
+          parseMascotResponse_(current_batch, true, mascot_query.get(), decoy_prot_id, decoy_pep_ids);  // decoys
 
           // reannotate proper spectrum native id if missing
           for (auto& pep : decoy_pep_ids)
@@ -410,7 +384,7 @@ protected:
             try
             { 
               Size index = lookup.findByRT(pep.getRT());
-              pep.setMetaValue("spectrum_reference", exp[index].getNativeID());
+              pep.setSpectrumReference( exp[index].getNativeID());
             }
             catch (Exception::ElementNotFound&)
             {
@@ -437,7 +411,7 @@ protected:
       }
 
       // clean up
-      delete mascot_query;
+      mascot_query.reset();
       
       current_batch.clear(true); // clear meta data
 
@@ -471,7 +445,12 @@ protected:
     // write all (!) parameters as metavalues to the search parameters
     DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), all_prot_ids[0].getSearchParameters(), this->getToolPrefix());
 
-    IdXMLFile().store(out, all_prot_ids, all_pep_ids);
+    // get feature set used in percolator
+    StringList feature_set;
+    PercolatorFeatureSetHelper::addMASCOTFeatures(all_pep_ids, feature_set);
+    all_prot_ids.front().getSearchParameters().setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+    
+    FileHandler().storeIdentifications(out, all_prot_ids, all_pep_ids, {FileTypes::IDXML});
     
     return EXECUTION_OK;
   }

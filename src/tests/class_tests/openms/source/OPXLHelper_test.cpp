@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -49,7 +23,6 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/Tagger.h>
-#include <QStringList>
 
 using namespace OpenMS;
 
@@ -68,21 +41,13 @@ digestor.setMissedCleavages(2);
 
 Size min_peptide_length = 5;
 
-QStringList q_str_list1;
-QStringList q_str_list2;
-q_str_list1 << "Carbamidomethyl (C)" << "Carbamidomethyl (T)";
-q_str_list2 << "Oxidation (M)" << "Oxidation (Y)";
-StringList fixedModNames = StringListUtils::fromQStringList(q_str_list1);
-StringList varModNames = StringListUtils::fromQStringList(q_str_list2);
+StringList fixedModNames = {"Carbamidomethyl (C)", "Carbamidomethyl (T)"};
+StringList varModNames = {"Oxidation (M)", "Oxidation (Y)"};
 const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications = ModifiedPeptideGenerator::getModifications(fixedModNames);
 const ModifiedPeptideGenerator::MapToResidueType& variable_modifications = ModifiedPeptideGenerator::getModifications(varModNames);
 
-QStringList q_str_list3;
-QStringList q_str_list4;
-q_str_list3 << "K" << "E";
-q_str_list4 << "D" << "E" << "C-term";
-StringList cross_link_residue1 = StringListUtils::fromQStringList(q_str_list3);
-StringList cross_link_residue2 = StringListUtils::fromQStringList(q_str_list4);
+StringList cross_link_residue1 = {"K", "E"};
+StringList cross_link_residue2 = {"D", "E", "C-term"};
 
 Size max_variable_mods_per_peptide = 5;
 
@@ -196,7 +161,7 @@ START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buil
 END_SECTION
 
 // prepare data for the next three tests
-std::vector< PeptideIdentification > peptide_ids;
+PeptideIdentificationList peptide_ids;
 std::vector< ProteinIdentification > protein_ids;
 IdXMLFile id_file;
 
@@ -217,7 +182,7 @@ for (auto& id : peptide_ids)  //OMS_CODING_TEST_EXCLUDE
   }
 }
 
-START_SECTION(static void addProteinPositionMetaValues(std::vector< PeptideIdentification > & peptide_ids))
+START_SECTION(static void addProteinPositionMetaValues(PeptideIdentificationList & peptide_ids))
 
   // test that the MetaValues were removed
   for (const auto& id : peptide_ids)
@@ -260,7 +225,7 @@ START_SECTION(static void addProteinPositionMetaValues(std::vector< PeptideIdent
 
 END_SECTION
 
-START_SECTION(static void addXLTargetDecoyMV(std::vector< PeptideIdentification > & peptide_ids))
+START_SECTION(static void addXLTargetDecoyMV(PeptideIdentificationList & peptide_ids))
 
   // add xl_target_decoy MetaValue
   OPXLHelper::addXLTargetDecoyMV(peptide_ids);
@@ -280,7 +245,7 @@ START_SECTION(static void addXLTargetDecoyMV(std::vector< PeptideIdentification 
 
 END_SECTION
 
-START_SECTION(static void addBetaAccessions(std::vector< PeptideIdentification > & peptide_ids))
+START_SECTION(static void addBetaAccessions(PeptideIdentificationList & peptide_ids))
 
   // add accessions_beta MV
   OPXLHelper::addBetaAccessions(peptide_ids);
@@ -299,9 +264,9 @@ START_SECTION(static void addBetaAccessions(std::vector< PeptideIdentification >
 
 END_SECTION
 
-START_SECTION(static std::vector< PeptideIdentification > combineTopRanksFromPairs(std::vector< PeptideIdentification > & peptide_ids, Size number_top_hits))
+START_SECTION(static PeptideIdentificationList combineTopRanksFromPairs(PeptideIdentificationList & peptide_ids, Size number_top_hits))
 
-  std::vector< PeptideIdentification > pep_ids = peptide_ids;
+  auto pep_ids = peptide_ids;
   // all hits are to separate spectra, so everything should be rank 1
   for (const auto& id : pep_ids)
   {
@@ -322,7 +287,7 @@ START_SECTION(static std::vector< PeptideIdentification > combineTopRanksFromPai
 
 END_SECTION
 
-START_SECTION(static void removeBetaPeptideHits(std::vector< PeptideIdentification > & peptide_ids))
+START_SECTION(static void removeBetaPeptideHits(PeptideIdentificationList & peptide_ids))
 
   OPXLHelper::removeBetaPeptideHits(peptide_ids);
 

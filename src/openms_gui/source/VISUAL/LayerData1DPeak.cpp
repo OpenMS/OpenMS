@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -35,6 +9,7 @@
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/Painter1DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
@@ -48,7 +23,7 @@ namespace OpenMS
 
   std::unique_ptr<LayerStoreData> LayerData1DPeak::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
-    auto ret = std::unique_ptr<LayerStoreDataPeakMapVisible>();
+    auto ret = std::make_unique<LayerStoreDataPeakMapVisible>();
     ret->storeVisibleSpectrum(getCurrentSpectrum(), visible_range, layer_filters);
     return ret;
   }
@@ -61,12 +36,12 @@ namespace OpenMS
   QMenu* LayerData1DPeak::getContextMenuAnnotation(Annotation1DItem* annot_item, bool& need_repaint)
   {
     auto* context_menu = new QMenu("Peak1D", nullptr);
-    context_menu->addAction("Edit", [&]() {
+    context_menu->addAction("Edit", [annot_item, &need_repaint, this]() { // this capture is tricky! Copy 'annot_item' since its a local variable and will be out of scope when the menu is evaluated!
       annot_item->editText();
       synchronizePeakAnnotations();
       need_repaint = true;
     });
-    context_menu->addAction("Delete", [&]() {
+    context_menu->addAction("Delete", [annot_item, &need_repaint, this]() { // this capture is tricky! Copy 'annot_item' since its a local variable and will be out of scope when the menu is evaluated!
       vector<Annotation1DItem*> as;
       as.push_back(annot_item);
       removePeakAnnotationsFromPeptideHit(as);
@@ -128,22 +103,17 @@ namespace OpenMS
 
   void LayerData1DPeak::synchronizePeakAnnotations()
   {
+    #ifdef DEBUG_IDENTIFICATION_VIEW    
+    std::cout << "synchronizePeakAnnotations." << std::endl;
+    #endif
+
     // Return if no valid peak layer attached
-    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerDataBase::DT_PEAK)
+    if (getPeakData() == nullptr 
+      || getPeakData()->getMSExperiment().empty() 
+      || type != LayerDataBase::DT_PEAK)
     {
       return;
     }
-
-    // get mutable access to the spectrum
-    MSSpectrum& spectrum = getPeakDataMuteable()->getSpectrum(current_idx_);
-
-    int ms_level = spectrum.getMSLevel();
-
-    if (ms_level != 2)
-      return;
-
-    // store user fragment annotations
-    vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
 
     // no ID selected
     if (peptide_id_index == -1 || peptide_hit_index == -1)
@@ -151,8 +121,23 @@ namespace OpenMS
       return;
     }
 
+    // get mutable access to the spectrum
+    MSSpectrum& spectrum = getPeakDataMuteable()->getMSExperiment().getSpectrum(current_idx_);
+
+    int ms_level = spectrum.getMSLevel();
+
+    if (ms_level != 2)
+      return;
+
+    // store user fragment annotations
+    PeptideIdentificationList& pep_ids = getPeakDataMuteable()->getPeptideIdentifications();
+    vector<ProteinIdentification>& prot_ids = getPeakDataMuteable()->getProteinIdentifications();
+        
     if (!pep_ids.empty())
     {
+      #ifdef DEBUG_IDENTIFICATION_VIEW    
+      std::cout << "PeptideIdentifications found in the current spectrum." << std::endl;
+      #endif
       vector<PeptideHit>& hits = pep_ids[peptide_id_index].getHits();
 
       if (!hits.empty())
@@ -167,8 +152,9 @@ namespace OpenMS
         hits.push_back(hit);
       }
     }
-    else // PeptideIdentifications are empty, create new PepIDs and PeptideHits to store the PeakAnnotations
-    {
+    else 
+    {      
+      std::cout << "No PeptideIdentifications found in the current spectrum." << std::endl;
       // copy user annotations to fragment annotation vector
       const Annotations1DContainer& las = getAnnotations(current_idx_);
 
@@ -192,7 +178,6 @@ namespace OpenMS
       pep_id.setIdentifier("Unknown");
 
       // create a dummy ProteinIdentification for all ID-less PeakAnnotations
-      vector<ProteinIdentification>& prot_ids = getPeakDataMuteable()->getProteinIdentifications();
       if (prot_ids.empty() || prot_ids.back().getIdentifier() != String("Unknown"))
       {
         ProteinIdentification prot_id;
@@ -219,7 +204,7 @@ namespace OpenMS
   void LayerData1DPeak::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
   {
     // Return if no valid peak layer attached
-    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerDataBase::DT_PEAK)
+    if (getPeakData() == nullptr || getPeakData()->getMSExperiment().empty() || type != LayerDataBase::DT_PEAK)
     {
       return;
     }
@@ -231,7 +216,7 @@ namespace OpenMS
     }
 
     // get mutable access to the spectrum
-    MSSpectrum& spectrum = getPeakDataMuteable()->getSpectrum(current_idx_);
+    MSSpectrum& spectrum = getPeakDataMuteable()->getMSExperiment().getSpectrum(current_idx_);
     int ms_level = spectrum.getMSLevel();
 
     // wrong MS level
@@ -244,17 +229,9 @@ namespace OpenMS
     // that this function returns prematurely is unlikely,
     // since we are deleting existing annotations,
     // that have to be somewhere, but better make sure
-    vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
-    if (pep_ids.empty())
-    {
-      return;
-    }
-    vector<PeptideHit>& hits = pep_ids[peptide_id_index].getHits();
-    if (hits.empty())
-    {
-      return;
-    }
-    PeptideHit& hit = hits[peptide_hit_index];
+    PeptideIdentification& pep_ids = getPeakDataMuteable()->getPeptideIdentifications()[peptide_id_index];
+
+    PeptideHit& hit = pep_ids.getHits()[peptide_hit_index];
     vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();
     if (fas.empty())
     {
@@ -278,7 +255,7 @@ namespace OpenMS
 
         if (fabs(tmp_a.mz - pa->getPeakPosition().getMZ()) < 1e-6)
         {
-          if (String(pa->getText()).hasPrefix(tmp_a.annotation))
+          if (fromQString(pa->getText()).hasPrefix(tmp_a.annotation))
           {
             to_remove.push_back(tmp_a);
           }

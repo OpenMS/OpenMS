@@ -1,36 +1,11 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
+# 
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche $
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
+
 
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("OpenMS_src")
@@ -48,9 +23,46 @@ add_subdirectory(openms)
 #------------------------------------------------------------------------------
 # pyOpenMS
 #------------------------------------------------------------------------------
-option(PYOPENMS "setup build system for pyOpenMS" OFF)
+# Note: pyOpenMS is optional and can be disabled with -DPYOPENMS=OFF
+option(PYOPENMS "Build pyOpenMS Python bindings" OFF)
+option(WITH_UV "Install Python dependencies with uv" ON)
+
+# Optional: Python version to use when creating the pyOpenMS venv with uv
+# Example: "3.11". Only used when WITH_UV=ON.
+set(PYOPENMS_UV_PYTHON_VERSION "" CACHE STRING "Python version (e.g. 3.11) for creating pyOpenMS .venv when WITH_UV=ON")
+
 if(PYOPENMS)
+  if(WITH_UV)
+    # Discover uv executable
+    find_program(UV_EXECUTABLE uv)
+    if(NOT UV_EXECUTABLE)
+      message(FATAL_ERROR "uv executable not found. Install uv (https://docs.astral.sh/uv/) and ensure it's on PATH.")
+    endif()
+    message(STATUS "Found uv: ${UV_EXECUTABLE}")
+
+    set(Python_FIND_VIRTUALENV FIRST)
+    # We found uv; pyOpenMS will decide later whether to run it and where to place the .venv
+  endif()
+
+  message(STATUS "pyOpenMS Python environment: ${Python_EXECUTABLE}")
+
+  # Build pyOpenMS Python extension modules directly as part of the main build
+  # This ensures all CMake variables are naturally inherited
   add_subdirectory(pyOpenMS)
+
+  # Optional: Package pyOpenMS wheel from already-built modules
+  # Usage: cmake --build . --target pyopenms_wheel
+  add_custom_target(pyopenms_wheel
+    COMMAND ${Python_EXECUTABLE} -m build --wheel
+      --skip-dependency-check --no-isolation
+      --outdir ${CMAKE_BINARY_DIR}/pyopenms_wheels
+      --config-setting=override=cmake.0.build_path=${CMAKE_BINARY_DIR}/py-build-cmake_cache/pyopenms
+      --config-setting=override=cmake.0.options.PYOPENMS_USE_PREBUILT=ON
+      --config-setting=override=cmake.0.options.PYOPENMS_PREBUILT_DIR=${CMAKE_BINARY_DIR}/pyOpenMS
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src/pyOpenMS
+    DEPENDS pyopenms
+    COMMENT "Packaging pyOpenMS wheel from existing build"
+  )
 endif()
 
 if(ENABLE_OPENMS_ML)
@@ -60,22 +72,18 @@ if(ENABLE_OPENMS_ML)
   add_subdirectory(openms_ml)
 endif()
 
+#------------------------------------------------------------------------------
+# TOPP tools (must come before openms_gui so TOPP_TOOLS cache is initialized
+# before the GUI appends its tools to it)
+#------------------------------------------------------------------------------
+add_subdirectory(topp)
+
 if(WITH_GUI)
   #------------------------------------------------------------------------------
   # OpenMS gui lib
   #------------------------------------------------------------------------------
   add_subdirectory(openms_gui)
 endif()
-
-#------------------------------------------------------------------------------
-# TOPP tools
-#------------------------------------------------------------------------------
-add_subdirectory(topp)
-
-#------------------------------------------------------------------------------
-# UTILS tools
-#------------------------------------------------------------------------------
-add_subdirectory(utils)
 
 #------------------------------------------------------------------------------
 # Tests

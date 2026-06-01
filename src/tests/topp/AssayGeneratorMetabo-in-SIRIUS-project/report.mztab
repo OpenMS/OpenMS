@@ -1,0 +1,34 @@
+MTD	mzTab-version	2.0.0-M
+MTD	mzTab-ID	SIRIUS-3e6291f4-b8bc-4b73-bde0-ffa971fc61d2
+MTD	title	SIRIUS Analysis Report: 3e6291f4-b8bc-4b73-bde0-ffa971fc61d2
+MTD	software[1]	[, , SIRIUS, 4.13.1]
+MTD	ms_run[1]-location	/home/axel/dev/OpenMS/src/tests/topp/SiriusExport_2_output.ms
+MTD	ms_run[1]-scan_polarity[1]	[MS, MS:1000130, positive scan, ]
+MTD	cv[1]-label	MS
+MTD	cv[1]-uri	http://purl.obolibrary.org/obo/ms/psi-ms.obo
+MTD	cv[1]-version	4.1.16
+MTD	cv[1]-full_name	PSI-MS controlled vocabulary
+MTD	small_molecule-identification_reliability	[MS, MS:1002955, hr-ms compound identification confidence level, ]
+MTD	database[1]	[, , no database, null]
+MTD	database[1]-prefix	null
+MTD	database[1]-uri	null
+MTD	database[1]-version	Unknown
+MTD	database[2]	[, , CSI:FingerID PubChem Copy, CID]
+MTD	database[2]-prefix	CID
+MTD	database[2]-uri	https://pubchem.ncbi.nlm.nih.gov/compound/
+MTD	database[2]-version	Unknown
+
+SMH	SML_ID	SMF_ID_REFS	database_identifier	chemical_formula	smiles	inchi	chemical_name	uri	theoretical_neutral_mass	adduct_ions	reliability	best_id_confidence_measure	best_id_confidence_value
+SML	1	1	null	C15H17ClN4	null	null	null	null	288.11417422399995	[M + H]+	4	null	null
+SML	2	2	null	C13H22NO3PS	null	null	null	null	303.10580119400004	[M + Na]+	4	null	null
+SML	10	10	null	C16H25NO2	null	null	null	null	263.18852904	[M + Na]+	4	null	null
+
+SFH	SMF_ID	SME_ID_REFS	SME_ID_REF_ambiguity_code	adduct_ion	isotopomer	exp_mass_to_charge	charge	retention_time_in_seconds	retention_time_in_seconds_start	retention_time_in_seconds_end
+SMF	1	1	2	[M + H]+	null	289.122615478838	1	448.02799999998	null	null
+SMF	2	2	2	[M + Na]+	null	326.094454354613	1	447.10000000002	null	null
+SMF	10	10	2	[M + Na]+	null	286.179028092823	1	438.351	null	null
+
+SEH	SME_ID	evidence_input_id	database_identifier	chemical_formula	smiles	inchi	chemical_name	uri	derivatized_form	adduct_ion	exp_mass_to_charge	charge	theoretical_mass_to_charge	spectra_ref	identification_method	ms_level	rank	opt_global_SIRIUS:sirius_score	opt_global_SIRIUS:isotope_score	opt_global_SIRIUS:tree_score	opt_global_SIRIUS:zodiac_score	opt_global_SIRIUS:explained_intensity_ratio	opt_global_SIRIUS:explained_intensity_of_explainable_peaks_ratio	opt_global_SIRIUS:explained_peaks_ratio	opt_global_SIRIUS:annotated_spectra_location	opt_global_SIRIUS:tree_location	opt_global_SIRIUS:candidate_location
+SME	1	2_SiriusExport_2_output_0_5053681185761206615-676004--121--Myclobutanil:289.122615478838:M+H+	null	C15H17ClN4	null	null	null	null	null	[M + H]+	289.122615478838	1	289.1214506760905	ms_run[1]:sample=1 period=1 cycle=676 experiment=4|ms_run[1]:sample=1 period=1 cycle=677 experiment=5|ms_run[1]:sample=1 period=1 cycle=678 experiment=3	[, , SIRIUS, 4.13.1]	[MS, MS:1000511, ms_level, 2]	1	39.34241769057247	2.6514068961066233	36.691010794465846	N/A	0.9685426989556167	0.980955482459397	0.7	spectra/C15H17ClN4_[M+H]+.tsv	trees/C15H17ClN4_[M+H]+.json	2_SiriusExport_2_output_0_5053681185761206615-676004--121--Myclobutanil/formula_candidates.tsv
+SME	2	7_SiriusExport_2_output_0_7960809195137357048-676005--122--Fenamiphos:326.094454354613:M+Na+	null	C13H22NO3PS	null	null	null	null	null	[M + Na]+	326.094454354613	1	326.09502189409056	ms_run[1]:sample=1 period=1 cycle=676 experiment=5	[, , SIRIUS, 4.13.1]	[MS, MS:1000511, ms_level, 2]	1	-2.3675697077238156	0.0	-2.3675697077238156	N/A	0.0	0.0	0.0	spectra/C13H22NO3PS_[M+Na]+.tsv	trees/C13H22NO3PS_[M+Na]+.json	7_SiriusExport_2_output_0_7960809195137357048-676005--122--Fenamiphos/formula_candidates.tsv
+SME	10	1_SiriusExport_2_output_0_10333458062711546021-664003--57--UNKNOWN:286.179028092823:M+Na+	null	C16H25NO2	null	null	null	null	null	[M + Na]+	286.179028092823	1	286.1777497400905	ms_run[1]:sample=1 period=1 cycle=664 experiment=3|ms_run[1]:sample=1 period=1 cycle=665 experiment=5|ms_run[1]:sample=1 period=1 cycle=666 experiment=3	[, , SIRIUS, 4.13.1]	[MS, MS:1000511, ms_level, 2]	1	37.77674634435295	0.0	37.77674634435295	N/A	0.8419395465994967	0.9419915453264445	0.36363636363636365	spectra/C16H25NO2_[M+Na]+.tsv	trees/C16H25NO2_[M+Na]+.json	1_SiriusExport_2_output_0_10333458062711546021-664003--57--UNKNOWN/formula_candidates.tsv

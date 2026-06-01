@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -39,6 +13,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <iosfwd>
 #include <map>
+#include <memory>
 
 namespace OpenMS
 {
@@ -153,9 +128,9 @@ public:
     /**
        @brief Get the deviations between the data pairs
 
-       @param diffs Output
-       @param do_apply Get deviations after applying the model?
-       @param do_sort Sort @p diffs before returning?
+       @param[out] diffs Output
+       @param[in] do_apply Get deviations after applying the model?
+       @param[in] do_sort Sort @p diffs before returning?
     */
     void getDeviations(std::vector<double>& diffs, bool do_apply = false,
                        bool do_sort = true) const;
@@ -166,13 +141,57 @@ public:
     /// Print summary statistics for the transformation
     void printSummary(std::ostream& os) const;
 
+    /**
+      @brief Estimate a coordinate-transformation, residual-based extraction window.
+
+      Given stored data points (x_i, y_i) and a fitted transform T relating them,
+      this computes absolute residuals between experimental and theoretical
+      coordinates and returns an extraction window derived from a chosen quantile. \n
+
+      Residual definition: \n
+      - If invert == false:  r_i = | T(x_i) - y_i |   (in transformed y units) \n
+      - If invert == true :  r_i = | x_i - T^{-1}(y_i) | (in original x units) \n
+
+      The window is computed using an adaptive quantile that is robust to sparse outliers
+      but permissive when tails are genuinely dense: \n
+      1) Let |r| be the absolute residuals. Compute the Tukey upper fence
+      UF = Q3 + k*IQR (with k = 1.5). \n
+      2) Compute: \n
+      - h_raw = quantile(|r|, q) \n
+      - h_rob = quantile(winsorize(|r|, UF), q), where values above UF are capped at UF
+       (lower cap is 0 for absolute residuals). \n
+      3) Let tail = fraction(|r| > UF). Blend h = (1 - w)*h_rob + w*h_raw with a weight w
+      that increases linearly from 0 at tail <= 1% (favor robust) to 1 at tail >= 10% (favor raw).
+      If UF is undefined (too few points or IQR <= 0), the method falls back to the raw quantile. \n
+
+      The chosen quantile q (e.g. 0.99) is interpreted as a half-width h such that
+      approximately q*100% of residuals satisfy |r| <= h. If full_window is true, the function
+      returns 2*h (full width), otherwise h (half-width). The padding_factor multiplies the final result. \n
+
+      Typical usage: \n
+      - RT: set invert = true to obtain residuals in seconds (original x units). \n
+      - IM: same pattern; units are the instrument’s native mobility units (e.g., 1/k0). \n
+
+      @param[in] quantile     Quantile of |residual| to use (0 < quantile ≤ 1), e.g. 0.99.
+      @param[in] invert       If true, compute residuals in original x-units via T^{-1};
+                          otherwise compute in transformed y-units via T.
+      @param[in] full_window  If true, return full width (2·half-width); else return half-width.
+      @param[in] padding_factor A padding factor to add to the estimated window.
+      @return             Estimated window (in the units implied by @p invert).
+                          If no data points are available, returns 0.0.
+    */
+    double estimateWindow(double quantile = 0.99,
+                          bool invert = true,
+                          bool full_window = true,
+                          double padding_factor = 1.0) const;
+
 protected:
     /// Data points
     DataPoints data_;
     /// Type of model
     String model_type_;
-    /// Pointer to model
-    TransformationModel* model_;
+    /// Owned model instance (std::unique_ptr)
+    std::unique_ptr<TransformationModel> model_;
   };
 
 } // end of namespace OpenMS

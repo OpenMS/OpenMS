@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Samuel Wein $
@@ -39,6 +13,8 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace OpenMS;
 using namespace std;
@@ -195,6 +171,56 @@ START_SECTION(bool isModified() const)
   TEST_EQUAL(test_ribo.isModified(), false);
   test_ribo.setCode("Tm");
   TEST_EQUAL(test_ribo.isModified(), true);
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<Ribonucleotide>))
+{
+  // Test that equal objects have equal hashes
+  Ribonucleotide ribo1("adenosine", "A", "A", "A", EmpiricalFormula("C10H13N5O4"), 'A', 267.0968, 267.24, Ribonucleotide::ANYWHERE, EmpiricalFormula("C5H10O5"));
+  Ribonucleotide ribo2("adenosine", "A", "A", "A", EmpiricalFormula("C10H13N5O4"), 'A', 267.0968, 267.24, Ribonucleotide::ANYWHERE, EmpiricalFormula("C5H10O5"));
+  TEST_EQUAL(ribo1 == ribo2, true)
+  TEST_EQUAL(std::hash<Ribonucleotide>{}(ribo1), std::hash<Ribonucleotide>{}(ribo2))
+
+  // Test that different objects (likely) have different hashes
+  Ribonucleotide ribo3("guanosine", "G", "G", "G", EmpiricalFormula("C10H13N5O5"), 'G', 283.0917, 283.24, Ribonucleotide::ANYWHERE, EmpiricalFormula("C5H10O5"));
+  TEST_NOT_EQUAL(ribo1 == ribo3, true)
+  // Note: Different objects may have same hash (collision), but this is unlikely for well-designed hashes
+  TEST_NOT_EQUAL(std::hash<Ribonucleotide>{}(ribo1), std::hash<Ribonucleotide>{}(ribo3))
+
+  // Test that copies have equal hashes
+  Ribonucleotide ribo_copy(ribo1);
+  TEST_EQUAL(std::hash<Ribonucleotide>{}(ribo1), std::hash<Ribonucleotide>{}(ribo_copy))
+
+  // Test use in unordered_set
+  std::unordered_set<Ribonucleotide> ribo_set;
+  ribo_set.insert(ribo1);
+  ribo_set.insert(ribo2); // Should not increase size (duplicate)
+  ribo_set.insert(ribo3);
+  TEST_EQUAL(ribo_set.size(), 2)
+  TEST_EQUAL(ribo_set.count(ribo1), 1)
+  TEST_EQUAL(ribo_set.count(ribo3), 1)
+
+  // Test use in unordered_map
+  std::unordered_map<Ribonucleotide, std::string> ribo_map;
+  ribo_map[ribo1] = "first";
+  ribo_map[ribo3] = "third";
+  TEST_EQUAL(ribo_map.size(), 2)
+  TEST_EQUAL(ribo_map[ribo1], "first")
+  TEST_EQUAL(ribo_map[ribo3], "third")
+  ribo_map[ribo2] = "second"; // Should overwrite ribo1's value
+  TEST_EQUAL(ribo_map.size(), 2)
+  TEST_EQUAL(ribo_map[ribo1], "second")
+
+  // Test default-constructed ribonucleotide hash consistency
+  Ribonucleotide default1;
+  Ribonucleotide default2;
+  TEST_EQUAL(std::hash<Ribonucleotide>{}(default1), std::hash<Ribonucleotide>{}(default2))
+
+  // Test that different term specificities produce different hashes
+  Ribonucleotide five_prime("adenosine", "A", "A", "A", EmpiricalFormula("C10H13N5O4"), 'A', 267.0968, 267.24, Ribonucleotide::FIVE_PRIME, EmpiricalFormula("C5H10O5"));
+  Ribonucleotide three_prime("adenosine", "A", "A", "A", EmpiricalFormula("C10H13N5O4"), 'A', 267.0968, 267.24, Ribonucleotide::THREE_PRIME, EmpiricalFormula("C5H10O5"));
+  TEST_NOT_EQUAL(std::hash<Ribonucleotide>{}(five_prime), std::hash<Ribonucleotide>{}(three_prime))
+}
 END_SECTION
 
 END_TEST

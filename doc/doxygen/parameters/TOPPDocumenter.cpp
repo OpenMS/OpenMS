@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -38,9 +12,11 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/SYSTEM/ExternalProcess.h>
 
-#include <QtCore/QProcess>
-#include <QDir>
+#include <QtCore/QString>
+#include <QtCore/QStringList>
+#include <QtCore/QProcess> // for qputenv
 
 #include <iostream>
 #include <fstream>
@@ -52,12 +28,26 @@ using namespace Internal;
 
 void convertINI2HTML(const Param& p, ostream& os)
 {
-  // the .css file is included via the Header.html (see doc/doxygen/common/Header.html)
   os << "<div class=\"ini_global\">\n";
   os << "<div class=\"legend\">\n";
   os << "<b>Legend:</b><br>\n";
   os << " <div class=\"item item_required\">required parameter</div>\n";
   os << " <div class=\"item item_advanced\">advanced parameter</div>\n";
+  os << "</div>\n";
+  os << "<div class=\"ini_description\">\n";
+  os << "<p>This section lists all parameters supported by the tool. Parameters are organized into hierarchical subsections that group related settings together. Subsections may contain further subsections or individual parameters.</p>\n";
+  os << "<p>Each parameter entry contains the following information:</p>\n";
+  os << "<ul>\n";
+  os << "<li><b>Name</b>  The identifier used in configuration files and on the command line.</li>\n";
+  os << "<li><b>Default value</b>  The value used if the parameter is not explicitly specified.</li>\n";
+  os << "<li><b>Description</b>  A short explanation describing the purpose and behavior of the parameter.</li>\n";
+  os << "<li><b>Tags</b>  Additional metadata associated with the parameter.</li>\n";
+  os << "<li><b>Restrictions</b>  Allowed value ranges for numeric parameters or valid options for string parameters.</li>\n";
+  os << "</ul>\n";
+  os << "<p><b>Parameter tags</b> provide additional information about how a parameter is used. ";
+  os << "Some tags indicate whether a parameter is required or intended for advanced configuration, ";
+  os << "while others may be used internally by OpenMS or workflow tools.</p>\n";
+  os << "<p>Parameters highlighted as <span class=\"item_required\">required</span> must be specified for the tool to run successfully. Parameters marked as <span class=\"item_advanced\">advanced</span> allow fine-tuning of algorithm behavior and are typically not needed for standard workflows.</p>\n";
   os << "</div>\n";
 
   Param::ParamIterator it = p.begin();
@@ -77,6 +67,7 @@ void convertINI2HTML(const Param& p, ostream& os)
         d.substitute("\n", "<br>");
         os << indentation
            << R"(<div class="node"><span class="node_name">)"
+           // TODO replace/remove weird "(TOPPAS) instance 1" nodes that only confuse people.
            << (String().fillLeft('+', (UInt) indentation.size() / 2) + it2->name)
            << "</span><span class=\"node_description\">"
            << (d)
@@ -128,7 +119,7 @@ void convertINI2HTML(const Param& p, ostream& os)
       if (*tag_it == "required")
         continue;
       if (!list.empty())
-        list += ",";
+        list += ", ";
       list += *tag_it;
     }
     os << "<span class=\"item_tags\">" << (list) << "</span>";
@@ -140,6 +131,8 @@ void convertINI2HTML(const Param& p, ostream& os)
     case ParamValue::INT_VALUE:
     case ParamValue::INT_LIST:
     {
+      // TODO think about doing the same infinity replacement
+      // for default values. A single ":" looks weird.
       bool min_set = (it->min_int != -numeric_limits<Int>::max());
       bool max_set = (it->max_int != numeric_limits<Int>::max());
       if (max_set || min_set)
@@ -181,7 +174,21 @@ void convertINI2HTML(const Param& p, ostream& os)
     case ParamValue::STRING_LIST:
       if (!it->valid_strings.empty())
       {
-        restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ",");
+        // make sure browsers can word wrap with additional whitespace
+        // TODO: If param name is *modification* just add a link to
+        //  a page with all modifications otherwise you get a HUGE list.
+        //  Also think about a different separator, in case the restrictions have commas.
+        restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
+      }
+      else if (value_type == ParamValue::STRING_VALUE)
+      {
+        // Issue #8475: Flag parameters are written as type="bool" in INI, which loads
+        // as STRING_VALUE with no valid_strings. Detect these by checking if value is boolean.
+        String val = it->value.toString();
+        if (val == "true" || val == "false")
+        {
+          restrictions = "(flag)";
+        }
       }
       break;
 
@@ -203,16 +210,15 @@ void convertINI2HTML(const Param& p, ostream& os)
 
 bool generate(const ToolListType& tools, const String& prefix, const String& binary_directory)
 {
+  // Add an environment variable (used by each TOPP tool to determine width of help text (see TOPPBase))
+  qputenv("COLUMNS", "110"); 
+  // Add Global environment variable to suppress stty errors
+  qputenv("TERM", "dumb");
+  qputenv("STTY", "/bin/true"); 
+  
   bool errors_occured = false;
   for (ToolListType::const_iterator it = tools.begin(); it != tools.end(); ++it)
   {
-    //start process
-    QProcess process;
-    process.setProcessChannelMode(QProcess::MergedChannels);
-    QStringList env = QProcess::systemEnvironment();
-    env << String("COLUMNS=110").toQString(); // Add an environment variable (used by each TOPP tool to determine width of help text (see TOPPBase))
-    process.setEnvironment(env);
-
     String command = binary_directory + it->first;
 #if defined(__APPLE__)
     if (it->first == "TOPPView" || it->first == "TOPPAS")
@@ -238,27 +244,23 @@ bool generate(const ToolListType& tools, const String& prefix, const String& bin
     }
     else
     {
-      process.start(String(command + " --help").toQString());
-      process.waitForFinished();
-
-      std::string lines = QString(process.readAll()).toStdString();
-      if (process.error() != QProcess::UnknownError)
-      {
-        // error while generation cli docu
+      ExternalProcess ep([&](const String& s) { f << s; }, 
+                         [&](const String& s) { f << s; });
+      String error_msg;
+      if (ep.run(command, std::vector<String>{"--help"}, "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE)
+            != ExternalProcess::RETURNSTATE::SUCCESS)
+      { // error while generation cli docu
         stringstream ss;
         ss << "Errors occurred while generating the command line documentation for " << it->first << "!" << endl;
-        ss << "Output was: \n" << lines << endl;
-        ss << "Command line was: \n " << command << endl;
+        ss << "Output was: \n";
+        ep.setCallbacks([&](const String& s) { ss << s; }, [&](const String& s) { ss << s; });
+        ep.run(command, std::vector<String>{"--help"}, "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE);
+        ss << "\nCommand line was: \n " << command << endl;
         f << ss.str();
         cerr << ss.str();
         errors_occured = true;
         f.close();
         continue;
-      }
-      else
-      {
-        // write output
-        f << lines;
       }
     }
     f.close();
@@ -266,25 +268,23 @@ bool generate(const ToolListType& tools, const String& prefix, const String& bin
     //////
     // get the INI file and convert it into HTML
     //////
-    if (it->first != "GenericWrapper" && // does not support -write_ini without a type
-        it->first != "TOPPView" && // do not support -write_ini
+    if (it->first != "TOPPView" && // do not support -write_ini
         it->first != "TOPPAS")
     {
       String tmp_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_" + it->first + ".ini";
-      String ini_command = command + " -write_ini " + tmp_file;
-      process.start(ini_command.toQString());
-      process.waitForFinished();
+      const std::vector<String> ini_command_args = {"-write_ini", tmp_file};
 
-      if (process.error() != QProcess::UnknownError || !File::exists(tmp_file))
-      {
-        std::string lines = QString(process.readAll()).toStdString();
-
-        // error while generation cli docu
-        stringstream ss;
-        ss << "Errors occurred while writing ini file for " << it->first << "!" << endl;
-        ss << "Output was: \n" << lines << endl;
-        ss << "Command line was: \n " << ini_command << endl;
-        cerr << ss.str();
+      ExternalProcess ep([&](const String& s) { f << s; }, [&](const String& s) { f << s; });
+      String error_msg;
+      if (ep.run(command, ini_command_args, "", false, error_msg,
+                 ExternalProcess::IO_MODE::READ_WRITE)
+            != ExternalProcess::RETURNSTATE::SUCCESS
+          || ! File::exists(tmp_file))
+      { // error while generation cli docu
+        std::cerr << "Errors occurred while writing ini file for " << it->first << "!" << std::endl;
+        String args_str;
+        for (const auto& a : ini_command_args) args_str += " " + a;
+        std::cerr << "Command line was: \n " << command << args_str << std::endl;
         errors_occured = true;
         continue;
       }
@@ -306,7 +306,7 @@ int main(int argc, char** argv)
 {
   if (argc != 2)
   {
-    cerr << "Please specify the path where the TOPP/UTIL binaries are located." << endl;
+    cerr << "Please specify the path where the TOPP binaries are located." << endl;
     return EXIT_FAILURE;
   }
 
@@ -319,18 +319,16 @@ int main(int argc, char** argv)
   }
 
   //TOPP tools
-  ToolListType topp_tools = ToolHandler::getTOPPToolList(true); // include GenericWrapper (can be called with --help without error, even though it has a type)
+  ToolListType topp_tools = ToolHandler::getTOPPToolList();
   topp_tools["TOPPView"] = Internal::ToolDescription(); // these two need to be excluded from writing an INI file later!
   topp_tools["TOPPAS"] = Internal::ToolDescription();
-  //UTILS
-  ToolListType util_tools = ToolHandler::getUtilList();
 
-  bool errors_occured = generate(topp_tools, "TOPP_", binary_directory) || generate(util_tools, "UTILS_", binary_directory);
+  bool errors_occured = generate(topp_tools, "TOPP_", binary_directory);
 
   if (errors_occured)
   {
     // errors occurred while generating the TOPP CLI docu .. tell the user
-    cerr << "Errors occurred while generating the command line documentation for some of the TOPP tools/UTILS." << endl;
+    cerr << "Errors occurred while generating the command line documentation for some of the TOPP tools." << endl;
     return EXIT_FAILURE;
   }
   else

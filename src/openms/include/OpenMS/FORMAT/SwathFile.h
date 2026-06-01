@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -36,12 +10,13 @@
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <vector>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace OpenMS
 {
@@ -72,7 +47,7 @@ public:
     /// Loads a Swath run from a list of split mzML files
     std::vector<OpenSwath::SwathMap> loadSplit(StringList file_list,
                                                const String& tmp,
-                                               boost::shared_ptr<ExperimentalSettings>& exp_meta, 
+                                               std::shared_ptr<ExperimentalSettings>& exp_meta, 
                                                const String& readoptions = "normal");
 
     /**
@@ -93,33 +68,71 @@ public:
     */
     std::vector<OpenSwath::SwathMap> loadMzML(const String& file, 
                                               const String& tmp,
-                                              boost::shared_ptr<ExperimentalSettings>& exp_meta,
+                                              std::shared_ptr<ExperimentalSettings>& exp_meta,
                                               const String& readoptions = "normal",
                                               Interfaces::IMSDataConsumer* plugin_consumer = nullptr);
 
+    /**
+      @brief Loads a Swath run from a pre-loaded in-memory MSExperiment
+
+      Used when the input format does not have a streaming reader (e.g. Thermo .raw
+      via openms-thermo-bridge), so the full experiment has already been materialized.
+      Avoids the round-trip through a temporary mzML file.
+
+      @param[in] exp The pre-loaded experiment (must contain all spectra and metadata)
+      @param[in] tmp Temporary directory (used only for readoptions=="cache")
+      @param[out] exp_meta ExperimentalSettings extracted from @p exp
+      @param[in] readoptions "normal" (in-memory) or "cache" (disk-cached)
+      @return Swath maps for MS2 and MS1
+    */
+    std::vector<OpenSwath::SwathMap> loadFromMSExperiment(const std::shared_ptr<PeakMap>& exp,
+                                                          const String& tmp,
+                                                          std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                          const String& readoptions = "normal");
+
     /// Loads a Swath run from a single mzXML file
-    std::vector<OpenSwath::SwathMap> loadMzXML(const String& file, 
+    std::vector<OpenSwath::SwathMap> loadMzXML(const String& file,
                                                const String& tmp,
-                                               boost::shared_ptr<ExperimentalSettings>& exp_meta,
+                                               std::shared_ptr<ExperimentalSettings>& exp_meta,
                                                const String& readoptions = "normal");
 
     /// Loads a Swath run from a single sqMass file
-    std::vector<OpenSwath::SwathMap> loadSqMass(const String& file, boost::shared_ptr<ExperimentalSettings>& /* exp_meta */);
+    std::vector<OpenSwath::SwathMap> loadSqMass(const String& file, std::shared_ptr<ExperimentalSettings>& /* exp_meta */);
+
+#ifdef WITH_OPENTIMS
+    /**
+      @brief Loads a Swath run from a Bruker .d (TDF) directory
+
+      @param[in] file Path to a Bruker .d (TDF) directory
+      @param[in] tmp Temporary directory (for cached data)
+      @param[in,out] exp_meta Will be filled with ExperimentalSettings metadata
+      @param[in] readoptions How spectra are accessed: "normal" (in-memory) or "cache" (disk-cached)
+      @return Vector of SwathMap structures representing the loaded Swath maps
+    */
+    std::vector<OpenSwath::SwathMap> loadBrukerTdf(const String& file,
+                                                    const String& tmp,
+                                                    std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                    const String& readoptions);
+
+    /// @brief Convenience overload: loads Bruker TDF in-memory (readoptions="normal")
+    std::vector<OpenSwath::SwathMap> loadBrukerTdf(const String& file,
+                                                    std::shared_ptr<ExperimentalSettings>& exp_meta);
+#endif
 
 protected:
 
     /// Cache a file to disk
     OpenSwath::SpectrumAccessPtr doCacheFile_(const String& in, const String& tmp, const String& tmp_fname,
-                                              const boost::shared_ptr<PeakMap >& experiment_metadata);
+                                              const std::shared_ptr<PeakMap >& experiment_metadata);
 
     /// Only read the meta data from a file and use it to populate exp_meta
-    boost::shared_ptr< PeakMap > populateMetaData_(const String& file);
+    std::shared_ptr< PeakMap > populateMetaData_(const String& file);
 
     /// Counts the number of scans in a full Swath file (e.g. concatenated non-split file)
     void countScansInSwath_(const std::vector<MSSpectrum>& exp,
                             std::vector<int>& swath_counter, int& nr_ms1_spectra, 
-                            std::vector<OpenSwath::SwathMap>& known_window_boundaries);
+                            std::vector<OpenSwath::SwathMap>& known_window_boundaries,
+                            double TOLERANCE=1e-6);
 
   };
 }
-

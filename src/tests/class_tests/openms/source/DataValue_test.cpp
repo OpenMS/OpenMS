@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -42,8 +16,6 @@
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
-
-#include <QString>
 
 #include <sstream>
 #include <iostream>
@@ -175,12 +147,6 @@ START_SECTION((DataValue(const std::string&)))
   TEST_EQUAL((String)d, "test string")
 END_SECTION
 
-START_SECTION((DataValue(const QString&)))
-  QString s = "test string";
-  DataValue d(s);
-  TEST_EQUAL((String)d, "test string")
-END_SECTION
-
 START_SECTION((DataValue(const String&)))
   String s = "test string";
   DataValue d(s);
@@ -191,7 +157,7 @@ START_SECTION((DataValue(const StringList &)))
   StringList sl;
   sl << "test string" << "test String 2";
   DataValue d(sl);
-  TEST_EQUAL(d == sl, true)
+  TEST_TRUE(d == sl)
 END_SECTION
 
 START_SECTION((DataValue(const IntList &)))
@@ -199,7 +165,7 @@ START_SECTION((DataValue(const IntList &)))
   il.push_back(1);
   il.push_back(2);
   DataValue d(il);
-  TEST_EQUAL(d == il, true)
+  TEST_TRUE(d == il)
 END_SECTION
 
 START_SECTION((DataValue(const DoubleList &)))
@@ -208,7 +174,7 @@ START_SECTION((DataValue(const DoubleList &)))
   dl.push_back(22.3333);
   DataValue d(dl);
   DoubleList dldv = d;
-  TEST_EQUAL(dldv == dl, true);
+  TEST_TRUE(dldv == dl);
 END_SECTION
 
 // copy ctor
@@ -299,16 +265,16 @@ START_SECTION((DataValue(DataValue&&) noexcept))
   TEST_EQUAL( copy_of_p10 == ListUtils::create<Int>("1,2,3,4,5"), true)
   TEST_EQUAL( copy_of_p11 == ListUtils::create<double>("1.2,2.3,3.4"), true)
 
-  TEST_EQUAL(p1 == empty, true)
-  TEST_EQUAL(p3 == empty, true)
-  TEST_EQUAL(p4 == empty, true)
-  TEST_EQUAL(p5 == empty, true)
-  TEST_EQUAL(p6 == empty, true)
-  TEST_EQUAL(p7 == empty, true)
-  TEST_EQUAL(p8 == empty, true)
-  TEST_EQUAL(p9 == empty, true)
-  TEST_EQUAL(p10 == empty, true)
-  TEST_EQUAL(p11 == empty, true)
+  TEST_TRUE(p1 == empty)
+  TEST_TRUE(p3 == empty)
+  TEST_TRUE(p4 == empty)
+  TEST_TRUE(p5 == empty)
+  TEST_TRUE(p6 == empty)
+  TEST_TRUE(p7 == empty)
+  TEST_TRUE(p8 == empty)
+  TEST_TRUE(p9 == empty)
+  TEST_TRUE(p10 == empty)
+  TEST_TRUE(p11 == empty)
 
   DataValue val;
   {
@@ -318,7 +284,7 @@ START_SECTION((DataValue(DataValue&&) noexcept))
   }
   DataValue val2(std::move(val));
 
-  TEST_EQUAL(val == empty, true)
+  TEST_TRUE(val == empty)
   TEST_REAL_SIMILAR( (double) val2, 1.23)
   TEST_EQUAL( val2.getUnit(), 8)
 }
@@ -414,16 +380,16 @@ START_SECTION(( DataValue& operator=(DataValue&&) noexcept ))
   copy_of_p = std::move(p11);
   TEST_EQUAL(copy_of_p == ListUtils::create<double>("1.2,2.3,3.4"), true)
 
-  TEST_EQUAL(p1 == empty, true)
-  TEST_EQUAL(p3 == empty, true)
-  TEST_EQUAL(p4 == empty, true)
-  TEST_EQUAL(p5 == empty, true)
-  TEST_EQUAL(p6 == empty, true)
-  TEST_EQUAL(p7 == empty, true)
-  TEST_EQUAL(p8 == empty, true)
-  TEST_EQUAL(p9 == empty, true)
-  TEST_EQUAL(p10 == empty, true)
-  TEST_EQUAL(p11 == empty, true)
+  TEST_TRUE(p1 == empty)
+  TEST_TRUE(p3 == empty)
+  TEST_TRUE(p4 == empty)
+  TEST_TRUE(p5 == empty)
+  TEST_TRUE(p6 == empty)
+  TEST_TRUE(p7 == empty)
+  TEST_TRUE(p8 == empty)
+  TEST_TRUE(p9 == empty)
+  TEST_TRUE(p10 == empty)
+  TEST_TRUE(p11 == empty)
 
   DataValue val;
   {
@@ -433,7 +399,7 @@ START_SECTION(( DataValue& operator=(DataValue&&) noexcept ))
   }
   DataValue val2 = std::move(val);
 
-  TEST_EQUAL(val == empty, true)
+  TEST_TRUE(val == empty)
   TEST_REAL_SIMILAR( (double) val2, 1.23)
   TEST_EQUAL( val2.getUnit(), 8)
 }
@@ -506,7 +472,7 @@ START_SECTION((operator StringList() const))
   sl << "test string list";
   DataValue d(sl);
   StringList sl_op = d;
-  TEST_EQUAL(sl_op == d, true)
+  TEST_TRUE(sl_op == d)
 END_SECTION
 
 START_SECTION((StringList toStringList() const))
@@ -514,7 +480,7 @@ START_SECTION((StringList toStringList() const))
   sl << "test string list";
   DataValue d(sl);
   StringList sl_op = d.toStringList();
-  TEST_EQUAL(sl_op == d, true)
+  TEST_TRUE(sl_op == d)
 END_SECTION
 
 START_SECTION((operator IntList() const))
@@ -523,7 +489,7 @@ START_SECTION((operator IntList() const))
   il.push_back(2);
   DataValue d(il);
   IntList il_op = d;
-  TEST_EQUAL(il_op == il, true)
+  TEST_TRUE(il_op == il)
   TEST_EXCEPTION(Exception::ConversionError, StringList sl = DataValue("abc,ab");)
 END_SECTION
 
@@ -533,7 +499,7 @@ START_SECTION((IntList toIntList() const))
   il.push_back(2);
   DataValue d(il);
   IntList il_op = d.toIntList();
-  TEST_EQUAL(il_op == il, true)
+  TEST_TRUE(il_op == il)
   TEST_EXCEPTION(Exception::ConversionError, StringList sl = DataValue("abc,ab").toStringList();)
 END_SECTION
 
@@ -543,7 +509,7 @@ START_SECTION((operator DoubleList() const))
   dl.push_back(22.34455);
   DataValue d(dl);
   DoubleList dl_op = d;
-  TEST_EQUAL(dl_op == d, true);
+  TEST_TRUE(dl_op == d);
 END_SECTION
 
 START_SECTION((DoubleList toDoubleList() const))
@@ -552,7 +518,7 @@ START_SECTION((DoubleList toDoubleList() const))
   dl.push_back(22.34455);
   DataValue d(dl);
   DoubleList dl_op = d.toDoubleList();
-  TEST_EQUAL(dl_op == d, true);
+  TEST_TRUE(dl_op == d);
 END_SECTION
 
 START_SECTION((operator long double() const))
@@ -765,25 +731,6 @@ START_SECTION((bool toBool() const))
   TEST_EXCEPTION(Exception::ConversionError, a.toBool() )
 END_SECTION
 
-START_SECTION((QString toQString() const))
-  DataValue a;
-  TEST_EQUAL(a.toQString().toStdString(), "")
-  a = DataValue("hello");
-  TEST_EQUAL(a.toQString().toStdString(),"hello")
-  a = DataValue(5);
-  TEST_EQUAL(a.toQString().toStdString(), "5")
-  a = DataValue(47.11);
-  TEST_EQUAL(a.toQString().toStdString(), "47.109999999999999")
-  a = DataValue(-23456.78);
-  TEST_EQUAL(a.toQString().toStdString(), "-2.345678e04")
-  a = DataValue(ListUtils::create<String>("test string,string2,last string"));
-  TEST_EQUAL(a.toQString().toStdString(), "[test string, string2, last string]")
-  a =DataValue(ListUtils::create<Int>("1,2,3"));
-  TEST_EQUAL(a.toQString().toStdString(), "[1, 2, 3]")
-  a = DataValue(ListUtils::create<double>("1.22,43.23232"));
-  TEST_EQUAL(a.toQString().toStdString(),"[1.22, 43.232320000000001]")
-END_SECTION
-
 START_SECTION(([EXTRA] friend std::ostream& operator<<(std::ostream&, const DataValue&)))
   DataValue a((Int)5), b((UInt)100), c((double)1.111), d((double)1.1), e("hello "), f(std::string("world")), g;
   std::ostringstream os;
@@ -905,15 +852,6 @@ END_SECTION
 START_SECTION((DataValue& operator=(const String&)))
 {
   String v = "value";
-  DataValue a("v");
-  a = v;
-  TEST_EQUAL((String)a, "value")
-}
-END_SECTION
-
-START_SECTION((DataValue& operator=(const QString&)))
-{
-  QString v = "value";
   DataValue a("v");
   a = v;
   TEST_EQUAL((String)a, "value")
@@ -1055,6 +993,83 @@ START_SECTION((DataValue& operator=(const unsigned long long)))
   DataValue a("v");
   a = v;
   TEST_EQUAL((unsigned long long)a, 2)
+}
+END_SECTION
+
+START_SECTION([EXTRA] Test improved error messages for EMPTY_VALUE conversions)
+{
+  DataValue empty_val;
+  
+  // Test EMPTY to double - should include type 'Empty'
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (double)empty_val, 
+    "Could not convert DataValue of type 'Empty' to double")
+  
+  // Test EMPTY to float - should include type 'Empty'
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (float)empty_val, 
+    "Could not convert DataValue of type 'Empty' to float")
+  
+  // Test EMPTY to long double - should include type 'Empty'
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (long double)empty_val, 
+    "Could not convert DataValue of type 'Empty' to long double")
+}
+END_SECTION
+
+START_SECTION([EXTRA] Test improved error messages for negative to unsigned conversions)
+{
+  // Test negative int to unsigned int - should include the value
+  DataValue neg_val(-42);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (unsigned int)neg_val, 
+    "Could not convert negative integer DataValue with value '-42' to unsigned int")
+  
+  // Test negative int to unsigned short - should include the value
+  DataValue neg_short(-100);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (unsigned short)neg_short, 
+    "Could not convert negative integer DataValue with value '-100' to unsigned short int")
+  
+  // Test negative int to unsigned long - should include the value
+  DataValue neg_long(-999);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (unsigned long)neg_long, 
+    "Could not convert negative integer DataValue with value '-999' to unsigned long int")
+  
+  // Test negative int to unsigned long long - should include the value
+  DataValue neg_longlong(-1234);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (unsigned long long)neg_longlong, 
+    "Could not convert negative integer DataValue with value '-1234' to unsigned long long")
+}
+END_SECTION
+
+START_SECTION([EXTRA] Test improved error messages for type mismatch conversions)
+{
+  // Test double to int - should include type and value
+  DataValue double_val(3.14159);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (int)double_val, 
+    "Could not convert non-integer DataValue of type 'Double' and value '3.14159' to int")
+  
+  // Test string to int - should include type and value
+  DataValue string_val("hello");
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (int)string_val, 
+    "Could not convert non-integer DataValue of type 'String' and value 'hello' to int")
+  
+  // Test int to string - should include type and value
+  DataValue int_val(42);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (std::string)int_val, 
+    "Could not convert non-string DataValue of type 'Int' and value '42' to string")
+  
+  // Test double to unsigned int - should include type and value
+  DataValue double_val2(5.5);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, 
+    (unsigned int)double_val2, 
+    "Could not convert non-integer DataValue of type 'Double' and value '5.5' to unsigned int")
 }
 END_SECTION
 

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
@@ -49,12 +23,22 @@ namespace OpenMS
   class AbsoluteQuantitationMethod;
 
   /**
-
     @brief The MRMFeatureFilter either flags components and/or transitions that do not pass the QC criteria or filters out
       components and/or transitions that do not pass the QC criteria.
 
+    This class provides comprehensive quality control filtering for MRM/SRM features. It can:
+    - Filter based on retention time, intensity, and quality bounds
+    - Filter based on ion ratios between transitions
+    - Filter based on %RSD from pooled QC samples
+    - Filter based on background interference from blank samples
+    - Estimate default QC values from standard samples
+
     @htmlinclude OpenMS_MRMFeatureFilter.parameters
 
+    @see MRMFeatureQC for QC parameter structure
+    @see AbsoluteQuantitation for downstream quantitation
+
+    @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI MRMFeatureFilter :
     public DefaultParamHandler
@@ -83,9 +67,9 @@ public:
     /**
       @brief Flags or filters features and subordinates in a FeatureMap
 
-      @param features FeatureMap to flag or filter
-      @param filter_criteria MRMFeatureQC class defining QC parameters
-      @param transitions transitions from a TargetedExperiment
+      @param[in] features FeatureMap to flag or filter
+      @param[in] filter_criteria MRMFeatureQC class defining QC parameters
+      @param[out] transitions transitions from a TargetedExperiment
 
     */
     void FilterFeatureMap(FeatureMap& features, const MRMFeatureQC& filter_criteria,
@@ -97,10 +81,10 @@ public:
         filter_criteria represents the bounds on acceptable PercentRSD values.
         NOTE that flagging nor filtering will be done on the labels and transitions type counts.
 
-      @param features FeatureMap to flag or filter
-      @param filter_criteria MRMFeatureQC class defining QC parameters defining the acceptable limits of the PercentRSD
+      @param[in] features FeatureMap to flag or filter
+      @param[in] filter_criteria MRMFeatureQC class defining QC parameters defining the acceptable limits of the PercentRSD
         where PercentRSD = (value std dev)/(value mean)*100Percent
-      @param filter_values MRMFeatureQC class filled with bounds representing the PercentRSD found in e.g., pooled QC samples or replicate Unknown samples
+      @param[out] filter_values MRMFeatureQC class filled with bounds representing the PercentRSD found in e.g., pooled QC samples or replicate Unknown samples
 
     */
     void FilterFeatureMapPercRSD(FeatureMap& features, const MRMFeatureQC& filter_criteria, const MRMFeatureQC& filter_values);
@@ -112,10 +96,10 @@ public:
         NOTE that filtering is only done on the `Intensity` member.
 
 
-      @param features FeatureMap to flag or filter
-      @param filter_criteria MRMFeatureQC class defining QC parameters defining the acceptable limits of PercentBackgroundInterference
+      @param[in] features FeatureMap to flag or filter
+      @param[in] filter_criteria MRMFeatureQC class defining QC parameters defining the acceptable limits of PercentBackgroundInterference
         where PercentBackgroundInterference = (value Sample)/(value Blank)*100Percent
-      @param filter_values MRMFeatureQC class filled with bounds representing the average values found in e.g., pooled QC samples or replicate Unknown samples
+      @param[out] filter_values MRMFeatureQC class filled with bounds representing the average values found in e.g., pooled QC samples or replicate Unknown samples
 
     */
     void FilterFeatureMapBackgroundInterference(FeatureMap& features, const MRMFeatureQC& filter_criteria, const MRMFeatureQC& filter_values);
@@ -138,7 +122,7 @@ public:
       @brief Transfer the lower and upper bound values for the calculated concentrations
         based off of the AbsoluteQuantitationMethod
 
-      @param[in] quantitation_methods The absolute quantitation methods that has been determined for each component
+      @param[in] quantitation_method The absolute quantitation methods that has been determined for each component
       @param[in,out] filter_template A MRMFeatureQC class that will be used as a template to fill in the 
         MRMFeatureQC::ComponentQCs.calculated_concentration bounds based on the LLOQ and ULOQ values given in the quantitation_method.
     */
@@ -171,9 +155,9 @@ public:
     /**
       @brief Calculates the ion ratio between two transitions
 
-      @param component_1 component of the numerator
-      @param component_2 component of the denominator
-      @param feature_name name of the feature to calculate the ratio on
+      @param[in] component_1 component of the numerator
+      @param[in] component_2 component of the denominator
+      @param[in] feature_name name of the feature to calculate the ratio on
        e.g., peak_apex, peak_area
 
       @return The ratio.
@@ -183,8 +167,8 @@ public:
     /**
       @brief Calculates the retention time difference between two features
 
-      @param component_1 First eluting component
-      @param component_2 Second eluting component
+      @param[in] component_1 First eluting component
+      @param[in] component_2 Second eluting component
 
       @return The difference.
     */
@@ -193,8 +177,8 @@ public:
     /**
       @brief Calculates the resolution between two features
 
-      @param component_1 component 1
-      @param component_2 component 2
+      @param[in] component_1 component 1
+      @param[in] component_2 component 2
 
       @return The difference.
     */
@@ -273,8 +257,8 @@ public:
     /**
       @brief Count the number of heavy/light labels and quantifying/detecting/identifying transitions
 
-      @param component component_group with subordinates
-      @param transitions transitions from a TargetedExperiment
+      @param[in] component_group Component group with subordinates
+      @param[out] transitions Transitions from a TargetedExperiment
 
       @return Map of labels/transition types and their corresponding number.
     */
@@ -303,7 +287,7 @@ public:
     /**
       @brief Set all members in MRMFeatureQC to zero 
 
-      @param[out] filter_zero A MRMFeatureQC object whose members have been set to 0
+      @param[out] filter_zeros A MRMFeatureQC object whose members have been set to 0
       @param[in] filter_template A MRMFeatureQC object that will be used as a template to fill in values
     */
     void zeroFilterValues(MRMFeatureQC& filter_zeros, const MRMFeatureQC& filter_template) const;

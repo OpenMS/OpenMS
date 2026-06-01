@@ -23,6 +23,7 @@ Date.h
 DateTime.h
 DefaultParamHandler.h
 DistanceMatrix.h
+ExposedVector.h
 FASTAContainer.h
 FlagSet.h
 GridFeature.h
@@ -34,11 +35,13 @@ LPWrapper.h
 MassExplainer.h
 MatchedIterator.h
 Matrix.h
+MatrixEigen.h
 OSWData.h
 Param.h
 ParamValue.h
 QTCluster.h
 String.h
+StringConversions.h
 StringUtils.h
 StringUtilsSimple.h
 StringListUtils.h

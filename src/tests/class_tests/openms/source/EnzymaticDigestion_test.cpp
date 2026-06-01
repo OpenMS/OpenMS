@@ -1,35 +1,9 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow, Jeremi Maciejewski $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -305,6 +279,102 @@ START_SECTION((Size digestUnmodified(const StringView sequence, std::vector<Stri
     s = "ABC";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 4 * 3 / 2);
+}
+END_SECTION
+
+START_SECTION([EXTRA] digestUnmodified honors SPEC_NONE / SPEC_SEMI (pair output))
+{
+  // SPEC_NONE: any enzyme + specificity=none should enumerate all substrings of length [min,max]
+  // (canonical immunopeptidomics path: no enzyme constraint).
+  EnzymaticDigestion ed_none;
+  ed_none.setEnzyme(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
+  ed_none.setSpecificity(EnzymaticDigestion::SPEC_NONE);
+
+  std::string s = "ABCDEFGHIJ"; // 10 aa, no internal K/R
+  std::vector<std::pair<size_t, size_t>> out_pairs;
+
+  // 8..10mers: 8mers=3, 9mers=2, 10mers=1 → 6 total
+  ed_none.digestUnmodified(StringView(s), out_pairs, 8, 10);
+  TEST_EQUAL(out_pairs.size(), 6)
+  for (const auto& p : out_pairs)
+  {
+    TEST_EQUAL(p.second >= 8 && p.second <= 10, true);
+  }
+
+  // Sequence shorter than min_length: must not crash, must return zero peptides
+  // (this used to underflow when sequence.size() < min_length).
+  std::string short_s = "ACD";
+  ed_none.digestUnmodified(StringView(short_s), out_pairs, 8, 12);
+  TEST_EQUAL(out_pairs.size(), 0)
+
+  // Empty sequence: defensive check.
+  std::string empty_s = "";
+  ed_none.digestUnmodified(StringView(empty_s), out_pairs, 1, 10);
+  TEST_EQUAL(out_pairs.size(), 0)
+
+  // SPEC_SEMI: in addition to fully-specific products, semi-specific (one terminus free) variants.
+  EnzymaticDigestion ed_semi;
+  ed_semi.setEnzyme(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
+  ed_semi.setSpecificity(EnzymaticDigestion::SPEC_SEMI);
+
+  // "AKBCDEFG": Trypsin cuts after K (pos 2). Fully-specific products: "AK", "BCDEFG".
+  // Semi-specific adds: every prefix of "BCDEFG" of length >= min, plus every suffix of "AK"
+  // of length >= min, plus every prefix/suffix straddling the K cut, etc.
+  std::string s2 = "AKBCDEFG"; // length 8, single cleavage after K (pos 2)
+  ed_semi.digestUnmodified(StringView(s2), out_pairs, 1, 100);
+  // We don't pin an exact count (semiSpecificDigestion_ enumeration is well-tested elsewhere),
+  // but assert: (a) more peptides than fully-specific (which would yield 2), (b) the two
+  // fully-specific products are still present.
+  TEST_EQUAL(out_pairs.size() > 2, true)
+  bool found_AK = false;
+  bool found_BCDEFG = false;
+  for (const auto& p : out_pairs)
+  {
+    if (p.first == 0 && p.second == 2) found_AK = true;
+    if (p.first == 2 && p.second == 6) found_BCDEFG = true;
+  }
+  TEST_EQUAL(found_AK, true)
+  TEST_EQUAL(found_BCDEFG, true)
+
+  // SPEC_FULL (default) on the same input must NOT generate semi-specific variants —
+  // protect against accidental behaviour change.
+  EnzymaticDigestion ed_full;
+  ed_full.setEnzyme(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
+  ed_full.setSpecificity(EnzymaticDigestion::SPEC_FULL); // default, but explicit
+  ed_full.digestUnmodified(StringView(s2), out_pairs, 1, 100);
+  TEST_EQUAL(out_pairs.size(), 2)
+}
+END_SECTION
+
+START_SECTION((Size semiSpecificDigestion_(const std::vector<int>& cleavage_positions, std::vector<std::pair<Size, Size>>& output, Size min_length, Size max_length) const))
+{
+    class TempChild : public EnzymaticDigestion
+    {
+        public:
+            Size tmpSemiSpecificDigestion_(const std::vector<int>& cleavage_positions, std::vector<std::pair<Size, Size>>& output, Size min_length = 1, Size max_length = 100) const
+            {
+                return this->semiSpecificDigestion_(cleavage_positions, output, min_length, max_length);
+            }
+    };
+    TempChild tmp;
+    tmp.setEnzyme(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
+
+    std::vector<std::pair<size_t,size_t>> output = {};
+
+    // Test normal behaviour
+    std::vector<int> cleavage_positions = {0, 3, 5};
+    tmp.tmpSemiSpecificDigestion_(cleavage_positions, output);
+    TEST_EQUAL(output.size(), 6) // {1,3},{3,4},{2,3},{0,2},{4,5},{0,1}
+
+    // Test too few cleavage sites exception
+    cleavage_positions = {};
+    TEST_EXCEPTION(Exception::InvalidValue,
+        tmp.tmpSemiSpecificDigestion_(cleavage_positions, output));
+
+    // Test cleavage positions vector not sorted exception
+    cleavage_positions = {0, 12, 7};
+    TEST_EXCEPTION(Exception::Precondition,
+        tmp.tmpSemiSpecificDigestion_(cleavage_positions, output));
 }
 END_SECTION
 

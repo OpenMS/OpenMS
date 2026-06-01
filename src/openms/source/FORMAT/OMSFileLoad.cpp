@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -36,12 +10,10 @@
 #include <OpenMS/FORMAT/OMSFileStore.h> // for "raiseDBError_"
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
-#include <QString>
-// JSON export:
-#include <QtCore/QJsonDocument>
-#include <QtCore/QJsonObject>
+#include <nlohmann/json.hpp> // for JSON export
 
 #include <SQLiteCpp/Database.h>
 
@@ -54,7 +26,7 @@ using ID = OpenMS::IdentificationData;
 namespace OpenMS::Internal
 {
   // initialize lookup table:
-  map<QString, QString> OMSFileLoad::export_order_by_ = {
+  map<String, String> OMSFileLoad::export_order_by_ = {
     {"version", ""},
     {"ID_IdentifiedCompound", "molecule_id"},
     {"ID_ParentMatch", "molecule_id, parent_id, start_pos, end_pos"},
@@ -92,13 +64,19 @@ namespace OpenMS::Internal
   }
 
 
+  bool OMSFileLoad::isEmpty_(const SQLite::Statement& query)
+  {
+    return query.getQuery().empty();
+  }
+
+
   // currently not needed:
   // CVTerm OMSFileLoad::loadCVTerm_(int id)
   // {
   //   // this assumes that the "CVTerm" table exists!
   //   SQLite::Statement query(db_);
-  //   
-  //   QString sql_select = "SELECT * FROM CVTerm WHERE id = " + QString(id);
+  //
+  //   String sql_select = "SELECT * FROM CVTerm WHERE id = " + String(id);
   //   if (!query.exec(sql_select) || !query.executeStep())
   //   {
   //     raiseDBError_(model.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -158,7 +136,7 @@ namespace OpenMS::Internal
   {
     if (!db_->tableExists("ID_ProcessingSoftware")) return;
 
-    
+
     SQLite::Statement query(*db_, "SELECT * FROM ID_ProcessingSoftware");
     bool have_scores = db_->tableExists("ID_ProcessingSoftware_AssignedScore");
     SQLite::Statement subquery(*db_, "");
@@ -225,11 +203,17 @@ namespace OpenMS::Internal
     String table_name = parent_table + "_MetaInfo";
     if (!db_->tableExists(table_name)) return false;
 
-    
     String sql_select =
-      "SELECT * FROM " + table_name.toQString() + " AS MI " \
+    "SELECT * FROM " + table_name + " AS MI " \
+    "WHERE MI.parent_id = :id";
+
+    if (version_number_ < 4)
+    {
+      sql_select =
+      "SELECT * FROM " + table_name + " AS MI " \
       "JOIN DataValue AS DV ON MI.data_value_id = DV.id "   \
       "WHERE MI.parent_id = :id";
+    }
     query = SQLite::Statement(*db_, sql_select);
     return true;
   }
@@ -241,8 +225,8 @@ namespace OpenMS::Internal
     String table_name = parent_table + "_AppliedProcessingStep";
     if (!db_->tableExists(table_name)) return false;
 
-    // 
-    String sql_select = "SELECT * FROM " + table_name.toQString() +
+    //
+    String sql_select = "SELECT * FROM " + table_name +
       " WHERE parent_id = :id ORDER BY processing_step_order ASC";
     query = SQLite::Statement(*db_, sql_select);
     return true;
@@ -353,7 +337,7 @@ namespace OpenMS::Internal
   {
     if (!db_->tableExists("ID_ProcessingStep")) return;
 
-    
+
     SQLite::Statement query(*db_, "SELECT * FROM ID_ProcessingStep");
     SQLite::Statement subquery_file(*db_, "");
     bool have_input_files = db_->tableExists(
@@ -409,7 +393,7 @@ namespace OpenMS::Internal
   {
     if (!db_->tableExists("ID_Observation")) return;
 
-    
+
     SQLite::Statement query(*db_, "SELECT * FROM ID_Observation");
     SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
@@ -436,7 +420,7 @@ namespace OpenMS::Internal
   {
     if (!db_->tableExists("ID_ParentSequence")) return;
 
-    
+
     SQLite::Statement query(*db_, "SELECT * FROM ID_ParentSequence");
     // @TODO: can we combine handling of meta info and applied processing steps?
     SQLite::Statement subquery_info(*db_, "");
@@ -477,7 +461,7 @@ namespace OpenMS::Internal
 
     // "grouping_order" column was removed in schema version 3:
     String order_by = version_number_ > 2 ? "id" : "grouping_order";
-    
+
     SQLite::Statement query(*db_, "SELECT * FROM ID_ParentGroupSet ORDER BY " + order_by + " ASC");
     // @TODO: can we combine handling of meta info and applied processing steps?
     SQLite::Statement subquery_info(*db_, "");
@@ -547,7 +531,7 @@ namespace OpenMS::Internal
   {
     if (!db_->tableExists("ID_IdentifiedCompound")) return;
 
-    
+
     SQLite::Statement query(*db_, "SELECT * FROM ID_IdentifiedMolecule JOIN ID_IdentifiedCompound " \
       "ON ID_IdentifiedMolecule.id = ID_IdentifiedCompound.molecule_id");
     // @TODO: can we combine handling of meta info and applied processing steps?
@@ -605,9 +589,8 @@ namespace OpenMS::Internal
   {
     if (!db_->tableExists("ID_IdentifiedMolecule")) return;
 
-    
     SQLite::Statement query(*db_, "SELECT * FROM ID_IdentifiedMolecule "          \
-                  "WHERE molecule_type_id = :molecule_type_id");
+                            "WHERE molecule_type_id = :molecule_type_id");
     // @TODO: can we combine handling of meta info and applied processing steps?
     SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
@@ -721,7 +704,7 @@ namespace OpenMS::Internal
   {
     if (!db_->tableExists("ID_ObservationMatch")) return;
 
-    
+
     SQLite::Statement query(*db_, "SELECT * FROM ID_ObservationMatch");
     // @TODO: can we combine handling of meta info and applied processing steps?
     SQLite::Statement subquery_info(*db_, "");
@@ -736,7 +719,7 @@ namespace OpenMS::Internal
       db_->tableExists("ID_ObservationMatch_PeakAnnotation");
     if (have_peak_annotations)
     {
-      subquery_ann = SQLite::Statement(*db_, 
+      subquery_ann = SQLite::Statement(*db_,
         "SELECT * FROM ID_ObservationMatch_PeakAnnotation " \
         "WHERE parent_id = :id");
     }
@@ -802,10 +785,10 @@ namespace OpenMS::Internal
     // @TODO: load input match groups
   }
 
-
-  void OMSFileLoad::loadMapMetaData_(FeatureMap& features)
+  template <class MapType>
+  String OMSFileLoad::loadMapMetaDataTemplate_(MapType& features)
   {
-    if (!db_->tableExists("FEAT_MapMetaData")) return;
+    if (!db_->tableExists("FEAT_MapMetaData")) return "";
 
     SQLite::Statement query(*db_, "SELECT * FROM FEAT_MapMetaData");
     query.executeStep(); // there should be only one row
@@ -820,10 +803,28 @@ namespace OpenMS::Internal
     {
       handleQueryMetaInfo_(query_meta, features, id);
     }
+    if (version_number_ < 5) return ""; // "experiment_type" column doesn't exist yet
+    return query.getColumn("experiment_type").getString(); // for consensus map only
+  }
+
+  // template specializations:
+  template String OMSFileLoad::loadMapMetaDataTemplate_<FeatureMap>(FeatureMap&);
+  template String OMSFileLoad::loadMapMetaDataTemplate_<ConsensusMap>(ConsensusMap&);
+
+
+  void OMSFileLoad::loadMapMetaData_(FeatureMap& features)
+  {
+    loadMapMetaDataTemplate_(features);
+  }
+
+  void OMSFileLoad::loadMapMetaData_(ConsensusMap& consensus)
+  {
+    String experiment_type = loadMapMetaDataTemplate_(consensus);
+    consensus.setExperimentType(experiment_type);
   }
 
 
-  void OMSFileLoad::loadDataProcessing_(FeatureMap& features)
+  void OMSFileLoad::loadDataProcessing_(vector<DataProcessing>& data_processing)
   {
     if (!db_->tableExists("FEAT_DataProcessing")) return;
 
@@ -864,72 +865,99 @@ namespace OpenMS::Internal
         Key id = query.getColumn("id").getInt64();
         handleQueryMetaInfo_(subquery_info, proc, id);
       }
-      features.getDataProcessing().push_back(proc);
+      data_processing.push_back(proc);
     }
   }
 
 
-  Feature OMSFileLoad::loadFeatureAndSubordinates_(
-    SQLite::Statement& query_feat, std::optional<SQLite::Statement>& query_meta,
-    std::optional<SQLite::Statement>& query_hull, std::optional<SQLite::Statement>& query_match)
+  BaseFeature OMSFileLoad::makeBaseFeature_(int id, SQLite::Statement& query_feat,
+                                            SQLite::Statement& query_meta,
+                                            SQLite::Statement& query_match)
   {
-    Feature feature;
-    int id = query_feat.getColumn("id").getInt();
+    BaseFeature feature;
     feature.setRT(query_feat.getColumn("rt").getDouble());
     feature.setMZ(query_feat.getColumn("mz").getDouble());
     feature.setIntensity(query_feat.getColumn("intensity").getDouble());
     feature.setCharge(query_feat.getColumn("charge").getInt());
     feature.setWidth(query_feat.getColumn("width").getDouble());
-    feature.setOverallQuality(query_feat.getColumn("overall_quality").getDouble());
-    feature.setQuality(0, query_feat.getColumn("rt_quality").getDouble());
-    feature.setQuality(1, query_feat.getColumn("mz_quality").getDouble());
+    string quality_column = (version_number_ < 5) ? "overall_quality" : "quality";
+    feature.setQuality(query_feat.getColumn(quality_column.c_str()).getDouble());
     feature.setUniqueId(query_feat.getColumn("unique_id").getInt64());
+    if (id == -1) return feature; // stop here for feature handles (in consensus maps)
+
     auto primary_id = query_feat.getColumn("primary_molecule_id"); // optional
     if (!primary_id.isNull())
     {
       feature.setPrimaryID(identified_molecule_vars_[primary_id.getInt64()]);
     }
     // meta data:
-    if (query_meta)
+    if (!isEmpty_(query_meta))
     {
-      handleQueryMetaInfo_(*query_meta, feature, id);
+      handleQueryMetaInfo_(query_meta, feature, id);
     }
-    // convex hulls:
-    if (query_hull)
+    // ID matches:
+    if (!isEmpty_(query_match))
     {
-      query_hull->bind(":id", id);
-      while (query_hull->executeStep())
+      query_match.bind(":id", id);
+      while (query_match.executeStep())
       {
-        Size hull_index = query_hull->getColumn("hull_index").getUInt();
+        Key match_id = query_match.getColumn("observation_match_id").getInt64();
+        feature.addIDMatch(observation_match_refs_[match_id]);
+      }
+      query_match.reset(); // get ready for new executeStep()
+    }
+    return feature;
+  }
+
+
+  void OMSFileLoad::prepareQueriesBaseFeature_(SQLite::Statement& query_meta,
+                                               SQLite::Statement& query_match)
+  {
+    // the "main" query is different for Feature/ConsensusFeature, so don't include it here
+    string main_table = (version_number_ < 5) ? "FEAT_Feature" : "FEAT_BaseFeature";
+    prepareQueryMetaInfo_(query_meta, main_table);
+    if (db_->tableExists("FEAT_ObservationMatch"))
+    {
+      query_match = SQLite::Statement(*db_, "SELECT * FROM FEAT_ObservationMatch WHERE feature_id = :id");
+    }
+  }
+
+
+  Feature OMSFileLoad::loadFeatureAndSubordinates_(
+    SQLite::Statement& query_feat, SQLite::Statement& query_meta,
+    SQLite::Statement& query_match, SQLite::Statement& query_hull)
+  {
+    int id = query_feat.getColumn("id").getInt();
+    Feature feature(makeBaseFeature_(id, query_feat, query_meta, query_match));
+    // Feature-specific attributes:
+    feature.setQuality(0, query_feat.getColumn("rt_quality").getDouble());
+    feature.setQuality(1, query_feat.getColumn("mz_quality").getDouble());
+    // convex hulls:
+    if (!isEmpty_(query_hull))
+    {
+      query_hull.bind(":id", id);
+      while (query_hull.executeStep())
+      {
+        Size hull_index = query_hull.getColumn("hull_index").getUInt();
         // first row should have max. hull index (sorted descending):
         if (feature.getConvexHulls().size() <= hull_index)
         {
           feature.getConvexHulls().resize(hull_index + 1);
         }
-        ConvexHull2D::PointType point(query_hull->getColumn("point_x").getDouble(),
-                                      query_hull->getColumn("point_y").getDouble());
+        ConvexHull2D::PointType point(query_hull.getColumn("point_x").getDouble(),
+                                      query_hull.getColumn("point_y").getDouble());
         // @TODO: this may be inefficient (see implementation of "addPoint"):
         feature.getConvexHulls()[hull_index].addPoint(point);
       }
-      query_hull->reset(); // get ready for new executeStep()
-    }
-    // ID matches:
-    if (query_match)
-    {
-      query_match->bind(":id", id);
-      while (query_match->executeStep())
-      {
-        Key match_id = query_match->getColumn("observation_match_id").getInt64();
-        feature.addIDMatch(observation_match_refs_[match_id]);
-      }
-      query_match->reset(); // get ready for new executeStep()
+      query_hull.reset(); // get ready for new executeStep()
     }
     // subordinates:
-    SQLite::Statement query_sub(*db_, "SELECT * FROM FEAT_Feature WHERE subordinate_of = " + String(id) + " ORDER BY id ASC");
+    string from = (version_number_ < 5) ? "FEAT_Feature" : "FEAT_BaseFeature JOIN FEAT_Feature ON id = feature_id";
+    SQLite::Statement query_sub(*db_, "SELECT * FROM " + from + " WHERE subordinate_of = " + String(id) + " ORDER BY id ASC");
     while (query_sub.executeStep())
     {
       Feature sub = loadFeatureAndSubordinates_(query_sub, query_meta,
-                                                query_hull, query_match);
+                                                query_match, query_hull);
       feature.getSubordinates().push_back(sub);
     }
     return feature;
@@ -941,29 +969,23 @@ namespace OpenMS::Internal
     if (!db_->tableExists("FEAT_Feature")) return;
 
     // start with top-level features only:
-    SQLite::Statement query_feat(*db_, "SELECT * FROM FEAT_Feature WHERE subordinate_of IS NULL ORDER BY id ASC");
+    string from = (version_number_ < 5) ? "FEAT_Feature" : "FEAT_BaseFeature JOIN FEAT_Feature ON id = feature_id";
+    SQLite::Statement query_feat(*db_, "SELECT * FROM " + from + " WHERE subordinate_of IS NULL ORDER BY id ASC");
     // prepare sub-queries (optional - corresponding tables may not be present):
-    std::optional<SQLite::Statement> query_meta = SQLite::Statement(*db_, "");
-    if (!prepareQueryMetaInfo_(*query_meta, "FEAT_Feature"))
-    {
-      query_meta = std::nullopt;
-    }
-    std::optional<SQLite::Statement> query_hull;
+    SQLite::Statement query_meta(*db_, "");
+    SQLite::Statement query_match(*db_, "");
+    prepareQueriesBaseFeature_(query_meta, query_match);
+    SQLite::Statement query_hull(*db_, "");
     if (db_->tableExists("FEAT_ConvexHull"))
     {
       query_hull = SQLite::Statement(*db_, "SELECT * FROM FEAT_ConvexHull WHERE feature_id = :id " \
-                         "ORDER BY hull_index DESC, point_index ASC");
-    }
-    std::optional<SQLite::Statement> query_match;
-    if (db_->tableExists("FEAT_ObservationMatch"))
-    {
-      query_match = SQLite::Statement(*db_, "SELECT * FROM FEAT_ObservationMatch WHERE feature_id = :id");
+                                     "ORDER BY hull_index DESC, point_index ASC");
     }
 
     while (query_feat.executeStep())
     {
       Feature feature = loadFeatureAndSubordinates_(query_feat, query_meta,
-                                                    query_hull, query_match);
+                                                    query_match, query_hull);
       features.push_back(feature);
     }
   }
@@ -975,46 +997,140 @@ namespace OpenMS::Internal
     startProgress(0, 3, "Reading feature data from file");
     loadMapMetaData_(features);
     nextProgress();
-    loadDataProcessing_(features);
+    loadDataProcessing_(features.getDataProcessing());
     nextProgress();
     loadFeatures_(features);
     endProgress();
   }
 
 
-  void OMSFileLoad::createView_(const String& name, const String& select)
+  void OMSFileLoad::loadConsensusFeatures_(ConsensusMap& consensus)
   {
-    SQLite::Statement query(*db_, "CREATE TEMP VIEW " + name + " AS " + select);
+    if (!db_->tableExists("FEAT_FeatureHandle")) return;
+
+    // start with top-level features only:
+    SQLite::Statement query_feat(*db_, "SELECT * FROM FEAT_BaseFeature LEFT JOIN FEAT_FeatureHandle ON id = feature_id ORDER BY id ASC");
+    // prepare sub-queries (optional - corresponding tables may not be present):
+    SQLite::Statement query_meta(*db_, "");
+    SQLite::Statement query_match(*db_, "");
+    prepareQueriesBaseFeature_(query_meta, query_match);
+    SQLite::Statement query_ratio(*db_, "");
+    if (db_->tableExists("FEAT_ConsensusRatio"))
+    {
+      query_ratio = SQLite::Statement(*db_, "SELECT * FROM FEAT_ConsensusRatio WHERE feature_id = :id " \
+                                      "ORDER BY ratio_index DESC");
+    }
+
+    while (query_feat.executeStep())
+    {
+      if (query_feat.getColumn("subordinate_of").isNull()) // ConsensusFeature
+      {
+        int id = query_feat.getColumn("id").getInt();
+        ConsensusFeature feature(makeBaseFeature_(id, query_feat, query_meta, query_match));
+        consensus.push_back(feature);
+        if (!isEmpty_(query_ratio))
+        {
+          query_ratio.bind(":id", id);
+          while (query_ratio.executeStep())
+          {
+            Size ratio_index = query_ratio.getColumn("ratio_index").getUInt();
+            // first row should have max. hull index (sorted descending):
+            if (feature.getRatios().size() <= ratio_index)
+            {
+              feature.getRatios().resize(ratio_index + 1);
+            }
+            ConsensusFeature::Ratio& ratio = feature.getRatios()[ratio_index];
+            ratio.ratio_value_ = query_ratio.getColumn("ratio_value").getDouble();
+            ratio.denominator_ref_ = query_ratio.getColumn("denominator_ref").getString();
+            ratio.numerator_ref_ = query_ratio.getColumn("numerator_ref").getString();
+            ratio.description_ = ListUtils::create<String>(query_ratio.getColumn("description").getString());
+          }
+          query_ratio.reset(); // get ready for new executeStep()
+        }
+      }
+      else // FeatureHandle
+      {
+        BaseFeature feature(makeBaseFeature_(-1, query_feat, query_meta, query_match));
+        UInt64 map_index = query_feat.getColumn("map_index").getInt64();
+        FeatureHandle handle(map_index, feature);
+        consensus.back().insert(handle);
+      }
+    }
   }
 
 
-  QJsonArray OMSFileLoad::exportTableToJSON_(const QString& table, const QString& order_by)
+  void OMSFileLoad::loadConsensusColumnHeaders_(ConsensusMap& consensus)
   {
+    consensus.getColumnHeaders().clear();
+    if (!db_->tableExists("FEAT_ConsensusColumnHeader")) return;
+
+    SQLite::Statement query(*db_, "SELECT * FROM FEAT_ConsensusColumnHeader");
+    SQLite::Statement query_info(*db_, "");
+    bool have_meta_info = prepareQueryMetaInfo_(query_info, "FEAT_ConsensusColumnHeader");
+    while (query.executeStep())
+    {
+      UInt64 id = query.getColumn("id").getInt64();
+      ConsensusMap::ColumnHeader header;
+      header.filename = query.getColumn("filename").getString();
+      header.label = query.getColumn("label").getString();
+      header.size = query.getColumn("size").getInt64();
+      header.unique_id = query.getColumn("unique_id").getInt64();
+      if (have_meta_info)
+      {
+        handleQueryMetaInfo_(query_info, header, id);
+      }
+      consensus.getColumnHeaders()[id] = header;
+    }
+  }
+
+
+  void OMSFileLoad::load(ConsensusMap& consensus)
+  {
+    load(consensus.getIdentificationData()); // load IDs, if any
+    startProgress(0, 4, "Reading feature data from file");
+    loadMapMetaData_(consensus);
+    nextProgress();
+    loadConsensusColumnHeaders_(consensus);
+    nextProgress();
+    loadDataProcessing_(consensus.getDataProcessing());
+    nextProgress();
+    loadConsensusFeatures_(consensus);
+    endProgress();
+  }
+
+
+  // file-local helper (was private method, moved here to avoid nlohmann include in header)
+  static nlohmann::json exportTableToJSON_(SQLite::Database& db, const String& table, const String& order_by)
+  {
+    using json = nlohmann::json;
     // code based on: https://stackoverflow.com/a/18067555
     String sql = "SELECT * FROM " + table;
-    if (!order_by.isEmpty())
+    if (!order_by.empty())
     {
       sql += " ORDER BY " + order_by;
     }
 
-    SQLite::Statement query(*db_, sql);
+    SQLite::Statement query(db, sql);
 
-    QJsonArray array;
+    json array = json::array();
     while (query.executeStep())
     {
-      QJsonObject record;
+      json record = json::object();
       for (int i = 0; i < query.getColumnCount(); ++i)
       {
         // @TODO: this will repeat field names for every row -
         // avoid this with separate "header" and "rows" (array)?
-        switch (query.getColumn(i).getType()) // sqlite stores each cell based on the actual value, not the declared column type
-        {                                     //, thus, we could use query.getColumnDeclaredType(i), but it would incur conversion
-          break; case SQLITE_INTEGER: record.insert(query.getColumnName(i), qint64(query.getColumn(i).getInt64()));
-          break; case SQLITE_FLOAT: record.insert(query.getColumnName(i), query.getColumn(i).getDouble());
-          break; case SQLITE_BLOB: record.insert(query.getColumnName(i), query.getColumn(i).getText());
-          break; case SQLITE_NULL: record.insert(query.getColumnName(i), "");
-          break; case SQLITE3_TEXT: record.insert(query.getColumnName(i), query.getColumn(i).getText());
-          break; default:
+
+        // sqlite stores each cell based on the actual value, not the declared column type;
+        // thus, we could use query.getColumnDeclaredType(i), but it would incur conversion
+        switch (query.getColumn(i).getType())
+        {
+          case SQLITE_INTEGER: record[query.getColumnName(i)] = query.getColumn(i).getInt64(); break;
+          case SQLITE_FLOAT: record[query.getColumnName(i)] = query.getColumn(i).getDouble(); break;
+          case SQLITE_BLOB: record[query.getColumnName(i)] = query.getColumn(i).getText(); break;
+          case SQLITE_NULL: record[query.getColumnName(i)] = ""; break;
+          case SQLITE3_TEXT: record[query.getColumnName(i)] = query.getColumn(i).getText(); break;
+          default:
             throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
       }
@@ -1026,15 +1142,16 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::exportToJSON(ostream& output)
   {
+    using json = nlohmann::json;
     // @TODO: this constructs the whole JSON file in memory - write directly to stream instead?
     // (more code, but would use less memory)
-    QJsonObject json_data;
+    json json_data = json::object();
     // get names of all tables (except SQLite-internal ones) in the database:
     SQLite::Statement query(*db_, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
     while (query.executeStep())
     {
       String table = query.getColumn("name").getString();
-      QString order_by = "id"; // row order for most tables
+      String order_by = "id"; // row order for most tables
       // special cases regarding ordering, e.g. tables without "id" column:
       if (table.hasSuffix("_MetaInfo"))
       {
@@ -1044,15 +1161,13 @@ namespace OpenMS::Internal
       {
         order_by = "parent_id, processing_step_order, score_type_id";
       }
-      else if (auto pos = export_order_by_.find(table.toQString()); pos != export_order_by_.end())
+      else if (auto pos = export_order_by_.find(table); pos != export_order_by_.end())
       {
         order_by = pos->second;
       }
-      json_data.insert(table.toQString(), exportTableToJSON_(table.toQString(), order_by));
+      json_data[table] = exportTableToJSON_(*db_, table, order_by);
     }
 
-    QJsonDocument json_doc;
-    json_doc.setObject(json_data);
-    output << json_doc.toJson().toStdString();
+    output << json_data.dump(4) << '\n';
   }
 }

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -176,24 +150,24 @@ namespace OpenMS
 
       if (transition.isProductChargeStateSet())
       {
-        t.fragment_charge = transition.getProductChargeState();
+        t.fragment_charge = static_cast<int8_t>(transition.getProductChargeState());
       }
-      t.decoy = false;
+      t.setDecoy(false);
 
       // legacy
 #if 1
       const auto& cv_terms = transition.getCVTerms();
       if (cv_terms.find("decoy") != cv_terms.end() && cv_terms.at("decoy")[0].getValue().toString() == "1" )
       {
-        t.decoy = true;
+        t.setDecoy(true);
       }
       else if (cv_terms.find("MS:1002007") != cv_terms.end())    // target SRM transition
       {
-        t.decoy = false;
+        t.setDecoy(false);
       }
       else if (cv_terms.find("MS:1002008") != cv_terms.end())    // decoy SRM transition
       {
-        t.decoy = true;
+        t.setDecoy(true);
       }
       else if (cv_terms.find("MS:1002007") != cv_terms.end() && cv_terms.find("MS:1002008") != cv_terms.end())    // both == illegal
       {
@@ -206,16 +180,16 @@ namespace OpenMS
           transition.getDecoyTransitionType() == ReactionMonitoringTransition::TARGET)
       {
         // assume its target
-        t.decoy = false;
+        t.setDecoy(false);
       }
       else if (transition.getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
       {
-        t.decoy = true;
+        t.setDecoy(true);
       }
 
-      t.detecting_transition = transition.isDetectingTransition();
-      t.identifying_transition = transition.isIdentifyingTransition();
-      t.quantifying_transition = transition.isQuantifyingTransition();
+      t.setDetectingTransition(transition.isDetectingTransition());
+      t.setIdentifyingTransition(transition.isIdentifyingTransition());
+      t.setQuantifyingTransition(transition.isQuantifyingTransition());
 
       transition_exp.transitions.push_back(t);
     }
@@ -225,6 +199,12 @@ namespace OpenMS
   {
     OpenSwath::LightModification light_mod;
 
+    // Reset RT-related fields up front so a reused LightCompound doesn't leak
+    // a stale rt/rt_start/rt_end when the new source has no RT info.
+    p.rt       = std::numeric_limits<double>::quiet_NaN();
+    p.rt_start = std::numeric_limits<double>::quiet_NaN();
+    p.rt_end   = std::numeric_limits<double>::quiet_NaN();
+
     p.id = pep.id;
     if (pep.hasRetentionTime())
     {
@@ -233,6 +213,23 @@ namespace OpenMS
       {
         p.rt = 60 * pep.getRetentionTime();
       }
+    }
+    // If the source library encodes a retention-time *range* via exactly two
+    // RT entries (e.g. some pqp/TraML libraries), preserve it on the
+    // LightCompound so that ChromatogramExtractor::prepare_coordinates with
+    // rt_extraction_window=NaN can use it. We require exactly two entries
+    // (not >=2) to match the old heavyweight overload's contract; libraries
+    // with 3+ RT entries encode different semantics and should not be silently
+    // truncated.
+    if (pep.rts.size() == 2)
+    {
+      auto rt_in_seconds = [](const TargetedExperimentHelper::RetentionTime& r) {
+        return r.retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE
+                 ? 60.0 * r.getRT()
+                 : r.getRT();
+      };
+      p.rt_start = rt_in_seconds(pep.rts[0]);
+      p.rt_end   = rt_in_seconds(pep.rts[1]);
     }
     p.setDriftTime(pep.getDriftTime());
 
@@ -301,6 +298,12 @@ namespace OpenMS
 
   void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Compound& compound, OpenSwath::LightCompound & comp)
   {
+    // Reset RT-related fields up front so a reused LightCompound doesn't leak
+    // stale values when the new source has no RT info.
+    comp.rt       = std::numeric_limits<double>::quiet_NaN();
+    comp.rt_start = std::numeric_limits<double>::quiet_NaN();
+    comp.rt_end   = std::numeric_limits<double>::quiet_NaN();
+
     comp.id = compound.id;
     if (compound.hasRetentionTime())
     {
@@ -309,6 +312,21 @@ namespace OpenMS
       {
         comp.rt = 60 * compound.getRetentionTime();
       }
+    }
+    // Preserve a per-compound retention-time range (rt_start, rt_end) when the
+    // source library encodes one via exactly two RT entries — used by
+    // ChromatogramExtractor::prepare_coordinates with rt_extraction_window=NaN.
+    // We require exactly two entries to match the old heavyweight overload's
+    // contract.
+    if (compound.rts.size() == 2)
+    {
+      auto rt_in_seconds = [](const TargetedExperimentHelper::RetentionTime& r) {
+        return r.retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE
+                 ? 60.0 * r.getRT()
+                 : r.getRT();
+      };
+      comp.rt_start = rt_in_seconds(compound.rts[0]);
+      comp.rt_end   = rt_in_seconds(compound.rts[1]);
     }
     comp.setDriftTime(compound.getDriftTime());
 

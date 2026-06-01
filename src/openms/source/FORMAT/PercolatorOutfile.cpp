@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -50,23 +24,23 @@ namespace OpenMS
   PercolatorOutfile::PercolatorOutfile() = default;
 
 
-  enum PercolatorOutfile::ScoreType PercolatorOutfile::getScoreType(
+  PercolatorOutfile::ScoreType PercolatorOutfile::getScoreType(
     String score_type_name)
   {
     score_type_name.toLower();
     if ((score_type_name == "q-value") || (score_type_name == "qvalue") ||
         (score_type_name == "q value"))
     {
-      return QVALUE;
+      return ScoreType::QVALUE;
     }
     if ((score_type_name == "pep") ||
         (score_type_name == "posterior error probability"))
     {
-      return POSTERRPROB;
+      return ScoreType::POSTERRPROB;
     }
     if (score_type_name == "score")
     {
-      return SCORE;
+      return ScoreType::SCORE;
     }
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   "Not a valid Percolator score type",
@@ -195,9 +169,9 @@ namespace OpenMS
 
   void PercolatorOutfile::load(const String& filename,
                                ProteinIdentification& proteins,
-                               vector<PeptideIdentification>& peptides,
+                               PeptideIdentificationList& peptides,
                                SpectrumMetaDataLookup& lookup,
-                               enum ScoreType output_score)
+                               ScoreType output_score)
   {
     SpectrumMetaDataLookup::MetaDataFlags lookup_flags =
       (SpectrumMetaDataLookup::MDF_RT |
@@ -283,22 +257,22 @@ namespace OpenMS
       hit.setMetaValue("Percolator_PEP", posterrprob);
       switch (output_score)
       {
-        case SCORE:
+        case ScoreType::SCORE:
           hit.setScore(score);
           peptide.setScoreType("Percolator_score");
           peptide.setHigherScoreBetter(true);
           break;
-        case QVALUE:
+        case ScoreType::QVALUE:
           hit.setScore(qvalue);
           peptide.setScoreType("q-value");
           peptide.setHigherScoreBetter(false);
           break;
-        case POSTERRPROB:
+        case ScoreType::POSTERRPROB:
           hit.setScore(posterrprob);
           peptide.setScoreType("Posterior Error Probability");
           peptide.setHigherScoreBetter(false);
           break;
-        case SIZE_OF_SCORETYPE:
+        case ScoreType::SIZE_OF_SCORETYPE:
           throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'output_score' must not be 'SIZE_OF_SCORETYPE'!");
       }
 

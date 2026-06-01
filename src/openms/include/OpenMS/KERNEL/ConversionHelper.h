@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -42,22 +16,47 @@
 namespace OpenMS
 {
 
+  /**
+    @brief Static helpers that convert between the three OpenMS container
+           types (@c PeakMap, @c FeatureMap, @c ConsensusMap).
+
+    Each overload replaces the contents of the destination, gives it a
+    container-level unique id, and leaves it in a state where the standard
+    range queries reflect the new contents without further bookkeeping by
+    the caller.
+
+    The conversions are not symmetric: which fields are preserved
+    (container / element unique ids, protein and unassigned peptide
+    identifications) depends on the source and target container, so see
+    each overload for the exact contract.
+
+    @ingroup Kernel
+  */
   class OPENMS_DLLAPI MapConversion
   {
 public:
 
     /**
-      @brief Similar to @p convert for FeatureMaps.
+      @brief Copy the most intense peaks of a @c PeakMap into a
+             @c ConsensusMap.
 
-      Only the @p n most intense elements are copied.
+      The output's previous contents are dropped and it is given a fresh
+      container unique id (@c PeakMap has no container-level unique id, so
+      one is generated). The @p n peaks with the highest intensity are
+      written to the output as @c ConsensusFeature entries tagged with
+      @p input_map_index; their order in the output is by descending
+      intensity. The column header @c size for @p input_map_index reflects
+      the number of peaks written.
 
-      Currently PeakMap does not have a unique id but ConsensusMap has
-      one, so we assign a new one here.
-
-      @param input_map_index The index of the input map.
-      @param input_map The input map to be converted.
-      @param output_map The resulting ConsensusMap.
-      @param n The maximum number of elements to be copied.
+      @param[in]     input_map_index Index assigned to the input map in the
+                                     resulting @c ConsensusMap column headers.
+      @param[in,out] input_map       Source peaks; its range queries are
+                                     left consistent with its contents as a
+                                     side effect.
+      @param[out]    output_map      Resulting @c ConsensusMap; previous
+                                     contents are replaced.
+      @param[in]     n               Maximum number of peaks to copy. The
+                                     default (@c Size(-1)) keeps all peaks.
     */
     static void convert(UInt64 const input_map_index,
                         PeakMap& input_map,
@@ -65,37 +64,51 @@ public:
                         Size n = -1);
 
     /**
-      @brief Convert a ConsensusMap to a FeatureMap (of any feature type).
+      @brief Convert a @c ConsensusMap to a @c FeatureMap.
 
-      The previous content of output_map is cleared. UID's of the elements and
-      the container is copied if the @p keep_uids flag is set.
+      Every element of @p input_map is converted to a @c Feature in
+      @p output_map (the @c BaseFeature portion is copied; positional and
+      meta data are preserved). The document identifier and the protein /
+      unassigned peptide identifications are preserved on the output.
 
-      @param input_map The container to be converted.
-      @param keep_uids Shall the UID's of the elements and the container be kept or created anew
-      @param output_map The resulting ConsensusMap.
+      @param[in]  input_map  Source @c ConsensusMap.
+      @param[in]  keep_uids  If @c true, the container unique id and every
+                             element's unique id are preserved from
+                             @p input_map; otherwise they are replaced with
+                             fresh ones.
+      @param[out] output_map Resulting @c FeatureMap; previous contents are
+                             replaced.
     */
     static void convert(ConsensusMap const& input_map,
                         const bool keep_uids,
                         FeatureMap& output_map);
 
     /**
-      @brief Convert a FeatureMap (of any feature type) to a ConsensusMap.
+      @brief Convert a @c FeatureMap to a @c ConsensusMap.
 
-      Each ConsensusFeature contains a map index, so this has to be given as
-      well. The previous content of @p output_map is cleared. An arguable
-      design decision is that the unique id of the FeatureMap is copied (!) to
-      the ConsensusMap, because that is the way it is meant to be used in the
-      algorithms.
+      The first @p n features of @p input_map (in input order; no sorting
+      is performed) are written to @p output_map as @c ConsensusFeature
+      entries tagged with @p input_map_index. The output's container unique
+      id is taken from @p input_map (an intentional design choice -- callers
+      that need a fresh id must overwrite it afterwards). The protein and
+      unassigned peptide identifications are preserved on the output.
 
-      Only the first (!) @p n elements are copied. (This parameter exists
-      mainly for compatibility with @p convert for MSExperiments. To use it in
-      a meaningful way, apply one of the sorting methods to @p input_map
-      beforehand.)
+      @note Because features are taken in input order, @p n is mainly useful
+            after pre-sorting @p input_map (e.g. by intensity); it exists for
+            symmetry with the @c PeakMap overload above.
 
-      @param input_map_index The index of the input map.
-      @param input_map The container to be converted.
-      @param output_map The resulting ConsensusMap.
-      @param n The maximum number of elements to be copied.
+      @note The column header @c size for @p input_map_index is set to
+            @c input_map.size() -- the full input size -- even when @p n
+            truncates the actual copy. Inspect the output container's size
+            for the number of features that were actually written.
+
+      @param[in]  input_map_index Index assigned to the input map in the
+                                  resulting @c ConsensusMap column headers.
+      @param[in]  input_map       Source @c FeatureMap.
+      @param[out] output_map      Resulting @c ConsensusMap; previous
+                                  contents are replaced.
+      @param[in]  n               Maximum number of features to copy. The
+                                  default (@c Size(-1)) keeps all features.
     */
     static void convert(UInt64 const input_map_index,
                         FeatureMap const& input_map,

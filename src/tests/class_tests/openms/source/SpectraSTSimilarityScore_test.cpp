@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -39,7 +13,7 @@
 
 #include <iostream>
 
-#include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
+#include <OpenMS/COMPARISON/SpectraSTSimilarityScore.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -91,7 +65,7 @@ START_SECTION(double operator () (const PeakSpectrum& spec) const)
   PeakMap exp;
   PeakSpectrum s1;
   MSPFile msp;
-  std::vector< PeptideIdentification > ids;
+  PeptideIdentificationList ids;
   const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
   msp.load(filename, ids, exp);
   for(Size k = 0; k < exp[0].size(); ++k)
@@ -110,7 +84,7 @@ START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum&
   PeakSpectrum s1, s2, s3;
   PeakMap exp;
   MSPFile msp;
-  std::vector< PeptideIdentification > ids;
+  PeptideIdentificationList ids;
   const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
   msp.load(filename, ids, exp);
   for(Size k = 0; k < exp[0].size(); ++k)
@@ -150,7 +124,7 @@ START_SECTION((double operator()(const BinnedSpectrum &bin1, const BinnedSpectru
   PeakSpectrum s1, s2, s3;
   PeakMap exp;
   MSPFile msp;
-  std::vector< PeptideIdentification > ids;
+  PeptideIdentificationList ids;
   const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
   msp.load(filename, ids, exp);
   for(Size k = 0; k < exp[0].size(); ++k)
@@ -190,7 +164,7 @@ START_SECTION(bool preprocess(PeakSpectrum &spec, float remove_peak_intensity_th
   PeakSpectrum s1, s2, s3;
   PeakMap exp;
   MSPFile msp;
-  std::vector< PeptideIdentification > ids;
+  PeptideIdentificationList ids;
   const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
   msp.load(filename, ids, exp);
   for(Size k = 0; k < exp[0].size(); ++k)
@@ -226,20 +200,6 @@ START_SECTION(bool preprocess(PeakSpectrum &spec, float remove_peak_intensity_th
   //max_peaks
   ptr->preprocess(s3,1,10000,5,8);
   TEST_EQUAL(s3.size(),8)
-END_SECTION
-
-
-
-START_SECTION(static PeakSpectrumCompareFunctor* create())
-  PeakSpectrumCompareFunctor* psf = SpectraSTSimilarityScore::create();
-  SpectraSTSimilarityScore spectrast;
-  TEST_EQUAL(psf->getParameters(), spectrast.getParameters())
-  TEST_EQUAL(psf->getName(), spectrast.getName())
-  delete psf;
-END_SECTION
-
-START_SECTION(static const String getProductName())
-  TEST_EQUAL(ptr->getProductName(), "SpectraSTSimilarityScore")
 END_SECTION
 
 START_SECTION(double delta_D(double top_hit, double runner_up))

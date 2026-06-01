@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Leon Bichmann $
@@ -38,8 +12,9 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -50,7 +25,6 @@
 #include <set>
 #include <map>
 
-#include <QtCore/QProcess>
 #include <boost/algorithm/clamp.hpp>
 #include <typeinfo>
 
@@ -62,44 +36,51 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_MaRaClusterAdapter MaRaClusterAdapter
+@page TOPP_MaRaClusterAdapter MaRaClusterAdapter
 
-  @brief MaRaClusterAdapter facilitates the input to, the call of and output integration of MaRaCluster.
-  MaRaCluster (https://github.com/statisticalbiotechnology/maracluster) is a tool to apply unsupervised clustering of ms2 spectra from shotgun proteomics datasets.
+@brief MaRaClusterAdapter facilitates the input to, the call of and output integration of MaRaCluster.
+MaRaCluster (https://github.com/statisticalbiotechnology/maracluster) is a tool to apply unsupervised clustering of ms2 spectra from shotgun proteomics datasets.
 
-  @experimental This tool is work in progress and usage and input requirements might change.
+@experimental This tool is work in progress and usage and input requirements might change.
 
-  <center>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> &rarr; MaRaClusterAdapter &rarr;</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>any signal-/preprocessing tool @n (in mzML format) </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MSGFPlusAdapter </td>
-        </tr>
-    </table>
-  </center>
-  <p>MaRaCluster is dependent on the input parameter pcut, which is the logarithm of the pvalue cutoff.
-  The default value is -10, lower values will result in smaller but purer clusters. If specified peptide search results
-  can be provided as idXML files and the MaRaCluster Adapter will annotate cluster ids as attributes to each peptide
-  identification, which will be outputed as a merged idXML. Moreover the merged idXML containing only scan numbers,
-  cluster ids and file origin can be outputed without prior peptide identification searches. The assigned cluster ids in
-  the respective idXML are equal to the scanindex of the produced clustered mzML.
-  </p>
+<center>
+  <table>
+      <tr>
+          <th ALIGN = "center"> pot. predecessor tools </td>
+          <td VALIGN="middle" ROWSPAN=2> &rarr; MaRaClusterAdapter &rarr;</td>
+          <th ALIGN = "center"> pot. successor tools </td>
+      </tr>
+      <tr>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>any signal-/preprocessing tool @n (in mzML format) </td>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MSGFPlusAdapter </td>
+      </tr>
+  </table>
+</center>
+<p>MaRaCluster is dependent on the input parameter pcut, which is the logarithm of the pvalue cutoff.
+The default value is -10, lower values will result in smaller but purer clusters. If specified peptide search results
+can be provided as idXML files and the MaRaCluster Adapter will annotate cluster ids as attributes to each peptide
+identification, which will be outputed as a merged idXML. Moreover the merged idXML containing only scan numbers,
+cluster ids and file origin can be outputed without prior peptide identification searches. The assigned cluster ids in
+the respective idXML are equal to the scanindex of the produced clustered mzML.
+</p>
+<p>Each consensus spectrum in the output mzML is annotated with the following metadata values for traceability:
+<ul>
+  <li><b>maracluster_original_native_ids</b>: comma-separated list of native IDs of the original source spectra</li>
+  <li><b>maracluster_original_file_origins</b>: comma-separated list of source file paths for each contributing spectrum</li>
+  <li><b>maracluster_cluster_size</b>: the number of spectra merged into the consensus</li>
+</ul>
+</p>
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_MaRaClusterAdapter.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_MaRaClusterAdapter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MaRaClusterAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MaRaClusterAdapter.html
 
-  MaRaCluster is written by Matthew The (https://github.com/statisticalbiotechnology/maracluster
-  Copyright Matthew The <matthew.the@scilifelab.se>)
-  Cite Publication:
-  MaRaCluster: A Fragment Rarity Metric for Clustering Fragment Spectra in Shotgun Proteomics
-  Journal of proteome research, 2016, 15(3), pp 713-720 DOI: 10.1021/acs.jproteome.5b00749
+MaRaCluster is written by Matthew The (https://github.com/statisticalbiotechnology/maracluster
+Copyright Matthew The <matthew.the@scilifelab.se>)
+Cite Publication:
+MaRaCluster: A Fragment Rarity Metric for Clustering Fragment Spectra in Shotgun Proteomics
+Journal of proteome research, 2016, 15(3), pp 713-720 DOI: 10.1021/acs.jproteome.5b00749
 */
 
 // We do not want this class to show up in the docu:
@@ -234,10 +215,10 @@ protected:
   }
 
   //   replace with PercolatorAdapter function
-  String getScanIdentifier_(vector<PeptideIdentification>::iterator it, vector<PeptideIdentification>::iterator start)
+  String getScanIdentifier_(PeptideIdentificationList::iterator it, PeptideIdentificationList::iterator start)
   {
     // MSGF+ uses this field, is empty if not specified
-    String scan_identifier = it->getMetaValue("spectrum_reference");
+    String scan_identifier = it->getSpectrumReference();
     if (scan_identifier.empty())
     {
       // XTandem uses this (integer) field
@@ -338,27 +319,27 @@ protected:
     }
     os.close();
 
-    QStringList arguments;
+    std::vector<String> arguments;
     // Check all set parameters and get them into arguments StringList
     {
-      arguments << "batch";
-      arguments << "-b" << input_file_list.toQString();
-      arguments << "-f" << tmp_dir.getPath().toQString();
-      arguments << "-a" << txt_designator.toQString();
+      arguments.push_back("batch");
+      arguments.push_back("-b"); arguments.push_back(input_file_list);
+      arguments.push_back("-f"); arguments.push_back(tmp_dir.getPath());
+      arguments.push_back("-a"); arguments.push_back(txt_designator);
 
       map<String,int> precursor_tolerance_units;
       precursor_tolerance_units["ppm"] = 0;
       precursor_tolerance_units["Da"] = 1;
 
-      arguments << "-p" << (String(getDoubleOption_("precursor_tolerance")) + precursor_tolerance_units[getStringOption_("precursor_tolerance_units")]).toQString();
+      arguments.push_back("-p"); arguments.push_back(String(getDoubleOption_("precursor_tolerance")) + precursor_tolerance_units[getStringOption_("precursor_tolerance_units")]);
 
-      arguments << "-t" << String(pcut).toQString();
-      arguments << "-c" << String(pcut).toQString();
+      arguments.push_back("-t"); arguments.push_back(String(pcut));
+      arguments.push_back("-c"); arguments.push_back(String(pcut));
 
       Int verbose_level = getIntOption_("verbose");
       if (verbose_level != 2)
       {
-        arguments << "-v" << String(verbose_level).toQString();
+        arguments.push_back("-v"); arguments.push_back(String(verbose_level));
       }
     }
     writeLogInfo_("Prepared maracluster command.");
@@ -368,7 +349,7 @@ protected:
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
     writeLogInfo_("Executing maracluster ...");
-    auto exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments);
+    auto exit_code = runExternalProcess_(maracluster_executable, arguments);
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;
@@ -384,7 +365,7 @@ protected:
     //if specified keep original output in designated directory
     if (!maracluster_output_directory.empty())
     {
-      bool copy_status = File::copyDirRecursively(tmp_dir.getPath().toQString(), maracluster_output_directory.toQString());
+      bool copy_status = File::copyDirRecursively(tmp_dir.getPath(), maracluster_output_directory);
 
       if (copy_status)
       { 
@@ -400,15 +381,15 @@ protected:
     if (!out.empty())
     {
       const StringList id_in = getStringList_("id_in");
-      vector<PeptideIdentification> all_peptide_ids;
+      PeptideIdentificationList all_peptide_ids;
       vector<ProteinIdentification> all_protein_ids;
       if (!id_in.empty())
       {
         for (const String& ss : id_in) {
-          vector<PeptideIdentification> peptide_ids;
+          PeptideIdentificationList peptide_ids;
           vector<ProteinIdentification> protein_ids;
-          IdXMLFile().load(ss, protein_ids, peptide_ids);
-          for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it) {
+          FileHandler().loadIdentifications(ss, protein_ids, peptide_ids, {FileTypes::IDXML});
+          for (PeptideIdentificationList::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it) {
             String scan_identifier = getScanIdentifier_(it, peptide_ids.begin());
             Int scan_number = getScanNumber_(scan_identifier);
             MaRaClusterResult res(file_idx, scan_number);
@@ -436,7 +417,7 @@ protected:
           PeptideIdentification pid;
           PeptideHit pih;
           pid.insertHit(pih);
-          pid.setMetaValue("spectrum_reference", "scan=" + String(scan_nr));
+          pid.setSpectrumReference("scan=" + String(scan_nr));
           // cluster index - 1 is equal to scan_number in consensus.mzML
           pid.setMetaValue("cluster_id", cluster_id - 1);
           pid.setMetaValue("file_origin", in_list[file_id]);
@@ -460,24 +441,24 @@ protected:
 
       writeDebug_("write idXMLFile", 1);
       writeDebug_(out, 1);// As the maracluster output file is not needed anymore, the temporary directory is going to be deleted
-      IdXMLFile().store(out, all_protein_ids, all_peptide_ids);
+      FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML});
     }
 
     //output consensus mzML
     if (!consensus_out.empty())
     {
-      QStringList arguments_consensus;
+      std::vector<String> arguments_consensus;
       // Check all set parameters and get them into arguments StringList
       {
-        arguments_consensus << "consensus";
-        arguments_consensus << "-l" << consensus_output_file.toQString();
-        arguments_consensus << "-f" << tmp_dir.getPath().toQString();
-        arguments_consensus << "-o" << consensus_out.toQString();
+        arguments_consensus.push_back("consensus");
+        arguments_consensus.push_back("-l"); arguments_consensus.push_back(consensus_output_file);
+        arguments_consensus.push_back("-f"); arguments_consensus.push_back(tmp_dir.getPath());
+        arguments_consensus.push_back("-o"); arguments_consensus.push_back(consensus_out);
         Int min_cluster_size = getIntOption_("min_cluster_size");
-        arguments_consensus << "-M" << String(min_cluster_size).toQString();
+        arguments_consensus.push_back("-M"); arguments_consensus.push_back(String(min_cluster_size));
 
         Int verbose_level = getIntOption_("verbose");
-        if (verbose_level != 2) arguments_consensus << "-v" << String(verbose_level).toQString();
+        if (verbose_level != 2) { arguments_consensus.push_back("-v"); arguments_consensus.push_back(String(verbose_level)); }
       }
       writeLogInfo_("Prepared maracluster-consensus command.");
 
@@ -485,7 +466,7 @@ protected:
       // run MaRaCluster for consensus output
       //-------------------------------------------------------------
       // MaRaCluster execution with the executable and the arguments StringList
-      TOPPBase::ExitCodes exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments_consensus);
+      TOPPBase::ExitCodes exit_code = runExternalProcess_(maracluster_executable, arguments_consensus);
       if (exit_code != EXECUTION_OK)
       {
         return exit_code;
@@ -493,12 +474,69 @@ protected:
 
       // sort mzML
       FileHandler fh;
-      FileTypes::Type in_type = fh.getType(consensus_output_file);
-
+      FileTypes::Type in_type = fh.getType(consensus_out);
+      OPENMS_LOG_DEBUG << "Input type" << FileTypes::typeToName(in_type) << ". " << std::endl;
       PeakMap exp;
-      fh.loadExperiment(consensus_output_file, exp, in_type, log_type_);
+      fh.loadExperiment(FileHandler::stripExtension(consensus_out) + ".part1." + FileTypes::typeToName(in_type), exp, {in_type}, log_type_, true, true);
       exp.sortSpectra();
-      fh.storeExperiment(consensus_output_file, exp, log_type_);
+
+      //-------------------------------------------------------------
+      // Annotate consensus spectra with original native IDs and file origins
+      //-------------------------------------------------------------
+
+      // Build scan_nr -> native_id maps for each input file
+      std::vector<std::map<Int, String>> file_scan_to_nativeid(in_list.size());
+      for (Size f_idx = 0; f_idx < in_list.size(); ++f_idx)
+      {
+        PeakMap input_exp;
+        FileHandler fh_in;
+        fh_in.loadExperiment(in_list[f_idx], input_exp, {fh_in.getType(in_list[f_idx])}, log_type_, false, false);
+        for (const auto& spec : input_exp)
+        {
+          file_scan_to_nativeid[f_idx][getScanNumber_(spec.getNativeID())] = spec.getNativeID();
+        }
+      }
+
+      // Build consensus_scan -> list of (file_origin, original_native_id)
+      // cluster index - 1 is equal to scan_number in consensus.mzML (see idXML annotation above)
+      std::map<Int, std::vector<std::pair<String, String>>> consensus_scan_to_refs;
+      for (const auto& entry : specid_to_clusterid_map)
+      {
+        Int consensus_scan = entry.second - 1;
+        const MaRaClusterResult& res = entry.first;
+        String native_id;
+        auto it = file_scan_to_nativeid[res.file_idx].find(res.scan_nr);
+        if (it != file_scan_to_nativeid[res.file_idx].end())
+        {
+          native_id = it->second;
+        }
+        else
+        {
+          native_id = "scan=" + String(res.scan_nr);
+        }
+        consensus_scan_to_refs[consensus_scan].emplace_back(in_list[res.file_idx], native_id);
+      }
+
+      // Annotate each consensus spectrum with source metadata
+      for (Size i = 0; i < exp.size(); ++i)
+      {
+        Int scan_nr = getScanNumber_(exp[i].getNativeID());
+        auto it = consensus_scan_to_refs.find(scan_nr);
+        if (it != consensus_scan_to_refs.end())
+        {
+          StringList native_ids, file_origins;
+          for (const auto& ref : it->second)
+          {
+            file_origins.push_back(ref.first);
+            native_ids.push_back(ref.second);
+          }
+          exp[i].setMetaValue("maracluster_original_native_ids", ListUtils::concatenate(native_ids, ","));
+          exp[i].setMetaValue("maracluster_original_file_origins", ListUtils::concatenate(file_origins, ","));
+          exp[i].setMetaValue("maracluster_cluster_size", static_cast<Int>(it->second.size()));
+        }
+      }
+
+      fh.storeExperiment(consensus_out, exp, {FileTypes::MZML}, log_type_);
     }
 
     writeLogInfo_("MaRaClusterAdapter finished successfully!");

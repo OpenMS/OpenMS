@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest$
@@ -77,10 +51,10 @@ public:
      * The function will replace the pointers stored in swath_maps with a
      * transforming map that will contain corrected m/z values.
      *
-     * @param transition_group_map A MRMFeatureFinderScoring result map
-     * @param targeted_exp The corresponding spectral library (required for extraction coordinates)
-     * @param swath_maps The raw swath maps from the current run, will be modified (replaced with a corrected version)
-     * @param pasef Whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
+     * @param[out] transition_group_map A MRMFeatureFinderScoring result map
+     * @param[in] targeted_exp The corresponding spectral library (required for extraction coordinates)
+     * @param[in] swath_maps The raw swath maps from the current run, will be modified (replaced with a corrected version)
+     * @param[in] pasef Whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
      */
     void correctMZ(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *>& transition_group_map,
                    const OpenSwath::LightTargetedExperiment & targeted_exp,
@@ -95,11 +69,11 @@ public:
      * the theoretically expected drift time. The resulting linear
      * transformation is stored using a TransformationDescription object.
      *
-     * @param transition_group_map A MRMFeatureFinderScoring result map
-     * @param swath_maps The raw swath maps from the current run
-     * @param targeted_exp The corresponding spectral library (required for extraction coordinates)
-     * @param pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
-     * @param im_trafo The resulting map containing the transformation
+     * @param[out] transition_group_map A MRMFeatureFinderScoring result map
+     * @param[in,out] swath_maps The raw swath maps from the current run
+     * @param[in] targeted_exp The corresponding spectral library (required for extraction coordinates)
+     * @param[in] pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
+     * @param[out] im_trafo The resulting map containing the transformation
      */
     void correctIM(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
                    const OpenSwath::LightTargetedExperiment & targeted_exp,
@@ -112,13 +86,63 @@ public:
      *
      * For each precursor, the SwathMap is chosen based on library m/z and ion mobility.
      * If two or more SwathMaps isolate the same precursor the SwathMap in which the precursor is more centered across
-     * ion mobility is chosen. Note that the single swath_map returned is in a vector so that this function is compatible with SONAR functions
+     * ion mobility is chosen.
      *
-     * @param [IN] transition_group A MRMTransitionGroup for which the SwathMap is assigned to
-     * @param [OUT] swath_maps A vector containing the a single entry, the swath map which the MRMFeature is assigned to
+     * @param[in] transition_group A MRMTransitionGroup for which the SwathMap is assigned to
+     * @param[out] swath_maps A vector containing the a single entry, the swath map which the MRMFeature is assigned to
      */
     std::vector<OpenSwath::SwathMap> findSwathMapsPasef(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
                                                          const std::vector< OpenSwath::SwathMap > & swath_maps);
+
+    /**
+      @brief Estimate an extraction window from absolute residuals.
+
+      Treats the input @p residuals as absolute errors (e.g., |delta ppm| for m/z).
+      We compute an adaptive half-width using OpenMS::Math::adaptiveQuantile
+      (Tukey k=1.5; blend raw vs winsorized by tail density), and return
+      either the half-width or the full width (2×half).
+
+      Notes:
+        - Empty input yields 0.0.
+        - Ensure @p residuals contain absolute values; non-absolute inputs will be
+          converted via std::abs internally.
+
+      @param[in] residuals   Absolute residuals (e.g., |delta ppm|).
+      @param[in] quantile    Quantile of the half-width distribution to use (default 0.99).
+      @param[in] full_width  If true, return 2×half-width; if false, return half-width.
+      @param[in] padding_factor A padding factor to add to the estimated window.
+      @return            Estimated window (same units as @p residuals; 0.0 if empty).
+    */
+    static double estimateWindow(
+      std::vector<double> residuals,
+      double quantile = 0.99,
+      bool full_width = true,
+      double padding_factor = 1.0
+    );
+
+    /// Retrieve the estimated fragment m/z extraction window (ppm)
+    double getFragmentMzWindow() const;
+
+    /// Set the estimated fragment m/z extraction window (ppm_
+    void setFragmentMzWindow(double fragmentMzWindow);
+
+    /// Retrieve the estimated fragment ion mobility extraction window
+    double getFragmentImWindow() const;
+
+    /// Set the estimated fragment ion mobility extraction window
+    void setFragmentImWindow(double fragmentImWindow);
+
+    /// Retrieve the estimated precursor m/z extraction window (ppm)
+    double getPrecursorMzWindow() const;
+
+    /// Set the estimated precursor m/z extraction window (ppm)
+    void setPrecursorMzWindow(double precursorMzWindow);
+
+    /// Retrieve the estimated precursor ion mobility extraction window
+    double getPrecursorImWindow() const;
+
+    /// Set the estimated precursor ion mobility extraction window
+    void setPrecursorImWindow(double precursorImWindow);
 
   private:
     double mz_extraction_window_;
@@ -130,6 +154,15 @@ public:
     String debug_im_file_;
     String debug_mz_file_;
 
+    /// fields for estimated mz and ion mobility windows
+    double mz_estimation_padding_factor_ = 1.0;
+    double im_estimation_padding_factor_ = 1.0;
+    double mz_estimation_percentile_ = 99.0;
+    double im_estimation_percentile_ = 99.0;
+    double fragment_mz_window_ = -1;
+    double fragment_im_window_ = -1;
+    double precursor_mz_window_ = -1;
+    double precursor_im_window_ = -1;
   };
 }
 

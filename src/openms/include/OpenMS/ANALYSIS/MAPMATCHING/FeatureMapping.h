@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
@@ -42,43 +16,96 @@
 namespace OpenMS
 {
 
+  /**
+    @brief Helper utilities for matching MS2 spectra to LC-MS features by precursor (m/z, RT).
+
+    The class is a thin namespace holding two nested record types and one static algorithm:
+
+      - @ref FeatureMappingInfo   – input bundle (feature maps + a @ref KDTreeFeatureMaps view)
+      - @ref FeatureToMs2Indices  – output bundle (feature → spectrum indices map + unassigned list)
+      - @ref assignMS2IndexToFeature – the actual assignment routine
+
+    A typical caller builds a @ref FeatureMappingInfo once (loading the maps and constructing the
+    kd-tree), then calls @ref assignMS2IndexToFeature per MS run. The kd-tree must be built from
+    the same maps stored in @c feature_maps so that the indices returned by range queries refer
+    back into the caller-visible feature pointers.
+
+    Workflows that use this include SIRIUS export and other "annotate MS2 with quantified feature"
+    pipelines.
+
+    @ingroup MapAlignment
+  */
   class OPENMS_DLLAPI FeatureMapping
-      {
-          public:
+  {
+    public:
 
-          /// Stores information required for preprocessing
-          class FeatureMappingInfo
-          {
-          public:
-            std::vector<FeatureMap> feature_maps; // feature data
-            KDTreeFeatureMaps kd_tree; // KDTree references into feature_maps to provides fast spatial queries
-          };
+    /**
+      @brief Input bundle: feature maps and a spatial index over them.
 
-          /// Stores preprocessed feature mapping information
-          class FeatureToMs2Indices
-          {
-          public:
-             std::map<const BaseFeature*, std::vector<size_t>> assignedMS2;
-             std::vector<size_t> unassignedMS2;
-          };
+      @c feature_maps owns the raw @ref FeatureMap objects (one per input run); @c kd_tree is a
+      @ref KDTreeFeatureMaps pre-populated with the same features and provides fast
+      (RT, m/z) range queries. The caller is responsible for keeping the two consistent
+      (i.e. building the kd-tree from the same maps stored here).
+    */
+    class FeatureMappingInfo
+    {
+    public:
+      std::vector<FeatureMap> feature_maps; ///< feature data, one map per input run
+      KDTreeFeatureMaps kd_tree;            ///< (RT, m/z) kd-tree referencing the features in @c feature_maps
+    };
 
-          /**
-            @brief Allocate ms2 spectra to feature within the minimal distance
+    /**
+      @brief Output bundle: per-feature MS2 spectrum indices + the list of unassigned MS2 spectra.
 
-            @return FeatureToMs2Indices
+      Keys of @c assignedMS2 are non-owning pointers into the @ref FeatureMap data held by the
+      @ref FeatureMappingInfo passed to @ref assignMS2IndexToFeature; the values are spectrum
+      indices into the @c spectra input. @c unassignedMS2 holds the indices of MS2 spectra that
+      had at least one precursor but no feature inside the tolerance window (MS2 spectra without
+      a precursor are silently dropped and appear in neither container).
+    */
+    class FeatureToMs2Indices
+    {
+    public:
+       /// MS2 spectrum indices grouped by the feature they were assigned to
+       std::map<const BaseFeature*, std::vector<size_t>> assignedMS2;
+       /// Indices of MS2 spectra that had a precursor but no feature inside the tolerance window
+       std::vector<size_t> unassignedMS2;
+    };
 
-            @param spectra: Input of PeakMap/MSExperiment with spectra information
-            @param fp_map_kd: KDTree used for query and match spectra with features
-            @param precursor_mz_tolerance: mz_tolerance used for query
-            @param precursor_rt_tolernace: rt tolerance used for query
-            @param ppm: mz tolerance window calculation in ppm or Da
+    /**
+      @brief Assign each MS2 spectrum to the feature whose precursor matches it best.
 
-          */
-          static FeatureToMs2Indices assignMS2IndexToFeature(const MSExperiment& spectra,
-                                                             const FeatureMappingInfo& fm_info,
-                                                             const double& precursor_mz_tolerance,
-                                                             const double& precursor_rt_tolerance,
-                                                             bool ppm);
+      For every MS2 spectrum in @p spectra:
+        - Spectra at MS level != 2 are skipped.
+        - Spectra with no precursor are silently dropped (not added to @c unassignedMS2).
+        - Spectra with at least one precursor are matched against features in
+          @c fm_info.kd_tree using a rectangular tolerance window:
+            * RT:  @p precursor_rt_tolerance  (absolute, around the spectrum's RT)
+            * m/z: @p precursor_mz_tolerance  (ppm if @p ppm is true, otherwise Th, around the first precursor's m/z)
+          Features from any map are eligible (the kd-tree query is run with
+          @c include_features_from_same_map = true).
+        - If no feature falls in the window, the spectrum index is appended to
+          @c unassignedMS2.
+        - If several features fall in the window, the one with the smallest absolute m/z
+          difference to the precursor wins (RT is not used as a tie-breaker).
+        - Only the first precursor of the spectrum is considered (chimeric / multi-precursor
+          spectra are matched against @c precursors()[0] only).
 
-      };
+      The result groups spectrum indices by their winning feature; each spectrum index appears
+      at most once in either the assigned or the unassigned collection.
+
+      @param[in] spectra                  Run-level spectrum container (MS1 and MS2 mixed; MS2 spectra are processed).
+      @param[in] fm_info                  Feature maps + kd-tree bundle (the kd-tree must reference @c fm_info.feature_maps).
+      @param[in] precursor_mz_tolerance   Half-width of the m/z tolerance window (ppm if @p ppm, else Th).
+      @param[in] precursor_rt_tolerance   Half-width of the RT tolerance window in seconds (absolute).
+      @param[in] ppm                      If true, interpret @p precursor_mz_tolerance as ppm; otherwise as Th.
+      @return Mapping result containing one entry per matched feature plus the list of unassigned MS2 spectra.
+    */
+    static FeatureToMs2Indices assignMS2IndexToFeature(const MSExperiment& spectra,
+                                                       const FeatureMappingInfo& fm_info,
+                                                       const double& precursor_mz_tolerance,
+                                                       const double& precursor_rt_tolerance,
+                                                       bool ppm);
+
+  };
 } // namespace OpenMS

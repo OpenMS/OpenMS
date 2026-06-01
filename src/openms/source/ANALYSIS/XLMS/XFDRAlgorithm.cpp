@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -85,7 +59,7 @@ using namespace OpenMS;
     max_score_ = arg_minscore_;
   }
 
-  XFDRAlgorithm::ExitCodes XFDRAlgorithm::run(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id)
+  XFDRAlgorithm::ExitCodes XFDRAlgorithm::run(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id)
   {
     writeArgumentsLog_();
     std::cout << "Initializing data structures..." << std::endl;
@@ -251,7 +225,7 @@ using namespace OpenMS;
         for (StringList::const_iterator crosslink_types_it = crosslink_types.begin();
             crosslink_types_it != crosslink_types.end(); ++crosslink_types_it)
         {
-          String current_crosslink_type = *crosslink_types_it;
+          const String& current_crosslink_type = *crosslink_types_it;
           Size idx = std::floor((score - this->min_score_) / arg_binsize_);
           if (   current_crosslink_type == crosslink_class_fulldecoysinterlinks_
               || current_crosslink_type == crosslink_class_hybriddecoysinterlinks_
@@ -289,15 +263,15 @@ using namespace OpenMS;
         }
       }
     }
-    return EXECUTION_OK;
+    return ExitCodes::EXECUTION_OK;
   }
 
-  void XFDRAlgorithm::initDataStructures_(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id)
+  void XFDRAlgorithm::initDataStructures_(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id)
   {
-    const String prot_identifier = protein_id.getIdentifier();
+    const String& prot_identifier = protein_id.getIdentifier();
 
     // if the metaValue exists in search_params and the default value for XFDR was not changed, use the one in search_params
-    ProteinIdentification::SearchParameters search_params = protein_id.getSearchParameters();
+    const ProteinIdentification::SearchParameters& search_params = protein_id.getSearchParameters();
     if (search_params.metaValueExists("decoy_string") && decoy_string_ == "DECOY_")
     {
       decoy_string_ = search_params.getMetaValue("decoy_string");
@@ -342,7 +316,7 @@ using namespace OpenMS;
         {
           StringList alpha_prots;
           const std::vector<PeptideEvidence> pevs_alpha = ph.getPeptideEvidences();
-          for (PeptideEvidence pev : pevs_alpha)
+          for (const PeptideEvidence& pev : pevs_alpha)
           {
             alpha_prots.push_back(pev.getProteinAccession());
           }
@@ -512,7 +486,7 @@ using namespace OpenMS;
     }
   }
 
-  void XFDRAlgorithm::findTopUniqueHits_(std::vector<PeptideIdentification>& peptide_ids)
+  void XFDRAlgorithm::findTopUniqueHits_(PeptideIdentificationList& peptide_ids)
   {
     for (PeptideIdentification& pep_id : peptide_ids)
     {
@@ -564,9 +538,9 @@ using namespace OpenMS;
     if (arg_minborder_ >= arg_maxborder_)
     {
       std::cout << "Minborder cannot be larger or equal than Maxboder!" << std::endl;
-      return ILLEGAL_PARAMETERS;
+      return ExitCodes::ILLEGAL_PARAMETERS;
     }
-    return EXECUTION_OK;
+    return ExitCodes::EXECUTION_OK;
   }
 
   String XFDRAlgorithm::getId_(const PeptideHit& ph) const

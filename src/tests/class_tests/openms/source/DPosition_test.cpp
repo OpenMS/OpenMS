@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -40,11 +14,14 @@
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <iterator>
+#include <unordered_set>
+#include <unordered_map>
 
 /////////////////////////////////////////////////////////////
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 using namespace OpenMS;
 
@@ -273,22 +250,22 @@ END_SECTION
 
 START_SECTION((bool operator==(const DPosition &point) const))
 	DPosition<3> p1,p2;
-	TEST_EQUAL(p1==p2, true)
+	TEST_TRUE(p1 == p2)
 
 	p1[0]=1.234;
 	TEST_EQUAL(p1==p2, false)
 	p2[0]=1.234;
-	TEST_EQUAL(p1==p2, true)
+	TEST_TRUE(p1 == p2)
 
 	p1[1]=1.345;
 	TEST_EQUAL(p1==p2, false)
 	p2[1]=1.345;
-	TEST_EQUAL(p1==p2, true)
+	TEST_TRUE(p1 == p2)
 
 	p1[2]=1.456;
 	TEST_EQUAL(p1==p2, false)
 	p2[2]=1.456;
-	TEST_EQUAL(p1==p2, true)
+	TEST_TRUE(p1 == p2)
 END_SECTION
 
 START_SECTION((bool operator!=(const DPosition &point) const))
@@ -296,17 +273,17 @@ START_SECTION((bool operator!=(const DPosition &point) const))
 	TEST_EQUAL(p1!=p2, false)
 
 	p1[0]=1.234;
-	TEST_EQUAL(p1!=p2, true)
+	TEST_FALSE(p1 == p2)
 	p2[0]=1.234;
 	TEST_EQUAL(p1!=p2, false)
 
 	p1[1]=1.345;
-	TEST_EQUAL(p1!=p2, true)
+	TEST_FALSE(p1 == p2)
 	p2[1]=1.345;
 	TEST_EQUAL(p1!=p2, false)
 
 	p1[2]=1.456;
-	TEST_EQUAL(p1!=p2, true)
+	TEST_FALSE(p1 == p2)
 	p2[2]=1.456;
 	TEST_EQUAL(p1!=p2, false)
 END_SECTION
@@ -370,9 +347,9 @@ START_SECTION((DPosition operator-() const))
   DPosition<3> p1, p2;
   p1[0] = 5.0;
 	p2 = -p1;
-  TEST_EQUAL(p1!=p2, true);
+  TEST_FALSE(p1 == p2);
 	p2 = -p2;
-	TEST_EQUAL(p1==p2, true);
+	TEST_TRUE(p1 == p2);
 END_SECTION
 
 START_SECTION((DPosition operator-(const DPosition &point) const))
@@ -567,9 +544,9 @@ START_SECTION(([EXTRA] Test char DPosition))
   DPosition<3,char> pb2;
   pa1[0] = 'a';
   pb2 = -pa1;
-  TEST_EQUAL(pa1!=pb2, true)
+  TEST_FALSE(pa1 == pb2)
   pb2 = -pb2;
-  TEST_EQUAL(pa1==pb2, true)
+  TEST_TRUE(pa1 == pb2)
 
   DPosition<1,char> pa('a');
   DPosition<1,char> pb('b');
@@ -605,10 +582,66 @@ START_SECTION(([EXTRA] Test scalar division))
 }
 END_SECTION
 
+/////////////////////////////////////////////////////////////
+// Hash function tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] std::hash<DPosition<2>>))
+{
+  // Test that equal positions have equal hashes
+  DPosition<2> p1(1.5, 2.5);
+  DPosition<2> p2(1.5, 2.5);
+
+  std::hash<DPosition<2>> hasher;
+  TEST_EQUAL(hasher(p1), hasher(p2))
+
+  // Test that hash changes when values change
+  DPosition<2> p3(3.5, 2.5);
+  TEST_NOT_EQUAL(hasher(p1), hasher(p3))
+
+  // Test use in unordered_set
+  std::unordered_set<DPosition<2>> pos_set;
+  pos_set.insert(p1);
+  TEST_EQUAL(pos_set.size(), 1)
+  pos_set.insert(p2); // same as p1
+  TEST_EQUAL(pos_set.size(), 1) // should not increase
+  pos_set.insert(p3);
+  TEST_EQUAL(pos_set.size(), 2)
+
+  // Test use in unordered_map
+  std::unordered_map<DPosition<2>, int> pos_map;
+  pos_map[p1] = 42;
+  TEST_EQUAL(pos_map[p1], 42)
+  TEST_EQUAL(pos_map[p2], 42) // p2 == p1, should get same value
+  pos_map[p3] = 99;
+  TEST_EQUAL(pos_map[p3], 99)
+  TEST_EQUAL(pos_map.size(), 2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<DPosition<1>>))
+{
+  // Test DPosition<1> hash
+  DPosition<1> p1(1.5);
+  DPosition<1> p2(1.5);
+  DPosition<1> p3(2.5);
+
+  std::hash<DPosition<1>> hasher;
+  TEST_EQUAL(hasher(p1), hasher(p2))
+  TEST_NOT_EQUAL(hasher(p1), hasher(p3))
+
+  std::unordered_set<DPosition<1>> pos_set;
+  pos_set.insert(p1);
+  pos_set.insert(p2);
+  pos_set.insert(p3);
+  TEST_EQUAL(pos_set.size(), 2) // p1 and p2 are the same
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
 
-#pragma clang diagnostic pop
-
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif

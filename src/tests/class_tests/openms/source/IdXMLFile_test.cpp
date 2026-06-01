@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -58,9 +32,9 @@ START_SECTION((IdXMLFile()))
   delete ptr;
 END_SECTION
 
-START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) )
+START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) )
   std::vector<ProteinIdentification> protein_ids;
-  std::vector<PeptideIdentification> peptide_ids;
+  PeptideIdentificationList peptide_ids;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids);
 
   TEST_EQUAL(protein_ids.size(),2)
@@ -68,9 +42,9 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 END_SECTION
 
 
-START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, String& document_id) )
+START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, String& document_id) )
   std::vector<ProteinIdentification> protein_ids;
-  std::vector<PeptideIdentification> peptide_ids;
+  PeptideIdentificationList peptide_ids;
   String document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids, document_id);
 
@@ -89,7 +63,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[0].getSearchParameters().db,"MSDB")
   TEST_EQUAL(protein_ids[0].getSearchParameters().db_version,"1.0")
   TEST_EQUAL(protein_ids[0].getSearchParameters().charges,"1, 2")
-  TEST_EQUAL(protein_ids[0].getSearchParameters().mass_type,ProteinIdentification::AVERAGE)
+  TEST_EQUAL(protein_ids[0].getSearchParameters().mass_type,ProteinIdentification::PeakMassType::AVERAGE)
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().fragment_mass_tolerance,0.3)
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_mass_tolerance,1.0)
   TEST_EQUAL((String)(protein_ids[0].getMetaValue("name")),"ProteinIdentification")
@@ -125,7 +99,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(peptide_ids[0].getIdentifier().hasPrefix("Mascot_2006-01-12T12:13:14"), true)
   TEST_REAL_SIMILAR(peptide_ids[0].getMZ(),675.9)
   TEST_REAL_SIMILAR(peptide_ids[0].getRT(),1234.5)
-  TEST_EQUAL((peptide_ids[0].getMetaValue("spectrum_reference")),"17")
+  TEST_EQUAL((peptide_ids[0].getSpectrumReference()),"17")
   TEST_EQUAL((String)(peptide_ids[0].getMetaValue("name")),"PeptideIdentification")
   TEST_EQUAL(peptide_ids[0].getHits().size(),2)
   //peptide hit 1
@@ -174,7 +148,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[1].getSearchParameters().db,"MSDB")
   TEST_EQUAL(protein_ids[1].getSearchParameters().db_version,"1.1")
   TEST_EQUAL(protein_ids[1].getSearchParameters().charges,"1, 2, 3")
-  TEST_EQUAL(protein_ids[1].getSearchParameters().mass_type,ProteinIdentification::MONOISOTOPIC)
+  TEST_EQUAL(protein_ids[1].getSearchParameters().mass_type,ProteinIdentification::PeakMassType::MONOISOTOPIC)
   TEST_REAL_SIMILAR(protein_ids[1].getSearchParameters().fragment_mass_tolerance,0.3)
   TEST_REAL_SIMILAR(protein_ids[1].getSearchParameters().precursor_mass_tolerance,1.0)
   TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications.size(),2)
@@ -204,11 +178,11 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(pes4[0].getAAAfter(), PeptideEvidence::UNKNOWN_AA)
 END_SECTION
 
-START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id="") )
+START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const String& document_id="") )
 
   // load, store, and reload data
   std::vector<ProteinIdentification> protein_ids, protein_ids2;
-  std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
+  PeptideIdentificationList peptide_ids, peptide_ids2;
   String document_id, document_id2;
   String target_file = OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML");
   IdXMLFile().load(target_file, protein_ids2, peptide_ids2, document_id2);
@@ -227,7 +201,7 @@ END_SECTION
 
 START_SECTION([EXTRA] static bool isValid(const String& filename))
   std::vector<ProteinIdentification> protein_ids, protein_ids2;
-  std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
+  PeptideIdentificationList peptide_ids, peptide_ids2;
   String filename;
   IdXMLFile f;
 
@@ -253,7 +227,7 @@ END_SECTION
 START_SECTION(([EXTRA] No protein identification bug))
   IdXMLFile id_xmlfile;
   vector<ProteinIdentification> protein_ids;
-  vector<PeptideIdentification> peptide_ids;
+  PeptideIdentificationList peptide_ids;
   id_xmlfile.load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_no_proteinhits.idXML"), protein_ids, peptide_ids);
 
   TEST_EQUAL(protein_ids.size(), 1)
@@ -266,7 +240,7 @@ START_SECTION(([EXTRA] No protein identification bug))
   id_xmlfile.store(filename , protein_ids, peptide_ids);
 
   vector<ProteinIdentification> protein_ids2;
-  vector<PeptideIdentification> peptide_ids2;
+  PeptideIdentificationList peptide_ids2;
   id_xmlfile.load(filename, protein_ids2, peptide_ids2);
 
   // identifiers contain a random number when loaded to avoid ambiguities when merging ProtIDs; make them equal for our purposes here
@@ -276,14 +250,14 @@ START_SECTION(([EXTRA] No protein identification bug))
     pep.setIdentifier(peptide_ids[0].getIdentifier());
   }
 
-  TEST_EQUAL(protein_ids == protein_ids2, true)
-  TEST_EQUAL(peptide_ids == peptide_ids2, true)
+  TEST_TRUE(protein_ids == protein_ids2)
+  TEST_TRUE(peptide_ids == peptide_ids2)
 
 END_SECTION
 
 START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   vector<ProteinIdentification> protein_ids;
-  vector<PeptideIdentification> peptide_ids;
+  PeptideIdentificationList peptide_ids;
 
   String input_file= OPENMS_GET_TEST_DATA_PATH("IdXML_XLMS_labelled.idXML");
   IdXMLFile().load(input_file, protein_ids, peptide_ids);
@@ -297,6 +271,55 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[25].annotation, "[alpha|xi$y8]")
 
 END_SECTION
+
+START_SECTION([EXTRA] Compressed file writing - gzip round-trip)
+  // Load reference data
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids);
+
+  // Store as gzip-compressed file
+  String tmp_gz;
+  NEW_TMP_FILE(tmp_gz);
+  tmp_gz += ".gz";
+  IdXMLFile().store(tmp_gz, protein_ids, peptide_ids);
+
+  // Load back from compressed file
+  std::vector<ProteinIdentification> protein_ids_gz;
+  PeptideIdentificationList peptide_ids_gz;
+  IdXMLFile().load(tmp_gz, protein_ids_gz, peptide_ids_gz);
+
+  // Verify round-trip integrity
+  TEST_EQUAL(protein_ids_gz.size(), protein_ids.size())
+  TEST_EQUAL(peptide_ids_gz.size(), peptide_ids.size())
+  TEST_EQUAL(protein_ids_gz[0].getHits().size(), protein_ids[0].getHits().size())
+  TEST_EQUAL(protein_ids_gz[0].getHits()[0].getAccession(), protein_ids[0].getHits()[0].getAccession())
+END_SECTION
+
+START_SECTION([EXTRA] Compressed file writing - bzip2 round-trip)
+  // Load reference data
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids);
+
+  // Store as bzip2-compressed file
+  String tmp_bz2;
+  NEW_TMP_FILE(tmp_bz2);
+  tmp_bz2 += ".bz2";
+  IdXMLFile().store(tmp_bz2, protein_ids, peptide_ids);
+
+  // Load back from compressed file
+  std::vector<ProteinIdentification> protein_ids_bz2;
+  PeptideIdentificationList peptide_ids_bz2;
+  IdXMLFile().load(tmp_bz2, protein_ids_bz2, peptide_ids_bz2);
+
+  // Verify round-trip integrity
+  TEST_EQUAL(protein_ids_bz2.size(), protein_ids.size())
+  TEST_EQUAL(peptide_ids_bz2.size(), peptide_ids.size())
+  TEST_EQUAL(protein_ids_bz2[0].getHits().size(), protein_ids[0].getHits().size())
+  TEST_EQUAL(protein_ids_bz2[0].getHits()[0].getAccession(), protein_ids[0].getHits()[0].getAccession())
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

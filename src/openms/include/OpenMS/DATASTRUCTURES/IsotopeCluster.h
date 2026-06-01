@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -40,37 +14,75 @@
 
 namespace OpenMS
 {
-  ///Stores information about an isotopic cluster (i.e. potential peptide charge variants)
+  /**
+    @brief Stores information about an isotopic cluster (i.e. potential peptide charge variants)
+    
+    An isotopic cluster represents a group of related peaks that likely originate from the same
+    peptide but with different isotopic compositions. This structure stores the indices of these
+    peaks and the scans they appear in, along with charge state information when available.
+    
+    The structure is typically used in mass spectrometry data analysis to group related peaks
+    and track their charge states for further processing.
+    
+    @ingroup Datastructures
+  */
   struct OPENMS_DLLAPI IsotopeCluster
   {
-    /// An index e.g. in an MSExperiment
+    /**
+      @brief An index pair typically representing (scan_index, peak_index) in an MSExperiment
+      
+      The first value usually refers to the scan/spectrum index, while the second value
+      refers to the peak index within that scan/spectrum.
+    */
     typedef std::pair<Size, Size> IndexPair;
-    /// A set of index pairs, usually referring to an MSExperiment.
+    
+    /**
+      @brief A set of index pairs, usually referring to peaks in an MSExperiment
+      
+      This collection stores unique pairs of indices that point to specific peaks
+      in specific scans of a mass spectrometry experiment.
+    */
     typedef std::set<IndexPair> IndexSet;
 
-    ///index set with associated charge estimate
+    /**
+      @brief Index set with associated charge estimate
+      
+      Extends the basic IndexSet with charge state information for the peaks.
+      This allows tracking which peaks belong to the same isotopic pattern
+      and what charge state they represent.
+    */
     struct ChargedIndexSet :
       public IndexSet
     {
+      /**
+        @brief Default constructor
+        
+        Initializes the charge to 0, which by convention means "no charge estimate"
+      */
       ChargedIndexSet() :
         charge(0)
       {
       }
 
-      /// charge estimate (convention: zero means "no charge estimate")
+      /// Charge estimate (convention: zero means "no charge estimate")
       Int charge;
     };
 
+    /**
+      @brief Default constructor
+      
+      Initializes an empty isotope cluster with no peaks and no scans
+    */
     IsotopeCluster() :
       peaks(),
       scans()
     {
     }
 
-    /// peaks in this cluster
+    /// Peaks in this cluster, with their charge state information
     ChargedIndexSet peaks;
 
-    /// the scans of this cluster
+    /// The scan indices where this cluster appears
     std::vector<Size> scans;
   };
 

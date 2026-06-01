@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -39,6 +13,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
@@ -74,21 +49,21 @@ public:
 
     /** load the results of an Inspect search
 
-            @param result_filename Input parameter which is the file name of the input file
-            @param peptide_identifications Output parameter which holds the peptide identifications from the given file
-            @param protein_identification Output parameter which holds the protein identifications from the given file
-            @param p_value_threshold
-            @param database_filename
+            @param[out] result_filename Input parameter which is the file name of the input file
+            @param[out] peptide_identifications Output parameter which holds the peptide identifications from the given file
+            @param[out] protein_identification Output parameter which holds the protein identifications from the given file
+            @param[in] p_value_threshold
+            @param[in] database_filename
             @throw FileNotFound is thrown if the given file could not be found
             @throw ParseError is thrown if the given file could not be parsed
             @throw FileEmpty is thrown if the given file is empty
     */
-    std::vector<Size> load(const String & result_filename, std::vector<PeptideIdentification> & peptide_identifications, ProteinIdentification & protein_identification, const double p_value_threshold, const String & database_filename = "");
+    std::vector<Size> load(const String & result_filename, PeptideIdentificationList & peptide_identifications, ProteinIdentification & protein_identification, const double p_value_threshold, const String & database_filename = "");
 
     /** loads only results which exceeds a given P-value threshold
 
-            @param result_filename The filename of the results file
-            @param p_value_threshold Only identifications exceeding this threshold are read
+            @param[in] result_filename The filename of the results file
+            @param[in] p_value_threshold Only identifications exceeding this threshold are read
             @throw FileNotFound is thrown is the file is not found
             @throw FileEmpty is thrown if the given file is empty
     */
@@ -118,7 +93,7 @@ public:
 
             @throw Exception::ParseError
     */
-    void getPrecursorRTandMZ(const std::vector<std::pair<String, std::vector<std::pair<Size, Size> > > > & files_and_peptide_identification_with_scan_number, std::vector<PeptideIdentification> & ids);
+    void getPrecursorRTandMZ(const std::vector<std::pair<String, std::vector<std::pair<Size, Size> > > > & files_and_peptide_identification_with_scan_number, PeptideIdentificationList & ids);
 
     /** retrieve the labels of a given database (at the moment FASTA and Swissprot)
 
@@ -150,7 +125,7 @@ public:
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not determine type of the file. Aborting!", in_filename);
       }
       type = FileTypes::typeToName(in_type);
-      fh.loadExperiment(in_filename, exp, in_type, ProgressLogger::NONE, false, false);
+      fh.loadExperiment(in_filename, exp, {in_type});
     }
 
     /**

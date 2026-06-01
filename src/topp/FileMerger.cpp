@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -37,15 +11,13 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -59,42 +31,91 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_FileMerger FileMerger
+@page TOPP_FileMerger FileMerger
 
-  @brief Merges several files. Multiple output formats supported, depending on the input format.
+@brief Merges several files. Multiple output formats supported, depending on the input format.
 
-  <center>
-  <table>
-  <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> &rarr; FileMerger &rarr;</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool/instrument producing mergeable files </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating merged files (e.g. @ref TOPP_XTandemAdapter for mzML, @ref TOPP_ProteinQuantifier for consensusXML) </td>
-  </tr>
-  </table>
-  </center>
+<B>Supported input/output file type combinations:</B>
 
-  Special attention should be given to the append_method for consensusXMLs. One column corresponds to one channel/label + raw file. Rows are quantified and linked features.
-  More details on the use cases can be found at the parameter description.
-  
-  For non-consensusXML or consensusXML merging with append_rows, the meta information that is valid for the whole experiment (e.g. MS instrument and sample)
-  is taken from the first file only.
+<center>
+<table>
+<tr>
+<th ALIGN = "center"> Input file type(s) </th>
+<th ALIGN = "center"> Output file type </th>
+<th ALIGN = "center"> Notes </th>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> featureXML </td>
+<td VALIGN="middle" ALIGN = "center"> featureXML </td>
+<td VALIGN="middle" ALIGN = "left"> Features from multiple files are merged by simple concatenation into a single output file. Peptide and protein identifications are appended; conflicting unique IDs are updated to maintain consistency </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> consensusXML </td>
+<td VALIGN="middle" ALIGN = "center"> consensusXML </td>
+<td VALIGN="middle" ALIGN = "left"> See append_method parameter (append_rows or append_cols) </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> traML </td>
+<td VALIGN="middle" ALIGN = "center"> traML </td>
+<td VALIGN="middle" ALIGN = "left"> Targeted experiment transitions are combined </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> fasta </td>
+<td VALIGN="middle" ALIGN = "center"> fasta </td>
+<td VALIGN="middle" ALIGN = "left"> Protein/peptide sequences are combined; warnings for duplicates </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> mzML, mzXML, mzData </td>
+<td VALIGN="middle" ALIGN = "center"> mzML </td>
+<td VALIGN="middle" ALIGN = "left"> Raw MS data formats merge to mzML </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> dta, dta2d </td>
+<td VALIGN="middle" ALIGN = "center"> mzML </td>
+<td VALIGN="middle" ALIGN = "left"> DTA formats merge to mzML; RT handling via raw:* parameters </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> mgf, fid </td>
+<td VALIGN="middle" ALIGN = "center"> mzML </td>
+<td VALIGN="middle" ALIGN = "left"> Other raw data formats merge to mzML </td>
+</tr>
+</table>
+</center>
 
-  For spectrum-containing formats (no feature/consensusXML), the retention times for the individual scans are taken from either:
-  <ul>
-  <li>the input file meta data (e.g. mzML)
-  <li>from the input file names (name must contain 'rt' directly followed by a number, e.g. 'myscan_rt3892.98_MS2.dta')
-  <li>as a list (one RT for each file)
-  <li>or are auto-generated (starting at 1 with 1 second increment).
-  </ul>
+@note All input files for a single merge operation must be of the same type (or compatible raw data types that all output to mzML).
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_FileMerger.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_FileMerger.html
+<center>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=2> &rarr; FileMerger &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool/instrument producing mergeable files </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating merged files (e.g. @ref TOPP_CometAdapter for mzML, @ref TOPP_ProteinQuantifier for consensusXML) </td>
+</tr>
+</table>
+</center>
+
+Special attention should be given to the append_method for consensusXMLs. One column corresponds to one channel/label + raw file. Rows are quantified and linked features.
+More details on the use cases can be found at the parameter description.
+
+For non-consensusXML or consensusXML merging with append_rows, the meta information that is valid for the whole experiment (e.g. MS instrument and sample)
+is taken from the first file only.
+
+For spectrum-containing formats (no feature/consensusXML), the retention times for the individual scans are taken from either:
+<ul>
+<li>the input file meta data (e.g. mzML)
+<li>from the input file names (name must contain 'rt' directly followed by a number, e.g. 'myscan_rt3892.98_MS2.dta')
+<li>as a list (one RT for each file)
+<li>or are auto-generated (starting at 1 with 1 second increment).
+</ul>
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FileMerger.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FileMerger.html
  */
 
 // We do not want this class to show up in the docu:
@@ -152,7 +173,7 @@ protected:
     TransformationDescription trafo;
     if (first_file) // no transformation necessary
     {
-      rt_offset_ = map.getMaxRT() + rt_gap_;
+      rt_offset_ = map.getMaxRT() + rt_gap_; // overall range for all spectra
       trafo.fitModel("identity");
     }
     else // subsequent file -> apply transformation
@@ -169,7 +190,7 @@ protected:
     }
     if (!trafo_out.empty())
     {
-      TransformationXMLFile().store(trafo_out, trafo);
+      FileHandler().storeTransformations(trafo_out, trafo, {FileTypes::TRANSFORMATIONXML});
     }
   }
 
@@ -201,7 +222,14 @@ protected:
     bool append_rows = false;
     bool append_cols = false;
     String append_method = getStringOption_("append_method");
-    append_method == "append_rows" ? append_rows = true : append_cols = true; 
+    if (append_method == "append_rows")
+    {
+      append_rows = true;
+    }
+    else
+    {
+      append_cols = true;
+    } 
    
     bool annotate_file_origin =  getFlag_("annotate_file_origin");
     rt_gap_ = getDoubleOption_("rt_concat:gap");
@@ -224,11 +252,11 @@ protected:
     if (force_type == FileTypes::FEATUREXML)
     {
       FeatureMap out;
-      FeatureXMLFile fh;
+      FileHandler fh;
       for (Size i = 0; i < file_list.size(); ++i)
       {
         FeatureMap map;
-        fh.load(file_list[i], map);
+        fh.loadFeatures(file_list[i], map, {FileTypes::FEATUREXML});
 
         if (annotate_file_origin)
         {
@@ -253,15 +281,15 @@ protected:
       // annotate output with data processing info
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
-      fh.store(out_file, out);
+      fh.storeFeatures(out_file, out, {FileTypes::FEATUREXML});
     }
 
     else if (force_type == FileTypes::CONSENSUSXML)
     {
       ConsensusMap out;
-      ConsensusXMLFile fh;
+      FileHandler fh;
       // load the metadata from the first file
-      fh.load(file_list[0], out);
+      fh.loadConsensusFeatures(file_list[0], out, {FileTypes::CONSENSUSXML});
       // but annotate the origins
 
       if (append_rows) {
@@ -277,7 +305,7 @@ protected:
           for (Size i = 1; i < file_list.size(); ++i)
           {
             ConsensusMap map;
-            fh.load(file_list[i], map);
+            fh.loadConsensusFeatures(file_list[i], map, {FileTypes::CONSENSUSXML});
 
             if (annotate_file_origin)
             {
@@ -302,7 +330,7 @@ protected:
           for (Size i = 1; i < file_list.size(); ++i)
           {
             ConsensusMap map;
-            fh.load(file_list[i], map);
+            fh.loadConsensusFeatures(file_list[i], map, {FileTypes::CONSENSUSXML});
             out.appendColumns(map);
           }
       }
@@ -314,7 +342,7 @@ protected:
       // annotate output with data processing info
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
-      fh.store(out_file, out);
+      fh.storeConsensusFeatures(out_file, out,{FileTypes::CONSENSUSXML});
     }
 
     else if (force_type == FileTypes::FASTA)
@@ -356,11 +384,11 @@ protected:
     else if (force_type == FileTypes::TRAML)
     {
       TargetedExperiment out;
-      TraMLFile fh;
+      FileHandler fh;
       for (Size i = 0; i < file_list.size(); ++i)
       {
         TargetedExperiment map;
-        fh.load(file_list[i], map);
+        fh.loadTransitions(file_list[i], map, {FileTypes::TRAML});
         out += map;
       }
 
@@ -374,7 +402,7 @@ protected:
       software.setVersion(VersionInfo::getVersion());
       out.addSoftware(software);
 
-      fh.store(out_file, out);
+      fh.storeTransitions(out_file, out, {FileTypes::TRAML});
     }
     else // raw data input (e.g. mzML)
     {
@@ -406,7 +434,7 @@ protected:
         // load file
         force_type = file_handler.getType(file_list[i]);
         PeakMap in;
-        file_handler.loadExperiment(filename, in, force_type, log_type_);
+        file_handler.loadExperiment(filename, in, {force_type}, log_type_, true, true);
 
         if (in.empty() && in.getChromatograms().empty())
         {
@@ -506,9 +534,7 @@ protected:
       // annotate output with data processing info
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
-      MzMLFile f;
-      f.setLogType(log_type_);
-      f.store(out_file, out);
+      FileHandler().storeExperiment(out_file, out,{FileTypes::MZML}, log_type_);
     }
 
     return EXECUTION_OK;

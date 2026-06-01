@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
@@ -36,14 +10,14 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/FORMAT/MSPGenericFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
+#include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
@@ -217,7 +191,7 @@ namespace OpenMS
       const std::vector<Precursor>& precursors = spectrum.getPrecursors();
       if (precursors.empty())
       {
-        OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0." << std::endl;
+        OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0.\n";
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
 
@@ -241,7 +215,8 @@ namespace OpenMS
 
       // Lambda to create the feature
       auto construct_feature = [checkRtAndMzTol, spectrum_rt, spectrum_mz, &ms2_features, &annotated_spectra, &spectrum](
-        const OpenMS::Feature& feature, const double& mz_tol, const double& rt_win) {
+        const OpenMS::Feature& feature, const double& mz_tol, const double& rt_win)
+      {
         const auto& peptide_ref_s = feature.getMetaValue("PeptideRef");
         const auto& native_id_s = feature.getMetaValue("native_id");
         // check for null annotations resulting from unnanotated features
@@ -252,7 +227,7 @@ namespace OpenMS
           if (checkRtAndMzTol(spectrum_mz, spectrum_rt, target_mz, target_rt, mz_tol, rt_win))
           {
             OPENMS_LOG_DEBUG << "annotateSpectra(): " << peptide_ref_s << "]";
-            OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl;
+            OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")\n";
             MSSpectrum annotated_spectrum = spectrum;
             annotated_spectrum.setName(peptide_ref_s);
             annotated_spectra.push_back(std::move(annotated_spectrum));
@@ -389,7 +364,7 @@ namespace OpenMS
       const std::vector<Precursor>& precursors = spectrum.getPrecursors();
       if (precursors.empty())
       {
-        OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0." << std::endl;
+        OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0.\n";
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
       const double mz_tolerance = mz_unit_is_Da_ ? mz_tolerance_ : mz_tolerance_ / 1e6;
@@ -398,7 +373,7 @@ namespace OpenMS
       const double mz_left_lim = spectrum_mz ? spectrum_mz - mz_tolerance : std::numeric_limits<double>::min();
       const double mz_right_lim = spectrum_mz ? spectrum_mz + mz_tolerance : std::numeric_limits<double>::max();
 
-      OPENMS_LOG_DEBUG << "annotateSpectra(): [" << i << "] (RT: " << spectrum_rt << ") (MZ: " << spectrum_mz << ")" << std::endl;
+      OPENMS_LOG_DEBUG << "annotateSpectra(): [" << i << "] (RT: " << spectrum_rt << ") (MZ: " << spectrum_mz << ")\n";
 
       for (Size j = 0; j < transitions.size(); ++j)
       {
@@ -413,7 +388,7 @@ namespace OpenMS
             target_mz >= mz_left_lim && target_mz <= mz_right_lim)
         {
           OPENMS_LOG_DEBUG << "annotateSpectra(): [" << j << "][" << transitions[j].getPeptideRef() << "]";
-          OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl << std::endl;
+          OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl << '\n';
           MSSpectrum annotated_spectrum = spectrum;
           annotated_spectrum.setName(transitions[j].getPeptideRef());
           annotated_spectra.push_back(annotated_spectrum);
@@ -428,7 +403,7 @@ namespace OpenMS
         }
       }
     }
-    OPENMS_LOG_DEBUG << "annotateSpectra(): (input size: " << spectra.size() << ") (annotated spectra: " << annotated_spectra.size() << ")\n" << std::endl;
+    OPENMS_LOG_DEBUG << "annotateSpectra(): (input size: " << spectra.size() << ") (annotated spectra: " << annotated_spectra.size() << ")\n\n";
   }
 
   void TargetedSpectraExtractor::annotateSpectra(
@@ -482,33 +457,30 @@ namespace OpenMS
     pp.setParameters(pepi_param);
     pp.pick(smoothed_spectrum, picked_spectrum);
 
-    std::vector<Int> peaks_pos_to_erase;
+    // Build indices of peaks to keep (properly handles all DataArrays via select())
+    std::vector<Size> indices_to_keep;
     const double fwhm_threshold = mz_unit_is_Da_ ? fwhm_threshold_ : fwhm_threshold_ / 1e6;
-    for (Int i = picked_spectrum.size() - 1; i >= 0; --i)
+    for (Size i = 0; i < picked_spectrum.size(); ++i)
     {
-      if (picked_spectrum[i].getIntensity() < peak_height_min_ ||
-          picked_spectrum[i].getIntensity() > peak_height_max_ ||
-          picked_spectrum.getFloatDataArrays()[0][i] < fwhm_threshold)
+      if (picked_spectrum[i].getIntensity() >= peak_height_min_ &&
+          picked_spectrum[i].getIntensity() <= peak_height_max_ &&
+          picked_spectrum.getFloatDataArrays()[0][i] >= fwhm_threshold)
       {
-        peaks_pos_to_erase.push_back(i);
+        indices_to_keep.push_back(i);
       }
     }
 
-    if (peaks_pos_to_erase.size() != picked_spectrum.size()) // if not all peaks are to be removed
-    {
-      for (Int i : peaks_pos_to_erase) // then keep only the valid peaks (and fwhm)
-      {
-        picked_spectrum.erase(picked_spectrum.begin() + i);
-        picked_spectrum.getFloatDataArrays()[0].erase(picked_spectrum.getFloatDataArrays()[0].begin() + i);
-      }
-    }
-    else // otherwise output an empty picked_spectrum
+    if (indices_to_keep.empty()) // otherwise output an empty picked_spectrum
     {
       picked_spectrum.clear(true);
     }
+    else if (indices_to_keep.size() != picked_spectrum.size())
+    {
+      picked_spectrum.select(indices_to_keep);
+    }
 
     OPENMS_LOG_DEBUG << "pickSpectrum(): " << spectrum.getName() << " (input size: " <<
-      spectrum.size() << ") (picked: " << picked_spectrum.size() << ")\n" << std::endl;
+      spectrum.size() << ") (picked: " << picked_spectrum.size() << ")\n\n";
   }
 
   void TargetedSpectraExtractor::scoreSpectra(
@@ -523,7 +495,7 @@ namespace OpenMS
     scored_spectra.resize(annotated_spectra.size());
     if (compute_features && scored_spectra.size() != features.size())
     {
-      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, scored_spectra.size(), "scored_spectra size does not match features size");
     }
     for (Size i = 0; i < annotated_spectra.size(); ++i)
     {
@@ -613,7 +585,7 @@ namespace OpenMS
   {
     if (compute_features && scored_spectra.size() != features.size())
     {
-      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, scored_spectra.size(), "scored_spectra size does not match features size");
     }
     std::map<std::string,UInt> transition_best_spec;
     for (UInt i = 0; i < scored_spectra.size(); ++i)
@@ -800,7 +772,7 @@ namespace OpenMS
   {
     if (spectra.size() != features.size())
     {
-      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, spectra.size(), "spectra size does not match features size");
     }
 
     std::vector<Size> no_matches_idx; // to keep track of those features without a match
@@ -837,7 +809,7 @@ namespace OpenMS
       {
         warn_msg += std::to_string(idx) + " ";
       }
-      OPENMS_LOG_WARN << std:: endl << warn_msg << std::endl;
+      OPENMS_LOG_WARN << std:: endl << warn_msg << '\n';
     }
   }
 
@@ -869,7 +841,7 @@ namespace OpenMS
       const std::vector<Precursor>& precursors = spectrum.getPrecursors();
       if (precursors.empty())
       {
-        OPENMS_LOG_WARN << "untargetedMatching(): No precursor MZ found. Setting spectrum_mz to 0." << std::endl;
+        OPENMS_LOG_WARN << "untargetedMatching(): No precursor MZ found. Setting spectrum_mz to 0.\n";
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
       Feature feature;
@@ -1050,8 +1022,7 @@ namespace OpenMS
     removeMS2SpectraPeaks_(experiment);
 
     // Store
-    MSPGenericFile msp_file;
-    msp_file.store(filename, experiment);
+    FileHandler().storeExperiment(filename, experiment, {FileTypes::MSP});
   }
   
   void TargetedSpectraExtractor::deisotopeMS2Spectra_(MSExperiment& experiment) const
@@ -1088,22 +1059,24 @@ namespace OpenMS
       {
         continue;
       }
-      // if peak mz higher than precursor mz set intensity to zero
+      // Remove peaks with mz higher than precursor mz AND remove zero-intensity peaks
+      // (properly handles DataArrays via select())
       double prec_mz = spectrum.getPrecursors()[0].getMZ();
       double mass_diff = Math::ppmToMass(max_precursor_mass_threashold_, prec_mz);
-      for (auto& spec : spectrum)
+      std::vector<Size> indices_to_keep;
+      indices_to_keep.reserve(spectrum.size());
+      for (Size i = 0; i < spectrum.size(); ++i)
       {
-        if (spec.getMZ() > prec_mz + mass_diff)
+        // Keep peaks that are within mass threshold AND have intensity >= 1
+        if (spectrum[i].getMZ() <= prec_mz + mass_diff && spectrum[i].getIntensity() >= 1)
         {
-          spec.setIntensity(0);
+          indices_to_keep.push_back(i);
         }
       }
-      spectrum.erase(remove_if(spectrum.begin(),
-                               spectrum.end(),
-                               InIntensityRange<PeakMap::PeakType>(1,
-                                                                   std::numeric_limits<PeakMap::PeakType::IntensityType>::max(),
-                                                                   true)),
-                     spectrum.end());
+      if (indices_to_keep.size() != spectrum.size())
+      {
+        spectrum.select(indices_to_keep);
+      }
     }
   }
 
@@ -1153,7 +1126,7 @@ namespace OpenMS
       library_.push_back(s);
       bs_library_.emplace_back(s, bin_size_, false, peak_spread_, bin_offset_);
     }
-    OPENMS_LOG_INFO << "The library contains " << bs_library_.size() << " spectra." << std::endl;
+    OPENMS_LOG_INFO << "The library contains " << bs_library_.size() << " spectra.\n";
   }
 
 }// namespace OpenMS

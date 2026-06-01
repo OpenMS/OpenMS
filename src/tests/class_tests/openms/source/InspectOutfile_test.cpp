@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -37,6 +11,7 @@
 
 #include <OpenMS/FORMAT/InspectOutfile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -121,7 +96,7 @@ END_SECTION
 InspectOutfile file;
 
 START_SECTION(std::vector< Size > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const double p_value_threshold, const String& database_filename = ""))
-	vector< PeptideIdentification > peptide_identifications;
+	PeptideIdentificationList peptide_identifications;
 	ProteinIdentification protein_identification;
 
 	// test exceptions
@@ -148,7 +123,6 @@ START_SECTION(std::vector< Size > load(const String& result_filename, std::vecto
             vector<PeptideEvidence> pes = peptide_identifications[0].getHits()[0].getPeptideEvidences();
             TEST_EQUAL(pes[0].getAABefore(), 'E')
             TEST_EQUAL(pes[0].getAAAfter(), 'K')
-			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getCharge(), 1)
             TEST_EQUAL(pes.size(), 1)
             TEST_STRING_EQUAL(pes[0].getProteinAccession(), "P68509")
@@ -171,7 +145,6 @@ START_SECTION(std::vector< Size > load(const String& result_filename, std::vecto
             vector<PeptideEvidence> pes = peptide_identifications[0].getHits()[0].getPeptideEvidences();
             TEST_EQUAL(pes[0].getAABefore(), 'E')
             TEST_EQUAL(pes[0].getAAAfter(), 'K')
-			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getCharge(), 1)
             TEST_EQUAL(pes.size(), 1)
             TEST_STRING_EQUAL(pes[0].getProteinAccession(), "P68509")
@@ -180,7 +153,6 @@ START_SECTION(std::vector< Size > load(const String& result_filename, std::vecto
             vector<PeptideEvidence> pes1 = peptide_identifications[0].getHits()[1].getPeptideEvidences();
             TEST_EQUAL(pes1[0].getAABefore(), 'R')
             TEST_EQUAL(pes1[0].getAAAfter(), 'K')
-			TEST_EQUAL(peptide_identifications[0].getHits()[1].getRank(), 2)
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getCharge(), 1)
             TEST_EQUAL(pes1.size(), 1)
             TEST_STRING_EQUAL(pes1[0].getProteinAccession(), "P68509")
@@ -359,7 +331,7 @@ END_SECTION
 
 START_SECTION(void getPrecursorRTandMZ(const vector< pair< String, vector< pair < Size, Size > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids))
 	vector< pair< String, vector< pair< Size, Size > > > > files_and_peptide_identification_with_scan_number;
-	vector< PeptideIdentification > ids, ids_found;
+	PeptideIdentificationList ids, ids_found;
 
 	// test exceptions
 	files_and_peptide_identification_with_scan_number.push_back(make_pair(spectrum_file1, vector< pair< Size, Size > >(1, make_pair(0, 10))));

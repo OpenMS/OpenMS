@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julia Thueringer $
@@ -35,12 +9,12 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 
 // calculate pearson distance
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 // create binary tree
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
-#include <OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>
+#include <OpenMS/ML/CLUSTERING/ClusterHierarchical.h>
+#include <OpenMS/ML/CLUSTERING/AverageLinkage.h>
 // align maps and generate output
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
@@ -131,7 +105,7 @@ namespace OpenMS
   }; // end of PeptideIdentificationsPearsonDifference
 
   // For given peptide identifications extract sequences and store with associated feature RT.
-  void MapAlignmentAlgorithmTreeGuided::addPeptideSequences_(const std::vector<PeptideIdentification>& peptides,
+  void MapAlignmentAlgorithmTreeGuided::addPeptideSequences_(const PeptideIdentificationList& peptides,
           SeqAndRTList& peptide_rts, std::vector<double>& map_range, double feature_rt)
   {
     for (const auto& peptide : peptides)
@@ -298,35 +272,27 @@ namespace OpenMS
     OpenMS::MapAlignmentAlgorithmTreeGuided::computeTransformedFeatureMaps(feature_maps, transformations);
   }
 
-  // Extract original RT ("original_RT" MetaInfo) and transformed RT for each feature to compute RT transformations.
+  // Compute RT transformations from the original maps to the final tree-guided consensus RT scale.
   void MapAlignmentAlgorithmTreeGuided::computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_maps,
                                                                   FeatureMap& map_transformed,
                                                                   std::vector<TransformationDescription>& transformations,
-                                                                  const std::vector<Size>& trafo_order)
+                                                                  const std::vector<Size>& /*trafo_order*/)
   {
-    FeatureMap::const_iterator fit = map_transformed.begin();
-    TransformationDescription::DataPoints trafo_data_tmp;
-    for (auto& map_idx : trafo_order)
+    transformations.clear();
+    transformations.resize(feature_maps.size());
+
+    vector<FeatureMap> to_align(2);
+    to_align[1] = map_transformed;
+    vector<TransformationDescription> pair_transformations;
+    pair_transformations.reserve(2);
+
+    for (Size map_idx = 0; map_idx < feature_maps.size(); ++map_idx)
     {
-      for (Size i = 0; i < feature_maps[map_idx].size(); ++i)
-      {
-        TransformationDescription::DataPoint point;
-        if (fit->metaValueExists("original_RT"))
-        {
-          point.first = fit->getMetaValue("original_RT");
-        }
-        else
-        {
-          point.first = fit->getRT();
-        }
-        point.second = fit->getRT();
-        point.note = fit->getUniqueId();
-        trafo_data_tmp.push_back(point);
-        ++fit;
-      }
-      transformations[map_idx] = TransformationDescription(trafo_data_tmp);
+      to_align[0] = feature_maps[map_idx];
+      pair_transformations.clear();
+      align_algorithm_.align(to_align, pair_transformations, 1);
+      transformations[map_idx] = pair_transformations[0];
       transformations[map_idx].fitModel(model_type_, model_param_);
-      trafo_data_tmp.clear();
     }
   }
 

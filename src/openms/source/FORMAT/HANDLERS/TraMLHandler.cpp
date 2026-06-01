@@ -1,37 +1,12 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
 // $Authors: Andreas Bertsch, Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/CONCEPT/LogStream.h"
 #include <OpenMS/FORMAT/HANDLERS/TraMLHandler.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -1072,6 +1047,8 @@ namespace OpenMS::Internal
               // means no annotation and no input cvParam - to write out a cvParam, use Residue::NonIdentified
               break;
             // invalid values
+            case Residue::Zp1Ion: OPENMS_LOG_ERROR << "Zp1 ions not supported. Ignoring." << std::endl; break;
+            case Residue::Zp2Ion: OPENMS_LOG_ERROR << "Zp2 ions not supported. Ignoring." << std::endl; break;
             case Residue::Full: break;
             case Residue::Internal: break;
             case Residue::NTerminal: break;
@@ -1152,7 +1129,7 @@ namespace OpenMS::Internal
           String value = cv_term.getValue().toString();
           if (!value.empty())
           {
-            if (term.xref_type == ControlledVocabulary::CVTerm::NONE)
+            if (term.xref_type == ControlledVocabulary::CVTerm::XRefType::NONE)
             {
               //Quality CV does not state value type :(
               if (!accession.hasPrefix("PATO:"))
@@ -1165,15 +1142,15 @@ namespace OpenMS::Internal
               switch (term.xref_type)
               {
               //string value can be anything
-              case ControlledVocabulary::CVTerm::XSD_STRING:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_STRING:
                 break;
 
               //int value => try casting
-              case ControlledVocabulary::CVTerm::XSD_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_NEGATIVE_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_POSITIVE_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_NON_NEGATIVE_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_NON_POSITIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_NEGATIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_POSITIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER:
                 try
                 {
                   value.toInt();
@@ -1186,7 +1163,7 @@ namespace OpenMS::Internal
                 break;
 
               //double value => try casting
-              case ControlledVocabulary::CVTerm::XSD_DECIMAL:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL:
                 try
                 {
                   value.toDouble();
@@ -1199,7 +1176,7 @@ namespace OpenMS::Internal
                 break;
 
               //date string => try conversion
-              case ControlledVocabulary::CVTerm::XSD_DATE:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_DATE:
                 try
                 {
                   DateTime tmp;
@@ -1219,7 +1196,7 @@ namespace OpenMS::Internal
             }
           }
           //no value, although there should be a numerical value
-          else if (term.xref_type != ControlledVocabulary::CVTerm::NONE && term.xref_type != ControlledVocabulary::CVTerm::XSD_STRING)
+          else if (term.xref_type != ControlledVocabulary::CVTerm::XRefType::NONE && term.xref_type != ControlledVocabulary::CVTerm::XRefType::XSD_STRING)
           {
             warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
             return;

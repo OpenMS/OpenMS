@@ -35,11 +35,11 @@ def algorithm(exp, targeted, picker, scorer, trafo):
         trmap[ tr.getPeptideRef() ] = tmp
 
     swath_maps_dummy = []
-    for key, value in trmap.iteritems():
+    for key, value in trmap.items():
         try:
             transition_group = getTransitionGroup(exp, targeted, key, value, chrom_map)
         except Exception:
-            print "Skip ", key, value
+            print("Skip ", key, value)
             continue
         picker.pickTransitionGroup(transition_group);
         scorer.scorePeakgroups(transition_group, trafo, swath_maps_dummy, output, False);
@@ -62,13 +62,13 @@ def main(options):
     rt_normalization_factor = 100.0
 
     pp_params = pp.getDefaults();
-    pp_params.setValue("PeakPickerMRM:remove_overlapping_peaks", options.remove_overlapping_peaks, '')
-    pp_params.setValue("PeakPickerMRM:method", options.method, '')
+    pp_params.setValue("PeakPickerChromatogram:remove_overlapping_peaks", options.remove_overlapping_peaks, '')
+    pp_params.setValue("PeakPickerChromatogram:method", options.method, '')
     if (metabolomics):
         # Need to change those for metabolomics and very short peaks!
-        pp_params.setValue("PeakPickerMRM:signal_to_noise", 0.01, '')
-        pp_params.setValue("PeakPickerMRM:peak_width", 0.1, '')
-        pp_params.setValue("PeakPickerMRM:gauss_width", 0.1, '')
+        pp_params.setValue("PeakPickerChromatogram:signal_to_noise", 0.01, '')
+        pp_params.setValue("PeakPickerChromatogram:peak_width", 0.1, '')
+        pp_params.setValue("PeakPickerChromatogram:gauss_width", 0.1, '')
         pp_params.setValue("resample_boundary", 0.05, '')
         pp_params.setValue("compute_peak_quality", "true", '')
     pp.setParameters(pp_params)
@@ -123,4 +123,3 @@ def handle_args():
 if __name__ == '__main__':
     options = handle_args()
     main(options)
-

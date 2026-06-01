@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -38,9 +12,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/OpenMSConfig.h>
-
-class QString;
 
 namespace OpenMS
 {
@@ -101,8 +74,6 @@ public:
     DataValue(const std::string&);
     /// specific constructor for string values
     DataValue(const String&);
-    /// specific constructor for QString values
-    DataValue(const QString&);
     /// specific constructor for string lists
     DataValue(const StringList&);
     /// specific constructor for integer lists
@@ -327,8 +298,6 @@ public:
     DataValue& operator=(const std::string&);
     /// specific assignment for string values
     DataValue& operator=(const String&);
-    /// specific assignment for QString values
-    DataValue& operator=(const QString&);
     /// specific assignment for string lists
     DataValue& operator=(const StringList&);
     /// specific assignment for integer lists
@@ -370,46 +339,29 @@ public:
     **/
     String toString(bool full_precision = true) const;
 
-    ///Conversion to QString
-    QString toQString() const;
     //@}
 
     /// returns the type of value stored
-    inline DataType valueType() const
-    {
-      return value_type_;
-    }
+    DataType valueType() const;
 
     /**
        @brief Test if the value is empty
 
        @note A DataValue containing an empty string ("") does not count as empty!
     */
-    inline bool isEmpty() const
-    {
-      return value_type_ == EMPTY_VALUE;
-    }
+    bool isEmpty() const;
 
     ///@name Methods to handle units
     ///These methods are used when the DataValue has an associated unit.
     //@{
 
     /// returns the type of value stored
-    inline UnitType getUnitType() const
-    {
-      return unit_type_;
-    }
+    UnitType getUnitType() const;
 
-    inline void setUnitType(const UnitType & u)
-    {
-      unit_type_ = u;
-    }
+    void setUnitType(const UnitType & u);
 
     /// Check if the value has a unit
-    inline bool hasUnit() const
-    {
-      return unit_ != -1;
-    }
+    bool hasUnit() const;
 
     /// Return the unit associated to this DataValue.
     const int32_t & getUnit() const;
@@ -461,5 +413,62 @@ private:
     /// Clears the current state of the DataValue and release every used memory.
     void clear_() noexcept;
   };
-}
+} // namespace OpenMS
+
+// Hash function specialization for DataValue
+namespace std
+{
+  /**
+   * @brief Hash function for DataValue.
+   *
+   * Hashes based on the value type, value content, and unit information.
+   * This ensures consistency with operator== which compares all these fields.
+   *
+   * @note For DOUBLE_VALUE, operator== uses epsilon comparison (fabs < 1e-6),
+   *       so we round to 6 decimal places before hashing to maintain consistency.
+   *       For DOUBLE_LIST, we use toString() since list comparison is exact.
+   */
+  template<>
+  struct hash<OpenMS::DataValue>
+  {
+    std::size_t operator()(const OpenMS::DataValue& dv) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash the value type
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(dv.valueType())));
+
+      // Hash the value content based on type
+      if (!dv.isEmpty())
+      {
+        switch (dv.valueType())
+        {
+          case OpenMS::DataValue::DOUBLE_VALUE:
+          {
+            // operator== uses fabs(a - b) < 1e-6 for doubles, so we round to 6 decimal places
+            // to ensure equal values (per operator==) produce identical hashes
+            double val = static_cast<double>(dv);
+            // Round to 6 decimal places: multiply by 1e6, round, then hash as int64
+            int64_t rounded = static_cast<int64_t>(std::round(val * 1e6));
+            OpenMS::hash_combine(seed, OpenMS::hash_int(rounded));
+            break;
+          }
+          default:
+            // For all other types (string, int, lists), use toString() which is consistent with operator==
+            OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(dv.toString()));
+            break;
+        }
+      }
+
+      // Hash unit information if present
+      if (dv.hasUnit())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(dv.getUnitType())));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(dv.getUnit()));
+      }
+
+      return seed;
+    }
+  };
+} // namespace std
 

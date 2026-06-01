@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -37,12 +11,14 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <vector>
 #include <iosfwd>
 #include <map>
+#include <functional>
 
 namespace OpenMS
 {
@@ -108,7 +84,7 @@ namespace OpenMS
 
       @ingroup Chemistry
   */
-  class OPENMS_DLLAPI AASequence
+  class OPENMS_DLLAPI AASequence final
   {
 public:
 
@@ -118,10 +94,9 @@ public:
 
         AASequence constant iterator
     */
-    class OPENMS_DLLAPI ConstIterator
+    class OPENMS_DLLAPI ConstIterator final
     {
-public:
-
+    public:
       // TODO Iterator constructor for ConstIterator
 
       typedef const Residue& const_reference;
@@ -133,26 +108,20 @@ public:
       typedef std::random_access_iterator_tag iterator_category;
 
       /** @name Constructors and destructors
-      */
+       */
       //@{
       /// default constructor
-      ConstIterator()
-      {
-      }
+      ConstIterator() = default;
 
       /// detailed constructor with pointer to the vector and offset position
       ConstIterator(const std::vector<const Residue*>* vec_ptr, difference_type position)
+        : vector_{vec_ptr},
+          position_{position}
       {
-        vector_ = vec_ptr;
-        position_ = position;
       }
 
       /// copy constructor
-      ConstIterator(const ConstIterator& rhs) :
-        vector_(rhs.vector_),
-        position_(rhs.position_)
-      {
-      }
+      ConstIterator(const ConstIterator& rhs) = default;
 
       /// copy constructor from Iterator
       ConstIterator(const AASequence::Iterator& rhs) :
@@ -162,22 +131,12 @@ public:
       }
 
       /// destructor
-      virtual ~ConstIterator()
-      {
-      }
+      ~ConstIterator() = default;
 
       //@}
 
       /// assignment operator
-      ConstIterator& operator=(const ConstIterator& rhs)
-      {
-        if (this != &rhs)
-        {
-          position_ = rhs.position_;
-          vector_ = rhs.vector_;
-        }
-        return *this;
-      }
+      ConstIterator& operator=(const ConstIterator& rhs) = default;
 
       /** @name Operators
       */
@@ -242,10 +201,10 @@ public:
 protected:
 
       // pointer to the AASequence vector
-      const std::vector<const Residue*>* vector_;
+      const std::vector<const Residue*>* vector_ {};
 
       // position in the AASequence vector
-      difference_type position_;
+      difference_type position_ {};
     };
 
 
@@ -253,7 +212,7 @@ protected:
 
         Mutable iterator for AASequence
     */
-    class OPENMS_DLLAPI Iterator
+    class OPENMS_DLLAPI Iterator final
     {
 public:
 
@@ -269,28 +228,20 @@ public:
       */
       //@{
       /// default constructor
-      Iterator()
-      {
-      }
+      Iterator() = default;
 
       /// detailed constructor with pointer to the vector and offset position
       Iterator(std::vector<const Residue*>* vec_ptr, difference_type position)
+        : vector_ {vec_ptr},
+          position_{position}
       {
-        vector_ = vec_ptr;
-        position_ = position;
       }
 
       /// copy constructor
-      Iterator(const Iterator& rhs) :
-        vector_(rhs.vector_),
-        position_(rhs.position_)
-      {
-      }
+      Iterator(const Iterator& rhs) = default;
 
       /// destructor
-      virtual ~Iterator()
-      {
-      }
+      ~Iterator() = default;
 
       //@}
 
@@ -374,10 +325,10 @@ public:
 protected:
 
       // pointer to the AASequence vector
-      std::vector<const Residue*>* vector_;
+      std::vector<const Residue*>* vector_ {};
 
       // position in the AASequence vector
-      difference_type position_;
+      difference_type position_ {};
     };
 
     /** @name Constructors and Destructors
@@ -385,23 +336,23 @@ protected:
     //@{
 
     /// Default constructor
-    AASequence();
+    AASequence() = default;
 
     /// Copy constructor
     AASequence(const AASequence&) = default;
 
     /// Move constructor
-    AASequence(AASequence&&) noexcept = default;
+    AASequence(AASequence&&) = default;
 
     /// Destructor
-    virtual ~AASequence();
+    ~AASequence() = default;
     //@}
 
     /// Assignment operator
     AASequence& operator=(const AASequence&) = default;
 
     /// Move assignment operator
-    AASequence& operator=(AASequence&&) = default; // TODO: add noexcept (gcc 4.8 bug)
+    AASequence& operator=(AASequence&&) = default;
 
     /// check if sequence is empty
     bool empty() const;
@@ -448,9 +399,9 @@ protected:
 
         will be produced, depending on whether relative or absolute masses are used.
 
-        @param integer_mass Whether to use integer masses in brackets (default is true, if false, accurate masses will be written)
-        @param mass_delta Whether to write absolute masses M[147] or relative mass deltas M[+16] (default is false)
-        @param fixed_modifications Optional list of fixed modifications that should not be added to the output (they are considered to be present in all cases)
+        @param[in] integer_mass Whether to use integer masses in brackets (default is true, if false, accurate masses will be written)
+        @param[in] mass_delta Whether to write absolute masses M[147] or relative mass deltas M[+16] (default is false)
+        @param[in] fixed_modifications Optional list of fixed modifications that should not be added to the output (they are considered to be present in all cases)
 
         @note Using integer masses may mean that there could be multiple modifications mapping to the same mass
     */
@@ -465,17 +416,17 @@ protected:
     /// sets the modification of AA at @p index by providing an already, potentially modified residue
     void setModification(Size index, const Residue* modification);
 
-    /// sets the modification of AA at @p index by providing a pointer to a @class ResidueModification object found in the @class ModificationsDB
+    /// sets the modification of AA at @p index by providing a pointer to a ResidueModification object found in the ModificationsDB
     void setModification(Size index, const ResidueModification* modification);
 
-    /// sets the modification of AA at @p index by providing a @class ResidueModification object
+    /// sets the modification of AA at @p index by providing a ResidueModification object
     /// stricter than just looking for the name and adds the Modification to the DB if not present
     void setModification(Size index, const ResidueModification& modification);
 
-    /// modifies the residue at @p index in the sequence and potentially in the @class ResidueDB
+    /// modifies the residue at @p index in the sequence and potentially in the ResidueDB
     void setModificationByDiffMonoMass(Size index, double diffMonoMass);
 
-    /// sets the N-terminal modification (by lookup in the mod names of the @class ModificationsDB)
+    /// sets the N-terminal modification (by lookup in the mod names of the ModificationsDB)
     /// throws if nothing is found (since the name is not enough information to create a new mod)
     void setNTerminalModification(const String& modification);
 
@@ -494,7 +445,7 @@ protected:
     /// returns a pointer to the N-terminal modification, or zero if none is set
     const ResidueModification* getNTerminalModification() const;
 
-    /// sets the C-terminal modification (by lookup in the mod names of the @class ModificationsDB)
+    /// sets the C-terminal modification (by lookup in the mod names of the ModificationsDB)
     /// throws if nothing is found (since the name is not enough information to create a new mod)
     void setCTerminalModification(const String& modification);
 
@@ -629,8 +580,8 @@ protected:
     /**
       @brief create AASequence object by parsing an OpenMS string
 
-      @param s Input string
-      @param permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
+      @param[in] s Input string
+      @param[in] permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
 
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
@@ -640,21 +591,39 @@ protected:
     /**
       @brief create AASequence object by parsing a C string (character array)
 
-      @param s Input string
-      @param permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
+      @param[in] s Input string
+      @param[in] permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
 
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
     static AASequence fromString(const char* s,
                                  bool permissive = true);
 
+    /// @brief constructor from String
+    /// @param[in] s A String representing the amino acid sequence
+    explicit AASequence(const String& s);
+
+    /// @brief constructor from C string
+    /// @param[in] s A C-style string representing the amino acid sequence
+    explicit AASequence(const char* s);
+
+    /// @brief constructor from String
+    /// @param[in] s A String representing the amino acid sequence
+    /// @param[in] permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
+    explicit AASequence(const String& s, bool permissive);
+
+    /// @brief constructor from C string
+    /// @param[in] s A C-style string representing the amino acid sequence
+    /// @param[in] permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
+    explicit AASequence(const char* s, bool permissive);
+
   protected:
 
     std::vector<const Residue*> peptide_;
 
-    const ResidueModification* n_term_mod_;
+    const ResidueModification* n_term_mod_ = nullptr;
 
-    const ResidueModification* c_term_mod_;
+    const ResidueModification* c_term_mod_ = nullptr;
 
     /**
       @brief Parses modifications in round brackets (an identifier)
@@ -662,10 +631,10 @@ protected:
       If dot notation is used it resolves cterm ambiguity based on the presence
       of the dot.
 
-      @param str_it Current position in the string to be parsed
-      @param str Full input string
-      @param aas Current AASequence object (will be modified with the correct residue added)
-      @param specificity Whether the current modification should be interpreted as N- or C-terminal
+      @param[in] str_it Current position in the string to be parsed
+      @param[in] str Full input string
+      @param[in,out] aas Current AASequence object (will be modified with the correct residue added)
+      @param[in] specificity Whether the current modification should be interpreted as N- or C-terminal
 
       @return Position at which to continue parsing
     */
@@ -680,10 +649,10 @@ protected:
       If dot notation is used it resolves cterm ambiguity based on the presence
       of the dot.
 
-      @param str_it Current position in the string to be parsed
-      @param str Full input string
-      @param aas Current AASequence object (will be modified with the correct residue added)
-      @param specificity Whether the current modification should be interpreted as N- or C-terminal
+      @param[in] str_it Current position in the string to be parsed
+      @param[in] str Full input string
+      @param[in,out] aas Current AASequence object (will be modified with the correct residue added)
+      @param[in] specificity Whether the current modification should be interpreted as N- or C-terminal
 
       @return Position at which to continue parsing
     */
@@ -701,5 +670,73 @@ protected:
   OPENMS_DLLAPI std::istream& operator>>(std::istream& os, const AASequence& peptide);
 
 } // namespace OpenMS
+
+// Hash function specialization for AASequence
+// Placed in std namespace to allow use with std::unordered_map/set
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::AASequence.
+   *
+   * Computes a hash based on the amino acid sequence (one-letter codes),
+   * modifications on each residue, and terminal modifications.
+   *
+   * Design decisions:
+   * - Uses one-letter codes instead of pointers for portability
+   * - Includes modification IDs for modified residues
+   * - Includes terminal modifications
+   * - Hash is consistent with operator==
+   *
+   * @note Hash is reproducible across process runs for equal sequences.
+   */
+  template<>
+  struct hash<OpenMS::AASequence>
+  {
+    std::size_t operator()(const OpenMS::AASequence& seq) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash each residue
+      for (const auto& residue : seq)
+      {
+        // Hash one-letter code (single character, fast)
+        const OpenMS::String& olc = residue.getOneLetterCode();
+        if (!olc.empty())
+        {
+          OpenMS::hash_combine(seed, OpenMS::hash_char(olc[0]));
+        }
+
+        // Hash modification if present
+        const OpenMS::ResidueModification* mod = residue.getModification();
+        if (mod != nullptr)
+        {
+          // Use full ID for portability (e.g., "Oxidation (M)")
+          // String inherits from std::string, no copy needed
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(mod->getFullId()));
+        }
+      }
+
+      // Hash N-terminal modification if present
+      const OpenMS::ResidueModification* n_mod = seq.getNTerminalModification();
+      if (n_mod != nullptr)
+      {
+        // Use a different seed offset for N-term to distinguish from C-term
+        std::size_t n_hash = OpenMS::fnv1a_hash_string(n_mod->getFullId());
+        OpenMS::hash_combine(seed, n_hash ^ 0x4e5445524dULL); // "NTERM" in hex-like
+      }
+
+      // Hash C-terminal modification if present
+      const OpenMS::ResidueModification* c_mod = seq.getCTerminalModification();
+      if (c_mod != nullptr)
+      {
+        // Use a different seed offset for C-term
+        std::size_t c_hash = OpenMS::fnv1a_hash_string(c_mod->getFullId());
+        OpenMS::hash_combine(seed, c_hash ^ 0x435445524dULL); // "CTERM" in hex-like
+      }
+
+      return seed;
+    }
+  };
+} // namespace std
 
 

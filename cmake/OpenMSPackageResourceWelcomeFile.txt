@@ -1,6 +1,6 @@
 Welcome to the installation of OpenMS/TOPP.
 
 OpenMS - An open-source framework for mass spectrometry and
-TOPP - The OpenMS Proteomics Pipeline
+TOPP - The OpenMS PiPeline
 
 For more information visit our website at www.OpenMS.de.

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -36,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 
 #include <boost/regex.hpp>
 
@@ -62,7 +37,21 @@ namespace OpenMS
     Reference formats are registered via addReferenceFormat().
     Several possible formats can be added and will be tried in order by the function findByReference().
 
-    @see SpectrumMetaDataLookup
+    @par Native ID Parsing
+    For standalone parsing of spectrum native IDs (without spectrum lookup), use SpectrumNativeIDParser directly:
+    @code
+    // Extract scan number from native ID using CV accession
+    Int scan = SpectrumNativeIDParser::extractScanNumber("scan=42", "MS:1000768");
+
+    // Check if a string is a native ID
+    if (SpectrumNativeIDParser::isNativeID(spectrum_id))
+    {
+      String regex = SpectrumNativeIDParser::getRegExFromNativeID(spectrum_id);
+      // use regex for further processing...
+    }
+    @endcode
+
+    @see SpectrumMetaDataLookup, SpectrumNativeIDParser
   */
   class OPENMS_DLLAPI SpectrumLookup
   {
@@ -91,8 +80,8 @@ namespace OpenMS
 
        @tparam SpectrumContainer Spectrum container class, must support @p size and @p operator[]
 
-       @param spectra Container of spectra
-       @param scan_regexp Regular expression for matching scan numbers in spectrum native IDs (must contain the named group "?<SCAN>")
+       @param[in] spectra Container of spectra
+       @param[in] scan_regexp Regular expression for matching scan numbers in spectrum native IDs (must contain the named group "?<SCAN>")
 
        @throw Exception::IllegalArgument if @p scan_regexp does not contain "?<SCAN>" (and is not empty)
 
@@ -100,7 +89,7 @@ namespace OpenMS
        Setting @p scan_regexp to the empty string ("") disables extraction of scan numbers; look-ups by scan number will fail in that case.
     */
     template <typename SpectrumContainer>
-    void readSpectra(const SpectrumContainer& spectra, 
+    void readSpectra(const SpectrumContainer& spectra,
                      const String& scan_regexp = default_scan_regexp)
     {
       rts_.clear();
@@ -128,7 +117,7 @@ namespace OpenMS
     /**
        @brief Look up spectrum by retention time (RT).
 
-       @param rt Retention time to look up
+       @param[in] rt Retention time to look up
 
        @throw Exception::ElementNotFound if no matching spectrum was found
 
@@ -141,7 +130,7 @@ namespace OpenMS
     /**
        @brief Look up spectrum by native ID.
 
-       @param native_id Native ID to look up
+       @param[in] native_id Native ID to look up
 
        @throw Exception::ElementNotFound if no matching spectrum was found
 
@@ -152,8 +141,8 @@ namespace OpenMS
     /**
        @brief Look up spectrum by index (position in the vector of spectra).
 
-       @param index Index to look up
-       @param count_from_one Do indexes start counting at one (default: zero)?
+       @param[in] index Index to look up
+       @param[in] count_from_one Do indexes start counting at one (default: zero)?
 
        @throw Exception::ElementNotFound if no matching spectrum was found
 
@@ -164,7 +153,7 @@ namespace OpenMS
     /**
        @brief Look up spectrum by scan number (extracted from the native ID).
 
-       @param scan_number Scan number to look up
+       @param[in] scan_number Scan number to look up
 
        @throw Exception::ElementNotFound if no matching spectrum was found
 
@@ -175,7 +164,7 @@ namespace OpenMS
     /**
        @brief Look up spectrum by reference.
 
-       @param spectrum_ref Spectrum reference to parse
+       @param[in] spectrum_ref Spectrum reference to parse
 
        @throw Exception::ElementNotFound if no matching spectrum was found
        @throw Exception::ParseError if the reference could not be parsed (no reference format matched)
@@ -189,7 +178,7 @@ namespace OpenMS
     /**
        @brief Register a possible format for a spectrum reference
 
-       @param regexp Regular expression defining the format
+       @param[in] regexp Regular expression defining the format
 
        @throw Exception::IllegalArgument if @p regexp does not contain any of the recognized named groups
 
@@ -199,30 +188,57 @@ namespace OpenMS
 
     /**
        @brief Extract the scan number from the native ID of a spectrum
-       
-       @param native_id Spectrum native ID
-       @param scan_regexp Regular expression to use (must contain the named group "?<SCAN>")
-       @param no_error Suppress the exception on failure
+
+       @param[in] native_id Spectrum native ID
+       @param[in] scan_regexp Regular expression to use (must contain the named group "?<SCAN>")
+       @param[in] no_error Suppress the exception on failure
 
        @throw Exception::ParseError if the scan number could not be extracted (unless @p no_error is set)
 
        @return Scan number of the spectrum (or -1 on failure to extract)
+
+       @deprecated Use SpectrumNativeIDParser::extractScanNumber() instead for better discoverability.
+       @see SpectrumNativeIDParser::extractScanNumber()
     */
     static Int extractScanNumber(const String& native_id,
                                  const boost::regex& scan_regexp,
                                  bool no_error = false);
 
+    /**
+       @brief Extract the scan number from the native ID using a CV accession
+
+       @param[in] native_id Spectrum native ID
+       @param[in] native_id_type_accession CV accession specifying the native ID format
+
+       @return Scan number of the spectrum (or -1 on failure to extract)
+
+       @deprecated Use SpectrumNativeIDParser::extractScanNumber() instead for better discoverability.
+       @see SpectrumNativeIDParser::extractScanNumber()
+    */
     static Int extractScanNumber(const String& native_id,
                                  const String& native_id_type_accession);
+
    /**
        @brief Determine the RegEx string to extract scan/index number from native IDs. Can be used for extractScanNumber
-       
-       @param native_id RegEx string
+
+       @param[in] native_id Native ID string to analyze
+
+       @return Regular expression string with named group
+
+       @deprecated Use SpectrumNativeIDParser::getRegExFromNativeID() instead for better discoverability.
+       @see SpectrumNativeIDParser::getRegExFromNativeID()
    */
-    static std::string getRegExFromNativeID(const String& id);
+    static std::string getRegExFromNativeID(const String& native_id);
 
     /**
        @brief Simple prefix check if a spectrum identifier @p id is a nativeID from a vendor file.
+
+       @param[in] id Spectrum identifier to check
+
+       @return True if the string matches a known native ID prefix pattern
+
+       @deprecated Use SpectrumNativeIDParser::isNativeID() instead for better discoverability.
+       @see SpectrumNativeIDParser::isNativeID()
     */
     static bool isNativeID(const String& id);
 
@@ -244,32 +260,32 @@ namespace OpenMS
     /**
        @brief Add a look-up entry for a spectrum
 
-       @param index Spectrum index (position in the vector)
-       @param rt Retention time
-       @param scan_number Scan number
-       @param native_id Native ID
+       @param[in] index Spectrum index (position in the vector)
+       @param[in] rt Retention time
+       @param[in] scan_number Scan number
+       @param[in] native_id Native ID
     */
     void addEntry_(Size index, double rt, Int scan_number,
                    const String& native_id);
 
     /**
        @brief Look up spectrum by regular expression match
-       
-       @param spectrum_ref Spectrum reference that was parsed
-       @param regexp Regular expression used for parsing
-       @param match Regular expression match
-       
+
+       @param[in] spectrum_ref Spectrum reference that was parsed
+       @param[in] regexp Regular expression used for parsing
+       @param[in] match Regular expression match
+
        @throw Exception::ElementNotFound if no matching spectrum was found
 
        @return Index of the spectrum that matched
     */
-    Size findByRegExpMatch_(const String& spectrum_ref, const String& regexp, 
+    Size findByRegExpMatch_(const String& spectrum_ref, const String& regexp,
                             const boost::smatch& match) const;
 
     /**
        @brief Set the regular expression for extracting scan numbers from spectrum native IDs
 
-       @param scan_regexp Regular expression to use (must contain the named group "?<SCAN>")
+       @param[in] scan_regexp Regular expression to use (must contain the named group "?<SCAN>")
     */
     void setScanRegExp_(const String& scan_regexp);
 

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -40,24 +14,58 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
+#include <functional>
 //#include <numeric>
 
 namespace OpenMS
 {
+  /**
+    @brief Namespace-style container holding the data types shared across the OpenPepXL cross-linking pipeline.
+
+    OpenPepXL identifies cross-linked peptide pairs from MS/MS spectra. The pipeline needs a small set
+    of plain-data types to carry information between stages: candidate generation, precursor-mass filtering,
+    spectrum matching, scoring, and result aggregation. This class collects those types as nested
+    structs/enums so that callers can refer to them via @c OPXLDataStructs::CrossLinkSpectrumMatch etc.,
+    keeping the global namespace clean.
+
+    Type overview:
+
+      - @c ProteinProteinCrossLinkType / @c PeptidePosition — small classification enums.
+      - @c ProteinProteinCrossLink — one fully-specified cross-link candidate (alpha + beta peptide,
+        link positions, linker name/mass/term-specificity).
+      - @c XLPrecursor / @c XLPrecursorComparator — compact precursor-mass-only view used during
+        the (squared-complexity) peptide-pair enumeration; mass-comparable to plain doubles for binary
+        search.
+      - @c AASeqWithMass / @c AASeqWithMassComparator — digested peptide plus pre-computed mass, the
+        building block of the candidate enumeration.
+      - @c CrossLinkSpectrumMatch / @c CLSMScoreComparator — one PSM record carrying both the
+        underlying @c ProteinProteinCrossLink and the full score/annotation vector used for the
+        xQuest-style output.
+      - @c PreprocessedPairSpectra — the result of light/heavy label-pair denoising on an mzML run.
+
+    @ingroup Analysis_ID
+  */
   class OPENMS_DLLAPI OPXLDataStructs
   {
 
     public:
 
       /**
-       * @brief The ProteinProteinCrossLinkType enum enumerates possible types of Protein-Protein cross-linking reaction results. Cross-link, Mono-link or Loop-link.
-       */
+        @brief Kind of cross-linking reaction product.
+
+        A cross-link reagent can react in three observable ways at the MS2 level:
+        the canonical inter-peptide cross-link, a mono-link (reagent quenched on one
+        side and attached to only one residue), or a loop-link (reagent bridging two
+        residues within the same peptide). @c ProteinProteinCrossLink::getType
+        derives this value from the link layout.
+      */
       enum ProteinProteinCrossLinkType
       {
-        CROSS = 0,
-        MONO = 1,
-        LOOP = 2,
-        NUMBER_OF_CROSS_LINK_TYPES
+        CROSS = 0,                   ///< Inter-peptide cross-link (alpha and beta non-empty)
+        MONO = 1,                    ///< Mono-link (reagent attached to one peptide only; beta empty, @c cross_link_position.second == -1)
+        LOOP = 2,                    ///< Loop-link (reagent bridges two residues within the same peptide; beta empty, both positions valid)
+        NUMBER_OF_CROSS_LINK_TYPES   ///< Sentinel; total number of cross-link types (use to size arrays)
       };
 
       /**
@@ -76,8 +84,8 @@ namespace OpenMS
         std::pair<SignedSize, SignedSize> cross_link_position; ///< index in alpha, beta or between alpha, alpha in loop-links
         double cross_linker_mass = 0;
         String cross_linker_name;
-        ResidueModification::TermSpecificity term_spec_alpha;
-        ResidueModification::TermSpecificity term_spec_beta;
+        ResidueModification::TermSpecificity term_spec_alpha = ResidueModification::TermSpecificity::ANYWHERE;
+        ResidueModification::TermSpecificity term_spec_beta = ResidueModification::TermSpecificity::ANYWHERE;
         int precursor_correction = 0;
 
         ProteinProteinCrossLinkType getType() const
@@ -214,11 +222,11 @@ namespace OpenMS
        */
       struct XLPrecursor
       {
-        float precursor_mass;
-        unsigned int alpha_index;
-        unsigned int beta_index;
-        String alpha_seq;
-        String beta_seq;
+        float precursor_mass{};         ///< Mass of (alpha + beta + cross-linker), in Da; the key used to filter candidates against an experimental precursor
+        unsigned int alpha_index = 0;   ///< Index of the alpha peptide in the digested-protein-DB vector (the "longer" peptide by convention)
+        unsigned int beta_index = 0;    ///< Index of the beta peptide in the digested-protein-DB vector (empty/unused for mono- or loop-links)
+        String alpha_seq;               ///< Sequence string of the alpha peptide (cached to avoid re-lookup during scoring)
+        String beta_seq;                ///< Sequence string of the beta peptide (empty for mono- or loop-links)
       };
 
       // comparator for sorting XLPrecursor vectors and using upper_bound and lower_bound using only a precursor mass
@@ -244,15 +252,17 @@ namespace OpenMS
       };
 
       /**
-       * @brief The PeptidePosition enum
+        @brief Where the peptide came from in its parent protein after in-silico digestion.
 
-          Used to record the positions of peptides in proteins after in silico digestion determine whether protein terminal modifications are possible on a peptide.
-       */
+        Used to gate whether protein-terminal modifications can apply to a peptide:
+        only peptides that contain the protein's N- or C-terminus can carry the
+        corresponding protein-terminal modification.
+      */
       enum PeptidePosition
       {
-        INTERNAL = 0,
-        C_TERM = 1,
-        N_TERM = 2
+        INTERNAL = 0, ///< Peptide is internal to its parent protein (neither end is a protein terminus)
+        C_TERM = 1,   ///< Peptide ends at the parent protein's C-terminus (can carry protein-C-term modifications)
+        N_TERM = 2    ///< Peptide starts at the parent protein's N-terminus (can carry protein-N-term modifications)
       };
 
       /**
@@ -267,10 +277,10 @@ namespace OpenMS
        */
       struct AASeqWithMass
       {
-        double peptide_mass;
-        AASequence peptide_seq;
-        PeptidePosition position;
-        String unmodified_seq;
+        double peptide_mass = 0;                                    ///< Pre-computed monoisotopic mass of @c peptide_seq (Da); used as the sort/search key during pair enumeration
+        AASequence peptide_seq;                                     ///< The peptide itself, including any modifications carried over from the digest
+        PeptidePosition position = PeptidePosition::INTERNAL;       ///< Where the peptide sits in its parent protein (gates protein-terminal modifications)
+        String unmodified_seq;                                      ///< Plain-string view of the peptide without modifications (cached for fast comparison / lookup)
       };
 
       /**
@@ -321,3 +331,39 @@ namespace OpenMS
 
   }; // class
 } // namespace OpenMS
+
+namespace std
+{
+  /// @brief std::hash specialization for ProteinProteinCrossLink
+  template<>
+  struct hash<OpenMS::OPXLDataStructs::ProteinProteinCrossLink>
+  {
+    std::size_t operator()(const OpenMS::OPXLDataStructs::ProteinProteinCrossLink& link) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash pointers (alpha and beta) - these are compared by pointer value in operator==
+      OpenMS::hash_combine(seed, OpenMS::hash_int(reinterpret_cast<std::uintptr_t>(link.alpha)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(reinterpret_cast<std::uintptr_t>(link.beta)));
+
+      // Hash cross_link_position (pair of SignedSize)
+      OpenMS::hash_combine(seed, OpenMS::hash_int(link.cross_link_position.first));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(link.cross_link_position.second));
+
+      // Hash cross_linker_mass (double)
+      OpenMS::hash_combine(seed, OpenMS::hash_float(link.cross_linker_mass));
+
+      // Hash cross_linker_name (String, which is std::string)
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(link.cross_linker_name));
+
+      // Hash term_spec_alpha and term_spec_beta (enums)
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(link.term_spec_alpha)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(link.term_spec_beta)));
+
+      // Hash precursor_correction (int)
+      OpenMS::hash_combine(seed, OpenMS::hash_int(link.precursor_correction));
+
+      return seed;
+    }
+  };
+} // namespace std

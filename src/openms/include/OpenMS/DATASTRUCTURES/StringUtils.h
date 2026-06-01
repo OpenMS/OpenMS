@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg, Chris Bielow $
@@ -41,11 +15,11 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
-#include <QtCore/QString>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/karma.hpp>
 #include <boost/type_traits.hpp>
 
+#include <cstdio>
 #include <string>
 #include <vector>
 
@@ -160,6 +134,17 @@ public:
       return boost::spirit::qi::parse(begin, end, parse_double_, target);
     }
 
+    /// Reads an int from an iterator position.
+    /// The begin iterator is modified (advanced) if parsing was successful.
+    /// The @p target only contains a valid result if the functions returns true (i.e. parsing succeeded).
+    /// Whitespaces before and after the double are NOT consumed!
+    template <typename IteratorT>
+    static bool extractInt(IteratorT& begin, const IteratorT& end, int& target)
+    {
+      // qi::parse() does not consume whitespace before or after the int (qi::parse_phrase() would).
+      return boost::spirit::qi::parse(begin, end, parse_int_, target);
+    }
+
   private:
   
     /*
@@ -208,6 +193,7 @@ public:
     // (the original Boost implementation has a bug, see https://svn.boost.org/trac/boost/ticket/6955)
     static boost::spirit::qi::real_parser<double, real_policies_NANfixed_<double> > parse_double_;
     static boost::spirit::qi::real_parser<float, real_policies_NANfixed_<float> > parse_float_;
+    static boost::spirit::qi::int_parser<> parse_int_;
 
   };
 
@@ -216,12 +202,9 @@ public:
 
     [[maybe_unused]] static String number(double d, UInt n)
     {
-      return QString::number(d, 'f', n);
-    }
-
-    [[maybe_unused]] static QString toQString(const String & this_s) 
-    {
-      return QString(this_s.c_str());
+      char buf[64];
+      std::snprintf(buf, sizeof(buf), "%.*f", static_cast<int>(n), d);
+      return String(buf);
     }
 
     [[maybe_unused]] static Int32 toInt32(const String & this_s)
@@ -250,6 +233,11 @@ public:
       return StringUtilsHelper::extractDouble(begin, end, target);
     }
 
+    template <typename IteratorT>
+    static bool extractInt(IteratorT& begin, const IteratorT& end, int& target)
+    {
+      return StringUtilsHelper::extractInt(begin, end, target);
+    }
   }
 } // namespace OPENMS
 

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -39,6 +13,9 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
+
+#include <unordered_set>
+#include <unordered_map>
 
 ///////////////////////////
 
@@ -368,6 +345,72 @@ START_SECTION((void expandToBoundingBox()))
 	TEST_REAL_SIMILAR(min_y, o_min_y)
 	TEST_REAL_SIMILAR(max_x, o_max_x)
 	TEST_REAL_SIMILAR(max_y, o_max_y)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<ConvexHull2D>))
+{
+  // Test that std::hash is defined and usable
+  std::hash<ConvexHull2D> hasher;
+
+  // Create two equal ConvexHull2D objects
+  ConvexHull2D h1, h2;
+  vector<DPosition<2>> points;
+  points.push_back(DPosition<2>(1.0, 2.0));
+  points.push_back(DPosition<2>(3.0, 4.0));
+  points.push_back(DPosition<2>(5.0, 0.0));
+  h1.setHullPoints(points);
+  h2.setHullPoints(points);
+
+  // Equal objects must have equal hashes
+  TEST_EQUAL(h1 == h2, true)
+  TEST_EQUAL(hasher(h1), hasher(h2))
+
+  // Different objects should (likely) have different hashes
+  ConvexHull2D h3;
+  vector<DPosition<2>> points2;
+  points2.push_back(DPosition<2>(10.0, 20.0));
+  points2.push_back(DPosition<2>(30.0, 40.0));
+  h3.setHullPoints(points2);
+  TEST_EQUAL(h1 == h3, false)
+  // Note: different hashes are not guaranteed, but highly likely
+  TEST_NOT_EQUAL(hasher(h1), hasher(h3))
+
+  // Test use in unordered_set
+  std::unordered_set<ConvexHull2D> hull_set;
+  hull_set.insert(h1);
+  hull_set.insert(h2); // duplicate, should not increase size
+  hull_set.insert(h3);
+  TEST_EQUAL(hull_set.size(), 2)
+  TEST_EQUAL(hull_set.count(h1), 1)
+  TEST_EQUAL(hull_set.count(h3), 1)
+
+  // Test use in unordered_map
+  std::unordered_map<ConvexHull2D, int> hull_map;
+  hull_map[h1] = 1;
+  hull_map[h3] = 3;
+  TEST_EQUAL(hull_map.size(), 2)
+  TEST_EQUAL(hull_map[h1], 1)
+  TEST_EQUAL(hull_map[h2], 1) // h2 == h1, so should get same value
+  TEST_EQUAL(hull_map[h3], 3)
+
+  // Test with hulls built using addPoint
+  ConvexHull2D h4, h5;
+  h4.addPoint(DPosition<2>(1.0, 1.0));
+  h4.addPoint(DPosition<2>(2.0, 2.0));
+  h4.addPoint(DPosition<2>(3.0, 3.0));
+
+  h5.addPoint(DPosition<2>(1.0, 1.0));
+  h5.addPoint(DPosition<2>(2.0, 2.0));
+  h5.addPoint(DPosition<2>(3.0, 3.0));
+
+  TEST_EQUAL(h4 == h5, true)
+  TEST_EQUAL(hasher(h4), hasher(h5))
+
+  // Empty hulls should have equal hashes
+  ConvexHull2D empty1, empty2;
+  TEST_EQUAL(empty1 == empty2, true)
+  TEST_EQUAL(hasher(empty1), hasher(empty2))
 }
 END_SECTION
 

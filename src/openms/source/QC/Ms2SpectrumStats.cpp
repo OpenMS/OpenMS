@@ -1,42 +1,16 @@
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Juliane Schmachtenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/QC/Ms2SpectrumStats.h>
-
-#include <OpenMS/QC/QCBase.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/QC/Ms2SpectrumStats.h>
+#include <OpenMS/QC/QCBase.h>
 
 using namespace std;
 
@@ -44,7 +18,7 @@ namespace OpenMS
 {
   // check which MS2-Spectra of a mzml-file (MSExperiment) are identified (and therefor have a entry in the featureMap)
   // MS2 spectra without mate are returned as vector of unassigned PeptideIdentifications (with empty sequence but some metavalue)
-  std::vector<PeptideIdentification> Ms2SpectrumStats::compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum)
+  PeptideIdentificationList Ms2SpectrumStats::compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum)
   {
     if (exp.empty())
     {
@@ -53,26 +27,23 @@ namespace OpenMS
 
     setScanEventNumber_(exp);
     // if MS2-spectrum PeptideIdentifications found ->  ms2_included_ nullptr to PepID pointer
-    std::function<void(PeptideIdentification&)> l_f = [&exp,this,&map_to_spectrum] (PeptideIdentification& pep_id)
-    {
-      setPresenceAndScanEventNumber_(pep_id, exp, map_to_spectrum);
-    };
+    std::function<void(PeptideIdentification&)> l_f = [&exp, this, &map_to_spectrum](PeptideIdentification& pep_id) { setPresenceAndScanEventNumber_(pep_id, exp, map_to_spectrum); };
     features.applyFunctionOnPeptideIDs(l_f);
-    
+
     // if Ms2-spectrum not identified, add to unassigned PeptideIdentification without ID, contains only RT, mz and some meta values
     return getUnassignedPeptideIdentifications_(exp);
   }
-  
+
 
   void Ms2SpectrumStats::setScanEventNumber_(const MSExperiment& exp)
   {
     ms2_included_.clear();
     ms2_included_.reserve(exp.size());
-    UInt32 scan_event_number{ 0 };
+    UInt32 scan_event_number {0};
     for (const MSSpectrum& spec : exp.getSpectra())
     {
       if (spec.getMSLevel() == 1)
-      { // reset 
+      { // reset
         scan_event_number = 0;
         ms2_included_.emplace_back(scan_event_number, false);
       }
@@ -92,7 +63,7 @@ namespace OpenMS
     }
     if (!spectrum.getPrecursors().empty() && !spectrum.getPrecursors()[0].getActivationMethods().empty())
     {
-      peptide_ID.setMetaValue("activation_method", Precursor::NamesOfActivationMethodShort[*spectrum.getPrecursors()[0].getActivationMethods().begin()]);
+      peptide_ID.setMetaValue("activation_method", Precursor::NamesOfActivationMethodShort[static_cast<size_t>(*spectrum.getPrecursors()[0].getActivationMethods().begin())]);
     }
   }
 
@@ -103,8 +74,8 @@ namespace OpenMS
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum reference annotated at peptide identification!");
     }
-    
-    UInt64 index = map_to_spectrum.at(peptide_ID.getMetaValue("spectrum_reference").toString());
+
+    UInt64 index = map_to_spectrum.at(peptide_ID.getSpectrumReference());
     const MSSpectrum& spectrum = exp[index];
 
     if (spectrum.getMSLevel() == 2)
@@ -118,9 +89,9 @@ namespace OpenMS
     }
   }
 
-  std::vector<PeptideIdentification> Ms2SpectrumStats::getUnassignedPeptideIdentifications_(const MSExperiment& exp)
+  PeptideIdentificationList Ms2SpectrumStats::getUnassignedPeptideIdentifications_(const MSExperiment& exp)
   {
-    std::vector<PeptideIdentification> result;
+    PeptideIdentificationList result;
     for (auto it = ms2_included_.begin(); it != ms2_included_.end(); ++it)
     {
       if (it->ms2_presence)
@@ -139,7 +110,7 @@ namespace OpenMS
       unidentified_MS2.setMZ(spec.getPrecursors()[0].getMZ());
       unidentified_MS2.setMetaValue("total_ion_count", spec.calculateTIC());
       unidentified_MS2.setMetaValue("base_peak_intensity", getBPI_(spec));
-      unidentified_MS2.setMetaValue("spectrum_reference", spec.getNativeID());
+      unidentified_MS2.setSpectrumReference( spec.getNativeID());
       annotatePepIDfromSpectrum_(spec, unidentified_MS2); // ion_injection_time and activation_method
       result.push_back(unidentified_MS2);
     }
@@ -149,7 +120,7 @@ namespace OpenMS
   // calculate maximal and summed intensity
   MSSpectrum::PeakType::IntensityType Ms2SpectrumStats::getBPI_(const MSSpectrum& spec)
   {
-    PeakSpectrum::PeakType::IntensityType bpi{ 0 };
+    PeakSpectrum::PeakType::IntensityType bpi {0};
     auto it = spec.getBasePeak();
     if (it != spec.end())
     {
@@ -165,9 +136,9 @@ namespace OpenMS
   }
 
   // required input files
-  QCBase::Status Ms2SpectrumStats::requires() const
+  QCBase::Status Ms2SpectrumStats::requirements() const
   {
     return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
   }
 
-}
+} // namespace OpenMS

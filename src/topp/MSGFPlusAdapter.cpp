@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -34,21 +8,24 @@
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
-#include <QProcessEnvironment>
+#include <boost/interprocess/sync/file_lock.hpp>
 
 #include <algorithm>
 #include <fstream>
@@ -60,16 +37,16 @@
 //-------------------------------------------------------------
 
 /**
-   @page TOPP_MSGFPlusAdapter MSGFPlusAdapter
+@page TOPP_MSGFPlusAdapter MSGFPlusAdapter
 
-   @brief Adapter for the MS-GF+ protein identification (database search) engine.
+@brief Adapter for the MS-GF+ protein identification (database search) engine.
 
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
             <td VALIGN="middle" ROWSPAN=2> &rarr; MSGFPlusAdapter &rarr;</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes @n (or another centroiding tool)</td>
@@ -78,42 +55,43 @@
     </table>
 </CENTER>
 
-    MS-GF+ must be installed before this wrapper can be used. Please make sure that Java and MS-GF+ are working.@n
-    At the time of writing, MS-GF+ can be downloaded from https://github.com/MSGFPlus/msgfplus/releases.
+MS-GF+ must be installed before this wrapper can be used. Please make sure that Java and MS-GF+ are working.@n
+At the time of writing, MS-GF+ can be downloaded from https://github.com/MSGFPlus/msgfplus/releases.
 
-    The following MS-GF+ version is required: <b>MS-GF+ 2019/07/03</b>. Older versions will not work properly, giving
-    an error: <em>[Error] Invalid parameter: -maxMissedCleavages.</em>
-    
-    Input spectra for MS-GF+ have to be centroided; profile spectra will raise an error in the adapter.
+The following MS-GF+ version is required: <b>MS-GF+ 2019/07/03</b>. Older versions will not work properly, giving
+an error: <em>[Error] Invalid parameter: -maxMissedCleavages.</em>
 
-    The first time MS-GF+ is applied to a database (FASTA file), it will index the file contents and
-    generate a number of auxiliary files in the same directory as the database (e.g. for "db.fasta": "db.canno", "db.cnlap", "db.csarr" and "db.cseq" will be generated).
-    It is advisable to keep these files for future MS-GF+ searches, to save the indexing step.@n
+Input spectra for MS-GF+ have to be centroided; profile spectra will raise an error in the adapter.
 
-    @note When a new database is used for the first time, make sure to run only one MS-GF+ search against it! Otherwise one process will start the 
-    indexing and the others will crash due to incomplete index files. After a database has been indexed, multiple MS-GF+ processes can use it in parallel.
+The first time MS-GF+ is applied to a database (FASTA file), it will index the file contents and
+generate a number of auxiliary files in the same directory as the database (e.g. for "db.fasta": "db.canno", "db.cnlap", "db.csarr" and "db.cseq" will be generated).
+It is advisable to keep these files for future MS-GF+ searches, to save the indexing step.@n
 
-    This adapter supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified 
-    by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
+@note This Adapter uses an internal locking mechanism (a file lock), to ensure that MSGF+ does not attempt to create the database index
+in parallel (which would fail badly) when multiple instances of this Adapter are run concurrently on the same FASTA database.
+After the database has been indexed, multiple MS-GF+ processes (even without this Adapters locking) can use it in parallel.
 
-    The adapter works in three steps to generate an idXML file: First MS-GF+ is run on the input MS data and the sequence database, 
-    producing an mzIdentML (.mzid) output file containing the search results. This file is then converted to a text file (.tsv) using MS-GF+' "MzIDToTsv" tool.
-    Finally, the .tsv file is parsed and a result in idXML format is generated.
+This adapter supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified 
+by 'OpenMS.ini:id_db_dir'.
 
-    An optional MSGF+ configuration file can be added via '-conf' parameter.
-    See https://github.com/MSGFPlus/msgfplus/blob/master/docs/examples/MSGFPlus_Params.txt for 
-    an example and consult the MSGF+ documentation for further details.
-    Parameters specified in the configuration file are ignored by MS-GF+ if they are also specified on the command line.
-    This adapter passes all flags which you can set on the command line, so use the configuration file <b>only</b> for parameters which
-    are not available here (this includes fixed/variable modifications, which are passed on the commandline via <code>-mod &lt;file&gt;</code>).
-    Thus, be very careful that your settings in '-conf' actually take effect (try running again without '-conf' file and test if the results change).
+The adapter works in three steps to generate an idXML file: First MS-GF+ is run on the input MS data and the sequence database, 
+producing an mzIdentML (.mzid) output file containing the search results. This file is then converted to a text file (.tsv) using MS-GF+' "MzIDToTsv" tool.
+Finally, the .tsv file is parsed and a result in idXML format is generated.
 
-    @note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
+An optional MSGF+ configuration file can be added via '-conf' parameter.
+See https://github.com/MSGFPlus/msgfplus/blob/master/docs/examples/MSGFPlus_Params.txt for 
+an example and consult the MSGF+ documentation for further details.
+Parameters specified in the configuration file are ignored by MS-GF+ if they are also specified on the command line.
+This adapter passes all flags which you can set on the command line, so use the configuration file <b>only</b> for parameters which
+are not available here (this includes fixed/variable modifications, which are passed on the commandline via <code>-mod &lt;file&gt;</code>).
+Thus, be very careful that your settings in '-conf' actually take effect (try running again without '-conf' file and test if the results change).
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_MSGFPlusAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MSGFPlusAdapter.html
+@note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MSGFPlusAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MSGFPlusAdapter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -158,16 +136,13 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file (MS-GF+ parameter '-s')");
     setValidFormats_("in", {"mzML", "mzXML", "mgf", "ms2" });
-    registerOutputFile_("out", "<file>", "", "Output file", false);
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    registerOutputFile_("out", "<file>", "", "Output file (.idXML) or directory bundle (.idparquet) containing the search results.", false);
+    setValidFormats_("out", {"idXML", "idparquet"});
     registerOutputFile_("mzid_out", "<file>", "", "Alternative output file (MS-GF+ parameter '-o')\nEither 'out' or 'mzid_out' are required. They can be used together.", false);
     setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
     registerInputFile_("executable", "<file>", "MSGFPlus.jar", "The MSGFPlus Java archive file. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
     registerInputFile_("database", "<file>", "", "Protein sequence database (FASTA file; MS-GF+ parameter '-d'). Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'.", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
-
-    registerStringOption_("add_decoys", "<choice>", "false", "Create decoy proteins (reversed sequences) and append them to the database for the search (MS-GF+ parameter '-tda'). This allows the calculation of FDRs, but should only be used if the database does not already contain decoys.", false, true);
-    setValidStrings_("add_decoys", ListUtils::create<String>("true,false"));
 
     registerDoubleOption_("precursor_mass_tolerance", "<value>", 10, "Precursor monoisotopic mass tolerance (MS-GF+ parameter '-t')", false);
     registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance (MS-GF+ parameter '-t')", false);
@@ -203,6 +178,9 @@ protected:
     registerIntOption_("matches_per_spec", "<num>", 1, "Number of matches per spectrum to be reported (MS-GF+ parameter '-n')", false);
     setMinInt_("matches_per_spec", 1);
 
+    registerIntOption_("min_peaks", "<num>", 10, "Minimum number of ions a spectrum must have to be examined", false); 
+    setMinInt_("min_peaks", 10); 
+
     registerStringOption_("add_features", "<true/false>", "true", "Output additional features (MS-GF+ parameter '-addFeatures'). This is required by Percolator and hence by default enabled.", false, false);
     setValidStrings_("add_features", ListUtils::create<String>("true,false"));
     
@@ -222,9 +200,10 @@ protected:
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("fixed_modifications", "<mods>", {"Carbamidomethyl (C)"}, "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("variable_modifications", "<mods>", {"Oxidation (M)"}, "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'",
+                        false);
     setValidStrings_("variable_modifications", all_mods);
 
     registerFlag_("legacy_conversion", "Use the indirect conversion of MS-GF+ results to idXML via export to TSV. Try this only if the default conversion takes too long or uses too much memory.", true);
@@ -333,10 +312,10 @@ protected:
     {
       PeakMap exp;
       // load only MS2 spectra:
-      MzMLFile f;
+      FileHandler f;
       f.getOptions().addMSLevel(2);
       f.getOptions().setFillData(false);
-      f.load(exp_name, exp);
+      f.loadExperiment(exp_name, exp, {FileTypes::MZML});
       exp.getPrimaryMSRunPath(primary_ms_run_path_);
       // if no primary run is assigned, the mzML file is the (unprocessed) primary file
       if (primary_ms_run_path_.empty())
@@ -440,6 +419,81 @@ protected:
     id.setHigherScoreBetter(false);
   }
 
+  bool createLockedDBIndex(const String& db_name, const String& java_executable, const String& java_memory, const String& executable)
+  {
+    const String db_indexfile = FileHandler::stripExtension(db_name) + ".canno";
+    const String lockfile_path = db_name + ".lock";
+    OPENMS_LOG_DEBUG << "Checking for db index, using a lock file ..." << std::endl;
+
+    // Create the lock file if it doesn't exist (needed by boost::interprocess::file_lock)
+    {
+      std::ofstream touch(lockfile_path.c_str(), std::ios::app);
+      if (!touch.is_open())
+      {
+        // Cannot create lock file - check if index already exists
+        String msg = "The lock file could not be created, for lack of permissions in the parent directory.";
+        if (!File::exists(db_indexfile))
+        {
+          OPENMS_LOG_ERROR << msg << " Checking index anyway: No database index found! Please make the directory writable or pre-create an DB index." << std::endl;
+          return false;
+        }
+        OPENMS_LOG_DEBUG << msg << " Checking index anyway: found it!" << std::endl;
+        return true;
+      }
+    }
+
+    try
+    {
+      boost::interprocess::file_lock lock_db(lockfile_path.c_str());
+      if (!lock_db.try_lock())
+      {
+        // Could not acquire lock - another process holds it. Wait for it (blocking).
+        lock_db.lock();
+      }
+
+      // we have a lock: now check if we need to create a new index (which only one instance should do)
+      if (!File::exists(db_indexfile))
+      {
+        OPENMS_LOG_INFO << "\nNo database index found! Creating index while holding a lock ..." << std::endl;
+        std::vector<String> process_params = {java_memory, "-cp", executable, "edu.ucsd.msjava.msdbsearch.BuildSA", "-d", db_name, "-tda", "0"};
+
+        // collect all output since MSGF+ might return 'success' even though it did not like the command arguments (e.g. if the version is too old)
+        // If no output file is produced, we can print the stderr below.
+        String proc_stdout, proc_stderr;
+
+        TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable, process_params, proc_stdout, proc_stderr);
+        if (exit_code != EXECUTION_OK)
+        {
+          // if there was sth like a segfault, runExternalProcess_ will write a warning about the type of error,
+          //  but not print the output of the program.
+          OPENMS_LOG_ERROR << "The output of MSGF+'s Index Database Creation was:\nSTDOUT:\n" << proc_stdout << "\nSTDERR:\n" << proc_stderr << endl;
+          lock_db.unlock();
+          return false;
+        }
+        // Verify index was actually created (BuildSA may return success without producing output)
+        if (!File::exists(db_indexfile))
+        {
+          OPENMS_LOG_ERROR << "MSGF+ BuildSA reported success but index file '" << db_indexfile << "' was not created.\nSTDOUT:\n" << proc_stdout << "\nSTDERR:\n" << proc_stderr << endl;
+          lock_db.unlock();
+          return false;
+        }
+        OPENMS_LOG_INFO << " ... done" << std::endl;
+      }
+
+      // free lock, since database index exists at this point
+      lock_db.unlock();
+      OPENMS_LOG_DEBUG << "... releasing DB lock" << std::endl;
+      return true;
+    }
+    catch (const boost::interprocess::interprocess_exception& e)
+    {
+      OPENMS_LOG_ERROR << "An error occurred while trying to acquire a file lock using the file '" << lockfile_path
+                       << "': " << e.what()
+                       << ".\nPlease check the previous error message and contact OpenMS support if you cannot solve the problem.";
+      return false;
+    }
+  }
+
   ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
@@ -455,8 +509,29 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    String java_executable = getStringOption_("java_executable");
-    String db_name = getDBFilename();
+    const String java_executable = getStringOption_("java_executable");
+    if (!getFlag_("force"))
+    {
+      if (!JavaInfo::canRun(java_executable))
+      {
+        writeLogError_("Fatal error: Java is needed to run MS-GF+!");
+        return EXTERNAL_PROGRAM_NOTFOUND;
+      }
+    }
+    else
+    {
+      writeLogWarn_("The installation of Java was not checked.");
+    }
+    
+    const String java_memory = "-Xmx" + String(getIntOption_("java_memory")) + "m";
+    const String executable = getStringOption_("executable");
+
+    const String db_name = getDBFilename();
+    if (!createLockedDBIndex(db_name, java_executable, java_memory, executable))
+    {
+      OPENMS_LOG_ERROR << "Could not create/verify database index. Aborting ..." << std::endl;
+      return ExitCodes::INTERNAL_ERROR;
+    }
 
     vector<String> fixed_mods = getStringList_("fixed_modifications");
     vector<String> variable_mods = getStringList_("variable_modifications");
@@ -465,19 +540,6 @@ protected:
     if ((max_mods == 0) && !no_mods)
     {
       writeLogWarn_("Warning: Modifications are defined ('fixed_modifications'/'variable_modifications'), but the number of allowed modifications is zero ('max_mods'). Is that intended?");
-    }
-
-    if (!getFlag_("force"))
-    {
-      if (!JavaInfo::canRun(java_executable))
-      {
-        writeLogError_("Fatal error: Java is needed to run MS-GF+!");
-        return EXTERNAL_PROGRAM_ERROR;
-      }
-    }
-    else
-    {
-      writeLogWarn_("The installation of Java was not checked.");
     }
 
     // create temporary directory (and modifications file, if necessary):
@@ -500,8 +562,6 @@ protected:
     Int min_precursor_charge = getIntOption_("min_precursor_charge");
     Int max_precursor_charge = getIntOption_("max_precursor_charge");
     // parameters only needed for MS-GF+:
-    QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
-    QString executable = getStringOption_("executable").toQString();
     // no need to handle "not found" case - would have given error during parameter parsing:
     Int fragment_method_code = ListUtils::getIndex<String>(fragment_methods_, getStringOption_("fragment_method"));
     Int instrument_code = ListUtils::getIndex<String>(instruments_, getStringOption_("instrument"));
@@ -514,38 +574,39 @@ protected:
     }
     Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
 
-    QStringList process_params; // the actual process is Java, not MS-GF+!
-    process_params << java_memory
-                   << "-jar" << executable
-                   << "-s" << in.toQString()
-                   << "-o" << mzid_temp.toQString()
-                   << "-d" << db_name.toQString()
-                   << "-t" << QString::number(precursor_mass_tol) + precursor_error_units.toQString()
-                   << "-ti" << getStringOption_("isotope_error_range").toQString()
-                   << "-tda" << QString::number(int(getStringOption_("add_decoys") == "true"))
-                   << "-m" << QString::number(fragment_method_code)
-                   << "-inst" << QString::number(instrument_code)
-                   << "-e" << QString::number(enzyme_code)
-                   << "-protocol" << QString::number(protocol_code)
-                   << "-ntt" << QString::number(tryptic_code)
-                   << "-minLength" << QString::number(getIntOption_("min_peptide_length"))
-                   << "-maxLength" << QString::number(getIntOption_("max_peptide_length"))
-                   << "-minCharge" << QString::number(min_precursor_charge)
-                   << "-maxCharge" << QString::number(max_precursor_charge)
-                   << "-maxMissedCleavages" << QString::number(getIntOption_("max_missed_cleavages"))
-                   << "-n" << QString::number(getIntOption_("matches_per_spec"))
-                   << "-addFeatures" << QString::number(int((getParam_().getValue("add_features") == "true")))
-                   << "-tasks" << QString::number(getIntOption_("tasks"))
-                   << "-thread" << QString::number(getIntOption_("threads"));
+    std::vector<String> process_params = { // the actual process is Java, not MS-GF+!
+      java_memory,
+      "-jar", executable,
+      "-s", in,
+      "-o", mzid_temp,
+      "-d", db_name,
+      "-t", String(precursor_mass_tol) + precursor_error_units,
+      "-ti", getStringOption_("isotope_error_range"),
+      "-m", String(fragment_method_code),
+      "-inst", String(instrument_code),
+      "-e", String(enzyme_code),
+      "-protocol", String(protocol_code),
+      "-ntt", String(tryptic_code),
+      "-minLength", String(getIntOption_("min_peptide_length")),
+      "-maxLength", String(getIntOption_("max_peptide_length")),
+      "-minNumPeaks", String(getIntOption_("min_peaks")),
+      "-minCharge", String(min_precursor_charge),
+      "-maxCharge", String(max_precursor_charge),
+      "-maxMissedCleavages", String(getIntOption_("max_missed_cleavages")),
+      "-n", String(getIntOption_("matches_per_spec")),
+      "-addFeatures", String(int((getParam_().getValue("add_features") == "true"))),
+      "-tasks", String(getIntOption_("tasks")),
+      "-thread", String(getIntOption_("threads"))
+    };
     String conf = getStringOption_("conf");
     if (!conf.empty())
     {
-      process_params << "-conf" << conf.toQString();
+      process_params.push_back("-conf"); process_params.push_back(conf);
     }
 
     if (!mod_file.empty())
     {
-      process_params << "-mod" << mod_file.toQString();
+      process_params.push_back("-mod"); process_params.push_back(mod_file);
     }
 
     //-------------------------------------------------------------
@@ -557,11 +618,14 @@ protected:
     writeLogInfo_("Running MSGFPlus search...");
     // collect all output since MSGF+ might return 'success' even though it did not like the command arguments (e.g. if the version is too old)
     // If no output file is produced, we can print the stderr below.
-    String proc_stdout, proc_stderr; 
-    
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params, proc_stdout, proc_stderr);
+    String proc_stdout, proc_stderr;
+
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable, process_params, proc_stdout, proc_stderr);
     if (exit_code != EXECUTION_OK)
     {
+      // if there was sth like a segfault, runExternalProcess_ will write a warning about the type of error,
+      //  but not print the output of the program.
+      OPENMS_LOG_ERROR << "The output of MSGF+ was:\nSTDOUT:\n" << proc_stdout << "\nSTDERR:\n" << proc_stderr << endl;
       return exit_code;
     }
 
@@ -573,12 +637,12 @@ protected:
       if (!File::exists(mzid_temp))
       {
         OPENMS_LOG_ERROR << "MSGF+ failed. Temporary output file '" << mzid_temp << "' was not created.\n"
-                         << "The output of MSGF+ was:\n" << proc_stdout << "\n" << proc_stderr << endl;
+                         << "The output of MSGF+ was:\nSTDOUT:\n" << proc_stdout << "\nSTDERR:\n" << proc_stderr << endl;
         return EXTERNAL_PROGRAM_ERROR;
       }
 
       vector<ProteinIdentification> protein_ids;
-      vector<PeptideIdentification> peptide_ids;
+      PeptideIdentificationList peptide_ids;
 
       if (getFlag_("legacy_conversion"))
       {
@@ -586,19 +650,19 @@ protected:
         String tsv_out = tmp_dir.getPath() + "msgfplus_converted.tsv";
         int java_permgen = getIntOption_("java_permgen");
         process_params.clear();
-        process_params << java_memory;
+        process_params.push_back(java_memory);
         if (java_permgen > 0)
         {
-          process_params << "-XX:MaxPermSize=" + QString::number(java_permgen) + "m";
+          process_params.push_back("-XX:MaxPermSize=" + String(java_permgen) + "m");
         }
-        process_params << "-cp" << executable << "edu.ucsd.msjava.ui.MzIDToTsv"
-                       << "-i" << mzid_temp.toQString()
-                       << "-o" << tsv_out.toQString()
-                       << "-showQValue" << "1"
-                       << "-showDecoy" << "1"
-                       << "-unroll" << "1";
+        process_params.insert(process_params.end(), {"-cp", executable, "edu.ucsd.msjava.ui.MzIDToTsv",
+                       "-i", mzid_temp,
+                       "-o", tsv_out,
+                       "-showQValue", "1",
+                       "-showDecoy", "1",
+                       "-unroll", "1"});
         writeLogInfo_("Running MzIDToTSVConverter...");
-        exit_code = runExternalProcess_(java_executable.toQString(), process_params);
+        exit_code = runExternalProcess_(java_executable, process_params);
         if (exit_code != EXECUTION_OK)
         {
           return exit_code;
@@ -610,9 +674,9 @@ protected:
 
         // handle the search parameters
         ProteinIdentification::SearchParameters search_parameters;
-        search_parameters.db = getStringOption_("database");
+        search_parameters.db = db_name;
         search_parameters.charges = "+" + String(min_precursor_charge) + "-+" + String(max_precursor_charge);
-        search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+        search_parameters.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
         search_parameters.fixed_modifications = fixed_mods;
         search_parameters.variable_modifications = variable_mods;
         search_parameters.precursor_mass_tolerance = precursor_mass_tol;
@@ -768,7 +832,7 @@ protected:
       }
       else // no legacy conversion
       {
-        MzIdentMLFile().load(mzid_temp, protein_ids, peptide_ids);
+        FileHandler().loadIdentifications(mzid_temp, protein_ids, peptide_ids, {FileTypes::MZIDENTML});
 
         // MzID might contain missed_cleavages set to -1 which leads to a crash in PeptideIndexer
         for (auto& pid : protein_ids)
@@ -782,8 +846,16 @@ protected:
           switchScores_(pep);
         }
 
-
-        SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);         
+        // add missing RTs and FAIMS CVs to peptide IDs
+        MSExperiment exp;
+        MzMLFile mzml_file{};
+        // Load spectrum metadata (not just file metadata) but skip peak data
+        mzml_file.getOptions().setMetadataOnly(false);
+        mzml_file.getOptions().setFillData(false);
+        mzml_file.load(in, exp);
+        SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, exp);
+        // Annotate FAIMS compensation voltage if present
+        SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, exp);
       }
 
       // use OpenMS meta value key
@@ -807,7 +879,12 @@ protected:
       // if "reindex" parameter is set to true will perform reindexing
       if (auto ret = reindex_(protein_ids, peptide_ids); ret != EXECUTION_OK) return ret;
 
-      IdXMLFile().store(out, protein_ids, peptide_ids);
+      // get feature set used in percolator
+      StringList feature_set;
+      PercolatorFeatureSetHelper::addMSGFFeatures(peptide_ids, feature_set);
+      protein_ids.front().getSearchParameters().setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+
+      FileHandler().storeIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML, FileTypes::IDPARQUET});
     }
 
     //-------------------------------------------------------------

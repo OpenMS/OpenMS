@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: $
@@ -37,6 +11,9 @@
 ///////////////////////////
 #include <OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>
 ///////////////////////////
+
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace OpenMS;
 using namespace std;
@@ -250,6 +227,78 @@ END_SECTION
 START_SECTION((IncludeExcludeTarget& operator=(const IncludeExcludeTarget &rhs)))
 {
   // TODO
+}
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<IncludeExcludeTarget>))
+{
+  // Test that equal targets have equal hashes
+  IncludeExcludeTarget t1, t2;
+  t1.setName("target1");
+  t1.setPrecursorMZ(500.0);
+  t1.setProductMZ(200.0);
+  t1.setPeptideRef("peptide_ref_1");
+  t1.setCompoundRef("compound_ref_1");
+
+  t2.setName("target1");
+  t2.setPrecursorMZ(500.0);
+  t2.setProductMZ(200.0);
+  t2.setPeptideRef("peptide_ref_1");
+  t2.setCompoundRef("compound_ref_1");
+
+  std::hash<IncludeExcludeTarget> hasher;
+  TEST_EQUAL(hasher(t1), hasher(t2))
+
+  // Test that hash changes when values change
+  IncludeExcludeTarget t3;
+  t3.setName("target2");  // Different name
+  t3.setPrecursorMZ(500.0);
+  t3.setProductMZ(200.0);
+  t3.setPeptideRef("peptide_ref_1");
+  t3.setCompoundRef("compound_ref_1");
+  TEST_NOT_EQUAL(hasher(t1), hasher(t3))
+
+  // Test that different precursor_mz produces different hash
+  IncludeExcludeTarget t4;
+  t4.setName("target1");
+  t4.setPrecursorMZ(600.0);  // Different precursor_mz
+  t4.setProductMZ(200.0);
+  t4.setPeptideRef("peptide_ref_1");
+  t4.setCompoundRef("compound_ref_1");
+  TEST_NOT_EQUAL(hasher(t1), hasher(t4))
+
+  // Test use in unordered_set
+  std::unordered_set<IncludeExcludeTarget> target_set;
+  target_set.insert(t1);
+  TEST_EQUAL(target_set.size(), 1)
+  target_set.insert(t2); // same as t1
+  TEST_EQUAL(target_set.size(), 1) // should not increase
+  target_set.insert(t3);
+  TEST_EQUAL(target_set.size(), 2)
+
+  // Test use in unordered_map
+  std::unordered_map<IncludeExcludeTarget, int> target_map;
+  target_map[t1] = 42;
+  TEST_EQUAL(target_map[t1], 42)
+  TEST_EQUAL(target_map[t2], 42) // t2 == t1, should get same value
+  target_map[t3] = 99;
+  TEST_EQUAL(target_map[t3], 99)
+  TEST_EQUAL(target_map.size(), 2)
+
+  // Test with retention time set
+  IncludeExcludeTarget t5, t6;
+  TargetedExperimentHelper::RetentionTime rt;
+  rt.setRT(100.0);
+  t5.setRetentionTime(rt);
+  t6.setRetentionTime(rt);
+  TEST_EQUAL(hasher(t5), hasher(t6))
+
+  // Test with different retention times
+  IncludeExcludeTarget t7;
+  TargetedExperimentHelper::RetentionTime rt2;
+  rt2.setRT(200.0);
+  t7.setRetentionTime(rt2);
+  TEST_NOT_EQUAL(hasher(t5), hasher(t7))
 }
 END_SECTION
 

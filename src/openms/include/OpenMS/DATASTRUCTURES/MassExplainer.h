@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -46,9 +20,19 @@ namespace OpenMS
   class Compomer;
 
   /**
-    @brief computes empirical formulas for given mass differences using a set of allowed elements
-
-
+    @brief Computes empirical formulas for given mass differences using a set of allowed elements
+    
+    MassExplainer is used to explain observed mass differences between features by
+    determining the most likely combination of adducts that could cause such differences.
+    
+    The class works by:
+    1. Taking a set of allowed adducts (elements, molecules, or ions)
+    2. Computing all possible combinations of these adducts that could explain observed mass differences
+    3. Providing a query interface to search for explanations for specific mass differences
+    
+    This is particularly useful in mass spectrometry data analysis for identifying
+    related features that represent the same analyte but with different adducts or charge states.
+    
     @ingroup Datastructures
   */
   class OPENMS_DLLAPI MassExplainer
@@ -56,30 +40,73 @@ namespace OpenMS
 
 public:
 
-    typedef Adduct::AdductsType AdductsType; //vector<Adduct>
+    /// Type definition for a vector of Adduct objects
+    typedef Adduct::AdductsType AdductsType;
+    
+    /// Type definition for an iterator over Compomer objects
     typedef std::vector<Compomer>::const_iterator CompomerIterator;
 
     ///@name Constructors and destructor
     //@{
-    /// Default constructor
+    /**
+      @brief Default constructor
+      
+      Initializes with default parameters:
+      - No adducts
+      - Charge range from -2 to +4
+      - Maximum charge span of 4
+      - Log probability threshold of -5.0
+      - Maximum number of neutral adducts of 2
+    */
     MassExplainer();
 
-    /// Constructor
+    /**
+      @brief Constructor with custom adduct base
+
+      @param[in] adduct_base Set of allowed adducts to use for mass difference explanations
+    */
     MassExplainer(AdductsType adduct_base);
 
-    /// Constructor
+    /**
+      @brief Constructor with custom charge parameters
+
+      @param[in] q_min Minimum charge state to consider
+      @param[in] q_max Maximum charge state to consider
+      @param[in] max_span Maximum allowed charge span between related features
+      @param[in] thresh_logp Minimum log probability threshold for accepting explanations
+    */
     MassExplainer(Int q_min, Int q_max, Int max_span, double thresh_logp);
 
-    /// Constructor
+    /**
+      @brief Constructor with all custom parameters
+
+      @param[in] adduct_base Set of allowed adducts to use for mass difference explanations
+      @param[in] q_min Minimum charge state to consider
+      @param[in] q_max Maximum charge state to consider
+      @param[in] max_span Maximum allowed charge span between related features
+      @param[in] thresh_logp Minimum log probability threshold for accepting explanations
+      @param[in] max_neutrals Maximum number of neutral adducts allowed in an explanation
+    */
     MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, double thresh_logp, Size max_neutrals);
 
 
 private:
-    /// check consistency of input
-    /// @param init_thresh_p set default threshold (set to "false" to keep current value)
+    /**
+      @brief Check consistency of input parameters and initialize internal data structures
+
+      This method validates the input parameters and sets default values where needed.
+
+      @param[in] init_thresh_p Whether to initialize the probability threshold with default value
+                          (set to "false" to keep current value)
+    */
     void init_(bool init_thresh_p);
 public:
-    /// Assignment operator
+    /**
+      @brief Assignment operator
+
+      @param[in] rhs Source object to assign from
+      @return Reference to this object
+    */
     MassExplainer& operator=(const MassExplainer& rhs);
 
     /// Destructor
@@ -87,57 +114,140 @@ public:
     //@}
 
 
-    /// fill map with possible mass-differences along with their explanation
-    void compute();
+    /**
+      @brief Compute all possible mass differences and their explanations
+
+      This method generates all possible combinations of adducts from the adduct base
+      and stores them internally for later querying. This must be called after
+      changing any parameters and before performing queries.
+
+      @param[in] include_identity If true, add same-adduct compomers (same adduct type on
+                 both LEFT and RIGHT sides with varying amounts) needed for multimer
+                 detection. Covers same-charge multimers (e.g. [M+H]+ <-> [2M+H]+) and
+                 charge-changing multimers (e.g. [M+H]+ <-> [2M+2H]2+). Default false
+                 to preserve existing behavior.
+    */
+    void compute(bool include_identity = false);
 
 
     //@name Accessors
     //@{
 
-    /// Sets the set of possible adducts
+    /**
+      @brief Set the base set of allowed adducts
+
+      @param[in] adduct_base Vector of adducts to use for explanations
+    */
     void setAdductBase(AdductsType adduct_base);
-    /// Returns the set of adducts
+    
+    /**
+      @brief Get the current set of allowed adducts
+      
+      @return Vector of adducts currently used for explanations
+    */
     AdductsType getAdductBase() const;
 
-    /// return a compomer by its Id (useful after a query() ).
+    /**
+      @brief Get a specific compomer by its ID
+
+      This is typically used after a query() to retrieve detailed information
+      about a specific explanation.
+
+      @param[in] id ID of the compomer to retrieve
+      @return Reference to the requested compomer
+    */
     const Compomer& getCompomerById(Size id) const;
     //@}
 
 
-    /// search the mass database for explanations
-    /// @param net_charge net charge of compomer seeked
-    /// @param mass_to_explain mass in Da that needs explanation
-    /// @param mass_delta allowed deviation from exact mass
-    /// @param thresh_log_p  minimal log probability required
-    /// @param firstExplanation begin range with candidates according to net_charge and mass
-    /// @param lastExplanation  end range
+    /**
+      @brief Search for explanations of a given mass difference
+
+      This method searches the precomputed explanations for those that match
+      the given mass difference within the specified tolerance and have the
+      required net charge.
+
+      @param[in] net_charge Net charge of the compomer being sought
+      @param[in] mass_to_explain Mass difference in Da that needs explanation
+      @param[in] mass_delta Allowed deviation from exact mass (tolerance)
+      @param[in] thresh_log_p Minimum log probability required for explanations
+      @param[out] firstExplanation Output iterator to the beginning of matching explanations
+      @param[out] lastExplanation Output iterator to the end of matching explanations
+      @return Number of explanations found, or negative value if no explanations found
+    */
     SignedSize query(const Int net_charge,
                      const float mass_to_explain,
                      const float mass_delta,
                      const float thresh_log_p,
                      std::vector<Compomer>::const_iterator& firstExplanation,
                      std::vector<Compomer>::const_iterator& lastExplanation) const;
+
+    /**
+      @brief Search for cross-multiplier explanations between two features
+
+      For two features with different molecular multipliers (n1, n2), finds compomers
+      where M cancels exactly: n2*(m1 - left_mass) = n1*(m2 - right_mass).
+
+      Uses linear scan within the net_charge group (binary search to find the group).
+
+      @param[in] net_charge Net charge difference (q2 - q1)
+      @param[in] m1 Charge-scaled mass of feature 1 (mz1 * |q1|)
+      @param[in] m2 Charge-scaled mass of feature 2 (mz2 * |q2|)
+      @param[in] n1 Molecular multiplier for feature 1
+      @param[in] n2 Molecular multiplier for feature 2 (must differ from n1)
+      @param[in] tolerance Absolute mass tolerance
+      @param[in] thresh_log_p Minimum log probability
+      @param[out] hits Vector of iterators to matching compomers
+      @return Number of matching compomers found
+    */
+    SignedSize queryMultimer(const Int net_charge,
+                             const double m1,
+                             const double m2,
+                             const Int n1,
+                             const Int n2,
+                             const double tolerance,
+                             const float thresh_log_p,
+                             std::vector<CompomerIterator>& hits) const;
+
 protected:
 
-    ///check if the generated compomer is valid judged by its probability, charges etc
+    /**
+      @brief Check if a generated compomer is valid based on its probability, charges, etc.
+
+      @param[in] cmp The compomer to validate
+      @return True if the compomer is valid, false otherwise
+    */
     bool compomerValid_(const Compomer& cmp) const;
 
-    /// create a proper adduct from formula and charge and probability
+    /**
+      @brief Create a proper adduct from formula, charge, and probability
+
+      @param[in] formula Chemical formula of the adduct
+      @param[in] charge Charge of the adduct
+      @param[in] p Probability of the adduct
+      @return Adduct object with the specified properties
+    */
     Adduct createAdduct_(const String& formula, const Int charge, const double p) const;
 
-    /// store possible explanations (as formula) for a certain ChargeDifference and MassDifference
+    /// Vector storing all possible explanations for mass differences
     std::vector<Compomer> explanations_;
-    /// all allowed adducts, whose combination explains the mass difference
+    
+    /// Set of allowed adducts that can be combined to explain mass differences
     AdductsType adduct_base_;
-    /// minimal expected charge
+    
+    /// Minimum charge state to consider in explanations
     Int q_min_;
-    /// maximal expected charge
+    
+    /// Maximum charge state to consider in explanations
     Int q_max_;
-    /// maximal span (in terms of charge) for co-features, e.g. a cluster with q={3,6} has span=4
+    
+    /// Maximum allowed charge span between related features (e.g., a cluster with q={3,6} has span=4)
     Int max_span_;
-    /// minimum required probability of a compound (all other compounds are discarded)
+    
+    /// Minimum required probability threshold for accepting explanations
     double thresh_p_;
-    /// Maximum number of neutral(q=0) adducts
+    
+    /// Maximum number of neutral (q=0) adducts allowed in an explanation
     Size max_neutrals_;
 
   };

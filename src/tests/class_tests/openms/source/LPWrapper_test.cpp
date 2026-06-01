@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -37,8 +11,15 @@
 
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
-#if COINOR_SOLVER==1
-  #include "coin/CoinModel.hpp"
+#ifdef OPENMS_HAS_COINOR
+  #ifdef OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN
+    #include "coin/CoinModel.hpp"
+  #else
+    #include "coin-or/CoinModel.hpp"
+  #endif
+#endif
+#ifdef OPENMS_HAS_HIGHS
+  #include <Highs.h>
 #endif
 ///////////////////////////
 
@@ -236,13 +217,20 @@ START_SECTION((void deleteRow(Int index)))
     {
       TEST_EQUAL(lp.getNumberOfRows(),2)
     }
-#if COINOR_SOLVER==1
-  else
+#ifdef OPENMS_HAS_COINOR
+  else if (lp.getSolver() == LPWrapper::SOLVER_COINOR)
     {
       // CoinOr doesn't delete the column, but sets all entries to zero and deletes the bounds, names, objective coeff etc.
       TEST_REAL_SIMILAR(lp.getObjective(2),0.)
       TEST_REAL_SIMILAR(lp.getColumnLowerBound(2),-COIN_DBL_MAX)
       TEST_REAL_SIMILAR(lp.getColumnUpperBound(2),COIN_DBL_MAX)  
+    }
+#endif
+#ifdef OPENMS_HAS_HIGHS
+  else if (lp.getSolver() == LPWrapper::SOLVER_HIGHS)
+    {
+      // HiGHS actually deletes the row
+      TEST_EQUAL(lp.getNumberOfRows(),2)
     }
 #endif
 }
@@ -304,8 +292,29 @@ START_SECTION((void readProblem(String filename, String format)))
       TEST_EQUAL(lp.getElement(2,0),3)
       TEST_EQUAL(lp.getElement(2,1),2) 
     }
-#if COINOR_SOLVER==1
+#ifdef OPENMS_HAS_COINOR
   else  if (lp.getSolver()==LPWrapper::SOLVER_COINOR)
+    {
+      lp.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"),"MPS");
+      TEST_EQUAL(lp.getNumberOfColumns(),2)
+      TEST_EQUAL(lp.getNumberOfRows(),3)
+      TEST_EQUAL(lp.getColumnType(0),LPWrapper::INTEGER)
+      TEST_EQUAL(lp.getColumnType(1),LPWrapper::INTEGER)
+      TEST_EQUAL(lp.getObjective(0),1)
+      TEST_EQUAL(lp.getObjective(1),0)
+      TEST_EQUAL(lp.getRowUpperBound(0),0)
+      TEST_EQUAL(lp.getRowUpperBound(1),12)
+      TEST_EQUAL(lp.getRowUpperBound(2),12)
+      TEST_EQUAL(lp.getElement(0,0),1)
+      TEST_EQUAL(lp.getElement(0,1),-1)
+      TEST_EQUAL(lp.getElement(1,0),2)
+      TEST_EQUAL(lp.getElement(1,1),3)
+      TEST_EQUAL(lp.getElement(2,0),3)
+      TEST_EQUAL(lp.getElement(2,1),2)
+    }
+#endif
+#ifdef OPENMS_HAS_HIGHS
+  else if (lp.getSolver()==LPWrapper::SOLVER_HIGHS)
     {
       lp.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"),"MPS");
       TEST_EQUAL(lp.getNumberOfColumns(),2)
@@ -330,9 +339,31 @@ END_SECTION
 
 START_SECTION((void writeProblem(const String &filename, const WriteFormat format) const ))
 {
-#if COINOR_SOLVER==1
+#ifdef OPENMS_HAS_COINOR
     String tmp_filename;
     NEW_TMP_FILE(tmp_filename);
+    lp.writeProblem(tmp_filename,LPWrapper::FORMAT_MPS);
+    LPWrapper lp2;
+    lp2.readProblem(tmp_filename,"MPS");
+    TEST_EQUAL(lp2.getNumberOfColumns(),2)
+    TEST_EQUAL(lp2.getNumberOfRows(),3)
+    TEST_EQUAL(lp2.getColumnType(0),LPWrapper::INTEGER)
+    TEST_EQUAL(lp2.getColumnType(1),LPWrapper::INTEGER)
+    TEST_EQUAL(lp2.getObjective(0),1)
+    TEST_EQUAL(lp2.getObjective(1),0)
+    TEST_EQUAL(lp2.getRowUpperBound(0),0)
+    TEST_EQUAL(lp2.getRowUpperBound(1),12)
+    TEST_EQUAL(lp2.getRowUpperBound(2),12)
+    TEST_EQUAL(lp2.getElement(0,0),1)
+    TEST_EQUAL(lp2.getElement(0,1),-1)
+    TEST_EQUAL(lp2.getElement(1,0),2)
+    TEST_EQUAL(lp2.getElement(1,1),3)
+    TEST_EQUAL(lp2.getElement(2,0),3)
+    TEST_EQUAL(lp2.getElement(2,1),2)
+#elif defined(OPENMS_HAS_HIGHS)
+    String tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+    tmp_filename += ".mps"; // HiGHS uses extension to determine format
     lp.writeProblem(tmp_filename,LPWrapper::FORMAT_MPS);
     LPWrapper lp2;
     lp2.readProblem(tmp_filename,"MPS");
@@ -411,10 +442,16 @@ START_SECTION((SolverStatus getStatus()))
     {
       TEST_EQUAL(lp4.getStatus(),LPWrapper::OPTIMAL)
     }
-#if COINOR_SOLVER==1
-  else
+#ifdef OPENMS_HAS_COINOR
+  else if (lp4.getSolver() == LPWrapper::SOLVER_COINOR)
   {
     TEST_EQUAL(lp4.getStatus(),LPWrapper::UNDEFINED)
+  }
+#endif
+#ifdef OPENMS_HAS_HIGHS
+  else if (lp4.getSolver() == LPWrapper::SOLVER_HIGHS)
+  {
+    TEST_EQUAL(lp4.getStatus(),LPWrapper::OPTIMAL)
   }
 #endif
 
@@ -457,8 +494,10 @@ END_SECTION
 START_SECTION((SOLVER getSolver() const ))
 {
 
-#if COINOR_SOLVER==1
+#ifdef OPENMS_HAS_COINOR
   TEST_EQUAL(lp4.getSolver(),LPWrapper::SOLVER_COINOR)
+#elif defined(OPENMS_HAS_HIGHS)
+  TEST_EQUAL(lp4.getSolver(),LPWrapper::SOLVER_HIGHS)
 #else
   TEST_EQUAL(lp4.getSolver(), LPWrapper::SOLVER_GLPK)
 #endif

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -73,16 +47,57 @@ START_SECTION((AASequence reverseProtein(const AASequence& protein)))
   TEST_EQUAL(dg->reverseProtein(AASequence::fromString("PRTEINE")).toString(), "ENIETRP")
 END_SECTION
 
-START_SECTION((AASequence reversePeptide(const AASequence& protein, const String& protease)))
+START_SECTION((AASequence reversePeptides(const AASequence& protein, const String& protease)))
   TEST_EQUAL(dg->reversePeptides(AASequence::fromString("TESTPEPTIDE"), "Trypsin").toString(),"EDITPEPTSET")
   TEST_EQUAL(dg->reversePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin/P").toString(),"TSETRTPEPREDI")
   TEST_EQUAL(dg->reversePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin").toString(),"TPEPRTSETREDI")
 END_SECTION
 
 START_SECTION((AASequence shufflePeptides(const AASequence& aas, const String& protease, const int max_atempts, int seed)))
-  TEST_EQUAL(dg->shufflePeptides(AASequence::fromString("TESTPEPTIDE"), "Trypsin").toString(),"PIDPETTSEET")
-  TEST_EQUAL(dg->shufflePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin/P").toString(),"ETTSRTPEPREID")
-  TEST_EQUAL(dg->shufflePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin").toString(), "ETPSERTTPREID")
+  // 1. no cutting site (full peptide is shuffled to minimize sequence identity)
+  TEST_EQUAL(dg->shufflePeptides(AASequence::fromString("TESTPEPTIDE"), "Trypsin").toString(),"DIESETEPTTP")
+  // 2. cutting site after "TESTR", "RPEPTR" and "IDE" (each peptide is shuffled to minimize sequence identity)
+  TEST_EQUAL(dg->shufflePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin/P").toString(),"ETTSRTPEPRIED")
+  // 3. cutting site after "TESTRPEPTR", "IDE" (each peptide is shuffled to minimize sequence identity)
+  TEST_EQUAL(dg->shufflePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin").toString(), "SPERTETTPRIED")
+END_SECTION
+
+START_SECTION((std::vector<AASequence> shuffle(const AASequence& protein, const String& protease, int decoy_factor)))
+  // Uses shufflePeptides with fixed seed (4711) for each peptide
+  // Returns a vector with decoy_factor entries, each containing a complete shuffled protein
+  
+  // 1. no cutting site (full peptide is shuffled to minimize sequence identity)
+  auto result1 = dg->shuffle(AASequence::fromString("TESTPEPTIDE"), "Trypsin");
+  TEST_EQUAL(result1.size(), 1)
+  TEST_EQUAL(result1[0].toString(),"DIESETEPTTP")
+  
+  // 2. cutting site after "TESTR", "RPEPTR" and "IDE" (each peptide is shuffled to minimize sequence identity)
+  auto result2 = dg->shuffle(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin/P");
+  TEST_EQUAL(result2.size(), 1)
+  TEST_EQUAL(result2[0].toString(),"ETTSRTPRPEDIE")
+  
+  // 3. cutting site after "TESTRPEPTR", "IDE" (each peptide is shuffled to minimize sequence identity)
+  auto result3 = dg->shuffle(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin");
+  TEST_EQUAL(result3.size(), 1)
+  TEST_EQUAL(result3[0].toString(), "ETEPTSRRTPDIE")
+  
+  // 4. decoy_factor=2 should generate 2 complete decoy proteins in the vector
+  // Each variant gets a fresh DecoyGenerator with seed 4711, producing different shuffles
+  auto result4 = dg->shuffle(AASequence::fromString("TESTPEPTIDE"), "Trypsin", 2);
+  TEST_EQUAL(result4.size(), 2)
+  TEST_EQUAL(result4[0].toString(), "DIESETEPTTP")
+  TEST_EQUAL(result4[1].toString(), "PTEPIDEETTS")
+  
+  // 5. Top-down use-case: no protease cleavage (entire protein shuffled as one peptide)
+  auto result5 = dg->shuffle(AASequence::fromString("LONGERPROTEINSEQUENCEFORTOPDOWN"), "no cleavage");
+  TEST_EQUAL(result5.size(), 1)
+  TEST_EQUAL(result5[0].toString(), "UPTECWLFREONNNORNOOEOESQEIDRGPT")
+  
+  // 6. Top-down with decoy_factor=2 (two different shuffled proteins in vector)
+  auto result6 = dg->shuffle(AASequence::fromString("LONGERPROTEINSEQUENCEFORTOPDOWN"), "no cleavage", 2);
+  TEST_EQUAL(result6.size(), 2)
+  TEST_EQUAL(result6[0].toString(), "UPTECWLFREONNNORNOOEOESQEIDRGPT")
+  TEST_EQUAL(result6[1].toString(), "FEIRPNEEDOROERNNCNETQGLOWOOPTUS")
 END_SECTION
 
 delete dg;

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -35,9 +9,13 @@
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/SYSTEM/File.h>
+
+#include <algorithm>
 
 using namespace OpenMS;
 using namespace std;
@@ -47,40 +25,40 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_IDMerger IDMerger
+@page TOPP_IDMerger IDMerger
 
-  @brief Merges several idXML files into one idXML file.
+@brief Merges several idXML files into one idXML file.
 
-  <center>
-  <table>
-  <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=3> &rarr; IDMerger &rarr;</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper </td>
-  </tr>
-  </table>
-  </center>
+<center>
+<table>
+<tr>
+<th ALIGN = "center"> potential predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=3> &rarr; IDMerger &rarr;</td>
+<th ALIGN = "center"> potential successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_CometAdapter (or other ID engines) </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper </td>
+</tr>
+</table>
+</center>
 
-  The peptide hits and protein hits of the input files will be written into the single output file. In general, the number of idXML files that can be merged into one file is not limited.
+The peptide hits and protein hits of the input files will be written into the single output file. In general, the number of idXML files that can be merged into one file is not limited.
 
-  If an additional file is given through the @p add_to parameter, identifications from the main inputs (@p in) are added to that file, but only for those peptide sequences that were not already present. Only the best peptide hit per identification (MS2 spectrum) is taken into account; peptide identifications and their corresponding protein identifications are transferred.
+If an additional file is given through the @p add_to parameter, identifications from the main inputs (@p in) are added to that file, but only for those peptide sequences that were not already present. Only the best peptide hit per identification (MS2 spectrum) is taken into account; peptide identifications and their corresponding protein identifications are transferred.
 
-  Alternatively, with the @p pepxml_protxml option, results from corresponding PeptideProphet and ProteinProphet runs can be combined. In this case, exactly two idXML files are expected as input: one containing data from a pepXML file, and the other containing data from a protXML file that was created based on the pepXML (meaningful results can only be obtained for matching files!). pepXML or protXML can be converted to idXML with the @ref TOPP_IDFileConverter tool.
+Alternatively, with the @p pepxml_protxml option, results from corresponding PeptideProphet and ProteinProphet runs can be combined. In this case, exactly two idXML files are expected as input: one containing data from a pepXML file, and the other containing data from a protXML file that was created based on the pepXML (meaningful results can only be obtained for matching files!). pepXML or protXML can be converted to idXML with the @ref TOPP_IDFileConverter tool.
 
-  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_IDMerger.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_IDMerger.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_IDMerger.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_IDMerger.html
 */
 
 // We do not want this class to show up in the docu:
@@ -97,18 +75,18 @@ public:
 
 protected:
   void mergePepXMLProtXML_(StringList filenames, vector<ProteinIdentification>&
-                           proteins, vector<PeptideIdentification>& peptides)
+                           proteins, PeptideIdentificationList& peptides)
   {
-    IdXMLFile idxml;
-    idxml.load(filenames[0], proteins, peptides);
+    FileHandler idxml;
+    idxml.loadIdentifications(filenames[0], proteins, peptides, {FileTypes::IDXML});
     vector<ProteinIdentification> pepxml_proteins, protxml_proteins;
-    vector<PeptideIdentification> pepxml_peptides, protxml_peptides;
+    PeptideIdentificationList pepxml_peptides, protxml_peptides;
 
     if (proteins[0].getProteinGroups().empty()) // first idXML contains data from the pepXML
     {
       proteins.swap(pepxml_proteins);
       peptides.swap(pepxml_peptides);
-      idxml.load(filenames[1], protxml_proteins, protxml_peptides);
+      idxml.loadIdentifications(filenames[1], protxml_proteins, protxml_peptides, {FileTypes::IDXML});
       if (protxml_proteins[0].getProteinGroups().empty())
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "None of the input files seems to be derived from a protXML file (information about protein groups is missing).");
@@ -118,7 +96,7 @@ protected:
     {
       proteins.swap(protxml_proteins);
       peptides.swap(protxml_peptides);
-      idxml.load(filenames[1], pepxml_proteins, pepxml_peptides);
+      idxml.loadIdentifications(filenames[1], pepxml_proteins, pepxml_peptides, {FileTypes::IDXML});
     }
 
     if ((protxml_peptides.size() > 1) || (protxml_proteins.size() > 1))
@@ -159,8 +137,7 @@ protected:
 
       for (ProteinHit & prot_hit : prot.getHits())
       {
-        auto pos = hit_values.find(prot_hit.getAccession());
-        if (pos == hit_values.end())
+        if (const auto pos = hit_values.find(prot_hit.getAccession()); pos == hit_values.end())
         {
           prot_hit.setScore(-1);
         }
@@ -174,7 +151,7 @@ protected:
   }
 
   void annotateFileOrigin_(vector<ProteinIdentification>& proteins,
-                           vector<PeptideIdentification>& peptides,
+                           PeptideIdentificationList& peptides,
                            String filename)
   {
     if (test_mode_) { filename = File::basename(filename); }
@@ -192,7 +169,7 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    vector<String> formats = {"idXML", "oms"};
+    vector<String> formats = {"idXML", "oms", "idparquet"};
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks (all must have the same type)");
     setValidFormats_("in", formats);
     registerOutputFile_("out", "<file>", "", "Output file (must have the same type as the input files)");
@@ -317,7 +294,7 @@ protected:
 
     // file type: idXML
     vector<ProteinIdentification> proteins;
-    vector<PeptideIdentification> peptides;
+    PeptideIdentificationList peptides;
 
     if (pepxml_protxml)
     {
@@ -326,7 +303,7 @@ protected:
     else if (merge_proteins_add_PSMs)
     {
       proteins.resize(1);
-      IdXMLFile idXMLf;
+      FileHandler idXMLf;
       IDMergerAlgorithm merger{};
       Param p = merger.getParameters();
       p.setValue("annotate_origin", annotate_file_origin ? "true" : "false");
@@ -334,8 +311,8 @@ protected:
       for (String& file : file_names)
       {
         vector<ProteinIdentification> prots;
-        vector<PeptideIdentification> peps;
-        idXMLf.load(file,prots,peps);
+        PeptideIdentificationList peps;
+        idXMLf.loadIdentifications(file,prots,peps, {FileTypes::IDXML, FileTypes::IDPARQUET});
         merger.insertRuns(prots, peps);
       }
       merger.returnResultsAndClear(proteins[0], peptides);
@@ -350,7 +327,7 @@ protected:
     //-------------------------------------------------------------
     OPENMS_LOG_DEBUG << "protein IDs: " << proteins.size() << endl
               << "peptide IDs: " << peptides.size() << endl;
-    IdXMLFile().store(out, proteins, peptides);
+    FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
     return EXECUTION_OK;
   }
@@ -359,15 +336,21 @@ protected:
                  bool annotate_file_origin,
                  const String& add_to,
                  vector<ProteinIdentification>& proteins,
-                 vector<PeptideIdentification>& peptides)
+                 PeptideIdentificationList& peptides)
   {
-    map<String, ProteinIdentification> proteins_by_id;
-    vector<vector<PeptideIdentification> > peptides_by_file;
+    // Keep both an insertion-ordered key list and a hash map for O(1) lookup so
+    // the merged output preserves the order in which IdentificationRuns were
+    // first seen (which mirrors input-file order). Using a plain std::map here
+    // would silently re-sort runs alphabetically by identifier and break tools
+    // like IDRipper that rely on stable run ordering.
+    vector<String> proteins_order;
+    std::unordered_map<String, ProteinIdentification> proteins_by_id;
+    vector<PeptideIdentificationList> peptides_by_file;
     StringList add_to_ids; // IDs from the "add_to" file (if any)
 
     if (!add_to.empty())
     { // make 'add_to' filename the first in the list
-      file_names.erase(remove(file_names.begin(), file_names.end(), add_to), file_names.end());
+      std::erase(file_names, add_to);
       file_names.insert(file_names.begin(), add_to);
     }
 
@@ -376,7 +359,7 @@ protected:
     {
       const String& file_name = file_names[i];
       vector<ProteinIdentification> additional_proteins;
-      IdXMLFile().load(file_name, additional_proteins, peptides_by_file[i]);
+      FileHandler().loadIdentifications(file_name, additional_proteins, peptides_by_file[i], {FileTypes::IDXML, FileTypes::IDPARQUET});
 
       if (annotate_file_origin) // set MetaValue "file_origin" if flag is set
       {
@@ -387,7 +370,9 @@ protected:
       for (const ProteinIdentification& prot : additional_proteins)
       {
         const String& id = prot.getIdentifier();
-        proteins_by_id[id] = prot;
+        auto [it, inserted] = proteins_by_id.try_emplace(id, prot);
+        if (inserted) { proteins_order.push_back(id); }
+        else          { it->second = prot; }
         if (i == 0) { add_to_ids.push_back(id); }
       }
     }
@@ -395,28 +380,31 @@ protected:
     if (add_to.empty()) // copy proteins from map into vector for writing
     {
       // append peptides in same vector
-      for (vector<PeptideIdentification> & peps : peptides_by_file)
+      for (PeptideIdentificationList & peps : peptides_by_file)
       {
         peptides.insert(peptides.end(), peps.begin(), peps.end());
       }
-      // only append the runs (no merging of proteins)
-      for (auto map_it = proteins_by_id.begin(); map_it != proteins_by_id.end(); ++map_it)
+      // only append the runs (no merging of proteins) — in first-seen order
+      for (const String& id : proteins_order)
       {
-        proteins.push_back(map_it->second);
+        proteins.push_back(proteins_by_id[id]);
       }
     }
     else // add only new IDs to an existing file
     {
-      // copy over data from reference file ("add_to"):
-      map<String, ProteinIdentification> selected_proteins;
+      // copy over data from reference file ("add_to") in insertion order
+      vector<String> selected_proteins_order;
+      std::unordered_map<String, ProteinIdentification> selected_proteins;
       for (auto ids_it = add_to_ids.begin();
             ids_it != add_to_ids.end(); ++ids_it)
       {
-        selected_proteins[*ids_it] = proteins_by_id[*ids_it];
+        auto [it, inserted] = selected_proteins.try_emplace(*ids_it, proteins_by_id[*ids_it]);
+        if (inserted) { selected_proteins_order.push_back(*ids_it); }
+        else          { it->second = proteins_by_id[*ids_it]; }
       }
       // keep track of peptides that shouldn't be duplicated:
       set<AASequence> sequences;
-      vector<PeptideIdentification>& base_peptides = peptides_by_file[0];
+      PeptideIdentificationList& base_peptides = peptides_by_file[0];
       for (PeptideIdentification & pep : base_peptides)
       {
         if (pep.getHits().empty()) continue;
@@ -476,6 +464,7 @@ protected:
             if (selected_proteins.find(id) == selected_proteins.end())
             {
               OPENMS_LOG_DEBUG << "adding protein identification" << endl;
+              selected_proteins_order.push_back(id);
               selected_proteins[id] = protein;
               selected_proteins[id].getHits().clear();
               // remove potentially invalid information:
@@ -489,10 +478,12 @@ protected:
           }
         }
       }
-      for (auto map_it = selected_proteins.rbegin(); map_it != selected_proteins.rend();
-            ++map_it)
+      // emit selected runs in first-seen order (was rbegin/rend on a sorted map,
+      // which produced reverse-alphabetical-by-identifier order — an artifact, not
+      // a contract).
+      for (const String& id : selected_proteins_order)
       {
-        proteins.push_back(map_it->second);
+        proteins.push_back(selected_proteins[id]);
       }
     }
   }

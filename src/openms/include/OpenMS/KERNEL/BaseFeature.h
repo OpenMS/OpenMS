@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -36,6 +10,7 @@
 
 #include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <optional>
@@ -68,7 +43,7 @@ public:
     typedef float WidthType;
 
     /// state of identification, use getAnnotationState() to query it
-    enum AnnotationState
+    enum class AnnotationState
     {
       FEATURE_ID_NONE,
       FEATURE_ID_SINGLE,
@@ -77,7 +52,7 @@ public:
       SIZE_OF_ANNOTATIONSTATE
     };
 
-    static const std::string NamesOfAnnotationState[SIZE_OF_ANNOTATIONSTATE];
+    static const std::string NamesOfAnnotationState[static_cast<size_t>(AnnotationState::SIZE_OF_ANNOTATIONSTATE)];
     ///@}
 
     /// @name Constructors and Destructor
@@ -178,13 +153,13 @@ public:
     /// @name Functions for dealing with identifications in legacy format
     ///@{
     /// returns a const reference to the PeptideIdentification vector
-    const std::vector<PeptideIdentification>& getPeptideIdentifications() const;
+    const PeptideIdentificationList& getPeptideIdentifications() const;
 
     /// returns a mutable reference to the PeptideIdentification vector
-    std::vector<PeptideIdentification>& getPeptideIdentifications();
+    PeptideIdentificationList& getPeptideIdentifications();
 
     /// sets the PeptideIdentification vector
-    void setPeptideIdentifications(const std::vector<PeptideIdentification>& peptides);
+    void setPeptideIdentifications(const PeptideIdentificationList& peptides);
 
     /// sorts PeptideIdentifications, assuming they have the same scoreType.
     void sortPeptideIdentifications();
@@ -240,7 +215,7 @@ protected:
     WidthType width_;
 
     /// PeptideIdentifications belonging to the feature
-    std::vector<PeptideIdentification> peptides_;
+    PeptideIdentificationList peptides_;
 
     /// primary ID (peptide, RNA, compound) assigned to this feature
     std::optional<IdentificationData::IdentifiedMolecule> primary_id_;

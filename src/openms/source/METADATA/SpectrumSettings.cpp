@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -34,8 +8,10 @@
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Helpers.h>
-#include <boost/iterator/indirect_iterator.hpp> // for equality
+
+#include <algorithm>
 
 using namespace std;
 
@@ -43,23 +19,6 @@ namespace OpenMS
 {
 
   const std::string SpectrumSettings::NamesOfSpectrumType[] = {"Unknown", "Centroid", "Profile"};
-
-  SpectrumSettings::SpectrumSettings() :
-    MetaInfoInterface(),
-    type_(UNKNOWN),
-    native_id_(),
-    comment_(),
-    instrument_settings_(),
-    source_file_(),
-    acquisition_info_(),
-    precursors_(),
-    products_(),
-    identification_(),
-    data_processing_()
-  {
-  }
-
-  SpectrumSettings::~SpectrumSettings() = default;
 
   bool SpectrumSettings::operator==(const SpectrumSettings & rhs) const
   {
@@ -72,7 +31,6 @@ namespace OpenMS
            source_file_ == rhs.source_file_ &&
            precursors_ == rhs.precursors_ &&
            products_ == rhs.products_ &&
-           identification_ == rhs.identification_ &&
            ( data_processing_.size() == rhs.data_processing_.size() &&
            std::equal(data_processing_.begin(),
                       data_processing_.end(),
@@ -97,7 +55,7 @@ namespace OpenMS
 
     if (type_ != rhs.type_)
     {
-      type_ = UNKNOWN;                       // only keep if both are equal
+      type_ = SpectrumType::UNKNOWN;                       // only keep if both are equal
     }
     //native_id_ == rhs.native_id_ // keep
     comment_ += rhs.comment_;        // append
@@ -106,7 +64,6 @@ namespace OpenMS
     //source_file_ == rhs.source_file_ &&
     precursors_.insert(precursors_.end(), rhs.precursors_.begin(), rhs.precursors_.end());
     products_.insert(products_.end(), rhs.products_.begin(), rhs.products_.end());
-    identification_.insert(identification_.end(), rhs.identification_.begin(), rhs.identification_.end());
     data_processing_.insert(data_processing_.end(), rhs.data_processing_.begin(), rhs.data_processing_.end());
   }
 
@@ -120,6 +77,26 @@ namespace OpenMS
     type_ = type;
   }
 
+  void SpectrumSettings::setIMFormat(const IMFormat& im_type)
+  {
+    im_type_ = im_type;
+  }
+  
+  IMFormat SpectrumSettings::getIMFormat() const
+  {
+    return im_type_;
+  }
+
+  void SpectrumSettings::setIMPeakType(IMPeakType im_peak_type)
+  {
+    im_peak_type_ = im_peak_type;
+  }
+
+  IMPeakType SpectrumSettings::getIMPeakType() const
+  {
+    return im_peak_type_;
+  }
+  
   const String & SpectrumSettings::getComment() const
   {
     return comment_;
@@ -212,21 +189,6 @@ namespace OpenMS
     return os;
   }
 
-  const std::vector<PeptideIdentification> & SpectrumSettings::getPeptideIdentifications() const
-  {
-    return identification_;
-  }
-
-  std::vector<PeptideIdentification> & SpectrumSettings::getPeptideIdentifications()
-  {
-    return identification_;
-  }
-
-  void SpectrumSettings::setPeptideIdentifications(const std::vector<PeptideIdentification> & identification)
-  {
-    identification_ = identification;
-  }
-
   const String & SpectrumSettings::getNativeID() const
   {
     return native_id_;
@@ -247,9 +209,41 @@ namespace OpenMS
     return data_processing_;
   }
 
-  const std::vector< boost::shared_ptr<const DataProcessing > > SpectrumSettings::getDataProcessing() const
+  const std::vector< std::shared_ptr<const DataProcessing > > SpectrumSettings::getDataProcessing() const
   {
     return OpenMS::Helpers::constifyPointerVector(data_processing_);
+  }
+
+  StringList SpectrumSettings::getAllNamesOfSpectrumType()
+  {
+    StringList names;
+    names.reserve(static_cast<size_t>(SpectrumType::SIZE_OF_SPECTRUMTYPE));
+    for (size_t i = 0; i < static_cast<size_t>(SpectrumType::SIZE_OF_SPECTRUMTYPE); ++i)
+    {
+      names.push_back(NamesOfSpectrumType[i]);
+    }
+    return names;
+  }
+
+  const std::string& SpectrumSettings::spectrumTypeToString(SpectrumType type)
+  {
+    if (type == SpectrumType::SIZE_OF_SPECTRUMTYPE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SPECTRUMTYPE");
+    }
+    return NamesOfSpectrumType[static_cast<size_t>(type)];
+  }
+
+  SpectrumSettings::SpectrumType SpectrumSettings::toSpectrumType(const std::string& name)
+  {
+    auto first = &NamesOfSpectrumType[0];
+    auto last = &NamesOfSpectrumType[static_cast<size_t>(SpectrumType::SIZE_OF_SPECTRUMTYPE)];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<SpectrumType>(it - first);
   }
 
 }

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -63,7 +37,7 @@ START_SECTION((virtual ~MapAlignmentAlgorithmIdentification()))
 	delete ptr;
 END_SECTION
 
-vector<vector<PeptideIdentification> > peptides(2);
+vector<PeptideIdentificationList > peptides(2);
 vector<ProteinIdentification> proteins;
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmIdentification_test_1.idXML"),	proteins, peptides[0]);
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmIdentification_test_2.idXML"),	proteins, peptides[1]);
@@ -110,6 +84,52 @@ START_SECTION((template <typename DataType> void align(std::vector<DataType>& da
   }
 
   // algorithm works the same way for other input data types -> no extra tests
+}
+END_SECTION
+
+
+START_SECTION([EXTRA] repeated align() with internal reference does not leak stale reference state)
+{
+  // Regression: checkParameters_ used to inspect reference_ left over from a
+  // previous align() call when the user asked for an internal reference, so
+  // the effective run count was inflated by 1 on every subsequent call. With
+  // min_run_occur larger than the actual number of input maps, the cap that
+  // normally clamps it to the run count no longer fired, and the per-sequence
+  // filter in computeTransformations_ dropped every peptide -> identity
+  // transforms. Two consecutive calls with the same inputs must therefore
+  // produce identical, non-empty alignments.
+  MapAlignmentAlgorithmIdentification repeat_aligner;
+  repeat_aligner.setLogType(ProgressLogger::CMD);
+  Param repeat_params = repeat_aligner.getParameters();
+  // Force the cap path: min_run_occur (3) > data.size() (2).
+  repeat_params.setValue("min_run_occur", 3);
+  repeat_aligner.setParameters(repeat_params);
+
+  vector<TransformationDescription> first_transforms;
+  repeat_aligner.align(peptides, first_transforms, 0);
+  vector<TransformationDescription> second_transforms;
+  repeat_aligner.align(peptides, second_transforms, 0);
+
+  TEST_EQUAL(first_transforms.size(), 2);
+  TEST_EQUAL(second_transforms.size(), 2);
+  TEST_EQUAL(first_transforms[0].getModelType(), "identity"); // reference map
+  TEST_EQUAL(second_transforms[0].getModelType(), "identity");
+  const auto& first_points = first_transforms[1].getDataPoints();
+  const auto& second_points = second_transforms[1].getDataPoints();
+  TEST_NOT_EQUAL(first_points.size(), 0);
+  TEST_EQUAL(second_points.size(), first_points.size());
+  for (Size i = 0; i < first_points.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(second_points[i].first, first_points[i].first);
+    TEST_REAL_SIMILAR(second_points[i].second, first_points[i].second);
+  }
+  for (Size i = 0; i < first_transforms[1].getDataPoints().size(); ++i)
+  {
+    TEST_REAL_SIMILAR(second_transforms[1].getDataPoints()[i].first,
+                      first_transforms[1].getDataPoints()[i].first);
+    TEST_REAL_SIMILAR(second_transforms[1].getDataPoints()[i].second,
+                      first_transforms[1].getDataPoints()[i].second);
+  }
 }
 END_SECTION
 

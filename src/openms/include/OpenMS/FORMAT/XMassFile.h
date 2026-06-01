@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -39,6 +13,7 @@
 #include <OpenMS/FORMAT/HANDLERS/FidHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS
 {
@@ -75,8 +50,8 @@ public:
     /**
         @brief Loads a spectrum from a XMass file.
 
-@param filename Name of the XMass file which should be loaded.
-@param spectrum Spectrum in which the data loaded from the file should be stored.
+@param[in] filename Name of the XMass file which should be loaded.
+@param[out] spectrum Spectrum in which the data loaded from the file should be stored.
 
         @exception Exception::FileNotFound is thrown if the file could not be read
     */
@@ -87,7 +62,18 @@ public:
       Internal::FidHandler fid(filename);
       if (!fid)
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        if (!File::exists(filename))
+        {
+          throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+        else if (!File::readable(filename))
+        {
+          throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+        else
+        {
+          throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
       }
 
       //  Delete old spectrum
@@ -109,25 +95,25 @@ public:
       spectrum.setRT(0.0);
       spectrum.setMSLevel(1);
       spectrum.setName("Xmass analysis file " + acqus.getParam("$ID_raw"));
-      spectrum.setType(SpectrumSettings::PROFILE);
+      spectrum.setType(SpectrumSettings::SpectrumType::PROFILE);
       spectrum.setNativeID("spectrum=xsd:" + acqus.getParam("$ID_raw").remove('<').remove('>'));
       spectrum.setComment("no comment");
 
       InstrumentSettings instrument_settings;
-      instrument_settings.setScanMode(InstrumentSettings::MASSSPECTRUM);
+      instrument_settings.setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
       instrument_settings.setZoomScan(false);
 
       if (acqus.getParam(".IONIZATION MODE") == "LD+")
       {
-        instrument_settings.setPolarity(IonSource::POSITIVE);
+        instrument_settings.setPolarity(IonSource::Polarity::POSITIVE);
       }
       else if (acqus.getParam(".IONIZATION MODE") == "LD-")
       {
-        instrument_settings.setPolarity(IonSource::NEGATIVE);
+        instrument_settings.setPolarity(IonSource::Polarity::NEGATIVE);
       }
       else
       {
-        instrument_settings.setPolarity(IonSource::POLNULL);
+        instrument_settings.setPolarity(IonSource::Polarity::POLNULL);
       }
       spectrum.setInstrumentSettings(instrument_settings);
 
@@ -164,16 +150,16 @@ public:
       data_processing.setProcessingActions(actions);
       data_processing.setCompletionTime(DateTime::now());
 
-      std::vector< boost::shared_ptr< DataProcessing> > data_processing_vector;
-      data_processing_vector.push_back( boost::shared_ptr< DataProcessing>(new DataProcessing(data_processing)) );
+      std::vector< std::shared_ptr< DataProcessing> > data_processing_vector;
+      data_processing_vector.push_back( std::shared_ptr< DataProcessing>(new DataProcessing(data_processing)) );
       spectrum.setDataProcessing(data_processing_vector);
     }
 
     /**
         @brief Import settings from a XMass file.
 
-        @param filename File from which the experimental settings should be loaded.
-        @param exp MSExperiment where the experimental settings will be stored.
+        @param[in] filename File from which the experimental settings should be loaded.
+        @param[out] exp MSExperiment where the experimental settings will be stored.
 
         @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
@@ -193,24 +179,24 @@ public:
       ionSourceList.resize(1);
       if (acqus.getParam(".INLET") == "DIRECT")
       {
-        ionSourceList[0].setInletType(IonSource::DIRECT);
+        ionSourceList[0].setInletType(IonSource::InletType::DIRECT);
       }
       else
       {
-        ionSourceList[0].setInletType(IonSource::INLETNULL);
-        ionSourceList[0].setIonizationMethod(IonSource::MALDI);
+        ionSourceList[0].setInletType(IonSource::InletType::INLETNULL);
+        ionSourceList[0].setIonizationMethod(IonSource::IonizationMethod::MALDI);
       }
       if (acqus.getParam(".IONIZATION MODE") == "LD+")
       {
-        ionSourceList[0].setPolarity(IonSource::POSITIVE);
+        ionSourceList[0].setPolarity(IonSource::Polarity::POSITIVE);
       }
       else if (acqus.getParam(".IONIZATION MODE") == "LD-")
       {
-        ionSourceList[0].setPolarity(IonSource::NEGATIVE);
+        ionSourceList[0].setPolarity(IonSource::Polarity::NEGATIVE);
       }
       else
       {
-        ionSourceList[0].setPolarity(IonSource::POLNULL);
+        ionSourceList[0].setPolarity(IonSource::Polarity::POLNULL);
       }
       ionSourceList[0].setMetaValue("MALDI target reference", DataValue(acqus.getParam("$TgIDS").remove('<').remove('>')));
       ionSourceList[0].setOrder(0);
@@ -220,11 +206,11 @@ public:
       massAnalyzerList.resize(1);
       if (acqus.getParam(".SPECTROMETER TYPE") == "TOF")
       {
-        massAnalyzerList[0].setType(MassAnalyzer::TOF);
+        massAnalyzerList[0].setType(MassAnalyzer::AnalyzerType::TOF);
       }
       else
       {
-        massAnalyzerList[0].setType(MassAnalyzer::ANALYZERNULL);
+        massAnalyzerList[0].setType(MassAnalyzer::AnalyzerType::ANALYZERNULL);
       }
 
       DateTime date;

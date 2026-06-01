@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/DATA/DATA/Development/OpenMS/src/tests/topp/OpenPepXL_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2,3,4,5,6,7,8" enzyme="trypsin" missed_cleavages="3" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.2" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="/home/sachsenb/Development/OpenMS/src/tests/topp/OpenPepXL_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2,3,4,5,6,7,8" enzyme="trypsin" missed_cleavages="3" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.2" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
-				<UserParam type="string" name="input_consensusXML" value="/DATA/DATA/Development/OpenMS/src/tests/topp/OpenPepXL_input.consensusXML"/>
-				<UserParam type="string" name="input_mzML" value="/DATA/DATA/Development/OpenMS/src/tests/topp/OpenPepXL_input.mzML"/>
+				<UserParam type="string" name="input_consensusXML" value="/home/sachsenb/Development/OpenMS/src/tests/topp/OpenPepXL_input.consensusXML"/>
+				<UserParam type="string" name="input_mzML" value="/home/sachsenb/Development/OpenMS/src/tests/topp/OpenPepXL_input.mzML"/>
 				<UserParam type="string" name="input_decoys" value=""/>
-				<UserParam type="string" name="out_xquest_specxml" value="OpenPepXL_output.spec.xml.tmp"/>
+				<UserParam type="string" name="out_xquest_specxml" value="OpenPepXL_output.tmp.spec.xml"/>
 				<UserParam type="int" name="decoy_prefix" value="1"/>
 				<UserParam type="string" name="decoy_string" value="decoy_"/>
 				<UserParam type="int" name="precursor:min_charge" value="2"/>
@@ -23,11 +23,21 @@
 				<UserParam type="intList" name="precursor:corrections" value="[4, 3, 2, 1, 0]"/>
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="3"/>
 				<UserParam type="int" name="MS:1001029" value="1091"/>
+				<UserParam type="string" name="PeptideIndexer:decoy_string" value="decoy_"/>
+				<UserParam type="string" name="PeptideIndexer:decoy_string_position" value="prefix"/>
+				<UserParam type="string" name="PeptideIndexer:enzyme" value="Trypsin"/>
+				<UserParam type="string" name="PeptideIndexer:enzyme_specificity" value="full"/>
+				<UserParam type="int" name="PeptideIndexer:aaa_max" value="3"/>
+				<UserParam type="int" name="PeptideIndexer:mismatches_max" value="0"/>
+				<UserParam type="string" name="PeptideIndexer:IL_equivalent" value="false"/>
+				<UserParam type="string" name="PeptideIndexer:allow_nterm_protein_cleavage" value="true"/>
+				<UserParam type="string" name="PeptideIndexer:unmatched_action" value="error"/>
+				<UserParam type="string" name="PeptideIndexer:missing_decoy_action" value="warn"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 				<UserParam type="string" name="extra_features" value="precursor_mz_error_ppm,OpenPepXL:score,isotope_error,OpenPepXL:xquest_score,OpenPepXL:xcorr xlink,OpenPepXL:xcorr common,OpenPepXL:match-odds,OpenPepXL:intsum,OpenPepXL:wTIC,OpenPepXL:TIC,OpenPepXL:prescore,OpenPepXL:log_occupancy,OpenPepXL:log_occupancy_alpha,OpenPepXL:log_occupancy_beta,matched_xlink_alpha,matched_xlink_beta,matched_linear_alpha,matched_linear_beta,ppm_error_abs_sum_linear_alpha,ppm_error_abs_sum_linear_beta,ppm_error_abs_sum_xlinks_alpha,ppm_error_abs_sum_xlinks_beta,ppm_error_abs_sum_linear,ppm_error_abs_sum_xlinks,ppm_error_abs_sum_alpha,ppm_error_abs_sum_beta,ppm_error_abs_sum,precursor_total_intensity,precursor_target_intensity,precursor_signal_proportion,precursor_target_peak_count,precursor_residual_peak_count"/>
 	</SearchParameters>
-	<IdentificationRun date="2022-04-09T20:17:38" search_engine="OpenPepXL" search_engine_version="3.0.0-pre-fix-OpenPepXL-OMS-com-2022-04-09" search_parameters_ref="SP_0" >
-		<ProteinIdentification score_type="OpenPepXL_Protein_Score" higher_score_better="true" significance_threshold="0" >
+	<IdentificationRun date="2025-04-24T12:33:45" search_engine="OpenPepXL" search_engine_version="3.4.0-pre-move-rank-to-meta-2025-04-24" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="OpenPepXL_Protein_Score" higher_score_better="true" significance_threshold="0.0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
@@ -53,6 +63,7 @@
 				<UserParam type="int" name="spectrum_index" value="101"/>
 				<UserParam type="float" name="xl_mass" value="156.078644309999987"/>
 				<UserParam type="string" name="xl_pos2" value="-"/>
+				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="int" name="xl_pos1" value="5"/>
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
@@ -117,6 +128,7 @@
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="4"/>
+				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="int" name="xl_pos1" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
@@ -185,6 +197,7 @@
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="4"/>
+				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="int" name="xl_pos1" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
@@ -251,6 +264,7 @@
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="0"/>
+				<UserParam type="int" name="rank" value="2"/>
 				<UserParam type="int" name="xl_pos1" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
@@ -317,6 +331,7 @@
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="0"/>
+				<UserParam type="int" name="rank" value="3"/>
 				<UserParam type="int" name="xl_pos1" value="6"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
@@ -383,6 +398,7 @@
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="0"/>
+				<UserParam type="int" name="rank" value="4"/>
 				<UserParam type="int" name="xl_pos1" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
@@ -451,6 +467,7 @@
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="4"/>
+				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="int" name="xl_pos1" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
@@ -517,6 +534,7 @@
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="1"/>
+				<UserParam type="int" name="rank" value="2"/>
 				<UserParam type="int" name="xl_pos1" value="8"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
@@ -585,6 +603,7 @@
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="4"/>
+				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="int" name="xl_pos1" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
@@ -652,6 +671,7 @@
 				<UserParam type="int" name="spectrum_index" value="152"/>
 				<UserParam type="float" name="xl_mass" value="156.078644309999987"/>
 				<UserParam type="string" name="xl_pos2" value="-"/>
+				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="int" name="xl_pos1" value="10"/>
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
@@ -713,6 +733,7 @@
 				<UserParam type="int" name="spectrum_index" value="152"/>
 				<UserParam type="float" name="xl_mass" value="155.094628714999999"/>
 				<UserParam type="string" name="xl_pos2" value="-"/>
+				<UserParam type="int" name="rank" value="2"/>
 				<UserParam type="int" name="xl_pos1" value="10"/>
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
@@ -776,6 +797,7 @@
 				<UserParam type="int" name="spectrum_index" value="154"/>
 				<UserParam type="float" name="xl_mass" value="156.078644309999987"/>
 				<UserParam type="string" name="xl_pos2" value="-"/>
+				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="int" name="xl_pos1" value="10"/>
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
@@ -837,6 +859,7 @@
 				<UserParam type="int" name="spectrum_index" value="154"/>
 				<UserParam type="float" name="xl_mass" value="155.094628714999999"/>
 				<UserParam type="string" name="xl_pos2" value="-"/>
+				<UserParam type="int" name="rank" value="2"/>
 				<UserParam type="int" name="xl_pos1" value="10"/>
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
@@ -900,6 +923,7 @@
 				<UserParam type="int" name="spectrum_index" value="195"/>
 				<UserParam type="float" name="xl_mass" value="155.094628714999999"/>
 				<UserParam type="string" name="xl_pos2" value="-"/>
+				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="int" name="xl_pos1" value="7"/>
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
@@ -961,6 +985,7 @@
 				<UserParam type="int" name="spectrum_index" value="195"/>
 				<UserParam type="float" name="xl_mass" value="156.078644309999987"/>
 				<UserParam type="string" name="xl_pos2" value="-"/>
+				<UserParam type="int" name="rank" value="2"/>
 				<UserParam type="int" name="xl_pos1" value="7"/>
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
@@ -1025,6 +1050,7 @@
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="4"/>
+				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="int" name="xl_pos1" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
@@ -1091,6 +1117,7 @@
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="0"/>
+				<UserParam type="int" name="rank" value="2"/>
 				<UserParam type="int" name="xl_pos1" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
@@ -1157,6 +1184,7 @@
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="0"/>
+				<UserParam type="int" name="rank" value="3"/>
 				<UserParam type="int" name="xl_pos1" value="6"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
@@ -1225,6 +1253,7 @@
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="4"/>
+				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="int" name="xl_pos1" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
@@ -1293,6 +1322,7 @@
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="4"/>
+				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="int" name="xl_pos1" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
@@ -1359,6 +1389,7 @@
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="0"/>
+				<UserParam type="int" name="rank" value="2"/>
 				<UserParam type="int" name="xl_pos1" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
@@ -1425,6 +1456,7 @@
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="0"/>
+				<UserParam type="int" name="rank" value="3"/>
 				<UserParam type="int" name="xl_pos1" value="6"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
@@ -1493,6 +1525,7 @@
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="4"/>
+				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="int" name="xl_pos1" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
@@ -1559,6 +1592,7 @@
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="0"/>
+				<UserParam type="int" name="rank" value="2"/>
 				<UserParam type="int" name="xl_pos1" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>

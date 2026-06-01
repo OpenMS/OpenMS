@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -90,7 +64,7 @@ START_SECTION([EXTRA] friend OPENMS_DLLAPI bool operator==(const Adduct& a, cons
 	Adduct a(123,  3, 123.456f, "S", -0.3453f, 0);
 	Adduct b(a);
 
-	TEST_EQUAL(a==b, true);
+	TEST_TRUE(a == b);
 	a.setAmount(22);
 	TEST_EQUAL(a==b, false);
 	
@@ -216,6 +190,26 @@ START_SECTION((void operator+=(const Adduct &rhs)))
 }
 END_SECTION
 
+
+START_SECTION((static String toAdductString(const String& ion_string, const Int& charge, Int mol_multiplier)))
+{
+  // monomer (multiplier=1) — no prefix
+  String r1 = Adduct::toAdductString("H1", 1, 1);
+  TEST_EQUAL(r1, "[M+H]+");
+
+  // dimer
+  String r2 = Adduct::toAdductString("H1", 1, 2);
+  TEST_EQUAL(r2, "[2M+H]+");
+
+  // trimer with Na
+  String r3 = Adduct::toAdductString("Na1", 1, 3);
+  TEST_EQUAL(r3, "[3M+Na]+");
+
+  // dimer negative mode
+  String r4 = Adduct::toAdductString("H-1", -1, 2);
+  TEST_EQUAL(r4, "[2M-H]-");
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

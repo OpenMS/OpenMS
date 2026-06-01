@@ -11,5 +11,5 @@ You can install pyopenms using::
 
   pip install pyopenms
 
-Please see https://github.com/OpenMS/OpenMS/wiki/pyOpenMS for more information.
+Please see https://pyopenms.readthedocs.io/en/latest/index.html for more information.
 

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -36,71 +10,111 @@
 
 #include <OpenMS/config.h>
 
-#include <QtCore/QObject>
-#include <QtCore/QString>
-#include <QtCore/QUrl>
-#include <QtNetwork/QNetworkReply>
+#include <string>
+#include <vector>
 
 namespace OpenMS
 {
+  /**
+    @brief Synchronous HTTP GET request backed by libcurl.
 
-  class NetworkGetRequest :
-    public QObject
+    Typical lifecycle: set the URL via @ref setUrl, optionally set a
+    timeout via @ref setTimeout, call @ref run to perform the request,
+    then read the result via @ref getResponse / @ref getResponseBinary
+    or check @ref hasError / @ref getErrorString. The instance can be
+    reused for further requests; each call to @ref run replaces the
+    previously observed state. Redirects are followed automatically.
+
+    Failures (libcurl initialisation, transport errors, HTTP status
+    @c >= @c 400) are reported through @ref hasError and
+    @ref getErrorString; @ref run does not throw on those conditions.
+
+    Instances are not copyable.
+
+    @ingroup System
+  */
+  class OPENMS_DLLAPI NetworkGetRequest
   {
-    Q_OBJECT
-
   public:
+    NetworkGetRequest();
+    ~NetworkGetRequest();
 
-    /** @name Constructors and destructors
+    /**
+      @brief Set the URL to request.
+
+      The URL is consumed by the next @ref run call; no validation is performed here.
+
+      @param[in] url URL to request on the next @ref run call.
     */
-    //@{
-    /// default constructor
-    OPENMS_DLLAPI NetworkGetRequest(QObject* parent = nullptr);
+    void setUrl(const std::string& url);
 
-    /// destructor
-    OPENMS_DLLAPI ~NetworkGetRequest() override;
-    //@}
+    /**
+      @brief Set the request timeout in seconds.
 
-    // set request parameters
-    OPENMS_DLLAPI void setUrl(const QUrl& url);
+      @param[in] seconds Timeout in seconds. @c 0 (the default) leaves the
+                         timeout unset, so the request blocks until the server
+                         responds or libcurl gives up on its own.
+    */
+    void setTimeout(int seconds);
 
-    /// returns the response
-    OPENMS_DLLAPI QString getResponse() const;
+    /**
+      @brief Execute the GET request synchronously.
 
-    /// returns true if an error occurred during the query
-    OPENMS_DLLAPI bool hasError() const;
+      Performs the request configured by the last @ref setUrl /
+      @ref setTimeout call, blocking the caller until the response is
+      complete or libcurl reports a timeout / error. Redirects are
+      followed. The previous response and error state are cleared at
+      the start of the call.
 
-    /// returns the error message, if hasError can be used to check whether an error has occurred
-    OPENMS_DLLAPI QString getErrorString() const;
+      The call sets @ref hasError to @c true when:
+        - libcurl could not be initialised (error string
+          @c "Failed to initialize libcurl"),
+        - a transport-level libcurl error occurred (error string from
+          @c curl_easy_strerror), or
+        - the server responded with HTTP status @c >= @c 400 (error
+          string @c "HTTP error N", where @c N is the status code).
 
-  protected:
+      No exception is thrown for any of these.
+    */
+    void run();
 
-    public slots:
+    /**
+      @brief Response body as a string.
 
-    OPENMS_DLLAPI void run();
+      @return A copy of @ref getResponseBinary materialised as @c std::string.
+    */
+    std::string getResponse() const;
 
-    OPENMS_DLLAPI void timeOut();
+    /**
+      @brief Raw response body.
 
-    private slots:
+      @return Reference to the byte buffer; valid until the next @ref run call or destruction.
+    */
+    const std::vector<char>& getResponseBinary() const;
 
-    OPENMS_DLLAPI void replyFinished(QNetworkReply*);
+    /**
+      @brief Whether the last @ref run produced an error.
 
-  signals:
+      @return @c true if the last @ref run call did not produce a usable
+              response (see @ref run for the conditions).
+    */
+    bool hasError() const;
 
-    OPENMS_DLLAPI void done();
+    /**
+      @brief Human-readable description of the last error.
+
+      @return Error message; empty when @ref hasError is @c false.
+    */
+    std::string getErrorString() const;
 
   private:
-    /// assignment operator
-    OPENMS_DLLAPI NetworkGetRequest& operator=(const NetworkGetRequest& rhs);
-    /// copy constructor
-    OPENMS_DLLAPI NetworkGetRequest(const NetworkGetRequest& rhs);
+    NetworkGetRequest(const NetworkGetRequest&) = delete;
+    NetworkGetRequest& operator=(const NetworkGetRequest&) = delete;
 
-    QByteArray response_bytes_;
-    QUrl url_;
-    QNetworkAccessManager* manager_;
-    QNetworkReply* reply_;
-    QNetworkReply::NetworkError error_;
-    QString error_string_;
+    std::vector<char> response_bytes_;
+    std::string url_;
+    int timeout_ = 0;
+    bool has_error_ = false;
+    std::string error_string_;
   };
 }
-

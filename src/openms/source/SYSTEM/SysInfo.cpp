@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -33,14 +7,24 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/SysInfo.h>
+
+#include <array>
 #include <cstdlib>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <sstream>
 
 #ifdef OPENMS_WINDOWSPLATFORM
   #include "windows.h"
   #include "psapi.h"
+  #include <process.h>  // for _getpid()
 #elif __APPLE__
   #include <mach/mach.h>
+  #include <mach/mach_host.h>
   #include <mach/mach_init.h>
+  #include <unistd.h>   // for getpid()
 #else
   #define OMS_USELINUXMEMORYPLATFORM
   #include <cstdio>
@@ -52,6 +36,26 @@
 
 namespace OpenMS
 {
+
+  std::string bytesToHumanReadable(UInt64 bytes)
+  {
+    std::array units {"byte", "KiB", "MiB", "GiB", "TiB", "PiB"};
+
+    const int divisor = 1024;
+    double db = double(bytes);
+    for (const auto u : units)
+    {
+      if (db < divisor)
+      {
+        std::stringstream ss;
+        ss << std::setprecision(4) /* 4 digits overall, i.e. 1000 or 1.456 */ << db << ' ' << u;
+        return ss.str();
+      }
+      db /= divisor;
+    }
+    // wow ... you made it here...
+    return std::string("Congrats. That's a lot of bytes: ") + std::to_string(bytes);
+  }
 
 #ifdef OMS_USELINUXMEMORYPLATFORM
   // see http://stackoverflow.com/questions/1558402/memory-usage-of-current-process-in-c
@@ -99,6 +103,56 @@ namespace OpenMS
     fclose(f);
     return true;
   }
+
+  bool read_available_memory_linux(size_t& mem_available)
+  {
+    mem_available = 0;
+
+    std::ifstream meminfo("/proc/meminfo");
+    std::string line;
+    while (std::getline(meminfo, line))
+    {
+      std::istringstream iss(line);
+      std::string key;
+      UInt64 value = 0;
+      if (!(iss >> key >> value))
+      {
+        continue;
+      }
+
+      if (key == "MemAvailable:")
+      {
+        if (value > static_cast<UInt64>(std::numeric_limits<size_t>::max()))
+        {
+          mem_available = std::numeric_limits<size_t>::max();
+        }
+        else
+        {
+          mem_available = static_cast<size_t>(value);
+        }
+        return true;
+      }
+    }
+
+    const long available_pages = sysconf(_SC_AVPHYS_PAGES);
+    const long page_size = sysconf(_SC_PAGESIZE);
+    if (available_pages <= 0 || page_size <= 0)
+    {
+      return false;
+    }
+
+    const UInt64 available_kb = static_cast<UInt64>(available_pages) *
+                                static_cast<UInt64>(page_size) / 1024ull;
+    if (available_kb > static_cast<UInt64>(std::numeric_limits<size_t>::max()))
+    {
+      mem_available = std::numeric_limits<size_t>::max();
+    }
+    else
+    {
+      mem_available = static_cast<size_t>(available_kb);
+    }
+    return true;
+  }
 #endif
 
   bool SysInfo::getProcessMemoryConsumption(size_t& mem_virtual)
@@ -133,6 +187,46 @@ namespace OpenMS
     return true;
   }
 
+  bool SysInfo::getFreeSystemMemory(size_t& mem_available)
+  {
+    mem_available = 0;
+#ifdef OPENMS_WINDOWSPLATFORM
+    MEMORYSTATUSEX status;
+    status.dwLength = sizeof(status);
+    if (!GlobalMemoryStatusEx(&status))
+    {
+      return false;
+    }
+    mem_available = static_cast<size_t>(status.ullAvailPhys / 1024ull);
+#elif __APPLE__
+    vm_size_t page_size = 0;
+    if (KERN_SUCCESS != host_page_size(mach_host_self(), &page_size))
+    {
+      return false;
+    }
+
+    vm_statistics64_data_t vm_stat;
+    mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
+    if (KERN_SUCCESS != host_statistics64(mach_host_self(),
+                                          HOST_VM_INFO64,
+                                          reinterpret_cast<host_info64_t>(&vm_stat),
+                                          &count))
+    {
+      return false;
+    }
+
+    const UInt64 available_pages = static_cast<UInt64>(vm_stat.free_count) +
+                                   static_cast<UInt64>(vm_stat.inactive_count);
+    mem_available = static_cast<size_t>(available_pages * static_cast<UInt64>(page_size) / 1024ull);
+#else // Linux
+    if (!read_available_memory_linux(mem_available))
+    {
+      return false;
+    }
+#endif
+    return true;
+  }
+
   bool SysInfo::getProcessPeakMemoryConsumption(size_t& mem_virtual)
   {
     mem_virtual = 0;
@@ -162,6 +256,15 @@ namespace OpenMS
     }
     #endif
     return false;
+#endif
+  }
+
+  Int64 SysInfo::getProcessId()
+  {
+#ifdef OPENMS_WINDOWSPLATFORM
+    return static_cast<Int64>(_getpid());
+#else
+    return static_cast<Int64>(getpid());
 #endif
   }
 
@@ -228,6 +331,5 @@ namespace OpenMS
     s = String(std::abs(((long long)mem_after - (long long)mem_before) / 1024)) + " MB";
     return s;
   }
-
 
 } // namespace OpenMS

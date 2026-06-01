@@ -1,35 +1,9 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow, Xiao Liang $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow, Jeremi Maciejewski $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -122,10 +96,10 @@ namespace OpenMS
 
        By returning only references into the original string this is very fast.
 
-       @param sequence Sequence to digest
-       @param output Digestion products
-       @param min_length Minimal length of reported products
-       @param max_length Maximal length of reported products (0 = no restriction)
+       @param[in] sequence Sequence to digest
+       @param[out] output Digestion products
+       @param[in] min_length Minimal length of reported products
+       @param[in] max_length Maximal length of reported products (0 = no restriction)
        @return Number of discarded digestion products (which are not matching length restrictions)
        */
     Size digestUnmodified(const StringView& sequence, std::vector<StringView>& output, Size min_length = 1, Size max_length = 0) const;
@@ -137,10 +111,10 @@ namespace OpenMS
      version of this function it is independent of the original sequence. Can be used for matching products to
      determine e.g. missing ones. @todo could be set of pairs.
 
-     @param sequence Sequence to digest
-     @param output Digestion products as vector of pairs of start and end positions
-     @param min_length Minimal length of reported products
-     @param max_length Maximal length of reported products (0 = no restriction)
+     @param[in] sequence Sequence to digest
+     @param[out] output Digestion products as vector of pairs of start and end positions
+     @param[in] min_length Minimal length of reported products
+     @param[in] max_length Maximal length of reported products (0 = no restriction)
      @return Number of discarded digestion products (which are not matching length restrictions)
      */
     Size digestUnmodified(const StringView& sequence, std::vector<std::pair<Size, Size>>& output, Size min_length = 1, Size max_length = 0) const;
@@ -150,17 +124,17 @@ namespace OpenMS
 
     Checks if peptide is a valid digestion product of the enzyme, taking into account specificity and the MC flag provided here.
 
-    @param protein Protein sequence
-    @param pep_pos Starting index of potential peptide
-    @param pep_length Length of potential peptide
-    @param ignore_missed_cleavages Do not compare MC's of potential peptide to the maximum allowed MC's
+    @param[in] protein Protein sequence
+    @param[in] pep_pos Starting index of potential peptide
+    @param[in] pep_length Length of potential peptide
+    @param[in] ignore_missed_cleavages Do not compare MC's of potential peptide to the maximum allowed MC's
     @return True if peptide has correct n/c terminals (according to enzyme, specificity and missed cleavages)
     */
     bool isValidProduct(const String& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages = true) const;
 
     /**
        @brief Counts the number of internal cleavage sites (missed cleavages) in a protein sequence.
-       @param sequence Sequence
+       @param[in] sequence Sequence
        @return Number of internal cleavage sites (= missed cleavages in the sequence)
     */
     Size countInternalCleavageSites(const String& sequence) const;
@@ -168,11 +142,12 @@ namespace OpenMS
     /**
        @brief Filter based on the number of missed cleavages.
 
-       @param sequence Unmodified (!) amino acid sequence to check.
-       @param filter A predicate that takes as parameter the number of missed cleavages in the sequence and returns true if the sequence should be filtered out.
+       @param[in] sequence Unmodified (!) amino acid sequence to check.
+       @param[in] filter A predicate that takes as parameter the number of missed cleavages in the sequence and returns true if the sequence should be filtered out.
        @return Whether the sequence should be filtered out.
      */
     bool filterByMissedCleavages(const String& sequence, const std::function<bool(const Int)>& filter) const;
+
 
   protected:
     /**
@@ -197,12 +172,31 @@ namespace OpenMS
 
       Returned positions include @p start and any positions between start and end matching the regex.
 
-      @param sequence ...
-      @param start Start digestion after this point
-      @param end Past-the-end index into @p sequence
+      @param[in] sequence ...
+      @param[in] start Start digestion after this point
+      @param[in] end Past-the-end index into @p sequence
       @return Cleavage positions (this includes @p start, but not @p end)
      */
     std::vector<int> tokenize_(const String& sequence, int start = 0, int end = -1) const;
+
+    /**
+      @brief Generates semi-specific digestion products
+
+      Function handling semi-specific digestion (specificity_ == Specificity::SPEC_SEMI).
+      It is intended for calling after tokenizing and missed cleavages variants generation.
+      Fully-specific variants are skipped.
+      Also generates semi-specific variants with missed cleavages.
+
+      @param[in] cleavage_positions A (sorted!) vector of cleavage positions, as returned by tokenize_(). First and last cleavage should be sequence termini.
+      @param[out] output A vector into which produced variants are emplaced.
+      @param[in] min_length Minimal length of reported products
+      @param[in] max_length Maximal length of reported products
+
+      @return number of digestion products NOT matching the length restrictions.
+      @throw Exception::InvalidValue if number of cleavage_positions is smaller than 2 (at least sequence termini are required).
+      @throw Exception::Precondition if vector cleavage_positions is not sorted.
+    */
+    Size semiSpecificDigestion_(const std::vector<int>& cleavage_positions, std::vector<std::pair<Size, Size>>& output, Size min_length = 0, Size max_length = -1) const;
 
     /**
        @brief Helper function for digestUnmodified()
@@ -218,9 +212,9 @@ namespace OpenMS
     /**
        @brief Counts the number of missed cleavages in a sequence fragment
 
-       @param cleavage_positions Positions of cleavage in protein as obtained from tokenize_()
-       @param seq_start Index into sequence
-       @param seq_end Past-the-end index into sequence
+       @param[in] cleavage_positions Positions of cleavage in protein as obtained from tokenize_()
+       @param[in] seq_start Index into sequence
+       @param[in] seq_end Past-the-end index into sequence
        @return number of missed cleavages of peptide
     */
     Size countMissedCleavages_(const std::vector<int>& cleavage_positions, Size seq_start, Size seq_end) const;

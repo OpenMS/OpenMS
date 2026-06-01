@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer:Timo Sachsenberg $
@@ -37,6 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 //QT
 #include <QtWidgets/QLineEdit>
 #include <QValidator>
@@ -95,31 +70,31 @@ namespace OpenMS
     // id of the item in the tree
     tree_id_ = tree_item_id;
 
-    identification_date_->setText(temp_.getDateTime().get().toQString());
+    identification_date_->setText(toQString(temp_.getDateTime().get()));
     identification_threshold_->setText(QString::number(temp_.getSignificanceThreshold()));
-    identifier_->setText(temp_.getIdentifier().toQString());
-    engine_->setText(temp_.getSearchEngine().toQString());
-    engine_version_->setText(temp_.getSearchEngineVersion().toQString());
-    score_type_->setText(temp_.getScoreType().toQString());
+    identifier_->setText(toQString(temp_.getIdentifier()));
+    engine_->setText(toQString(temp_.getSearchEngine()));
+    engine_version_->setText(toQString(temp_.getSearchEngineVersion()));
+    score_type_->setText(toQString(temp_.getScoreType()));
     higher_better_->setCurrentIndex(temp_.isHigherScoreBetter());
 
-    db_->setText(temp_.getSearchParameters().db.toQString());
-    db_version_->setText(temp_.getSearchParameters().db_version.toQString());
-    taxonomy_->setText(temp_.getSearchParameters().taxonomy.toQString());
-    charges_->setText(temp_.getSearchParameters().charges.toQString());
+    db_->setText(toQString(temp_.getSearchParameters().db));
+    db_version_->setText(toQString(temp_.getSearchParameters().db_version));
+    taxonomy_->setText(toQString(temp_.getSearchParameters().taxonomy));
+    charges_->setText(toQString(temp_.getSearchParameters().charges));
     missed_cleavages_->setText(QString::number(temp_.getSearchParameters().missed_cleavages));
     peak_tolerance_->setText(QString::number(temp_.getSearchParameters().fragment_mass_tolerance));
     precursor_tolerance_->setText(QString::number(temp_.getSearchParameters().precursor_mass_tolerance));
-    enzyme_->setText(temp_.getSearchParameters().digestion_enzyme.getName().toQString());
+    enzyme_->setText(toQString(temp_.getSearchParameters().digestion_enzyme.getName()));
 
     if (!isEditable())
     {
-      fillComboBox_(mass_type_, &ProteinIdentification::NamesOfPeakMassType[temp_.getSearchParameters().mass_type], 1);
+      fillComboBox_(mass_type_, &ProteinIdentification::NamesOfPeakMassType[static_cast<size_t>(temp_.getSearchParameters().mass_type)], 1);
     }
     else
     {
-      fillComboBox_(mass_type_, ProteinIdentification::NamesOfPeakMassType, ProteinIdentification::SIZE_OF_PEAKMASSTYPE);
-      mass_type_->setCurrentIndex(temp_.getSearchParameters().mass_type);
+      fillComboBox_(mass_type_, ProteinIdentification::NamesOfPeakMassType, static_cast<int>(ProteinIdentification::PeakMassType::SIZE_OF_PEAKMASSTYPE));
+      mass_type_->setCurrentIndex(static_cast<int>(temp_.getSearchParameters().mass_type));
     }
   }
 
@@ -137,17 +112,17 @@ namespace OpenMS
 
   void ProteinIdentificationVisualizer::store()
   {
-    ptr_->setSearchEngine(engine_->text());
-    ptr_->setSearchEngineVersion(engine_version_->text());
-    ptr_->setIdentifier(identifier_->text());
+    ptr_->setSearchEngine(fromQString(engine_->text()));
+    ptr_->setSearchEngineVersion(fromQString(engine_version_->text()));
+    ptr_->setIdentifier(fromQString(identifier_->text()));
     ptr_->setSignificanceThreshold(identification_threshold_->text().toFloat());
-    ptr_->setScoreType(score_type_->text());
+    ptr_->setScoreType(fromQString(score_type_->text()));
     ptr_->setHigherScoreBetter(higher_better_->currentIndex());
     //date
     DateTime date;
     try
     {
-      date.set(identification_date_->text());
+      date.set(fromQString(identification_date_->text()));
       ptr_->setDateTime(date);
     }
     catch (exception & /*e*/)
@@ -161,14 +136,14 @@ namespace OpenMS
 
     //search parameters
     ProteinIdentification::SearchParameters tmp = ptr_->getSearchParameters();
-    tmp.db = db_->text();
-    tmp.db_version = db_version_->text();
-    tmp.taxonomy = taxonomy_->text();
-    tmp.charges = charges_->text();
+    tmp.db = fromQString(db_->text());
+    tmp.db_version = fromQString(db_version_->text());
+    tmp.taxonomy = fromQString(taxonomy_->text());
+    tmp.charges = fromQString(charges_->text());
     tmp.missed_cleavages = missed_cleavages_->text().toInt();
     tmp.fragment_mass_tolerance = peak_tolerance_->text().toFloat();
     tmp.precursor_mass_tolerance = precursor_tolerance_->text().toFloat();
-    tmp.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_->text()));
+    tmp.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(fromQString(enzyme_->text())));
     tmp.mass_type = (ProteinIdentification::PeakMassType)(mass_type_->currentIndex());
     ptr_->setSearchParameters(tmp);
 

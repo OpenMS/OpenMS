@@ -1,404 +1,313 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CONCEPT/Types.h>
 
-#include <cmath> // pow()
-#include <iomanip>
 #include <vector>
+#include <algorithm>
 #include <iostream>
+#include <iomanip>
+#include <stdexcept>
 
 namespace OpenMS
 {
-
   /**
-    @brief A two-dimensional matrix.  Similar to std::vector, but uses a binary
-    operator(,) for element access.
-
-    Think of it as a random access container.  You can also generate gray
-    scale images.  This data structure is not designed to be used for linear algebra,
-    but rather a simple two-dimensional array.
-
-    The following member functions of the base class std::vector<ValueType>
-    can also be used:
-
-    <ul>
-      <li>begin</li>
-      <li>end</li>
-      <li>rbegin</li>
-      <li>rend</li>
-      <li>front</li>
-      <li>back</li>
-      <li>assign</li>
-      <li>empty</li>
-      <li>size</li>
-      <li>capacity</li>
-      <li>max_size</li>
-    </ul>
-
-         @ingroup Datastructures
-  */
+   * @brief A 2D matrix class with efficient buffer access for NumPy interoperability.
+   *
+   * Data is stored in column-major order (Fortran style) for compatibility with
+   * Eigen and most numerical libraries. Internal OpenMS code can obtain zero-copy
+   * Eigen views via the eigenView() function in MatrixEigen.h (internal header).
+   *
+   * @tparam Value The element type (typically double or float)
+   *
+   * @ingroup Datastructures
+   */
   template <typename Value>
-  class Matrix :
-    protected std::vector<Value>
+  class Matrix
   {
-protected:
-    typedef std::vector<Value> Base;
+  public:
+    ///@name Type definitions
+    ///@{
+    using value_type = Value;
+    using iterator = typename std::vector<Value>::iterator;
+    using const_iterator = typename std::vector<Value>::const_iterator;
+    ///@}
 
-public:
+    ///@name Constructors and assignment
+    ///@{
 
-    ///@name STL compliance type definitions
-    //@{
-    typedef Base container_type;
-
-    typedef typename Base::difference_type difference_type;
-    typedef typename Base::size_type size_type;
-
-    typedef typename Base::const_iterator const_iterator;
-    typedef typename Base::const_reverse_iterator const_reverse_iterator;
-    typedef typename Base::iterator iterator;
-    typedef typename Base::reverse_iterator reverse_iterator;
-
-    typedef typename Base::const_reference const_reference;
-    typedef typename Base::pointer pointer;
-    typedef typename Base::reference reference;
-    typedef typename Base::value_type value_type;
-
-    typedef typename Base::allocator_type allocator_type;
-    //@}
-
-    ///@name OpenMS compliance type definitions
-    //@{
-    typedef Base ContainerType;
-    typedef difference_type DifferenceType;
-    typedef size_type SizeType;
-
-    typedef const_iterator ConstIterator;
-    typedef const_reverse_iterator ConstReverseIterator;
-    typedef iterator Iterator;
-    typedef reverse_iterator ReverseIterator;
-
-    typedef const_reference ConstReference;
-    typedef pointer Pointer;
-    typedef reference Reference;
-    typedef value_type ValueType;
-
-    typedef allocator_type AllocatorType;
-    //@}
-
-    ///@name Constructors, assignment, and destructor
-    //@{
-    Matrix() :
-      Base(),
-      rows_(0),
-      cols_(0)
-    {}
-
-    Matrix(const SizeType rows, const SizeType cols, ValueType value = ValueType()) :
-      Base(rows * cols, value),
-      rows_(rows),
-      cols_(cols)
-    {}
-
-    Matrix(const Matrix& source) :
-      Base(source),
-      rows_(source.rows_),
-      cols_(source.cols_)
-    {}
-
-    Matrix& operator=(const Matrix& rhs)
-    {
-      Base::operator=(rhs);
-      rows_ = rhs.rows_;
-      cols_ = rhs.cols_;
-      return *this;
-    }
-
-    ~Matrix() {}
-    //@}
-
-    ///@name Accessors
-    //@{
-    const_reference operator()(size_type const i, size_type const j) const
-    {
-      return getValue(i, j);
-    }
-
-    reference operator()(size_type const i, size_type const j)
-    {
-      return getValue(i, j);
-    }
-
-    const_reference getValue(size_type const i, size_type const j) const
-    {
-      return Base::operator[](index(i, j));
-    }
-
-    reference getValue(size_type const i, size_type const j)
-    {
-      return Base::operator[](index(i, j));
-    }
-
-    void setValue(size_type const i, size_type const j, value_type value)
-    {
-      Base::operator[](index(i, j)) = value;
-    }
-
-    /// Return the i-th row of the matrix as a vector.
-    container_type row(size_type const i) const
-    {
-#ifdef OPENMS_DEBUG
-      if (i >= rows_) throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, i, rows_);
-#endif
-      container_type values(cols_);
-      for (size_type j = 0; j < cols_; j++)
-      {
-        values[j] = Base::operator[](index(i, j));
-      }
-      return values;
-    }
-
-    /// Return the i-th column of the matrix as a vector.
-    container_type col(size_type const i) const
-    {
-#ifdef OPENMS_DEBUG
-      if (i >= cols_) throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, i, cols_);
-#endif
-      container_type values(rows_);
-      for (size_type j = 0; j < rows_; j++)
-      {
-        values[j] = Base::operator[](index(j, i));
-      }
-      return values;
-    }
-
-    //@}
-
+    /// Default constructor creates empty matrix
+    Matrix() : rows_(0), cols_(0) {}
 
     /**
-      @name Pure access declarations
+     * @brief Constructor to create a matrix with specified dimensions and fill value.
+     *
+     * @param rows Number of rows in the matrix.
+     * @param cols Number of columns in the matrix.
+     * @param value Initial value to fill the matrix.
+     */
+    Matrix(Size rows, Size cols, Value value = Value())
+      : data_(rows * cols, value), rows_(rows), cols_(cols) {}
 
-      These make begin(), end() etc. from container_type accessible.
-    */
-    //@{
-public:
+    /// Copy constructor
+    Matrix(const Matrix&) = default;
 
-    using Base::begin;
-    using Base::end;
-    using Base::rbegin;
-    using Base::rend;
+    /// Move constructor
+    Matrix(Matrix&&) noexcept = default;
 
-    using Base::front;
-    using Base::back;
-    using Base::assign;
+    /// Copy assignment operator
+    Matrix& operator=(const Matrix&) = default;
 
-    using Base::empty;
-    using Base::size;
+    /// Move assignment operator
+    Matrix& operator=(Matrix&&) noexcept = default;
 
-    using Base::capacity;
-    using Base::max_size;
+    /// Destructor
+    ~Matrix() = default;
 
-    //@}
+    ///@}
 
+    ///@name Dimension accessors
+    ///@{
+
+    /// Number of rows
+    Size rows() const { return rows_; }
+
+    /// Number of columns
+    Size cols() const { return cols_; }
+
+    /// Total number of elements
+    Size size() const { return data_.size(); }
+
+    /// Check if matrix is empty
+    bool empty() const { return data_.empty(); }
+
+    ///@}
+
+    ///@name Element access
+    ///@{
+
+    /**
+     * @brief Get element at (row, col)
+     *
+     * Note: pyOpenMS can't easily wrap operator() so we provide additional getter.
+     *
+     * @param[in] row Zero-based row index.
+     * @param[in] col Zero-based column index.
+     * @return Const reference to the value at the given position.
+     */
+    const Value& getValue(size_t const row, size_t const col) const
+    {
+      return data_[col * rows_ + row];  // Column-major
+    }
+
+    /**
+     * @brief Get mutable element at (row, col)
+     *
+     * Note: pyOpenMS can't easily wrap operator() so we provide additional getter.
+     *
+     * @param[in] row Zero-based row index.
+     * @param[in] col Zero-based column index.
+     * @return Mutable reference to the value at the given position.
+     */
+    Value& getValue(size_t const row, size_t const col)
+    {
+      return data_[col * rows_ + row];  // Column-major
+    }
+
+    /**
+     * @brief Set element at (row, col)
+     *
+     * Note: pyOpenMS can't easily wrap operator() so we provide additional setter.
+     *
+     * @param[in] row Zero-based row index.
+     * @param[in] col Zero-based column index.
+     * @param[in] value Value to set at the given position.
+     */
+    void setValue(size_t const row, size_t const col, const Value& value)
+    {
+      data_[col * rows_ + row] = value;  // Column-major
+    }
+
+    /// Unchecked element access (row, col)
+    Value& operator()(size_t row, size_t col)
+    {
+      return data_[col * rows_ + row];
+    }
+
+    /// Unchecked const element access (row, col)
+    const Value& operator()(size_t row, size_t col) const
+    {
+      return data_[col * rows_ + row];
+    }
+
+    ///@}
+
+    ///@name Buffer access (for NumPy interoperability)
+    ///@{
+
+    /// Pointer to raw data buffer (column-major storage)
+    Value* data() { return data_.data(); }
+
+    /// Const pointer to raw data buffer
+    const Value* data() const { return data_.data(); }
+
+    /// Stride between consecutive elements in same column (always 1 for column-major)
+    int innerStride() const { return 1; }
+
+    /// Stride between consecutive columns
+    int outerStride() const { return static_cast<int>(rows_); }
+
+    /// Returns false (column-major storage, not row-major)
+    static constexpr bool rowMajor() { return false; }
+
+    ///@}
+
+    ///@name Modifiers
+    ///@{
+
+    /// Resize matrix (contents become undefined after resize)
+    void resize(size_t rows, size_t cols)
+    {
+      rows_ = rows;
+      cols_ = cols;
+      data_.resize(rows * cols);
+    }
+
+    /// Fill all elements with value
+    void fill(Value value)
+    {
+      std::fill(data_.begin(), data_.end(), value);
+    }
+
+    /// Clear matrix (set to 0x0)
     void clear()
     {
-      Base::clear();
+      data_.clear();
       rows_ = 0;
       cols_ = 0;
     }
 
-    void resize(size_type i, size_type j, value_type value = value_type())
-    {
-      rows_ = i;
-      cols_ = j;
-      Base::resize(rows_ * cols_, value);
-    }
-
-    void resize(std::pair<Size, Size> const& size_pair, value_type value = value_type())
-    {
-      rows_ = size_pair.first;
-      cols_ = size_pair.second;
-      Base::resize(rows_ * cols_, value);
-    }
-
-    /// Number of rows
-    SizeType rows() const
-    {
-      return rows_;
-    }
-
-    /// Number of columns
-    SizeType cols() const
-    {
-      return cols_;
-    }
-
-    std::pair<Size, Size> sizePair() const
-    {
-      return std::pair<Size, Size>(rows_, cols_);
-    }
-
     /**
-      @brief Calculate the index into the underlying vector from row and column.
-      Note that Matrix uses the (row,column) lexicographic ordering for indexing.
-    */
-    SizeType const index(SizeType row, SizeType col) const
-    {
-#ifdef OPENMS_DEBUG
-      if (row >= rows_) throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, row, rows_);
-      if (col >= cols_) throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, col, cols_);
-#endif
-      return row * cols_ + col;
-    }
-
-    /**
-      @brief Calculate the row and column from an index into the underlying vector.
-      Note that Matrix uses the (row,column) lexicographic ordering for indexing.
-    */
-    std::pair<Size, Size> const indexPair(Size index) const
-    {
-#ifdef OPENMS_DEBUG
-      if (index >= size()) throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, size() - 1);
-#endif
-      return std::pair<SizeType, SizeType>(index / cols_, index % cols_);
-    }
-
-    /**
-      @brief Calculate the column from an index into the underlying vector.
-      Note that Matrix uses the (row,column) lexicographic ordering for indexing.
-    */
-    SizeType colIndex(SizeType index) const
-    {
-#ifdef OPENMS_DEBUG
-      if (index >= size()) throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, size() - 1);
-#endif
-      return index % cols_;
-    }
-
-    /**
-      @brief Calculate the row from an index into the underlying vector.
-      Note that Matrix uses the (row,column) lexicographic ordering for indexing.
-    */
-    SizeType rowIndex(SizeType index) const
-    {
-#ifdef OPENMS_DEBUG
-      if (index >= size()) throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, size() - 1);
-#endif
-
-      return index / cols_;
-    }
-
-    /**
-      @brief Equality comparator.
-
-      If matrices have different row or column numbers, throws a precondition exception.
-    */
-    bool operator==(Matrix const& rhs) const
-    {
-      OPENMS_PRECONDITION(cols_ == rhs.cols_,
-                          "Matrices have different row sizes.");
-      OPENMS_PRECONDITION(rows_ == rhs.rows_,
-                          "Matrices have different column sizes.");
-      return static_cast<typename Matrix<Value>::Base const&>(*this) == static_cast<typename Matrix<Value>::Base const&>(rhs);
-    }
-
-    /**
-      @brief Less-than comparator.  Comparison is done lexicographically: first by row, then by column.
-
-      If matrices have different row or column numbers, throws a precondition exception.
-    */
-    bool operator<(Matrix const& rhs) const
-    {
-      OPENMS_PRECONDITION(cols_ == rhs.cols_,
-                          "Matrices have different row sizes.");
-      OPENMS_PRECONDITION(rows_ == rhs.rows_,
-                          "Matrices have different column sizes.");
-      return static_cast<typename Matrix<Value>::Base const&>(*this) < static_cast<typename Matrix<Value>::Base const&>(rhs);
-    }
-
-    /// set matrix to 2D arrays values
-    template <int ROWS, int COLS>
-    void setMatrix(const ValueType matrix[ROWS][COLS])
+     * @brief Sets the matrix values using a 2D array.
+     *
+     * This function resizes the matrix to the specified number of rows and columns,
+     * and then assigns the values from the 2D array to the corresponding elements
+     * in the matrix.
+     *
+     * @tparam T The type of the matrix elements.
+     * @tparam ROWS The number of rows in the matrix.
+     * @tparam COLS The number of columns in the matrix.
+     * @param[in] array The 2D array containing the values to be assigned to the matrix.
+     */
+    template <typename T, long int ROWS, long int COLS>
+    void setMatrix(T const (&array)[ROWS][COLS])
     {
       resize(ROWS, COLS);
-      for (SizeType i = 0; i < this->rows_; ++i)
+      for (long int i = 0; i < ROWS; ++i)
       {
-        for (SizeType j = 0; j < this->cols_; ++j)
+        for (long int j = 0; j < COLS; ++j)
         {
-          setValue(i, j, matrix[i][j]);
+          (*this)(i, j) = array[i][j];
         }
       }
     }
 
-    const Base& asVector()
+    ///@}
+
+    ///@name Iterators
+    ///@{
+    iterator begin() { return data_.begin(); }
+    iterator end() { return data_.end(); }
+    const_iterator begin() const { return data_.begin(); }
+    const_iterator end() const { return data_.end(); }
+    const_iterator cbegin() const { return data_.cbegin(); }
+    const_iterator cend() const { return data_.cend(); }
+    ///@}
+
+    ///@name Reduction operations
+    ///@{
+
+    /**
+     * @brief Returns the maximum value in the matrix.
+     *
+     * @return The maximum value. For empty matrices, returns Value() (default-constructed value).
+     */
+    Value maxValue() const
     {
-      return *this;
+      if (data_.empty()) return Value();
+      return *std::max_element(data_.begin(), data_.end());
     }
 
-protected:
-
-    ///@name Data members
-    //@{
-    /// Number of rows (height of a column)
-    SizeType rows_;
-    /// Number of columns (width of a row)
-    SizeType cols_;
-    //@}
-
-  }; // class Matrix
-
-  /**
-    @brief Print the contents to a stream.
-
-    @relatesalso Matrix
-  */
-  template <typename Value>
-  std::ostream& operator<<(std::ostream& os, const Matrix<Value>& matrix)
-  {
-    typedef typename Matrix<Value>::size_type size_type;
-    for (size_type i = 0; i < matrix.rows(); ++i)
+    /**
+     * @brief Returns the minimum value in the matrix.
+     *
+     * @return The minimum value. For empty matrices, returns Value() (default-constructed value).
+     */
+    Value minValue() const
     {
-      for (size_type j = 0; j < matrix.cols(); ++j)
+      if (data_.empty()) return Value();
+      return *std::min_element(data_.begin(), data_.end());
+    }
+
+    ///@}
+
+    ///@name Comparison
+    ///@{
+
+    /**
+     * @brief Equality operator. Compares two matrices for equality.
+     *
+     * @param[in] rhs The matrix to be compared.
+     * @return True if matrices are equal, false otherwise.
+     *
+     * @throw Exception::Precondition if matrices have different dimensions (Debug mode only)
+     */
+    bool operator==(const Matrix& rhs) const
+    {
+      OPENMS_PRECONDITION(rows_ == rhs.rows_ && cols_ == rhs.cols_,
+                          "Matrices must have the same dimensions for comparison.");
+      return data_ == rhs.data_;
+    }
+
+    bool operator!=(const Matrix& rhs) const
+    {
+      return !(*this == rhs);
+    }
+
+    ///@}
+
+    /**
+     * @brief Friend function to output the matrix to an output stream.
+     *
+     * @param[in,out] os Output stream.
+     * @param[in] matrix Matrix to be output.
+     * @return Reference to the output stream.
+     */
+    friend std::ostream& operator<<(std::ostream& os, const Matrix<Value>& matrix)
+    {
+      for (Size i = 0; i < matrix.rows(); ++i)
       {
-        os << std::setprecision(6) << std::setw(6) << matrix(i, j) << ' ';
+        for (Size j = 0; j < matrix.cols(); ++j)
+        {
+          os << std::setprecision(6) << std::setw(6) << matrix(i, j) << ' ';
+        }
+        os << '\n';
       }
-      os << std::endl;
+      return os;
     }
-    return os;
-  }
+
+  private:
+    std::vector<Value> data_;  ///< Column-major storage
+    Size rows_;                ///< Number of rows
+    Size cols_;                ///< Number of columns
+  };
 
 } // namespace OpenMS
-

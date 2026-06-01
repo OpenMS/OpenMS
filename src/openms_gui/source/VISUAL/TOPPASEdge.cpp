@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Veit $
@@ -38,15 +12,17 @@
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASOutputFolderVertex.h>
+
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
-#include <Qt>
 #include <QPainter>
 #include <QPainterPath>
 #include <QtWidgets/QMessageBox>
-#include <QtWidgets/QMenu>
+
 #include <QApplication>
 
 namespace OpenMS
@@ -93,7 +69,7 @@ namespace OpenMS
 
   String TOPPASEdge::toString()
   {
-    String s = String("Edge: ") + getSourceOutParamName() + " target-in: " + getTargetInParamName() + "\n";
+    String s = String("Edge: ") + fromQString(getSourceOutParamName()) + " target-in: " + fromQString(getTargetInParamName()) + "\n";
     return s;
   }
   TOPPASEdge& TOPPASEdge::operator=(const TOPPASEdge& rhs)
@@ -213,7 +189,7 @@ namespace OpenMS
       if (invert_text_direction)
       {
         QFontMetrics fm(painter->fontMetrics());
-        int text_width=fm.width(str);
+        int text_width = fm.horizontalAdvance(str);
         painter->drawText(QPoint(-text_width, y_text), str);
       }
       else
@@ -233,8 +209,8 @@ namespace OpenMS
       painter->translate(point);
       painter->rotate(text_angle);
       QFontMetrics fm(painter->fontMetrics());
-      int text_width = fm.width(str);
-      int text_height = fm.height();   // shift text below the edge by its own height
+      int text_width = fm.horizontalAdvance(str);
+      int text_height = fm.height();  // shift text below the edge by its own height
       if (invert_text_direction)
       {
         painter->drawText(QPoint(arrow_width, text_height + y_text), str);
@@ -364,15 +340,13 @@ namespace OpenMS
       return ES_NO_TARGET_PARAM;
     }
 
-    QVector<TOPPASToolVertex::IOInfo> source_output_files;
-    source_tool->getOutputParameters(source_output_files);
+    QVector<TOPPASToolVertex::IOInfo> source_output_files = source_tool->getOutputParameters();
     if (source_param_index >= source_output_files.size())
     {
       return ES_TOOL_API_CHANGED;
     }
 
-    QVector<TOPPASToolVertex::IOInfo> target_input_files;
-    target_tool->getInputParameters(target_input_files);
+    QVector<TOPPASToolVertex::IOInfo> target_input_files = target_tool->getInputParameters();
     if (target_param_index >= target_input_files.size())
     {
       return ES_TOOL_API_CHANGED;
@@ -425,8 +399,7 @@ namespace OpenMS
 
   TOPPASEdge::EdgeStatus TOPPASEdge::getListToolStatus_(TOPPASInputFileListVertex* source_input_list, TOPPASToolVertex* target_tool, int target_param_index)
   {
-    QVector<TOPPASToolVertex::IOInfo> target_input_files;
-    target_tool->getInputParameters(target_input_files);
+    QVector<TOPPASToolVertex::IOInfo> target_input_files = target_tool->getInputParameters();
     if (target_param_index >= target_input_files.size())
     {
       return ES_TOOL_API_CHANGED;
@@ -454,10 +427,10 @@ namespace OpenMS
     }
 
     // check file type compatibility
-    foreach(const QString& q_file_name, file_names)
+    for (const QString& q_file_name : file_names)
     {
       bool type_mismatch = true;
-      const String& file_name = String(q_file_name);
+      const String file_name = fromQString(q_file_name);
       String::SizeType extension_start_index = file_name.rfind(".");
       if (extension_start_index != String::npos)
       {
@@ -494,7 +467,7 @@ namespace OpenMS
     TOPPASSplitterVertex* source_splitter = qobject_cast<TOPPASSplitterVertex*>(source);
     TOPPASSplitterVertex* target_splitter = qobject_cast<TOPPASSplitterVertex*>(target);
     TOPPASInputFileListVertex* source_input_list = qobject_cast<TOPPASInputFileListVertex*>(source);
-    TOPPASOutputFileListVertex* target_output_list = qobject_cast<TOPPASOutputFileListVertex*>(target);
+    TOPPASOutputVertex* target_output = qobject_cast<TOPPASOutputVertex*>(target);
     TOPPASToolVertex* source_tool = qobject_cast<TOPPASToolVertex*>(source);
     TOPPASToolVertex* target_tool = qobject_cast<TOPPASToolVertex*>(target);
 
@@ -510,7 +483,7 @@ namespace OpenMS
 
     if (source_tool)
     {
-      if (target_output_list) // edges to output vertices are always valid
+      if (target_output) // edges to output vertices are always valid
       {
         return ES_VALID;
       }
@@ -544,7 +517,7 @@ namespace OpenMS
         }
         else if (merger_in_list)
         {
-          if (target_output_list)
+          if (target_output)
           {
             // [input] -> [merger] -> [output]) makes no sense
             return ES_MERGER_WITHOUT_TOOL;
@@ -636,13 +609,12 @@ namespace OpenMS
       const TOPPASToolVertex* target = qobject_cast<TOPPASToolVertex*>(target_o);
       if (target && target_in_param_>=0)
       {
-         QVector<TOPPASToolVertex::IOInfo> docks;
-         target->getInputParameters(docks);
+         QVector<TOPPASToolVertex::IOInfo> docks = target->getInputParameters();
          const TOPPASToolVertex::IOInfo& param = docks[this->target_in_param_]; 
-         return param.param_name.toQString();
+         return toQString(param.param_name);
       }
     }
-    return "";    
+    return "";
   }
 
 
@@ -651,17 +623,14 @@ namespace OpenMS
     const EdgeStatus& es = getEdgeStatus();
     if (es != ES_TOOL_API_CHANGED)
     {
-      TOPPASVertex* source_o = getSourceVertex();
-      const TOPPASToolVertex* source = qobject_cast<TOPPASToolVertex*>(source_o);
-      if (source && source_out_param_>=0)
+      const auto* source_vertex = getSourceVertex();
+      const auto* source_tool = qobject_cast<const TOPPASToolVertex*>(source_vertex);
+      if (source_tool && source_out_param_>=0)
       {
-         QVector<TOPPASToolVertex::IOInfo> docks;
-         source->getOutputParameters(docks);
-         const TOPPASToolVertex::IOInfo& param = docks[this->source_out_param_]; 
-         return param.param_name.toQString();
+        return toQString(source_tool->getOutputParameters()[this->source_out_param_].param_name);
       }
     }
-    return "";    
+    return "";
   }
 
   void TOPPASEdge::updateColor()

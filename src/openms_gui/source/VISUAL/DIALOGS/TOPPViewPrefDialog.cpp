@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -37,9 +11,10 @@
 #include <ui_TOPPViewPrefDialog.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QtWidgets/QFileDialog>
 
@@ -72,28 +47,27 @@ namespace OpenMS
       param_ = getParam(); // get our own defaults
 
       // make sure the params we write (using getParam) are the same as the ones we can read
-      param_.update(param, true, true, true, true, OpenMS_Log_info);
+      param_.update(param, true, true, true, true, getGlobalLogInfo());
 
       // general tab
-      ui_->default_path->setText(String(param_.getValue("default_path").toString()).toQString());
+      ui_->default_path->setText(toQString(String(param_.getValue("default_path").toString())));
       ui_->default_path_current->setChecked(param_.getValue("default_path_current").toBool());
-      ui_->plugins_path->setText(String(param_.getValue("plugins_path").toString()).toQString());
+      ui_->plugins_path->setText(toQString(String(param_.getValue("plugins_path").toString())));
       ui_->use_cached_ms1->setChecked(param_.getValue("use_cached_ms1").toBool());
       ui_->use_cached_ms2->setChecked(param_.getValue("use_cached_ms2").toBool());
 
-      ui_->map_default->setCurrentIndex(ui_->map_default->findText(String(param_.getValue("default_map_view").toString()).toQString()));
-      ui_->map_cutoff->setCurrentIndex(ui_->map_cutoff->findText(String(param_.getValue("intensity_cutoff").toString()).toQString()));
-      ui_->on_file_change->setCurrentIndex(ui_->on_file_change->findText(String(param_.getValue("on_file_change").toString()).toQString()));
+      ui_->map_default->setCurrentIndex(ui_->map_default->findText(toQString(String(param_.getValue("default_map_view").toString()))));
+      ui_->map_cutoff->setCurrentIndex(ui_->map_cutoff->findText(toQString(String(param_.getValue("intensity_cutoff").toString()))));
+      ui_->on_file_change->setCurrentIndex(ui_->on_file_change->findText(toQString(String(param_.getValue("on_file_change").toString()))));
 
       // 1D view
-      ui_->color_1D->setColor(QColor(String(param_.getValue("1d:peak_color").toString()).toQString()));
-      ui_->selected_1D->setColor(QColor(String(param_.getValue("1d:highlighted_peak_color").toString()).toQString()));
-      ui_->icon_1D->setColor(QColor(String(param_.getValue("1d:icon_color").toString()).toQString()));
+      ui_->color_1D->setColor(QColor(toQString(String(param_.getValue("1d:peak_color").toString()))));
+      ui_->selected_1D->setColor(QColor(toQString(String(param_.getValue("1d:highlighted_peak_color").toString()))));
+      ui_->icon_1D->setColor(QColor(toQString(String(param_.getValue("1d:icon_color").toString()))));
 
       // 2D view
       ui_->peak_2D->gradient().fromString(param_.getValue("2d:dot:gradient"));
-      ui_->mapping_2D->setCurrentIndex(ui_->mapping_2D->findText(String(param_.getValue("2d:mapping_of_mz_to").toString()).toQString()));
-      ui_->feature_icon_2D->setCurrentIndex(ui_->feature_icon_2D->findText(String(param_.getValue("2d:dot:feature_icon").toString()).toQString()));
+      ui_->feature_icon_2D->setCurrentIndex(ui_->feature_icon_2D->findText(toQString(String(param_.getValue("2d:dot:feature_icon").toString()))));
       ui_->feature_icon_size_2D->setValue((Int)param_.getValue("2d:dot:feature_icon_size"));
 
       // 3D view
@@ -105,7 +79,7 @@ namespace OpenMS
       tsg_param_ = param_.copy(tsg_prefix, true);
       ui_->param_editor_spec_gen_->load(tsg_param_);
       ui_->tolerance->setValue((double)param_.getValue("idview:align:tolerance"));
-      ui_->unit->setCurrentIndex(ui_->unit->findText(String(param_.getValue("idview:align:is_relative_tolerance") == "true" ? "ppm" : "Da").toQString()));
+      ui_->unit->setCurrentIndex(ui_->unit->findText(toQString(String(param_.getValue("idview:align:is_relative_tolerance") == "true" ? "ppm" : "Da"))));
     }
 
     String fromCheckState(const Qt::CheckState cs)
@@ -138,7 +112,6 @@ namespace OpenMS
       p.setValue("1d:icon_color", ui_->icon_1D->getColor().name().toStdString());
 
       p.setValue("2d:dot:gradient", ui_->peak_2D->gradient().toString());
-      p.setValue("2d:mapping_of_mz_to", ui_->mapping_2D->currentText().toStdString());
       p.setValue("2d:dot:feature_icon", ui_->feature_icon_2D->currentText().toStdString());
       p.setValue("2d:dot:feature_icon_size", ui_->feature_icon_size_2D->value());
 

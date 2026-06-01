@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -33,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
+
+#include <limits>    // for std::numeric_limits
+#include <set>
 
 using namespace std;
 
@@ -47,6 +24,16 @@ namespace OpenMS
   {
     resolveConflict_(features, keep_matching);
   }
+
+  void IDConflictResolverAlgorithm::resolveAllHitRankAggregation(FeatureMap& features)
+  {
+    rankAggregation_(features);
+  }
+
+  void IDConflictResolverAlgorithm::resolveAllHitRankAggregation(ConsensusMap& features)
+  {
+    rankAggregation_(features);
+  }
   
   void IDConflictResolverAlgorithm::resolveBetweenFeatures(FeatureMap & features)
   {
@@ -60,8 +47,8 @@ namespace OpenMS
 
   // static
   void IDConflictResolverAlgorithm::resolveConflictKeepMatching_(
-      vector<PeptideIdentification> & peptides,
-      vector<PeptideIdentification> & removed,
+      PeptideIdentificationList & peptides,
+      PeptideIdentificationList & removed,
       UInt64 uid)
   {
     if (peptides.empty()) { return; }
@@ -72,7 +59,7 @@ namespace OpenMS
       pep.sort();
     }
 
-    vector<PeptideIdentification>::iterator pos;
+    PeptideIdentificationList::iterator pos;
     if (peptides[0].isHigherScoreBetter())     // find highest-scoring ID
     {
       pos = max_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
@@ -117,8 +104,8 @@ namespace OpenMS
 
   // static
   void IDConflictResolverAlgorithm::resolveConflict_(
-    vector<PeptideIdentification> & peptides, 
-    vector<PeptideIdentification> & removed,
+    PeptideIdentificationList & peptides, 
+    PeptideIdentificationList & removed,
     UInt64 uid)
   {
     if (peptides.empty()) { return; }
@@ -138,7 +125,7 @@ namespace OpenMS
       pep.setMetaValue("feature_id", String(uid));
     }
 
-    vector<PeptideIdentification>::iterator pos;
+    PeptideIdentificationList::iterator pos;
     if (peptides[0].isHigherScoreBetter())     // find highest-scoring ID
     {
       pos = max_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
@@ -155,7 +142,7 @@ namespace OpenMS
     }
      
     // copy conflicting ones right of best one
-    vector<PeptideIdentification>::iterator pos1p = pos + 1;
+    PeptideIdentificationList::iterator pos1p = pos + 1;
     for (auto it = pos1p; it != peptides.end(); ++it) // OMS_CODING_TEST_EXCLUDE
     {
       removed.push_back(*it);
@@ -164,6 +151,156 @@ namespace OpenMS
     // set best one to first position and shrink vector
     peptides[0] = *pos;
     peptides.resize(1);
+  }
+
+  // static
+  void IDConflictResolverAlgorithm::resolveAggregateConflict_(
+      PeptideIdentificationList& peptides,
+      PeptideIdentificationList& removed,
+      UInt64 uid)
+  {
+    if (peptides.empty()) { return; }
+
+    // Annotate all IDs with feature_id and sort hits (best first)
+    for (PeptideIdentification& pep : peptides)
+    {
+      pep.setMetaValue("feature_id", String(uid));
+      pep.sort();
+    }
+
+    // If only one ID, keep only the best hit and return
+    if (peptides.size() == 1)
+    {
+      if (!peptides[0].getHits().empty())
+      {
+        vector<PeptideHit> best(1, peptides[0].getHits()[0]);
+        peptides[0].setHits(best);
+      }
+      return;
+    }
+
+    // Find the maximum number of hits across all IDs (used as penalty)
+    Size max_hits = 0;
+    for (const PeptideIdentification& pep : peptides)
+    {
+      if (pep.getHits().size() > max_hits)
+      {
+        max_hits = pep.getHits().size();
+      }
+    }
+
+    if (max_hits == 0)
+    {
+      // All IDs are empty - move all but the first to removed
+      for (auto it = ++peptides.begin(); it != peptides.end(); ++it)
+      {
+        removed.push_back(*it);
+      }
+      peptides.resize(1);
+      return;
+    }
+
+    Size n_runs = peptides.size();
+
+    // For each unique sequence, accumulate ranks across all IDs
+    // rank = 0-based position in sorted hits; if missing from an ID, add max_hits as penalty
+    map<AASequence, double> rank_sums;
+    map<AASequence, Size> run_counts;
+
+    for (const PeptideIdentification& pep : peptides)
+    {
+      const vector<PeptideHit>& hits = pep.getHits();
+      set<AASequence> seen_in_run;
+
+      for (Size j = 0; j < hits.size(); ++j)
+      {
+        const AASequence& seq = hits[j].getSequence();
+        if (seen_in_run.count(seq) == 0)
+        {
+          // First occurrence of this sequence in this ID: use its rank
+          rank_sums[seq] += static_cast<double>(j);
+          run_counts[seq]++;
+          seen_in_run.insert(seq);
+        }
+      }
+    }
+
+    // Compute aggregate score for each sequence and find the best one
+    // score = 1.0 - (rank_sum + penalty_for_missing) / (max_hits * n_runs)
+    // Higher score is better.
+    AASequence best_seq;
+    double best_agg_score = -1.0;
+
+    for (const auto& [seq, rank_sum] : rank_sums)
+    {
+      Size runs_with_seq = run_counts.at(seq);
+      double total_rank = rank_sum + static_cast<double>((n_runs - runs_with_seq) * max_hits);
+      double agg_score = 1.0 - total_rank / (static_cast<double>(max_hits) * static_cast<double>(n_runs));
+
+      if (agg_score > best_agg_score)
+      {
+        best_agg_score = agg_score;
+        best_seq = seq;
+      }
+    }
+
+    // Among the IDs that contain best_seq, find the one with the best original score for that hit
+    bool higher_better = peptides[0].isHigherScoreBetter();
+    PeptideIdentificationList::iterator best_id_it = peptides.end();
+    double best_original_score = higher_better ? -numeric_limits<double>::infinity()
+                                               :  numeric_limits<double>::infinity();
+
+    for (auto it = peptides.begin(); it != peptides.end(); ++it)
+    {
+      for (const PeptideHit& hit : it->getHits())
+      {
+        if (hit.getSequence() == best_seq)
+        {
+          if (best_id_it == peptides.end() ||
+              (higher_better  && hit.getScore() > best_original_score) ||
+              (!higher_better && hit.getScore() < best_original_score))
+          {
+            best_id_it = it;
+            best_original_score = hit.getScore();
+          }
+          break; // only consider the first (best-ranked) occurrence in this ID
+        }
+      }
+    }
+
+    if (best_id_it == peptides.end())
+    {
+      best_id_it = peptides.begin(); // fallback (should never happen)
+    }
+
+    // Move all IDs except the best one to removed (reduced to 1 hit each for consistency)
+    for (auto it = peptides.begin(); it != peptides.end(); ++it)
+    {
+      if (it != best_id_it)
+      {
+        // Reduce to best hit before moving to removed
+        if (!it->getHits().empty())
+        {
+          vector<PeptideHit> best_hit_only(1, it->getHits()[0]);
+          it->setHits(best_hit_only);
+        }
+        removed.push_back(*it);
+      }
+    }
+
+    // Reduce the best ID to just the winning hit and shrink the list to one element
+    const vector<PeptideHit>& best_hits = best_id_it->getHits();
+    for (const PeptideHit& hit : best_hits)
+    {
+      if (hit.getSequence() == best_seq)
+      {
+        best_id_it->setHits({hit});
+        break;
+      }
+    }
+    PeptideIdentificationList result;
+    result.push_back(*best_id_it);
+    peptides = result;
   }
 
   // static

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -55,7 +29,7 @@ void DecoyGenerator::setSeed(UInt64 seed)
 
 AASequence DecoyGenerator::reverseProtein(const AASequence& protein) const
 {
-  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
+  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.")
   String s = protein.toUnmodifiedString();
   std::reverse(s.begin(), s.end());
   return AASequence::fromString(s);
@@ -63,12 +37,12 @@ AASequence DecoyGenerator::reverseProtein(const AASequence& protein) const
 
 AASequence DecoyGenerator::reversePeptides(const AASequence& protein, const String& protease) const
 {
-  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
+  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.")
   std::vector<AASequence> peptides;
   ProteaseDigestion ed;
   ed.setMissedCleavages(0); // important as we want to reverse between all cutting sites
   ed.setEnzyme(protease);
-  ed.setSpecificity(EnzymaticDigestion::SPEC_NONE);
+  ed.setSpecificity(EnzymaticDigestion::SPEC_FULL);
   ed.digest(protein, peptides);    
   String pseudo_reversed;
   for (int i = 0; i < static_cast<int>(peptides.size()) - 1; ++i)
@@ -85,23 +59,75 @@ AASequence DecoyGenerator::reversePeptides(const AASequence& protein, const Stri
   return AASequence::fromString(pseudo_reversed);
 }
 
+// generate decoy protein sequences
+std::vector<AASequence> DecoyGenerator::shuffle(const AASequence& protein, const String& protease, int decoy_factor)
+{
+  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
+  
+  ProteaseDigestion digestor;
+  digestor.setEnzyme(protease);
+  digestor.setMissedCleavages(0);  // for decoy generation disable missed cleavages
+  digestor.setSpecificity(EnzymaticDigestion::SPEC_FULL);
+
+  std::vector<AASequence> output;
+  digestor.digest(protein, output);
+
+  // generate decoy_factor number of complete decoy proteins
+  std::vector<AASequence> decoy_proteins;
+  for (int variant = 0; variant < decoy_factor; ++variant)
+  {
+    String decoy_sequence;
+    for (const auto & aas : output)
+    {
+      if (aas.size() <= 2)
+      {
+        decoy_sequence += aas.toUnmodifiedString();
+        continue;
+      }
+
+      // Important: create DecoyGenerator instance per peptide with same seed
+      // Otherwise same peptides end up creating different decoys -> much more decoys than targets
+      // But: we add variant to seed to get different decoys in multiple decoy generation
+      DecoyGenerator dg;
+      dg.setSeed(4711 + variant); // + variant to get different decoys in multiple decoy generation
+      decoy_sequence += dg.shufflePeptides(aas, protease).toUnmodifiedString();
+    }
+    decoy_proteins.push_back(AASequence::fromString(decoy_sequence));
+  }
+  
+  return decoy_proteins;
+}
+
 AASequence DecoyGenerator::shufflePeptides(
         const AASequence& protein,
         const String& protease,
         const int max_attempts)
-{
+{  
   OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
 
   std::vector<AASequence> peptides;
   ProteaseDigestion ed;
   ed.setMissedCleavages(0); // important as we want to reverse between all cutting sites
   ed.setEnzyme(protease);
-  ed.setSpecificity(EnzymaticDigestion::SPEC_NONE);
+  ed.setSpecificity(EnzymaticDigestion::SPEC_FULL);
   ed.digest(protein, peptides);    
   String protein_shuffled;
   for (int i = 0; i < static_cast<int>(peptides.size()) - 1; ++i)
   {
-    std::string peptide_string = peptides[i].toUnmodifiedString();
+    const std::string peptide_string = peptides[i].toUnmodifiedString();
+
+    // add from cache if available
+    bool cached(false);
+    #pragma omp critical (td_cache_)
+    {
+      auto it = td_cache_.find(peptide_string);
+      if (it != td_cache_.end())
+      {
+        protein_shuffled += it->second; // add if cached
+        cached = true;
+      }
+    }
+    if (cached) continue;
 
     String peptide_string_shuffled = peptide_string;
     auto last = --peptide_string_shuffled.end();
@@ -124,9 +150,25 @@ AASequence DecoyGenerator::shufflePeptides(
       }
     }
     protein_shuffled += lowest_identity_string;
+    #pragma omp critical (td_cache_)
+    {
+      td_cache_[peptide_string] = lowest_identity_string;
+    }
   }
   // the last peptide of a protein is not an enzymatic cutting site so we do a full shuffle
-  std::string peptide_string = peptides[peptides.size() - 1 ].toUnmodifiedString();
+  const std::string peptide_string = peptides[peptides.size() - 1 ].toUnmodifiedString();
+  bool cached(false);
+  #pragma omp critical (td_cache_)
+  {
+    auto it = td_cache_.find(peptide_string);
+    if (it != td_cache_.end())
+    {
+      protein_shuffled += it->second; // add if cached
+      cached = true;
+    }
+  }
+  if (cached) return AASequence::fromString(protein_shuffled);
+
   String peptide_string_shuffled = peptide_string;
   double lowest_identity(1.0);
   String lowest_identity_string(peptide_string_shuffled);
@@ -145,6 +187,10 @@ AASequence DecoyGenerator::shufflePeptides(
     }
   }
   protein_shuffled += lowest_identity_string;
+  #pragma omp critical (td_cache_)
+  {
+    td_cache_[peptide_string] = lowest_identity_string;
+  }
   return AASequence::fromString(protein_shuffled);
 }
 
@@ -157,7 +203,17 @@ double DecoyGenerator::SequenceIdentity_(const String& decoy, const String& targ
     if (target[i] == decoy[i]) { ++match; }
   }
   double identity = (double) match / target.size();
-  return identity;
+
+  // also compare against reverse
+  match = 0;
+  for (int i = (int)target.size() - 1; i >= 0; --i)
+  {
+    int j = (int)target.size() - 1 - i;
+    if (target[j] == decoy[i]) { ++match; }
+  }
+  double rev_identity = (double) match / target.size();
+   
+  return std::max(identity, rev_identity);
 }
 
 

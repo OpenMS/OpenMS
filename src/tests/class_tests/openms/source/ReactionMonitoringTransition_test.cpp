@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -38,6 +12,9 @@
 ///////////////////////////
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 ///////////////////////////
+
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace OpenMS;
 using namespace std;
@@ -82,7 +59,7 @@ START_SECTION((ReactionMonitoringTransition(const ReactionMonitoringTransition &
   tr1.addPrecursorCVTerm(charge_cv);
   tr1.setPrecursorMZ(42.0);
 	tr2 = ReactionMonitoringTransition(tr1);
-  TEST_EQUAL(tr1 == tr2, true)
+  TEST_TRUE(tr1 == tr2)
   ReactionMonitoringTransition::Prediction p;
   p.contact_ref = "dummy";
   tr1.setPrediction(p);
@@ -90,7 +67,7 @@ START_SECTION((ReactionMonitoringTransition(const ReactionMonitoringTransition &
   tr1.setDetectingTransition(false);
   tr1.setQuantifyingTransition(false);
 	tr3 = ReactionMonitoringTransition(tr1);
-  TEST_EQUAL(tr1 == tr3, true)
+  TEST_TRUE(tr1 == tr3)
   TEST_EQUAL(tr1 == tr2, false)
 
 
@@ -114,7 +91,7 @@ START_SECTION((ReactionMonitoringTransition(ReactionMonitoringTransition &&rhs))
 
   auto orig = tr1;
 	tr2 = ReactionMonitoringTransition(std::move(tr1));
-  TEST_EQUAL(orig == tr2, true);
+  TEST_TRUE(orig == tr2);
 
   TEST_EQUAL(tr2.hasPrecursorCVTerms(), true);
   TEST_EQUAL(tr2.hasPrediction(), true);
@@ -134,7 +111,7 @@ START_SECTION((ReactionMonitoringTransition(ReactionMonitoringTransition &&rhs))
   orig.setQuantifyingTransition(false);
   tr1 = orig;
 	tr3 = ReactionMonitoringTransition(std::move(tr1));
-  TEST_EQUAL(orig == tr3, true)
+  TEST_TRUE(orig == tr3)
   TEST_EQUAL(orig == tr2, false)
 
 
@@ -148,12 +125,12 @@ START_SECTION((ReactionMonitoringTransition& operator=(const ReactionMonitoringT
   tr1.addPrecursorCVTerm(charge_cv);
   tr1.setPrecursorMZ(42.0);
 	tr2 = tr1;
-  TEST_EQUAL(tr1 == tr2, true)
+  TEST_TRUE(tr1 == tr2)
   ReactionMonitoringTransition::Prediction p;
   p.contact_ref = "dummy";
   tr1.setPrediction(p);
   tr3 = tr1;
-  TEST_EQUAL(tr1 == tr3, true)
+  TEST_TRUE(tr1 == tr3)
   TEST_EQUAL(tr1 == tr2, false)
 
   tr1.setDetectingTransition(false);
@@ -162,7 +139,7 @@ START_SECTION((ReactionMonitoringTransition& operator=(const ReactionMonitoringT
   tr1.setQuantifyingTransition(false);
   TEST_EQUAL(tr1 == tr3, false)
   tr3 = tr1;
-  TEST_EQUAL(tr1 == tr3, true)
+  TEST_TRUE(tr1 == tr3)
 }
 END_SECTION
 
@@ -360,17 +337,17 @@ END_SECTION
 START_SECTION((bool operator==(const ReactionMonitoringTransition &rhs) const ))
 {
   ReactionMonitoringTransition tr1, tr2;
-  TEST_EQUAL(tr1 == tr2, true)
+  TEST_TRUE(tr1 == tr2)
 
   tr1.addPrecursorCVTerm(charge_cv);
   TEST_EQUAL(tr1 == tr2, false)
   tr2.addPrecursorCVTerm(charge_cv);
-  TEST_EQUAL(tr1 == tr2, true)
+  TEST_TRUE(tr1 == tr2)
 
   tr1.setDetectingTransition(false);
   TEST_EQUAL(tr1 == tr2, false)
   tr2.setDetectingTransition(false);
-  TEST_EQUAL(tr1 == tr2, true)
+  TEST_TRUE(tr1 == tr2)
 
 }
 END_SECTION
@@ -381,7 +358,101 @@ START_SECTION((bool operator!=(const ReactionMonitoringTransition &rhs) const ))
   TEST_EQUAL(tr1 != tr2, false)
 
   tr1.addPrecursorCVTerm(charge_cv);
-  TEST_EQUAL(tr1 != tr2, true)
+  TEST_FALSE(tr1 == tr2)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Hash function tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] std::hash<ReactionMonitoringTransition>))
+{
+  // Test that equal objects have equal hashes
+  ReactionMonitoringTransition tr1, tr2;
+  std::hash<ReactionMonitoringTransition> hasher;
+
+  // Default constructed objects should have equal hashes
+  TEST_EQUAL(hasher(tr1), hasher(tr2))
+
+  // Modify both identically and verify hashes still match
+  tr1.setName("test_transition");
+  tr2.setName("test_transition");
+  TEST_EQUAL(hasher(tr1), hasher(tr2))
+
+  tr1.setPeptideRef("peptide_ref_1");
+  tr2.setPeptideRef("peptide_ref_1");
+  TEST_EQUAL(hasher(tr1), hasher(tr2))
+
+  tr1.setPrecursorMZ(500.0);
+  tr2.setPrecursorMZ(500.0);
+  TEST_EQUAL(hasher(tr1), hasher(tr2))
+
+  tr1.setProductMZ(250.0);
+  tr2.setProductMZ(250.0);
+  TEST_EQUAL(hasher(tr1), hasher(tr2))
+
+  // Test with CV terms
+  CVTerm cv_term;
+  cv_term.setCVIdentifierRef("MS");
+  cv_term.setAccession("MS:1000041");
+  cv_term.setName("charge state");
+  cv_term.setValue(2);
+  tr1.addPrecursorCVTerm(cv_term);
+  tr2.addPrecursorCVTerm(cv_term);
+  TEST_EQUAL(hasher(tr1), hasher(tr2))
+
+  // Test with prediction
+  ReactionMonitoringTransition::Prediction pred;
+  pred.contact_ref = "contact_1";
+  pred.software_ref = "software_1";
+  tr1.setPrediction(pred);
+  tr2.setPrediction(pred);
+  TEST_EQUAL(hasher(tr1), hasher(tr2))
+
+  // Test with transition flags
+  tr1.setDetectingTransition(false);
+  tr2.setDetectingTransition(false);
+  TEST_EQUAL(hasher(tr1), hasher(tr2))
+
+  tr1.setIdentifyingTransition(true);
+  tr2.setIdentifyingTransition(true);
+  TEST_EQUAL(hasher(tr1), hasher(tr2))
+
+  // Test that different objects have different hashes (not guaranteed but expected)
+  ReactionMonitoringTransition tr3;
+  tr3.setName("different_name");
+  TEST_NOT_EQUAL(hasher(tr1), hasher(tr3))
+
+  ReactionMonitoringTransition tr4;
+  tr4.setPrecursorMZ(999.0);
+  TEST_NOT_EQUAL(hasher(tr1), hasher(tr4))
+
+  // Test use in unordered_set
+  std::unordered_set<ReactionMonitoringTransition> transition_set;
+  transition_set.insert(tr1);
+  transition_set.insert(tr2); // Should not insert (equal to tr1)
+  transition_set.insert(tr3);
+  transition_set.insert(tr4);
+  TEST_EQUAL(transition_set.size(), 3) // tr1 and tr2 are equal, so only 3 unique
+
+  // Test use in unordered_map
+  std::unordered_map<ReactionMonitoringTransition, int> transition_map;
+  transition_map[tr1] = 1;
+  transition_map[tr2] = 2; // Should overwrite value for tr1
+  transition_map[tr3] = 3;
+  TEST_EQUAL(transition_map.size(), 2)
+  TEST_EQUAL(transition_map[tr1], 2) // Value should be 2 (overwritten)
+  TEST_EQUAL(transition_map[tr3], 3)
+
+  // Test lookup
+  TEST_EQUAL(transition_set.count(tr1), 1)
+  TEST_EQUAL(transition_set.count(tr2), 1) // Equal to tr1
+  TEST_EQUAL(transition_set.count(tr3), 1)
+
+  ReactionMonitoringTransition tr5;
+  tr5.setName("not_in_set");
+  TEST_EQUAL(transition_set.count(tr5), 0)
 }
 END_SECTION
 

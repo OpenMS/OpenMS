@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
@@ -37,7 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/COMPARISON/SpectrumAlignment.h>
 
 #include <OpenMS/KERNEL/Peak1D.h>
 
@@ -85,30 +59,45 @@ namespace OpenMS
     /**
       @brief Adds ion match annotation to the @p spec input spectrum
 
-      @param spec A PeakSpectrum containing the peaks from which the @p pi identifications are made
-      @param ph A spectrum identifications to be used for the annotation, looking up matches from a spectrum and the theoretical spectrum inferred from the identifications sequence
-      @param tg A TheoreticalSpectrumGenerator to infer the theoretical spectrum. Its own parameters define which ion types are referred
-      @param sa A SpectrumAlignment to match the theoretical spectrum with the measured. Its own parameters define the match tolerance
+      @param[in] spec A PeakSpectrum containing the peaks from which the @p pi identifications are made
+      @param[out] ph A spectrum identifications to be used for the annotation, looking up matches from a spectrum and the theoretical spectrum inferred from the identifications sequence
+      @param[in] tg A TheoreticalSpectrumGenerator to infer the theoretical spectrum. Its own parameters define which ion types are referred
+      @param[in] sa A SpectrumAlignment to match the theoretical spectrum with the measured. Its own parameters define the match tolerance
 
       The matches are added as DataArrays to the spectrum (Names: IonName and IonMatchError). The parameters of the TheoreticalSpectrumGenerator define the comprehensiveness of the available matching. The parameters of SpectrumAlignment define the matching tolerance.
       See the parameter section of this class for the available options.
-      @htmlinclude OpenMS_SpectrumAnnotator.parameters
     */
     void annotateMatches(PeakSpectrum &spec, const PeptideHit& ph, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const;
 
     /**
       @brief Adds ion match statistics to @p pi PeptideIdentifcation
 
-      @param pi A spectrum identifications to be annotated, looking up matches from a spectrum and the theoretical spectrum inferred from the identifications sequence
-      @param spec A PeakSpectrum containing the peaks from which the @p pi identifications are made
-      @param tg A TheoreticalSpectrumGenerator to infer the theoretical spectrum. Its own parameters define which ion types are referred
-      @param sa A SpectrumAlignment to match the theoretical spectrum with the measured. Its own parameters define the match tolerance
+      @param[in] pi A spectrum identifications to be annotated, looking up matches from a spectrum and the theoretical spectrum inferred from the identifications sequence
+      @param[in] spec A PeakSpectrum containing the peaks from which the @p pi identifications are made
+      @param[in] tg A TheoreticalSpectrumGenerator to infer the theoretical spectrum. Its own parameters define which ion types are referred
+      @param[in] sa A SpectrumAlignment to match the theoretical spectrum with the measured. Its own parameters define the match tolerance
 
       The ion match statistics are added as UserParams to either the PeptideIdentification (parameters of the matching) and PeptideHit. The parameters of the TheoreticalSpectrumGenerator define the comprehensiveness of the available matching. The parameters of SpectrumAlignment define the matching tolerance.
       See the parameter section of this class for the available statistics.
-      @htmlinclude OpenMS_SpectrumAnnotator.parameters
     */
     void addIonMatchStatistics(PeptideIdentification& pi, MSSpectrum &spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const;
+
+    /**
+      @brief Adds peak annotations to the @p ph PeptideHit
+
+      @param[in] ph A PeptideHit whose PeakAnnotations vector will be filled with the ion matches
+      @param[in] spec A PeakSpectrum containing the peaks from which the @p ph identifications are made
+      @param[in] tg A TheoreticalSpectrumGenerator to infer the theoretical spectrum. Its own parameters define which ion types are referred
+      @param[in] sa A SpectrumAlignment to match the theoretical spectrum with the measured. Its own parameters define the match tolerance
+      @param[in] include_unmatched_peaks If true, all spectrum peaks will be included in the PeakAnnotations vector. 
+             Unmatched peaks will have empty annotation strings. If false (default), only matched peaks are included.
+
+      This method directly fills the PeakAnnotations vector of the PeptideHit with the matched ions.
+      Each matched peak gets a PeakAnnotation containing the annotation string (ion name), charge, m/z and intensity.
+      The parameters of the TheoreticalSpectrumGenerator define the comprehensiveness of the available matching.
+      The parameters of SpectrumAlignment define the matching tolerance.
+    */
+    void addPeakAnnotationsToPeptideHit(PeptideHit& ph, const PeakSpectrum& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa, bool include_unmatched_peaks = false) const;
 
     /// overwrite
     void updateMembers_() override;
@@ -129,7 +118,6 @@ namespace OpenMS
       static const boost::regex ct_regex_;
       static const boost::regex noloss_regex_;
       static const boost::regex seriesposition_regex_;
-
   };
 }
 

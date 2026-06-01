@@ -1,87 +1,75 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
-#include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
+#include <OpenMS/ML/CLUSTERING/ClusterAnalyzer.h>
+#include <OpenMS/ML/CLUSTERING/ClusterHierarchical.h>
+#include <OpenMS/ML/CLUSTERING/CompleteLinkage.h>
+#include <OpenMS/ML/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <vector>
 #include <algorithm>
 #include <iostream>
+#include <random>
+#include <vector>
 
 using namespace OpenMS;
 using namespace std;
 
 
+
+/// A functor, which provides a similarity value for two entities (here: doubles), in range [0, 1)
 class LowLevelComparator
 {
 public:
   double operator()(const double first, const double second) const
   {
-    double x, y;
-    x = min(second, first);
-    y = max(first, second);
-    if ((y - x) > 1)
-    {
-      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-    }
-    return 1 - (y - x);
+    // we just use a linear distance between them, i.e. the closer the values, the more similar they are
+    auto distance = std::fabs(first - second);
+    if (distance > 1) { throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION); }
+    return 1 - distance;
   }
-
 }; // end of LowLevelComparator
 
 Int main()
 {
   // data
-  vector<double> data; // must be filled
+  vector<double> data;
+#if 1  // manual data
+  data = {0.01, 0.02, 0.7, 0.3, 0.31};
+#else  // random data
+  const auto N = 5;
+  std::mt19937 rng;                               // default constructed, seeded with fixed seed
+  std::uniform_real_distribution<> dis(0.0, 1.0); // uniform values between [0, 1)
+  std::generate_n(back_inserter(data), N, [&]() { return dis(rng); });
+#endif
 
-  srand(333);
-  Size nr = 12;
-  data.resize(nr);
-  for (Size i = 0; i < nr; ++i)
-  {
-    data[i] = (double)rand() / RAND_MAX;
-  }
-
+  // print raw data to console
+  std::cout << "raw data: ";
+  for_each(data.begin(), data.end(), [](auto elem) { std::cout << elem << ' '; });
+  std::cout << '\n';
+  // determines the distance between two data points
   LowLevelComparator llc;
-  CompleteLinkage sl;
+  
+  SingleLinkage sl; 
+  // or try: 
+  //CompleteLinkage sl;
+
   vector<BinaryTreeNode> tree;
   DistanceMatrix<float> dist; // will be filled
   ClusterHierarchical ch;
-  ch.setThreshold(0.15);
+  ch.setThreshold(1); // maximal distance between clusters; default threshold = 1, i.e. full clustering
+  // note: not all methods support a threshold, e.g. SingleLinkage requires t = 1.
 
-  // clustering
+  // do clustering.
+  // Note: There are other overloads of this function for clustering spectra
   ch.cluster<double, LowLevelComparator>(data, llc, sl, tree, dist);
 
+  // depending on the cluster method, the distance matrix may have shrunken, e.g. for complete linkage to the point where clustering was stopped
+  std::cout << "distance matrix:\n" << dist << "\n\n"; 
+
   ClusterAnalyzer ca;
+  std::cout << "binary tree in Newick format (numbers are indices into the data)";
   std::cout << ca.newickTree(tree) << std::endl;
 
   return 0;
-} //end of main
+} // end of main

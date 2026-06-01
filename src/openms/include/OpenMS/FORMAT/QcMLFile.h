@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer, Axel Walter $
@@ -38,6 +12,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <vector>
 
 namespace OpenMS
@@ -170,16 +145,16 @@ public:
     /// Calculation and collection of QC data
     /**
       @brief Collects QC data in qualityParameters and qualityAttachments
-      @param prot_ids protein identifications from ID file
-      @param pep_ids peptide identifications
-      @param feature_map FeatureMap from feature file (featureXML)
-      @param consensus_map ConsensusMap from consensus file (consensusXML)
-      @param inputfile_raw mzML input file name
-      @param remove_duplicate_features removes duplicates in a set of merged features
-      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
+      @param[in] prot_ids protein identifications from ID file
+      @param[in] pep_ids peptide identifications
+      @param[in] feature_map FeatureMap from feature file (featureXML)
+      @param[in] consensus_map ConsensusMap from consensus file (consensusXML)
+      @param[in] inputfile_raw mzML input file name
+      @param[in] remove_duplicate_features removes duplicates in a set of merged features
+      @param[in] exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
     */
     void collectQCData(std::vector<ProteinIdentification>& prot_ids,
-                       std::vector<PeptideIdentification>& pep_ids,
+                       PeptideIdentificationList& pep_ids,
                        const FeatureMap& feature_map,
                        const ConsensusMap& consensus_map,
                        const String& inputfile_raw,
@@ -188,7 +163,7 @@ public:
     ///Store the QCFile
     /**
       @brief Store the qcML file
-      @param filename qcML output file name
+      @param[out] filename qcML output file name
     */
     void store(const String& filename) const;
 

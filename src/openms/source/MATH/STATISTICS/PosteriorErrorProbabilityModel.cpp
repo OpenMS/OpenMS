@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -40,12 +14,15 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 
-#include <QDir>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
+#include <filesystem>
 
 #include <algorithm>
 
@@ -121,15 +98,17 @@ namespace OpenMS::Math
       if (output_plots)
       {
         // create output directory (if not already present)
-        QDir dir(String(param_.getValue("out_plot").toString()).toQString());
-        if (!dir.cdUp())
+        namespace fs = std::filesystem;
+        auto plot_path = to_path(String(param_.getValue("out_plot").toString()));
+        auto parent_dir = plot_path.parent_path();
+        if (parent_dir.empty())
         {
-          OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << String(dir.dirName()) << "'." << std::endl;
+          OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << plot_path.filename().string() << "'." << std::endl;
           return false;
         }
-        if (!dir.exists() && !dir.mkpath("."))
+        if (!fs::exists(parent_dir) && !File::makeDir(parent_dir.generic_string()))
         {
-          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << String(dir.dirName()) << "'." << std::endl;
+          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << parent_dir.generic_string() << "'." << std::endl;
           return false;
         }
         //
@@ -311,15 +290,17 @@ namespace OpenMS::Math
       if (output_plots)
       {
         // create output directory (if not already present)
-        QDir dir(String(param_.getValue("out_plot").toString()).toQString());
-        if (!dir.cdUp())
+        namespace fs = std::filesystem;
+        auto plot_path = to_path(String(param_.getValue("out_plot").toString()));
+        auto parent_dir = plot_path.parent_path();
+        if (parent_dir.empty())
         {
-          OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << String(dir.dirName()) << "'." << std::endl;
+          OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << plot_path.filename().string() << "'." << std::endl;
           return false;
         }
-        if (!dir.exists() && !dir.mkpath("."))
+        if (!fs::exists(parent_dir) && !File::makeDir(parent_dir.generic_string()))
         {
-          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << String(dir.dirName()) << "'." << std::endl;
+          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << parent_dir.generic_string() << "'." << std::endl;
           return false;
         }
         //
@@ -961,6 +942,10 @@ namespace OpenMS::Math
       {
         return getScore_({"hyperscore"}, hit, current_score_type); //TODO evaluate transformations
       }
+      else if (engine == "SAGE")
+      {
+        return getScore_({"hyperscore", "ln(hyperscore)"}, hit, current_score_type); // support hyperscore for backwards compatibility (same as ln(hyperscore))
+      }
       else if (engine == "MSFRAGGER")
       {
         return (-1) * log10(getScore_({"expect"}, hit, current_score_type));
@@ -971,7 +956,7 @@ namespace OpenMS::Math
 
     map<String, vector<vector<double>>> PosteriorErrorProbabilityModel::extractAndTransformScores(
       const vector<ProteinIdentification> & protein_ids,
-      const vector<PeptideIdentification> & peptide_ids,
+      const PeptideIdentificationList & peptide_ids,
       const bool split_charge,
       const bool top_hits_only,
       const bool target_decoy_available,
@@ -980,7 +965,7 @@ namespace OpenMS::Math
       std::set<Int> charges;
       const StringList search_engines = {"XTandem","OMSSA","MASCOT","SpectraST","MyriMatch",
                                          "SimTandem","MSGFPlus","MS-GF+","Comet","MSFragger",
-                                         "tide-search","SimpleSearchEngine",
+                                         "tide-search","Sage","SimpleSearchEngine",
                                          "OpenMS/ConsensusID_best","OpenMS/ConsensusID_worst","OpenMS/ConsensusID_average"};
 
       if (split_charge)
@@ -1108,7 +1093,7 @@ namespace OpenMS::Math
       const bool prob_correct,
       const bool split_charge,
       vector<ProteinIdentification> & protein_ids,
-      vector<PeptideIdentification> & peptide_ids,
+      PeptideIdentificationList & peptide_ids,
       bool & unable_to_fit_data,
       bool & data_might_not_be_well_fit)
     {

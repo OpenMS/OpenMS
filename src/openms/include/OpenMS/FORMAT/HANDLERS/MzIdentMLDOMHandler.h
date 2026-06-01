@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
@@ -34,15 +8,16 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/CVTermList.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
@@ -53,20 +28,20 @@
 #include <xercesc/dom/DOMNodeIterator.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
 #include <xercesc/dom/DOMText.hpp>
-#include <xercesc/util/OutOfMemoryException.hpp>
-#include <xercesc/util/XMLString.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/framework/LocalFileFormatTarget.hpp>
-
-#include <xercesc/parsers/XercesDOMParser.hpp>
-#include <xercesc/util/XMLUni.hpp>
 #include <xercesc/framework/psvi/XSValue.hpp>
+#include <xercesc/parsers/XercesDOMParser.hpp>
+#include <xercesc/util/OutOfMemoryException.hpp>
+#include <xercesc/util/PlatformUtils.hpp>
+#include <xercesc/util/XMLString.hpp>
+#include <xercesc/util/XMLUni.hpp>
 
 #include <list>
-#include <string>
-#include <stdexcept>
-#include <vector>
 #include <map>
+#include <set>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 // Error codes
 //enum {
@@ -99,10 +74,10 @@ public:
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler for internal identification structures
-      MzIdentMLDOMHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& version, const ProgressLogger& logger);
+      MzIdentMLDOMHandler(const std::vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const String& version, const ProgressLogger& logger);
 
       /// Constructor for a read-only handler for internal identification structures
-      MzIdentMLDOMHandler(std::vector<ProteinIdentification>& pro_id, std::vector<PeptideIdentification>& pep_id, const String& version, const ProgressLogger& logger);
+      MzIdentMLDOMHandler(std::vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const String& version, const ProgressLogger& logger);
 
       /// Destructor
       virtual ~MzIdentMLDOMHandler();
@@ -123,14 +98,14 @@ protected:
       ControlledVocabulary unimod_;
 
       ///Internal +w Identification Item for proteins
-      std::vector<ProteinIdentification>* pro_id_;
+      std::vector<ProteinIdentification>* pro_id_ = nullptr;
       ///Internal +w Identification Item for peptides
-      std::vector<PeptideIdentification>* pep_id_;
+      PeptideIdentificationList* pep_id_ = nullptr;
 
       ///Internal -w Identification Item for proteins
-      const std::vector<ProteinIdentification>* cpro_id_;
+      const std::vector<ProteinIdentification>* cpro_id_ = nullptr;
       ///Internal -w Identification Item for peptides
-      const std::vector<PeptideIdentification>* cpep_id_;
+      const PeptideIdentificationList* cpep_id_ = nullptr;
 
       ///Internal version keeping
       const String schema_version_;
@@ -138,8 +113,13 @@ protected:
       /// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
       ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;
 
+      /// Precompute the CV child-term sets used per PSM (constant across a file); shared by both constructors.
+      void initScoreTermCaches_();
+
       /**@name Helper functions to build the internal id structures from the DOM tree */
       //@{
+
+      /// First: CVparams, Second: userParams (independent of each other)
       std::pair<CVTermList, std::map<String, DataValue> > parseParamGroup_(xercesc::DOMNodeList* paramGroup);
       CVTerm parseCvParam_(xercesc::DOMElement* param);
       std::pair<String, DataValue> parseUserParam_(xercesc::DOMElement* param);
@@ -247,6 +227,8 @@ private:
 
       xercesc::XercesDOMParser mzid_parser_;
 
+      std::unique_ptr<XMLHandler> xml_handler_ = nullptr;
+
       //from AnalysisSoftware
       String search_engine_;
       String search_engine_version_;
@@ -275,14 +257,18 @@ private:
       std::list<std::list<String> > hit_pev_; ///< writing help only
 
       bool xl_ms_search_; ///< is true when reading a file containing Cross-Linking MS search results
-      std::map<String, String> xl_id_donor_map_; ///< mapping Peptide id -> cross-link donor value
-      //std::map<String, String> xl_id_acceptor_map_; ///< mapping Peptide id -> cross-link acceptor value
-      std::map<String, String> xl_id_acceptor_map_; ///< mapping  peptide id of acceptor peptide -> cross-link acceptor value
+      std::map<String, String> xl_id_donor_map_; ///< mapping Peptide id -> crosslink donor value
+      //std::map<String, String> xl_id_acceptor_map_; ///< mapping Peptide id -> crosslink acceptor value
+      std::map<String, String> xl_id_acceptor_map_; ///< mapping  peptide id of acceptor peptide -> crosslink acceptor value
       std::map<String, SignedSize> xl_donor_pos_map_; ///< mapping donor value -> cross-link modification location
       std::map<String, SignedSize> xl_acceptor_pos_map_; ///< mapping acceptor value -> cross-link modification location
       std::map<String, double> xl_mass_map_; ///< mapping Peptide id -> cross-link mass
       std::map<String, String> xl_mod_map_; ///< mapping peptide id -> cross-linking reagent name
 
+      /// cached CV child term sets (computed once, reused per PSM)
+      std::set<String> q_score_child_terms_;
+      std::set<String> e_score_child_terms_;
+      std::set<String> specific_score_child_terms_;
     };
   } // namespace Internal
 } // namespace OpenMS

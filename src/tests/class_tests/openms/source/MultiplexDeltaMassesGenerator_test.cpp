@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
@@ -35,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
+#include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 
 using namespace OpenMS;
 
@@ -49,20 +23,20 @@ label_mass_shift.insert(std::make_pair("Lys8", 8.0141988132));
 
 // triple SILAC
 String labels = "[][Lys4,Arg6][Lys8,Arg10]";
-int missed_cleavages = 1;
+int max_nr_labelled_aas = 1;
 
 MultiplexDeltaMassesGenerator* nullPointer = nullptr;
 MultiplexDeltaMassesGenerator* ptr;
 
-START_SECTION(MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_mass_shift))
-    MultiplexDeltaMassesGenerator list(labels, missed_cleavages, label_mass_shift);
+START_SECTION(MultiplexDeltaMassesGenerator(String labels, int max_nr_labelled_aas, std::map<String,double> label_mass_shift))
+    MultiplexDeltaMassesGenerator list(labels, max_nr_labelled_aas, label_mass_shift);
     TEST_EQUAL(list.getDeltaMassesList().size(), 5);
-    ptr = new MultiplexDeltaMassesGenerator(labels, missed_cleavages, label_mass_shift);
+    ptr = new MultiplexDeltaMassesGenerator(labels, max_nr_labelled_aas, label_mass_shift);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-MultiplexDeltaMassesGenerator list(labels, missed_cleavages, label_mass_shift);
+MultiplexDeltaMassesGenerator list(labels, max_nr_labelled_aas, label_mass_shift);
 
 START_SECTION(std::vector<MultiplexDeltaMasses> getDeltaMassesList())
   std::vector<MultiplexDeltaMasses> masses = list.getDeltaMassesList();

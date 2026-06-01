@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -35,7 +9,9 @@
 #include <OpenMS/FORMAT/MSPFile.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
@@ -54,7 +30,7 @@ namespace OpenMS
     defaults_.setValidStrings("parse_headers", parse_strings);
     defaults_.setValue("parse_peakinfo", "true", "Flag whether the peak annotation information should be parsed and stored for each peak");
     defaults_.setValidStrings("parse_peakinfo", parse_strings);
-    defaults_.setValue("parse_firstpeakinfo_only", "true", "Flag whether only the first (default for 1:1 correspondence in SpecLibSearcher) or all peak annotation information should be parsed and stored for each peak.");
+    defaults_.setValue("parse_firstpeakinfo_only", "true", "Flag whether only the first or all peak annotation information should be parsed and stored for each peak.");
     defaults_.setValidStrings("parse_firstpeakinfo_only", parse_strings);
     defaults_.setValue("instrument", "", "If instrument given, only spectra of these type of instrument (Inst= in header) are parsed");
     defaults_.setValidStrings("instrument", {"","it","qtof","toftof"});
@@ -75,7 +51,7 @@ namespace OpenMS
 
   MSPFile::~MSPFile() = default;
 
-  void MSPFile::load(const String & filename, vector<PeptideIdentification> & ids, PeakMap & exp)
+  void MSPFile::load(const String & filename, PeptideIdentificationList & ids, PeakMap & exp)
   {
     if (!File::exists(filename))
     {
@@ -348,6 +324,18 @@ namespace OpenMS
     }
   }
 
+  void MSPFile::load(const String & filename, AnnotatedMSRun & annot_exp)
+  {
+    // use existing load function
+    PeptideIdentificationList ids;
+    MSExperiment exp;
+    this->load(filename, ids, exp);
+
+    // Convert to the new data structure (one PeptideIdentification per spectrum)
+    annot_exp.setPeptideIdentifications(std::move(ids));
+    annot_exp.getMSExperiment() = std::move(exp);
+  }
+
   void MSPFile::parseHeader_(const String & header, PeakSpectrum & spec)
   {
     // first header from std_protein of NIST spectra DB
@@ -369,7 +357,7 @@ namespace OpenMS
   }
 
   //TODO adapt store to write new? format
-  void MSPFile::store(const String & filename, const PeakMap & exp) const
+  void MSPFile::store(const String & filename, const AnnotatedMSRun & exp) const
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::MSP))
     {
@@ -384,11 +372,11 @@ namespace OpenMS
 
     ofstream out(filename.c_str());
 
-    for (const MSSpectrum& it : exp)
+    for (auto [spectrum, peptide_id] : exp)
     {
-      if (!it.getPeptideIdentifications().empty() && !it.getPeptideIdentifications().begin()->getHits().empty())
+      if (!peptide_id.getHits().empty())
       {
-        PeptideHit hit = *it.getPeptideIdentifications().begin()->getHits().begin();
+        PeptideHit hit = peptide_id.getHits()[0];
         String peptide;
         for (const Residue& pit : hit.getSequence())
         {
@@ -445,10 +433,10 @@ namespace OpenMS
           out << " Mods=0";
         }
         out << " Inst=it\n";         // @improvement write instrument type, protein...and other information
-        out << "Num peaks: " << it.size() << "\n";
+        out << "Num peaks: " << spectrum.size() << "\n";
 
         // normalize to 10,000
-        PeakSpectrum rich_spec = it;
+        PeakSpectrum rich_spec = spectrum;
         double max_int(0);
         for (const Peak1D& sit : rich_spec)
         {
@@ -473,7 +461,7 @@ namespace OpenMS
         int ion_name = -1;
         for (Size k = 0; k < rich_spec.getStringDataArrays().size(); k++)
         {
-          if (rich_spec.getStringDataArrays()[k].getName() == "IonName")
+          if (rich_spec.getStringDataArrays()[k].getName() == Constants::UserParam::IonNames)
           {
             ion_name = (int)k;
             break;

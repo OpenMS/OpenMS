@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -41,6 +15,7 @@
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -81,6 +56,51 @@ START_SECTION((std::set<double> getCompensationVoltages(PeakMap& exp)))
   TEST_EQUAL(CVs.find(-55.0) == CVs.end(), 0)
   TEST_EQUAL(CVs.find(-45.0) == CVs.end(), 0)
 
+END_SECTION
+
+START_SECTION((std::set<double> getCompensationVoltages() detects FAIMS beyond first spectrum and ignores sentinel))
+{
+  PeakMap exp2;
+  // spectrum without FAIMS (first)
+  MSSpectrum s0;
+  s0.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
+  s0.setDriftTime(12.3);
+
+  // FAIMS spectrum with valid CV
+  MSSpectrum s1;
+  s1.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  s1.setDriftTime(-50.0);
+
+  // FAIMS spectrum with sentinel (should be ignored)
+  MSSpectrum s2;
+  s2.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  s2.setDriftTime(IMTypes::DRIFTTIME_NOT_SET);
+
+  exp2.addSpectrum(s0);
+  exp2.addSpectrum(s1);
+  exp2.addSpectrum(s2);
+
+  const std::set<double> cvs2 = FAIMSHelper::getCompensationVoltages(exp2);
+  TEST_EQUAL(cvs2.size(), 1)
+  TEST_TRUE(cvs2.find(-50.0) != cvs2.end())
+}
+END_SECTION
+
+START_SECTION((std::set<double> getCompensationVoltages() returns empty for non-FAIMS))
+{
+  PeakMap exp3;
+  MSSpectrum a;
+  a.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
+  a.setDriftTime(1.0);
+  MSSpectrum b;
+  b.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
+  b.setDriftTime(2.0);
+  exp3.addSpectrum(a);
+  exp3.addSpectrum(b);
+
+  const std::set<double> cvs3 = FAIMSHelper::getCompensationVoltages(exp3);
+  TEST_EQUAL(cvs3.empty(), true)
+}
 END_SECTION
 
 delete e_ptr;

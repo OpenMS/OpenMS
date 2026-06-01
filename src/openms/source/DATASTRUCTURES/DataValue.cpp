@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -36,8 +10,6 @@
 
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/DATASTRUCTURES/ParamValue.h>
-
-#include <QtCore/QString>
 
 #include <sstream>
 
@@ -148,12 +120,6 @@ namespace OpenMS
   }
 
   DataValue::DataValue(const string& p) :
-    value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
-  {
-    data_.str_ = new String(p);
-  }
-
-  DataValue::DataValue(const QString& p) :
     value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.str_ = new String(p);
@@ -380,14 +346,6 @@ namespace OpenMS
     return *this;
   }
 
-  DataValue& DataValue::operator=(const QString& arg)
-  {
-    clear_();
-    data_.str_ = new String(arg);
-    value_type_ = STRING_VALUE;
-    return *this;
-  }
-
   DataValue& DataValue::operator=(const StringList& arg)
   {
     clear_();
@@ -507,7 +465,8 @@ namespace OpenMS
   {
     if (value_type_ == EMPTY_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue::EMPTY to long double");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert DataValue of type '" + NamesOfDataType[value_type_] + "' to long double");
     }
     else if (value_type_ == INT_VALUE)
     {
@@ -520,7 +479,8 @@ namespace OpenMS
   {
     if (value_type_ == EMPTY_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue::EMPTY to double");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert DataValue of type '" + NamesOfDataType[value_type_] + "' to double");
     }
     else if (value_type_ == INT_VALUE)
     {
@@ -533,7 +493,8 @@ namespace OpenMS
   {
     if (value_type_ == EMPTY_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue::EMPTY to float");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert DataValue of type '" + NamesOfDataType[value_type_] + "' to float");
     }
     else if (value_type_ == INT_VALUE)
     {
@@ -561,7 +522,8 @@ namespace OpenMS
     }
     if (data_.ssize_ < 0.0)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert negative integer DataValue to unsigned short int");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert negative integer DataValue with value '" + String(data_.ssize_) + "' to unsigned short int");
     }
     return data_.ssize_;
   }
@@ -585,7 +547,8 @@ namespace OpenMS
     }
     if (data_.ssize_ < 0.0)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert negative integer DataValue to unsigned int");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert negative integer DataValue with value '" + String(data_.ssize_) + "' to unsigned int");
     }
     return data_.ssize_;
   }
@@ -609,7 +572,8 @@ namespace OpenMS
     }
     if (data_.ssize_ < 0.0)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert negative integer DataValue to unsigned long int");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert negative integer DataValue with value '" + String(data_.ssize_) + "' to unsigned long int");
     }
     return data_.ssize_;
   }
@@ -633,7 +597,8 @@ namespace OpenMS
     }
     if (data_.ssize_ < 0.0)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert negative integer DataValue to UInt");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert negative integer DataValue with value '" + String(data_.ssize_) + "' to unsigned long long");
     }
     return data_.ssize_;
   }
@@ -666,9 +631,9 @@ namespace OpenMS
           return ParamValue(v);
         }
       default:
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");    
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unknown!");
     }
-    throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");
+    throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unknown!");
   }
 
   DataValue::operator std::string() const
@@ -778,11 +743,6 @@ namespace OpenMS
           "Could not convert DataValue of type '" + NamesOfDataType[value_type_] + "' to String");
     }
     return ss.str();
-  }
-
-  QString DataValue::toQString() const
-  {
-    return toString(true).toQString();
   }
 
   bool DataValue::toBool() const
@@ -926,4 +886,29 @@ namespace OpenMS
     unit_ = unit;
   }
 
-} //namespace
+  DataValue::DataType DataValue::valueType() const
+  {
+    return value_type_;
+  }
+
+  bool DataValue::isEmpty() const
+  {
+    return value_type_ == EMPTY_VALUE;
+  }
+
+  DataValue::UnitType DataValue::getUnitType() const
+  {
+    return unit_type_;
+  }
+
+  void DataValue::setUnitType(const DataValue::UnitType & u)
+  {
+    unit_type_ = u;
+  }
+
+  bool DataValue::hasUnit() const
+  {
+    return unit_ != -1;
+  }
+
+} // namespace OpenMS

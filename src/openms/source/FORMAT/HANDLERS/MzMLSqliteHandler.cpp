@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -41,7 +15,8 @@
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 
-#include <QtCore/QFileInfo>
+#include <OpenMS/SYSTEM/PathUtils.h>
+#include <filesystem>
 
 // #include <type_traits> // for template arg detection
 #include <boost/type_traits.hpp>
@@ -59,22 +34,63 @@ namespace OpenMS::Internal
 
     namespace Sql = Internal::SqliteHelper;
 
-    /*
-     * @brief Helper function to concatenate integers with ","
-     *
-     * @param The integers to concatenate
-     * 
-     */
+  /**
+   * @brief Helper function to concatenate integers with "," for SQL IN(...) lists.
+   *
+   * This function builds a comma-separated string of the provided integer
+   * indices suitable for embedding into SQL queries such as
+   * "... WHERE ID IN (<list>)".
+   *
+   * @param[in] indices The integers to concatenate
+   *
+   * Notes on correctness and edge-cases:
+   * - The function explicitly handles the empty input case and returns an
+   *   empty String. Callers should check for an empty return and avoid
+   *   producing SQL fragments like "IN ()" since some SQL engines treat
+   *   an empty IN-list as a syntax error or behave unexpectedly.
+   * - We compute a small reservation estimate (digits + comma) to reduce
+   *   reallocations for larger lists. The digit estimate uses floor(log10)
+   *   of the largest index; we guard against log10(0) by checking
+   *   max_idx > 0. This is a lightweight heuristic, not an exact size.
+   * - The final resize(tmp.size()-1) removes the trailing comma. That
+   *   operation is only safe because we return early for empty input.
+   *
+   * Performance: reserving capacity reduces reallocations but is optional.
+   * If you expect extremely large index lists or negative IDs, consider
+   * revising the reservation heuristic or using a different formatting
+   * strategy (e.g., writing the first item separately and prefixing commas
+   * for subsequent items) to avoid any trailing-trim logic.
+   */
     String integerConcatenateHelper(const std::vector<int> & indices)
     {
       String tmp;
-      // each element has a size of the "," character plus n digits in base10 
-      tmp.reserve( int(log10(indices.size())+2) * indices.size() );
+      // handle empty input early: prevents underflow when trimming trailing comma
+      if (indices.empty())
+      {
+        return tmp;
+      }
+
+      // Each element will contribute a comma plus n digits. Estimate the
+      // maximum digit count using log10 of the largest index to avoid
+      // excessive reallocations for large lists. We guard the log10 call by
+      // checking max_idx > 0 to avoid log10(0).
+      int max_digits = 1;
+      {
+        int max_idx = indices[0];
+        for (Size i = 1; i < indices.size(); ++i) if (indices[i] > max_idx) max_idx = indices[i];
+        if (max_idx > 0)
+        {
+          max_digits = int(std::floor(std::log10(static_cast<double>(max_idx))) + 1);
+        }
+      }
+
+      tmp.reserve( static_cast<size_t>((max_digits + 1) * indices.size()) );
       for (Size k = 0; k < indices.size(); k++)
       {
-        tmp += String(indices[k]) + ",";
+        tmp += String(indices[k]) + ',';
       }
-      tmp.resize(tmp.size() - 1); // remove last ","
+      // remove last comma (safe because we returned for empty input above)
+      tmp.resize(tmp.size() - 1);
       return tmp;
     }
 
@@ -144,7 +160,7 @@ namespace OpenMS::Internal
         stemp.clear();
         if (compression == 1)
         {
-          OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, stemp);
+          OpenMS::ZlibCompression::uncompressData(raw_text, blob_bytes, stemp);
 
           void* byte_buffer = reinterpret_cast<void *>(&stemp[0]);
           Size buffer_size = stemp.size();
@@ -159,14 +175,14 @@ namespace OpenMS::Internal
         }
         else if (compression == 5)
         {
-          OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, stemp);
+          OpenMS::ZlibCompression::uncompressData(raw_text, blob_bytes, stemp);
           MSNumpressCoder::NumpressConfig config;
           config.setCompression("linear");
           MSNumpressCoder().decodeNPRaw(stemp, data, config);
         }
         else if (compression == 6)
         {
-          OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, stemp);
+          OpenMS::ZlibCompression::uncompressData(raw_text, blob_bytes, stemp);
           MSNumpressCoder::NumpressConfig config;
           config.setCompression("slof");
           MSNumpressCoder().decodeNPRaw(stemp, data, config);
@@ -207,7 +223,7 @@ namespace OpenMS::Internal
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
-            it->setMZ(*data_it);
+            it->setPos(*data_it);
           }
           cont_data[curr_id] += 1;
         }
@@ -223,7 +239,7 @@ namespace OpenMS::Internal
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
-            it->setMZ(*data_it);
+            it->setPos(*data_it);
           }
           cont_data[curr_id] += 1;
         }
@@ -299,7 +315,7 @@ namespace OpenMS::Internal
           {
             MzMLFile f;
             std::string uncompressed;
-            OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, uncompressed);
+            OpenMS::ZlibCompression::uncompressData(raw_text, blob_bytes, uncompressed);
             f.loadBuffer(uncompressed, exp);
 
             nr_results++;
@@ -650,11 +666,19 @@ namespace OpenMS::Internal
         }
         if (sqlite3_column_type(stmt, 5) != SQLITE_NULL) 
         {
-          precursor.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 5));
+          double offset_value = sqlite3_column_double(stmt, 5);
+          if (offset_value >= 0) // Skip negative values (indicate null/invalid)
+          {
+            precursor.setIsolationWindowLowerOffset(offset_value);
+          }
         }
         if (sqlite3_column_type(stmt, 6) != SQLITE_NULL)
         {
-          precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 6));
+          double offset_value = sqlite3_column_double(stmt, 6);
+          if (offset_value >= 0) // Skip negative values (indicate null/invalid)
+          {
+            precursor.setIsolationWindowUpperOffset(offset_value);
+          }
         }
         if (Sql::extractValue(&tmp, stmt, 7)) precursor.setMetaValue("peptide_sequence", tmp);
         // if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 8));
@@ -664,14 +688,22 @@ namespace OpenMS::Internal
         }
         if (sqlite3_column_type(stmt, 10) != SQLITE_NULL)
         {
-          product.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 10));
+          double offset_value = sqlite3_column_double(stmt, 10);
+          if (offset_value >= 0) // Skip negative values (indicate null/invalid)
+          {
+            product.setIsolationWindowLowerOffset(offset_value);
+          }
         }
         if (sqlite3_column_type(stmt, 11) != SQLITE_NULL)
         {
-          product.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 11));
+          double offset_value = sqlite3_column_double(stmt, 11);
+          if (offset_value >= 0) // Skip negative values (indicate null/invalid)
+          {
+            product.setIsolationWindowUpperOffset(offset_value);
+          }
         }
         if (sqlite3_column_type(stmt, 12) != SQLITE_NULL && sqlite3_column_int(stmt, 12) != -1
-            && sqlite3_column_int(stmt, 12) < static_cast<int>(OpenMS::Precursor::SIZE_OF_ACTIVATIONMETHOD))
+            && sqlite3_column_int(stmt, 12) < static_cast<int>(OpenMS::Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
         {
           precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 12)));
         }
@@ -762,11 +794,19 @@ namespace OpenMS::Internal
         }
         if (sqlite3_column_type(stmt, 7) != SQLITE_NULL)
         {
-          precursor.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 7));
+          double offset_value = sqlite3_column_double(stmt, 7);
+          if (offset_value >= 0) // Skip negative values (indicate null/invalid)
+          {
+            precursor.setIsolationWindowLowerOffset(offset_value);
+          }
         }
         if (sqlite3_column_type(stmt, 8) != SQLITE_NULL)
         {
-          precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 8));
+          double offset_value = sqlite3_column_double(stmt, 8);
+          if (offset_value >= 0) // Skip negative values (indicate null/invalid)
+          {
+            precursor.setIsolationWindowUpperOffset(offset_value);
+          }
         }
         if (Sql::extractValue(&tmp, stmt, 9))
         {
@@ -779,26 +819,34 @@ namespace OpenMS::Internal
         }
         if (sqlite3_column_type(stmt, 12) != SQLITE_NULL)
         {
-          product.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 12));
+          double offset_value = sqlite3_column_double(stmt, 12);
+          if (offset_value >= 0) // Skip negative values (indicate null/invalid)
+          {
+            product.setIsolationWindowLowerOffset(offset_value);
+          }
         }
         if (sqlite3_column_type(stmt, 13) != SQLITE_NULL)
         {
-          product.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 13));
+          double offset_value = sqlite3_column_double(stmt, 13);
+          if (offset_value >= 0) // Skip negative values (indicate null/invalid)
+          {
+            product.setIsolationWindowUpperOffset(offset_value);
+          }
         }
         if (sqlite3_column_type(stmt, 14) != SQLITE_NULL) 
         {
           int pol = sqlite3_column_int(stmt, 14);
           if (pol == 0)
           {
-            spec.getInstrumentSettings().setPolarity(IonSource::NEGATIVE);
+            spec.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE);
           }
           else 
           {
-            spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+            spec.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
           }
         }
         if (sqlite3_column_type(stmt, 15) != SQLITE_NULL && sqlite3_column_int(stmt, 15) != -1
-            && sqlite3_column_int(stmt, 15) < static_cast<int>(OpenMS::Precursor::SIZE_OF_ACTIVATIONMETHOD))
+            && sqlite3_column_int(stmt, 15) < static_cast<int>(OpenMS::Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
         {
           precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 15)));
         }
@@ -883,8 +931,12 @@ namespace OpenMS::Internal
     void MzMLSqliteHandler::createTables()
     {
       // delete file if present
-      QFile file (filename_.toQString());
-      file.remove();
+      std::error_code ec;
+      std::filesystem::remove(OpenMS::to_path(filename_), ec);
+      if (ec)
+      {
+        OPENMS_LOG_WARN << "Warning: could not remove existing file '" << filename_ << "': " << ec.message() << std::endl;
+      }
 
       SqliteConnector conn(filename_);
 
@@ -960,6 +1012,11 @@ namespace OpenMS::Internal
       // Execute SQL statement
       conn.executeStatement(create_sql);
       createIndices_();
+    }
+
+    void MzMLSqliteHandler::setRunId(const UInt64 run_id)
+    {
+      run_id_ = Internal::SqliteHelper::clearSignBit(run_id);
     }
 
     void MzMLSqliteHandler::createIndices_()
@@ -1088,7 +1145,7 @@ namespace OpenMS::Internal
       for (Size k = 0; k < spectra.size(); k++)
       {
         const MSSpectrum& spec = spectra[k];
-        int polarity = (spec.getInstrumentSettings().getPolarity() == IonSource::POSITIVE); // 1 = positive
+        int polarity = (spec.getInstrumentSettings().getPolarity() == IonSource::Polarity::POSITIVE); // 1 = positive
         insert_spectra_sql << "INSERT INTO SPECTRUM(ID, RUN_ID, NATIVE_ID, MSLEVEL, RETENTION_TIME, SCAN_POLARITY) VALUES (" <<
           spec_id_ << "," <<
           run_id_ << ",'" <<
@@ -1113,7 +1170,7 @@ namespace OpenMS::Internal
           int activation_method = -1;
           if (!prec.getActivationMethods().empty() )
           {
-            activation_method = *prec.getActivationMethods().begin();
+            activation_method = static_cast<int>(*prec.getActivationMethods().begin());
           }
           String pepseq;
           if (prec.metaValueExists("peptide_sequence"))
@@ -1319,12 +1376,12 @@ namespace OpenMS::Internal
         const MSChromatogram& chrom = chroms[k];
         insert_chrom_sql << "INSERT INTO CHROMATOGRAM (ID, RUN_ID, NATIVE_ID) VALUES (" << chrom_id_ << "," << run_id_ << ",'" << chrom.getNativeID() << "'); ";
 
-        OpenMS::Precursor prec = chrom.getPrecursor();
+        const OpenMS::Precursor& prec = chrom.getPrecursor();
         // see src/openms/include/OpenMS/METADATA/Precursor.h for activation modes
         int activation_method = -1;
         if (!prec.getActivationMethods().empty() )
         {
-          activation_method = *prec.getActivationMethods().begin();
+          activation_method = static_cast<int>(*prec.getActivationMethods().begin());
         }
         String pepseq;
         if (prec.metaValueExists("peptide_sequence"))
@@ -1350,7 +1407,7 @@ namespace OpenMS::Internal
             "," << activation_method << "); ";
         }
 
-        OpenMS::Product prod = chrom.getProduct();
+        const OpenMS::Product& prod = chrom.getProduct();
         insert_product_sql << "INSERT INTO PRODUCT (CHROMATOGRAM_ID, CHARGE, ISOLATION_TARGET, " << 
           "ISOLATION_LOWER, ISOLATION_UPPER) VALUES (" << 
           chrom_id_ << "," << 0 << "," << prod.getMZ() << 

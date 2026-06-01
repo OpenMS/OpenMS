@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -33,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+
+#include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <boost/date_time/posix_time/posix_time_types.hpp> //no i/o just types
 
@@ -102,16 +78,21 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp critical (OPENMS_UniqueIdGenerator_init_)
 #endif
-    { 
+    {
       // find a seed:
       // get something with high resolution (around microseconds) -- its hard to do better on Windows --
-      // which has absolute system time (there is higher resolution available for the time since program startup, but 
+      // which has absolute system time (there is higher resolution available for the time since program startup, but
       // we do not want this here since this seed usually gets initialized at the same program uptime).
       // Reason for high-res: in pipelines, instances of TOPP tools can get initialized almost simultaneously (i.e., resolution in seconds is not enough),
       // leading to identical random numbers (e.g. feature-IDs) in two or more distinct files.
       // C++11 note: C++ build-in alternative once C++11 can be presumed: 'std::chrono::high_resolution_clock'
       boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time() );
       seed_ = t.time_of_day().ticks();  // independent of implementation; as opposed to nanoseconds(), which need not be available on every platform
+
+      // Mix in process ID to ensure different seeds for parallel processes started at the same microsecond.
+      // This prevents duplicate UniqueIds when multiple TOPP tools run simultaneously in a pipeline.
+      seed_ ^= static_cast<UInt64>(SysInfo::getProcessId()) << 32;
+
       rng_ = new boost::mt19937_64 (seed_);
       dist_ = new boost::uniform_int<UInt64> (0, std::numeric_limits<UInt64>::max());
     }

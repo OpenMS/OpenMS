@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
@@ -33,37 +7,35 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzIdentMLValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+
 
 namespace OpenMS
 {
 
   MzIdentMLFile::MzIdentMLFile() :
-    XMLFile("/SCHEMAS/mzIdentML1.1.0.xsd", "1.1.0")
+    XMLFile("/SCHEMAS/mzIdentML1.3.0.xsd", "1.3.0")
   {
   }
 
   MzIdentMLFile::~MzIdentMLFile() = default;
 
-  void MzIdentMLFile::load(const String& filename, std::vector<ProteinIdentification>& poid, std::vector<PeptideIdentification>& peid)
+  void MzIdentMLFile::load(const String& filename, std::vector<ProteinIdentification>& poid, PeptideIdentificationList& peid)
   {
     Internal::MzIdentMLDOMHandler handler(poid, peid, schema_version_, *this);
     handler.readMzIdentMLFile(filename);
   }
 
-  void MzIdentMLFile::store(const String& filename, const Identification& id) const
-  {
-    Internal::MzIdentMLHandler handler(id, filename, schema_version_, *this);
-    save_(filename, &handler);
-  }
-
-  void MzIdentMLFile::store(const String& filename, const std::vector<ProteinIdentification>& poid, const std::vector<PeptideIdentification>& peid) const
+  void MzIdentMLFile::store(const String& filename, const std::vector<ProteinIdentification>& poid, const PeptideIdentificationList& peid) const
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::MZIDENTML))
     {
@@ -74,6 +46,54 @@ namespace OpenMS
     save_(filename, &handler);
 //    Internal::MzIdentMLDOMHandler handler(poid, peid, schema_version_, *this);
 //    handler.writeMzIdentMLFile(filename);
+  }
+
+  String MzIdentMLFile::detectVersion(const String& filename) const
+  {
+    // Read the first few lines of the header and look for the mzIdentML version. The version is
+    // declared both as a 'version="x.y.z"' attribute on the <MzIdentML> root and in the target
+    // namespace ('.../mzIdentML/x.y'). We prefer the explicit version attribute and fall back to
+    // the namespace; if neither maps to a bundled schema we keep the adapter default (1.3.0).
+    TextFile file(filename, true, 15);
+    String header;
+    header.concatenate(file.begin(), file.end(), " ");
+
+    // candidate versions we ship schemas for, newest first
+    static const std::vector<String> known_versions = {"1.3.0", "1.2.0", "1.1.0", "1.0.0"};
+
+    // 1) explicit version attribute, e.g. version="1.1.0"
+    for (const String& v : known_versions)
+    {
+      if (header.hasSubstring(String("version=\"") + v + "\""))
+      {
+        return v;
+      }
+    }
+    // 2) target namespace, e.g. http://psidev.info/psi/pi/mzIdentML/1.1
+    for (const String& v : known_versions)
+    {
+      // namespace carries only major.minor (e.g. "1.1"), so match on that prefix
+      String ns_version = v.prefix(v.rfind('.')); // "1.1.0" -> "1.1"
+      if (header.hasSubstring(String("mzIdentML/") + ns_version))
+      {
+        return v;
+      }
+    }
+    // 3) fall back to the adapter default
+    return schema_version_;
+  }
+
+  bool MzIdentMLFile::isValid(const String& filename, std::ostream& os, String& used_version)
+  {
+    used_version = detectVersion(filename);
+    // map the detected version to its schema; fall back to the default schema if not bundled
+    String schema = "/SCHEMAS/mzIdentML" + used_version + ".xsd";
+    if (!File::exists(File::getOpenMSDataPath() + schema))
+    {
+      schema = schema_location_;
+      used_version = schema_version_;
+    }
+    return XMLValidator().isValid(filename, File::find(schema), os);
   }
 
   bool MzIdentMLFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)

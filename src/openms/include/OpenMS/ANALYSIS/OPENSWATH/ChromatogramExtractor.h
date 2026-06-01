@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -36,6 +10,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
@@ -47,23 +22,33 @@ namespace OpenMS
 {
 
   /**
-   * @brief The ChromatogramExtractor extracts chromatograms from a spectra file.
+   * @brief The ChromatogramExtractor extracts chromatograms (intensity vs retention time) from mass spectrometry data.
    *
-   * It will take as input a set of transitions coordinates and will extract
-   * the signal of the provided map at the product ion m/z and retention time
-   * (rt) values specified by the extraction coordinates. There are two
-   * interfaces, the old interface will take a full TargetedExperiment and
-   * assume that one wants to extract at the m/z of the transitions present in
-   * the TargetedExperiment. The new interface (see also the
-   * ChromatogramExtractorAlgorithm class) only expects a set of coordinates
-   * which are up to the user to fill but a convenient prepare_coordinates
-   * function is provided to create the coordinates for the most common case of
-   * an MS2 and MS1 extraction.
+   * This class provides functionality to extract chromatographic traces from mass spectrometry data
+   * based on specified coordinates (m/z, retention time, and optionally ion mobility values).
    * 
-   * In the case of MS2 extraction, the map is assumed to originate from a SWATH
-   * (data-independent acquisition or DIA) experiment.
+   * The primary interface uses a set of ExtractionCoordinates that specify the exact coordinates
+   * for extraction. The static prepare_coordinates() helper generates these coordinates from an
+   * OpenSwath::LightTargetedExperiment for common MS1 and MS2 extraction scenarios. Callers
+   * working with an OpenMS::TargetedExperiment should first convert it to a
+   * LightTargetedExperiment via OpenSwathDataAccessHelper::convertTargetedExp().
    *
-  */
+   * Key features:
+   * - Supports both MS1 and MS2 level extractions
+   * - Configurable extraction window sizes in m/z dimension (absolute or ppm)
+   * - Multiple filter types available (Bartlett, tophat) for signal processing
+   * - Handles ion mobility data when available
+   * - Optimized for SWATH/DIA (Data Independent Acquisition) experiments
+   * - Progress logging capabilities through ProgressLogger base class
+   *
+   * For MS2 extractions, the input data is expected to come from a SWATH/DIA experiment
+   * where precursor ions are fragmented in wide isolation windows, allowing for extraction
+   * of fragment ion chromatograms.
+   *
+   * @see ChromatogramExtractorAlgorithm For the underlying extraction algorithm implementation
+   * @see ExtractionCoordinates For the coordinate specification format
+   */
+
   class OPENMS_DLLAPI ChromatogramExtractor :
     public ProgressLogger
   {
@@ -72,122 +57,21 @@ public:
 
     typedef ChromatogramExtractorAlgorithm::ExtractionCoordinates ExtractionCoordinates;
 
-    /**
-     * @brief Extract chromatograms defined by the TargetedExperiment from the input map and write them to the output map.
-     *
-     * @param input The input spectra from which to extract chromatograms
-     * @param output The output vector in which to store the chromatograms
-     * @param transition_exp The extraction coordinates (m/z, RT, ion mobility)
-     * @param mz_extraction_window Extracts a window of this size in m/z
-     *                             dimension (e.g. a window of 50 ppm means an
-     *                             extraction of 25 ppm on either side)
-     * @param ppm Whether mz windows in in ppm
-     * @param trafo A transformation description for RT space
-     * @param rt_extraction_window Extracts a window of this size in RT
-     *                             dimension (e.g. a window of 600 seconds
-     *                             means an extraction of 300 seconds on either
-     *                             side)
-     * @param filter Which filter to use (bartlett or tophat)
-     *
-     * @note: it will replace chromatograms in the output map, not append to them!
-     * @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
-    */
-    template <typename ExperimentT>
-    void extractChromatograms(const ExperimentT& input,
-                              ExperimentT& output,
-                              OpenMS::TargetedExperiment& transition_exp,
-                              double mz_extraction_window,
-                              bool ppm, TransformationDescription trafo,
-                              double rt_extraction_window,
-                              const String& filter)
-    {
-      // invert the trafo because we want to transform nRT values to "real" RT values
-      trafo.invert();
-
-      Size input_size = input.size();
-      if (input_size < 1)
-      {
-        return;
-      }
-
-      int used_filter = getFilterNr_(filter);
-      populatePeptideRTMap_(transition_exp, rt_extraction_window);
-
-      // sort the transition experiment by product mass
-      // this is essential because the algorithm assumes sorted transitions!
-      transition_exp.sortTransitionsByProductMZ();
-
-      // prepare all the spectra (but leave them empty)
-      SpectrumSettings settings = input[0];
-      std::vector<typename ExperimentT::ChromatogramType> chromatograms;
-      prepareSpectra_(settings, chromatograms, transition_exp);
-
-      //go through all spectra
-      startProgress(0, input_size, "Extracting chromatograms");
-      for (Size scan_idx = 0; scan_idx < input_size; ++scan_idx)
-      {
-        setProgress(scan_idx);
-
-        if (input[scan_idx].size() == 0)
-          continue;
-
-        Size peak_idx = 0;
-
-        double mz;
-        double integrated_intensity = 0;
-
-        // go through all transitions / chromatograms which are sorted by
-        // ProductMZ. We can use this to step through the spectrum and at the
-        // same time step through the transitions. We increase the peak counter
-        // until we hit the next transition and then extract the signal.
-        for (Size k = 0; k < chromatograms.size(); ++k)
-        {
-
-          double current_rt = input[scan_idx].getRT();
-          if (outsideExtractionWindow_(transition_exp.getTransitions()[k], current_rt, trafo, rt_extraction_window))
-          {
-            continue;
-          }
-
-          typename ExperimentT::ChromatogramType::PeakType p;
-          mz = transition_exp.getTransitions()[k].getProductMZ();
-
-          if (used_filter == 1)
-          {
-            extract_value_tophat(input[scan_idx], mz, peak_idx, integrated_intensity, mz_extraction_window, ppm);
-          }
-          else if (used_filter == 2)
-          {
-            extract_value_bartlett(input[scan_idx], mz, peak_idx, integrated_intensity, mz_extraction_window, ppm);
-          }
-
-
-          p.setRT(current_rt);
-          p.setIntensity(integrated_intensity);
-          chromatograms[k].push_back(p);
-        }
-      }
-      endProgress();
-
-      // add all the chromatograms to the output
-      output.setChromatograms(chromatograms);
-    }
 
     /**
      * @brief Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates.
      *
-     * @param input The input spectra from which to extract chromatograms
-     * @param output The output vector in which to store the chromatograms
+     * @param[in] input The input spectra from which to extract chromatograms
+     * @param[out] output The output vector in which to store the chromatograms
      * (needs to be of the same length as the extraction coordinates, use
      * prepare_coordinates)
-     * @param extraction_coordinates The extraction coordinates (m/z, RT, ion mobility)
-     * @param mz_extraction_window Extracts a window of this size in m/z
+     * @param[in] extraction_coordinates The extraction coordinates (m/z, RT, ion mobility)
+     * @param[in] mz_extraction_window Extracts a window of this size in m/z
      * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
      * either side)
-     * @param ppm Whether mz windows in in ppm
-     * @param filter Which filter to use (bartlett or tophat)
+     * @param[in] ppm Whether mz windows in ppm
+     * @param[in] filter Which filter to use (bartlett or tophat)
      *
-     * @note: whenever possible, please use this ChromatogramExtractorAlgorithm implementation
      *
     */
     void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, 
@@ -204,17 +88,17 @@ public:
     /**
      * @brief Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates.
      *
-     * @param input The input spectra from which to extract chromatograms
-     * @param output The output vector in which to store the chromatograms
+     * @param[in] input The input spectra from which to extract chromatograms
+     * @param[out] output The output vector in which to store the chromatograms
      * (needs to be of the same length as the extraction coordinates, use
      * prepare_coordinates)
-     * @param extraction_coordinates The extraction coordinates (m/z, RT, ion mobility)
-     * @param mz_extraction_window Extracts a window of this size in m/z
+     * @param[in] extraction_coordinates The extraction coordinates (m/z, RT, ion mobility)
+     * @param[in] mz_extraction_window Extracts a window of this size in m/z
      * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
      * either side)
-     * @param ppm Whether mz windows in in ppm
-     * @param im_extraction_window Extracts a window of this size in ion mobility
-     * @param filter Which filter to use (bartlett or tophat)
+     * @param[in] ppm Whether mz windows in ppm
+     * @param[in] im_extraction_window Extracts a window of this size in ion mobility
+     * @param[in] filter Which filter to use (bartlett or tophat)
      *
      * @note: whenever possible, please use this ChromatogramExtractorAlgorithm implementation
      *
@@ -232,33 +116,29 @@ public:
     }
 
     /**
-     * @brief Prepare the extraction coordinates from a TargetedExperiment
+     * @brief Prepare the extraction coordinates from a LightTargetedExperiment
      *
      * Will fill the coordinates vector with the appropriate extraction
      * coordinates (transitions for MS2 extraction, peptide m/z for MS1
      * extraction). The output will be sorted by m/z.
      *
-     * @param output_chromatograms An empty vector which will be initialized correctly
-     * @param coordinates An empty vector which will be filled with the
+     * @param[in] output_chromatograms An empty vector which will be initialized correctly
+     * @param[out] coordinates An empty vector which will be filled with the
      *   appropriate extraction coordinates in m/z and rt and sorted by m/z (to
      *   be used as input to extractChromatograms)
-     * @param transition_exp The transition experiment used as input (is constant)
-     * @param rt_extraction_window If non-negative, full RT extraction window,
+     * @param[in] transition_exp_used The transition experiment used as input
+     * @param[in] rt_extraction_window If non-negative, full RT extraction window,
      *   centered on the first RT value (@p rt_end - @p rt_start will equal this
      *   window size). If negative, @p rt_end will be set to -1 and @p rt_start
-     *   to 0 (i.e. full RT range). If NaN, exactly two RT entries are expected
-     *   - the first is used as @p rt_start and the second as @p rt_end.
-     * @param ms1 Whether to extract for MS1 (peptide level) or MS2 (transition level)
+     *   to 0 (i.e. full RT range). If NaN, the compound's @p rt_start and
+     *   @p rt_end fields are used directly (must be pre-populated, e.g. via
+     *   OpenSwathDataAccessHelper::convertTargetedExp() from a compound whose
+     *   @c rts vector contains exactly two entries).
+     * @param[in] ms1 Whether to extract for MS1 (peptide level) or MS2 (transition level)
+     * @param[in] ms1_isotopes Number of isotopes to include in @p coordinates when in MS1 mode
      *
      * @throw Exception::IllegalArgument if RT values are expected (depending on @p rt_extraction_window) but not provided
     */
-    static void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
-                                    std::vector< ExtractionCoordinates > & coordinates,
-                                    const OpenMS::TargetedExperiment & transition_exp,
-                                    const double rt_extraction_window,
-                                    const bool ms1 = false,
-                                    const int ms1_isotopes = 0);
-
     static void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
                                     std::vector< ExtractionCoordinates > & coordinates,
                                     const OpenSwath::LightTargetedExperiment & transition_exp_used,
@@ -314,7 +194,7 @@ public:
         if (ms1) 
         {
           prec.setMZ(coord.mz);
-          chrom.setChromatogramType(ChromatogramSettings::BASEPEAK_CHROMATOGRAM);
+          chrom.setChromatogramType(ChromatogramSettings::ChromatogramType::BASEPEAK_CHROMATOGRAM);
 
           // extract compound / peptide id from transition and store in
           // more-or-less default field
@@ -342,7 +222,7 @@ public:
           Product prod;
           prod.setMZ(transition.getProductMZ());
           chrom.setProduct(prod);
-          chrom.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+          chrom.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
 
           // extract compound / peptide id from transition and store in
           // more-or-less default field
@@ -384,183 +264,14 @@ public:
       }
     }
 
-     /// @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
-    template <typename SpectrumT>
-    void extract_value_tophat(const SpectrumT& input,
-                              const double mz,
-                              Size& peak_idx,
-                              double& integrated_intensity,
-                              const double extract_window,
-                              const bool ppm)
-    {
-      integrated_intensity = 0;
-      if (input.size() == 0)
-      {
-        return;
-      }
-
-      // calculate extraction window
-      double left, right;
-      if (ppm)
-      {
-        left  = mz - mz * extract_window / 2.0 * 1.0e-6;
-        right = mz + mz * extract_window / 2.0 * 1.0e-6;
-      }
-      else
-      {
-        left  = mz - extract_window / 2.0;
-        right = mz + extract_window / 2.0;
-      }
-
-      Size walker;
-
-      // advance the peak_idx until we hit the m/z value of the next transition
-      while (peak_idx < input.size() && input[peak_idx].getMZ() < mz)
-      {
-        peak_idx++;
-      }
-
-      // walk right and left and add to our intensity
-      walker = peak_idx;
-      // if we moved past the end of the spectrum, we need to try the last peak
-      // of the spectrum (it could still be within the window)
-      if (peak_idx >= input.size())
-      {
-        walker = input.size() - 1;
-      }
-
-      // add the current peak if it is between right and left
-      if (input[walker].getMZ() > left && input[walker].getMZ() < right)
-      {
-        integrated_intensity += input[walker].getIntensity();
-      }
-
-      // (i) Walk to the left one step and then keep walking left until we go
-      // outside the window. Note for the first step to the left we have to
-      // check for the walker becoming zero.
-      walker = peak_idx;
-      if (walker > 0)
-      {
-        walker--;
-        // special case: walker is now zero
-        if (walker == 0 && input[walker].getMZ() > left && input[walker].getMZ() < right)
-        {
-          integrated_intensity += input[walker].getIntensity();
-        }
-      }
-      while (walker > 0 && input[walker].getMZ() > left && input[walker].getMZ() < right)
-      {
-        integrated_intensity += input[walker].getIntensity(); walker--;
-      }
-
-      // (ii) Walk to the right one step and then keep walking right until we
-      // are outside the window
-      walker = peak_idx;
-      if (walker < input.size() )
-      {
-        walker++;
-      }
-      while (walker < input.size() && input[walker].getMZ() > left &&  input[walker].getMZ() < right)
-      {
-        integrated_intensity += input[walker].getIntensity(); walker++;
-      }
-    }
-
-     /// @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
-    template <typename SpectrumT>
-    void extract_value_bartlett(const SpectrumT& input,
-                                const double mz,
-                                Size& peak_idx,
-                                double& integrated_intensity,
-                                const double extract_window,
-                                const bool ppm)
-    {
-      integrated_intensity = 0;
-      if (input.size() == 0)
-      {
-        return;
-      }
-
-      // calculate extraction window
-      double left, right, half_window_size, weight;
-      if (ppm)
-      {
-        half_window_size = mz * extract_window / 2.0 * 1.0e-6;
-        left  = mz - mz * extract_window / 2.0 * 1.0e-6;
-        right = mz + mz * extract_window / 2.0 * 1.0e-6;
-      }
-      else
-      {
-        half_window_size = extract_window / 2.0;
-        left  = mz - extract_window / 2.0;
-        right = mz + extract_window / 2.0;
-      }
-
-      Size walker;
-
-      // advance the peak_idx until we hit the m/z value of the next transition
-      while (peak_idx < input.size() && input[peak_idx].getMZ() < mz)
-      {
-        peak_idx++;
-      }
-
-      // walk right and left and add to our intensity
-      walker = peak_idx;
-      // if we moved past the end of the spectrum, we need to try the last peak
-      // of the spectrum (it could still be within the window)
-      if (peak_idx >= input.size())
-      {
-        walker = input.size() - 1;
-      }
-
-      // add the current peak if it is between right and left
-      if (input[walker].getMZ() > left && input[walker].getMZ() < right)
-      {
-        weight =  1 - fabs(input[walker].getMZ() - mz) / half_window_size;
-        integrated_intensity += input[walker].getIntensity() * weight;
-      }
-
-      // (i) Walk to the left one step and then keep walking left until we go
-      // outside the window. Note for the first step to the left we have to
-      // check for the walker becoming zero.
-      walker = peak_idx;
-      if (walker > 0)
-      {
-        walker--;
-        // special case: walker is now zero
-        if (walker == 0 && input[walker].getMZ() > left && input[walker].getMZ() < right)
-        {
-          integrated_intensity += input[walker].getIntensity();
-        }
-      }
-      while (walker > 0 && input[walker].getMZ() > left && input[walker].getMZ() < right)
-      {
-        weight =  1 - fabs(input[walker].getMZ() - mz) / half_window_size;
-        integrated_intensity += input[walker].getIntensity() * weight; walker--;
-      }
-
-      // (ii) Walk to the right one step and then keep walking right until we
-      // are outside the window
-      walker = peak_idx;
-      if (walker < input.size() )
-      {
-        walker++;
-      }
-      while (walker<input.size() && input[walker].getMZ()> left &&  input[walker].getMZ() < right)
-      {
-        weight = 1 - fabs(input[walker].getMZ() - mz) / half_window_size;
-        integrated_intensity += input[walker].getIntensity() * weight; walker++;
-      }
-    }
 
 private:
     /**
      * @brief Extracts id (peptide sequence or compound name) for a compound
      *
-     * @param transition_exp_used The transition experiment used as input (is constant) and either of type LightTargetedExperiment or TargetedExperiment
-     * @param id The identifier of the compound or peptide
-     * @param prec_charge The charge state of the precursor
-     *
+     * @param[in]  transition_exp_used The transition experiment used as input (LightTargetedExperiment)
+     * @param[in]  id The identifier of the compound or peptide
+     * @param[out] prec_charge The charge state of the precursor (filled by this function)
      */
     template <typename TransitionExpT>
     static String extract_id_(TransitionExpT& transition_exp_used, const String& id, int& prec_charge);
@@ -642,7 +353,7 @@ private:
 
         // Set the id of the chromatogram, using the id of the transition (this gives directly the mapping of the two)
         chrom.setNativeID(transition->getNativeID());
-        chrom.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+        chrom.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
         chromatograms.push_back(chrom);
       }
 
@@ -675,14 +386,27 @@ private:
     prec_charge = comp.charge;
     if (!comp.sequence.empty())
     {
-      return comp.sequence;
+      return comp.sequence;        // peptide path
     }
-    else
-    {
-      return comp.compound_name;
-    }
+    // Fall through to compound_name (may itself be empty — that is intentional
+    // for iRT calibration peptides, which carry empty sequence and no
+    // CompoundName user-param. Downstream consumers expect an empty
+    // peptide_sequence userParam in that case).
+    return comp.compound_name;
   }
 
+  // Const-qualified template specialization for extract_id_.
+  // This specialization handles const LightTargetedExperiment parameters by forwarding
+  // to the non-const implementation (via const_cast) to avoid linker errors from
+  // duplicate template instantiations when both const and non-const versions are used.
+  template<>
+  inline String ChromatogramExtractor::extract_id_<const OpenSwath::LightTargetedExperiment>(const OpenSwath::LightTargetedExperiment& transition_exp_used,
+                                                                                               const String& id,
+                                                                                               int & prec_charge)
+  {
+    // forward to non-const implementation
+    return extract_id_<OpenSwath::LightTargetedExperiment>(const_cast<OpenSwath::LightTargetedExperiment&>(transition_exp_used), id, prec_charge);
+  }
 
   // Specialization for template (TargetedExperiment)
   template<>

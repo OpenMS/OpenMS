@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -36,7 +10,7 @@
 #include <OpenMS/VISUAL/Painter2DBase.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/LayerDataConsensus.h>
@@ -46,6 +20,7 @@
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QColor>
 #include <QPainter>
@@ -68,7 +43,6 @@ namespace OpenMS
     ConvexHull2D::PointArrayType ch_points = hull.getHullPoints();
     points.resize((int)ch_points.size());
     UInt index = 0;
-    QPoint pos;
     // iterate over hull points
     for (ConvexHull2D::PointArrayType::const_iterator it = ch_points.begin(); it != ch_points.end(); ++it, ++index)
     {
@@ -134,7 +108,7 @@ namespace OpenMS
         }
         if (id.getHits().size() > 1)
           sequence += "...";
-        painter->drawText(pos.x() + 10, pos.y() + 10, sequence.toQString());
+        painter->drawText(pos.x() + 10, pos.y() + 10, toQString(sequence));
       }
     }
   }
@@ -150,7 +124,7 @@ namespace OpenMS
   void Painter2DPeak::paint(QPainter* painter, Plot2DCanvas* canvas, int layer_index)
   {
     // renaming some values for readability
-    const auto& peak_map = *layer_->getPeakData();
+    const auto& peak_map = layer_->getPeakData()->getMSExperiment();
 
     // skip empty peak maps
     if (peak_map.empty())
@@ -162,13 +136,24 @@ namespace OpenMS
     const auto [mz_min, mz_max] = canvas->visible_area_.getAreaUnit().RangeMZ::getNonEmptyRange();
     const auto [im_min, im_max] = canvas->visible_area_.getAreaUnit().RangeMobility::getNonEmptyRange();
 
+    // do we currently show an IM frame (with IM + m/z) as units?
+    const bool is_IM_frame = peak_map.isIMFrame();
+
+    auto is_visible_scan = [&](MSExperiment::ConstIterator it_scan) {
+      if (it_scan->size() <= 1) return false;
+      // an IM scan? (where we do not care about MS level)
+      if (is_IM_frame) { return true; }
+      // for 'standard' RT, m/z data
+      return it_scan->getMSLevel() == 1;
+    };
+
     //-----------------------------------------------------------------------------------------------
     // Determine number of shown scans (MS1)
-    std::vector<Size> scan_indices; // list of visible RT/IM scans in MS1 with at least 2 points
+    std::vector<Size> scan_indices; // list of visible RT/IM scans with at least 2 points
     const auto rt_end = peak_map.RTEnd(rt_max);
     for (auto it = peak_map.RTBegin(rt_min); it != rt_end; ++it)
     {
-      if (it->getMSLevel() == 1 && it->size() > 1 && Math::contains(it->getDriftTime(), im_min, im_max))
+      if (is_visible_scan(it) && Math::contains(it->getDriftTime(), im_min, im_max))
       {
         scan_indices.push_back(std::distance(peak_map.begin(), it));
       }
@@ -257,10 +242,11 @@ namespace OpenMS
     QVector<QPolygon> coloredPoints((int)layer_->gradient.precalculatedSize());
 
     const double snap_factor = canvas->snap_factors_[layer_index];
-    const auto& map = *layer_->getPeakData();
+    const auto& map = layer_->getPeakData()->getMSExperiment();;
     const auto& area = canvas->visible_area_.getAreaUnit();
     const auto end_area = map.areaEndConst();
-    const UInt MS_LEVEL {1};
+    // for IM data, use whatever is there. For RT/mz data, use MSlevel 1
+    const UInt MS_LEVEL = (! map.empty() && map.isIMFrame()) ? map[0].getMSLevel() : 1;
     for (auto i = map.areaBeginConst(area, MS_LEVEL); i != end_area; ++i)
     {
       PeakIndex pi = i.getPeakIndex();
@@ -358,8 +344,11 @@ namespace OpenMS
     // set painter to black (we operate directly on the pixels for all colored data)
     painter.setPen(Qt::black);
     const double snap_factor = canvas->snap_factors_[layer_index];
-    const auto& map = *layer_->getPeakData();
+    const auto& map = layer_->getPeakData()->getMSExperiment();
     const auto& area = canvas->visible_area_.getAreaUnit();
+
+    // for IM data, use whatever is there. For RT/mz data, use MSlevel 1
+    const UInt MS_LEVEL = (! map.empty() && map.isIMFrame()) ? map[0].getMSLevel() : 1;
 
     auto RT_or_IM_paint = [&](const DimInfo& mapper) {
       // note: the variables are named, assuming we have an RT+mz canvas.
@@ -401,7 +390,7 @@ namespace OpenMS
             scan_index = i; // store last scan index for next RT pixel
             break;
           }
-          if (spec.getMSLevel() == 1 && !spec.empty())
+          if (spec.getMSLevel() == MS_LEVEL && ! spec.empty())
           {
             scan_indices.push_back(i);
             peak_indices.push_back(spec.MZBegin(mz_min) - spec.begin());
@@ -462,7 +451,7 @@ namespace OpenMS
 
   void Painter2DPeak::paintPrecursorPeaks_(QPainter& painter, Plot2DCanvas* canvas)
   {
-    const auto& peak_map = *layer_->getPeakData();
+    const auto& peak_map = layer_->getPeakData()->getMSExperiment();
 
     QPen p;
     p.setColor(Qt::black);
@@ -480,29 +469,36 @@ namespace OpenMS
       else if (it->getMSLevel() == 2 && !it->getPrecursors().empty())
       { // this is an MS/MS scan
         
-        // position of precursor in MS2
-        const auto data_xy_ms2 = canvas->unit_mapper_.map(Peak2D({it->getRT(), it->getPrecursors()[0].getMZ()}, {}));
-        const QPoint pos_px_ms2 = canvas->dataToWidget_(data_xy_ms2); 
-        const int x2 = pos_px_ms2.x();
-        const int y2 = pos_px_ms2.y();
-
-        if (it_prec != peak_map.end())
+        // position of precursor in MS2 (only works for 2D views with RT, m/z), not for ion mobility (IM, m/z) views.
+        try
         {
-          // position of precursor in MS1
-          const auto data_xy_ms1 = canvas->unit_mapper_.map(Peak2D({it_prec->getRT(), it->getPrecursors()[0].getMZ()}, {}));
-          const QPoint pos_px_ms1 = canvas->dataToWidget_(data_xy_ms1);
-          const int x = pos_px_ms1.x();
-          const int y = pos_px_ms1.y();
-          // diamond shape in MS1
-          drawDiamond({x, y}, &painter, 6);
+          const auto data_xy_ms2 = canvas->unit_mapper_.map(Peak2D({it->getRT(), it->getPrecursors()[0].getMZ()}, {}));
+          const QPoint pos_px_ms2 = canvas->dataToWidget_(data_xy_ms2); 
+          const int x2 = pos_px_ms2.x();
+          const int y2 = pos_px_ms2.y();
 
-          // rt position of corresponding MS2
-          painter.drawLine(x, y, x2, y2);
-        }
-        else // no preceding MS1
+          if (it_prec != peak_map.end())
+          {
+            // position of precursor in MS1
+            const auto data_xy_ms1 = canvas->unit_mapper_.map(Peak2D({it_prec->getRT(), it->getPrecursors()[0].getMZ()}, {}));
+            const QPoint pos_px_ms1 = canvas->dataToWidget_(data_xy_ms1);
+            const int x = pos_px_ms1.x();
+            const int y = pos_px_ms1.y();
+            // diamond shape in MS1
+            drawDiamond({x, y}, &painter, 6);
+
+            // rt position of corresponding MS2
+            painter.drawLine(x, y, x2, y2);
+          }
+          else // no preceding MS1
+          {
+            // rt position of corresponding MS2 (cross)
+            drawCross({x2, y2}, &painter, 6);
+          }
+        } // end try
+        catch (...)
         {
-          // rt position of corresponding MS2 (cross)
-          drawCross({x2, y2}, &painter, 6);
+          // paint nothing, since the coordinate system is wrong
         }
       }
     }
@@ -514,7 +510,7 @@ namespace OpenMS
 
   void Painter2DChrom::paint(QPainter* painter, Plot2DCanvas* canvas, int /*layer_index*/)
   {
-    const PeakMap& exp = *layer_->getChromatogramData();
+    const PeakMap& exp = layer_->getChromatogramData()->getMSExperiment();
     // TODO CHROM implement layer filters
 
     // paint chromatogram rt start and end as line
@@ -578,7 +574,7 @@ namespace OpenMS
         QColor color;
         if (f.metaValueExists(5))
         {
-          color = QColor(f.getMetaValue(5).toQString());
+          color = QColor(toQString(String(f.getMetaValue(5))));
         }
         else
         {
@@ -601,13 +597,13 @@ namespace OpenMS
             Size maxHits = (layer_->label == LayerDataBase::L_ID_ALL) ? f.getPeptideIdentifications()[0].getHits().size() : 1;
             for (Size j = 0; j < maxHits; ++j)
             {
-              painter->drawText(pos.x() + 10, pos.y() + 10 + int(j) * line_spacing, f.getPeptideIdentifications()[0].getHits()[j].getSequence().toString().toQString());
+              painter->drawText(pos.x() + 10, pos.y() + 10 + int(j) * line_spacing, toQString(f.getPeptideIdentifications()[0].getHits()[j].getSequence().toString()));
             }
           }
           else if (layer_->label == LayerDataBase::L_META_LABEL)
           {
             painter->setPen(Qt::darkBlue);
-            painter->drawText(pos.x() + 10, pos.y() + 10, f.getMetaValue(3).toQString());
+            painter->drawText(pos.x() + 10, pos.y() + 10, toQString(String(f.getMetaValue(3))));
           }
         }
       }
@@ -672,7 +668,7 @@ namespace OpenMS
         QColor color;
         if (cf.metaValueExists(5))
         {
-          color = cf.getMetaValue(5).toQString();
+          color = toQString(String(cf.getMetaValue(5)));
         }
         else
         {

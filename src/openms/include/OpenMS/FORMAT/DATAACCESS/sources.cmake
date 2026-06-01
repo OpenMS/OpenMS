@@ -3,7 +3,7 @@ set(directory include/OpenMS/FORMAT/DATAACCESS)
 
 ### list all header files of the directory here
 set(sources_list_h
-  CsiFingerIdMzTabWriter.h
+  MSChromatogramParquetConsumer.h
   MSDataAggregatingConsumer.h
   MSDataCachedConsumer.h
   MSDataChainingConsumer.h
@@ -13,7 +13,6 @@ set(sources_list_h
   MSDataWritingConsumer.h
   NoopMSDataConsumer.h
   SiriusFragmentAnnotation.h
-  SiriusMzTabWriter.h
   SwathFileConsumer.h
 )
 
@@ -27,4 +26,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\FORMAT\\DATAACCESS" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

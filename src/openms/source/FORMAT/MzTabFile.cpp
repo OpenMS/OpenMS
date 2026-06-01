@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -35,13 +9,15 @@
 #include <OpenMS/FORMAT/MzTabFile.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
-#include <QString>
 
 #include <boost/regex.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -49,8 +25,10 @@
 using namespace std;
 
 // TODO fix all the shadowed "String s"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 namespace OpenMS
 {
@@ -693,25 +671,25 @@ namespace OpenMS
       else if (meta_key.hasPrefix("colunit") && meta_key_fields[1] == "protein")
       {
         Int n = meta_key_fields[0].substitute("colunit[", "").substitute("]","").trim().toInt();
-        String s = cells[2];
+        const String& s = cells[2];
         mz_tab_metadata.colunit_protein[n] = s;
       }
       else if (meta_key.hasPrefix("colunit") && meta_key_fields[1] == "peptide")
       {
         Int n = meta_key_fields[0].substitute("colunit[", "").substitute("]","").trim().toInt();
-        String s = cells[2];
+        const String& s = cells[2];
         mz_tab_metadata.colunit_peptide[n] = s;
       }
       else if (meta_key.hasPrefix("colunit") && meta_key_fields[1] == "psm")
       {
         Int n = meta_key_fields[0].substitute("colunit[", "").substitute("]","").trim().toInt();
-        String s = cells[2];
+        const String& s = cells[2];
         mz_tab_metadata.colunit_psm[n] = s;
       }
       else if (meta_key.hasPrefix("colunit") && meta_key_fields[1] == "small_molecule")
       {
         Int n = meta_key_fields[0].substitute("colunit[", "").substitute("]","").trim().toInt();
-        String s = cells[2];
+        const String& s = cells[2];
         mz_tab_metadata.colunit_small_molecule[n] = s;
       }
     }
@@ -1067,7 +1045,7 @@ namespace OpenMS
         }
         else if (cells[i].hasPrefix("search_engine_score["))
         {
-          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i].toQString());
+          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i]);
           peptide_column_index_to_score_runs_pair[i] = pair;
         }
         else if (cells[i] == "reliability")
@@ -1435,7 +1413,7 @@ namespace OpenMS
         }
         else if (cells[i].hasPrefix("search_engine_score["))
         {
-          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i].toQString());
+          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i]);
           smallmolecule_column_index_to_score_runs_pair[i] = pair;
         }
         else if (cells[i] == "modifications")
@@ -1691,22 +1669,22 @@ namespace OpenMS
 
   for (map<Size, MzTabContactMetaData>::const_iterator it = md.contact.begin(); it != md.contact.end(); ++it)
   {
-    const MzTabContactMetaData & md = it->second;
-    if (!md.name.isNull())
+    const MzTabContactMetaData & mdc = it->second;
+    if (!mdc.name.isNull())
     {
-      String s = "MTD\tcontact[" + String(it->first) + "]-name\t" + md.name.toCellString();
+      String s = "MTD\tcontact[" + String(it->first) + "]-name\t" + mdc.name.toCellString();
       sl.push_back(s);
     }
 
-    if (!md.affiliation.isNull())
+    if (!mdc.affiliation.isNull())
     {
-      String s = "MTD\tcontact[" + String(it->first) + "]-affiliation\t" + md.affiliation.toCellString();
+      String s = "MTD\tcontact[" + String(it->first) + "]-affiliation\t" + mdc.affiliation.toCellString();
       sl.push_back(s);
     }
 
-    if (!md.email.isNull())
+    if (!mdc.email.isNull())
     {
-      String s = "MTD\tcontact[" + String(it->first) + "]-email\t" + md.email.toCellString();
+      String s = "MTD\tcontact[" + String(it->first) + "]-email\t" + mdc.email.toCellString();
       sl.push_back(s);
     }
   }
@@ -1720,10 +1698,10 @@ namespace OpenMS
 
   for (map<Size, MzTabModificationMetaData>::const_iterator it = md.fixed_mod.begin(); it != md.fixed_mod.end(); ++it)
   {
-    const MzTabModificationMetaData & md = it->second;
-    if (!md.modification.isNull())
+    const MzTabModificationMetaData & mod_md = it->second;
+    if (!mod_md.modification.isNull())
     {
-      String s = "MTD\tfixed_mod[" + String(it->first) + String("]\t")+ md.modification.toCellString();
+      String s = "MTD\tfixed_mod[" + String(it->first) + String("]\t")+ mod_md.modification.toCellString();
       sl.push_back(s);
     }
     else
@@ -1731,25 +1709,25 @@ namespace OpenMS
       //TODO: add CV for no fixed modification searched when it is available
     }
 
-    if (!md.site.isNull())
+    if (!mod_md.site.isNull())
     {
-      String s = "MTD\tfixed_mod[" + String(it->first) + String("]-site\t") + md.site.toCellString();
+      String s = "MTD\tfixed_mod[" + String(it->first) + String("]-site\t") + mod_md.site.toCellString();
       sl.push_back(s);
     }
 
-    if (!md.position.isNull())
+    if (!mod_md.position.isNull())
     {
-      String s = "MTD\tfixed_mod[" + String(it->first) + String("]-position\t") + md.position.toCellString();
+      String s = "MTD\tfixed_mod[" + String(it->first) + String("]-position\t") + mod_md.position.toCellString();
       sl.push_back(s);
     }
   }
 
   for (map<Size, MzTabModificationMetaData>::const_iterator it = md.variable_mod.begin(); it != md.variable_mod.end(); ++it)
   {
-    const MzTabModificationMetaData & md = it->second;
-    if (!md.modification.isNull())
+    const MzTabModificationMetaData & mod_md = it->second;
+    if (!mod_md.modification.isNull())
     {
-      String s = "MTD\tvariable_mod[" + String(it->first) + String("]\t")+ it->second.modification.toCellString();
+      String s = "MTD\tvariable_mod[" + String(it->first) + String("]\t") + mod_md.modification.toCellString();
       sl.push_back(s);
     }
     else
@@ -1757,15 +1735,15 @@ namespace OpenMS
       //TODO: add CV for no variable modification searched when it is available
     }
 
-    if (!md.site.isNull())
+    if (!mod_md.site.isNull())
     {
-      String s = "MTD\tvariable_mod[" + String(it->first) + String("]-site\t")+ it->second.site.toCellString();
+      String s = "MTD\tvariable_mod[" + String(it->first) + String("]-site\t") + mod_md.site.toCellString();
       sl.push_back(s);
     }
 
-    if (!md.position.isNull())
+    if (!mod_md.position.isNull())
     {
-      String s = "MTD\tvariable_mod[" + String(it->first) + String("]-position\t")+ it->second.position.toCellString();
+      String s = "MTD\tvariable_mod[" + String(it->first) + String("]-position\t")+ mod_md.position.toCellString();
       sl.push_back(s);
     }
   }
@@ -2904,7 +2882,7 @@ namespace OpenMS
   void MzTabFile::store(
         const String& filename,
         const std::vector<ProteinIdentification>& protein_identifications,
-        const std::vector<PeptideIdentification>& peptide_identifications,
+        const PeptideIdentificationList& peptide_identifications,
         bool first_run_inference_only,
         bool export_empty_pep_ids,
         bool export_all_psms,
@@ -3358,4 +3336,6 @@ namespace OpenMS
 
 }
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif

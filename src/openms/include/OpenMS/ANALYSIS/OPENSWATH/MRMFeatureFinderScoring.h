@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -40,8 +14,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>
+#include <OpenMS/FEATUREFINDER/EmgScoring.h>
 
 // Kernel classes
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -55,14 +28,18 @@
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
+#include <unordered_map>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
-bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std::pair<double, double>& right);
-
 namespace OpenMS
 {
+  // Forward declaration for optional mobilogram consumer
+  class MobilogramParquetConsumer;
+  class ProteaseDigestion;
+
 
   /**
   @brief The MRMFeatureFinder finds and scores peaks of transitions that co-elute.
@@ -117,15 +94,15 @@ public:
 
     /** @brief Pick and score features in a single experiment from chromatograms
      *
-     * Function for for wrapping in Python, only uses OpenMS datastructures and
+     * Function for wrapping in Python, only uses OpenMS datastructures and
      * does not return the map.
      *
-     * @param chromatograms The input chromatograms
-     * @param output The output features with corresponding scores
-     * @param transition_exp The transition list describing the experiment
-     * @param trafo Optional transformation of the experimental retention time
+     * @param[in] chromatograms The input chromatograms
+     * @param[out] output The output features with corresponding scores
+     * @param[in] transition_exp The transition list describing the experiment
+     * @param[in] trafo Optional transformation of the experimental retention time
      *              to the normalized retention time space used in the transition list
-     * @param swath_map Optional SWATH-MS (DIA) map corresponding from which the chromatograms were extracted
+     * @param[in] swath_map Optional SWATH-MS (DIA) map corresponding from which the chromatograms were extracted
      *
     */
     void pickExperiment(const PeakMap & chromatograms,
@@ -136,16 +113,16 @@ public:
 
     /** @brief Pick and score features in a single experiment from chromatograms
      *
-     * @param input The input chromatograms
-     * @param output The output features with corresponding scores
-     * @param transition_exp The transition list describing the experiment
-     * @param trafo Optional transformation of the experimental retention time
+     * @param[in] input The input chromatograms
+     * @param[out] output The output features with corresponding scores
+     * @param[in] transition_exp The transition list describing the experiment
+     * @param[in] trafo Optional transformation of the experimental retention time
      *              to the normalized retention time space used in the
      *              transition list.
-     * @param swath_maps Optional SWATH-MS (DIA) map corresponding from which
+     * @param[in] swath_maps Optional SWATH-MS (DIA) map corresponding from which
      *                  the chromatograms were extracted. Use empty map if no
      *                  data is available.
-     * @param transition_group_map Output mapping of transition groups
+     * @param[in] transition_group_map Output mapping of transition groups
      *
     */
     void pickExperiment(const OpenSwath::SpectrumAccessPtr& input,
@@ -159,7 +136,7 @@ public:
      *
      * Calling this method _is_ required before calling scorePeakgroups.
      *
-     * @param transition_exp The transition list describing the experiment
+     * @param[in] transition_exp The transition list describing the experiment
      *
     */
     void prepareProteinPeptideMaps_(const OpenSwath::LightTargetedExperiment& transition_exp);
@@ -170,23 +147,25 @@ public:
      * Iterate through all features found along the chromatograms of the
      * transition group and score each one individually.
      *
-     * @param transition_group The MRMTransitionGroup to be scored (input)
-     * @param trafo Optional transformation of the experimental retention time
+     * @param[in] transition_group The MRMTransitionGroup to be scored (input)
+     * @param[in] trafo Optional transformation of the experimental retention time
      *              to the normalized retention time space used in the
      *              transition list.
-     * @param swath_maps Optional SWATH-MS (DIA) map corresponding from which
+     * @param[in] swath_maps Optional SWATH-MS (DIA) map corresponding from which
      *                   the chromatograms were extracted. Use empty map if no
      *                   data is available.
-     * @param output The output features with corresponding scores (the found
+     * @param[out] output The output features with corresponding scores (the found
      *               features will be added to this FeatureMap).
-     * @param ms1only Whether to only do MS1 scoring and skip all MS2 scoring
+     * @param[in] ms1only Whether to only do MS1 scoring and skip all MS2 scoring
+     * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
      *
     */
-    void scorePeakgroups(MRMTransitionGroupType& transition_group,
-                         const TransformationDescription & trafo,
-                         const std::vector<OpenSwath::SwathMap>& swath_maps,
-                         FeatureMap& output,
-                         bool ms1only = false) const;
+  void scorePeakgroups(MRMTransitionGroupType& transition_group,
+             const TransformationDescription & trafo,
+             const std::vector<OpenSwath::SwathMap>& swath_maps,
+             FeatureMap& output,
+             bool ms1only = false,
+             MobilogramParquetConsumer* mobilogram_consumer = nullptr) const;
 
     /** @brief Set the flag for strict mapping
     */
@@ -201,7 +180,7 @@ public:
      * used to extract precursor ion signal and provides additional scores. If
      * no MS1 map is provided, the respective scores are not calculated.
      *
-     * @param ms1_map The raw mass spectrometric MS1 data
+     * @param[in] ms1_map The raw mass spectrometric MS1 data
      *
     */
     void setMS1Map(OpenSwath::SpectrumAccessPtr ms1_map)
@@ -215,13 +194,13 @@ public:
      * onto each other when they share identifiers, e.g. if the transition id
      * is the same as the chromatogram native id.
      *
-     * @param input The input chromatograms
-     * @param transition_exp The transition list describing the experiment
-     * @param transition_group_map Mapping of transition groups
-     * @param trafo Optional transformation of the experimental retention time
+     * @param[in] input The input chromatograms
+     * @param[in] transition_exp The transition list describing the experiment
+     * @param[in] transition_group_map Mapping of transition groups
+     * @param[in] trafo Optional transformation of the experimental retention time
      *              to the normalized retention time space used in the
      *              transition list.
-     * @param rt_extraction_window The used retention time extraction window
+     * @param[in] rt_extraction_window The used retention time extraction window
      *
     */
     void mapExperimentToTransitionList(const OpenSwath::SpectrumAccessPtr& input,
@@ -231,12 +210,123 @@ public:
                                        double rt_extraction_window);
 private:
 
+    /**
+     * @brief Cache of transition-group invariant data to avoid per-feature recomputation
+     */
+    struct TransitionGroupCache
+    {
+      std::vector<double> normalized_library_intensity;
+      std::vector<std::string> transition_native_ids;
+      std::vector<std::string> precursor_ids;
+      std::vector<String> transition_native_ids_openms;
+      std::vector<String> precursor_ids_openms;
+    };
+
+    /**
+     * @brief Pooled variant of OpenSwath_Ind_Scores to allow pre-allocation and reuse
+     */
+    struct OpenSwath_Ind_Scores_Pooled : public OpenSwath_Ind_Scores
+    {
+      /// Reserve storage for all identification score vectors.
+      void preallocate(Size capacity)
+      {
+        ind_transition_names.reserve(capacity);
+        ind_isotope_correlation.reserve(capacity);
+        ind_isotope_overlap.reserve(capacity);
+        ind_massdev_score.reserve(capacity);
+        ind_xcorr_coelution_score.reserve(capacity);
+        ind_xcorr_shape_score.reserve(capacity);
+        ind_log_sn_score.reserve(capacity);
+        ind_area_intensity.reserve(capacity);
+        ind_total_area_intensity.reserve(capacity);
+        ind_intensity_score.reserve(capacity);
+        ind_apex_intensity.reserve(capacity);
+        ind_apex_position.reserve(capacity);
+        ind_fwhm.reserve(capacity);
+        ind_total_mi.reserve(capacity);
+        ind_log_intensity.reserve(capacity);
+        ind_intensity_ratio.reserve(capacity);
+        ind_mi_ratio.reserve(capacity);
+        ind_mi_score.reserve(capacity);
+        ind_im_drift.reserve(capacity);
+        ind_im_drift_left.reserve(capacity);
+        ind_im_drift_right.reserve(capacity);
+        ind_im_delta.reserve(capacity);
+        ind_im_delta_score.reserve(capacity);
+        ind_im_log_intensity.reserve(capacity);
+        ind_im_contrast_coelution.reserve(capacity);
+        ind_im_contrast_shape.reserve(capacity);
+        ind_im_sum_contrast_coelution.reserve(capacity);
+        ind_im_sum_contrast_shape.reserve(capacity);
+        ind_start_position_at_5.reserve(capacity);
+        ind_end_position_at_5.reserve(capacity);
+        ind_start_position_at_10.reserve(capacity);
+        ind_end_position_at_10.reserve(capacity);
+        ind_start_position_at_50.reserve(capacity);
+        ind_end_position_at_50.reserve(capacity);
+        ind_total_width.reserve(capacity);
+        ind_tailing_factor.reserve(capacity);
+        ind_asymmetry_factor.reserve(capacity);
+        ind_slope_of_baseline.reserve(capacity);
+        ind_baseline_delta_2_height.reserve(capacity);
+        ind_points_across_baseline.reserve(capacity);
+        ind_points_across_half_height.reserve(capacity);
+      }
+
+      /// Clear all identification scores while preserving allocated capacity.
+      void reset()
+      {
+        ind_num_transitions = 0;
+        ind_transition_names.clear();
+        ind_isotope_correlation.clear();
+        ind_isotope_overlap.clear();
+        ind_massdev_score.clear();
+        ind_xcorr_coelution_score.clear();
+        ind_xcorr_shape_score.clear();
+        ind_log_sn_score.clear();
+        ind_area_intensity.clear();
+        ind_total_area_intensity.clear();
+        ind_intensity_score.clear();
+        ind_apex_intensity.clear();
+        ind_apex_position.clear();
+        ind_fwhm.clear();
+        ind_total_mi.clear();
+        ind_log_intensity.clear();
+        ind_intensity_ratio.clear();
+        ind_mi_ratio.clear();
+        ind_mi_score.clear();
+        ind_im_drift.clear();
+        ind_im_drift_left.clear();
+        ind_im_drift_right.clear();
+        ind_im_delta.clear();
+        ind_im_delta_score.clear();
+        ind_im_log_intensity.clear();
+        ind_im_contrast_coelution.clear();
+        ind_im_contrast_shape.clear();
+        ind_im_sum_contrast_coelution.clear();
+        ind_im_sum_contrast_shape.clear();
+        ind_start_position_at_5.clear();
+        ind_end_position_at_5.clear();
+        ind_start_position_at_10.clear();
+        ind_end_position_at_10.clear();
+        ind_start_position_at_50.clear();
+        ind_end_position_at_50.clear();
+        ind_total_width.clear();
+        ind_tailing_factor.clear();
+        ind_asymmetry_factor.clear();
+        ind_slope_of_baseline.clear();
+        ind_baseline_delta_2_height.clear();
+        ind_points_across_baseline.clear();
+        ind_points_across_half_height.clear();
+      }
+    };
+
     /** @brief Splits combined transition groups into detection transition groups
      *
      * For standard assays, transition_group_detection is identical to transition_group and the others are empty.
      *
-     * @param transition_group Containing all detecting, identifying transitions
-     * @param transition_group_detection To be filled with detecting transitions
+     * @param[in] transition_group Containing all detecting, identifying transitions
+     * @param[out] transition_group_detection To be filled with detecting transitions
     */
     void splitTransitionGroupsDetection_(const MRMTransitionGroupType& transition_group,
                                          MRMTransitionGroupType& transition_group_detection) const;
@@ -246,9 +336,9 @@ private:
      * For standard assays, transition_group_identification is empty. When UIS scoring
      * is enabled, it contains the corresponding identification transitions.
      *
-     * @param transition_group Containing all detecting, identifying transitions
-     * @param transition_group_identification To be filled with identifying transitions
-     * @param transition_group_identification_decoy To be filled with identifying decoy transitions
+     * @param[in] transition_group Containing all detecting, identifying transitions
+     * @param[out] transition_group_identification To be filled with identifying transitions
+     * @param[out] transition_group_identification_decoy To be filled with identifying decoy transitions
     */
     void splitTransitionGroupsIdentification_(const MRMTransitionGroupType& transition_group,
                                               MRMTransitionGroupType& transition_group_identification,
@@ -259,24 +349,52 @@ private:
      * The function is used twice, for target and decoy identification transitions. The results are
      * reported analogously to the ones for detecting transitions but must be stored separately.
      *
-     * @param transition_group_identification Containing all detecting and identifying transitions
-     * @param scorer An instance of OpenSwathScoring
-     * @param feature_idx The index of the current feature
-     * @param native_ids_detection The native IDs of the detecting transitions
-     * @param det_intensity_ratio_score The intensity score of the detection transitions for normalization
-     * @param det_mi_ratio_score The MI score of the detection transitions for normalization
-     * @param swath_maps Optional SWATH-MS (DIA) map corresponding from which
+     * @param[in,out] transition_group_identification Containing all detecting and identifying transitions
+     * @param[in,out] transition_group_detection Containing all detecting transitions
+     * @param[in] scorer An instance of OpenSwathScoring
+     * @param[in] feature_idx The index of the current feature
+     * @param[in] feature_id The id of the current feature
+     * @param[in] native_ids_detection The native IDs of the detecting transitions
+     * @param[in] signal_noise_estimators_identification Precomputed signal-to-noise estimators for the identification transitions
+     * @param[in] det_intensity_ratio_score The intensity score of the detection transitions for normalization
+     * @param[in] det_mi_ratio_score The MI score of the detection transitions for normalization
+     * @param[in] swath_maps Optional SWATH-MS (DIA) map corresponding from which
      *                  the chromatograms were extracted. Use empty map if no
      *                  data is available.
-     * @return a struct of type OpenSwath_Ind_Scores containing either target or decoy values
+     * @param[in] drift_target The target drift value
+     * @param[in] im_range Ion mobility subrange to consider (used as filter); can be empty (i.e. no IM filtering). If scoring non-IMS data, this should be empty, otherwise a missing information exception is thrown when integrating spectra for scoring.
+     * @param[out] idscores_out Reused output vectors for target or decoy identification scores
+     * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
     */
-    OpenSwath_Ind_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
-                                              OpenSwathScoring& scorer,
-                                              const size_t feature_idx,
-                                              const std::vector<std::string> & native_ids_detection,
-                                              const double det_intensity_ratio_score,
-                                              const double det_mi_ratio_score,
-                                              const std::vector<OpenSwath::SwathMap>& swath_maps) const;
+    void scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
+                              MRMTransitionGroupType& transition_group_detection,
+                              OpenSwathScoring& scorer,
+                              const size_t feature_idx,
+                              const Int64 feature_id,
+                              const std::vector<std::string>& native_ids_detection,
+                              const std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators_identification,
+                              const double det_intensity_ratio_score,
+                              const double det_mi_ratio_score,
+                              const std::vector<OpenSwath::SwathMap>& swath_maps,
+                              const double drift_target,
+                              RangeMobility& im_range,
+                              OpenSwath_Ind_Scores_Pooled& idscores_out,
+                              MobilogramParquetConsumer* mobilogram_consumer = nullptr) const;
+
+    void prepareScoredFeatureOutput_(OpenMS::MRMFeature& mrmfeature,
+                                     const PeptideType& pep,
+                                     ProteaseDigestion& pd,
+                                     bool swath_present,
+                                     double precursor_mz,
+                                     bool ms1only) const;
+
+    void addScoreMetaValues_(OpenMS::MRMFeature& mrmfeature,
+                             const MRMTransitionGroupType& transition_group_detection,
+                             const std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+                             const std::vector<OpenSwath::ISignalToNoisePtr>& ms1_signal_noise_estimators,
+                             double expected_rt,
+                             bool swath_present,
+                             bool ms1only) const;
 
     void prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge) const;
 
@@ -289,13 +407,18 @@ private:
     int stop_report_after_feature_;
     bool write_convex_hull_;
     bool strict_;
+    bool use_ms1_ion_mobility_;
+    bool apply_im_peak_picking_;
     String scoring_model_;
+    String enzyme_;
 
     // scoring parameters
     double rt_normalization_factor_;
     int add_up_spectra_;
     String spectrum_addition_method_ ;
+    String spectrum_merge_method_type_;
     double spacing_for_spectra_resampling_;
+    double merge_spectra_by_peak_width_fraction_;
     double uis_threshold_sn_;
     double uis_threshold_peak_area_;
 
@@ -305,11 +428,9 @@ private:
 
     double im_extra_drift_;
 
-    // members
-    std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;
+    std::unordered_map<OpenMS::String, const PeptideType*> PeptideRefMap_;
     OpenSwath_Scores_Usage su_;
     OpenMS::DIAScoring diascoring_;
-    OpenMS::SONARScoring sonarscoring_;
     OpenMS::EmgScoring emgscoring_;
 
     // data
@@ -319,4 +440,3 @@ private:
 }
 
 #undef run_identifier
-

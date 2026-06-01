@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Veit $
@@ -39,6 +13,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QtCore/QStringList>
 #include <QtWidgets/QPushButton>
@@ -68,7 +43,7 @@ namespace OpenMS
     QLabel* description = new QLabel;
     description->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     description->setWordWrap(true);
-    description->setText(tool_desc.toQString());
+    description->setText(toQString(tool_desc));
     main_grid->addWidget(description, 0, 0, 1, 1);
 
     //Add advanced mode check box
@@ -77,10 +52,10 @@ namespace OpenMS
     main_grid->addWidget(editor_, 1, 0, 1, 1);
 
     QHBoxLayout* hbox = new QHBoxLayout;
-    QPushButton* load_button = new QPushButton(tr("&Load from file"));
+    QPushButton* load_button = new QPushButton(tr("&Load config from .INI file"));
     connect(load_button, SIGNAL(clicked()), this, SLOT(loadINI_()));
     hbox->addWidget(load_button);
-    QPushButton* store_button = new QPushButton(tr("&Store to file"));
+    QPushButton* store_button = new QPushButton(tr("&Store config to .INI file"));
     connect(store_button, SIGNAL(clicked()), this, SLOT(storeINI_()));
     hbox->addWidget(store_button);
     hbox->addStretch();
@@ -102,7 +77,7 @@ namespace OpenMS
     editor_->load(*param_);
     editor_->setFocus(Qt::MouseFocusReason);
 
-    setWindowTitle(tool_name.toQString() + " " + tr("configuration"));
+    setWindowTitle(toQString(tool_name) + " " + tr("configuration"));
   }
 
   TOPPASToolConfigDialog::~TOPPASToolConfigDialog() = default;
@@ -153,7 +128,7 @@ namespace OpenMS
     //param_->remove("debug");
 
     //remove parameters already explained by edges and the "type" parameter
-    foreach(const String &name, hidden_entries_)
+    for (const String &name : hidden_entries_)
     {
       param_->remove(name);
     }
@@ -184,27 +159,27 @@ namespace OpenMS
     arg_param_.insert(tool_name_ + ":1:", *param_);
     try
     {
-      QString tmp_ini_file = File::getTempDirectory().toQString() + QDir::separator() + "TOPPAS_" + tool_name_.toQString() + "_";
+      QString tmp_ini_file = toQString(File::getTempDirectory()) + QDir::separator() + "TOPPAS_" + toQString(tool_name_) + "_";
       if (!tool_type_.empty())
       {
-        tmp_ini_file += tool_type_.toQString() + "_";
+        tmp_ini_file += toQString(tool_type_) + "_";
       }
-      tmp_ini_file += File::getUniqueName().toQString() + "_tmp.ini";
+      tmp_ini_file += toQString(File::getUniqueName()) + "_tmp.ini";
       //store current parameters
       ParamXMLFile paramFile;
       paramFile.store(tmp_ini_file.toStdString(), arg_param_);
       //restore other parameters that might be missing
-      QString executable = File::findSiblingTOPPExecutable(tool_name_).toQString();
+      QString executable = toQString(File::findSiblingTOPPExecutable(tool_name_));
       QStringList args;
       args << "-write_ini" << filename_ << "-ini" << tmp_ini_file;
       if (!tool_type_.empty())
       {
-        args << "-type" << tool_type_.toQString();
+        args << "-type" << toQString(tool_type_);
       }
 
       if (QProcess::execute(executable, args) != 0)
       {
-        QMessageBox::critical(nullptr, "Error", (String("Could not execute '\"")  + executable + "\" \"" + args.join("\" \"") + "\"'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
+        QMessageBox::critical(nullptr, "Error", (String("Could not execute '\"")  + fromQString(executable) + "\" \"" + fromQString(args.join("\" \"")) + "\"'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
         return;
       }
     }

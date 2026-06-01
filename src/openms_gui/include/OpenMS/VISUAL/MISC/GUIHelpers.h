@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -41,13 +15,13 @@
 // declare Qt classes OUTSIDE of namespace OpenMS!
 class QPainter;
 class QPoint;
+class QPointF;
 class QRectF;
-class QString; 
-class QStringList;
 class QWidget;
 
 #include <QColor>
 #include <QFont>
+#include <QtCore/qcontainerfwd.h> // for QStringList
 
 #include <array>
 
@@ -75,8 +49,9 @@ namespace OpenMS
                                               const FileTypes::Type fallback_extension);
 
 
-    /// Open TOPPView (e.g. from within TOPPAS)
-    OPENMS_GUI_DLLAPI void startTOPPView(const QStringList& args);
+    /// Open TOPPView (e.g. from within TOPPAS) as a detached process (i.e. will continue running when this process ends)
+    /// @return true if process started successfully
+    OPENMS_GUI_DLLAPI bool startTOPPView(QStringList args);
 
     /// Open a certain URL (in a browser)
     /// Will show a message box on failure
@@ -87,12 +62,12 @@ namespace OpenMS
 
        Internally used getTextDimension() to figure out the size of the text-block/background which needs to be painted.
 
-       @param painter Where to draw
-       @param text Each item is a new line
-       @param where Coordinates where to start drawing (upper left corner of text)
-       @param col_fg Optional text color; if invalid (=default) will use the current painter's color
-       @param col_bg Optional background color of bounding rectangle; if invalid (=default) no background will be painted
-       @param font Font to use; will use Courier by default
+       @param[in] painter Where to draw
+       @param[in] text Each item is a new line
+       @param[in] where Coordinates where to start drawing (upper left corner of text)
+       @param[in] col_fg Optional text color; if invalid (=default) will use the current painter's color
+       @param[in] col_bg Optional background color of bounding rectangle; if invalid (=default) no background will be painted
+       @param[in] font Font to use; will use Courier by default
     */
     OPENMS_GUI_DLLAPI void drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor& col_fg = QColor("invalid"), const QColor& col_bg = QColor("invalid"),
                                    const QFont& font = QFont("Courier"));
@@ -149,7 +124,7 @@ namespace OpenMS
     {
     public:
       /// C'tor receives the widget to lock
-      /// @param gui QWidget to lock(including all children); can be nullptr (nothing will be locked)
+      /// @param[in] gui QWidget to lock(including all children); can be nullptr (nothing will be locked)
       GUILock(QWidget* gui);
 
       /// no copy/assignment allowed

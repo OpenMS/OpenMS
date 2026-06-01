@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -44,6 +18,7 @@
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/VISUAL/TVToolDiscovery.h>
 #include <OpenMS/VISUAL/MISC/CommonDefs.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QProcess>
 #include <QtCore/QStringList>
@@ -84,7 +59,7 @@ namespace OpenMS
     // Layer label
     auto layer_label = new QLabel("Selected Layer:");
     main_grid->addWidget(layer_label, 0, 0);
-    auto layer_label_name = new QLabel(layer_name.toQString());
+    auto layer_label_name = new QLabel(toQString(layer_name));
     main_grid->addWidget(layer_label_name, 0, 1);
 
     auto label = new QLabel("TOPP tool:");
@@ -236,7 +211,6 @@ namespace OpenMS
     QStringList list;
 
     const auto& tools = ToolHandler::getTOPPToolList();
-    const auto& utils = ToolHandler::getUtilList();
     plugin_params_ = tool_scanner_->getPluginParams();
 
     for (auto& pair : tools)
@@ -244,24 +218,16 @@ namespace OpenMS
       std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ':'));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
       {
-        list << pair.first.toQString();
+        list << toQString(pair.first);
       }
     }
-    for (auto& pair : utils)
-    {
-      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ":"));
-      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
-      {
-        list << pair.first.toQString();
-      }
-    }
-    //TODO: Plugins get added to the list just like tools/utils and can't be differentiated in the GUI
+    //TODO: Plugins get added to the list just like tools and can't be differentiated in the GUI
     for (const auto& name : tool_scanner_->getPlugins())
     {
       std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
       {
-        list << String(name).toQString();
+        list << toQString(String(name));
       }
     }
 
@@ -288,7 +254,7 @@ namespace OpenMS
       arg_param_ = plugin_params_.copy(tool_name + ":");
     }
 
-    tool_desc_->setText(String(arg_param_.getSectionDescription(tool_name)).toQString());
+    tool_desc_->setText(toQString(String(arg_param_.getSectionDescription(tool_name))));
     vis_param_ = arg_param_.copy(tool_name + ":1:", true);
     vis_param_.remove("log");
     vis_param_.remove("no_progress");
@@ -385,7 +351,7 @@ namespace OpenMS
     Int pos = tools_combo_->findText(string);
     if (pos == -1)
     {
-      QMessageBox::critical(this, "Error", (String("Cannot apply '") + string + "' tool to this layer type. Aborting!").c_str());
+      QMessageBox::critical(this, "Error", (String("Cannot apply '") + fromQString(string) + "' tool to this layer type. Aborting!").c_str());
       arg_param_.clear();
       return;
     }
@@ -462,17 +428,44 @@ namespace OpenMS
     if (output_combo_->currentText() == "<select>")
       return "";
 
-    return output_combo_->currentText();
+    return fromQString(output_combo_->currentText());
   }
 
   String ToolsDialog::getInput()
   {
-    return input_combo_->currentText();
+    return fromQString(input_combo_->currentText());
   }
 
   String ToolsDialog::getTool()
   {
-    return tools_combo_->currentText();
+    return fromQString(tools_combo_->currentText());
+  }
+
+  String ToolsDialog::getExtension()
+  {
+    // Try to Return the first valid string for the extension on the output parameter
+    // If we can't get any valid strings show an error.
+    String extension = FileTypes::typeToName(FileTypes::UNKNOWN);
+    auto validStrings = vis_param_.getValidStrings(output_combo_->currentText().toStdString()); 
+    // If we have only one valid output type use that
+    if (validStrings.size() == 1)
+    {
+      extension = validStrings[0];
+      // Remove the leading .*
+      extension = extension.suffix(extension.size() - 2);
+    }
+    // Otherwise the type is unknown
+    else 
+    {
+      // If we have no valid types, produce an error
+      if (validStrings.empty())
+        {
+          QMessageBox::critical(this, "Error", QString("Error determining output type from tool. Tool is not compatible with TOPPView"));
+        }
+          // If we have multiple valid output types, we don't know what the file actually contains, so use UNKNOWN
+
+    }
+    return extension;
   }
 
 }

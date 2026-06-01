@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
@@ -38,6 +12,9 @@
 ///////////////////////////
 #include <OpenMS/METADATA/Precursor.h>
 ///////////////////////////
+
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace OpenMS;
 using namespace std;
@@ -98,16 +75,46 @@ END_SECTION
 
 START_SECTION((set<ActivationMethod>& getActivationMethods()))
   Precursor tmp;
-	tmp.getActivationMethods().insert(Precursor::CID);
+	tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
   TEST_EQUAL(tmp.getActivationMethods().size(),1);
 END_SECTION
 
 START_SECTION((void setActivationMethods(const set<ActivationMethod>& activation_methods)))
   Precursor tmp;
 	set<Precursor::ActivationMethod> methods;
-	methods.insert(Precursor::CID);
+	methods.insert(Precursor::ActivationMethod::CID);
 	tmp.setActivationMethods(methods);
   TEST_EQUAL(tmp.getActivationMethods().size(),1);
+END_SECTION
+
+START_SECTION((StringList getActivationMethodsAsString() const))
+  Precursor tmp;
+  set<Precursor::ActivationMethod> methods;
+  methods.insert(Precursor::ActivationMethod::CID);
+  tmp.setActivationMethods(methods);
+  StringList result = tmp.getActivationMethodsAsString();
+  TEST_EQUAL(result.size(), 1);
+  TEST_EQUAL(result[0], "Collision-induced dissociation");
+END_SECTION
+
+START_SECTION((StringList getActivationMethodsAsShortString() const))
+  Precursor tmp;
+  set<Precursor::ActivationMethod> methods;
+  methods.insert(Precursor::ActivationMethod::CID);
+  tmp.setActivationMethods(methods);
+  StringList result = tmp.getActivationMethodsAsShortString();
+  TEST_EQUAL(result.size(), 1);
+  TEST_EQUAL(result[0], "CID");
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfActivationMethods()))
+  StringList result = Precursor::getAllNamesOfActivationMethods();
+  TEST_EQUAL(result.size(), static_cast<size_t>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD));
+END_SECTION
+
+START_SECTION((static StringList getAllShortNamesOfActivationMethods()))
+  StringList result = Precursor::getAllShortNamesOfActivationMethods();
+  TEST_EQUAL(result.size(), static_cast<size_t>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD));
 END_SECTION
 
 START_SECTION((double getIsolationWindowUpperOffset() const))
@@ -186,7 +193,7 @@ END_SECTION
 START_SECTION((Precursor(const Precursor& source)))
 {
   Precursor tmp;
-  tmp.getActivationMethods().insert(Precursor::CID);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
   tmp.setActivationEnergy(47.11);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
@@ -216,8 +223,8 @@ END_SECTION
 START_SECTION((Precursor(const Precursor&& source)))
 {
   Precursor tmp;
-  tmp.getActivationMethods().insert(Precursor::CID);
-  tmp.getActivationMethods().insert(Precursor::BIRD);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::BIRD);
   tmp.setActivationEnergy(40.11);
   tmp.setIsolationWindowUpperOffset(20.7);
   tmp.setIsolationWindowLowerOffset(20.8);
@@ -253,7 +260,7 @@ END_SECTION
 START_SECTION((Precursor& operator= (const Precursor& source)))
 {
   Precursor tmp;
-  tmp.getActivationMethods().insert(Precursor::CID);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
   tmp.setActivationEnergy(47.11);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
@@ -299,8 +306,8 @@ END_SECTION
 START_SECTION((Precursor& operator= (const Precursor&& source)))
 {
   Precursor tmp;
-  tmp.getActivationMethods().insert(Precursor::CID);
-  tmp.getActivationMethods().insert(Precursor::BIRD);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::BIRD);
   tmp.setActivationEnergy(40.11);
   tmp.setIsolationWindowUpperOffset(20.7);
   tmp.setIsolationWindowLowerOffset(20.8);
@@ -337,7 +344,7 @@ END_SECTION
 START_SECTION((bool operator== (const Precursor& rhs) const))
 	Precursor tmp,tmp2;
 	
-	TEST_EQUAL(tmp==tmp2, true);
+	TEST_TRUE(tmp == tmp2);
 	
 	tmp2.setActivationEnergy(47.11);
 	TEST_EQUAL(tmp==tmp2, false);
@@ -351,7 +358,7 @@ START_SECTION((bool operator== (const Precursor& rhs) const))
 	TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;
-	tmp.getActivationMethods().insert(Precursor::CID);
+	tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
 	TEST_EQUAL(tmp==tmp2, false);
 	
 	tmp2 = tmp;
@@ -389,47 +396,47 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 	TEST_EQUAL(tmp!=tmp2, false);
 	
 	tmp2.setActivationEnergy(47.11);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;
 	tmp.setDriftTime(5.0);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
   tmp.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
-	tmp.getActivationMethods().insert(Precursor::CID);
-	TEST_EQUAL(tmp!=tmp2, true);
+	tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
+	TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;	tmp2 = tmp;
   tmp.setIsolationWindowUpperOffset(22.7);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;	tmp2 = tmp;
   tmp.setIsolationWindowLowerOffset(22.8);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;	tmp2 = tmp;
   tmp.setDriftTimeWindowUpperOffset(22.7);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;	tmp2 = tmp;
   tmp.setDriftTimeWindowLowerOffset(22.8);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
   tmp.setCharge(13);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
   tmp.getPossibleChargeStates().resize(5);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 END_SECTION
 
 START_SECTION(double getUnchargedMass() const)
@@ -437,6 +444,75 @@ START_SECTION(double getUnchargedMass() const)
   tmp.setMZ(123);
   tmp.setCharge(13);
   TEST_REAL_SIMILAR(tmp.getUnchargedMass(), 1585.90540593198);
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Hash function tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] std::hash<Precursor>))
+{
+  // Test that equal objects produce equal hashes
+  Precursor p1;
+  p1.setMZ(500.5);
+  p1.setIntensity(1000.0);
+  p1.setCharge(2);
+  p1.setActivationEnergy(35.0);
+  p1.setIsolationWindowLowerOffset(1.0);
+  p1.setIsolationWindowUpperOffset(1.0);
+  p1.setDriftTime(10.5);
+  p1.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
+  p1.setDriftTimeWindowLowerOffset(0.5);
+  p1.setDriftTimeWindowUpperOffset(0.5);
+  p1.getActivationMethods().insert(Precursor::ActivationMethod::CID);
+  p1.getPossibleChargeStates().push_back(2);
+  p1.getPossibleChargeStates().push_back(3);
+  p1.setMetaValue("test_key", "test_value");
+
+  Precursor p2(p1); // Copy
+
+  std::hash<Precursor> hasher;
+  TEST_EQUAL(hasher(p1), hasher(p2))
+
+  // Test that different objects can have different hashes
+  Precursor p3;
+  p3.setMZ(600.6);
+  p3.setCharge(3);
+
+  // Different objects should (likely) have different hashes
+  // Note: This is not guaranteed but highly probable
+  TEST_NOT_EQUAL(hasher(p1), hasher(p3))
+
+  // Test use in unordered_set
+  std::unordered_set<Precursor> precursor_set;
+  precursor_set.insert(p1);
+  precursor_set.insert(p2); // Same as p1, should not increase size
+  precursor_set.insert(p3);
+  TEST_EQUAL(precursor_set.size(), 2)
+  TEST_EQUAL(precursor_set.count(p1), 1)
+  TEST_EQUAL(precursor_set.count(p3), 1)
+
+  // Test use in unordered_map
+  std::unordered_map<Precursor, std::string> precursor_map;
+  precursor_map[p1] = "first";
+  precursor_map[p3] = "third";
+  TEST_EQUAL(precursor_map.size(), 2)
+  TEST_EQUAL(precursor_map[p1], "first")
+  TEST_EQUAL(precursor_map[p2], "first") // p2 == p1
+  TEST_EQUAL(precursor_map[p3], "third")
+
+  // Test hash consistency - same object should always produce same hash
+  size_t hash1 = hasher(p1);
+  size_t hash2 = hasher(p1);
+  TEST_EQUAL(hash1, hash2)
+
+  // Test that modifying a field changes the hash
+  Precursor p4(p1);
+  size_t original_hash = hasher(p4);
+  p4.setCharge(5);
+  size_t modified_hash = hasher(p4);
+  TEST_NOT_EQUAL(original_hash, modified_hash)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -1,5 +1,11 @@
+## add default CRAN mirror in case the user's config does not have one
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+
+if (!require(ggplot2)) install.packages("ggplot2")
 library("ggplot2")
+if (!require(reshape2)) install.packages("reshape2")
 library("reshape2")
+if (!require(plyr)) install.packages("plyr")
 library("plyr")
 
 file.table.in = commandArgs(TRUE)[1] ## file.table.in = "residuals.csv"
@@ -20,10 +26,10 @@ dpm = melt(d[, grep("^mz.[ab]", colnames(d), invert = TRUE)], id.vars = c("RT", 
 head(dpm)
 ## for peptide ID data:
 ##   - mz.ref will be mostly unique (assume oversampling of at most 3)
-##   - and RT of more than 20min
+##   - and RT of more than 10min
 ## otherwise we assume direct-injection (and facet-wrap by each mz-ref) 
 ##    - unless its more than 100 facets... which will be hard to read
-if ((length(unique(d$mz.ref)) / nrow(d) > 0.333  && diff(range(d$RT, na.rm = TRUE)) > 1200) 
+if ((length(unique(d$mz.ref)) / nrow(d) > 0.333  && diff(range(d$RT, na.rm = TRUE)) > 600) 
     || length(unique(d$mz.ref)) > 100 ) {
   dpm2 = dpm
   dpm2$masstrace = ""
@@ -44,7 +50,7 @@ head(dpm2)
 #getOption("device") ## RStudioGD
 #options(device = "pdf")
 #dev.new(filename = file.plot.out, file = file.plot.out)
-png(filename = file.plot.out, width=1920)
+png(filename = file.plot.out, width=15, height=10, units="cm", res=300)
 
 pl = ggplot(dpm2) + 
        geom_hline(yintercept = 0, colour="grey") +

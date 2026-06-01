@@ -1,43 +1,19 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Witold Wolski  $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h"
+#include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
 
 #include <algorithm>
 #include <numeric>
 #include <functional>
 #include <stdexcept>
+#include <Eigen/Core>
+#include <Eigen/Dense>
 
 namespace OpenSwath
 {
@@ -51,7 +27,7 @@ namespace OpenSwath
     normalized_intensities.resize(intensities.size());
     if (normalizer > 0)
     {
-      std::transform(intensities.begin(), intensities.end(), normalized_intensities.begin(),
+      std::transform(intensities.cbegin(), intensities.cend(), normalized_intensities.begin(),
                      [&normalizer](double val)
                      {
                       return val / normalizer;
@@ -62,11 +38,12 @@ namespace OpenSwath
 
   double dotprodScoring(std::vector<double> intExp, std::vector<double> theorint)
   {
-    for (unsigned int i = 0; i < intExp.size(); ++i)
-    {
-      intExp[i] = sqrt(intExp[i]);
-      theorint[i] = sqrt(theorint[i]);
-    }
+    // Vectorized square roots
+    Eigen::Map<Eigen::VectorXd> mapExp(intExp.data(), intExp.size());
+    Eigen::Map<Eigen::VectorXd> mapTheor(theorint.data(), theorint.size());
+
+    mapExp = mapExp.cwiseSqrt();
+    mapTheor = mapTheor.cwiseSqrt();
 
     double intExptotal = norm(intExp.begin(), intExp.end());
     double intTheorTotal = norm(theorint.begin(), theorint.end());
@@ -78,21 +55,86 @@ namespace OpenSwath
 
   double manhattanScoring(std::vector<double> intExp, std::vector<double> theorint)
   {
+    // Vectorized square roots
+    Eigen::Map<Eigen::VectorXd> mapExp(intExp.data(), intExp.size());
+    Eigen::Map<Eigen::VectorXd> mapTheor(theorint.data(), theorint.size());
 
-    for (unsigned int i = 0; i < intExp.size(); ++i)
-    {
-      intExp[i] = sqrt(intExp[i]);
-      theorint[i] = sqrt(theorint[i]);
-      //std::transform(intExp.begin(), intExp.end(), intExp.begin(), sqrt);
-      //std::transform(theorint.begin(), theorint.end(), theorint.begin(), sqrt);
-    }
+    mapExp = mapExp.cwiseSqrt();
+    mapTheor = mapTheor.cwiseSqrt();
 
-    double intExptotal = std::accumulate(intExp.begin(), intExp.end(), 0.0);
-    double intTheorTotal = std::accumulate(theorint.begin(), theorint.end(), 0.0);
+    double intExptotal = mapExp.sum();
+    double intTheorTotal = mapTheor.sum();
+
     OpenSwath::normalize(intExp, intExptotal, intExp);
     OpenSwath::normalize(theorint, intTheorTotal, theorint);
     double score2 = OpenSwath::manhattanDist(intExp.begin(), intExp.end(), theorint.begin());
     return score2;
   }
+
+  // Template implementation for norm (only compiled in this .cpp file)
+  template <typename T>
+  double norm(T beg, T end)
+  {
+    if (beg == end) return 0.0;
+    size_t size = std::distance(beg, end);
+    using ValueType = typename std::iterator_traits<T>::value_type;
+    Eigen::Map<const Eigen::Matrix<ValueType, Eigen::Dynamic, 1>> v(&(*beg), size);
+    return static_cast<double>(v.norm());
+  }
+
+  // Explicit template instantiation definitions for norm
+  template OPENSWATHALGO_DLLAPI double norm<std::vector<double>::const_iterator>(
+    std::vector<double>::const_iterator, std::vector<double>::const_iterator);
+
+  template OPENSWATHALGO_DLLAPI double norm<std::vector<double>::iterator>(
+    std::vector<double>::iterator, std::vector<double>::iterator);
+
+  // Template implementation for manhattanDist (only compiled in this .cpp file)
+  template <typename Texp, typename Ttheo>
+  double manhattanDist(Texp itExpBeg, Texp itExpEnd, Ttheo itTheo)
+  {
+    if (itExpBeg == itExpEnd) return 0.0;
+    size_t size = std::distance(itExpBeg, itExpEnd);
+    using ExpType = typename std::iterator_traits<Texp>::value_type;
+    using TheoType = typename std::iterator_traits<Ttheo>::value_type;
+    Eigen::Map<const Eigen::Matrix<ExpType, Eigen::Dynamic, 1>> v1(&(*itExpBeg), size);
+    Eigen::Map<const Eigen::Matrix<TheoType, Eigen::Dynamic, 1>> v2(&(*itTheo), size);
+    return static_cast<double>((v1.template cast<double>() - v2.template cast<double>()).cwiseAbs().sum());
+  }
+
+  // Explicit template instantiation definitions for manhattanDist
+  template OPENSWATHALGO_DLLAPI double manhattanDist<std::vector<double>::iterator, std::vector<double>::iterator>(
+    std::vector<double>::iterator, std::vector<double>::iterator, std::vector<double>::iterator);
+
+  template OPENSWATHALGO_DLLAPI double manhattanDist<std::vector<double>::const_iterator, std::vector<double>::const_iterator>(
+    std::vector<double>::const_iterator, std::vector<double>::const_iterator, std::vector<double>::const_iterator);
+
+  // Template implementation (only compiled in this .cpp file)
+  template <typename Texp, typename Ttheo>
+  double dotProd(Texp intExpBeg, Texp intExpEnd, Ttheo intTheo)
+  {
+    size_t size = std::distance(intExpBeg, intExpEnd);
+
+    // Get the value types
+    using ExpType = typename std::iterator_traits<Texp>::value_type;
+    using TheoType = typename std::iterator_traits<Ttheo>::value_type;
+
+    // Create appropriate Eigen maps based on the actual data types
+    Eigen::Map<const Eigen::Matrix<ExpType, Eigen::Dynamic, 1>> vec1(&(*intExpBeg), size);
+    Eigen::Map<const Eigen::Matrix<TheoType, Eigen::Dynamic, 1>> vec2(&(*intTheo), size);
+
+    // Compute dot product and cast result to double
+    return static_cast<double>(vec1.dot(vec2));
+  }
+
+  // Explicit template instantiation definitions (compile these specific versions)
+  template OPENSWATHALGO_DLLAPI double dotProd<std::vector<double>::const_iterator, std::vector<double>::const_iterator>(
+    std::vector<double>::const_iterator, std::vector<double>::const_iterator, std::vector<double>::const_iterator);
+
+  template OPENSWATHALGO_DLLAPI double dotProd<std::vector<float>::const_iterator, std::vector<float>::const_iterator>(
+    std::vector<float>::const_iterator, std::vector<float>::const_iterator, std::vector<float>::const_iterator);
+
+  template OPENSWATHALGO_DLLAPI double dotProd<std::vector<int>::const_iterator, std::vector<int>::const_iterator>(
+    std::vector<int>::const_iterator, std::vector<int>::const_iterator, std::vector<int>::const_iterator);
 
 }

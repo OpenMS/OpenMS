@@ -1,0 +1,50 @@
+name: Update OpenMS version numbers
+
+# Trigger this action manually
+on:
+  workflow_dispatch:
+    inputs:
+      major:
+        required: true
+      minor:
+        required: true
+      patch:
+        required: true
+
+jobs:
+  updating_package_version_number:
+    runs-on: ubuntu-latest
+    steps:
+      # Getting files (OpenMS)
+      - uses: actions/checkout@v4
+
+      # Update files with new package version numbers
+      - name: update files
+        run: |
+          bash tools/update_version_numbers.sh \
+            "${{ github.event.inputs.major }}" \
+            "${{ github.event.inputs.minor }}" \
+            "${{ github.event.inputs.patch }}"
+
+      # Check for changes
+      - name: check for changed files
+        id: changed-files
+        run: |
+          if git diff --exit-code; then
+            echo "changes_exist=false" >> $GITHUB_ENV
+          else
+            echo "changes_exist=true" >> $GITHUB_ENV
+          fi
+
+      # Commit and PR updated files
+      - name: Commit and PR updated files
+        if: env.changes_exist
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: 'Updated OpenMS package version number'
+          committer: GitHub <noreply@github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          signoff: false
+          branch: update_package_number
+          delete-branch: true
+          title: '[ByGHAction] Updated OpenMS package version numbers'

@@ -1,35 +1,9 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
-// $Authors: Erhan Kenar$
+// $Authors: Erhan Kenar, Mohammed Alhigaylan$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -37,12 +11,12 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
+#include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
+#include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 ///////////////////////////
-#include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
+#include <OpenMS/FEATUREFINDER/FeatureFindingMetabo.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -129,6 +103,77 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
 }
 END_SECTION
 
+// Test with ion mobility data
+START_SECTION(([EXTRA] run with ion mobility data))
+{
+  // Load LC-IMS-MS data
+  PeakMap im_input;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("../../../topp/FeatureFinderMetabo_6_input.mzML"), im_input);
+
+  // Run MassTraceDetection with ion mobility tolerance
+  MassTraceDetection mtd_im;
+  Param mtd_p = mtd_im.getParameters();
+  mtd_p.setValue("mass_error_ppm", 10.0);
+  mtd_p.setValue("noise_threshold_int", 10.0);
+  mtd_p.setValue("ion_mobility_tolerance", 0.01);
+  mtd_im.setParameters(mtd_p);
+  std::vector<MassTrace> im_traces;
+  mtd_im.run(im_input, im_traces);
+  TEST_EQUAL(im_traces.empty(), false);
+
+  // Verify mass traces contain IM data
+  bool has_im = false;
+  for (const auto& mt : im_traces)
+  {
+    if (mt.containsIMData())
+    {
+      has_im = true;
+      break;
+    }
+  }
+  TEST_EQUAL(has_im, true);
+
+  // Run ElutionPeakDetection
+  ElutionPeakDetection epd_im;
+  std::vector<MassTrace> im_splitted;
+  epd_im.detectPeaks(im_traces, im_splitted);
+  TEST_EQUAL(im_splitted.empty(), false);
+
+  // Verify IM data survives elution peak detection splitting
+  has_im = false;
+  for (const auto& mt : im_splitted)
+  {
+    if (mt.containsIMData())
+    {
+      has_im = true;
+      break;
+    }
+  }
+  TEST_EQUAL(has_im, true);
+
+  // Run FeatureFindingMetabo with IM-aware settings
+  FeatureFindingMetabo ffm_im;
+  Param ffm_p = ffm_im.getParameters();
+  ffm_p.setValue("mz_scoring_13C", "true");
+  ffm_im.setParameters(ffm_p);
+  FeatureMap im_fm;
+  std::vector<std::vector<OpenMS::MSChromatogram>> im_chromatograms;
+  ffm_im.run(im_splitted, im_fm, im_chromatograms);
+  TEST_EQUAL(im_fm.empty(), false);
+
+  // Verify that output features contain ion mobility metadata
+  bool has_im_meta = false;
+  for (const auto& f : im_fm)
+  {
+    if (f.metaValueExists("masstrace_centroid_im"))
+    {
+      has_im_meta = true;
+      break;
+    }
+  }
+  TEST_EQUAL(has_im_meta, true);
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

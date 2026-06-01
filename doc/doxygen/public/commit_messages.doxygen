@@ -1,0 +1,136 @@
+/**
+
+@page howto_commit_messages How to write Commit messages
+# Format
+
+On every commit to our revision control system please provide a commit message of the following form:
+
+```
+[CLASS1,CLASS2,...] Short description
+
+Long description
+
+Fixes #42
+```
+
+ * The first line starts with an arbitrary number of tags in square brackets, e.g. `[CLASS1]` or `[CLASS1,CLASS2]`.
+   See below for a list of classes.
+ * These tags are followed by a short description, try to keep the first line below 120 characters, 80 if possible.
+ * You should add a long description after an empty line.
+ * When resolving / fixing an issue, please include a last line with the text "Fixes #Bug-nr". This causes github to automatically close the issue
+
+# Possible Classes
+
+ * **NOP**
+   * Only whitespace changes. E.g., removed trailing whitespace, replaced tabs by spaces, changed indentation
+ 
+ * **DOC**
+   * Changes in the user documentation. This includes changes to the doxygen documentation, README files etc.
+ 
+ * **COMMENT** 
+   * Changes in the source documentation. These changes are not visible to the users. This includes `// TODO(${name}):` statements.
+ 
+ * **API** 
+   * Changes to the API. These changes classically break backward compatibility, e.g. renaming of function names, changing of function parameter order. This tag is to be used for the C++ API only! For changes to the interface of executables (TOPP/UTILS tools) use `IOFORMAT`!
+ * **INTERNAL**
+   * Changes in the implementation. These changes do not influence the public the API, e.g. renaming of variable names, simplification of code
+ * **FEATURE**
+   * A user-visible feature, e.g. extension of an interface, measurable performance improvement. If the change is also API breaking the classes FEATURE and API must be used.
+   * If this fixes a ticket from the issue tracker, please add "Closes #7" to the text message (this will automatically close the issue on the GitHub issue tracker).
+ * **FIX**
+   * Bug removal. If one or more bugs from the ticket tracker are removed then this should be written as `[FIX-#7,#35]` where `#7` and `#35` are ticket numbers. Please also add the text "Fixes #7 and fixes #35" to the commit message (this will automatically close the issue on the GitHub issue tracker).
+ * **TEST**
+   * Addition or changes of tests. All code changes that are accompanied with tests must provide the original and the TEST class. Don't consider this as a coercion but as a privilege to use both classes!
+ * **FORMAT**
+   * Changes to the supported file formats. All changes related to XML formats should be marked with this tag, e.g., a new format was added to %OpenMS or the version of an existing format is increased. Also changes relating the general support of an existing format should be added here (e.g., support for storing mzIdentML).
+ * **PARAM**
+   * Change to the parameters of a program or algorithm. In general every change to parameters stored in the Param class should be marked with this tag, e.g. changes to the params a program or algorithm accepts, change to the documentation of the parameter 
+ * **IO**
+   * Changes to the in- or output parameters of tools. For instance if a new in- or output parameter was added (e.g., a tool outputs an additional file with different information). Also, changes to file restrictions (e.g. "-in" restrictions to "mzML only") should be marked with this tag. This tag usually implies [DOC] as such changes should always be well documented in the code as well as in the user documentation.
+ * **LOG**
+   * Change of output for developers or very advanced users. This is the output that is meant for debugging or detailed introspection that is excluded from `CLI`. Such output is usually printed to `stderr`.
+ * **GUI**
+   * Changes to the look and feel of GUI components (e.g., changing a label, new 2D view or another font). Use this tag in combination with other tags (e.g., FIX or FEATURE).
+ * **RESOURCE**
+   * Updates to resource files like the controlled vocabularies.
+ * **BUILD**
+   * Changes to the build system.
+
+# Examples
+
+## Example: API Changes
+
+API change with tests and detailed description of changes.
+
+```
+[API,TEST] Large changes of Feature class 
+
+This is a large patch that mostly updates the feature module:
+ 
+ * a detailed list of all changes
+```
+
+## Example: Bug Fixes
+
+A fix that solves two tickets:
+
+```
+[FIX-#240,#356] Fixed bugs in the Logging classes.
+
+Quite involved fix that allows improves the logging classes.
+
+Fixes #240 and fixes #356.
+```
+
+A fix that does not have a ticket (please do not do this, open an issue in the tracker unless it is a really trivial fix):
+
+```
+[FIX] Fixed unreported error in KERNEL/MSSpectrum.h.
+
+A detailed description of the bug and how it was resolved.
+```
+
+A fix that corrects a previous commit (using the SHA1 to reference the previous commit):
+
+```
+[FIX] Fixed error introduced in [abcdefgh123].
+
+A short description of the problem introduced in the commit.
+```
+
+## Example: Internal Changes
+
+An internal change, reordering of code without changing the public API.
+
+```
+[INTERNAL] Moving private code out of MapAlignerBase to a separate class.
+```
+
+An internal change might include test and improved comments.
+
+```
+[INTERNAL,TEST,COMMENTS] Restructured MapAligner classes.
+
+Restructured the whole internal structure of the classes, adding a large number of tests
+and improving the source-level documentation.  
+```
+
+## Example: Changes To Params and Logging
+
+Changes to the command parameters exposed by an algorithm or tool:
+
+```
+[PARAM] Updated parameter documentation and constraints for parameter X.
+```
+
+Changes to logging in an app:
+
+```
+[LOG] Improved logging in MapAlignerPoseClustering.
+
+Much more detailed logging allows easier debugging.  Part of this should probably be
+commented out before the next stable release once the dust has settled and most
+bugs have been removed.
+```
+
+*/

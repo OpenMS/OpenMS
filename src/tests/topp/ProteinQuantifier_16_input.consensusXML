@@ -1,0 +1,1860 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" experiment_type="labeled_MS2" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="int" name="isoquant:scans_noquant" value="208"/>
+	<UserParam type="int" name="isoquant:scans_total" value="15221"/>
+	<UserParam type="int" name="isoquant:quantifyable_ch126" value="14787"/>
+	<UserParam type="int" name="isoquant:quantifyable_ch127" value="14248"/>
+	<UserParam type="int" name="isoquant:quantifyable_ch128" value="14660"/>
+	<UserParam type="int" name="isoquant:quantifyable_ch129" value="14363"/>
+	<UserParam type="int" name="isoquant:quantifyable_ch130" value="14820"/>
+	<UserParam type="int" name="isoquant:quantifyable_ch131" value="14784"/>
+	<dataProcessing completion_time="2022-11-22T15:06:47">
+		<software name="IsobaricAnalyzer" version="3.0.0-pre-nightly-2022-11-12" />
+		<processingAction name="Quantitation" />
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="0000-00-00T00:00:00" search_engine="OpenMS/ConsensusID_best" search_engine_version="3.0.0-pre-nightly-2022-11-12">
+		<SearchParameters db="Homo-sapiens-uniprot-reviewed-contaminants-decoy-202210.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2-4" enzyme="trypsin/p" missed_cleavages="1000" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.05" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+			<VariableModification name="TMT6plex (K)" />
+			<VariableModification name="TMT6plex (N-term)" />
+      <UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="sp|PROTEIN1_HUMAN" score="0.00774174700555069" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="int" name="nr_found_peptides" value="5"/>
+				<UserParam type="float" name="q-value_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="sp|PROTEIN2_HUMAN" score="0.00774174700555069" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="int" name="nr_found_peptides" value="562"/>
+				<UserParam type="float" name="q-value_score" value="0.0"/>
+			</ProteinHit>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="9.836065573770492e-03,PH_0"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="9.836065573770492e-03,PH_1"/>
+			<UserParam type="stringList" name="spectra_data" value="[20150820_Haura-Pilot-TMT1-bRPLC01-1.mzML,20150820_Haura-Pilot-TMT1-bRPLC10-2.mzML,20150820_Haura-Pilot-TMT2-bRPLC10-2.mzML,20150820_Haura-Pilot-TMT2-bRPLC04-2.mzML,20150820_Haura-Pilot-TMT2-bRPLC09-1.mzML,20150820_Haura-Pilot-TMT2-bRPLC10-1.mzML,20150820_Haura-Pilot-TMT1-bRPLC05-1.mzML,20150820_Haura-Pilot-TMT2-bRPLC11-1.mzML,20150820_Haura-Pilot-TMT1-bRPLC05-2.mzML,20150820_Haura-Pilot-TMT1-bRPLC09-2.mzML,20150820_Haura-Pilot-TMT2-bRPLC01-2.mzML,20150820_Haura-Pilot-TMT2-bRPLC12-2.mzML,20150820_Haura-Pilot-TMT2-bRPLC06-2.mzML,20150820_Haura-Pilot-TMT1-bRPLC03-1.mzML,20150820_Haura-Pilot-TMT2-bRPLC05-2.mzML,20150820_Haura-Pilot-TMT2-bRPLC08-1.mzML,20150820_Haura-Pilot-TMT2-bRPLC12-1.mzML,20150820_Haura-Pilot-TMT1-bRPLC04-2.mzML,20150820_Haura-Pilot-TMT2-bRPLC03-2.mzML,20150820_Haura-Pilot-TMT1-bRPLC12-2.mzML,20150820_Haura-Pilot-TMT2-bRPLC05-1.mzML,20150820_Haura-Pilot-TMT1-bRPLC02-2.mzML,20150820_Haura-Pilot-TMT2-bRPLC02-2.mzML,20150820_Haura-Pilot-TMT1-bRPLC02-1.mzML,20150820_Haura-Pilot-TMT1-bRPLC08-2.mzML,20150820_Haura-Pilot-TMT2-bRPLC08-2.mzML,20150820_Haura-Pilot-TMT1-bRPLC08-1.mzML,20150820_Haura-Pilot-TMT1-bRPLC12-1.mzML,20150820_Haura-Pilot-TMT1-bRPLC04-1.mzML,20150820_Haura-Pilot-TMT2-bRPLC09-2.mzML,20150820_Haura-Pilot-TMT2-bRPLC06-1.mzML,20150820_Haura-Pilot-TMT2-bRPLC03-1.mzML,20150820_Haura-Pilot-TMT1-bRPLC03-2.mzML,20150820_Haura-Pilot-TMT1-bRPLC11-1.mzML,20150820_Haura-Pilot-TMT1-bRPLC06-2.mzML,20150820_Haura-Pilot-TMT2-bRPLC07-1.mzML,20150820_Haura-Pilot-TMT1-bRPLC01-2.mzML,20150820_Haura-Pilot-TMT2-bRPLC11-2.mzML,20150820_Haura-Pilot-TMT2-bRPLC07-2.mzML,20150820_Haura-Pilot-TMT2-bRPLC02-1.mzML,20150820_Haura-Pilot-TMT2-bRPLC01-1.mzML,20150820_Haura-Pilot-TMT1-bRPLC10-1.mzML,20150820_Haura-Pilot-TMT1-bRPLC06-1.mzML,20150820_Haura-Pilot-TMT2-bRPLC04-1.mzML,20150820_Haura-Pilot-TMT1-bRPLC11-2.mzML,20150820_Haura-Pilot-TMT1-bRPLC07-2.mzML,20150820_Haura-Pilot-TMT1-bRPLC09-1.mzML,20150820_Haura-Pilot-TMT1-bRPLC07-1.mzML]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<mapList count="288">
+		<map id="0" name="20150820_Haura-Pilot-TMT1-bRPLC01-1.mzML" label="tmt6plex_126" size="15221">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="1" name="20150820_Haura-Pilot-TMT1-bRPLC01-1.mzML" label="tmt6plex_127" size="15221">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="2" name="20150820_Haura-Pilot-TMT1-bRPLC01-1.mzML" label="tmt6plex_128" size="15221">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="3" name="20150820_Haura-Pilot-TMT1-bRPLC01-1.mzML" label="tmt6plex_129" size="15221">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="4" name="20150820_Haura-Pilot-TMT1-bRPLC01-1.mzML" label="tmt6plex_130" size="15221">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="5" name="20150820_Haura-Pilot-TMT1-bRPLC01-1.mzML" label="tmt6plex_131" size="15221">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="6" name="20150820_Haura-Pilot-TMT1-bRPLC10-2.mzML" label="tmt6plex_126" size="17005">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="7" name="20150820_Haura-Pilot-TMT1-bRPLC10-2.mzML" label="tmt6plex_127" size="17005">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="8" name="20150820_Haura-Pilot-TMT1-bRPLC10-2.mzML" label="tmt6plex_128" size="17005">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="9" name="20150820_Haura-Pilot-TMT1-bRPLC10-2.mzML" label="tmt6plex_129" size="17005">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="10" name="20150820_Haura-Pilot-TMT1-bRPLC10-2.mzML" label="tmt6plex_130" size="17005">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="11" name="20150820_Haura-Pilot-TMT1-bRPLC10-2.mzML" label="tmt6plex_131" size="17005">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="12" name="20150820_Haura-Pilot-TMT2-bRPLC10-2.mzML" label="tmt6plex_126" size="15028">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="13" name="20150820_Haura-Pilot-TMT2-bRPLC10-2.mzML" label="tmt6plex_127" size="15028">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="14" name="20150820_Haura-Pilot-TMT2-bRPLC10-2.mzML" label="tmt6plex_128" size="15028">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="15" name="20150820_Haura-Pilot-TMT2-bRPLC10-2.mzML" label="tmt6plex_129" size="15028">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="16" name="20150820_Haura-Pilot-TMT2-bRPLC10-2.mzML" label="tmt6plex_130" size="15028">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="17" name="20150820_Haura-Pilot-TMT2-bRPLC10-2.mzML" label="tmt6plex_131" size="15028">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="18" name="20150820_Haura-Pilot-TMT2-bRPLC04-2.mzML" label="tmt6plex_126" size="15055">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="19" name="20150820_Haura-Pilot-TMT2-bRPLC04-2.mzML" label="tmt6plex_127" size="15055">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="20" name="20150820_Haura-Pilot-TMT2-bRPLC04-2.mzML" label="tmt6plex_128" size="15055">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="21" name="20150820_Haura-Pilot-TMT2-bRPLC04-2.mzML" label="tmt6plex_129" size="15055">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="22" name="20150820_Haura-Pilot-TMT2-bRPLC04-2.mzML" label="tmt6plex_130" size="15055">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="23" name="20150820_Haura-Pilot-TMT2-bRPLC04-2.mzML" label="tmt6plex_131" size="15055">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="24" name="20150820_Haura-Pilot-TMT2-bRPLC09-1.mzML" label="tmt6plex_126" size="14919">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="25" name="20150820_Haura-Pilot-TMT2-bRPLC09-1.mzML" label="tmt6plex_127" size="14919">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="26" name="20150820_Haura-Pilot-TMT2-bRPLC09-1.mzML" label="tmt6plex_128" size="14919">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="27" name="20150820_Haura-Pilot-TMT2-bRPLC09-1.mzML" label="tmt6plex_129" size="14919">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="28" name="20150820_Haura-Pilot-TMT2-bRPLC09-1.mzML" label="tmt6plex_130" size="14919">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="29" name="20150820_Haura-Pilot-TMT2-bRPLC09-1.mzML" label="tmt6plex_131" size="14919">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="30" name="20150820_Haura-Pilot-TMT2-bRPLC10-1.mzML" label="tmt6plex_126" size="15035">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="31" name="20150820_Haura-Pilot-TMT2-bRPLC10-1.mzML" label="tmt6plex_127" size="15035">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="32" name="20150820_Haura-Pilot-TMT2-bRPLC10-1.mzML" label="tmt6plex_128" size="15035">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="33" name="20150820_Haura-Pilot-TMT2-bRPLC10-1.mzML" label="tmt6plex_129" size="15035">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="34" name="20150820_Haura-Pilot-TMT2-bRPLC10-1.mzML" label="tmt6plex_130" size="15035">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="35" name="20150820_Haura-Pilot-TMT2-bRPLC10-1.mzML" label="tmt6plex_131" size="15035">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="36" name="20150820_Haura-Pilot-TMT1-bRPLC05-1.mzML" label="tmt6plex_126" size="15926">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="37" name="20150820_Haura-Pilot-TMT1-bRPLC05-1.mzML" label="tmt6plex_127" size="15926">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="38" name="20150820_Haura-Pilot-TMT1-bRPLC05-1.mzML" label="tmt6plex_128" size="15926">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="39" name="20150820_Haura-Pilot-TMT1-bRPLC05-1.mzML" label="tmt6plex_129" size="15926">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="40" name="20150820_Haura-Pilot-TMT1-bRPLC05-1.mzML" label="tmt6plex_130" size="15926">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="41" name="20150820_Haura-Pilot-TMT1-bRPLC05-1.mzML" label="tmt6plex_131" size="15926">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="42" name="20150820_Haura-Pilot-TMT2-bRPLC11-1.mzML" label="tmt6plex_126" size="13758">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="43" name="20150820_Haura-Pilot-TMT2-bRPLC11-1.mzML" label="tmt6plex_127" size="13758">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="44" name="20150820_Haura-Pilot-TMT2-bRPLC11-1.mzML" label="tmt6plex_128" size="13758">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="45" name="20150820_Haura-Pilot-TMT2-bRPLC11-1.mzML" label="tmt6plex_129" size="13758">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="46" name="20150820_Haura-Pilot-TMT2-bRPLC11-1.mzML" label="tmt6plex_130" size="13758">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="47" name="20150820_Haura-Pilot-TMT2-bRPLC11-1.mzML" label="tmt6plex_131" size="13758">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="48" name="20150820_Haura-Pilot-TMT1-bRPLC05-2.mzML" label="tmt6plex_126" size="15910">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="49" name="20150820_Haura-Pilot-TMT1-bRPLC05-2.mzML" label="tmt6plex_127" size="15910">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="50" name="20150820_Haura-Pilot-TMT1-bRPLC05-2.mzML" label="tmt6plex_128" size="15910">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="51" name="20150820_Haura-Pilot-TMT1-bRPLC05-2.mzML" label="tmt6plex_129" size="15910">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="52" name="20150820_Haura-Pilot-TMT1-bRPLC05-2.mzML" label="tmt6plex_130" size="15910">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="53" name="20150820_Haura-Pilot-TMT1-bRPLC05-2.mzML" label="tmt6plex_131" size="15910">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="54" name="20150820_Haura-Pilot-TMT1-bRPLC09-2.mzML" label="tmt6plex_126" size="16225">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="55" name="20150820_Haura-Pilot-TMT1-bRPLC09-2.mzML" label="tmt6plex_127" size="16225">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="56" name="20150820_Haura-Pilot-TMT1-bRPLC09-2.mzML" label="tmt6plex_128" size="16225">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="57" name="20150820_Haura-Pilot-TMT1-bRPLC09-2.mzML" label="tmt6plex_129" size="16225">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="58" name="20150820_Haura-Pilot-TMT1-bRPLC09-2.mzML" label="tmt6plex_130" size="16225">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="59" name="20150820_Haura-Pilot-TMT1-bRPLC09-2.mzML" label="tmt6plex_131" size="16225">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="60" name="20150820_Haura-Pilot-TMT2-bRPLC01-2.mzML" label="tmt6plex_126" size="10977">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="61" name="20150820_Haura-Pilot-TMT2-bRPLC01-2.mzML" label="tmt6plex_127" size="10977">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="62" name="20150820_Haura-Pilot-TMT2-bRPLC01-2.mzML" label="tmt6plex_128" size="10977">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="63" name="20150820_Haura-Pilot-TMT2-bRPLC01-2.mzML" label="tmt6plex_129" size="10977">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="64" name="20150820_Haura-Pilot-TMT2-bRPLC01-2.mzML" label="tmt6plex_130" size="10977">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="65" name="20150820_Haura-Pilot-TMT2-bRPLC01-2.mzML" label="tmt6plex_131" size="10977">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="66" name="20150820_Haura-Pilot-TMT2-bRPLC12-2.mzML" label="tmt6plex_126" size="11054">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="67" name="20150820_Haura-Pilot-TMT2-bRPLC12-2.mzML" label="tmt6plex_127" size="11054">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="68" name="20150820_Haura-Pilot-TMT2-bRPLC12-2.mzML" label="tmt6plex_128" size="11054">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="69" name="20150820_Haura-Pilot-TMT2-bRPLC12-2.mzML" label="tmt6plex_129" size="11054">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="70" name="20150820_Haura-Pilot-TMT2-bRPLC12-2.mzML" label="tmt6plex_130" size="11054">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="71" name="20150820_Haura-Pilot-TMT2-bRPLC12-2.mzML" label="tmt6plex_131" size="11054">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="72" name="20150820_Haura-Pilot-TMT2-bRPLC06-2.mzML" label="tmt6plex_126" size="9836">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="73" name="20150820_Haura-Pilot-TMT2-bRPLC06-2.mzML" label="tmt6plex_127" size="9836">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="74" name="20150820_Haura-Pilot-TMT2-bRPLC06-2.mzML" label="tmt6plex_128" size="9836">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="75" name="20150820_Haura-Pilot-TMT2-bRPLC06-2.mzML" label="tmt6plex_129" size="9836">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="76" name="20150820_Haura-Pilot-TMT2-bRPLC06-2.mzML" label="tmt6plex_130" size="9836">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="77" name="20150820_Haura-Pilot-TMT2-bRPLC06-2.mzML" label="tmt6plex_131" size="9836">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="78" name="20150820_Haura-Pilot-TMT1-bRPLC03-1.mzML" label="tmt6plex_126" size="16086">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="79" name="20150820_Haura-Pilot-TMT1-bRPLC03-1.mzML" label="tmt6plex_127" size="16086">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="80" name="20150820_Haura-Pilot-TMT1-bRPLC03-1.mzML" label="tmt6plex_128" size="16086">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="81" name="20150820_Haura-Pilot-TMT1-bRPLC03-1.mzML" label="tmt6plex_129" size="16086">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="82" name="20150820_Haura-Pilot-TMT1-bRPLC03-1.mzML" label="tmt6plex_130" size="16086">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="83" name="20150820_Haura-Pilot-TMT1-bRPLC03-1.mzML" label="tmt6plex_131" size="16086">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="84" name="20150820_Haura-Pilot-TMT2-bRPLC05-2.mzML" label="tmt6plex_126" size="11041">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="85" name="20150820_Haura-Pilot-TMT2-bRPLC05-2.mzML" label="tmt6plex_127" size="11041">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="86" name="20150820_Haura-Pilot-TMT2-bRPLC05-2.mzML" label="tmt6plex_128" size="11041">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="87" name="20150820_Haura-Pilot-TMT2-bRPLC05-2.mzML" label="tmt6plex_129" size="11041">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="88" name="20150820_Haura-Pilot-TMT2-bRPLC05-2.mzML" label="tmt6plex_130" size="11041">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="89" name="20150820_Haura-Pilot-TMT2-bRPLC05-2.mzML" label="tmt6plex_131" size="11041">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="90" name="20150820_Haura-Pilot-TMT2-bRPLC08-1.mzML" label="tmt6plex_126" size="15619">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="91" name="20150820_Haura-Pilot-TMT2-bRPLC08-1.mzML" label="tmt6plex_127" size="15619">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="92" name="20150820_Haura-Pilot-TMT2-bRPLC08-1.mzML" label="tmt6plex_128" size="15619">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="93" name="20150820_Haura-Pilot-TMT2-bRPLC08-1.mzML" label="tmt6plex_129" size="15619">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="94" name="20150820_Haura-Pilot-TMT2-bRPLC08-1.mzML" label="tmt6plex_130" size="15619">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="95" name="20150820_Haura-Pilot-TMT2-bRPLC08-1.mzML" label="tmt6plex_131" size="15619">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="96" name="20150820_Haura-Pilot-TMT2-bRPLC12-1.mzML" label="tmt6plex_126" size="11077">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="97" name="20150820_Haura-Pilot-TMT2-bRPLC12-1.mzML" label="tmt6plex_127" size="11077">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="98" name="20150820_Haura-Pilot-TMT2-bRPLC12-1.mzML" label="tmt6plex_128" size="11077">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="99" name="20150820_Haura-Pilot-TMT2-bRPLC12-1.mzML" label="tmt6plex_129" size="11077">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="100" name="20150820_Haura-Pilot-TMT2-bRPLC12-1.mzML" label="tmt6plex_130" size="11077">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="101" name="20150820_Haura-Pilot-TMT2-bRPLC12-1.mzML" label="tmt6plex_131" size="11077">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="102" name="20150820_Haura-Pilot-TMT1-bRPLC04-2.mzML" label="tmt6plex_126" size="15701">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="103" name="20150820_Haura-Pilot-TMT1-bRPLC04-2.mzML" label="tmt6plex_127" size="15701">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="104" name="20150820_Haura-Pilot-TMT1-bRPLC04-2.mzML" label="tmt6plex_128" size="15701">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="105" name="20150820_Haura-Pilot-TMT1-bRPLC04-2.mzML" label="tmt6plex_129" size="15701">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="106" name="20150820_Haura-Pilot-TMT1-bRPLC04-2.mzML" label="tmt6plex_130" size="15701">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="107" name="20150820_Haura-Pilot-TMT1-bRPLC04-2.mzML" label="tmt6plex_131" size="15701">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="108" name="20150820_Haura-Pilot-TMT2-bRPLC03-2.mzML" label="tmt6plex_126" size="14054">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="109" name="20150820_Haura-Pilot-TMT2-bRPLC03-2.mzML" label="tmt6plex_127" size="14054">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="110" name="20150820_Haura-Pilot-TMT2-bRPLC03-2.mzML" label="tmt6plex_128" size="14054">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="111" name="20150820_Haura-Pilot-TMT2-bRPLC03-2.mzML" label="tmt6plex_129" size="14054">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="112" name="20150820_Haura-Pilot-TMT2-bRPLC03-2.mzML" label="tmt6plex_130" size="14054">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="113" name="20150820_Haura-Pilot-TMT2-bRPLC03-2.mzML" label="tmt6plex_131" size="14054">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="114" name="20150820_Haura-Pilot-TMT1-bRPLC12-2.mzML" label="tmt6plex_126" size="15164">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="115" name="20150820_Haura-Pilot-TMT1-bRPLC12-2.mzML" label="tmt6plex_127" size="15164">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="116" name="20150820_Haura-Pilot-TMT1-bRPLC12-2.mzML" label="tmt6plex_128" size="15164">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="117" name="20150820_Haura-Pilot-TMT1-bRPLC12-2.mzML" label="tmt6plex_129" size="15164">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="118" name="20150820_Haura-Pilot-TMT1-bRPLC12-2.mzML" label="tmt6plex_130" size="15164">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="119" name="20150820_Haura-Pilot-TMT1-bRPLC12-2.mzML" label="tmt6plex_131" size="15164">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="120" name="20150820_Haura-Pilot-TMT2-bRPLC05-1.mzML" label="tmt6plex_126" size="11188">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="121" name="20150820_Haura-Pilot-TMT2-bRPLC05-1.mzML" label="tmt6plex_127" size="11188">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="122" name="20150820_Haura-Pilot-TMT2-bRPLC05-1.mzML" label="tmt6plex_128" size="11188">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="123" name="20150820_Haura-Pilot-TMT2-bRPLC05-1.mzML" label="tmt6plex_129" size="11188">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="124" name="20150820_Haura-Pilot-TMT2-bRPLC05-1.mzML" label="tmt6plex_130" size="11188">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="125" name="20150820_Haura-Pilot-TMT2-bRPLC05-1.mzML" label="tmt6plex_131" size="11188">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="126" name="20150820_Haura-Pilot-TMT1-bRPLC02-2.mzML" label="tmt6plex_126" size="15421">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="127" name="20150820_Haura-Pilot-TMT1-bRPLC02-2.mzML" label="tmt6plex_127" size="15421">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="128" name="20150820_Haura-Pilot-TMT1-bRPLC02-2.mzML" label="tmt6plex_128" size="15421">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="129" name="20150820_Haura-Pilot-TMT1-bRPLC02-2.mzML" label="tmt6plex_129" size="15421">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="130" name="20150820_Haura-Pilot-TMT1-bRPLC02-2.mzML" label="tmt6plex_130" size="15421">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="131" name="20150820_Haura-Pilot-TMT1-bRPLC02-2.mzML" label="tmt6plex_131" size="15421">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="132" name="20150820_Haura-Pilot-TMT2-bRPLC02-2.mzML" label="tmt6plex_126" size="11595">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="133" name="20150820_Haura-Pilot-TMT2-bRPLC02-2.mzML" label="tmt6plex_127" size="11595">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="134" name="20150820_Haura-Pilot-TMT2-bRPLC02-2.mzML" label="tmt6plex_128" size="11595">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="135" name="20150820_Haura-Pilot-TMT2-bRPLC02-2.mzML" label="tmt6plex_129" size="11595">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="136" name="20150820_Haura-Pilot-TMT2-bRPLC02-2.mzML" label="tmt6plex_130" size="11595">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="137" name="20150820_Haura-Pilot-TMT2-bRPLC02-2.mzML" label="tmt6plex_131" size="11595">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="138" name="20150820_Haura-Pilot-TMT1-bRPLC02-1.mzML" label="tmt6plex_126" size="15643">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="139" name="20150820_Haura-Pilot-TMT1-bRPLC02-1.mzML" label="tmt6plex_127" size="15643">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="140" name="20150820_Haura-Pilot-TMT1-bRPLC02-1.mzML" label="tmt6plex_128" size="15643">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="141" name="20150820_Haura-Pilot-TMT1-bRPLC02-1.mzML" label="tmt6plex_129" size="15643">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="142" name="20150820_Haura-Pilot-TMT1-bRPLC02-1.mzML" label="tmt6plex_130" size="15643">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="143" name="20150820_Haura-Pilot-TMT1-bRPLC02-1.mzML" label="tmt6plex_131" size="15643">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="144" name="20150820_Haura-Pilot-TMT1-bRPLC08-2.mzML" label="tmt6plex_126" size="16372">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="145" name="20150820_Haura-Pilot-TMT1-bRPLC08-2.mzML" label="tmt6plex_127" size="16372">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="146" name="20150820_Haura-Pilot-TMT1-bRPLC08-2.mzML" label="tmt6plex_128" size="16372">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="147" name="20150820_Haura-Pilot-TMT1-bRPLC08-2.mzML" label="tmt6plex_129" size="16372">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="148" name="20150820_Haura-Pilot-TMT1-bRPLC08-2.mzML" label="tmt6plex_130" size="16372">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="149" name="20150820_Haura-Pilot-TMT1-bRPLC08-2.mzML" label="tmt6plex_131" size="16372">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="150" name="20150820_Haura-Pilot-TMT2-bRPLC08-2.mzML" label="tmt6plex_126" size="15614">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="151" name="20150820_Haura-Pilot-TMT2-bRPLC08-2.mzML" label="tmt6plex_127" size="15614">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="152" name="20150820_Haura-Pilot-TMT2-bRPLC08-2.mzML" label="tmt6plex_128" size="15614">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="153" name="20150820_Haura-Pilot-TMT2-bRPLC08-2.mzML" label="tmt6plex_129" size="15614">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="154" name="20150820_Haura-Pilot-TMT2-bRPLC08-2.mzML" label="tmt6plex_130" size="15614">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="155" name="20150820_Haura-Pilot-TMT2-bRPLC08-2.mzML" label="tmt6plex_131" size="15614">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="156" name="20150820_Haura-Pilot-TMT1-bRPLC08-1.mzML" label="tmt6plex_126" size="16420">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="157" name="20150820_Haura-Pilot-TMT1-bRPLC08-1.mzML" label="tmt6plex_127" size="16420">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="158" name="20150820_Haura-Pilot-TMT1-bRPLC08-1.mzML" label="tmt6plex_128" size="16420">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="159" name="20150820_Haura-Pilot-TMT1-bRPLC08-1.mzML" label="tmt6plex_129" size="16420">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="160" name="20150820_Haura-Pilot-TMT1-bRPLC08-1.mzML" label="tmt6plex_130" size="16420">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="161" name="20150820_Haura-Pilot-TMT1-bRPLC08-1.mzML" label="tmt6plex_131" size="16420">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="162" name="20150820_Haura-Pilot-TMT1-bRPLC12-1.mzML" label="tmt6plex_126" size="15450">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="163" name="20150820_Haura-Pilot-TMT1-bRPLC12-1.mzML" label="tmt6plex_127" size="15450">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="164" name="20150820_Haura-Pilot-TMT1-bRPLC12-1.mzML" label="tmt6plex_128" size="15450">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="165" name="20150820_Haura-Pilot-TMT1-bRPLC12-1.mzML" label="tmt6plex_129" size="15450">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="166" name="20150820_Haura-Pilot-TMT1-bRPLC12-1.mzML" label="tmt6plex_130" size="15450">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="167" name="20150820_Haura-Pilot-TMT1-bRPLC12-1.mzML" label="tmt6plex_131" size="15450">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="168" name="20150820_Haura-Pilot-TMT1-bRPLC04-1.mzML" label="tmt6plex_126" size="15738">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="169" name="20150820_Haura-Pilot-TMT1-bRPLC04-1.mzML" label="tmt6plex_127" size="15738">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="170" name="20150820_Haura-Pilot-TMT1-bRPLC04-1.mzML" label="tmt6plex_128" size="15738">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="171" name="20150820_Haura-Pilot-TMT1-bRPLC04-1.mzML" label="tmt6plex_129" size="15738">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="172" name="20150820_Haura-Pilot-TMT1-bRPLC04-1.mzML" label="tmt6plex_130" size="15738">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="173" name="20150820_Haura-Pilot-TMT1-bRPLC04-1.mzML" label="tmt6plex_131" size="15738">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="174" name="20150820_Haura-Pilot-TMT2-bRPLC09-2.mzML" label="tmt6plex_126" size="14806">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="175" name="20150820_Haura-Pilot-TMT2-bRPLC09-2.mzML" label="tmt6plex_127" size="14806">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="176" name="20150820_Haura-Pilot-TMT2-bRPLC09-2.mzML" label="tmt6plex_128" size="14806">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="177" name="20150820_Haura-Pilot-TMT2-bRPLC09-2.mzML" label="tmt6plex_129" size="14806">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="178" name="20150820_Haura-Pilot-TMT2-bRPLC09-2.mzML" label="tmt6plex_130" size="14806">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="179" name="20150820_Haura-Pilot-TMT2-bRPLC09-2.mzML" label="tmt6plex_131" size="14806">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="180" name="20150820_Haura-Pilot-TMT2-bRPLC06-1.mzML" label="tmt6plex_126" size="9805">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="181" name="20150820_Haura-Pilot-TMT2-bRPLC06-1.mzML" label="tmt6plex_127" size="9805">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="182" name="20150820_Haura-Pilot-TMT2-bRPLC06-1.mzML" label="tmt6plex_128" size="9805">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="183" name="20150820_Haura-Pilot-TMT2-bRPLC06-1.mzML" label="tmt6plex_129" size="9805">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="184" name="20150820_Haura-Pilot-TMT2-bRPLC06-1.mzML" label="tmt6plex_130" size="9805">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="185" name="20150820_Haura-Pilot-TMT2-bRPLC06-1.mzML" label="tmt6plex_131" size="9805">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="186" name="20150820_Haura-Pilot-TMT2-bRPLC03-1.mzML" label="tmt6plex_126" size="14075">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="187" name="20150820_Haura-Pilot-TMT2-bRPLC03-1.mzML" label="tmt6plex_127" size="14075">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="188" name="20150820_Haura-Pilot-TMT2-bRPLC03-1.mzML" label="tmt6plex_128" size="14075">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="189" name="20150820_Haura-Pilot-TMT2-bRPLC03-1.mzML" label="tmt6plex_129" size="14075">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="190" name="20150820_Haura-Pilot-TMT2-bRPLC03-1.mzML" label="tmt6plex_130" size="14075">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="191" name="20150820_Haura-Pilot-TMT2-bRPLC03-1.mzML" label="tmt6plex_131" size="14075">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="192" name="20150820_Haura-Pilot-TMT1-bRPLC03-2.mzML" label="tmt6plex_126" size="15765">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="193" name="20150820_Haura-Pilot-TMT1-bRPLC03-2.mzML" label="tmt6plex_127" size="15765">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="194" name="20150820_Haura-Pilot-TMT1-bRPLC03-2.mzML" label="tmt6plex_128" size="15765">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="195" name="20150820_Haura-Pilot-TMT1-bRPLC03-2.mzML" label="tmt6plex_129" size="15765">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="196" name="20150820_Haura-Pilot-TMT1-bRPLC03-2.mzML" label="tmt6plex_130" size="15765">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="197" name="20150820_Haura-Pilot-TMT1-bRPLC03-2.mzML" label="tmt6plex_131" size="15765">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="198" name="20150820_Haura-Pilot-TMT1-bRPLC11-1.mzML" label="tmt6plex_126" size="15883">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="199" name="20150820_Haura-Pilot-TMT1-bRPLC11-1.mzML" label="tmt6plex_127" size="15883">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="200" name="20150820_Haura-Pilot-TMT1-bRPLC11-1.mzML" label="tmt6plex_128" size="15883">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="201" name="20150820_Haura-Pilot-TMT1-bRPLC11-1.mzML" label="tmt6plex_129" size="15883">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="202" name="20150820_Haura-Pilot-TMT1-bRPLC11-1.mzML" label="tmt6plex_130" size="15883">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="203" name="20150820_Haura-Pilot-TMT1-bRPLC11-1.mzML" label="tmt6plex_131" size="15883">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="204" name="20150820_Haura-Pilot-TMT1-bRPLC06-2.mzML" label="tmt6plex_126" size="14629">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="205" name="20150820_Haura-Pilot-TMT1-bRPLC06-2.mzML" label="tmt6plex_127" size="14629">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="206" name="20150820_Haura-Pilot-TMT1-bRPLC06-2.mzML" label="tmt6plex_128" size="14629">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="207" name="20150820_Haura-Pilot-TMT1-bRPLC06-2.mzML" label="tmt6plex_129" size="14629">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="208" name="20150820_Haura-Pilot-TMT1-bRPLC06-2.mzML" label="tmt6plex_130" size="14629">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="209" name="20150820_Haura-Pilot-TMT1-bRPLC06-2.mzML" label="tmt6plex_131" size="14629">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="210" name="20150820_Haura-Pilot-TMT2-bRPLC07-1.mzML" label="tmt6plex_126" size="15398">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="211" name="20150820_Haura-Pilot-TMT2-bRPLC07-1.mzML" label="tmt6plex_127" size="15398">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="212" name="20150820_Haura-Pilot-TMT2-bRPLC07-1.mzML" label="tmt6plex_128" size="15398">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="213" name="20150820_Haura-Pilot-TMT2-bRPLC07-1.mzML" label="tmt6plex_129" size="15398">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="214" name="20150820_Haura-Pilot-TMT2-bRPLC07-1.mzML" label="tmt6plex_130" size="15398">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="215" name="20150820_Haura-Pilot-TMT2-bRPLC07-1.mzML" label="tmt6plex_131" size="15398">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="216" name="20150820_Haura-Pilot-TMT1-bRPLC01-2.mzML" label="tmt6plex_126" size="20276">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="217" name="20150820_Haura-Pilot-TMT1-bRPLC01-2.mzML" label="tmt6plex_127" size="20276">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="218" name="20150820_Haura-Pilot-TMT1-bRPLC01-2.mzML" label="tmt6plex_128" size="20276">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="219" name="20150820_Haura-Pilot-TMT1-bRPLC01-2.mzML" label="tmt6plex_129" size="20276">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="220" name="20150820_Haura-Pilot-TMT1-bRPLC01-2.mzML" label="tmt6plex_130" size="20276">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="221" name="20150820_Haura-Pilot-TMT1-bRPLC01-2.mzML" label="tmt6plex_131" size="20276">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="222" name="20150820_Haura-Pilot-TMT2-bRPLC11-2.mzML" label="tmt6plex_126" size="13611">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="223" name="20150820_Haura-Pilot-TMT2-bRPLC11-2.mzML" label="tmt6plex_127" size="13611">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="224" name="20150820_Haura-Pilot-TMT2-bRPLC11-2.mzML" label="tmt6plex_128" size="13611">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="225" name="20150820_Haura-Pilot-TMT2-bRPLC11-2.mzML" label="tmt6plex_129" size="13611">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="226" name="20150820_Haura-Pilot-TMT2-bRPLC11-2.mzML" label="tmt6plex_130" size="13611">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="227" name="20150820_Haura-Pilot-TMT2-bRPLC11-2.mzML" label="tmt6plex_131" size="13611">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="228" name="20150820_Haura-Pilot-TMT2-bRPLC07-2.mzML" label="tmt6plex_126" size="15298">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="229" name="20150820_Haura-Pilot-TMT2-bRPLC07-2.mzML" label="tmt6plex_127" size="15298">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="230" name="20150820_Haura-Pilot-TMT2-bRPLC07-2.mzML" label="tmt6plex_128" size="15298">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="231" name="20150820_Haura-Pilot-TMT2-bRPLC07-2.mzML" label="tmt6plex_129" size="15298">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="232" name="20150820_Haura-Pilot-TMT2-bRPLC07-2.mzML" label="tmt6plex_130" size="15298">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="233" name="20150820_Haura-Pilot-TMT2-bRPLC07-2.mzML" label="tmt6plex_131" size="15298">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="234" name="20150820_Haura-Pilot-TMT2-bRPLC02-1.mzML" label="tmt6plex_126" size="11518">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="235" name="20150820_Haura-Pilot-TMT2-bRPLC02-1.mzML" label="tmt6plex_127" size="11518">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="236" name="20150820_Haura-Pilot-TMT2-bRPLC02-1.mzML" label="tmt6plex_128" size="11518">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="237" name="20150820_Haura-Pilot-TMT2-bRPLC02-1.mzML" label="tmt6plex_129" size="11518">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="238" name="20150820_Haura-Pilot-TMT2-bRPLC02-1.mzML" label="tmt6plex_130" size="11518">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="239" name="20150820_Haura-Pilot-TMT2-bRPLC02-1.mzML" label="tmt6plex_131" size="11518">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="240" name="20150820_Haura-Pilot-TMT2-bRPLC01-1.mzML" label="tmt6plex_126" size="11020">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="241" name="20150820_Haura-Pilot-TMT2-bRPLC01-1.mzML" label="tmt6plex_127" size="11020">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="242" name="20150820_Haura-Pilot-TMT2-bRPLC01-1.mzML" label="tmt6plex_128" size="11020">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="243" name="20150820_Haura-Pilot-TMT2-bRPLC01-1.mzML" label="tmt6plex_129" size="11020">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="244" name="20150820_Haura-Pilot-TMT2-bRPLC01-1.mzML" label="tmt6plex_130" size="11020">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="245" name="20150820_Haura-Pilot-TMT2-bRPLC01-1.mzML" label="tmt6plex_131" size="11020">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="246" name="20150820_Haura-Pilot-TMT1-bRPLC10-1.mzML" label="tmt6plex_126" size="17046">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="247" name="20150820_Haura-Pilot-TMT1-bRPLC10-1.mzML" label="tmt6plex_127" size="17046">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="248" name="20150820_Haura-Pilot-TMT1-bRPLC10-1.mzML" label="tmt6plex_128" size="17046">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="249" name="20150820_Haura-Pilot-TMT1-bRPLC10-1.mzML" label="tmt6plex_129" size="17046">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="250" name="20150820_Haura-Pilot-TMT1-bRPLC10-1.mzML" label="tmt6plex_130" size="17046">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="251" name="20150820_Haura-Pilot-TMT1-bRPLC10-1.mzML" label="tmt6plex_131" size="17046">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="252" name="20150820_Haura-Pilot-TMT1-bRPLC06-1.mzML" label="tmt6plex_126" size="14958">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="253" name="20150820_Haura-Pilot-TMT1-bRPLC06-1.mzML" label="tmt6plex_127" size="14958">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="254" name="20150820_Haura-Pilot-TMT1-bRPLC06-1.mzML" label="tmt6plex_128" size="14958">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="255" name="20150820_Haura-Pilot-TMT1-bRPLC06-1.mzML" label="tmt6plex_129" size="14958">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="256" name="20150820_Haura-Pilot-TMT1-bRPLC06-1.mzML" label="tmt6plex_130" size="14958">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="257" name="20150820_Haura-Pilot-TMT1-bRPLC06-1.mzML" label="tmt6plex_131" size="14958">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="258" name="20150820_Haura-Pilot-TMT2-bRPLC04-1.mzML" label="tmt6plex_126" size="15097">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="259" name="20150820_Haura-Pilot-TMT2-bRPLC04-1.mzML" label="tmt6plex_127" size="15097">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="260" name="20150820_Haura-Pilot-TMT2-bRPLC04-1.mzML" label="tmt6plex_128" size="15097">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="261" name="20150820_Haura-Pilot-TMT2-bRPLC04-1.mzML" label="tmt6plex_129" size="15097">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="262" name="20150820_Haura-Pilot-TMT2-bRPLC04-1.mzML" label="tmt6plex_130" size="15097">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="263" name="20150820_Haura-Pilot-TMT2-bRPLC04-1.mzML" label="tmt6plex_131" size="15097">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="264" name="20150820_Haura-Pilot-TMT1-bRPLC11-2.mzML" label="tmt6plex_126" size="16251">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="265" name="20150820_Haura-Pilot-TMT1-bRPLC11-2.mzML" label="tmt6plex_127" size="16251">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="266" name="20150820_Haura-Pilot-TMT1-bRPLC11-2.mzML" label="tmt6plex_128" size="16251">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="267" name="20150820_Haura-Pilot-TMT1-bRPLC11-2.mzML" label="tmt6plex_129" size="16251">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="268" name="20150820_Haura-Pilot-TMT1-bRPLC11-2.mzML" label="tmt6plex_130" size="16251">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="269" name="20150820_Haura-Pilot-TMT1-bRPLC11-2.mzML" label="tmt6plex_131" size="16251">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="270" name="20150820_Haura-Pilot-TMT1-bRPLC07-2.mzML" label="tmt6plex_126" size="16199">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="271" name="20150820_Haura-Pilot-TMT1-bRPLC07-2.mzML" label="tmt6plex_127" size="16199">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="272" name="20150820_Haura-Pilot-TMT1-bRPLC07-2.mzML" label="tmt6plex_128" size="16199">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="273" name="20150820_Haura-Pilot-TMT1-bRPLC07-2.mzML" label="tmt6plex_129" size="16199">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="274" name="20150820_Haura-Pilot-TMT1-bRPLC07-2.mzML" label="tmt6plex_130" size="16199">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="275" name="20150820_Haura-Pilot-TMT1-bRPLC07-2.mzML" label="tmt6plex_131" size="16199">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="276" name="20150820_Haura-Pilot-TMT1-bRPLC09-1.mzML" label="tmt6plex_126" size="16342">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="277" name="20150820_Haura-Pilot-TMT1-bRPLC09-1.mzML" label="tmt6plex_127" size="16342">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="278" name="20150820_Haura-Pilot-TMT1-bRPLC09-1.mzML" label="tmt6plex_128" size="16342">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="279" name="20150820_Haura-Pilot-TMT1-bRPLC09-1.mzML" label="tmt6plex_129" size="16342">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="280" name="20150820_Haura-Pilot-TMT1-bRPLC09-1.mzML" label="tmt6plex_130" size="16342">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="281" name="20150820_Haura-Pilot-TMT1-bRPLC09-1.mzML" label="tmt6plex_131" size="16342">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+		<map id="282" name="20150820_Haura-Pilot-TMT1-bRPLC07-1.mzML" label="tmt6plex_126" size="15615">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127724999999998"/>
+		</map>
+		<map id="283" name="20150820_Haura-Pilot-TMT1-bRPLC07-1.mzML" label="tmt6plex_127" size="15615">
+			<UserParam type="string" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124759999999995"/>
+		</map>
+		<map id="284" name="20150820_Haura-Pilot-TMT1-bRPLC07-1.mzML" label="tmt6plex_128" size="15615">
+			<UserParam type="string" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="128.134433000000001"/>
+		</map>
+		<map id="285" name="20150820_Haura-Pilot-TMT1-bRPLC07-1.mzML" label="tmt6plex_129" size="15615">
+			<UserParam type="string" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="129.131468000000012"/>
+		</map>
+		<map id="286" name="20150820_Haura-Pilot-TMT1-bRPLC07-1.mzML" label="tmt6plex_130" size="15615">
+			<UserParam type="string" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="130.141141000000005"/>
+		</map>
+		<map id="287" name="20150820_Haura-Pilot-TMT1-bRPLC07-1.mzML" label="tmt6plex_131" size="15615">
+			<UserParam type="string" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="131.138175999999987"/>
+		</map>
+	</mapList>
+
+<!-- 
+2 Features:
+Channel   File
+0         20150820_Haura-Pilot-TMT1-bRPLC01-1.mzML
+1         "
+2         "
+3         "
+4         "
+5         "
+
+0         20150820_Haura-Pilot-TMT1-bRPLC07-1.mzML
+1         " 
+2         "
+3         "
+4         "
+5         "
+
+experimental design:
+Fraction_Group	Fraction	Spectra_Filepath	Label	Sample
+1	1	20150820_Haura-Pilot-TMT1-bRPLC01-1.mzML	2	1
+1	1	20150820_Haura-Pilot-TMT1-bRPLC01-1.mzML	4	2
+1	1	20150820_Haura-Pilot-TMT1-bRPLC01-1.mzML	1	5
+1	1	20150820_Haura-Pilot-TMT1-bRPLC01-1.mzML	3	7
+1	1	20150820_Haura-Pilot-TMT1-bRPLC01-1.mzML	5	8
+1	1	20150820_Haura-Pilot-TMT1-bRPLC01-1.mzML	6	9
+
+1	7	20150820_Haura-Pilot-TMT1-bRPLC07-1.mzML	2	1
+1	7	20150820_Haura-Pilot-TMT1-bRPLC07-1.mzML	4	2
+1	7	20150820_Haura-Pilot-TMT1-bRPLC07-1.mzML	1	5
+1	7	20150820_Haura-Pilot-TMT1-bRPLC07-1.mzML	3	7
+1	7	20150820_Haura-Pilot-TMT1-bRPLC07-1.mzML	5	8
+1	7	20150820_Haura-Pilot-TMT1-bRPLC07-1.mzML	6	9
+
+ProteinQuantifier \-\-include_all should yield:
+protein               S1      S2      S3      S4      S5      S6      S7      S8      S9      S10     S11     S12 
+sp|PROTEIN1_HUMAN ..  2.0     4.0     0.0     0.0     1.0     0.0     3.0     5.0     6.0     0.0     0.0     0.0
+sp|PROTEIN2_HUMAN ..  200.0   400.0   0.0     0.0     100.0   0.0     300.0   500.0   600.0   0.0     0.0     0.0
+
+-->
+	<consensusElementList>
+		<consensusElement id="e_11478505102917892301" quality="0.0" charge="3">
+			<centroid rt="1101.76337999999987" mz="460.250469967723006" it="1.995336e05"/>
+			<groupedElementList>
+				<element map="0" id="7" rt="1101.76337999999987" mz="126.127724999999998" it="1"/>
+				<element map="1" id="7" rt="1101.76337999999987" mz="127.124759999999995" it="2"/>
+				<element map="2" id="7" rt="1101.76337999999987" mz="128.134433000000001" it="3"/>
+				<element map="3" id="7" rt="1101.76337999999987" mz="129.131468000000012" it="4"/>
+				<element map="4" id="7" rt="1101.76337999999987" mz="130.141141000000005" it="5"/>
+				<element map="5" id="7" rt="1101.76337999999987" mz="131.138175999999987" it="6"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="460.251018698567" RT="1101.8" spectrum_reference="controllerType=0 controllerNumber=1 scan=2785" >
+				<PeptideHit score="0" sequence="DAHK(TMT6plex)SEVAHR" charge="3" aa_before="R" aa_after="F" start="24" end="33" protein_refs="PH_0">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="consensus_support" value="1.0"/>
+					<UserParam type="float" name="Posterior Error Probability_score" value="9.460249999999999e-05"/>
+				</PeptideHit>
+				<UserParam type="int" name="id_merge_index" value="0"/>
+				<UserParam type="string" name="feature_id" value="11478505102917892301"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="11478505102917892301"/>
+			<UserParam type="float" name="precursor_purity" value="0.600574325454401"/>
+			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=2785"/>
+			<UserParam type="float" name="precursor_intensity" value="0.0"/>
+		</consensusElement>
+		<consensusElement id="e_9875698623247739140" quality="0.0" charge="2">
+			<centroid rt="1279.968720000000076" mz="460.273510739206984" it="1.572008e06"/>
+			<groupedElementList>
+				<element map="282" id="710" rt="1279.968720000000076" mz="126.127724999999998" it="100"/>
+				<element map="283" id="710" rt="1279.968720000000076" mz="127.124759999999995" it="200"/>
+				<element map="284" id="710" rt="1279.968720000000076" mz="128.134433000000001" it="300"/>
+				<element map="285" id="710" rt="1279.968720000000076" mz="129.131468000000012" it="400"/>
+				<element map="286" id="710" rt="1279.968720000000076" mz="130.141141000000005" it="500"/>
+				<element map="287" id="710" rt="1279.968720000000076" mz="131.138175999999987" it="600"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="460.2740595319" RT="1280" spectrum_reference="controllerType=0 controllerNumber=1 scan=3798" >
+				<PeptideHit score="0.00649478449124188" sequence=".(TMT6plex)ETVVSR" charge="2" aa_before="K" aa_after="W" start="744" end="749" protein_refs="PH_1">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="consensus_support" value="1.0"/>
+					<UserParam type="float" name="Posterior Error Probability_score" value="0.205245"/>
+				</PeptideHit>
+				<UserParam type="int" name="id_merge_index" value="47"/>
+				<UserParam type="string" name="feature_id" value="9875698623247739140"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="9875698623247739140"/>
+			<UserParam type="float" name="precursor_purity" value="0.582950375772134"/>
+			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3798"/>
+			<UserParam type="float" name="precursor_intensity" value="0.0"/>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

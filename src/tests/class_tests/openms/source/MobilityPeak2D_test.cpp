@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -38,6 +12,9 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/MobilityPeak2D.h>
+
+#include <unordered_set>
+#include <unordered_map>
 
 ///////////////////////////
 
@@ -213,17 +190,17 @@ END_SECTION
 START_SECTION((bool operator==(const MobilityPeak2D& rhs) const))
 MobilityPeak2D p1;
 MobilityPeak2D p2(p1);
-TEST_EQUAL(p1 == p2, true)
+TEST_TRUE(p1 == p2)
 
 p1.setIntensity(5.0f);
 TEST_EQUAL(p1 == p2, false)
 p2.setIntensity(5.0f);
-TEST_EQUAL(p1 == p2, true)
+TEST_TRUE(p1 == p2)
 
 p1.getPosition()[0] = 5;
 TEST_EQUAL(p1 == p2, false)
 p2.getPosition()[0] = 5;
-TEST_EQUAL(p1 == p2, true)
+TEST_TRUE(p1 == p2)
 END_SECTION
 
 START_SECTION((bool operator!=(const MobilityPeak2D& rhs) const))
@@ -232,12 +209,12 @@ MobilityPeak2D p2(p1);
 TEST_EQUAL(p1 != p2, false)
 
 p1.setIntensity(5.0f);
-TEST_EQUAL(p1 != p2, true)
+TEST_FALSE(p1 == p2)
 p2.setIntensity(5.0f);
 TEST_EQUAL(p1 != p2, false)
 
 p1.getPosition()[0] = 5;
-TEST_EQUAL(p1 != p2, true)
+TEST_FALSE(p1 == p2)
 p2.getPosition()[0] = 5;
 TEST_EQUAL(p1 != p2, false)
 END_SECTION
@@ -588,6 +565,51 @@ START_SECTION(([MobilityPeak2D::MZLess] bool operator()(CoordinateType left, Coo
   TEST_EQUAL(MobilityPeak2D::MZLess()(p2.getMZ(), p1.getMZ()), false)
   TEST_EQUAL(MobilityPeak2D::MZLess()(p2.getMZ(), p2.getMZ()), false)
 
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Hash function tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] std::hash<MobilityPeak2D>))
+{
+  // Test that equal peaks have equal hashes
+  MobilityPeak2D mp1, mp2;
+  mp1.setMobility(1.5);
+  mp1.setMZ(500.5);
+  mp1.setIntensity(1000.0f);
+  mp2.setMobility(1.5);
+  mp2.setMZ(500.5);
+  mp2.setIntensity(1000.0f);
+
+  std::hash<MobilityPeak2D> hasher;
+  TEST_EQUAL(hasher(mp1), hasher(mp2))
+
+  // Test that hash changes when values change
+  MobilityPeak2D mp3;
+  mp3.setMobility(2.5);
+  mp3.setMZ(500.5);
+  mp3.setIntensity(1000.0f);
+  TEST_NOT_EQUAL(hasher(mp1), hasher(mp3))
+
+  // Test use in unordered_set
+  std::unordered_set<MobilityPeak2D> peak_set;
+  peak_set.insert(mp1);
+  TEST_EQUAL(peak_set.size(), 1)
+  peak_set.insert(mp2); // same as mp1
+  TEST_EQUAL(peak_set.size(), 1) // should not increase
+  peak_set.insert(mp3);
+  TEST_EQUAL(peak_set.size(), 2)
+
+  // Test use in unordered_map
+  std::unordered_map<MobilityPeak2D, int> peak_map;
+  peak_map[mp1] = 42;
+  TEST_EQUAL(peak_map[mp1], 42)
+  TEST_EQUAL(peak_map[mp2], 42) // mp2 == mp1, should get same value
+  peak_map[mp3] = 99;
+  TEST_EQUAL(peak_map[mp3], 99)
+  TEST_EQUAL(peak_map.size(), 2)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

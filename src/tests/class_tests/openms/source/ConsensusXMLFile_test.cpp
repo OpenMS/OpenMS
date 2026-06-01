@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -42,6 +16,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -244,6 +219,46 @@ START_SECTION([EXTRA](bool isValid(const String &filename)))
   f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), m);
   f.store(tmp_filename, m);
   TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true);
+END_SECTION
+
+START_SECTION([EXTRA] Compressed file writing - gzip round-trip)
+  ConsensusXMLFile f;
+  ConsensusMap map;
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
+
+  // Store as gzip-compressed file
+  String tmp_gz;
+  NEW_TMP_FILE(tmp_gz);
+  tmp_gz += ".gz";
+  f.store(tmp_gz, map);
+
+  // Load back from compressed file
+  ConsensusMap map_gz;
+  f.load(tmp_gz, map_gz);
+
+  // Verify round-trip integrity
+  TEST_EQUAL(map_gz.size(), map.size())
+  TEST_EQUAL(map_gz.getColumnHeaders().size(), map.getColumnHeaders().size())
+END_SECTION
+
+START_SECTION([EXTRA] Compressed file writing - bzip2 round-trip)
+  ConsensusXMLFile f;
+  ConsensusMap map;
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
+
+  // Store as bzip2-compressed file
+  String tmp_bz2;
+  NEW_TMP_FILE(tmp_bz2);
+  tmp_bz2 += ".bz2";
+  f.store(tmp_bz2, map);
+
+  // Load back from compressed file
+  ConsensusMap map_bz2;
+  f.load(tmp_bz2, map_bz2);
+
+  // Verify round-trip integrity
+  TEST_EQUAL(map_bz2.size(), map.size())
+  TEST_EQUAL(map_bz2.getColumnHeaders().size(), map.getColumnHeaders().size())
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -46,6 +20,9 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <vector>
 
 //-------------------------------------------------------------
 // Doxygen docu
@@ -129,6 +106,12 @@ protected:
     registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files. This option or 'out' has to be provided; they can be used together.", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
 
+    // Optional spectra files for transformation
+    registerInputFileList_("in_spectra_files", "<files>", StringList(), "Optional input spectra files (mzML) that will be transformed along with the alignment. Size must match the number of input files.", false);
+    setValidFormats_("in_spectra_files", ListUtils::create<String>("mzML"));
+    registerOutputFileList_("out_spectra_files", "<files>", StringList(), "Optional output spectra files (mzML) corresponding to transformed in_spectra_files. Size must match in_spectra_files.", false);
+    setValidFormats_("out_spectra_files", ListUtils::create<String>("mzML"));
+
     if (ref_params != REF_NONE)
     {
       registerTOPPSubsection_("reference", "Options to define a reference file (use either 'file' or 'index', not both)");
@@ -153,6 +136,8 @@ protected:
     StringList ins = getStringList_("in");
     StringList outs = getStringList_("out");
     StringList trafos = getStringList_("trafo_out");
+    StringList in_spectra = getStringList_("in_spectra_files");
+    StringList out_spectra = getStringList_("out_spectra_files");
 
     //-------------------------------------------------------------
     // check for valid input
@@ -185,6 +170,21 @@ protected:
       }
     }
 
+    // check optional spectra files
+    if (!in_spectra.empty() || !out_spectra.empty())
+    {
+      if (in_spectra.size() != ins.size())
+      {
+        writeLogError_("Error: The number of spectra input files has to be equal to the number of main input files (parameters 'in_spectra_files'/'in')");
+        return ILLEGAL_PARAMETERS;
+      }
+      if (out_spectra.size() != in_spectra.size())
+      {
+        writeLogError_("Error: The number of spectra input and output files has to be equal (parameters 'in_spectra_files'/'out_spectra_files')");
+        return ILLEGAL_PARAMETERS;
+      }
+    }
+
     if (ref_params_ != REF_NONE) // a valid ref. index OR file should be given
     {
       Size reference_index = getIntOption_("reference:index");
@@ -209,6 +209,41 @@ protected:
     }
 
     return EXECUTION_OK;
+  }
+
+  void transformSpectraFiles_(const StringList& in_spectra_files, 
+                             const StringList& out_spectra_files,
+                             const std::vector<TransformationDescription>& transformations,
+                             bool store_original_rt)
+  {
+    if (in_spectra_files.empty() || out_spectra_files.empty())
+    {
+      return; // Nothing to do
+    }
+
+    OPENMS_PRECONDITION(in_spectra_files.size() == transformations.size(), 
+                        "Number of spectra files must match number of transformations");
+    OPENMS_PRECONDITION(in_spectra_files.size() == out_spectra_files.size(), 
+                        "Number of input and output spectra files must match");
+
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(log_type_);
+    progresslogger.startProgress(0, in_spectra_files.size(), "transforming spectra files");
+    
+    for (Size i = 0; i < in_spectra_files.size(); ++i)
+    {
+      progresslogger.setProgress(i);
+      
+      PeakMap exp;
+      FileHandler().loadExperiment(in_spectra_files[i], exp, {FileTypes::MZML}, log_type_);
+      
+      MapAlignmentTransformer::transformRetentionTimes(exp, transformations[i], store_original_rt);
+      
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::ALIGNMENT));
+      FileHandler().storeExperiment(out_spectra_files[i], exp, {FileTypes::MZML}, log_type_);
+    }
+    
+    progresslogger.endProgress();
   }
 
 };

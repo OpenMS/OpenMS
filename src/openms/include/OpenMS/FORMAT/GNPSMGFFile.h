@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Dorrestein Lab - University of California San Diego - https://dorresteinlab.ucsd.edu/$
@@ -35,36 +9,67 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
+#include <OpenMS/KERNEL/BinnedSpectrum.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI GNPSMGFFile : 
+  /**
+    @brief Writer for the consensus-spectrum MGF file consumed by GNPS Feature-Based / Ion-Identity Molecular Networking.
+
+    For each consensus feature in a @ref ConsensusMap, the GNPS workflow expects one
+    representative MS2 spectrum. This class reads the spectrum references stored on
+    each consensus element, resolves them to the original mzML files, optionally merges
+    multiple MS2 scans per feature into a single binned consensus spectrum, and writes
+    the result as an MGF file ready to be uploaded to GNPS.
+
+    Configurable behaviour is exposed through @ref DefaultParamHandler — see the defaults
+    installed by the constructor for the supported keys (@c output_type — @c "most_intense"
+    or @c "merged_spectra"; @c peptide_cutoff — how many top-intensity peptides to consider
+    per consensus element; @c ms2_bin_size — bin width when merging fragment ions;
+    @c merged_spectra:cos_similarity — cosine threshold for merging).
+
+    Used by the @ref TOPP_GNPSExport tool. See its page for the recommended OpenMS
+    metabolomics workflow producing the consensusXML input.
+
+    @ingroup FileIO
+  */
+  class OPENMS_DLLAPI GNPSMGFFile :
     public DefaultParamHandler,
     public ProgressLogger
   {
     public:
-      // default c'tor
+      /// Default constructor; installs the export parameters (see class docs)
       GNPSMGFFile();
 
-      // see GNPSExport tool documentation
       /**
-      * @brief Create file for GNPS molecular networking.
-      * @param consensus_file_path path to consensusXML with spectrum references
-      * @param mzml_file_paths path to mzML files referenced in consensusXML. Used to extract spectra as MGF.
-      * @param out MGF file with MS2 peak data for molecular networking.
+        @brief Write the consensus-spectrum MGF for GNPS molecular networking.
+
+        The consensusXML at @p consensus_file_path must reference MS2 spectra in
+        @p mzml_file_paths (typically the same mzMLs that fed the feature finder).
+        Per consensus feature, the referenced MS2 scans are optionally merged into a
+        single representative spectrum (per the cosine-similarity / bin-width / peak-cutoff
+        parameters) and appended to the output MGF.
+
+        @param[in] consensus_file_path Path to a consensusXML file with spectrum references
+                                       on each consensus element.
+        @param[in] mzml_file_paths     Paths to the mzML files referenced by the consensusXML.
+        @param[in] out                 Output MGF path; one spectrum block per consensus feature.
       */
       void store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const;
 
     private:
+      /// Default cosine-similarity threshold used when merging multiple MS2 scans into one representative spectrum
       static constexpr double DEF_COSINE_SIMILARITY = 0.9;
+      /// Default m/z bin width for the binned-spectrum representation used during merging (high-res default)
       static constexpr double DEF_MERGE_BIN_SIZE = static_cast<double>(BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES);
 
 //      static constexpr double DEF_PREC_MASS_TOL = 0.5;
 //      static constexpr bool DEF_PREC_MASS_TOL_ISPPM = false;
 
+      /// Default value of the @c peptide_cutoff parameter — how many top-intensity peptides per consensus element to consider when @c output_type is @c merged_spectra (-1 = all)
       static constexpr int DEF_PEPT_CUTOFF = 5;
+      /// Declared default but currently not wired to any parameter — kept for source compatibility with earlier versions of the writer
       static constexpr int DEF_MSMAP_CACHE = 50;
   };
 }

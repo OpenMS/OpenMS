@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -108,7 +82,7 @@ namespace OpenMS
   Fields indicated with * are strictly required to create a TraML file. Fields
   indicated with ** are recommended, but only required for a specific
   application (such as using the transition list for an analysis tool such as
-  \ref UTILS_OpenSwathWorkflow) or in a specific context (proteomics or metabolomics).
+  \ref TOPP_OpenSwathWorkflow) or in a specific context (proteomics or metabolomics).
 
 <p>
 Remarks:
@@ -212,15 +186,6 @@ protected:
     */
     void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp);
 
-    /** @brief Convert a list of TSVTransition to a LightTargetedExperiment
-     *
-     * Converts the list (read from csv/mrm) file into a object model using the
-     * LightTargetedExperiment with proper hierarchical structure from
-     * Transition to Peptide to Protein.
-     *
-    */
-    void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenSwath::LightTargetedExperiment& exp);
-
     /// Convert an OpenMS transition to a TSVTransition for output writing
     TransitionTSVFile::TSVTransition convertTransition_(const ReactionMonitoringTransition* it, OpenMS::TargetedExperiment& targeted_exp);
     //@}
@@ -251,18 +216,18 @@ private:
 
     /** @brief Determine separator in a CSV file and check for correct headers
      *
-     * @param line The header to be parsed
-     * @param delimiter The delimiter which will be determined from the input
-     * @param header_dict The map which maps the fields in the header to their position
+     * @param[in] line The header to be parsed
+     * @param[in] delimiter The delimiter which will be determined from the input
+     * @param[in] header_dict The map which maps the fields in the header to their position
      *
     */
     void getTSVHeader_(const std::string& line, char& delimiter, std::map<std::string, int>& header_dict) const;
 
     /** @brief Read tab or comma separated input with columns defined by their column headers only
      *
-     * @param filename The input file
-     * @param filetype The type of file ("mrm" or "tsv")
-     * @param transition_list The output list of transitions
+     * @param[in] filename The input file
+     * @param[in] filetype The type of file ("mrm" or "tsv")
+     * @param[in] transition_list The output list of transitions
      *
     */
     void readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list);
@@ -276,6 +241,21 @@ private:
     /** @brief Cleanup of the read fields (removing quotes etc.)
     */
     void cleanupTransitions_(TSVTransition& mytransition);
+
+    /** @brief Stream TSV directly to LightTargetedExperiment (memory-efficient)
+     *
+     * This function reads the TSV file line by line and directly populates
+     * the LightTargetedExperiment without creating an intermediate
+     * vector<TSVTransition>. This reduces peak memory usage by ~5x for large files.
+     *
+     * Mixed sequence group detection is performed inline during streaming.
+     *
+     * @param[in] filename The input file
+     * @param[in] filetype The type of file ("mrm" or "tsv")
+     * @param[out] exp The output LightTargetedExperiment
+     *
+    */
+    void streamTSVToLightTargetedExperiment_(const char* filename, FileTypes::Type filetype, OpenSwath::LightTargetedExperiment& exp);
     //@}
 
     /** @name Conversion helper functions
@@ -292,7 +272,7 @@ private:
      * provided "peptide group label" for a peptide and replace it with the
      * peptide identifier (transition group id).
      *
-     * @param transition_list The list of transitions to be fixed.
+     * @param[out] transition_list The list of transitions to be fixed.
      *
      */
     void resolveMixedSequenceGroups_(std::vector<TSVTransition>& transition_list) const;
@@ -325,8 +305,8 @@ private:
 
     /** @brief Write a TargetedExperiment to a file
      *
-     * @param filename Name of the output file
-     * @param targeted_exp The data structure to be written to the file
+     * @param[in] filename Name of the output file
+     * @param[out] targeted_exp The data structure to be written to the file
     */
     void writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
@@ -342,26 +322,34 @@ public:
 
     /** @brief Write out a targeted experiment (TraML structure) into a tsv file
      *
-     * @param filename The output file
-     * @param targeted_exp The targeted experiment
+     * @param[out] filename The output file
+     * @param[out] targeted_exp The targeted experiment
      *
     */
     void convertTargetedExperimentToTSV(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
+    /** @brief Write out a targeted experiment (Light structure) into a tsv file
+     *
+     * @param[in] filename The output file
+     * @param[in] targeted_exp The targeted experiment (Light structure)
+     *
+    */
+    void convertLightTargetedExperimentToTSV(const char* filename, const OpenSwath::LightTargetedExperiment& targeted_exp);
+
     /** @brief Read in a tsv/mrm file and construct a targeted experiment (TraML structure)
      *
-     * @param filename The input file
-     * @param filetype The type of file ("mrm" or "tsv")
-     * @param targeted_exp The output targeted experiment
+     * @param[out] filename The input file
+     * @param[in] filetype The type of file ("mrm" or "tsv")
+     * @param[out] targeted_exp The output targeted experiment
      *
     */
     void convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenMS::TargetedExperiment& targeted_exp);
 
     /** @brief Read in a tsv file and construct a targeted experiment (Light transition structure)
      *
-     * @param filename The input file
-     * @param filetype The type of file ("mrm" or "tsv")
-     * @param targeted_exp The output targeted experiment
+     * @param[in] filename The input file
+     * @param[in] filetype The type of file ("mrm" or "tsv")
+     * @param[out] targeted_exp The output targeted experiment
      *
     */
     void convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenSwath::LightTargetedExperiment& targeted_exp);

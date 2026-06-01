@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -36,7 +10,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 #ifdef _OPENMP
@@ -50,12 +24,25 @@ namespace OpenMS
     // fast check for border cases
     if (m < min_gap_ || m > max_gap_) return ' ';
 
-    const double delta = Math::ppmToMass(ppm_, m);
+    const double delta = tol_is_ppm_ ? Math::ppmToMass(tolerance_, m) : tolerance_;
     auto left = mass2aa_.lower_bound(m - delta);
-    //if (left == mass2aa_.end()) return ' '; // cannot happen, since we checked boundaries above
+    if (left == mass2aa_.end()) return ' ';
+    if (fabs(left->first - m) >= delta) return ' ';
+    // return the most exact one.
+    auto best_aa = left;
+    double min_delta = fabs(left->first - m);
+    while (fabs(left->first - m) < delta)
+    {
+      left++;
+      if (left == mass2aa_.end()) break;
+      if (min_delta >  fabs(left->first - m))
+      {
+        best_aa = left;
+        min_delta = fabs(left->first - m);
+      }
+    }
 
-    if (fabs(left->first - m) < delta) return left->second;
-    return ' ';
+    return best_aa->second;
   }
 
   void Tagger::getTag_(std::string & tag, const std::vector<double>& mzs, const size_t i, std::vector<std::string>& tags, const size_t charge) const
@@ -104,8 +91,8 @@ namespace OpenMS
     }
   }
 
-  Tagger::Tagger(size_t min_tag_length, double ppm, size_t max_tag_length, size_t min_charge, size_t max_charge, const StringList& fixed_mods, const StringList& var_mods)
-    : ppm_{fabs(ppm)}, min_tag_length_{min_tag_length}, max_tag_length_{max_tag_length}, min_charge_{min_charge}, max_charge_{max_charge}
+  Tagger::Tagger(size_t min_tag_length, double tolerance, size_t max_tag_length, size_t min_charge, size_t max_charge, const StringList& fixed_mods, const StringList& var_mods, bool tol_is_ppm)
+    : tolerance_{fabs(tolerance)}, tol_is_ppm_{tol_is_ppm}, min_tag_length_{min_tag_length}, max_tag_length_{max_tag_length}, min_charge_{min_charge}, max_charge_{max_charge}
   {
     const std::set<const Residue*> aas = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
 
@@ -148,9 +135,16 @@ namespace OpenMS
       const double mass = r.getMonoWeight(Residue::Internal);
       mass2aa_[mass] = name;
     }
-
-    min_gap_ = mass2aa_.begin()->first - Math::ppmToMass(ppm, mass2aa_.begin()->first);
-    max_gap_ = mass2aa_.rbegin()->first + Math::ppmToMass(ppm, mass2aa_.rbegin()->first);
+    if (tol_is_ppm_)
+    {
+      min_gap_ = mass2aa_.begin()->first - Math::ppmToMass(tolerance_, mass2aa_.begin()->first);
+      max_gap_ = mass2aa_.rbegin()->first + Math::ppmToMass(tolerance_, mass2aa_.rbegin()->first);
+    }
+    else
+    {
+      min_gap_ = mass2aa_.begin()->first - tolerance_;
+      max_gap_ = mass2aa_.rbegin()->first + tolerance_;
+    }
   }
 
   void Tagger::getTag(const std::vector<double>& mzs, std::vector<std::string>& tags) const
@@ -198,3 +192,4 @@ namespace OpenMS
     max_charge_ = max_charge;
   }
 }
+

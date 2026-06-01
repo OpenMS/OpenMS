@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -34,12 +8,15 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/SYSTEM/SIMDe.h>
 
 #include <algorithm>
+#include <bit>
 #include <set>
 
 using namespace std;
@@ -80,8 +57,7 @@ namespace OpenMS::Internal
     {
     }
 
-    XMLHandler::~XMLHandler()
-    = default;
+    XMLHandler::~XMLHandler() = default;
 
     void XMLHandler::reset()
     {
@@ -104,70 +80,73 @@ namespace OpenMS::Internal
 
     void XMLHandler::fatalError(ActionMode mode, const String & msg, UInt line, UInt column) const
     {
+      String error_message;
       if (mode == LOAD)
       {
-        error_message_ =  String("While loading '") + file_ + "': " + msg;
+        error_message =  String("While loading '") + file_ + "': " + msg;
 	      // test if file has the wrong extension and is therefore passed to the wrong parser
         // only makes sense if we are loading/parsing a file
 	      FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
         FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
         if (ft_name != ft_content)
         {
-          error_message_ += String("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
+          error_message += String("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
                           + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
                           + "Rename the file to fix this.";
         }
       }
       else if (mode == STORE)
       {
-        error_message_ =  String("While storing '") + file_ + "': " + msg;
+        error_message =  String("While storing '") + file_ + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
-        error_message_ += String("( in line ") + line + " column " + column + ")";
+        error_message += String("( in line ") + line + " column " + column + ")";
       }
 
-      OPENMS_LOG_FATAL_ERROR << error_message_ << std::endl;
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, error_message_);
+      OPENMS_LOG_FATAL_ERROR << error_message << std::endl;
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, error_message);
     }
 
     void XMLHandler::error(ActionMode mode, const String & msg, UInt line, UInt column) const
     {
+      String error_message;
       if (mode == LOAD)
       {
-        error_message_ =  String("Non-fatal error while loading '") + file_ + "': " + msg;
+        error_message =  String("Non-fatal error while loading '") + file_ + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message_ =  String("Non-fatal error while storing '") + file_ + "': " + msg;
+        error_message =  String("Non-fatal error while storing '") + file_ + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
-        error_message_ += String("( in line ") + line + " column " + column + ")";
+        error_message += String("( in line ") + line + " column " + column + ")";
       }
-      OPENMS_LOG_ERROR << error_message_ << std::endl;
+      OPENMS_LOG_ERROR << error_message << std::endl;
     }
 
     void XMLHandler::warning(ActionMode mode, const String & msg, UInt line, UInt column) const
     {
+      String error_message;
       if (mode == LOAD)
       {
-        error_message_ =  String("While loading '") + file_ + "': " + msg;
+        error_message =  String("While loading '") + file_ + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message_ =  String("While storing '") + file_ + "': " + msg;
+        error_message =  String("While storing '") + file_ + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
-        error_message_ += String("( in line ") + line + " column " + column + ")";
+        error_message += String("( in line ") + line + " column " + column + ")";
       }
 
 // warn only in Debug mode but suppress warnings in release mode (more happy users)
 #ifdef OPENMS_ASSERTIONS
-      OPENMS_LOG_WARN << error_message_ << std::endl;
+      OPENMS_LOG_WARN << error_message << std::endl;
 #else
-      OPENMS_LOG_DEBUG << error_message_ << std::endl;
+      OPENMS_LOG_DEBUG << error_message << std::endl;
 #endif
 
     }
@@ -186,11 +165,6 @@ namespace OpenMS::Internal
 
     void XMLHandler::writeTo(std::ostream & /*os*/)
     {
-    }
-
-    String XMLHandler::errorString()
-    {
-      return error_message_;
     }
 
     SignedSize XMLHandler::cvStringToEnum_(const Size section, const String & term, const char * message, const SignedSize result_on_error)
@@ -221,6 +195,156 @@ namespace OpenMS::Internal
     void XMLHandler::setLoadDetail(const LOADDETAIL /*d*/)
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+
+    DataValue XMLHandler::cvParamToValue(const ControlledVocabulary& cv, const String& parent_tag, const String& accession, const String& name,
+                                         const String& value, const String& unit_accession) const
+    {
+      // the actual value stored in the CVParam
+      // we assume for now that it is a string value, we update the type later on
+      DataValue cv_value = value;
+
+      // Abort on unknown terms
+      try
+      {
+        const ControlledVocabulary::CVTerm& term = cv.getTerm(accession); // throws Exception::InvalidValue if missing
+
+        // check if term name and parsed name match
+        if (name != term.name) 
+        {
+          warning(LOAD, String("Name of CV term not correct: '") + term.id + " - " + name + "' should be '" + term.name + "'");
+        }
+        if (term.obsolete)
+        {
+          warning(LOAD, String("Obsolete CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "'.");
+        }
+        // values used in wrong places and wrong value types
+        if (!value.empty())
+        {
+          if (term.xref_type == ControlledVocabulary::CVTerm::XRefType::NONE)
+          {
+            // Quality CV does not state value type :(
+            if (!accession.hasPrefix("PATO:"))
+            {
+              warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
+            }
+          }
+          else
+          {
+            switch (term.xref_type)
+            {
+              // string value can be anything
+              case ControlledVocabulary::CVTerm::XRefType::XSD_STRING:
+                break;
+
+              // int value => try casting
+              case ControlledVocabulary::CVTerm::XRefType::XSD_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_NEGATIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_POSITIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER:
+                try
+                {
+                  cv_value = value.toInt();
+                }
+                catch (Exception::ConversionError&)
+                {
+                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
+                  return DataValue::EMPTY;
+                }
+                break;
+
+              // double value => try casting
+              case ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL:
+                try
+                {
+                  cv_value = value.toDouble();
+                }
+                catch (Exception::ConversionError&)
+                {
+                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
+                  return DataValue::EMPTY;
+                }
+                break;
+
+              // date string => try conversion
+              case ControlledVocabulary::CVTerm::XRefType::XSD_DATE:
+                try
+                {
+                  DateTime tmp;
+                  tmp.set(value);
+                }
+                catch (Exception::ParseError&)
+                {
+                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
+                  return DataValue::EMPTY;
+                }
+                break;
+              
+              case ControlledVocabulary::CVTerm::XRefType::XSD_BOOLEAN:
+                try
+                {
+                  cv_value = String(value).toLower();
+                  cv_value.toBool(); // only works if 'true' or 'false'
+                }
+                catch (Exception::ConversionError&)
+                {
+                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have a boolean value (true/false). The value is '" + value + "'.");
+                  return DataValue::EMPTY;
+                }
+                break;
+
+              default:
+                warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' has the unknown value type '" +
+                                ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type) + "'.");
+                break;
+            }
+          }
+        }
+        // no value, although there should be a numerical value
+        else if (term.xref_type != ControlledVocabulary::CVTerm::XRefType::NONE && term.xref_type != ControlledVocabulary::CVTerm::XRefType::XSD_STRING && // should be numerical
+                 !cv.isChildOf(accession, "MS:1000513") // here the value type relates to the binary data array, not the 'value=' attribute!
+        )
+        {
+          warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
+          return DataValue::EMPTY;
+        }
+      }
+      catch (const Exception::InvalidValue& /*e*/)
+      {
+        // in 'sample' several external CVs are used (Brenda, GO, ...). Do not warn then.
+        if (parent_tag != "sample")
+        {
+          warning(LOAD, String("Unknown cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          return DataValue::EMPTY;
+        }
+      }
+
+      if (!unit_accession.empty())
+      {
+        if (unit_accession.hasPrefix("UO:"))
+        {
+          cv_value.setUnit(unit_accession.suffix(unit_accession.size() - 3).toInt());
+          cv_value.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+        }
+        else if (unit_accession.hasPrefix("MS:"))
+        {
+          cv_value.setUnit(unit_accession.suffix(unit_accession.size() - 3).toInt());
+          cv_value.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
+        }
+        else
+        {
+          warning(LOAD, String("Unhandled unit '") + unit_accession + "' in tag '" + parent_tag + "'.");
+        }
+      }
+
+      return cv_value;
+    }
+
+    DataValue XMLHandler::cvParamToValue(const ControlledVocabulary& cv, const CVTerm& raw_term) const
+    {
+      return cvParamToValue(cv, "?", raw_term.getAccession(), raw_term.getName(), raw_term.getValue(), raw_term.getUnit().accession);
     }
 
     void XMLHandler::checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids) const
@@ -295,42 +419,154 @@ namespace OpenMS::Internal
       }
     }
 
-    //*******************************************************************************************************************
-    
-    StringManager::StringManager()
-    = default;
-
-    StringManager::~StringManager()
-    = default;
-
-    void StringManager::appendASCII(const XMLCh * chars, const XMLSize_t length, String & result)
+    // https://github.com/OpenMS/OpenMS/issues/8122
+    #if defined(__GNUC__)
+    __attribute__((no_sanitize("address")))
+    #elif defined(_MSC_VER)
+    __declspec(no_sanitize_address)
+    #endif
+    size_t StringManager::strLength(const XMLCh* input_ptr)
     {
-      // XMLCh are characters in UTF16 (usually stored as 16bit unsigned
+      if (input_ptr == nullptr) {
+          return 0;
+      }
+  
+      XMLSize_t processed_chars = 0;
+      const XMLCh* pos_ptr = input_ptr;
+  
+      // find number of characters until we reach a 16-byte aligned address
+      uintptr_t ptr_value = reinterpret_cast<uintptr_t>(pos_ptr);
+      size_t misalignment = ptr_value & 15; // modulo 16 to find misalignment
+      int chars_to_align = misalignment ? (16 - misalignment) / sizeof(XMLCh) : 0;
+  
+      // process one by one until we reach a 16-byte aligned address (where a SIMD load can be used)
+      for (int i = 0; i < chars_to_align; ++i)
+      {
+          if (*pos_ptr == 0) {
+              return i;
+          }
+          ++pos_ptr;
+      }
+      processed_chars = chars_to_align;
+  
+      // SIMD loop: find the first zero character in blocks of 8 UTF-16 characters (16 bytes each)
+      const simde__m128i zero = simde_mm_setzero_si128();
+      while (true)
+      {
+          simde__m128i bits = simde_mm_load_si128(reinterpret_cast<const simde__m128i*>(pos_ptr));
+          simde__m128i cmp_zero = simde_mm_cmpeq_epi16(bits, zero); // sets bits to 0xFFFF (2 bytes) for each character that is zero
+          uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);    // extracts MSB from each byte 
+  
+          if (zero_mask != 0)
+          { // Found a zero character
+              auto byte_pos_zero = std::countr_zero(zero_mask); // count trailing zeros to find the first zero character
+              auto char_pos_zero = byte_pos_zero / 2;           // each UTF-16 character is 2 bytes, so divide by 2 to get character position
+              return processed_chars + char_pos_zero;
+          }
+  
+          // 8 chars (each 2 bytes) had no zero
+          pos_ptr += 8;
+          processed_chars += 8;
+      }
+  
+      // never reached
+      return processed_chars;
+    }
+
+    void StringManager::compress64_(const XMLCh* inputIt, char* outputIt)
+    {
+      simde__m128i bits = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(inputIt));
+    
+      // Select every second byte (little-endian lower byte of each UTF-16 character)
+      const simde__m128i shuffleMask = simde_mm_setr_epi8(
+        0, 2, 4, 6, 8, 10, 12, 14,
+        -1, -1, -1, -1, -1, -1, -1, -1
+      );
+    
+      simde__m128i compressed = simde_mm_shuffle_epi8(bits, shuffleMask);
+    
+      // Store the lower 64 bits (8 ASCII characters)
+      simde_mm_storel_epi64(reinterpret_cast<simde__m128i*>(outputIt), compressed);
+    }
+
+    bool StringManager::isASCII(const XMLCh* chars, const XMLSize_t length)
+    {
+      if (length == 0)
+      {
+        return true;
+      }
+
+      Size fullBlocks = length / 8;
+      Size remainder = length % 8;
+
+      const XMLCh* inputPtr = chars;
+      simde__m128i mask = simde_mm_set1_epi16(0xFF00);
+
+      // Process blocks of 8 UTF-16 characters using SIMD
+      for (Size i = 0; i < fullBlocks; ++i)
+      {
+        simde__m128i bits = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(inputPtr));
+        simde__m128i zero = simde_mm_setzero_si128();
+        simde__m128i andOp = simde_mm_and_si128(bits, mask);
+        simde__m128i cmp = simde_mm_cmpeq_epi16(andOp, zero);
+
+        if (simde_mm_movemask_epi8(cmp) != 0xFFFF)
+        {
+          return false;
+        }
+
+        inputPtr += 8;
+      }
+
+      // Check remaining characters individually
+      for (Size i = 0; i < remainder; ++i)
+      {
+        if (inputPtr[i] & 0xFF00)
+        {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    void StringManager::appendASCII(const XMLCh* chars, const XMLSize_t length, String& result)
+    {
+      // XMLCh are characters in UTF16 (usually stored as 16-bit unsigned
       // short but this is not guaranteed).
       // We know that the Base64 string here can only contain plain ASCII
       // and all bytes except the least significant one will be zero. Thus
       // we can convert to char directly (only keeping the least
       // significant byte).
-      const XMLCh* it = chars;
-      const XMLCh* end = it + length;
-
-      size_t curr_size = result.size();
-      result.resize(curr_size + length);
-      std::string::iterator str_it = result.begin();
-      std::advance(str_it, curr_size);
-      while (it!=end)
-      {   
-        *str_it = (char)*it;
-        ++str_it;
-        ++it;
+    
+      Size fullBlocks = length / 8;
+      Size remainder = length % 8;
+    
+      const XMLCh* inputPtr = chars;
+    
+      Size currentSize = result.size();
+      result.resize(currentSize + length);
+      char* outputPtr = &result[currentSize];
+    
+      // Copy blocks of 8 characters at a time
+      for (Size i = 0; i < fullBlocks; ++i)
+      {
+        compress64_(inputPtr, outputPtr);
+        inputPtr += 8;
+        outputPtr += 8;
       }
-
-      // This is ca. 50 % faster than 
-      // for (size_t i = 0; i < length; i++)
-      // {
-      //   result[curr_size + i] = (char)chars[i];
-      // }
-
+    
+      // Copy any remaining characters individually
+      for (Size i = 0; i < remainder; ++i)
+      {
+        outputPtr[i] = static_cast<char>(inputPtr[i] & 0xFF);
+      }
     }
 
-} // namespace OpenMS   // namespace Internal
+    //*******************************************************************************************************************
+    
+    StringManager::StringManager() = default;
+
+    StringManager::~StringManager() = default;
+
+} // namespace OpenMS::Internal

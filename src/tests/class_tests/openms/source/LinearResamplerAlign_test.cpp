@@ -1,46 +1,21 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Authors: Hannes Roest, Luis Jacob Keller, Alen Saric$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
 
-#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
+
+#include <OpenMS/test_config.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -81,6 +56,48 @@ input_spectrum[3].setIntensity(2.0f);
 input_spectrum[4].setMZ(1.8);
 input_spectrum[4].setIntensity(1.0f);
 
+START_SECTION(LinearResamplerAlign())
+{
+  LinearResamplerAlign lr;
+  TEST_NOT_EQUAL(&lr, static_cast<LinearResamplerAlign*>(nullptr));
+}
+END_SECTION
+
+START_SECTION([EXTRA] Internal::ScopedResamplingWarningSuppression restores prior state)
+{
+  const bool original_state = suppress_resampling_spacing_warning.load();
+
+  suppress_resampling_spacing_warning.store(false);
+  {
+    Internal::ScopedResamplingWarningSuppression outer_scope;
+    TEST_EQUAL(suppress_resampling_spacing_warning.load(), true)
+
+    {
+      Internal::ScopedResamplingWarningSuppression inner_scope;
+      TEST_EQUAL(suppress_resampling_spacing_warning.load(), true)
+    }
+
+    TEST_EQUAL(suppress_resampling_spacing_warning.load(), true)
+  }
+  TEST_EQUAL(suppress_resampling_spacing_warning.load(), false)
+
+  suppress_resampling_spacing_warning.store(true);
+  {
+    Internal::ScopedResamplingWarningSuppression scope_with_true_prior_state;
+    TEST_EQUAL(suppress_resampling_spacing_warning.load(), true)
+  }
+  TEST_EQUAL(suppress_resampling_spacing_warning.load(), true)
+
+  suppress_resampling_spacing_warning.store(original_state);
+}
+END_SECTION
+
+START_SECTION((~LinearResamplerAlign()))
+{
+  LinearResamplerAlign lr;
+}
+END_SECTION
+
 // A spacing of 0.75 will lead to a recalculation of intensities, each
 // resampled point gets intensities from raw data points that are at most +/-
 // spacing away.
@@ -115,7 +132,32 @@ END_SECTION
 // it should also work with chromatograms
 START_SECTION([EXTRA] test_linear_res_chromat)
 {
-  MSChromatogram spec;
+  MSChromatogram chrom;
+  chrom.resize(5);
+  chrom[0].setRT(0);
+  chrom[0].setIntensity(3.0f);
+  chrom[1].setRT(0.5);
+  chrom[1].setIntensity(6.0f);
+  chrom[2].setRT(1.);
+  chrom[2].setIntensity(8.0f);
+  chrom[3].setRT(1.6);
+  chrom[3].setIntensity(2.0f);
+  chrom[4].setRT(1.8);
+  chrom[4].setIntensity(1.0f);
+
+  LinearResamplerAlign lr;
+  Param param;
+  param.setValue("spacing", default_spacing);
+  lr.setParameters(param);
+  lr.raster(chrom);
+
+  check_results(chrom);
+}
+END_SECTION
+
+START_SECTION(( template <typename PeakType > void rasterExperiment(MSExperiment<PeakType>& exp)))
+{
+  MSSpectrum spec;
   spec.resize(5);
   spec[0].setMZ(0);
   spec[0].setIntensity(3.0f);
@@ -128,17 +170,31 @@ START_SECTION([EXTRA] test_linear_res_chromat)
   spec[4].setMZ(1.8);
   spec[4].setIntensity(1.0f);
 
+  PeakMap exp;
+  exp.addSpectrum(spec);
+  exp.addSpectrum(spec);
+
   LinearResamplerAlign lr;
   Param param;
-  param.setValue("spacing",default_spacing);
+  param.setValue("spacing",0.5);
   lr.setParameters(param);
-  lr.raster(spec);
+  lr.rasterExperiment(exp);
 
-  check_results(spec);
+
+  for (Size s=0; s<exp.size(); ++s)
+  {
+    double sum = 0.0;
+    for (Size i=0; i<exp[s].size(); ++i)
+    {
+      sum += exp[s][i].getIntensity();
+    }
+    TEST_REAL_SIMILAR(sum, 20);
+  }
+
 }
 END_SECTION
 
-START_SECTION(( void raster(ConstPeakTypeIterator raw_it, ConstPeakTypeIterator raw_end, PeakTypeIterator resample_it, PeakTypeIterator resample_end)))
+START_SECTION(( void raster(ConstPeakTypeIterator raw_it, ConstPeakTypeIterator raw_end, PeakTypeIterator resample_it, PeakTypeIterator resample_end) ))
 {
 
   MSSpectrum spec = input_spectrum;
@@ -578,5 +634,4 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 

@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/deNBI-cibi/tool_description_lib
+	branch = main
+	commit = 58869f13ec8e8f49b03de212bafafb3b03d3e1e4
+	parent = c85463e35c42e55bfb752d1f81447c25e6164138
+	method = merge
+	cmdver = 0.4.6

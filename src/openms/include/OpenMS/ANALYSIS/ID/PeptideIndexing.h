@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -42,6 +16,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 namespace OpenMS
@@ -56,7 +31,7 @@ namespace OpenMS
   only in decoy proteins, or in both. The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool.
   (For FDR calculations, "target+decoy" peptide hits count as target hits.)
 
-  @note Make sure that your protein names in the database contain a correctly formatted decoy string. This can be ensured by using @ref UTILS_DecoyDatabase.
+  @note Make sure that your protein names in the database contain a correctly formatted decoy string. This can be ensured by using @ref TOPP_DecoyDatabase.
         If the decoy identifier is not recognized successfully, all proteins will be assumed to stem from the target-part of the query.<br>
         E.g., "sw|P33354_DECOY|YEHR_ECOLI Uncharacterized lipop..." is <b>invalid</b>, since the tool has no knowledge of how SwissProt entries are build up.
         A correct identifier could be "DECOY_sw|P33354|YEHR_ECOLI Uncharacterized li ..." or "sw|P33354|YEHR_ECOLI_DECOY Uncharacterized li", depending on whether you are
@@ -115,10 +90,10 @@ namespace OpenMS
   {
 public:
     /// name of enzyme/specificity which signals that the enzyme/specificity should be taken from meta information
-    static char const* const AUTO_MODE; /* = 'auto' */ 
+    static char const* const AUTO_MODE; /* = 'auto' */
 
     /// Exit codes
-    enum ExitCodes
+    enum class ExitCodes
     {
       EXECUTION_OK,
       DATABASE_EMPTY,
@@ -153,7 +128,7 @@ public:
     ~PeptideIndexing() override;
 
     /// forward for old interface and pyOpenMS; use other run() methods for more control
-    ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+    ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids);
 
     /**
     @brief Re-index peptide identifications honoring enzyme cutting rules, ambiguous amino acids and target/decoy hits.
@@ -184,16 +159,16 @@ public:
     Runtime: PeptideIndexer is usually very fast (loading and storing the data takes the most time) and search speed can be further improved (linearly), but using more threads. 
     Avoid allowing too many (>=4) ambiguous amino acids if your database contains long stretches of 'X' (exponential search space).
 
-    @param proteins A list of proteins -- either read piecewise from a FASTA file or as existing vector of FASTAEntries.
-    @param prot_ids Resulting protein identifications associated to pep_ids (will be re-written completely)
-    @param pep_ids Peptide identifications which should be search within @p proteins and then linked to @p prot_ids
+    @param[in] proteins A list of proteins -- either read piecewise from a FASTA file or as existing vector of FASTAEntries.
+    @param[out] prot_ids Resulting protein identifications associated to pep_ids (will be re-written completely)
+    @param[in] pep_ids Peptide identifications which should be search within @p proteins and then linked to @p prot_ids
     @return Exit status codes.
 
     */
-    ExitCodes run(FASTAContainer<TFI_File>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+    ExitCodes run(FASTAContainer<TFI_File>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids);
 
     /// Same as run() with TFI_File, but for proteins which are already in memory
-    ExitCodes run(FASTAContainer<TFI_Vector>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+    ExitCodes run(FASTAContainer<TFI_Vector>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids);
 
     /// Which string is used to determine if a protein is a decoy or not
     const String& getDecoyString() const;
@@ -204,7 +179,7 @@ public:
  protected:
     void updateMembers_() override;
 
-    template<typename T> ExitCodes run_(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+    template<typename T> ExitCodes run_(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids);
 
     String decoy_string_{};
     bool prefix_{ false };

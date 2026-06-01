@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -38,6 +12,8 @@
 ///////////////////////////
 
 #include <string>
+#include <unordered_set>
+#include <unordered_map>
 
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -158,7 +134,7 @@ END_SECTION
 START_SECTION((bool operator==(const ProteinIdentification& rhs) const))
 	ProteinIdentification search1;
 	ProteinIdentification search2;
-	TEST_EQUAL(search1 == search2, true)
+	TEST_TRUE(search1 == search2)
 
 	search1.setDateTime(DateTime::now());
 	TEST_EQUAL(search1 == search2, false)
@@ -211,7 +187,7 @@ START_SECTION((bool operator!=(const ProteinIdentification& rhs) const))
 	TEST_EQUAL(search1 != search2, false)
 
 	search1.setDateTime(DateTime::now());
-	TEST_EQUAL(search1 != search2, true)
+	TEST_FALSE(search1 == search2)
 
 	//rest does not need to be tested, as it is tested in the operator== test implicitly!
 END_SECTION
@@ -222,7 +198,7 @@ START_SECTION((const DateTime& getDateTime() const))
 	DateTime date = DateTime::now();
 	hits.setDateTime(date);
 	const DateTime& date_time = hits.getDateTime();
-	TEST_EQUAL(date_time == date, true)
+	TEST_TRUE(date_time == date)
 END_SECTION
 
 
@@ -455,7 +431,7 @@ START_SECTION((void sort()))
 END_SECTION
 
 
-START_SECTION((void assignRanks()))
+START_SECTION((void sort()))
 	ProteinIdentification id;
 	ProteinHit hit;
 	hit.setScore(23);
@@ -468,18 +444,15 @@ START_SECTION((void assignRanks()))
 	hit.setAccession("THIRDPROTEIN");
 	id.insertHit(hit);
 
-	id.assignRanks();
+	id.sort();
 
 	TEST_EQUAL(id.getHits()[0].getAccession(), "FIRSTPROTEIN")
 	TEST_EQUAL(id.getHits()[1].getAccession(), "SECONDPROTEIN")
 	TEST_EQUAL(id.getHits()[2].getAccession(), "THIRDPROTEIN")
-	TEST_EQUAL(id.getHits()[0].getRank(), 1)
-	TEST_EQUAL(id.getHits()[1].getRank(), 2)
-	TEST_EQUAL(id.getHits()[2].getRank(), 3)
 END_SECTION
 
 
-START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pep_ids)))
+START_SECTION((Size computeCoverage(const PeptideIdentificationList& pep_ids)))
 	ProteinIdentification id;
 
   // prep hit
@@ -494,7 +467,7 @@ START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pe
   id.insertHit(hit);
 
   // prep peptides
-  std::vector<PeptideIdentification> pep_ids;
+  PeptideIdentificationList pep_ids;
   PeptideIdentification pid;
   PeptideHit phit(0, 0, 1, AASequence::fromString(""));
   PeptideEvidence pe;
@@ -591,7 +564,7 @@ START_SECTION(([ProteinIdentification::ProteinGroup] bool operator==(const Prote
   TEST_NOT_EQUAL(p == p_c, true)
 
   p_c = p;
-  TEST_EQUAL(p == p_c, true)
+  TEST_TRUE(p == p_c)
 END_SECTION
 
 
@@ -636,7 +609,7 @@ START_SECTION(([ProteinIdentification::SearchParameters] SearchParameters()))
   TEST_EQUAL(sp.db_version.size(), 0)
   TEST_EQUAL(sp.taxonomy.size(), 0)
   TEST_EQUAL(sp.charges.size(), 0)
-  TEST_EQUAL(sp.mass_type, 0)
+  TEST_EQUAL(static_cast<int>(sp.mass_type), static_cast<int>(ProteinIdentification::PeakMassType::MONOISOTOPIC))
   TEST_EQUAL(sp.fixed_modifications.size(), 0)
   TEST_EQUAL(sp.variable_modifications.size(), 0)
   TEST_EQUAL(sp.digestion_enzyme.getName(), "unknown_enzyme")
@@ -659,7 +632,7 @@ END_SECTION
 START_SECTION(([ProteinIdentification::SearchParameters] bool operator!=(const SearchParameters& rhs) const))
   ProteinIdentification::SearchParameters sp, sp_n;
   sp_n.charges = "1,2,3";
-  TEST_EQUAL(sp != sp_n, true)
+  TEST_FALSE(sp == sp_n)
 END_SECTION
 
 
@@ -766,8 +739,210 @@ START_SECTION((vector<ProteinHit>::iterator findHit(const String& accession)))
 }
 END_SECTION
 
+START_SECTION((static StringList getAllNamesOfPeakMassType()))
+  StringList names = ProteinIdentification::getAllNamesOfPeakMassType();
+  size_t expected_size = static_cast<size_t>(ProteinIdentification::PeakMassType::SIZE_OF_PEAKMASSTYPE);
+  size_t mono_idx = static_cast<size_t>(ProteinIdentification::PeakMassType::MONOISOTOPIC);
+  size_t avg_idx = static_cast<size_t>(ProteinIdentification::PeakMassType::AVERAGE);
+  TEST_EQUAL(names.size(), expected_size);
+  TEST_EQUAL(names[mono_idx], "Monoisotopic");
+  TEST_EQUAL(names[avg_idx], "Average");
+END_SECTION
+
+
+/////////////////////////////////////////////////////////////
+// Hash function tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] std::hash<ProteinIdentification>))
+{
+  // Test that equal ProteinIdentifications have equal hashes
+  ProteinIdentification pi1;
+  pi1.setIdentifier("test_id");
+  pi1.setSearchEngine("Mascot");
+  pi1.setSearchEngineVersion("2.1");
+  pi1.setScoreType("Mascot");
+  pi1.setHigherScoreBetter(true);
+  pi1.setSignificanceThreshold(0.05);
+
+  ProteinHit hit;
+  hit.setAccession("protein1");
+  hit.setScore(100.0);
+  pi1.insertHit(hit);
+
+  ProteinIdentification::ProteinGroup group;
+  group.probability = 0.99;
+  group.accessions.push_back("protein1");
+  pi1.insertProteinGroup(group);
+
+  ProteinIdentification::SearchParameters params;
+  params.db = "SwissProt";
+  params.db_version = "2023.1";
+  params.charges = "2,3";
+  params.missed_cleavages = 2;
+  params.fragment_mass_tolerance = 0.5;
+  params.precursor_mass_tolerance = 10.0;
+  pi1.setSearchParameters(params);
+
+  ProteinIdentification pi2;
+  pi2.setIdentifier("test_id");
+  pi2.setSearchEngine("Mascot");
+  pi2.setSearchEngineVersion("2.1");
+  pi2.setScoreType("Mascot");
+  pi2.setHigherScoreBetter(true);
+  pi2.setSignificanceThreshold(0.05);
+  pi2.insertHit(hit);
+  pi2.insertProteinGroup(group);
+  pi2.setSearchParameters(params);
+
+  // Equal objects must have equal hashes
+  std::hash<ProteinIdentification> hasher;
+  TEST_EQUAL(hasher(pi1), hasher(pi2))
+
+  // Test that hash changes when content changes
+  ProteinIdentification pi3(pi1);
+  pi3.setIdentifier("different_id");
+  TEST_NOT_EQUAL(hasher(pi1), hasher(pi3))
+
+  // Test use in unordered_set
+  std::unordered_set<ProteinIdentification> pi_set;
+  pi_set.insert(pi1);
+  pi_set.insert(pi2); // Should not add duplicate
+  TEST_EQUAL(pi_set.size(), 1)
+
+  pi_set.insert(pi3); // Should add different element
+  TEST_EQUAL(pi_set.size(), 2)
+
+  // Test use in unordered_map
+  std::unordered_map<ProteinIdentification, std::string> pi_map;
+  pi_map[pi1] = "first";
+  pi_map[pi2] = "second"; // Should overwrite
+  TEST_EQUAL(pi_map.size(), 1)
+  TEST_EQUAL(pi_map[pi1], "second")
+
+  pi_map[pi3] = "third";
+  TEST_EQUAL(pi_map.size(), 2)
+}
+END_SECTION
+
+
+START_SECTION(([EXTRA] std::hash<ProteinIdentification::ProteinGroup>))
+{
+  ProteinIdentification::ProteinGroup g1;
+  g1.probability = 0.95;
+  g1.accessions.push_back("protein1");
+  g1.accessions.push_back("protein2");
+
+  ProteinIdentification::ProteinGroup g2;
+  g2.probability = 0.95;
+  g2.accessions.push_back("protein1");
+  g2.accessions.push_back("protein2");
+
+  // Equal groups must have equal hashes
+  std::hash<ProteinIdentification::ProteinGroup> hasher;
+  TEST_EQUAL(hasher(g1), hasher(g2))
+
+  // Test that hash changes when content changes
+  ProteinIdentification::ProteinGroup g3;
+  g3.probability = 0.80;
+  g3.accessions.push_back("protein1");
+  g3.accessions.push_back("protein2");
+  TEST_NOT_EQUAL(hasher(g1), hasher(g3))
+
+  // Test use in unordered_set
+  std::unordered_set<ProteinIdentification::ProteinGroup> group_set;
+  group_set.insert(g1);
+  group_set.insert(g2); // Should not add duplicate
+  TEST_EQUAL(group_set.size(), 1)
+
+  group_set.insert(g3);
+  TEST_EQUAL(group_set.size(), 2)
+}
+END_SECTION
+
+
+START_SECTION(([EXTRA] std::hash<ProteinIdentification::SearchParameters>))
+{
+  ProteinIdentification::SearchParameters sp1;
+  sp1.db = "SwissProt";
+  sp1.db_version = "2023.1";
+  sp1.taxonomy = "Homo sapiens";
+  sp1.charges = "2,3,4";
+  sp1.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
+  sp1.fixed_modifications.push_back("Carbamidomethyl (C)");
+  sp1.variable_modifications.push_back("Oxidation (M)");
+  sp1.missed_cleavages = 2;
+  sp1.fragment_mass_tolerance = 0.5;
+  sp1.precursor_mass_tolerance = 10.0;
+
+  ProteinIdentification::SearchParameters sp2;
+  sp2.db = "SwissProt";
+  sp2.db_version = "2023.1";
+  sp2.taxonomy = "Homo sapiens";
+  sp2.charges = "2,3,4";
+  sp2.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
+  sp2.fixed_modifications.push_back("Carbamidomethyl (C)");
+  sp2.variable_modifications.push_back("Oxidation (M)");
+  sp2.missed_cleavages = 2;
+  sp2.fragment_mass_tolerance = 0.5;
+  sp2.precursor_mass_tolerance = 10.0;
+
+  // Equal parameters must have equal hashes
+  std::hash<ProteinIdentification::SearchParameters> hasher;
+  TEST_EQUAL(hasher(sp1), hasher(sp2))
+
+  // Test that hash changes when content changes
+  ProteinIdentification::SearchParameters sp3(sp1);
+  sp3.db = "TrEMBL";
+  TEST_NOT_EQUAL(hasher(sp1), hasher(sp3))
+
+  // Test use in unordered_set
+  std::unordered_set<ProteinIdentification::SearchParameters> sp_set;
+  sp_set.insert(sp1);
+  sp_set.insert(sp2); // Should not add duplicate
+  TEST_EQUAL(sp_set.size(), 1)
+
+  sp_set.insert(sp3);
+  TEST_EQUAL(sp_set.size(), 2)
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+
+START_SECTION((get*DataArrayByName throws ElementNotFound for missing name))
+{
+  ProteinIdentification::ProteinGroup pg;
+
+  // Integer
+  ProteinIdentification::ProteinGroup::IntegerDataArray ida;
+  ida.setName("int_da");
+  pg.getIntegerDataArrays().push_back(ida);
+  TEST_EQUAL(pg.getIntegerDataArrayByName("int_da").getName(), "int_da")
+  TEST_EXCEPTION(Exception::ElementNotFound, pg.getIntegerDataArrayByName("missing_int"))
+
+  // String
+  ProteinIdentification::ProteinGroup::StringDataArray sda;
+  sda.setName("str_da");
+  pg.getStringDataArrays().push_back(sda);
+  TEST_EQUAL(pg.getStringDataArrayByName("str_da").getName(), "str_da")
+  TEST_EXCEPTION(Exception::ElementNotFound, pg.getStringDataArrayByName("missing_str"))
+
+  // Float
+  ProteinIdentification::ProteinGroup::FloatDataArray fda;
+  fda.setName("float_da");
+  pg.getFloatDataArrays().push_back(fda);
+  TEST_EQUAL(pg.getFloatDataArrayByName("float_da").getName(), "float_da")
+  TEST_EXCEPTION(Exception::ElementNotFound, pg.getFloatDataArrayByName("missing_float"))
+
+  // const overloads should throw as well
+  const ProteinIdentification::ProteinGroup& cpg = pg;
+  TEST_EXCEPTION(Exception::ElementNotFound, cpg.getIntegerDataArrayByName("missing_int"))
+  TEST_EXCEPTION(Exception::ElementNotFound, cpg.getStringDataArrayByName("missing_str"))
+  TEST_EXCEPTION(Exception::ElementNotFound, cpg.getFloatDataArrayByName("missing_float"))
+}
+END_SECTION
 
 END_TEST

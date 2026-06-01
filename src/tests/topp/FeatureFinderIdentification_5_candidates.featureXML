@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.9" id="fm_7444998229116103684" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<UserParam type="stringList" name="spectra_data" value="[FeatureFinderIdentification_1_input.mzML]"/>
+	<UserParam type="stringList" name="spectra_data" value="[/home/sachsenb/Development/OpenMS/src/tests/topp/FeatureFinderIdentification_1_input.mzML]"/>
 	<featureList count="37">
 		<feature id="f_4835329514588776807">
 			<position dim="0">2024.601233363805477</position>
@@ -145,7 +145,7 @@
 			<UserParam type="float" name="leftWidth" value="1998.9910888671875"/>
 			<UserParam type="float" name="rightWidth" value="2087.48876953125"/>
 			<UserParam type="float" name="peak_apices_sum" value="1.149204797851563e07"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[461.747653035420967, -0.86848563112515, 462.249330454320955, -2.147825828669652]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-0.86848563112515, -2.147825828669652]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.99996493554237"/>
@@ -347,11 +347,11 @@
 			<UserParam type="float" name="leftWidth" value="2045.21923828125"/>
 			<UserParam type="float" name="rightWidth" value="2151.267578125"/>
 			<UserParam type="float" name="peak_apices_sum" value="2.710447491210938e06"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[395.726522907820936, -12.566790200446562, 396.228200326720923, -23.320107723438678]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-12.566790200446562, -23.320107723438678]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.999781395633316"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999720703224887"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.999781395633317"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999720703224888"/>
 			<UserParam type="float" name="var_library_corr" value="1.0"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.022652253599758"/>
 			<UserParam type="float" name="var_library_sangle" value="0.038845551171258"/>
@@ -363,10 +363,10 @@
 			<UserParam type="float" name="sn_ratio" value="90.191862291064666"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.501939204496035"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.994736403226852"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="7.407402220940101"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="7.407402220940103"/>
 			<UserParam type="float" name="var_massdev_score" value="17.943448961942622"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="15.873311268126084"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.495297566461897"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.495297566461898"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="395.726522907820936"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -382,7 +382,7 @@
 			<intensity>5.958424e06</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>2.101267</overallquality>
+			<overallquality>0.227984</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="2094.083251953125" y="455.705280535420968" />
@@ -565,7 +565,7 @@
 			<UserParam type="float" name="leftWidth" value="2094.083251953125"/>
 			<UserParam type="float" name="rightWidth" value="2197.34326171875"/>
 			<UserParam type="float" name="peak_apices_sum" value="4.861266306152344e05"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[456.256957954320967, -42.506989184944054]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-1.0, -42.506989184944054]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.997915327318514"/>
@@ -582,9 +582,9 @@
 			<UserParam type="float" name="var_log_sn_score" value="4.421286974273773"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.995133340358734"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.276315927987643"/>
-			<UserParam type="float" name="var_massdev_score" value="21.253494592472027"/>
+			<UserParam type="float" name="var_massdev_score" value="42.506989184944054"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="14.758126677277407"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.101267188027085"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.227983537041763"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="455.75528053542098"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -745,12 +745,12 @@
 			<UserParam type="float" name="leftWidth" value="1735.693115234375"/>
 			<UserParam type="float" name="rightWidth" value="1806.5321044921875"/>
 			<UserParam type="float" name="peak_apices_sum" value="2.109085771972656e06"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[569.752618393021066, 0.148318049196185, 570.254295811921111, -0.815833160985586]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.148318049196185, -0.815833160985586]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.999786313233064"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.999786313233063"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999706240346684"/>
-			<UserParam type="float" name="var_library_corr" value="1.000000000000002"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
 			<UserParam type="float" name="var_library_rmsd" value="1.268323393500692e-03"/>
 			<UserParam type="float" name="var_library_sangle" value="2.342698671852638e-03"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="1.268323393500692e-03"/>
@@ -761,10 +761,10 @@
 			<UserParam type="float" name="sn_ratio" value="117.62776581564475"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.767525111470923"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.99731856584549"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="7.660288428118682"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="7.660288428118681"/>
 			<UserParam type="float" name="var_massdev_score" value="0.482075605090886"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.385620575079687"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.251130011251214"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.251130011251213"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="569.752618393021066"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -780,7 +780,7 @@
 			<intensity>1.640401e05</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.887193</overallquality>
+			<overallquality>0.148521</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1858.9708251953125" y="569.702618393021112" />
@@ -855,7 +855,7 @@
 			<UserParam type="float" name="leftWidth" value="1858.9708251953125"/>
 			<UserParam type="float" name="rightWidth" value="1874.540771484375"/>
 			<UserParam type="float" name="peak_apices_sum" value="3.833235302734375e04"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[570.254295811921111, -16.761332655893472]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-1.0, -16.761332655893472]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.935196798358292"/>
@@ -872,9 +872,9 @@
 			<UserParam type="float" name="var_log_sn_score" value="0.677018369739987"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.962808400392532"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="4.287976288268554"/>
-			<UserParam type="float" name="var_massdev_score" value="8.380666327946736"/>
+			<UserParam type="float" name="var_massdev_score" value="16.761332655893472"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="5.9586764496682"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.887192693588528"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.148520512023312"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="569.752618393021066"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -1045,14 +1045,14 @@
 			<UserParam type="float" name="leftWidth" value="1720.4281005859375"/>
 			<UserParam type="float" name="rightWidth" value="1794.1895751953125"/>
 			<UserParam type="float" name="peak_apices_sum" value="4.048564306640625e06"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[443.711267907820911, -0.195237215240984, 444.212945326720899, -1.326660132740973]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-0.195237215240984, -1.326660132740973]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999913661505798"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999889473186909"/>
-			<UserParam type="float" name="var_library_corr" value="1.000000000000001"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
 			<UserParam type="float" name="var_library_rmsd" value="5.996290323722064e-04"/>
-			<UserParam type="float" name="var_library_sangle" value="1.045540916242191e-03"/>
+			<UserParam type="float" name="var_library_sangle" value="1.045540916242192e-03"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="5.996290323722064e-04"/>
 			<UserParam type="float" name="var_library_manhattan" value="6.750502261606006e-04"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999999789235556"/>
@@ -1061,7 +1061,7 @@
 			<UserParam type="float" name="sn_ratio" value="90.798258417386961"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.508640104998047"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.996718049049378"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="7.475186579850639"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="7.475186579850642"/>
 			<UserParam type="float" name="var_massdev_score" value="0.760948673990978"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.544374915023067"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.068588878434191"/>
@@ -1333,23 +1333,23 @@
 			<UserParam type="float" name="leftWidth" value="1825.08544921875"/>
 			<UserParam type="float" name="rightWidth" value="2023.5401611328125"/>
 			<UserParam type="float" name="peak_apices_sum" value="9.499469340820312e06"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[487.732534471620966, -0.629053359215932, 488.234211890520953, -1.566431582917618]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-0.629053359215932, -1.566431582917618]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999943553484593"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999923835687318"/>
-			<UserParam type="float" name="var_library_corr" value="0.999999999999999"/>
-			<UserParam type="float" name="var_library_rmsd" value="1.573300698603258e-03"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
+			<UserParam type="float" name="var_library_rmsd" value="1.573300698603286e-03"/>
 			<UserParam type="float" name="var_library_sangle" value="2.861951139574366e-03"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="1.573300698603258e-03"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="1.573300698603286e-03"/>
 			<UserParam type="float" name="var_library_manhattan" value="1.701319344470709e-03"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999998625670894"/>
 			<UserParam type="float" name="var_intensity_score" value="0.995052470444129"/>
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="97.383531617428758"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.578657116449675"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.979632318019867"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="7.555751168841823"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.97963210940361"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="7.555751561964992"/>
 			<UserParam type="float" name="var_massdev_score" value="1.097742471066775"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.949193523012588"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.079739736207683"/>
@@ -1629,23 +1629,23 @@
 			<UserParam type="float" name="leftWidth" value="1825.08544921875"/>
 			<UserParam type="float" name="rightWidth" value="2033.834228515625"/>
 			<UserParam type="float" name="peak_apices_sum" value="6.112749489257813e06"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[325.490781803337711, 1.130103342196892, 325.825233415937703, -0.055824024458159]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[1.130103342196892, -0.055824024458159]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999871449077583"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999826543895935"/>
 			<UserParam type="float" name="var_library_corr" value="1.0"/>
-			<UserParam type="float" name="var_library_rmsd" value="9.787552133506683e-04"/>
+			<UserParam type="float" name="var_library_rmsd" value="9.787552133506406e-04"/>
 			<UserParam type="float" name="var_library_sangle" value="1.777815756540665e-03"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="9.787552133506683e-04"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="9.787552133506406e-04"/>
 			<UserParam type="float" name="var_library_manhattan" value="1.059809712365911e-03"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.99999946716184"/>
 			<UserParam type="float" name="var_intensity_score" value="0.99657059483216"/>
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="94.997189772580214"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.553847309821744"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.978488326072693"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="7.541161971277277"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.978488028049469"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="7.541162532881804"/>
 			<UserParam type="float" name="var_massdev_score" value="0.592963683327525"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.763207730534284"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.110306633335988"/>
@@ -1809,23 +1809,23 @@
 			<UserParam type="float" name="leftWidth" value="2047.82275390625"/>
 			<UserParam type="float" name="rightWidth" value="2133.37890625"/>
 			<UserParam type="float" name="peak_apices_sum" value="2.03053791015625e06"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[554.26060201207099, -0.11107725135166, 554.762279430971034, -0.752151361007246]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-0.11107725135166, -0.752151361007246]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999829163464495"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999761196544418"/>
-			<UserParam type="float" name="var_library_corr" value="0.999999999999999"/>
-			<UserParam type="float" name="var_library_rmsd" value="1.391306888879201e-03"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
+			<UserParam type="float" name="var_library_rmsd" value="1.391306888879229e-03"/>
 			<UserParam type="float" name="var_library_sangle" value="2.603420069895692e-03"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="1.391306888879201e-03"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="1.391306888879229e-03"/>
 			<UserParam type="float" name="var_library_manhattan" value="1.46751429601133e-03"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999998960589683"/>
 			<UserParam type="float" name="var_intensity_score" value="0.99542676438069"/>
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="100.706242859934804"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.612207792439818"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.994817167520523"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="7.551514356717318"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.994817137718201"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="7.551514412877771"/>
 			<UserParam type="float" name="var_massdev_score" value="0.431614306179453"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.347966082988873"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.15947393683158"/>
@@ -2027,12 +2027,12 @@
 			<UserParam type="float" name="leftWidth" value="1744.559326171875"/>
 			<UserParam type="float" name="rightWidth" value="1848.682373046875"/>
 			<UserParam type="float" name="peak_apices_sum" value="9.976634765625001e04"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[646.30468413227095, 0.508276664028626, 646.806361551170994, 0.595827566738079]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.508276664028626, 0.595827566738079]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.996687864987247"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.995242375661885"/>
-			<UserParam type="float" name="var_library_corr" value="1.000000000000001"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.996687864987248"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.995242375661886"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.038674950237407"/>
 			<UserParam type="float" name="var_library_sangle" value="0.072958423671982"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.038674950237407"/>
@@ -2042,11 +2042,11 @@
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="90.472841554328383"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.505049712346531"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.980602443218231"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="7.370757598464245"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.980602651834488"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="7.37075720534108"/>
 			<UserParam type="float" name="var_massdev_score" value="0.552052115383353"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.543039773211125"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.986868218955548"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.986868218955549"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="646.30468413227095"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -2157,23 +2157,23 @@
 			<UserParam type="float" name="leftWidth" value="1865.8509521484375"/>
 			<UserParam type="float" name="rightWidth" value="1902.930419921875"/>
 			<UserParam type="float" name="peak_apices_sum" value="7610.5704345703125"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[646.30468413227095, 0.751855450426686, 646.806361551170994, 1.368677394737747]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.751855450426686, 1.368677394737747]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="4.553418012614795"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="2.39403703844426"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.802634218197834"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.716499404946465"/>
-			<UserParam type="float" name="var_library_corr" value="1.000000000000002"/>
-			<UserParam type="float" name="var_library_rmsd" value="8.622360044532901e-03"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
+			<UserParam type="float" name="var_library_rmsd" value="8.622360044532872e-03"/>
 			<UserParam type="float" name="var_library_sangle" value="0.01659853395099"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="8.622360044532901e-03"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="8.622360044532872e-03"/>
 			<UserParam type="float" name="var_library_manhattan" value="8.882617841960428e-03"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.99996132167384"/>
 			<UserParam type="float" name="var_intensity_score" value="0.051151976408552"/>
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="3.508267202470281"/>
 			<UserParam type="float" name="var_log_sn_score" value="1.255122241070502"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.780472576618195"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="3.925815286655692"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.780615031719208"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="3.925546839691958"/>
 			<UserParam type="float" name="var_massdev_score" value="1.060266422582216"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.99677181259609"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="1.148281949685312"/>
@@ -2437,23 +2437,23 @@
 			<UserParam type="float" name="leftWidth" value="1746.171142578125"/>
 			<UserParam type="float" name="rightWidth" value="1918.9876708984375"/>
 			<UserParam type="float" name="peak_apices_sum" value="9.600613305664062e05"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[431.20554824377092, 0.12844863602623, 431.539999856370912, -0.560695752787452]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.12844863602623, -0.560695752787452]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.999360251977442"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.999360251977443"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999081051723236"/>
 			<UserParam type="float" name="var_library_corr" value="1.0"/>
-			<UserParam type="float" name="var_library_rmsd" value="7.271654873340639e-03"/>
+			<UserParam type="float" name="var_library_rmsd" value="7.271654873340694e-03"/>
 			<UserParam type="float" name="var_library_sangle" value="0.01391109564925"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="7.271654873340639e-03"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="7.271654873340694e-03"/>
 			<UserParam type="float" name="var_library_manhattan" value="7.529320230596214e-03"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999972302734445"/>
 			<UserParam type="float" name="var_intensity_score" value="0.988331099493958"/>
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="22.668915985631269"/>
 			<UserParam type="float" name="var_log_sn_score" value="3.120994646244767"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.981038093566895"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="6.468803854048883"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.981038123369217"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="6.468803797888429"/>
 			<UserParam type="float" name="var_massdev_score" value="0.344572194406841"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.300077405676464"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.231799367629902"/>
@@ -2629,15 +2629,15 @@
 			<UserParam type="float" name="leftWidth" value="1974.81298828125"/>
 			<UserParam type="float" name="rightWidth" value="2079.67431640625"/>
 			<UserParam type="float" name="peak_apices_sum" value="3.165766907226562e06"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[379.715100772820961, 0.084990349096335, 380.216778191720948, -1.530730887141459]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.084990349096335, -1.530730887141459]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.999814185287421"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.99981418528742"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999770460878599"/>
 			<UserParam type="float" name="var_library_corr" value="1.0"/>
-			<UserParam type="float" name="var_library_rmsd" value="7.063336436118867e-03"/>
+			<UserParam type="float" name="var_library_rmsd" value="7.063336436118894e-03"/>
 			<UserParam type="float" name="var_library_sangle" value="0.011946959677817"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="7.063336436118867e-03"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="7.063336436118894e-03"/>
 			<UserParam type="float" name="var_library_manhattan" value="8.205067614144191e-03"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999969487049913"/>
 			<UserParam type="float" name="var_intensity_score" value="0.994251545537716"/>
@@ -2645,10 +2645,10 @@
 			<UserParam type="float" name="sn_ratio" value="91.363737349843746"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.514848653015868"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.997166931629181"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="7.458996314922436"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="7.458996314922434"/>
 			<UserParam type="float" name="var_massdev_score" value="0.807860618118897"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.504204552687989"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.052184937605982"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.052184937605981"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="379.715100772820961"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -2747,12 +2747,12 @@
 			<UserParam type="float" name="leftWidth" value="2288.541015625"/>
 			<UserParam type="float" name="rightWidth" value="2307.17138671875"/>
 			<UserParam type="float" name="peak_apices_sum" value="1.3065505859375e05"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[653.361704997970946, 0.50456377978173, 653.863382416870991, 0.331725507674015]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.50456377978173, 0.331725507674015]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.998440995066498"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.997731884565338"/>
-			<UserParam type="float" name="var_library_corr" value="0.999999999999998"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.013950124579913"/>
 			<UserParam type="float" name="var_library_sangle" value="0.02695174933132"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.013950124579913"/>
@@ -2863,12 +2863,12 @@
 			<UserParam type="float" name="leftWidth" value="2290.19189453125"/>
 			<UserParam type="float" name="rightWidth" value="2307.17138671875"/>
 			<UserParam type="float" name="peak_apices_sum" value="2.547851727294922e04"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[435.910228820904251, 0.223237432840783, 436.244680433504243, 0.368665294613559]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.223237432840783, 0.368665294613559]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.990495035711789"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.986171720342429"/>
-			<UserParam type="float" name="var_library_corr" value="1.000000000000001"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.074621974668422"/>
 			<UserParam type="float" name="var_library_sangle" value="0.140400348069888"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.074621974668422"/>
@@ -2878,8 +2878,8 @@
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="2.98262189450483"/>
 			<UserParam type="float" name="var_log_sn_score" value="1.092802744064197"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.987533986568451"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="4.724324679741967"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.987533867359161"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="4.724324904383778"/>
 			<UserParam type="float" name="var_massdev_score" value="0.295951363727171"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.283335708984678"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="1.807563554296281"/>
@@ -3023,11 +3023,11 @@
 			<UserParam type="float" name="leftWidth" value="1634.86328125"/>
 			<UserParam type="float" name="rightWidth" value="1685.810302734375"/>
 			<UserParam type="float" name="peak_apices_sum" value="2.441137451171875e04"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[532.248746583270986, -17.452611011016529, 532.75042400217103, -15.660051514944023]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-17.452611011016529, -15.660051514944023]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.977001367745979"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.969051953355796"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.97700136774598"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.969051953355797"/>
 			<UserParam type="float" name="var_library_corr" value="1.0"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.01334678224093"/>
 			<UserParam type="float" name="var_library_sangle" value="0.024011949999919"/>
@@ -3039,10 +3039,10 @@
 			<UserParam type="float" name="sn_ratio" value="97.517435020494006"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.580031182740298"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.975425690412521"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="7.398324831248491"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="7.398324831248498"/>
 			<UserParam type="float" name="var_massdev_score" value="16.556331262980276"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="16.843842693327801"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.662229610687314"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.662229610687315"/>
 			<UserParam type="int" name="missedCleavages" value="1"/>
 			<UserParam type="float" name="PrecursorMZ" value="532.248746583270986"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -3183,7 +3183,7 @@
 			<UserParam type="float" name="leftWidth" value="1961.465576171875"/>
 			<UserParam type="float" name="rightWidth" value="2026.0611572265625"/>
 			<UserParam type="float" name="peak_apices_sum" value="4.104838134765625e04"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[404.203412328071011, -0.242171042213302, 404.705089746970998, 0.10967838385246]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-0.242171042213302, 0.10967838385246]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="1.821367205045918"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.838186230983237"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.918517349916209"/>
@@ -3198,8 +3198,8 @@
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="35.733134513622929"/>
 			<UserParam type="float" name="var_log_sn_score" value="3.57607839596868"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.921455174684525"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="5.633030618000663"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.921455144882202"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="5.633030674161116"/>
 			<UserParam type="float" name="var_massdev_score" value="0.175924713032881"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.202573015871767"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.643994284781334"/>
@@ -3293,7 +3293,7 @@
 			<UserParam type="float" name="leftWidth" value="2068.21630859375"/>
 			<UserParam type="float" name="rightWidth" value="2084.915771484375"/>
 			<UserParam type="float" name="peak_apices_sum" value="2.335564453125e04"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-1.0, -1.0]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="8.708118550994048"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="3.558913026782809"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.333333333333333"/>
@@ -3328,7 +3328,7 @@
 			<intensity>1.170556e07</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>2.770415</overallquality>
+			<overallquality>1.929241</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="1763.343505859375" y="300.145528597604311" />
@@ -3495,7 +3495,7 @@
 			<UserParam type="float" name="leftWidth" value="1763.343505859375"/>
 			<UserParam type="float" name="rightWidth" value="1851.1251220703125"/>
 			<UserParam type="float" name="peak_apices_sum" value="9.651232745361329e05"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[300.195528597604323, -19.087206731866619]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-19.087206731866619, -1.0]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999219220116872"/>
@@ -3510,11 +3510,11 @@
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="44.438394904971695"/>
 			<UserParam type="float" name="var_log_sn_score" value="3.794103845869188"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.98045688867569"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="6.880907116962987"/>
-			<UserParam type="float" name="var_massdev_score" value="9.54360336593331"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.980456709861755"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="6.880907453925703"/>
+			<UserParam type="float" name="var_massdev_score" value="19.087206731866619"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="12.751237867776395"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.770414782416536"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="1.929241295435073"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="300.195528597604323"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -3530,7 +3530,7 @@
 			<intensity>9.252778e06</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.559142</overallquality>
+			<overallquality>-1.921479</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="1595.5093994140625" y="368.812109904737667" />
@@ -3799,7 +3799,7 @@
 			<UserParam type="float" name="leftWidth" value="1595.5093994140625"/>
 			<UserParam type="float" name="rightWidth" value="1764.5394287109375"/>
 			<UserParam type="float" name="peak_apices_sum" value="5.7037578125e05"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[368.862109904737679, -56.288181149045222]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-56.288181149045222, -1.0]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.971249637717021"/>
@@ -3814,11 +3814,11 @@
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="16.940151601666848"/>
 			<UserParam type="float" name="var_log_sn_score" value="2.829686638514846"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.940495908260346"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="6.159885931119847"/>
-			<UserParam type="float" name="var_massdev_score" value="28.144090574522611"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.940494894981384"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="6.159887840575237"/>
+			<UserParam type="float" name="var_massdev_score" value="56.288181149045222"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="35.876176043274555"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.559142038385293"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-1.921478949175847"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="368.862109904737679"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -4031,7 +4031,7 @@
 			<UserParam type="float" name="leftWidth" value="1761.756103515625"/>
 			<UserParam type="float" name="rightWidth" value="1881.0885009765625"/>
 			<UserParam type="float" name="peak_apices_sum" value="1.5432409765625e05"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[449.74438990042097, -0.476324016044995, 450.246067319320957, -0.389135632496306]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-0.476324016044995, -0.389135632496306]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.995444848298674"/>
@@ -4046,11 +4046,11 @@
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="24.572095231371236"/>
 			<UserParam type="float" name="var_log_sn_score" value="3.201611458899381"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.981171160936356"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="6.352193262502598"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.981171101331711"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="6.352193374823502"/>
 			<UserParam type="float" name="var_massdev_score" value="0.43272982427065"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.44795351412301"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.14270316206301"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.142703162063009"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="449.74438990042097"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -4153,12 +4153,12 @@
 			<UserParam type="float" name="leftWidth" value="1904.1236572265625"/>
 			<UserParam type="float" name="rightWidth" value="1934.460693359375"/>
 			<UserParam type="float" name="peak_apices_sum" value="1.087786791992188e04"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[449.74438990042097, -0.050987579610805, 450.246067319320957, 0.97326523171018]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-0.050987579610805, 0.97326523171018]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="4.553418012614795"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="2.195124445512953"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.848375776728611"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.800299576579035"/>
-			<UserParam type="float" name="var_library_corr" value="1.000000000000001"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.043888596701052"/>
 			<UserParam type="float" name="var_library_sangle" value="0.07600888727803"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.043888596701052"/>
@@ -4168,8 +4168,8 @@
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="1.863457673713568"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.622433726351383"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.818022608757019"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="3.54947874187169"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.818022161722183"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="3.54947958427848"/>
 			<UserParam type="float" name="var_massdev_score" value="0.512126405660493"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.351090401070697"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.77221442404151"/>
@@ -4188,7 +4188,7 @@
 			<intensity>3.417034e05</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>-0.712265</overallquality>
+			<overallquality>-0.3189</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1943.7984619140625" y="449.694389900420958" />
@@ -4315,11 +4315,11 @@
 			<UserParam type="float" name="leftWidth" value="1943.7984619140625"/>
 			<UserParam type="float" name="rightWidth" value="2014.813720703125"/>
 			<UserParam type="float" name="peak_apices_sum" value="2.332286791992188e04"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[449.74438990042097, 8.204282175601506, 450.246067319320957, 0.122542094128052]"/>
-			<UserParam type="float" name="var_xcorr_coelution" value="12.749570435321427"/>
-			<UserParam type="float" name="var_xcorr_coelution_weighted" value="6.146348447436267"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.804653993991547"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.742714724126514"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[8.204282175601506, 0.122542094128052]"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="9.10683602522959"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="4.390248891025905"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.705209606041463"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.611739039951533"/>
 			<UserParam type="float" name="var_library_corr" value="1.0"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.018289385514941"/>
 			<UserParam type="float" name="var_library_sangle" value="0.032966369094791"/>
@@ -4331,10 +4331,10 @@
 			<UserParam type="float" name="sn_ratio" value="1.77689842164995"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.574869384708016"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.871234148740768"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="2.46678463222821"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="2.242207672087612"/>
 			<UserParam type="float" name="var_massdev_score" value="4.163412134864779"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="5.574539391273096"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-0.712265006726941"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-0.318900144667353"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="449.74438990042097"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -4435,7 +4435,7 @@
 			<UserParam type="float" name="leftWidth" value="2038.1463623046875"/>
 			<UserParam type="float" name="rightWidth" value="2065.51806640625"/>
 			<UserParam type="float" name="peak_apices_sum" value="1.013159655761719e04"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[449.74438990042097, 0.364098033836754, 450.246067319320957, -0.830627479043161]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.364098033836754, -0.830627479043161]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="7.285468820183674"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="3.512199112820724"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.841447831201029"/>
@@ -4450,8 +4450,8 @@
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="1.026474287680013"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.026129908629291"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.791106969118118"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="2.790842163783026"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.791106075048447"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="2.790843848596606"/>
 			<UserParam type="float" name="var_massdev_score" value="0.597362756439957"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.515903515062352"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-0.056547351280443"/>
@@ -4637,7 +4637,7 @@
 			<UserParam type="float" name="leftWidth" value="1763.343505859375"/>
 			<UserParam type="float" name="rightWidth" value="1851.1251220703125"/>
 			<UserParam type="float" name="peak_apices_sum" value="9.651232745361329e05"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[300.165352089204305, 1.55148262457798, 300.499803701804296, 0.554730215579367]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[1.55148262457798, 0.554730215579367]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999223453079938"/>
@@ -4652,8 +4652,8 @@
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="15.037857244966101"/>
 			<UserParam type="float" name="var_log_sn_score" value="2.710570837957332"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.980328291654587"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="6.108190800229669"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.980328112840653"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="6.108191137192384"/>
 			<UserParam type="float" name="var_massdev_score" value="1.053106420078673"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="1.227146228096374"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.864907800936793"/>
@@ -4813,7 +4813,7 @@
 			<UserParam type="float" name="leftWidth" value="1851.1251220703125"/>
 			<UserParam type="float" name="rightWidth" value="1939.3406982421875"/>
 			<UserParam type="float" name="peak_apices_sum" value="8.727534472656251e04"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[300.165352089204305, 1.582347024448543, 300.499803701804296, 2.158477975218719]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[1.582347024448543, 2.158477975218719]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="3.642734410091837"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="1.756099556410362"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.788910459623399"/>
@@ -4828,8 +4828,8 @@
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="1.361063329149823"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.308266253923902"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.661740005016327"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="3.209306962196368"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.769757032394409"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="3.005756209538701"/>
 			<UserParam type="float" name="var_massdev_score" value="1.870412499833631"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="1.769816083752899"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.391349462468709"/>
@@ -4997,7 +4997,7 @@
 			<UserParam type="float" name="leftWidth" value="1939.3406982421875"/>
 			<UserParam type="float" name="rightWidth" value="2036.532958984375"/>
 			<UserParam type="float" name="peak_apices_sum" value="8.363278692626952e04"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[300.165352089204305, 1.867369512830881, 300.499803701804296, 1.78438630316893]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[1.867369512830881, 1.78438630316893]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="3.642734410091837"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="1.756099556410362"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.775115723638661"/>
@@ -5012,8 +5012,8 @@
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="1.266899390022198"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.236572490153024"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.687795549631119"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="3.061042716846179"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.661432236433029"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="3.11072259023538"/>
 			<UserParam type="float" name="var_massdev_score" value="1.825877907999905"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="1.840367345645477"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.361495190888907"/>
@@ -5169,15 +5169,15 @@
 			<UserParam type="float" name="leftWidth" value="1918.9876708984375"/>
 			<UserParam type="float" name="rightWidth" value="1998.9910888671875"/>
 			<UserParam type="float" name="peak_apices_sum" value="1.722787672070313e07"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[395.239463487570902, -0.574298838853912, 395.741140906470889, -2.123222979425631]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-0.574298838853912, -2.123222979425631]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999855522861782"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999819433926543"/>
 			<UserParam type="float" name="var_library_corr" value="1.0"/>
-			<UserParam type="float" name="var_library_rmsd" value="1.55698619247413e-03"/>
+			<UserParam type="float" name="var_library_rmsd" value="1.556986192474075e-03"/>
 			<UserParam type="float" name="var_library_sangle" value="2.665886722271957e-03"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="1.55698619247413e-03"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="1.556986192474075e-03"/>
 			<UserParam type="float" name="var_library_manhattan" value="1.785521373921128e-03"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999998543001768"/>
 			<UserParam type="float" name="var_intensity_score" value="0.995940359920697"/>
@@ -5185,10 +5185,10 @@
 			<UserParam type="float" name="sn_ratio" value="103.89525882953221"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.643383265009457"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.997846633195877"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="7.568216225545756"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="7.56821622554576"/>
 			<UserParam type="float" name="var_massdev_score" value="1.348760909139771"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="1.03245528832373"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.097496611197101"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.097496611197102"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="395.239463487570902"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -5355,14 +5355,14 @@
 			<UserParam type="float" name="leftWidth" value="2367.250732421875"/>
 			<UserParam type="float" name="rightWidth" value="2447.93408203125"/>
 			<UserParam type="float" name="peak_apices_sum" value="8.043104533203126e06"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[501.795134726820947, -0.302990245109393, 502.296812145720935, -1.362814830799032]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-0.302990245109393, -1.362814830799032]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999888077520888"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.99984784254905"/>
-			<UserParam type="float" name="var_library_corr" value="1.000000000000001"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999847842549049"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
 			<UserParam type="float" name="var_library_rmsd" value="3.376957673543846e-03"/>
-			<UserParam type="float" name="var_library_sangle" value="6.163711822593917e-03"/>
+			<UserParam type="float" name="var_library_sangle" value="6.163711822593916e-03"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="3.376957673543846e-03"/>
 			<UserParam type="float" name="var_library_manhattan" value="3.640611524530546e-03"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999993694265601"/>
@@ -5371,7 +5371,7 @@
 			<UserParam type="float" name="sn_ratio" value="110.753693509411718"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.707308758341262"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.996171712875366"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="7.612781336875058"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="7.612781336875056"/>
 			<UserParam type="float" name="var_massdev_score" value="0.832902537954213"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.670716846584884"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.177951266815654"/>
@@ -5551,12 +5551,12 @@
 			<UserParam type="float" name="leftWidth" value="1539.383544921875"/>
 			<UserParam type="float" name="rightWidth" value="1615.815673828125"/>
 			<UserParam type="float" name="peak_apices_sum" value="1.290538068847656e05"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[358.174576486337685, 0.652664030087154, 358.509028098937677, 0.900205815429761]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.652664030087154, 0.900205815429761]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.995859874004335"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.994324121718093"/>
-			<UserParam type="float" name="var_library_corr" value="1.000000000000001"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.060761361473847"/>
 			<UserParam type="float" name="var_library_sangle" value="0.107918710806353"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.060761361473847"/>
@@ -5566,11 +5566,11 @@
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="11.749482610557761"/>
 			<UserParam type="float" name="var_log_sn_score" value="2.46380920647666"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.977227956056595"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="5.816516757667186"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.97722852230072"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="5.816515690618585"/>
 			<UserParam type="float" name="var_massdev_score" value="0.776434922758457"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.740130205817926"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.651815810438141"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.65181581043814"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="358.174576486337685"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -5831,10 +5831,10 @@
 			<UserParam type="float" name="leftWidth" value="2038.1463623046875"/>
 			<UserParam type="float" name="rightWidth" value="2210.381591796875"/>
 			<UserParam type="float" name="peak_apices_sum" value="7.622114660644531e05"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[421.758354535420949, -0.584415208690256, 422.260031954320937, -1.197192228178414]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-0.584415208690256, -1.197192228178414]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.998724868242001"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.998724868242002"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.998358776783532"/>
 			<UserParam type="float" name="var_library_corr" value="1.0"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.022819011450396"/>
@@ -5847,7 +5847,7 @@
 			<UserParam type="float" name="sn_ratio" value="73.761902600499298"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.300842373390982"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.993695646524429"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="7.256044137193251"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="7.256044137193252"/>
 			<UserParam type="float" name="var_massdev_score" value="0.890803718434335"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.775375027344834"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.872574263829474"/>
@@ -6067,7 +6067,7 @@
 			<UserParam type="float" name="leftWidth" value="1675.191650390625"/>
 			<UserParam type="float" name="rightWidth" value="1789.6451416015625"/>
 			<UserParam type="float" name="peak_apices_sum" value="2.333775415039062e04"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-1.0, -1.0]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.926508064873514"/>
@@ -6082,8 +6082,8 @@
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="83.15210797549851"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.42067155679683"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.884280145168305"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="6.279174661185043"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.884280055761337"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="6.279174829666399"/>
 			<UserParam type="float" name="var_massdev_score" value="0.0"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.230932621151468"/>
@@ -6102,7 +6102,7 @@
 			<intensity>3.326688e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>-3.067449</overallquality>
+			<overallquality>-1.154631</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1789.6451416015625" y="613.256595758721005" />
@@ -6205,12 +6205,12 @@
 			<UserParam type="float" name="leftWidth" value="1789.6451416015625"/>
 			<UserParam type="float" name="rightWidth" value="1827.03564453125"/>
 			<UserParam type="float" name="peak_apices_sum" value="3141.202880859375"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[]"/>
-			<UserParam type="float" name="var_xcorr_coelution" value="26.124355652982139"/>
-			<UserParam type="float" name="var_xcorr_coelution_weighted" value="13.726153375500411"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-1.0, -1.0]"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="12.440169358562924"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="6.536263512143051"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.333333333333333"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.346373648785695"/>
-			<UserParam type="float" name="var_library_corr" value="0.999999999999999"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.411464827911114"/>
 			<UserParam type="float" name="var_library_sangle" value="0.610144381642092"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.411464827911114"/>
@@ -6221,10 +6221,10 @@
 			<UserParam type="float" name="sn_ratio" value="5.251264712643522"/>
 			<UserParam type="float" name="var_log_sn_score" value="1.658468945238739"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="-0.105685919523239"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="-0.034201025589878"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="1.25832113824917"/>
 			<UserParam type="float" name="var_massdev_score" value="0.0"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.0"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-3.06744875311045"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-1.154630635057156"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="613.30659575872096"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -6319,12 +6319,12 @@
 			<UserParam type="float" name="leftWidth" value="1865.8509521484375"/>
 			<UserParam type="float" name="rightWidth" value="1881.0885009765625"/>
 			<UserParam type="float" name="peak_apices_sum" value="2595.770263671875"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-1.0, -1.0]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="11.196152422706632"/>
-			<UserParam type="float" name="var_xcorr_coelution_weighted" value="5.882637160928748"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="5.882637160928747"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.333333333333333"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.346373648785695"/>
-			<UserParam type="float" name="var_library_corr" value="0.999999999999999"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.411464827911114"/>
 			<UserParam type="float" name="var_library_sangle" value="0.610144381642092"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.411464827911114"/>
@@ -6334,8 +6334,8 @@
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="3.554833445485361"/>
 			<UserParam type="float" name="var_log_sn_score" value="1.268308211379996"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="-0.186303526163101"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="1.242964869343152"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="-0.113970965147018"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="1.106659070212563"/>
 			<UserParam type="float" name="var_massdev_score" value="0.0"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-1.221514281636197"/>
@@ -6354,7 +6354,7 @@
 			<intensity>1.305544e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>-1.62841</overallquality>
+			<overallquality>-1.280625</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1881.0885009765625" y="613.256595758721005" />
@@ -6439,12 +6439,12 @@
 			<UserParam type="float" name="leftWidth" value="1881.0885009765625"/>
 			<UserParam type="float" name="rightWidth" value="1911.6019287109375"/>
 			<UserParam type="float" name="peak_apices_sum" value="3427.075927734375"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[]"/>
-			<UserParam type="float" name="var_xcorr_coelution" value="14.928203230275509"/>
-			<UserParam type="float" name="var_xcorr_coelution_weighted" value="7.843516214571664"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-1.0, -1.0]"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="12.440169358562924"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="6.536263512143051"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.333333333333333"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.346373648785695"/>
-			<UserParam type="float" name="var_library_corr" value="0.999999999999999"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.411464827911114"/>
 			<UserParam type="float" name="var_library_sangle" value="0.610144381642092"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.411464827911114"/>
@@ -6454,11 +6454,11 @@
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="4.281502416408403"/>
 			<UserParam type="float" name="var_log_sn_score" value="1.454303979867555"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="-0.229273587465286"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="1.107190521043638"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="-0.240557283163071"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="1.363457909099256"/>
 			<UserParam type="float" name="var_massdev_score" value="0.0"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.0"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-1.628410141109428"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-1.280625028736103"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="613.30659575872096"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -6553,12 +6553,12 @@
 			<UserParam type="float" name="leftWidth" value="1911.6019287109375"/>
 			<UserParam type="float" name="rightWidth" value="1928.453125"/>
 			<UserParam type="float" name="peak_apices_sum" value="2608.637451171875"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-1.0, -1.0]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.910683602522959"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.484323046606383"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.765671953678407"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.659528580100614"/>
-			<UserParam type="float" name="var_library_corr" value="0.999999999999998"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.307089476486447"/>
 			<UserParam type="float" name="var_library_sangle" value="0.494128543135651"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.307089476486447"/>
@@ -6568,8 +6568,8 @@
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="3.452621442345766"/>
 			<UserParam type="float" name="var_log_sn_score" value="1.239133780873341"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.892072767019272"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="2.945029695723262"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="-0.107927262783051"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="4.829461841883714"/>
 			<UserParam type="float" name="var_massdev_score" value="0.0"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.959902054500817"/>
@@ -6777,23 +6777,23 @@
 			<UserParam type="float" name="leftWidth" value="2307.17138671875"/>
 			<UserParam type="float" name="rightWidth" value="2424.5244140625"/>
 			<UserParam type="float" name="peak_apices_sum" value="6.180647581054687e06"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[464.250362519471025, -0.689043083934451, 464.752039938371013, -1.697625949661169]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[-0.689043083934451, -1.697625949661169]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999895273918407"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999858152028591"/>
-			<UserParam type="float" name="var_library_corr" value="0.999999999999999"/>
-			<UserParam type="float" name="var_library_rmsd" value="1.075467630793303e-03"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
+			<UserParam type="float" name="var_library_rmsd" value="1.075467630793359e-03"/>
 			<UserParam type="float" name="var_library_sangle" value="1.961898952455153e-03"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="1.075467630793303e-03"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="1.075467630793359e-03"/>
 			<UserParam type="float" name="var_library_manhattan" value="1.160003499200868e-03"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999999360020127"/>
 			<UserParam type="float" name="var_intensity_score" value="0.993194775479747"/>
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
 			<UserParam type="float" name="sn_ratio" value="65.000081378897988"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.1743885218779"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.985789656639099"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="7.250285081911516"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.985789716243744"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="7.25028496959061"/>
 			<UserParam type="float" name="var_massdev_score" value="1.19333451679781"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="1.036255774194518"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.823006699172076"/>

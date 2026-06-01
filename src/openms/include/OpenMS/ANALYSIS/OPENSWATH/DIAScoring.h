@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -42,6 +16,8 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
+#include <OpenMS/KERNEL/RangeManager.h>
+
 namespace OpenMS
 {
   class TheoreticalSpectrumGenerator;
@@ -54,19 +30,22 @@ namespace OpenMS
     compute a number of scores based on the full MS2 spectrum available. The scores are the following:
 
     - isotope scores:
-      -- isotope_corr: computes the correlation of each fragment ion with the
+      - isotope_corr: computes the correlation of each fragment ion with the
          theoretical isotope distribution. This is the pearson correlation to
          the theoretical isotope pattern weighted by the relative intensity of
          the transition (more is better).
-      -- isotope_overlap: checks whether a signal at position (mz - 1) / charge
+      - isotope_overlap: checks whether a signal at position (mz - 1) / charge
          exists and how strong it is. This would be an indication that the current
          peak is an isotopic signal of another peak. This simply counts how
          often a peak was observed that is higher than the current peak, thus
          number is then weighted by the relative intensity of the transition
          (thus less is better here).
 
-    - massdiff score: computes the difference in ppm of the experimental signal
-         to the expected signal (thus less is better)
+    - massdiff score: computes the difference in ppm of the experimental signal to the expected signal (thus less is better). 
+      - Equation: sum(ppm_difference) / # transitions
+      - Notes: 
+        - Divide by the total number of transitions and is thus quite punishing if a transition is missing
+        - Also outputs a list of all the ppm differences, if signal is not found output -1.0
 
     - b/y ion score: checks for the presence of b/y ions of the peptide in question
 
@@ -78,6 +57,7 @@ namespace OpenMS
 
   @htmlinclude OpenMS_DIAScoring.parameters
 
+  @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI DIAScoring :
     public DefaultParamHandler
@@ -106,48 +86,153 @@ public:
 
     ///@name DIA Scores
     //@{
-    /// Isotope scores, see class description
+    /**
+      @brief Compute the isotope-pattern correlation and isotope-overlap scores for a transition group (see class description).
+
+      Delegates to the internal @ref diaIsotopeScoresSub_ after zero-initialising the two
+      output arguments. @p mrmfeature is consulted for per-transition apex intensities used
+      to weight the correlation.
+
+      @param[in]  transitions      Transitions whose fragment-ion isotope patterns are scored.
+      @param[in]  spectrum         DIA MS2 spectrum sequence (one or more spectra around the apex) the patterns are read from.
+      @param[in]  mrmfeature       MRM feature providing per-transition apex intensities used to weight the correlation.
+      @param[in]  im_range         Ion-mobility range filter; pass an empty range to disable IM filtering.
+      @param[out] isotope_corr     Intensity-weighted Pearson correlation against the averagine isotope distribution (higher = better).
+      @param[out] isotope_overlap  Intensity-weighted count of peaks at lower m/z than each transition's monoisotope (lower = better).
+    */
     void dia_isotope_scores(const std::vector<TransitionType>& transitions,
-                            SpectrumPtrType spectrum,
+                            SpectrumSequence& spectrum,
                             OpenSwath::IMRMFeature* mrmfeature,
+                            const RangeMobility& im_range,
                             double& isotope_corr,
                             double& isotope_overlap) const;
 
-    /// Massdiff scores, see class description
+    /**
+      @brief Compute fragment-ion mass-error scores in ppm against the theoretical product m/z of each transition.
+
+      For every transition, integrates the spectrum in a window around the theoretical
+      product m/z (window width and ppm-vs-Th controlled by parameter @c "dia_extraction_window"
+      and @c "dia_extraction_unit") and records the signed ppm error between the measured
+      and theoretical m/z. Transitions where no signal was found contribute @c -1.0 to
+      @p diff_ppm and are excluded from the averages.
+
+      @param[in]  transitions                 Transitions whose theoretical product m/z values are the targets.
+      @param[in]  spectrum                    DIA MS2 spectrum sequence.
+      @param[in]  normalized_library_intensity Per-transition library intensities (parallel to @p transitions) used to weight @p ppm_score_weighted.
+      @param[in]  im_range                    Ion-mobility range filter; pass an empty range to disable IM filtering.
+      @param[out] ppm_score                   Mean of the absolute ppm errors over observed transitions (0 if none observed).
+      @param[out] ppm_score_weighted          Sum of @c |ppm| * @p normalized_library_intensity over observed transitions.
+      @param[out] diff_ppm                    Per-transition signed ppm error; @c -1.0 entries mark transitions with no signal in the extraction window.
+    */
     void dia_massdiff_score(const std::vector<TransitionType>& transitions,
-                            const SpectrumPtrType& spectrum,
+                            const SpectrumSequence& spectrum,
                             const std::vector<double>& normalized_library_intensity,
+                            const RangeMobility& im_range,
                             double& ppm_score,
                             double& ppm_score_weighted,
                             std::vector<double>& diff_ppm) const;
 
     /**
-      Precursor massdifference score
+      @brief Compute the precursor-mass-error score on an MS1 spectrum.
 
-      @param precursor_mz Exact m/z of the precursor to be evaluated
-      @param spectrum MS1 spectrum to be evaluated
-      @param ppm_score Resulting score
-      @return False if no signal was found (and no sensible score calculated), true otherwise
+      Integrates the spectrum in a window around @p precursor_mz and reports the absolute
+      ppm difference between the measured and theoretical m/z.
+
+      @param[in]  precursor_mz Exact m/z of the precursor to be evaluated.
+      @param[in]  spectrum     MS1 spectrum sequence.
+      @param[in]  im_range     Ion-mobility range filter; pass an empty range to disable IM filtering.
+      @param[out] ppm_score    On success, the absolute ppm error of the measured peak. On failure (no signal found), set to the absolute ppm width of the extraction window as a worst-case bound — not @c -1.
+      @return @c true if a signal was integrated successfully, @c false if no peak was found inside the extraction window (in which case @p ppm_score still carries the worst-case bound described above).
     */
-    bool dia_ms1_massdiff_score(double precursor_mz, SpectrumPtrType spectrum,
+    bool dia_ms1_massdiff_score(double precursor_mz, const SpectrumSequence& spectrum, const RangeMobility& im_range,
                                 double& ppm_score) const;
 
-    /// Precursor isotope scores for precursors (peptides and metabolites)
-    void dia_ms1_isotope_scores_averagine(double precursor_mz, const SpectrumPtrType& spectrum,
-                                          double& isotope_corr, double& isotope_overlap, int charge_state) const;
-    void dia_ms1_isotope_scores(double precursor_mz, const SpectrumPtrType& spectrum,
+    /**
+      @brief Precursor isotope-pattern scores using an averagine model.
+
+      Drives the same scoring as @ref dia_ms1_isotope_scores but builds the theoretical
+      isotope pattern via an averagine model parameterised by @p precursor_mz and
+      @p charge_state (suitable for peptides where no exact sum formula is available).
+
+      @param[in]  precursor_mz    Exact m/z of the precursor to be evaluated.
+      @param[in]  spectrum        MS1 spectrum sequence.
+      @param[in]  charge_state    Precursor charge state used to space the averagine isotope envelope.
+      @param[in,out] im_range     Ion-mobility range filter; may be narrowed during the call.
+      @param[out] isotope_corr    Pearson correlation against the averagine isotope distribution.
+      @param[out] isotope_overlap Count of peaks at lower m/z that could explain @p precursor_mz as part of a larger isotope envelope.
+    */
+    void dia_ms1_isotope_scores_averagine(double precursor_mz, const SpectrumSequence& spectrum, int charge_state, RangeMobility& im_range,
+                                          double& isotope_corr, double& isotope_overlap) const;
+    /**
+      @brief Precursor isotope-pattern scores using an explicit sum formula.
+
+      Builds the theoretical pattern from @p sum_formula (and uses its charge), then places
+      it at @p precursor_mz (the actual precursor m/z, which may differ slightly from what
+      @p sum_formula would predict — e.g. when adducts are present).
+
+      @param[in]  precursor_mz    Exact m/z of the precursor to be evaluated.
+      @param[in]  spectrum        MS1 spectrum sequence.
+      @param[in,out] im_range     Ion-mobility range filter; may be narrowed during the call.
+      @param[out] isotope_corr    Pearson correlation against the formula-derived isotope distribution.
+      @param[out] isotope_overlap Count of peaks at lower m/z that could explain @p precursor_mz as part of a larger isotope envelope.
+      @param[in]  sum_formula     Neutral sum formula of the precursor compound; its @c getCharge() is used for the isotope spacing.
+    */
+    void dia_ms1_isotope_scores(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum, RangeMobility& im_range,
                                 double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula) const;
 
+    /**
+      @brief Count the b- and y-fragment ions of a peptide that have evidence in a DIA spectrum.
 
-    /// b/y ion scores
-    void dia_by_ion_score(const SpectrumPtrType& spectrum, AASequence& sequence,
-                          int charge, double& bseries_score, double& yseries_score) const;
+      For every b/y ion of @p sequence at the given @p charge, a peak is
+      considered a match if its ppm error is below @c "dia_byseries_ppm_diff"
+      and its intensity is above @c "dia_byseries_intensity_min". The
+      returned scores are the number of matching b- and y-ions.
 
-    /// Dotproduct / Manhattan score with theoretical spectrum
-    void score_with_isotopes(SpectrumPtrType spectrum,
+      @param[in]  spectrum       DIA MS2 spectrum sequence.
+      @param[in]  sequence       Peptide sequence.
+      @param[in]  charge         Fragment-ion charge state. Must be > 0; passing a non-positive value is a programming error (checked in debug builds).
+      @param[in]  im_range       Ion-mobility range filter; pass an empty range to disable IM filtering.
+      @param[out] bseries_score  Number of matching b-ions.
+      @param[out] yseries_score  Number of matching y-ions.
+    */
+    void dia_by_ion_score(const SpectrumSequence& spectrum, AASequence& sequence,
+                          int charge, const RangeMobility& im_range, double& bseries_score, double& yseries_score) const;
+
+    /**
+      @brief Dot-product and Manhattan-distance scores between the spectrum
+             and the transition group's theoretical isotope pattern.
+
+      @param[in]  spectrum     DIA MS2 spectrum sequence.
+      @param[in]  transitions  Transition group whose theoretical pattern is scored against @p spectrum.
+      @param[in]  im_range     Ion-mobility range filter; pass an empty range to disable IM filtering.
+      @param[out] dotprod      Dot product of the two intensity vectors (higher = better).
+      @param[out] manhattan    Manhattan distance of the two intensity vectors (lower = better).
+    */
+    void score_with_isotopes(SpectrumSequence& spectrum,
                              const std::vector<TransitionType>& transitions,
+                             const RangeMobility& im_range,
                              double& dotprod,
                              double& manhattan) const;
+
+    /**
+      @brief Return the DIA extraction window.
+
+      The value is expressed in Thomson or ppm, depending on isDIAExtractionPPM().
+    */
+    double getDIAExtractionWindow() const
+    {
+      return dia_extract_window_;
+    }
+
+    /**
+      @brief Return whether the DIA extraction window is interpreted in ppm.
+
+      Returns false when the extraction window is interpreted in Thomson.
+    */
+    bool isDIAExtractionPPM() const
+    {
+      return dia_extraction_ppm_;
+    }
     //@}
 
 private:
@@ -163,36 +248,30 @@ private:
 
     /// Subfunction of dia_isotope_scores
     void diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions,
-                              const SpectrumPtrType& spectrum,
-                              std::map<std::string, double>& intensities,
+                              const SpectrumSequence& spectrum,
+                              OpenSwath::IMRMFeature* mrmfeature,
+                              const RangeMobility& im_range,
                               double& isotope_corr,
                               double& isotope_overlap) const;
-
-    /// retrieves intensities from MRMFeature
-    /// computes a vector of relative intensities for each feature (output to intensities)
-    void getFirstIsotopeRelativeIntensities_(const std::vector<TransitionType>& transitions,
-                                            OpenSwath::IMRMFeature* mrmfeature,
-                                            std::map<std::string, double>& intensities //experimental intensities of transitions
-                                            ) const;
 
 private:
 
     /**
-      @brief Determine whether the current m/z value is a monoisotopic peak 
-      
+      @brief Determine whether the current m/z value is a monoisotopic peak
+
       This function will try to determine whether the current peak is a
       monoisotopic peak or not. It will do so by searching for an intense peak
       at a lower m/z that could explain the current peak as part of a isotope
       pattern.
 
-      @param spectrum The spectrum (MS1 or MS2)
-      @param mono_mz The m/z value where a monoisotopic is expected
-      @param mono_int The intensity of the monoisotopic peak (peak at mono_mz)
-      @param nr_occurrences Will contain the count of how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
-      @param nr_occurrences Will contain the maximum ratio of a peaks intensity compared to the monoisotopic peak intensity how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
-
+      @param[in] spectrum The spectrum (MS1 or MS2)
+      @param[in] mono_mz The m/z value where a monoisotopic is expected
+      @param[in] mono_int The intensity of the monoisotopic peak (peak at mono_mz)
+      @param[out] nr_occurrences Will contain the count of how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
+      @param[out] max_ratio Will contain the maximum ratio of a peaks intensity compared to the monoisotopic peak intensity how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
+      @param[in] im_range Ion mobility subrange to consider (used as filter); can be empty (i.e. no IM filtering)
     */
-    void largePeaksBeforeFirstIsotope_(const SpectrumPtrType& spectrum, double mono_mz, double mono_int, int& nr_occurrences, double& max_ratio) const;
+    void largePeaksBeforeFirstIsotope_(const SpectrumSequence& spectrum, double mono_mz, double mono_int, int& nr_occurrences, double& max_ratio, const RangeMobility& im_range) const;
 
     /**
       @brief Compare an experimental isotope pattern to a theoretical one
@@ -228,9 +307,8 @@ private:
 
     /// Get the intensities of isotopes around @p precursor_mz in experimental @p spectrum
     /// and fill @p isotopes_int.
-    void getIsotopeIntysFromExpSpec_(double precursor_mz, const SpectrumPtrType& spectrum,
-                                     std::vector<double>& isotopes_int,
-                                     int charge_state) const;
+    void getIsotopeIntysFromExpSpec_(double precursor_mz, const SpectrumSequence& spectrum, int charge_state, const RangeMobility& im_range,
+                                     std::vector<double>& isotopes_int) const;
 
     // Parameters
     double dia_extract_window_;
@@ -245,4 +323,3 @@ private:
     TheoreticalSpectrumGenerator * generator;
   };
 }
-

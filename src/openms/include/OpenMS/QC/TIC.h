@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -36,68 +10,97 @@
 
 #include <OpenMS/QC/QCBase.h>
 
-/**
- * @brief Total Ion Count (TIC) as a QC metric
- *
- * Simple class to calculate the TIC of an MSExperiment.
- * Allows for multiple usage, because each calculated TIC is
- * stored internally. Those results can then be returned using
- * getResults().
- *
- */
-
 namespace OpenMS
 {
   class MzTabMetaData;
   class MSExperiment;
   class MSChromatogram;
 
+  /**
+    @brief Total Ion Current (TIC) as a QC metric.
+
+    Builds a Total Ion Current trace at a chosen MS level from an
+    @ref MSExperiment and returns a @ref Result that bundles the
+    per-bin intensities, the relative intensities (0 -- 100), the
+    retention times, the area under the TIC and two stability counters
+    that flag abrupt 10-fold intensity changes between consecutive bins.
+    Each call to @ref compute is independent; results are returned to
+    the caller and not retained by the instance.
+
+    @ingroup Metadata
+  */
   class OPENMS_DLLAPI TIC : public QCBase
   {
   public:
-    /// Constructor
+    /// Default constructor.
     TIC() = default;
 
-    /// Destructor
+    /// Destructor.
     virtual ~TIC() = default;
 
-    // stores TIC values calculated by compute function
-    struct OPENMS_DLLAPI Result
-    {
-      std::vector<UInt> intensities;  // TIC intensities
-      std::vector<float> relative_intensities;
-      std::vector<float> retention_times; // TIC RTs in seconds
-      UInt area = 0;  // Area under TIC
-      UInt fall = 0;  // MS1 signal fall (10x) count
-      UInt jump = 0;  // MS1 signal jump (10x) count
+    /**
+      @brief Computed Total Ion Current trace plus stability counters.
+
+      Populated by @ref compute and otherwise default-constructed.
+      Empty when the input @c MSExperiment had no spectra of the
+      requested MS level.
+    */
+    struct OPENMS_DLLAPI Result {
+      std::vector<UInt> intensities;       ///< Per-bin TIC intensities.
+      std::vector<float> relative_intensities; ///< Per-bin intensities rescaled to [0, 100] of the maximum bin (0 when the maximum is 0).
+      std::vector<float> retention_times;  ///< Per-bin retention times (seconds).
+      UInt area = 0;                       ///< Sum of @ref intensities (area under the TIC).
+      UInt fall = 0;                       ///< Number of consecutive bins where the intensity drops by at least 10x.
+      UInt jump = 0;                       ///< Number of consecutive bins where the intensity rises by at least 10x.
 
       bool operator==(const Result& rhs) const;
     };
 
-    
+
     /**
-    @brief Compute Total Ion Count and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
+      @brief Compute the Total Ion Current trace and stability metrics.
 
-    All MS1 TICs within a bin are summed up.
+      Builds the TIC at the requested MS level. When @p bin_size is
+      positive, intensities are summed within @p bin_size second
+      retention-time bins; when @p bin_size is @c 0, no resampling is
+      applied and the trace contains one entry per source spectrum.
 
-    @param exp Peak map to compute the MS1 tick from
-    @param bin_size RT bin size in seconds
-    @param ms_level MS level of spectra for calculation
-    @return result struct with with computed QC metrics: intensities, RTs (in seconds), area under TIC, 10x MS1 signal fall, 10x MS1 signal jump
+      The returned @ref Result is empty when @p exp has no spectra of
+      MS level @p ms_level.
 
-    **/
+      @param[in] exp      Source experiment.
+      @param[in] bin_size RT bin size in seconds; @c 0 disables binning.
+      @param[in] ms_level MS level whose spectra are aggregated.
+      @return Computed metrics. The @ref Result::intensities and
+              @ref Result::retention_times are empty when no spectra
+              of @p ms_level are present.
+    */
     Result compute(const MSExperiment& exp, float bin_size = 0, UInt ms_level = 1);
 
+    /// Name of this QC metric (@c "TIC").
     const String& getName() const override;
 
-    const std::vector<MSChromatogram>& getResults() const ;
+    const std::vector<MSChromatogram>& getResults() const;
 
-    QCBase::Status requires() const override;
+    /// Input-data requirements of @ref compute (raw mzML data).
+    QCBase::Status requirements() const override;
 
-    /// append QC data for given metrics to mzTab's MTD section
-    void addMetaDataMetricsToMzTab(MzTabMetaData& meta, std::vector<Result>& tics);
+    /**
+      @brief Append the TIC traces from @p tics to the MTD section of @p meta as custom parameters.
+
+      For every non-empty entry in @p tics one custom parameter is added
+      to @p meta, named @c TIC_1, @c TIC_2, ... (1-based index into
+      @p tics), with the controlled-vocabulary label @c "total ion current"
+      (@c MS:1000285). The value is a flat list of
+      @c [rt0,int0,rt1,int1,...] pairs taken from @ref Result::retention_times
+      and @ref Result::intensities.
+
+      @param[in,out] meta mzTab metadata section to extend.
+      @param[in]     tics TIC results to serialise; empty entries are skipped.
+    */
+    void addMetaDataMetricsToMzTab(MzTabMetaData& meta, const std::vector<Result>& tics);
 
   private:
     const String name_ = "TIC";
   };
-}
+} // namespace OpenMS

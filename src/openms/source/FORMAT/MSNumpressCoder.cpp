@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -35,7 +9,7 @@
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 
 #include <OpenMS/FORMAT/Base64.h>
-#include <OpenMS/MATH/MISC/MSNumpress.h>
+#include <OpenMS/FORMAT/MSNUMPRESS/MSNumpress.h>
 #include <boost/math/special_functions/fpclassify.hpp> // std::isfinite
 // #define NUMPRESS_DEBUG
 
@@ -44,6 +18,20 @@
 namespace OpenMS
 {
   const std::string MSNumpressCoder::NamesOfNumpressCompression[] = {"none", "linear", "pic", "slof"};
+
+  void MSNumpressCoder::NumpressConfig::setCompression(const std::string& compression)
+  {
+    const std::string* match = std::find(NamesOfNumpressCompression,
+                                         NamesOfNumpressCompression + SIZE_OF_NUMPRESSCOMPRESSION, compression);
+
+    if (match == NamesOfNumpressCompression + SIZE_OF_NUMPRESSCOMPRESSION) // == end()
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Value '" + compression + "' is not a valid Numpress compression scheme.");
+    }
+
+    np_compression = (NumpressCompression)std::distance(NamesOfNumpressCompression, match);
+  }
 
   using namespace ms; // numpress namespace
 
@@ -73,11 +61,10 @@ namespace OpenMS
   void MSNumpressCoder::decodeNP(const String & in, std::vector<double> & out,
       bool zlib_compression, const NumpressConfig & config)
   {
-    QByteArray base64_uncompressed;
-    Base64::decodeSingleString(in, base64_uncompressed, zlib_compression);
+    String tmpstring;
+    Base64::decodeSingleString(in, tmpstring, zlib_compression);
 
     // Create a temporary string (*not* null-terminated) to hold the data
-    std::string tmpstring(base64_uncompressed.constData(), base64_uncompressed.size());
     decodeNPRaw(tmpstring, out, config);
 
     // NOTE: it is possible (and likely faster) to call directly the const
@@ -201,10 +188,10 @@ namespace OpenMS
       }
 
 #ifdef NUMPRESS_DEBUG
-      std::cout << "encodeNPRaw: numpressed array with with length " << numpressed.size() << std::endl;
+      std::cout << "encodeNPRaw: numpressed array with with length " << numpressed.size() << '\n';
       for (int i = 0; i < byteCount; i++)
       {
-        std::cout << "array[" << i << "] : " << (int)numpressed[i] << std::endl;
+        std::cout << "array[" << i << "] : " << (int)numpressed[i] << '\n';
       }
 #endif
 
@@ -232,7 +219,7 @@ namespace OpenMS
             if (!std::isfinite(u) || !std::isfinite(d))
             {
 #ifdef NUMPRESS_DEBUG
-              std::cout << "infinite u: " << u << " d: " << d << std::endl;
+              std::cout << "infinite u: " << u << " d: " << d << '\n';
 #endif
               break;
             }
@@ -241,7 +228,7 @@ namespace OpenMS
               if (fabs(u) > config.numpressErrorTolerance)
               {
 #ifdef NUMPRESS_DEBUG
-                std::cout << "fabs(u): " << fabs(u) << " > config.numpressErrorTolerance: " << config.numpressErrorTolerance << std::endl;
+                std::cout << "fabs(u): " << fabs(u) << " > config.numpressErrorTolerance: " << config.numpressErrorTolerance << '\n';
 #endif
                 break;
               }
@@ -251,7 +238,7 @@ namespace OpenMS
               if (fabs(d) > config.numpressErrorTolerance)
               {
 #ifdef NUMPRESS_DEBUG
-                std::cout << "fabs(d): " << fabs(d) << " > config.numpressErrorTolerance: " << config.numpressErrorTolerance << std::endl;
+                std::cout << "fabs(d): " << fabs(d) << " > config.numpressErrorTolerance: " << config.numpressErrorTolerance << '\n';
 #endif
                 break;
               }
@@ -259,8 +246,8 @@ namespace OpenMS
             else if (fabs(1.0 - (d / u)) > config.numpressErrorTolerance)
             {
 #ifdef NUMPRESS_DEBUG
-              std::cout << "d: " << d << " u: " << u << std::endl;
-              std::cout << "fabs(1.0 - (d / u)): " << fabs(1.0 - (d / u)) << " > config.numpressErrorTolerance: " << config.numpressErrorTolerance << std::endl;
+              std::cout << "d: " << d << " u: " << u << '\n';
+              std::cout << "fabs(1.0 - (d / u)): " << fabs(1.0 - (d / u)) << " > config.numpressErrorTolerance: " << config.numpressErrorTolerance << '\n';
 #endif
               break;
             }
@@ -307,10 +294,10 @@ namespace OpenMS
     size_t byteCount = in_size;
 
 #ifdef NUMPRESS_DEBUG
-    std::cout << "decodeNPInternal_: array input with length " << in_size << std::endl;
+    std::cout << "decodeNPInternal_: array input with length " << in_size << '\n';
     for (int i = 0; i < in_size; i++)
     {
-      std::cout << "array[" << i << "] : " << (int)in[i] << std::endl;
+      std::cout << "array[" << i << "] : " << (int)in[i] << '\n';
     }
 #endif
 
@@ -372,10 +359,10 @@ namespace OpenMS
     }
 
 #ifdef NUMPRESS_DEBUG
-    std::cout << "decodeNPInternal_: output size " << out.size() << std::endl;
+    std::cout << "decodeNPInternal_: output size " << out.size() << '\n';
     for (int i = 0; i < out.size(); i++)
     {
-      std::cout << "array[" << i << "] : " << out[i] << std::endl;
+      std::cout << "array[" << i << "] : " << out[i] << '\n';
     }
 #endif
 

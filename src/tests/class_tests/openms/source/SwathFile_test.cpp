@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -37,6 +11,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/SwathFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 ///////////////////////////
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -128,12 +103,12 @@ START_SECTION(([EXTRA]virtual ~SwathFile()))
 END_SECTION
 
 // fast
-START_SECTION(std::vector< OpenSwath::SwathMap > loadMzML(String file, String tmp, boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal") )
+START_SECTION(std::vector< OpenSwath::SwathMap > loadMzML(String file, String tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal") )
 {
   Size nr_swathes = 6;
   storeSwathFile("swathFile_1.tmp", nr_swathes);
-  boost::shared_ptr<ExperimentalSettings> meta = boost::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
-  std::vector< OpenSwath::SwathMap > maps = SwathFile().loadMzML("swathFile_1.tmp", "./", meta);
+  std::shared_ptr<ExperimentalSettings> meta = std::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
+  std::vector< OpenSwath::SwathMap > maps = SwathFile().loadMzML("swathFile_1.tmp", File::getTempDirectory() + "/", meta);
 
   TEST_EQUAL(maps.size(), nr_swathes+1)
   TEST_EQUAL(maps[0].ms1, true)
@@ -151,12 +126,12 @@ START_SECTION(std::vector< OpenSwath::SwathMap > loadMzML(String file, String tm
 END_SECTION
 
 // medium (2x slower than normal mzML)
-START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadMzML(String file, String tmp, boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="cache") )
+START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadMzML(String file, String tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="cache") )
 {
   Size nr_swathes = 2;
   storeSwathFile("swathFile_1.tmp", nr_swathes);
-  boost::shared_ptr<ExperimentalSettings> meta = boost::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
-  std::vector< OpenSwath::SwathMap > maps = SwathFile().loadMzML("swathFile_1.tmp", "./", meta, "cache");
+  std::shared_ptr<ExperimentalSettings> meta = std::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
+  std::vector< OpenSwath::SwathMap > maps = SwathFile().loadMzML("swathFile_1.tmp", File::getTempDirectory() + "/", meta, "cache");
 
   TEST_EQUAL(maps.size(), nr_swathes+1)
   TEST_EQUAL(maps[0].ms1, true)
@@ -174,7 +149,7 @@ START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadMzML(String file, St
 END_SECTION
 
 // medium (2x slower than normal mzML)
-START_SECTION(std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list, String tmp, boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal"))
+START_SECTION(std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list, String tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal"))
 {
   std::vector<String> swath_filenames;
   Size nr_swathes = 3;
@@ -184,8 +159,8 @@ START_SECTION(std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list,
     swath_filenames.push_back( String("swathFile_2_sw" ) + String(i) + ".tmp");
   }
   storeSplitSwathFile(swath_filenames);
-  boost::shared_ptr<ExperimentalSettings> meta = boost::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
-  std::vector< OpenSwath::SwathMap > maps = SwathFile().loadSplit(swath_filenames, "./", meta);
+  std::shared_ptr<ExperimentalSettings> meta = std::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
+  std::vector< OpenSwath::SwathMap > maps = SwathFile().loadSplit(swath_filenames, File::getTempDirectory() + "/", meta);
 
   // ensure they are sorted ... 
   std::sort(maps.begin(), maps.end(), sortSwathMaps);
@@ -207,7 +182,7 @@ START_SECTION(std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list,
 END_SECTION
 
 // slow (7x slower than normal mzML)
-START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list, String tmp, boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="cache"))
+START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list, String tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="cache"))
 {
   std::vector<String> swath_filenames;
   Size nr_swathes = 2;
@@ -217,8 +192,8 @@ START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadSplit(StringList fil
     swath_filenames.push_back( String("swathFile_3_sw" ) + String(i) + ".tmp");
   }
   storeSplitSwathFile(swath_filenames);
-  boost::shared_ptr<ExperimentalSettings> meta = boost::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
-  std::vector< OpenSwath::SwathMap > maps = SwathFile().loadSplit(swath_filenames, "./", meta, "cache");
+  std::shared_ptr<ExperimentalSettings> meta = std::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
+  std::vector< OpenSwath::SwathMap > maps = SwathFile().loadSplit(swath_filenames, File::getTempDirectory() + "/", meta, "cache");
   // ensure they are sorted ... 
   std::sort(maps.begin(), maps.end(), sortSwathMaps);
 
@@ -238,7 +213,7 @@ START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadSplit(StringList fil
 }
 END_SECTION
 
-START_SECTION((std::vector< OpenSwath::SwathMap > loadMzXML(String file, String tmp, boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal") ) )
+START_SECTION((std::vector< OpenSwath::SwathMap > loadMzXML(String file, String tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal") ) )
 {
   NOT_TESTABLE // mzXML is not supported
 }

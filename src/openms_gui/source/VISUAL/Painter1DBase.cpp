@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -37,6 +11,8 @@
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/Painter1DBase.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
@@ -44,10 +20,11 @@
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 
 // preprocessing and filtering for automated m/z annotations
-#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
+#include <OpenMS/PROCESSING/FILTERING/NLargest.h>
+#include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 
 #include <QPainter>
@@ -59,7 +36,7 @@ namespace OpenMS
 {
   void Painter1DBase::drawAnnotations_(const LayerData1DBase* layer, QPainter& painter, Plot1DCanvas* canvas) const
   {
-    const QColor col {QColor(String(layer->param.getValue("annotation_color").toString()).toQString())};
+    const QColor col {QColor(toQString(String(layer->param.getValue("annotation_color").toString())))};
     // 0: default pen; 1: selected pen
     const QPen pen[2] = {col, col.lighter()};
 
@@ -88,12 +65,12 @@ namespace OpenMS
     const auto& spectrum = layer_->getCurrentSpectrum();
 
     // get default peak color
-    QPen pen(QColor(String(layer_->param.getValue("peak_color").toString()).toQString()), 1);
+    QPen pen(QColor(toQString(String(layer_->param.getValue("peak_color").toString()))), 1);
     pen.setStyle(canvas->peak_penstyle_[layer_index]);
     painter->setPen(pen);
 
     // draw dashed elongations for pairs of peaks annotated with a distance
-    const QColor color = String(canvas->param_.getValue("highlighted_peak_color").toString()).toQString();
+    const QColor color = toQString(String(canvas->param_.getValue("highlighted_peak_color").toString()));
     for (auto& it : layer_->getCurrentAnnotations())
     {
       const auto distance_item = dynamic_cast<Annotation1DDistanceItem*>(it);
@@ -248,7 +225,7 @@ namespace OpenMS
       auto mz(spec[i].getMZ());
       auto intensity(spec[i].getIntensity());
 
-      QString label = String::number(mz, 4).toQString();
+      QString label = toQString(String::number(mz, 4));
 
       if (!spec.getIntegerDataArrays().empty() && spec.getIntegerDataArrays()[0].size() == spec.size())
       {
@@ -287,7 +264,7 @@ namespace OpenMS
     const auto& data = layer_->getCurrentChrom();
 
     // get default peak color
-    QPen pen(QColor(String(layer_->param.getValue("peak_color").toString()).toQString()), 1);
+    QPen pen(QColor(toQString(String(layer_->param.getValue("peak_color").toString()))), 1);
     pen.setStyle(canvas->peak_penstyle_[layer_index]);
     painter->setPen(pen);
 
@@ -387,7 +364,7 @@ namespace OpenMS
     const auto& data = layer_->getCurrentMobilogram();
 
     // get default peak color
-    QPen pen(QColor(String(layer_->param.getValue("peak_color").toString()).toQString()), 1);
+    QPen pen(QColor(toQString(String(layer_->param.getValue("peak_color").toString()))), 1);
     pen.setStyle(canvas->peak_penstyle_[layer_index]);
     painter->setPen(pen);
 

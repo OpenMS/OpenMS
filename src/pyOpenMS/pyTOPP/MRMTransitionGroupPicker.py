@@ -31,15 +31,14 @@ def algorithm(exp, targeted, picker):
         tmp.append( i )
         trmap[ tr.getPeptideRef() ] = tmp
 
-    for key, value in trmap.iteritems():
-        print key, value
+    for key, value in trmap.items():
+        print(key, value)
         transition_group = getTransitionGroup(exp, targeted, key, value, chrom_map)
         picker.pickTransitionGroup(transition_group);
         for mrmfeature in transition_group.getFeatures():
             features = mrmfeature.getFeatures()
             for f in features:
-                # TODO
-                # f.getConvexHulls().clear()
+                # Keep convex hull annotations from picking; only enforce unique IDs.
                 f.ensureUniqueId()
 
             mrmfeature.setSubordinates(features) # add all the subfeatures as subordinates
@@ -55,8 +54,8 @@ def main(options):
     pp = pyopenms.MRMTransitionGroupPicker()
 
     pp_params = pp.getDefaults();
-    pp_params.setValue("PeakPickerMRM:remove_overlapping_peaks", options.remove_overlapping_peaks, '')
-    pp_params.setValue("PeakPickerMRM:method", options.method, '')
+    pp_params.setValue("PeakPickerChromatogram:remove_overlapping_peaks", options.remove_overlapping_peaks, '')
+    pp_params.setValue("PeakPickerChromatogram:method", options.method, '')
     pp.setParameters(pp_params);
 
     chromatograms = pyopenms.MSExperiment()
@@ -89,4 +88,3 @@ def handle_args():
 if __name__ == '__main__':
     options = handle_args()
     main(options)
-

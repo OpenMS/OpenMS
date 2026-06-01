@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -33,9 +7,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
-#include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
+#include <OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
-#include <OpenMS/MATH/MISC/LinearInterpolation.h>
+#include <OpenMS/ML/INTERPOLATION/LinearInterpolation.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <boost/math/special_functions/fpclassify.hpp> // isnan
 
@@ -47,7 +22,7 @@ namespace OpenMS
   PoseClusteringAffineSuperimposer::PoseClusteringAffineSuperimposer() :
     BaseSuperimposer()
   {
-    setName(getProductName());
+    setName("PoseClusteringAffineSuperimposer");
 
     defaults_.setValue("mz_pair_max_distance", 0.5, "Maximum of m/z deviation of corresponding elements in different maps.  "
                                                     "This condition applies to the pairs considered in hashing.");
@@ -174,7 +149,7 @@ namespace OpenMS
     {
       dump_pairs_filename = dump_pairs_basename + "_phase_two_" + String(dump_buckets_serial);
       dump_pairs_file.open(dump_pairs_filename.c_str());
-      dump_pairs_file << "#" << ' ' << "i" << ' ' << "j" << ' ' << "k" << ' ' << "l" << ' ' << std::endl;
+      dump_pairs_file << "#" << ' ' << "i" << ' ' << "j" << ' ' << "k" << ' ' << "l" << ' ' << '\n';
     }
 
     // first point in model map (i)
@@ -299,7 +274,7 @@ namespace OpenMS
               {
                 dump_pairs_file << i << ' ' << model_map[i].getRT() << ' ' << model_map[i].getMZ() << ' ' << j << ' ' << model_map[j].getRT() << ' '
                                 << model_map[j].getMZ() << ' ' << k << ' ' << scene_map[k].getRT() << ' ' << scene_map[k].getMZ() << ' ' << l << ' '
-                                << scene_map[l].getRT() << ' ' << scene_map[l].getMZ() << ' ' << similarity_ik_jl << ' ' << std::endl;
+                                << scene_map[l].getRT() << ' ' << scene_map[l].getMZ() << ' ' << similarity_ik_jl << ' ' << '\n';
               }
             }
           }   // l
@@ -344,7 +319,7 @@ namespace OpenMS
       dump_buckets_filename = dump_buckets_basename + "_scale_" + String(dump_buckets_serial);
       dump_buckets_file.open(dump_buckets_filename.c_str());
 
-      dump_buckets_file << "# rt scale hash table buckets dump ( scale, height ) : " << dump_buckets_filename << std::endl;
+      dump_buckets_file << "# rt scale hash table buckets dump ( scale, height ) : " << dump_buckets_filename << '\n';
       dump_buckets_file << "# unfiltered hash data\n";
       for (Size index = 0; index < scaling_hash_1.getData().size(); ++index)
       {
@@ -464,13 +439,13 @@ namespace OpenMS
         dump_buckets_file << "# loop: " << loop << "  mean: " << log_outside_mean << " [" << exp(log_outside_mean) << "]  stdev: " << log_outside_stdev
                           << " [" << scale_centroid_1 << "]  (mean-stdev): " << log_outside_mean - log_outside_stdev << " [" << scale_low_1 << "]  (mean+stdev): "
                           << log_outside_mean + log_outside_stdev << " [" << scale_high_1 << "]  data_range_begin: " << data_range_begin << "  data_range_end: "
-                          << data_range_end << std::endl;
+                          << data_range_end << '\n';
       }
     }
 
     if (do_dump_buckets)
     {
-      dump_buckets_file << "# EOF" << std::endl;
+      dump_buckets_file << "# EOF\n";
       dump_buckets_file.close();
     }
   }
@@ -500,7 +475,7 @@ namespace OpenMS
       dump_buckets_low_filename = dump_buckets_basename + "_low_" + String(dump_buckets_serial);
       dump_buckets_low_file.open(dump_buckets_low_filename.c_str());
 
-      dump_buckets_low_file << "# rt low hash table buckets dump ( scale, height ) : " << dump_buckets_low_filename << std::endl;
+      dump_buckets_low_file << "# rt low hash table buckets dump ( scale, height ) : " << dump_buckets_low_filename << '\n';
       dump_buckets_low_file << "# unfiltered hash data\n";
       for (Size index = 0; index < rt_low_hash_.getData().size(); ++index)
       {
@@ -513,7 +488,7 @@ namespace OpenMS
       dump_buckets_high_filename = dump_buckets_basename + "_high_" + String(dump_buckets_serial);
       dump_buckets_high_file.open(dump_buckets_high_filename.c_str());
 
-      dump_buckets_high_file << "# rt high hash table buckets dump ( scale, height ) : " << dump_buckets_high_filename << std::endl;
+      dump_buckets_high_file << "# rt high hash table buckets dump ( scale, height ) : " << dump_buckets_high_filename << '\n';
       dump_buckets_high_file << "# unfiltered hash data\n";
       for (Size index = 0; index < rt_high_hash_.getData().size(); ++index)
       {
@@ -675,7 +650,7 @@ namespace OpenMS
         {
           dump_buckets_low_file << "# loop: " << loop << "  mean: " << outside_mean << "  stdev: " << outside_stdev << "  (mean-stdev): " << outside_mean
           - outside_stdev << "  (mean+stdev): " << outside_mean + outside_stdev << "  data_range_begin: " << data_range_begin << "  data_range_end: "
-                                << data_range_end << std::endl;
+                                << data_range_end << '\n';
         }
       }
     }
@@ -703,15 +678,15 @@ namespace OpenMS
         {
           dump_buckets_high_file << "# loop: " << loop << "  mean: " << outside_mean << "  stdev: " << outside_stdev << "  (mean-stdev): " << outside_mean
           - outside_stdev << "  (mean+stdev): " << outside_mean + outside_stdev << "  data_range_begin: " << data_range_begin << "  data_range_end: "
-                                 << data_range_end << std::endl;
+                                 << data_range_end << '\n';
         }
       }
     }
     if (do_dump_buckets)
     {
-      dump_buckets_low_file << "# EOF" << std::endl;
+      dump_buckets_low_file << "# EOF\n";
       dump_buckets_low_file.close();
-      dump_buckets_high_file << "# EOF" << std::endl;
+      dump_buckets_high_file << "# EOF\n";
       dump_buckets_high_file.close();
     }
   }
@@ -855,21 +830,21 @@ namespace OpenMS
       double shift = std::fabs(model_minrt - scene_minrt);
       double slope = (model_maxrt - model_minrt) / (scene_maxrt - scene_minrt);
 
-      if ( (double)param_.getValue("max_scaling") < slope * 1.2 || 
+      if ( (double)param_.getValue("max_scaling") < slope * 1.2 ||
            1.0 / (double)param_.getValue("max_scaling") > slope / 1.2)
       {
-        std::cout << "WARNING: your map likely has a scaling around " << slope
+        OPENMS_LOG_WARN << "WARNING: your map likely has a scaling around " << slope
           << " but your parameters only allow for a maximal scaling of " <<
-          param_.getValue("max_scaling") << std::endl;
-        std::cout << "It is strongly advised to adjust your max_scaling factor" << std::endl;
+          param_.getValue("max_scaling") << '\n';
+        OPENMS_LOG_WARN << "It is strongly advised to adjust your max_scaling factor\n";
       }
 
       if ( (double)param_.getValue("max_shift") < shift * 1.2)
       {
-        std::cout << "WARNING: your map likely has a shift around " << shift
+        OPENMS_LOG_WARN << "WARNING: your map likely has a shift around " << shift
           << " but your parameters only allow for a maximal shift of " <<
-          param_.getValue("max_shift") << std::endl;
-        std::cout << "It is strongly advised to adjust your max_shift factor" << std::endl;
+          param_.getValue("max_shift") << '\n';
+        OPENMS_LOG_WARN << "It is strongly advised to adjust your max_shift factor\n";
       }
 
     }

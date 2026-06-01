@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Veit $
@@ -35,6 +9,7 @@
 #include <OpenMS/VISUAL/TOPPASResources.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <iostream>
 #include <map>
@@ -68,7 +43,7 @@ namespace OpenMS
   {
     Param load_param;
     ParamXMLFile paramFile;
-    paramFile.load(String(file_name), load_param);
+    paramFile.load(fromQString(file_name), load_param);
 
     for (Param::ParamIterator it = load_param.begin(); it != load_param.end(); ++it)
     {
@@ -82,12 +57,12 @@ namespace OpenMS
         return;
       }
 
-      QString key = (substrings[0]).toQString();
+      QString key = toQString(substrings[0]);
       StringList url_list = ListUtils::toStringList<std::string>(it->value);
       QList<TOPPASResource> resource_list;
       for (StringList::const_iterator it = url_list.begin(); it != url_list.end(); ++it)
       {
-        resource_list << TOPPASResource(QUrl(it->toQString()));
+        resource_list << TOPPASResource(QUrl(toQString(*it)));
       }
 
       add(key, resource_list);
@@ -105,10 +80,10 @@ namespace OpenMS
 
     for (std::map<QString, QList<TOPPASResource> >::const_iterator it = map_.begin(); it != map_.end(); ++it)
     {
-      const String& key = String(it->first);
+      const String key = fromQString(it->first);
       const QList<TOPPASResource>& resource_list = it->second;
       std::vector<std::string> url_list;
-      foreach(const TOPPASResource &res, resource_list)
+      for (const TOPPASResource &res : resource_list)
       {
         url_list.push_back(String(res.getURL().toString().toStdString()));
       }
@@ -116,7 +91,7 @@ namespace OpenMS
     }
 
     ParamXMLFile paramFile;
-    paramFile.store(String(file_name), save_param);
+    paramFile.store(fromQString(file_name), save_param);
   }
 
   const QList<TOPPASResource>& TOPPASResources::get(const QString& key) const

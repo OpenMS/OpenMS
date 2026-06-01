@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -34,13 +8,15 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <vector>
+#include <functional>
 #include <map>
+#include <vector>
 
 namespace OpenMS
 {
@@ -103,6 +79,9 @@ public:
     /// accessor for the outer points
     const PointArrayType& getHullPoints() const;
 
+    /// @brief Accessor for the internal map representation (RT -> m/z bounding box)
+    const HullPointType& getMapPoints() const { return map_points_; }
+
     /// accessor for the outer(!) points (no checking is performed if this is actually a convex hull)
     void setHullPoints(const PointArrayType& points);
 
@@ -161,5 +140,38 @@ protected:
     mutable PointArrayType outer_points_;
 
   };
-} // namespace OPENMS
+} // namespace OpenMS
+
+// Hash function specialization for ConvexHull2D
+namespace std
+{
+  template<>
+  struct hash<OpenMS::ConvexHull2D>
+  {
+    std::size_t operator()(const OpenMS::ConvexHull2D& hull) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash map_points_ (map of RT -> m/z bounding box)
+      // std::map iteration order is deterministic (sorted by key)
+      const auto& map_points = hull.getMapPoints();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(map_points.size()));
+      for (const auto& entry : map_points)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(entry.first));
+        OpenMS::hash_combine(seed, std::hash<OpenMS::DBoundingBox<1>>{}(entry.second));
+      }
+
+      // Hash outer_points_ (vector of DPosition<2>)
+      const auto& outer_points = hull.getHullPoints();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(outer_points.size()));
+      for (const auto& point : outer_points)
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::DPosition<2>>{}(point));
+      }
+
+      return seed;
+    }
+  };
+} // namespace std
 

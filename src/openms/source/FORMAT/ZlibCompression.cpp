@@ -1,39 +1,16 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Authors: Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ZlibCompression.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
+#include <array>
 #include <zlib.h>
 
 using namespace std;
@@ -43,70 +20,118 @@ namespace OpenMS
 
   void ZlibCompression::compressString(std::string& str, std::string& compressed)
   {
+    compressData(reinterpret_cast<Bytef*>(&str[0]), str.size(), compressed);
+  }
+
+  void ZlibCompression::compressData(const void* raw_data, const size_t in_length, std::string& compressed)
+  {
     compressed.clear();
 
-    unsigned long sourceLen =   (unsigned long)str.size();
-    unsigned long compressed_length = //compressBound((unsigned long)str.size());
-                                      sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
+    const unsigned long sourceLen = (unsigned long)in_length;
+    unsigned long compressed_length = compressBound(in_length);
+    compressed.resize(compressed_length); // reserve enough space -- we may not need all of it
 
-    int zlib_error;
-    do
+    int zlib_error = compress(reinterpret_cast<Bytef*>(&compressed[0]), &compressed_length, (Bytef*)raw_data, sourceLen);
+
+    switch (zlib_error)
     {
-      compressed.resize(compressed_length);
-      zlib_error = compress(reinterpret_cast<Bytef*>(&compressed[0]), &compressed_length, reinterpret_cast<Bytef*>(&str[0]), (unsigned long) str.size());
-
-      switch (zlib_error)
-      {
+      case Z_OK:         // Compression successful
+        break;
       case Z_MEM_ERROR:
         throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, compressed_length);
-
       case Z_BUF_ERROR:
-        compressed_length *= 2;
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                      "Destination buffer too small for compressed output",
+                                      String(compressed_length));
+      default:
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error!");
+    }
+
+    compressed.resize(compressed_length); // cut down to the actual data
+  }
+
+  void uncompressStringSingleShot___(const void* compressed_data, size_t nr_bytes, std::string& raw_data, size_t output_size)
+  {
+    if (nr_bytes == 0)
+    {
+      raw_data.clear();
+      return;
+    }
+    raw_data.resize(output_size);
+    uLongf uncompressedSize = output_size;
+    int ret = uncompress((Bytef*)raw_data.data(), &uncompressedSize, (Bytef*)compressed_data, nr_bytes);
+
+    if (ret == Z_OK)
+    {
+      if (uncompressedSize != raw_data.size())
+      {
+        OPENMS_LOG_INFO << "ZlibCompression::uncompressString: Warning: decompressed data was smaller (" << std::to_string(uncompressedSize) << ") than anticipated: " << std::to_string(output_size) << std::endl;
+        raw_data.resize(uncompressedSize);
       }
-    } while (zlib_error == Z_BUF_ERROR);
-
-    if (zlib_error != Z_OK)
-    {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error?");
     }
-    compressed.resize(compressed_length);
+    else if (ret == Z_BUF_ERROR)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decompression failed because specified output_size was too small. Size of data after decompression is larger than anticipated: " + std::to_string(uncompressedSize), std::to_string(output_size));
+    }
+    else
+    {
+      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "zlib::inflate failed with code " + std::to_string(ret) + " .");
+    }
   }
 
-  void ZlibCompression::compressString(const QByteArray& raw_data, QByteArray& compressed_data)
+  void uncompressStringIterative___(const void* compressed_data, size_t nr_bytes, std::string& uncompressed)
   {
-    compressed_data = qCompress(raw_data);
-    compressed_data.remove(0, 4);
-  }
-
-  void ZlibCompression::uncompressString(const void * tt, size_t blob_bytes, std::string& uncompressed)
-  {
-    // take a leap of faith and assume the input is valid
-    QByteArray compressed_data = QByteArray::fromRawData((const char*)tt, blob_bytes);
-    QByteArray raw_data;
-
-    ZlibCompression::uncompressString(compressed_data, raw_data);
-
-    // Note that we may have zero bytes in the string, so we cannot use QString
     uncompressed.clear();
-    uncompressed = std::string(raw_data.data(), raw_data.size());
+
+    // Setup input
+    z_stream strm = {};
+    strm.next_in = (Bytef*)(compressed_data);
+    strm.avail_in = nr_bytes;
+
+    // Initialize zlib (use inflateInit2 for gzip or raw deflate)
+    int ret = inflateInit(&strm);
+    if (ret != Z_OK)
+    {
+      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "zlib::inflateInit failed with code " + std::to_string(ret) + " .");
+    }
+
+    // Decompress loop
+    const size_t CHUNK_SIZE = 16384;
+    std::array<char, CHUNK_SIZE> buffer;
+    do
+    {
+      strm.avail_out = CHUNK_SIZE;
+      strm.next_out = (Bytef*)buffer.data();
+
+      ret = inflate(&strm, Z_NO_FLUSH);
+      if (ret == Z_STREAM_ERROR || ret == Z_DATA_ERROR || ret == Z_MEM_ERROR || ret == Z_BUF_ERROR)
+      {
+        inflateEnd(&strm);
+        throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "zlib::inflate failed with code " + std::to_string(ret) + " .");
+      }
+
+      size_t bytes_decompressed = CHUNK_SIZE - strm.avail_out;
+      uncompressed.insert(uncompressed.end(), buffer.begin(), buffer.begin() + bytes_decompressed);
+    } while (ret != Z_STREAM_END);
+
+    inflateEnd(&strm);
   }
 
-  void ZlibCompression::uncompressString(const QByteArray& compressed_data, QByteArray& raw_data)
+  void ZlibCompression::uncompressData(const void* compressed_data, size_t nr_bytes, std::string& raw_data, size_t output_size)
   {
-    QByteArray czip;
-    czip.resize(4);
-    czip[0] = (compressed_data.size() & 0xff000000) >> 24;
-    czip[1] = (compressed_data.size() & 0x00ff0000) >> 16;
-    czip[2] = (compressed_data.size() & 0x0000ff00) >> 8;
-    czip[3] = (compressed_data.size() & 0x000000ff);
-    czip += compressed_data;
-    raw_data = qUncompress(czip);
-
-    if (raw_data.isEmpty())
-    {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decompression error?");
+    if (output_size == 0)
+    { // unknown output size - decompress chunk by chunk
+      uncompressStringIterative___(compressed_data, nr_bytes, raw_data);
+    }
+    else
+    { // known output size - decompress into a preallocated string
+      uncompressStringSingleShot___(compressed_data, nr_bytes, raw_data, output_size);
     }
   }
 
-}
-
+  void ZlibCompression::uncompressString(const String& in, std::string& out, size_t output_size)
+  {
+    uncompressData(in.data(), in.size(), out, output_size);
+  }
+  
+} // namespace OpenMS

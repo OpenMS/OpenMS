@@ -3,7 +3,6 @@ set(directory include/OpenMS/DATASTRUCTURES/Utils)
 
 ### list all header files of the directory here
 set(sources_list_h
-MatrixUtils.h
 MapUtilities.h
 )
 

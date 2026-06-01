@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -142,7 +116,7 @@ namespace OpenMS
       Int pos = Int(float(gradient_.position(i)) / 100.0 * gradient_area_width_ + margin_ + 1);
 
       // mouse pointer over lever?
-      if (e->x() >= pos - 3 && e->x() <= pos + 4 && e->y() >= height() - margin_ - lever_area_height_ + 8 && e->y() <= height() - margin_ - lever_area_height_ + 15)
+      if (e->position().toPoint().x() >= pos - 3 && e->position().toPoint().x() <= pos + 4 && e->position().toPoint().y() >= height() - margin_ - lever_area_height_ + 8 && e->position().toPoint().y() <= height() - margin_ - lever_area_height_ + 15)
       {
         selected_ = gradient_.position(i);
         selected_color_ = gradient_.color(i);
@@ -152,9 +126,9 @@ namespace OpenMS
     }
 
     //create new lever
-    if (e->x() >= margin_ && e->x() <= width() - margin_ && e->y() >= height() - margin_ - lever_area_height_ && e->y() <= height() - margin_)
+    if (e->position().toPoint().x() >= margin_ && e->position().toPoint().x() <= width() - margin_ && e->position().toPoint().y() >= height() - margin_ - lever_area_height_ && e->position().toPoint().y() <= height() - margin_)
     {
-      Int pos = Int(100 * (e->x() - margin_) / float(gradient_area_width_));
+      Int pos = Int(100 * (e->position().toPoint().x() - margin_) / float(gradient_area_width_));
       gradient_.insert(pos, selected_color_);
       selected_ = pos;
       repaint();
@@ -166,9 +140,9 @@ namespace OpenMS
     if (left_button_pressed_ && selected_ > 0 && selected_ < 100) // don't move first or last lever
     {
       //inside lever area
-      if (e->x() >= margin_ && e->x() <= width() - margin_ && e->y() >= height() - margin_ - lever_area_height_ && e->y() <= height() - margin_)
+      if (e->position().toPoint().x() >= margin_ && e->position().toPoint().x() <= width() - margin_ && e->position().toPoint().y() >= height() - margin_ - lever_area_height_ && e->position().toPoint().y() <= height() - margin_)
       {
-        Int pos = Int(100 * (e->x() - margin_) / float(gradient_area_width_));
+        Int pos = Int(100 * (e->position().toPoint().x() - margin_) / float(gradient_area_width_));
         if (pos != selected_ && !gradient_.exists(pos))        // lever has been moved AND no other lever at the new position?
         {
           gradient_.remove(selected_);
@@ -195,7 +169,7 @@ namespace OpenMS
     for (UInt i = 0; i < (UInt)gradient_.size(); ++i)
     {
       Int pos = Int(float(gradient_.position(i)) / 100.0 * gradient_area_width_ + margin_ + 1);
-      if (e->x() >= pos - 3 && e->x() <= pos + 4 && e->y() >= height() - margin_ - lever_area_height_ + 8 && e->y() <= height() - margin_ - lever_area_height_ + 15)
+      if (e->position().toPoint().x() >= pos - 3 && e->position().toPoint().x() <= pos + 4 && e->position().toPoint().y() >= height() - margin_ - lever_area_height_ + 8 && e->position().toPoint().y() <= height() - margin_ - lever_area_height_ + 15)
       {
         gradient_.insert(gradient_.position(i), QColorDialog::getColor(gradient_.color(i), this));
         if (Int(gradient_.position(i)) == selected_)

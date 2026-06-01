@@ -1,39 +1,15 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Marc Sturm, Chris Bielow, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/config.h>
 
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -71,7 +47,7 @@ namespace OpenMS
   }
 
   AnnotationStatistics::AnnotationStatistics() :
-    states(BaseFeature::SIZE_OF_ANNOTATIONSTATE, 0) // initialize all with 0
+    states(static_cast<size_t>(BaseFeature::AnnotationState::SIZE_OF_ANNOTATIONSTATE), 0) // initialize all with 0
   {
   }
 
@@ -99,23 +75,24 @@ namespace OpenMS
   }
 
   FeatureMap::FeatureMap() :
-    Base(),
     MetaInfoInterface(),
     RangeManagerContainerType(),
     DocumentIdentifier(),
+    ExposedVector<Feature>(),
     UniqueIdInterface(),
     UniqueIdIndexer<FeatureMap>(),
     protein_identifications_(),
     unassigned_peptide_identifications_(),
-    data_processing_()
+    data_processing_(),
+    id_data_()
   {
   }
 
   FeatureMap::FeatureMap(const FeatureMap& source) :
-    Base(source),
     MetaInfoInterface(source),
     RangeManagerContainerType(source),
     DocumentIdentifier(source),
+    ExposedVector<Feature>(source),
     UniqueIdInterface(source),
     UniqueIdIndexer<FeatureMap>(source),
     protein_identifications_(source.protein_identifications_),
@@ -135,27 +112,38 @@ namespace OpenMS
 
   FeatureMap::~FeatureMap() = default;
 
-  FeatureMap& FeatureMap::operator=(const FeatureMap& rhs)
+  FeatureMap& FeatureMap::operator=(const FeatureMap& rhs)  // TODO: cannot be defaulted since OpenMS::IdentificationData is missing operator=
   {
     if (&rhs == this)
     {
       return *this;
     }
-    Base::operator=(rhs);
     MetaInfoInterface::operator=(rhs);
     RangeManagerType::operator=(rhs);
     DocumentIdentifier::operator=(rhs);
     UniqueIdInterface::operator=(rhs);
+    data_ = rhs.data_;
     protein_identifications_ = rhs.protein_identifications_;
     unassigned_peptide_identifications_ = rhs.unassigned_peptide_identifications_;
     data_processing_ = rhs.data_processing_;
 
+    // copy ID data and update references in features:
+    id_data_.clear();
+    IdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
+    for (Feature& feature : *this)
+    {
+      feature.updateAllIDReferences(trans);
+    }
+
     return *this;
   }
 
+  //FeatureMap& FeatureMap::operator=(FeatureMap&&) = default; // TODO: cannot be defaulted since OpenMS::IdentificationData is missing operator=
+
+
   bool FeatureMap::operator==(const FeatureMap& rhs) const
   {
-    return std::operator==(*this, rhs) &&
+    return data_ == rhs.data_ &&
            MetaInfoInterface::operator==(rhs) &&
            RangeManagerType::operator==(rhs) &&
            DocumentIdentifier::operator==(rhs) &&
@@ -219,7 +207,7 @@ namespace OpenMS
     }
     catch (Exception::Postcondition&) // assign new UID's for conflicting entries
     {
-      Size replaced_uids =  UniqueIdIndexer<FeatureMap>::resolveUniqueIdConflicts();
+      Size replaced_uids = UniqueIdIndexer<FeatureMap>::resolveUniqueIdConflicts();
       OPENMS_LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
     }
 
@@ -267,8 +255,17 @@ namespace OpenMS
 
   void FeatureMap::updateRanges()
   {
+    #ifdef OPENMS_ASSERTIONS
+      double rt_min = RangeRT::isEmpty() ? 0 : getMinRT();
+      double rt_max = RangeRT::isEmpty() ? 0 : getMaxRT();
+      double mz_min = RangeMZ::isEmpty() ? 0 : getMinMZ();
+      double mz_max = RangeMZ::isEmpty() ? 0 : getMaxMZ();
+      double int_min = RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+      double int_max = RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+    #endif
+
     clearRanges();
-    for (const auto& f : (Base&) *this)
+    for (const auto& f : *this)
     {
       extendRT(f.getRT());
       extendMZ(f.getMZ());
@@ -287,12 +284,30 @@ namespace OpenMS
         extendMZ(box.maxPosition()[Peak2D::MZ]);
       }
     }
+
+    #ifdef OPENMS_ASSERTIONS
+      // check if updateRanges() was necessary and find places where it was not
+      double rt_min_new = RangeRT::isEmpty() ? 0 : getMinRT();
+      double rt_max_new = RangeRT::isEmpty() ? 0 : getMaxRT();
+      double mz_min_new = RangeMZ::isEmpty() ? 0 : getMinMZ();
+      double mz_max_new = RangeMZ::isEmpty() ? 0 : getMaxMZ();
+      double int_min_new = RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+      double int_max_new = RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+
+      // check if all are equal and no update range was necessary
+      if (rt_min_new == rt_min && rt_max_new == rt_max
+        && int_min_new == int_min && int_max_new == int_max
+        && mz_min_new == mz_min && mz_max_new == mz_max)
+      {
+        OPENMS_LOG_WARN << "Update ranges was called but ranges were already up-to-date" << std::endl;
+      }
+    #endif
   }
 
+  
   void FeatureMap::swapFeaturesOnly(FeatureMap& from)
   {
-    // TODO used by FeatureFinderAlgorithmPicked -- could it also use regular swap?
-    Base::swap(from);
+    data_.swap(from.data_);
 
     // swap range information (otherwise its false in both maps)
     FeatureMap tmp;
@@ -337,17 +352,41 @@ namespace OpenMS
     protein_identifications_ = protein_identifications;
   }
 
-  const std::vector<PeptideIdentification>& FeatureMap::getUnassignedPeptideIdentifications() const
+  const ProteinIdentification* FeatureMap::findProteinIdentification(const String& identifier) const
+  {
+    for (const auto& prot_id : protein_identifications_)
+    {
+      if (prot_id.getIdentifier() == identifier)
+      {
+        return &prot_id;
+      }
+    }
+    return nullptr;
+  }
+
+  ProteinIdentification* FeatureMap::findProteinIdentification(const String& identifier)
+  {
+    for (auto& prot_id : protein_identifications_)
+    {
+      if (prot_id.getIdentifier() == identifier)
+      {
+        return &prot_id;
+      }
+    }
+    return nullptr;
+  }
+
+  const PeptideIdentificationList& FeatureMap::getUnassignedPeptideIdentifications() const
   {
     return unassigned_peptide_identifications_;
   }
 
-  std::vector<PeptideIdentification>& FeatureMap::getUnassignedPeptideIdentifications()
+  PeptideIdentificationList& FeatureMap::getUnassignedPeptideIdentifications()
   {
     return unassigned_peptide_identifications_;
   }
 
-  void FeatureMap::setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications)
+  void FeatureMap::setUnassignedPeptideIdentifications(const PeptideIdentificationList& unassigned_peptide_identifications)
   {
     unassigned_peptide_identifications_ = unassigned_peptide_identifications;
   }
@@ -422,7 +461,7 @@ namespace OpenMS
 
   void FeatureMap::clear(bool clear_meta_data)
   {
-    Base::clear();
+    data_.clear();
 
     if (clear_meta_data)
     {
@@ -464,8 +503,8 @@ namespace OpenMS
     }
     std::set<IdentificationData::ObservationMatchRef> result;
     std::set_difference(all_matches.begin(), all_matches.end(),
-                   assigned_matches.begin(), assigned_matches.end(),
-                   inserter(result, result.end()));
+                        assigned_matches.begin(), assigned_matches.end(),
+                        inserter(result, result.end()));
     return result;
   }
 

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
@@ -77,15 +51,26 @@ namespace OpenMS
     std::ifstream ifs(filename, std::ifstream::in);
     if (!ifs.is_open())
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      if (!File::exists(filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else if (!File::readable(filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
     }
-    const Size BUFSIZE { 65536 };
-    char line[BUFSIZE];
+    // use std::string + std::getline to avoid silent truncation of long MSP fields (e.g. SMILES, synonyms)
+    std::string line;
     library.clear(true);
     MSSpectrum spectrum;
     spectrum.setMetaValue("is_valid", 0); // to avoid adding invalid spectra to the library
 
-    boost::cmatch m;
+    boost::smatch m;
     boost::regex re_name("(?:^Name|^NAME): (.+)", boost::regex::no_mod_s);
     boost::regex re_retention_time("(?:^Retention Time|^RETENTIONTIME): (.+)", boost::regex::no_mod_s);
     boost::regex re_synon("^synon(?:yms?)?: (.+)", boost::regex::no_mod_s | boost::regex::icase);
@@ -99,13 +84,14 @@ namespace OpenMS
     boost::regex re_smiles("^SMILES: (.+)");
     boost::regex re_sum_formula("^FORMULA: (.+)");
     boost::regex re_precursor_type("^PRECURSORTYPE: (.+)");
+    boost::regex re_ccs("^CCS: (.+)");
     // matches everything else
     boost::regex re_metadatum("^(.+): (.+)", boost::regex::no_mod_s);
     OPENMS_LOG_INFO << "\nLoading spectra from .msp file. Please wait." << std::endl;
 
     while (!ifs.eof())
     {
-      ifs.getline(line, BUFSIZE);
+      std::getline(ifs, line);
       // Peaks
       if (boost::regex_search(line, m, re_points_line))
       {
@@ -117,7 +103,7 @@ namespace OpenMS
           const double position { std::stod(m[1]) };
           const double intensity { std::stod(m[2]) };
           spectrum.push_back( Peak1D(position, intensity) );
-        } while ( boost::regex_search(m[0].second, m, re_point) );
+        } while ( boost::regex_search(m[0].second, line.cend(), m, re_point) );
       }
       // Synon
       else if (boost::regex_search(line, m, re_synon))
@@ -178,7 +164,24 @@ namespace OpenMS
       else if (boost::regex_search(line, m, re_precursor_type))
       {
         spectrum.setMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT, String(m[1]));
-      }      
+      }
+      // Collision cross section (CCS). Real MSP libraries (e.g. MS-DIAL, MoNA) store this as a
+      // plain number in Angstrom^2; parse it as a typed double so it round-trips cleanly through
+      // store() and can be used by MetaboliteSpectralMatching for ion-mobility filtering. A
+      // non-numeric value is kept verbatim as a string meta value (no data loss, not fatal).
+      else if (boost::regex_search(line, m, re_ccs))
+      {
+        String val(m[1].str());
+        val.trim();
+        try
+        {
+          spectrum.setMetaValue(Constants::UserParam::MSM_CCS, val.toDouble());
+        }
+        catch (const Exception::ConversionError&)
+        {
+          spectrum.setMetaValue(Constants::UserParam::MSM_CCS, val);
+        }
+      }
       // Other metadata, needs to be last, matches everything
       else if (boost::regex_search(line, m, re_metadatum))
       {

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
@@ -37,8 +11,10 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 
+#include <functional>
 #include <set>
 
 namespace OpenMS
@@ -81,30 +57,47 @@ public:
     Precursor& operator=(Precursor&&) & = default;
 
     /// Method of activation
-    enum ActivationMethod
+    enum class ActivationMethod
     {
-      CID,                      ///< Collision-induced dissociation
+      CID,                      ///< Collision-induced dissociation (MS:1000133) (also CAD; parent term, but unless otherwise stated often used as synonym for trap-type CID)
       PSD,                      ///< Post-source decay
       PD,                       ///< Plasma desorption
       SID,                      ///< Surface-induced dissociation
       BIRD,                     ///< Blackbody infrared radiative dissociation
-      ECD,                      ///< Electron capture dissociation
+      ECD,                      ///< Electron capture dissociation (MS:1000250)
       IMD,                      ///< Infrared multiphoton dissociation
       SORI,                     ///< Sustained off-resonance irradiation
       HCID,                     ///< High-energy collision-induced dissociation
       LCID,                     ///< Low-energy collision-induced dissociation
       PHD,                      ///< Photodissociation
       ETD,                      ///< Electron transfer dissociation
-      PQD,                      ///< Pulsed q dissociation
+      ETciD,                    ///< Electron transfer and collision-induced dissociation (MS:1003182)
+      EThcD,                    ///< Electron transfer and higher-energy collision dissociation (MS:1002631)
+      PQD,                      ///< Pulsed q dissociation (MS:1000599)
       TRAP,                     ///< trap-type collision-induced dissociation (MS:1002472)
-      HCD,                     ///< beam-type collision-induced dissociation (MS:1000422) "HCD"
+      HCD,                      ///< beam-type collision-induced dissociation (MS:1000422)
       INSOURCE,                 ///< in-source collision-induced dissociation (MS:1001880)
       LIFT,                     ///< Bruker proprietary method (MS:1002000)
       SIZE_OF_ACTIVATIONMETHOD
     };
     /// Names of activation methods
-    static const std::string NamesOfActivationMethod[SIZE_OF_ACTIVATIONMETHOD];
-    static const std::string NamesOfActivationMethodShort[SIZE_OF_ACTIVATIONMETHOD];
+    static const std::string NamesOfActivationMethod[static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)];
+    static const std::string NamesOfActivationMethodShort[static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)];
+
+    /// returns all activation method full names (e.g., "Collision-induced dissociation") known to OpenMS
+    static StringList getAllNamesOfActivationMethods();
+    /// returns all activation method abbreviations (e.g., "CID") known to OpenMS
+    static StringList getAllShortNamesOfActivationMethods();
+
+    /// convert an ActivationMethod enum to its full name string
+    /// @throws Exception::InvalidValue if @p m is SIZE_OF_ACTIVATIONMETHOD
+    static const std::string& activationMethodToString(ActivationMethod m);
+    /// convert an ActivationMethod enum to its short (abbreviated) name string
+    /// @throws Exception::InvalidValue if @p m is SIZE_OF_ACTIVATIONMETHOD
+    static const std::string& activationMethodToShortString(ActivationMethod m);
+    /// convert a string (full name or short name) to an ActivationMethod enum
+    /// @throws Exception::InvalidValue if @p name is not found in NamesOfActivationMethod or NamesOfActivationMethodShort
+    static ActivationMethod toActivationMethod(const std::string& name);
 
     /// Equality operator
     bool operator==(const Precursor & rhs) const;
@@ -115,8 +108,12 @@ public:
     const std::set<ActivationMethod>& getActivationMethods() const;
     /// returns a mutable reference to the activation methods
     std::set<ActivationMethod>& getActivationMethods();
-    /// convenience function, returning string representation of getActivationMethods()
+    
+    /// Returns the full names (e.g., "Collision-induced dissociation") of the activation methods set on this instance
     StringList getActivationMethodsAsString() const;    
+    /// Returns the abbreviations (e.g., "CID") of the activation methods set on this instance
+    StringList getActivationMethodsAsShortString() const;
+
     /// sets the activation methods
     void setActivationMethods(const std::set<ActivationMethod> & activation_methods);
 
@@ -237,4 +234,49 @@ protected:
     std::vector<Int> possible_charge_states_;
   };
 } // namespace OpenMS
+
+// Hash function specialization for Precursor
+namespace std
+{
+  template<>
+  struct hash<OpenMS::Precursor>
+  {
+    std::size_t operator()(const OpenMS::Precursor& p) const noexcept
+    {
+      // Hash Peak1D base class
+      std::size_t seed = std::hash<OpenMS::Peak1D>{}(p);
+
+      // Hash CVTermList base class
+      OpenMS::hash_combine(seed, std::hash<OpenMS::CVTermList>{}(p));
+
+      // Hash activation_methods_ (std::set is ordered, deterministic iteration)
+      for (const auto& method : p.getActivationMethods())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(method)));
+      }
+
+      // Hash double fields
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getActivationEnergy()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIsolationWindowLowerOffset()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIsolationWindowUpperOffset()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getDriftTime()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getDriftTimeWindowLowerOffset()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getDriftTimeWindowUpperOffset()));
+
+      // Hash drift_time_unit_ (enum class)
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(p.getDriftTimeUnit())));
+
+      // Hash charge_
+      OpenMS::hash_combine(seed, OpenMS::hash_int(p.getCharge()));
+
+      // Hash possible_charge_states_
+      for (const auto& charge : p.getPossibleChargeStates())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(charge));
+      }
+
+      return seed;
+    }
+  };
+} // namespace std
 

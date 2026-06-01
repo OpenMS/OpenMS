@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -63,7 +37,7 @@ public:
         as centroided (C) vs profile (P).
         If P / (C+P) > 0.75, the spectrum is considered profile; centroided otherwise.
 
-        @note if there are less than 5 peaks in the iterator range SpectrumSettings::UNKNOWN is returned
+        @note if there are less than 5 peaks in the iterator range SpectrumSettings::SpectrumType::UNKNOWN is returned
        */
     template <typename PeakConstIterator>
     static SpectrumSettings::SpectrumType estimateType(const PeakConstIterator& begin, const PeakConstIterator& end)
@@ -72,7 +46,7 @@ public:
       // abort if there are less than 5 peak in the iterator range
       if (end - begin < 5)
       {
-        return SpectrumSettings::UNKNOWN;
+        return SpectrumSettings::SpectrumType::UNKNOWN;
       }
 
       const int max_peaks = 5; // maximal number of peaks we are looking at
@@ -173,12 +147,12 @@ public:
       if (evidence_ratio > 0.75) // 80% are profile
       {
         //std::cerr << "  PROFILE\n";
-        return SpectrumSettings::PROFILE;
+        return SpectrumSettings::SpectrumType::PROFILE;
       }
       else
       { 
         //std::cerr << "  CENTROID\n";
-        return SpectrumSettings::CENTROID;
+        return SpectrumSettings::SpectrumType::CENTROID;
       }
     }
     /**
@@ -210,7 +184,7 @@ public:
                                         // abort if there are less than 5 peak in the iterator range
       if (end - begin < 5)
       {
-        return SpectrumSettings::UNKNOWN;
+        return SpectrumSettings::SpectrumType::UNKNOWN;
       }
 
       int count(0);
@@ -226,7 +200,7 @@ public:
 
       if (peak == end)
       { // only zeros
-        return SpectrumSettings::UNKNOWN;
+        return SpectrumSettings::SpectrumType::UNKNOWN;
       }
 
       double last_mz = peak->getMZ();
@@ -249,7 +223,7 @@ public:
       if (count < 4) // at least 4 distances for non-zero(!) intensity peaks
       {
         if (peak != end) return estimateType(peak, end); // try further to the right
-        else return SpectrumSettings::UNKNOWN;
+        else return SpectrumSettings::SpectrumType::UNKNOWN;
       }
 
       double q1 = Math::quantile1st(distances.begin(), distances.end(), false);
@@ -259,11 +233,11 @@ public:
 
       if ((q3-q1) < q1*5) // q1 and q3 are roughly equal
       {
-        return SpectrumSettings::PROFILE;
+        return SpectrumSettings::SpectrumType::PROFILE;
       }
       else
       {
-        return SpectrumSettings::CENTROID;
+        return SpectrumSettings::SpectrumType::CENTROID;
       }
     }*/
 

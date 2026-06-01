@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -41,6 +15,8 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
@@ -60,14 +36,14 @@ namespace OpenMS
   {
   }
 
-  void IdXMLFile::load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids)
+  void IdXMLFile::load(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids)
   {
     String document_id;
     load(filename, protein_ids, peptide_ids, document_id);
   }
 
   void IdXMLFile::load(const String& filename, std::vector<ProteinIdentification>& protein_ids,
-                       std::vector<PeptideIdentification>& peptide_ids, String& document_id)
+                       PeptideIdentificationList& peptide_ids, String& document_id)
   {
     startProgress(0, 0, "Loading idXML");
     //Filename for error messages in XMLHandler
@@ -98,7 +74,7 @@ namespace OpenMS
     endProgress();
   }
 
-  void IdXMLFile::store(const String& filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id)
+  void IdXMLFile::store(const String& filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const String& document_id)
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::IDXML))
     {
@@ -152,11 +128,11 @@ namespace OpenMS
          << "db=\"" << writeXMLEscape(params[i].db) << "\" "
          << "db_version=\"" << writeXMLEscape(params[i].db_version) << "\" "
          << "taxonomy=\"" << writeXMLEscape(params[i].taxonomy) << "\" ";
-      if (params[i].mass_type == ProteinIdentification::MONOISOTOPIC)
+      if (params[i].mass_type == ProteinIdentification::PeakMassType::MONOISOTOPIC)
       {
         os << "mass_type=\"monoisotopic\" ";
       }
-      else if (params[i].mass_type == ProteinIdentification::AVERAGE)
+      else if (params[i].mass_type == ProteinIdentification::PeakMassType::AVERAGE)
       {
         os << "mass_type=\"average\" ";
       }
@@ -244,7 +220,9 @@ namespace OpenMS
       {
         os << "higher_score_better=\"false\" ";
       }
-      os << "significance_threshold=\"" << protein_ids[i].getSignificanceThreshold() << "\" >\n";
+      
+      double significance_threshold = protein_ids[i].getSignificanceThreshold();
+      os << "significance_threshold=\"" << String(significance_threshold) << "\" >\n";
 
       // write protein hits
       size_t hit_count { protein_ids[i].getHits().size() };
@@ -308,7 +286,9 @@ namespace OpenMS
         {
           os << "higher_score_better=\"false\" ";
         }
-        os << "significance_threshold=\"" << String(peptide_ids[l].getSignificanceThreshold()) << "\" ";
+        double significance_threshold = peptide_ids[l].getSignificanceThreshold();
+        os << "significance_threshold=\"" << String(significance_threshold) << "\" ";        
+
         // mz
         if (peptide_ids[l].hasMZ())
         {
@@ -389,30 +369,12 @@ namespace OpenMS
           writeFragmentAnnotations_("UserParam", os, p_hit.getPeakAnnotations(), 4);
           writeUserParam_("UserParam", os, p_hit, 4);
 
-          // write out the (optional) peptide prophet / interprophet results as UserParams
-          {
-            int k = 0;
-            for (std::vector<PeptideHit::PepXMLAnalysisResult>::const_iterator ar_it = p_hit.getAnalysisResults().begin();
-                ar_it != p_hit.getAnalysisResults().end(); ++ar_it, ++k)
-            {
-              os << "\t\t\t\t<UserParam type=\"string\" name=\"_ar_" << String(k) << "_score_type\" value=\"" << ar_it->score_type << "\"/>" << "\n";
-              os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << String(k) << "_score\" value=\"" << String(ar_it->main_score) << "\"/>" << "\n";
-              if (!ar_it->sub_scores.empty())
-              {
-                for (std::map<String, double>::const_iterator subscore_it = ar_it->sub_scores.begin();
-                    subscore_it != ar_it->sub_scores.end(); ++subscore_it)
-                {
-                  os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << String(k) << "_subscore_" << subscore_it->first <<"\" value=\"" << String(subscore_it->second) << "\"/>" << "\n";
-                }
-              }
-            }
-
-          }
           os << "\t\t\t</PeptideHit>\n";
         }
 
-        // do not write "spectrum_reference" since it is written as attribute already
+        // do not write "spectrum_reference" or Constants::UserParam::SIGNIFICANCE_THRESHOLD since it is written as attribute already
         pep_id.removeMetaValue("spectrum_reference");
+        pep_id.removeMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
         writeUserParam_("UserParam", os, pep_id, 3);
         os << "\t\t</PeptideIdentification>\n";
       }
@@ -516,11 +478,11 @@ namespace OpenMS
       String mass_type = attributeAsString_(attributes, "mass_type");
       if (mass_type == "monoisotopic")
       {
-        param_.mass_type = ProteinIdentification::MONOISOTOPIC;
+        param_.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
       }
       else if (mass_type == "average")
       {
-        param_.mass_type = ProteinIdentification::AVERAGE;
+        param_.mass_type = ProteinIdentification::PeakMassType::AVERAGE;
       }
       //enzyme
       String enzyme;
@@ -654,7 +616,7 @@ namespace OpenMS
       optionalAttributeAsString_(tmp3, attributes, "spectrum_reference");
       if (!tmp3.empty())
       {
-        pep_id_.setMetaValue("spectrum_reference", tmp3);
+        pep_id_.setSpectrumReference( tmp3);
       }
 
       last_meta_ = &pep_id_;

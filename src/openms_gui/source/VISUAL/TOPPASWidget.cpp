@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Veit $
@@ -38,6 +12,7 @@
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 
 // Qt
@@ -54,7 +29,7 @@ namespace OpenMS
   TOPPASWidget::TOPPASWidget(const Param & /*preferences*/, QWidget * parent, const String & tmp_path) :
     QGraphicsView(parent),
     EnhancedTabBarWidgetInterface(),
-    scene_(new TOPPASScene(this, tmp_path.toQString()))
+    scene_(new TOPPASScene(this, toQString(tmp_path)))
   {
     setAttribute(Qt::WA_DeleteOnClose);
     setAttribute(Qt::WA_AlwaysShowToolTips);
@@ -96,7 +71,7 @@ namespace OpenMS
 
   void TOPPASWidget::wheelEvent(QWheelEvent * event)
   {
-    zoom(event->delta() < 0);
+    zoom(event->angleDelta().y() < 0);
   }
 
   void TOPPASWidget::dragEnterEvent(QDragEnterEvent * event)
@@ -118,14 +93,14 @@ namespace OpenMS
 
     if (event->mimeData()->hasUrls())
     {
-      String filename = String(event->mimeData()->urls().front().toLocalFile());
+      String filename = fromQString(event->mimeData()->urls().front().toLocalFile());
       emit sendStatusMessage("loading drop file '" + filename + "' (press CRTL while dropping to insert into current window)", 0);
       // open pipeline in new window (or in current if CTRL is pressed)
-      emit pipelineDroppedOnWidget(filename, event->keyboardModifiers() != Qt::ControlModifier);
+      emit pipelineDroppedOnWidget(filename, event->modifiers() != Qt::ControlModifier);
     }
     else
     {
-      QPointF scene_pos = mapToScene(event->pos());
+      QPointF scene_pos = mapToScene(event->position().toPoint());
       emit toolDroppedOnWidget(scene_pos.x(), scene_pos.y());
     }
     event->acceptProposedAction();
@@ -201,7 +176,7 @@ namespace OpenMS
 
   }
 
-  void TOPPASWidget::enterEvent(QEvent * /*e*/)
+  void TOPPASWidget::enterEvent(QEnterEvent* /*e*/)
   {
 #ifndef Q_WS_MAC
     setFocus();

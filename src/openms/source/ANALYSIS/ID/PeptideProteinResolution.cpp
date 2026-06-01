@@ -1,38 +1,12 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julianus Pfeuffer $
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 #include <queue>
 #include <unordered_set>
@@ -53,7 +27,7 @@ namespace OpenMS
     {
       os << *prot_it << ",";
     }
-    os << std::endl;
+    os << '\n';
     os << "Peptides: ";
     for (std::set<Size>::const_iterator pep_it = conn_comp.pep_indices.begin();
           pep_it != conn_comp.pep_indices.end();
@@ -77,7 +51,7 @@ namespace OpenMS
   }
 
   void PeptideProteinResolution::resolve(ProteinIdentification& protein,
-                                            vector<PeptideIdentification>& peptides,
+                                            PeptideIdentificationList& peptides,
                                             bool resolve_ties,
                                             bool targets_first)
   {
@@ -95,7 +69,7 @@ namespace OpenMS
           "No indistinguishable Groups annotated. Currently this class only resolves across groups.");
     }
 
-    OPENMS_LOG_INFO << "Resolving peptides between " << protein.getHits().size() << " proteins in " << groups.size() << " indistinguishable groups." << std::endl;
+    OPENMS_LOG_INFO << "Resolving peptides between " << protein.getHits().size() << " proteins in " << groups.size() << " indistinguishable groups.\n";
 
     // I don't think we need to assume sortedness here
     //if (!skip_sort) sort(groups.begin(), groups.end());
@@ -103,7 +77,7 @@ namespace OpenMS
     std::unordered_set<std::string> decoy_accs;
     for (const ProteinHit& p : protein.getHits())
     {
-      if (p.metaValueExists("target_decoy") && p.getMetaValue("target_decoy") == "decoy")
+      if (p.isDecoy())
       {
         decoy_accs.insert(p.getAccession());
       }
@@ -234,21 +208,21 @@ namespace OpenMS
           evToKeep = grpIdxToEvIdx[*toResolve->begin()];
           if (toResolve->size() > 1)
           {
-           OPENMS_LOG_INFO << "Resolution: Peptide " << pep.getHits()[0].getSequence().toString() << " had groups:" << std::endl;
+           OPENMS_LOG_INFO << "Resolution: Peptide " << pep.getHits()[0].getSequence().toString() << " had groups:\n";
 
            OPENMS_LOG_INFO << "tgt: ";
             for (const auto& g : bestNonDecoyGrpTie)
             {
               OPENMS_LOG_INFO << g << "=" << groups[g].probability << ", ";
             }
-           OPENMS_LOG_INFO << std::endl;
+           OPENMS_LOG_INFO << '\n';
            OPENMS_LOG_INFO << "dec: ";
             for (const auto& g : bestDecoyGrpTie)
             {
               OPENMS_LOG_INFO << g << "=" << groups[g].probability << ", ";
             }
-           OPENMS_LOG_INFO << std::endl;
-           OPENMS_LOG_INFO << "Kept: " << *toResolve->begin() << std::endl;
+           OPENMS_LOG_INFO << '\n';
+           OPENMS_LOG_INFO << "Kept: " << *toResolve->begin() << '\n';
           }
         }
         else
@@ -269,7 +243,7 @@ namespace OpenMS
       }
       else
       {
-       OPENMS_LOG_WARN << "Warning PeptideProteinResolution: Skipping spectrum without hits." << std::endl;
+       OPENMS_LOG_WARN << "Warning PeptideProteinResolution: Skipping spectrum without hits.\n";
       }
     }
   }
@@ -277,7 +251,7 @@ namespace OpenMS
 
   // Initialization of global variables (= graph)
   void PeptideProteinResolution::buildGraph(ProteinIdentification& protein,
-                      const vector<PeptideIdentification>& peptides, bool skip_sort)
+                      const PeptideIdentificationList& peptides, bool skip_sort)
   {
     vector<ProteinIdentification::ProteinGroup>& groups = protein.getIndistinguishableProteins();
 
@@ -290,7 +264,7 @@ namespace OpenMS
           "No indistinguishable Groups annotated. Currently this class only resolves across groups.");
     }
 
-   OPENMS_LOG_INFO << "Resolving peptides between " << protein.getHits().size() << " proteins in " << groups.size() << " indistinguishable groups." << std::endl;
+   OPENMS_LOG_INFO << "Resolving peptides between " << protein.getHits().size() << " proteins in " << groups.size() << " indistinguishable groups.\n";
 
 
     if (!skip_sort) sort(groups.begin(), groups.end());
@@ -299,7 +273,7 @@ namespace OpenMS
     std::unordered_set<std::string> decoy_accs;
     for (const ProteinHit& p : protein.getHits())
     {
-      if (p.metaValueExists("target_decoy") && p.getMetaValue("target_decoy") == "decoy")
+      if (p.isDecoy())
       {
         decoy_accs.insert(p.getAccession());
       }
@@ -320,7 +294,7 @@ namespace OpenMS
     }
     
     // Go through PeptideIDs and construct a bidirectional mapping
-    for (vector<PeptideIdentification>::const_iterator pep_it = peptides.begin();
+    for (PeptideIdentificationList::const_iterator pep_it = peptides.begin();
          pep_it != peptides.end();
          ++pep_it)
     {
@@ -356,14 +330,14 @@ namespace OpenMS
       }
       else
       {
-       OPENMS_LOG_WARN << "Warning PeptideProteinResolution: Skipping spectrum without hits." << std::endl;
+       OPENMS_LOG_WARN << "Warning PeptideProteinResolution: Skipping spectrum without hits.\n";
       }
     }
   }
 
   // "Main" function
   void PeptideProteinResolution::resolveGraph(ProteinIdentification& protein,
-                  vector<PeptideIdentification>& peptides)
+                  PeptideIdentificationList& peptides)
   {
     //Debugging
     Size old_size = indist_prot_grp_to_pep_.size();
@@ -532,7 +506,7 @@ namespace OpenMS
 /*  void PeptideProteinResolution::resolveConnectedComponentTargetsFirst(
       ConnectedComponent& conn_comp,
       ProteinIdentification& protein,
-      vector<PeptideIdentification>& peptides,
+      PeptideIdentificationList& peptides,
       bool targets_first)
   {
     // Nothing to resolve in a singleton group (will not be added to output though)
@@ -556,7 +530,7 @@ namespace OpenMS
        OPENMS_LOG_FATAL_ERROR << "Something went terribly wrong. "
                            "Group with index " << *grp_it << "doesn't exist. "
                                                              " ProteinPeptideResolution: Groups changed"
-                                                             " after building data structures." << std::endl;
+                                                             " after building data structures.\n";
       }
 
       vector<String> accessions = origin_groups[*grp_it].accessions;
@@ -576,7 +550,7 @@ namespace OpenMS
           {
            OPENMS_LOG_DEBUG << s << ", ";
           }
-         OPENMS_LOG_DEBUG << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself." << std::endl;
+         OPENMS_LOG_DEBUG << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself.\n";
         }
         // Update all the peptides the current best point to
         for (set<Size>::iterator pepid_it =
@@ -626,7 +600,7 @@ namespace OpenMS
            OPENMS_LOG_FATAL_ERROR << "Something went terribly wrong. "
                                "Group with index " << *grp_it << "doesn't exist. "
                                                                  " ProteinPeptideResolution: Groups changed"
-                                                                 " after building data structures." << std::endl;
+                                                                 " after building data structures.\n";
           }
 
           vector<String> accessions = origin_groups[*grp_it].accessions;
@@ -646,7 +620,7 @@ namespace OpenMS
               {
                OPENMS_LOG_DEBUG << s << ", ";
               }
-             OPENMS_LOG_DEBUG << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself." << std::endl;
+             OPENMS_LOG_DEBUG << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself.\n";
             }
 
             // Update all the peptides the current best point to
@@ -697,7 +671,7 @@ namespace OpenMS
   void PeptideProteinResolution::resolveConnectedComponent(
       ConnectedComponent& conn_comp,
       ProteinIdentification& protein,
-      vector<PeptideIdentification>& peptides)
+      PeptideIdentificationList& peptides)
   {
     // TODO think about ignoring decoy proteins (at least when resolving ties!)
 
@@ -736,7 +710,7 @@ namespace OpenMS
        OPENMS_LOG_FATAL_ERROR << "Something went terribly wrong. "
                               << "Group with index " << *grp_it << "doesn't exist. "
                               << " ProteinPeptideResolution: Groups changed"
-                              << " after building data structures." << std::endl;
+                              << " after building data structures.\n";
       }
 
       const vector<String>& accessions = origin_groups[*grp_it].accessions;
@@ -753,7 +727,7 @@ namespace OpenMS
         {
           OPENMS_LOG_DEBUG << s << ", ";
         }
-        OPENMS_LOG_DEBUG << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself." << std::endl;
+        OPENMS_LOG_DEBUG << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself.\n";
       }
 
       // Update all the peptides the current best point to
@@ -806,7 +780,7 @@ namespace OpenMS
 
 
   void PeptideProteinResolution::run(vector<ProteinIdentification>& inferred_protein_ids, 
-    vector<PeptideIdentification>& inferred_peptide_ids)
+    PeptideIdentificationList& inferred_peptide_ids)
   {
     PeptideProteinResolution ppr;
     ppr.buildGraph(inferred_protein_ids[0], inferred_peptide_ids);

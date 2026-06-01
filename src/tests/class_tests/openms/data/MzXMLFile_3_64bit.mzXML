@@ -16,7 +16,7 @@
 			<software type="processing" name="MS-X" version="1.0" completionTime="2001-02-03T04:05:06"/>
 		</dataProcessing>
 		<scan num="1" msLevel="1" peaksCount="1" polarity="any" scanType="Full" retentionTime="PT1S">
-			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QvAAAELIAA==</peaks>
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QvAAAELIAA1=</peaks>
 		</scan>
 		<scan num="2" msLevel="1" peaksCount="3" polarity="+" scanType="Full" retentionTime="PT2M1S" startMz="110" endMz="130">
 			<peaks precision="64" byteOrder="network" pairOrder="m/z-int">QFuAAAAAAABAWQAAAAAAAEBeAAAAAAAAQGkAAAAAAABAYEAAAAAAAEBZAAAAAAAA</peaks>

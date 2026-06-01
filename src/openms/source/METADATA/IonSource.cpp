@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -33,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/IonSource.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
+#include <algorithm>
 
 using namespace std;
 
@@ -47,9 +24,9 @@ namespace OpenMS
 
   IonSource::IonSource() :
     MetaInfoInterface(),
-    inlet_type_(INLETNULL),
-    ionization_method_(IONMETHODNULL),
-    polarity_(POLNULL),
+    inlet_type_(InletType::INLETNULL),
+    ionization_method_(IonizationMethod::IONMETHODNULL),
+    polarity_(Polarity::POLNULL),
     order_(0)
   {
   }
@@ -108,6 +85,102 @@ namespace OpenMS
   void IonSource::setOrder(Int order)
   {
     order_ = order;
+  }
+
+  StringList IonSource::getAllNamesOfInletType()
+  {
+    StringList names;
+    names.reserve(static_cast<size_t>(InletType::SIZE_OF_INLETTYPE));
+    for (size_t i = 0; i < static_cast<size_t>(InletType::SIZE_OF_INLETTYPE); ++i)
+    {
+      names.push_back(NamesOfInletType[i]);
+    }
+    return names;
+  }
+
+  StringList IonSource::getAllNamesOfIonizationMethod()
+  {
+    StringList names;
+    names.reserve(static_cast<size_t>(IonizationMethod::SIZE_OF_IONIZATIONMETHOD));
+    for (size_t i = 0; i < static_cast<size_t>(IonizationMethod::SIZE_OF_IONIZATIONMETHOD); ++i)
+    {
+      names.push_back(NamesOfIonizationMethod[i]);
+    }
+    return names;
+  }
+
+  StringList IonSource::getAllNamesOfPolarity()
+  {
+    StringList names;
+    names.reserve(static_cast<size_t>(Polarity::SIZE_OF_POLARITY));
+    for (size_t i = 0; i < static_cast<size_t>(Polarity::SIZE_OF_POLARITY); ++i)
+    {
+      names.push_back(NamesOfPolarity[i]);
+    }
+    return names;
+  }
+
+  const std::string& IonSource::inletTypeToString(InletType type)
+  {
+    if (type == InletType::SIZE_OF_INLETTYPE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_INLETTYPE");
+    }
+    return NamesOfInletType[static_cast<size_t>(type)];
+  }
+
+  IonSource::InletType IonSource::toInletType(const std::string& name)
+  {
+    auto first = &NamesOfInletType[0];
+    auto last = &NamesOfInletType[static_cast<size_t>(InletType::SIZE_OF_INLETTYPE)];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<InletType>(it - first);
+  }
+
+  const std::string& IonSource::ionizationMethodToString(IonizationMethod method)
+  {
+    if (method == IonizationMethod::SIZE_OF_IONIZATIONMETHOD)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_IONIZATIONMETHOD");
+    }
+    return NamesOfIonizationMethod[static_cast<size_t>(method)];
+  }
+
+  IonSource::IonizationMethod IonSource::toIonizationMethod(const std::string& name)
+  {
+    auto first = &NamesOfIonizationMethod[0];
+    auto last = &NamesOfIonizationMethod[static_cast<size_t>(IonizationMethod::SIZE_OF_IONIZATIONMETHOD)];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<IonizationMethod>(it - first);
+  }
+
+  const std::string& IonSource::polarityToString(Polarity polarity)
+  {
+    if (polarity == Polarity::SIZE_OF_POLARITY)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_POLARITY");
+    }
+    return NamesOfPolarity[static_cast<size_t>(polarity)];
+  }
+
+  IonSource::Polarity IonSource::toPolarity(const std::string& name)
+  {
+    auto first = &NamesOfPolarity[0];
+    auto last = &NamesOfPolarity[static_cast<size_t>(Polarity::SIZE_OF_POLARITY)];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<Polarity>(it - first);
   }
 
 }

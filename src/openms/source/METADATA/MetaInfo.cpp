@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -51,6 +25,56 @@ namespace OpenMS
   bool MetaInfo::operator!=(const MetaInfo& rhs) const
   {
     return !(operator==(rhs));
+  }
+
+  MetaInfo& MetaInfo::operator+=(const MetaInfo& rhs)
+  {
+    if (rhs.index_to_value_.empty()) return *this;
+    if (index_to_value_.empty())
+    {
+      index_to_value_ = rhs.index_to_value_;
+      return *this;
+    }
+
+    // Two-way merge into vector, then construct flat_map from sorted range
+    using pair_type = MapType::value_type;
+    std::vector<pair_type> merged;
+    merged.reserve(index_to_value_.size() + rhs.index_to_value_.size());
+
+    auto it_this = index_to_value_.begin();
+    auto end_this = index_to_value_.end();
+    auto it_rhs = rhs.index_to_value_.begin();
+    auto end_rhs = rhs.index_to_value_.end();
+
+    // Merge with deduplication: rhs values overwrite
+    while (it_this != end_this && it_rhs != end_rhs)
+    {
+      if (it_this->first < it_rhs->first)
+      {
+        merged.push_back(*it_this++);
+      }
+      else if (it_rhs->first < it_this->first)
+      {
+        merged.push_back(*it_rhs++);
+      }
+      else
+      {
+        // Equal keys: rhs value overwrites
+        merged.push_back(*it_rhs++);
+        ++it_this;
+      }
+    }
+    // Append remaining elements efficiently
+    merged.insert(merged.end(), it_this, end_this);
+    merged.insert(merged.end(), it_rhs, end_rhs);
+
+    // Construct flat_map from sorted range using move semantics
+    index_to_value_ = MapType(
+      boost::container::ordered_unique_range,
+      std::make_move_iterator(merged.begin()),
+      std::make_move_iterator(merged.end())
+    );
+    return *this;
   }
 
   const DataValue& MetaInfo::getValue(const String& name, const DataValue& default_value) const

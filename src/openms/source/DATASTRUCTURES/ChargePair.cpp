@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -48,7 +22,9 @@ namespace OpenMS
     compomer_(),
     mass_diff_(0),
     score_(1),
-    is_active_(false)
+    is_active_(false),
+    feature0_mol_multiplier_(1),
+    feature1_mol_multiplier_(1)
   {
   }
 
@@ -67,7 +43,9 @@ namespace OpenMS
     compomer_(compomer),
     mass_diff_(mass_diff),
     score_(1),
-    is_active_(active)
+    is_active_(active),
+    feature0_mol_multiplier_(1),
+    feature1_mol_multiplier_(1)
   {
   }
 
@@ -89,6 +67,8 @@ namespace OpenMS
     mass_diff_ = rhs.mass_diff_;
     score_ = rhs.score_;
     is_active_ = rhs.is_active_;
+    feature0_mol_multiplier_ = rhs.feature0_mol_multiplier_;
+    feature1_mol_multiplier_ = rhs.feature1_mol_multiplier_;
 
     return *this;
   }
@@ -196,6 +176,30 @@ namespace OpenMS
     is_active_ = active;
   }
 
+  Int ChargePair::getMolMultiplier(UInt pairID) const
+  {
+    if (pairID == 0)
+    {
+      return feature0_mol_multiplier_;
+    }
+    else
+    {
+      return feature1_mol_multiplier_;
+    }
+  }
+
+  void ChargePair::setMolMultiplier(UInt pairID, Int m)
+  {
+    if (pairID == 0)
+    {
+      feature0_mol_multiplier_ = m;
+    }
+    else
+    {
+      feature1_mol_multiplier_ = m;
+    }
+  }
+
   //@}
 
   /// Equality operator
@@ -207,7 +211,9 @@ namespace OpenMS
            (feature1_charge_ == i.feature1_charge_) &&
            (compomer_ == i.compomer_) &&
            (mass_diff_ == i.mass_diff_) &&
-           (is_active_ == i.is_active_);
+           (is_active_ == i.is_active_) &&
+           (feature0_mol_multiplier_ == i.feature0_mol_multiplier_) &&
+           (feature1_mol_multiplier_ == i.feature1_mol_multiplier_);
   }
 
   /// Equality operator
@@ -222,7 +228,8 @@ namespace OpenMS
        << "Mass Diff: " << cp.getMassDiff() << "\n"
        << "Compomer: " << cp.getCompomer() << "\n"
        << "Charge: " << cp.getCharge(0) << " : " << cp.getCharge(1) << "\n"
-       << "Element Index: " << cp.getElementIndex(0) << " : " << cp.getElementIndex(1) << "\n";
+       << "Element Index: " << cp.getElementIndex(0) << " : " << cp.getElementIndex(1) << "\n"
+       << "MolMultiplier: " << cp.getMolMultiplier(0) << " : " << cp.getMolMultiplier(1) << "\n";
     return os;
   }
 

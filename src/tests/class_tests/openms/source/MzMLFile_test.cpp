@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -324,7 +298,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNameOfFile(),"tiny1.RAW")
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getPathToFile(),"file:///F:/data/Exp01")
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(),"71be39fb2700ab2f3c8b2234b91274968b6899b1")
-  TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(),SourceFile::SHA1)
+  TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(),SourceFile::ChecksumType::SHA1)
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(),"Thermo RAW format")
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNativeIDType(),"multiple peak list nativeID format")
   //sample
@@ -333,38 +307,38 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   TEST_STRING_EQUAL(exp.getSample().getNumber(),"5")
   TEST_REAL_SIMILAR(exp.getSample().getVolume(),3.1)
   TEST_REAL_SIMILAR(exp.getSample().getConcentration(),5.5)
-  TEST_EQUAL(exp.getSample().getState(),Sample::SUSPENSION)
+  TEST_EQUAL(exp.getSample().getState(),Sample::SampleState::SUSPENSION)
   //instrument (general)
   TEST_STRING_EQUAL(exp.getInstrument().getName(),"LCQ Deca")
   TEST_STRING_EQUAL(exp.getInstrument().getCustomizations(),"Umbau")
   //ion sources
   TEST_EQUAL(exp.getInstrument().getIonSources().size(),2)
   TEST_EQUAL(exp.getInstrument().getIonSources()[0].getOrder(),101)
-  TEST_EQUAL(exp.getInstrument().getIonSources()[0].getInletType(),IonSource::DIRECT)
-  TEST_EQUAL(exp.getInstrument().getIonSources()[0].getIonizationMethod(),IonSource::ESI)
+  TEST_EQUAL(exp.getInstrument().getIonSources()[0].getInletType(),IonSource::InletType::DIRECT)
+  TEST_EQUAL(exp.getInstrument().getIonSources()[0].getIonizationMethod(),IonSource::IonizationMethod::ESI)
   TEST_EQUAL(exp.getInstrument().getIonSources()[1].getOrder(),102)
-  TEST_EQUAL(exp.getInstrument().getIonSources()[1].getInletType(),IonSource::DIRECT)
-  TEST_EQUAL(exp.getInstrument().getIonSources()[1].getIonizationMethod(),IonSource::FAB)
+  TEST_EQUAL(exp.getInstrument().getIonSources()[1].getInletType(),IonSource::InletType::DIRECT)
+  TEST_EQUAL(exp.getInstrument().getIonSources()[1].getIonizationMethod(),IonSource::IonizationMethod::FAB)
   //mass analyzers
   TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)
   TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[0].getOrder(),201)
-  TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[0].getType(),MassAnalyzer::PAULIONTRAP)
+  TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[0].getType(),MassAnalyzer::AnalyzerType::PAULIONTRAP)
   TEST_REAL_SIMILAR(exp.getInstrument().getMassAnalyzers()[0].getAccuracy(),10.5)
   TEST_REAL_SIMILAR(exp.getInstrument().getMassAnalyzers()[0].getMagneticFieldStrength(),14.56)
   TEST_REAL_SIMILAR(exp.getInstrument().getMassAnalyzers()[0].getTOFTotalPathLength(),11.1)
   TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[1].getOrder(),202)
-  TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[1].getType(),MassAnalyzer::LIT)
+  TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[1].getType(),MassAnalyzer::AnalyzerType::LIT)
   TEST_REAL_SIMILAR(exp.getInstrument().getMassAnalyzers()[1].getMagneticFieldStrength(),1414.14)
   //detectors
   TEST_EQUAL(exp.getInstrument().getIonDetectors().size(),2)
   TEST_EQUAL(exp.getInstrument().getIonDetectors()[0].getOrder(),301)
-  TEST_EQUAL(exp.getInstrument().getIonDetectors()[0].getType(),IonDetector::ELECTRONMULTIPLIER)
-  TEST_EQUAL(exp.getInstrument().getIonDetectors()[0].getAcquisitionMode(),IonDetector::TDC)
+  TEST_EQUAL(exp.getInstrument().getIonDetectors()[0].getType(),IonDetector::Type::ELECTRONMULTIPLIER)
+  TEST_EQUAL(exp.getInstrument().getIonDetectors()[0].getAcquisitionMode(),IonDetector::AcquisitionMode::TDC)
   TEST_REAL_SIMILAR(exp.getInstrument().getIonDetectors()[0].getResolution(),5.1)
   TEST_REAL_SIMILAR(exp.getInstrument().getIonDetectors()[0].getADCSamplingFrequency(),1.1)
   TEST_EQUAL(exp.getInstrument().getIonDetectors()[1].getOrder(),302)
-  TEST_EQUAL(exp.getInstrument().getIonDetectors()[1].getType(),IonDetector::ELECTRONMULTIPLIER)
-  TEST_EQUAL(exp.getInstrument().getIonDetectors()[1].getAcquisitionMode(),IonDetector::TDC)
+  TEST_EQUAL(exp.getInstrument().getIonDetectors()[1].getType(),IonDetector::Type::ELECTRONMULTIPLIER)
+  TEST_EQUAL(exp.getInstrument().getIonDetectors()[1].getAcquisitionMode(),IonDetector::AcquisitionMode::TDC)
   TEST_REAL_SIMILAR(exp.getInstrument().getIonDetectors()[1].getResolution(),6.1)
   TEST_REAL_SIMILAR(exp.getInstrument().getIonDetectors()[1].getADCSamplingFrequency(),1.1)
   //instrument software
@@ -383,9 +357,9 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     }
     //general info
     TEST_EQUAL(spec.getMSLevel(),1)
-    TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::MS1SPECTRUM)
+    TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::ScanMode::MS1SPECTRUM)
     TEST_EQUAL(spec.getFloatDataArrays().size(),0)
-    TEST_EQUAL(spec.getType(),SpectrumSettings::CENTROID)
+    TEST_EQUAL(spec.getType(),SpectrumSettings::SpectrumType::CENTROID)
     TEST_REAL_SIMILAR(spec.getRT(),5.1)
     TEST_REAL_SIMILAR(spec.getDriftTime(),7.1)
     TEST_EQUAL(spec.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true)
@@ -435,13 +409,13 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     }
     //general info
     TEST_EQUAL(spec.getMSLevel(),2)
-    TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::MSNSPECTRUM)
-    TEST_EQUAL(spec.getType(),SpectrumSettings::CENTROID)
+    TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::ScanMode::MSNSPECTRUM)
+    TEST_EQUAL(spec.getType(),SpectrumSettings::SpectrumType::CENTROID)
     TEST_REAL_SIMILAR(spec.getRT(),5.2)
     // in the mzML, drift time is stored in precursor only but we still create a spectrum attribute for convenience
     TEST_REAL_SIMILAR(spec.getDriftTime(),8.1)
     TEST_EQUAL(spec.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true)
-    TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
+    TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::Polarity::POSITIVE)
     TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),3)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].begin,100.0)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].end,500.0)
@@ -473,8 +447,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getDriftTime(),8.1)
     TEST_EQUAL(spec.getPrecursors()[0].getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true)
     TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().size(),2)
-    TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::CID),1)
-    TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::PD),1)
+    TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::ActivationMethod::CID),1)
+    TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::ActivationMethod::PD),1)
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getActivationEnergy(),35)
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getIsolationWindowLowerOffset(),6.66)
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getIsolationWindowUpperOffset(),7.77)
@@ -488,7 +462,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIsolationWindowLowerOffset(),16.66)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIsolationWindowUpperOffset(),17.77)
     TEST_EQUAL(spec.getPrecursors()[1].getActivationMethods().size(),1)
-    TEST_EQUAL(spec.getPrecursors()[1].getActivationMethods().count(Precursor::ETD),1)
+    TEST_EQUAL(spec.getPrecursors()[1].getActivationMethods().count(Precursor::ActivationMethod::ETD),1)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getActivationEnergy(),36)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIntensity(),0.0f)
     TEST_EQUAL(spec.getPrecursors()[1].getCharge(),0)
@@ -499,7 +473,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_STRING_EQUAL(spec.getSourceFile().getNameOfFile(),"tiny1.dta")
     TEST_STRING_EQUAL(spec.getSourceFile().getPathToFile(),"file:///F:/data/Exp01")
     TEST_STRING_EQUAL(spec.getSourceFile().getChecksum(),"81be39fb2700ab2f3c8b2234b91274968b6899b1")
-    TEST_EQUAL(spec.getSourceFile().getChecksumType(),SourceFile::SHA1)
+    TEST_EQUAL(spec.getSourceFile().getChecksumType(),SourceFile::ChecksumType::SHA1)
     //ids
     TEST_STRING_EQUAL(spec.getNativeID(),"index=1")
     TEST_STRING_EQUAL(spec.getMetaValue("maldi_spot_id"),"M1")
@@ -533,11 +507,11 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     }
     //general info
     TEST_EQUAL(spec.getMSLevel(),1)
-    TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::MS1SPECTRUM)
+    TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::ScanMode::MS1SPECTRUM)
     TEST_EQUAL(spec.getFloatDataArrays().size(),0)
-    TEST_EQUAL(spec.getType(),SpectrumSettings::CENTROID)
+    TEST_EQUAL(spec.getType(),SpectrumSettings::SpectrumType::CENTROID)
     TEST_REAL_SIMILAR(spec.getRT(),5.3)
-    TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
+    TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::Polarity::POSITIVE)
     TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),1)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].begin,400.0)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].end,1800.0)
@@ -581,10 +555,10 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     //general info
     TEST_EQUAL(spec.getMSLevel(),1)
     TEST_REAL_SIMILAR(spec.getRT(),5.4)
-    TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::MS1SPECTRUM)
+    TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::ScanMode::MS1SPECTRUM)
     TEST_EQUAL(spec.getInstrumentSettings().getZoomScan(),true)
     TEST_EQUAL(spec.getFloatDataArrays().size(),0)
-    TEST_EQUAL(spec.getType(),SpectrumSettings::PROFILE)
+    TEST_EQUAL(spec.getType(),SpectrumSettings::SpectrumType::PROFILE)
     TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),1)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].begin,110.0)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].end,905.0)
@@ -619,7 +593,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   TEST_EQUAL(exp.getMetaValue("int").valueType(),DataValue::INT_VALUE)
   TEST_EQUAL((Int)exp.getMetaValue("int"),5)
   //instrumentConfiguration
-  TEST_EQUAL(exp.getInstrument().getIonOptics(),Instrument::MAGNETIC_DEFLECTION)
+  TEST_EQUAL(exp.getInstrument().getIonOptics(),Instrument::IonOpticsType::MAGNETIC_DEFLECTION)
   TEST_STRING_EQUAL((String)exp.getInstrument().getMetaValue("name"),"instrumentConfiguration")
   TEST_STRING_EQUAL((String)exp.getInstrument().getIonSources()[0].getMetaValue("name"),"source1")
   TEST_STRING_EQUAL((String)exp.getInstrument().getIonSources()[1].getMetaValue("name"),"source2")
@@ -1011,7 +985,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
     PeakMap exp;
     file.load(tmp_filename, exp);
     //test if everything worked
-    TEST_EQUAL(exp == exp_original, true)
+    TEST_TRUE(exp == exp_original)
     //NOTE: If it does not work, use this code to find out where the difference is
     TEST_EQUAL(exp.size() == exp_original.size(), true)
     TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original), true)
@@ -1047,17 +1021,19 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 
     //this will be set when writing (forced by mzML)
     empty[0].setNativeID("spectrum=0");
-    empty[0].getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
-    empty[0].getDataProcessing().push_back( DataProcessingPtr(new DataProcessing) );
+    empty[0].getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MS1SPECTRUM);
+    empty[0].getDataProcessing().emplace_back( new DataProcessing() );
     empty[0].getDataProcessing()[0]->getProcessingActions().insert(DataProcessing::CONVERSION_MZML);
     empty[0].getAcquisitionInfo().setMethodOfCombination("no combination");
     empty[0].getAcquisitionInfo().resize(1);
 
     std::string tmp_filename;
-    NEW_TMP_FILE(tmp_filename);
+    NEW_TMP_FILE(tmp_filename);    
+
     file.store(tmp_filename,empty);
     file.load(tmp_filename,exp);
-    TEST_EQUAL(exp==empty,true)
+
+    TEST_EQUAL(exp == empty,true)
 
     //NOTE: If it does not work, use this code to find out where the difference is
     //    TEST_EQUAL(exp.size()==empty.size(),true)
@@ -1241,6 +1217,49 @@ START_SECTION(void transform(const String& filename_in, Interfaces::IMSDataConsu
   TEST_REAL_SIMILAR(consumer.TIC, 350)
 
   TEST_EQUAL(map.getNrSpectra(), 4)
+}
+END_SECTION
+
+START_SECTION((void testSkipChromatograms()))
+{
+  MzMLFile file;
+  PeakFileOptions opts;
+  opts.setSkipChromatograms(true);
+  file.setOptions(opts);
+
+  PeakMap pm;
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), pm);
+  TEST_EQUAL(pm.getChromatograms().size(), 0)
+
+  opts.setSkipChromatograms(false);
+  file.setOptions(opts);
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), pm);
+  TEST_NOT_EQUAL(pm.getChromatograms().size(), 0)
+}
+END_SECTION
+
+START_SECTION((test negative isolation window offsets are skipped))
+{
+  // Test that negative isolation window offsets (which indicate null/invalid values) 
+  // are properly skipped and don't cause exceptions
+  MzMLFile file;
+  PeakMap exp;
+  
+  // This should not throw an exception even though the file contains negative offsets
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_negative_offsets.mzML"), exp);
+  
+  // Verify the file was loaded
+  TEST_EQUAL(exp.size(), 2)
+  
+  // Check the MS2 spectrum (second spectrum, index 1)
+  TEST_EQUAL(exp[1].getPrecursors().size(), 1)
+  
+  // Verify that the precursor m/z was set correctly
+  TEST_REAL_SIMILAR(exp[1].getPrecursors()[0].getMZ(), 577.298034667969)
+  
+  // Verify that the negative offsets were NOT set (should remain at default value of 0)
+  TEST_REAL_SIMILAR(exp[1].getPrecursors()[0].getIsolationWindowLowerOffset(), 0.0)
+  TEST_REAL_SIMILAR(exp[1].getPrecursors()[0].getIsolationWindowUpperOffset(), 0.0)
 }
 END_SECTION
 

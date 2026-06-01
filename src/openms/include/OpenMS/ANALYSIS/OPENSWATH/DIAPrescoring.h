@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -39,6 +13,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 namespace OpenMS
 {
@@ -63,6 +38,32 @@ namespace OpenMS
     int nr_isotopes_;
     int nr_charges_;
 public:
+    /**
+      @brief Cached transition-group-specific theoretical spectrum used by the DIA prescore.
+
+      Stores precomputed theoretical m/z and intensity arrays plus rescaling
+      bounds for repeated scoring of the same transition group.
+    */
+    struct OPENMS_DLLAPI TransitionGroupTheoreticalSpectrumCache
+    {
+      /// Theoretical fragment/isotope m/z positions used for window integration.
+      std::vector<double> mz_theor;
+      /// Non-negative normalized theoretical intensities used for Manhattan-style comparison.
+      std::vector<double> int_theor;
+      /// Signed normalized theoretical intensities including negatively weighted pre-isotope peaks.
+      std::vector<double> int_theor_neg;
+      /// Lower bound used to rescale the signed dot-product score.
+      double neg_val = 0.0;
+      /// Upper bound used to rescale the signed dot-product score.
+      double pos_val = 0.0;
+
+      /**
+        @brief Reset all cached spectrum data.
+
+        Clears the cached arrays and resets scaling values to zero.
+      */
+      void clear();
+    };
 
     DiaPrescore();
 
@@ -73,26 +74,65 @@ public:
     void updateMembers_() override;
 
     /**
-      @brief Score a spectrum given a transition group.
+      @brief Score one or more observed spectra for a transition group.
 
-      Simulate theoretical spectrum from library intensities of transition group
-      and compute manhattan distance and dotprod score between spectrum intensities
-      and simulated spectrum.
+      Builds the transition-group-specific theoretical spectrum cache from the
+      library intensities and compares it against the observed spectrum
+      sequence. The input may contain multiple adjacent MS2 spectra / frames
+      around the apex or a single pre-merged spectrum, depending on the
+      upstream merge mode.
     */
-    void score(OpenSwath::SpectrumPtr spec,
+    void score(const SpectrumSequence& spec,
                const std::vector<OpenSwath::LightTransition>& lt,
+               const RangeMobility& im_range,
                double& dotprod,
                double& manhattan) const;
 
     /**
-      @brief Compute manhattan and dotprod score for all spectra which can be accessed by
-      the SpectrumAccessPtr for all transitions groups in the LightTargetedExperiment.
+      @brief Build the theoretical DIA isotope spectrum cache for repeated scoring.
+
+      The transition-group-specific theoretical spectrum cache depends only on
+      the transition group and DiaPrescore parameters, not on the observed
+      spectrum.
+
+      @param[in] lt Library transitions for the transition group
+      @param[out] theoretical_spectrum_cache Precomputed theoretical spectrum cache
+    */
+    void buildTheoreticalSpectrum(const std::vector<OpenSwath::LightTransition>& lt,
+                                  TransitionGroupTheoreticalSpectrumCache& theoretical_spectrum_cache) const;
+
+    /**
+      @brief Score an observed spectrum sequence against a precomputed theoretical DIA spectrum.
+
+      The observed input may be a single merged spectrum or multiple spectra /
+      frames around the feature apex, depending on the configured spectrum
+      addition mode.
+
+      @param[in] spec Observed spectrum sequence around the feature apex
+      @param[in] theoretical_spectrum_cache Precomputed theoretical spectrum cache
+      @param[in] dia_extract_window DIA extraction window in Th
+      @param[in] im_range Ion mobility extraction range
+      @param[out] dotprod Dot product score
+      @param[out] manhattan Manhattan distance score
+    */
+    static void scorePrepared(const SpectrumSequence& spec,
+                              const TransitionGroupTheoreticalSpectrumCache& theoretical_spectrum_cache,
+                              double dia_extract_window,
+                              const RangeMobility& im_range,
+                              double& dotprod,
+                              double& manhattan);
+
+    /**
+      @brief Compute Manhattan and dot-product scores for all spectra accessible through the SpectrumAccessPtr.
+
+      Scores all transition groups in the LightTargetedExperiment against the
+      spectra provided by @p swath_ptr and writes the per-spectrum score vectors
+      to @p ivw.
     */
     void operator()(const OpenSwath::SpectrumAccessPtr& swath_ptr,
-                    OpenSwath::LightTargetedExperiment& transition_exp_used,
+                    OpenSwath::LightTargetedExperiment& transition_exp_used, const RangeMobility& range_im,
                     OpenSwath::IDataFrameWriter* ivw) const;
   };
 
 
 }
-

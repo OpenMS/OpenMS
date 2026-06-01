@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -38,6 +12,7 @@
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/TreeView.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QLineEdit>
@@ -302,12 +277,12 @@ namespace OpenMS
       {
         const Precursor& current_pc = current_precursors[0];
         precursor_mz = current_pc.getMZ();
-        item->setText(ClmnPeak::DISSOCIATION, ListUtils::concatenate(current_pc.getActivationMethodsAsString(), ",").toQString());
+        item->setText(ClmnPeak::DISSOCIATION, toQString(ListUtils::concatenate(current_pc.getActivationMethodsAsString(), ",")));
       }
       item->setData(ClmnPeak::PRECURSOR_MZ, Qt::DisplayRole, precursor_mz);
     }
 
-    item->setText(ClmnPeak::SCANTYPE, QString::fromStdString(spec.getInstrumentSettings().NamesOfScanMode[spec.getInstrumentSettings().getScanMode()]));
+    item->setText(ClmnPeak::SCANTYPE, QString::fromStdString(spec.getInstrumentSettings().NamesOfScanMode[static_cast<size_t>(spec.getInstrumentSettings().getScanMode())]));
     item->setText(ClmnPeak::ZOOM, (spec.getInstrumentSettings().getZoomScan() ? "yes" : "no"));
   }
 
@@ -360,16 +335,16 @@ namespace OpenMS
       std::vector<QTreeWidgetItem *> parent_stack;
       parent_stack.push_back(nullptr);
       bool fail = false;
-      last_peakmap_ = &(*cl.getPeakData());
+      last_peakmap_ = &(cl.getPeakData()->getMSExperiment());
       spectra_treewidget_->setHeaders(ClmnPeak::HEADER_NAMES);
 
-      for (Size i = 0; i < cl.getPeakData()->size(); ++i)
+      for (Size i = 0; i < cl.getPeakData()->getMSExperiment().size(); ++i)
       {
-        const MSSpectrum& current_spec = (*cl.getPeakData())[i];
+        const MSSpectrum& current_spec = cl.getPeakData()->getMSExperiment()[i];
 
         if (i > 0)
         {
-          const MSSpectrum& prev_spec = (*cl.getPeakData())[i-1];
+          const MSSpectrum& prev_spec = cl.getPeakData()->getMSExperiment()[i-1];
           // current MS level = previous MS level + 1 (e.g. current: MS2, previous: MS1)
           if (current_spec.getMSLevel() == prev_spec.getMSLevel() + 1)
           {
@@ -438,9 +413,9 @@ namespace OpenMS
         spectra_treewidget_->clear();
         toplevel_items.clear();
         selected_item = nullptr;
-        for (Size i = 0; i < cl.getPeakData()->size(); ++i)
+        for (Size i = 0; i < cl.getPeakData()->getMSExperiment().size(); ++i)
         {
-          const MSSpectrum& current_spec = (*cl.getPeakData())[i];
+          const MSSpectrum& current_spec = cl.getPeakData()->getMSExperiment()[i];
           toplevel_item = new QTreeWidgetItem();
           
           populatePeakDataRow_(toplevel_item, i, current_spec);
@@ -464,9 +439,9 @@ namespace OpenMS
         spectra_treewidget_->setCurrentItem(selected_item);
         spectra_treewidget_->scrollToItem(selected_item);
       }
-      if (cl.getPeakData()->size() > 1)
+      if (cl.getPeakData()->getMSExperiment().size() > 1)
       {
-        more_than_one_spectrum = false;
+        more_than_one_spectrum = false; // why is this false if > 1???????
       }
     }
     // Branch if the current layer is a chromatogram (either indicated by its
@@ -476,13 +451,13 @@ namespace OpenMS
       const auto cl = *lp;
       LayerDataBase::ConstExperimentSharedPtrType exp = cl.getChromatogramData();
       
-      if (last_peakmap_ == exp.get())
+      if (last_peakmap_ == &exp->getMSExperiment())
       { // underlying data did not change (which is ALWAYS the chromatograms, never peakdata!)
         // --> Do not update (could be many 10k entries for sqMass data and the lag would be unbearable ...)
         return;
       }
       
-      last_peakmap_ = exp.get();
+      last_peakmap_ = &exp->getMSExperiment();
       spectra_treewidget_->clear();
       // New data:
       // We need to redraw the whole Widget because the we have changed all the layers.
@@ -490,22 +465,23 @@ namespace OpenMS
       // whether multiple ones are selected.
       bool multiple_select = false;
       int this_selected_item = -1;
-      if (!cl.getChromatogramData()->empty())
+      const MSExperiment& chrom_data = cl.getChromatogramData()->getMSExperiment();
+      if (!chrom_data.empty())
       {
-        if (cl.getChromatogramData()->metaValueExists("multiple_select"))
+        if (chrom_data.metaValueExists("multiple_select"))
         {
-          multiple_select = cl.getChromatogramData()->getMetaValue("multiple_select").toBool();
+          multiple_select = chrom_data.getMetaValue("multiple_select").toBool();
         }
-        if (cl.getChromatogramData()->metaValueExists("selected_chromatogram"))
+        if (chrom_data.metaValueExists("selected_chromatogram"))
         {
-          this_selected_item = (int)cl.getChromatogramData()->getMetaValue("selected_chromatogram");
+          this_selected_item = (int)chrom_data.getMetaValue("selected_chromatogram");
         }
       }
       
       // create a header list
       spectra_treewidget_->setHeaders(ClmnChrom::HEADER_NAMES);
            
-      if (exp->getChromatograms().size() > 1)
+      if (exp->getMSExperiment().getChromatograms().size() > 1)
       {
         more_than_one_spectrum = false;
       }
@@ -517,9 +493,9 @@ namespace OpenMS
       std::map<Precursor, std::vector<Size>, Precursor::MZLess>& map_precursor_to_chrom_idx = map_precursor_to_chrom_idx_cache_[(size_t)(exp.get())];
       if (!was_cached)
       { // create cache: collect all precursor that fall into the mz rt window
-        for (auto it = exp->getChromatograms().cbegin(); it != exp->getChromatograms().cend(); ++it)
+        for (auto it = exp->getMSExperiment().getChromatograms().cbegin(); it != exp->getMSExperiment().getChromatograms().cend(); ++it)
         {
-          map_precursor_to_chrom_idx[it->getPrecursor()].push_back(it - exp->getChromatograms().begin());
+          map_precursor_to_chrom_idx[it->getPrecursor()].push_back(it - exp->getMSExperiment().getChromatograms().begin());
         }
       }
 
@@ -536,11 +512,11 @@ namespace OpenMS
         QString description;
         if (pc.metaValueExists("peptide_sequence"))
         {
-          description = String(pc.getMetaValue("peptide_sequence")).toQString();
+          description = toQString(String(pc.getMetaValue("peptide_sequence")));
         }
         else if (pc.metaValueExists("description"))
         {
-          description = String(pc.getMetaValue("description")).toQString();
+          description = toQString(String(pc.getMetaValue("description")));
         }
         toplevel_item->setText(ClmnChrom::DESCRIPTION, description);
         toplevel_item->setData(ClmnChrom::CHARGE, Qt::DisplayRole, pc.getCharge());
@@ -551,7 +527,7 @@ namespace OpenMS
         // Show single chromatogram: iterate over all chromatograms corresponding to the current precursor and add action for the single chromatogram
         for (const Size chrom_idx : indx)
         {
-          const MSChromatogram& current_chromatogram = exp->getChromatograms()[chrom_idx];
+          const MSChromatogram& current_chromatogram = exp->getMSExperiment().getChromatograms()[chrom_idx];
 
           // Children chromatogram entry
           QTreeWidgetItem* sub_item = new QTreeWidgetItem(toplevel_item);
@@ -563,10 +539,11 @@ namespace OpenMS
           QString chrom_description = "ion";
           if (pc.metaValueExists("description"))
           {
-            chrom_description = String(pc.getMetaValue("description")).toQString();
+            chrom_description = toQString(String(pc.getMetaValue("description")));
           }
 
           sub_item->setText(ClmnChrom::TYPE, "Transition");
+          sub_item->setData(ClmnChrom::TYPE, Qt::UserRole, vecToList({chrom_idx}));
           sub_item->setData(ClmnChrom::CHROM_INDEX, Qt::DisplayRole, (unsigned int)chrom_idx);
           sub_item->setData(ClmnChrom::MZ, Qt::DisplayRole, current_chromatogram.getProduct().getMZ());
           sub_item->setText(ClmnChrom::DESCRIPTION, chrom_description);
@@ -576,7 +553,7 @@ namespace OpenMS
             sub_item->setData(ClmnChrom::RT_END, Qt::DisplayRole, current_chromatogram.back().getRT());
           }
 
-          sub_item->setText(ClmnChrom::CHROM_TYPE, MSChromatogram::ChromatogramNames[current_chromatogram.getChromatogramType()]);
+          sub_item->setText(ClmnChrom::CHROM_TYPE, MSChromatogram::ChromatogramNames[static_cast<size_t>(current_chromatogram.getChromatogramType())]);
         }
         if (one_selected && multiple_select)
         {

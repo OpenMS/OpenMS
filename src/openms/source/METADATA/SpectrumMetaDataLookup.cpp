@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -33,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace std;
 
@@ -176,45 +153,155 @@ namespace OpenMS
   }
 
 
-  bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(vector<PeptideIdentification>& peptides, const String& filename,
-    bool stop_on_error)
-  {
-    PeakMap exp;
+bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(PeptideIdentificationList& peptides,
+                                                        const MSExperiment& exp)
+{
+    // Check if the experiment has spectra
+    if (exp.getSpectra().empty())
+    {
+        OPENMS_LOG_INFO << "No spectra found in the experiment. Skipping RT annotation." << endl;
+        return false;
+    }
+
     SpectrumLookup lookup;
+    lookup.readSpectra(exp.getSpectra());
     bool success = true;
+
+    // Iterate over peptide IDs and annotate missing RT values
     for (auto& pep : peptides)
     {
-      if (std::isnan(pep.getRT()))
-      {
-        if (lookup.empty())
+        if (std::isnan(pep.getRT())) // Only annotate peptides with missing RT
         {
-          FileHandler fh;
-          auto opts = fh.getOptions();
-          // speed up reading. We do not need the actual peaks in the spectra
-          opts.setFillData(false);
-          opts.setSkipXMLChecks(true);
-          fh.setOptions(opts);
-          fh.loadExperiment(filename, exp);
-          lookup.readSpectra(exp.getSpectra());
+            String native_id = pep.getSpectrumReference();
+            try
+            {
+                // Look up spectrum index by native ID and assign RT
+                Size index = lookup.findByNativeID(native_id);
+                pep.setRT(exp.getSpectra()[index].getRT());
+            }
+            catch (Exception::ElementNotFound&)
+            {
+                // Log error if the spectrum reference is not found
+                OPENMS_LOG_ERROR << "Error: Failed to look up retention time for peptide identification with spectrum reference '"
+                                 << native_id << "' - no spectrum with corresponding native ID found." << endl;
+                success = false;
+            }
         }
-        String spectrum_id = pep.getMetaValue("spectrum_reference");
-        try
-        {
-          Size index = lookup.findByNativeID(spectrum_id);
-          pep.setRT(exp[index].getRT());
-        }
-        catch (Exception::ElementNotFound&)
-        {
-          OPENMS_LOG_ERROR << "Error: Failed to look up retention time for peptide identification with spectrum reference '" + spectrum_id + "' - no spectrum with corresponding native ID found." << endl;
-          success = false;
-          if (stop_on_error) break;
-        }
-      }
     }
+
     return success;
+}
+
+  bool SpectrumMetaDataLookup::addMissingIMToPeptideIDs(PeptideIdentificationList& peptides,
+                                const MSExperiment& exp)
+  {
+    // Check if the experiment has spectra
+    if (exp.getSpectra().empty())
+    {
+        OPENMS_LOG_INFO << "No spectra found in the experiment. Skipping IM annotation." << endl;
+        return false;
+    }
+    SpectrumLookup lookup;
+    bool all_ids_have_im = true;
+    lookup.readSpectra(exp.getSpectra());
+    // Iterate over peptide_ids and annotate IM values stored in MSExperiment
+    for (auto& pep : peptides)
+    {
+      String native_id = pep.getSpectrumReference();
+      Size index = lookup.findByNativeID(native_id);
+      const MSSpectrum& spec =  exp.getSpectra()[index];
+      // Check if desired IM format is present
+	  if (IMTypes::determineIMFormat(spec) == IMFormat::IM_SPECTRUM)
+	  {
+        pep.setMetaValue(Constants::UserParam::IM, spec.getDriftTime());
+	  }
+	  else
+	  {
+		all_ids_have_im = false;
+	  }
+
+    }
+    return all_ids_have_im;
   }
 
-  bool SpectrumMetaDataLookup::addMissingSpectrumReferences(vector<PeptideIdentification>& peptides, const String& filename,
+  bool SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(PeptideIdentificationList& peptides,
+                                                           const MSExperiment& exp)
+  {
+    // Check if the experiment has spectra
+    if (exp.getSpectra().empty())
+    {
+      OPENMS_LOG_INFO << "No spectra found in the experiment. Skipping FAIMS annotation." << endl;
+      return false;
+    }
+
+    // Check if experiment contains FAIMS data
+    std::set<double> faims_cvs = FAIMSHelper::getCompensationVoltages(exp);
+    if (faims_cvs.empty())
+    {
+      OPENMS_LOG_DEBUG << "No FAIMS data found in the experiment. Skipping FAIMS annotation." << endl;
+      return false;
+    }
+
+    SpectrumLookup lookup;
+    lookup.readSpectra(exp.getSpectra());
+
+    // Build a mapping from spectrum index to FAIMS CV
+    // Both MS1 and MS2 spectra can have explicit FAIMS CV annotations (DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+    // For MS2 spectra without explicit FAIMS CV, fall back to the last seen FAIMS CV (from preceding spectrum)
+    std::map<Size, double> index_to_faims_cv;
+    double last_faims_cv = std::numeric_limits<double>::quiet_NaN();
+
+    for (Size i = 0; i < exp.size(); ++i)
+    {
+      const MSSpectrum& spec = exp[i];
+      if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+      {
+        // Spectrum has explicit FAIMS CV (can be MS1 or MS2)
+        last_faims_cv = spec.getDriftTime();
+        index_to_faims_cv[i] = last_faims_cv;
+      }
+      else if (!std::isnan(last_faims_cv) && spec.getMSLevel() > 1)
+      {
+        // MS2+ spectrum without explicit FAIMS CV inherits from context
+        index_to_faims_cv[i] = last_faims_cv;
+      }
+    }
+
+    Size annotated_count = 0;
+    // Iterate over peptide_ids and annotate FAIMS CV values
+    for (auto& pep : peptides)
+    {
+      // Skip if already annotated
+      if (pep.metaValueExists(Constants::UserParam::FAIMS_CV))
+      {
+        ++annotated_count;
+        continue;
+      }
+
+      String native_id = pep.getSpectrumReference();
+      try
+      {
+        Size index = lookup.findByNativeID(native_id);
+        auto it = index_to_faims_cv.find(index);
+        if (it != index_to_faims_cv.end())
+        {
+          pep.setMetaValue(Constants::UserParam::FAIMS_CV, it->second);
+          ++annotated_count;
+        }
+      }
+      catch (Exception::ElementNotFound&)
+      {
+        OPENMS_LOG_WARN << "Could not find spectrum with native ID '" << native_id
+                        << "' for FAIMS annotation." << endl;
+      }
+    }
+
+    OPENMS_LOG_INFO << "Annotated " << annotated_count << " of " << peptides.size()
+                    << " peptide IDs with FAIMS CV values." << endl;
+    return annotated_count > 0;
+  }
+
+  bool SpectrumMetaDataLookup::addMissingSpectrumReferences(PeptideIdentificationList& peptides, const String& filename,
     bool stop_on_error, 
     bool override_spectra_data, 
     bool override_spectra_references,
@@ -230,7 +317,7 @@ namespace OpenMS
       opts.setFillData(false);
       opts.setSkipXMLChecks(true);
       fh.setOptions(opts);
-      fh.loadExperiment(filename, exp);
+      fh.loadExperiment(filename, exp, {FileTypes::MZXML, FileTypes::MZML, FileTypes::MZDATA, FileTypes::MGF}, OpenMS::ProgressLogger::NONE, true, true);
       lookup.readSpectra(exp.getSpectra());
       lookup.setSpectraDataRef(filename);
     }
@@ -256,7 +343,7 @@ namespace OpenMS
         Size index = lookup.findByRT(pep.getRT());
         SpectrumMetaDataLookup::SpectrumMetaData meta;
         lookup.getSpectrumMetaData(index, meta);
-        pep.setMetaValue("spectrum_reference", meta.native_id);
+        pep.setSpectrumReference( meta.native_id);
       }
       catch (Exception::ElementNotFound&)
       {

@@ -8,3 +8,6 @@
 [submodule "src/pyOpenMS/pyopenms-docs"]
 	path = src/pyOpenMS/pyopenms-docs
 	url = https://github.com/OpenMS/pyopenms-docs.git
+[submodule "vcpkg"]
+	path = vcpkg
+	url = https://github.com/microsoft/vcpkg.git

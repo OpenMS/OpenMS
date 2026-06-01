@@ -5,3 +5,5 @@ CompoundName	SumFormula	Mass	Charge	RetentionTime	RetentionTimeRange	IsoDistribu
 adenosine	C10H13N5O4	0	1	220.8	0	0
 deoxyadenosine	C10H13N5O3	0	1	243	0	0
 inosine	C10H12N4O5	0	1	264	0	0
+equal_to_inosine	C10H12N4O5	0	1	264	0	0
+very_similar_to_inosine	C10H12N4O5	0	1	264.1	0	0

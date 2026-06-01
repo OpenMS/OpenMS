@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -49,17 +23,21 @@ namespace OpenMS
 {
 
   /**
-    @brief An implementation of the Spectrum Access interface using on-disk caching
+    @brief @ref OpenSwath::ISpectrumAccess implementation backed by an
+           on-disk @ref OpenMS::CachedmzML cache.
 
-    This class implements the OpenSWATH Spectrum Access interface
-    (ISpectrumAccess) using the CachedmzML class which is able to read and
-    write a cached mzML file.
+    Combines the in-memory index of @ref OpenMS::CachedmzML with the
+    OpenSWATH spectrum-access interface: spectrum and chromatogram
+    metadata are served from the in-memory @c MSExperiment, and the
+    binary payloads are read on demand from the side-car
+    @c .mzML.cached file.
 
-    @note This implementation is @a not thread-safe since it keeps internally a
-    single file access pointer which it moves when accessing a specific
-    data item. The caller is responsible to ensure that access is performed
-    atomically.
+    @note This implementation is @b not thread-safe: a single file
+          stream is maintained and seeked per request, so concurrent
+          calls would race on the stream position. Callers must
+          serialise access externally.
 
+    @ingroup FileIO
   */
   class OPENMS_DLLAPI SpectrumAccessOpenMSCached :
     public OpenSwath::ISpectrumAccess,
@@ -71,43 +49,140 @@ public:
     typedef OpenMS::MSSpectrum MSSpectrumType;
 
     /**
-      @brief Constructor, opens the file stream
+      @brief Open the cached @c .mzML pair at @p filename.
 
-      @param filename The filename of the .mzML file (it is assumed a second
-      file .mzML.cached exists).
+      Delegates to @ref OpenMS::CachedmzML's filename constructor: the
+      metadata is loaded from @p filename and the side-car index for
+      @p filename + @c ".cached" is built; subsequent accessor calls
+      read the payloads from that side-car on demand.
 
-      @throws Exception::FileNotFound is thrown if the file is not found
-      @throws Exception::ParseError is thrown if the file cannot be parsed
+      @param[in] filename Path to the @c .mzML metadata file; the
+                          side-car is expected next to it at
+                          @p filename + @c ".cached".
+
+      @throws Exception::FileNotFound when either file cannot be opened.
+      @throws Exception::ParseError   when the metadata cannot be
+                                      parsed or the side-car index
+                                      cannot be built.
     */
     explicit SpectrumAccessOpenMSCached(const String& filename);
 
-    /**
-      @brief Destructor
-    */
+    /// Destructor; the inherited @ref OpenMS::CachedmzML destructor closes the side-car stream.
     ~SpectrumAccessOpenMSCached() override;
 
-    /// Copy constructor
+    /**
+      @brief Copy constructor.
+
+      Each copy keeps its own file handle on the @c .mzML.cached
+      side-car (a fresh stream is opened on the same path by the
+      inherited @ref OpenMS::CachedmzML copy constructor). The
+      in-memory metadata and side-car index are duplicated; the
+      spectrum and chromatogram binary payloads are not.
+
+      @param[in] rhs Source accessor to copy.
+    */
     SpectrumAccessOpenMSCached(const SpectrumAccessOpenMSCached & rhs);
 
-    /// Light clone operator (actual data will not get copied)
-    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
+    /**
+      @brief Return a clone of this accessor as a new @ref OpenSwath::ISpectrumAccess.
 
+      Equivalent to copy-constructing through @ref SpectrumAccessOpenMSCached(const SpectrumAccessOpenMSCached&);
+      the clone reads payloads lazily from its own stream on the same
+      side-car file.
+
+      @return Shared pointer to the cloned accessor.
+    */
+    std::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
+
+    /**
+      @brief Read one spectrum from the side-car file.
+
+      @param[in] id Spectrum index in @c [0, getNrSpectra()). Out-of-range
+                    access is a programming error (checked in debug builds).
+      @return Decoded spectrum.
+
+      @throws Exception::ParseError when @c seekg on the side-car stream
+                                    fails (e.g. an overflow on a 32-bit
+                                    system reading a > 2 GB cache file).
+    */
     OpenSwath::SpectrumPtr getSpectrumById(int id) override;
 
+    /**
+      @brief Return the RT and MS level of one spectrum.
+
+      Only @c RT and @c ms_level are filled on the returned
+      @c SpectrumMeta; for the full spectrum settings use
+      @ref getSpectraMetaInfo.
+
+      @param[in] id Spectrum index in @c [0, getNrSpectra()). Out-of-range
+                    access is a programming error (checked in debug builds).
+      @return @c SpectrumMeta carrying only @c RT and @c ms_level.
+    */
     OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const override;
 
+    /**
+      @brief Indices of cached spectra whose RT lies in @c [RT - deltaRT, RT + deltaRT].
+
+      Walks the metadata @c MSExperiment forward from the first spectrum
+      with @c RT >= @c RT - @c deltaRT.
+
+      @param[in] RT      Centre of the RT window.
+      @param[in] deltaRT Half-width of the RT window. Must be non-negative;
+                         a negative value is a programming error
+                         (checked in debug builds).
+      @return Indices into the in-memory metadata for spectra inside the window.
+    */
     std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const override;
 
+    /// Number of spectra in the loaded metadata.
     size_t getNrSpectra() const override;
 
+    /**
+      @brief Return the full @ref SpectrumSettings of one spectrum.
+
+      Unlike @ref getSpectrumMetaById (which returns only @c RT and
+      @c ms_level), this returns the full per-spectrum metadata read
+      at construction time.
+
+      @param[in] id Spectrum index. No bounds check is performed.
+      @return Copy of the stored @c SpectrumSettings for that spectrum.
+    */
     SpectrumSettings getSpectraMetaInfo(int id) const;
 
+    /**
+      @brief Read one chromatogram from the side-car file.
+
+      @param[in] id Chromatogram index in @c [0, getNrChromatograms()).
+                    Out-of-range access is a programming error (checked
+                    in debug builds).
+      @return Decoded chromatogram.
+
+      @throws Exception::ParseError when @c seekg on the side-car
+                                    stream fails.
+    */
     OpenSwath::ChromatogramPtr getChromatogramById(int id) override;
 
+    /// Number of chromatograms in the loaded metadata.
     size_t getNrChromatograms() const override;
 
+    /**
+      @brief Return the @ref ChromatogramSettings of one chromatogram.
+
+      @param[in] id Chromatogram index in @c [0, getNrChromatograms()).
+                    Out-of-range access is a programming error (checked
+                    in debug builds).
+      @return Copy of the stored @c ChromatogramSettings.
+    */
     ChromatogramSettings getChromatogramMetaInfo(int id) const;
 
+    /**
+      @brief Native id of one cached chromatogram.
+
+      @param[in] id Chromatogram index in @c [0, getNrChromatograms()).
+                    Out-of-range access is a programming error (checked
+                    in debug builds).
+      @return Native-id string from the stored metadata.
+    */
     std::string getChromatogramNativeID(int id) const override;
   };
 

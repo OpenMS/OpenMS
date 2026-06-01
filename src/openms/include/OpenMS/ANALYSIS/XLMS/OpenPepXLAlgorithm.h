@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -40,6 +14,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 namespace OpenMS
 {
@@ -97,9 +72,9 @@ namespace OpenMS
   <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
             <td VALIGN="middle" ROWSPAN=2> &rarr; OpenPepXL &rarr;</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
@@ -108,6 +83,7 @@ namespace OpenMS
     </table>
   </CENTER>
 
+  @ingroup Analysis_ID
 */
 
   class OPENMS_DLLAPI OpenPepXLAlgorithm :
@@ -115,13 +91,16 @@ namespace OpenMS
   {
 public:
 
-    /// Exit codes
-    enum ExitCodes
+    /**
+      @brief Outcome of @ref run, distinguishing successful execution from configuration / input
+      problems detected before the search is attempted.
+    */
+    enum class ExitCodes
     {
-      EXECUTION_OK,
-      ILLEGAL_PARAMETERS,
-      UNEXPECTED_RESULT,
-      INCOMPATIBLE_INPUT_DATA
+      EXECUTION_OK,            ///< Search ran to completion; the output arguments contain the results.
+      ILLEGAL_PARAMETERS,      ///< Parameter set is inconsistent — e.g. duplicate entries in @c modifications:fixed or @c modifications:variable (see .cpp lines 182, 189).
+      UNEXPECTED_RESULT,       ///< Reserved sentinel; not returned by the current implementation.
+      INCOMPATIBLE_INPUT_DATA  ///< Input is unusable — the spectrum container is empty (only chromatograms), or one of its spectra is not sorted by m/z (see .cpp lines 200, 209).
     };
 
     /// Default constructor
@@ -133,58 +112,78 @@ public:
     /**
      * @brief Performs the main function of this class, the search for cross-linked peptides
 
-     @param unprocessed_spectra The input PeakMap of experimental spectra
-     @param fasta_db The protein database containing targets and decoys
-     @param protein_ids A result vector containing search settings. Should contain one PeptideIdentification.
-     @param peptide_ids A result vector containing cross-link spectrum matches as PeptideIdentifications and PeptideHits. Should be empty.
-     @param preprocessed_pair_spectra A result structure containing linear and cross-linked ion spectra. Will be overwritten. This is only necessary for writing out xQuest type spectrum files.
-     @param spectrum_pairs A result vector containing paired spectra indices. Should be empty. This is only necessary for writing out xQuest type spectrum files.
-     @param all_top_csms A result vector containing cross-link spectrum matches as CrossLinkSpectrumMatches. Should be empty. This is only necessary for writing out xQuest type spectrum files.
-     @param spectra A result vector containing the input spectra after preprocessing and filtering. Should be empty. This is only necessary for writing out xQuest type spectrum files.
+     @param[in,out] unprocessed_spectra The input PeakMap of experimental spectra
+     @param[in] cfeatures Consensus features linking light and heavy mass pairs; e.g. created by FeatureFinderMultiplex
+     @param[in] fasta_db The protein database containing targets and decoys
+     @param[in,out] protein_ids A result vector containing search settings. Should contain one PeptideIdentification.
+     @param[out] peptide_ids A result vector containing cross-link spectrum matches as PeptideIdentifications and PeptideHits. Should be empty.
+     @param[out] preprocessed_pair_spectra A result structure containing linear and cross-linked ion spectra. Will be overwritten. This is only necessary for writing out xQuest type spectrum files.
+     @param[out] spectrum_pairs A result vector containing paired spectra indices. Should be empty. This is only necessary for writing out xQuest type spectrum files.
+     @param[out] all_top_csms A result vector containing cross-link spectrum matches as CrossLinkSpectrumMatches. Should be empty. This is only necessary for writing out xQuest type spectrum files.
+     @param[out] spectra A result vector containing the input spectra after preprocessing and filtering. Should be empty. This is only necessary for writing out xQuest type spectrum files.
      */
-    ExitCodes run(PeakMap& unprocessed_spectra, ConsensusMap& cfeatures, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, std::vector< std::pair<Size, Size> >& spectrum_pairs, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra);
+    ExitCodes run(PeakMap& unprocessed_spectra, ConsensusMap& cfeatures, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, std::vector< std::pair<Size, Size> >& spectrum_pairs, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra);
 
 private:
     void updateMembers_() override;
 
+    /**
+      @brief Split labelled spectrum pairs into linear- and cross-link-bearing peak lists.
+
+      For every (@p spectrum_pairs[i].first, @p spectrum_pairs[i].second) pair (light/heavy
+      spectrum) the function aligns the two spectra and uses @p cross_link_mass_iso_shift to
+      tell which peaks are common to both (linear ions, no cross-linker attached) and which
+      are present at the expected shifted m/z (peaks that carry the cross-linker). The
+      result has three parallel @ref PeakMap members (linear / xlink / all) sized to
+      @c spectrum_pairs.size(). The outer loop is OpenMP-parallel.
+
+      @param[in] spectra                        Source spectrum container (light and heavy MS2 stored together).
+      @param[in] spectrum_pairs                 Indices into @p spectra giving (light, heavy) pairs.
+      @param[in] cross_link_mass_iso_shift      Mass difference (Da) between heavy and light cross-linker; controls the shift used for matching.
+      @param[in] fragment_mass_tolerance        Tolerance for matching linear (un-shifted) fragment ions.
+      @param[in] fragment_mass_tolerance_xlinks Tolerance for matching cross-link-bearing fragment ions.
+      @param[in] fragment_mass_tolerance_unit_ppm  If @c true, both tolerances are in ppm; otherwise Th.
+      @param[in] deisotope                      If @c true, the cross-link peak list keeps a parallel @c "iso_peak_count" IntegerDataArray.
+      @return A @ref OPXLDataStructs::PreprocessedPairSpectra with one entry per input pair in @c spectra_linear_peaks / @c spectra_xlink_peaks / @c spectra_all_peaks.
+    */
     static OPXLDataStructs::PreprocessedPairSpectra preprocessPairs_(const PeakMap& spectra, const std::vector< std::pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm, bool deisotope);
 
-    String decoy_string_;
-    bool decoy_prefix_;
+    String decoy_string_;   ///< Cached value of parameter @c "decoy_string"; substring marking decoy entries in the FASTA accessions
+    bool decoy_prefix_;     ///< Cached value of parameter @c "decoy_prefix"; if true the decoy string is matched as a prefix, otherwise as a suffix
 
-    Int min_precursor_charge_;
-    Int max_precursor_charge_;
-    double precursor_mass_tolerance_;
-    bool precursor_mass_tolerance_unit_ppm_;
-    IntList precursor_correction_steps_;
+    Int min_precursor_charge_;             ///< Cached value of parameter @c "precursor:min_charge"
+    Int max_precursor_charge_;             ///< Cached value of parameter @c "precursor:max_charge"
+    double precursor_mass_tolerance_;      ///< Cached value of parameter @c "precursor:mass_tolerance" (unit per @c precursor_mass_tolerance_unit_ppm_)
+    bool precursor_mass_tolerance_unit_ppm_; ///< Cached value of parameter @c "precursor:mass_tolerance_unit" == @c "ppm"
+    IntList precursor_correction_steps_;   ///< Cached value of parameter @c "precursor:corrections" — monoisotopic-peak-misassignment offsets to try
 
-    double fragment_mass_tolerance_;
-    double fragment_mass_tolerance_xlinks_;
-    bool fragment_mass_tolerance_unit_ppm_;
+    double fragment_mass_tolerance_;         ///< Cached value of parameter @c "fragment:mass_tolerance" (linear fragment ions)
+    double fragment_mass_tolerance_xlinks_;  ///< Cached value of parameter @c "fragment:mass_tolerance_xlinks" (cross-link-bearing fragment ions)
+    bool fragment_mass_tolerance_unit_ppm_;  ///< Cached value of parameter @c "fragment:mass_tolerance_unit" == @c "ppm"
 
-    StringList cross_link_residue1_;
-    StringList cross_link_residue2_;
-    double cross_link_mass_light_;
-    double cross_link_mass_iso_shift_;
-    DoubleList cross_link_mass_mono_link_;
-    String cross_link_name_;
+    StringList cross_link_residue1_;          ///< Cached value of parameter @c "cross_linker:residue1" — residues the first end of the linker reacts with
+    StringList cross_link_residue2_;          ///< Cached value of parameter @c "cross_linker:residue2" — residues the second end of the linker reacts with
+    double cross_link_mass_light_;            ///< Cached value of parameter @c "cross_linker:mass_light" — mass added by the light cross-linker
+    double cross_link_mass_iso_shift_;        ///< Cached value of parameter @c "cross_linker:mass_iso_shift" — mass difference heavy minus light
+    DoubleList cross_link_mass_mono_link_;    ///< Cached value of parameter @c "cross_linker:mass_mono_link" — possible mono-link masses
+    String cross_link_name_;                  ///< Cached value of parameter @c "cross_linker:name" — used to disambiguate mass-equivalent linkers
 
-    StringList fixedModNames_;
-    StringList varModNames_;
-    Size max_variable_mods_per_peptide_;
-    Size peptide_min_size_;
-    Size missed_cleavages_;
-    String enzyme_name_;
+    StringList fixedModNames_;                ///< Cached value of parameter @c "modifications:fixed" (UniMod names); duplicates trigger @ref ExitCodes::ILLEGAL_PARAMETERS
+    StringList varModNames_;                  ///< Cached value of parameter @c "modifications:variable" (UniMod names); duplicates trigger @ref ExitCodes::ILLEGAL_PARAMETERS
+    Size max_variable_mods_per_peptide_;      ///< Cached value of parameter @c "modifications:variable_max_per_peptide"
+    Size peptide_min_size_;                   ///< Cached value of parameter @c "peptide:min_size"
+    Size missed_cleavages_;                   ///< Cached value of parameter @c "peptide:missed_cleavages"
+    String enzyme_name_;                      ///< Cached value of parameter @c "peptide:enzyme"
 
-    Int number_top_hits_;
-    String deisotope_mode_;
+    Int number_top_hits_;                     ///< Cached value of parameter @c "algorithm:number_top_hits"
+    String deisotope_mode_;                   ///< Cached value of parameter @c "algorithm:deisotope" (@c "true" / @c "false" / @c "auto")
 
-    String add_y_ions_;
-    String add_b_ions_;
-    String add_x_ions_;
-    String add_a_ions_;
-    String add_c_ions_;
-    String add_z_ions_;
-    String add_losses_;
+    String add_y_ions_;   ///< Cached value of parameter @c "ions:y_ions"
+    String add_b_ions_;   ///< Cached value of parameter @c "ions:b_ions"
+    String add_x_ions_;   ///< Cached value of parameter @c "ions:x_ions"
+    String add_a_ions_;   ///< Cached value of parameter @c "ions:a_ions"
+    String add_c_ions_;   ///< Cached value of parameter @c "ions:c_ions"
+    String add_z_ions_;   ///< Cached value of parameter @c "ions:z_ions"
+    String add_losses_;   ///< Cached value of parameter @c "ions:neutral_losses"
   };
 }

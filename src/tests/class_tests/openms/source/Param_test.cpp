@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -41,6 +15,9 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h> // for "ParameterInformation"
+
+#include <type_traits>
+#include <iterator>
 
 ///////////////////////////
 
@@ -391,13 +368,15 @@ END_SECTION
 // Root
 //  |-A=1
 //  |-R
-//  | |
-//	| S
-//  | |-B=2
-//  | |-C=3
+//	| |-S
+//  | | |-B=2
+//  | | |-C=3
+//  | | 
+//  | |-U (empty)
+//  |
 //  |-T
 //    |-D=4
-Param::ParamNode root, r, s, t;
+Param::ParamNode root, r, s, t, u;
 root.name="root";
 r.name="r";
 s.name="s";
@@ -408,6 +387,8 @@ s.description="s_desc";
 s.entries.push_back(Param::ParamEntry("C","3",""));
 t.entries.push_back(Param::ParamEntry("D","4",""));
 r.nodes.push_back(s);
+u.description="empty";
+r.nodes.push_back(u);
 root.nodes.push_back(r);
 root.nodes.push_back(t);
 
@@ -539,9 +520,9 @@ END_SECTION
 START_SECTION(([Param::ParamIterator] bool operator==(const ParamIterator& rhs) const))
 	Param::ParamIterator begin(root), begin2(root), end;
 	TEST_EQUAL(begin==end, false)
-	TEST_EQUAL(begin==begin, true)
-	TEST_EQUAL(begin==begin2, true)
-	TEST_EQUAL(end==end, true)
+	TEST_TRUE(begin == begin)
+	TEST_TRUE(begin == begin2)
+	TEST_TRUE(end == end)
 
 	++begin;
 	TEST_EQUAL(begin==begin2, false)
@@ -549,17 +530,7 @@ START_SECTION(([Param::ParamIterator] bool operator==(const ParamIterator& rhs) 
 	TEST_EQUAL(begin2==end, false)
 
 	++begin2;
-	TEST_EQUAL(begin==begin2, true)
-	TEST_EQUAL(begin==end, false)
-	TEST_EQUAL(begin2==end, false)
-
-	++begin;
-	TEST_EQUAL(begin==begin2, false)
-	TEST_EQUAL(begin==end, false)
-	TEST_EQUAL(begin2==end, false)
-
-	++begin2;
-	TEST_EQUAL(begin==begin2, true)
+	TEST_TRUE(begin == begin2)
 	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin2==end, false)
 
@@ -569,34 +540,57 @@ START_SECTION(([Param::ParamIterator] bool operator==(const ParamIterator& rhs) 
 	TEST_EQUAL(begin2==end, false)
 
 	++begin2;
-	TEST_EQUAL(begin==begin2, true)
+	TEST_TRUE(begin == begin2)
 	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin2==end, false)
 
 	++begin;
 	TEST_EQUAL(begin==begin2, false)
-	TEST_EQUAL(begin==end, true)
+	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin2==end, false)
 
 	++begin2;
-	TEST_EQUAL(begin==begin2, true)
-	TEST_EQUAL(begin==end, true)
-	TEST_EQUAL(begin2==end, true)
+	TEST_TRUE(begin == begin2)
+	TEST_EQUAL(begin==end, false)
+	TEST_EQUAL(begin2==end, false)
+
+	++begin;
+	TEST_EQUAL(begin==begin2, false)
+	TEST_TRUE(begin == end)
+	TEST_EQUAL(begin2==end, false)
+
+	++begin2;
+	TEST_TRUE(begin == begin2)
+	TEST_TRUE(begin == end)
+	TEST_TRUE(begin2 == end)
 END_SECTION
 
 START_SECTION(([Param::ParamIterator] bool operator!=(const ParamIterator& rhs) const))
 	Param::ParamIterator begin(root), begin2(root), end;
 	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin2==end, false)
-	TEST_EQUAL(begin==begin2, true)
-	TEST_EQUAL(begin==begin, true)
-	TEST_EQUAL(begin2==begin2, true)
-	TEST_EQUAL(end==end, true)
+	TEST_TRUE(begin == begin2)
+	TEST_TRUE(begin == begin)
+	TEST_TRUE(begin2 == begin2)
+	TEST_TRUE(end == end)
 END_SECTION
 
 
 START_SECTION(([Param::ParamIterator] const std::vector< TraceInfo>& getTrace() const))
 
+	//Recap:
+	//complicated subtree
+	// Root
+	//  |-A=1
+	//  |-R
+	//	| |-S
+	//  | | |-B=2
+	//  | | |-C=3
+	//  | | 
+	//  | |-U (empty)
+	//  |
+	//  |-T
+	//    |-D=4
 	//A
 	Param::ParamIterator it(root);
 	TEST_EQUAL(it.getTrace().size(),0);
@@ -629,6 +623,34 @@ START_SECTION(([Param::ParamIterator] const std::vector< TraceInfo>& getTrace() 
 	TEST_EQUAL(it.getTrace().size(),1);
 	TEST_EQUAL(it.getTrace()[0].name,"t");
 	TEST_EQUAL(it.getTrace()[0].opened,false);
+END_SECTION
+
+START_SECTION(([Param::ParamIterator] iterator type traits))
+	// Test that the iterator has the required type traits for C++ standard library compatibility
+	using iterator_type = Param::ParamIterator;
+	
+	// Check iterator_category
+	TEST_EQUAL((std::is_same<typename iterator_type::iterator_category, std::forward_iterator_tag>::value), true);
+	
+	// Check value_type
+	TEST_EQUAL((std::is_same<typename iterator_type::value_type, Param::ParamEntry>::value), true);
+	
+	// Check difference_type
+	TEST_EQUAL((std::is_same<typename iterator_type::difference_type, std::ptrdiff_t>::value), true);
+	
+	// Check pointer
+	TEST_EQUAL((std::is_same<typename iterator_type::pointer, const Param::ParamEntry*>::value), true);
+	
+	// Check reference
+	TEST_EQUAL((std::is_same<typename iterator_type::reference, const Param::ParamEntry&>::value), true);
+	
+	// Test that std::iterator_traits can extract our type definitions
+	using traits = std::iterator_traits<iterator_type>;
+	TEST_EQUAL((std::is_same<traits::iterator_category, std::forward_iterator_tag>::value), true);
+	TEST_EQUAL((std::is_same<traits::value_type, Param::ParamEntry>::value), true);
+	TEST_EQUAL((std::is_same<traits::difference_type, std::ptrdiff_t>::value), true);
+	TEST_EQUAL((std::is_same<traits::pointer, const Param::ParamEntry*>::value), true);
+	TEST_EQUAL((std::is_same<traits::reference, const Param::ParamEntry&>::value), true);
 END_SECTION
 
 ///////////////////////// Param ///////////////////////////////
@@ -1096,7 +1118,7 @@ END_SECTION
 
 START_SECTION((bool operator == (const Param& rhs) const))
 	Param p2(p_src);
-	TEST_EQUAL(p_src==p2, true)
+	TEST_TRUE(p_src == p2)
 	p2.setValue("test:float",17.5f);
 	TEST_EQUAL(p_src==p2, false)
 	p2 = p_src;
@@ -1112,7 +1134,7 @@ START_SECTION((bool operator == (const Param& rhs) const))
 	p3.setValue("2",2);
 	p4.setValue("2",2);
 	p4.setValue("1",1);
-	TEST_EQUAL(p3==p4, true)
+	TEST_TRUE(p3 == p4)
 
 	//it should be independent of node order
 	Param p5,p6;
@@ -1120,7 +1142,7 @@ START_SECTION((bool operator == (const Param& rhs) const))
 	p5.setValue("2:1",1);
 	p6.setValue("2:1",1);
 	p6.setValue("1:1",1);
-	TEST_EQUAL(p5==p6, true)
+	TEST_TRUE(p5 == p6)
 
 END_SECTION
 
@@ -1602,12 +1624,13 @@ END_SECTION
 
 // warnings for unknown parameters
 // keep outside the scope of a single test to avoid destruction, leaving
-// OpenMS_Log_warn in an undefined state
+// the log stream in an undefined state
 ostringstream os;
 // checkDefaults sends its warnings to OPENMS_LOG_WARN so we register our own
-// listener here to check the output
-OpenMS_Log_warn.remove(cout);
-OpenMS_Log_warn.insert(os);
+// listener here to check the output.
+// Configure the thread-local warn stream
+getThreadLocalLogWarn().remove(cout);
+getThreadLocalLogWarn().insert(os);
 
 START_SECTION((void checkDefaults(const std::string &name, const Param &defaults, const std::string& prefix="") const))
     Param p,d;

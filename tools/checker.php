@@ -1,33 +1,6 @@
 <?php
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
 # --------------------------------------------------------------------------
 # $Maintainer:$
 # $Authors: Marc Sturm $
@@ -43,7 +16,6 @@ function printUsage() {
   print "Usage: checker.php <OpenMS src path> <OpenMS build path> [-u \"user name\"] [-t test] [options]\n";
   print "\n";
   print "This script works only if an OpenMS copy is used, where\n";
-  print "- the internal documentation was built (doc_internal),\n";
   print "- the XML documentation was built (doc_xml),\n";
   print "- all tests were executed.\n";
   print "\n";
@@ -121,7 +93,6 @@ $GLOBALS["all_tests"] = array(
   "coding"               => "check if coding convention is followed",
   "defaults"             => "check if DefautParamHandler classes all have a linked parameters section",
   "license"              => "check if the license header is correctly included in the file",
-  "inactive-maintainers" => "checks if the found maintainers are listed in the ACTIVE_MAINTAINERS list",
 );
 
 $options = array(
@@ -288,7 +259,7 @@ if (in_array("doxygen_errors", $tests))
   if (!file_exists("$bin_path/doc/doxygen/doxygen-error.log"))
   {
     print "Error: For the 'doxygen_errors' test, the file '$bin_path/doc/doxygen/doxygen-error.log' is needed!\n";
-    print "       Please execute 'make doc_internal' first!'.\n";
+    print "       Please execute 'make doc' first!.\n";
     $abort = true;
   }
 }
@@ -358,23 +329,6 @@ if ($ctestReporting)
   }
 }
 
-# read active maintainers file
-$activemaintainers = array();
-if (!file_exists("$src_path/tools/ACTIVE_MAINTAINERS"))
-{
-  print "Error: Missing $src_path/tools/ACTIVE_MAINTAINERS file!\n";
-  $abort = true;
-}
-else
-{
-  exec("cat $src_path/tools/ACTIVE_MAINTAINERS", $activemaintainers);
-}
-
-if ($abort)
-{
-  exit;
-}
-
 ########################### MAINTAINERS ################################
 $files = array();
 
@@ -389,8 +343,8 @@ $sourcePaths = array("src/openms/source",
                      "src/tests/class_tests/openms/source",
                      "src/tests/class_tests/openms_gui/source",
                      "src/tests/class_tests/openswathalgo/",
-                     "src/topp",
-                     "src/utils");
+                     "src/topp"
+                    );
 
 exec("cd $src_path && find ".implode(" ", $includePaths)." -name \"*.h\" ! -name \"ui_*.h\" ! -name \"nnls.h\" ! -name \"MSNumpress*.h\"", $files);
 exec("cd $src_path && find ".implode(" ", $sourcePaths)." -name \"*.cpp\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.cpp\" ! -name \"moc_*.cpp\" ! -name \"*Template.cpp\" ! -name \"MSNumpress*.cpp\"", $files);
@@ -563,7 +517,6 @@ foreach ($files_todo as $f)
     "Macros.h",
     "Benchmark.h",
     "Constants.h",
-    "IsotopeWaveletConstants.h",
     "openms_package_version.h",
   );
 
@@ -617,38 +570,6 @@ foreach ($files_todo as $f)
       }
     }
   }
-  ########################### (in)active maintainer #####################################
-  if (in_array("inactive-maintainers", $tests))
-  {
-    if (endsWith($f, ".h"))
-    {
-      # check if the maintainer is set
-      if (isset($file_maintainers[$f]) && $file_maintainers[$f] != '')
-      {
-        $all_active = true;
-        $maintainers = explode(',', $file_maintainers[$f]);
-        foreach ($maintainers as $m)
-        {
-          $realMaintainer = trim($m);
-          if (!in_array($realMaintainer, $activemaintainers))
-          {
-            reportTestResult("Inactive maintainer ($realMaintainer) given in '$f'.", $user, "active_maintainer", $f, false);
-            realOutput("Inactive maintainer ($realMaintainer) given in '$f'.", $user, $f);
-            $all_active = false;
-          }
-        }
-        if ($all_active)
-        {
-          reportTestResult("All maintainers given in '$f' are active maintainers.", $user, "active_maintainer", $f, true);
-        }
-      }
-      else
-      {
-        reportTestResult("No maintainer given in '$f'.", $user, "active_maintainer", $f, false);
-      }
-    }
-  }
-
 
   ########################### missing tests  #####################################
   if (in_array("missing_tests", $tests))
@@ -657,7 +578,6 @@ foreach ($files_todo as $f)
       "/FORMAT/HANDLERS/",
       "/VISUAL/",
       "/CONCEPT/Types.h",
-      "/CONCEPT/TypeAsString.h",
       "/CONCEPT/PrecisionWrapper.h",
       "/FORMAT/FileTypes.h",
       "/CONCEPT/Macros.h",
@@ -669,17 +589,13 @@ foreach ($files_todo as $f)
       "include/OpenMS/APPLICATIONS/TOPPViewBase.h",
       "include/OpenMS/APPLICATIONS/TOPPASBase.h",
       "include/OpenMS/APPLICATIONS/INIFileEditorWindow.h",
-      "include/OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h",
-      "include/OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h",
       "_registerChildren.h",
       "DataReducer.h",
       "SchemaFile.h",
       "Serialization.h",
       "IsotopeCluster.h",
       "Param.h",
-      "IsotopeWaveletConstants.h",
       "include/OpenMS/openms_package_version.h",
-      "include/OpenMS/SIMULATION/SimTypes.h",
       "include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
       "include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h",
       "include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h",
@@ -737,7 +653,7 @@ foreach ($files_todo as $f)
       "TestExternalCode.cpp",
     );
 
-    if (!in_array($basename, $ignore) && !beginsWith($f, "src/topp/") && !beginsWith($f, "src/utils/") && !beginsWith($f, "src/openms_gui/source/VISUAL/APPLICATIONS/GUITOOLS/"))
+    if (!in_array($basename, $ignore) && !beginsWith($f, "src/topp/") && !beginsWith($f, "src/openms_gui/source/VISUAL/APPLICATIONS/GUITOOLS/"))
     {
       $message = "";
       $result = true;
@@ -1027,10 +943,8 @@ foreach ($files_todo as $f)
       "src/openms/include/OpenMS/VISUAL/PlotCanvas.h",
       "src/openms/include/OpenMS/APPLICATIONS/TOPPViewBase.h",
       "src/openms/include/OpenMS/APPLICATIONS/TOPPASBase.h",
-      "src/openms/include/OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h",
-      "src/openms/include/OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h",
-      "src/openms/include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h",
-      "src/openms/include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h",
+      "src/openms/include/OpenMS/FEATUREFINDER/BaseModel.h",
+      "src/openms/include/OpenMS/FEATUREFINDER/LevMarqFitter1D.h",
     );
 
     $ignore = false;

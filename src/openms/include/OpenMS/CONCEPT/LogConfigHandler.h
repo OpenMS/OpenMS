@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -75,7 +49,7 @@ public:
 
       This function will <b>not</b> apply to settings to the log handlers. Use configure() for that.
 
-      @param setting StringList containing the configuration options
+      @param[in] setting StringList containing the configuration options
       @throw Exception::ParseError In case of an invalid configuration.
       @return Param object containing all settings, that can be applied using the LogConfigHandler::configure() method
      */
@@ -117,9 +91,25 @@ public:
     std::ostream & getStream(const String & stream_name);
 
     /**
+      @brief Sets a minimum @p log_level by removing all streams from loggers lower than that level,
+      and restoring configured streams for loggers at or above that level.
+      
+      This method allows dynamic adjustment of the logging level. When increasing the log level
+      (e.g., from INFO to ERROR), streams are removed from lower priority levels. When decreasing
+      the log level (e.g., from ERROR to INFO), previously configured streams are restored.
+      
+      Order of log_level: "DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR", "NONE"
+      
+      Special value "NONE" disables all logging by removing streams from all levels.
+      
+      @param[in] log_level The minimum log level to enable. Levels below this will have their streams removed.
+     */
+    void setLogLevel(const String & log_level);
+
+    /**
       @brief Returns the instance of LogConfigHandler.
      */
-    static LogConfigHandler & getInstance();
+    static LogConfigHandler * getInstance();
 
     /// Destructor
     virtual ~LogConfigHandler();
@@ -127,9 +117,9 @@ public:
 protected:
 
     /**
-      @brief Returns the named global instance of the LogStream. (OpenMS::OpenMS_Log_debug, OpenMS::OpenMS_Log_info, OpenMS::OpenMS_Log_warn, OpenMS::OpenMS_Log_error, OpenMS::OpenMS_Log_fatal)
+      @brief Returns the named global instance of the LogStream. (OpenMS::getGlobalLogDebug(), OpenMS::getGlobalLogInfo(), OpenMS::getGlobalLogWarn(), OpenMS::getGlobalLogError(), OpenMS::getGlobalLogFatal())
 
-      @param stream_name Name of the stream. Should be DEBUG,INFO,WARNING,ERROR,FATAL_ERROR.
+      @param[in] stream_name Name of the stream. Should be DEBUG,INFO,WARNING,ERROR,FATAL_ERROR.
 
       @throw ElementNotFoundException if the given @p stream_name does not correspond to one of the known LogStream instances
 
@@ -140,7 +130,7 @@ protected:
     /**
       @brief Returns the correct set of registered streams for the given stream type (e.g. DEBUG, INFO, ..)
 
-      @param stream_type String representation of the stream type (DEBUG, INFO, ..)
+      @param[in] stream_type String representation of the stream type (DEBUG, INFO, ..)
 
       @throw ElementNotFoundException if the given @p stream_type does not correspond to one of the known LogStreams
      */
@@ -149,7 +139,7 @@ protected:
     /**
       @brief Translates the given @p stream_type String into a valid StreamHandler::StreamType
 
-      @param stream_type String representation of the StreamHandler::StreamType
+      @param[in] stream_type String representation of the StreamHandler::StreamType
 
       @throw Exception::IllegalArgument is thrown when the passed @p stream_type does not correspond to an existing StreamHandler::StreamType
 
@@ -157,11 +147,11 @@ protected:
      */
     StreamHandler::StreamType getStreamTypeByName_(const String & stream_type);
 
-    std::set<String> debug_streams_; ///< List of all streams that were appended to OpenMS::OpenMS_Log_debug
-    std::set<String> info_streams_; ///< List of all streams that were appended to OpenMS::OpenMS_Log_info
-    std::set<String> warn_streams_; ///< List of all streams that were appended to OpenMS::OpenMS_Log_warn
-    std::set<String> error_streams_; ///< List of all streams that were appended to OpenMS::OpenMS_Log_error
-    std::set<String> fatal_streams_; ///< List of all streams that were appended to OpenMS::OpenMS_Log_fatal
+    std::set<String> debug_streams_; ///< List of all streams that were appended to OpenMS::getGlobalLogDebug()
+    std::set<String> info_streams_; ///< List of all streams that were appended to OpenMS::getGlobalLogInfo()
+    std::set<String> warn_streams_; ///< List of all streams that were appended to OpenMS::getGlobalLogWarn()
+    std::set<String> error_streams_; ///< List of all streams that were appended to OpenMS::getGlobalLogError()
+    std::set<String> fatal_streams_; ///< List of all streams that were appended to OpenMS::getGlobalLogFatal()
 
     std::map<String, StreamHandler::StreamType> stream_type_map_; ///< Maps the registered streams to a StreamHandler::StreamType
 

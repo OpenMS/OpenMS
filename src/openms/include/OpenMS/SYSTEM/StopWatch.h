@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -149,7 +123,7 @@ public:
             Return <b>true</b> if two stop watches are equal, i.e. they contain exactly
             the same time intervals for clock, user and system time and have the
             same running status.
-            @param stop_watch the stop watch to compare with
+            @param[in] stop_watch the stop watch to compare with
             @return bool <b>true</b> on equality, <b>false</b> otherwise
     */
     bool operator==(const StopWatch & stop_watch) const;
@@ -158,7 +132,7 @@ public:
             Return <b>false</b> if two stop watches differ in any way, i.e. they differ
             in either the clock, user, or system time or have a different
             running status.
-            @param stop_watch the stop watch to compare with
+            @param[in] stop_watch the stop watch to compare with
             @return bool <b>true</b> on inequality, <b>false</b> otherwise
     */
     bool operator!=(const StopWatch & stop_watch) const;
@@ -166,7 +140,7 @@ public:
     /**	Lesser than operator.
             Return true, if the stop watch is in all timings lesser than the
             stop watch to be compared with (clock, user and system time).
-            @param stop_watch the stop watch to compare with
+            @param[in] stop_watch the stop watch to compare with
             @return bool <b>true</b> if all times are lesser
     */
     bool operator<(const StopWatch & stop_watch) const;
@@ -174,7 +148,7 @@ public:
     /**	Lesser or equal operator.
             Return true, if the stop watch is in all timings lesser or equal than the
             stop watch to be compared with (clock, user and system time).
-            @param stop_watch the stop watch to compare with
+            @param[in] stop_watch the stop watch to compare with
             @return bool <b>true</b> if all times are lesser or equal
     */
     bool operator<=(const StopWatch & stop_watch) const;
@@ -182,7 +156,7 @@ public:
     /**	Greater or equal operator.
             Return true, if the stop watch is in all timings greater or equal than the
             stop watch to be compared with (clock, user and system time).
-            @param stop_watch the stop watch to compare with
+            @param[in] stop_watch the stop watch to compare with
             @return bool <b>true</b> if all times are greater or equal
     */
     bool operator>=(const StopWatch & stop_watch) const;
@@ -190,7 +164,7 @@ public:
     /**	Greater operator.
             Return true, if the stop watch is in all timings greater than the
             stop watch to be compared with (clock, user and system time).
-            @param stop_watch the stop watch to compare with
+            @param[in] stop_watch the stop watch to compare with
             @return bool <b>true</b> if all times are greater
     */
     bool operator>(const StopWatch & stop_watch) const;
@@ -213,7 +187,7 @@ public:
 
 private:
   #ifdef OPENMS_WINDOWSPLATFORM
-    typedef OPENMS_UINT64_TYPE TimeType; ///< do not use clock_t on Windows, since its not big enough for larger time intervals
+    typedef UInt64 TimeType; ///< do not use clock_t on Windows, since its not big enough for larger time intervals
     static const long long SecondsTo100Nano_;  ///< 10 million; convert from 100 nanosecond ticks to seconds (factor of 1 billion/100 = 10 million)
   #else
     typedef clock_t TimeType;

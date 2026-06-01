@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -65,7 +39,7 @@ public:
     /**
       @brief Normalizes the intensity ratios in the given input map (using median).
 
-      @param consensus_map The map to normalize.
+      @param[in] consensus_map The map to normalize.
     */
     void normalize(ConsensusMap& consensus_map);
 
@@ -79,8 +53,8 @@ private:
     /**
       @brief Given a ConsensusFeature the method will return an iterator pointing to the consensus element representing the reference channel.
 
-      @param cf The ConsensusFeature for which the reference element should be found.
-      @param consensus_map The ConsensusMap in which the reference element should be found.
+      @param[in] cf The ConsensusFeature for which the reference element should be found.
+      @param[in] consensus_map The ConsensusMap in which the reference element should be found.
       @return An iterator pointing to the consensus element of the reference channel. ConsensusFeature::end() if the reference channel is not contained.
     */
     ConsensusFeature::HandleSetType::iterator findReferenceChannel_(ConsensusFeature& cf, const ConsensusMap& consensus_map) const;
@@ -88,15 +62,15 @@ private:
     /**
       @brief Constructs a mapping from file description to the index in the corresponding ratio/intensity vectors.
 
-      @param consensus_map The consensus map for which the mapping should be build.
+      @param[in] consensus_map The consensus map for which the mapping should be build.
     */
     void buildVectorIndex_(const ConsensusMap& consensus_map);
 
     /**
       @brief Collects ratios and intensities for a given ConsensusFeature.
 
-      @param cf The consensus feature to evaluate.
-      @param ref_intensity The intensity of the reference channel.
+      @param[in] cf The consensus feature to evaluate.
+      @param[in] ref_intensity The intensity of the reference channel.
     */
     void collectRatios_(const ConsensusFeature& cf,
                         const Peak2D::IntensityType& ref_intensity);
@@ -104,7 +78,7 @@ private:
     /**
       @brief Computes the normalization factors from the given peptide ratios.
 
-      @param normalization_factors The normalization factors to compute.
+      @param[in] normalization_factors The normalization factors to compute.
     */
     void computeNormalizationFactors_(std::vector<Peak2D::IntensityType>& normalization_factors);
 

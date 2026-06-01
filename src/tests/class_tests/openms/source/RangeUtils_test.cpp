@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -138,13 +112,13 @@ START_SECTION(([EXTRA]~HasScanMode()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-	HasScanMode<MSSpectrum> r(InstrumentSettings::SIM,false);
-	HasScanMode<MSSpectrum> r2(InstrumentSettings::MASSSPECTRUM,true);
+	HasScanMode<MSSpectrum> r(static_cast<Int>(InstrumentSettings::ScanMode::SIM),false);
+	HasScanMode<MSSpectrum> r2(static_cast<Int>(InstrumentSettings::ScanMode::MASSSPECTRUM),true);
 	MSSpectrum s;
-	s.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
+	s.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SIM);
 	TEST_EQUAL(r(s), true);
 	TEST_EQUAL(r2(s), true);
-	s.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+	s.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
 	TEST_EQUAL(r(s), false);
 	TEST_EQUAL(r2(s), false);
 END_SECTION
@@ -286,8 +260,8 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 	std::vector<Precursor> pc;
 	Precursor p;
 	set <Precursor::ActivationMethod> sa1;
-	sa1.insert( Precursor::PSD ); //occurs
-	sa1.insert( Precursor::BIRD );//just a dummy
+	sa1.insert( Precursor::ActivationMethod::PSD ); //occurs
+	sa1.insert( Precursor::ActivationMethod::BIRD );//just a dummy
 
 	p.setActivationMethods(sa1);
 	pc.push_back(p);
@@ -298,7 +272,7 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 
 	// does not occur as activation method
 	set <Precursor::ActivationMethod> sa2;
-	sa2.insert( Precursor::BIRD );
+	sa2.insert( Precursor::ActivationMethod::BIRD );
 	p.setActivationMethods(sa2);
 	pc[0] = p;
 	spec.setPrecursors(pc);
@@ -309,7 +283,7 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 	// multiple precursors:
 	// adding another dummy
 	set <Precursor::ActivationMethod> sa3;
-	sa3.insert( Precursor::LCID );
+	sa3.insert( Precursor::ActivationMethod::LCID );
 	p.setActivationMethods(sa3);
 	pc.push_back(p);
 	spec.setPrecursors(pc);
@@ -319,7 +293,7 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 
 	// adding a matching precursor
 	set <Precursor::ActivationMethod> sa4;
-	sa4.insert( Precursor::PD );
+	sa4.insert( Precursor::ActivationMethod::PD );
 	p.setActivationMethods(sa4);
 	pc.push_back(p);
 	spec.setPrecursors(pc);
@@ -434,8 +408,8 @@ END_SECTION
 
 HasScanPolarity<MSSpectrum>* ptr51 = nullptr;
 HasScanPolarity<MSSpectrum>* nullPointer51 = nullptr;
-START_SECTION((HasScanPolarity(Int polarity,bool reverse = false)))
-  ptr51 = new HasScanPolarity<MSSpectrum>(0);
+START_SECTION((HasScanPolarity(IonSource::Polarity polarity,bool reverse = false)))
+  ptr51 = new HasScanPolarity<MSSpectrum>(IonSource::Polarity::POLNULL);
   TEST_NOT_EQUAL(ptr48, nullPointer51)
 END_SECTION
 
@@ -444,12 +418,12 @@ START_SECTION(([EXTRA]~HasScanPolarity()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-  HasScanPolarity<MSSpectrum> s(IonSource::POSITIVE);
-  HasScanPolarity<MSSpectrum> s2(IonSource::POSITIVE, true);
+  HasScanPolarity<MSSpectrum> s(IonSource::Polarity::POSITIVE);
+  HasScanPolarity<MSSpectrum> s2(IonSource::Polarity::POSITIVE, true);
   MSSpectrum spec;
   TEST_EQUAL(s(spec), false);
   TEST_EQUAL(s2(spec), true);
-  spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+  spec.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
   TEST_EQUAL(s(spec), true);
   TEST_EQUAL(s2(spec), false);
 END_SECTION

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -41,32 +15,61 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
+// Kernel classes
+#include <OpenMS/KERNEL/MRMTransitionGroup.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+
 // scoring
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 
 #include <vector>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/make_shared.hpp>
+
+//logging
+#include <OpenMS/CONCEPT/LogStream.h>
+
+struct RangeMZ;
+struct RangeMobility;
 
 namespace OpenMS
 {
   /** @brief A class that calls the scoring routines
    *
    * Use this class to invoke the individual OpenSWATH scoring routines.
-   * 
+   *
   */
-  class OPENMS_DLLAPI OpenSwathScoring 
+  class MobilogramParquetConsumer;
+
+  class OPENMS_DLLAPI OpenSwathScoring
   {
     typedef OpenSwath::LightCompound CompoundType;
     typedef OpenSwath::LightTransition TransitionType;
+    typedef MRMTransitionGroup< MSChromatogram, TransitionType> MRMTransitionGroupType;
+
+    enum class SpectrumAdditionMethod
+    {
+      ADDITION,
+      RESAMPLE
+    };
+
+    enum class SpectrumMergeMethodType 
+    { 
+      FIXED, 
+      DYNAMIC 
+    };
 
     double rt_normalization_factor_;
     double spacing_for_spectra_resampling_;
+    double merge_spectra_by_peak_width_fraction_;
     int add_up_spectra_;
-    std::string spectra_addition_method_;
+    SpectrumAdditionMethod spectra_addition_method_;
+    SpectrumMergeMethodType spectra_merge_method_type_;
     double im_drift_extra_pcnt_;
     OpenSwath_Scores_Usage su_;
+    bool use_ms1_ion_mobility_; ///< whether to use MS1 ion mobility extraction in DIA scores
+    bool apply_im_peak_picking_; ///< whether to apply peak picking on ion mobilograms
 
   public:
 
@@ -80,19 +83,28 @@ namespace OpenMS
      *
      * Sets the parameters for the scoring.
      *
-     * @param rt_normalization_factor Specifies the range of the normalized retention time space
-     * @param add_up_spectra How many spectra to add up (default 1)
-     * @param spacing_for_spectra_resampling Spacing factor for spectra addition
-     * @param su Which scores to actually compute
-     * @param spectrum_addition_method Method to use for spectrum addition (valid: "simple", "resample")
+     * @param[in] rt_normalization_factor Specifies the range of the normalized retention time space
+     * @param[in] add_up_spectra How many spectra to add up (default 1)
+     * @param[in] spacing_for_spectra_resampling Spacing factor for spectra addition
+     * @param[in] merge_spectra_by_peak_width_fraction Fraction of peak width to construct the number of spectra to add
+     * @param[in] drift_extra Extend the extraction window to gain a larger field of view beyond drift_upper - drift_lower (in percent)
+     * @param[in] su Which scores to actually compute
+     * @param[in] spectrum_addition_method Method to use for spectrum addition (valid: "simple", "resample")
+     * @param[in] spectrum_merge_method_type Type of method to use for spectrum addition. (valid: "fixed", "dynamic")
+     * @param[in] use_ms1_ion_mobility Use MS1 ion mobility extraction in DIA scores
+     * @param[in] apply_im_peak_picking Apply peak picking on ion mobilograms
      *
     */
     void initialize(double rt_normalization_factor,
                     int add_up_spectra,
                     double spacing_for_spectra_resampling,
+                    double merge_spectra_by_peak_width_fraction,
                     const double drift_extra,
                     const OpenSwath_Scores_Usage & su,
-                    const std::string& spectrum_addition_method);
+                    const std::string& spectrum_addition_method,
+                    const std::string& spectrum_merge_method_type,
+                    bool use_ms1_ion_mobility,
+                    bool apply_im_peak_picking);
 
     /** @brief Score a single peakgroup in a chromatogram using only chromatographic properties.
      *
@@ -104,12 +116,12 @@ namespace OpenMS
      * The scores are returned in the OpenSwath_Scores object. Only those
      * scores specified in the OpenSwath_Scores_Usage object are computed.
      *
-     * @param imrmfeature The feature to be scored
-     * @param native_ids The list of native ids (giving a canonical ordering of the transitions)
-     * @param precursor_ids The list of precursor ids
-     * @param normalized_library_intensity The weights to be used for each transition (e.g. normalized library intensities)
-     * @param signal_noise_estimators The signal-to-noise estimators for each transition
-     * @param scores The object to store the result
+     * @param[in] imrmfeature The feature to be scored
+     * @param[in] native_ids The list of native ids (giving a canonical ordering of the transitions)
+     * @param[in] precursor_ids The list of precursor ids
+     * @param[in] normalized_library_intensity The weights to be used for each transition (e.g. normalized library intensities)
+     * @param[in] signal_noise_estimators The signal-to-noise estimators for each transition
+     * @param[out] scores The object to store the result
      *
     */
     void calculateChromatographicScores(OpenSwath::IMRMFeature* imrmfeature,
@@ -119,7 +131,7 @@ namespace OpenMS
                                         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
                                         OpenSwath_Scores & scores) const;
 
-    /** @brief Score identification transitions against detection transitions of a single peakgroup 
+    /** @brief Score identification transitions against detection transitions of a single peakgroup
      * in a chromatogram using only chromatographic properties.
      *
      * This function only uses the chromatographic properties (coelution,
@@ -130,11 +142,11 @@ namespace OpenMS
      * The scores are returned in the OpenSwath_Scores object. Only those
      * scores specified in the OpenSwath_Scores_Usage object are computed.
      *
-     * @param imrmfeature The feature to be scored
-     * @param native_ids_identification The list of identification native ids (giving a canonical ordering of the transitions)
-     * @param native_ids_detection The list of detection native ids (giving a canonical ordering of the transitions)
-     * @param signal_noise_estimators The signal-to-noise estimators for each transition
-     * @param scores The object to store the result
+     * @param[in] imrmfeature The feature to be scored
+     * @param[in] native_ids_identification The list of identification native ids (giving a canonical ordering of the transitions)
+     * @param[in] native_ids_detection The list of detection native ids (giving a canonical ordering of the transitions)
+     * @param[in] signal_noise_estimators The signal-to-noise estimators for each transition
+     * @param[out] scores The object to store the result
      *
     */
     void calculateChromatographicIdScores(OpenSwath::IMRMFeature* imrmfeature,
@@ -149,13 +161,13 @@ namespace OpenMS
      * peptide object. Both contain information about the expected elution time
      * on the chromatography and the relative intensity of the transitions.
      *
-     * The scores are returned in the OpenSwath_Scores object. 
+     * The scores are returned in the OpenSwath_Scores object.
      *
-     * @param imrmfeature The feature to be scored
-     * @param transitions The library transition to score the feature against
-     * @param pep The peptide corresponding to the library transitions
-     * @param normalized_feature_rt The retention time of the feature in normalized space
-     * @param scores The object to store the result
+     * @param[in] imrmfeature The feature to be scored
+     * @param[in] transitions The library transition to score the feature against
+     * @param[in] compound The compound corresponding to the library transitions
+     * @param[in] normalized_feature_rt The retention time of the feature in normalized space
+     * @param[out] scores The object to store the result
      *
     */
     void calculateLibraryScores(OpenSwath::IMRMFeature* imrmfeature,
@@ -166,151 +178,162 @@ namespace OpenMS
 
     /** @brief Score a single chromatographic feature using DIA / SWATH scores.
      *
-     * The scores are returned in the OpenSwath_Scores object. 
+     * The scores are returned in the OpenSwath_Scores object.
      *
-     * @param imrmfeature The feature to be scored
-     * @param transitions The library transition to score the feature against
-     * @param swath_maps The SWATH-MS (DIA) maps from which to retrieve full MS/MS spectra at the chromatographic peak apices
-     * @param ms1_map The corresponding MS1 (precursor ion map) from which the precursor spectra can be retrieved (optional, may be NULL)
-     * @param diascoring DIA Scoring object to use for scoring
-     * @param pep The peptide corresponding to the library transitions
-     * @param scores The object to store the result
-     * @param mzerror_ppm m/z and mass error (in ppm) for all transitions
-     * @param drift_lower Drift time lower extraction boundary
-     * @param drift_upper Drift time upper extraction boundary
+     * @param[in] imrmfeature The feature to be scored
+     * @param[in] transitions The library transition to score the feature against
+     * @param[in] normalized_library_intensity Normalized library intensities aligned to @p transitions
+     * @param[in] swath_maps The SWATH-MS (DIA) maps from which to retrieve full MS/MS spectra at the chromatographic peak apices
+     * @param[in] ms1_map The corresponding MS1 (precursor ion map) from which the precursor spectra can be retrieved (optional, may be NULL)
+     * @param[in] diascoring DIA Scoring object to use for scoring
+     * @param[in] compound The compound corresponding to the library transitions
+     * @param[out] scores The object to store the result
+     * @param[in] mzerror_ppm m/z and mass error (in ppm) for all transitions
+     * @param[in] drift_target target drift value
+     * @param[in] range_im drift time lower and upper bounds
+     * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
+     * @param[in] feature_id Optional feature id of the retention time apex that the extract ion mobilogram corresponds to
      *
     */
-    void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
-                            const std::vector<TransitionType>& transitions,
-                            const std::vector<OpenSwath::SwathMap>& swath_maps,
-                            const OpenSwath::SpectrumAccessPtr& ms1_map,
-                            const OpenMS::DIAScoring& diascoring,
-                            const CompoundType& compound,
-                            OpenSwath_Scores& scores,
-                            std::vector<double>& mzerror_ppm,
-                            const double drift_lower,
-                            const double drift_upper,
-                            const double drift_target);
+  void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
+              const std::vector<TransitionType>& transitions,
+              const std::vector<double>& normalized_library_intensity,
+              const std::vector<OpenSwath::SwathMap>& swath_maps,
+              const OpenSwath::SpectrumAccessPtr& ms1_map,
+              const OpenMS::DIAScoring& diascoring,
+              const CompoundType& compound,
+              OpenSwath_Scores& scores,
+              std::vector<double>& mzerror_ppm,
+              const double drift_target,
+              const RangeMobility& range_im,
+              MobilogramParquetConsumer* mobilogram_consumer = nullptr,
+              Int64 feature_id = -1);
 
     /** @brief Score a single chromatographic feature using the precursor map.
      *
-     * The scores are returned in the OpenSwath_Scores object. 
+     * The scores are returned in the OpenSwath_Scores object.
      *
-     * @param ms1_map The MS1 (precursor ion map) from which the precursor spectra can be retrieved
-     * @param diascoring DIA Scoring object to use for scoring
-     * @param precursor_mz The m/z ratio of the precursor
-     * @param rt The compound retention time
-     * @param scores The object to store the result
-     * @param drift_lower Drift time lower extraction boundary
-     * @param drift_upper Drift time upper extraction boundary
+     * @param[in] ms1_map The MS1 (precursor ion map) from which the precursor spectra can be retrieved
+     * @param[in] diascoring DIA Scoring object to use for scoring
+     * @param[in] precursor_mz The m/z ratio of the precursor
+     * @param[in] rt The compound retention time
+     * @param[in] compound the compound sequence
+     * @param[in] im_range drift time lower and upper bounds
+     * @param[out] scores The object to store the result
      *
     */
-    void calculatePrecursorDIAScores(const OpenSwath::SpectrumAccessPtr& ms1_map, 
+    void calculatePrecursorDIAScores(const OpenSwath::SpectrumAccessPtr& ms1_map,
                                      const OpenMS::DIAScoring& diascoring,
-                                     double precursor_mz, 
-                                     double rt, 
-                                     const CompoundType& compound, 
-                                     OpenSwath_Scores& scores,
-                                     double drift_lower,
-                                     double drift_upper);
+                                     double precursor_mz,
+                                     double rt,
+                                     const CompoundType& compound,
+                                     RangeMobility im_range,
+                                     OpenSwath_Scores& scores);
 
     /** @brief Score a single chromatographic feature using DIA / SWATH scores.
      *
-     * The scores are returned in the OpenSwath_Scores object. 
+     * The scores are returned in the OpenSwath_Scores object.
      *
-     * @param imrmfeature The feature to be scored
-     * @param transitions The library transition to score the feature against
-     * @param swath_maps The SWATH-MS (DIA) maps from which to retrieve full MS/MS spectra at the chromatographic peak apices
-     * @param diascoring DIA Scoring object to use for scoring
-     * @param scores The object to store the result
-     * @param drift_lower Drift time lower extraction boundary
-     * @param drift_upper Drift time upper extraction boundary
+     * @param[in] imrmfeature The feature to be scored
+     * @param[in] transition The library transition to score the feature against
+     * @param[in] transition_group_detection The detection transition group
+     * @param[in] swath_maps The SWATH-MS (DIA) maps from which to retrieve full MS/MS spectra at the chromatographic peak apices
+     * @param[in] range_im drift time lower and upper bounds
+     * @param[in] diascoring DIA Scoring object to use for scoring
+     * @param[out] scores The object to store the result
+     * @param[out] drift_target target drift value
+     * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
+     * @param[in] feature_id Optional feature id of the retention time apex that the extract ion mobilogram corresponds to
      *
     */
     void calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
                               const TransitionType & transition,
+                              MRMTransitionGroupType& transition_group_detection,
                               const std::vector<OpenSwath::SwathMap>& swath_maps,
+                              RangeMobility& range_im,
                               const OpenMS::DIAScoring & diascoring,
                               OpenSwath_Scores & scores,
-                              double drift_lower,
-                              double drift_upper);
+                              const double drift_target,
+                              MobilogramParquetConsumer* mobilogram_consumer = nullptr,
+                              Int64 feature_id = -1);
 
-    /** @brief Computing the normalized library intensities from the transition objects
-     *
-     * The intensities are normalized such that the sum to one.
-     *
-     * @param[in] transitions The library transition to score the feature against
-     * @param[out] normalized_library_intensity The resulting normalized library intensities
-     *
-    */
-    void getNormalized_library_intensities_(const std::vector<TransitionType> & transitions,
-                                            std::vector<double>& normalized_library_intensity);
-
-    /** @brief Prepares a spectrum for DIA analysis (multiple map)
-     *
-     * This function will sum up (add) the intensities of multiple spectra from
-     * multiple swath maps (assuming these are SONAR maps of shifted precursor
-     * isolation windows) around the given retention time and return an
-     * "averaged" spectrum which may contain less noise.
-     *
-     * @param[in] swath_maps The map(s) containing the spectra
-     * @param[in] RT The target retention time
-     * @param[in] nr_spectra_to_add How many spectra to add up
-     * @param drift_lower Drift time lower extraction boundary
-     * @param drift_upper Drift time upper extraction boundary
-     *
-     * @return Added up spectrum
-     *
-    */
-    OpenSwath::SpectrumPtr fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps,
-                                              double RT,
-                                              int nr_spectra_to_add,
-                                              const double drift_lower,
-                                              const double drift_upper);
-    
     /** @brief Prepares a spectrum for DIA analysis (single map)
      *
-     * This function will sum up (add) the intensities of multiple spectra a single
-     * swath map (assuming these are regular SWATH / DIA maps) around the given 
+     * This function will fetch a vector of spectrum pointers to be used in DIA analysis.
+     * If nr_spectra_to_add == 1, then a vector of length 1 will be returned
+     *
+     *   - Case \#1: "simple" addition selected - Array of length "nr_spectra_to_add" returned corresponding with "nr_spectra_to_add" spectra
+     *   - Case \#2: "resampling addition selected - Array of length 1 of the resampled spectrum returned
+     *
+     * For case \#2 result is
+     * all spectra summed up (add) with the intensities of multiple spectra a single
+     * swath map (assuming these are regular SWATH / DIA maps) around the given
      * retention time and return an "averaged" spectrum which may contain less noise.
      *
+     * For case \#1 this processing is done downstream in DIA scores to speed up computation time
+     *
+     * @param[in] swath_maps The map containing the spectra
+     * @param[in] RT The target retention time
+     * @param[in] nr_spectra_to_add How many spectra to add up
+     * @param[in] im_range Drift time lower and upper bounds
+     * @return Vector of spectra to be used
+     *
+    */
+    SpectrumSequence fetchSpectrumSwath(const std::vector<OpenSwath::SwathMap>& swath_maps, double RT, int nr_spectra_to_add, const RangeMobility& im_range);
+
+    /**
+      @brief Fill a caller-provided spectrum sequence for DIA analysis.
+
+      Reuses @p out as storage for the fetched spectra and clears existing
+      entries before appending the selected or merged spectrum sequence.
+
+      @param[in] swath_maps The maps containing spectra
+      @param[in] RT The target retention time
+      @param[in] nr_spectra_to_add How many spectra to add up
+      @param[in] im_range Drift time lower and upper bounds
+      @param[out] out Spectrum sequence to fill
+    */
+    void fetchSpectrumSwath(const std::vector<OpenSwath::SwathMap>& swath_maps, double RT, int nr_spectra_to_add, const RangeMobility& im_range, SpectrumSequence& out);
+
+
+   /** @brief Prepares a spectrum for DIA analysis (multiple map)
+     *
+     * This function will fetch a SpectrumSequence to be used in DIA analysis.
+     * If nr_spectra_to_add == 1, then a vector of length 1 will be returned.
+     * Spectra are prepared differently based on the condition
+     * Case #1: "simple" addition selected - Array of length "nr_spectra_to_add" returned corresponding with "nr_spectra_to_add" spectra
+     * Case #2: "resampling addition selected - Array of length 1 of the resampled spectrum returned
+     *
+     * For case #2 result is
+     * all spectra summed up (add) with the intensities of multiple spectra a single
+     * swath map (assuming these are regular SWATH / DIA maps) around the given
+     * retention time and return an "averaged" spectrum which may contain less noise.
+     * Spectra are also filtered and summed across drift time to transform an ion mobility spectrum into a non ion mobility spectrum
+     *
+     * For case #1 this processing is done downstream in DIA scores to speed up computation time, furthermore drift time filtering is done downstream (these parameters are ignored)
+     *
      * @param[in] swath_map The map containing the spectra
      * @param[in] RT The target retention time
      * @param[in] nr_spectra_to_add How many spectra to add up
-     * @param drift_lower Drift time lower extraction boundary
-     * @param drift_upper Drift time upper extraction boundary
+     * @param[in] im_range mobility range, only used if resampling spectrum addition chosen
      *
-     * @return Added up spectrum
+     * @return Vector of spectra to be used
      *
     */
-    OpenSwath::SpectrumPtr fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map,
-                                              double RT,
-                                              int nr_spectra_to_add,
-                                              const double drift_lower,
-                                              const double drift_upper);
+    SpectrumSequence fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add, const RangeMobility& im_range);
 
-  protected:
+    /**
+      @brief Fill a caller-provided spectrum sequence for DIA analysis.
 
-    /** @brief Returns an averaged spectrum
-     *
-     * This function will sum up (add) the intensities of multiple spectra
-     * around the given retention time and return an "averaged" spectrum which
-     * may contain less noise.
-     *
-     * @param[in] swath_map The map containing the spectra
-     * @param[in] RT The target retention time
-     * @param[in] nr_spectra_to_add How many spectra to add up
-     * @param drift_lower Drift time lower extraction boundary
-     * @param drift_upper Drift time upper extraction boundary
-     *
-     * @return Added up spectrum
+      Reuses @p out as storage for the fetched spectra and clears existing
+      entries before appending the selected or merged spectrum sequence.
+
+      @param[in] swath_map The map containing spectra
+      @param[in] RT The target retention time
+      @param[in] nr_spectra_to_add How many spectra to add up
+      @param[in] im_range Mobility range, only used if resampling spectrum addition is selected
+      @param[out] out Spectrum sequence to fill
     */
-    OpenSwath::SpectrumPtr getAddedSpectra_(const OpenSwath::SpectrumAccessPtr& swath_map,
-                                            double RT,
-                                            int nr_spectra_to_add,
-                                            const double drift_lower,
-                                            const double drift_upper);
-
+    void fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add, const RangeMobility& im_range, SpectrumSequence& out);
   };
 }
-

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
@@ -35,12 +9,13 @@
 #include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/KERNEL/BinnedSpectrum.h>
+#include <OpenMS/COMPARISON/BinnedSpectralContrastAngle.h>
+#include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <regex>
 
@@ -65,9 +40,9 @@ namespace OpenMS
     {
       adduct_suffix = "1" + adduct_suffix;
     }
-    else
+    else if (adduct_suffix != "1-" && adduct_suffix != "1+")
     {
-      OpenMS_Log_warn << "The adduct had the suffix '" << adduct_suffix << "', but only singly positive or singly negative charged adducts are supported." << std::endl;
+      OPENMS_LOG_WARN << "The adduct had the suffix '" << adduct_suffix << "', but only singly positive or singly negative charged adducts are supported." << std::endl;
     }
     String sign = adduct.back();
     adduct_suffix.resize(adduct_suffix.size()-1);
@@ -339,16 +314,23 @@ namespace OpenMS
       // sort intensity in MS2 spectrum to extract transitions
       transition_spectrum.sortByIntensity(true);
 
-      // filter out the precursors if they are in the ms2 spectrum;
+      // filter out ALL precursor peaks from the ms2 spectrum (properly handles DataArrays via select())
       if (exclude_ms2_precursor)
       {
-        for (auto spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
+        std::vector<Size> indices_to_keep;
+        indices_to_keep.reserve(transition_spectrum.size());
+        double precursor_mz = transition_spectrum.getPrecursors()[0].getMZ();
+        for (Size i = 0; i < transition_spectrum.size(); ++i)
         {
-          if (abs(transition_spectrum.getPrecursors()[0].getMZ() - spec_it->getMZ()) < 1e-3)
+          // Remove all peaks matching the precursor m/z (within tolerance)
+          if (std::abs(precursor_mz - transition_spectrum[i].getMZ()) >= 1e-3)
           {
-            transition_spectrum.erase(spec_it);
-            break;
+            indices_to_keep.push_back(i);
           }
+        }
+        if (indices_to_keep.size() != transition_spectrum.size())
+        {
+          transition_spectrum.select(indices_to_keep);
         }
       }
 
@@ -450,8 +432,7 @@ namespace OpenMS
                                                                                                       const double& min_fragment_mz,
                                                                                                       const double& max_fragment_mz,
                                                                                                       const bool& use_exact_mass,
-                                                                                                      const bool& exclude_ms2_precursor,
-                                                                                                      const unsigned int& file_counter)
+                                                                                                      const bool& exclude_ms2_precursor)
   {
     int entry_counter = 0; // counts each entry - to ensure the same count for targets, decoys from the same sirius workspace
     vector <MetaboTargetedAssay> v_mta;
@@ -501,46 +482,43 @@ namespace OpenMS
         // sort intensity in MS2 spectrum to extract transitions
         transition_spectrum.sortByIntensity(true);
 
-        // have to remove ms2 precursor peak before min/max
+        // have to remove ALL ms2 precursor peaks before min/max (properly handles DataArrays via select())
         double exact_mass_precursor = 0.0;
-        for (auto spec_it = transition_spectrum.begin();
-             spec_it != transition_spectrum.end();
-             ++spec_it)
-        {
-          int spec_index = spec_it - transition_spectrum.begin();
 
-          OpenMS::DataArrays::StringDataArray explanation_array;
-          if (!transition_spectrum.getStringDataArrays().empty())
+        if (!transition_spectrum.getStringDataArrays().empty())
+        {
+          const OpenMS::DataArrays::StringDataArray& explanation_array = transition_spectrum.getStringDataArrays()[0];
+          if (explanation_array.getName() != "explanation")
           {
-            explanation_array = transition_spectrum.getStringDataArrays()[0];
-            if (explanation_array.getName() != "explanation")
-            {
-              OPENMS_LOG_WARN << "Fragment explanation was not found. Please check if your annotation works properly." << std::endl;
-            }
-            else
+            OPENMS_LOG_WARN << "Fragment explanation was not found. Please check if your annotation works properly." << std::endl;
+          }
+          else
+          {
+            std::vector<Size> indices_to_keep;
+            indices_to_keep.reserve(transition_spectrum.size());
+            for (Size spec_index = 0; spec_index < transition_spectrum.size(); ++spec_index)
             {
               // precursor in fragment annotation has the same sumformula as MS1 Precursor
               if (explanation_array[spec_index] == sumformula)
               {
-                // save exact mass
-                if (use_exact_mass)
+                // save exact mass (from first match)
+                if (use_exact_mass && exact_mass_precursor == 0.0)
                 {
-                  exact_mass_precursor = spec_it->getMZ();
+                  exact_mass_precursor = transition_spectrum[spec_index].getMZ();
                 }
-                // remove precursor ms2 entry
+                // skip this peak if we're excluding precursors
                 if (exclude_ms2_precursor)
                 {
-                  transition_spectrum.erase(transition_spectrum.begin() + spec_index);
-                  transition_spectrum.getStringDataArrays()[0]
-                      .erase(transition_spectrum.getStringDataArrays()[0].begin() + spec_index);
-                  if (decoy == 0) // second mass FloatDataArray only available for targets
-                  {
-                    transition_spectrum.getFloatDataArrays()[0]
-                      .erase(transition_spectrum.getFloatDataArrays()[0].begin() + spec_index);
-                  }
-                  break; // break to not increment when erase es called.
+                  continue;  // Don't add to indices_to_keep
                 }
               }
+              indices_to_keep.push_back(spec_index);
+            }
+
+            // Remove all precursor peaks if any were found
+            if (exclude_ms2_precursor && indices_to_keep.size() != transition_spectrum.size())
+            {
+              transition_spectrum.select(indices_to_keep);
             }
           }
         }
@@ -562,14 +540,13 @@ namespace OpenMS
         v_cmp_rt = {cmp_rt};
         cmp.rts = {v_cmp_rt};
         cmp.setChargeState(charge);
-        String identifier_suffix = adduct + "_" + int(feature_rt) + "_" + file_counter;
+        String identifier_suffix = adduct + "_" + int(feature_rt) + "_" + csp.compound_info.file_index;
 
         if (description == "UNKNOWN")
         {
           description = String(description + "_" + entry_counter);
         }
         // compoundID has to be unique over all the files
-        // file_counter unique per file
         // feature_rt if the same ID was detected twice at different retention times in the same file
         if (decoy == 0)
         {
@@ -625,7 +602,7 @@ namespace OpenMS
 
           float current_int = spec_it->getIntensity();
           double current_mz = spec_it->getMZ();
-          String current_explanation = explanation_array[peak_index];
+          const String& current_explanation = explanation_array[peak_index];
 
           // write row for each transition
           // current int has to be higher than transition threshold and should not be smaller than threshold noise
@@ -683,7 +660,7 @@ namespace OpenMS
 
         mta.molecular_formula = sumformula;
         mta.compound_rt = feature_rt;
-        mta.compound_file = file_counter;
+        mta.compound_file = csp.compound_info.file_index;
 
         mta.potential_cmp = cmp;
         mta.potential_rmts = v_rmt;
@@ -710,24 +687,6 @@ namespace OpenMS
         if (cmp.m_ids_id == spectra.target.getName()) // the m_id is saved at MSSpectrum level as its name
         {
           v_cmp_spec.emplace_back(cmp, spectra);
-        }
-      }
-    }
-    return v_cmp_spec;
-  }
-
-  // method to pair compound information (SiriusMSFile) with the annotated target spectrum from Sirius based on the m_id (unique identifier)
-  std::vector< MetaboTargetedAssay::CompoundSpectrumPair > MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
-                                                                                                                  const std::vector<MSSpectrum>& annotated_spectra)
-  {
-    vector< MetaboTargetedAssay::CompoundSpectrumPair > v_cmp_spec;
-    for (const auto& cmp : v_cmpinfo)
-    {
-      for (const auto& spectrum : annotated_spectra)
-      {
-        if (cmp.m_ids_id == spectrum.getName()) // the m_id is saved at MSSpectrum level as its name
-        {
-          v_cmp_spec.emplace_back(cmp, spectrum);
         }
       }
     }
@@ -819,7 +778,7 @@ namespace OpenMS
       f.setUniqueId();
       f.ensureUniqueId();
       PeptideIdentification pep;
-      vector<PeptideIdentification> v_pep;
+      PeptideIdentificationList v_pep;
 
       // check - no target and decoy available
       if (it.second.target_mz == 0.0 && it.second.decoy_mz == 0.0)
@@ -889,7 +848,7 @@ namespace OpenMS
     for (const auto& c_it : c_map)
     {
       vector <PeptideIdentification> v_pep;
-      v_pep = c_it.getPeptideIdentifications();
+      v_pep = c_it.getPeptideIdentifications().getData();
       vector <MetaboTargetedAssay> ambi_group;
       for (const auto& p_it : v_pep)
       {

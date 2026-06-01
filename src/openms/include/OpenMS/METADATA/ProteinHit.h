@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -41,6 +15,7 @@
 #include <map>
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -59,6 +34,14 @@ namespace OpenMS
     public MetaInfoInterface
   {
 public:
+    /// Enum for target/decoy annotation
+    enum class TargetDecoyType
+    {
+      TARGET,       ///< Target protein
+      DECOY,        ///< Decoy protein
+      UNKNOWN       ///< Target/decoy status is unknown (meta value not set)
+    };
+
     static const double COVERAGE_UNKNOWN; // == -1
 
     /// @name Hashes for ProteinHit
@@ -89,20 +72,12 @@ public:
     /// Greater predicate for scores of hits
     class OPENMS_DLLAPI ScoreMore
     {
-public:
-      template <typename Arg>
-      bool operator()(const Arg & a, const Arg & b)
+    public:
+      template<typename Arg>
+      bool operator()(const Arg& a, const Arg& b) const
       {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-        if (a.getScore() != b.getScore())
-#pragma clang diagnostic pop
-        {
-          return a.getScore() > b.getScore();
-        }
-        return a.getAccession() > b.getAccession();
+        return std::make_tuple(a.getScore(), a.getAccession()) > std::make_tuple(b.getScore(), b.getAccession());
       }
-
     };
 
     /// Lesser predicate for scores of hits
@@ -110,16 +85,9 @@ public:
     {
 public:
       template <typename Arg>
-      bool operator()(const Arg & a, const Arg & b)
+      bool operator()(const Arg & a, const Arg & b) const
       {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-        if (a.getScore() != b.getScore())
-#pragma clang diagnostic pop
-        {
-          return a.getScore() < b.getScore();
-        }
-        return a.getAccession() < b.getAccession();
+        return std::make_tuple(a.getScore(), a.getAccession()) < std::make_tuple(b.getScore(), b.getAccession());
       }
 
     };
@@ -203,6 +171,35 @@ public:
 
     /// sets the set of modified protein positions
     void setModifications(std::set<std::pair<Size, ResidueModification> >& mods);
+
+    /// returns true if this is a decoy hit (false for TARGET and UNKNOWN)
+    bool isDecoy() const;
+
+    /** @brief Sets the target/decoy type for this protein hit
+     *
+     * This method provides a type-safe way to annotate protein hits with their
+     * target/decoy status.
+     *
+     * @param[in] type The target/decoy classification:
+     *   - TARGET: Target protein
+     *   - DECOY: Decoy protein
+     *   - UNKNOWN: Target/decoy status is unknown; the "target_decoy" meta value is removed
+     */
+    void setTargetDecoyType(TargetDecoyType type);
+
+    /** @brief Returns the target/decoy type for this protein hit
+     *
+     * This method performs case-insensitive parsing of the "target_decoy" meta value
+     * and returns the corresponding enum value. Returns UNKNOWN if the meta value
+     * does not exist.
+     *
+     * @return The target/decoy classification:
+     *   - TARGET: Target protein
+     *   - DECOY: Decoy protein
+     *   - UNKNOWN: Target/decoy status not set (meta value missing)
+     */
+    TargetDecoyType getTargetDecoyType() const;
+
     //@}
 
 protected:
@@ -218,4 +215,47 @@ protected:
   OPENMS_DLLAPI std::ostream& operator<< (std::ostream& stream, const ProteinHit& hit);
 
 } // namespace OpenMS
+
+// Hash function specialization for ProteinHit
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::ProteinHit.
+   *
+   * Computes a hash based on all fields used in operator==:
+   * - score (double)
+   * - rank (UInt)
+   * - accession (String)
+   * - sequence (String)
+   * - coverage (double)
+   * - modifications (set of position-modification pairs)
+   *
+   * @note MetaInfoInterface is not included in the hash for performance reasons.
+   *       This means two ProteinHit objects that differ only in meta values will
+   *       have the same hash but compare unequal with operator==. This is valid
+   *       as the hash contract only requires that equal objects have equal hashes.
+   */
+  template<>
+  struct hash<OpenMS::ProteinHit>
+  {
+    std::size_t operator()(const OpenMS::ProteinHit& hit) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_float(hit.getScore());
+      OpenMS::hash_combine(seed, OpenMS::hash_int(hit.getRank()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(hit.getAccession()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(hit.getSequence()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(hit.getCoverage()));
+
+      // Hash modifications (set of pairs: position + ResidueModification)
+      for (const auto& mod_pair : hit.getModifications())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(mod_pair.first)); // position (Size)
+        // Use getFullId() for the modification, consistent with AASequence hashing
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(mod_pair.second.getFullId()));
+      }
+
+      return seed;
+    }
+  };
+} // namespace std
 

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
@@ -37,9 +11,9 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 
@@ -80,32 +54,50 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, std::vector<ProteinIdentification>& poid, std::vector<PeptideIdentification>& peid);
+    void load(const String& filename, std::vector<ProteinIdentification>& poid, PeptideIdentificationList& peid);
 
     /**
         @brief Stores the identifications in a MzIdentML file.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String& filename, const std::vector<ProteinIdentification>& poid, const std::vector<PeptideIdentification>& peid) const;
-
-    /**
-        @brief Stores the identifications in a MzIdentML file.
-
-        @exception Exception::UnableToCreateFile is thrown if the file could not be created
-    */
-    void store(const String& filename, const Identification& id) const;
+    void store(const String& filename, const std::vector<ProteinIdentification>& poid, const PeptideIdentificationList& peid) const;
 
     /**
         @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
 
-        @param filename File name of the file to be checked.
-        @param errors Errors during the validation are returned in this output parameter.
-        @param warnings Warnings during the validation are returned in this output parameter.
+        @param[in] filename File name of the file to be checked.
+        @param[out] errors Errors during the validation are returned in this output parameter.
+        @param[out] warnings Warnings during the validation are returned in this output parameter.
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
     */
     bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
+
+    /**
+        @brief Checks if a file validates against the mzIdentML schema that matches its declared version.
+
+        Unlike the base-class @ref Internal::XMLFile::isValid (which always validates against the schema
+        the file adapter was constructed with), this overload first detects the mzIdentML version declared
+        in @p filename and validates against the corresponding schema (1.1.0, 1.2.0 or 1.3.0). This keeps
+        older, still-valid mzIdentML files from being reported as invalid just because OpenMS now writes
+        1.3.0. The schema version actually used is returned via @p used_version.
+
+        @param[in]     filename     File name of the file to be checked.
+        @param[in,out] os           Error-message sink for validation errors.
+        @param[out]    used_version Receives the schema version the file was validated against.
+
+        @exception Exception::FileNotFound is thrown if the file could not be opened
+    */
+    bool isValid(const String& filename, std::ostream& os, String& used_version);
+
+    /**
+        @brief Detect the mzIdentML version declared in @p filename (e.g. "1.1.0").
+
+        Reads the @c version attribute / target namespace from the document header. Falls back to the
+        adapter's default version (1.3.0) if no version can be determined or no matching schema exists.
+    */
+    String detectVersion(const String& filename) const;
 
 private:
 

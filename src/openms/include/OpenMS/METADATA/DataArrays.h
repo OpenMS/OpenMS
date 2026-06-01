@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -35,6 +9,9 @@
 #pragma once
 
 #include <OpenMS/METADATA/MetaInfoDescription.h>
+#include <OpenMS/CONCEPT/Helpers.h> // for ADL version of <=> for STL containers
+
+#include <compare>
 
 namespace OpenMS
 {
@@ -46,6 +23,49 @@ namespace OpenMS
       public MetaInfoDescription,
       public std::vector<float>
     {
+      using std::vector<float>::vector; // to allow for aggregate initialization of FloatDataArray
+
+    public:
+      /// Less than operator
+      bool operator<(const FloatDataArray& rhs) const
+      {
+        const MetaInfoDescription& lhs_meta = *this;
+        const MetaInfoDescription& rhs_meta = rhs;
+        if (lhs_meta != rhs_meta)
+          return lhs_meta < rhs_meta;
+        return static_cast<const std::vector<float>&>(*this) < static_cast<const std::vector<float>&>(rhs);
+      }
+
+      /// Less than or equal operator
+      bool operator<=(const FloatDataArray& rhs) const
+      {
+        return *this < rhs || *this == rhs;
+      }
+
+      /// Greater than operator
+      bool operator>(const FloatDataArray& rhs) const
+      {
+        return !(*this <= rhs);
+      }
+
+      /// Greater than or equal operator
+      bool operator>=(const FloatDataArray& rhs) const
+      {
+        return !(*this < rhs);
+      }
+
+      /// Not equal operator
+      bool operator!=(const FloatDataArray& rhs) const
+      {
+        return !(*this == rhs);
+      }
+
+      /// Equality operator
+      bool operator==(const FloatDataArray& rhs) const
+      {
+        return static_cast<const MetaInfoDescription&>(*this) == static_cast<const MetaInfoDescription&>(rhs) && 
+               static_cast<const std::vector<float>&>(*this) == static_cast<const std::vector<float>&>(rhs);
+      }
     };
 
     /// Integer data array class
@@ -53,6 +73,49 @@ namespace OpenMS
       public MetaInfoDescription,
       public std::vector<Int>
     {
+      using std::vector<int>::vector; // to allow for aggregate initialization of IntegerDataArray
+
+    public:
+      /// Less than operator
+      bool operator<(const IntegerDataArray& rhs) const
+      {
+        const MetaInfoDescription& lhs_meta = *this;
+        const MetaInfoDescription& rhs_meta = rhs;
+        if (lhs_meta != rhs_meta)
+          return lhs_meta < rhs_meta;
+        return static_cast<const std::vector<Int>&>(*this) < static_cast<const std::vector<Int>&>(rhs);
+      }
+
+      /// Less than or equal operator
+      bool operator<=(const IntegerDataArray& rhs) const
+      {
+        return *this < rhs || *this == rhs;
+      }
+
+      /// Greater than operator
+      bool operator>(const IntegerDataArray& rhs) const
+      {
+        return !(*this <= rhs);
+      }
+
+      /// Greater than or equal operator
+      bool operator>=(const IntegerDataArray& rhs) const
+      {
+        return !(*this < rhs);
+      }
+
+      /// Not equal operator
+      bool operator!=(const IntegerDataArray& rhs) const
+      {
+        return !(*this == rhs);
+      }
+
+      /// Equality operator
+      bool operator==(const IntegerDataArray& rhs) const
+      {
+        return static_cast<const MetaInfoDescription&>(*this) == static_cast<const MetaInfoDescription&>(rhs) && 
+               static_cast<const std::vector<Int>&>(*this) == static_cast<const std::vector<Int>&>(rhs);
+      }
     };
 
     /// String data array class
@@ -60,6 +123,49 @@ namespace OpenMS
       public MetaInfoDescription,
       public std::vector<String>
     {
+      using std::vector<String>::vector; // to allow for aggregate initialization of StringDataArray
+
+    public:
+      /// Less than operator
+      bool operator<(const StringDataArray& rhs) const
+      {
+        const MetaInfoDescription& lhs_meta = *this;
+        const MetaInfoDescription& rhs_meta = rhs;
+        if (lhs_meta != rhs_meta)
+          return lhs_meta < rhs_meta;
+        return static_cast<const std::vector<String>&>(*this) < static_cast<const std::vector<String>&>(rhs);
+      }
+
+      /// Less than or equal operator
+      bool operator<=(const StringDataArray& rhs) const
+      {
+        return *this < rhs || *this == rhs;
+      }
+
+      /// Greater than operator
+      bool operator>(const StringDataArray& rhs) const
+      {
+        return !(*this <= rhs);
+      }
+
+      /// Greater than or equal operator
+      bool operator>=(const StringDataArray& rhs) const
+      {
+        return !(*this < rhs);
+      }
+
+      /// Not equal operator
+      bool operator!=(const StringDataArray& rhs) const
+      {
+        return !(*this == rhs);
+      }
+
+      /// Equality operator
+      bool operator==(const StringDataArray& rhs) const
+      {
+        return static_cast<const MetaInfoDescription&>(*this) == static_cast<const MetaInfoDescription&>(rhs) && 
+               static_cast<const std::vector<String>&>(*this) == static_cast<const std::vector<String>&>(rhs);
+      }
     };
 
   }

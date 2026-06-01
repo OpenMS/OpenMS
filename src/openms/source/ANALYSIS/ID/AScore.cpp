@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg, Petra Gutenbrunner $
@@ -35,10 +9,10 @@
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
-
-#include <boost/math/special_functions/binomial.hpp>
+#include <OpenMS/MATH/MathFunctions.h>
 
 using namespace std;
 
@@ -81,18 +55,19 @@ namespace OpenMS
     }
     
     String sequence_str = phospho.getSequence().toString();
+    String unmodified_sequence_str = phospho.getSequence().toUnmodifiedString();
     
     Size number_of_phosphorylation_events = numberOfPhosphoEvents_(sequence_str);
     AASequence seq_without_phospho = removePhosphositesFromSequence_(sequence_str);
 
-    if ((max_peptide_length_ > 0) && (seq_without_phospho.toUnmodifiedString().size() > max_peptide_length_))
+    if ((max_peptide_length_ > 0) && (unmodified_sequence_str.size() > max_peptide_length_))
     {
       OPENMS_LOG_DEBUG << "\tcalculation aborted: peptide too long: " << seq_without_phospho.toString() << std::endl;
       return phospho;
     }
 
     // determine all phospho sites
-    vector<Size> sites = getSites_(seq_without_phospho);
+    vector<Size> sites = getSites_(unmodified_sequence_str);
     Size number_of_STY = sites.size();
 
     if (number_of_phosphorylation_events == 0 || number_of_STY == 0)
@@ -218,34 +193,8 @@ namespace OpenMS
     OPENMS_PRECONDITION(n <= N, "The number of matched ions (n) can be at most as large as the number of trials (N).");
     OPENMS_PRECONDITION(p >= 0 && p <= 1.0, "p must be a probability [0,1].");
 
-    // return bad p value if none has been matched (see Beausoleil et al.)
-    if (n == 0) return 1.0;
-
-    double score = 0.0;
-    // score = sum_{k=n..N}(\choose{N}{k}p^k(1-p)^{N-k})
-    for (Size k = n; k <= N; ++k)
-    {
-      double coeff = 0;
-
-      try
-      {
-        coeff = boost::math::binomial_coefficient<double>((unsigned int)N, (unsigned int)k);
-      }
-      catch (std::overflow_error const& /*e*/)
-      {
-        // not sure if a warning is appropriate here, since if it happens, it will happen very often for the same spectrum and flood the stdout
-//        std::cout << "Warning: Binomial coefficient for AScore has overflowed! Setting value to the maximal double value." << std::endl;
-//        std::cout << "binomial_coefficient was called with N = " << N << " and k = " << k << std::endl;
-        coeff = std::numeric_limits<double>::max();
-      }
-
-      double pow1 = pow((double)p, (int)k);
-      double pow2 = pow(double(1 - p), double(N - k));
-      
-      score += coeff * pow1 * pow2;
-    }
-
-    return score;
+    // Use the numerically stable implementation from MathFunctions
+    return Math::binomial_cdf_complement(N, n, p);
   }
 
   void AScore::determineHighestScoringPermutations_(const std::vector<std::vector<double>>& peptide_site_scores, std::vector<ProbablePhosphoSites>& sites, const vector<vector<Size>>& permutations, std::multimap<double, Size>& ranking) const
@@ -407,10 +356,9 @@ namespace OpenMS
            / 7.0;
   }
 
-  vector<Size> AScore::getSites_(const AASequence& without_phospho) const
+  vector<Size> AScore::getSites_(const String& unmodified) const
   {
     vector<Size> tupel;
-    String unmodified = without_phospho.toUnmodifiedString();
     for (Size i = 0; i < unmodified.size(); ++i)
     {
       if (unmodified[i] == 'Y' || unmodified[i] == 'T' || unmodified[i] == 'S')
@@ -477,7 +425,7 @@ namespace OpenMS
   {
     Size cnt_phospho_events = 0;
     
-    for (Size i = sequence.find("Phospho"); i != std::string::npos; i = sequence.find("Phospho", i + 7))
+    for (Size i = sequence.find("(Phospho)"); i != std::string::npos; i = sequence.find("(Phospho)", i + 9))
     {
       ++cnt_phospho_events;
     }
@@ -527,7 +475,7 @@ namespace OpenMS
     }
     return th_spectra;
   }
-    
+
   std::vector<PeakSpectrum> AScore::peakPickingPerWindowsInSpectrum_(PeakSpectrum& real_spectrum) const
   {
     vector<PeakSpectrum> windows_top10;

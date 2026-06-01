@@ -1,796 +1,588 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Hannes Röst $
-# $Authors: Hannes Röst, Uwe Schmitt, Stephan Aiche $
+# pyOpenMS CMake build configuration (nanobind)
+#
+# This CMakeLists.txt can be used in two modes:
+# 1. As part of the OpenMS build (when PYOPENMS=ON)
+# 2. Standalone with py-build-cmake (pip install .)
+#
+# Bindings are hand-maintained nanobind C++ sources in bindings/*.cpp.
 # --------------------------------------------------------------------------
-## 3.15 to enable new find policies for FindPython (note the discussion in https://gitlab.kitware.com/cmake/cmake/-/issues/21186)
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
-project("pyOpenMS" LANGUAGES C CXX)
 
-if(NOT TARGET OpenMS)
-  find_package(OpenMS)
-  #TODO when separating pyopenms from OpenMS, specify a pyopenms version and the compatible OpenMS version to be searched above.
-  # For now we just hope that the right OpenMS version from this same git repo is installed and found and
-  # therefore give pyopenms here the same version. CF_OPENMS_PACKAGE_VERSION is used in env.py for setup.py
-  set(CF_OPENMS_PACKAGE_VERSION ${OpenMS_VERSION})
-  #TODO create own module copy under pyopenms or somehow point to installed copy based on the found OpenMS variables
-  include(../../cmake/Modules/GetGitRevisionDescription.cmake)
-  git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE)
+cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+project("pyOpenMS" LANGUAGES CXX)
+
+# C++17 is required for nanobind
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# --------------------------------------------------------------------------
+# Options
+# --------------------------------------------------------------------------
+# Fast-path: reuse prebuilt pyOpenMS artifacts and skip rebuild/configure work
+option(PYOPENMS_USE_PREBUILT "Reuse existing pyOpenMS build outputs" OFF)
+set(PYOPENMS_PREBUILT_DIR "" CACHE PATH "Path to prebuilt pyOpenMS build directory (containing pyopenms folder)")
+
+option(NO_DEPENDENCIES "Do not bundle dependencies (use wheel repair tools instead)" ON)
+option(NO_SHARE "Do not bundle share data into wheel" OFF)
+option(PYOPENMS_GENERATE_STUBS "Generate .pyi stub files" ON)
+option(PYOPENMS_PREPARE_WHEEL_REPAIR "Set RPATH for wheel repair tools (auditwheel/delocate)" OFF)
+
+set(PYOPENMS_DOMAINS
+    kernel metadata chemistry analysis featurefinder
+    format processing datastructures ml misc
+    spectrum chromatogram experiment
+)
+
+# Set default build directory (may be overridden by PYOPENMS_USE_PREBUILT)
+if(NOT DEFINED PYOPENMS_BUILD_DIR OR "${PYOPENMS_BUILD_DIR}" STREQUAL "")
+  set(PYOPENMS_BUILD_DIR "${CMAKE_BINARY_DIR}/pyOpenMS")
 endif()
 
-option(NO_DEPENDENCIES "Do not bundle dependencies into pyOpenMS build folder and wheel" OFF)
-option(NO_SHARE "Do not bundle share into pyOpenMS build folder and wheel" OFF)
+if(PYOPENMS_USE_PREBUILT)
+  if(NOT PYOPENMS_PREBUILT_DIR)
+    message(FATAL_ERROR "PYOPENMS_PREBUILT_DIR must be set when PYOPENMS_USE_PREBUILT=ON")
+  endif()
+  # Override build dir to use prebuilt location
+  set(PYOPENMS_BUILD_DIR "${PYOPENMS_PREBUILT_DIR}")
 
-#------------------------------------------------------------------------------
-# helper to copy/configure files from source to build
-function(_copy_assets _asset_dir _regex _target_dir)
-  file(GLOB _assets "${_asset_dir}/${_regex}")
-  foreach(_asset_file ${_assets})
-    # make path relative
-    file(RELATIVE_PATH _relative_path ${_asset_dir} ${_asset_file})
-    configure_file(${_asset_file} ${_target_dir}/${_relative_path} COPYONLY)
-  endforeach()
-endfunction()
+  # Provide a stub target so dependent targets remain satisfied
+  add_custom_target(pyopenms_compile ALL)
+else()
 
-# for backwards compatibility
-if (PYTHON_EXECUTABLE)
-  set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
-endif()
-
-#------------------------------------------------------------------------------
-# find and handle python (Development for macros to build python modules)
-find_package(Python COMPONENTS Interpreter Development.Module)
-
-message(STATUS "Python found at ${Python_EXECUTABLE} with version ${Python_VERSION} (if this is wrong, see https://cmake.org/cmake/help/latest/module/FindPython.html and configure with e.g. -DPython_EXECUTABLE:=/path/to/python)")
-
-if(UNIX AND NOT APPLE AND NOT CYGWIN)
+  # --------------------------------------------------------------------------
+  # Platform detection
+  # --------------------------------------------------------------------------
+  if(UNIX AND NOT APPLE AND NOT CYGWIN)
     set(LINUX TRUE)
-endif()
-
-#------------------------------------------------------------------------------
-# See https://wiki.python.org/moin/WindowsCompilers
-# Windows support requires that the correct Python version is matched to the
-# correct MSVS version:
-# * Python 2.[67] needs to be compiled with MSVS 2008
-# * Python 3.[34] needs to be compiled with MSVS 2010
-# * Python 3.[5678] needs to be compiled with MSVS 2015
-if(WIN32)
-    if(SKIP_WIN_COMPILERCHECK)
-        message(STATUS "Skipping MS Visual C++ compiler check (not recommended)")
-    elseif(MSVC90 AND (${Python_VERSION} STREQUAL "2.6" OR ${Python_VERSION} STREQUAL "2.7" ))
-        message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions -- ok")
-    elseif(MSVC10 AND (${Python_VERSION} STREQUAL "3.3" OR ${Python_VERSION} STREQUAL "3.4" ))
-        message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions -- ok")
-    elseif(MSVC14 AND (${Python_VERSION} VERSION_GREATER_EQUAL "3.5" ))
-        message(STATUS "Need Visual C++ 2015/2017/2019 compiler for building Python 3.5+ extensions -- ok")
-    else()
-        message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions")
-        message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions")
-        message(STATUS "Need Visual C++ 2015/2017/2019 compiler for building Python 3.5+ extensions")
-        message(STATUS "To skip this check, please configure with -DSKIP_WIN_COMPILERCHECK=On")
-        message(FATAL_ERROR "Either reconfigure with the correct Visual Studio generator, select a different Python version with -DPython_EXECUTABLE:FILEPATH=/path/to/python or disable pyOpenMS.")
-    endif()
-
-    # Try to find MSVS runtime libs
-    include(InstallRequiredSystemLibraries)
-
-    if("${MSVS_RTLIBS}" STREQUAL "")
-        set(MSVS_RTLIBS "${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}")
-    endif()
-     
-    if("${MSVS_RTLIBS}" STREQUAL "")
-        message(FATAL_ERROR "Did not find MSVS runtime, either provide with -DMSVS_RTLIBS='lib1;lib2' or disable pyOpenMS.")
-    else()
-    message(STATUS "Found MSVS runtime: ${MSVS_RTLIBS}")
-    endif()
-
-endif(WIN32)
-
-#------------------------------------------------------------------------------
-# Find Cython as module
-execute_process(
-  COMMAND
-  ${Python_EXECUTABLE} -c "import Cython"
-  RESULT_VARIABLE CYTHON_MODULE_NOTFOUND
-  ERROR_QUIET
-  OUTPUT_QUIET
-)
-
-if (CYTHON_MODULE_NOTFOUND)
-    message(FATAL_ERROR "Cython import failed for the given Python executable.")
-    set(CYTHON_MODULE_VERSION_CHECK_OK 0)
-else()
-    # Working versions (tested manually) are 0.25.2+
-    execute_process(
-      COMMAND
-      ${Python_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[0]) >= 3 or int(Cython.__version__.split('.')[1]) > 25 or (int(Cython.__version__.split('.')[1]) == 25 and int(Cython.__version__.split('.')[2]) >= 2))"
-      RESULT_VARIABLE CYTHON_MODULE_VERSION_CHECK_OK
-      ERROR_QUIET
-      OUTPUT_QUIET
-    )
-
-    if(CYTHON_MODULE_VERSION_CHECK_OK)
-        execute_process(
-          COMMAND
-          ${Python_EXECUTABLE} -c "from __future__ import print_function; import Cython; print (Cython.__version__)"
-          OUTPUT_VARIABLE CYTHON_VERSION
-          OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
-        message(STATUS "Looking for Cython - found Cython version ${CYTHON_VERSION}. Version ok")
-    else()
-        message(STATUS "Looking for Cython - found Cython version ${CYTHON_VERSION}. The version is too old (>= 0.25.2 is required)")
-        message(FATAL_ERROR "Please upgrade Cython or disable pyOpenMS.")
-    endif()
-endif()
-
-#------------------------------------------------------------------------------
-# Check for autowrap
-execute_process(
-     COMMAND
-     ${Python_EXECUTABLE} -c "import autowrap"
-     RESULT_VARIABLE AUTOWRAP_MISSING
-     ERROR_QUIET
-     OUTPUT_QUIET
-)
-
-set(AUTOWRAP_VERSION_OK FALSE)
-if(AUTOWRAP_MISSING)
-	message(STATUS "Looking for autowrap - not found")
-else()
-    execute_process(
-        COMMAND
-        ${Python_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 9))"
-        RESULT_VARIABLE _AUTOWRAP_VERSION_OK
-        ERROR_QUIET
-        OUTPUT_QUIET
-    )
-    execute_process(
-        COMMAND
-        ${Python_EXECUTABLE} -c "from __future__ import print_function; import autowrap; print ('%d.%d.%d' % (autowrap.version))"
-        OUTPUT_VARIABLE AUTOWRAP_VERSION
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    execute_process(
-        COMMAND
-        ${Python_EXECUTABLE} -c "from __future__ import print_function; import autowrap; print (''.join([autowrap.__path__[0],'/data_files/autowrap/']))"
-        OUTPUT_VARIABLE AUTOWRAP_INCLUDES
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    if(_AUTOWRAP_VERSION_OK)
-        message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
-        set(AUTOWRAP_VERSION_OK TRUE)
-    else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.22.9 is required)")
-        message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
-    endif()
-endif()
-
-
-#------------------------------------------------------------------------------
-# Check for pytest Test Framework
-execute_process(
-     COMMAND
-     ${Python_EXECUTABLE} -c "import pytest"
-     RESULT_VARIABLE _PYTEST_MISSING
-     ERROR_QUIET
-     OUTPUT_QUIET
-)
-
-set(PYTEST_MISSING TRUE)
-if( _PYTEST_MISSING EQUAL 0)
-    set(PYTEST_MISSING FALSE)
-endif()
-if(PYTEST_MISSING)
-	message(WARNING "Looking for pytest testing framework - not found. Testing pyopenms will not work.")
-else()
-	message(STATUS "Looking for pytest testing framework - found")
-endif()
-
-#------------------------------------------------------------------------------
-# Check for Numpy (TODO since CMake 3.17 this can be done in the same call with the FindPython module)
-execute_process(
-     COMMAND
-     ${Python_EXECUTABLE} -c "import numpy"
-     RESULT_VARIABLE _NUMPY_MISSING
-     ERROR_QUIET
-     OUTPUT_QUIET
-)
-
-set(NUMPY_MISSING TRUE)
-if( _NUMPY_MISSING EQUAL 0)
-  set(NUMPY_MISSING FALSE)
-endif()
-if(NUMPY_MISSING)
-	message(FATAL_ERROR "Looking for numpy - not found")
-else()
-	message(STATUS "Looking for numpy - found")
-endif()
-
-
-#------------------------------------------------------------------------------
-# Check for setuptools
-
-execute_process(
-     COMMAND
-     ${Python_EXECUTABLE} -c "import setuptools"
-     RESULT_VARIABLE SETUPTOOLS_MISSING
-     ERROR_QUIET
-     OUTPUT_QUIET
-)
-
-set(SETUPTOOLS_VERSION_OK FALSE)
-
-if(SETUPTOOLS_MISSING)
-	message(STATUS "Looking for setuptools - not found")
-else()
-    execute_process(
-        COMMAND
-        ${Python_EXECUTABLE} -c "import setuptools; exit(int(setuptools.__version__.split('.')[0]) >= 12)"
-        RESULT_VARIABLE _SETUPTOOLS_VERSION_OK
-        ERROR_QUIET
-        OUTPUT_QUIET
-    )
-    execute_process(
-        COMMAND
-        ${Python_EXECUTABLE} -c "from __future__ import print_function;import setuptools; print(setuptools.__version__)"
-        OUTPUT_VARIABLE SETUPTOOLS_VERSION
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    if(_SETUPTOOLS_VERSION_OK)
-        message(STATUS "Looking for setuptools - found setuptools ${SETUPTOOLS_VERSION}, version ok")
-        set(SETUPTOOLS_VERSION_OK TRUE)
-    else()
-        message(STATUS "Found setuptools version ${SETUPTOOLS_VERSION}. The version is too old (>= 12.0 is required)")
-        message(FATAL_ERROR "Please upgrade setuptools or disable pyOpenMS.")
-    endif()
-endif()
-
-#------------------------------------------------------------------------------
-# Check for python wheel
-execute_process(
-     COMMAND
-     ${Python_EXECUTABLE} -c "import wheel"
-     RESULT_VARIABLE WHEEL_MISSING
-     ERROR_QUIET
-     OUTPUT_QUIET
-)
-
-if(WHEEL_MISSING)
-  message(FATAL_ERROR "Looking for python wheel - not found")
-endif()
-
-#------------------------------------------------------------------------------
-# Handle missing libraries (this should never be reached, as the individual
-#  parts should fire FATAL_ERRORs if something is missing)
-if(NUMPY_MISSING OR CYTHON_MODULE_NOTFOUND OR NOT CYTHON_MODULE_VERSION_CHECK_OK OR NOT AUTOWRAP_VERSION_OK
-   OR SETUPTOOLS_MISSING OR WHEEL_MISSING)
-  message(FATAL_ERROR "Required Python modules not found or out of date")
-endif()
-    
-# Find NumPy headers
-exec_program(${Python_EXECUTABLE}
-    ARGS "-c \"import numpy; print(numpy.get_include())\""
-    OUTPUT_VARIABLE NUMPY_INCLUDE_DIR
-    RETURN_VALUE NUMPY_NOT_FOUND
-    )
-if(NUMPY_NOT_FOUND)
-    message(FATAL_ERROR "NumPy headers not found")
-endif()
-
-# Find Python headers
-exec_program(${Python_EXECUTABLE}
-    ARGS "-c \"import sysconfig; print(sysconfig.get_paths()['include'])\""
-    OUTPUT_VARIABLE PYTHON_INCLUDE_DIRS
-    RETURN_VALUE PYTHON_INCLUDE_DIRS_NOT_FOUND
-    )
-if(PYTHON_INCLUDE_DIRS_NOT_FOUND)
-    message(FATAL_ERROR "Python headers not found")
-endif()
-
-
-# Get suffix for python C(++) extensions
-exec_program(${Python_EXECUTABLE}
-    ARGS "-c \"import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))\""
-    OUTPUT_VARIABLE PYTHON_EXT_SUFFIX
-    RETURN_VALUE PYTHON_EXT_SUFFIX_NOT_FOUND
-    )
-if(PYTHON_EXT_SUFFIX_NOT_FOUND)
-    message(FATAL_ERROR "Could not determine suffix for Python C extensions.")
-endif()
-
-
-#------------------------------------------------------------------------------
-# clean python build directory from former cmake run (if exists)
-# this can contain older versions of openms shared lib and might confuse
-# the linker when working on pyopenms
-
-file(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/pyOpenMS/build")
-file(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/pyOpenMS/dist")
-# OpenMS
-file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenMSd.dll")
-file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenMS.dll")
-file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenMS.so")
-file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenMS.dylib")
-# OpenSwathAlgo
-file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenSwathAlgod.dll")
-file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenSwathAlgo.dll")
-file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenSwathAlgo.so")
-file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenSwathAlgo.dylib")
-
-#------------------------------------------------------------------------------
-# copy/configure files
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/extra_includes)
-
-_copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.py" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
-_copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.sh" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
-_copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "py.typed" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
-_copy_assets("${PROJECT_SOURCE_DIR}/pyTOPP/" "*.py" ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP/)
-_copy_assets("${PROJECT_SOURCE_DIR}/tests/unittests/" "*" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
-_copy_assets("${PROJECT_SOURCE_DIR}/tests/" "*.mzXML" ${CMAKE_BINARY_DIR}/pyOpenMS/tests)
-_copy_assets("${PROJECT_SOURCE_DIR}/tests/memoryleaktests/" "*" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
-_copy_assets("${PROJECT_SOURCE_DIR}/tests/integration_tests/" "*" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
-
-
-if(NOT NO_SHARE)
-  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/share)
-  file(COPY ${OPENMS_SHARE_DIR} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/share)
-endif()
-
-# list of files required for the pyOpenMS build system
-set(_pyopenms_files
-  MANIFEST.in
-  README.rst
-  setup.py
-  create_cpp_extension.py
-  mac_fix_dependencies.rb
-  version.py
-  run_nose.py
-  run_memleaks.py
-  doCythonCompileOnly.py
-)
-
-foreach(pyfile ${_pyopenms_files})
-  configure_file(${PROJECT_SOURCE_DIR}/${pyfile} ${CMAKE_BINARY_DIR}/pyOpenMS/${pyfile} COPYONLY)
-endforeach()
-
-set(_sub_pyopenms_files
-  License.txt
-  version.py
-)
-
-# list of files located in pyOpenMS/pyopenms
-foreach(pyfile ${_sub_pyopenms_files})
-  configure_file(${PROJECT_SOURCE_DIR}/${pyfile} ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/${pyfile} COPYONLY)
-endforeach()
-
-
-
-#------------------------------------------------------------------------------
-# If there are other, external libraries that we would like to link, we can
-# specify them here:
-set(INCLUDE_DIRS_EXTEND "")
-set(LIBRARIES_EXTEND "")
-set(LIBRARY_DIRS_EXTEND "")
-
-if (WITH_CRAWDAD)
-  set(INCLUDE_DIRS_EXTEND ${CRAWDAD_INCLUDE_DIRS} ${CRAWDAD_INCLUDE_DIRS}/msmat ${INCLUDE_DIRS_EXTEND})
-  set(LIBRARIES_EXTEND "Crawdad" ${LIBRARIES_EXTEND})
-  set(LIBRARY_DIRS_EXTEND ${CRAWDAD_INCLUDE_DIRS} ${LIBRARY_DIRS_EXTEND})
-endif()
-
-if (MT_ENABLE_OPENMP)
-  find_package(OpenMP COMPONENTS CXX)
-endif()
-if (OpenMP_FOUND)
-  list(APPEND INCLUDE_DIRS_EXTEND ${OpenMP_CXX_INCLUDE_DIR})
-# Unfortunately this does not work, since CMake somehow calls the library on macOS "libomp".
-# Althought the library name should clearly be just "omp". We do it manually in setup.py now.
-# Might need regular updates..
-# foreach(LIB ${OpenMP_CXX_LIB_NAMES}) # such as gomp, pthreads, omp, ...
-#   list(APPEND LIBRARIES_EXTEND ${LIB})
-#   #TODO maybe we need to add library and include paths as well. Let's hope they are in already registered folders
-# endforeach()
-endif()
-
-# TODO the next section and most of env.py should not be needed anymore if CMake based build works reliably.
-#  It is commented out for now.
-##-----------------------------------------------------------------------------
-## since boost 1.69 there seem to be symbols visible/imported after linking it
-## statically into OpenMS. Therefore we need to link to it for pyOpenMS as well.
-## Just using the OpenMS dependencies is hard since the CMake variables are
-## a) mangled together with generator expressions (debug and release)
-## b) do not specify if it was a static or dynamic library (on Unix this is easy to
-## test from the extension, but not on Windows)
-## c) may include recursively imported targets like Qt which list Qt::Core instead
-## of the actual path
-
-#if(NOT WIN32)
-
-  ## the following does not work since the FindBoost does not annotate all target_properties,
-  ## when run without BOOST_USE_STATIC On or Off.
-  ##set(OBJECTS_EXTEND "\$<GENEX_EVAL:\$<\$<STREQUAL:\$<TARGET_LINKER_FILE_SUFFIX:Boost::regex>,\".a\">:\$<TARGET_LINKER_FILE:Boost::regex>>>")
-  
-  ## the logic for static vs dynamic is in setup.py
-  #set(LIBRARIES_TO_BE_PARSED_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>" "\$<TARGET_LINKER_FILE:XercesC::XercesC>" )
-  
-  ## the following gets all dependent libraries of OpenMS
-  ## for the current config but filters out imported targets unfortunately.
-  ## We would need something recursive
-  ##set(ALL_OPENMS_DEPENDENCIES "\$<FILTER:\$<TARGET_GENEX_EVAL:OpenMS,\$<TARGET_PROPERTY:OpenMS,LINK_LIBRARIES>>,INCLUDE,/>")
-#endif()
-
-file(GENERATE
-     OUTPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py
-     INPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
-       
-#------------------------------------------------------------------------------
-# write variables for setup.py as Python script into pyOpenMS/env.py
-#  1 thread for compilation and using 8 modules seems like a reasonable number
-#  for now
-if(NOT PY_NUM_THREADS)
-  set(PY_NUM_THREADS 1)
-endif()
-if(NOT PY_NUM_MODULES)
-  set(PY_NUM_MODULES 8)
-endif()
-
-if ("${PY_NUM_MODULES}" GREATER "1")
-    set(PYCPPFILES "")
-    set(PYPYXFILES "")
-    foreach(NUM RANGE 1 ${PY_NUM_MODULES})
-      list(APPEND PYCPPFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms_${NUM}.cpp")
-      list(APPEND PYPYXFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms_${NUM}.pyx")
-    endforeach()
-else()
-    set(PYCPPFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms.cpp")
-    set(PYPYXFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms.pyx")
-endif()
-
-
-# set data variable nightly builds use repository last change date
-# yyyy-mm-dd 08:04:17 +0200 -> yyyymmdd
-string(REPLACE "-" "" OPENMS_GIT_LC_DATE_REPLACED ${OPENMS_GIT_LC_DATE})
-set(OPENMS_GIT_LC_DATE_REPLACED_LIST "${OPENMS_GIT_LC_DATE_REPLACED}")
-separate_arguments(OPENMS_GIT_LC_DATE_REPLACED_LIST)
-list(GET OPENMS_GIT_LC_DATE_REPLACED_LIST 0 OPENMS_GIT_LC_DATE_FORMAT)
-
-set(_env_py_in ${PROJECT_SOURCE_DIR}/env.py.in)
-set(_env_py ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
-
-#------------------------------------------------------------------------------
-# add additional sysroot information (osx)
-if (APPLE)
-  set(SYSROOT_OSX_PATH ${CMAKE_OSX_SYSROOT})
-endif()
-#------------------------------------------------------------------------------
-
-#------------------------------------------------------------------------------
-# collection of include dirs that is necessary to compile pyOpenMS
-
-# Find Qt5 includes for pyOpenMS
-find_package(Qt5 COMPONENTS Core Network REQUIRED)
-get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
-exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_HEADERS" OUTPUT_VARIABLE QTHEADERS)
-set(QT_INCLUDE_DIR ${QTHEADERS} CACHE INTERNAL "" FORCE)
-exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-v" OUTPUT_VARIABLE QT_QMAKE_VERSION_INFO)
-exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_LIBS" OUTPUT_VARIABLE QT_INSTALL_LIBS)
-exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_BINS" OUTPUT_VARIABLE QT_INSTALL_BINS)
-
-
-set(PYOPENMS_INCLUDE_DIRS
-  ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
-  ${OpenMS_INCLUDE_DIRECTORIES}
-  ${QT_INCLUDE_DIR}
-  ${PROJECT_SOURCE_DIR}/extra_includes
-)
-
-list(REMOVE_DUPLICATES PYOPENMS_INCLUDE_DIRS)
-
-## use / instead of \ because a path might end in / and thus might generate invalid python code in env.py: r"C:\dev\contrib_build;c:\dev\Qt5.6.2_\5.6\msvc2015_64\"
-file(TO_CMAKE_PATH "${CMAKE_PREFIX_PATH}" CONTRIB_DIR)
-set(OPEN_MS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-
-add_custom_target(
-  prepare_pyopenms_libs
-  DEPENDS OpenMS
-)
-
-if(NOT NO_DEPENDENCIES)
-    # assemble the libraries
-
-    # copy the direct dependencies
-    set(PYOPENMS_DEPENDENCIES OpenMS OpenSwathAlgo)
-
-    foreach (PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
-    	add_custom_command(
-    		TARGET prepare_pyopenms_libs POST_BUILD
-    		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PYOPENMS_DEPENDENCY}> ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms
-    	)
-    endforeach()
-    	
-    # fixup these dependencies (i.e. get other dynamic dependencies recursively)
-    if (APPLE) ## On APPLE use our script because in the libraries the "install_names" and "rpaths" need to be renamed
-    ## this is done after "setup.py build_ext" but before setup.py bdist_wheel so that we fixup the resulting pyopenms.so's too
-    else()
-        ## Assemble common required non-system libraries
-        ## Note that we do not need the QT plugins or QTGui libraries since we do not include GUI tools here.
-        foreach (PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
-            add_custom_command(
-                TARGET prepare_pyopenms_libs POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
-            )
-        endforeach()
-
-        if(WIN32)
-            # copy all runtime files (do not preserve permissions, due to issues when deleting them from tmp folders)
-            foreach (_runtime ${MSVS_RTLIBS})
-                file(COPY ${_runtime} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms NO_SOURCE_PERMISSIONS)
-            endforeach()
-        endif()
-    endif()
-endif()
-
-# write configured variables into env.py
-configure_file(${_env_py_in} ${_env_py} @ONLY)
-
-
-#------------------------------------------------------------------------------
-# create targets in makefile
-
-IF(LINUX AND PY_NO_OUTPUT)
-  add_custom_command(
-    OUTPUT ${PYCPPFILES} ${PYPYXFILES}
-    DEPENDS OpenMS # fake dependency to see if a header file has changed (TODO should probably depend on pxds)
-    COMMAND ${Python_EXECUTABLE} create_cpp_extension.py 2> /dev/null
-    COMMENT "Creating C++ extension with autowrap and Cython"
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-ELSE()
-  add_custom_command(
-    OUTPUT ${PYCPPFILES} ${PYPYXFILES}
-    DEPENDS OpenMS # fake dependency to see if a header file has changed (TODO should probably depend on pxds)
-    COMMAND ${Python_EXECUTABLE} create_cpp_extension.py
-    COMMENT "Creating C++ extension with autowrap and Cython"
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-ENDIF()
-
-# this acts as a mutex in make, to not have race conditions on the above command in the next parallel targets
-add_custom_target(compile_pxds DEPENDS ${PYCPPFILES} ${PYPYXFILES})
-
-set(PY_EXTRA_ARGS "")
-
-if(PY_NO_OPTIMIZATION)
-  message(STATUS "Turning off optimization for faster python module compile time")
-  set(PY_EXTRA_ARGS "${PY_EXTRA_ARGS}" "--no-optimization")
-endif()
-
-message(STATUS "Py extra args ${PY_EXTRA_ARGS}")
-
-set(PY_RPATH ${CMAKE_INSTALL_RPATH})
-if (APPLE)
- # TODO maybe we need one for linux too
- list(APPEND PY_RPATH "@loader_path/")
-endif()
-
-# actually on my Mac I didnt need that but on GH actions it fails
-if (LINUX OR APPLE) # see https://github.com/cython/cython/issues/3380
-  set(VIS_PRESET "default")
-  set(INLINES_HIDDEN 0)
-else()
-  set(VIS_PRESET "hidden")
-  set(INLINES_HIDDEN 1)
-endif()
-
-if(LINUX OR APPLE)
-  set(EXTRA_WARNINGS "-Wno-unused-member-function" "-Wno-builtin-macro-redefined" "-Wno-unused" "-Wno-zero-as-null-pointer-constant")
-else()
-  set(EXTRA_WARNINGS "")
-endif()
-
-if ("${PY_NUM_MODULES}" GREATER "1")
-    add_custom_target(pyopenms_compile)
-    foreach(nr RANGE 1 ${PY_NUM_MODULES})
-      #list(APPEND PYOPENMS_SRC "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms_${nr}.cpp")
-      Python_add_library(pyopenms_${nr} MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms_${nr}.cpp" )
-      target_link_libraries(pyopenms_${nr} PRIVATE OpenMS)
-      target_include_directories(pyopenms_${nr} SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
-      target_compile_options(pyopenms_${nr} PRIVATE ${EXTRA_WARNINGS})
-      set_target_properties(pyopenms_${nr} PROPERTIES
-        OUTPUT_NAME _pyopenms_${nr}
-        PREFIX "" # if you build a shared module it adds lib as prefix
-        SUFFIX ${PYTHON_EXT_SUFFIX} # since CMake 3.17 you can add WITH_SOABI to Python_add_library
-        CXX_VISIBILITY_PRESET ${VIS_PRESET}
-        VISIBILITY_INLINES_HIDDEN ${INLINES_HIDDEN}
-        INSTALL_RPATH "${PY_RPATH}"
-        BUILD_WITH_INSTALL_RPATH 1
-        BUILD_WITH_INSTALL_NAME_DIR 1
-        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-        ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-        LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-        RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-        ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-        LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-        RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+  endif()
+
+  # --------------------------------------------------------------------------
+  # Find dependencies
+  # --------------------------------------------------------------------------
+  if(NOT TARGET OpenMS)
+    # Standalone build - find installed/built OpenMS
+    find_package(OpenMS REQUIRED)
+    set(CF_OPENMS_PACKAGE_VERSION ${OpenMS_VERSION})
+  endif()
+
+  # Handle both namespaced and non-namespaced target names
+  if(TARGET OpenMS::OpenMS)
+    set(OPENMS_TARGET OpenMS::OpenMS)
+    set(OPENSWATHALGO_TARGET OpenMS::OpenSwathAlgo)
+  elseif(TARGET OpenMS)
+    set(OPENMS_TARGET OpenMS)
+    set(OPENSWATHALGO_TARGET OpenSwathAlgo)
+  else()
+    message(FATAL_ERROR "OpenMS target not found")
+  endif()
+
+  # --------------------------------------------------------------------------
+  # Find Python
+  # --------------------------------------------------------------------------
+  # py-build-cmake sets Python_EXECUTABLE and hints
+  # If requested, run `uv sync` first in the build dir so that uv creates
+  # a virtualenv there. This must happen before calling find_package(Python)
+  # so that CMake can pick up the created interpreter.
+  if(WITH_UV AND DEFINED UV_EXECUTABLE AND NOT DEFINED PY_BUILD_CMAKE_VERSION)
+    message(STATUS "Found uv executable: ${UV_EXECUTABLE} — ensuring .venv in ${PYOPENMS_BUILD_DIR}")
+    file(MAKE_DIRECTORY "${PYOPENMS_BUILD_DIR}")
+    # Copy pyproject.toml before uv sync so that uv can read the project configuration
+    configure_file(${PROJECT_SOURCE_DIR}/pyproject.toml ${PYOPENMS_BUILD_DIR}/pyproject.toml COPYONLY)
+    if(DEFINED PYOPENMS_UV_PYTHON_VERSION AND NOT "${PYOPENMS_UV_PYTHON_VERSION}" STREQUAL "")
+      message(STATUS "Invoking uv sync with Python version: ${PYOPENMS_UV_PYTHON_VERSION}")
+      execute_process(
+        COMMAND ${UV_EXECUTABLE} sync --only-group dev --python ${PYOPENMS_UV_PYTHON_VERSION}
+        WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+        RESULT_VARIABLE _uv_install_result
+        ERROR_VARIABLE _uv_install_error
       )
-      add_dependencies(pyopenms_${nr} compile_pxds) # this is necessary for make (not ninja), to avoid race conditions
-      add_dependencies(pyopenms_compile pyopenms_${nr})
-      add_custom_command(TARGET pyopenms_${nr}
-                   POST_BUILD
-                   COMMAND ${Python_EXECUTABLE} ${PROJECT_SOURCE_DIR}/fix_pyi_imports.py ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms_${nr}.pyi
-                   COMMENT "Fixing typing information for _pyopenms_${nr}")
-    endforeach()
-else()
-    Python_add_library(pyopenms_compile MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms.cpp" )
-    target_link_libraries(pyopenms_compile PRIVATE OpenMS)
-    target_include_directories(pyopenms_compile SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
-    target_compile_options(pyopenms_compile PRIVATE ${EXTRA_WARNINGS})
-    set_target_properties(pyopenms_compile PROPERTIES
-        OUTPUT_NAME _pyopenms
-        PREFIX "" # if you build a shared module it adds lib as prefix
-        SUFFIX ${PYTHON_EXT_SUFFIX} # since CMake 3.17 you can add WITH_SOABI to Python_add_library
-        CXX_VISIBILITY_PRESET ${VIS_PRESET}
-        VISIBILITY_INLINES_HIDDEN ${INLINES_HIDDEN}
-        INSTALL_RPATH "${PY_RPATH}"
-        BUILD_WITH_INSTALL_RPATH 1
-        BUILD_WITH_INSTALL_NAME_DIR 1
-        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-        ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-        LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-        RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-        ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-        LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-        RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+    else()
+      execute_process(
+        COMMAND ${UV_EXECUTABLE} sync --only-group dev
+        WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+        RESULT_VARIABLE _uv_install_result
+        ERROR_VARIABLE _uv_install_error
+      )
+    endif()
+    if(NOT _uv_install_result EQUAL 0)
+      message(WARNING "uv sync failed: ${_uv_install_error}")
+    endif()
+
+    if(WIN32)
+      set(_py_venv_python "${PYOPENMS_BUILD_DIR}/.venv/Scripts/python.exe")
+    else()
+      set(_py_venv_python "${PYOPENMS_BUILD_DIR}/.venv/bin/python")
+    endif()
+    if(EXISTS "${_py_venv_python}")
+      set(Python_EXECUTABLE "${_py_venv_python}")
+      message(STATUS "Using venv Python at ${Python_EXECUTABLE}")
+    else()
+      message(STATUS "No venv Python found at ${_py_venv_python}; falling back to system Python discovery")
+    endif()
+  endif()
+
+  find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module NumPy)
+  find_package(Eigen3 REQUIRED)
+
+  # Propagate Python_EXECUTABLE to parent scope so the pyopenms_wheel target can use it
+  set(Python_EXECUTABLE "${Python_EXECUTABLE}" PARENT_SCOPE)
+
+  # Find or fetch nanobind
+  if(NOT TARGET nanobind::nanobind)
+    # Try find_package first (installed via pip or system package)
+    execute_process(
+      COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
+      OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
+    find_package(nanobind CONFIG QUIET)
+    if(NOT nanobind_FOUND)
+      include(FetchContent)
+      FetchContent_Declare(
+          nanobind
+          GIT_REPOSITORY https://github.com/wjakob/nanobind.git
+          GIT_TAG        v2.10.0
+      )
+      FetchContent_MakeAvailable(nanobind)
+    endif()
+  endif()
+
+  # Patch nanobind's __forceinline → inline on MSVC to avoid O(n²) optimizer
+  # blowup that causes multi-hour compile times on large binding files.
+  # NB_DIR is set by nanobind-config.cmake regardless of install method
+  # (FetchContent or pip). See https://github.com/wjakob/nanobind/discussions/791
+  if(MSVC AND DEFINED NB_DIR)
+    set(_nb_defs_h "${NB_DIR}/include/nanobind/nb_defs.h")
+    if(EXISTS "${_nb_defs_h}")
+      file(READ "${_nb_defs_h}" _nb_defs)
+      string(FIND "${_nb_defs}" "__forceinline" _fi_pos)
+      if(NOT _fi_pos EQUAL -1)
+        string(REPLACE "__forceinline" "inline" _nb_defs "${_nb_defs}")
+        file(WRITE "${_nb_defs_h}" "${_nb_defs}")
+        message(STATUS "Patched nanobind nb_defs.h: __forceinline → inline (MSVC compile-time fix)")
+      endif()
+    endif()
+  endif()
+
+  message(STATUS "Python found at ${Python_EXECUTABLE} with version ${Python_VERSION}")
+  message(STATUS "Building pyOpenMS (nanobind) against OpenMS ${CF_OPENMS_PACKAGE_VERSION}")
+  if(NO_DEPENDENCIES)
+    message(STATUS "pyOpenMS will be built WITHOUT bundling dependencies (NO_DEPENDENCIES=ON)")
+  else()
+    message(STATUS "pyOpenMS will be built WITH dependencies bundled (NO_DEPENDENCIES=OFF)")
+  endif()
+
+  # --------------------------------------------------------------------------
+  # Check share directory
+  # --------------------------------------------------------------------------
+  if(DEFINED OPENMS_SHARE_DIR AND EXISTS "${OPENMS_SHARE_DIR}")
+    message(STATUS "OpenMS share directory from config: ${OPENMS_SHARE_DIR}")
+  else()
+    # Try relative path from pyOpenMS source directory (../../share/OpenMS)
+    get_filename_component(_POTENTIAL_SHARE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../share/OpenMS" ABSOLUTE)
+    if(EXISTS "${_POTENTIAL_SHARE_DIR}")
+      set(OPENMS_SHARE_DIR "${_POTENTIAL_SHARE_DIR}")
+      message(STATUS "Using relative OpenMS share directory: ${OPENMS_SHARE_DIR}")
+    else()
+      unset(OPENMS_SHARE_DIR)
+      message(WARNING "OPENMS_SHARE_DIR not found - share data will not be included in wheel")
+    endif()
+  endif()
+
+  # --------------------------------------------------------------------------
+  # RPATH settings
+  # --------------------------------------------------------------------------
+  if(NOT PYOPENMS_PREPARE_WHEEL_REPAIR)
+    set(PY_RPATH ${CMAKE_INSTALL_RPATH})
+    if(APPLE)
+      list(APPEND PY_RPATH "@loader_path/")
+    elseif(LINUX)
+      list(APPEND PY_RPATH "$ORIGIN/")
+    endif()
+    message(STATUS "pyOpenMS: PY_RPATH = '${PY_RPATH}'")
+  else()
+    set(PY_RPATH "")
+    message(STATUS "Preparing modules for wheel repair: INSTALL_RPATH_USE_LINK_PATH enabled")
+  endif()
+
+  # --------------------------------------------------------------------------
+  # Setup build directories
+  # --------------------------------------------------------------------------
+  file(MAKE_DIRECTORY ${PYOPENMS_BUILD_DIR})
+  file(MAKE_DIRECTORY ${PYOPENMS_BUILD_DIR}/pyopenms)
+  file(MAKE_DIRECTORY ${PYOPENMS_BUILD_DIR}/pyopenms/addons)
+
+  # --------------------------------------------------------------------------
+  # Hand-maintained nanobind binding sources
+  # --------------------------------------------------------------------------
+  set(PYOPENMS_BINDINGS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bindings")
+
+  set(PYOPENMS_BINDING_SOURCES "${PYOPENMS_BINDINGS_DIR}/main_module.cpp")
+  foreach(domain ${PYOPENMS_DOMAINS})
+    list(APPEND PYOPENMS_BINDING_SOURCES "${PYOPENMS_BINDINGS_DIR}/bind_${domain}.cpp")
+  endforeach()
+
+  # Verify binding sources exist
+  foreach(_src ${PYOPENMS_BINDING_SOURCES})
+    if(NOT EXISTS "${_src}")
+      message(FATAL_ERROR "Binding source not found: ${_src}")
+    endif()
+  endforeach()
+
+  # --------------------------------------------------------------------------
+  # Build split nanobind modules for parallel compilation
+  # --------------------------------------------------------------------------
+
+  # Helper function to set common module properties
+  function(_pyopenms_module_props target_name)
+    target_include_directories(${target_name} PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}/bindings/type_casters
+      ${EIGEN3_INCLUDE_DIR}
     )
-    add_custom_command(TARGET pyopenms_compile
-    POST_BUILD
-    COMMAND ${Python_EXECUTABLE} ${PROJECT_SOURCE_DIR}/fix_pyi_imports.py ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.pyi #TODO Check if really necessary
-    COMMENT "Fixing typing information for pyopenms")
-endif()
-
-## use no-binary=pyopenms since we built the binaries already with cmake
-IF(LINUX AND PY_NO_OUTPUT)
-    add_custom_target(pyopenms
-            #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg 2> /dev/null
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms . 2> /dev/null
-            #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip 2> /dev/null
-            #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace 2> /dev/null
-            COMMENT "Packaging pyopenms wheel."
-            DEPENDS prepare_pyopenms_libs pyopenms_compile
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-ELSE()
-    IF(APPLE)
-        add_custom_target(pyopenms
-            COMMAND ./mac_fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -f -v
-            #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
-            #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip
-            #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace
-            COMMENT "Packaging pyopenms wheel."
-            DEPENDS prepare_pyopenms_libs pyopenms_compile
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-    ELSE()
-        add_custom_target(pyopenms
-            #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
-            #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip
-            #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace
-            COMMENT "Packaging pyopenms wheel."
-            DEPENDS prepare_pyopenms_libs pyopenms_compile
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-    ENDIF()
-ENDIF()
-
-###########################################################################
-#####                      Testing pyOpenMS                           #####
-###########################################################################
-
-# Pytest, testing all unittests at once
-# => this is suboptimal for ctest and cdash because we don't see which tests
-# actually have gone wrong. Thus we add additional tests below ...
-enable_testing()
-add_test(NAME test_pyopenms_unittests
-         COMMAND ${Python_EXECUTABLE} -m pytest tests/unittests
-         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS
+    target_link_libraries(${target_name} PRIVATE
+      ${OPENMS_TARGET}
+      ${OPENSWATHALGO_TARGET}
+      Eigen3::Eigen
+    )
+    set_target_properties(${target_name} PROPERTIES
+      LIBRARY_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
+      RUNTIME_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
+    )
+    if(NOT PYOPENMS_PREPARE_WHEEL_REPAIR)
+      set_target_properties(${target_name} PROPERTIES
+        INSTALL_RPATH "${PY_RPATH}"
+      )
+      if(NOT NO_DEPENDENCIES)
+        # When dependencies are bundled alongside the modules, use the install
+        # RPATH at build time so $ORIGIN/ finds the co-located libraries.
+        set_target_properties(${target_name} PROPERTIES
+          BUILD_WITH_INSTALL_RPATH 1
         )
-if(NOT WIN32)
-    set_tests_properties(test_pyopenms_unittests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
+      endif()
+      if(APPLE)
+        set_target_properties(${target_name} PROPERTIES
+          BUILD_WITH_INSTALL_NAME_DIR 1
+        )
+      endif()
+    else()
+      set_target_properties(${target_name} PROPERTIES
+        INSTALL_RPATH_USE_LINK_PATH TRUE
+        INSTALL_NAME_DIR ""
+      )
+    endif()
+    install(TARGETS ${target_name}
+      LIBRARY DESTINATION pyopenms COMPONENT python_modules
+      RUNTIME DESTINATION pyopenms COMPONENT python_modules
+    )
+  endfunction()
+
+  # Build each domain submodule
+  foreach(domain ${PYOPENMS_DOMAINS})
+    set(MODULE_NAME "_pyopenms_${domain}")
+
+    nanobind_add_module(${MODULE_NAME}
+      NB_DOMAIN pyopenms  # Share types across modules
+      NOMINSIZE            # Use CMake's default -O3 instead of nanobind's -Os
+      ${PYOPENMS_BINDINGS_DIR}/bind_${domain}.cpp
+    )
+    _pyopenms_module_props(${MODULE_NAME})
+  endforeach()
+
+  # Main entry module
+  nanobind_add_module(_pyopenms
+    NB_DOMAIN pyopenms
+    NOMINSIZE
+    ${PYOPENMS_BINDINGS_DIR}/main_module.cpp
+  )
+  _pyopenms_module_props(_pyopenms)
+
+  # --------------------------------------------------------------------------
+  # Arrow zero-copy export
+  # --------------------------------------------------------------------------
+  # In standalone builds, OPENMS_ARROW_TARGET is not exported by OpenMSConfig.cmake.
+  # Find Arrow ourselves so we can link the C++ bridge functions (ExportSchema, etc.).
+  if(NOT OPENMS_ARROW_TARGET)
+    # Don't pin the version in find_package — Arrow's ConfigVersion uses
+    # SameMajorVersion compatibility, so requesting 23 rejects 24.x. Check the
+    # version manually after the call. Mirrors the main cmake path in
+    # cmake/cmake_findExternalLibs.cmake.
+    find_package(Arrow CONFIG REQUIRED)
+    if(Arrow_VERSION VERSION_LESS 23)
+      message(FATAL_ERROR "Apache Arrow >= 23 required (found ${Arrow_VERSION}).")
+    endif()
+    if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
+      set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+    elseif(NOT ARROW_USE_STATIC AND TARGET Arrow::arrow_shared)
+      set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+    elseif(TARGET Arrow::arrow_static)
+      set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+    elseif(TARGET Arrow::arrow_shared)
+      set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+    else()
+      message(FATAL_ERROR "No suitable Arrow target found for _arrow_zerocopy")
+    endif()
+  endif()
+
+  message(STATUS "pyOpenMS: Building _arrow_zerocopy module")
+  nanobind_add_module(_arrow_zerocopy
+    NB_DOMAIN pyopenms
+    NOMINSIZE
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/arrow_zerocopy.cpp
+  )
+  _pyopenms_module_props(_arrow_zerocopy)
+  # arrow_zerocopy.cpp uses Arrow C++ API (ExportSchema, ImportRecordBatch, etc.)
+  # for zero-copy Table conversion between C++ and PyArrow.
+  target_link_libraries(_arrow_zerocopy PRIVATE ${OPENMS_ARROW_TARGET})
+
+  # --------------------------------------------------------------------------
+  # Aggregate compile target
+  # --------------------------------------------------------------------------
+  add_custom_target(pyopenms_compile ALL)
+  add_dependencies(pyopenms_compile _pyopenms)
+  foreach(domain ${PYOPENMS_DOMAINS})
+    add_dependencies(pyopenms_compile "_pyopenms_${domain}")
+  endforeach()
+  add_dependencies(pyopenms_compile _arrow_zerocopy)
+
+  # --------------------------------------------------------------------------
+  # Copy Python package files to build directory
+  # --------------------------------------------------------------------------
+
+  # Helper function to copy assets
+  function(_copy_assets _asset_dir _regex _target_dir)
+    file(GLOB _assets "${_asset_dir}/${_regex}")
+    foreach(_asset_file ${_assets})
+      file(RELATIVE_PATH _relative_path ${_asset_dir} ${_asset_file})
+      if(NOT IS_DIRECTORY ${_asset_file})
+        configure_file(${_asset_file} ${_target_dir}/${_relative_path} COPYONLY)
+      endif()
+    endforeach()
+  endfunction()
+
+  # Core Python files
+  _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.py" "${PYOPENMS_BUILD_DIR}/pyopenms/")
+  _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "py.typed" "${PYOPENMS_BUILD_DIR}/pyopenms/")
+
+  # Addon files
+  _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/addons/" "*.py" "${PYOPENMS_BUILD_DIR}/pyopenms/addons/")
+
+  # Copy share data if requested and directory exists
+  if(NOT NO_SHARE AND DEFINED OPENMS_SHARE_DIR AND EXISTS "${OPENMS_SHARE_DIR}")
+    file(MAKE_DIRECTORY ${PYOPENMS_BUILD_DIR}/pyopenms/share)
+    file(COPY ${OPENMS_SHARE_DIR} DESTINATION ${PYOPENMS_BUILD_DIR}/pyopenms/share
+        PATTERN "examples" EXCLUDE)
+  endif()
+
+  # --------------------------------------------------------------------------
+  # Stub generation
+  # --------------------------------------------------------------------------
+  if(PYOPENMS_GENERATE_STUBS)
+    add_custom_target(pyopenms_stubs
+      COMMAND ${Python_EXECUTABLE} -m nanobind.stubgen
+              -m pyopenms
+              -r                          # recurse into submodules
+              -P                          # include private members
+              -O ${PYOPENMS_BUILD_DIR}/pyopenms
+              -M ${PYOPENMS_BUILD_DIR}/pyopenms/py.typed
+              -p ${CMAKE_CURRENT_SOURCE_DIR}/stubs.patch
+      COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/fix_stubs.py
+              ${PYOPENMS_BUILD_DIR}/pyopenms
+      WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+      DEPENDS pyopenms_compile
+      COMMENT "Generating .pyi stub files for pyopenms"
+    )
+  endif()
+
+  # --------------------------------------------------------------------------
+  # Platform-specific dependency copying and fixing
+  # --------------------------------------------------------------------------
+  if(NOT NO_DEPENDENCIES)
+    set(PYOPENMS_DEPENDENCIES ${OPENMS_TARGET} ${OPENSWATHALGO_TARGET})
+
+    # Step 1: Copy main OpenMS libraries (all platforms)
+    add_custom_target(pyopenms_copy_deps ALL
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${OPENMS_TARGET}> "${PYOPENMS_BUILD_DIR}/pyopenms/"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${OPENSWATHALGO_TARGET}> "${PYOPENMS_BUILD_DIR}/pyopenms/"
+      COMMENT "Copying OpenMS dependencies to build dir"
+    )
+    add_dependencies(pyopenms_copy_deps pyopenms_compile)
+
+    # Step 2: Platform-specific transitive dependency handling
+    if(APPLE)
+      add_custom_target(pyopenms_fix_deps ALL
+        COMMAND ${PROJECT_SOURCE_DIR}/mac_fix_dependencies.rb -l "${PYOPENMS_BUILD_DIR}/pyopenms" -e "@rpath/" -r "@loader_path/" -f -v
+        COMMAND codesign --force --sign - ${PYOPENMS_BUILD_DIR}/pyopenms/Qt* || true
+        COMMAND codesign --force --sign - ${PYOPENMS_BUILD_DIR}/pyopenms/*.dylib || true
+        COMMENT "Fixing deps and codesigning pyopenms binaries in build dir"
+      )
+      add_dependencies(pyopenms_fix_deps pyopenms_copy_deps)
+    else()
+      # Linux/Windows: Copy transitive dependencies (Qt, contrib libs, etc.)
+      foreach(PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
+        add_custom_command(
+          TARGET pyopenms_copy_deps POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${PYOPENMS_BUILD_DIR}/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${OPENMS_CONTRIB_LIBS}/lib64\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
+          COMMENT "Copying ${PYOPENMS_DEPENDENCY} transitive dependencies"
+        )
+      endforeach()
+
+      if(WIN32)
+        # Try to find MSVS runtime libs
+        include(InstallRequiredSystemLibraries)
+        if("${MSVS_RTLIBS}" STREQUAL "")
+          set(MSVS_RTLIBS "${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}")
+        endif()
+        foreach(_runtime ${MSVS_RTLIBS})
+          add_custom_command(
+            TARGET pyopenms_copy_deps POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_runtime} "${PYOPENMS_BUILD_DIR}/pyopenms/"
+            COMMENT "Copying ${_runtime}"
+          )
+        endforeach()
+      endif()
+    endif()
+  endif()
+
+  install(DIRECTORY ${PYOPENMS_BUILD_DIR}/pyopenms/
+    DESTINATION pyopenms
+    COMPONENT python_modules
+    FILES_MATCHING
+    PATTERN "*.py"
+    PATTERN "*.pyi"
+    PATTERN "py.typed"
+    PATTERN "Qt*"
+    PATTERN "__pycache__" EXCLUDE
+  )
+endif() # PYOPENMS_USE_PREBUILT
+
+# --------------------------------------------------------------------------
+# Install prebuilt artifacts (when PYOPENMS_USE_PREBUILT=ON)
+# --------------------------------------------------------------------------
+if(PYOPENMS_USE_PREBUILT)
+  install(DIRECTORY ${PYOPENMS_BUILD_DIR}/pyopenms/
+    DESTINATION pyopenms
+    COMPONENT python_modules
+    FILES_MATCHING
+    PATTERN "*.py"
+    PATTERN "*.pyi"
+    PATTERN "py.typed"
+    PATTERN "*.so"
+    PATTERN "*.dylib"
+    PATTERN "*.pyd"
+    PATTERN "Qt*"
+    PATTERN "__pycache__" EXCLUDE
+  )
 endif()
 
-# Please add your test here when you decide to write a new testfile in the tests/unittests folder
-set(pyopenms_unittest_testfiles
-  test000.py
-  test_tutorial.py
-  test_BaselineFiltering.py
-  test_ChromatogramExtractor.py
-  test_ChromatogramExtractorAlgorithm.py
-  test_Convexhull.py
-  testCVTermList.py
-  test_DIAScoring.py
-  test_FileIO.py
-  test_Isobaric_Quantitation.py
-  testLightTargetedExperiment.py
-  test_MRMFeatureFinderScoring.py
-  test_MSNumpressCoder.py
-  test_MSSpectrumAndRichSpectrum.py
-  test_OpenSwathDataStructures.py
-  test_Smoothing.py
-  testSpecialCases.py
-  test_SpectraFilter.py
-  test_SpectrumAccessOpenMS.py
-  test_TraML.py
-  test_MzMLConsumer.py
-  test_MzXMLConsumer.py
-  test_AcquisitionInfo.py
-)
+# Install share data if included
+if(NOT NO_SHARE AND EXISTS "${PYOPENMS_BUILD_DIR}/pyopenms/share")
+  install(DIRECTORY ${PYOPENMS_BUILD_DIR}/pyopenms/share
+    DESTINATION pyopenms
+    COMPONENT python_modules
+  )
+endif()
 
-# Please add your test here when you decide to write a new testfile in the tests/integration_tests folder
-set(pyopenms_integrationtest_testfiles
-test_MRMRTNormalizer.py
-)
-
-# Loop through all the test files
-foreach (t ${pyopenms_unittest_testfiles})
-  add_test(NAME "pyopenms_unittest_${t}"
-    COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests/${t})
-  if(NOT WIN32)
-    set_tests_properties("pyopenms_unittest_${t}" PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib"
-      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
+# --------------------------------------------------------------------------
+# Unified pyopenms target
+# --------------------------------------------------------------------------
+if(NOT PYOPENMS_USE_PREBUILT)
+  add_custom_target(pyopenms ALL)
+  if(NOT NO_DEPENDENCIES)
+    if(APPLE)
+      add_dependencies(pyopenms pyopenms_fix_deps)
+    else()
+      add_dependencies(pyopenms pyopenms_copy_deps)
+    endif()
+  else()
+    add_dependencies(pyopenms pyopenms_compile)
   endif()
-endforeach(t)
+else()
+  add_custom_target(pyopenms ALL)
+  add_dependencies(pyopenms pyopenms_compile)
+endif()
 
-foreach (t ${pyopenms_integrationtest_testfiles})
-  add_test(NAME "pyopenms_integrationtest_${t}"
-    COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests/${t})
-  if(NOT WIN32)
-    set_tests_properties("pyopenms_integrationtest_${t}" PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib"
-      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
+# --------------------------------------------------------------------------
+# Tests (only when building as part of OpenMS, not standalone with py-build-cmake)
+# --------------------------------------------------------------------------
+if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
+  # Copy tests to build directory so pytest doesn't import from source tree
+  file(COPY ${PROJECT_SOURCE_DIR}/tests DESTINATION ${PYOPENMS_BUILD_DIR})
+
+  enable_testing()
+
+  # Split pyopenms tests into separate CTest entries for better CDash reporting.
+  # Use -q (quiet) and --tb=short to avoid cluttering CDash with verbose passing output.
+  # Override pyproject.toml's addopts which uses -v (verbose).
+  set(_PYTEST_ARGS -m pytest -o addopts=-q\ --tb=short)
+
+  add_test(
+    NAME pyopenms_unittests
+    COMMAND ${Python_EXECUTABLE} ${_PYTEST_ARGS}
+      --ignore=tests/unittests/test_docstrings.py
+      --ignore=tests/unittests/test_docstring_format.py
+      tests/unittests
+    WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+  )
+
+  # Mirror the BrukerTimsFile_test pattern: forward optional CMake-configured
+  # paths to real Bruker .d directories as environment variables, so
+  # test_BrukerTimsFile.py can skip when they are unset.
+  if(OPENTIMS_DDA_TEST_DATA OR OPENTIMS_DIA_TEST_DATA)
+    set(_pyopenms_test_env "")
+    if(OPENTIMS_DDA_TEST_DATA)
+      list(APPEND _pyopenms_test_env "OPENTIMS_DDA_TEST_DATA=${OPENTIMS_DDA_TEST_DATA}")
+    endif()
+    if(OPENTIMS_DIA_TEST_DATA)
+      list(APPEND _pyopenms_test_env "OPENTIMS_DIA_TEST_DATA=${OPENTIMS_DIA_TEST_DATA}")
+    endif()
+    set_tests_properties(pyopenms_unittests PROPERTIES
+      ENVIRONMENT "${_pyopenms_test_env}"
+    )
   endif()
-endforeach(t)
 
-# Finally add the memory leaks test (in folder tests/memoryleaktests/)
-if(NOT PY_MEMLEAK_DISABLE)
-  add_test(NAME pyopenms_test_memoryleaktests
-    COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests/testAll.py
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
-  if(NOT WIN32)
-      set_tests_properties(pyopenms_test_memoryleaktests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
+  add_test(
+    NAME pyopenms_docstring_tests
+    COMMAND ${Python_EXECUTABLE} ${_PYTEST_ARGS}
+      tests/unittests/test_docstrings.py
+      tests/unittests/test_docstring_format.py
+    WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+  )
+
+  add_test(
+    NAME pyopenms_integration_tests
+    COMMAND ${Python_EXECUTABLE} ${_PYTEST_ARGS} tests/integration_tests
+    WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+  )
+
+  # Top-level test files (ProForma, modification discovery, matrix zerocopy, etc.)
+  file(GLOB _pyopenms_toplevel_tests "${PYOPENMS_BUILD_DIR}/tests/test_*.py")
+  if(_pyopenms_toplevel_tests)
+    add_test(
+      NAME pyopenms_feature_tests
+      COMMAND ${Python_EXECUTABLE} ${_PYTEST_ARGS} ${_pyopenms_toplevel_tests}
+      WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+    )
   endif()
 endif()
 
+# --------------------------------------------------------------------------
+# Summary
+# --------------------------------------------------------------------------
+message(STATUS "")
+message(STATUS "pyOpenMS Configuration Summary:")
+message(STATUS "  Python:            ${Python_EXECUTABLE} (${Python_VERSION})")
+message(STATUS "  NumPy:             ${Python_NumPy_INCLUDE_DIRS}")
+if(nanobind_SOURCE_DIR)
+  message(STATUS "  nanobind:          ${nanobind_SOURCE_DIR}")
+else()
+  message(STATUS "  nanobind:          (found via find_package)")
+endif()
+message(STATUS "  OpenMS:            ${OpenMS_DIR}")
+message(STATUS "  Domain modules:    ${PYOPENMS_DOMAINS}")
+message(STATUS "  Prebuilt:          ${PYOPENMS_USE_PREBUILT}")
+message(STATUS "  No dependencies:   ${NO_DEPENDENCIES}")
+message(STATUS "  Wheel repair:      ${PYOPENMS_PREPARE_WHEEL_REPAIR}")
+message(STATUS "  Generate stubs:    ${PYOPENMS_GENERATE_STUBS}")
+message(STATUS "  Parquet/Arrow:     ON")
+message(STATUS "")

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -36,11 +10,14 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/VISUAL/FileWatcher.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DIALOGS/FeatureEditDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot2DPrefDialog.h>
@@ -53,6 +30,7 @@
 #include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 //STL
 #include <algorithm>
 
@@ -363,13 +341,14 @@ namespace OpenMS
           auto local_max  = -numeric_limits<Peak1D::IntensityType>::max();
           if (auto* lp = dynamic_cast<LayerDataPeak*>(&getLayer(i)))
           {
-            for (ExperimentType::ConstAreaIterator it = lp->getPeakData()->areaBeginConst(visible_area_.getAreaUnit().getMinRT(), visible_area_.getAreaUnit().getMaxRT(),
+            const MSExperiment& peak_data = lp->getPeakData()->getMSExperiment();
+            for (auto it = peak_data.areaBeginConst(visible_area_.getAreaUnit().getMinRT(), visible_area_.getAreaUnit().getMaxRT(),
                                                                                           visible_area_.getAreaUnit().getMinMZ(), visible_area_.getAreaUnit().getMaxMZ());
-                 it != lp->getPeakData()->areaEndConst();
+                 it != peak_data.areaEndConst();
                  ++it)
             {
               PeakIndex pi = it.getPeakIndex();
-              if (it->getIntensity() > local_max && getLayer(i).filters.passes((*lp->getPeakData())[pi.spectrum], pi.peak))
+              if (it->getIntensity() > local_max && getLayer(i).filters.passes(peak_data[pi.spectrum], pi.peak))
               {
                 local_max = it->getIntensity();
               }
@@ -460,7 +439,7 @@ namespace OpenMS
     {
       QPainter painter;
       painter.begin(this);
-      painter.fillRect(0, 0, this->width(), this->height(), QColor(String(param_.getValue("background_color").toString()).toQString()));
+      painter.fillRect(0, 0, this->width(), this->height(), QColor(toQString(String(param_.getValue("background_color").toString()))));
       painter.end();
       e->accept();
       return;
@@ -495,7 +474,7 @@ namespace OpenMS
       // recalculate snap factor
       recalculateSnapFactor_();
 
-      buffer_.fill(QColor(String(param_.getValue("background_color").toString()).toQString()).rgb());
+      buffer_.fill(QColor(toQString(String(param_.getValue("background_color").toString()))).rgb());
       painter.begin(&buffer_);
       QElapsedTimer layer_timer;
 
@@ -532,17 +511,9 @@ namespace OpenMS
     painter.begin(this);
 
     // copy peak data from buffer
-     /*
-         * Suppressed warning QVector<QRect> QRegion::rects() const is deprecated
-         * Use begin()/end() instead, from Qt 5.8
-         */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    QVector<QRect> rects = e->region().rects();
-#pragma GCC diagnostic pop
-    for (int i = 0; i < (int)rects.size(); ++i)
+    for (const auto& rect : e->region())
     {
-      painter.drawImage(rects[i].topLeft(), buffer_, rects[i]);
+      painter.drawImage(rect.topLeft(), buffer_, rect);
     }
 
     // draw measurement peak
@@ -604,15 +575,15 @@ namespace OpenMS
 
     const auto xy_point = getCurrentLayer().peakIndexToXY(peak, unit_mapper_);
     QStringList lines;
-    lines << unit_mapper_.getDim(DIM::X).formattedValue(xy_point.getX()).toQString();
-    lines << unit_mapper_.getDim(DIM::Y).formattedValue(xy_point.getY()).toQString();
+    lines << toQString(unit_mapper_.getDim(DIM::X).formattedValue(xy_point.getX()));
+    lines << toQString(unit_mapper_.getDim(DIM::Y).formattedValue(xy_point.getY()));
     if (unit_mapper_.getDim(DIM::X).getUnit() != DIM_UNIT::INT && unit_mapper_.getDim(DIM::Y).getUnit() != DIM_UNIT::INT)
     { // if intensity is not mapped to X or Y, add it
       // Note: it may be cleaner to hoist this function into the derived classes of Painter2D, 
       //       if the logic here depends on the actual Layer type (currently, 'INT' should work fine for all).
       DimMapper<2> int_mapper({DIM_UNIT::INT, DIM_UNIT::INT});
       const auto int_point = getCurrentLayer().peakIndexToXY(peak, int_mapper);
-      lines << int_mapper.getDim(DIM::X).formattedValue(int_point.getX()).toQString();
+      lines << toQString(int_mapper.getDim(DIM::X).formattedValue(int_point.getX()));
     }
     drawText_(painter, lines);
   }
@@ -647,11 +618,11 @@ namespace OpenMS
       QString result;
       if (ratio)
       {
-        result = dim.formattedValue(end_pos / start_pos, " ratio ").toQString();
+        result = toQString(dim.formattedValue(end_pos / start_pos, " ratio "));
       }
       else
       {
-        result = dim.formattedValue(end_pos - start_pos, " delta ").toQString();
+        result = toQString(dim.formattedValue(end_pos - start_pos, " delta "));
         if (dim.getUnit() == DIM_UNIT::MZ)
         {
           auto ppm = Math::getPPM(end_pos, start_pos);
@@ -743,7 +714,7 @@ namespace OpenMS
               int precision(2);
               if ((double)dv < 10) precision = 5;
               // ... and add 1k separators, e.g. '540,321.99'
-              status += QLocale::c().toString((double)dv, 'f', precision);
+              status += fromQString(QLocale::c().toString((double)dv, 'f', precision));
             }
             else
             {
@@ -754,7 +725,7 @@ namespace OpenMS
         else if (auto* lp = dynamic_cast<LayerDataPeak*>(&getCurrentLayer()))
         {
           //meta info
-          const ExperimentType::SpectrumType & s = selected_peak_.getSpectrum(*lp->getPeakData());
+          const ExperimentType::SpectrumType & s = selected_peak_.getSpectrum(lp->getPeakData()->getMSExperiment());
           for (Size m = 0; m < s.getFloatDataArrays().size(); ++m)
           {
             if (selected_peak_.peak < s.getFloatDataArrays()[m].size())
@@ -889,22 +860,23 @@ namespace OpenMS
     {
       layer_name += " (invisible)";
     }
-    context_menu->addAction(layer_name.toQString())->setEnabled(false);
+    context_menu->addAction(toQString(layer_name))->setEnabled(false);
     context_menu->addSeparator();
 
-    context_menu->addAction("Layer meta data");
+    context_menu->addAction("Layer meta data", [&]() { showMetaData(true); });
 
     QMenu * settings_menu = new QMenu("Settings");
     settings_menu->addAction("Show/hide grid lines");
     settings_menu->addAction("Show/hide axis legends");
     context_menu->addSeparator();
 
-    context_menu->addAction("Switch to 3D view");
+    context_menu->addAction("Switch to 3D view", [&]() { emit showCurrentPeaksAs3D(); });
 
     const RangeType e_units = [&](){ // mouse position in units
       RangeType r;
       unit_mapper_.fromXY(widgetToData_(e->pos()), r);
-      return r; }();
+      return r;
+    }();
 
     // a small 10x10 pixel area around the current mouse position
     auto check_area = visible_area_.cloneWith({widgetToData_(e->pos() - QPoint(10, 10)), widgetToData_(e->pos() + QPoint(10, 10))}).getAreaUnit();
@@ -917,129 +889,118 @@ namespace OpenMS
       settings_menu->addAction("Show/hide projections");
       settings_menu->addAction("Show/hide MS/MS precursors");
 
-      //add surrounding survey scans
-      //find nearest survey scan
-      SignedSize size = lp->getPeakData()->size();
-      Int current = lp->getPeakData()->RTBegin(e_units.getMinRT()) - lp->getPeakData()->begin();
-      if (current == size)  // if only one element is present RTBegin points to one after the last element (see RTBegin implementation)
-      {
-        current = 0;
-      }
+      auto& exp = lp->getPeakData()->getMSExperiment();
 
-      SignedSize i = 0;
-      while (current + i < size || current - i >= 0)
+      //  in a IM-frame (IM vs. m/z), the RT is empty in `e_units`, and showing neighbouring RT scans is not possible (this layer only has this IM frame)
+      //  --> skip entries for RT neighbours.
+      if (!e_units.RangeRT::isEmpty())
       {
-        if (current + i < size && (*lp->getPeakData())[current + i].getMSLevel() == 1)
+        // add surrounding survey scans
+        // find nearest survey scan
+        SignedSize size = exp.size();
+        Int current = exp.RTBegin(e_units.getMinRT()) - exp.begin();
+        if (current == size) // if the user clicked right of the last MS1 scan
         {
-          current += i;
-          break;
-        }
-        if (current - i >= 0 && (*lp->getPeakData())[current - i].getMSLevel() == 1)
-        {
-          current -= i;
-          break;
-        }
-        ++i;
-      }
-      //search for four scans in both directions
-      vector<Int> indices;
-      indices.push_back(current);
-      i = 1;
-      while (current - i >= 0 && indices.size() < 5)
-      {
-        if ((*lp->getPeakData())[current - i].getMSLevel() == 1)
-        {
-          indices.push_back(current - i);
-        }
-        ++i;
-      }
-      i = 1;
-      while (current + i < size && indices.size() < 9)
-      {
-        if ((*lp->getPeakData())[current + i].getMSLevel() == 1)
-        {
-          indices.push_back(current + i);
-        }
-        ++i;
-      }
-      sort(indices.rbegin(), indices.rend());
-      QMenu* ms1_scans = context_menu->addMenu("Survey scan in 1D");
-      QMenu* ms1_meta = context_menu->addMenu("Survey scan meta data");
-      context_menu->addSeparator();
-      for (i = 0; i < (Int)indices.size(); ++i)
-      {
-        if (indices[i] == current)
-        {
-          ms1_scans->addSeparator();
-        }
-        a = ms1_scans->addAction(QString("RT: ") + QString::number((*lp->getPeakData())[indices[i]].getRT()));
-        a->setData(indices[i]);
-        if (indices[i] == current)
-        {
-          ms1_scans->addSeparator();
+          current = std::max(SignedSize {0}, size - 1); // we want the rightmost valid scan index
         }
 
-        if (indices[i] == current)
+        SignedSize i = 0;
+        while (current + i < size || current - i >= 0)
         {
-          ms1_meta->addSeparator();
+          if (current + i < size && exp[current + i].getMSLevel() == 1)
+          {
+            current += i;
+            break;
+          }
+          if (current - i >= 0 && exp[current - i].getMSLevel() == 1)
+          {
+            current -= i;
+            break;
+          }
+          ++i;
         }
-        a = ms1_meta->addAction(QString("RT: ") + QString::number((*lp->getPeakData())[indices[i]].getRT()));
-        a->setData(indices[i]);
-        if (indices[i] == current)
+        // search for four scans in both directions
+        vector<Int> indices;
+        indices.push_back(current);
+        i = 1;
+        while (current - i >= 0 && indices.size() < 5)
         {
-          ms1_meta->addSeparator();
+          if (exp[current - i].getMSLevel() == 1) { indices.push_back(current - i); }
+          ++i;
         }
-      }
-
-      // add surrounding fragment scans
-      // - We first attempt to look at the position where the user clicked
-      // - Next we look within the +/- 5 scans around that position
-      // - Next we look within the whole visible area
-      QMenu* msn_scans = new QMenu("fragment scan in 1D");
-      QMenu* msn_meta = new QMenu("fragment scan meta data");
-      bool item_added = collectFragmentScansInArea_(check_area, a, msn_scans, msn_meta);
-      if (!item_added)
-      {
-        // Now simply go for the 5 closest points in RT and check whether there
-        // are any scans.
-        // NOTE: that if we go for the visible area, we run the
-        // risk of iterating through *all* the scans.
-        check_area.RangeMZ::extend((RangeMZ)visible_area_.getAreaUnit());
-        const auto& specs = lp->getPeakData()->getSpectra();
-        check_area.RangeRT::operator=({specs[indices.back()].getRT(), specs[indices.front()].getRT()});
-        item_added = collectFragmentScansInArea_(check_area, a, msn_scans, msn_meta);
-
-        if (!item_added)
-        { // OK, now lets search the whole visible area (may be large!)
-          item_added = collectFragmentScansInArea_(visible_area_.getAreaUnit(), a, msn_scans, msn_meta);
+        i = 1;
+        while (current + i < size && indices.size() < 9)
+        {
+          if (exp[current + i].getMSLevel() == 1) { indices.push_back(current + i); }
+          ++i;
         }
-      }
-      if (item_added)
-      {
-        context_menu->addMenu(msn_scans);
-        context_menu->addMenu(msn_meta);
+        sort(indices.rbegin(), indices.rend());
+        QMenu* ms1_scans = context_menu->addMenu("Survey scan in 1D");
+        QMenu* ms1_meta = context_menu->addMenu("Survey scan meta data");
         context_menu->addSeparator();
-      }
+
+        for (auto idx : indices)
+        {
+          if (idx == current) { ms1_scans->addSeparator(); }
+          ms1_scans->addAction(QString("RT: ") + QString::number(exp[idx].getRT()),
+                               [idx, this]() { emit showSpectrumAsNew1D(idx); });
+          if (idx == current) { ms1_scans->addSeparator(); }
+
+          if (idx == current) { ms1_meta->addSeparator(); }
+          ms1_meta->addAction(QString("RT: ") + QString::number(exp[idx].getRT()),
+                                [idx, this]() { showMetaData(true, idx); });
+          if (idx == current) { ms1_meta->addSeparator(); }
+        }
+        // add surrounding fragment scans
+        // - We first attempt to look at the position where the user clicked
+        // - Next we look within the +/- 5 scans around that position
+        // - Next we look within the whole visible area
+        QMenu* msn_scans = new QMenu("fragment scan in 1D");
+        QMenu* msn_meta = new QMenu("fragment scan meta data");
+        double center_rt = e_units.getMinRT();
+        bool item_added = collectFragmentScansInArea_(check_area, center_rt, msn_scans, msn_meta);
+        if (!item_added)
+        {
+          // Now simply go for the 5 closest points in RT and check whether there
+          // are any scans.
+          // NOTE: that if we go for the visible area, we run the
+          // risk of iterating through *all* the scans.
+          check_area.RangeMZ::extend((RangeMZ)visible_area_.getAreaUnit());
+          const auto& exp = lp->getPeakData()->getMSExperiment();
+          const auto& specs = exp.getSpectra();
+          check_area.RangeRT::operator=(RangeRT(specs[indices.back()].getRT(), specs[indices.front()].getRT()));
+          item_added = collectFragmentScansInArea_(check_area, center_rt, msn_scans, msn_meta);
+
+          if (! item_added)
+          { // OK, now lets search the whole visible area (may be large!)
+            item_added = collectFragmentScansInArea_(visible_area_.getAreaUnit(), center_rt, msn_scans, msn_meta);
+          }
+        }
+
+        if (item_added)
+        {
+          context_menu->addMenu(msn_scans);
+          context_menu->addMenu(msn_meta);
+          context_menu->addSeparator();
+        }
+
+        auto it_closest_MS = lp->getPeakData()->getMSExperiment().getClosestSpectrumInRT(e_units.getMinRT());
+        if (it_closest_MS->containsIMData())
+        {
+          context_menu->addAction(
+            ("Switch to ion mobility view (MSLevel: " + String(it_closest_MS->getMSLevel()) + ";RT: " + String(it_closest_MS->getRT(), false) + ")")
+              .c_str(),
+            [it_closest_MS, this]() { emit showCurrentPeaksAsIonMobility(*it_closest_MS); });
+        }
+      } // end of hasRT
 
       finishContextMenu_(context_menu, settings_menu);
-
-      // evaluate menu
-      if ((result = context_menu->exec(mapToGlobal(e->pos()))))
-      {
-        if (result->parent() == ms1_scans  || result->parent() == msn_scans)
-        {
-          emit showSpectrumAsNew1D(result->data().toInt());
-        }
-        else if (result->parent() == ms1_meta || result->parent() == msn_meta)
-        {
-          showMetaData(true, result->data().toInt());
-        }
-      }
+      context_menu->exec(mapToGlobal(e->pos()));
     }
     //-------------------FEATURES----------------------------------
     else if (auto* lf = dynamic_cast<const LayerDataFeature*>(&layer))
     {
-      //add settings
+      // add settings
       settings_menu->addSeparator();
       settings_menu->addAction("Show/hide convex hull");
       settings_menu->addAction("Show/hide trace convex hulls");
@@ -1054,11 +1015,12 @@ namespace OpenMS
       {
         if (check_area.containsMZ(it->getMZ()) && check_area.containsRT(it->getRT()))
         {
-          a = meta->addAction(QString("RT: ") + QString::number(it->getRT()) + "  m/z:" + QString::number(it->getMZ()) + "  charge:" + QString::number(it->getCharge()));
+          a = meta->addAction(QString("RT: ") + QString::number(it->getRT()) + "  m/z:" + QString::number(it->getMZ())
+                              + "  charge:" + QString::number(it->getCharge()));
           a->setData((int)(it - features.begin()));
         }
       }
-      if (!meta->actions().empty())
+      if (! meta->actions().empty())
       {
         context_menu->addMenu(meta);
         context_menu->addSeparator();
@@ -1066,7 +1028,7 @@ namespace OpenMS
 
       // add modifiable flag
       settings_menu->addSeparator();
-      settings_menu->addAction("Toggle edit/view mode");
+      settings_menu->addAction("Toggle edit/view mode", [&]() { getCurrentLayer().modifiable = ! getCurrentLayer().modifiable; });
 
       finishContextMenu_(context_menu, settings_menu);
 
@@ -1084,7 +1046,7 @@ namespace OpenMS
     {
       // add settings
       settings_menu->addSeparator();
-      settings_menu->addAction("Show/hide elements");
+      settings_menu->addAction("Show/hide elements", [&]() { setLayerFlag(LayerDataBase::C_ELEMENTS, ! getLayerFlag(LayerDataBase::C_ELEMENTS)); });
 
       // search for nearby features
       QMenu* consens_meta = new QMenu("Consensus meta data");
@@ -1121,7 +1083,7 @@ namespace OpenMS
       settings_menu->addAction("Show/hide projections");
       settings_menu->addAction("Show/hide MS/MS precursors");
 
-      const PeakMap& exp = *lc->getChromatogramData();
+      const PeakMap& exp = lc->getChromatogramData()->getMSExperiment();
 
       constexpr int CHROMATOGRAM_SHOW_MZ_RANGE = 10;
       auto search_area = e_units;
@@ -1164,10 +1126,10 @@ namespace OpenMS
         for (auto mit = map_precursor_to_chrom_idx.cbegin(); mit != map_precursor_to_chrom_idx.cend(); ++mit)
         {
           // Show the peptide sequence if available, otherwise show the m/z and charge only
-          QString precursor_string = QString("Precursor m/z: (")  + String(mit->first.getCharge()).toQString() + ") " + QString::number(mit->first.getMZ());
+          QString precursor_string = QString("Precursor m/z: (")  + toQString(String(mit->first.getCharge())) + ") " + QString::number(mit->first.getMZ());
           if (mit->first.metaValueExists("peptide_sequence"))
           {
-            precursor_string = QString::number(mit->first.getMZ()) + " : " + String(mit->first.getMetaValue("peptide_sequence")).toQString() + " (" + QString::number(mit->first.getCharge()) + "+)";
+            precursor_string = QString::number(mit->first.getMZ()) + " : " + toQString(String(mit->first.getMetaValue("peptide_sequence"))) + " (" + QString::number(mit->first.getCharge()) + "+)";
           }
           QMenu * msn_precursor = msn_chromatogram->addMenu(precursor_string);  // new entry for every precursor
 
@@ -1199,7 +1161,7 @@ namespace OpenMS
           if (result->text() == "Show all")
           {
             std::vector<int> chrom_indices;
-            for (const auto var : result->data().toList())
+            for (const auto& var : result->data().toList())
             {
               chrom_indices.push_back(var.toInt());
               cout << "chrom_indices: " << var.toInt() << std::endl;
@@ -1273,22 +1235,7 @@ namespace OpenMS
           getCurrentLayer().label = LayerDataBase::L_NONE;
         }
       }
-      else if (result->text() == "Toggle edit/view mode")
-      {
-        getCurrentLayer().modifiable = !getCurrentLayer().modifiable;
-      }
-      else if (result->text() == "Show/hide elements")
-      {
-        setLayerFlag(LayerDataBase::C_ELEMENTS, !getLayerFlag(LayerDataBase::C_ELEMENTS));
-      }
-      else if (result->text() == "Layer meta data")
-      {
-        showMetaData(true);
-      }
-      else if (result->text() == "Switch to 3D view")
-      {
-        emit showCurrentPeaksAs3D();
-      }
+
     }
 
     e->accept();
@@ -1328,9 +1275,9 @@ namespace OpenMS
     QComboBox * feature_icon = dlg.findChild<QComboBox *>("feature_icon");
     QSpinBox * feature_icon_size = dlg.findChild<QSpinBox *>("feature_icon_size");
 
-    bg_color->setColor(QColor(String(param_.getValue("background_color").toString()).toQString()));
+    bg_color->setColor(QColor(toQString(String(param_.getValue("background_color").toString()))));
     gradient->gradient().fromString(layer.param.getValue("dot:gradient"));
-    feature_icon->setCurrentIndex(feature_icon->findText(String(layer.param.getValue("dot:feature_icon").toString()).toQString()));
+    feature_icon->setCurrentIndex(feature_icon->findText(toQString(String(layer.param.getValue("dot:feature_icon").toString()))));
     feature_icon_size->setValue((int)layer.param.getValue("dot:feature_icon_size"));
 
     if (dlg.exec())
@@ -1571,7 +1518,7 @@ namespace OpenMS
     }
   }
 
-  void Plot2DCanvas::mergeIntoLayer(Size i, vector<PeptideIdentification> & peptides)
+  void Plot2DCanvas::mergeIntoLayer(Size i, PeptideIdentificationList & peptides)
   {
     LayerDataBase& layer = layers_.getLayer(i);
     OPENMS_PRECONDITION(layer.type == LayerDataBase::DT_IDENT, "Plot2DCanvas::mergeIntoLayer(i, peptides) non-identification layer selected");
@@ -1587,27 +1534,73 @@ namespace OpenMS
     resetZoom(true);
   }
 
-    bool Plot2DCanvas::collectFragmentScansInArea_(const RangeType& range, QAction* a, QMenu* msn_scans, QMenu* msn_meta)
+    bool Plot2DCanvas::collectFragmentScansInArea_(const RangeType& range, double center_rt, QMenu* msn_scans, QMenu* msn_meta, int max_count)
     {
       auto& layer = dynamic_cast<LayerDataPeak&>(getCurrentLayer());
-      bool item_added = false;
-      const auto last_RT = layer.getPeakData()->RTEnd(range.getMaxRT());
-      for (ExperimentType::ConstIterator it = layer.getPeakData()->RTBegin(range.getMinRT());
-                                         it != last_RT; ++it)
-      {
-        if (it->getPrecursors().empty()) continue;
 
-        double mz = it->getPrecursors()[0].getMZ();
-        if (it->getMSLevel() > 1 && range.containsMZ(mz))
-        {
-          a = msn_scans->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
-          a->setData((int)(it - layer.getPeakData()->begin()));
-          a = msn_meta->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
-          a->setData((int)(it - layer.getPeakData()->begin()));
-          item_added = true;
-        }
+      const MSExperiment& peak_data = layer.getPeakData()->getMSExperiment();
+
+      // Find the scan closest to center_rt
+      auto center_it = peak_data.getClosestSpectrumInRT(center_rt);
+      if (center_it == peak_data.end())
+      {
+        return false; // No spectra available
       }
-      return item_added;
+
+      // Bidirectional enumeration: expand left and right from center_rt
+      auto it_left = center_it;   // left includes center
+      auto it_right = center_it + 1;
+
+      std::vector<size_t> indices; // store indices of scans to add to menu after enumeration
+
+      // Lambda to add a scan if it meets the criteria
+      auto addMS2ScanIfValid = [&](const MSSpectrum& spectrum) -> void {
+        if (spectrum.getPrecursors().empty()) return;
+        double mz = spectrum.getPrecursors()[0].getMZ();
+        if (spectrum.getMSLevel() <= 1 || ! range.containsMZ(mz)) return;
+
+        int index = std::distance(&peak_data[0], &spectrum);
+        indices.push_back(index);
+        return;
+      };
+
+      while (indices.size() < max_count || max_count == 0)
+      {
+        // Check left
+        if (it_left != peak_data.end()) {
+          if (it_left->getRT() >= range.getMinRT()) { addMS2ScanIfValid(*it_left); }
+          if (it_left != peak_data.begin()) --it_left;
+          else it_left = peak_data.end(); // to prevent underflow and signal end of left side
+        }
+          
+        if (max_count > 0 && indices.size() >= max_count) break;
+        
+        // Check right
+        if (it_right != peak_data.end())
+        {
+          if (it_right->getRT() <= range.getMaxRT()) addMS2ScanIfValid(*it_right);
+          ++it_right;
+        }
+
+        // no more data to look at
+        if (it_left == peak_data.end() && it_right == peak_data.end()) break;
+      }
+
+      // sort by RT (=index)
+      std::sort(indices.begin(), indices.end());
+
+      // build menu from indices
+      for (const auto index : indices)
+      {
+        const MSSpectrum& spectrum = peak_data[index];
+        double mz = spectrum.getPrecursors()[0].getMZ();
+        msn_scans->addAction(QString("RT: ") + QString::number(spectrum.getRT()) + " mz: " + QString::number(mz),
+                              [index, this]() { emit showSpectrumAsNew1D(index); });
+        msn_meta->addAction(QString("RT: ") + QString::number(spectrum.getRT()) + " mz: " + QString::number(mz),
+                            [index, this]() { showMetaData(true, index); });
+      }
+
+      return !indices.empty();
     }
 
 } //namespace OpenMS

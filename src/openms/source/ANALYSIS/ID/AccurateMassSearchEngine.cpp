@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -39,12 +13,13 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
 #include <numeric>
 
 namespace OpenMS
@@ -360,17 +335,22 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Ion mode cannot be set to '") + ion_mode + "'. Must be 'positive' or 'negative'!");
     }
 
+    // If a specific adduct is provided, narrow the range to just that adduct.
+    if (!observed_adduct.isEmpty())
+    {
+      auto it = std::find_if(it_s, it_e, [&observed_adduct](const AdductInfo& a) {
+        return a.getEmpiricalFormula() == observed_adduct;
+      });
+      it_s = it;
+      if (it != it_e) { it_e = it + 1; }
+    }
+
     std::pair<Size, Size> hit_idx;
     for (std::vector<AdductInfo>::const_iterator it = it_s; it != it_e; ++it)
     {
       if (observed_charge != 0 && (std::abs(observed_charge) != std::abs(it->getCharge())))
       { // charge of evidence and adduct must match in absolute terms (absolute, since any FeatureFinder gives only positive charges, even for negative-mode spectra)
         // observed_charge==0 will pass, since we basically do not know its real charge (apparently, no isotopes were found)
-        continue;
-      }
-
-      if ((observed_adduct != EmpiricalFormula()) && (observed_adduct != it->getEmpiricalFormula()))
-      { // If feature has no adduct annotation, method call defaults to empty EF(). If feature is annotated with an adduct, it must match.
         continue;
       }
 
@@ -721,7 +701,7 @@ namespace OpenMS
     // filter FeatureMap to only have entries with an identification
     if (!keep_unidentified_masses_)
     {
-      fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](Feature f){ return f.getPeptideIdentifications().size() == 0; }), fmap.end());
+      fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](Feature f){ return f.getPeptideIdentifications().empty(); }), fmap.end());
     }
 
     // add dummy ProteinIdentification which is required to keep PeptideHits alive during store()
@@ -809,7 +789,7 @@ namespace OpenMS
         match.setMetaValue("mz_error_Da", mass_error_Da);
 
         // add adduct to the ObservationMatch
-        String adduct = r.getFoundAdduct(); // M+Na;1+
+        const String& adduct = r.getFoundAdduct(); // M+Na;1+
         if (!adduct.empty() && adduct != "null")
         {
           AdductInfo ainfo = AdductInfo::parseAdductString(adduct);
@@ -970,7 +950,7 @@ namespace OpenMS
         {
           MzTabSmallMoleculeSectionRow mztab_row_record;
           // set the identifier field
-          String hid_temp = matching_ids[id_idx];
+          const String& hid_temp = matching_ids[id_idx];
           bool db_hit = (hid_temp != "null");
           if (db_hit)
           {

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -33,6 +7,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
+
+#include <random>
+#include <algorithm>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -48,6 +26,8 @@ namespace OpenMS
       if (lower < tr.getPrecursorMZ() && tr.getPrecursorMZ() < upper &&
           std::fabs(upper - tr.getPrecursorMZ()) >= min_upper_edge_dist)
       {
+
+         OPENMS_LOG_DEBUG << "Adding Precursor with m/z " << tr.getPrecursorMZ() <<  " to swath with mz lower of " << lower << " m/z upper of " << upper;
         transition_exp_used.addTransition(tr);
       }
     }
@@ -59,6 +39,8 @@ namespace OpenMS
   void OpenSwathHelper::selectSwathTransitionsPasef(const OpenSwath::LightTargetedExperiment& transition_exp, std::vector<int>& tr_win_map,
                                                double min_upper_edge_dist, const std::vector< OpenSwath::SwathMap > & swath_maps)
   {
+      OPENMS_PRECONDITION(std::any_of(transition_exp.transitions.begin(), transition_exp.transitions.end(), [](auto i){return i.getPrecursorIM()!=-1;}), "All transitions must have a valid IM value (not -1)");
+
       tr_win_map.resize(transition_exp.transitions.size(), -1);
       for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
       {
@@ -169,7 +151,7 @@ namespace OpenMS
 
   std::pair<double,double> OpenSwathHelper::estimateRTRange(const OpenSwath::LightTargetedExperiment & exp)
   {
-    if (exp.getCompounds().empty()) 
+    if (exp.getCompounds().empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Input list of targets is empty.");
@@ -184,8 +166,217 @@ namespace OpenMS
     return std::make_pair(min,max);
   }
 
+  OpenSwath::LightTargetedExperiment
+  OpenSwathHelper::sampleExperiment(
+    const OpenSwath::LightTargetedExperiment & exp,
+    Size bins,
+    Size peptides_per_bin,
+    unsigned int seed,
+    bool sort_by_intensity,
+    double top_fraction,
+    const std::unordered_set<std::string> & priority_peptides)
+  {
+    OPENMS_PRECONDITION(bins >= 1, "bins must be >= 1");
+    OPENMS_PRECONDITION(peptides_per_bin >= 1, "peptides_per_bin must be >= 1");
+    OPENMS_PRECONDITION(!sort_by_intensity || (top_fraction > 0.0 && top_fraction <= 1.0),
+                        "top_fraction must be in (0,1] when sort_by_intensity is true");
+
+    // 0) initial candidate selection: exclude decoys 
+    std::vector<OpenSwath::LightCompound> candidates;
+    std::vector<OpenSwath::LightCompound> priority_candidates;
+
+    std::unordered_set<String> good_ids;
+    for (auto & tr : exp.getTransitions())
+    {
+      if (!tr.getDecoy())
+        good_ids.insert(tr.getPeptideRef());
+    }
+    
+    // Separate compounds into priority and regular candidates
+    for (auto & cmp : exp.getCompounds())
+    {
+      if (good_ids.count(cmp.id))
+      {
+        if (priority_peptides.count(cmp.sequence))
+        {
+          priority_candidates.push_back(cmp);
+        }
+        else
+        {
+          candidates.push_back(cmp);
+        }
+      }
+    }
+
+    // 1) optionally sort by library intensities and trim to top fraction
+    if (sort_by_intensity && top_fraction > 0.0 && top_fraction <= 1.0)
+    {
+      // sum intensities per peptide across all transitions
+      std::unordered_map<String, double> intensity_sum;
+      for (auto & tr : exp.getTransitions())
+      {
+        if (!tr.getDecoy())
+        {
+          intensity_sum[tr.getPeptideRef()] += tr.library_intensity;
+        }
+      }
+
+      // sort regular candidates by descending sum
+      std::sort(candidates.begin(), candidates.end(), [&](auto & a, auto & b) {
+        return intensity_sum[a.id] > intensity_sum[b.id];
+      });
+
+      // trim to top N%
+      Size max_keep = std::max<Size>(1, static_cast<Size>(candidates.size() * top_fraction));
+      candidates.resize(std::min(max_keep, candidates.size()));
+      
+      // Also sort priority candidates by intensity (but don't trim them)
+      std::sort(priority_candidates.begin(), priority_candidates.end(), [&](auto & a, auto & b) {
+        return intensity_sum[a.id] > intensity_sum[b.id];
+      });
+    }
+
+    // Combine all available candidates for sampling
+    std::vector<OpenSwath::LightCompound> all_candidates;
+    all_candidates.reserve(priority_candidates.size() + candidates.size());
+    all_candidates.insert(all_candidates.end(), priority_candidates.begin(), priority_candidates.end());
+    all_candidates.insert(all_candidates.end(), candidates.begin(), candidates.end());
+
+    if (all_candidates.size() < 3)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Insufficient candidates for sampling: " + String(all_candidates.size()) +
+                                         " found, minimum 3 required for meaningful iRT calibration.");
+    }
+
+    // 2) estimate RT range using all available candidates
+    double rt_min = std::numeric_limits<double>::max();
+    double rt_max = std::numeric_limits<double>::lowest();
+    for (auto & cmp : all_candidates)
+    {
+      rt_min = std::min(rt_min, cmp.rt);
+      rt_max = std::max(rt_max, cmp.rt);
+    }
+    double bin_width = (rt_max - rt_min) / static_cast<double>(bins);
+
+    // 3) sample priority peptides first, then fill remaining quota with uniform sampling
+    std::vector<OpenSwath::LightCompound> picked;
+    std::unordered_set<std::string> picked_sequences; // Track which sequences we've already picked
+    
+    // Initialize OpenMS random shuffler
+    Math::RandomShuffler rshuffler;
+    rshuffler.seed(seed == 0 ? std::random_device{}() : seed);
+    
+    // First pass: sample priority peptides
+    if (!priority_candidates.empty())
+    {
+      OPENMS_LOG_DEBUG << "Sampling " << priority_candidates.size() 
+                      << " priority peptides from the input experiment" << std::endl;
+      
+      for (Size b = 0; b < bins; ++b)
+      {
+        double lo = rt_min + b * bin_width;
+        double hi = (b + 1 == bins ? rt_max : lo + bin_width);
+        std::vector<OpenSwath::LightCompound> bucket;
+        
+        for (auto & cmp : priority_candidates)
+        {
+          if (cmp.rt >= lo && cmp.rt < hi && picked_sequences.find(cmp.sequence) == picked_sequences.end())
+            bucket.push_back(cmp);
+        }
+        
+        if (!bucket.empty())
+        {
+          rshuffler.portable_random_shuffle(bucket.begin(), bucket.end());
+          Size take = std::min(peptides_per_bin, bucket.size());
+          for (Size i = 0; i < take; ++i)
+          {
+            picked.push_back(bucket[i]);
+            picked_sequences.insert(bucket[i].sequence);
+          }
+        }
+      }
+      
+      OPENMS_LOG_DEBUG << "Successfully sampled " << picked.size() 
+                      << " priority peptides" << std::endl;
+    }
+    
+    // Second pass: fill remaining quota with regular sampling
+    Size total_quota = bins * peptides_per_bin;
+    if (picked.size() < total_quota && !candidates.empty())
+    {
+      OPENMS_LOG_DEBUG << "Filling remaining quota (" << (total_quota - picked.size()) 
+                      << " peptides) from regular candidates" << std::endl;
+      
+      for (Size b = 0; b < bins; ++b)
+      {
+        double lo = rt_min + b * bin_width;
+        double hi = (b + 1 == bins ? rt_max : lo + bin_width);
+        
+        // Count how many priority peptides we already have in this bin
+        Size priority_in_bin = 0;
+        for (auto & p : picked)
+        {
+          if (p.rt >= lo && p.rt < hi)
+            priority_in_bin++;
+        }
+        
+        // Calculate how many more we need from this bin
+        Size needed = (peptides_per_bin > priority_in_bin) ? (peptides_per_bin - priority_in_bin) : 0;
+        
+        if (needed > 0)
+        {
+          std::vector<OpenSwath::LightCompound> bucket;
+          for (auto & cmp : candidates)
+          {
+            if (cmp.rt >= lo && cmp.rt < hi && picked_sequences.find(cmp.sequence) == picked_sequences.end())
+              bucket.push_back(cmp);
+          }
+          
+          if (!bucket.empty())
+          {
+            rshuffler.portable_random_shuffle(bucket.begin(), bucket.end());
+            Size take = std::min(needed, bucket.size());
+            for (Size i = 0; i < take; ++i)
+            {
+              picked.push_back(bucket[i]);
+              picked_sequences.insert(bucket[i].sequence);
+            }
+          }
+        }
+      }
+    }
+
+    // 4) assemble output experiment
+    OpenSwath::LightTargetedExperiment out_exp;
+    out_exp.compounds = picked;
+
+    // copy matching transitions, excluding decoys if requested
+    std::unordered_set<String> pep_ids;
+    for (auto & cmp : picked)
+      pep_ids.insert(cmp.id);
+    for (auto & tr : exp.getTransitions())
+    {
+      if (pep_ids.count(tr.getPeptideRef()) && (!tr.getDecoy()))
+        out_exp.transitions.push_back(tr);
+    }
+
+    // copy associated proteins
+    std::unordered_set<String> prot_ids;
+    for (auto & cmp : picked)
+      for (auto & pid : cmp.protein_refs)
+        prot_ids.insert(pid);
+    for (auto & prot : exp.getProteins())
+    {
+      if (prot_ids.count(prot.id))
+        out_exp.proteins.push_back(prot);
+    }
+
+    return out_exp;
+  }
+
   std::map<std::string, double> OpenSwathHelper::simpleFindBestFeature(
-      const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
+      const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
       bool useQualCutoff, double qualCutoff)
   {
     std::map<std::string, double> result;
@@ -197,7 +388,7 @@ namespace OpenMS
       auto bestf = trgroup_it.second.getBestFeature();
 
       // Skip if we did not find a feature or do not exceed a certain quality
-      if (useQualCutoff && bestf.getOverallQuality() < qualCutoff ) 
+      if (useQualCutoff && bestf.getOverallQuality() < qualCutoff )
       {
         continue;
       }
@@ -208,5 +399,4 @@ namespace OpenMS
     }
     return result;
   }
-
 }

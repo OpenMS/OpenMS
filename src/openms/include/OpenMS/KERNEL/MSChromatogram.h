@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -34,7 +8,6 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/ChromatogramSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
@@ -58,7 +31,7 @@ namespace OpenMS
 
 public:
 
-    /// Comparator for the retention time.
+    /// Comparator for the precursor m/z time.
     struct OPENMS_DLLAPI MZLess
     {
       bool operator()(const MSChromatogram& a, const MSChromatogram& b) const;
@@ -109,6 +82,7 @@ public:
     using ContainerType::resize;
     using ContainerType::size;
     using ContainerType::push_back;
+    using ContainerType::emplace_back;
     using ContainerType::pop_back;
     using ContainerType::empty;
     using ContainerType::front;
@@ -156,15 +130,7 @@ public:
     }
 
     // Docu in base class (RangeManager)
-    void updateRanges() override
-    {
-      clearRanges();
-      for (const auto& peak : (ContainerType&) *this)
-      {
-        extendRT(peak.getRT());
-        extendIntensity(peak.getIntensity());
-      }
-    }
+    void updateRanges() override;
 
     ///@name Accessors for meta information
     ///@{
@@ -257,7 +223,7 @@ public:
     /**
       @brief Binary search for the peak nearest to a specific RT
 
-      @param rt The searched for mass-to-charge ratio searched
+      @param[in] rt The searched for mass-to-charge ratio searched
       @return Returns the index of the peak.
 
       @note Make sure the chromatogram is sorted with respect to RT! Otherwise the result is undefined.
@@ -321,8 +287,6 @@ public:
       undefined.
     */
     ConstIterator RTEnd(CoordinateType rt) const;
-
-    ConstIterator MZEnd(CoordinateType rt) const;
 
     /**
       @brief Binary search for peak range end (returns the past-the-end iterator)
@@ -415,9 +379,21 @@ public:
     /**
       @brief Clears all data and meta data
 
-      @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+      @param[in] clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data);
+
+    /**
+      @brief Subset the chromatogram by selecting only indices in @p indices, in that order
+
+      @param[in] indices Indices to keep. The order is retained.
+      @return Reference to this MSChromatogram
+
+      @note The indices are NOT checked for validity!
+      @note DataArrays must have the same size as the chromatogram. If not, an exception is thrown.
+      @note This method is useful for filtering chromatograms while properly maintaining DataArrays.
+    */
+    MSChromatogram& select(const std::vector<Size>& indices);
 
     ///@}
 
@@ -429,9 +405,10 @@ public:
 
       @note Peak level metadata stored in float_array string_array and int_array of the destination MSChromatogram is not guaranteed to be correct after merging
 
-      MZ of the destination MSChromatogram remains unchanged. If add_meta is true a metavalue "merged_with" is added with the MZ of the source MSChromatogram
+      MZ of the destination MSChromatogram remains unchanged.
 
-      @param other a reference to the MSChromatogram to take ChromatogramPeaks from
+      @param[in,out] other A reference to the MSChromatogram to take ChromatogramPeaks from
+      @param[in] add_meta If true, a metavalue "merged_chromatogram_mzs" is added with the m/z of @p other
     */
     void mergePeaks(MSChromatogram& other, bool add_meta=false);
 

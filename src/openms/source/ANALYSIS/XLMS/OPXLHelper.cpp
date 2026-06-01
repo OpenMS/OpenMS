@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -36,7 +10,8 @@
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
@@ -406,7 +381,7 @@ namespace OpenMS
 #pragma omp parallel for schedule(guided)
     for (int i = 0; i < static_cast<int>(candidates.size()); ++i)
     {
-      OPXLDataStructs::XLPrecursor candidate = candidates[i];
+      const OPXLDataStructs::XLPrecursor& candidate = candidates[i];
       vector <SignedSize> link_pos_first;
       vector <SignedSize> link_pos_second;
       const AASequence* peptide_first = &(peptide_masses[candidate.alpha_index].peptide_seq);
@@ -716,7 +691,7 @@ namespace OpenMS
     }
   }
 
-  void OPXLHelper::buildPeptideIDs(std::vector<PeptideIdentification> & peptide_ids, const std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > & top_csms_spectrum, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > > & all_top_csms, Size all_top_csms_current_index, const PeakMap & spectra, Size scan_index, Size scan_index_heavy)
+  void OPXLHelper::buildPeptideIDs(PeptideIdentificationList & peptide_ids, const std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > & top_csms_spectrum, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > > & all_top_csms, Size all_top_csms_current_index, const PeakMap & spectra, Size scan_index, Size scan_index_heavy)
   {
     for (Size i = 0; i < top_csms_spectrum.size(); ++i)
     {
@@ -972,7 +947,7 @@ namespace OpenMS
       peptide_id.setHits(phs);
       peptide_id.setScoreType(Constants::UserParam::OPENPEPXL_SCORE);
 
-// This critical section is called this way, because access to all_top_csms also happens in OpenPepXLAlgorithm and OpenPepXLLFAlgorithm.
+// This critical section is called this way, because access to all_top_csms also happens in OpenPepXLAlgorithm.
 // Access to peptide_ids is also critical, but it is only accessed here during parallel processing.
 #pragma omp critical (all_top_csms_access)
       {
@@ -989,6 +964,10 @@ namespace OpenMS
       if (id.getHits().empty()) continue;
 
       PeptideHit& ph_alpha = id.getHits()[0];
+
+      // skip non-crosslinked PeptideIdentifications that were parsed and don't have crosslink MetaValues
+      if (!ph_alpha.metaValueExists(Constants::UserParam::OPENPEPXL_XL_POS1)) continue;
+
       String prot1_pos;
 
       // cross-link position in Protein (alpha)
@@ -1182,13 +1161,43 @@ namespace OpenMS
 
       }
     }
-    vector<PeptideIdentification> new_peptide_ids_vector;
+    std::vector<PeptideIdentification> new_peptide_ids_vector;
     new_peptide_ids_vector.reserve(new_peptide_ids.size());
     for (pair<String, PeptideIdentification> mit : new_peptide_ids)
     {
       new_peptide_ids_vector.push_back(mit.second);
     }
     peptide_ids = new_peptide_ids_vector;
+  }
+
+  void OPXLHelper::addProteinPositionMetaValues(PeptideIdentificationList& peptide_ids)
+  {
+    addProteinPositionMetaValues(peptide_ids.getData());
+  }
+
+  void OPXLHelper::addXLTargetDecoyMV(PeptideIdentificationList& peptide_ids)
+  {
+    addXLTargetDecoyMV(peptide_ids.getData());
+  }
+
+  void OPXLHelper::addBetaAccessions(PeptideIdentificationList& peptide_ids)
+  {
+    addBetaAccessions(peptide_ids.getData());
+  }
+
+  void OPXLHelper::removeBetaPeptideHits(PeptideIdentificationList& peptide_ids)
+  {
+    removeBetaPeptideHits(peptide_ids.getData());
+  }
+
+  void OPXLHelper::computeDeltaScores(PeptideIdentificationList& peptide_ids)
+  {
+    computeDeltaScores(peptide_ids.getData());
+  }
+
+  std::vector<PeptideIdentification> OPXLHelper::combineTopRanksFromPairs(PeptideIdentificationList& peptide_ids, Size number_top_hits)
+  {
+    return combineTopRanksFromPairs(peptide_ids.getData(), number_top_hits);
   }
 
   void OPXLHelper::addPercolatorFeatureList(ProteinIdentification& prot_id)
@@ -1277,7 +1286,7 @@ namespace OpenMS
       }
     }
 
-    for (String index : spectrum_indices)
+    for (const String& index : spectrum_indices)
     {
       for (PeptideIdentification& id : peptide_ids)
       {
@@ -1369,12 +1378,9 @@ namespace OpenMS
       Size candidates_size = candidates.size();
       OPXLHelper::filterPrecursorsByTags(candidates, precursor_correction_positions, tags);
 
-#pragma omp critical (LOG_DEBUG_access)
-      {
-        OPENMS_LOG_DEBUG << "Number of sequence tags: " << tags.size() << std::endl;
-        OPENMS_LOG_DEBUG << "Candidate Peptide Pairs before sequence tag filtering: " << candidates_size << std::endl;
-        OPENMS_LOG_DEBUG << "Candidate Peptide Pairs  after sequence tag filtering: " << candidates.size() << std::endl;
-      }
+      OPENMS_LOG_DEBUG << "Number of sequence tags: " << tags.size() << std::endl;
+      OPENMS_LOG_DEBUG << "Candidate Peptide Pairs before sequence tag filtering: " << candidates_size << std::endl;
+      OPENMS_LOG_DEBUG << "Candidate Peptide Pairs  after sequence tag filtering: " << candidates.size() << std::endl;
     }
 
     vector< int > precursor_corrections;
@@ -1405,50 +1411,27 @@ namespace OpenMS
     return rel_error;
   }
 
-  void OPXLHelper::isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm, DataArrays::IntegerDataArray& num_iso_peaks_array, std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta)
+  void OPXLHelper::isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm,
+    const DataArrays::IntegerDataArray& num_iso_peaks_array,
+    const std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha,
+    const std::vector< std::pair< Size, Size > >& matched_spec_linear_beta,
+    const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha,
+    const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta)
   {
     csm.num_iso_peaks_mean = Math::mean(num_iso_peaks_array.begin(), num_iso_peaks_array.end());
 
-    vector< double > iso_peaks_linear_alpha;
-    vector< double > iso_peaks_linear_beta;
-    vector< double > iso_peaks_xlinks_alpha;
-    vector< double > iso_peaks_xlinks_beta;
-
-    if (!matched_spec_linear_alpha.empty())
+    auto addUp = [&](const auto& data) -> double
     {
-      for (const auto& match : matched_spec_linear_alpha)
-      {
-        iso_peaks_linear_alpha.push_back(num_iso_peaks_array[match.second]);
-      }
-      csm.num_iso_peaks_mean_linear_alpha = Math::mean(iso_peaks_linear_alpha.begin(), iso_peaks_linear_alpha.end());
-    }
+      double sum{};
+      if (data.empty()) return sum;
+      for (const auto& p : data) sum += num_iso_peaks_array[p.second];
+      return sum / data.size();
+    };
 
-    if (!matched_spec_linear_beta.empty())
-    {
-      for (const auto& match : matched_spec_linear_beta)
-      {
-        iso_peaks_linear_beta.push_back(num_iso_peaks_array[match.second]);
-      }
-      csm.num_iso_peaks_mean_linear_beta = Math::mean(iso_peaks_linear_beta.begin(), iso_peaks_linear_beta.end());
-    }
-
-    if (!matched_spec_xlinks_alpha.empty())
-    {
-      for (const auto& match : matched_spec_xlinks_alpha)
-      {
-        iso_peaks_xlinks_alpha.push_back(num_iso_peaks_array[match.second]);
-      }
-      csm.num_iso_peaks_mean_xlinks_alpha = Math::mean(iso_peaks_xlinks_alpha.begin(), iso_peaks_xlinks_alpha.end());
-    }
-
-    if (!matched_spec_xlinks_beta.empty())
-    {
-      for (const auto& match : matched_spec_xlinks_beta)
-      {
-        iso_peaks_xlinks_beta.push_back(num_iso_peaks_array[match.second]);
-      }
-      csm.num_iso_peaks_mean_xlinks_beta = Math::mean(iso_peaks_xlinks_beta.begin(), iso_peaks_xlinks_beta.end());
-    }
+    csm.num_iso_peaks_mean_linear_alpha = addUp(matched_spec_linear_alpha);
+    csm.num_iso_peaks_mean_linear_beta = addUp(matched_spec_linear_beta);
+    csm.num_iso_peaks_mean_xlinks_alpha = addUp(matched_spec_xlinks_alpha);
+    csm.num_iso_peaks_mean_xlinks_beta = addUp(matched_spec_xlinks_beta);
   }
 
   void OPXLHelper::filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>& candidates, std::vector< int >& precursor_correction_positions, const std::vector<std::string>& tags)

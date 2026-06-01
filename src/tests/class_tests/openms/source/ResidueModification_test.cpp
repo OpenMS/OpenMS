@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -42,6 +16,9 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+
+#include <unordered_set>
+#include <unordered_map>
 
 
 using namespace OpenMS;
@@ -345,133 +322,133 @@ START_SECTION(bool operator==(const ResidueModification& modification) const)
 	mod1.setId("Id");
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setId("Id");
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setFullName("FullName");
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setFullName("FullName");
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setName("Name");
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setName("Name");
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setTermSpecificity(ResidueModification::N_TERM);
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setTermSpecificity(ResidueModification::N_TERM);
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setOrigin('C');
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setOrigin('C');
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setSourceClassification(ResidueModification::NATURAL);
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setSourceClassification(ResidueModification::NATURAL);
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setAverageMass(0.123);
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setAverageMass(0.123);
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setMonoMass(1.23);
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setMonoMass(1.23);
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setDiffAverageMass(2.34);
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setDiffAverageMass(2.34);
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setDiffMonoMass(3.45);
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setDiffMonoMass(3.45);
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setFormula("C 3 H 4");
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setFormula("C 3 H 4");
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setDiffFormula(EmpiricalFormula("C0H-2N0O0"));
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setDiffFormula(EmpiricalFormula("C0H-2N0O0"));
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.addSynonym("new_syn");
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.addSynonym("new_syn");
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 END_SECTION
 
 START_SECTION(bool operator!=(const ResidueModification& modification) const)
 	ResidueModification mod1, mod2;
   mod1.setId("Id");
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setId("Id");
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setFullName("FullName");
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setFullName("FullName");
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setName("Name");
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setName("Name");
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setTermSpecificity(ResidueModification::N_TERM);
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setTermSpecificity(ResidueModification::N_TERM);
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setOrigin('C');
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setOrigin('C');
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setSourceClassification(ResidueModification::NATURAL);
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setSourceClassification(ResidueModification::NATURAL);
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setAverageMass(0.123);
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setAverageMass(0.123);
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setMonoMass(1.23);
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setMonoMass(1.23);
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setDiffAverageMass(2.34);
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setDiffAverageMass(2.34);
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setDiffMonoMass(3.45);
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setDiffMonoMass(3.45);
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setFormula("C 3 H 4");
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setFormula("C 3 H 4");
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setDiffFormula(EmpiricalFormula("C0H-2N0O0"));
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setDiffFormula(EmpiricalFormula("C0H-2N0O0"));
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.addSynonym("new_syn");
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.addSynonym("new_syn");
   TEST_EQUAL(mod1 != mod2, false)
 END_SECTION
@@ -535,5 +512,130 @@ START_SECTION(static String getMonoMassWithBracket(const double mono_mass))
 END_SECTION
 
 delete ptr;
+
+/////////////////////////////////////////////////////////////
+// Hash function tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] std::hash<ResidueModification>))
+{
+  // Test that equal objects have equal hashes
+  ResidueModification mod1, mod2;
+  std::hash<ResidueModification> hasher;
+
+  // Default-constructed objects should have equal hashes
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  // Set various fields and verify equal objects still have equal hashes
+  mod1.setId("TestId");
+  mod2.setId("TestId");
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setFullName("TestFullName");
+  mod2.setFullName("TestFullName");
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setName("TestName");
+  mod2.setName("TestName");
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setTermSpecificity(ResidueModification::N_TERM);
+  mod2.setTermSpecificity(ResidueModification::N_TERM);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setOrigin('M');
+  mod2.setOrigin('M');
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setSourceClassification(ResidueModification::NATURAL);
+  mod2.setSourceClassification(ResidueModification::NATURAL);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setAverageMass(15.9994);
+  mod2.setAverageMass(15.9994);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setMonoMass(15.994915);
+  mod2.setMonoMass(15.994915);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setDiffAverageMass(15.9994);
+  mod2.setDiffAverageMass(15.9994);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setDiffMonoMass(15.994915);
+  mod2.setDiffMonoMass(15.994915);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setFormula("O");
+  mod2.setFormula("O");
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setDiffFormula(EmpiricalFormula("O"));
+  mod2.setDiffFormula(EmpiricalFormula("O"));
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.addSynonym("Syn1");
+  mod2.addSynonym("Syn1");
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  vector<EmpiricalFormula> nl_formulas;
+  nl_formulas.push_back(EmpiricalFormula("H2O"));
+  mod1.setNeutralLossDiffFormulas(nl_formulas);
+  mod2.setNeutralLossDiffFormulas(nl_formulas);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  vector<double> nl_mono_masses;
+  nl_mono_masses.push_back(18.01056);
+  mod1.setNeutralLossMonoMasses(nl_mono_masses);
+  mod2.setNeutralLossMonoMasses(nl_mono_masses);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  vector<double> nl_avg_masses;
+  nl_avg_masses.push_back(18.0153);
+  mod1.setNeutralLossAverageMasses(nl_avg_masses);
+  mod2.setNeutralLossAverageMasses(nl_avg_masses);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  // Verify that different objects have different hashes
+  ResidueModification mod3;
+  mod3.setId("DifferentId");
+  TEST_NOT_EQUAL(hasher(mod1), hasher(mod3))
+
+  // Test use in unordered_set
+  std::unordered_set<ResidueModification> mod_set;
+  mod_set.insert(mod1);
+  mod_set.insert(mod2); // Should not add duplicate
+  TEST_EQUAL(mod_set.size(), 1)
+
+  mod_set.insert(mod3);
+  TEST_EQUAL(mod_set.size(), 2)
+
+  TEST_EQUAL(mod_set.count(mod1), 1)
+  TEST_EQUAL(mod_set.count(mod3), 1)
+
+  // Test use in unordered_map
+  std::unordered_map<ResidueModification, int> mod_map;
+  mod_map[mod1] = 1;
+  mod_map[mod3] = 3;
+  TEST_EQUAL(mod_map.size(), 2)
+  TEST_EQUAL(mod_map[mod1], 1)
+  TEST_EQUAL(mod_map[mod2], 1) // mod2 equals mod1
+  TEST_EQUAL(mod_map[mod3], 3)
+
+  // Test with modifications from database
+  const ResidueModification* phospho = mod_DB->getModification("Phospho (S)");
+  const ResidueModification* oxidation = mod_DB->getModification("Oxidation (M)");
+  TEST_NOT_EQUAL(phospho, nullPointer)
+  TEST_NOT_EQUAL(oxidation, nullPointer)
+
+  // Same modification should have same hash
+  ResidueModification phospho_copy(*phospho);
+  TEST_EQUAL(hasher(phospho_copy), hasher(*phospho))
+
+  // Different modifications should have different hashes
+  TEST_NOT_EQUAL(hasher(*phospho), hasher(*oxidation))
+}
+END_SECTION
 
 END_TEST

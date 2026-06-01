@@ -1,0 +1,163 @@
+/**
+
+@page developer_cpp_guide C++ Guide
+
+The following page contains OpenMS-specific C++ guidelines, which are unrelated to @ref developer_coding_conventions.
+
+
+
+@section cpp_guide_dllapi What is `OPENMS_DLLAPI`?
+<code>OPENMS_DLLAPI</code> is a preprocessor macro and ensures that the compiler, e.g. Visual Studio or g++, exports this class into the <code>DLL</code> when building the <code>DLL</code> or, in the other case, references the <code>DLL</code> when building an executable.
+
+The <code>OPENMS_DLLAPI</code> macro is defined in OpenMSConfig.h, which in turn is created at configure time (when CMake runs).
+
+**Details**: on MSVC, its either set to `__declspec(dllexport)` or `__declspec(dllimport)`, depending on who includes the header (within OpenMS library, or from outside, e.g. TOPP tools or class tests.).
+On g++/clang it's always `__attribute__((visibility("default")))`.
+
+
+
+@section cpp_guide_dllapi_when When to use `OPENMS_DLLAPI`?
+When you've written a new OpenMS class, which is not a template class, insert the macro into the header like this:
+
+@code{.cpp}
+class Myclass
+{ ...
+@endcode
+
+becomes:
+
+@code{.cpp}
+class OPENMS_DLLAPI Myclass
+{ ...
+@endcode
+
+It is enough to prefix the class with the macro. Do not prefix the members or member functions.
+
+<code>OPENMS_DLLAPI</code> is also required for structs, global (including `extern`) variables and global functions, as long as they are not templates. Never prefix templates with `OPENMS_DLLAPI`. The only exception to this rule is when a template is fully specialized (i.e. it can be instantiated). Additionally, prefix nested public structs/classes with `OPENMS_DLLAPI`, otherwise you cannot use them from outside the library.
+
+A prominent global function is "operator <<", which is overloaded quite often for OpenMS classes. Unless it is templatized, prefix it with `OPENMS_DLLAPI`. If the operator is declared a friend of some class, also make sure the friend statement contains the `OPENMS_DLLAPI` keyword. Otherwise, you will get inconsistent DLL-linkage. For example, use:
+
+@code{.cpp}
+// Adduct.h
+class OPENMS_DLLAPI Adduct
+{
+  ...
+  friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Adduct& a);
+  ...
+}
+// Adduct.C
+namespace OpenMS
+{
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Adduct& a)
+  {
+    ...
+  }
+}
+@endcode
+
+If you forget the `OPENMS_DLLAPI` keyword, the .dll/.so will have missing symbols and executables might not be able to link against it. When compiled with `g++` you will get <code>.. undefined reference to ..</code> errors.
+
+
+
+
+
+@section cpp_guide_logging Logging
+To make direct output to `std::out` and `std::err` more consistent, %OpenMS provides several low-level macros:
+@code
+OPENMS_LOG_FATAL_ERROR, 
+OPENMS_LOG_ERROR
+OPENMS_LOG_WARN,
+OPENMS_LOG_INFO and
+OPENMS_LOG_DEBUG
+@endcode
+which should be used instead of the less descriptive `std::out` and `std::err` streams. 
+Furthermore, the %OpenMS loggers insert console coloring for their output and have a deduplication cache build in, which prevents repetitive outputs by aggregating and counting their occurence.
+See the OpenMS::LogStream class for details.
+
+In a similar vein: If you are writing an %OpenMS tool, you can also use the ProgressLogger to indicate how many percent of the processing has already been performed:
+<br><br>
+<b>Example: openms/doc/code_examples/data/Tutorial_Logger.cpp</b>
+<br>
+Logging the Tool Progress
+
+\snippet Tutorial_Logger.cpp doxygen_snippet_Logger
+Inspect the`Tutorial_Logger.cpp` for a full example.
+
+
+@section cpp_guide_input_output Input/Output
+
+Code like <code>stream_object << "example" << std::endl;</code> forces the output buffer to be flushed, i.e. written to disk/console immediately, which can be a big performance loss. Get used to writing code like <code>stream_object << "example\n";</code>. Debugging output can be an exception, because the content of the stream buffer may be lost upon segfault etc..
+
+Write many digits to avoid unnecessary rounding errors. In particular, using standard output stream operators, i.e. << for doubles and floats should be avoided when full precision is required because by default, not all significant digits will be written. Before you start using <code>os.precision(writtenDigits(FloatingPointType()));</code> and alike, it is strongly advised to convert to an <code>OpenMS::String</code>, i.e. <code>os << String(my_number)</code> because it's faster, and gives you all significant digits for each type (6 digits for <code>float</code>, 15 for <code>double</code>). Similarly, input stream operators are also slow, especially in VisualStudio, so switching to <code>OpenMS::String::toDouble()</code> is advised for performance reasons. If you do not need all significant digits, simply invoke <code>String(my_number, full_precision = false)</code> to get up to only three fractional digits for <code>float</code> and <code>double</code> types. For <code>Integer</code> types, there is no problem with streams, but again: <code>OpenMS::String(int i)</code> is faster. There is usually no heap allocation overhead for strings because of Small String Optimizations (SSO).
+
+
+
+@section cpp_guide_uint `UInt` vs. `Size`
+
+%OpenMS uses some custom type definitions for simple arithmetic types, such as `UInt` (shorthand for `unsigned int`).
+When working with <code>STL</code> types (especially vectors), assign the return value of a <code>.size()</code> operation to the %OpenMS type <code>Size</code>, which is defined as follows:
+
+@code{.cpp}
+// OpenMS/include/CONCEPT/Types.h
+typedef size_t Size;
+@endcode
+
+Here is an example of how to correctly use <code>Size</code>.
+
+@code{.cpp}
+void print(const std::vector<String>& myVec)
+{
+  for (Size i = 0; i < myVec.size(); ++i)
+  {
+    std::cout << "Index: " << i << " Value: " << myVec[i] << std::endl;
+  }
+}
+@endcode
+
+@warning Don't use <code>UInt</code> as a substitute for <code>Size</code>. Even though <code>UInt</code> and <code>Size</code> are equivalent on prominent 32 bit systems, they are usually different types on 64 bit systems, where <code>UInt</code> is 32 bit, whereas <code>Size</code> is 64 bit depending on the platform. Using <code>UInt</code> leads to warnings (at best) and may break your code.
+
+`Size` is an unsigned type. If you need a signed equivalent, use `SignedSize` (also defined in <code>types.h</code>).
+
+
+
+@section cpp_guide_pointers_vs_references Pointers vs references
+
+Avoid using pointers. Pointers tend to cause segmentation faults. Try to use references instead.
+
+
+@section cpp_guide_includes Includes
+
+<code>includes</code> in header files should be avoided and replaced by forward declarations. Unnecessary <code>includes</code> cause longer compile times.
+
+Reasons for includes in header files are:
+<ul>
+<li>Headers of base classes have to be included in the header of the derived classes.</li>
+<li>If a class has members of type <code>T</code> (not <code>T*</code> or <code>T&</code>) the header has to be included.</li>
+<li>Headers of template classes have to be included.</li>
+</ul>
+An example class could look like this:
+
+@code{.cpp}
+#include <QtGui/QMainWindow>
+#include <QtGui/QPainter>
+// Forward declaration in main namespace
+class QLabel;
+namespace OpenMS
+{
+  // Forward declaration in OpenMS namespace
+  class Spectrum1DWidget;
+  class Dummy
+    : public QMainWindow
+  {
+    ...
+    protected:
+      Spectrum1DWidget* parent_;
+      QLabel* label_;
+      QPainter painter_;
+  }
+}
+@endcode
+
+@note In %OpenMS, Qt headers have to be included with the Qt-library prefix.
+
+*/

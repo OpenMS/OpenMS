@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -35,7 +9,11 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
+#include <functional>
 
 namespace OpenMS
 {
@@ -49,7 +27,7 @@ namespace OpenMS
   {
 public:
     /// analyzer type
-    enum AnalyzerType
+    enum class AnalyzerType
     {
       ANALYZERNULL,                 ///< Unknown
       QUADRUPOLE,                   ///< Quadrupole
@@ -69,14 +47,14 @@ public:
       SIZE_OF_ANALYZERTYPE
     };
     /// Names of the analyzer types
-    static const std::string NamesOfAnalyzerType[SIZE_OF_ANALYZERTYPE];
+    static const std::string NamesOfAnalyzerType[static_cast<size_t>(AnalyzerType::SIZE_OF_ANALYZERTYPE)];
 
     /**
         @brief resolution method
 
         Which of the available standard measures is used to define whether two peaks are separate
     */
-    enum ResolutionMethod
+    enum class ResolutionMethod
     {
       RESMETHNULL,                  ///< Unknown
       FWHM,                         ///< Full width at half max
@@ -85,10 +63,10 @@ public:
       SIZE_OF_RESOLUTIONMETHOD
     };
     /// Names of resolution methods
-    static const std::string NamesOfResolutionMethod[SIZE_OF_RESOLUTIONMETHOD];
+    static const std::string NamesOfResolutionMethod[static_cast<size_t>(ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD)];
 
     /// Resolution type
-    enum ResolutionType
+    enum class ResolutionType
     {
       RESTYPENULL,              ///< Unknown
       CONSTANT,                 ///< Constant
@@ -96,10 +74,10 @@ public:
       SIZE_OF_RESOLUTIONTYPE
     };
     /// Names of resolution type
-    static const std::string NamesOfResolutionType[SIZE_OF_RESOLUTIONTYPE];
+    static const std::string NamesOfResolutionType[static_cast<size_t>(ResolutionType::SIZE_OF_RESOLUTIONTYPE)];
 
     /// direction of scanning
-    enum ScanDirection
+    enum class ScanDirection
     {
       SCANDIRNULL,              ///< Unknown
       UP,                       ///< Up
@@ -107,10 +85,10 @@ public:
       SIZE_OF_SCANDIRECTION
     };
     /// Names of direction of scanning
-    static const std::string NamesOfScanDirection[SIZE_OF_SCANDIRECTION];
+    static const std::string NamesOfScanDirection[static_cast<size_t>(ScanDirection::SIZE_OF_SCANDIRECTION)];
 
     ///Scan law
-    enum ScanLaw
+    enum class ScanLaw
     {
       SCANLAWNULL,              ///< Unknown
       EXPONENTIAL,              ///< Unknown
@@ -119,10 +97,10 @@ public:
       SIZE_OF_SCANLAW
     };
     /// Names of scan laws
-    static const std::string NamesOfScanLaw[SIZE_OF_SCANLAW];
+    static const std::string NamesOfScanLaw[static_cast<size_t>(ScanLaw::SIZE_OF_SCANLAW)];
 
     ///Reflectron state
-    enum ReflectronState
+    enum class ReflectronState
     {
       REFLSTATENULL,            ///< Unknown
       ON,                       ///< On
@@ -131,7 +109,157 @@ public:
       SIZE_OF_REFLECTRONSTATE
     };
     /// Names of reflectron states
-    static const std::string NamesOfReflectronState[SIZE_OF_REFLECTRONSTATE];
+    static const std::string NamesOfReflectronState[static_cast<size_t>(ReflectronState::SIZE_OF_REFLECTRONSTATE)];
+
+    /**
+     @brief Returns all analyzer type names known to OpenMS
+
+     @return List of all analyzer type names
+    */
+    static StringList getAllNamesOfAnalyzerType();
+
+    /**
+     @brief Returns all resolution method names known to OpenMS
+
+     @return List of all resolution method names
+    */
+    static StringList getAllNamesOfResolutionMethod();
+
+    /**
+     @brief Returns all resolution type names known to OpenMS
+
+     @return List of all resolution type names
+    */
+    static StringList getAllNamesOfResolutionType();
+
+    /**
+     @brief Returns all scan direction names known to OpenMS
+
+     @return List of all scan direction names
+    */
+    static StringList getAllNamesOfScanDirection();
+
+    /**
+     @brief Returns all scan law names known to OpenMS
+
+     @return List of all scan law names
+    */
+    static StringList getAllNamesOfScanLaw();
+
+    /**
+     @brief Returns all reflectron state names known to OpenMS
+
+     @return List of all reflectron state names
+    */
+    static StringList getAllNamesOfReflectronState();
+
+    /**
+     @brief Convert an AnalyzerType enum to its string representation
+
+     @param type The analyzer type enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p type is SIZE_OF_ANALYZERTYPE
+    */
+    static const std::string& analyzerTypeToString(AnalyzerType type);
+
+    /**
+     @brief Convert a string to an AnalyzerType enum
+
+     @param name The string name to convert
+     @return The corresponding AnalyzerType enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfAnalyzerType[]
+    */
+    static AnalyzerType toAnalyzerType(const std::string& name);
+
+    /**
+     @brief Convert a ResolutionMethod enum to its string representation
+
+     @param method The resolution method enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p method is SIZE_OF_RESOLUTIONMETHOD
+    */
+    static const std::string& resolutionMethodToString(ResolutionMethod method);
+
+    /**
+     @brief Convert a string to a ResolutionMethod enum
+
+     @param name The string name to convert
+     @return The corresponding ResolutionMethod enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfResolutionMethod[]
+    */
+    static ResolutionMethod toResolutionMethod(const std::string& name);
+
+    /**
+     @brief Convert a ResolutionType enum to its string representation
+
+     @param type The resolution type enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p type is SIZE_OF_RESOLUTIONTYPE
+    */
+    static const std::string& resolutionTypeToString(ResolutionType type);
+
+    /**
+     @brief Convert a string to a ResolutionType enum
+
+     @param name The string name to convert
+     @return The corresponding ResolutionType enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfResolutionType[]
+    */
+    static ResolutionType toResolutionType(const std::string& name);
+
+    /**
+     @brief Convert a ScanDirection enum to its string representation
+
+     @param direction The scan direction enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p direction is SIZE_OF_SCANDIRECTION
+    */
+    static const std::string& scanDirectionToString(ScanDirection direction);
+
+    /**
+     @brief Convert a string to a ScanDirection enum
+
+     @param name The string name to convert
+     @return The corresponding ScanDirection enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfScanDirection[]
+    */
+    static ScanDirection toScanDirection(const std::string& name);
+
+    /**
+     @brief Convert a ScanLaw enum to its string representation
+
+     @param law The scan law enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p law is SIZE_OF_SCANLAW
+    */
+    static const std::string& scanLawToString(ScanLaw law);
+
+    /**
+     @brief Convert a string to a ScanLaw enum
+
+     @param name The string name to convert
+     @return The corresponding ScanLaw enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfScanLaw[]
+    */
+    static ScanLaw toScanLaw(const std::string& name);
+
+    /**
+     @brief Convert a ReflectronState enum to its string representation
+
+     @param state The reflectron state enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p state is SIZE_OF_REFLECTRONSTATE
+    */
+    static const std::string& reflectronStateToString(ReflectronState state);
+
+    /**
+     @brief Convert a string to a ReflectronState enum
+
+     @param name The string name to convert
+     @return The corresponding ReflectronState enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfReflectronState[]
+    */
+    static ReflectronState toReflectronState(const std::string& name);
 
     /// Constructor
     MassAnalyzer();
@@ -258,4 +386,52 @@ protected:
     Int order_;
   };
 } // namespace OpenMS
+
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::MassAnalyzer.
+   *
+   * Computes a hash based on all fields compared in operator==:
+   * - All enum fields (type, resolution_method, resolution_type, scan_direction, scan_law, reflectron_state)
+   * - All double fields (resolution, accuracy, scan_rate, scan_time, TOF_total_path_length, isolation_width, magnetic_field_strength)
+   * - All integer fields (final_MS_exponent, order)
+   *
+   * @note MetaInfoInterface is included in operator== but excluded from hash computation
+   *       since meta info is typically auxiliary data that varies frequently. This satisfies
+   *       the hash contract: if hash(a) != hash(b), then a != b. The reverse implication
+   *       (equal hashes imply equal objects) is not required for hash functions.
+   */
+  template<>
+  struct hash<OpenMS::MassAnalyzer>
+  {
+    std::size_t operator()(const OpenMS::MassAnalyzer& ma) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash enum fields (cast to underlying integer type)
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(ma.getType())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(ma.getResolutionMethod())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(ma.getResolutionType())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(ma.getScanDirection())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(ma.getScanLaw())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(ma.getReflectronState())));
+
+      // Hash double fields
+      OpenMS::hash_combine(seed, OpenMS::hash_float(ma.getResolution()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(ma.getAccuracy()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(ma.getScanRate()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(ma.getScanTime()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(ma.getTOFTotalPathLength()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(ma.getIsolationWidth()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(ma.getMagneticFieldStrength()));
+
+      // Hash integer fields
+      OpenMS::hash_combine(seed, OpenMS::hash_int(ma.getFinalMSExponent()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(ma.getOrder()));
+
+      return seed;
+    }
+  };
+} // namespace std
 

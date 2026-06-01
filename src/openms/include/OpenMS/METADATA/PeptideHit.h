@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -36,8 +10,11 @@
 
 #include <iosfwd>
 #include <vector>
+#include <functional>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -45,10 +22,28 @@
 
 namespace OpenMS
 {
-  /**
-    @brief Representation of a peptide hit
+  class PeptideHit;
+  using SpectrumMatch = PeptideHit; // better name that might become the default in future version
 
-    It contains the fields score, score_type, rank, and sequence.
+  /**
+    @brief Represents a single spectrum match (candidate) for a specific tandem mass spectrum (MS/MS).
+
+    Stores the primary information about a potential match, including:
+    - The sequence (potentially with modifications) using AASequence.
+    - The primary score assigned by the identification algorithm (e.g., search engine).
+    - The rank of this hit compared to other hits for the same spectrum (stored as a meta value with key "rank").
+    - The precursor charge state assumed for this match.
+    - Evidence linking the peptide sequence to specific protein sequences (PeptideEvidence).
+    - Optional annotations mapping fragment ions in the MS/MS spectrum to interpretations (PeakAnnotation).
+    - Optional secondary scores from post-processing tools (PepXMLAnalysisResult).
+
+    Objects are typically contained within a PeptideIdentification object, which represents
+    all hits found for a single spectrum. Inherits from MetaInfoInterface, allowing
+    arbitrary metadata (key-value pairs) to be attached.
+
+    @deprecated Use SpectrumMatch instead. PeptideHit may be removed in a future OpenMS version.
+
+    @see PeptideIdentification, AASequence, PeptideEvidence, PeakAnnotation, PepXMLAnalysisResult, MetaInfoInterface
 
     @ingroup Metadata
   */
@@ -56,6 +51,14 @@ namespace OpenMS
     public MetaInfoInterface
   {
 public:
+    /// Enum for target/decoy annotation
+    enum class TargetDecoyType
+    {
+      TARGET,       ///< Only matches target proteins
+      DECOY,        ///< Only matches decoy proteins
+      TARGET_DECOY, ///< Matches BOTH target and decoy proteins
+      UNKNOWN       ///< Target/decoy status is unknown (meta value not set)
+    };
 
     /**
    * @brief Contains annotations of a peak
@@ -80,40 +83,18 @@ public:
       are used to separate the parts easily when parsing the annotation.
 
    */
-  struct PeakAnnotation
+  struct OPENMS_DLLAPI PeakAnnotation
   {
     String annotation = "";  // e.g. [alpha|ci$y3-H2O-NH3]
     int charge = 0;
     double mz = -1.;
     double intensity = 0.;
 
-    bool operator<(const PeptideHit::PeakAnnotation& other) const
-    {
-      // sensible to sort first by m/z and charge
-      return std::tie(mz, charge, annotation, intensity) < std::tie(other.mz, other.charge, other.annotation, other.intensity);
-    }
+    bool operator<(const PeptideHit::PeakAnnotation& other) const;
 
-    bool operator==(const PeptideHit::PeakAnnotation& other) const
-    {
-      if (charge != other.charge || mz != other.mz ||
-          intensity != other.intensity || annotation != other.annotation) return false;
-      return true;
-    }
+    bool operator==(const PeptideHit::PeakAnnotation& other) const;
 
-    static void writePeakAnnotationsString_(String& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations)
-    {
-      if (annotations.empty()) { return; }
-
-      // sort by mz, charge, ...
-      stable_sort(annotations.begin(), annotations.end());
-
-      String val;
-      for (auto& a : annotations)
-      {
-        annotation_string += String(a.mz) + "," + String(a.intensity) + "," + String(a.charge) + "," + String(a.annotation).quote();
-        if (&a != &annotations.back()) { annotation_string += "|"; }
-      }
-    }
+    static void writePeakAnnotationsString_(String& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations);
 
   };
 
@@ -158,6 +139,50 @@ public:
     };
     //@}
 
+    /// @name Hash functors for PeptideHit
+    //@{
+    /**
+     * @brief Hash functor for PeptideHit based on sequence and charge.
+     *
+     * This hasher computes a portable hash based on the peptide sequence
+     * (including modifications) and charge state. This represents the
+     * "identity" of a peptide hit for most practical purposes.
+     *
+     * @note This hash is NOT consistent with operator== which also compares
+     *       score, rank, evidences, annotations, and meta info. Use this
+     *       hasher when you want to identify unique peptides by sequence+charge.
+     *
+     * Example usage:
+     * @code
+     * std::unordered_set<PeptideHit, PeptideHit::SequenceChargeHash, PeptideHit::SequenceChargeEqual> unique_hits;
+     * @endcode
+     */
+    class OPENMS_DLLAPI SequenceChargeHash
+    {
+    public:
+      std::size_t operator()(const PeptideHit& hit) const noexcept
+      {
+        std::size_t seed = std::hash<AASequence>{}(hit.getSequence());
+        OpenMS::hash_combine(seed, OpenMS::hash_int(hit.getCharge()));
+        return seed;
+      }
+    };
+
+    /**
+     * @brief Equality functor for PeptideHit based on sequence and charge.
+     *
+     * Companion to SequenceChargeHash for use in unordered containers.
+     */
+    class OPENMS_DLLAPI SequenceChargeEqual
+    {
+    public:
+      bool operator()(const PeptideHit& a, const PeptideHit& b) const noexcept
+      {
+        return a.getSequence() == b.getSequence() && a.getCharge() == b.getCharge();
+      }
+    };
+    //@}
+
 
     /// Lesser predicate for (modified) sequence of hits
     class OPENMS_DLLAPI SequenceLessComparator
@@ -176,8 +201,8 @@ public:
     {
 public:
       String score_type; /// e.g. peptideprophet / interprophet
-      bool higher_is_better; /// is higher score better ?
-      double main_score; /// posterior probability for example
+      bool higher_is_better{}; /// is higher score better ?
+      double main_score{}; /// posterior probability for example
       std::map<String, double> sub_scores; /// additional scores attached to the original, aggregated score
 
       bool operator==(const PepXMLAnalysisResult& rhs) const
@@ -226,8 +251,11 @@ public:
     /**	@name Accessors
     */
     //@{
-    /// returns the peptide sequence without trailing or following spaces
+    /// returns the peptide sequence
     const AASequence& getSequence() const;
+
+    /// returns the mutable peptide sequence
+    AASequence& getSequence();
 
     /// sets the peptide sequence
     void setSequence(const AASequence& sequence);
@@ -258,19 +286,19 @@ public:
     /// sets the PSM score
     void setScore(double score);
 
-    /// set information on (search engine) sub scores associated with this PSM
-    void setAnalysisResults(std::vector<PepXMLAnalysisResult> aresult);
+    /// set information on (search engine) sub scores associated with this PSM (only used by pepXML)
+    void setAnalysisResults(const std::vector<PepXMLAnalysisResult>& aresult);
 
-    /// add information on (search engine) sub scores associated with this PSM
+    /// add information on (search engine) sub scores associated with this PSM (only used by pepXML)
     void addAnalysisResults(const PepXMLAnalysisResult& aresult);
 
-    /// returns information on (search engine) sub scores associated with this PSM
-    const std::vector<PepXMLAnalysisResult>& getAnalysisResults() const;
+    /// returns information on (search engine) sub scores associated with this PSM (only used by pepXML)
+    std::vector<PepXMLAnalysisResult> getAnalysisResults() const;
 
     /// returns the PSM rank
     UInt getRank() const;
 
-    /// sets the PSM rank
+    /// sets the PSM rank (0 = top hit)
     void setRank(UInt newrank);
 
     /// returns the fragment annotations
@@ -281,6 +309,43 @@ public:
     /// sets the fragment annotations
     void setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations);
 
+    /**
+     * @brief Returns true if this hit is annotated as mapping to decoy sequences only. 
+     * Returns false for TargetDecoyType::TARGET and TargetDecoyType::TARGET_DECOY.
+     * Note: an unknown/unannotated state (TargetDecoyType::UNKNOWN) will yield false.
+     */
+    bool isDecoy() const;
+
+    /** @brief Sets the target/decoy type for this peptide hit
+     *
+     * This method provides a type-safe way to annotate peptide hits with their
+     * target/decoy status. Use TARGET_DECOY for peptides that match both target
+     * and decoy protein sequences (these are treated as targets in FDR calculations).
+     * Note: UNKNOWN should only be used in special cases where the status needs to
+     * be explicitly marked as unknown.
+     *
+     * @param[in] type The target/decoy classification:
+     *   - TARGET: Only matches target proteins
+     *   - DECOY: Only matches decoy proteins
+     *   - TARGET_DECOY: Matches both target and decoy proteins
+     *   - UNKNOWN: Target/decoy status is unknown (explicit unknown state)
+     */
+    void setTargetDecoyType(TargetDecoyType type);
+
+    /** @brief Returns the target/decoy type for this peptide hit
+     *
+     * This method performs case-insensitive parsing of the "target_decoy" meta value
+     * and returns the corresponding enum value. Returns UNKNOWN if the meta value
+     * does not exist.
+     *
+     * @return The target/decoy classification:
+     *   - TARGET: Only matches target proteins
+     *   - DECOY: Only matches decoy proteins
+     *   - TARGET_DECOY: Matches both target and decoy proteins
+     *   - UNKNOWN: Target/decoy status not set (meta value missing)
+     */
+    TargetDecoyType getTargetDecoyType() const;
+
     //@}
 
     /// extracts the set of non-empty protein accessions from peptide evidences
@@ -290,24 +355,104 @@ protected:
     AASequence sequence_;
 
     /// the score of the peptide hit
-    double score_;
-
-    /// additional scores attached to the original, aggregated score
-    std::vector<PepXMLAnalysisResult>* analysis_results_;
-
-    /// the position(rank) where the hit appeared in the hit list
-    UInt rank_;
+    double score_{};
 
     /// the charge of the peptide
-    Int charge_;
+    Int charge_{};
 
     /// information on the potential peptides observed through this PSM.
     std::vector<PeptideEvidence> peptide_evidences_;
 
     /// annotations of fragments in the corresponding spectrum
     std::vector<PeptideHit::PeakAnnotation> fragment_annotations_;
+
+private:
+    /// Get the number of analysis results stored as meta values (only for pepXML results)
+    size_t getNumberOfAnalysisResultsFromMetaValues_() const;
+
+    /// Extract analysis results from meta values (only for pepXML results)
+    std::vector<PepXMLAnalysisResult> extractAnalysisResultsFromMetaValues_() const;
   };
 
   /// Stream operator
   OPENMS_DLLAPI std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit);
 } // namespace OpenMS
+
+// Hash function specialization for PeptideHit::PeakAnnotation
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::PeptideHit::PeakAnnotation.
+   *
+   * Computes a hash by combining annotation (via fnv1a_hash_string),
+   * charge, mz, and intensity fields using hash_combine.
+   *
+   * @note Hash is consistent with operator==.
+   */
+  template<>
+  struct hash<OpenMS::PeptideHit::PeakAnnotation>
+  {
+    std::size_t operator()(const OpenMS::PeptideHit::PeakAnnotation& pa) const noexcept
+    {
+      std::size_t seed = OpenMS::fnv1a_hash_string(pa.annotation);
+      OpenMS::hash_combine(seed, OpenMS::hash_int(pa.charge));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(pa.mz));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(pa.intensity));
+      return seed;
+    }
+  };
+} // namespace std
+
+// Hash function specialization for PeptideHit
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::PeptideHit.
+   *
+   * Computes a hash consistent with operator==, which compares:
+   * - MetaInfoInterface (all meta values)
+   * - sequence_ (AASequence)
+   * - score_ (double)
+   * - rank (stored as meta value)
+   * - charge_ (int)
+   * - peptide_evidences_ (vector<PeptideEvidence>)
+   * - fragment_annotations_ (vector<PeakAnnotation>)
+   *
+   * @note Hash is consistent with operator==.
+   */
+  template<>
+  struct hash<OpenMS::PeptideHit>
+  {
+    std::size_t operator()(const OpenMS::PeptideHit& hit) const noexcept
+    {
+      // Start with MetaInfoInterface hash (includes rank which is stored as meta value)
+      std::size_t seed = std::hash<OpenMS::MetaInfoInterface>{}(hit);
+
+      // Hash sequence
+      OpenMS::hash_combine(seed, std::hash<OpenMS::AASequence>{}(hit.getSequence()));
+
+      // Hash score
+      OpenMS::hash_combine(seed, OpenMS::hash_float(hit.getScore()));
+
+      // Note: rank is NOT hashed separately - it's included via MetaInfoInterface above
+      // (rank is stored as meta value "rank" when non-zero)
+
+      // Hash charge
+      OpenMS::hash_combine(seed, OpenMS::hash_int(hit.getCharge()));
+
+      // Hash peptide evidences
+      for (const auto& pe : hit.getPeptideEvidences())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::PeptideEvidence>{}(pe));
+      }
+
+      // Hash fragment annotations
+      for (const auto& fa : hit.getPeakAnnotations())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::PeptideHit::PeakAnnotation>{}(fa));
+      }
+
+      return seed;
+    }
+  };
+} // namespace std

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -38,7 +12,9 @@
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <cmath>
 #include <iostream>
+#include <limits>
 #include <utility>
 
 #undef DEBUG_FD
@@ -96,7 +72,7 @@ namespace OpenMS
   }
 
   /// check consistency of input
-  /// @param init_thresh_p set default threshold (set to "false" to keep current value)
+  /// @param[in] init_thresh_p set default threshold (set to "false" to keep current value)
   void MassExplainer::init_(bool init_thresh_p)
   {
     if (init_thresh_p)
@@ -147,6 +123,7 @@ namespace OpenMS
     q_max_ = rhs.q_max_;
     max_span_ = rhs.max_span_;
     thresh_p_ = rhs.thresh_p_;
+    max_neutrals_ = rhs.max_neutrals_;
 
     return *this;
   }
@@ -158,7 +135,7 @@ namespace OpenMS
 
 
   /// fill map with possible mass-differences along with their explanation
-  void MassExplainer::compute()
+  void MassExplainer::compute(bool include_identity)
   {
     // differentiate between neutral and charged adducts
     AdductsType adduct_neutral, adduct_charged;
@@ -243,11 +220,44 @@ namespace OpenMS
     }
     explanations_.swap(valids_only);
 
+    // Add same-adduct compomers (same adduct type on both LEFT and RIGHT sides
+    // with potentially different amounts). These are needed for multimer detection:
+    //   Ai_LEFT / Aj_RIGHT covers pairs like [nM+iA]^(i*z) <-> [mM+jA]^(j*z).
+    // The original identity case (i==j, net_charge=0) handles same-charge multimers
+    // e.g. [M+H]+ <-> [2M+H]+. The i!=j cases handle charge-changing multimers
+    // e.g. [M+H]+ <-> [2M+2H]2+ (needs H1_LEFT / H2_RIGHT).
+    // Gated by include_identity to avoid changing behavior for non-multimer workflows.
+    // Placed before the neutral adduct loop so these also combine with neutral modifications.
+    if (include_identity)
+    {
+      for (const auto& adduct : adduct_charged)
+      {
+        Int max_amount = max_pq / std::abs(adduct.getCharge());
+        for (Int i = 1; i <= max_amount; ++i)
+        {
+          for (Int j = 1; j <= max_amount; ++j)
+          {
+            Compomer cmpi;
+            Adduct left_a(adduct);
+            left_a.setAmount(i);
+            Adduct right_a(adduct);
+            right_a.setAmount(j);
+            cmpi.add(left_a, Compomer::LEFT);
+            cmpi.add(right_a, Compomer::RIGHT);
+            if (compomerValid_(cmpi))
+            {
+              explanations_.push_back(cmpi);
+            }
+          }
+        }
+      }
+    }
+
     // add neutral adducts
     Size size_of_explanations = explanations_.size();
     for (AdductsType::const_iterator it_neutral = adduct_neutral.begin(); it_neutral != adduct_neutral.end(); ++it_neutral)
     {
-      std::cout << "Adding neutral: " << *it_neutral << "\n";
+      OPENMS_LOG_DEBUG << "Adding neutral: " << *it_neutral << "\n";
       for (Int n = 1; n <= (SignedSize)max_neutrals_; ++n)
       {
         // neutral itself:
@@ -293,7 +303,7 @@ namespace OpenMS
     }
     #endif
 
-    std::cout << "MassExplainer table size: " << explanations_.size() << "\n";
+    OPENMS_LOG_DEBUG << "MassExplainer table size: " << explanations_.size() << "\n";
 
   }
 
@@ -322,12 +332,12 @@ namespace OpenMS
 
 
   /// search the mass database for explanations
-  /// @param net_charge       net charge of compomer
-  /// @param mass_to_explain  mass in Da that needs explanation
-  /// @param mass_delta       allowed deviation from exact mass
-  /// @param thresh_log_p     minimal log probability required
-  /// @param firstExplanation begin range with candidates according to net_charge and mass
-  /// @param lastExplanation  end range
+  /// @param[in] net_charge       net charge of compomer
+  /// @param[in] mass_to_explain  mass in Da that needs explanation
+  /// @param[in] mass_delta       allowed deviation from exact mass
+  /// @param[in] thresh_log_p     minimal log probability required
+  /// @param[in] firstExplanation begin range with candidates according to net_charge and mass
+  /// @param[in] lastExplanation  end range
   SignedSize MassExplainer::query(const Int net_charge,
                                   const float mass_to_explain,
                                   const float mass_delta,
@@ -349,6 +359,49 @@ namespace OpenMS
     lastExplanation  = lower_bound(explanations_.begin(), explanations_.end(), cmp_high);
 
     return std::distance(firstExplanation, lastExplanation);
+  }
+
+  SignedSize MassExplainer::queryMultimer(const Int net_charge,
+                                          const double m1,
+                                          const double m2,
+                                          const Int n1,
+                                          const Int n2,
+                                          const double tolerance,
+                                          const float thresh_log_p,
+                                          std::vector<CompomerIterator>& hits) const
+  {
+    hits.clear();
+
+    // Find the net_charge group using binary search on the sorted explanations_
+    Compomer cmp_low(net_charge, -std::numeric_limits<double>::max(), 1);
+    auto group_begin = std::lower_bound(explanations_.begin(), explanations_.end(), cmp_low);
+
+    Compomer cmp_high(net_charge + 1, -std::numeric_limits<double>::max(), 1);
+    auto group_end = std::lower_bound(explanations_.begin(), explanations_.end(), cmp_high);
+
+    // The observed value: n2*m1 - n1*m2
+    double observed = static_cast<double>(n2) * m1 - static_cast<double>(n1) * m2;
+
+    // Linear scan within net_charge group
+    for (auto it = group_begin; it != group_end; ++it)
+    {
+      if (it->getLogP() < thresh_log_p)
+      {
+        continue;
+      }
+
+      // Compute expected: n2*left_mass - n1*right_mass
+      double left_mass = it->getSideMass(Compomer::LEFT);
+      double right_mass = it->getSideMass(Compomer::RIGHT);
+      double expected = static_cast<double>(n2) * left_mass - static_cast<double>(n1) * right_mass;
+
+      if (fabs(observed - expected) <= tolerance)
+      {
+        hits.push_back(it);
+      }
+    }
+
+    return static_cast<SignedSize>(hits.size());
   }
 
   ///check if the generated compomer is valid judged by its probability, charges etc
