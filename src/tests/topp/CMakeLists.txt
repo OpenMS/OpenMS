@@ -2000,6 +2000,7 @@ if(NOT DISABLE_OPENSWATH)
   # The shared PyProphet-derived fixture is single-run only, so these tests
   # deliberately avoid alignment-dependent options.
   set(OPENSWATH_SHARED_INFERENCE_OSW ${OPENMS_HOST_DIRECTORY}/src/tests/class_tests/openms/data/PyProphet_inference_test.osw)
+  set(OPENSWATH_SHARED_PERCOLATOR_OSWPQ ${OPENMS_HOST_DIRECTORY}/src/tests/class_tests/openms/data/OpenSwathWorkflow_tworuns_1_17.output.oswpq)
 
   add_test("TOPP_OpenSwathInfer_1_prepare" ${CMAKE_COMMAND} -E copy_if_different ${OPENSWATH_SHARED_INFERENCE_OSW} ${TESTS_TEMP_DIR}/OpenSwathInfer_1_input.osw)
   add_test("TOPP_OpenSwathInfer_1" ${TOPP_BIN_PATH}/OpenSwathInfer -test -in ${TESTS_TEMP_DIR}/OpenSwathInfer_1_input.osw
@@ -2061,6 +2062,20 @@ if(NOT DISABLE_OPENSWATH)
   set_tests_properties("TOPP_OpenSwathExport_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathExport_1")
   set_tests_properties("TOPP_OpenSwathExport_1_out2" PROPERTIES DEPENDS "TOPP_OpenSwathExport_1")
   set_tests_properties("TOPP_OpenSwathExport_1_out3" PROPERTIES DEPENDS "TOPP_OpenSwathExport_1")
+
+  add_test("TOPP_OpenSwathPercolatorScoring_1_prepare" ${CMAKE_COMMAND} -E copy_if_different ${OPENSWATH_SHARED_INFERENCE_OSW} ${TESTS_TEMP_DIR}/OpenSwathPercolatorScoring_1_input.osw)
+  add_test("TOPP_OpenSwathPercolatorScoring_1" ${TOPP_BIN_PATH}/OpenSwathPercolatorScoring -test
+    -in ${TESTS_TEMP_DIR}/OpenSwathPercolatorScoring_1_input.osw
+    -out ${TESTS_TEMP_DIR}/OpenSwathPercolatorScoring_1_output.osw
+    -level ms1ms2 transition)
+  set_tests_properties("TOPP_OpenSwathPercolatorScoring_1" PROPERTIES DEPENDS "TOPP_OpenSwathPercolatorScoring_1_prepare")
+
+  add_test("TOPP_OpenSwathPercolatorScoring_2_prepare" ${CMAKE_COMMAND} -E copy_if_different ${OPENSWATH_SHARED_PERCOLATOR_OSWPQ} ${TESTS_TEMP_DIR}/OpenSwathPercolatorScoring_2_input.oswpq)
+  add_test("TOPP_OpenSwathPercolatorScoring_2" ${TOPP_BIN_PATH}/OpenSwathPercolatorScoring -test
+    -in ${TESTS_TEMP_DIR}/OpenSwathPercolatorScoring_2_input.oswpq
+    -out ${TESTS_TEMP_DIR}/OpenSwathPercolatorScoring_2_output.oswpq
+    -level ms2 transition)
+  set_tests_properties("TOPP_OpenSwathPercolatorScoring_2" PROPERTIES DEPENDS "TOPP_OpenSwathPercolatorScoring_2_prepare")
 endif(NOT DISABLE_OPENSWATH)
 
 #------------------------------------------------------------------------------
