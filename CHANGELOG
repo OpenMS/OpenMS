@@ -62,7 +62,7 @@ General:
   - Fix: SimpleSearchEngineAlgorithm: removed default(none) from the OpenMP parallel-for pragma that unconditionally listed annotated_hits_lock in its shared() clause; on macOS/Xcode where _OPENMP is not defined, this caused "use of undeclared identifier" compile errors and prevented building on those platforms (#9388)
   - New ThermoRawFile class for native reading of Thermo .raw files into MSExperiment via the openms-thermo-bridge (.NET managed DLL bridge); fetched automatically via CMake FetchContent; controlled by WITH_THERMO_RAW CMake option (ON by default, except on Linux/aarch64); registered in FileHandler and FileTypes (#9389)
   - Optimized MzIdentML parser performance by caching CV lookups and added mzIdentML 1.3 schema support (#8764)
-  - New IsoelectricPoint class in CHEMISTRY for peptide pI and charge-at-pH calculation: IsoelectricPoint::computeCharge(seq, pH, scale) returns the net charge via Henderson-Hasselbalch; IsoelectricPoint::computePI(seq, scale, tolerance) finds the isoelectric point by bisection over [0, 14]; supports four pKa scales via the ProteomicsPkaScale enum (LEHNINGER, EMBOSS, SILLERO, BJELLQVIST); the Bjellqvist scale uses per-N-terminal-residue pKa values; pyOpenMS bindings included (#9419)
+  - New IsoelectricPoint class in CHEMISTRY for peptide pI and charge-at-pH calculation: IsoelectricPoint::computeCharge(AASequence, pH, ProteomicsPkaScale=EMBOSS) returns the net charge via Henderson-Hasselbalch; IsoelectricPoint::computePI(AASequence, ProteomicsPkaScale=EMBOSS, tolerance=1e-6) finds the isoelectric point by bisection in pH range [0, 14]; supports four pKa scales via the ProteomicsPkaScale enum (LEHNINGER, EMBOSS, SILLERO, BJELLQVIST); the Bjellqvist scale uses per-N-terminal-residue pKa values; pyOpenMS bindings included (#9419)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -118,7 +118,7 @@ PyOpenMS:
     - FAIMSHelper: getCompensationVoltages(PeakMap) and filterPeptidesByFAIMSCV(PeptideIdentificationList, target_cv, cv_tolerance) for FAIMS compensation voltage detection and per-CV peptide ID filtering (#9275)
     - MZTrafoModel.setRANSACSeed(seed) for reproducible RANSAC-based m/z calibration (#9407)
     - EmpiricalFormula.getNumberOf(Element), EmpiricalFormula.getLightestIsotopeWeight(), Residue.getHydrophobicity(HydrophobicityScaleMethod) + new HydrophobicityScaleMethod enum, TheoreticalSpectrumGenerator.getPrefixAndSuffixIonsMZ(peptide, charge) returning a numpy float array, and SpectralMatch CCS accessors (getCCS/setFoundCCS) added (#9415, #9412)
-    - IsoelectricPoint.computeCharge(AASequence, pH, ProteomicsPkaScale) and IsoelectricPoint.computePI(AASequence, ProteomicsPkaScale, tolerance) for peptide net-charge and isoelectric point calculation; ProteomicsPkaScale enum (LEHNINGER/EMBOSS/SILLERO/BJELLQVIST) (#9419)
+    - IsoelectricPoint.computeCharge(AASequence, pH, ProteomicsPkaScale=EMBOSS) and IsoelectricPoint.computePI(AASequence, ProteomicsPkaScale=EMBOSS, tolerance=1e-6) for peptide net-charge and isoelectric point calculation; ProteomicsPkaScale enum (LEHNINGER/EMBOSS/SILLERO/BJELLQVIST) (#9419)
   - String handling: Functions now accept both str and bytes via libcpp_utf8_string (#8602, #8604)
   - Backward compatibility restored for file I/O methods in IdXMLFile, PepXMLFile, MzIdentMLFile (#8553)
   - Static methods modernized using @staticmethod decorator (#8562)
@@ -398,7 +398,7 @@ OpenMS Library:
     - BrukerTimsFile: tiered scan→1/K0 calibration with three fallback levels: Bruker SDK → rational function from TimsCalibration table (open-source) → linear; RationalScan2ImConverter added for the rational function model (#8999)
     - TMTThirtyTwoPlexQuantitationMethod, TMTThirtyFivePlexQuantitationMethod: new classes for TMT 32-plex and 35-plex isobaric quantitation; isotope correction matrix defaults to identity until calibrated values are provided (#9003)
     - IMPeakType enum (IM_PROFILE, IM_CENTROIDED, UNKNOWN) added to SpectrumSettings to track per-peak ion mobility processing state independently of data layout (IMFormat); IMFormat::CENTROIDED deprecated (#9007)
-    - IsoelectricPoint: new CHEMISTRY class for computing the isoelectric point (pI) and net charge of peptides via the Henderson-Hasselbalch equation; supports four pKa scales (ProteomicsPkaScale enum: LEHNINGER, EMBOSS, SILLERO, BJELLQVIST); pI found by bisection over [0, 14]; pyOpenMS bindings included (#9419)
+    - IsoelectricPoint: new CHEMISTRY class for computing the isoelectric point (pI) and net charge of peptides via the Henderson-Hasselbalch equation; supports four pKa scales (ProteomicsPkaScale enum: LEHNINGER, EMBOSS, SILLERO, BJELLQVIST); pI found by bisection in pH range [0, 14]; pyOpenMS bindings included (#9419)
   Changes:
     - BREAKING: Matrix<T> no longer inherits from Eigen; uses std::vector<T> for storage (#8511)
     - BREAKING: Eigen moved from PUBLIC to PRIVATE linking - downstream users no longer need Eigen headers (#8511)
