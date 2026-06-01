@@ -256,7 +256,6 @@ protected:
       opt.setMSLevels(ms_levels);
     }
 
-    fh.setLogType(log_type_);
     fh.setOptions(opt);
     fh.loadExperiment(in_file, map, {FileTypes::MZML, FileTypes::RAW}, log_type_);
 
