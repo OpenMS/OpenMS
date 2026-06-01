@@ -118,7 +118,7 @@ PyOpenMS:
     - FAIMSHelper: getCompensationVoltages(PeakMap) and filterPeptidesByFAIMSCV(PeptideIdentificationList, target_cv, cv_tolerance) for FAIMS compensation voltage detection and per-CV peptide ID filtering (#9275)
     - MZTrafoModel.setRANSACSeed(seed) for reproducible RANSAC-based m/z calibration (#9407)
     - EmpiricalFormula.getNumberOf(Element), EmpiricalFormula.getLightestIsotopeWeight(), Residue.getHydrophobicity(HydrophobicityScaleMethod) + new HydrophobicityScaleMethod enum, TheoreticalSpectrumGenerator.getPrefixAndSuffixIonsMZ(peptide, charge) returning a numpy float array, and SpectralMatch CCS accessors (getCCS/setFoundCCS) added (#9415, #9412)
-    - IsoelectricPoint.computeCharge(seq, pH, scale) and IsoelectricPoint.computePI(seq, scale, tolerance) for peptide net-charge and isoelectric point calculation; ProteomicsPkaScale enum (LEHNINGER/EMBOSS/SILLERO/BJELLQVIST) (#9419)
+    - IsoelectricPoint.computeCharge(AASequence, pH, ProteomicsPkaScale) and IsoelectricPoint.computePI(AASequence, ProteomicsPkaScale, tolerance) for peptide net-charge and isoelectric point calculation; ProteomicsPkaScale enum (LEHNINGER/EMBOSS/SILLERO/BJELLQVIST) (#9419)
   - String handling: Functions now accept both str and bytes via libcpp_utf8_string (#8602, #8604)
   - Backward compatibility restored for file I/O methods in IdXMLFile, PepXMLFile, MzIdentMLFile (#8553)
   - Static methods modernized using @staticmethod decorator (#8562)
