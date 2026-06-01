@@ -136,7 +136,7 @@ The resulting mzML file contains one spectrum per frame with ion mobility values
 Ion mobility values from peptide identifications (if present in the idXML) are used for IM-aware feature detection.
 The extraction window is controlled by @p extract:IM_window.
 
-@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML or idparquet using @ref TOPP_IDFileConverter if necessary.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_FeatureFinderIdentification.cli
@@ -166,21 +166,21 @@ protected:
     registerInputFile_("in", "<file>", "", "Input file: LC-MS raw data");
     setValidFormats_("in", {"mzML"});
     registerInputFile_("id", "<file>", "", "Input file: Peptide identifications derived directly from 'in'");
-    setValidFormats_("id", {"idXML"});
+    setValidFormats_("id", {"idXML", "idparquet"});
     registerInputFile_("id_ext", "<file>", "", "Input file: 'External' peptide identifications (e.g. from aligned runs)", false);
-    setValidFormats_("id_ext", {"idXML"});
+    setValidFormats_("id_ext", {"idXML", "idparquet"});
     registerOutputFile_("out", "<file>", "", "Output file: Features");
-    setValidFormats_("out", {"featureXML"});
+    setValidFormats_("out", {"featureXML", "featureparquet"});
     registerOutputFile_("lib_out", "<file>", "", "Output file: Assay library", false);
     setValidFormats_("lib_out", {"traML"});
     registerOutputFile_("chrom_out", "<file>", "", "Output file: Chromatograms", false);
     setValidFormats_("chrom_out", {"mzML"});
     registerOutputFile_("candidates_out", "<file>", "", "Output file: Feature candidates (before filtering and model fitting)", false);
-    setValidFormats_("candidates_out", {"featureXML"});
+    setValidFormats_("candidates_out", {"featureXML", "featureparquet"});
     registerInputFile_("candidates_in", "<file>", "",
                        "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.",
                        false, true);
-    setValidFormats_("candidates_in", {"featureXML"});
+    setValidFormats_("candidates_in", {"featureXML", "featureparquet"});
 
     Param algo_with_subsection;
     Param subsection = FeatureFinderIdentificationAlgorithm().getDefaults();
@@ -198,17 +198,30 @@ protected:
     //-------------------------------------------------------------
     String out = getStringOption_("out");
     String candidates_out = getStringOption_("candidates_out");
-
     String candidates_in = getStringOption_("candidates_in");
+    String id = getStringOption_("id");
 
     FeatureFinderIdentificationAlgorithm ffid_algo;
     ffid_algo.getProgressLogger().setLogType(log_type_);
     ffid_algo.setParameters(getParam_().copySubset(FeatureFinderIdentificationAlgorithm().getDefaults()));
 
+    // Determine output feature type once, before branches diverge.
+    // Main path: derive from -id; re-score path: derive from -candidates_in.
+    FileTypes::Type out_feature_type = FileTypes::FEATUREXML; // default
+    if (candidates_in.empty())
+    {
+      if (FileHandler::getType(id) == FileTypes::IDPARQUET)
+        out_feature_type = FileTypes::FEATUREPARQUET;
+    }
+    else
+    {
+      if (FileHandler::getType(candidates_in) == FileTypes::FEATUREPARQUET)
+        out_feature_type = FileTypes::FEATUREPARQUET;
+    }
+
     if (candidates_in.empty())
     {
       String in = getStringOption_("in");
-      String id = getStringOption_("id");
       String id_ext = getStringOption_("id_ext");
       String lib_out = getStringOption_("lib_out");
       String chrom_out = getStringOption_("chrom_out");
@@ -226,12 +239,12 @@ protected:
       vector<ProteinIdentification> proteins, proteins_ext;
 
       // "internal" IDs:
-      FileHandler().loadIdentifications(id, proteins, peptides, {FileTypes::IDXML});
+      FileHandler().loadIdentifications(id, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
       // "external" IDs:
       if (!id_ext.empty())
       {
-        FileHandler().loadIdentifications(id_ext, proteins_ext, peptides_ext, {FileTypes::IDXML});
+        FileHandler().loadIdentifications(id_ext, proteins_ext, peptides_ext, {FileTypes::IDXML, FileTypes::IDPARQUET});
       }
 
       //-------------------------------------------------------------
@@ -265,7 +278,7 @@ protected:
       // load feature candidates
       //-------------------------------------------------------------
       OPENMS_LOG_INFO << "Reading feature candidates from a previous run..." << endl;
-      FileHandler().loadFeatures(candidates_in, features, {FileTypes::FEATUREXML});
+      FileHandler().loadFeatures(candidates_in, features, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET});
       OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total." << endl;
       ffid_algo.runOnCandidates(features);
     }
@@ -275,7 +288,7 @@ protected:
     //-------------------------------------------------------------
 
     OPENMS_LOG_INFO << "Writing final results..." << endl;
-    FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
+    FileHandler().storeFeatures(out, features, {out_feature_type});
 
 
     return EXECUTION_OK;

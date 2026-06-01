@@ -1,0 +1,215 @@
+name: "Install OpenMS Dependencies"
+description: "Central action for all dependency management"
+inputs:
+  os:
+    description: "The operating system to install dependencies for"
+    required: true
+    default: "Linux"
+  compiler:
+    description: "The name of the compiler to use"
+    required: true
+  compiler_ver:
+    description: "The version number for the compiler"
+    required: true
+outputs:
+  cmake_prefix:
+    description: "Path to add to CMAKE_PREFIX"
+    value: ${{ steps.combine.outputs.cmake_prefix }}
+runs:
+  using: "composite"
+  steps:
+    - name: Identify contrib submodule revision for cache key
+      id: contrib-rev
+      if: inputs.os == 'Windows'
+      shell: bash
+      run: |
+        rev=$(git submodule status --cached -- contrib | sed -E 's/^-?//' | cut -d' ' -f1)
+        echo "rev=$rev" >> "$GITHUB_OUTPUT"
+
+    - name: Cache contrib
+      id: cache-contrib
+      if: inputs.os == 'Windows'
+      uses: actions/cache@v5
+      with:
+        path: contrib/build
+        key: ${{ inputs.os }}-${{ steps.contrib-rev.outputs.rev }}
+
+    - name: Fetch contrib if not in cache
+      if: inputs.os == 'Windows' && steps.cache-contrib.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        git submodule update --init -- contrib
+        mkdir -p contrib/build
+
+    - name: Build contrib if not in cache
+      if: inputs.os == 'Windows' && steps.cache-contrib.outputs.cache-hit != 'true'
+      shell: pwsh
+      run: |
+        $NPROC = $env:NUMBER_OF_PROCESSORS
+        if (-not $NPROC) { $NPROC = 4 }
+        $env:CMAKE_BUILD_PARALLEL_LEVEL = $NPROC
+        Set-Location "${{ github.workspace }}\contrib\build"
+        cmake -G"Visual Studio 17 2022" -Ax64 -DBUILD_TYPE=ALL "${{ github.workspace }}\contrib"
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    - name: Add THIRDPARTY
+      shell: bash
+      run: |
+          # initialize THIRDPARTY
+          git submodule update --init THIRDPARTY
+
+          # add third-party binaries to PATH
+          # use flat THIRDPARTY structure
+          mkdir -p _thirdparty
+
+          tp_folder=${{ runner.os }}
+          if [ "$tp_folder" = "macOS" ]; then
+            tp_folder=MacOS
+          fi
+
+          # Copy the correct architecture
+          cp -R "THIRDPARTY/$tp_folder/$(uname -m)"/* _thirdparty/
+
+          # Copy architecture independent tools
+          cp -R THIRDPARTY/All/* _thirdparty/
+
+          # add third-party binaries to PATH
+          for thirdpartytool in '${{ github.workspace }}/_thirdparty'/*; do
+            if [ "${{ runner.os }}" = "Windows" ]; then
+              echo "${thirdpartytool//\//\\}" >> "$GITHUB_PATH"
+            else
+              echo "${thirdpartytool}" >> "$GITHUB_PATH"
+            fi
+          done
+
+    - name: Install Conda
+      if: inputs.os == 'Windows'
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        activate-environment: "ci"
+        python-version: 3.11
+        use-mamba: true
+
+    - name: Install Dependencies via Conda
+      id: conda-setup
+      if: inputs.os == 'Windows'
+      # NOTE: This weird shell line is needed in order to activate
+      # conda (and put it in this shell's PATH) since the way it's
+      # installed requires a login shell :(
+      shell: bash -el {0}
+      run: |
+        # Dump out environment information for debugging:
+        conda info
+
+        # None of the other arrow sublibraries seemed necessary, but it's an easy addition.
+        conda install -c conda-forge libarrow libparquet libzip -y
+
+        # Set variables required for the following steps so they
+        # don't need a conda environment or login shell:
+        CONDA_ENV_PREFIX=$(
+          conda info --json |
+            jq --raw-output .active_prefix |
+            sed 's|\\|/|g'
+        )
+
+        echo "$CONDA_ENV_PREFIX/bin" >>"$GITHUB_PATH"
+        echo "$CONDA_ENV_PREFIX/Library/bin" >>"$GITHUB_PATH"
+        echo "cmake_prefix=$CONDA_ENV_PREFIX/Library" >>"$GITHUB_OUTPUT"
+
+        # Some output for debugging:
+        echo "CONDA_ENV_PREFIX=$CONDA_ENV_PREFIX"
+
+        # Disable conda auto-activation to prevent race conditions during parallel
+        # CMake builds. See https://github.com/conda/conda/issues/8733
+        # The paths are already added to GITHUB_PATH above, so conda activation
+        # is no longer needed for subsequent steps.
+        conda init --reverse bash
+
+    - name: Install Qt (Windows)
+      if: inputs.os == 'Windows'
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.8.3'    ## Note this version is build with win64_msvc2022_64 and should always match what we use
+        arch: 'win64_msvc2022_64'
+        cache: 'false'
+        archives: 'qtsvg qtimageformats qtbase'
+
+    - name: "Dependencies: Windows"
+      id: deps-windows
+      if: inputs.os == 'Windows'
+      shell: bash
+      run: |
+        choco install -y --no-progress \
+          ccache \
+          doxygen.portable \
+          ghostscript \
+          graphviz
+
+        # Use a custom NSIS, which provides 8-k string support and has
+        # UltraModernUI integrated already:
+        curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
+        7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
+        echo "C:\Program Files (x86)\NSIS" >> $GITHUB_PATH
+
+        echo "cmake_prefix=" >>"$GITHUB_OUTPUT"
+
+    - name: "Dependencies: Linux"
+      id: deps-linux
+      if: inputs.os == 'Linux'
+      shell: bash
+      run: |
+        bash tools/ci/deps-ubuntu.sh
+
+        if [[ "${{ inputs.compiler }}" == clang* ]]; then
+          sudo apt-get -qq install -y libomp-${{ inputs.compiler_ver }}-dev
+        fi
+
+        echo "cmake_prefix=" >>$GITHUB_OUTPUT
+
+    - name: "Dependencies: macOS"
+      id: deps-macos
+      if: inputs.os == 'macOS'
+      env:
+        # We need to add this, otherwise brew "helpfully" updates all
+        # of the GitHub preinstalled packages, which can cause issues:
+        HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
+      shell: bash
+      run: |
+        bash tools/ci/deps-macos.sh
+        brew install ccache
+
+        echo "$(brew --prefix)/bin" >>"$GITHUB_PATH"
+        echo "cmake_prefix=$(brew --prefix);$(brew --prefix libomp)" >>"$GITHUB_OUTPUT"
+
+    # macOS runners do not ship a .NET SDK. OpenMSThermoBridge targets net8.0
+    # and FindDotNetHost.cmake needs the nethost SDK pack for osx-arm64; the
+    # action installs the SDK and exports DOTNET_ROOT.
+    - name: Install .NET SDK (macOS)
+      if: inputs.os == 'macOS'
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Combine Outputs
+      id: combine
+      shell: bash
+      run: |
+        cmake_prefix_s=""
+        cmake_prefix_a=(
+          "${{ steps.conda-setup.outputs.cmake_prefix}}"
+          "${{ steps.deps-windows.outputs.cmake_prefix}}"
+          "${{ steps.deps-linux.outputs.cmake_prefix}}"
+          "${{ steps.deps-macos.outputs.cmake_prefix}}"
+        )
+
+        for path in "${cmake_prefix_a[@]}"; do
+          if [ -n "$path" ]; then
+            if [ -n "$cmake_prefix_s" ]; then
+              cmake_prefix_s="${cmake_prefix_s};"
+            fi
+            cmake_prefix_s="${cmake_prefix_s}${path}"
+          fi
+        done
+
+        echo "cmake_prefix=${cmake_prefix_s}" >> "$GITHUB_OUTPUT"

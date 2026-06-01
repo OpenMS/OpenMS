@@ -142,10 +142,8 @@ namespace OpenMS
       }
 
       // compute intensity distance:
-      OpenSwath::Scoring::normalize_sum(&feature_intensities[0],
-                                        boost::numeric_cast<int>(feature_intensities.size()));
-      OpenSwath::Scoring::normalize_sum(&assay_intensities[0],
-                                        boost::numeric_cast<int>(assay_intensities.size()));
+      OpenSwath::Scoring::normalize_sum(feature_intensities);
+      OpenSwath::Scoring::normalize_sum(assay_intensities);
       double dist_int = manhattanDist_(feature_intensities, 
                                            assay_intensities);
 

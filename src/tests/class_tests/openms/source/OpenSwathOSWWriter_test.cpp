@@ -52,12 +52,8 @@ START_SECTION([EXTRA] RUN.ID is stored as INTEGER not BLOB (regression test for 
 {
   // Regression test: RUN.ID was previously stored as BLOB because addRun()
   // passed the ID as a String to executeBindStatement(), which used
-  // sqlite3_bind_blob for all parameters. FEATURE.RUN_ID was correctly stored
-  // as INTEGER (embedded as a literal in SQL text by prepareLine()). This type
-  // mismatch caused JOIN queries on FEATURE.RUN_ID = RUN.ID to return 0 rows.
-  //
-  // The fix: embed the integer ID as a literal in the SQL text in addRun(),
-  // consistent with how prepareLine() writes FEATURE.RUN_ID.
+  // sqlite3_bind_blob for all parameters. That type mismatch caused JOIN
+  // queries on FEATURE.RUN_ID = RUN.ID to return 0 rows.
   //
   // This test verifies:
   //   1. typeof(RUN.ID) == 'integer'     (was 'blob' before the fix)
@@ -74,15 +70,16 @@ START_SECTION([EXTRA] RUN.ID is stored as INTEGER not BLOB (regression test for 
     writer.writeHeader();
     writer.addRun(large_run_id, "test_input_file.mzML");
 
-    // Manually insert a minimal FEATURE row referencing the same run_id.
+    // Insert a minimal FEATURE row through the prepared-row writer path.
     // clearSignBit masks the sign bit so the stored id may be slightly smaller.
     // We use the same masking logic here.
     const UInt64 rid = large_run_id & ~(1ULL << 63); // mirrors clearSignBit
-    SqliteConnector conn(temp_file);
-    conn.executeStatement(
-      "INSERT INTO FEATURE (ID, RUN_ID, PRECURSOR_ID, EXP_RT, EXP_IM, NORM_RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH, EXP_IM_LEFTWIDTH, EXP_IM_RIGHTWIDTH) "
-      "VALUES (" + String(rid + 1) + ", " + String(rid) + ", 999, 100.0, NULL, 100.0, 0.0, 90.0, 110.0, NULL, NULL);"
-    );
+    OpenSwathOSWWriter::OSWData rows;
+    rows.feature_rows.push_back({
+      String(rid + 1), String(rid), "999", "100.0", "NULL", "100.0",
+      "0.0", "90.0", "110.0", "NULL", "NULL"
+    });
+    writer.writeRows(rows);
   }
 
   // --- Verify ---
@@ -94,6 +91,10 @@ START_SECTION([EXTRA] RUN.ID is stored as INTEGER not BLOB (regression test for 
     conn.executeStatement(
       "CREATE TEMP TABLE _typeof_ok AS SELECT 1 FROM RUN WHERE typeof(ID) = 'integer';");
     TEST_EQUAL(conn.countTableRows("_typeof_ok"), 1)
+
+    conn.executeStatement(
+      "CREATE TEMP TABLE _feature_typeof_ok AS SELECT 1 FROM FEATURE WHERE typeof(RUN_ID) = 'integer';");
+    TEST_EQUAL(conn.countTableRows("_feature_typeof_ok"), 1)
 
     // 2. Check that JOIN on FEATURE.RUN_ID = RUN.ID returns rows
     conn.executeStatement(

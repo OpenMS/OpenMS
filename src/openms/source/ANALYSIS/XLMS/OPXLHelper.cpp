@@ -964,6 +964,10 @@ namespace OpenMS
       if (id.getHits().empty()) continue;
 
       PeptideHit& ph_alpha = id.getHits()[0];
+
+      // skip non-crosslinked PeptideIdentifications that were parsed and don't have crosslink MetaValues
+      if (!ph_alpha.metaValueExists(Constants::UserParam::OPENPEPXL_XL_POS1)) continue;
+
       String prot1_pos;
 
       // cross-link position in Protein (alpha)

@@ -59,8 +59,33 @@ option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript 
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
 option(ENABLE_OPENTIMS_TESTS "Download Bruker test data for opentims integration tests" OFF)
-option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." ON)
+set(_openms_with_thermo_raw_default ON)
+# Thermo's RawFileReader does not ship native dependencies for Linux aarch64,
+# so the .NET runtime can build the bridge but throws a managed exception when
+# actually opening a RAW file. Default OFF on that platform.
+# macOS arm64 is natively supported as of openms-thermo-bridge v0.2.0.
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64$" AND UNIX AND NOT APPLE)
+  set(_openms_with_thermo_raw_default OFF)
+endif()
+option(WITH_THERMO_RAW "Build with Thermo RAW file reading support via openms-thermo-bridge" ${_openms_with_thermo_raw_default})
+option(ENABLE_THERMO_RAW_TESTS "Download Thermo RAW test data for integration tests" OFF)
+option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
+
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64$" AND UNIX AND NOT APPLE)
+  if(WITH_THERMO_RAW)
+    message(WARNING
+      "Thermo RAW support is disabled by default on Linux aarch64 because "
+      "Thermo RawFileReader native dependencies are not available there. You explicitly "
+      "enabled WITH_THERMO_RAW=ON. Please vote on https://github.com/thermofisherlsms/RawFileReader/issues/21 "
+      "and contact Thermo Fisher support by email if this support matters for your workflow.")
+  else()
+    message(STATUS
+      "Thermo RAW support defaults to OFF on Linux aarch64. Please vote on "
+      "https://github.com/thermofisherlsms/RawFileReader/issues/21 and contact Thermo Fisher "
+      "support by email if native support matters for your workflow.")
+  endif()
+endif()
 
 if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
     message(FATAL_ERROR "ENABLE_CWL_GENERATION requires ENABLE_TDL to be ON.")
@@ -94,6 +119,24 @@ if (ENABLE_OPENTIMS_TESTS AND WITH_OPENTIMS)
   set(OPENTIMS_DDA_TEST_DATA "${opentims_testdata_dda_SOURCE_DIR}" CACHE PATH "Path to DDA test .d directory")
   set(OPENTIMS_DIA_TEST_DATA "${opentims_testdata_dia_SOURCE_DIR}" CACHE PATH "Path to DIA test .d directory")
   set(OPENTIMS_TEST_FASTA "${opentims_testdata_fasta_SOURCE_DIR}/human_sp.fasta" CACHE PATH "Path to human Swiss-Prot FASTA for search tests")
+endif()
+
+if (ENABLE_THERMO_RAW_TESTS AND WITH_THERMO_RAW)
+  include(FetchContent)
+  # Angiotensin_AllScans.raw from PNNL-Comp-Mass-Spec/Thermo-Raw-File-Reader
+  # (BSD-2-Clause, (c) 2018 Battelle Memorial Institute). Pinned to a specific
+  # commit for reproducibility. Contains 87 MS1 (FTMS Full ms) plus hundreds of
+  # MS2 scans with HCD and supplemental-activation (ETD+HCD, ETD+CID) filters
+  # at precursor m/z 432.9 — exercises the full activation-method switch in
+  # ThermoRawFile.cpp and MS1+MSn round-trip via mzML.
+  FetchContent_Declare(
+    thermo_raw_testdata
+    URL "https://raw.githubusercontent.com/PNNL-Comp-Mass-Spec/Thermo-Raw-File-Reader/1d8ff309f94704b850642374496c7ac28c491204/UnitTests/Docs/Angiotensin_AllScans.raw"
+    URL_HASH SHA256=3a0236f719e7c91e3c958f57f4e66ae422803ec3e6a997b9af4d2af395332b9f
+    DOWNLOAD_NO_EXTRACT TRUE
+  )
+  FetchContent_MakeAvailable(thermo_raw_testdata)
+  set(THERMO_RAW_TEST_DATA "${thermo_raw_testdata_SOURCE_DIR}/Angiotensin_AllScans.raw" CACHE PATH "Path to Thermo RAW test file")
 endif()
 
 #------------------------------------------------------------------------------
@@ -472,7 +515,10 @@ include(cmake/cmake_findExternalLibs.cmake)
 
 #------------------------------------------------------------------------------
 # find the Doxygen (required by /doc and /src/OpenMS)
-find_package(Doxygen) ## defines 'DOXYGEN_HAVE_DOT', 'DOXYGEN_VERSION' etc
+## 'dot' (Graphviz) is requested as an OPTIONAL component so that machines without it still
+## build all non-dot documentation targets. Provides the Doxygen::doxygen / Doxygen::dot imported
+## targets and the modern Doxygen_FOUND, Doxygen_VERSION, Doxygen_dot_FOUND result variables.
+find_package(Doxygen OPTIONAL_COMPONENTS dot)
 
 
 #------------------------------------------------------------------------------

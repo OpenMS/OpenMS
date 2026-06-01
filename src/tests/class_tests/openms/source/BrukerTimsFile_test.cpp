@@ -7,7 +7,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/FORMAT/RationalScan2ImConverter.h>
@@ -18,9 +18,92 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 
 using namespace OpenMS;
 using namespace std;
+
+namespace
+{
+  // Stats collected from one MSExperiment; used by the three-way (Off vs.
+  // Greedy2D vs. HillBased) comparison sections to assert relationships.
+  struct CentroidStats
+  {
+    Size n_ms1_spectra = 0;
+    Size n_ms2_spectra = 0;
+    Size total_ms1_peaks = 0;
+    Size total_ms2_peaks = 0;
+    double total_ms1_intensity = 0.0;
+    double total_ms2_intensity = 0.0;
+  };
+
+  [[maybe_unused]] CentroidStats collectStats(const MSExperiment& exp)
+  {
+    CentroidStats s;
+    for (const auto& sp : exp)
+    {
+      const Size n = sp.size();
+      double intsum = 0.0;
+      for (Size i = 0; i < n; ++i) intsum += sp[i].getIntensity();
+      if (sp.getMSLevel() == 1)
+      {
+        ++s.n_ms1_spectra;
+        s.total_ms1_peaks += n;
+        s.total_ms1_intensity += intsum;
+      }
+      else if (sp.getMSLevel() == 2)
+      {
+        ++s.n_ms2_spectra;
+        s.total_ms2_peaks += n;
+        s.total_ms2_intensity += intsum;
+      }
+    }
+    return s;
+  }
+
+  // Verify the standard centroided-MS1 invariants on the first non-empty MS1
+  // spectrum: CENTROID type, IM data present, IM array length == peak count,
+  // and m/z-sorted output. Matches the convention used in the existing
+  // "DDA MS1 centroiding test" section (around line 494).
+  [[maybe_unused]] void assertFirstMS1Centroided(const MSExperiment& exp)
+  {
+    bool checked = false;
+    for (const auto& sp : exp)
+    {
+      if (sp.getMSLevel() != 1 || sp.empty()) continue;
+      TEST_EQUAL(sp.getType(), SpectrumSettings::SpectrumType::CENTROID);
+      TEST_EQUAL(sp.containsIMData(), true);
+      const auto& fda = sp.getFloatDataArrays();
+      TEST_EQUAL(fda.empty(), false);
+      TEST_EQUAL(fda[0].size(), sp.size());
+      bool sorted = true;
+      for (Size j = 1; j < sp.size(); ++j)
+        if (sp[j].getMZ() < sp[j-1].getMZ()) { sorted = false; break; }
+      TEST_EQUAL(sorted, true);
+      checked = true;
+      break;
+    }
+    TEST_EQUAL(checked, true);
+  }
+
+  // Same for the first non-empty DIA-MS2 spectrum.
+  [[maybe_unused]] void assertFirstDIAMS2Centroided(const MSExperiment& exp)
+  {
+    bool checked = false;
+    for (const auto& sp : exp)
+    {
+      if (sp.getMSLevel() != 2 || sp.empty()) continue;
+      TEST_EQUAL(sp.getType(), SpectrumSettings::SpectrumType::CENTROID);
+      TEST_EQUAL(sp.containsIMData(), true);
+      const auto& fda = sp.getFloatDataArrays();
+      TEST_EQUAL(fda.empty(), false);
+      TEST_EQUAL(fda[0].size(), sp.size());
+      checked = true;
+      break;
+    }
+    TEST_EQUAL(checked, true);
+  }
+} // anon
 
 START_TEST(BrukerTimsFile, "$Id$")
 
@@ -247,12 +330,327 @@ START_SECTION(DDA loading integration test)
       TEST_NOT_EQUAL(spec.getDriftTime(), 0.0);
       TEST_EQUAL(spec.getDriftTimeUnit(), DriftTimeUnit::VSSC);
       TEST_NOT_EQUAL(spec.getPrecursors()[0].getMZ(), 0.0);
+      // TDF MS2 peaks are detector-centroided; must be labelled CENTROID so
+      // downstream tools (e.g. CometAdapter) don't reject them as profile.
+      TEST_EQUAL(spec.getType(), SpectrumSettings::SpectrumType::CENTROID);
       break;
     }
   }
 
   // Verify source file metadata was populated (I4)
   TEST_NOT_EQUAL(exp.getSourceFiles().size(), 0);
+}
+END_SECTION
+
+START_SECTION(DDA native ID format test)
+{
+  // Contract: DDA MS2 native IDs are "frame=<F> scan=<S> precursor=<P>".
+  // This extends the MS:1002818 pattern with a trailing "precursor=<P>"
+  // token because OpenMS aggregates all PasefFrameMsMsInfo entries sharing
+  // the same Precursors.Id into ONE spectrum (pwiz emits per-mobility-scan,
+  // so its (frame, scan_begin) pairs are inherently unique — ours are not).
+  // The Precursors.Id is ALSO duplicated as MetaValue "bruker_precursor_id"
+  // for typed programmatic access.
+  BrukerTimsFile f;
+  MSExperiment exp;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp);
+
+  // Find a non-empty MS2 spectrum
+  const MSSpectrum* ms2 = nullptr;
+  for (const auto& spec : exp)
+  {
+    if (spec.getMSLevel() == 2 && !spec.empty())
+    {
+      ms2 = &spec;
+      break;
+    }
+  }
+  TEST_NOT_EQUAL(ms2, nullptr);
+
+  const String& id = ms2->getNativeID();
+  TEST_EQUAL(id.hasPrefix("frame="), true);
+  TEST_EQUAL(id.hasSubstring(" scan="), true);
+  TEST_EQUAL(id.hasSubstring(" precursor="), true);
+
+  // Precursors.Id must ALSO be stored as a typed MetaValue.
+  TEST_EQUAL(ms2->metaValueExists("bruker_precursor_id"), true);
+
+  // All DDA MS2 native IDs must be unique inside the run (XSD-level mzML
+  // requirement). This is what the "precursor=<P>" disambiguator buys us.
+  std::set<String> ms2_ids;
+  Size ms2_count = 0;
+  for (const auto& spec : exp)
+  {
+    if (spec.getMSLevel() == 2)
+    {
+      ms2_ids.insert(spec.getNativeID());
+      ++ms2_count;
+    }
+  }
+  TEST_EQUAL(ms2_ids.size(), ms2_count);
+
+  STATUS("DDA MS2 native ID sample: " << id
+         << " bruker_precursor_id=" << ms2->getMetaValue("bruker_precursor_id").toString());
+}
+END_SECTION
+
+START_SECTION(Bruker load_ms1=false test)
+{
+  BrukerTimsFile f;
+
+  // Baseline: default config loads both MS1 and MS2
+  MSExperiment exp_both;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_both);
+  Size raw_ms1 = 0, raw_ms2 = 0;
+  for (const auto& s : exp_both)
+  {
+    if (s.getMSLevel() == 1) ++raw_ms1;
+    else if (s.getMSLevel() == 2) ++raw_ms2;
+  }
+  TEST_NOT_EQUAL(raw_ms1, 0);
+  TEST_NOT_EQUAL(raw_ms2, 0);
+
+  // load_ms1=false: zero MS1, MS2 count unchanged
+  BrukerTimsFile::Config cfg;
+  cfg.load_ms1 = false;
+  MSExperiment exp_ms2_only;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_ms2_only, cfg);
+  Size skip_ms1 = 0, skip_ms2 = 0;
+  for (const auto& s : exp_ms2_only)
+  {
+    if (s.getMSLevel() == 1) ++skip_ms1;
+    else if (s.getMSLevel() == 2) ++skip_ms2;
+  }
+  TEST_EQUAL(skip_ms1, 0);
+  TEST_EQUAL(skip_ms2, raw_ms2);
+
+  STATUS("DDA load_ms1=false: raw MS1=" << raw_ms1 << " MS2=" << raw_ms2
+         << " | skipped MS1=" << skip_ms1 << " MS2=" << skip_ms2);
+
+#ifdef OPENTIMS_DIA_TEST_DATA
+  // Same invariant on DIA
+  MSExperiment exp_dia_both;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_dia_both);
+  Size dia_raw_ms1 = 0, dia_raw_ms2 = 0;
+  for (const auto& s : exp_dia_both)
+  {
+    if (s.getMSLevel() == 1) ++dia_raw_ms1;
+    else if (s.getMSLevel() == 2) ++dia_raw_ms2;
+  }
+
+  BrukerTimsFile::Config cfg_dia;
+  cfg_dia.load_ms1 = false;
+  MSExperiment exp_dia_skip;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_dia_skip, cfg_dia);
+  Size dia_skip_ms1 = 0, dia_skip_ms2 = 0;
+  for (const auto& s : exp_dia_skip)
+  {
+    if (s.getMSLevel() == 1) ++dia_skip_ms1;
+    else if (s.getMSLevel() == 2) ++dia_skip_ms2;
+  }
+  TEST_EQUAL(dia_skip_ms1, 0);
+  TEST_EQUAL(dia_skip_ms2, dia_raw_ms2);
+
+  // FRAME export mode must also honor load_ms1 (skips level==1 loop)
+  BrukerTimsFile::Config cfg_frame;
+  cfg_frame.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_frame.load_ms1 = false;
+  MSExperiment exp_frame;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_frame, cfg_frame);
+  Size frame_ms1 = 0;
+  for (const auto& s : exp_frame)
+  {
+    if (s.getMSLevel() == 1) ++frame_ms1;
+  }
+  TEST_EQUAL(frame_ms1, 0);
+#endif
+}
+END_SECTION
+
+START_SECTION(Bruker frame_id range filter test)
+{
+  BrukerTimsFile f;
+
+  // --- Baseline (default range): full FRAME-mode load of DDA fixture ---
+  BrukerTimsFile::Config cfg_full;
+  cfg_full.export_mode = BrukerTimsFile::Config::FRAME;
+  MSExperiment exp_full;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_full, cfg_full);
+  TEST_NOT_EQUAL(exp_full.size(), 0);
+
+  // FRAME mode emits exactly one spectrum per frame, so spectrum count
+  // equals the file's frame count and we can map a frame-id range to an
+  // expected spectrum count.
+
+  // --- Explicit full range matches default ---
+  BrukerTimsFile::Config cfg_explicit_full;
+  cfg_explicit_full.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_explicit_full.frame_id_min = 0;
+  cfg_explicit_full.frame_id_max = std::numeric_limits<uint32_t>::max();
+  MSExperiment exp_explicit;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_explicit, cfg_explicit_full);
+  TEST_EQUAL(exp_explicit.size(), exp_full.size());
+
+  // --- Sub-range loads strictly fewer spectra ---
+  BrukerTimsFile::Config cfg_sub;
+  cfg_sub.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_sub.frame_id_min = 1;
+  cfg_sub.frame_id_max = 3;  // first three frames only
+  MSExperiment exp_sub;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_sub, cfg_sub);
+  TEST_EQUAL(exp_sub.size(), 3);
+  TEST_EQUAL(exp_sub.size() < exp_full.size(), true);
+
+  // --- Single frame range: exactly one spectrum ---
+  BrukerTimsFile::Config cfg_one;
+  cfg_one.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_one.frame_id_min = 1;
+  cfg_one.frame_id_max = 1;
+  MSExperiment exp_one;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_one, cfg_one);
+  TEST_EQUAL(exp_one.size(), 1);
+
+  // --- Range entirely above file max: zero spectra (warning emitted) ---
+  BrukerTimsFile::Config cfg_above;
+  cfg_above.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_above.frame_id_min = 999999999u;
+  cfg_above.frame_id_max = 999999999u;
+  MSExperiment exp_above;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_above, cfg_above);
+  TEST_EQUAL(exp_above.size(), 0);
+
+  // --- Inverted range (min > max): zero spectra (warning emitted) ---
+  BrukerTimsFile::Config cfg_inv;
+  cfg_inv.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_inv.frame_id_min = 10;
+  cfg_inv.frame_id_max = 5;
+  MSExperiment exp_inv;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_inv, cfg_inv);
+  TEST_EQUAL(exp_inv.size(), 0);
+
+  // --- DDA (SPECTRUM mode): range filters MS1 frames and precursor MS2 ---
+  BrukerTimsFile::Config cfg_dda;
+  MSExperiment exp_dda_full;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_dda_full, cfg_dda);
+
+  BrukerTimsFile::Config cfg_dda_sub = cfg_dda;
+  cfg_dda_sub.frame_id_min = 1;
+  cfg_dda_sub.frame_id_max = 5;
+  MSExperiment exp_dda_sub;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_dda_sub, cfg_dda_sub);
+  TEST_EQUAL(exp_dda_sub.size() < exp_dda_full.size(), true);
+
+#ifdef OPENTIMS_DIA_TEST_DATA
+  // --- DIA: range filters MS1 frames and per-WindowGroup MS2 frames ---
+  BrukerTimsFile::Config cfg_dia_full;
+  MSExperiment exp_dia_full;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_dia_full, cfg_dia_full);
+
+  BrukerTimsFile::Config cfg_dia_sub;
+  cfg_dia_sub.frame_id_min = 1;
+  cfg_dia_sub.frame_id_max = 10;
+  MSExperiment exp_dia_sub;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_dia_sub, cfg_dia_sub);
+  TEST_EQUAL(exp_dia_sub.size() < exp_dia_full.size(), true);
+
+  // --- readDIAMetadata also honors the range (counts must match what
+  //     loadDIAStreaming would actually emit; CachedSwathFileConsumer
+  //     uses these counts to size its buffers). ---
+  ExperimentalSettings settings_full;
+  auto meta_full = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings_full);
+
+  ExperimentalSettings settings_sub;
+  auto meta_sub = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings_sub, cfg_dia_sub);
+  TEST_EQUAL(meta_sub.nr_ms1_spectra <= meta_full.nr_ms1_spectra, true);
+  TEST_EQUAL(meta_sub.nr_ms2_spectra.size(), meta_full.nr_ms2_spectra.size());
+  // At least one window must have a smaller count after filtering
+  bool any_smaller = false;
+  for (Size i = 0; i < meta_sub.nr_ms2_spectra.size(); ++i)
+  {
+    if (meta_sub.nr_ms2_spectra[i] < meta_full.nr_ms2_spectra[i]) any_smaller = true;
+    TEST_EQUAL(meta_sub.nr_ms2_spectra[i] <= meta_full.nr_ms2_spectra[i], true);
+  }
+  TEST_EQUAL(any_smaller, true);
+#endif
+
+  STATUS("DDA full=" << exp_full.size() << " sub[1..3]=" << exp_sub.size()
+         << " single[1..1]=" << exp_one.size()
+         << " | DDA SPECTRUM full=" << exp_dda_full.size()
+         << " sub[1..5]=" << exp_dda_sub.size());
+}
+END_SECTION
+
+START_SECTION(Bruker rt_min_sec/rt_max_sec range filter test)
+{
+  BrukerTimsFile f;
+
+  // --- Baseline: full FRAME-mode load to discover the file's RT span. ---
+  BrukerTimsFile::Config cfg_full;
+  cfg_full.export_mode = BrukerTimsFile::Config::FRAME;
+  MSExperiment exp_full;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_full, cfg_full);
+  TEST_NOT_EQUAL(exp_full.size(), 0);
+  // Compute true RT bounds without assuming order
+  double rt_lo = exp_full[0].getRT();
+  double rt_hi = rt_lo;
+  for (const auto& s : exp_full)
+  {
+    double rt = s.getRT();
+    if (rt < rt_lo) rt_lo = rt;
+    if (rt > rt_hi) rt_hi = rt;
+  }
+  TEST_EQUAL(rt_lo <= rt_hi, true);
+
+  // --- Sub-range: take the first half of the RT span ---
+  const double rt_mid = rt_lo + 0.5 * (rt_hi - rt_lo);
+  BrukerTimsFile::Config cfg_rt_half;
+  cfg_rt_half.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_rt_half.rt_min_sec = rt_lo;
+  cfg_rt_half.rt_max_sec = rt_mid;
+  MSExperiment exp_rt_half;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_rt_half, cfg_rt_half);
+  TEST_NOT_EQUAL(exp_rt_half.size(), 0);
+  TEST_EQUAL(exp_rt_half.size() < exp_full.size(), true);
+  // All emitted spectra must have RT inside the requested window.
+  for (const auto& s : exp_rt_half)
+  {
+    TEST_EQUAL(s.getRT() >= rt_lo - 1e-6, true);
+    TEST_EQUAL(s.getRT() <= rt_mid + 1e-6, true);
+  }
+
+  // --- RT range that excludes all frames: empty experiment ---
+  BrukerTimsFile::Config cfg_rt_none;
+  cfg_rt_none.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_rt_none.rt_min_sec = rt_hi + 1e6;  // far past the last frame
+  cfg_rt_none.rt_max_sec = rt_hi + 2e6;
+  MSExperiment exp_rt_none;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_rt_none, cfg_rt_none);
+  TEST_EQUAL(exp_rt_none.size(), 0);
+
+  // --- Inverted RT range: empty (with warning) ---
+  BrukerTimsFile::Config cfg_rt_inv;
+  cfg_rt_inv.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_rt_inv.rt_min_sec = rt_hi;
+  cfg_rt_inv.rt_max_sec = rt_lo;
+  MSExperiment exp_rt_inv;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_rt_inv, cfg_rt_inv);
+  TEST_EQUAL(exp_rt_inv.size(), 0);
+
+  // --- Intersection of frame_id and rt ranges: the narrower wins ---
+  BrukerTimsFile::Config cfg_both;
+  cfg_both.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_both.frame_id_min = 1;
+  cfg_both.frame_id_max = 5;     // first 5 frames
+  cfg_both.rt_min_sec = rt_lo;
+  cfg_both.rt_max_sec = rt_hi;   // full RT (no extra constraint)
+  MSExperiment exp_both;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_both, cfg_both);
+  TEST_EQUAL(exp_both.size() <= 5, true);
+  TEST_NOT_EQUAL(exp_both.size(), 0);
+
+  STATUS("RT full=" << exp_full.size() << " (RT [" << rt_lo << ", " << rt_hi << "])"
+         << " half[" << rt_lo << ", " << rt_mid << "]=" << exp_rt_half.size()
+         << " intersection(frame[1..5] & rt_full)=" << exp_both.size());
 }
 END_SECTION
 
@@ -312,6 +710,8 @@ START_SECTION(DDA frame-level loading test)
     if (!spec.empty())
     {
       TEST_EQUAL(spec.containsIMData(), true);
+      // frameToSpectrum emits detector-centroided peaks; label as CENTROID.
+      TEST_EQUAL(spec.getType(), SpectrumSettings::SpectrumType::CENTROID);
       break;
     }
   }
@@ -385,6 +785,42 @@ START_SECTION(DDA MS1 centroiding test)
 }
 END_SECTION
 
+START_SECTION(DDA MS1 centroiding cap is exact (regression: issue #9230))
+{
+  // With ms1_centroid_max_peaks=N, no centroided MS1 spectrum should ever
+  // exceed N peaks. Prior to the fix, the cap was off-by-one and emitted
+  // N+1 peaks whenever it fired, producing defaultArrayLength="100001" in
+  // the resulting mzML on real timsTOF runs.
+  BrukerTimsFile f;
+  BrukerTimsFile::Config cfg;
+  cfg.ms1_centroid_mz_ppm = 5.0f;
+  cfg.ms1_centroid_im_pct = 3.0f;
+  cfg.ms1_centroid_max_peaks = 10; // small cap so it actually fires
+  MSExperiment exp;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp, cfg);
+
+  Size capped_count = 0;
+  Size max_observed = 0;
+  for (const auto& spec : exp)
+  {
+    if (spec.getMSLevel() != 1) continue;
+    max_observed = std::max(max_observed, spec.size());
+    if (spec.size() == static_cast<Size>(cfg.ms1_centroid_max_peaks)) ++capped_count;
+    // IM array must stay aligned with peak count regardless of cap
+    if (!spec.empty())
+    {
+      TEST_EQUAL(spec.getFloatDataArrays().empty(), false);
+      TEST_EQUAL(spec.getFloatDataArrays()[0].size(), spec.size());
+    }
+  }
+
+  // Hard invariant: never exceed the cap
+  TEST_EQUAL(max_observed <= static_cast<Size>(cfg.ms1_centroid_max_peaks), true);
+  // Sanity: cap should actually have fired on this fixture
+  TEST_EQUAL(capped_count > 0, true);
+}
+END_SECTION
+
 START_SECTION(DDA partial centroiding config test)
 {
   // Setting only one tolerance should NOT enable centroiding
@@ -435,7 +871,7 @@ START_SECTION(DDA search engine IM annotation integration test)
   TEST_TRUE(ms2_count > 0)
   TEST_EQUAL(ms2_with_im, ms2_count) // all MS2 spectra should have drift time
 
-  // Run PeptideSearchEngineFIAlgorithm in-memory with the same FASTA and
+  // Run ProSEAlgorithm in-memory with the same FASTA and
   // parameters used by the TOPP-level DDA tests for SSE and FI.
   // The key test: any PSMs produced must have IM annotation.
   vector<FASTAFile::FASTAEntry> fasta_db;
@@ -443,9 +879,10 @@ START_SECTION(DDA search engine IM annotation integration test)
   TEST_TRUE(fasta_db.size() > 0)
 
   // Typical timsTOF Pro DDA-PASEF search parameters
-  PeptideSearchEngineFIAlgorithm algo;
+  ProSEAlgorithm algo;
   Param p = algo.getParameters();
-  p.setValue("precursor:mass_tolerance", 20.0);
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
   p.setValue("precursor:mass_tolerance_unit", "ppm");
   p.setValue("fragment:mass_tolerance", 20.0);
   p.setValue("fragment:mass_tolerance_unit", "ppm");
@@ -458,7 +895,7 @@ START_SECTION(DDA search engine IM annotation integration test)
   PeptideIdentificationList pep_ids;
   auto ec = algo.search(exp, fasta_db, prot_ids, pep_ids);
 
-  TEST_EQUAL(ec == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
   TEST_EQUAL(prot_ids.size(), 1)
 
   // Verify IM annotation: every PSM must have IM meta value (all MS2 spectra have drift time)
@@ -484,6 +921,254 @@ START_SECTION(DDA search engine IM annotation integration test)
 }
 END_SECTION
 
+START_SECTION(DDA MS1 aggregation with RT cap test)
+{
+  BrukerTimsFile f;
+
+  // Baseline: raw DDA MS1
+  MSExperiment exp_raw;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_raw);
+
+  // Aggregated: ms1_n_neighbors=1 uncapped
+  BrukerTimsFile::Config cfg_uncapped;
+  cfg_uncapped.ms1_n_neighbors = 1;
+  cfg_uncapped.ms1_max_rt_distance_sec = 0.0;
+  MSExperiment exp_uncapped;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_uncapped, cfg_uncapped);
+
+  // Aggregated: tight 1.0s RT cap (may be inert if fixture MS1 cadence is tight)
+  BrukerTimsFile::Config cfg_capped;
+  cfg_capped.ms1_n_neighbors = 1;
+  cfg_capped.ms1_max_rt_distance_sec = 1.0;
+  MSExperiment exp_capped;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_capped, cfg_capped);
+
+  auto count_ms1 = [](const MSExperiment& e, Size& n_spectra, double& total_intensity)
+  {
+    n_spectra = 0; total_intensity = 0.0;
+    for (const auto& s : e)
+      if (s.getMSLevel() == 1)
+      {
+        ++n_spectra;
+        for (const auto& p : s) total_intensity += p.getIntensity();
+      }
+  };
+
+  Size raw_n, uncapped_n, capped_n;
+  double raw_i, uncapped_i, capped_i;
+  count_ms1(exp_raw, raw_n, raw_i);
+  count_ms1(exp_uncapped, uncapped_n, uncapped_i);
+  count_ms1(exp_capped, capped_n, capped_i);
+
+  TEST_NOT_EQUAL(raw_n, 0);
+  TEST_NOT_EQUAL(uncapped_n, 0);
+  TEST_NOT_EQUAL(capped_n, 0);
+
+  // Uncapped aggregation boosts intensity over raw
+  TEST_EQUAL(uncapped_i > raw_i, true);
+
+  // Capped aggregation ≤ uncapped (cap can only exclude neighbors, never add)
+  TEST_EQUAL(capped_i <= uncapped_i, true);
+
+  STATUS("DDA MS1 aggregation: raw intensity=" << raw_i
+         << " uncapped=" << uncapped_i
+         << " capped(1.0s)=" << capped_i
+         << " cap_reduction=" << (1.0 - capped_i / uncapped_i));
+}
+END_SECTION
+
+START_SECTION(DDA MS2 HillBased centroiding comparison)
+{
+  // DDA-MS2 hill: bypasses the TOF-domain pipeline (sort/group/smooth/
+  // local-max in TOF space) and runs IM-axis hill detection on per-precursor
+  // (m/z, intensity, IM) triples. Output schema is unchanged: scalar
+  // drift_time, no per-peak IM array.
+  using CA = BrukerTimsFile::Config::CentroidAlgo;
+
+  BrukerTimsFile f;
+
+  // Baseline: default DDA-MS2 (TOF-domain pipeline).
+  BrukerTimsFile::Config cfg_default;
+  MSExperiment exp_default;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_default, cfg_default);
+
+  // HillBased DDA-MS2 with the DDA-PASEF recommended override
+  // ms2_centroid_min_hill_length=1 (single-scan ions are common in DDA's
+  // narrow precursor IM range; the default value of 2 is DIA-PASEF-tuned
+  // and would drop ~93% of DDA peaks).
+  BrukerTimsFile::Config cfg_hill;
+  cfg_hill.ms2_centroid_algo            = CA::HILL_BASED;
+  cfg_hill.ms2_centroid_mz_ppm          = 20.0f;
+  cfg_hill.ms2_centroid_min_hill_length = 1;
+  cfg_hill.centroid_valley_factor       = 1.3;
+  MSExperiment exp_hill;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_hill, cfg_hill);
+
+  // Spectrum count invariant.
+  TEST_EQUAL(exp_default.size(), exp_hill.size());
+
+  // Count MS2 peaks and verify schema invariants on the first non-empty MS2.
+  Size n_ms2_default_peaks = 0, n_ms2_hill_peaks = 0;
+  Size n_ms2_default = 0, n_ms2_hill = 0;
+  bool checked_schema = false;
+  for (Size i = 0; i < exp_default.size(); ++i)
+  {
+    const auto& d = exp_default[i];
+    const auto& h = exp_hill[i];
+    if (d.getMSLevel() == 2)
+    {
+      ++n_ms2_default;
+      n_ms2_default_peaks += d.size();
+    }
+    if (h.getMSLevel() == 2)
+    {
+      ++n_ms2_hill;
+      n_ms2_hill_peaks += h.size();
+
+      if (!checked_schema && !h.empty())
+      {
+        // DDA-MS2 schema invariants (unchanged by hill centroiding):
+        TEST_EQUAL(h.getType(), SpectrumSettings::SpectrumType::CENTROID);
+        // Scalar drift time should be populated (intensity-weighted IM mean).
+        TEST_EQUAL(h.getDriftTime() > 0.0, true);
+        // No per-peak IM array on DDA-MS2 (in contrast to DIA-MS2).
+        TEST_EQUAL(h.containsIMData(), false);
+        // m/z sorted ascending.
+        bool sorted = true;
+        for (Size j = 1; j < h.size(); ++j)
+          if (h[j].getMZ() < h[j-1].getMZ()) { sorted = false; break; }
+        TEST_EQUAL(sorted, true);
+        // Precursor metadata preserved.
+        TEST_EQUAL(h.getPrecursors().empty(), false);
+        checked_schema = true;
+      }
+    }
+  }
+  // With ms2_centroid_min_hill_length=1 default, hill keeps every input peak
+  // → spectrum count matches default TOF-domain pipeline exactly.
+  TEST_EQUAL(n_ms2_default, n_ms2_hill);
+  TEST_EQUAL(n_ms2_hill > 0, true);
+  TEST_EQUAL(n_ms2_hill_peaks > 0, true);
+  TEST_EQUAL(checked_schema, true);
+
+  // Hill MS2 peak count: structurally different algorithm (IM-axis trace
+  // linking vs. TOF-axis local maxima), so the ratio can vary substantially.
+  // Soft bounds allow either direction; primary check is "non-empty and
+  // schema-correct" above.
+  const double ms2_count_ratio = static_cast<double>(n_ms2_hill_peaks) /
+                                 static_cast<double>(n_ms2_default_peaks);
+  TEST_EQUAL(ms2_count_ratio > 0.05 && ms2_count_ratio < 20.0, true);
+
+  STATUS("DDA MS2 default(TOF-domain)=" << n_ms2_default_peaks
+         << " hill=" << n_ms2_hill_peaks
+         << " ratio=" << ms2_count_ratio
+         << " spectra default=" << n_ms2_default
+         << " hill=" << n_ms2_hill
+         << " kept_frac=" << (static_cast<double>(n_ms2_hill) / n_ms2_default));
+}
+END_SECTION
+
+START_SECTION(DDA MS1 hill-vs-greedy centroiding comparison)
+{
+  // Hill-vs-greedy comparison on real .d data. Asserts cross-algorithm
+  // relationships rather than pinned absolute numbers (those drift with
+  // opentims/SDK updates). Skips the raw baseline to keep load count low —
+  // raw-vs-greedy is already covered by the "DDA MS1 centroiding test"
+  // section above.
+  //
+  // On TIMS detector-centroided data, hill linking with min_hill_length=1
+  // is appropriate: greedy uses a fixed (mz_ppm, im_pct) box around each
+  // apex, which over-fragments ions whose IM peak width exceeds im_pct
+  // (typical FWHM ~3-5% in 1/K0). Hill chains across all IM scans of an
+  // ion regardless of width, so hill output count is *lower* than greedy,
+  // not higher. min_hill_length=1 keeps single-scan ions whose m/z chain
+  // breaks (e.g., due to detector centroiding scatter scan-to-scan).
+  using CA = BrukerTimsFile::Config::CentroidAlgo;
+
+  BrukerTimsFile f;
+
+  BrukerTimsFile::Config cfg_greedy;
+  cfg_greedy.ms1_centroid_algo      = CA::GREEDY2D;
+  cfg_greedy.ms1_centroid_mz_ppm    = 5.0f;
+  cfg_greedy.ms1_centroid_im_pct    = 3.0f;
+  cfg_greedy.ms1_centroid_max_peaks = 1000000;
+
+  BrukerTimsFile::Config cfg_hill;
+  cfg_hill.ms1_centroid_algo        = CA::HILL_BASED;
+  cfg_hill.ms1_centroid_mz_ppm      = 5.0f;
+  cfg_hill.centroid_valley_factor   = 1.3;
+  // ms1_centroid_min_hill_length defaults to 1 (sparse TIMS-PASEF MS1).
+
+  MSExperiment exp_greedy, exp_hill;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_greedy, cfg_greedy);
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_hill,   cfg_hill);
+
+  TEST_EQUAL(exp_greedy.size(), exp_hill.size());
+
+  const auto s_greedy = collectStats(exp_greedy);
+  const auto s_hill   = collectStats(exp_hill);
+
+  // Spectrum-level invariants.
+  TEST_EQUAL(s_greedy.n_ms1_spectra, s_hill.n_ms1_spectra);
+  TEST_EQUAL(s_greedy.n_ms2_spectra, s_hill.n_ms2_spectra);
+  // DDA-MS2 unchanged in this iteration.
+  TEST_EQUAL(s_greedy.total_ms2_peaks, s_hill.total_ms2_peaks);
+
+  TEST_EQUAL(s_hill.total_ms1_peaks > 0, true);
+
+  // Hill output count expected lower than greedy on TIMS data because hill
+  // re-groups what greedy fragments via its IM-box cut. Soft floor 0.05x
+  // greedy guards against catastrophic loss while remaining tolerant of
+  // wide ion-mobility peaks (where ratios of ~20:1 are typical).
+  const double count_ratio =
+      static_cast<double>(s_hill.total_ms1_peaks) /
+      static_cast<double>(s_greedy.total_ms1_peaks);
+  TEST_EQUAL(count_ratio > 0.05, true);
+  TEST_EQUAL(count_ratio < 1.5, true);
+
+  // Signal preservation: with min_hill_length=1, hill should retain the
+  // bulk of greedy's summed intensity. Lower bound 0.7 is loose because
+  // hill drops zero-mass-diff edge cases that greedy keeps; tighten in a
+  // follow-up after we have a few CI runs of actual values to read.
+  const double intensity_ratio =
+      s_hill.total_ms1_intensity / s_greedy.total_ms1_intensity;
+  TEST_EQUAL(intensity_ratio > 0.7, true);
+  TEST_EQUAL(intensity_ratio < 1.3, true);
+
+  // m/z-agreement spot check: hill-based apex peak's m/z must lie within
+  // 2x the configured tolerance of the nearest Greedy2D centroid in the
+  // same spectrum. Guards against gross m/z bias.
+  bool ran_mz_check = false;
+  for (Size i = 0; i < exp_hill.size() && !ran_mz_check; ++i)
+  {
+    if (exp_hill[i].getMSLevel() != 1 || exp_hill[i].empty()) continue;
+    if (exp_greedy[i].empty()) continue;
+    const auto& h = exp_hill[i];
+    Size apex = 0;
+    for (Size j = 1; j < h.size(); ++j)
+      if (h[j].getIntensity() > h[apex].getIntensity()) apex = j;
+    const double h_mz = h[apex].getMZ();
+    double best_dppm = 1e9;
+    for (Size j = 0; j < exp_greedy[i].size(); ++j)
+    {
+      const double dppm = std::abs(exp_greedy[i][j].getMZ() - h_mz) / h_mz * 1e6;
+      if (dppm < best_dppm) best_dppm = dppm;
+    }
+    TEST_EQUAL(best_dppm < 2.0 * cfg_hill.ms1_centroid_mz_ppm, true);
+    ran_mz_check = true;
+  }
+  TEST_EQUAL(ran_mz_check, true);
+
+  STATUS("DDA MS1 greedy=" << s_greedy.total_ms1_peaks
+         << " hill=" << s_hill.total_ms1_peaks
+         << " count_ratio=" << count_ratio
+         << " intensity_ratio=" << intensity_ratio);
+
+  assertFirstMS1Centroided(exp_greedy);
+  assertFirstMS1Centroided(exp_hill);
+}
+END_SECTION
+
 #endif // OPENTIMS_DDA_TEST_DATA
 
 #ifdef OPENTIMS_DIA_TEST_DATA
@@ -503,6 +1188,8 @@ START_SECTION(DIA loading integration test)
     {
       TEST_EQUAL(spec.containsIMData(), true);
       TEST_NOT_EQUAL(spec.getPrecursors().size(), 0);
+      // TDF MS2 peaks are detector-centroided; must be labelled CENTROID.
+      TEST_EQUAL(spec.getType(), SpectrumSettings::SpectrumType::CENTROID);
       break;
     }
   }
@@ -564,6 +1251,859 @@ START_SECTION(DIA MS1 centroiding test)
 
   // Centroided should have fewer peaks
   TEST_EQUAL(cent_ms1_peaks < raw_ms1_peaks, true);
+}
+END_SECTION
+
+START_SECTION(DIA MS2 aggregation test)
+{
+  BrukerTimsFile f;
+
+  // Load without aggregation (baseline). The default dia_ms2_n_neighbors is
+  // 2 (DIA-PASEF-tuned); for this test we explicitly override to 0 to get
+  // the truly raw per-frame export.
+  BrukerTimsFile::Config cfg_raw;
+  cfg_raw.dia_ms2_n_neighbors = 0;
+  MSExperiment exp_raw;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_raw, cfg_raw);
+
+  // Load with aggregation (n_neighbors=1 → 3-frame sum)
+  BrukerTimsFile::Config cfg;
+  cfg.dia_ms2_n_neighbors = 1;
+  cfg.dia_ms2_min_support = 1;
+  MSExperiment exp_agg;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_agg, cfg);
+
+  // Count MS2 spectra, total MS2 peaks, and cumulative MS2 intensity in both.
+  //
+  // FrameAggregator (BrukerTimsFile.cpp) is a two-stage operation on a
+  // sparse 2D grid keyed by (mz_bin, scan_id) — NOT (mz_bin, scan_id, frame_id):
+  //
+  //   1. SUM stage: for each (center_frame_i, window) position, accumulate
+  //      peaks from 2*n_neighbors+1 = 3 adjacent frames into grid cells. Each
+  //      cell's intensity_sum is the SUM of all contributing frames' peak
+  //      intensities at that (mz_bin, scan_id). Each raw frame's peaks get
+  //      added to 3 different aggregator grids (one as center, two as
+  //      neighbors), so the TOTAL intensity across all aggregated positions
+  //      is ~3x the raw total (verified empirically with min_support=0:
+  //      8469 raw spectra, 50.1M peaks, 6.00e9 intensity ->
+  //      8469 agg spectra, 141.2M peaks, 1.80e10 intensity = 2.998x raw).
+  //
+  //   2. DENOISE stage: with min_support=1, each cell is dropped unless at
+  //      least ONE of its 8 spatial neighbors in the (mz_bin, scan_id) 3x3
+  //      grid is also occupied. This is a 2D convolution-style filter that
+  //      removes isolated cells — typically noise peaks that lack a compact
+  //      cluster shape in (m/z, IM) space. Empirically, this drops ~64% of
+  //      peaks and ~57% of intensity (141.2M -> 50.6M peaks, 1.80e10 ->
+  //      7.71e9 intensity). Surviving peaks have ~1.20x the average
+  //      intensity of the pre-denoise pool, confirming denoising
+  //      preferentially keeps high-SNR signal.
+  //
+  // Net effect (n_neighbors=1, min_support=1): peak COUNT stays roughly equal
+  // to raw (+1% from transient edge peaks that just pass the neighbor check);
+  // total intensity is ~1.28x raw. The sparsity reduction for picking comes
+  // from the DENOISED output: each surviving cell is both part of a compact
+  // 2D cluster AND has its intensity boosted by the 3-frame sum. Downstream
+  // 2D Gaussian smoothing in finalizeCentroided() operates on this
+  // clustered-and-boosted grid, giving much better centroid fits than raw.
+  Size raw_ms2_count = 0, agg_ms2_count = 0;
+  Size raw_ms2_peaks = 0, agg_ms2_peaks = 0;
+  double raw_ms2_intensity = 0.0, agg_ms2_intensity = 0.0;
+  for (const auto& spec : exp_raw)
+  {
+    if (spec.getMSLevel() == 2)
+    {
+      ++raw_ms2_count;
+      raw_ms2_peaks += spec.size();
+      for (const auto& p : spec) raw_ms2_intensity += p.getIntensity();
+    }
+  }
+  for (const auto& spec : exp_agg)
+  {
+    if (spec.getMSLevel() == 2)
+    {
+      ++agg_ms2_count;
+      agg_ms2_peaks += spec.size();
+      for (const auto& p : spec) agg_ms2_intensity += p.getIntensity();
+    }
+  }
+
+  // Both should have MS2 spectra.
+  TEST_NOT_EQUAL(raw_ms2_count, 0);
+  TEST_NOT_EQUAL(agg_ms2_count, 0);
+
+  // Spectrum count: both paths iterate per-WindowGroup, but aggregation drops
+  // a small number of boundary positions at the LC run edges where the
+  // n_neighbors window cannot be satisfied. Allow up to 2% loss.
+  TEST_EQUAL(agg_ms2_count <= raw_ms2_count, true);
+  TEST_EQUAL(agg_ms2_count >= raw_ms2_count * 98 / 100, true);
+
+  // Peak count is nearly unchanged (see big comment above). Allow ±10% for
+  // transient edge peaks (cells populated by only some of the neighbor frames).
+  TEST_EQUAL(agg_ms2_peaks >= raw_ms2_peaks * 90 / 100, true);
+  TEST_EQUAL(agg_ms2_peaks <= raw_ms2_peaks * 110 / 100, true);
+
+  // Cumulative intensity: aggregation sums contributions from neighbor frames
+  // into shared (mz_bin, scan_id) cells. The effective intensity multiplier
+  // is NOT the naive 2*n_neighbors+1 = 3 — it depends on how many cells are
+  // shared across neighbor frames, which is a data-dependent property (profile
+  // mode sampling + m/z binning + integer IM scan quantization + stable vs
+  // transient ion populations). For this fixture with n_neighbors=1 we observe
+  // ratio ≈ 1.28, reflecting that only a subset of cells are populated across
+  // all 3 neighbor frames.
+  //
+  // The bounds below are a regression guard: [1.15, 1.45] catches
+  //   - no intensity boost at all (ratio == 1, aggregation broken)
+  //   - runaway intensity (ratio > 1.5, e.g. double-counting)
+  // while tolerating minor fixture variation.
+  TEST_EQUAL(raw_ms2_intensity > 0.0, true); // guard division below
+  const double intensity_ratio = agg_ms2_intensity / raw_ms2_intensity;
+  TEST_EQUAL(intensity_ratio >= 1.15, true);
+  TEST_EQUAL(intensity_ratio <= 1.45, true);
+
+  // Aggregated spectra should have per-peak IM data.
+  for (const auto& spec : exp_agg)
+  {
+    if (spec.getMSLevel() == 2 && !spec.empty())
+    {
+      TEST_EQUAL(spec.containsIMData(), true);
+      TEST_EQUAL(spec.getIMPeakType() == IMPeakType::IM_PROFILE, true);
+      TEST_NOT_EQUAL(spec.getPrecursors().size(), 0);
+      break;
+    }
+  }
+
+  STATUS("DIA aggregation: raw MS2 spectra=" << raw_ms2_count
+         << " peaks=" << raw_ms2_peaks
+         << " intensity=" << raw_ms2_intensity
+         << " | aggregated MS2 spectra=" << agg_ms2_count
+         << " peaks=" << agg_ms2_peaks
+         << " intensity=" << agg_ms2_intensity
+         << " | intensity_ratio=" << intensity_ratio);
+}
+END_SECTION
+
+START_SECTION(DIA MS2 centroiding test)
+{
+  BrukerTimsFile f;
+
+  // Load with aggregation + centroiding
+  BrukerTimsFile::Config cfg;
+  cfg.dia_ms2_n_neighbors = 1;
+  cfg.dia_ms2_min_support = 1;
+  cfg.dia_ms2_centroid = true;
+  MSExperiment exp_cent;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_cent, cfg);
+
+  // Count MS2 spectra
+  Size cent_ms2_count = 0;
+  Size cent_ms2_peaks = 0;
+  for (const auto& spec : exp_cent)
+  {
+    if (spec.getMSLevel() == 2)
+    {
+      ++cent_ms2_count;
+      cent_ms2_peaks += spec.size();
+    }
+  }
+
+  TEST_NOT_EQUAL(cent_ms2_count, 0);
+
+  // Centroided spectra should have IM_CENTROIDED type and per-peak IM data
+  for (const auto& spec : exp_cent)
+  {
+    if (spec.getMSLevel() == 2 && !spec.empty())
+    {
+      TEST_EQUAL(spec.containsIMData(), true);
+      TEST_EQUAL(spec.getIMPeakType() == IMPeakType::IM_CENTROIDED, true);
+      TEST_NOT_EQUAL(spec.getPrecursors().size(), 0);
+      break;
+    }
+  }
+
+  STATUS("DIA centroiding: MS2 spectra=" << cent_ms2_count
+         << " peaks=" << cent_ms2_peaks);
+}
+END_SECTION
+
+START_SECTION(DIA MS2 centroiding without denoising (min_support=0))
+{
+  // Regression guard for the "centroid without noise filter" path exposed via
+  // Config::dia_ms2_min_support = 0. With min_support=0 the 3x3 neighbor filter
+  // in FrameAggregator::finalize{,Centroided} is a no-op (`neighbors < 0` is
+  // always false), so every populated grid cell survives the denoise step.
+  // Under centroiding that means more local maxima → strictly more output peaks
+  // than the denoised (min_support=1) path, because denoising preferentially
+  // removes isolated cells that would otherwise become their own centroid.
+  BrukerTimsFile f;
+
+  BrukerTimsFile::Config cfg_denoise;
+  cfg_denoise.dia_ms2_n_neighbors = 1;
+  cfg_denoise.dia_ms2_min_support = 1;
+  cfg_denoise.dia_ms2_centroid = true;
+  MSExperiment exp_denoise;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_denoise, cfg_denoise);
+
+  BrukerTimsFile::Config cfg_no_denoise;
+  cfg_no_denoise.dia_ms2_n_neighbors = 1;
+  cfg_no_denoise.dia_ms2_min_support = 0;
+  cfg_no_denoise.dia_ms2_centroid = true;
+  MSExperiment exp_no_denoise;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_no_denoise, cfg_no_denoise);
+
+  Size denoise_peaks = 0, no_denoise_peaks = 0;
+  Size denoise_spectra = 0, no_denoise_spectra = 0;
+  for (const auto& spec : exp_denoise)
+    if (spec.getMSLevel() == 2) { ++denoise_spectra; denoise_peaks += spec.size(); }
+  for (const auto& spec : exp_no_denoise)
+    if (spec.getMSLevel() == 2) { ++no_denoise_spectra; no_denoise_peaks += spec.size(); }
+
+  // Without denoising, a few spectra that would become empty after denoising
+  // (and are dropped by the `if (peaks.empty()) continue;` guard in the
+  // BrukerTimsFile loader) are now retained. Count is >= denoised count.
+  TEST_EQUAL(no_denoise_spectra >= denoise_spectra, true);
+
+  // Without denoising the centroided output contains strictly more peaks:
+  // every populated grid cell becomes a centroid candidate instead of being
+  // dropped when isolated.
+  TEST_NOT_EQUAL(no_denoise_peaks, 0);
+  TEST_EQUAL(no_denoise_peaks > denoise_peaks, true);
+
+  // Output is still centroided in the IM dimension.
+  for (const auto& spec : exp_no_denoise)
+  {
+    if (spec.getMSLevel() == 2 && !spec.empty())
+    {
+      TEST_EQUAL(spec.containsIMData(), true);
+      TEST_EQUAL(spec.getIMPeakType() == IMPeakType::IM_CENTROIDED, true);
+      TEST_NOT_EQUAL(spec.getPrecursors().size(), 0);
+      break;
+    }
+  }
+
+  STATUS("DIA centroiding (no denoise): MS2 peaks=" << no_denoise_peaks
+         << " vs denoised=" << denoise_peaks
+         << " ratio=" << (static_cast<double>(no_denoise_peaks) / denoise_peaks));
+}
+END_SECTION
+
+START_SECTION(DIA MS1 default config regression test)
+{
+  // Regression guard: with all new MS1 aggregation knobs at their defaults
+  // (ms1_n_neighbors=0, ms1_min_support=0, ms1_max_rt_distance_sec=0.0),
+  // the DIA MS1 output must be byte-identical to the pre-PR load. This
+  // section fails if a future change accidentally enables aggregation
+  // by default.
+  BrukerTimsFile f;
+
+  BrukerTimsFile::Config cfg_default;  // all defaults
+  MSExperiment exp_default;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_default, cfg_default);
+
+  // Snapshot: count MS1 spectra, total MS1 peaks, total MS1 intensity
+  Size ms1_spectra = 0, ms1_peaks = 0;
+  double ms1_intensity = 0.0;
+  for (const auto& spec : exp_default)
+  {
+    if (spec.getMSLevel() == 1)
+    {
+      ++ms1_spectra;
+      ms1_peaks += spec.size();
+      for (const auto& p : spec) ms1_intensity += p.getIntensity();
+    }
+  }
+
+  TEST_NOT_EQUAL(ms1_spectra, 0);
+  TEST_NOT_EQUAL(ms1_peaks, 0);
+
+  STATUS("DIA MS1 default-config snapshot: spectra=" << ms1_spectra
+         << " peaks=" << ms1_peaks
+         << " intensity=" << ms1_intensity);
+
+  // Independently reproduce with ms1_n_neighbors=0 explicitly — assert
+  // the numbers match exactly, proving the knob at 0 is inert.
+  BrukerTimsFile::Config cfg_explicit_off;
+  cfg_explicit_off.ms1_n_neighbors = 0;
+  cfg_explicit_off.ms1_min_support = 0;
+  cfg_explicit_off.ms1_max_rt_distance_sec = 0.0;
+  MSExperiment exp_explicit_off;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_explicit_off, cfg_explicit_off);
+
+  Size ms1_spectra_b = 0, ms1_peaks_b = 0;
+  double ms1_intensity_b = 0.0;
+  for (const auto& spec : exp_explicit_off)
+  {
+    if (spec.getMSLevel() == 1)
+    {
+      ++ms1_spectra_b;
+      ms1_peaks_b += spec.size();
+      for (const auto& p : spec) ms1_intensity_b += p.getIntensity();
+    }
+  }
+
+  TEST_EQUAL(ms1_spectra_b, ms1_spectra);
+  TEST_EQUAL(ms1_peaks_b, ms1_peaks);
+  TEST_REAL_SIMILAR(ms1_intensity_b, ms1_intensity);
+}
+END_SECTION
+
+START_SECTION(DIA MS1 aggregation test)
+{
+  // RED test for MS1 frame aggregation. With ms1_n_neighbors=1 we expect
+  // ~same spectrum count as raw (edge-truncation aside), boosted intensity,
+  // and IM_PROFILE output with per-peak IM.
+  BrukerTimsFile f;
+
+  MSExperiment exp_raw;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_raw);
+
+  BrukerTimsFile::Config cfg;
+  cfg.ms1_n_neighbors = 1;
+  MSExperiment exp_agg;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_agg, cfg);
+
+  Size raw_ms1_spectra = 0, raw_ms1_peaks = 0;
+  double raw_ms1_intensity = 0.0;
+  for (const auto& spec : exp_raw)
+  {
+    if (spec.getMSLevel() == 1)
+    {
+      ++raw_ms1_spectra;
+      raw_ms1_peaks += spec.size();
+      for (const auto& p : spec) raw_ms1_intensity += p.getIntensity();
+    }
+  }
+
+  Size agg_ms1_spectra = 0, agg_ms1_peaks = 0;
+  double agg_ms1_intensity = 0.0;
+  for (const auto& spec : exp_agg)
+  {
+    if (spec.getMSLevel() == 1)
+    {
+      ++agg_ms1_spectra;
+      agg_ms1_peaks += spec.size();
+      for (const auto& p : spec) agg_ms1_intensity += p.getIntensity();
+    }
+  }
+
+  TEST_NOT_EQUAL(raw_ms1_spectra, 0);
+  TEST_NOT_EQUAL(agg_ms1_spectra, 0);
+
+  // Spectrum count: aggregated MS1 path emits exactly one spectrum per center
+  // frame (empty spectra emitted when all peaks filter out — see the empty-
+  // spectrum contract in loadAggregatedMS1Spectrum). Unlike the MS2 path,
+  // this is a hard equality: MS1 never drops spectra.
+  TEST_EQUAL(agg_ms1_spectra, raw_ms1_spectra);
+
+  // Intensity boost: aggregation sums intensity across 2*N+1 = 3 frames.
+  // MS1 fixture shows ratio ≈ 2.99 (empirical) — much higher than MS2's ≈1.28
+  // because MS1 ion populations are more stable across adjacent frames: peaks
+  // at the same nominal (mz_bin, scan_id) from different frames tend to land
+  // in different cells (scan_id jitter, m/z jitter beyond 0.01 Da), so the
+  // aggregator rarely merges them — closer to the naive 3x sum than MS2.
+  // Bounds reflect this: accept anywhere in [2.5, 3.1] as valid aggregation.
+  TEST_EQUAL(raw_ms1_intensity > 0.0, true);
+  const double intensity_ratio = agg_ms1_intensity / raw_ms1_intensity;
+  TEST_EQUAL(intensity_ratio >= 2.5, true);
+  TEST_EQUAL(intensity_ratio <= 3.1, true);
+
+  // Output must carry per-peak IM with IM_PROFILE type
+  for (const auto& spec : exp_agg)
+  {
+    if (spec.getMSLevel() == 1 && !spec.empty())
+    {
+      TEST_EQUAL(spec.containsIMData(), true);
+      TEST_EQUAL(spec.getIMPeakType() == IMPeakType::IM_PROFILE, true);
+      // MS1 spectra must NOT carry precursors (unlike MS2).
+      TEST_EQUAL(spec.getPrecursors().empty(), true);
+      break;
+    }
+  }
+
+  STATUS("DIA MS1 aggregation: raw spectra=" << raw_ms1_spectra
+         << " peaks=" << raw_ms1_peaks
+         << " intensity=" << raw_ms1_intensity
+         << " | aggregated spectra=" << agg_ms1_spectra
+         << " peaks=" << agg_ms1_peaks
+         << " intensity=" << agg_ms1_intensity
+         << " | ratio=" << intensity_ratio);
+}
+END_SECTION
+
+START_SECTION(DIA MS1 aggregation with centroiding test)
+{
+  BrukerTimsFile f;
+
+  // Aggregated, no centroiding (baseline)
+  BrukerTimsFile::Config cfg_profile;
+  cfg_profile.ms1_n_neighbors = 1;
+  MSExperiment exp_profile;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_profile, cfg_profile);
+
+  // Aggregated + within-frame centroiding
+  BrukerTimsFile::Config cfg_centroid;
+  cfg_centroid.ms1_n_neighbors = 1;
+  cfg_centroid.ms1_centroid_mz_ppm = 5.0f;
+  cfg_centroid.ms1_centroid_im_pct = 3.0f;
+  MSExperiment exp_centroid;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_centroid, cfg_centroid);
+
+  auto count_ms1 = [](const MSExperiment& e, Size& n_spectra, Size& n_peaks, double& total_intensity)
+  {
+    n_spectra = 0; n_peaks = 0; total_intensity = 0.0;
+    for (const auto& s : e)
+      if (s.getMSLevel() == 1)
+      {
+        ++n_spectra;
+        n_peaks += s.size();
+        for (const auto& p : s) total_intensity += p.getIntensity();
+      }
+  };
+
+  Size profile_n, profile_p, centroid_n, centroid_p;
+  double profile_i, centroid_i;
+  count_ms1(exp_profile, profile_n, profile_p, profile_i);
+  count_ms1(exp_centroid, centroid_n, centroid_p, centroid_i);
+
+  TEST_NOT_EQUAL(centroid_n, 0);
+
+  // Same spectrum count (centroiding doesn't drop spectra)
+  TEST_EQUAL(centroid_n, profile_n);
+
+  // Centroiding collapses IM-adjacent peaks → fewer peaks than profile.
+  TEST_EQUAL(centroid_p < profile_p, true);
+
+  // Intensity conservation: with the default ms1_centroid_max_peaks=100000
+  // the cap rarely fires on typical aggregated MS1 surveys (top 100k peaks
+  // out of ~600k carry >80% of total intensity). Allow [0.5, 1.0] to cover
+  // dense fixtures where a noticeable long-tail still gets dropped.
+  const double ratio = centroid_i / profile_i;
+  TEST_EQUAL(ratio > 0.5, true);
+  TEST_EQUAL(ratio <= 1.0, true);
+
+  // Output shape
+  for (const auto& spec : exp_centroid)
+  {
+    if (spec.getMSLevel() == 1 && !spec.empty())
+    {
+      TEST_EQUAL(spec.containsIMData(), true);
+      TEST_EQUAL(spec.getIMPeakType() == IMPeakType::IM_CENTROIDED, true);
+      TEST_EQUAL(spec.getType() == SpectrumSettings::SpectrumType::CENTROID, true);
+      TEST_EQUAL(spec.getPrecursors().empty(), true);
+      break;
+    }
+  }
+
+  STATUS("DIA MS1 aggregation+centroid: profile peaks=" << profile_p
+         << " centroid peaks=" << centroid_p
+         << " ratio=" << (static_cast<double>(centroid_p) / profile_p)
+         << " intensity_ratio=" << ratio);
+}
+END_SECTION
+
+START_SECTION(DIA MS1 aggregation min_support test)
+{
+  BrukerTimsFile f;
+
+  // No denoise (baseline from DIA MS1 aggregation test: intensity ratio ≈ 3.0)
+  BrukerTimsFile::Config cfg_no_denoise;
+  cfg_no_denoise.ms1_n_neighbors = 1;
+  cfg_no_denoise.ms1_min_support = 0;
+  MSExperiment exp_no_denoise;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_no_denoise, cfg_no_denoise);
+
+  // With denoise
+  BrukerTimsFile::Config cfg_denoise;
+  cfg_denoise.ms1_n_neighbors = 1;
+  cfg_denoise.ms1_min_support = 1;
+  MSExperiment exp_denoise;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_denoise, cfg_denoise);
+
+  Size no_denoise_peaks = 0, denoise_peaks = 0;
+  double no_denoise_intensity = 0.0, denoise_intensity = 0.0;
+  for (const auto& s : exp_no_denoise)
+    if (s.getMSLevel() == 1)
+    {
+      no_denoise_peaks += s.size();
+      for (const auto& p : s) no_denoise_intensity += p.getIntensity();
+    }
+  for (const auto& s : exp_denoise)
+    if (s.getMSLevel() == 1)
+    {
+      denoise_peaks += s.size();
+      for (const auto& p : s) denoise_intensity += p.getIntensity();
+    }
+
+  TEST_NOT_EQUAL(no_denoise_peaks, 0);
+  TEST_NOT_EQUAL(denoise_peaks, 0);
+
+  // Denoise drops peaks. Conservative lower bound: ≥10% drop; MS1 surveys
+  // often have many low-intensity isolated cells that the 3x3 filter culls.
+  TEST_EQUAL(denoise_peaks < no_denoise_peaks, true);
+  const double drop_frac = 1.0 - static_cast<double>(denoise_peaks) / no_denoise_peaks;
+  TEST_EQUAL(drop_frac >= 0.10, true);
+
+  // Intensity boost still present after denoise (signal peaks survive).
+  MSExperiment exp_raw;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_raw);
+  double raw_intensity = 0.0;
+  for (const auto& s : exp_raw)
+    if (s.getMSLevel() == 1)
+      for (const auto& p : s) raw_intensity += p.getIntensity();
+  TEST_EQUAL(denoise_intensity > raw_intensity, true);
+
+  STATUS("DIA MS1 min_support: no_denoise_peaks=" << no_denoise_peaks
+         << " denoise_peaks=" << denoise_peaks
+         << " drop_frac=" << drop_frac
+         << " denoise_intensity/raw=" << (denoise_intensity / raw_intensity));
+}
+END_SECTION
+
+START_SECTION(DIA MS1 RT cap test)
+{
+  BrukerTimsFile f;
+
+  // Uncapped reference: ms1_n_neighbors=2 gives a wider window for the cap
+  // to bite into.
+  BrukerTimsFile::Config cfg_uncapped;
+  cfg_uncapped.ms1_n_neighbors = 2;
+  cfg_uncapped.ms1_max_rt_distance_sec = 0.0;
+  MSExperiment exp_uncapped;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_uncapped, cfg_uncapped);
+
+  // Tight cap: 0.5s (DIA MS1 cadence ~1.5s, so N=2 reaches ~3s total span;
+  // the 0.5s cap should truncate aggressively).
+  BrukerTimsFile::Config cfg_capped;
+  cfg_capped.ms1_n_neighbors = 2;
+  cfg_capped.ms1_max_rt_distance_sec = 0.5;
+  MSExperiment exp_capped;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_capped, cfg_capped);
+
+  auto total_ms1_intensity = [](const MSExperiment& e)
+  {
+    double s = 0.0;
+    for (const auto& spec : e)
+      if (spec.getMSLevel() == 1)
+        for (const auto& p : spec) s += p.getIntensity();
+    return s;
+  };
+
+  double uncapped_i = total_ms1_intensity(exp_uncapped);
+  double capped_i = total_ms1_intensity(exp_capped);
+
+  TEST_EQUAL(uncapped_i > 0.0, true);
+  TEST_EQUAL(capped_i > 0.0, true);
+  TEST_EQUAL(capped_i < uncapped_i, true);
+
+  // Cadence invariant: RT cap must never drop a center frame. Both runs emit
+  // exactly one MS1 spectrum per raw MS1 frame regardless of the cap.
+  auto count_ms1_spectra = [](const MSExperiment& e)
+  {
+    Size n = 0;
+    for (const auto& s : e) if (s.getMSLevel() == 1) ++n;
+    return n;
+  };
+  MSExperiment exp_raw;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_raw);
+  const Size raw_ms1 = count_ms1_spectra(exp_raw);
+  TEST_EQUAL(count_ms1_spectra(exp_uncapped), raw_ms1);
+  TEST_EQUAL(count_ms1_spectra(exp_capped), raw_ms1);
+
+  STATUS("DIA MS1 RT cap: uncapped=" << uncapped_i
+         << " capped(0.5s, N=2)=" << capped_i
+         << " reduction=" << (1.0 - capped_i / uncapped_i));
+}
+END_SECTION
+
+START_SECTION(FRAME mode ignores ms1_n_neighbors test)
+{
+  BrukerTimsFile f;
+
+  // Reference: raw FRAME export with defaults
+  BrukerTimsFile::Config cfg_ref;
+  cfg_ref.export_mode = BrukerTimsFile::Config::FRAME;
+  MSExperiment exp_ref;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_ref, cfg_ref);
+
+  // Same load but with aggregation knob set — must be ignored
+  BrukerTimsFile::Config cfg_agg;
+  cfg_agg.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg_agg.ms1_n_neighbors = 1;
+  MSExperiment exp_agg;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_agg, cfg_agg);
+
+  Size ref_ms1 = 0, agg_ms1 = 0;
+  Size ref_peaks = 0, agg_peaks = 0;
+  double ref_intensity = 0.0, agg_intensity = 0.0;
+  for (const auto& s : exp_ref)
+    if (s.getMSLevel() == 1)
+    {
+      ++ref_ms1;
+      ref_peaks += s.size();
+      for (const auto& p : s) ref_intensity += p.getIntensity();
+    }
+  for (const auto& s : exp_agg)
+    if (s.getMSLevel() == 1)
+    {
+      ++agg_ms1;
+      agg_peaks += s.size();
+      for (const auto& p : s) agg_intensity += p.getIntensity();
+    }
+
+  TEST_NOT_EQUAL(ref_ms1, 0);
+  // FRAME mode must emit one spectrum per raw MS1 frame regardless of
+  // ms1_n_neighbors — aggregation is ignored.
+  TEST_EQUAL(agg_ms1, ref_ms1);
+  // Stronger: content must be identical too. Aggregation would inflate both
+  // peak count and cumulative intensity; FRAME mode's "raw frames" contract
+  // requires bit-for-bit behavior regardless of the ms1_n_neighbors knob.
+  TEST_EQUAL(agg_peaks, ref_peaks);
+  TEST_REAL_SIMILAR(agg_intensity, ref_intensity);
+
+  // Warning emission is not asserted here — the test framework has no
+  // log-capture helper at present. Manual verification: the test output
+  // should show the "Warning: ms1_n_neighbors ... ignored" line.
+}
+END_SECTION
+
+START_SECTION(DIA readDIAMetadata test)
+{
+  BrukerTimsFile f;
+  ExperimentalSettings settings;
+  auto meta = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings);
+
+  // Should have SWATH windows
+  TEST_NOT_EQUAL(meta.boundaries.size(), 0);
+
+  // Should have MS1 frames
+  TEST_NOT_EQUAL(meta.nr_ms1_spectra, 0);
+
+  // nr_ms2_spectra should have same size as boundaries
+  TEST_EQUAL(meta.nr_ms2_spectra.size(), meta.boundaries.size());
+
+  // Each window should have spectra
+  for (Size i = 0; i < meta.nr_ms2_spectra.size(); ++i)
+  {
+    TEST_NOT_EQUAL(meta.nr_ms2_spectra[i], 0);
+  }
+
+  // Boundaries should have valid m/z and IM ranges
+  for (const auto& b : meta.boundaries)
+  {
+    TEST_EQUAL(b.ms1, false);
+    TEST_EQUAL(b.center > 0, true);
+    TEST_EQUAL(b.lower < b.upper, true);
+    TEST_EQUAL(b.imLower >= 0, true);
+    TEST_EQUAL(b.imUpper > b.imLower, true);
+  }
+
+  // ExperimentalSettings should have source file
+  TEST_EQUAL(settings.getSourceFiles().size(), 1);
+
+  STATUS("readDIAMetadata: " << meta.boundaries.size() << " windows, "
+         << meta.nr_ms1_spectra << " MS1 spectra");
+}
+END_SECTION
+
+START_SECTION(DIA loadDIAStreaming test)
+{
+  BrukerTimsFile f;
+
+  // Get metadata first
+  ExperimentalSettings settings;
+  auto meta = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings);
+
+  // Create in-memory consumer with known boundaries
+  RegularSwathFileConsumer consumer(meta.boundaries);
+  consumer.setExperimentalSettings(settings);
+
+  // Stream spectra
+  f.loadDIAStreaming(OPENTIMS_DIA_TEST_DATA, consumer);
+
+  // Retrieve SwathMaps
+  std::vector<OpenSwath::SwathMap> swath_maps;
+  consumer.retrieveSwathMaps(swath_maps);
+
+  // Should have MS1 map + MS2 maps
+  Size ms1_count = 0, ms2_count = 0;
+  for (const auto& m : swath_maps)
+  {
+    if (m.ms1) ++ms1_count;
+    else ++ms2_count;
+  }
+  TEST_EQUAL(ms1_count, 1);
+  TEST_EQUAL(ms2_count, meta.boundaries.size());
+
+  // MS1 map should have spectra matching metadata count
+  for (const auto& m : swath_maps)
+  {
+    if (m.ms1)
+    {
+      TEST_EQUAL(m.sptr->getNrSpectra(), static_cast<size_t>(meta.nr_ms1_spectra));
+      break;
+    }
+  }
+
+  // Each MS2 map should have spectra with IM data
+  for (const auto& m : swath_maps)
+  {
+    if (!m.ms1 && m.sptr->getNrSpectra() > 0)
+    {
+      auto spec = m.sptr->getSpectrumById(0);
+      TEST_NOT_EQUAL(spec->getMZArray()->data.size(), 0);
+      TEST_EQUAL(spec->getDriftTimeArray() == nullptr, false);
+      break;
+    }
+  }
+
+  STATUS("loadDIAStreaming: " << swath_maps.size() << " SwathMaps "
+         << "(" << ms1_count << " MS1, " << ms2_count << " MS2)");
+}
+END_SECTION
+
+START_SECTION(DIA MS1 streaming aggregation test)
+{
+  BrukerTimsFile f;
+
+  // Baseline: streaming with defaults (no aggregation)
+  ExperimentalSettings settings_ref;
+  auto meta_ref = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings_ref);
+  RegularSwathFileConsumer consumer_ref(meta_ref.boundaries);
+  consumer_ref.setExperimentalSettings(settings_ref);
+  f.loadDIAStreaming(OPENTIMS_DIA_TEST_DATA, consumer_ref);
+  std::vector<OpenSwath::SwathMap> maps_ref;
+  consumer_ref.retrieveSwathMaps(maps_ref);
+
+  // Aggregated streaming (ms1_n_neighbors=1)
+  ExperimentalSettings settings_agg;
+  auto meta_agg = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings_agg);
+  RegularSwathFileConsumer consumer_agg(meta_agg.boundaries);
+  consumer_agg.setExperimentalSettings(settings_agg);
+  BrukerTimsFile::Config cfg;
+  cfg.ms1_n_neighbors = 1;
+  f.loadDIAStreaming(OPENTIMS_DIA_TEST_DATA, consumer_agg, cfg);
+  std::vector<OpenSwath::SwathMap> maps_agg;
+  consumer_agg.retrieveSwathMaps(maps_agg);
+
+  // Locate each run's MS1 map by its ms1 flag (not by position).
+  auto find_ms1_map = [](const std::vector<OpenSwath::SwathMap>& maps)
+    -> const OpenSwath::SwathMap* {
+    for (const auto& m : maps) if (m.ms1) return &m;
+    return nullptr;
+  };
+  const auto* ms1_ref = find_ms1_map(maps_ref);
+  const auto* ms1_agg = find_ms1_map(maps_agg);
+  TEST_NOT_EQUAL(ms1_ref, nullptr);
+  TEST_NOT_EQUAL(ms1_agg, nullptr);
+
+  // Cadence invariant: both paths deliver one spectrum per raw MS1 frame.
+  TEST_EQUAL(ms1_ref->sptr->getNrSpectra(),
+             static_cast<unsigned>(meta_ref.nr_ms1_spectra));
+  TEST_EQUAL(ms1_agg->sptr->getNrSpectra(),
+             static_cast<unsigned>(meta_agg.nr_ms1_spectra));
+
+  // Proof that aggregation actually ran: total MS1 peak count must be
+  // strictly higher in the aggregated path (stacked 2*N+1=3 frames of raw
+  // peaks into each output spectrum). If ms1_n_neighbors were silently
+  // ignored in loadDIAStreaming, the counts would be equal.
+  auto total_peaks = [](const OpenSwath::SwathMap& m) -> Size {
+    Size n = 0;
+    for (Size i = 0; i < m.sptr->getNrSpectra(); ++i)
+      n += m.sptr->getSpectrumById(i)->getMZArray()->data.size();
+    return n;
+  };
+  const Size peaks_ref = total_peaks(*ms1_ref);
+  const Size peaks_agg = total_peaks(*ms1_agg);
+  TEST_EQUAL(peaks_agg > peaks_ref, true);
+
+  STATUS("DIA MS1 streaming aggregation: ref peaks=" << peaks_ref
+         << " agg peaks=" << peaks_agg
+         << " ratio=" << (static_cast<double>(peaks_agg) / peaks_ref));
+}
+END_SECTION
+
+START_SECTION(DIA MS1+MS2 hill-vs-greedy centroiding comparison)
+{
+  // Two-way comparison on DIA: HillBased vs. Greedy2D for both MS1 and the
+  // DIA-MS2 aggregated centroiding path. Skips the raw baseline to keep
+  // load count low (existing DIA sections already cover off-vs-greedy).
+  using CA = BrukerTimsFile::Config::CentroidAlgo;
+
+  BrukerTimsFile f;
+
+  BrukerTimsFile::Config cfg_greedy;
+  cfg_greedy.ms1_centroid_algo      = CA::GREEDY2D;
+  cfg_greedy.ms1_centroid_mz_ppm    = 5.0f;
+  cfg_greedy.ms1_centroid_im_pct    = 3.0f;
+  cfg_greedy.ms1_centroid_max_peaks = 1000000;
+  cfg_greedy.dia_ms2_n_neighbors    = 1;
+  cfg_greedy.dia_ms2_min_support    = 1;
+  cfg_greedy.dia_ms2_centroid       = true;   // legacy Greedy2D-equivalent MS2
+
+  BrukerTimsFile::Config cfg_hill;
+  cfg_hill.ms1_centroid_algo        = CA::HILL_BASED;
+  cfg_hill.ms1_centroid_mz_ppm      = 5.0f;
+  cfg_hill.ms2_centroid_algo        = CA::HILL_BASED;
+  cfg_hill.ms2_centroid_mz_ppm      = 20.0f;
+  cfg_hill.dia_ms2_n_neighbors      = 1;
+  cfg_hill.dia_ms2_min_support      = 1;
+  cfg_hill.centroid_valley_factor   = 1.3;
+  // ms1_centroid_min_hill_length defaults to 1 (sparse TIMS-PASEF MS1).
+  // For DIA-MS2 specifically, override to 2 — wider isolation windows + more
+  // IM-scan range produce ~33% multi-scan hills, so rejecting length-1
+  // singletons brings hill output volume in line with the legacy Gaussian-
+  // smooth + local-maxima path. (Default ms2_centroid_min_hill_length=1 is
+  // tuned for DDA-PASEF where narrow precursor IM range means most fragments
+  // are length-1 and min=2 would drop ~93% of peaks.)
+  cfg_hill.ms2_centroid_min_hill_length = 2;
+
+  MSExperiment exp_greedy, exp_hill;
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_greedy, cfg_greedy);
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_hill,   cfg_hill);
+
+  const auto s_greedy = collectStats(exp_greedy);
+  const auto s_hill   = collectStats(exp_hill);
+
+  TEST_EQUAL(s_greedy.n_ms1_spectra, s_hill.n_ms1_spectra);
+  // HillBased MS2 can drop spectra whose hill output is entirely length-1
+  // under ms2_centroid_min_hill_length=2; allow up to 10% fewer spectra.
+  TEST_EQUAL(s_hill.n_ms2_spectra <= s_greedy.n_ms2_spectra, true);
+  TEST_EQUAL(static_cast<double>(s_hill.n_ms2_spectra) / s_greedy.n_ms2_spectra > 0.9, true);
+
+  TEST_EQUAL(s_hill.total_ms1_peaks > 0, true);
+  TEST_EQUAL(s_hill.total_ms2_peaks > 0, true);
+
+  // MS1 hill output is expected lower than greedy due to better grouping;
+  // soft bounds same as DDA section.
+  const double ms1_count_ratio = static_cast<double>(s_hill.total_ms1_peaks) /
+                                 static_cast<double>(s_greedy.total_ms1_peaks);
+  TEST_EQUAL(ms1_count_ratio > 0.05, true);
+  TEST_EQUAL(ms1_count_ratio < 1.5, true);
+
+  const double ms1_intensity_ratio = s_hill.total_ms1_intensity /
+                                     s_greedy.total_ms1_intensity;
+  TEST_EQUAL(ms1_intensity_ratio > 0.7, true);
+  TEST_EQUAL(ms1_intensity_ratio < 1.3, true);
+
+  // MS2: greedy uses Gaussian smoothing + local-maxima; hill uses trace
+  // linking. Different structural approaches, so allow a wide ratio window.
+  const double ms2_count_ratio = static_cast<double>(s_hill.total_ms2_peaks) /
+                                 static_cast<double>(s_greedy.total_ms2_peaks);
+  TEST_EQUAL(ms2_count_ratio > 0.1, true);
+  TEST_EQUAL(ms2_count_ratio < 10.0, true);
+
+  STATUS("DIA MS1 greedy=" << s_greedy.total_ms1_peaks
+         << " hill=" << s_hill.total_ms1_peaks
+         << " count_ratio=" << ms1_count_ratio
+         << " intensity_ratio=" << ms1_intensity_ratio);
+  STATUS("DIA MS2 greedy=" << s_greedy.total_ms2_peaks
+         << " hill=" << s_hill.total_ms2_peaks
+         << " count_ratio=" << ms2_count_ratio
+         << " spectra greedy=" << s_greedy.n_ms2_spectra
+         << " hill=" << s_hill.n_ms2_spectra
+         << " kept_frac=" << (static_cast<double>(s_hill.n_ms2_spectra) / s_greedy.n_ms2_spectra));
+
+  assertFirstMS1Centroided(exp_hill);
+  assertFirstDIAMS2Centroided(exp_hill);
 }
 END_SECTION
 

@@ -8,11 +8,14 @@
 
 #include <OpenMS/FORMAT/QPXFile.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
+#include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/Scores.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 
 #include <arrow/api.h>
@@ -24,6 +27,7 @@
 #include <cstdio>
 #include <cstring>
 #include <random>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 #include <map>
@@ -47,6 +51,7 @@ namespace // anonymous
     boost::regex scan_regex(regex_str);
     return SpectrumNativeIDParser::extractScanNumber(native_id, scan_regex, true);
   }
+
 } // anonymous namespace
 
 
@@ -60,15 +65,23 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   arrow::StringBuilder reference_file_builder, score_type_builder;
   arrow::StringBuilder spectrum_reference_builder, cv_params_builder;
   arrow::StringBuilder run_identifier_builder;
-  arrow::Int32Builder precursor_charge_builder, rank_builder, p_id_builder;
+  arrow::Int32Builder precursor_charge_builder, hit_index_builder, p_id_builder;
   arrow::BooleanBuilder is_decoy_builder, higher_score_better_builder;
   arrow::Int32Builder scan_builder;
   arrow::DoubleBuilder pep_builder, calculated_mz_builder, observed_mz_builder;
   arrow::DoubleBuilder rt_builder, ion_mobility_builder, predicted_rt_builder, score_builder;
 
-  // -- protein_accessions list<utf8> --
-  auto pa_vb = std::make_shared<arrow::StringBuilder>();
-  arrow::ListBuilder protein_accessions_builder(arrow::default_memory_pool(), pa_vb);
+  // -- protein_accessions list<struct{accession, aa_before, aa_after, start, end}> --
+  auto pa_struct_type = std::static_pointer_cast<arrow::ListType>(PSMSchema::proteinAccessionsType())->value_type();
+  auto pa_acc_b      = std::make_shared<arrow::StringBuilder>();
+  auto pa_before_b   = std::make_shared<arrow::StringBuilder>();
+  auto pa_after_b    = std::make_shared<arrow::StringBuilder>();
+  auto pa_start_b    = std::make_shared<arrow::Int32Builder>();
+  auto pa_end_b      = std::make_shared<arrow::Int32Builder>();
+  auto pa_struct_b   = std::make_shared<arrow::StructBuilder>(
+    pa_struct_type, arrow::default_memory_pool(),
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{pa_acc_b, pa_before_b, pa_after_b, pa_start_b, pa_end_b});
+  arrow::ListBuilder protein_accessions_builder(arrow::default_memory_pool(), pa_struct_b);
 
   // -- Modifications list<struct{name, accession, positions: list<struct{position, scores}>}> --
   auto pos_position_b = std::make_shared<arrow::StringBuilder>();
@@ -136,6 +149,16 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
     std::vector<std::shared_ptr<arrow::ArrayBuilder>>{smv_name_b, smv_value_b, smv_type_b});
   arrow::ListBuilder spectrum_metavalues_builder(arrow::default_memory_pool(), smv_struct_b);
 
+  // -- fragment annotation arrays: mz_array, intensity_array, charge_array, ion_type_array --
+  auto psm_mz_arr_vb = std::make_shared<arrow::FloatBuilder>();
+  arrow::ListBuilder psm_mz_array_builder(arrow::default_memory_pool(), psm_mz_arr_vb);
+  auto psm_int_arr_vb = std::make_shared<arrow::FloatBuilder>();
+  arrow::ListBuilder psm_intensity_array_builder(arrow::default_memory_pool(), psm_int_arr_vb);
+  auto psm_chg_arr_vb = std::make_shared<arrow::Int32Builder>();
+  arrow::ListBuilder psm_charge_array_builder(arrow::default_memory_pool(), psm_chg_arr_vb);
+  auto psm_ion_arr_vb = std::make_shared<arrow::StringBuilder>();
+  arrow::ListBuilder psm_ion_type_array_builder(arrow::default_memory_pool(), psm_ion_arr_vb);
+
   // Estimate total rows for capacity reservation
   Size num_rows = 0;
   for (const auto& pep_id : peptide_identifications)
@@ -181,8 +204,8 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: score_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = score_type_builder.Reserve(num_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: score_type_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = rank_builder.Reserve(num_rows);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: rank_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = hit_index_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: hit_index_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = p_id_builder.Reserve(num_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: p_id_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = run_identifier_builder.Reserve(num_rows);
@@ -203,8 +226,13 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   // Metavalue keys excluded from psm_metavalues (they have dedicated columns)
   static const std::unordered_set<std::string> excluded_hit_mvs_psm = {
     "target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM",
-    "scan", "reference_file_name"
+    "scan", "reference_file_name",
+    Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM  // dedicated mz/intensity/charge/ion_type arrays
   };
+  // Note: Constants::UserParam::RANK ("rank") is intentionally NOT excluded.
+  // The dedicated column is `hit_index` (positional, loop counter) — distinct from
+  // the typed rank API. PeptideHit::getRank() reads the "rank" UserParam, so the
+  // metavalue path is the canonical store for rank semantics.
 
   IDScoreSwitcherAlgorithm idsa;
 
@@ -411,11 +439,30 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
         }
       }
 
-      // === protein_accessions ===
+      // === protein_accessions (list<struct{accession, aa_before, aa_after, start, end}>) ===
       (void)protein_accessions_builder.Append();
       for (const auto& ev : hit.getPeptideEvidences())
       {
-        (void)pa_vb->Append(ev.getProteinAccession());
+        (void)pa_struct_b->Append();
+        (void)pa_acc_b->Append(ev.getProteinAccession());
+
+        // aa_before/after: store the char as a length-1 string; UNKNOWN_AA -> Arrow null.
+        const char b = ev.getAABefore();
+        if (b == PeptideEvidence::UNKNOWN_AA) { (void)pa_before_b->AppendNull(); }
+        else { (void)pa_before_b->Append(std::string(1, b)); }
+
+        const char a = ev.getAAAfter();
+        if (a == PeptideEvidence::UNKNOWN_AA) { (void)pa_after_b->AppendNull(); }
+        else { (void)pa_after_b->Append(std::string(1, a)); }
+
+        // start/end: UNKNOWN_POSITION (-1) -> null.
+        const int s = ev.getStart();
+        if (s == PeptideEvidence::UNKNOWN_POSITION) { (void)pa_start_b->AppendNull(); }
+        else { (void)pa_start_b->Append(s); }
+
+        const int e = ev.getEnd();
+        if (e == PeptideEvidence::UNKNOWN_POSITION) { (void)pa_end_b->AppendNull(); }
+        else { (void)pa_end_b->Append(e); }
       }
 
       // === predicted_rt ===
@@ -503,8 +550,10 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       (void)score_type_builder.Append(pep_id.getScoreType());
       (void)higher_score_better_builder.Append(pep_id.isHigherScoreBetter());
 
-      // === rank (0-based) ===
-      (void)rank_builder.Append(static_cast<int32_t>(hit_idx));
+      // === hit_index (0-based hit position within parent identification) ===
+      // Positional analytics column. Distinct from PeptideHit::getRank(),
+      // which round-trips via the "rank" UserParam in psm_metavalues.
+      (void)hit_index_builder.Append(static_cast<int32_t>(hit_idx));
 
       // === P_ID (parent spectrum index) ===
       (void)p_id_builder.Append(p_id_index);
@@ -570,6 +619,30 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
           }
         }
       }
+
+      // === fragment annotation arrays (from PeakAnnotations) ===
+      const auto& psm_peak_annotations = hit.getPeakAnnotations();
+      if (!psm_peak_annotations.empty())
+      {
+        (void)psm_mz_array_builder.Append();
+        (void)psm_intensity_array_builder.Append();
+        (void)psm_charge_array_builder.Append();
+        (void)psm_ion_type_array_builder.Append();
+        for (const auto& pa : psm_peak_annotations)
+        {
+          (void)psm_mz_arr_vb->Append(static_cast<float>(pa.mz));
+          (void)psm_int_arr_vb->Append(static_cast<float>(pa.intensity));
+          (void)psm_chg_arr_vb->Append(pa.charge);
+          (void)psm_ion_arr_vb->Append(pa.annotation);
+        }
+      }
+      else
+      {
+        (void)psm_mz_array_builder.AppendNull();
+        (void)psm_intensity_array_builder.AppendNull();
+        (void)psm_charge_array_builder.AppendNull();
+        (void)psm_ion_type_array_builder.AppendNull();
+      }
     } // end hit loop
 
     ++p_id_index;
@@ -583,7 +656,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   std::shared_ptr<arrow::Array> arr_cv_params, arr_scan, arr_rt, arr_ion_mobility;
   std::shared_ptr<arrow::Array> arr_spectrum_ref, arr_score, arr_score_type;
   std::shared_ptr<arrow::Array> arr_higher_score_better;
-  std::shared_ptr<arrow::Array> arr_rank, arr_p_id;
+  std::shared_ptr<arrow::Array> arr_hit_index, arr_p_id;
   std::shared_ptr<arrow::Array> arr_psm_mvs, arr_spectrum_mvs;
 
   status = sequence_builder.Finish(&arr_sequence);
@@ -626,8 +699,8 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: score_type_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = higher_score_better_builder.Finish(&arr_higher_score_better);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: higher_score_better_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = rank_builder.Finish(&arr_rank);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: rank_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = hit_index_builder.Finish(&arr_hit_index);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: hit_index_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = p_id_builder.Finish(&arr_p_id);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: p_id_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = psm_metavalues_builder.Finish(&arr_psm_mvs);
@@ -638,6 +711,15 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   std::shared_ptr<arrow::Array> arr_run_identifier;
   status = run_identifier_builder.Finish(&arr_run_identifier);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: run_identifier_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  std::shared_ptr<arrow::Array> arr_psm_mz_array, arr_psm_intensity_array, arr_psm_charge_array, arr_psm_ion_type_array;
+  status = psm_mz_array_builder.Finish(&arr_psm_mz_array);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: psm_mz_array_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = psm_intensity_array_builder.Finish(&arr_psm_intensity_array);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: psm_intensity_array_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = psm_charge_array_builder.Finish(&arr_psm_charge_array);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: psm_charge_array_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = psm_ion_type_array_builder.Finish(&arr_psm_ion_type_array);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: psm_ion_type_array_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
   // Build schema from registry
   auto schema = PSMSchema::schema();
@@ -649,8 +731,9 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
     arr_protein_acc, arr_predicted_rt, arr_ref_file,
     arr_cv_params, arr_scan, arr_rt, arr_ion_mobility,
     arr_spectrum_ref, arr_score, arr_score_type, arr_higher_score_better,
-    arr_rank, arr_p_id, arr_psm_mvs, arr_spectrum_mvs,
-    arr_run_identifier
+    arr_hit_index, arr_p_id, arr_psm_mvs, arr_spectrum_mvs,
+    arr_run_identifier,
+    arr_psm_mz_array, arr_psm_intensity_array, arr_psm_charge_array, arr_psm_ion_type_array
   });
 
   // Validate table against registry schema (strict — write path must match exactly)
@@ -755,8 +838,17 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   auto cross_links_type = QPXPSMSchema::crossLinksType();
   // We build a null array later
 
-  // -- mz_array, intensity_array, charge_array, ion_type_array, ion_mobility_array (null for now) --
-  // We build null arrays later
+  // -- mz_array list<float32>, intensity_array list<float32>, charge_array list<int32>, ion_type_array list<utf8> --
+  // Populated from PeptideHit::getPeakAnnotations() (fragment ion annotations).
+  auto mz_arr_vb = std::make_shared<arrow::FloatBuilder>();
+  arrow::ListBuilder mz_array_builder(arrow::default_memory_pool(), mz_arr_vb);
+  auto int_arr_vb = std::make_shared<arrow::FloatBuilder>();
+  arrow::ListBuilder intensity_array_builder(arrow::default_memory_pool(), int_arr_vb);
+  auto chg_arr_vb = std::make_shared<arrow::Int32Builder>();
+  arrow::ListBuilder charge_array_builder(arrow::default_memory_pool(), chg_arr_vb);
+  auto ion_arr_vb = std::make_shared<arrow::StringBuilder>();
+  arrow::ListBuilder ion_type_array_builder(arrow::default_memory_pool(), ion_arr_vb);
+  // -- ion_mobility_array (null for now — no per-fragment IM data) --
 
   // Estimate total rows for capacity reservation
   Size num_rows = 0;
@@ -811,7 +903,8 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   // Metavalue keys excluded from additional_scores (they have dedicated columns)
   static const std::unordered_set<std::string> excluded_hit_mvs = {
     "target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM",
-    "scan", "reference_file_name"
+    "scan", "reference_file_name",
+    Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM  // dedicated mz/intensity/charge/ion_type arrays
   };
 
   IDScoreSwitcherAlgorithm idsa;
@@ -1128,6 +1221,30 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
         (void)pa_vb->Append(ev.getProteinAccession());
       }
 
+      // === fragment annotation arrays (from PeakAnnotations) ===
+      const auto& peak_annotations = hit.getPeakAnnotations();
+      if (!peak_annotations.empty())
+      {
+        (void)mz_array_builder.Append();
+        (void)intensity_array_builder.Append();
+        (void)charge_array_builder.Append();
+        (void)ion_type_array_builder.Append();
+        for (const auto& pa : peak_annotations)
+        {
+          (void)mz_arr_vb->Append(static_cast<float>(pa.mz));
+          (void)int_arr_vb->Append(static_cast<float>(pa.intensity));
+          (void)chg_arr_vb->Append(pa.charge);
+          (void)ion_arr_vb->Append(pa.annotation);
+        }
+      }
+      else
+      {
+        (void)mz_array_builder.AppendNull();
+        (void)intensity_array_builder.AppendNull();
+        (void)charge_array_builder.AppendNull();
+        (void)ion_type_array_builder.AppendNull();
+      }
+
     } // end hit loop
 
   } // end peptide identification loop
@@ -1178,6 +1295,15 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: missed_cleavages_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = protein_accessions_builder.Finish(&arr_protein_acc);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: protein_accessions_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  std::shared_ptr<arrow::Array> arr_mz_array, arr_intensity_array, arr_charge_array, arr_ion_type_array;
+  status = mz_array_builder.Finish(&arr_mz_array);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: mz_array_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = intensity_array_builder.Finish(&arr_intensity_array);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: intensity_array_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = charge_array_builder.Finish(&arr_charge_array);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: charge_array_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = ion_type_array_builder.Finish(&arr_ion_type_array);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: ion_type_array_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
   // Build null arrays for columns not yet populated.
   // Use actual row count from a finalized array to avoid coupling with the pre-loop estimate.
@@ -1194,10 +1320,6 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   };
 
   auto arr_cross_links = make_null_array(QPXPSMSchema::crossLinksType());
-  auto arr_mz_array = make_null_array(arrow::list(arrow::float32()));
-  auto arr_intensity_array = make_null_array(arrow::list(arrow::float32()));
-  auto arr_charge_array = make_null_array(arrow::list(arrow::int32()));
-  auto arr_ion_type_array = make_null_array(arrow::list(arrow::utf8()));
   auto arr_ion_mobility_array = make_null_array(arrow::list(arrow::float32()));
 
   if (!arr_cross_links || !arr_mz_array || !arr_intensity_array ||
@@ -1233,6 +1355,25 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
 }
 
 
+namespace
+{
+  /// Attach the canonical QPX "psm" file metadata (qpx_version, file_type="psm",
+  /// UUID, creation date, scan_format, creator) to the schema of @p table.
+  std::shared_ptr<arrow::Table> attachQPXPsmMetadata(const std::shared_ptr<arrow::Table>& table)
+  {
+    auto metadata = arrow::key_value_metadata({
+      {"qpx_version", "1.0"},
+      {"creator", "OpenMS"},
+      {"file_type", "psm"},
+      {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
+      {"uuid", std::string(ArrowIOHelpers::generateUuidV4())},
+      {"scan_format", "scan"},
+      {"software_provider", "OpenMS"}
+    });
+    return table->ReplaceSchemaMetadata(metadata);
+  }
+}
+
 bool QPXFile::exportToParquet(
   const std::vector<ProteinIdentification>& protein_identifications,
   const PeptideIdentificationList& peptide_identifications,
@@ -1246,100 +1387,282 @@ bool QPXFile::exportToParquet(
     OPENMS_LOG_ERROR << "QPXFile: Failed to create Arrow table" << std::endl;
     return false;
   }
+  return exportToParquet(table, filename, config);
+}
 
-  // Add QPX file metadata to the table schema (matches Python to_psm_qpx())
+bool QPXFile::exportToParquet(
+  const std::shared_ptr<arrow::Table>& table,
+  const String& filename,
+  const ParquetWriteConfig& config)
+{
+  if (!table)
   {
-    // Generate RFC 4122 version-4 UUID
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<uint32_t> dist;
-    uint8_t bytes[16];
-    for (int i = 0; i < 4; ++i)
+    OPENMS_LOG_ERROR << "QPXFile: null table passed to exportToParquet (" << filename << ")" << std::endl;
+    return false;
+  }
+
+  // Guard: the table-taking overload attaches file_type="psm" metadata, so the
+  // caller must actually pass a QPXPSMSchema table (not, e.g., the internal
+  // PSMSchema produced by exportToArrow).
+  auto validation = ArrowSchemaValidation::validate(table, QPXPSMSchema::schema(), ArrowSchemaValidation::Mode::Strict);
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "QPXFile: table schema does not match QPXPSMSchema ("
+                     << filename << "): " << validation.toString() << std::endl;
+    return false;
+  }
+
+  return ArrowIOHelpers::writeTableToParquet(attachQPXPsmMetadata(table), filename, config);
+}
+
+bool QPXFile::importFromArrow(
+  const std::shared_ptr<arrow::Table>& table,
+  std::vector<ProteinIdentification>& protein_identifications,
+  PeptideIdentificationList& peptide_identifications)
+{
+  if (!table)
+  {
+    OPENMS_LOG_ERROR << "QPXFile::importFromArrow: null table" << std::endl;
+    return false;
+  }
+
+  auto combined_result = table->CombineChunks(arrow::default_memory_pool());
+  if (!combined_result.ok())
+  {
+    OPENMS_LOG_ERROR << "QPXFile::importFromArrow: Failed to combine chunks" << std::endl;
+    return false;
+  }
+  const auto& tbl = *combined_result;
+  int64_t num_rows = tbl->num_rows();
+
+  // Validate schema even for empty tables, so a structurally-incompatible
+  // 0-row file is rejected rather than silently treated as success.
+  auto psm_validation = ArrowSchemaValidation::validate(
+    tbl, PSMSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!psm_validation.valid)
+  {
+    OPENMS_LOG_ERROR << "QPXFile::importFromArrow: Incompatible PSM schema: "
+                     << psm_validation.toString() << std::endl;
+    return false;
+  }
+  if (num_rows == 0) { return true; }
+
+  auto col_p_id = ArrowIOHelpers::getColumn(tbl, PSMSchema::PEPTIDE_IDENTIFICATION_INDEX);
+  auto col_peptidoform = ArrowIOHelpers::getColumn(tbl, PSMSchema::PEPTIDOFORM, /*required=*/false);
+  auto col_sequence = ArrowIOHelpers::getColumn(tbl, PSMSchema::SEQUENCE, /*required=*/false);
+  auto col_charge = ArrowIOHelpers::getColumn(tbl, PSMSchema::PRECURSOR_CHARGE);
+  auto col_score = ArrowIOHelpers::getColumn(tbl, PSMSchema::SCORE);
+  auto col_score_type = ArrowIOHelpers::getColumn(tbl, PSMSchema::SCORE_TYPE);
+  // hit_index column is intentionally not consulted on import: it is a positional
+  // analytics view (loop counter), and rank semantics round-trip via the "rank"
+  // UserParam in psm_metavalues.
+  auto col_rt = ArrowIOHelpers::getColumn(tbl, PSMSchema::RT, /*required=*/false);
+  auto col_mz = ArrowIOHelpers::getColumn(tbl, PSMSchema::OBSERVED_MZ, /*required=*/false);
+  auto col_spec_ref = ArrowIOHelpers::getColumn(tbl, PSMSchema::SPECTRUM_REFERENCE, /*required=*/false);
+  auto col_run_id = ArrowIOHelpers::getColumn(tbl, PSMSchema::RUN_IDENTIFIER, /*required=*/false);
+  auto col_is_decoy = ArrowIOHelpers::getColumn(tbl, PSMSchema::IS_DECOY, /*required=*/false);
+  auto col_protein_accs = ArrowIOHelpers::getColumn(tbl, PSMSchema::PROTEIN_ACCESSIONS, /*required=*/false);
+  auto col_additional_scores = ArrowIOHelpers::getColumn(tbl, PSMSchema::ADDITIONAL_SCORES, /*required=*/false);
+  auto col_psm_metavalues = ArrowIOHelpers::getColumn(tbl, PSMSchema::PSM_METAVALUES, /*required=*/false);
+  auto col_spectrum_metavalues = ArrowIOHelpers::getColumn(tbl, PSMSchema::SPECTRUM_METAVALUES, /*required=*/false);
+  auto col_predicted_rt = ArrowIOHelpers::getColumn(tbl, PSMSchema::PREDICTED_RT, /*required=*/false);
+  auto col_ion_mobility = ArrowIOHelpers::getColumn(tbl, PSMSchema::ION_MOBILITY, /*required=*/false);
+  auto col_hsb = ArrowIOHelpers::getColumn(tbl, PSMSchema::HIGHER_SCORE_BETTER, /*required=*/false);
+  auto col_scan = ArrowIOHelpers::getColumn(tbl, PSMSchema::SCAN, /*required=*/false);
+  auto col_ref_file = ArrowIOHelpers::getColumn(tbl, PSMSchema::REFERENCE_FILE_NAME, /*required=*/false);
+
+  if (!col_p_id || !col_charge || !col_score || !col_score_type)
+  {
+    OPENMS_LOG_ERROR << "QPXFile::importFromArrow: Missing required PSM columns" << std::endl;
+    return false;
+  }
+
+  std::unordered_map<std::string, bool> higher_score_better_lookup;
+  for (const auto& prot_id : protein_identifications)
+  {
+    higher_score_better_lookup[prot_id.getIdentifier()] = prot_id.isHigherScoreBetter();
+  }
+
+  // Group rows by PEPTIDE_IDENTIFICATION_INDEX value (not by adjacency).
+  // Track the first-seen-order index of each distinct p_id so the resulting
+  // peptide_identifications preserve table order even when rows are interleaved.
+  std::unordered_map<int32_t, size_t> p_id_to_idx;
+  const size_t pep_ids_start_size = peptide_identifications.size();
+
+  // Capture the first non-empty reference_file_name per run_identifier so that
+  // shell ProteinIdentifications synthesized below can preserve the primary MS
+  // run path on round-trip.
+  std::unordered_map<std::string, std::string> run_id_to_ref_file;
+
+  for (int64_t row = 0; row < num_rows; ++row)
+  {
+    int32_t p_id = ArrowIOHelpers::getInt32Value(col_p_id, row, -1);
+
+    auto [it, inserted] = p_id_to_idx.try_emplace(p_id, peptide_identifications.size());
+    if (inserted)
     {
-      uint32_t r = dist(gen);
-      std::memcpy(bytes + i * 4, &r, 4);
+      peptide_identifications.emplace_back();
+      PeptideIdentification& pid = peptide_identifications.back();
+      pid.setScoreType(ArrowIOHelpers::getStringValue(col_score_type, row));
+
+      if (col_run_id && !ArrowIOHelpers::isNull(col_run_id, row))
+      {
+        pid.setIdentifier(ArrowIOHelpers::getStringValue(col_run_id, row));
+      }
+
+      if (col_hsb && !ArrowIOHelpers::isNull(col_hsb, row))
+      {
+        pid.setHigherScoreBetter(ArrowIOHelpers::getBoolValue(col_hsb, row, true));
+      }
+      else if (col_run_id && !ArrowIOHelpers::isNull(col_run_id, row))
+      {
+        auto hsb_it = higher_score_better_lookup.find(pid.getIdentifier());
+        pid.setHigherScoreBetter(
+          hsb_it != higher_score_better_lookup.end() ? hsb_it->second : true);
+      }
+      else
+      {
+        pid.setHigherScoreBetter(true);
+      }
+
+      if (col_rt && !ArrowIOHelpers::isNull(col_rt, row)) { pid.setRT(ArrowIOHelpers::getDoubleValue(col_rt, row)); }
+      if (col_mz && !ArrowIOHelpers::isNull(col_mz, row)) { pid.setMZ(ArrowIOHelpers::getDoubleValue(col_mz, row)); }
+      if (col_spec_ref && !ArrowIOHelpers::isNull(col_spec_ref, row))
+      {
+        pid.setSpectrumReference(ArrowIOHelpers::getStringValue(col_spec_ref, row));
+      }
+      if (col_spectrum_metavalues)
+      {
+        ArrowIOHelpers::readMetaValues(col_spectrum_metavalues, row, pid);
+      }
     }
-    bytes[6] = (bytes[6] & 0x0F) | 0x40; // version 4
-    bytes[8] = (bytes[8] & 0x3F) | 0x80; // variant 1
-    char buf[37];
-    std::snprintf(buf, sizeof(buf),
-      "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-      bytes[0], bytes[1], bytes[2], bytes[3],
-      bytes[4], bytes[5], bytes[6], bytes[7],
-      bytes[8], bytes[9], bytes[10], bytes[11],
-      bytes[12], bytes[13], bytes[14], bytes[15]);
-    std::string uuid_str(buf);
-    
-    auto metadata = arrow::key_value_metadata({
-      {"qpx_version", "1.0"},
-      {"creator", "OpenMS"},
-      {"file_type", "psm"},
-      {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
-      {"uuid", uuid_str},
-      {"scan_format", "scan"},
-      {"software_provider", "OpenMS"}
-    });
-    table = table->ReplaceSchemaMetadata(metadata);
+
+    PeptideHit hit;
+    bool sequence_set = false;
+    if (col_peptidoform && !ArrowIOHelpers::isNull(col_peptidoform, row))
+    {
+      const String peptidoform_str = ArrowIOHelpers::getStringValue(col_peptidoform, row);
+      if (!peptidoform_str.empty())
+      {
+        try
+        {
+          auto pf = ProForma::parse(peptidoform_str);
+          hit.setSequence(ProForma::toAASequence(pf, ProForma::ConversionPolicy::BEST_EFFORT));
+          sequence_set = true;
+        }
+        catch (...)
+        {
+        }
+      }
+    }
+    if (!sequence_set && col_sequence && !ArrowIOHelpers::isNull(col_sequence, row))
+    {
+      hit.setSequence(AASequence::fromString(ArrowIOHelpers::getStringValue(col_sequence, row)));
+    }
+
+    hit.setCharge(static_cast<Int>(ArrowIOHelpers::getInt32Value(col_charge, row, 0)));
+    hit.setScore(ArrowIOHelpers::getDoubleValue(col_score, row, 0.0));
+
+    if (col_is_decoy && !ArrowIOHelpers::isNull(col_is_decoy, row))
+    {
+      bool is_decoy = ArrowIOHelpers::getBoolValue(col_is_decoy, row, false);
+      hit.setMetaValue("target_decoy", is_decoy ? "decoy" : "target");
+    }
+
+    if (col_protein_accs && !ArrowIOHelpers::isNull(col_protein_accs, row))
+    {
+      auto list_arr = std::static_pointer_cast<arrow::ListArray>(col_protein_accs);
+      auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->values());
+      auto acc_arr    = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("accession"));
+      auto before_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("aa_before"));
+      auto after_arr  = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("aa_after"));
+      auto start_arr  = std::static_pointer_cast<arrow::Int32Array>(struct_arr->GetFieldByName("start"));
+      auto end_arr    = std::static_pointer_cast<arrow::Int32Array>(struct_arr->GetFieldByName("end"));
+      int64_t lstart = list_arr->value_offset(row);
+      int64_t lend = lstart + list_arr->value_length(row);
+      for (int64_t k = lstart; k < lend; ++k)
+      {
+        PeptideEvidence ev;
+        ev.setProteinAccession(acc_arr->GetString(k));
+        const std::string before_s = before_arr->IsNull(k) ? std::string{} : before_arr->GetString(k);
+        ev.setAABefore(before_s.empty() ? PeptideEvidence::UNKNOWN_AA : before_s[0]);
+        const std::string after_s = after_arr->IsNull(k) ? std::string{} : after_arr->GetString(k);
+        ev.setAAAfter(after_s.empty() ? PeptideEvidence::UNKNOWN_AA : after_s[0]);
+        ev.setStart(start_arr->IsNull(k) ? PeptideEvidence::UNKNOWN_POSITION : start_arr->Value(k));
+        ev.setEnd  (end_arr  ->IsNull(k) ? PeptideEvidence::UNKNOWN_POSITION : end_arr  ->Value(k));
+        hit.addPeptideEvidence(ev);
+      }
+    }
+
+    if (col_additional_scores && !ArrowIOHelpers::isNull(col_additional_scores, row))
+    {
+      auto list_arr = std::static_pointer_cast<arrow::ListArray>(col_additional_scores);
+      auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->values());
+      auto names_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("score_name"));
+      auto values_arr = std::static_pointer_cast<arrow::DoubleArray>(struct_arr->GetFieldByName("score_value"));
+      int64_t start = list_arr->value_offset(row);
+      int64_t end = start + list_arr->value_length(row);
+      for (int64_t k = start; k < end; ++k)
+      {
+        hit.setMetaValue(names_arr->GetString(k), values_arr->Value(k));
+      }
+    }
+
+    if (col_predicted_rt && !ArrowIOHelpers::isNull(col_predicted_rt, row))
+    {
+      hit.setMetaValue("predicted_RT", ArrowIOHelpers::getDoubleValue(col_predicted_rt, row));
+    }
+    if (col_ion_mobility && !ArrowIOHelpers::isNull(col_ion_mobility, row))
+    {
+      hit.setMetaValue("ion_mobility", ArrowIOHelpers::getDoubleValue(col_ion_mobility, row));
+    }
+    if (col_scan && !ArrowIOHelpers::isNull(col_scan, row))
+    {
+      hit.setMetaValue("scan", static_cast<int>(ArrowIOHelpers::getInt32Value(col_scan, row)));
+    }
+    if (col_ref_file && !ArrowIOHelpers::isNull(col_ref_file, row))
+    {
+      const String ref_file = ArrowIOHelpers::getStringValue(col_ref_file, row);
+      hit.setMetaValue("reference_file_name", ref_file);
+      if (!ref_file.empty())
+      {
+        const std::string& run_id = peptide_identifications[it->second].getIdentifier();
+        run_id_to_ref_file.try_emplace(run_id, ref_file);
+      }
+    }
+
+    if (col_psm_metavalues)
+    {
+      static const std::unordered_set<std::string> psm_excluded_mvs =
+        {"target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM",
+         "scan", "reference_file_name"};
+      ArrowIOHelpers::readMetaValues(col_psm_metavalues, row, hit, psm_excluded_mvs);
+    }
+
+    peptide_identifications[it->second].getHits().push_back(std::move(hit));
   }
 
-  // Open output file
-  auto result = arrow::io::FileOutputStream::Open(filename);
-  if (!result.ok())
+  // Append a shell ProteinIdentification for any run_identifier we saw but don't have.
+  // Only consider PIDs added by this call (caller may concatenate multiple imports).
+  std::unordered_set<std::string> known;
+  for (const auto& p : protein_identifications) { known.insert(p.getIdentifier()); }
+  for (size_t i = pep_ids_start_size; i < peptide_identifications.size(); ++i)
   {
-    OPENMS_LOG_ERROR << "QPXFile: Failed to open file: " << filename << std::endl;
-    return false;
-  }
-  const auto& outfile = *result;
-
-  // Configure Parquet writer
-  auto builder = parquet::WriterProperties::Builder();
-
-  switch (config.compression)
-  {
-    case ParquetWriteConfig::Compression::NONE:
-      builder.compression(arrow::Compression::UNCOMPRESSED);
-      break;
-    case ParquetWriteConfig::Compression::SNAPPY:
-      builder.compression(arrow::Compression::SNAPPY);
-      break;
-    case ParquetWriteConfig::Compression::GZIP:
-      builder.compression(arrow::Compression::GZIP);
-      builder.compression_level(config.compression_level);
-      break;
-    case ParquetWriteConfig::Compression::LZ4:
-      builder.compression(arrow::Compression::LZ4);
-      break;
-    case ParquetWriteConfig::Compression::ZSTD:
-      builder.compression(arrow::Compression::ZSTD);
-      builder.compression_level(config.compression_level);
-      break;
-  }
-
-  builder.data_pagesize(config.data_page_size);
-
-  if (config.write_statistics)
-  {
-    builder.enable_statistics();
-  }
-  else
-  {
-    builder.disable_statistics();
-  }
-
-  auto writer_props = builder.build();
-
-  auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
-
-  // Write
-  auto write_status = parquet::arrow::WriteTable(
-    *table, arrow::default_memory_pool(), outfile,
-    config.row_group_size, writer_props, arrow_props);
-
-  if (!write_status.ok())
-  {
-    OPENMS_LOG_ERROR << "QPXFile: Failed to write Parquet: "
-                     << write_status.ToString() << std::endl;
-    return false;
+    const auto& pid = peptide_identifications[i];
+    const std::string& id = pid.getIdentifier();
+    if (!id.empty() && known.insert(id).second)
+    {
+      ProteinIdentification shell;
+      shell.setIdentifier(id);
+      shell.setScoreType(pid.getScoreType());
+      shell.setHigherScoreBetter(pid.isHigherScoreBetter());
+      auto rf_it = run_id_to_ref_file.find(id);
+      if (rf_it != run_id_to_ref_file.end())
+      {
+        shell.setPrimaryMSRunPath({rf_it->second});
+      }
+      protein_identifications.push_back(std::move(shell));
+    }
   }
 
   return true;

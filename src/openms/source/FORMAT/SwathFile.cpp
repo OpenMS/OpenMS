@@ -195,6 +195,60 @@ namespace OpenMS
     return swath_maps;
   }
 
+  /// Loads a Swath run from a pre-loaded in-memory MSExperiment
+  std::vector<OpenSwath::SwathMap> SwathFile::loadFromMSExperiment(
+      const std::shared_ptr<PeakMap>& exp,
+      const String& tmp,
+      std::shared_ptr<ExperimentalSettings>& exp_meta,
+      const String& readoptions)
+  {
+    OPENMS_LOG_INFO << "Loading Swath run from in-memory MSExperiment with " << exp->size()
+                    << " spectra using readoptions " << readoptions << '\n';
+    String tmp_fname = tmp.hasSuffix('/') ? File::getUniqueName() : "";
+
+    // The provided experiment already contains all metadata + data.
+    exp_meta = exp;
+
+    std::vector<int> swath_counter;
+    int nr_ms1_spectra;
+    std::vector<OpenSwath::SwathMap> known_window_boundaries;
+    countScansInSwath_(exp->getSpectra(), swath_counter, nr_ms1_spectra, known_window_boundaries);
+    OPENMS_LOG_INFO << "Determined there to be " << swath_counter.size()
+                    << " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
+
+    std::shared_ptr<FullSwathFileConsumer> dataConsumer;
+    if (readoptions == "normal")
+    {
+      dataConsumer = std::make_shared<RegularSwathFileConsumer>(known_window_boundaries);
+    }
+    else if (readoptions == "cache")
+    {
+      dataConsumer = std::make_shared<CachedSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+    }
+    else
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Unknown or unsupported option " + readoptions);
+    }
+    dataConsumer->setExperimentalSettings(*exp_meta.get());
+
+    // Feed spectra directly to the consumer — no file I/O.
+    startProgress(0, exp->size(), "Building Swath maps from in-memory experiment");
+    Size progress = 0;
+    for (auto& spec : exp->getSpectra())
+    {
+      // consumeSpectrum takes a non-const ref; copy to a local since exp is shared.
+      auto spec_copy = spec;
+      dataConsumer->consumeSpectrum(spec_copy);
+      setProgress(progress++);
+    }
+    endProgress();
+
+    std::vector<OpenSwath::SwathMap> swath_maps;
+    dataConsumer->retrieveSwathMaps(swath_maps);
+    return swath_maps;
+  }
+
   /// Loads a Swath run from a single mzXML file
   std::vector<OpenSwath::SwathMap> SwathFile::loadMzXML(const String& file,
     const String& tmp,
@@ -287,42 +341,63 @@ namespace OpenMS
 #ifdef WITH_OPENTIMS
   std::vector<OpenSwath::SwathMap> SwathFile::loadBrukerTdf(
     const String& file,
-    std::shared_ptr<ExperimentalSettings>& exp_meta)
+    const String& tmp,
+    std::shared_ptr<ExperimentalSettings>& exp_meta,
+    const String& readoptions)
   {
-    OPENMS_LOG_INFO << "Loading Bruker TDF file " << file << '\n';
+    OPENMS_LOG_INFO << "Loading Bruker TDF file " << file
+                    << " using readoptions " << readoptions << '\n';
     startProgress(0, 1, "Loading Bruker TDF file " + file);
 
-    // Load full MSExperiment via BrukerTimsFile (DIA auto-detected)
     BrukerTimsFile bruker_reader;
     bruker_reader.setLogType(this->getLogType());
-    std::shared_ptr<PeakMap> experiment(new PeakMap);
-    bruker_reader.load(file, *experiment);
-    exp_meta = experiment; // preserve experimental settings for downstream
 
-    // Discover unique SWATH windows from spectrum metadata
-    std::vector<int> swath_counter;
-    int nr_ms1_spectra = 0;
-    std::vector<OpenSwath::SwathMap> known_window_boundaries;
-    countScansInSwath_(experiment->getSpectra(), swath_counter,
-                       nr_ms1_spectra, known_window_boundaries);
+    // Step 1: metadata from SQL (no peak data)
+    ExperimentalSettings settings;
+    auto meta = bruker_reader.readDIAMetadata(file, settings);
+    auto exp_meta_ptr = std::make_shared<PeakMap>();
+    static_cast<ExperimentalSettings&>(*exp_meta_ptr) = settings;
+    exp_meta = exp_meta_ptr;
 
-    OPENMS_LOG_INFO << "Bruker TDF: " << swath_counter.size()
-                    << " SWATH windows and " << nr_ms1_spectra
+    OPENMS_LOG_INFO << "Bruker TDF: " << meta.boundaries.size()
+                    << " SWATH windows and " << meta.nr_ms1_spectra
                     << " MS1 spectra" << std::endl;
 
-    // Partition spectra into per-window MSExperiment objects via RegularSwathFileConsumer
-    RegularSwathFileConsumer consumer(known_window_boundaries);
-    consumer.setExperimentalSettings(*exp_meta);
-    for (auto& spec : experiment->getSpectra())
+    // Step 2: construct consumer based on readoptions
+    String tmp_fname = tmp.hasSuffix('/') ? File::getUniqueName() : "";
+    std::shared_ptr<FullSwathFileConsumer> consumer;
+    if (readoptions == "normal")
     {
-      consumer.consumeSpectrum(spec);
+      consumer = std::make_shared<RegularSwathFileConsumer>(meta.boundaries);
     }
+    else if (readoptions == "cache")
+    {
+      consumer = std::make_shared<CachedSwathFileConsumer>(
+        meta.boundaries, tmp, tmp_fname, meta.nr_ms1_spectra, meta.nr_ms2_spectra);
+    }
+    else
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "readoption '" + readoptions + "' is not supported for Bruker TDF (only 'normal' and 'cache' are available)");
+    }
+    consumer->setExperimentalSettings(settings);
 
+    // Step 3: stream spectra to consumer
+    bruker_reader.loadDIAStreaming(file, *consumer);
+
+    // Step 4: finalize and retrieve SwathMaps
     std::vector<OpenSwath::SwathMap> swath_maps;
-    consumer.retrieveSwathMaps(swath_maps);
+    consumer->retrieveSwathMaps(swath_maps);
 
     endProgress();
     return swath_maps;
+  }
+
+  std::vector<OpenSwath::SwathMap> SwathFile::loadBrukerTdf(
+    const String& file,
+    std::shared_ptr<ExperimentalSettings>& exp_meta)
+  {
+    return loadBrukerTdf(file, File::getTempDirectory(), exp_meta, "normal");
   }
 #endif
 

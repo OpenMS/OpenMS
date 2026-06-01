@@ -13,7 +13,9 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
+#include <cmath>
 #include <numeric>
 #include <boost/math/special_functions/factorials.hpp>
 
@@ -42,7 +44,9 @@ namespace OpenMS
     sum_formula_(),
     inchi_string_(),
     smiles_string_(),
-    precursor_adduct_()
+    precursor_adduct_(),
+    observed_ccs_(IMTypes::DRIFTTIME_NOT_SET),
+    found_ccs_(IMTypes::DRIFTTIME_NOT_SET)
   {
   }
 
@@ -72,6 +76,8 @@ namespace OpenMS
     inchi_string_ = rhs.inchi_string_;
     smiles_string_ = rhs.smiles_string_;
     precursor_adduct_ = rhs.precursor_adduct_;
+    observed_ccs_ = rhs.observed_ccs_;
+    found_ccs_ = rhs.found_ccs_;
 
     return *this;
   }
@@ -256,6 +262,83 @@ namespace OpenMS
   }
 
 
+  double SpectralMatch::getObservedCCS() const
+  {
+    return observed_ccs_;
+  }
+
+
+  void SpectralMatch::setObservedCCS(const double& ccs)
+  {
+    observed_ccs_ = ccs;
+  }
+
+
+  double SpectralMatch::getFoundCCS() const
+  {
+    return found_ccs_;
+  }
+
+
+  void SpectralMatch::setFoundCCS(const double& ccs)
+  {
+    found_ccs_ = ccs;
+  }
+
+
+  /**
+    @brief Extract a collision cross section (CCS, Angstrom^2) for a spectrum, or -1.0 if unavailable.
+
+    Sources are tried in order: a CCS-unit drift time, a 1/K0 (VSSC) drift time converted via the
+    Mason-Schamp relation (@ref IMTypes::oneOverK0ToCCS, needs the precursor m/z and charge), and
+    finally a numeric @c "CCS" meta value. Both the spectrum-level and the first-precursor-level
+    drift time are inspected. @p mz and @p charge are only needed for the 1/K0 conversion.
+  */
+  static double extractCCS(const MSSpectrum& spectrum, double mz, int charge)
+  {
+    // (1) spectrum-level drift time, already in CCS units
+    if (spectrum.getDriftTimeUnit() == DriftTimeUnit::CCS && spectrum.getDriftTime() > 0.0)
+    {
+      return spectrum.getDriftTime();
+    }
+    // (2) spectrum-level drift time as 1/K0 -> convert to CCS (requires m/z and charge)
+    if (spectrum.getDriftTimeUnit() == DriftTimeUnit::VSSC && spectrum.getDriftTime() > 0.0 && mz > 0.0 && charge != 0)
+    {
+      return IMTypes::oneOverK0ToCCS(spectrum.getDriftTime(), mz, charge);
+    }
+
+    if (!spectrum.getPrecursors().empty())
+    {
+      const auto& prec = spectrum.getPrecursors()[0];
+      // (3) precursor-level drift time in CCS units
+      if (prec.getDriftTimeUnit() == DriftTimeUnit::CCS && prec.getDriftTime() > 0.0)
+      {
+        return prec.getDriftTime();
+      }
+      // (4) precursor-level drift time as 1/K0 -> convert to CCS
+      if (prec.getDriftTimeUnit() == DriftTimeUnit::VSSC && prec.getDriftTime() > 0.0 && mz > 0.0 && charge != 0)
+      {
+        return IMTypes::oneOverK0ToCCS(prec.getDriftTime(), mz, charge);
+      }
+    }
+
+    // (5) numeric "CCS" meta value (e.g. parsed from an MSP library by MSPGenericFile)
+    if (spectrum.metaValueExists(Constants::UserParam::MSM_CCS))
+    {
+      try
+      {
+        return String(spectrum.getMetaValue(Constants::UserParam::MSM_CCS).toString()).toDouble();
+      }
+      catch (const Exception::ConversionError&)
+      {
+        // ignore non-numeric CCS meta value
+      }
+    }
+
+    return IMTypes::DRIFTTIME_NOT_SET;
+  }
+
+
   MetaboliteSpectralMatching::MetaboliteSpectralMatching() :
     DefaultParamHandler("MetaboliteSpectralMatching"), ProgressLogger()
   {
@@ -273,6 +356,13 @@ namespace OpenMS
 
     defaults_.setValue("merge_spectra", "true", "Merge MS2 spectra with the same precursor mass.");
     defaults_.setValidStrings("merge_spectra", {"true","false"});
+
+    defaults_.setValue("ccs_error_percent", 0.0, "Allowed collision cross section (CCS) error in percent for filtering candidates "
+                       "(0 = filtering disabled). The relative error |observed - library| / library * 100 must not exceed this value. "
+                       "Typical values for confident identification are 1-3%. Candidates for which the experimental or the library CCS "
+                       "is missing are kept (not filtered). Requires CCS to be present as CCS-unit drift time, 1/K0 (converted to CCS), "
+                       "or a numeric 'CCS' meta value.");
+    defaults_.setMinFloat("ccs_error_percent", 0.0);
 
     defaultsToParam_();
 
@@ -456,6 +546,10 @@ namespace OpenMS
     bool fragment_error_unit_ppm(true);
     if (mz_error_unit_ == "Da") { fragment_error_unit_ppm = false; }
 
+    // track whether any experimental CCS could be obtained, to warn if CCS filtering is enabled but inert
+    bool ccs_filtering_enabled = ccs_error_percent_ > 0.0;
+    bool any_obs_ccs_found = false;
+
     for (Size spec_idx = 0; spec_idx < msexp.size(); ++spec_idx)
     {
       OPENMS_LOG_DEBUG << "merged spectrum no. " << spec_idx << " with #fragment ions: " << msexp[spec_idx].size() << endl;
@@ -465,6 +559,11 @@ namespace OpenMS
       {
         // get precursor m/z
         double precursor_mz(msexp[spec_idx].getPrecursors()[prec_idx].getMZ());
+
+        // experimental CCS for this precursor (used for optional CCS filtering and MzTab export)
+        int obs_charge = msexp[spec_idx].getPrecursors()[prec_idx].getCharge();
+        double obs_ccs = extractCCS(msexp[spec_idx], precursor_mz, obs_charge);
+        if (obs_ccs > 0.0) { any_obs_ccs_found = true; }
 
         OPENMS_LOG_DEBUG << "precursor no. " << prec_idx << ": mz " << precursor_mz << " ";
 
@@ -533,6 +632,22 @@ namespace OpenMS
             continue;
           }
 
+          // library CCS for this candidate (also reused below for the MzTab export)
+          double lib_ccs = extractCCS(spec_db[search_idx],
+                                      spec_db[search_idx].getPrecursors()[0].getMZ(),
+                                      spec_db[search_idx].getPrecursors()[0].getCharge());
+
+          // optional CCS filtering: skip candidates outside tolerance.
+          // If either CCS is missing, the candidate is kept (CCS does not penalise non-IM data).
+          if (ccs_filtering_enabled && obs_ccs > 0.0 && lib_ccs > 0.0)
+          {
+            double ccs_error = std::abs(obs_ccs - lib_ccs) / lib_ccs * 100.0;
+            if (ccs_error > ccs_error_percent_)
+            {
+              continue;
+            }
+          }
+
           double hyperscore(computeHyperScore(fragment_mz_error_, fragment_error_unit_ppm, msexp[spec_idx], spec_db[search_idx], 0.0));
 
           OPENMS_LOG_DEBUG << " scored with " << hyperscore << endl;
@@ -589,6 +704,10 @@ namespace OpenMS
             tmp_match.setSMILESString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SMILES_STRING));
             tmp_match.setPrecursorAdduct(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT));
 
+            // CCS values for the MzTab output (already extracted above for the optional filtering)
+            tmp_match.setObservedCCS(obs_ccs);
+            tmp_match.setFoundCCS(lib_ccs);
+
             partial_results.push_back(tmp_match);
           }
         }
@@ -621,6 +740,14 @@ namespace OpenMS
       } // end precursor loop
     } // end spectra loop
 
+    // warn if CCS filtering was requested but no experimental CCS was found anywhere (filter is inert)
+    if (ccs_filtering_enabled && !any_obs_ccs_found)
+    {
+      OPENMS_LOG_WARN << "Warning: 'ccs_error_percent' is set to " << ccs_error_percent_
+                      << " but no experimental CCS could be determined for any spectrum (no CCS-unit or 1/K0 drift time "
+                      << "and no numeric 'CCS' meta value). CCS filtering had no effect." << endl;
+    }
+
     // write final results to MzTab
     exportMzTab_(matching_results, mztab_out);
   }
@@ -637,6 +764,7 @@ namespace OpenMS
     mz_error_unit_ = param_.getValue("mass_error_unit").toString();
     report_mode_ = param_.getValue("report_mode").toString();
     merge_spectra_ = (bool)param_.getValue("merge_spectra").toBool();
+    ccs_error_percent_ = (double)param_.getValue("ccs_error_percent");
   }
 
 
@@ -833,6 +961,40 @@ namespace OpenMS
       col5.first = "opt_spec_native_id";
       col5.second = spec_native_id_str;
       optionals.push_back(col5);
+
+      // CCS columns (observed, library, and relative error in percent); "null" when unavailable.
+      // CCS values are rounded to two decimals, consistent with the opt_ppm_error column above.
+      const double obs_ccs = current_id.getObservedCCS();
+      const double lib_ccs = current_id.getFoundCCS();
+
+      MzTabString obs_ccs_str;
+      obs_ccs_str.set(obs_ccs > 0.0 ? String(floor(obs_ccs * 100) / 100) : "null");
+      MzTabOptionalColumnEntry col6;
+      col6.first = "opt_observed_ccs";
+      col6.second = obs_ccs_str;
+      optionals.push_back(col6);
+
+      MzTabString lib_ccs_str;
+      lib_ccs_str.set(lib_ccs > 0.0 ? String(floor(lib_ccs * 100) / 100) : "null");
+      MzTabOptionalColumnEntry col7;
+      col7.first = "opt_library_ccs";
+      col7.second = lib_ccs_str;
+      optionals.push_back(col7);
+
+      MzTabString ccs_err_str;
+      if (obs_ccs > 0.0 && lib_ccs > 0.0)
+      {
+        double ccs_err = std::abs(obs_ccs - lib_ccs) / lib_ccs * 100.0;
+        ccs_err_str.set(String(floor(ccs_err * 100) / 100));
+      }
+      else
+      {
+        ccs_err_str.set("null");
+      }
+      MzTabOptionalColumnEntry col8;
+      col8.first = "opt_ccs_error_percent";
+      col8.second = ccs_err_str;
+      optionals.push_back(col8);
 
       mztab_row_record.opt_ = optionals;
 

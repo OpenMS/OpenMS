@@ -97,6 +97,8 @@ Some information about the supported input types:
 @ref OpenMS::DTAFile "dta"
 @ref OpenMS::FeatureXMLFile "featureXML"
 @ref OpenMS::ConsensusXMLFile "consensusXML"
+featureparquet (OpenMS internal feature map parquet bundle)
+consensusparquet (OpenMS internal consensus map parquet bundle)
 @ref OpenMS::MS2File "ms2"
 @ref OpenMS::XMassFile "fid/XMASS"
 @ref OpenMS::MsInspectFile "tsv"
@@ -148,7 +150,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, false); // optional and not advanced (for workflow engines to show this param)
-    vector<String> input_formats = {"mzML", "mzXML", "mgf", "msp", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid",
+    vector<String> input_formats = {"mzML", "mzXML", "mgf", "msp", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "featureparquet", "consensusparquet", "ms2", "fid",
 #ifdef WITH_OPENTIMS
     "d",
 #endif
@@ -160,7 +162,7 @@ protected:
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
-    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqMass", "xic", "oms"};
+    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "featureparquet", "consensusparquet", "edta", "mzData", "dta2d", "csv", "sqMass", "xic", "oms"};
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", output_formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, false); // optional and not advanced (for workflow engines to show this param)
@@ -184,18 +186,156 @@ protected:
     setMinFloat_("bruker:calibration_tolerance", 0.0);
     registerStringOption_("bruker:calibrate", "<toggle>", "false", "Enable m/z recalibration (may fail on some datasets)", false, true);
     setValidStrings_("bruker:calibrate", {"true", "false"});
+    registerStringOption_("bruker:load_ms1", "<toggle>", "true",
+      "Load MS1 spectra. Disable for MS2-only workflows (peptide database search) "
+      "where MS1 surveys are not needed — substantially cuts memory and time. Affects all export modes.", false, true);
+    setValidStrings_("bruker:load_ms1", {"true", "false"});
     registerStringOption_("bruker:export_mode", "<mode>", "auto", "Export mode: 'auto' detects DDA/DIA acquisition type, "
       "'spectrum' forces per-precursor MS2 spectra (DDA-style), 'frame' returns raw 4D frames without signal processing.", false, true);
     setValidStrings_("bruker:export_mode", {"auto", "spectrum", "frame"});
-    registerDoubleOption_("bruker:ms1_centroid_mz_ppm", "<float>", 0.0,
-      "MS1 frame IM-centroiding m/z tolerance in ppm. Collapses the ion mobility dimension "
-      "by aggregating neighboring peaks. Both this and ms1_centroid_im_pct must be > 0 to enable. "
-      "Suggested value: 5.0. Algorithm from Sage (Lazear 2023).", false, true);
+    registerDoubleOption_("bruker:ms1_centroid_mz_ppm", "<float>", 10.0,
+      "MS1 m/z linking tolerance in ppm. HillBased default 10 ppm is tuned for "
+      "detector-centroided TIMS-PASEF MS1: real ions drift up to ~10 ppm in m/z "
+      "between consecutive IM scans, so 5 ppm under-links — empirically only ~4% "
+      "of MS1 hills end up multi-scan at 5 ppm vs ~9% at 10 ppm. Greedy2D also "
+      "uses this and additionally requires ms1_centroid_im_pct > 0.",
+      false, true);
     setMinFloat_("bruker:ms1_centroid_mz_ppm", 0.0);
     registerDoubleOption_("bruker:ms1_centroid_im_pct", "<float>", 0.0,
       "MS1 frame IM-centroiding ion mobility tolerance in percent. Both this and ms1_centroid_mz_ppm "
       "must be > 0 to enable. Suggested value: 3.0.", false, true);
     setMinFloat_("bruker:ms1_centroid_im_pct", 0.0);
+    registerIntOption_("bruker:dia_ms2_n_neighbors", "<int>", 0,
+      "DIA MS2 frame aggregation: number of adjacent frames on each side to sum per SWATH window. "
+      "0 = disabled (raw per-frame export), 1 = 3-frame sum, 2 = 5-frame sum. "
+      "This switches the entire DIA-MS2 export pipeline (sum + denoise) and applies regardless of "
+      "ms2_centroid_algo. For the DIA-PASEF hill recipe, set to 2 together with "
+      "ms2_centroid_algo=hillbased + ms2_centroid_min_hill_length=2.",
+      false, true);
+    setMinInt_("bruker:dia_ms2_n_neighbors", 0);
+    registerIntOption_("bruker:dia_ms2_min_support", "<int>", 1,
+      "DIA MS2 denoising: minimum occupied neighbor cells in a 3x3 (m/z x IM) grid to keep a point "
+      "(center cell excluded from count). Applied after frame aggregation. Only effective when dia_ms2_n_neighbors > 0. "
+      "Set to 0 to disable denoising (useful for pure centroiding without noise filtering).", false, true);
+    setMinInt_("bruker:dia_ms2_min_support", 0);
+    registerStringOption_("bruker:dia_ms2_centroid", "<toggle>", "false",
+      "Apply 2D Gaussian smoothing + local maxima peak picking to the denoised DIA MS2 grid. "
+      "Produces IM_CENTROIDED spectra with sub-bin (m/z, IM) precision. Only effective when dia_ms2_n_neighbors > 0.", false, true);
+    setValidStrings_("bruker:dia_ms2_centroid", {"true", "false"});
+
+    registerIntOption_("bruker:ms1_n_neighbors", "<int>", 0,
+      "MS1 frame aggregation: number of adjacent MS1 frames on each side to sum. "
+      "0 = disabled (raw export), 1 = 3-frame sum, 2 = 5-frame sum. "
+      "Applies to both DIA and DDA; ignored in FRAME export mode.", false, true);
+    setMinInt_("bruker:ms1_n_neighbors", 0);
+    setMaxInt_("bruker:ms1_n_neighbors", 50);
+
+    registerIntOption_("bruker:ms1_min_support", "<int>", 0,
+      "MS1 denoising: minimum occupied neighbor cells in a 3x3 (m/z x IM) grid to keep a point. "
+      "Applied after aggregation. 0 = disabled, 8 = all 8 neighbors required (strictest). "
+      "Only effective when ms1_n_neighbors > 0. Appropriate for dense survey runs; disable for "
+      "rare-species discovery.", false, true);
+    setMinInt_("bruker:ms1_min_support", 0);
+    setMaxInt_("bruker:ms1_min_support", 8);
+
+    registerDoubleOption_("bruker:ms1_max_rt_distance_sec", "<float>", 0.0,
+      "Cap the RT distance (seconds) between a neighbor MS1 frame and the center frame during "
+      "aggregation. 0.0 = no cap. Recommended for DDA (e.g. 5.0) where MS1 frame cadence is "
+      "irregular. The center frame is always included regardless of this cap.", false, true);
+    setMinFloat_("bruker:ms1_max_rt_distance_sec", 0.0);
+
+    registerIntOption_("bruker:ms1_centroid_max_peaks", "<int>", 100000,
+      "Cap on the number of centroided peaks retained per MS1 spectrum. Top-intensity peaks "
+      "are kept; low-intensity tail is dropped if the limit is hit (a warning is logged in that "
+      "case). Only effective when MS1 centroiding is enabled via ms1_centroid_mz_ppm/pct. Raise "
+      "for aggregated MS1 (ms1_n_neighbors > 0) on dense surveys; lower to trim long-tail noise.",
+      false, true);
+    setMinInt_("bruker:ms1_centroid_max_peaks", 1);
+
+    // Hill-based centroiding (IM-axis trace linking + valley splitting).
+    registerStringOption_("bruker:ms1_centroid_algo", "<algo>", "off",
+      "MS1 centroiding algorithm. 'off' = no IM-axis centroiding. "
+      "'greedy2d' = legacy 2D (m/z, IM) box clustering using ms1_centroid_mz_ppm/pct. "
+      "'hillbased' = IM-axis hill detection using ms1_centroid_mz_ppm + centroid_valley_factor + "
+      "ms1_centroid_min_hill_length (modeled on Biosaur2). When 'off', the legacy combination "
+      "ms1_centroid_mz_ppm > 0 + ms1_centroid_im_pct > 0 implies 'greedy2d' (back-compat).",
+      false, true);
+    setValidStrings_("bruker:ms1_centroid_algo", {"off", "greedy2d", "hillbased"});
+
+    registerStringOption_("bruker:ms2_centroid_algo", "<algo>", "off",
+      "MS2 centroiding algorithm (DIA-PASEF + DDA-PASEF). 'off' = no MS2 centroiding (DIA emits "
+      "raw IM_PEAK, DDA uses TOF-domain processing). 'greedy2d' = DIA-MS2 Gaussian "
+      "smoothing + local maxima (requires dia_ms2_n_neighbors > 0; DDA: same as 'off'). "
+      "'hillbased' = IM-axis hill detection — works on both DDA-MS2 and DIA-MS2, including "
+      "DIA at dia_ms2_n_neighbors=0 (per-frame hill linking, no cross-RT summing). "
+      "Takes precedence over the legacy dia_ms2_centroid boolean.",
+      false, true);
+    setValidStrings_("bruker:ms2_centroid_algo", {"off", "greedy2d", "hillbased"});
+
+    registerDoubleOption_("bruker:ms2_centroid_mz_ppm", "<float>", 20.0,
+      "HillBased DIA-/DDA-MS2 m/z linking tolerance in ppm. Required (>0) when "
+      "ms2_centroid_algo=hillbased. Default 20.0 is DIA-PASEF-tuned for fragments.",
+      false, true);
+    setMinFloat_("bruker:ms2_centroid_mz_ppm", 0.0);
+
+    registerDoubleOption_("bruker:centroid_valley_factor", "<float>", 1.3,
+      "HillBased: hill valley factor (hvf). A hill is split at a valley only if both "
+      "(left_max/valley) and (right_max/valley) exceed this value. Smaller = more aggressive "
+      "splitting. Default 1.3 matches Biosaur2.",
+      false, true);
+    setMinFloat_("bruker:centroid_valley_factor", 1.0);
+
+    registerIntOption_("bruker:ms1_centroid_min_hill_length", "<int>", 1,
+      "HillBased MS1: minimum number of IM scans a hill must span. Default 1 keeps single-"
+      "IM-scan ions (common on detector-centroided TIMS-PASEF MS1: ~75% of peaks have no "
+      "same-m/z partner in the previous IM scan within 100 ppm).",
+      false, true);
+    setMinInt_("bruker:ms1_centroid_min_hill_length", 1);
+
+    registerIntOption_("bruker:ms2_centroid_min_hill_length", "<int>", 2,
+      "HillBased MS2: minimum number of IM scans a hill must span. Default 2 is "
+      "DIA-PASEF-tuned: rejects single-scan singletons (~67% of unfiltered hill output) "
+      "and brings volume close to the legacy Gaussian-smooth + local-maxima path. "
+      "DDA-PASEF users should override to 1 (narrow precursor IM range → most fragments "
+      "seen in only one IM scan, min=2 drops ~93% of DDA fragment peaks).",
+      false, true);
+    setMinInt_("bruker:ms2_centroid_min_hill_length", 1);
+
+    registerIntOption_("bruker:centroid_max_scan_gap", "<int>", 0,
+      "HillBased (MS1 + MS2): maximum number of consecutive empty IM scans a hill may bridge "
+      "while linking. 0 = strict consecutive-scan linking (Biosaur2 default). 1 = a single "
+      "empty scan at the hill's m/z is tolerated; useful on detector-centroided TIMS-PASEF "
+      "where ions occasionally fail to register in one IM scan. Hill length still counts "
+      "only the scans where the ion was actually observed, not the bridged gap.",
+      false, true);
+    setMinInt_("bruker:centroid_max_scan_gap", 0);
+
+    registerStringOption_("bruker:isotopic_prefilter", "<toggle>", "false",
+      "MS1 + DIA-MS2 isotopic-partner prefilter applied after aggregation (or after raw "
+      "extraction otherwise), before the centroider dispatch. Drops peaks that lack at "
+      "least one isotopic partner at m/z ± C13C12_MASSDIFF / q (q in {1..5}) within "
+      "± bruker:isotopic_prefilter_tol_ppm AND |Δscan_id| <= 1. Cleans up isolated "
+      "detector-noise singletons; preserves both the monoisotopic peak and the "
+      "isotopologue (mutual evidence). Pure existence check — no intensity/averagine model. "
+      "Not applied to DDA-MS2 (no per-peak IM array). Off by default.",
+      false, true);
+    setValidStrings_("bruker:isotopic_prefilter", {"true", "false"});
+    registerDoubleOption_("bruker:isotopic_prefilter_tol_ppm", "<float>", 50.0,
+      "ppm tolerance for isotopic-partner matching by the prefilter. Mass-relative, so the "
+      "absolute Da window scales with m/z (50 ppm ≈ 0.01 Da at m/z 200, 0.05 Da at m/z 1000). "
+      "Broad by design so per-scan calibration jitter doesn't drop real partners. Only effective "
+      "when bruker:isotopic_prefilter is true.",
+      false, true);
+    setMinFloat_("bruker:isotopic_prefilter_tol_ppm", 0.0);
+
+    registerStringOption_("bruker:expose_hill_bounds", "<toggle>", "false",
+      "HillBased (MS1 + DIA-MS2): attach four extra FloatDataArrays per centroided spectrum "
+      "('im lower bound', 'im upper bound', 'm/z lower bound', 'm/z upper bound') giving "
+      "each centroid's source-hill bounding box. Useful for visual QC of centroiding "
+      "(e.g. with tools/scripts/plot_pasef_frames.py --show-hill-bounds). Bloats centroided "
+      "mzML by roughly +25%. No effect on DDA-MS2 hill (scalar drift_time schema).",
+      false, true);
+    setValidStrings_("bruker:expose_hill_bounds", {"true", "false"});
 #endif
 
     registerTOPPSubsection_("RawToMzML", "Options for converting raw files to mzML (uses ThermoRawFileParser)");
@@ -205,6 +345,15 @@ protected:
     registerFlag_("RawToMzML:no_peak_picking", "Disables vendor peak picking for raw files.", true);
     registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem.", true);
     registerFlag_("RawToMzML:include_noise", "Include noise data in mzML output.", true);
+    registerStringOption_("RawToMzML:reader", "<mode>", "external",
+      "Reader for Thermo .raw files. 'external' uses ThermoRawFileParser (external .NET process, mzML output only); "
+      "'inprocess' uses the built-in ThermoRawFile (in-process, supports any output format; requires WITH_THERMO_RAW build).",
+      false, true);
+    std::vector<String> raw_reader_modes = {"external"};
+#ifdef WITH_THERMO_RAW
+    raw_reader_modes.push_back("inprocess");
+#endif
+    setValidStrings_("RawToMzML:reader", raw_reader_modes);
     
   // OpenSwath / chromatogram options: allow passing a transition library to map extracted ion chromatograms to their matching metadata in the transition list
   registerTOPPSubsection_("OpenSwathWorkflow", "Options for loading OpenSWATH transition libraries used for chromatogram metadata");
@@ -223,12 +372,38 @@ protected:
     BrukerTimsFile::Config c;
     c.calibration_tolerance = getDoubleOption_("bruker:calibration_tolerance");
     c.calibrate = (getStringOption_("bruker:calibrate") == "true");
+    c.load_ms1 = (getStringOption_("bruker:load_ms1") == "true");
     String mode = getStringOption_("bruker:export_mode");
     if (mode == "spectrum") c.export_mode = BrukerTimsFile::Config::SPECTRUM;
     else if (mode == "frame") c.export_mode = BrukerTimsFile::Config::FRAME;
     else c.export_mode = BrukerTimsFile::Config::AUTO;
     c.ms1_centroid_mz_ppm = static_cast<float>(getDoubleOption_("bruker:ms1_centroid_mz_ppm"));
     c.ms1_centroid_im_pct = static_cast<float>(getDoubleOption_("bruker:ms1_centroid_im_pct"));
+    c.dia_ms2_n_neighbors = getIntOption_("bruker:dia_ms2_n_neighbors");
+    c.dia_ms2_min_support = getIntOption_("bruker:dia_ms2_min_support");
+    c.dia_ms2_centroid = (getStringOption_("bruker:dia_ms2_centroid") == "true");
+    c.ms1_n_neighbors         = getIntOption_("bruker:ms1_n_neighbors");
+    c.ms1_min_support         = getIntOption_("bruker:ms1_min_support");
+    c.ms1_max_rt_distance_sec = getDoubleOption_("bruker:ms1_max_rt_distance_sec");
+    c.ms1_centroid_max_peaks  = getIntOption_("bruker:ms1_centroid_max_peaks");
+
+    // Hill-based centroiding params.
+    using CA = BrukerTimsFile::Config::CentroidAlgo;
+    auto parse_algo = [](const String& s) {
+      if (s == "greedy2d")   return CA::GREEDY2D;
+      if (s == "hillbased")  return CA::HILL_BASED;
+      return CA::OFF;
+    };
+    c.ms1_centroid_algo            = parse_algo(getStringOption_("bruker:ms1_centroid_algo"));
+    c.ms2_centroid_algo            = parse_algo(getStringOption_("bruker:ms2_centroid_algo"));
+    c.ms2_centroid_mz_ppm          = static_cast<float>(getDoubleOption_("bruker:ms2_centroid_mz_ppm"));
+    c.centroid_valley_factor       = getDoubleOption_("bruker:centroid_valley_factor");
+    c.ms1_centroid_min_hill_length = static_cast<Size>(getIntOption_("bruker:ms1_centroid_min_hill_length"));
+    c.ms2_centroid_min_hill_length = static_cast<Size>(getIntOption_("bruker:ms2_centroid_min_hill_length"));
+    c.centroid_max_scan_gap        = static_cast<Size>(getIntOption_("bruker:centroid_max_scan_gap"));
+    c.expose_hill_bounds           = (getStringOption_("bruker:expose_hill_bounds") == "true");
+    c.isotopic_prefilter           = (getStringOption_("bruker:isotopic_prefilter") == "true");
+    c.isotopic_prefilter_tol_ppm    = getDoubleOption_("bruker:isotopic_prefilter_tol_ppm");
     return c;
   }
 #endif
@@ -303,13 +478,15 @@ protected:
 
     writeDebug_(String("Loading input file"), 1);
 
-    if (in_type == FileTypes::CONSENSUSXML)
+    if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET)
     {
-      FileHandler().loadConsensusFeatures(in, cm, {FileTypes::CONSENSUSXML}, log_type_);
+      FileHandler().loadConsensusFeatures(in, cm, {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET}, log_type_);
       cm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
           (out_type != FileTypes::CONSENSUSXML) &&
-          (out_type != FileTypes::OMS)
+          (out_type != FileTypes::OMS) &&
+          (out_type != FileTypes::FEATUREPARQUET) &&
+          (out_type != FileTypes::CONSENSUSPARQUET)
           )
       {
         // You you will lose information and waste memory. Enough reasons to issue a warning!
@@ -319,6 +496,22 @@ protected:
     }
     else if (in_type == FileTypes::RAW)
     {
+      String raw_reader = getStringOption_("RawToMzML:reader");
+#ifdef WITH_THERMO_RAW
+      if (raw_reader == "inprocess")
+      {
+        if (getFlag_("RawToMzML:no_peak_picking") || getFlag_("RawToMzML:no_zlib_compression") || getFlag_("RawToMzML:include_noise"))
+        {
+          OPENMS_LOG_WARN << "RawToMzML:no_peak_picking, no_zlib_compression, and include_noise are "
+                          << "specific to the external ThermoRawFileParser; they are ignored when "
+                          << "RawToMzML:reader=inprocess." << std::endl;
+        }
+        // Fall through to generic output writing — supports any output format.
+        fh.loadExperiment(in, exp, {FileTypes::RAW}, log_type_, true, true);
+      }
+      else
+#endif
+      {
       if (out_type != FileTypes::MZML)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -361,13 +554,16 @@ protected:
         arguments.push_back("--noiseData");
       }
       return runExternalProcess_(net_executable, arguments);
+      } // close raw_reader == "external" block
     }
     else if (in_type == FileTypes::EDTA)
     {
       FileHandler().loadConsensusFeatures(in, cm, {FileTypes::EDTA}, log_type_);
       cm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
-          (out_type != FileTypes::CONSENSUSXML))
+          (out_type != FileTypes::CONSENSUSXML) &&
+          (out_type != FileTypes::FEATUREPARQUET) &&
+          (out_type != FileTypes::CONSENSUSPARQUET))
       {
         // You you will lose information and waste memory. Enough reasons to issue a warning!
         writeLogWarn_("Warning: Converting consensus features to peaks. You will lose information!");
@@ -375,6 +571,7 @@ protected:
       }
     }
     else if (in_type == FileTypes::FEATUREXML ||
+             in_type == FileTypes::FEATUREPARQUET ||
              in_type == FileTypes::TSV ||
              in_type == FileTypes::PEPLIST ||
              in_type == FileTypes::KROENIK)
@@ -383,7 +580,9 @@ protected:
       fm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
           (out_type != FileTypes::CONSENSUSXML) &&
-          (out_type != FileTypes::OMS))
+          (out_type != FileTypes::OMS) &&
+          (out_type != FileTypes::FEATUREPARQUET) &&
+          (out_type != FileTypes::CONSENSUSPARQUET))
       {
         // You will lose information and waste memory. Enough reasons to issue a warning!
         writeLogWarn_("Warning: Converting features to peaks. You will lose information! Mass traces are added, if present as 'num_of_masstraces' and 'masstrace_intensity' (X>=0) meta values.");
@@ -619,9 +818,9 @@ protected:
                                                  FORMAT_CONVERSION));
       FileHandler().storeExperiment(out, exp, {FileTypes::MSP}, log_type_);
     }
-    else if (out_type == FileTypes::FEATUREXML)
+    else if (out_type == FileTypes::FEATUREXML || out_type == FileTypes::FEATUREPARQUET)
     {
-      if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) ||
+      if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::FEATUREPARQUET) || (in_type == FileTypes::TSV) ||
           (in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK))
       {
         if (uid_postprocessing == "ensure")
@@ -633,7 +832,7 @@ protected:
           fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
         }
       }
-      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::EDTA)
+      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET || in_type == FileTypes::EDTA)
       {
         MapConversion::convert(cm, true, fm);
       }
@@ -668,11 +867,11 @@ protected:
 
       addDataProcessing_(fm, getProcessingInfo_(DataProcessing::
                                                 FORMAT_CONVERSION));
-      FileHandler().storeFeatures(out, fm, {FileTypes::FEATUREXML}, log_type_);
+      FileHandler().storeFeatures(out, fm, {out_type}, log_type_);
     }
-    else if (out_type == FileTypes::CONSENSUSXML)
+    else if (out_type == FileTypes::CONSENSUSXML || out_type == FileTypes::CONSENSUSPARQUET)
     {
-      if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) ||
+      if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::FEATUREPARQUET) || (in_type == FileTypes::TSV) ||
           (in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK))
       {
         if (uid_postprocessing == "ensure")
@@ -686,7 +885,7 @@ protected:
         MapConversion::convert(0, fm, cm);
       }
       // nothing to do for consensus input
-      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::EDTA)
+      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET || in_type == FileTypes::EDTA)
       {
       }
       else // experimental data
@@ -700,7 +899,7 @@ protected:
 
       addDataProcessing_(cm, getProcessingInfo_(DataProcessing::
                                                 FORMAT_CONVERSION));
-      FileHandler().storeConsensusFeatures(out, cm, {FileTypes::CONSENSUSXML}, log_type_);
+      FileHandler().storeConsensusFeatures(out, cm, {out_type}, log_type_);
     }
     else if (out_type == FileTypes::EDTA)
     {
@@ -742,9 +941,9 @@ protected:
       // conversion is requested
 
       // IBSpectra selected as output type
-      if (in_type != FileTypes::CONSENSUSXML)
+      if (in_type != FileTypes::CONSENSUSXML && in_type != FileTypes::CONSENSUSPARQUET)
       {
-        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert consensusXML files to ibspectra format.";
+        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert consensusXML/consensusparquet files to ibspectra format.";
         return INCOMPATIBLE_INPUT_DATA;
       }
 
@@ -848,19 +1047,19 @@ protected:
     }
     else if (out_type == FileTypes::OMS)
     {
-      if (in_type == FileTypes::FEATUREXML)
+      if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::FEATUREPARQUET)
       {
         IdentificationDataConverter::importFeatureIDs(fm);
         FileHandler().storeFeatures(out, fm, {FileTypes::OMS}, log_type_);
       }
-      else if (in_type == FileTypes::CONSENSUSXML)
+      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET)
       {
         IdentificationDataConverter::importConsensusIDs(cm);
         FileHandler().storeConsensusFeatures(out, cm, {FileTypes::OMS}, log_type_);
       }
       else
       {
-        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert featureXML and consensusXML files to oms format.";
+        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert featureXML/featureparquet and consensusXML/consensusparquet files to oms format.";
         return INCOMPATIBLE_INPUT_DATA;
       }
     }

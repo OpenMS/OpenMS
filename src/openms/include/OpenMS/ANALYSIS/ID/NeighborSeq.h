@@ -19,19 +19,47 @@
 namespace OpenMS
 {
     /**
-       @brief The Neighbor Peptide functionality is designed to find peptides (neighbors) in a given set of sequences (FASTA file) that are
-              similar to a target peptide (aka relevant peptide) based on mass and spectral characteristics. This provides more power
-              when searching complex samples, when only a subset of the peptides/proteins is of interest.
-     
-       The paper on subset neighbor search is www.ncbi.nlm.nih.gov/pmc/articles/PMC8489664/
-       DOI: 10.1021/acs.jproteome.1c00483
-     */
+      @brief Subset-neighbor peptide search: find peptides from a wider
+             pool (typically a FASTA digest) that are spectral neighbors
+             of a smaller "relevant" peptide set, useful when only part
+             of a complex sample is of interest.
+
+      Two peptides are considered neighbors when their precursor masses
+      are within tolerance and their theoretical b/y fragment spectra
+      share enough peaks. The class is constructed once with the
+      relevant peptides, then queried with @ref isNeighborPeptide for
+      each candidate. After the queries are done, @ref getNeighborStats
+      summarises how many relevant peptides had zero, one, or multiple
+      neighbors.
+
+      Background: Cormen et al., @e J. Proteome Research 2021,
+      @c 10.1021/acs.jproteome.1c00483
+      (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8489664/).
+
+      @ingroup Analysis_ID
+    */
     class OPENMS_DLLAPI NeighborSeq
     {
 
     public:
-      /// Constructor
-      /// @param[in] digested_relevant_peptides A vector of digested relevant peptides
+      /**
+        @brief Construct from a vector of "relevant" digested peptides.
+
+        Builds an internal mass index (relevant peptides containing the
+        unknown-amino-acid residue @c 'X' are skipped and a count is
+        logged via OPENMS_LOG_WARN) and configures the internal
+        theoretical-spectrum generator for charge-1 b/y ions including
+        the @c b1 prefix ion.
+
+        @note The class stores a @c const-reference to the moved-in
+              vector via its internal member (not a copy). The vector
+              passed to the constructor must therefore outlive every
+              call on this instance.
+
+        @param[in] digested_relevant_peptides Digested peptides to use
+                                              as the "relevant" reference
+                                              set.
+      */
       NeighborSeq(std::vector<AASequence>&& digested_relevant_peptides);
 
       /**
@@ -45,16 +73,27 @@ namespace OpenMS
       MSSpectrum generateSpectrum(const AASequence& peptide_sequence);
 
       /**
-       * @brief Compares two spectra to determine if they share a sufficient number of ions.
-       *
-       * All peaks are considered. Use generateSpectrum() to generate theoretical spectra with b/y ions.
-       *
-       * @param[in] spec1 The first theoretical spectrum.
-       * @param[in] spec2 The second theoretical spectrum.
-       * @param[in] min_shared_ion_fraction The minimal required proportion of shared ions in [0, 1]
-       * @param[in] mz_bin_size Bin size for the m/z values, which determines if two peaks are considered to be the same (typically, 0.05 for high resolution and 1.0005079 for low resolution).
-       * @return True if the spectra share a sufficient number of ions, false otherwise.
-       */
+        @brief Whether two spectra share enough peaks (in @p mz_bin_size m/z bins) to be considered neighbors.
+
+        Computes the Dice-style fraction
+        @c 2 @c * @c shared_peaks @c / @c (spec1.size() @c + @c spec2.size())
+        and returns @c true when it is @b strictly greater than
+        @p min_shared_ion_fraction. All peaks of both spectra are
+        considered.
+
+        @param[in] spec1                   First theoretical spectrum.
+        @param[in] spec2                   Second theoretical spectrum.
+        @param[in] min_shared_ion_fraction Minimum required Dice-style
+                                           shared-peak fraction (in
+                                           @c [0, @c 1]).
+        @param[in] mz_bin_size             Bin size for m/z comparison
+                                           (typical values: @c 0.05 Th
+                                           for high-resolution data,
+                                           @c 1.0005079 Th for
+                                           low-resolution data).
+        @return @c true when the shared fraction is strictly greater
+                than @p min_shared_ion_fraction.
+      */
       static bool isNeighborSpectrum(const MSSpectrum& spec1, const MSSpectrum& spec2, const double min_shared_ion_fraction, const double mz_bin_size);
       /**
        * @brief Compute the number of shared ions between two spectra 
@@ -69,17 +108,41 @@ namespace OpenMS
       static int computeSharedIonCount(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& mz_bin_size);
 
       /**
-       * @brief Is this peptide a neighbor to one of the relevant peptides?
-       * 
-       * Also updates the internal statistics, which can be retrieved using getNeighborStats().
-       * 
-       * @param[in] neighbor_candidate The peptide sequence (from a neighbor protein) to compare against the internal relevant peptides (see constructor).
-       * @param[in] mass_tolerance_pc Maximal precursor mass difference (in Da or ppm; see 'mass_tolerance_pc_ppm') between neighbor and relevant peptide.
-       * @param[in] mass_tolerance_pc_ppm Is 'mass_tolerance_pc' in Da or ppm?
-       * @param[in] min_shared_ion_fraction The ion tolerance for neighbor peptides.
-       * @param[in] mz_bin_size Bin size for spectra m/z comparison (the original study suggests 0.05 Th for high-res and 1.0005079 Th for low-res spectra).
-       * @return true if @p neighbor_candidate is neighbor to one or more relevant peptides, false otherwise.
-       */
+        @brief Whether @p neighbor_candidate is a spectral neighbor of any of the relevant peptides.
+
+        Looks up the relevant peptides whose precursor mass is within
+        @p mass_tolerance_pc of @p neighbor_candidate's mono-isotopic
+        mass, generates b/y spectra for each candidate match plus
+        @p neighbor_candidate, and compares them with
+        @ref isNeighborSpectrum. Returns @c true as soon as @b any
+        relevant peptide qualifies, but continues iterating so that the
+        internal per-relevant-peptide neighbor counters are updated for
+        every match. Call @ref getNeighborStats once all candidates
+        have been queried.
+
+        @param[in] neighbor_candidate     Candidate peptide (typically
+                                          from a digested FASTA).
+        @param[in] mass_tolerance_pc      Maximum precursor mass
+                                          difference between
+                                          @p neighbor_candidate and a
+                                          relevant peptide, expressed
+                                          in Da or ppm per
+                                          @p mass_tolerance_pc_ppm.
+        @param[in] mass_tolerance_pc_ppm  @c true to interpret
+                                          @p mass_tolerance_pc as ppm
+                                          (converted internally via
+                                          @c Math::ppmToMass);
+                                          @c false to interpret it as
+                                          Da.
+        @param[in] min_shared_ion_fraction Threshold passed straight to
+                                           @ref isNeighborSpectrum.
+        @param[in] mz_bin_size            m/z bin size passed straight
+                                          to @ref isNeighborSpectrum
+                                          (typical values: @c 0.05 Th
+                                          for high-res, @c 1.0005079 Th
+                                          for low-res).
+        @return @c true when at least one relevant peptide is a neighbor.
+      */
       bool isNeighborPeptide(const AASequence& neighbor_candidate,
                              const double mass_tolerance_pc,
                              const bool mass_tolerance_pc_ppm,
@@ -99,28 +162,36 @@ namespace OpenMS
         int findable_multiple_neighbors = 0; ///< how many peptides had multiple neighbors?
         ///@} 
         
-        /// Sum of all 4 categories
+        /// Sum of all four categories (i.e. the number of relevant peptides registered at construction time).
         int total() const
         {
           return unfindable_peptides + findable_no_neighbors + findable_one_neighbor + findable_multiple_neighbors;
         }
-        /// Number of reference peptides that contain an 'X' (unknown amino acid), formatted as 'X (Y%)'
+
+        /**
+          @brief @ref unfindable_peptides formatted as @c "X (Y%)".
+
+          @warning Triggers integer division by zero when @ref total is @c 0
+                   (the four counters and the formatter share an integer denominator).
+        */
         String unfindable() const
         {
           return String(unfindable_peptides) + " (" + unfindable_peptides * 100 / total() + "%)";
         }
 
-        /// Number of reference peptides that had no neighbors, formatted as 'X (Y%)'
+        /// @ref findable_no_neighbors formatted as @c "X (Y%)"; see @ref unfindable for the divide-by-zero caveat.
         String noNB() const
         {
           return String(findable_no_neighbors) + " (" + findable_no_neighbors * 100 / total() + "%)";
         }
-        /// Number of reference peptides that had exactly one neighbor, formatted as 'X (Y%)'
+
+        /// @ref findable_one_neighbor formatted as @c "X (Y%)"; see @ref unfindable for the divide-by-zero caveat.
         String oneNB() const
         {
           return String(findable_one_neighbor) + " (" + findable_one_neighbor * 100 / total() + "%)";
         }
-        /// Number of reference peptides that had multiple neighbors, formatted as 'X (Y%)'
+
+        /// @ref findable_multiple_neighbors formatted as @c "X (Y%)"; see @ref unfindable for the divide-by-zero caveat.
         String multiNB() const
         {
           return String(findable_multiple_neighbors) + " (" + findable_multiple_neighbors * 100 / total() + "%)";

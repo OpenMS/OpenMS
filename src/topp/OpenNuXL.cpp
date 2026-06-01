@@ -13,6 +13,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -4578,16 +4579,26 @@ static void scoreXLIons_(
   void convertVSSCToCCS(MSExperiment& spectra)
   { // confirmed values with alpha and MaxQuant
     OPENMS_LOG_INFO << "Converting 1/k0 to CCS values." << std::endl;
-    constexpr double bruker_CCS_coef = 1059.62245; // constant coefficient for Bruker in the Mason-Schamp equation
-    constexpr double IM_N2_gas_mass = 28.0; // like in alpha code
     for (auto& s : spectra)
     {
+      // spectra without convertible IM (no precursor / no IM / missing charge) get their IM cleared,
+      // so downstream code (e.g. fillSpectrumID_) never mixes raw 1/K0 with CCS values.
+      if (s.getPrecursors().empty())
+      {
+        s.setDriftTime(0.0);
+        s.setDriftTimeUnit(DriftTimeUnit::NONE);
+        continue;
+      }
       const double IM = s.getDriftTime();
       const double mz = s.getPrecursors()[0].getMZ();
-      const double charge = s.getPrecursors()[0].getCharge();
-      const double mass = mz * charge;
-      const double reduced_mass = mass * IM_N2_gas_mass / (mass + IM_N2_gas_mass);
-      const double CCS = IM * charge * bruker_CCS_coef / std::sqrt(reduced_mass); // Mason-Schamp equation
+      const int charge = s.getPrecursors()[0].getCharge();
+      if (IM <= 0.0 || mz <= 0.0 || charge == 0)
+      {
+        s.setDriftTime(0.0);
+        s.setDriftTimeUnit(DriftTimeUnit::NONE);
+        continue;
+      }
+      const double CCS = IMTypes::oneOverK0ToCCS(IM, mz, charge); // Mason-Schamp equation
       s.setDriftTime(CCS);
       s.setDriftTimeUnit(DriftTimeUnit::CCS);
     }

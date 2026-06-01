@@ -33,9 +33,9 @@ namespace OpenMS
     Additionally, the original retention times are stored in the meta information of each feature.
     The reference is combined with the transformed cluster.
 
-    The resulting map is used to extract transformation descriptions for each input map.
-    For each map cubic spline smoothing is used to convert the mapping to a smooth function.
-    Retention times of each map are transformed by applying the smoothed function.
+    The resulting consensus map is used as a reference and each original input map is re-aligned against it
+    using @ref OpenMS::MapAlignmentAlgorithmIdentification to compute the final transformation descriptions.
+    Retention times of each map are transformed by applying the fitted spline model.
 
     @htmlinclude OpenMS_MapAlignmentAlgorithmTreeGuided.parameters
 
@@ -82,13 +82,17 @@ public:
                std::vector<TransformationDescription>& transformations);
 
     /**
-     * @brief Extract original RT ("original_RT" MetaInfo) and transformed RT for each feature to compute RT transformations.
+     * @brief Compute RT transformations from the original input maps to the final tree-guided consensus RT scale.
      *
-     * @param[in] feature_maps Vector of input maps for size information.
-     * @param[out] map_transformed FeatureMap that contains all features of combined maps with original and transformed RTs in order of alignment.
+     * The transformed consensus map returned by treeGuidedAlignment() is used as reference and each
+     * original input map is aligned against it using @ref OpenMS::MapAlignmentAlgorithmIdentification.
+     *
+     * @param[in] feature_maps Vector of original input maps.
+     * @param[in] map_transformed FeatureMap that contains all features of the final aligned map; used as reference.
      * @param[in] transformations Vector to store transformation descriptions for each map. (output)
-     * @param[out] trafo_order Vector that contains the indices of aligned maps in order of alignment.
-    */
+     * @param[in] trafo_order Vector that contains the indices of aligned maps in order of alignment.
+     *   This parameter is kept for API compatibility but is not used anymore.
+     */
     void computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_maps, FeatureMap& map_transformed,
                                    std::vector<TransformationDescription>& transformations, const std::vector<Size>& trafo_order);
 

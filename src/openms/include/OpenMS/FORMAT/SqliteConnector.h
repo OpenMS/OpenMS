@@ -34,7 +34,10 @@ namespace OpenMS
     /// how an sqlite db should be opened
     enum class SqlOpenMode
     {
-      READONLY,  ///< the DB must exist and is read-only
+      READ_ONLY,  ///< the DB must exist and is read-only
+#ifndef READONLY
+      READONLY = READ_ONLY, ///< compatibility alias for READ_ONLY
+#endif
       READWRITE, ///< the DB is readable and writable, but must exist when opening it
       READWRITE_OR_CREATE ///< the DB readable and writable and is created new if not present already
     };

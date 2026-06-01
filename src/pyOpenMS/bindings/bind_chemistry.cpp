@@ -14,6 +14,7 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/IsoelectricPoint.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
@@ -91,8 +92,6 @@ Representation of a peptide/protein sequence
 This class represents amino acid sequences in OpenMS. An AASequence
 instance primarily contains a sequence of residues.
 )doc")
-        .def(nb::init<OpenMS::String>())
-        .def(nb::init<OpenMS::String, bool>())
         .def("empty", [](const OpenMS::AASequence& self) { return self.empty(); }, "Check if sequence is empty")
         .def("toString", [](const OpenMS::AASequence& self) { return self.toString(); }, "Returns the peptide as string with modifications embedded in brackets")
         .def("toUnmodifiedString", [](const OpenMS::AASequence& self) { return self.toUnmodifiedString(); }, "Returns the peptide as string without any modifications")
@@ -150,6 +149,8 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
         .def("__init__", [](OpenMS::AASequence* self, const std::string& s) {
             new (self) OpenMS::AASequence(OpenMS::String(s));
         }, "sequence"_a, "Create AASequence from string (e.g., 'PEPTIDE')")
+        .def(nb::init<OpenMS::String>())
+        .def(nb::init<OpenMS::String, bool>())
 
         .def_static("fromString", [](const std::string& s) {
             return OpenMS::AASequence::fromString(OpenMS::String(s));
@@ -205,7 +206,7 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
             oss << ")";
             return oss.str();
         })
-        .def("__str__", [](const OpenMS::AASequence& self) { return nb::cast(self).attr("__repr__")(); })
+        .def("__str__", [](const OpenMS::AASequence& self) { return std::string(self.toString()); })
         ;
 
     // -----------------------------------------------------------------------
@@ -499,6 +500,7 @@ The elements are initialized with data from IUPAC tables.
         .def(nb::init<OpenMS::String>())
         .def("getMonoWeight", [](const OpenMS::EmpiricalFormula& self) { return self.getMonoWeight(); }, "Returns the mono isotopic weight of the formula (includes proton charges)")
         .def("getAverageWeight", [](const OpenMS::EmpiricalFormula& self) { return self.getAverageWeight(); }, "Returns the average weight of the formula (includes proton charges)")
+        .def("getLightestIsotopeWeight", [](const OpenMS::EmpiricalFormula& self) { return self.getLightestIsotopeWeight(); }, "Returns the sum of the lightest isotope weight of all elements in the formula (includes proton charges)")
         .def("calculateTheoreticalIsotopesNumber", [](const OpenMS::EmpiricalFormula& self) { return self.calculateTheoreticalIsotopesNumber(); })
         .def("estimateFromWeightAndComp", [](OpenMS::EmpiricalFormula& self, double average_weight, double C, double H, double N, double O, double S, double P) { return self.estimateFromWeightAndComp(average_weight, C, H, N, O, S, P); }, "average_weight"_a, "C"_a, "H"_a, "N"_a, "O"_a, "S"_a, "P"_a, "Fills this EmpiricalFormula with an approximate elemental composition for a given average weight and approximate elemental stoichiometry")
         .def("estimateFromWeightAndCompAndS", [](OpenMS::EmpiricalFormula& self, double average_weight, unsigned int S, double C, double H, double N, double O, double P) { return self.estimateFromWeightAndCompAndS(average_weight, S, C, H, N, O, P); }, "average_weight"_a, "S"_a, "C"_a, "H"_a, "N"_a, "O"_a, "P"_a, "Fills this EmpiricalFormula with an approximate elemental composition for a given average weight, exact number of sulfurs, and approximate elemental stoichiometry")
@@ -512,6 +514,7 @@ The elements are initialized with data from IUPAC tables.
         .def("isEmpty", [](const OpenMS::EmpiricalFormula& self) { return self.isEmpty(); }, "Returns true if the formula does not contain a element")
         .def("isCharged", [](const OpenMS::EmpiricalFormula& self) { return self.isCharged(); }, "Returns true if charge is not equal to zero")
         .def("hasElement", [](const OpenMS::EmpiricalFormula& self, OpenMS::Element * element) { return self.hasElement(element); }, "element"_a, "Returns true if the formula contains the element")
+        .def("getNumberOf", [](const OpenMS::EmpiricalFormula& self, OpenMS::Element * element) { return self.getNumberOf(element); }, "element"_a, "Returns the number of atoms of the given element (can be negative)")
         .def("contains", [](const OpenMS::EmpiricalFormula& self, const OpenMS::EmpiricalFormula& ef) { return self.contains(ef); }, "ef"_a, "Returns true if all elements from `ef` ( empirical formula ) are LESS abundant (negative allowed) than the corresponding elements of this EmpiricalFormula")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
@@ -1671,6 +1674,7 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .def("setBackboneBasicityRight", [](OpenMS::Residue& self, double gb_bb_r) { return self.setBackboneBasicityRight(gb_bb_r); }, "gb_bb_r"_a, "Sets the C-terminal direction backbone basicity")
         .def("hasNeutralLoss", [](const OpenMS::Residue& self) { return self.hasNeutralLoss(); }, "True if the residue has neutral loss")
         .def("hasNTermNeutralLosses", [](const OpenMS::Residue& self) { return self.hasNTermNeutralLosses(); }, "True if N-terminal neutral losses are set")
+        .def("getHydrophobicity", [](const OpenMS::Residue& self, OpenMS::HydrophobicityScaleMethod scale) { return self.getHydrophobicity(scale); }, "scale"_a, "Returns the hydrophobicity value of the residue for the given scale (throws for non-standard residues)")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def(nb::self == nb::self)
@@ -1713,6 +1717,42 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .value("Unannotated", OpenMS::Residue::ResidueType::Unannotated)
         .value("SizeOfResidueType", OpenMS::Residue::ResidueType::SizeOfResidueType)
         .export_values();
+
+    // HydrophobicityScaleMethod enum (namespace-scoped, used by Residue::getHydrophobicity)
+    nb::enum_<OpenMS::HydrophobicityScaleMethod>(m, "HydrophobicityScaleMethod", nb::is_arithmetic())
+        .value("KYTE_DOOLITTLE", OpenMS::HydrophobicityScaleMethod::KYTE_DOOLITTLE)
+        .value("EISENBERG", OpenMS::HydrophobicityScaleMethod::EISENBERG)
+        .value("HOPP_WOODS", OpenMS::HydrophobicityScaleMethod::HOPP_WOODS)
+        .value("BULL_BREESE", OpenMS::HydrophobicityScaleMethod::BULL_BREESE)
+        .value("BLACK_MOULD", OpenMS::HydrophobicityScaleMethod::BLACK_MOULD)
+        .value("GUY", OpenMS::HydrophobicityScaleMethod::GUY)
+        .value("EISENBERG_CONSENSUS", OpenMS::HydrophobicityScaleMethod::EISENBERG_CONSENSUS)
+        .export_values();
+
+    // ProteomicsPkaScale enum (namespace-scoped, used by IsoelectricPoint)
+    nb::enum_<OpenMS::ProteomicsPkaScale>(m, "ProteomicsPkaScale", nb::is_arithmetic())
+        .value("LEHNINGER", OpenMS::ProteomicsPkaScale::LEHNINGER)
+        .value("EMBOSS", OpenMS::ProteomicsPkaScale::EMBOSS)
+        .value("SILLERO", OpenMS::ProteomicsPkaScale::SILLERO)
+        .value("BJELLQVIST", OpenMS::ProteomicsPkaScale::BJELLQVIST)
+        .export_values();
+
+    // IsoelectricPoint
+    auto isoelectricpoint_class = nb::class_<OpenMS::IsoelectricPoint>(m, "IsoelectricPoint",
+        "Utility class for computing isoelectric point (pI) and net charge of peptides")
+        .def_static("computeCharge",
+            [](const OpenMS::AASequence& seq, double pH, OpenMS::ProteomicsPkaScale scale) {
+                return OpenMS::IsoelectricPoint::computeCharge(seq, pH, scale);
+            },
+            "seq"_a, "pH"_a, "scale"_a = OpenMS::ProteomicsPkaScale::LEHNINGER,
+            "Computes the net charge of an amino acid sequence at a given pH")
+        .def_static("computePI",
+            [](const OpenMS::AASequence& seq, OpenMS::ProteomicsPkaScale scale, double tolerance) {
+                return OpenMS::IsoelectricPoint::computePI(seq, scale, tolerance);
+            },
+            "seq"_a, "scale"_a = OpenMS::ProteomicsPkaScale::LEHNINGER, "tolerance"_a = 1e-4,
+            "Computes the isoelectric point (pI) of an amino acid sequence via bisection")
+        ;
 
     // -----------------------------------------------------------------------
     // ResidueDB
@@ -1838,8 +1878,8 @@ Modified residues get created and added if getModifiedResidue is called.
     // -----------------------------------------------------------------------
     auto ribonucleotide_class = nb::class_<OpenMS::Ribonucleotide>(m, "Ribonucleotide", "Ribonucleotide")
         .def(nb::init<>())
-        .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::EmpiricalFormula, char, double, double, OpenMS::Ribonucleotide::TermSpecificityNuc, OpenMS::EmpiricalFormula>())
         .def(nb::init<const OpenMS::Ribonucleotide &>())
+        .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::EmpiricalFormula, char, double, double, OpenMS::Ribonucleotide::TermSpecificityNuc, OpenMS::EmpiricalFormula>())
         .def("__copy__", [](const OpenMS::Ribonucleotide& self) { return OpenMS::Ribonucleotide(self); })
         .def("__deepcopy__", [](const OpenMS::Ribonucleotide& self, nb::dict) { return OpenMS::Ribonucleotide(self); }, "memo"_a)
         .def(nb::self == nb::self)

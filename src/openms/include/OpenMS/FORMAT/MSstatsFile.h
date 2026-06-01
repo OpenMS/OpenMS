@@ -36,7 +36,18 @@ namespace OpenMS
         /// Destructor
         ~MSstatsFile() = default;
 
-        /// store label free experiment (MSstats)
+        /**
+         * @brief Store label free experiment (MSstats)
+         * @param[in] filename Output filename
+         * @param[in] consensus_map ConsensusMap with quantification data
+         * @param[in] design ExperimentalDesign file
+         * @param[in] reannotate_filenames Optional filenames for reannotation
+         * @param[in] is_isotope_label_type If true, IsotopeLabelType is 'H', else 'L'
+         * @param[in] bioreplicate Column name for biological replicate in design
+         * @param[in] condition Column name for condition in design
+         * @param[in] retention_time_summarization_method Method for RT summarization
+         * @param[in] remove_shared_peptides If true, shared peptides mapping to multiple indistinguishable protein groups are removed (default)
+         */
         void storeLFQ(const String& filename,
                       const ConsensusMap &consensus_map, // we might add singleton protein groups
                       const ExperimentalDesign& design,
@@ -44,7 +55,8 @@ namespace OpenMS
                       const bool is_isotope_label_type,
                       const String& bioreplicate,
                       const String& condition,
-                      const String& retention_time_summarization_method);
+                      const String& retention_time_summarization_method,
+                      const bool remove_shared_peptides = true);
 
         /**
          * @brief Store isobaric experiment (MSstatsTMT)
@@ -56,6 +68,7 @@ namespace OpenMS
          * @param[in] condition Column name for condition in design
          * @param[in] mixture Column name for mixture in design (used for TMT experiments)
          * @param[in] retention_time_summarization_method Method for RT summarization
+         * @param[in] remove_shared_peptides If true, shared peptides mapping to multiple indistinguishable protein groups are removed (default)
          */
         void storeISO(const String& filename,
                       const ConsensusMap &consensus_map,
@@ -64,7 +77,8 @@ namespace OpenMS
                       const String& bioreplicate,
                       const String& condition,
                       const String& mixture,
-                      const String& retention_time_summarization_method);
+                      const String& retention_time_summarization_method,
+                      const bool remove_shared_peptides = true);
 
     private:
       typedef OpenMS::Peak2D::IntensityType Intensity;

@@ -271,6 +271,55 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[25].annotation, "[alpha|xi$y8]")
 
 END_SECTION
+
+START_SECTION([EXTRA] Compressed file writing - gzip round-trip)
+  // Load reference data
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids);
+
+  // Store as gzip-compressed file
+  String tmp_gz;
+  NEW_TMP_FILE(tmp_gz);
+  tmp_gz += ".gz";
+  IdXMLFile().store(tmp_gz, protein_ids, peptide_ids);
+
+  // Load back from compressed file
+  std::vector<ProteinIdentification> protein_ids_gz;
+  PeptideIdentificationList peptide_ids_gz;
+  IdXMLFile().load(tmp_gz, protein_ids_gz, peptide_ids_gz);
+
+  // Verify round-trip integrity
+  TEST_EQUAL(protein_ids_gz.size(), protein_ids.size())
+  TEST_EQUAL(peptide_ids_gz.size(), peptide_ids.size())
+  TEST_EQUAL(protein_ids_gz[0].getHits().size(), protein_ids[0].getHits().size())
+  TEST_EQUAL(protein_ids_gz[0].getHits()[0].getAccession(), protein_ids[0].getHits()[0].getAccession())
+END_SECTION
+
+START_SECTION([EXTRA] Compressed file writing - bzip2 round-trip)
+  // Load reference data
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids);
+
+  // Store as bzip2-compressed file
+  String tmp_bz2;
+  NEW_TMP_FILE(tmp_bz2);
+  tmp_bz2 += ".bz2";
+  IdXMLFile().store(tmp_bz2, protein_ids, peptide_ids);
+
+  // Load back from compressed file
+  std::vector<ProteinIdentification> protein_ids_bz2;
+  PeptideIdentificationList peptide_ids_bz2;
+  IdXMLFile().load(tmp_bz2, protein_ids_bz2, peptide_ids_bz2);
+
+  // Verify round-trip integrity
+  TEST_EQUAL(protein_ids_bz2.size(), protein_ids.size())
+  TEST_EQUAL(peptide_ids_bz2.size(), peptide_ids.size())
+  TEST_EQUAL(protein_ids_bz2[0].getHits().size(), protein_ids[0].getHits().size())
+  TEST_EQUAL(protein_ids_bz2[0].getHits()[0].getAccession(), protein_ids[0].getHits()[0].getAccession())
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

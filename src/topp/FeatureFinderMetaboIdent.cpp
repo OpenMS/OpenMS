@@ -67,20 +67,23 @@ Spectra are expected in centroided or profile mode. Only MS1 level spectra are c
 The targets to quantify have to be specified in a tab-separated text file that is passed via the @p id parameter.
 This file has to start with the following header line, defining its columns:
 <pre>
-<TT>CompoundName    SumFormula    Mass    Charge    RetentionTime    RetentionTimeRange    IsoDistribution    [IonMobility]</TT>
+<TT>CompoundName    SumFormula    Mass    Charge    RetentionTime    RetentionTimeRange    IsoDistribution    [IonMobility]    [Adduct]</TT>
 </pre>
 
 Every subsequent line defines a target.
 (Except lines starting with "#", which are considered as comments and skipped.)
 The following requirements apply:
 - @p CompoundName: unique name for the target compound
-- @p SumFormula: chemical sum formula (see @ref OpenMS::EmpiricalFormula), optional
-- @p Mass: neutral mass; if zero calculated from @p Formula
-- @p Charge: charge state, or comma-separated list of multiple charges
+- @p SumFormula [optional]: chemical sum formula (see @ref OpenMS::EmpiricalFormula) to compute mass; if no @p Adduct column is provided, protonation ([M+H]+) is assumed in positive mode and deprotonation ([M-H]-) in negative mode
+- @p Mass: neutral mass; if zero calculated from @p Formula 
+- @p Charge: charge state, or comma-separated list of multiple charges. Use negative values (-1, -2, etc.) for negative ionization mode.
 - @p RetentionTime: retention time (RT), or comma-separated list of multiple RTs
 - @p RetentionTimeRange: RT window around @p RetentionTime for chromatogram extraction, either one value or one per @p RT entry; if zero parameter @p extract:rt_window is used
 - @p IsoDistribution: comma-separated list of relative abundances of isotopologues (see @ref OpenMS::IsotopeDistribution); if zero calculated from @p Formula
-- @p IonMobility (optional): ion mobility value, or comma-separated list of multiple values (one per RT entry); if not provided or zero, no IM filtering is performed. The extraction window is controlled by parameter @p extract:im_window.
+- @p IonMobility [optional]: ion mobility value, or comma-separated list of multiple values (one per RT entry); if not provided or zero, no IM
+filtering is performed. The extraction window is controlled by parameter @p extract:im_window.
+- @p Adduct [optional]: adduct string in standard notation (e.g. @c [M+H]+, @c [M+Na]+, @c [M-H]-, @c [2M+H]+); used to compute the target m/z via AdductInfo; if omitted, defaults to @c [M+H]+ for positive charges and @c [M-H]- for negative charges.
+When an @p Adduct column is present it takes precedence over the legacy workaround of encoding adducts in @p SumFormula (e.g. @c Na1H-1).
 
 In the simplest case, only @p CompoundName, @p SumFormula, @p Charge and @p RetentionTime need to be given, all other values may be zero.
 Every combination of compound (mass), RT and charge defines one target for feature detection.
@@ -186,6 +189,8 @@ protected:
 
     // Check for optional IM columns in header
     bool has_im_columns = String(line).hasSubstring("IonMobility");
+    // Check for optional Adduct column in header
+    bool has_adduct_column = String(line).hasSubstring("Adduct");
 
     Size line_count = 1;
     set<String> names;
@@ -224,6 +229,14 @@ protected:
         ion_mobilities = ListUtils::create<double>(parts[7]);
       }
 
+      // Parse optional Adduct column
+      String adduct;
+      Size adduct_col = has_im_columns ? 8 : 7; // Adduct column position depends on IM column presence
+      if (has_adduct_column && parts.size() > adduct_col)
+      {
+        adduct = parts[adduct_col].trim();
+      }
+
       metaboIdentTable.push_back(FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound(name,
                                  parts[1],
                                  parts[2].toDouble(),
@@ -231,7 +244,8 @@ protected:
                                  ListUtils::create<double>(parts[4]),
                                  ListUtils::create<double>(parts[5]),
                                  ListUtils::create<double>(parts[6]),
-                                 ion_mobilities));
+                                 ion_mobilities,
+                                 adduct));
     }
     return metaboIdentTable;
   }

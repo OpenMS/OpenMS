@@ -711,8 +711,16 @@ protected:
         break;
 
       case FileTypes::MZIDENTML:
-        os << " against XML schema version " << MzIdentMLFile().getVersion() << '\n';
-        valid = MzIdentMLFile().isValid(in, os);
+        {
+          // validate against the schema matching the file's declared version (1.1.0/1.2.0/1.3.0),
+          // not always the latest, so older valid mzIdentML files are not flagged as invalid
+          MzIdentMLFile mzid_file;
+          String used_version;
+          // detect first so the reported version matches what we actually validate against
+          used_version = mzid_file.detectVersion(in);
+          os << " against XML schema version " << used_version << '\n';
+          valid = mzid_file.isValid(in, os, used_version);
+        }
         break;
 
       case FileTypes::CONSENSUSXML:

@@ -231,10 +231,19 @@ public:
 
       @param[in] filename the file name of the file to write.
       @param[out] map The FeatureMap to store.
-      @param[in] allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param[in] allowed_types Restricts the set of file formats this call may write.
+        - Empty: infer the format from the filename extension; if that fails, throw InvalidFileType.
+        - Size 1: if the filename's type is UNKNOWN (e.g. TOPPAS intermediate ".unknown" files),
+          fall back to this single type. Otherwise the filename type must equal it, or InvalidFileType
+          is thrown.
+        - Size >1: the filename type must be one of these; UNKNOWN filenames CANNOT be disambiguated
+          and will throw InvalidFileType. TOPP tools writing through TOPPAS pipelines must therefore
+          pass a single concrete type here (typically derived from the input file type or an
+          out_type parameter), not the full list of formats they support.
       @param[in] log Progress logging mode
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
+      @exception Exception::InvalidFileType is thrown if the file type cannot be determined or is not allowed
     */
     void storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
@@ -256,10 +265,19 @@ public:
 
       @param[in] filename the file name of the file to write.
       @param[out] map The ConsensusMap to store.
-      @param[in] allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param[in] allowed_types Restricts the set of file formats this call may write.
+        - Empty: infer the format from the filename extension; if that fails, throw InvalidFileType.
+        - Size 1: if the filename's type is UNKNOWN (e.g. TOPPAS intermediate ".unknown" files),
+          fall back to this single type. Otherwise the filename type must equal it, or InvalidFileType
+          is thrown.
+        - Size >1: the filename type must be one of these; UNKNOWN filenames CANNOT be disambiguated
+          and will throw InvalidFileType. TOPP tools writing through TOPPAS pipelines must therefore
+          pass a single concrete type here (typically derived from the input file type or an
+          out_type parameter), not the full list of formats they support.
       @param[in] log Progress logging mode
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
+      @exception Exception::InvalidFileType is thrown if the file type cannot be determined or is not allowed
     */
     void storeConsensusFeatures(const String& filename, const ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
@@ -283,10 +301,19 @@ public:
       @param[in] filename the file name of the file to write to.
       @param[in] additional_proteins The proteinIdentification vector to load the data from.
       @param[in] additional_peptides The peptideIdentification vector to load the data from.
-      @param[in] allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param[in] allowed_types Restricts the set of file formats this call may write.
+        - Empty: infer the format from the filename extension; if that fails, throw InvalidFileType.
+        - Size 1: if the filename's type is UNKNOWN (e.g. TOPPAS intermediate ".unknown" files),
+          fall back to this single type. Otherwise the filename type must equal it, or InvalidFileType
+          is thrown.
+        - Size >1: the filename type must be one of these; UNKNOWN filenames CANNOT be disambiguated
+          and will throw InvalidFileType. TOPP tools writing through TOPPAS pipelines must therefore
+          pass a single concrete type here (typically derived from the input file type or an
+          out_type parameter), not the full list of formats they support.
       @param[in] log Progress logging mode
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
+      @exception Exception::InvalidFileType is thrown if the file type cannot be determined or is not allowed
     */
     void storeIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 

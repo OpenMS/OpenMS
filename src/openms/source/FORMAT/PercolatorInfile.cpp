@@ -23,14 +23,28 @@ namespace OpenMS
   using namespace std;
 
   void PercolatorInfile::store(const String& pin_file,
-    const PeptideIdentificationList& peptide_ids, 
-    const StringList& feature_set, 
-    const std::string& enz, 
-    int min_charge, 
+    const PeptideIdentificationList& peptide_ids,
+    const StringList& feature_set,
+    const std::string& enz,
+    int min_charge,
     int max_charge)
   {
     TextFile txt = preparePin_(peptide_ids, feature_set, enz, min_charge, max_charge);
     txt.store(pin_file);
+  }
+
+  StringList PercolatorInfile::getStandardFeatureSet(int min_charge, int max_charge)
+  {
+    StringList fs = {
+      "SpecId", "Label", "ScanNr",
+      "ExpMass", "CalcMass", "mass", "peplen"
+    };
+    for (int c = min_charge; c <= max_charge; ++c)
+    {
+      fs.push_back("charge" + String(c));
+    }
+    fs.insert(fs.end(), {"enzN", "enzC", "enzInt", "dm", "absdm"});
+    return fs;
   }
 
   // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
@@ -380,189 +394,199 @@ namespace OpenMS
   }
 
 
-  TextFile PercolatorInfile::preparePin_(
-    const PeptideIdentificationList& peptide_ids, 
-    const StringList& feature_set, 
-    const std::string& enz, 
-    int min_charge, 
+  std::set<std::pair<size_t, size_t>> PercolatorInfile::stampPinFeaturesOnHits(
+    PeptideIdentificationList& peptide_ids,
+    const std::string& enz,
+    int min_charge,
     int max_charge)
   {
-    TextFile txt;  
-    txt.addLine(ListUtils::concatenate(feature_set, '\t'));
-    if (peptide_ids.empty()) 
-    {
-      OPENMS_LOG_WARN << "No identifications provided. Creating empty percolator input." << endl;
-      return txt;
-    }
+    std::set<std::pair<size_t, size_t>> skipped;
+    if (peptide_ids.empty()) return skipped;
 
-    // extract native id (usually in spectrum_reference)
+    // Scan-number regex is derived from the first pid's scan identifier.
     const String sid = getScanIdentifier(peptide_ids[0], 0);
-
-    // determine RegEx to extract scan/index number
     boost::regex scan_regex = boost::regex(SpectrumLookup::getRegExFromNativeID(sid));
 
-    // keep track of errors
-    size_t missing_meta_value_count{};
-    set<String> missing_meta_values;
-
-    size_t index = 0;
-    for (const PeptideIdentification& pep_id : peptide_ids)
+    size_t pid_index_1based = 0;
+    size_t pid_index_0based = 0;
+    for (auto& pep_id : peptide_ids)
     {
-      index++;
-      // try to make a file and scan unique identifier
-      String scan_identifier = getScanIdentifier(pep_id, index);
-      String file_identifier = pep_id.getMetaValue("file_origin", String());
+      const size_t pid_index = pid_index_0based;
+      ++pid_index_0based;
+      ++pid_index_1based;
 
+      const String scan_identifier = getScanIdentifier(pep_id, pid_index_1based);
+      String file_identifier = pep_id.getMetaValue("file_origin", String());
       file_identifier += (String)pep_id.getMetaValue("id_merge_index", String());
 
-      Int scan_number = SpectrumLookup::extractScanNumber(scan_identifier, scan_regex, true);
-      
+      const Int scan_number = SpectrumLookup::extractScanNumber(
+        scan_identifier, scan_regex, /*no_error=*/true);
+
       double exp_mass = pep_id.getMZ();
-      double retention_time = pep_id.getRT();
-      for (const PeptideHit& psm : pep_id.getHits())
+      const double retention_time = pep_id.getRT();
+
+      auto& hits = pep_id.getHits();
+      for (size_t hit_index = 0; hit_index < hits.size(); ++hit_index)
       {
-        if (psm.getPeptideEvidences().empty())
+        PeptideHit& hit = hits[hit_index];
+
+        if (hit.getPeptideEvidences().empty())
         {
           OPENMS_LOG_WARN << "PSM (PeptideHit) without protein reference found. "
-                  << "This may indicate incomplete mapping during PeptideIndexing (e.g., wrong enzyme settings)." 
-                  << "Will skip this PSM." << endl;
+                  << "This may indicate incomplete mapping during PeptideIndexing "
+                     "(e.g., wrong enzyme settings). Will skip this PSM." << endl;
+          skipped.insert({pid_index, hit_index});
           continue;
         }
-        PeptideHit hit(psm); // make a copy of the hit to store temporary features
+        if (hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
+        {
+          OPENMS_LOG_WARN << "PSM without target/decoy information found. "
+                  << "This may indicate incomplete mapping during PeptideIndexing "
+                     "(e.g., wrong decoy prefix settings). Will skip this PSM." << endl;
+          skipped.insert({pid_index, hit_index});
+          continue;
+        }
+
         hit.setMetaValue("SpecId", file_identifier + scan_identifier);
         hit.setMetaValue("ScanNr", scan_number);
-        
-        if (hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
-        { 
-          OPENMS_LOG_WARN << "PSM without target/decoy information found. "
-                  << "This may indicate incomplete mapping during PeptideIndexing (e.g., wrong decoy prefix settings)." 
-                  << "Will skip this PSM." << endl;
-          continue;
-        }
-        
-        int label = hit.isDecoy() ? -1 : 1;
-        hit.setMetaValue("Label", label);
-        
-        int charge = hit.getCharge();
-        String unmodified_sequence = hit.getSequence().toUnmodifiedString();
-      
-        double calc_mass; 
+        hit.setMetaValue("Label", hit.isDecoy() ? -1 : 1);
+
+        const int charge = hit.getCharge();
+        const String unmodified_sequence = hit.getSequence().toUnmodifiedString();
+
+        double calc_mass;
         if (!hit.metaValueExists("CalcMass"))
         {
           calc_mass = hit.getSequence().getMZ(charge);
-          hit.setMetaValue("CalcMass", calc_mass); // Percolator calls is CalcMass instead of m/z
+          hit.setMetaValue("CalcMass", calc_mass);
         }
         else
         {
           calc_mass = hit.getMetaValue("CalcMass");
         }
 
-        if (hit.metaValueExists("IsotopeError"))  // for backwards compatibility (generated by MSGFPlusAdaper OpenMS < 2.6)
+        double row_exp_mass = exp_mass;
+        if (hit.metaValueExists("IsotopeError"))  // legacy MSGF+ adapter meta (<2.6)
         {
-          float isoErr = hit.getMetaValue("IsotopeError").toString().toFloat();
-          exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+          const float isoErr = hit.getMetaValue("IsotopeError").toString().toFloat();
+          row_exp_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
         }
-        else if (hit.metaValueExists(Constants::UserParam::ISOTOPE_ERROR)) // OpenMS user param name for isotope error
+        else if (hit.metaValueExists(Constants::UserParam::ISOTOPE_ERROR))
         {
-          float isoErr = hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR).toString().toFloat();
-          exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+          const float isoErr = hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR).toString().toFloat();
+          row_exp_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
         }
-                
-        hit.setMetaValue("ExpMass", exp_mass);
 
-        // needed in case "description of correct" option is used
-        double delta_mass = exp_mass - calc_mass;
+        hit.setMetaValue("ExpMass", row_exp_mass);
+
+        const double delta_mass = row_exp_mass - calc_mass;
         hit.setMetaValue("deltamass", delta_mass);
         hit.setMetaValue("retentiontime", retention_time);
+        hit.setMetaValue("mass", row_exp_mass);
 
-        hit.setMetaValue("mass", exp_mass);
-        
-        double score = hit.getScore();
-        // TODO better to use log scores for E-value based scores
-        hit.setMetaValue("score", score);
-        
-        int peptide_length = unmodified_sequence.size();
-        hit.setMetaValue("peplen", peptide_length);
-        
+        hit.setMetaValue("score", hit.getScore());
+        hit.setMetaValue("peplen", static_cast<int>(unmodified_sequence.size()));
+
         for (int i = min_charge; i <= max_charge; ++i)
         {
           hit.setMetaValue("charge" + String(i), charge == i);
         }
 
-        // just first peptide evidence
+        // use first peptide evidence for flanking AAs
         char aa_before = hit.getPeptideEvidences().front().getAABefore();
-        char aa_after = hit.getPeptideEvidences().front().getAAAfter();
+        char aa_after  = hit.getPeptideEvidences().front().getAAAfter();
 
-        bool enzN = isEnz_(aa_before, unmodified_sequence.prefix(1)[0], enz);
+        const bool enzN = isEnz_(aa_before, unmodified_sequence.prefix(1)[0], enz);
         hit.setMetaValue("enzN", enzN);
-        bool enzC = isEnz_(unmodified_sequence.suffix(1)[0], aa_after, enz);
+        const bool enzC = isEnz_(unmodified_sequence.suffix(1)[0], aa_after, enz);
         hit.setMetaValue("enzC", enzC);
-        int enzInt = countEnzymatic_(unmodified_sequence, enz);
-        hit.setMetaValue("enzInt", enzInt);
+        hit.setMetaValue("enzInt", static_cast<int>(countEnzymatic_(unmodified_sequence, enz)));
 
         hit.setMetaValue("dm", delta_mass);
-        
-        double abs_delta_mass = abs(delta_mass);
-        hit.setMetaValue("absdm", abs_delta_mass);
-        
-        //peptide
-        String sequence = "";
+        hit.setMetaValue("absdm", std::abs(delta_mass));
 
+        // Percolator-formatted peptide string with PTM brackets
         aa_before = aa_before == '[' ? '-' : aa_before;
-        aa_after = aa_after == ']' ? '-' : aa_after;
-
+        aa_after  = aa_after  == ']' ? '-' : aa_after;
+        String sequence;
         sequence += aa_before;
-        sequence += "."; 
-        // Percolator uses square brackets to indicate PTMs
+        sequence += ".";
         sequence += hit.getSequence().toBracketString(false, true);
-        sequence += "."; 
+        sequence += ".";
         sequence += aa_after;
-        
         hit.setMetaValue("Peptide", sequence);
-        
-        //proteinId1
+
         StringList proteins;
         for (const PeptideEvidence& pep : hit.getPeptideEvidences())
         {
           proteins.push_back(pep.getProteinAccession());
         }
         hit.setMetaValue("Proteins", ListUtils::concatenate(proteins, '\t'));
-        
+      }
+    }
+    return skipped;
+  }
+
+  TextFile PercolatorInfile::preparePin_(
+    const PeptideIdentificationList& peptide_ids,
+    const StringList& feature_set,
+    const std::string& enz,
+    int min_charge,
+    int max_charge)
+  {
+    TextFile txt;
+    txt.addLine(ListUtils::concatenate(feature_set, '\t'));
+    if (peptide_ids.empty())
+    {
+      OPENMS_LOG_WARN << "No identifications provided. Creating empty percolator input." << endl;
+      return txt;
+    }
+
+    // Work on a local copy so we don't mutate caller state.
+    PeptideIdentificationList stamped(peptide_ids);
+    const auto skipped = stampPinFeaturesOnHits(stamped, enz, min_charge, max_charge);
+
+    size_t missing_meta_value_count = 0;
+    set<String> missing_meta_values;
+
+    for (size_t pid_idx = 0; pid_idx < stamped.size(); ++pid_idx)
+    {
+      const auto& hits = stamped[pid_idx].getHits();
+      for (size_t hit_idx = 0; hit_idx < hits.size(); ++hit_idx)
+      {
+        if (skipped.count({pid_idx, hit_idx})) continue;
+        const PeptideHit& hit = hits[hit_idx];
+
         StringList feats;
         for (const String& feat : feature_set)
         {
-        // Some Hits have no NumMatchedMainIons, and MeanError, etc. values. Have to ignore them!
           if (hit.metaValueExists(feat))
           {
             feats.push_back(hit.getMetaValue(feat).toString());
           }
         }
-        // here: feats (metavalues in peptide hits) and feature_set are equal if they have same size (if no metavalue is missing)
-
         if (feats.size() == feature_set.size())
-        { // only if all feats were present add
+        {
           txt.addLine(ListUtils::concatenate(feats, '\t'));
-        }        
+        }
         else
-        { // at least one feature is missing in the current peptide hit
-          missing_meta_value_count++;        
+        {
+          missing_meta_value_count++;
           for (const auto& f : feature_set)
           {
-            if (std::find(feats.begin(), feats.end(), f) == feats.end()) missing_meta_values.insert(f);
+            if (std::find(feats.begin(), feats.end(), f) == feats.end())
+              missing_meta_values.insert(f);
           }
         }
       }
     }
 
-    // print warnings
     if (missing_meta_value_count != 0)
     {
-      OPENMS_LOG_WARN << "There were peptide hits with missing features/meta values. Skipped peptide hits: " << missing_meta_value_count << endl;
+      OPENMS_LOG_WARN << "There were peptide hits with missing features/meta values. Skipped peptide hits: "
+                      << missing_meta_value_count << endl;
       OPENMS_LOG_WARN << "Names of missing meta values: " << endl;
-      for (const auto& f : missing_meta_values)
-      {
-        OPENMS_LOG_WARN << f << endl;
-      }
+      for (const auto& f : missing_meta_values) OPENMS_LOG_WARN << f << endl;
     }
 
     return txt;

@@ -161,6 +161,16 @@ public:
     void getAllChildTerms(std::set<String>& terms, const String& parent_id) const;
 
     /**
+        @brief Writes the parent term and all descendant term IDs into @p terms
+
+        @param[in,out] terms Output set extended with @p parent_id and all descendants
+        @param[in] parent_id The parent term ID
+
+        @exception Exception::InvalidValue is thrown if the term is not present
+    */
+    void addAllChildTerms(std::set<String>& terms, const String& parent_id) const;
+
+    /**
         @brief Iterates over all children (incl. subchildren etc) of parent recursively, i.e. the whole subtree.
 
         @param[in] parent_id Id of parent (to be passed to getTerm(), to obtain its children).

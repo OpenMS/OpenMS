@@ -132,7 +132,22 @@ namespace OpenMS
 #ifdef WITH_OPENTIMS
         else if (in_file_type == FileTypes::BRUKER_TDF)
         {
-          auto maps = swath_file.loadBrukerTdf(f, exp_meta);
+          auto maps = swath_file.loadBrukerTdf(f, tmp, exp_meta, readoptions);
+          for (auto & m : maps)
+          {
+            swath_maps.push_back(m);
+            swath_map_sources.push_back(f);
+          }
+        }
+#endif
+#ifdef WITH_THERMO_RAW
+        else if (in_file_type == FileTypes::RAW)
+        {
+          // Load .raw fully via ThermoRawFile (in-process), then build SwathMaps
+          // directly from the in-memory MSExperiment — no temp mzML round-trip.
+          auto exp_raw = std::make_shared<PeakMap>();
+          FileHandler().loadExperiment(f, *exp_raw, {FileTypes::RAW});
+          auto maps = swath_file.loadFromMSExperiment(exp_raw, tmp, exp_meta, readoptions);
           for (auto & m : maps)
           {
             swath_maps.push_back(m);
@@ -142,13 +157,16 @@ namespace OpenMS
 #endif
         else
         {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           "Input file needs to have a supported extension "
+                                           "(mzML, mzXML, sqMass"
 #ifdef WITH_OPENTIMS
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                           "Input file needs to have ending mzML, mzXML, sqMass, or .d (Bruker TDF)");
-#else
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                           "Input file needs to have ending mzML, mzXML, or sqMass");
+                                           ", .d (Bruker TDF)"
 #endif
+#ifdef WITH_THERMO_RAW
+                                           ", raw (Thermo)"
+#endif
+                                           ")");
         }
       }
     }
@@ -178,20 +196,35 @@ namespace OpenMS
 #ifdef WITH_OPENTIMS
       else if (in_file_type == FileTypes::BRUKER_TDF)
       {
-        swath_maps = swath_file.loadBrukerTdf(file_list[0], exp_meta);
+        swath_maps = swath_file.loadBrukerTdf(file_list[0], tmp, exp_meta, readoptions);
+        swath_map_sources.clear();
+        for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
+      }
+#endif
+#ifdef WITH_THERMO_RAW
+      else if (in_file_type == FileTypes::RAW)
+      {
+        // Load .raw fully via ThermoRawFile (in-process), then build SwathMaps
+        // directly from the in-memory MSExperiment — no temp mzML round-trip.
+        auto exp_raw = std::make_shared<PeakMap>();
+        FileHandler().loadExperiment(file_list[0], *exp_raw, {FileTypes::RAW});
+        swath_maps = swath_file.loadFromMSExperiment(exp_raw, tmp, exp_meta, readoptions);
         swath_map_sources.clear();
         for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
       }
 #endif
       else
       {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Input file needs to have a supported extension "
+                                         "(mzML, mzXML, sqMass"
 #ifdef WITH_OPENTIMS
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Input file needs to have ending mzML, mzXML, sqMass, or .d (Bruker TDF)");
-#else
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Input file needs to have ending mzML, mzXML, or sqMass");
+                                         ", .d (Bruker TDF)"
 #endif
+#ifdef WITH_THERMO_RAW
+                                         ", raw (Thermo)"
+#endif
+                                         ")");
       }
     }
   }

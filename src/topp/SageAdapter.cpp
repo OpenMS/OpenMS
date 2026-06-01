@@ -14,6 +14,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
@@ -422,10 +423,17 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", { "mzML", "d" } );
+    setValidFormats_("in", { "mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
 
-    registerOutputFile_("out", "<file>", "", "Single output file containing all search results.", true, false);
-    setValidFormats_("out", { "idXML" } );
+    registerOutputFile_("out", "<file>", "", "Output file (.idXML) or directory bundle (.idparquet) containing all search results.", true, false);
+    setValidFormats_("out", { "idXML", "idparquet" } );
 
     registerInputFile_("database", "<file>", "", "FASTA file", true, false, {"skipexists"});
     setValidFormats_("database", { "FASTA" } );
@@ -565,6 +573,29 @@ protected:
     // run sage
     //-------------------------------------------------------------
     StringList input_files = getStringList_("in");
+
+#ifdef WITH_THERMO_RAW
+    // Sage does not natively read Thermo .raw files. Pre-convert any .raw
+    // inputs to temp mzML via FileHandler (ThermoRawFile) before passing
+    // to Sage. Track the temp basename → original path mapping so we can
+    // restore the original .raw path in the output run metadata.
+    std::map<String, String> sage_tmp_basename_to_original;
+    for (auto& f : input_files)
+    {
+      if (FileHandler::getType(f) == FileTypes::RAW)
+      {
+        OPENMS_LOG_INFO << "Converting Thermo .raw to temp mzML for Sage: " << f << std::endl;
+        MSExperiment exp_raw;
+        FileHandler fh_raw;
+        fh_raw.loadExperiment(f, exp_raw, {FileTypes::RAW}, log_type_);
+        auto tmp_mzml = File::getTemporaryFile() + ".mzML";
+        MzMLFile().store(tmp_mzml, exp_raw);
+        sage_tmp_basename_to_original[File::basename(tmp_mzml)] = f;
+        f = tmp_mzml;
+      }
+    }
+#endif
+
     String output_file = getStringOption_("out");
     String output_folder = File::path(output_file);
     String fasta_file = getStringOption_("database");
@@ -693,14 +724,19 @@ protected:
     // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
     IDFilter::filterPeptidesByCharge(peptide_identifications, 2, numeric_limits<int>::max());
     
-    if (filenames.empty()) filenames = getStringList_("in");
+    // Fallback uses input_files (not getStringList_("in")) so that for Thermo
+    // .raw inputs the fallback gives the temp mzML paths Sage actually saw —
+    // post-processing (native-ID repair, FAIMS) needs those basenames to match
+    // file2specnr2nativeid keys built below from input_files. Equivalent to
+    // getStringList_("in") for mzML/.d inputs where no pre-conversion happened.
+    if (filenames.empty()) filenames = input_files;
 
     // TODO: allow optional split and create multiple idXMLs one per input file
     vector<ProteinIdentification> protein_identifications(1, ProteinIdentification());
 
-    writeDebug_("write idXMLFile", 1);    
-    
-    protein_identifications[0].setPrimaryMSRunPath(filenames);  
+    writeDebug_("write idXMLFile", 1);
+
+    protein_identifications[0].setPrimaryMSRunPath(filenames);
     protein_identifications[0].setDateTime(DateTime::now());
     protein_identifications[0].setSearchEngine("Sage");
     protein_identifications[0].setSearchEngineVersion(sage_version);
@@ -886,7 +922,26 @@ protected:
       }
     }
 
-    IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
+#ifdef WITH_THERMO_RAW
+    // After all mzML-based post-processing (native-ID repair, FAIMS annotation)
+    // is done — those steps need temp mzML basenames to match file2specnr2nativeid
+    // / input_files — restore original .raw paths in PrimaryMSRunPath for the
+    // output metadata.
+    if (!sage_tmp_basename_to_original.empty())
+    {
+      StringList run_paths;
+      protein_identifications[0].getPrimaryMSRunPath(run_paths);
+      for (auto& fn : run_paths)
+      {
+        auto it = sage_tmp_basename_to_original.find(File::basename(fn));
+        if (it != sage_tmp_basename_to_original.end()) fn = it->second;
+      }
+      protein_identifications[0].setPrimaryMSRunPath(run_paths);
+    }
+#endif
+
+    FileHandler().storeIdentifications(output_file, protein_identifications, peptide_identifications,
+      {FileTypes::IDXML, FileTypes::IDPARQUET});
     return EXECUTION_OK;
   }
 };

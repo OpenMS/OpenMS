@@ -20,6 +20,7 @@ set(sources_list
   MzMLSqliteHandler.cpp
   MzMLSqliteSwathHandler.cpp
   MzXMLHandler.cpp
+  PASEFHillCentroider.cpp
   PTMXMLHandler.cpp
   ParamXMLHandler.cpp
   ToolDescriptionHandler.cpp

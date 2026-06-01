@@ -18,21 +18,44 @@
 namespace OpenMS
 {
 
-  /** \brief Algorithm class that implements simple protein inference by aggregation of peptide scores.
-   * It has multiple parameter options like the aggregation method, when to distinguish peptidoforms,
-   * and if you want to use shared peptides ("use_shared_peptides").
-   * First, the best PSM per spectrum is used, then only the best PSM per peptidoform is aggregated.
-   * Peptidoforms can optionally be distinguished via the treat_X_separate parameters:
-   * - Modifications (modified sequence string)
-   * - Charge states
-   * The algorithm assumes posteriors or posterior error probabilities and converts to posteriors initially.
-   * Possible aggregation methods that can be set via the parameter "aggregation_method" are:
-   * - "maximum" (default)
-   * - "sum"
-   * - "product" (ignoring zeroes)
-   * Annotation of the number of peptides used for aggregation can be disabled (see parameters).
-   * Supports multiple runs but goes through them one by one iterating over the full PeptideIdentification vector.
-   */
+  /**
+    @brief Simple protein inference by aggregation of per-peptide PSM scores.
+
+    First takes the best PSM per spectrum, then keeps the best PSM per peptidoform
+    (where "peptidoform" is widened or narrowed by the @c treat_charge_variants_separately
+    and @c treat_modification_variants_separately parameters), and finally aggregates the
+    peptide-level scores onto the proteins using one of the methods exposed via the
+    @c score_aggregation_method parameter.
+
+    Configurable behaviour is exposed through @ref DefaultParamHandler — see the defaults
+    installed by the constructor for the full list of supported keys, in particular:
+
+      - @c "score_aggregation_method" — one of @c "best", @c "product", @c "sum",
+        @c "maximum"; maps onto @ref AggregationMethod via @ref aggFromString_. The
+        @c "best" / @c "maximum" string both produce the @c BEST mode.
+      - @c "treat_charge_variants_separately" — distinguish charge variants of the same
+        modified sequence as distinct peptidoforms (default @c "true").
+      - @c "treat_modification_variants_separately" — distinguish modified vs. unmodified
+        variants of the same backbone sequence (default @c "true").
+      - @c "use_shared_peptides" — if @c "true", shared peptides count as evidence for
+        every protein they map to (default @c "true").
+      - @c "skip_count_annotation" — if set, the per-peptide count annotation on the
+        protein hits is suppressed (default @c "false").
+      - @c "annotate_indistinguishable_groups" — compute and annotate indistinguishable
+        protein groups (default @c "true").
+      - @c "greedy_group_resolution" — resolve shared peptides to a single best protein
+        (razor-peptide style; default @c "false").
+      - @c "min_peptides_per_protein" — minimum peptide count required for a protein to
+        be reported (default 1).
+      - @c "score_type" — explicit PSM score type to use; empty falls back to the main
+        score.
+
+    The algorithm assumes posteriors or posterior error probabilities; PEPs
+    are converted to posteriors as part of scoring. Multiple runs are
+    supported, each processed independently.
+
+    @ingroup Analysis_ID
+  */
   class OPENMS_DLLAPI BasicProteinInferenceAlgorithm :
     public DefaultParamHandler,
     public ProgressLogger
@@ -55,26 +78,46 @@ namespace OpenMS
     BasicProteinInferenceAlgorithm();
 
     /**
-     * Performs the actual inference based on best psm per peptide in @p pep_ids per run in @p prot_ids.
-     * Sorts and filters psms in @p pep_ids. Annotates results in @p prot_ids.
-     * Associations (via getIdentifier) for peptides to protein runs need to be correct.
-     */
+      @brief Run inference per protein-ID run, iterating each @p prot_ids entry separately.
+
+      For every entry in @p prot_ids, only peptides whose @c getIdentifier matches that
+      run's @c getIdentifier are processed (other peptides are ignored for that run).
+      @p pep_ids is sorted and filtered to best-PSM-per-peptidoform; @p prot_ids is
+      annotated with the aggregated scores and (unless @c "skip_count_annotation" is set)
+      with per-protein peptide counts.
+
+      @param[in,out] pep_ids   Peptide identifications across all runs; sorted/filtered in place.
+      @param[in,out] prot_ids  One protein-identification run per entry; scores and per-peptide counts annotated in place.
+      @throws Exception::InvalidParameter If PSMs of a peptide carry different score types (mixed score types are not supported).
+    */
     void run(PeptideIdentificationList& pep_ids, std::vector<ProteinIdentification>& prot_ids) const;
 
     /**
-     * Performs the actual inference based on best psm per peptide in @p pep_ids per run in @p prot_id.
-     * Sorts and filters psms in @p pep_ids. Annotates results in @p prot_id.
-     * Associations (via getIdentifier) for peptides to protein runs need to be correct.
-     */
+      @brief Run inference for a single protein-ID run.
+
+      Convenience overload of the multi-run version: only peptides whose @c getIdentifier
+      matches @p prot_id.getIdentifier() are processed; the others are ignored.
+
+      @param[in,out] pep_ids   Peptide identifications for this run; sorted/filtered in place.
+      @param[in,out] prot_id   Protein-identification run to annotate with aggregated scores.
+      @throws Exception::InvalidParameter If PSMs of a peptide carry different score types.
+    */
     void run(PeptideIdentificationList& pep_ids, ProteinIdentification& prot_id) const;
 
     /**
-     * Performs the actual inference based on best psm per peptide in @p cmap for proteins from @p prot_id.
-     * Ideally @p prot_id is the union of proteins in all runs of @p cmap.
-     * Sorts and filters psms in @p pep_ids. Annotates results in @p prot_id.
-     * Associations (via getIdentifier) for peptides to protein runs ARE IGNORED and all pep_ids used.
-     * @todo allow checking matching IDs
-     */
+      @brief Run inference over a @ref ConsensusMap, treating every peptide identification it carries as evidence for the proteins in @p prot_id.
+
+      Differs from the per-run overloads above by **ignoring** the @c getIdentifier
+      association between peptides and protein runs — every peptide id in @p cmap (and
+      optionally in the unassigned list, see @p include_unassigned) is used. @p prot_id is
+      expected to be the union of the proteins of all runs in @p cmap.
+
+      @param[in,out] cmap                Consensus map providing the peptide identifications; PSMs may be sorted/filtered in place.
+      @param[in,out] prot_id             Protein-identification run to annotate with aggregated scores.
+      @param[in]     include_unassigned  If true, also include @ref ConsensusMap::getUnassignedPeptideIdentifications.
+      @throws Exception::InvalidParameter If PSMs of a peptide carry different score types.
+      @todo JuliaP Allow checking that peptide / protein IDs reference the same run identifier.
+    */
     void run(ConsensusMap& cmap, ProteinIdentification& prot_id, bool include_unassigned) const;
 
   private:
@@ -123,28 +166,64 @@ namespace OpenMS
         bool pep_scores,
         bool higher_better) const;
 
-    /// get the AggregationMethod enum from a @p method_string
+    /**
+      @brief Map a @c score_aggregation_method parameter string to the @ref AggregationMethod enum.
+
+      Recognised values: @c "product", @c "sum", @c "best", @c "maximum"
+      (@c "best" and @c "maximum" both produce @ref AggregationMethod::BEST).
+
+      @param[in] method_string Parameter string.
+      @return Matching @ref AggregationMethod.
+    */
     AggregationMethod aggFromString_(const std::string& method_string) const;
 
-    /// check if a @p score_name is compatible to the chosen @p aggregation_method
-    /// I.e. only probabilities can be used for multiplication
+    /**
+      @brief Reject score-type / aggregation-method combinations that don't make statistical sense.
+
+      Multiplication (@ref AggregationMethod::PROD) is only meaningful for probability-typed
+      scores; other combinations either throw or log a warning. Uses the score-type @em name.
+
+      @param[in] score_type        Name of the PSM score type.
+      @param[in] aggregation_method Aggregation mode chosen via @c "score_aggregation_method".
+    */
     void checkCompat_(
         const String& score_type,
         const AggregationMethod& aggregation_method
         ) const;
 
-    /// check if a @p score_type is compatible to the chosen @p aggregation_method
-    /// I.e. only probabilities can be used for multiplication
+    /**
+      @brief Same as the string overload, but takes a typed @ref IDScoreSwitcherAlgorithm::ScoreType so the check can be done after the score-switcher has classified the score.
+
+      @param[in] score_type        Typed score classification.
+      @param[in] aggregation_method Aggregation mode chosen via @c "score_aggregation_method".
+    */
     void checkCompat_(
         const IDScoreSwitcherAlgorithm::ScoreType& score_type,
         const AggregationMethod& aggregation_method
         ) const;
 
-    /// get the initial score value based on the chosen @p aggregation_method, @p higher_better is needed for "best" score
+    /**
+      @brief Return the identity-element initial score for the chosen aggregation method.
+
+      For example, 0 for SUM, 1 for PROD, and the worst-possible score (depending on
+      @p higher_better) for BEST.
+
+      @param[in] aggregation_method Aggregation mode chosen via @c "score_aggregation_method".
+      @param[in] higher_better      Whether higher score values are better (used only for BEST).
+      @return Initial accumulator value to start the aggregation from.
+    */
     double getInitScoreForAggMethod_(const AggregationMethod& aggregation_method, bool higher_better) const;
 
-    /// get lambda function to aggregate scores
+    /// Function-pointer type for a two-argument score accumulator
     typedef double (*fptr)(double, double);
+
+    /**
+      @brief Pick the two-argument accumulator function matching the chosen aggregation method.
+
+      @param[in] agg_method   Aggregation mode chosen via @c "score_aggregation_method".
+      @param[in] higher_better Whether higher score values are better (used only for BEST, to pick max vs min).
+      @return Function pointer with signature @c double(double,double).
+    */
     fptr aggFunFromEnum_(const BasicProteinInferenceAlgorithm::AggregationMethod& agg_method, bool higher_better) const;
   };
 } //namespace OpenMS

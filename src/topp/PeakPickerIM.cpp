@@ -110,16 +110,81 @@ protected:
     setMinFloat_("bruker:calibration_tolerance", 0.0);
     registerStringOption_("bruker:calibrate", "<toggle>", "false", "Enable m/z recalibration (may fail on some datasets)", false, true);
     setValidStrings_("bruker:calibrate", {"true", "false"});
-    registerDoubleOption_("bruker:ms1_centroid_mz_ppm", "<float>", 0.0,
-      "MS1 frame IM-centroiding m/z tolerance in ppm. Collapses the ion mobility dimension "
-      "by aggregating neighboring peaks directly on the raw gridded data (Sage algorithm, Lazear 2023). "
-      "Both this and ms1_centroid_im_pct must be > 0 to enable. Suggested value: 5.0. "
-      "When enabled, this replaces the PeakPickerIM algorithm for MS1 frames.", false, true);
+    registerDoubleOption_("bruker:ms1_centroid_mz_ppm", "<float>", 10.0,
+      "MS1 m/z linking tolerance in ppm. HillBased default 10 ppm tuned for "
+      "detector-centroided TIMS-PASEF MS1; Greedy2D additionally requires "
+      "ms1_centroid_im_pct > 0. Set to 0 to disable MS1 centroiding.",
+      false, true);
     setMinFloat_("bruker:ms1_centroid_mz_ppm", 0.0);
     registerDoubleOption_("bruker:ms1_centroid_im_pct", "<float>", 0.0,
       "MS1 frame IM-centroiding ion mobility tolerance in percent. Both this and ms1_centroid_mz_ppm "
       "must be > 0 to enable. Suggested value: 3.0.", false, true);
     setMinFloat_("bruker:ms1_centroid_im_pct", 0.0);
+    registerIntOption_("bruker:dia_ms2_n_neighbors", "<int>", 0,
+      "DIA MS2 frame aggregation: 0 = raw per-frame export, 1 = 3-frame sum, 2 = 5-frame sum. "
+      "Switches the entire DIA-MS2 export pipeline regardless of ms2_centroid_algo.",
+      false, true);
+    setMinInt_("bruker:dia_ms2_n_neighbors", 0);
+    registerIntOption_("bruker:dia_ms2_min_support", "<int>", 1,
+      "DIA MS2 denoising: minimum occupied neighbor cells in a 3x3 (m/z x IM) grid to keep a point "
+      "(center cell excluded from count). Applied after frame aggregation. Only effective when "
+      "dia_ms2_n_neighbors > 0. Set to 0 to disable denoising (useful for pure centroiding "
+      "without noise filtering).", false, true);
+    setMinInt_("bruker:dia_ms2_min_support", 0);
+    registerStringOption_("bruker:dia_ms2_centroid", "<toggle>", "false",
+      "Apply 2D Gaussian smoothing + local maxima peak picking to the denoised DIA MS2 grid. "
+      "Produces IM_CENTROIDED spectra with sub-bin (m/z, IM) precision. Only effective when dia_ms2_n_neighbors > 0.", false, true);
+    setValidStrings_("bruker:dia_ms2_centroid", {"true", "false"});
+
+    // Hill-based centroiding (IM-axis trace linking + valley splitting).
+    registerStringOption_("bruker:ms1_centroid_algo", "<algo>", "off",
+      "MS1 centroiding algorithm. 'off' = no IM-axis centroiding. 'greedy2d' = legacy 2D box "
+      "clustering using ms1_centroid_mz_ppm/pct. 'hillbased' = IM-axis hill detection.",
+      false, true);
+    setValidStrings_("bruker:ms1_centroid_algo", {"off", "greedy2d", "hillbased"});
+    registerStringOption_("bruker:ms2_centroid_algo", "<algo>", "off",
+      "MS2 centroiding algorithm. Takes precedence over dia_ms2_centroid.",
+      false, true);
+    setValidStrings_("bruker:ms2_centroid_algo", {"off", "greedy2d", "hillbased"});
+    registerDoubleOption_("bruker:ms2_centroid_mz_ppm", "<float>", 20.0,
+      "HillBased MS2 m/z linking tolerance in ppm. Default 20.0 is DIA-PASEF-tuned. "
+      "Set to 0 to refuse to run HillBased MS2 (the algo helper falls back to Off).",
+      false, true);
+    setMinFloat_("bruker:ms2_centroid_mz_ppm", 0.0);
+    registerDoubleOption_("bruker:centroid_valley_factor", "<float>", 1.3,
+      "HillBased: hill valley factor (hvf). Smaller = more aggressive splitting.",
+      false, true);
+    setMinFloat_("bruker:centroid_valley_factor", 1.0);
+    registerIntOption_("bruker:ms1_centroid_min_hill_length", "<int>", 1,
+      "HillBased MS1: minimum number of IM scans a hill must span. Default 1 keeps single-IM-scan ions.",
+      false, true);
+    setMinInt_("bruker:ms1_centroid_min_hill_length", 1);
+    registerIntOption_("bruker:ms2_centroid_min_hill_length", "<int>", 2,
+      "HillBased MS2: minimum number of IM scans a hill must span. Default 2 is "
+      "DIA-PASEF-tuned. DDA-PASEF users should override to 1 (most DDA fragments "
+      "are seen in only one IM scan; min=2 drops ~93% of DDA peaks).",
+      false, true);
+    setMinInt_("bruker:ms2_centroid_min_hill_length", 1);
+    registerIntOption_("bruker:centroid_max_scan_gap", "<int>", 0,
+      "HillBased: max consecutive empty IM scans a hill may bridge (0 = strict).",
+      false, true);
+    setMinInt_("bruker:centroid_max_scan_gap", 0);
+    registerStringOption_("bruker:isotopic_prefilter", "<toggle>", "false",
+      "MS1 + DIA-MS2 isotopic-partner prefilter applied after aggregation (or after raw "
+      "extraction), before the centroider. Drops peaks lacking an isotopic partner at "
+      "m/z ± C13C12_MASSDIFF / q (q in {1..5}) within ± isotopic_prefilter_tol_ppm AND "
+      "|Δscan_id| <= 1. Not applied to DDA-MS2.",
+      false, true);
+    setValidStrings_("bruker:isotopic_prefilter", {"true", "false"});
+    registerDoubleOption_("bruker:isotopic_prefilter_tol_ppm", "<float>", 50.0,
+      "ppm tolerance for isotopic-partner matching by the prefilter.",
+      false, true);
+    setMinFloat_("bruker:isotopic_prefilter_tol_ppm", 0.0);
+
+    registerStringOption_("bruker:expose_hill_bounds", "<toggle>", "false",
+      "HillBased: attach hill bounding-box arrays per centroided spectrum for visual QC.",
+      false, true);
+    setValidStrings_("bruker:expose_hill_bounds", {"true", "false"});
 #endif
   }
 
@@ -149,6 +214,26 @@ protected:
     else c.export_mode = BrukerTimsFile::Config::AUTO;
     c.ms1_centroid_mz_ppm = static_cast<float>(getDoubleOption_("bruker:ms1_centroid_mz_ppm"));
     c.ms1_centroid_im_pct = static_cast<float>(getDoubleOption_("bruker:ms1_centroid_im_pct"));
+    c.dia_ms2_n_neighbors = getIntOption_("bruker:dia_ms2_n_neighbors");
+    c.dia_ms2_min_support = getIntOption_("bruker:dia_ms2_min_support");
+    c.dia_ms2_centroid = (getStringOption_("bruker:dia_ms2_centroid") == "true");
+
+    using CA = BrukerTimsFile::Config::CentroidAlgo;
+    auto parse_algo = [](const String& s) {
+      if (s == "greedy2d")  return CA::GREEDY2D;
+      if (s == "hillbased") return CA::HILL_BASED;
+      return CA::OFF;
+    };
+    c.ms1_centroid_algo            = parse_algo(getStringOption_("bruker:ms1_centroid_algo"));
+    c.ms2_centroid_algo            = parse_algo(getStringOption_("bruker:ms2_centroid_algo"));
+    c.ms2_centroid_mz_ppm          = static_cast<float>(getDoubleOption_("bruker:ms2_centroid_mz_ppm"));
+    c.centroid_valley_factor       = getDoubleOption_("bruker:centroid_valley_factor");
+    c.ms1_centroid_min_hill_length = static_cast<Size>(getIntOption_("bruker:ms1_centroid_min_hill_length"));
+    c.ms2_centroid_min_hill_length = static_cast<Size>(getIntOption_("bruker:ms2_centroid_min_hill_length"));
+    c.centroid_max_scan_gap        = static_cast<Size>(getIntOption_("bruker:centroid_max_scan_gap"));
+    c.expose_hill_bounds           = (getStringOption_("bruker:expose_hill_bounds") == "true");
+    c.isotopic_prefilter           = (getStringOption_("bruker:isotopic_prefilter") == "true");
+    c.isotopic_prefilter_tol_ppm    = getDoubleOption_("bruker:isotopic_prefilter_tol_ppm");
     return c;
   }
 #endif
@@ -329,6 +414,8 @@ protected:
         try
         {
           MSSpectrum& spectrum = exp[static_cast<Size>(i)];
+          // Skip already-centroided spectra (e.g., DIA MS2 with bruker:dia_ms2_centroid=true)
+          if (spectrum.getIMPeakType() == IMPeakType::IM_CENTROIDED) continue;
           if (method == "mobilogram")       picker.pickIMTraces(spectrum);
           else if (method == "cluster")     picker.pickIMCluster(spectrum);
           else if (method == "traces")      picker.pickIMElutionProfiles(spectrum);

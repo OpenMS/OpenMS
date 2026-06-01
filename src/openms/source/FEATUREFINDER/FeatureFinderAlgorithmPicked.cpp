@@ -131,13 +131,13 @@ namespace OpenMS
     seeds_ = seeds;
   }
 
-  void FeatureFinderAlgorithmPicked::setData(const MSExperiment& map, FeatureMap& features)
+  void FeatureFinderAlgorithmPicked::setData_(MSExperiment&& map, FeatureMap& features)
   {
-    map_ = map;
+    map_ = std::move(map);
     features_ = &features;
   }
 
-  void FeatureFinderAlgorithmPicked::run()
+  void FeatureFinderAlgorithmPicked::run_()
   {
     //-------------------------------------------------------------------------
     // General initialization
@@ -327,7 +327,7 @@ namespace OpenMS
           }
           for (Size i = 1; i <= min_spectra_; ++i)
           {
-            SpectrumType& next_spectrum = map_[s - i];
+            const SpectrumType& next_spectrum = map_[s - i];
             if (!next_spectrum.empty()) // There are peaks in the spectrum
             {
               Size spec_index = next_spectrum.findNearest(pos);
@@ -843,7 +843,7 @@ namespace OpenMS
           //re-set label
           f.second.setMetaValue(3, feature_nr_global);
           ++feature_nr_global;
-          features_->push_back(f.second);
+          (*features_).push_back(f.second);
 
           std::vector<Size> curr_seed = seeds_in_features[seed_nr];
           for (Size k : curr_seed)
@@ -862,15 +862,15 @@ namespace OpenMS
     //Step 4:
     //Resolve contradicting and overlapping features
     //------------------------------------------------------------------
-    startProgress(0, features_->size() * features_->size(), "Resolving overlapping features");
-    if (debug_) log_ << "Resolving intersecting features (" << features_->size() << " candidates)\n";
+    startProgress(0, (*features_).size() * (*features_).size(), "Resolving overlapping features");
+    if (debug_) log_ << "Resolving intersecting features (" << (*features_).size() << " candidates)\n";
     //sort features according to m/z in order to speed up the resolution
-    features_->sortByMZ();
+    (*features_).sortByMZ();
     //precalculate BBs and maximum mz span
-    std::vector<DBoundingBox<2> > bbs(features_->size());
+    std::vector<DBoundingBox<2> > bbs((*features_).size());
     double max_mz_span = 0.0;
 
-    for (Size i = 0; i < features_->size(); ++i)
+    for (Size i = 0; i < (*features_).size(); ++i)
     {
       bbs[i] = (*features_)[i].getConvexHull().getBoundingBox();
       if (bbs[i].height() > max_mz_span)
@@ -881,12 +881,12 @@ namespace OpenMS
 
     Size removed(0);
     //intersect
-    for (Size i = 0; i < features_->size(); ++i)
+    for (Size i = 0; i < (*features_).size(); ++i)
     {
       Feature& f1((*features_)[i]);
-      for (Size j = i + 1; j < features_->size(); ++j)
+      for (Size j = i + 1; j < (*features_).size(); ++j)
       {
-        setProgress(i * features_->size() + j);
+        setProgress(i * (*features_).size() + j);
         Feature& f2((*features_)[j]);
         //features that are more than 2 times the maximum m/z span apart do not overlap => abort
         if (f2.getMZ() - f1.getMZ() > 2.0 * max_mz_span)
@@ -980,18 +980,42 @@ namespace OpenMS
     OPENMS_LOG_INFO << "Removed " << removed << " overlapping features.\n";
     // finally remove features with intensity 0
     FeatureMap tmp;
-    tmp.reserve(features_->size());
-    for (Size i = 0; i < features_->size(); ++i)
+    tmp.reserve((*features_).size());
+    for (Size i = 0; i < (*features_).size(); ++i)
     {
-      if (features_->operator[](i).getIntensity() != 0.0)
+      if ((*features_).operator[](i).getIntensity() != 0.0)
       {
-        tmp.push_back(features_->operator[](i));
+        tmp.push_back((*features_).operator[](i));
       }
     }
     tmp.swapFeaturesOnly(*features_);
     // sort features by intensity
-    features_->sortByIntensity(true);
+    (*features_).sortByIntensity(true);
     endProgress();
+
+    // report RT apex spectrum index and native ID for each feature
+    Size invalid_apex_index_count = 0;
+    for (Size i = 0; i < (*features_).size(); ++i)
+    {
+      // index
+      Size spectrum_index = map_.RTBegin((*features_)[i].getRT()) - map_.begin();
+      (*features_)[i].setMetaValue("spectrum_index", spectrum_index);
+      // native id
+      if (spectrum_index < map_.size())
+      {
+        String native_id = map_[spectrum_index].getNativeID();
+        (*features_)[i].setMetaValue("spectrum_native_id", native_id);
+      }
+      else
+      {
+        ++invalid_apex_index_count;
+      }
+    }
+    if (invalid_apex_index_count > 0)
+    {
+      OPENMS_LOG_WARN << "Could not assign 'spectrum_native_id' for " << invalid_apex_index_count
+                      << " feature(s), because the computed apex spectrum index was out of range.\n";
+    }
 
     // Abort reasons
     OPENMS_LOG_INFO << '\n';
@@ -1001,7 +1025,7 @@ namespace OpenMS
       OPENMS_LOG_INFO << " - " << reason.first << ": " << reason.second << " times\n";
     }
 
-    OPENMS_LOG_INFO << "\n" << features_->size() << " features found.\n";
+    OPENMS_LOG_INFO << "\n" << (*features_).size() << " features found.\n";
 
     if (debug_)
     {
@@ -1032,7 +1056,7 @@ namespace OpenMS
 
   }
 
-  void FeatureFinderAlgorithmPicked::run(PeakMap& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds)
+  void FeatureFinderAlgorithmPicked::run(PeakMap&& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds)
   {
     // Nothing to do if there is no data
     if (input_map.empty())
@@ -1078,34 +1102,15 @@ namespace OpenMS
 
     // do the work
     setParameters(param);
-    setData(input_map, features);
+    setData_(std::move(input_map), features);
     setSeeds(seeds);
-    run();
-
-    //report RT apex spectrum index and native ID for each feature
-    for (Size i = 0; i < features.size(); ++i)
-    {
-      //index
-      Size spectrum_index = input_map.RTBegin(features[i].getRT()) - input_map.begin();
-      features[i].setMetaValue("spectrum_index", spectrum_index);
-      //native id
-      if (spectrum_index < input_map.size())
-      {
-        String native_id = input_map[spectrum_index].getNativeID();
-        features[i].setMetaValue("spectrum_native_id", native_id);
-      }
-      else
-      {
-        /// @todo that happens sometimes using IsotopeWaveletFeatureFinder (Rene, Marc, Andreas, Clemens)
-        std::cerr << "FeatureFinderAlgorithm_impl, line=" << __LINE__ << "; FixMe this cannot be, but happens" << std::endl;
-      }
-    }
+    run_();
   }
 
   void FeatureFinderAlgorithmPicked::updateMembers_()
   {
-    pattern_tolerance_ = param_.getValue("mass_trace:mz_tolerance");
-    trace_tolerance_ = param_.getValue("isotopic_pattern:mz_tolerance");
+    pattern_tolerance_ = param_.getValue("isotopic_pattern:mz_tolerance");
+    trace_tolerance_ = param_.getValue("mass_trace:mz_tolerance");
     min_spectra_ = (UInt) std::floor((double)param_.getValue("mass_trace:min_spectra") * 0.5);
     max_missing_trace_peaks_ = param_.getValue("mass_trace:max_missing");
     slope_bound_ = param_.getValue("mass_trace:slope_bound");
@@ -2170,7 +2175,7 @@ namespace OpenMS
         }
         else
         {
-          script = script + (features_->size() + 1) + " (score: " +  String::number(final_score, 3) + ")";
+          script = script + ((*features_).size() + 1) + " (score: " +  String::number(final_score, 3) + ")";
         }
         script = script + "' with points 3";
       }

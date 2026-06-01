@@ -30,6 +30,7 @@
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 
 #include <algorithm>
+#include <iterator>
 #include <memory>
 
 using namespace OpenMS;
@@ -330,6 +331,12 @@ private:
       
       while (last_spec != exp.end() && last_spec->getMSLevel() != min_ms_level) ++last_spec;
       // 'last_spec' now points to the start of a block, but we want it to point to the end of the previous block
+      if (last_spec == exp.begin())
+      { // edge case: no valid block found
+        OPENMS_LOG_WARN << "RTBlockMode: could not find a valid block boundary. Result is empty.\n";
+        exp.clear(true);
+        return;
+      }
       --last_spec;
     }
     else if (rt_block_mode == RTBlockMode::FULL_CYCLE_SHRINK)
@@ -342,6 +349,12 @@ private:
              last_spec != exp.begin() && last_spec->getMSLevel() != min_ms_level)
         --last_spec;
       // 'last_spec' now points to the start of the invalid block, but we want it to point to the end of the previous block
+      if (last_spec == exp.begin())
+      { // edge case: cannot go back further
+        OPENMS_LOG_WARN << "RTBlockMode: there is no full block in the range [" << rt_l << ", " << rt_u << "]. Result is empty. Please extend RT range or use another block strategy.\n";
+        exp.clear(true);
+        return;
+      }
       --last_spec;
       // in some cases, there was no full block inside [rt_l, rt_u]
       if (first_spec >= last_spec)
@@ -359,13 +372,13 @@ private:
 
     // RT filtering uses a half-open interval [min, max), we thus need to move last_spec a tad to the right
     double rt_u_new = last_spec->getRT();
-    if (last_spec == --exp.end())
+    if (std::next(last_spec) == exp.end())
     {// last_spec was the last spectrum in exp; we need to extend the upper RT boundary a bit to include it
       rt_u_new += 1.0;
     }
     else
     {
-      rt_u_new = (rt_u_new + (last_spec + 1)->getRT()) / 2; // take midpoint to next spectrum
+      rt_u_new = (rt_u_new + std::next(last_spec)->getRT()) / 2; // take midpoint to next spectrum
     }
 
     // reload with data and corrected rt range
