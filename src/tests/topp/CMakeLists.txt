@@ -94,7 +94,10 @@ endforeach()
 # one arbitrary TOPP tool)
 #------------------------------------------------------------------------------
 add_test("TOPPWRITEINI_OVERWRITE" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -write_ini "${TESTS_TEMP_DIR}/WRITE_INI.tmp.ini" -ini "${DATA_DIR_TOPP}/WRITE_INI_IN.ini")
-add_test("TOPPWRITEINI_OVERWRITE_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/WRITE_INI.tmp.ini -in2 "${DATA_DIR_TOPP}/WRITE_INI_OUT.ini" -whitelist "version")
+# 'supported_formats' whitelisted: it is build-conditional (WITH_OPENTIMS adds *.d,
+# WITH_THERMO_RAW adds *.raw) so it cannot be pinned in a static reference. This test
+# checks the -write_ini overwrite machinery, not a tool's registered format list.
+add_test("TOPPWRITEINI_OVERWRITE_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/WRITE_INI.tmp.ini -in2 "${DATA_DIR_TOPP}/WRITE_INI_OUT.ini" -whitelist "version" "supported_formats")
 set_tests_properties("TOPPWRITEINI_OVERWRITE_out" PROPERTIES DEPENDS "TOPPWRITEINI_OVERWRITE")
 ##
 ## Test if invalid arguments or values (from INI or CLI) lead to immediate exit
@@ -3008,14 +3011,16 @@ set_tests_properties("TOPP_MultiplexResolver_4_out3" PROPERTIES DEPENDS "TOPP_Mu
 # INIUpdater:
 if(WITH_GUI AND HAS_XSERVER)
   add_test("TOPP_INIUpdater_1" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas -out ${TESTS_TEMP_DIR}/INIUpdater_1_noupdate.tmp.toppas)
-  add_test("TOPP_INIUpdater_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/INIUpdater_1_noupdate.tmp.toppas -in2 ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas -whitelist "version")
+  # 'supported_formats' whitelisted: build-conditional vendor formats (WITH_OPENTIMS=*.d,
+  # WITH_THERMO_RAW=*.raw) cannot be pinned statically; this checks INI-update machinery.
+  add_test("TOPP_INIUpdater_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/INIUpdater_1_noupdate.tmp.toppas -in2 ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas -whitelist "version" "supported_formats")
   set_tests_properties("TOPP_INIUpdater_1_out" PROPERTIES DEPENDS "TOPP_INIUpdater_1")
 
   add_test("TOPP_INIUpdater_2" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_2_broken.toppas -out ${TESTS_TEMP_DIR}/INIUpdater_2_broken.tmp.toppas)
   set_tests_properties("TOPP_INIUpdater_2" PROPERTIES WILL_FAIL 1)
 
   add_test("TOPP_INIUpdater_3" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_3_old.toppas -out ${TESTS_TEMP_DIR}/INIUpdater_3_old.tmp.toppas)
-  add_test("TOPP_INIUpdater_3_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/INIUpdater_3_old.tmp.toppas -in2 ${DATA_DIR_TOPP}/INIUpdater_3_old_out.toppas -whitelist "version")
+  add_test("TOPP_INIUpdater_3_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/INIUpdater_3_old.tmp.toppas -in2 ${DATA_DIR_TOPP}/INIUpdater_3_old_out.toppas -whitelist "version" "supported_formats")
   set_tests_properties("TOPP_INIUpdater_3_out" PROPERTIES DEPENDS "TOPP_INIUpdater_3")
 endif()
 
