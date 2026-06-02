@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 

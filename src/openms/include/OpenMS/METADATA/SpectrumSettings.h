@@ -18,7 +18,7 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
-#include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
+#include <OpenMS/METADATA/CVTermListHash.h>
 
 #include <functional>
 #include <map>

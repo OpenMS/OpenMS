@@ -9,6 +9,7 @@ AnnotatedMSRun.h
 AcquisitionInfo.h
 CVTerm.h
 CVTermList.h
+CVTermListHash.h
 CVTermListInterface.h
 ChromatogramSettings.h
 ContactPerson.h
