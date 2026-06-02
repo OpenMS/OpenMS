@@ -60,6 +60,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>
 #include <OpenMS/FORMAT/XICParquetFile.h>
 #include <OpenMS/FORMAT/XIMParquetFile.h>
+#include <OpenMS/FORMAT/XIPMParquetFile.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
@@ -2345,6 +2346,167 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
             return "XIMParquetFile(n_files=" + std::to_string(files.size()) + ")";
         })
         .def("__str__", [](const OpenMS::XIMParquetFile& self) { return nb::cast(self).attr("__repr__")(); })
+        ;
+
+    // -----------------------------------------------------------------------
+    // XIPMParquetFile
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::XIPMParquetFile>(m, "XIPMParquetFile", "OpenMS class XIPMParquetFile")
+        .def(nb::init<const OpenMS::XIPMParquetFile &>())
+        .def(nb::init<OpenMS::String>())
+        .def(nb::init<std::vector<OpenMS::String>>())
+        .def("__copy__", [](const OpenMS::XIPMParquetFile& self) { return OpenMS::XIPMParquetFile(self); })
+        .def("__deepcopy__", [](const OpenMS::XIPMParquetFile& self, nb::dict) { return OpenMS::XIPMParquetFile(self); }, "memo"_a)
+        .def("getFilename", [](const OpenMS::XIPMParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH peak-map Parquet files (.xipm).")
+        .def("getFilenames", [](const OpenMS::XIPMParquetFile& self) -> const std::vector<OpenMS::String> & { return self.getFilenames(); }, nb::rv_policy::reference_internal)
+
+        .def("getColumns", [](const OpenMS::XIPMParquetFile& self) {
+            std::vector<OpenMS::String> columns;
+            self.getColumns(columns);
+            nb::list result;
+            for (const auto& col : columns) {
+                result.append(nb::str(col.c_str()));
+            }
+            return result;
+        }, "Return parquet schema column names as a list")
+
+        .def("getRuns", [](const OpenMS::XIPMParquetFile& self) {
+            std::vector<OpenMS::XIPMParquetFile::XIPMRunInfo> runs;
+            self.getRuns(runs);
+            nb::list run_ids, source_files;
+            for (const auto& r : runs) {
+                run_ids.append(r.run_id);
+                source_files.append(nb::str(r.source_file.c_str()));
+            }
+            nb::dict result;
+            result["run_id"] = run_ids;
+            result["source_file"] = source_files;
+            return result;
+        }, "Return unique run metadata as a dict")
+
+        .def("getPeakMaps", [](const OpenMS::XIPMParquetFile& self,
+                               int64_t precursor_id, int64_t transition_id,
+                               const std::string& modified_sequence,
+                               int64_t precursor_charge, int64_t product_charge,
+                               int64_t ms_level, int64_t run_id,
+                               const std::string& peakmap_type, bool explode) {
+            std::vector<OpenMS::XIPMParquetFile::XIPMPeakMap> peak_maps;
+            self.getPeakMaps(peak_maps, precursor_id, transition_id,
+                             OpenMS::String(modified_sequence),
+                             precursor_charge, product_charge,
+                             ms_level, run_id, OpenMS::String(peakmap_type));
+
+            nb::list run_id_list, source_file_list, ms_level_list, peakmap_type_list;
+            nb::list precursor_id_list, transition_id_list, modified_sequence_list;
+            nb::list precursor_charge_list, product_charge_list, detecting_transition_list;
+            nb::list precursor_decoy_list, product_decoy_list, transition_ordinal_list;
+            nb::list transition_type_list, annotation_list;
+            nb::list target_mz_list, target_rt_list, target_ion_mobility_list, rt_start_list, rt_end_list;
+            nb::list mz_list, rt_list, ion_mobility_list, intensity_list;
+
+            for (const auto& p : peak_maps) {
+                if (explode) {
+                    if (p.mz.size() != p.rt.size() ||
+                        p.mz.size() != p.ion_mobility.size() ||
+                        p.mz.size() != p.intensity.size()) {
+                        throw std::runtime_error("XIPMParquetFile: mz/rt/ion_mobility/intensity length mismatch");
+                    }
+                    if (p.mz.empty()) continue;
+                    for (size_t j = 0; j < p.mz.size(); ++j) {
+                        run_id_list.append(p.run_id);
+                        source_file_list.append(nb::str(p.source_file.c_str()));
+                        ms_level_list.append(p.ms_level);
+                        peakmap_type_list.append(nb::str(p.peakmap_type.c_str()));
+                        precursor_id_list.append(p.has_precursor_id ? nb::cast(p.precursor_id) : nb::none());
+                        transition_id_list.append(p.has_transition_id ? nb::cast(p.transition_id) : nb::none());
+                        modified_sequence_list.append(nb::str(p.modified_sequence.c_str()));
+                        precursor_charge_list.append(p.has_precursor_charge ? nb::cast(p.precursor_charge) : nb::none());
+                        product_charge_list.append(p.has_product_charge ? nb::cast(p.product_charge) : nb::none());
+                        detecting_transition_list.append(p.has_detecting_transition ? nb::cast(p.detecting_transition) : nb::none());
+                        precursor_decoy_list.append(p.has_precursor_decoy ? nb::cast(p.precursor_decoy) : nb::none());
+                        product_decoy_list.append(p.has_product_decoy ? nb::cast(p.product_decoy) : nb::none());
+                        transition_ordinal_list.append(p.has_transition_ordinal ? nb::cast(p.transition_ordinal) : nb::none());
+                        transition_type_list.append(nb::str(p.transition_type.c_str()));
+                        annotation_list.append(nb::str(p.annotation.c_str()));
+                        target_mz_list.append(p.target_mz);
+                        target_rt_list.append(p.has_target_rt ? nb::cast(p.target_rt) : nb::none());
+                        target_ion_mobility_list.append(p.has_target_ion_mobility ? nb::cast(p.target_ion_mobility) : nb::none());
+                        rt_start_list.append(p.has_rt_start ? nb::cast(p.rt_start) : nb::none());
+                        rt_end_list.append(p.has_rt_end ? nb::cast(p.rt_end) : nb::none());
+                        mz_list.append(p.mz[j]);
+                        rt_list.append(p.rt[j]);
+                        ion_mobility_list.append(p.ion_mobility[j]);
+                        intensity_list.append(p.intensity[j]);
+                    }
+                } else {
+                    run_id_list.append(p.run_id);
+                    source_file_list.append(nb::str(p.source_file.c_str()));
+                    ms_level_list.append(p.ms_level);
+                    peakmap_type_list.append(nb::str(p.peakmap_type.c_str()));
+                    precursor_id_list.append(p.has_precursor_id ? nb::cast(p.precursor_id) : nb::none());
+                    transition_id_list.append(p.has_transition_id ? nb::cast(p.transition_id) : nb::none());
+                    modified_sequence_list.append(nb::str(p.modified_sequence.c_str()));
+                    precursor_charge_list.append(p.has_precursor_charge ? nb::cast(p.precursor_charge) : nb::none());
+                    product_charge_list.append(p.has_product_charge ? nb::cast(p.product_charge) : nb::none());
+                    detecting_transition_list.append(p.has_detecting_transition ? nb::cast(p.detecting_transition) : nb::none());
+                    precursor_decoy_list.append(p.has_precursor_decoy ? nb::cast(p.precursor_decoy) : nb::none());
+                    product_decoy_list.append(p.has_product_decoy ? nb::cast(p.product_decoy) : nb::none());
+                    transition_ordinal_list.append(p.has_transition_ordinal ? nb::cast(p.transition_ordinal) : nb::none());
+                    transition_type_list.append(nb::str(p.transition_type.c_str()));
+                    annotation_list.append(nb::str(p.annotation.c_str()));
+                    target_mz_list.append(p.target_mz);
+                    target_rt_list.append(p.has_target_rt ? nb::cast(p.target_rt) : nb::none());
+                    target_ion_mobility_list.append(p.has_target_ion_mobility ? nb::cast(p.target_ion_mobility) : nb::none());
+                    rt_start_list.append(p.has_rt_start ? nb::cast(p.rt_start) : nb::none());
+                    rt_end_list.append(p.has_rt_end ? nb::cast(p.rt_end) : nb::none());
+
+                    nb::list mz_vals, rt_vals, ion_mobility_vals, intensity_vals;
+                    for (auto v : p.mz) mz_vals.append(v);
+                    for (auto v : p.rt) rt_vals.append(v);
+                    for (auto v : p.ion_mobility) ion_mobility_vals.append(v);
+                    for (auto v : p.intensity) intensity_vals.append(v);
+                    mz_list.append(mz_vals);
+                    rt_list.append(rt_vals);
+                    ion_mobility_list.append(ion_mobility_vals);
+                    intensity_list.append(intensity_vals);
+                }
+            }
+
+            nb::dict result;
+            result["run_id"] = run_id_list;
+            result["source_file"] = source_file_list;
+            result["ms_level"] = ms_level_list;
+            result["peakmap_type"] = peakmap_type_list;
+            result["precursor_id"] = precursor_id_list;
+            result["transition_id"] = transition_id_list;
+            result["modified_sequence"] = modified_sequence_list;
+            result["precursor_charge"] = precursor_charge_list;
+            result["product_charge"] = product_charge_list;
+            result["detecting_transition"] = detecting_transition_list;
+            result["precursor_decoy"] = precursor_decoy_list;
+            result["product_decoy"] = product_decoy_list;
+            result["transition_ordinal"] = transition_ordinal_list;
+            result["transition_type"] = transition_type_list;
+            result["annotation"] = annotation_list;
+            result["target_mz"] = target_mz_list;
+            result["target_rt"] = target_rt_list;
+            result["target_ion_mobility"] = target_ion_mobility_list;
+            result["rt_start"] = rt_start_list;
+            result["rt_end"] = rt_end_list;
+            result["mz"] = mz_list;
+            result["rt"] = rt_list;
+            result["ion_mobility"] = ion_mobility_list;
+            result["intensity"] = intensity_list;
+            return result;
+        }, "precursor_id"_a = -1, "transition_id"_a = -1, "modified_sequence"_a = "",
+           "precursor_charge"_a = -1, "product_charge"_a = -1, "ms_level"_a = -1,
+           "run_id"_a = -1, "peakmap_type"_a = "", "explode"_a = false,
+           "Return peak-map data as a dict")
+        .def("__repr__", [](const OpenMS::XIPMParquetFile& self) {
+            const auto& files = self.getFilenames();
+            return "XIPMParquetFile(n_files=" + std::to_string(files.size()) + ")";
+        })
+        .def("__str__", [](const OpenMS::XIPMParquetFile& self) { return nb::cast(self).attr("__repr__")(); })
         ;
 
     // -----------------------------------------------------------------------
