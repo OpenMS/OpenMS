@@ -14,6 +14,12 @@ using namespace std;
 
 namespace OpenMS
 {
+  CrossLinksDB* CrossLinksDB::getInstance()
+  {
+    static CrossLinksDB* db_ = new CrossLinksDB;
+    return db_;
+  }
+
   CrossLinksDB::CrossLinksDB()
     : ModificationsDB(makeCrossLinkProviders_())
   {

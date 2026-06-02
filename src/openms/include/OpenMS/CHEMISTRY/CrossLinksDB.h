@@ -67,11 +67,7 @@ namespace OpenMS
       The returned pointer is owned by the database and must @em not be
       deleted by the caller.
     */
-    inline static CrossLinksDB* getInstance()
-    {
-      static CrossLinksDB* db_ = new CrossLinksDB;
-      return db_;
-    }
+    static CrossLinksDB* getInstance();
 
     /**
       @brief Returns the IDs of all cross-linker modifications that are
