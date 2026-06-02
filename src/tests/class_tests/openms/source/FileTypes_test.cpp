@@ -103,6 +103,8 @@ START_SECTION((static Type nameToType(const String& name)))
   TEST_EQUAL(FileTypes::nameToType("consensusparquet"), FileTypes::CONSENSUSPARQUET);
   TEST_EQUAL(FileTypes::nameToType("CONSENSUSPARQUET"), FileTypes::CONSENSUSPARQUET);
   TEST_STRING_EQUAL(FileTypes::typeToName(FileTypes::CONSENSUSPARQUET), "consensusparquet");
+  TEST_EQUAL(FileTypes::nameToType("xipm"), FileTypes::PEAKMAPPARQUET);
+  TEST_STRING_EQUAL(FileTypes::typeToName(FileTypes::PEAKMAPPARQUET), "xipm");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::BRUKER_TDF), "d");
   TEST_EQUAL(FileTypes::BRUKER_TDF, FileTypes::nameToType("d"));
 
@@ -153,7 +155,7 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
     std::vector<FileTypes::FileProperties> f;
     f.push_back(FileTypes::FileProperties::READABLE);
     FileTypeList g = FileTypeList::typesWithProperties(f);
-    TEST_EQUAL(g.getTypes().size(), 48);
+    TEST_EQUAL(g.getTypes().size(), 49);
     // Test that empty filter returns the full list, equal to the list of known file types
     TEST_EQUAL(FileTypeList::typesWithProperties({}).size(),static_cast<size_t>(FileTypes::Type::SIZE_OF_TYPE));
     // Check that we don't have duplicate Types in our type_with_annotation__
