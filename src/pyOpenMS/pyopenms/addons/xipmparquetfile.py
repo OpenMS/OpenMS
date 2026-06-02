@@ -17,6 +17,35 @@ _ANALYTE_COLUMN_MAP = {
     "ANNOTATION": "annotation",
 }
 
+_ANALYTE_REVERSE_COLUMN_MAP = {v: k for k, v in _ANALYTE_COLUMN_MAP.items()}
+_PRECURSOR_ANALYTE_FIELDS = (
+    "precursor_id",
+    "modified_sequence",
+    "precursor_charge",
+    "precursor_decoy",
+)
+_TRANSITION_ANALYTE_FIELDS = (
+    "transition_id",
+    "product_charge",
+    "detecting_transition",
+    "product_decoy",
+    "transition_ordinal",
+    "transition_type",
+    "annotation",
+)
+_NUMERIC_PUSHDOWN_COLUMNS = {
+    "precursor_id",
+    "transition_id",
+    "precursor_charge",
+    "product_charge",
+    "ms_level",
+    "run_id",
+}
+_STRING_PUSHDOWN_COLUMNS = {
+    "modified_sequence",
+    "peakmap_type",
+}
+
 
 def _compare(lhs, rhs, op):
     if op == "=":
@@ -104,6 +133,107 @@ def _normalize_analyte_columns(columns):
     return normalized
 
 
+def _read_metadata_columns(self, columns):
+    try:
+        import pyarrow.dataset as ds
+    except ImportError:
+        return None
+
+    filenames = [str(filename) for filename in self.getFilenames()]
+    if not filenames:
+        return {}
+
+    table = ds.dataset(filenames, format="parquet").to_table(columns=list(columns))
+    return {
+        _ANALYTE_COLUMN_MAP.get(column, column.lower()): table[column].to_pylist()
+        for column in columns
+    }
+
+
+def _deduplicate_transition_lists(group, requested_transition_fields):
+    if not requested_transition_fields:
+        return
+
+    seen = set()
+    keep = []
+    length = len(group[requested_transition_fields[0]])
+    for i in range(length):
+        key = tuple(group[field][i] for field in requested_transition_fields)
+        if key in seen:
+            continue
+        seen.add(key)
+        keep.append(i)
+
+    for field in requested_transition_fields:
+        group[field] = [group[field][i] for i in keep]
+
+
+def _build_analyte_dict(data, requested, nest_transitions):
+    if not data:
+        return {column: [] for column in requested}
+
+    n_rows = len(next(iter(data.values()), []))
+    if n_rows == 0:
+        return {column: [] for column in requested}
+
+    requested_precursor_fields = [field for field in _PRECURSOR_ANALYTE_FIELDS if field in requested]
+    requested_transition_fields = [field for field in _TRANSITION_ANALYTE_FIELDS if field in requested]
+
+    if not nest_transitions:
+        seen = set()
+        rows = []
+        for i in range(n_rows):
+            record = {field: data[field][i] for field in requested}
+            key = tuple(record[field] for field in requested)
+            if key in seen:
+                continue
+            seen.add(key)
+            rows.append(record)
+        return {column: [row[column] for row in rows] for column in requested}
+
+    if not requested_precursor_fields:
+        raise RuntimeError(
+            "nest_transitions=True requires at least one precursor discriminator column: "
+            "PRECURSOR_ID, MODIFIED_SEQUENCE, PRECURSOR_CHARGE, or PRECURSOR_DECOY"
+        )
+
+    grouped = {}
+    order = []
+    transition_ids = data.get("transition_id")
+    for i in range(n_rows):
+        key = tuple(data[field][i] for field in requested_precursor_fields)
+        if key not in grouped:
+            grouped[key] = {
+                field: data[field][i] for field in requested_precursor_fields
+            }
+            for field in requested_transition_fields:
+                grouped[key][field] = []
+            order.append(key)
+
+        if requested_transition_fields and transition_ids is not None and transition_ids[i] is not None:
+            for field in requested_transition_fields:
+                grouped[key][field].append(data[field][i])
+
+    for key in order:
+        _deduplicate_transition_lists(grouped[key], requested_transition_fields)
+
+    result = {}
+    for column in requested:
+        if column in requested_precursor_fields:
+            result[column] = [grouped[key][column] for key in order]
+        else:
+            result[column] = [grouped[key].get(column, []) for key in order]
+    return result
+
+
+def _normalize_pushdown_value(column, value):
+    if column in _NUMERIC_PUSHDOWN_COLUMNS:
+        return int(value)
+    if column in _STRING_PUSHDOWN_COLUMNS:
+        return str(value)
+    raise KeyError(f"Unsupported XIPM pushdown column: {column}")
+
+
 class _PeakMapQuery:
     """Chainable query builder for XIPMParquetFile peak maps."""
 
@@ -148,10 +278,44 @@ class _PeakMapQuery:
     def filter_peakmap_type(self, value, op="="):
         return self._add_filter("peakmap_type", value, op)
 
+    def _split_filters(self):
+        pushdown = {
+            "precursor_id": -1,
+            "transition_id": -1,
+            "modified_sequence": "",
+            "precursor_charge": -1,
+            "product_charge": -1,
+            "ms_level": -1,
+            "run_id": -1,
+            "peakmap_type": "",
+        }
+        residual = []
+
+        for column, value, op in self._filters:
+            if op not in ("=", "=="):
+                residual.append((column, value, op))
+                continue
+            if isinstance(value, (list, tuple)):
+                residual.append((column, value, op))
+                continue
+            if column not in pushdown:
+                residual.append((column, value, op))
+                continue
+
+            normalized = _normalize_pushdown_value(column, value)
+            default_value = pushdown[column]
+            if default_value in (-1, "") or default_value == normalized:
+                pushdown[column] = normalized
+            else:
+                residual.append((column, value, op))
+
+        return pushdown, residual
+
     def to_dict(self, explode=False):
         """Return peak-map data as dict."""
-        data = self._xipm.get_data_dict(explode=False)
-        filtered = _filter_peak_map_dict(data, self._filters)
+        pushdown, residual = self._split_filters()
+        data = self._xipm.get_data_dict(explode=False, **pushdown)
+        filtered = _filter_peak_map_dict(data, residual) if residual else data
         if explode:
             return _explode_peak_map_dict(filtered)
         return filtered
@@ -221,7 +385,21 @@ def get_data_dict(self, explode=False, precursor_id=-1, transition_id=-1,
 @addon("XIPMParquetFile")
 def get_run_dict(self):
     """Return unique run metadata as a dict."""
-    return self.getRuns()
+    metadata = _read_metadata_columns(self, ["RUN_ID", "SOURCE_FILE"])
+    if metadata is None:
+        return self.getRuns()
+
+    seen = set()
+    run_ids = []
+    source_files = []
+    for run_id, source_file in zip(metadata["run_id"], metadata["source_file"]):
+        key = (run_id, source_file)
+        if key in seen:
+            continue
+        seen.add(key)
+        run_ids.append(run_id)
+        source_files.append(source_file)
+    return {"run_id": run_ids, "source_file": source_files}
 
 
 @addon("XIPMParquetFile")
@@ -246,64 +424,14 @@ def get_analyte_dict(self, nest_transitions=True, columns=None):
     represents a unique precursor and transition fields are lists.
     """
     requested = _normalize_analyte_columns(columns)
-    data = self.get_data_dict(explode=False)
-
-    if not data or not data["run_id"]:
-        return {column: [] for column in requested}
-
-    precursor_fields = [
-        "precursor_id",
-        "modified_sequence",
-        "precursor_charge",
-        "precursor_decoy",
-    ]
-    transition_fields = [
-        "transition_id",
-        "product_charge",
-        "detecting_transition",
-        "product_decoy",
-        "transition_ordinal",
-        "transition_type",
-        "annotation",
-    ]
-
-    if not nest_transitions:
-        seen = set()
-        rows = []
-        for i in range(len(data["run_id"])):
-            record = {field: data[field][i] for field in precursor_fields + transition_fields}
-            key = tuple(record[field] for field in precursor_fields + transition_fields)
-            if key in seen:
-                continue
-            seen.add(key)
-            rows.append(record)
-        return {column: [row[column] for row in rows] for column in requested}
-
-    grouped = {}
-    order = []
-    for i in range(len(data["run_id"])):
-        key = tuple(data[field][i] for field in precursor_fields)
-        if key not in grouped:
-            grouped[key] = {
-                "precursor_id": data["precursor_id"][i],
-                "modified_sequence": data["modified_sequence"][i],
-                "precursor_charge": data["precursor_charge"][i],
-                "precursor_decoy": data["precursor_decoy"][i],
-                "transition_id": [],
-                "product_charge": [],
-                "detecting_transition": [],
-                "product_decoy": [],
-                "transition_ordinal": [],
-                "transition_type": [],
-                "annotation": [],
-            }
-            order.append(key)
-
-        if data["transition_id"][i] is not None:
-            for field in transition_fields:
-                grouped[key][field].append(data[field][i])
-
-    return {column: [grouped[key][column] for key in order] for column in requested}
+    parquet_columns = [_ANALYTE_REVERSE_COLUMN_MAP[column] for column in requested]
+    if nest_transitions and requested and "TRANSITION_ID" not in parquet_columns:
+        if any(field in requested for field in _TRANSITION_ANALYTE_FIELDS):
+            parquet_columns.append("TRANSITION_ID")
+    data = _read_metadata_columns(self, parquet_columns)
+    if data is None:
+        data = self.get_data_dict(explode=False)
+    return _build_analyte_dict(data, requested, nest_transitions)
 
 
 @addon("XIPMParquetFile")

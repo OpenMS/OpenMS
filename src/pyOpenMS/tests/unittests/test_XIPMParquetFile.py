@@ -70,6 +70,12 @@ def test_xipm_analyte_columns_invalid():
         xipm.get_analyte_dict(columns=["PRECURSOR_CHARGE5"])
 
 
+def test_xipm_analyte_requires_precursor_discriminator_when_nested():
+    xipm = _get_xipm()
+    with pytest.raises(RuntimeError):
+        xipm.get_analyte_dict(columns=["TRANSITION_ID"], nest_transitions=True)
+
+
 def test_xipm_to_df_summary_and_exploded():
     xipm = _get_xipm()
     df_summary = xipm.to_df()
@@ -114,4 +120,13 @@ def test_xipm_query_builder_summary_and_exploded():
 def test_xipm_query_builder():
     xipm = _get_xipm()
     df = xipm.query_peak_maps().filter_peakmap_type("precursor").to_df(explode=False)
+    assert len(df) > 0
+
+
+def test_xipm_query_builder_string_run_id_pushdown():
+    xipm = _get_xipm()
+    runs = xipm.get_run_dict()
+    assert len(runs["run_id"]) > 0
+    run_id = str(runs["run_id"][0])
+    df = xipm.query_peak_maps().filter_run_id(run_id).to_df(explode=False)
     assert len(df) > 0
