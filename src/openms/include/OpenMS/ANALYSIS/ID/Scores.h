@@ -8,6 +8,6 @@
 
 #pragma once
 
-// This header has moved to OpenMS/PROCESSING/ID/Scores.h (lower layer).
+// This header has moved to <OpenMS/PROCESSING/ID/Scores.h> (lower layer).
 // This forwarding header is kept for backward compatibility.
 #include <OpenMS/PROCESSING/ID/Scores.h>
