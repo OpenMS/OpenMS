@@ -12,8 +12,6 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
-#include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -1228,33 +1226,10 @@ namespace OpenMS
   }
   //@}
 
-  /// returns the total ion chromatogram (TIC)
-  const MSChromatogram MSExperiment::calculateTIC(float rt_bin_size, UInt ms_level) const
-  {
-    // The TIC is (re)calculated from the MS spectra with set ms_level (default 1).
-    // Even if MSExperiment does not contain a TIC chromatogram explicitly, it can be reported.
-    MSChromatogram TIC;
-    for (const auto& spec: spectra_)
-    {
-      if ((spec.getMSLevel() == ms_level) || (ms_level == 0))
-      {
-        // fill chromatogram
-        ChromatogramPeakType peak;
-        peak.setRT(spec.getRT());
-        peak.setIntensity(spec.calculateTIC());
-        TIC.push_back(peak);
-      }
-    }
-    if (rt_bin_size > 0)
-    {
-      LinearResamplerAlign lra;
-      Param param = lra.getParameters();
-      param.setValue("spacing", rt_bin_size);
-      lra.setParameters(param);
-      lra.raster(TIC);
-    }
-    return TIC;
-  }
+  // NOTE: MSExperiment::calculateTIC() is defined out-of-line in
+  // src/openms/source/PROCESSING/RESAMPLING/MSExperiment_TIC.cpp because its
+  // optional RT-resampling uses LinearResamplerAlign (PROCESSING layer). Keeping
+  // the definition there avoids a KERNEL -> PROCESSING include back-edge.
 
   /**
   @brief Clears all data and meta data

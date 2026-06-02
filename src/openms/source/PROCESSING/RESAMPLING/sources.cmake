@@ -4,6 +4,7 @@ set(directory source/PROCESSING/RESAMPLING)
 ### list all filenames of the directory here
 set(sources_list
 LinearResamplerAlign.cpp
+MSExperiment_TIC.cpp
 )
 
 ### add path to the filenames
