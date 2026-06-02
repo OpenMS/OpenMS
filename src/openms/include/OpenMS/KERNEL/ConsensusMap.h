@@ -338,6 +338,9 @@ public:
     */
     std::vector<FeatureMap> split(SplitMeta mode = SplitMeta::DISCARD) const;
 
+    /// check if the IsobaricAnalyzer TOPP tool was used to create this ConsensusMap
+    static bool isLabeledExperiment(const ConsensusMap& cm);
+
     /// @name Functions for dealing with identifications in new format
     ///@{
     /*!

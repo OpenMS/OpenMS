@@ -15,10 +15,10 @@
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/QC/QCBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <algorithm>
 #include <map>
 
 namespace OpenMS
@@ -699,6 +699,17 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     return true;
   }
 
+  bool ConsensusMap::isLabeledExperiment(const ConsensusMap& cm)
+  {
+    bool iso_analyze = true;
+    auto cm_dp = cm.getDataProcessing(); // get a copy to avoid calling .begin() and .end() on two different temporaries
+    if (std::all_of(cm_dp.begin(), cm_dp.end(), [](const OpenMS::DataProcessing& dp) { return (dp.getSoftware().getName() != "IsobaricAnalyzer"); }))
+    {
+      iso_analyze = false;
+    }
+    return iso_analyze;
+  }
+
   std::vector<FeatureMap> ConsensusMap::split(ConsensusMap::SplitMeta mode) const
   {
     // @TODO: handle IDs in new format (IdentificationData)
@@ -707,7 +718,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     std::vector<FeatureMap>fmaps(numbr_exps);
 
     // Check for Isobaric Analyzer
-    bool iso_analyze = QCBase::isLabeledExperiment(*this);
+    bool iso_analyze = ConsensusMap::isLabeledExperiment(*this);
 
     for (const auto& cf : *this)
     {

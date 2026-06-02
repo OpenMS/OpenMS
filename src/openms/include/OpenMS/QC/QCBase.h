@@ -110,6 +110,7 @@ namespace OpenMS
     bool isRunnable(const Status& s) const;
 
     /// check if the IsobaricAnalyzer TOPP tool was used to create this ConsensusMap
+    /// @note kept for API compatibility; forwards to ConsensusMap::isLabeledExperiment()
     static bool isLabeledExperiment(const ConsensusMap& cm);
 
     /// does the container have a PeptideIdentification in its members or as unassignedPepID ?

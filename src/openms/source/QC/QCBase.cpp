@@ -78,13 +78,9 @@ namespace OpenMS
 
   bool QCBase::isLabeledExperiment(const ConsensusMap& cm)
   {
-    bool iso_analyze = true;
-    auto cm_dp = cm.getDataProcessing(); // get a copy to avoid calling .begin() and .end() on two different temporaries
-    if (all_of(cm_dp.begin(), cm_dp.end(), [](const OpenMS::DataProcessing& dp) { return (dp.getSoftware().getName() != "IsobaricAnalyzer"); }))
-    {
-      iso_analyze = false;
-    }
-    return iso_analyze;
+    // forward to ConsensusMap (the logic only inspects ConsensusMap/DataProcessing metadata);
+    // kept here for backwards compatibility of the QCBase public API
+    return ConsensusMap::isLabeledExperiment(cm);
   }
 
 } // namespace OpenMS
