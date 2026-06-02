@@ -28,8 +28,8 @@
     Apple Clang is the officially supported compiler on macOS for
     building %OpenMS (GCC can be used at your own risk).  %OpenMS is
     tested with the Apple Clang toolchain that ships with the last
-    three Xcode releases.  Older Xcode versions may fail due to
-    missing C++20 features.
+    three Xcode releases.  Xcode 16 or later is required for
+    C++23 support.
 
     A minimal installation of Apple Clang is achieved by downloading
     Apple's "Command Line Tools".  However we suggest using a full
