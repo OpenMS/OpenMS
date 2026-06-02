@@ -76,6 +76,7 @@ namespace OpenMS
       PQP,                ///< OpenSWATH Peptide Query Parameter (PQP) SQLite DB, see TransitionPQPFile
       CHROMPARQUET,       ///< OpenSWATH Parquet chromatogram output (.xic)
       MOBILPARQUET,       ///< OpenSWATH Parquet mobilogram output (.xim)
+      PEAKMAPPARQUET,     ///< OpenSWATH Parquet peak-map output (.xipm)
       OSWPQ,              ///< OpenSWATH Parquet bundle (.oswpq) for library and/or feature output
       MS,                 ///< SIRIUS file format (.ms)
       OSW,                ///< OpenSWATH OpenSWATH report (OSW) SQLite DB

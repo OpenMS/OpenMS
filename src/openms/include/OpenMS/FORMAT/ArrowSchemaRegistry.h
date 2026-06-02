@@ -653,4 +653,39 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for extracted ion peak-map (XIPM) data table
+  struct OPENMS_DLLAPI XIPMSchema
+  {
+    static constexpr const char* RUN_ID = "RUN_ID";
+    static constexpr const char* SOURCE_FILE = "SOURCE_FILE";
+    static constexpr const char* MS_LEVEL = "MS_LEVEL";
+    static constexpr const char* PEAKMAP_TYPE = "PEAKMAP_TYPE";
+    static constexpr const char* PRECURSOR_ID = "PRECURSOR_ID";
+    static constexpr const char* TRANSITION_ID = "TRANSITION_ID";
+    static constexpr const char* MODIFIED_SEQUENCE = "MODIFIED_SEQUENCE";
+    static constexpr const char* PRECURSOR_CHARGE = "PRECURSOR_CHARGE";
+    static constexpr const char* PRODUCT_CHARGE = "PRODUCT_CHARGE";
+    static constexpr const char* DETECTING_TRANSITION = "DETECTING_TRANSITION";
+    static constexpr const char* PRECURSOR_DECOY = "PRECURSOR_DECOY";
+    static constexpr const char* PRODUCT_DECOY = "PRODUCT_DECOY";
+    static constexpr const char* TRANSITION_ORDINAL = "TRANSITION_ORDINAL";
+    static constexpr const char* TRANSITION_TYPE = "TRANSITION_TYPE";
+    static constexpr const char* ANNOTATION = "ANNOTATION";
+    static constexpr const char* TARGET_MZ = "TARGET_MZ";
+    static constexpr const char* TARGET_RT = "TARGET_RT";
+    static constexpr const char* TARGET_ION_MOBILITY = "TARGET_ION_MOBILITY";
+    static constexpr const char* RT_START = "RT_START";
+    static constexpr const char* RT_END = "RT_END";
+    static constexpr const char* MZ_DATA = "MZ_DATA";
+    static constexpr const char* RT_DATA = "RT_DATA";
+    static constexpr const char* MOBILITY_DATA = "MOBILITY_DATA";
+    static constexpr const char* INTENSITY_DATA = "INTENSITY_DATA";
+    static constexpr const char* MZ_COMPRESSION = "MZ_COMPRESSION";
+    static constexpr const char* RT_COMPRESSION = "RT_COMPRESSION";
+    static constexpr const char* MOBILITY_COMPRESSION = "MOBILITY_COMPRESSION";
+    static constexpr const char* INTENSITY_COMPRESSION = "INTENSITY_COMPRESSION";
+
+    static std::shared_ptr<arrow::Schema> schema();
+  };
+
 } // namespace OpenMS
