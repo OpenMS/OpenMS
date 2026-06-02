@@ -1072,7 +1072,12 @@ namespace OpenMS
         exp.getSpectra().end());
     }
 
-    // Filter peaks by m/z range and intensity range within each spectrum
+    // Filter peaks by m/z range and intensity range within each spectrum.
+    // Use MSSpectrum::select() rather than erase(): select() rebuilds the parallel data
+    // arrays so the per-peak ion-mobility FloatDataArray carried by Bruker .d frames (and any
+    // other float/string/integer array) stays aligned with the peaks. A raw erase() would
+    // shrink only the peak vector, leaving the IM array too long -> corrupt mzML output or a
+    // Precondition throw on the next sortByPosition()/select().
     if (options_.hasMZRange() || options_.hasIntensityRange())
     {
       const bool filter_mz = options_.hasMZRange();
@@ -1080,17 +1085,22 @@ namespace OpenMS
       const auto& mz_range = options_.getMZRange();
       const auto& int_range = options_.getIntensityRange();
 
+      std::vector<Size> kept;
       for (auto& spectrum : exp.getSpectra())
       {
-        spectrum.erase(
-          std::remove_if(spectrum.begin(), spectrum.end(),
-            [&](const Peak1D& p)
-            {
-              if (filter_mz && !mz_range.encloses(DPosition<1>(p.getMZ()))) { return true; }
-              if (filter_int && !int_range.encloses(DPosition<1>(p.getIntensity()))) { return true; }
-              return false;
-            }),
-          spectrum.end());
+        kept.clear();
+        kept.reserve(spectrum.size());
+        for (Size i = 0; i < spectrum.size(); ++i)
+        {
+          const Peak1D& p = spectrum[i];
+          if (filter_mz && !mz_range.encloses(DPosition<1>(p.getMZ()))) { continue; }
+          if (filter_int && !int_range.encloses(DPosition<1>(p.getIntensity()))) { continue; }
+          kept.push_back(i);
+        }
+        if (kept.size() != spectrum.size())
+        {
+          spectrum.select(kept);
+        }
       }
     }
 

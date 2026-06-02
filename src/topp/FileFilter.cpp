@@ -394,26 +394,23 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    std::vector<String> out_formats = ListUtils::create<String>("mzML,featureXML,consensusXML");
-    std::vector<String> in_formats = out_formats;
-#ifdef WITH_OPENTIMS
-    in_formats.push_back("d");
-#endif
-#ifdef WITH_THERMO_RAW
-    in_formats.push_back("raw");
-#endif
+    // FileFilter only processes mzML/featureXML/consensusXML; the input dispatch in main_()
+    // has no branch for vendor formats (Bruker .d / Thermo .raw) and they are not IM-aware
+    // pass-throughs (its m/z/intensity and S/N filters mutate peaks without updating the
+    // parallel ion-mobility array). Use FileConverter to convert vendor data to mzML first.
+    std::vector<String> formats = ListUtils::create<String>("mzML,featureXML,consensusXML");
 
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", in_formats);
+    setValidFormats_("in", formats);
 
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content", false);
-    setValidStrings_("in_type", in_formats);
+    setValidStrings_("in_type", formats);
 
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", out_formats);
+    setValidFormats_("out", formats);
 
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content", false);
-    setValidStrings_("out_type", out_formats);
+    setValidStrings_("out_type", formats);
 
     registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract [s]", false);
     registerStringOption_("rt_block_mode", "<mode>", RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS], String("RT filtering mode: '") + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS] + "' uses RT range as given in '-rt'; '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_EXTEND] + "' extends RT range to keep complete spectrum blocks intact, '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_SHRINK] + "' only keeps complete blocks within the given RT range", false);
@@ -654,15 +651,7 @@ protected:
     //use in_type as out_type, if out_type cannot be determined by file or out_type flag
     if (out_type == FileTypes::UNKNOWN)
     {
-      // vendor formats (raw, d) are read-only; default to mzML for output
-      if (in_type == FileTypes::RAW || in_type == FileTypes::BRUKER_TDF)
-      {
-        out_type = FileTypes::MZML;
-      }
-      else
-      {
-        out_type = in_type;
-      }
+      out_type = in_type;
       writeDebug_(String("Output file type: ") + FileTypes::typeToName(out_type), 2);
     }
 
@@ -829,7 +818,7 @@ protected:
       f.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
 
       MapType exp;
-      f.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
+      f.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
       // Apply RT filtering with block-aware modes if not using exact mode
       if (rt_block_mode != RTBlockMode::AS_IS && ! rt.empty())
