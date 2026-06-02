@@ -100,7 +100,7 @@ namespace OpenMS
     ConstRibonucleotidePtr threeEnd = nullptr;
     if (seq_[seq_.size() - length - 1]->getCode().back() == '*')
     {
-      static RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
+      static const RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
       threeEnd = rdb->getRibonucleotide("5'-p*");
     }
     return NASequence({seq_.end() - length, seq_.end()}, threeEnd, three_prime_);
@@ -121,7 +121,7 @@ namespace OpenMS
     if (start > 0 && seq_[start - 1]->getCode().back() == '*' )
     {
       cout << seq_[start - 1]->getCode();
-      static RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
+      static const RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
       five_prime = rdb->getRibonucleotide("5'-p*");
       if (five_prime == nullptr)
       {
@@ -359,7 +359,7 @@ namespace OpenMS
     if (s.empty())
       return;
 
-    static RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
+    static const RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
 
     String::ConstIterator str_it = s.begin();
     if (*str_it == 'p') // special case for 5' phosphate
@@ -413,7 +413,7 @@ namespace OpenMS
 
   String::ConstIterator NASequence::parseMod_(const String::ConstIterator str_it, const String& str, NASequence& nas)
   {
-    static RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
+    static const RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
     OPENMS_PRECONDITION(*str_it == '[', "Modification must start with '['.");
     String::ConstIterator mod_start(str_it);
     String::ConstIterator mod_end(++mod_start);

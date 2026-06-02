@@ -36,7 +36,7 @@ START_SECTION((virtual ~DigestionEnzymeProtein()))
   delete e_ptr;
 END_SECTION
 
-ProteaseDB* db = ProteaseDB::getInstance();
+const ProteaseDB* db = ProteaseDB::getInstance();
 e_ptr = new DigestionEnzymeProtein(*db->getEnzyme("Trypsin"));
 
 String RKP("(?<=[RKP])(?!P)");

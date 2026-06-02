@@ -40,7 +40,8 @@ namespace OpenMS
     //@}
 
     /// this member function serves as a replacement of the constructor
-    static InstanceType* getInstance()
+    /// The database is immutable after construction, so a const pointer is returned.
+    static const InstanceType* getInstance()
     {
       static InstanceType* db_ = nullptr;
       if (db_ == nullptr)

@@ -28,7 +28,7 @@ namespace OpenMS
     loadFromProviders_(providers);
   }
 
-  RibonucleotideDB* RibonucleotideDB::getInstance()
+  const RibonucleotideDB* RibonucleotideDB::getInstance()
   {
     static RibonucleotideDB* db_ = new RibonucleotideDB(); // Meyers' singleton -> thread safe
     return db_;
@@ -71,7 +71,7 @@ namespace OpenMS
     }
   }
 
-  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::getRibonucleotide(const std::string& code)
+  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::getRibonucleotide(const std::string& code) const
   {
     std::unordered_map<std::string, Size>::const_iterator pos = code_map_.find(code);
     if (pos == code_map_.end())
@@ -82,7 +82,7 @@ namespace OpenMS
   }
 
 
-  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::getRibonucleotidePrefix(const std::string& seq)
+  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::getRibonucleotidePrefix(const std::string& seq) const
   {
     std::string prefix = seq.substr(0, max_code_length_);
     while (!prefix.empty())
@@ -98,7 +98,7 @@ namespace OpenMS
   }
 
 
-  pair<RibonucleotideDB::ConstRibonucleotidePtr, RibonucleotideDB::ConstRibonucleotidePtr> RibonucleotideDB::getRibonucleotideAlternatives(const std::string& code)
+  pair<RibonucleotideDB::ConstRibonucleotidePtr, RibonucleotideDB::ConstRibonucleotidePtr> RibonucleotideDB::getRibonucleotideAlternatives(const std::string& code) const
   {
     auto pos = ambiguity_map_.find(code);
     if (pos == ambiguity_map_.end())
