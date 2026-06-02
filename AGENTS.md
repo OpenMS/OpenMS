@@ -60,7 +60,7 @@ OpenMS/
 
 ## Build and Install
 
-- **CMake minimum**: 3.21; **C++ standard**: C++20
+- **CMake minimum**: 3.21; **C++ standard**: C++23
 - Out-of-tree build expected in `OpenMS-build/`; build in place for development (install prefixes are for system installs).
 - Use `CMAKE_BUILD_TYPE=Debug` for development to keep assertions/pre/post-conditions.
 - Dependencies via distro packages or the contrib tree; set `OPENMS_CONTRIB_LIBS` and `CMAKE_PREFIX_PATH` as needed (Qt, contrib).
@@ -82,7 +82,7 @@ OpenMS/
 
 ### Windows
 - **MSYS/MinGW NOT supported** — must use Visual Studio environment
-- **MSVC 2019+ required** (version 1920+); AddressSanitizer needs this minimum
+- **Visual Studio 2022 (v17.6+) required** for C++23; AddressSanitizer needs at least MSVC 1920 (VS 2019)
 - **64-bit only**; use Visual Studio generator (not Ninja/Make)
 - **Keep build paths short** to avoid path length issues
 - **Never mix Release/Debug libraries** — causes stack corruption and segfaults
@@ -93,6 +93,7 @@ OpenMS/
 
 ### macOS
 - **Apple Clang (Xcode) required**; Homebrew for dependencies
+- **Xcode 16+ (AppleClang 16+) required** for C++23
 - **AppleClang >= 15.0.0**: Requires `-ld_classic` linker flag (set automatically)
 - Remove older Qt versions if they interfere with Qt6
 - Qt6 requires `PrintSupport` component for platform plugin
