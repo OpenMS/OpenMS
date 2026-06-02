@@ -24,6 +24,11 @@ _PRECURSOR_ANALYTE_FIELDS = (
     "precursor_charge",
     "precursor_decoy",
 )
+_PRECURSOR_GROUPING_FIELDS = (
+    "precursor_id",
+    "modified_sequence",
+    "precursor_charge",
+)
 _TRANSITION_ANALYTE_FIELDS = (
     "transition_id",
     "product_charge",
@@ -177,6 +182,7 @@ def _build_analyte_dict(data, requested, nest_transitions):
         return {column: [] for column in requested}
 
     requested_precursor_fields = [field for field in _PRECURSOR_ANALYTE_FIELDS if field in requested]
+    grouping_precursor_fields = [field for field in _PRECURSOR_GROUPING_FIELDS if field in requested]
     requested_transition_fields = [field for field in _TRANSITION_ANALYTE_FIELDS if field in requested]
 
     if not nest_transitions:
@@ -191,17 +197,17 @@ def _build_analyte_dict(data, requested, nest_transitions):
             rows.append(record)
         return {column: [row[column] for row in rows] for column in requested}
 
-    if not requested_precursor_fields:
+    if not grouping_precursor_fields:
         raise RuntimeError(
             "nest_transitions=True requires at least one precursor discriminator column: "
-            "PRECURSOR_ID, MODIFIED_SEQUENCE, PRECURSOR_CHARGE, or PRECURSOR_DECOY"
+            "PRECURSOR_ID, MODIFIED_SEQUENCE, or PRECURSOR_CHARGE"
         )
 
     grouped = {}
     order = []
     transition_ids = data.get("transition_id")
     for i in range(n_rows):
-        key = tuple(data[field][i] for field in requested_precursor_fields)
+        key = tuple(data[field][i] for field in grouping_precursor_fields)
         if key not in grouped:
             grouped[key] = {
                 field: data[field][i] for field in requested_precursor_fields
@@ -209,6 +215,12 @@ def _build_analyte_dict(data, requested, nest_transitions):
             for field in requested_transition_fields:
                 grouped[key][field] = []
             order.append(key)
+        elif "precursor_decoy" in requested_precursor_fields:
+            current_decoy = data["precursor_decoy"][i]
+            if current_decoy is not None:
+                grouped_decoy = grouped[key]["precursor_decoy"]
+                if grouped_decoy is None or current_decoy == 0:
+                    grouped[key]["precursor_decoy"] = current_decoy
 
         if requested_transition_fields and transition_ids is not None and transition_ids[i] is not None:
             for field in requested_transition_fields:

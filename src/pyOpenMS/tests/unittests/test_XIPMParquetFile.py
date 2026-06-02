@@ -130,3 +130,45 @@ def test_xipm_query_builder_string_run_id_pushdown():
     run_id = str(runs["run_id"][0])
     df = xipm.query_peak_maps().filter_run_id(run_id).to_df(explode=False)
     assert len(df) > 0
+
+
+def test_xipm_analyte_grouping_prefers_target_precursor_decoy_for_mixed_ipf_rows():
+    from pyopenms.addons import xipmparquetfile as addon_mod
+
+    data = {
+        "precursor_id": [2407, 2407],
+        "modified_sequence": [
+            "TSHVENDYIDNPSLALT(UniMod:21)TGPK",
+            "TSHVENDYIDNPSLALT(UniMod:21)TGPK",
+        ],
+        "precursor_charge": [3, 3],
+        "precursor_decoy": [1, 0],
+        "transition_id": [486508, 486503],
+        "product_charge": [1, 1],
+        "detecting_transition": [0, 1],
+        "product_decoy": [1, 0],
+        "transition_ordinal": [3, 3],
+        "transition_type": ["b", "y"],
+        "annotation": ["b3^1", "y3^1"],
+    }
+
+    result = addon_mod._build_analyte_dict(
+        data,
+        [
+            "precursor_id",
+            "modified_sequence",
+            "precursor_charge",
+            "precursor_decoy",
+            "transition_id",
+            "product_charge",
+            "detecting_transition",
+            "product_decoy",
+            "transition_ordinal",
+            "transition_type",
+            "annotation",
+        ],
+        nest_transitions=True,
+    )
+
+    assert len(result["precursor_id"]) == 1
+    assert result["precursor_decoy"] == [0]

@@ -11,6 +11,7 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
+#include <OpenMS/FORMAT/XIMParquetFile.h>
 #include <OpenMS/KERNEL/Mobilogram.h>
 #include <OpenMS/KERNEL/MobilityPeak1D.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -127,6 +128,66 @@ START_SECTION(MobilogramParquetConsumer_destructor_flushes)
   // File was flushed by destructor
   TEST_EQUAL(File::exists(out), true)
   TEST_EQUAL(File::fileSize(out) > 0, true)
+}
+END_SECTION
+
+START_SECTION(MobilogramParquetConsumer_mixed_target_and_decoy_identifying_transitions_keep_single_target_analyte)
+{
+  OpenSwath::LightTargetedExperiment light_exp;
+
+  OpenSwath::LightCompound compound;
+  compound.id = "2407";
+  compound.sequence = "TSHVENDYIDNPSLALT(UniMod:21)TGPK";
+  compound.charge = 3;
+  light_exp.compounds.push_back(compound);
+
+  OpenSwath::LightTransition target_transition;
+  target_transition.transition_name = "tr_target";
+  target_transition.peptide_ref = "2407";
+  target_transition.precursor_mz = 784.6967;
+  target_transition.product_mz = 326.1459;
+  target_transition.fragment_charge = 1;
+  target_transition.fragment_nr = 3;
+  target_transition.setFragmentType("b");
+  target_transition.setDetectingTransition(true);
+  target_transition.setIdentifyingTransition(false);
+  target_transition.setDecoy(false);
+  light_exp.transitions.push_back(target_transition);
+
+  OpenSwath::LightTransition identifying_decoy = target_transition;
+  identifying_decoy.transition_name = "tr_ident_decoy";
+  identifying_decoy.product_mz = 302.1710;
+  identifying_decoy.setDetectingTransition(false);
+  identifying_decoy.setIdentifyingTransition(true);
+  identifying_decoy.setDecoy(true);
+  light_exp.transitions.push_back(identifying_decoy);
+
+  Mobilogram mobilogram;
+  mobilogram.setRT(100.0);
+  mobilogram.push_back(MobilityPeak1D(1.0, 1000.0));
+
+  String tmp;
+  NEW_TMP_FILE(tmp);
+  String out = tmp + ".xim";
+  {
+    MobilogramParquetConsumer consumer(out, 1, "test_source", light_exp);
+    consumer.consumeMobilogram(mobilogram, "transition", 2, -1, "tr_target", 100.0, 7);
+    consumer.consumeMobilogram(mobilogram, "transition", 2, -1, "tr_ident_decoy", 100.0, 7);
+  }
+
+  XIMParquetFile xim(out);
+  std::vector<XIMMobilogram> mobilograms;
+  xim.load(mobilograms);
+  TEST_EQUAL(mobilograms.size(), 2)
+  for (const auto& m : mobilograms)
+  {
+    TEST_EQUAL(m.has_precursor_decoy, true)
+    TEST_EQUAL(m.precursor_decoy, 0)
+  }
+
+  std::vector<XIMAnalyte> analytes;
+  xim.getAnalytes(analytes);
+  TEST_EQUAL(analytes.size(), 1)
 }
 END_SECTION
 

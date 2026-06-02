@@ -424,6 +424,32 @@ namespace OpenMS
       std::unordered_set<int64_t> used_precursor_ids;
       std::unordered_set<int64_t> used_transition_ids;
 
+      std::unordered_map<String, bool> precursor_has_target_transition;
+      std::unordered_map<String, bool> precursor_has_decoy_transition;
+      precursor_has_target_transition.reserve(transition_exp.getTransitions().size());
+      precursor_has_decoy_transition.reserve(transition_exp.getTransitions().size());
+      for (const auto& transition : transition_exp.getTransitions())
+      {
+        if (transition.getDecoy())
+        {
+          precursor_has_decoy_transition[transition.peptide_ref] = true;
+        }
+        else
+        {
+          precursor_has_target_transition[transition.peptide_ref] = true;
+        }
+      }
+
+      // IPF libraries can contain target detecting transitions and decoy
+      // identifying transitions for the same precursor. Treat the precursor as
+      // decoy only if it has no target transitions at all.
+      const auto resolve_precursor_decoy = [&](const String& peptide_ref) -> int64_t
+      {
+        const bool has_target = precursor_has_target_transition.find(peptide_ref) != precursor_has_target_transition.end();
+        const bool has_decoy = precursor_has_decoy_transition.find(peptide_ref) != precursor_has_decoy_transition.end();
+        return (!has_target && has_decoy) ? 1 : 0;
+      };
+
       std::unordered_map<String, int64_t> precursor_ids;
       precursor_ids.reserve(transition_exp.getCompounds().size());
 
@@ -437,7 +463,7 @@ namespace OpenMS
         info.precursor_id = precursor_id;
         info.modified_sequence = compound.sequence;
         info.precursor_charge = compound.charge;
-        info.precursor_decoy = 0;
+        info.precursor_decoy = resolve_precursor_decoy(compound_id);
         compound_info_.emplace(compound_id, std::move(info));
       }
 
@@ -466,17 +492,9 @@ namespace OpenMS
 
           CompoundInfo info;
           info.precursor_id = precursor_id;
+          info.precursor_decoy = resolve_precursor_decoy(peptide_ref);
           compound_info_.emplace(peptide_ref, std::move(info));
           precursor_it = precursor_ids.find(peptide_ref);
-        }
-
-        if (transition.getDecoy())
-        {
-          auto comp_it = compound_info_.find(peptide_ref);
-          if (comp_it != compound_info_.end())
-          {
-            comp_it->second.precursor_decoy = 1;
-          }
         }
 
         TransitionInfo info;
