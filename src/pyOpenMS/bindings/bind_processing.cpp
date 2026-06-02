@@ -34,11 +34,56 @@
 #include <nanobind/stl/vector.h>
 #include <sstream>
 #include "binding_utils.h"
+#include <OpenMS/PROCESSING/ID/Scores.h>
 
 namespace nb = nanobind;
 using namespace nb::literals;
 
 NB_MODULE(_pyopenms_processing, m) {
+
+    // [relocated to match module] Scores
+    // -----------------------------------------------------------------------
+    // Scores
+    // -----------------------------------------------------------------------
+    auto scores_class = nb::class_<OpenMS::Scores>(m, "Scores", 
+        R"doc(
+Utility class for score type handling in identification and quantification workflows.
+This class provides centralized handling of score types used in peptide/protein
+identification, quantification, and PTM localization. It defines the hierarchy of
+score types and provides utility methods for score type conversion, comparison, and lookup.
+)doc")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::Scores &>())
+        .def("__copy__", [](const OpenMS::Scores& self) { return OpenMS::Scores(self); })
+        .def("__deepcopy__", [](const OpenMS::Scores& self, nb::dict) { return OpenMS::Scores(self); }, "memo"_a)
+
+        .def_static("isScoreType", &OpenMS::Scores::isScoreType, "score_name"_a, "type"_a,
+            "Check if the given score name corresponds to a specific ID score type")
+
+        .def_static("parseIDType", &OpenMS::Scores::parseIDType, "score_type"_a,
+            "Convert a string representation of an ID score type to an IDType enum")
+
+        .def_static("isHigherBetter", &OpenMS::Scores::isHigherBetter, "type"_a,
+            "Determine whether a higher score is better for the given ID score type")
+
+        .def_static("getAllIDScoreNames", &OpenMS::Scores::getAllIDScoreNames,
+            "Get a vector of all ID score names used in OpenMS")
+
+        .def_static("normalizeScoreName", &OpenMS::Scores::normalizeScoreName, "score_name"_a,
+            "Normalize a score name by removing the '_score' suffix if present")
+
+        .def_static("isKnownScoreType", &OpenMS::Scores::isKnownScoreType, "score_name"_a,
+            "Check if a score name is a known score type after normalization")
+        ;
+    // IDType enum nested under Scores
+    nb::enum_<OpenMS::Scores::IDType>(scores_class, "IDType", "Enum for identification score types", nb::is_arithmetic())
+        .value("RAW", OpenMS::Scores::IDType::RAW)
+        .value("RAW_EVAL", OpenMS::Scores::IDType::RAW_EVAL)
+        .value("PP", OpenMS::Scores::IDType::PP)
+        .value("PEP", OpenMS::Scores::IDType::PEP)
+        .value("FDR", OpenMS::Scores::IDType::FDR)
+        .value("QVAL", OpenMS::Scores::IDType::QVAL)
+        ;
     m.doc() = "pyOpenMS processing bindings";
 
     // -----------------------------------------------------------------------

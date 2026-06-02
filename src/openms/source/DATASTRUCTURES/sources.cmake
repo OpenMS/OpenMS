@@ -3,11 +3,8 @@ set(directory source/DATASTRUCTURES)
 
 ### list all filenames of the directory here
 set(sources_list
-Adduct.cpp
 BinaryTreeNode.cpp
 CalibrationData.cpp
-ChargePair.cpp
-Compomer.cpp
 ConstRefVector.cpp
 ConvexHull2D.cpp
 CVMappingTerm.cpp
@@ -24,19 +21,16 @@ DateTime.cpp
 DefaultParamHandler.cpp
 DistanceMatrix.cpp
 ExposedVector.cpp
-FASTAContainer.cpp
 FlagSet.cpp
 GridFeature.cpp
 ListUtils.cpp
 ListUtilsIO.cpp
 LPWrapper.cpp
-MassExplainer.cpp
 MatchedIterator.cpp
 Matrix.cpp
 OSWData.cpp
 Param.cpp
 ParamValue.cpp
-QTCluster.cpp
 String.cpp
 StringView.cpp
 StringListUtils.cpp

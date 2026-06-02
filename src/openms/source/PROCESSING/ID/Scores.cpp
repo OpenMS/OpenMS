@@ -6,7 +6,7 @@
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/Scores.h>
+#include <OpenMS/PROCESSING/ID/Scores.h>
 
 namespace OpenMS
 {

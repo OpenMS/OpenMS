@@ -3,6 +3,7 @@ set(directory include/OpenMS/ANALYSIS/MAPMATCHING)
 
 ### list all header files of the directory here
 set(sources_list_h
+QTCluster.h
 BaseGroupFinder.h
 BaseSuperimposer.h
 ConsensusMapNormalizerAlgorithmThreshold.h

@@ -6,7 +6,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/Adduct.h>
+#include <OpenMS/CHEMISTRY/Adduct.h>
 
 #include <OpenMS/CHEMISTRY/Element.h>
 

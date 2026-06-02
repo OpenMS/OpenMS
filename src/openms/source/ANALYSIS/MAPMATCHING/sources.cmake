@@ -3,6 +3,7 @@ set(directory source/ANALYSIS/MAPMATCHING)
 
 ### list all filenames of the directory here
 set(sources_list
+QTCluster.cpp
 BaseGroupFinder.cpp
 BaseSuperimposer.cpp
 ConsensusMapNormalizerAlgorithmThreshold.cpp

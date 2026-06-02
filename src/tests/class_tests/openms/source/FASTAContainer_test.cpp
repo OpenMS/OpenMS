@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
+#include <OpenMS/FORMAT/FASTAContainer.h>
 ///////////////////////////
 
 using namespace OpenMS;

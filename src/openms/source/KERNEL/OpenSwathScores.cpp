@@ -6,7 +6,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h>
+#include <OpenMS/KERNEL/OpenSwathScores.h>
 
 namespace OpenMS
 {

@@ -28,7 +28,7 @@ using namespace std;
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
+#include <OpenMS/FORMAT/FASTAContainer.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <boost/regex.hpp>
 

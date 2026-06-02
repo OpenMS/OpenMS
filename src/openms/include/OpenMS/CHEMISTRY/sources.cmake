@@ -3,6 +3,10 @@ set(directory include/OpenMS/CHEMISTRY)
 
 ### list all header files of the directory here
 set(sources_list_h
+Adduct.h
+ChargePair.h
+Compomer.h
+MassExplainer.h
 AAIndex.h
 AASequence.h
 AdductInfo.h

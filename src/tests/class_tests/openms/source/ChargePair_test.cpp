@@ -9,11 +9,11 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/DATASTRUCTURES/ChargePair.h>
+#include <OpenMS/CHEMISTRY/ChargePair.h>
 ///////////////////////////
 
-#include <OpenMS/DATASTRUCTURES/Compomer.h>
-#include <OpenMS/DATASTRUCTURES/Adduct.h>
+#include <OpenMS/CHEMISTRY/Compomer.h>
+#include <OpenMS/CHEMISTRY/Adduct.h>
 
 #include <unordered_set>
 #include <unordered_map>

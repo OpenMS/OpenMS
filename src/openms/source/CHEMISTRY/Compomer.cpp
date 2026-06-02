@@ -6,8 +6,8 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/Adduct.h>
-#include <OpenMS/DATASTRUCTURES/Compomer.h>
+#include <OpenMS/CHEMISTRY/Adduct.h>
+#include <OpenMS/CHEMISTRY/Compomer.h>
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 

@@ -8,7 +8,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
 
-#include <OpenMS/DATASTRUCTURES/Adduct.h>
+#include <OpenMS/CHEMISTRY/Adduct.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>

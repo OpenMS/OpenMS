@@ -81,7 +81,7 @@ namespace OpenMS
     different labels still compare equal — this matches the std::hash
     specialization for Adduct (see bottom of this header).
 
-    @ingroup Datastructures
+    @ingroup Chemistry
   */
   class OPENMS_DLLAPI Adduct
   {

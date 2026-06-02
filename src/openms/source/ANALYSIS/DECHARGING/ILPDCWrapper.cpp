@@ -9,9 +9,9 @@
 #include <OpenMS/ANALYSIS/DECHARGING/ILPDCWrapper.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/ChargePair.h>
+#include <OpenMS/CHEMISTRY/ChargePair.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
-#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
+#include <OpenMS/CHEMISTRY/MassExplainer.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <unordered_map>

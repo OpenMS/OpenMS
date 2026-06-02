@@ -6,8 +6,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/ChargePair.h>
-#include <OpenMS/DATASTRUCTURES/Adduct.h>
+#include <OpenMS/CHEMISTRY/ChargePair.h>
+#include <OpenMS/CHEMISTRY/Adduct.h>
 
 #include <ostream>
 

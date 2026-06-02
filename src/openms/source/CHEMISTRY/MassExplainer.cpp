@@ -6,10 +6,10 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
+#include <OpenMS/CHEMISTRY/MassExplainer.h>
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/DATASTRUCTURES/Compomer.h>
+#include <OpenMS/CHEMISTRY/Compomer.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <cmath>

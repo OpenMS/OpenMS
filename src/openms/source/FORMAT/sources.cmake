@@ -3,6 +3,7 @@ set(directory source/FORMAT)
 
 ### list all filenames of the directory here
 set(sources_list
+FASTAContainer.cpp
 AbsoluteQuantitationMethodFile.cpp
 AbsoluteQuantitationStandardsFile.cpp
 Base64.cpp
@@ -24,6 +25,7 @@ FeatureXMLFile.cpp
 FLASHDeconvFeatureFile.cpp
 FLASHDeconvSpectrumFile.cpp
 FileHandler.cpp
+File_FORMAT.cpp
 FileTypes.cpp
 GNPSMetaValueFile.cpp
 GNPSMGFFile.cpp

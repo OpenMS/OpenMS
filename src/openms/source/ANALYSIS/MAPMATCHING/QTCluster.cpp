@@ -9,7 +9,7 @@
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/DATASTRUCTURES/GridFeature.h>
-#include <OpenMS/DATASTRUCTURES/QTCluster.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/QTCluster.h>
 #include <algorithm> // for set_intersection
 #include <iterator>  // for inserter
 #include <numeric>   // for make_pair

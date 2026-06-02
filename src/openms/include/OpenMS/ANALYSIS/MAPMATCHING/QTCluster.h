@@ -76,7 +76,7 @@ namespace OpenMS
 
      @see QTClusterFinder
 
-     @ingroup Datastructures
+     @ingroup FeatureGrouping
 */
   class OPENMS_DLLAPI QTCluster
   {

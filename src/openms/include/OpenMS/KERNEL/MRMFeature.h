@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h>
+#include <OpenMS/KERNEL/OpenSwathScores.h>
 
 namespace OpenMS
 {

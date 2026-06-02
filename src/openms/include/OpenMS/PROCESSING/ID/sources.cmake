@@ -4,6 +4,7 @@ set(directory include/OpenMS/PROCESSING/ID)
 ### list all header files of the directory here
 set(sources_list_h
 IDFilter.h
+Scores.h
 )
 
 ### add path to the filenames

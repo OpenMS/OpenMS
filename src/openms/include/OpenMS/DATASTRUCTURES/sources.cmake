@@ -3,11 +3,8 @@ set(directory include/OpenMS/DATASTRUCTURES)
 
 ### list all header files of the directory here
 set(sources_list_h
-Adduct.h
 BinaryTreeNode.h
 CalibrationData.h
-ChargePair.h
-Compomer.h
 ConstRefVector.h
 ConvexHull2D.h
 CVMappingTerm.h
@@ -24,7 +21,6 @@ DateTime.h
 DefaultParamHandler.h
 DistanceMatrix.h
 ExposedVector.h
-FASTAContainer.h
 FlagSet.h
 GridFeature.h
 IsotopeCluster.h
@@ -32,14 +28,12 @@ KDTree.h
 ListUtils.h
 ListUtilsIO.h
 LPWrapper.h
-MassExplainer.h
 MatchedIterator.h
 Matrix.h
 MatrixEigen.h
 OSWData.h
 Param.h
 ParamValue.h
-QTCluster.h
 String.h
 StringConversions.h
 StringUtils.h

@@ -10,10 +10,10 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
+#include <OpenMS/CHEMISTRY/MassExplainer.h>
 ///////////////////////////
 
-#include <OpenMS/DATASTRUCTURES/Compomer.h>
+#include <OpenMS/CHEMISTRY/Compomer.h>
 
 using namespace OpenMS;
 using namespace std;

@@ -3,6 +3,10 @@ set(directory source/CHEMISTRY)
 
 ### list all filenames of the directory here
 set(sources_list
+Adduct.cpp
+ChargePair.cpp
+Compomer.cpp
+MassExplainer.cpp
 AAIndex.cpp
 AASequence.cpp
 AdductInfo.cpp

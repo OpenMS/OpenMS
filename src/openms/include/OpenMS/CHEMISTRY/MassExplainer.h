@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/Adduct.h>
+#include <OpenMS/CHEMISTRY/Adduct.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -33,7 +33,7 @@ namespace OpenMS
     This is particularly useful in mass spectrometry data analysis for identifying
     related features that represent the same analyte but with different adducts or charge states.
     
-    @ingroup Datastructures
+    @ingroup Chemistry
   */
   class OPENMS_DLLAPI MassExplainer
   {

@@ -4,6 +4,7 @@ set(directory source/PROCESSING/ID)
 ### list all filenames of the directory here
 set(sources_list
 IDFilter.cpp
+Scores.cpp
 )
 
 ### add path to the filenames

@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/DATASTRUCTURES/ChargePair.h>
+#include <OpenMS/CHEMISTRY/ChargePair.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
 #include <map>

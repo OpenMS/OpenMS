@@ -9,7 +9,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/DATASTRUCTURES/Adduct.h>
+#include <OpenMS/CHEMISTRY/Adduct.h>
 ///////////////////////////
 
 using namespace OpenMS;

@@ -12,7 +12,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/ML/CLUSTERING/HashGrid.h>
 #include <OpenMS/DATASTRUCTURES/GridFeature.h>
-#include <OpenMS/DATASTRUCTURES/QTCluster.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/QTCluster.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 
 #include <boost/heap/fibonacci_heap.hpp>

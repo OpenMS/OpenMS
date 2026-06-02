@@ -6,13 +6,13 @@
 #include <OpenMS/COMPARISON/SpectrumAlignmentScore.h>
 #include <OpenMS/CONCEPT/LogConfigHandler.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/DATASTRUCTURES/Adduct.h>
+#include <OpenMS/CHEMISTRY/Adduct.h>
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
-#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
-#include <OpenMS/DATASTRUCTURES/ChargePair.h>
+#include <OpenMS/CHEMISTRY/MassExplainer.h>
+#include <OpenMS/CHEMISTRY/ChargePair.h>
 #include <OpenMS/DATASTRUCTURES/CVMappings.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
-#include <OpenMS/DATASTRUCTURES/Compomer.h>
+#include <OpenMS/CHEMISTRY/Compomer.h>
 #include <OpenMS/DATASTRUCTURES/CVReference.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
@@ -25,7 +25,7 @@
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/QTCluster.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/QTCluster.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/MATH/MISC/BSpline2d.h>
@@ -79,29 +79,6 @@ NB_MODULE(_pyopenms_datastructures, m) {
         .value("Raise", OpenMS::Math::RankData::NaNPolicy::Raise)
         .export_values();
 
-    // -----------------------------------------------------------------------
-    // Adduct
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Adduct>(m, "Adduct", "OpenMS class Adduct")
-        .def(nb::init<>())
-        .def("__copy__", [](const OpenMS::Adduct& self) { return OpenMS::Adduct(self); })
-        .def("__deepcopy__", [](const OpenMS::Adduct& self, nb::dict) { return OpenMS::Adduct(self); }, "memo"_a)
-        .def(nb::init<int>())
-        .def(nb::init<int, int, double, OpenMS::String, double, double, OpenMS::String>())
-        .def("getCharge", [](const OpenMS::Adduct& self) { return self.getCharge(); })
-        .def("setCharge", [](OpenMS::Adduct& self, const int& charge) { return self.setCharge(charge); }, "charge"_a)
-        .def("getAmount", [](const OpenMS::Adduct& self) { return self.getAmount(); })
-        .def("setAmount", [](OpenMS::Adduct& self, const int& amount) { return self.setAmount(amount); }, "amount"_a)
-        .def("getSingleMass", [](const OpenMS::Adduct& self) { return self.getSingleMass(); })
-        .def("setSingleMass", [](OpenMS::Adduct& self, const double& singleMass) { return self.setSingleMass(singleMass); }, "singleMass"_a)
-        .def("getLogProb", [](const OpenMS::Adduct& self) { return self.getLogProb(); })
-        .def("setLogProb", [](OpenMS::Adduct& self, const double& log_prob) { return self.setLogProb(log_prob); }, "log_prob"_a)
-        .def("getFormula", [](const OpenMS::Adduct& self) { return self.getFormula(); })
-        .def("setFormula", [](OpenMS::Adduct& self, const OpenMS::String& formula) { return self.setFormula(formula); }, "formula"_a)
-        .def("getRTShift", [](const OpenMS::Adduct& self) { return self.getRTShift(); })
-        .def("getLabel", [](const OpenMS::Adduct& self) { return self.getLabel(); })
-        .def("__hash__", [](const OpenMS::Adduct& self) { return std::hash<OpenMS::Adduct>{}(self); })
-        ;
 
     // -----------------------------------------------------------------------
     // BSpline2d
@@ -1024,27 +1001,6 @@ pi0_smooth: Whether smoothing was successfully applied
         .def_rw("pi0_smooth", &OpenMS::Math::Pi0Result::pi0_smooth)
         ;
 
-    // -----------------------------------------------------------------------
-    // QTCluster
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::QTCluster>(m, "QTCluster", "A representation of a QT cluster used for feature grouping")
-        .def(nb::init<const OpenMS::QTCluster &>())
-        .def("__copy__", [](const OpenMS::QTCluster& self) { return OpenMS::QTCluster(self); })
-        .def("__deepcopy__", [](const OpenMS::QTCluster& self, nb::dict) { return OpenMS::QTCluster(self); }, "memo"_a)
-        .def("getCenterRT", [](const OpenMS::QTCluster& self) { return self.getCenterRT(); }, "Returns the RT value of the cluster")
-        .def("getCenterMZ", [](const OpenMS::QTCluster& self) { return self.getCenterMZ(); }, "Returns the m/z value of the cluster center")
-        .def("getXCoord", [](const OpenMS::QTCluster& self) { return self.getXCoord(); }, "Returns the x coordinate in the grid")
-        .def("getYCoord", [](const OpenMS::QTCluster& self) { return self.getYCoord(); }, "Returns the y coordinate in the grid")
-        .def("size", [](const OpenMS::QTCluster& self) { return self.size(); }, "Returns the size of the cluster (number of elements, incl. center)")
-        .def(nb::self < nb::self)
-        .def("getQuality", [](OpenMS::QTCluster& self) { return self.getQuality(); }, "Returns the cluster quality and recomputes if necessary")
-        .def("getAnnotations", [](OpenMS::QTCluster& self) -> const std::set<OpenMS::AASequence> & { return self.getAnnotations(); }, nb::rv_policy::reference_internal, "Returns the set of peptide sequences annotated to the cluster center")
-        .def("setInvalid", [](OpenMS::QTCluster& self) { return self.setInvalid(); }, "Sets current cluster as invalid (also frees some memory)")
-        .def("isInvalid", [](const OpenMS::QTCluster& self) { return self.isInvalid(); }, "Whether current cluster is invalid")
-        .def("initializeCluster", [](OpenMS::QTCluster& self) { return self.initializeCluster(); }, "Has to be called before adding elements (calling QTCluster::add)")
-        .def("finalizeCluster", [](OpenMS::QTCluster& self) { return self.finalizeCluster(); }, "Has to be called after adding elements (after calling QTCluster::add one or multiple times)")
-        .def("__len__", [](OpenMS::QTCluster& self) { return self.size(); })
-        ;
 
     // -----------------------------------------------------------------------
     // RankData
@@ -1169,35 +1125,6 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def("__gt__", [](const OpenMS::VersionInfo::VersionDetails& a, const OpenMS::VersionInfo::VersionDetails& b) { return a > b; })
         ;
 
-    // -----------------------------------------------------------------------
-    // Compomer
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Compomer>(m, "Compomer",
-        "Holds information on an edge connecting two features from a (putative) charge ladder")
-        .def(nb::init<>())
-        .def(nb::init<OpenMS::Int, double, double>(), "net_charge"_a, "mass"_a, "log_p"_a)
-        .def(nb::init<const OpenMS::Compomer &>())
-        .def("__copy__", [](const OpenMS::Compomer& self) { return OpenMS::Compomer(self); })
-        .def("__deepcopy__", [](const OpenMS::Compomer& self, nb::dict) { return OpenMS::Compomer(self); }, "memo"_a)
-        .def("setID", [](OpenMS::Compomer& self, const OpenMS::Size& id) { self.setID(id); }, "id"_a)
-        .def("getID", [](const OpenMS::Compomer& self) { return self.getID(); })
-        .def("getNetCharge", [](const OpenMS::Compomer& self) { return self.getNetCharge(); })
-        .def("getMass", [](const OpenMS::Compomer& self) { return self.getMass(); })
-        .def("getPositiveCharges", [](const OpenMS::Compomer& self) { return self.getPositiveCharges(); })
-        .def("getNegativeCharges", [](const OpenMS::Compomer& self) { return self.getNegativeCharges(); })
-        .def("getLogP", [](const OpenMS::Compomer& self) { return self.getLogP(); })
-        .def("getRTShift", [](const OpenMS::Compomer& self) { return self.getRTShift(); })
-        .def("getAdductsAsString", [](const OpenMS::Compomer& self) { return self.getAdductsAsString(); })
-        .def("getAdductsAsString", [](const OpenMS::Compomer& self, OpenMS::UInt side) { return self.getAdductsAsString(side); }, "side"_a)
-        .def("add", [](OpenMS::Compomer& self, const OpenMS::Adduct& a, OpenMS::UInt side) { self.add(a, side); }, "a"_a, "side"_a)
-        .def(nb::self == nb::self)
-        .def("__hash__", [](const OpenMS::Compomer& self) { return std::hash<OpenMS::Compomer>{}(self); })
-        .def("getLabels", [](const OpenMS::Compomer& self, OpenMS::UInt side) { return self.getLabels(side); }, "side"_a, "Returns the labels for the given side")
-        .def("isConflicting", [](const OpenMS::Compomer& self, const OpenMS::Compomer& cmp, OpenMS::UInt side_this, OpenMS::UInt side_other) { return self.isConflicting(cmp, side_this, side_other); }, "cmp"_a, "side_this"_a, "side_other"_a, "Returns true if the compomers are conflicting")
-        .def("isSingleAdduct", [](const OpenMS::Compomer& self, OpenMS::Adduct& a, OpenMS::UInt side) { return self.isSingleAdduct(a, side); }, "a"_a, "side"_a, "Returns true if the compomer has a single adduct on the given side")
-        .def("removeAdduct", [](const OpenMS::Compomer& self, const OpenMS::Adduct& a) { return self.removeAdduct(a); }, "a"_a, "Returns a new compomer without the given adduct")
-        .def("removeAdduct", [](const OpenMS::Compomer& self, const OpenMS::Adduct& a, OpenMS::UInt side) { return self.removeAdduct(a, side); }, "a"_a, "side"_a, "Returns a new compomer without the given adduct on the given side")
-        ;
 
     // -----------------------------------------------------------------------
     // SIDE (Compomer::SIDE)
@@ -1210,31 +1137,6 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
 
         ;
 
-    // -----------------------------------------------------------------------
-    // ChargePair
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ChargePair>(m, "ChargePair",
-        "Representation of a (putative) link between two Features with different charge")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::ChargePair &>())
-        .def("__copy__", [](const OpenMS::ChargePair& self) { return OpenMS::ChargePair(self); })
-        .def("__deepcopy__", [](const OpenMS::ChargePair& self, nb::dict) { return OpenMS::ChargePair(self); }, "memo"_a)
-        .def("getCharge", [](const OpenMS::ChargePair& self, OpenMS::UInt pairID) { return self.getCharge(pairID); }, "pairID"_a)
-        .def("setCharge", [](OpenMS::ChargePair& self, OpenMS::UInt pairID, OpenMS::Int e) { self.setCharge(pairID, e); }, "pairID"_a, "e"_a)
-        .def("getElementIndex", [](const OpenMS::ChargePair& self, OpenMS::UInt pairID) { return self.getElementIndex(pairID); }, "pairID"_a)
-        .def("setElementIndex", [](OpenMS::ChargePair& self, OpenMS::UInt pairID, OpenMS::Size e) { self.setElementIndex(pairID, e); }, "pairID"_a, "e"_a)
-        .def("getCompomer", [](const OpenMS::ChargePair& self) -> const OpenMS::Compomer& { return self.getCompomer(); }, nb::rv_policy::reference_internal)
-        .def("setCompomer", [](OpenMS::ChargePair& self, const OpenMS::Compomer& compomer) { self.setCompomer(compomer); }, "compomer"_a)
-        .def("getMassDiff", [](const OpenMS::ChargePair& self) { return self.getMassDiff(); })
-        .def("setMassDiff", [](OpenMS::ChargePair& self, double mass_diff) { self.setMassDiff(mass_diff); }, "mass_diff"_a)
-        .def("getEdgeScore", [](const OpenMS::ChargePair& self) { return self.getEdgeScore(); })
-        .def("setEdgeScore", [](OpenMS::ChargePair& self, double score) { self.setEdgeScore(score); }, "score"_a)
-        .def("isActive", [](const OpenMS::ChargePair& self) { return self.isActive(); })
-        .def("setActive", [](OpenMS::ChargePair& self, bool active) { self.setActive(active); }, "active"_a)
-        .def(nb::self == nb::self)
-        .def(nb::self != nb::self)
-        .def("__hash__", [](const OpenMS::ChargePair& self) { return std::hash<OpenMS::ChargePair>{}(self); })
-        ;
 
     // -----------------------------------------------------------------------
     // CVMappings
@@ -1381,35 +1283,6 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     m.def("__static_Math_ppmToMass", [](double ppm, double mz_ref) -> double { return OpenMS::Math::ppmToMass(ppm, mz_ref); }, "ppm"_a, "mz_ref"_a);
     m.def("__static_Math_ppmToMassAbs", [](double ppm, double mz_ref) -> double { return OpenMS::Math::ppmToMassAbs(ppm, mz_ref); }, "ppm"_a, "mz_ref"_a);
 
-    // -----------------------------------------------------------------------
-    // MassExplainer
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MassExplainer>(m, "MassExplainer",
-        "Computes empirical formulas for given mass differences using a set of allowed elements")
-        .def(nb::init<>())
-        .def(nb::init<OpenMS::MassExplainer::AdductsType>(), "adduct_base"_a)
-        .def(nb::init<OpenMS::Int, OpenMS::Int, OpenMS::Int, double>(),
-            "q_min"_a, "q_max"_a, "max_span"_a, "thresh_logp"_a)
-        .def(nb::init<OpenMS::MassExplainer::AdductsType, OpenMS::Int, OpenMS::Int, OpenMS::Int, double, OpenMS::Size>(),
-            "adduct_base"_a, "q_min"_a, "q_max"_a, "max_span"_a, "thresh_logp"_a, "max_neutrals"_a)
-        .def("__copy__", [](const OpenMS::MassExplainer& self) { return OpenMS::MassExplainer(self); })
-        .def("__deepcopy__", [](const OpenMS::MassExplainer& self, nb::dict) { return OpenMS::MassExplainer(self); }, "memo"_a)
-        .def("compute", &OpenMS::MassExplainer::compute,
-            "Compute all possible mass differences and their explanations")
-        .def("setAdductBase", &OpenMS::MassExplainer::setAdductBase, "adduct_base"_a,
-            "Set the base set of allowed adducts")
-        .def("getAdductBase", &OpenMS::MassExplainer::getAdductBase,
-            "Get the current set of allowed adducts")
-        .def("getCompomerById", &OpenMS::MassExplainer::getCompomerById, "id"_a,
-            nb::rv_policy::reference_internal, "Get a specific compomer by its ID")
-        .def("query", [](const OpenMS::MassExplainer& self, OpenMS::Int net_charge, float mass_to_explain, float mass_delta, float thresh_log_p) {
-            std::vector<OpenMS::Compomer>::const_iterator first, last;
-            OpenMS::SignedSize count = self.query(net_charge, mass_to_explain, mass_delta, thresh_log_p, first, last);
-            std::vector<OpenMS::Compomer> results(first, last);
-            return nb::make_tuple(count, results);
-        }, "net_charge"_a, "mass_to_explain"_a, "mass_delta"_a, "thresh_log_p"_a,
-            "Search for explanations of a given mass difference, returns (count, explanations)")
-        ;
 
     // -----------------------------------------------------------------------
     // OSWHierarchy

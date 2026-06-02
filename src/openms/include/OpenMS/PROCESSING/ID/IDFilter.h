@@ -16,7 +16,7 @@
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
-#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
+#include <OpenMS/PROCESSING/ID/Scores.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -878,13 +878,12 @@ namespace OpenMS
      * @param[in] score_type The score type to consider for filtering.
      */
     template<class IdentificationType>
-    static void filterHitsByScore(std::vector<IdentificationType>& ids, double threshold_score, IDScoreSwitcherAlgorithm::ScoreType score_type)
+    static void filterHitsByScore(std::vector<IdentificationType>& ids, double threshold_score, Scores::IDType score_type)
     {
-      IDScoreSwitcherAlgorithm switcher;
       bool at_least_one_found = false;
       for (IdentificationType& id : ids)
       {
-        if (switcher.isScoreType(id.getScoreType(), score_type))
+        if (Scores::isScoreType(id.getScoreType(), score_type))
         {
           struct HasGoodScore<typename IdentificationType::HitType> score_filter(threshold_score, id.isHigherScoreBetter());
           keepMatchingItems(id.getHits(), score_filter);
@@ -892,11 +891,11 @@ namespace OpenMS
         else
         {
           // If one assumes they are all the same in the vector, this could be done in the beginning.
-          auto result = switcher.findScoreType<IdentificationType>(id, score_type);
+          auto result = Scores::findScoreType<IdentificationType>(id, score_type);
           if (!result.score_name.empty())
           {
             String metaval = result.score_name;
-            if (switcher.isScoreTypeHigherBetter(score_type))
+            if (Scores::isHigherBetter(score_type))
             {
               struct HasMinMetaValue<typename IdentificationType::HitType> score_filter(metaval, threshold_score);
               keepMatchingItems(id.getHits(), score_filter);

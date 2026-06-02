@@ -12,8 +12,8 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/DATASTRUCTURES/Adduct.h>
-#include <OpenMS/DATASTRUCTURES/ChargePair.h>
+#include <OpenMS/CHEMISTRY/Adduct.h>
+#include <OpenMS/CHEMISTRY/ChargePair.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 

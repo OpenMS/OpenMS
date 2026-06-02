@@ -13,7 +13,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
+#include <OpenMS/FORMAT/FASTAContainer.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <boost/graph/copy.hpp>
 #include <boost/graph/graphviz.hpp>

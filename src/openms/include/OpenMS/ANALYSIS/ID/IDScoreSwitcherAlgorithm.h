@@ -103,13 +103,10 @@ namespace OpenMS
     std::vector<String> getScoreNames();
 
     /**
-      @brief Structure to hold score detection results for any ScoreType.      
+      @brief Backward compatible typedef for Scores::ScoreSearchResult.
+      @deprecated Use Scores::ScoreSearchResult directly instead.
     */
-    struct ScoreSearchResult
-    {
-      bool is_main_score_type = false;  ///< True if the main score is already of the requested score type
-      String score_name;                ///< Name of score to use (main score name if is_main_score_type=true, meta value name if found in meta values, empty if not found anywhere)
-    };
+    using ScoreSearchResult = Scores::ScoreSearchResult;
 
     /**
        @brief Searches for a general score type (e.g. PEP, QVAL) in an identification data structure.
@@ -129,43 +126,7 @@ namespace OpenMS
     template <typename IdentificationType>
     ScoreSearchResult findScoreType(const IdentificationType& id, ScoreType score_type) const
     {
-      ScoreSearchResult result;
-      
-      // First check if main score is already of the requested score type using existing infrastructure
-      const String& main_score_type = id.getScoreType();
-      result.is_main_score_type = isScoreType(main_score_type, score_type);
-      
-      if (result.is_main_score_type)
-      {
-        // Main score is of the requested type, so return the main score name
-        result.score_name = main_score_type;
-      }
-      else if (!id.getHits().empty())
-      {
-        // Main score is not of the requested type, look for it in meta values
-        const auto& first_hit = id.getHits()[0];
-        const std::set<String>& score_types = Scores::getIDNamesForType(score_type);
-
-        // Search for scores of the requested type in meta values using the existing score type collection
-        for (const String& score_name : score_types)
-        {
-          if (first_hit.metaValueExists(score_name))
-          {
-            result.score_name = score_name;
-            break;
-          }
-          // Also check for "_score" suffix variant
-          String score_name_with_suffix = score_name + "_score";
-          if (first_hit.metaValueExists(score_name_with_suffix))
-          {
-            result.score_name = score_name_with_suffix;
-            break;
-          }
-        }
-      }
-      // If neither main score nor meta values contain the requested type, score_name remains empty
-      
-      return result;
+      return Scores::findScoreType(id, score_type);
     }
 
     /**

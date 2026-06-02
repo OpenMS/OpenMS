@@ -16,6 +16,7 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### list all header files of the directory here
 set(sources_list_h
+FASTAContainer.h
 AbsoluteQuantitationMethodFile.h
 AbsoluteQuantitationStandardsFile.h
 Base64.h

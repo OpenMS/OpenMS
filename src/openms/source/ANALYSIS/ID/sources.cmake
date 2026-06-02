@@ -45,7 +45,6 @@ Percolator.cpp
 PercolatorFeatureSetHelper.cpp
 PrecursorPurity.cpp
 PScore.cpp
-Scores.cpp
 SimpleSearchEngineAlgorithm.cpp
 SiriusExportAlgorithm.cpp
 SiriusMSConverter.cpp

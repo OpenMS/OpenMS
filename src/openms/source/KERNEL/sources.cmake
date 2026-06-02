@@ -22,6 +22,7 @@ MobilityPeak2D.cpp
 Mobilogram.cpp
 MRMFeature.cpp
 MRMTransitionGroup.cpp
+OpenSwathScores.cpp
 MSChromatogram.cpp
 MSExperiment.cpp
 MSSpectrum.cpp

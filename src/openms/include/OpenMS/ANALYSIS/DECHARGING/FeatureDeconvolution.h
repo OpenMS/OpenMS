@@ -13,7 +13,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/ANALYSIS/DECHARGING/ILPDCWrapper.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
-#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
+#include <OpenMS/CHEMISTRY/MassExplainer.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <map>

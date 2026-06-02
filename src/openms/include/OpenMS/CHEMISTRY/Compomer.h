@@ -10,7 +10,7 @@
 
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/Adduct.h>
+#include <OpenMS/CHEMISTRY/Adduct.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/OpenMSConfig.h>
 
@@ -45,7 +45,7 @@ namespace OpenMS
     
     This class is used extensively in the feature decharging and adduct annotation processes.
     
-    @ingroup Datastructures
+    @ingroup Chemistry
   */
   class OPENMS_DLLAPI Compomer
   {

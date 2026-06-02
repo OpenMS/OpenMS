@@ -83,6 +83,7 @@
 #include <nanobind/stl/vector.h>
 #include <sstream>
 #include "binding_utils.h"
+#include <OpenMS/KERNEL/OpenSwathScores.h>
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -108,6 +109,82 @@ nb::ndarray<nb::numpy, T, nb::ndim<1>, nb::c_contig> as_numpy_array(nb::object o
 }
 
 NB_MODULE(_pyopenms_kernel, m) {
+
+    // [relocated to match module] OpenSwath_Scores
+    // -----------------------------------------------------------------------
+    // OpenSwath_Scores
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::OpenSwath_Scores>(m, "OpenSwath_Scores", "OpenSWATH scoring results struct")
+        .def(nb::init<>())
+        .def_rw("elution_model_fit_score", &OpenMS::OpenSwath_Scores::elution_model_fit_score)
+        .def_rw("library_corr", &OpenMS::OpenSwath_Scores::library_corr)
+        .def_rw("library_norm_manhattan", &OpenMS::OpenSwath_Scores::library_norm_manhattan)
+        .def_rw("library_rootmeansquare", &OpenMS::OpenSwath_Scores::library_rootmeansquare)
+        .def_rw("library_sangle", &OpenMS::OpenSwath_Scores::library_sangle)
+        .def_rw("norm_rt_score", &OpenMS::OpenSwath_Scores::norm_rt_score)
+        .def_rw("isotope_correlation", &OpenMS::OpenSwath_Scores::isotope_correlation)
+        .def_rw("isotope_overlap", &OpenMS::OpenSwath_Scores::isotope_overlap)
+        .def_rw("massdev_score", &OpenMS::OpenSwath_Scores::massdev_score)
+        .def_rw("xcorr_coelution_score", &OpenMS::OpenSwath_Scores::xcorr_coelution_score)
+        .def_rw("xcorr_shape_score", &OpenMS::OpenSwath_Scores::xcorr_shape_score)
+        .def_rw("yseries_score", &OpenMS::OpenSwath_Scores::yseries_score)
+        .def_rw("bseries_score", &OpenMS::OpenSwath_Scores::bseries_score)
+        .def_rw("log_sn_score", &OpenMS::OpenSwath_Scores::log_sn_score)
+        .def_rw("weighted_coelution_score", &OpenMS::OpenSwath_Scores::weighted_coelution_score)
+        .def_rw("weighted_xcorr_shape", &OpenMS::OpenSwath_Scores::weighted_xcorr_shape)
+        .def_rw("weighted_massdev_score", &OpenMS::OpenSwath_Scores::weighted_massdev_score)
+        .def_rw("intensity", &OpenMS::OpenSwath_Scores::intensity)
+        .def_rw("total_xic", &OpenMS::OpenSwath_Scores::total_xic)
+        .def_rw("nr_peaks", &OpenMS::OpenSwath_Scores::nr_peaks)
+        .def_rw("sn_ratio", &OpenMS::OpenSwath_Scores::sn_ratio)
+        .def_rw("mi_score", &OpenMS::OpenSwath_Scores::mi_score)
+        .def_rw("weighted_mi_score", &OpenMS::OpenSwath_Scores::weighted_mi_score)
+        .def_rw("rt_difference", &OpenMS::OpenSwath_Scores::rt_difference)
+        .def_rw("normalized_experimental_rt", &OpenMS::OpenSwath_Scores::normalized_experimental_rt)
+        .def_rw("raw_rt_score", &OpenMS::OpenSwath_Scores::raw_rt_score)
+        // ms1 scores
+        .def_rw("ms1_xcorr_coelution_score", &OpenMS::OpenSwath_Scores::ms1_xcorr_coelution_score)
+        .def_rw("ms1_xcorr_coelution_contrast_score", &OpenMS::OpenSwath_Scores::ms1_xcorr_coelution_contrast_score)
+        .def_rw("ms1_xcorr_coelution_combined_score", &OpenMS::OpenSwath_Scores::ms1_xcorr_coelution_combined_score)
+        .def_rw("ms1_xcorr_shape_score", &OpenMS::OpenSwath_Scores::ms1_xcorr_shape_score)
+        .def_rw("ms1_xcorr_shape_contrast_score", &OpenMS::OpenSwath_Scores::ms1_xcorr_shape_contrast_score)
+        .def_rw("ms1_xcorr_shape_combined_score", &OpenMS::OpenSwath_Scores::ms1_xcorr_shape_combined_score)
+        .def_rw("ms1_ppm_score", &OpenMS::OpenSwath_Scores::ms1_ppm_score)
+        .def_rw("ms1_isotope_correlation", &OpenMS::OpenSwath_Scores::ms1_isotope_correlation)
+        .def_rw("ms1_isotope_overlap", &OpenMS::OpenSwath_Scores::ms1_isotope_overlap)
+        .def_rw("ms1_mi_score", &OpenMS::OpenSwath_Scores::ms1_mi_score)
+        .def_rw("ms1_mi_contrast_score", &OpenMS::OpenSwath_Scores::ms1_mi_contrast_score)
+        .def_rw("ms1_mi_combined_score", &OpenMS::OpenSwath_Scores::ms1_mi_combined_score)
+        // IM scores
+        .def_rw("im_xcorr_coelution_score", &OpenMS::OpenSwath_Scores::im_xcorr_coelution_score)
+        .def_rw("im_xcorr_shape_score", &OpenMS::OpenSwath_Scores::im_xcorr_shape_score)
+        .def_rw("im_delta_score", &OpenMS::OpenSwath_Scores::im_delta_score)
+        .def_rw("im_ms1_delta_score", &OpenMS::OpenSwath_Scores::im_ms1_delta_score)
+        .def_rw("im_drift", &OpenMS::OpenSwath_Scores::im_drift)
+        .def_rw("im_drift_left", &OpenMS::OpenSwath_Scores::im_drift_left)
+        .def_rw("im_drift_right", &OpenMS::OpenSwath_Scores::im_drift_right)
+        .def_rw("im_drift_weighted", &OpenMS::OpenSwath_Scores::im_drift_weighted)
+        .def_rw("im_delta", &OpenMS::OpenSwath_Scores::im_delta)
+        .def_rw("im_log_intensity", &OpenMS::OpenSwath_Scores::im_log_intensity)
+        .def_rw("im_ms1_contrast_coelution", &OpenMS::OpenSwath_Scores::im_ms1_contrast_coelution)
+        .def_rw("im_ms1_contrast_shape", &OpenMS::OpenSwath_Scores::im_ms1_contrast_shape)
+        .def_rw("im_ms1_sum_contrast_coelution", &OpenMS::OpenSwath_Scores::im_ms1_sum_contrast_coelution)
+        .def_rw("im_ms1_sum_contrast_shape", &OpenMS::OpenSwath_Scores::im_ms1_sum_contrast_shape)
+        .def_rw("im_ms1_drift", &OpenMS::OpenSwath_Scores::im_ms1_drift)
+        .def_rw("im_ms1_delta", &OpenMS::OpenSwath_Scores::im_ms1_delta)
+        .def_rw("im_ind_contrast_coelution", &OpenMS::OpenSwath_Scores::im_ind_contrast_coelution)
+        .def_rw("im_ind_contrast_shape", &OpenMS::OpenSwath_Scores::im_ind_contrast_shape)
+        .def_rw("im_ind_sum_contrast_coelution", &OpenMS::OpenSwath_Scores::im_ind_sum_contrast_coelution)
+        .def_rw("im_ind_sum_contrast_shape", &OpenMS::OpenSwath_Scores::im_ind_sum_contrast_shape)
+        // DIA scores
+        .def_rw("dotprod_score_dia", &OpenMS::OpenSwath_Scores::dotprod_score_dia)
+        .def_rw("manhatt_score_dia", &OpenMS::OpenSwath_Scores::manhatt_score_dia)
+        .def_rw("library_manhattan", &OpenMS::OpenSwath_Scores::library_manhattan)
+        .def_rw("library_dotprod", &OpenMS::OpenSwath_Scores::library_dotprod)
+        .def("calculate_lda_prescore", [](const OpenMS::OpenSwath_Scores& self, const OpenMS::OpenSwath_Scores& scores) { return self.calculate_lda_prescore(scores); }, "scores"_a, "Calculate LDA prescore")
+        .def("calculate_swath_lda_prescore", [](const OpenMS::OpenSwath_Scores& self, const OpenMS::OpenSwath_Scores& scores) { return self.calculate_swath_lda_prescore(scores); }, "scores"_a, "Calculate SWATH LDA prescore")
+        .def("get_quick_lda_score", [](const OpenMS::OpenSwath_Scores& self, double library_corr_, double library_norm_manhattan_, double norm_rt_score_, double xcorr_coelution_score_, double xcorr_shape_score_, double log_sn_score_) { return self.get_quick_lda_score(library_corr_, library_norm_manhattan_, norm_rt_score_, xcorr_coelution_score_, xcorr_shape_score_, log_sn_score_); }, "library_corr"_a, "library_norm_manhattan"_a, "norm_rt_score"_a, "xcorr_coelution_score"_a, "xcorr_shape_score"_a, "log_sn_score"_a, "Get quick LDA score")
+        ;
     // ABI guards for zero-copy structured array access (get_peaks_struct dtype depends on these)
     static_assert(std::is_standard_layout_v<OpenMS::MobilityPeak1D>,
                   "MobilityPeak1D must be standard-layout for zero-copy struct views (guarantees member order matches dtype)");

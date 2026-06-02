@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/HashUtils.h>
-#include <OpenMS/DATASTRUCTURES/Compomer.h>
+#include <OpenMS/CHEMISTRY/Compomer.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
 
@@ -28,7 +28,7 @@ namespace OpenMS
     so that when decharged they can be explained as stemming from the same compound.
 
 
-    @ingroup Datastructures
+    @ingroup Chemistry
   */
   class OPENMS_DLLAPI ChargePair
   {

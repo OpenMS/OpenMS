@@ -3,7 +3,7 @@
 
 #include "all_casters.h"
 #include <OpenMS/ANALYSIS/DECHARGING/ILPDCWrapper.h>
-#include <OpenMS/DATASTRUCTURES/ChargePair.h>
+#include <OpenMS/CHEMISTRY/ChargePair.h>
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 #include <OpenMS/ANALYSIS/ID/FIAMSScheduler.h>
@@ -104,87 +104,37 @@
 #include <nanobind/stl/vector.h>
 #include <sstream>
 #include "binding_utils.h"
+#include <OpenMS/ANALYSIS/MAPMATCHING/QTCluster.h>
 
 namespace nb = nanobind;
 using namespace nb::literals;
 
 NB_MODULE(_pyopenms_analysis, m) {
+
+    // [relocated to match module] QTCluster
+    // -----------------------------------------------------------------------
+    // QTCluster
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::QTCluster>(m, "QTCluster", "A representation of a QT cluster used for feature grouping")
+        .def(nb::init<const OpenMS::QTCluster &>())
+        .def("__copy__", [](const OpenMS::QTCluster& self) { return OpenMS::QTCluster(self); })
+        .def("__deepcopy__", [](const OpenMS::QTCluster& self, nb::dict) { return OpenMS::QTCluster(self); }, "memo"_a)
+        .def("getCenterRT", [](const OpenMS::QTCluster& self) { return self.getCenterRT(); }, "Returns the RT value of the cluster")
+        .def("getCenterMZ", [](const OpenMS::QTCluster& self) { return self.getCenterMZ(); }, "Returns the m/z value of the cluster center")
+        .def("getXCoord", [](const OpenMS::QTCluster& self) { return self.getXCoord(); }, "Returns the x coordinate in the grid")
+        .def("getYCoord", [](const OpenMS::QTCluster& self) { return self.getYCoord(); }, "Returns the y coordinate in the grid")
+        .def("size", [](const OpenMS::QTCluster& self) { return self.size(); }, "Returns the size of the cluster (number of elements, incl. center)")
+        .def(nb::self < nb::self)
+        .def("getQuality", [](OpenMS::QTCluster& self) { return self.getQuality(); }, "Returns the cluster quality and recomputes if necessary")
+        .def("getAnnotations", [](OpenMS::QTCluster& self) -> const std::set<OpenMS::AASequence> & { return self.getAnnotations(); }, nb::rv_policy::reference_internal, "Returns the set of peptide sequences annotated to the cluster center")
+        .def("setInvalid", [](OpenMS::QTCluster& self) { return self.setInvalid(); }, "Sets current cluster as invalid (also frees some memory)")
+        .def("isInvalid", [](const OpenMS::QTCluster& self) { return self.isInvalid(); }, "Whether current cluster is invalid")
+        .def("initializeCluster", [](OpenMS::QTCluster& self) { return self.initializeCluster(); }, "Has to be called before adding elements (calling QTCluster::add)")
+        .def("finalizeCluster", [](OpenMS::QTCluster& self) { return self.finalizeCluster(); }, "Has to be called after adding elements (after calling QTCluster::add one or multiple times)")
+        .def("__len__", [](OpenMS::QTCluster& self) { return self.size(); })
+        ;
     m.doc() = "pyOpenMS analysis bindings";
 
-    // -----------------------------------------------------------------------
-    // OpenSwath_Scores
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::OpenSwath_Scores>(m, "OpenSwath_Scores", "OpenSWATH scoring results struct")
-        .def(nb::init<>())
-        .def_rw("elution_model_fit_score", &OpenMS::OpenSwath_Scores::elution_model_fit_score)
-        .def_rw("library_corr", &OpenMS::OpenSwath_Scores::library_corr)
-        .def_rw("library_norm_manhattan", &OpenMS::OpenSwath_Scores::library_norm_manhattan)
-        .def_rw("library_rootmeansquare", &OpenMS::OpenSwath_Scores::library_rootmeansquare)
-        .def_rw("library_sangle", &OpenMS::OpenSwath_Scores::library_sangle)
-        .def_rw("norm_rt_score", &OpenMS::OpenSwath_Scores::norm_rt_score)
-        .def_rw("isotope_correlation", &OpenMS::OpenSwath_Scores::isotope_correlation)
-        .def_rw("isotope_overlap", &OpenMS::OpenSwath_Scores::isotope_overlap)
-        .def_rw("massdev_score", &OpenMS::OpenSwath_Scores::massdev_score)
-        .def_rw("xcorr_coelution_score", &OpenMS::OpenSwath_Scores::xcorr_coelution_score)
-        .def_rw("xcorr_shape_score", &OpenMS::OpenSwath_Scores::xcorr_shape_score)
-        .def_rw("yseries_score", &OpenMS::OpenSwath_Scores::yseries_score)
-        .def_rw("bseries_score", &OpenMS::OpenSwath_Scores::bseries_score)
-        .def_rw("log_sn_score", &OpenMS::OpenSwath_Scores::log_sn_score)
-        .def_rw("weighted_coelution_score", &OpenMS::OpenSwath_Scores::weighted_coelution_score)
-        .def_rw("weighted_xcorr_shape", &OpenMS::OpenSwath_Scores::weighted_xcorr_shape)
-        .def_rw("weighted_massdev_score", &OpenMS::OpenSwath_Scores::weighted_massdev_score)
-        .def_rw("intensity", &OpenMS::OpenSwath_Scores::intensity)
-        .def_rw("total_xic", &OpenMS::OpenSwath_Scores::total_xic)
-        .def_rw("nr_peaks", &OpenMS::OpenSwath_Scores::nr_peaks)
-        .def_rw("sn_ratio", &OpenMS::OpenSwath_Scores::sn_ratio)
-        .def_rw("mi_score", &OpenMS::OpenSwath_Scores::mi_score)
-        .def_rw("weighted_mi_score", &OpenMS::OpenSwath_Scores::weighted_mi_score)
-        .def_rw("rt_difference", &OpenMS::OpenSwath_Scores::rt_difference)
-        .def_rw("normalized_experimental_rt", &OpenMS::OpenSwath_Scores::normalized_experimental_rt)
-        .def_rw("raw_rt_score", &OpenMS::OpenSwath_Scores::raw_rt_score)
-        // ms1 scores
-        .def_rw("ms1_xcorr_coelution_score", &OpenMS::OpenSwath_Scores::ms1_xcorr_coelution_score)
-        .def_rw("ms1_xcorr_coelution_contrast_score", &OpenMS::OpenSwath_Scores::ms1_xcorr_coelution_contrast_score)
-        .def_rw("ms1_xcorr_coelution_combined_score", &OpenMS::OpenSwath_Scores::ms1_xcorr_coelution_combined_score)
-        .def_rw("ms1_xcorr_shape_score", &OpenMS::OpenSwath_Scores::ms1_xcorr_shape_score)
-        .def_rw("ms1_xcorr_shape_contrast_score", &OpenMS::OpenSwath_Scores::ms1_xcorr_shape_contrast_score)
-        .def_rw("ms1_xcorr_shape_combined_score", &OpenMS::OpenSwath_Scores::ms1_xcorr_shape_combined_score)
-        .def_rw("ms1_ppm_score", &OpenMS::OpenSwath_Scores::ms1_ppm_score)
-        .def_rw("ms1_isotope_correlation", &OpenMS::OpenSwath_Scores::ms1_isotope_correlation)
-        .def_rw("ms1_isotope_overlap", &OpenMS::OpenSwath_Scores::ms1_isotope_overlap)
-        .def_rw("ms1_mi_score", &OpenMS::OpenSwath_Scores::ms1_mi_score)
-        .def_rw("ms1_mi_contrast_score", &OpenMS::OpenSwath_Scores::ms1_mi_contrast_score)
-        .def_rw("ms1_mi_combined_score", &OpenMS::OpenSwath_Scores::ms1_mi_combined_score)
-        // IM scores
-        .def_rw("im_xcorr_coelution_score", &OpenMS::OpenSwath_Scores::im_xcorr_coelution_score)
-        .def_rw("im_xcorr_shape_score", &OpenMS::OpenSwath_Scores::im_xcorr_shape_score)
-        .def_rw("im_delta_score", &OpenMS::OpenSwath_Scores::im_delta_score)
-        .def_rw("im_ms1_delta_score", &OpenMS::OpenSwath_Scores::im_ms1_delta_score)
-        .def_rw("im_drift", &OpenMS::OpenSwath_Scores::im_drift)
-        .def_rw("im_drift_left", &OpenMS::OpenSwath_Scores::im_drift_left)
-        .def_rw("im_drift_right", &OpenMS::OpenSwath_Scores::im_drift_right)
-        .def_rw("im_drift_weighted", &OpenMS::OpenSwath_Scores::im_drift_weighted)
-        .def_rw("im_delta", &OpenMS::OpenSwath_Scores::im_delta)
-        .def_rw("im_log_intensity", &OpenMS::OpenSwath_Scores::im_log_intensity)
-        .def_rw("im_ms1_contrast_coelution", &OpenMS::OpenSwath_Scores::im_ms1_contrast_coelution)
-        .def_rw("im_ms1_contrast_shape", &OpenMS::OpenSwath_Scores::im_ms1_contrast_shape)
-        .def_rw("im_ms1_sum_contrast_coelution", &OpenMS::OpenSwath_Scores::im_ms1_sum_contrast_coelution)
-        .def_rw("im_ms1_sum_contrast_shape", &OpenMS::OpenSwath_Scores::im_ms1_sum_contrast_shape)
-        .def_rw("im_ms1_drift", &OpenMS::OpenSwath_Scores::im_ms1_drift)
-        .def_rw("im_ms1_delta", &OpenMS::OpenSwath_Scores::im_ms1_delta)
-        .def_rw("im_ind_contrast_coelution", &OpenMS::OpenSwath_Scores::im_ind_contrast_coelution)
-        .def_rw("im_ind_contrast_shape", &OpenMS::OpenSwath_Scores::im_ind_contrast_shape)
-        .def_rw("im_ind_sum_contrast_coelution", &OpenMS::OpenSwath_Scores::im_ind_sum_contrast_coelution)
-        .def_rw("im_ind_sum_contrast_shape", &OpenMS::OpenSwath_Scores::im_ind_sum_contrast_shape)
-        // DIA scores
-        .def_rw("dotprod_score_dia", &OpenMS::OpenSwath_Scores::dotprod_score_dia)
-        .def_rw("manhatt_score_dia", &OpenMS::OpenSwath_Scores::manhatt_score_dia)
-        .def_rw("library_manhattan", &OpenMS::OpenSwath_Scores::library_manhattan)
-        .def_rw("library_dotprod", &OpenMS::OpenSwath_Scores::library_dotprod)
-        .def("calculate_lda_prescore", [](const OpenMS::OpenSwath_Scores& self, const OpenMS::OpenSwath_Scores& scores) { return self.calculate_lda_prescore(scores); }, "scores"_a, "Calculate LDA prescore")
-        .def("calculate_swath_lda_prescore", [](const OpenMS::OpenSwath_Scores& self, const OpenMS::OpenSwath_Scores& scores) { return self.calculate_swath_lda_prescore(scores); }, "scores"_a, "Calculate SWATH LDA prescore")
-        .def("get_quick_lda_score", [](const OpenMS::OpenSwath_Scores& self, double library_corr_, double library_norm_manhattan_, double norm_rt_score_, double xcorr_coelution_score_, double xcorr_shape_score_, double log_sn_score_) { return self.get_quick_lda_score(library_corr_, library_norm_manhattan_, norm_rt_score_, xcorr_coelution_score_, xcorr_shape_score_, log_sn_score_); }, "library_corr"_a, "library_norm_manhattan"_a, "norm_rt_score"_a, "xcorr_coelution_score"_a, "xcorr_shape_score"_a, "log_sn_score"_a, "Get quick LDA score")
-        ;
 
     // -----------------------------------------------------------------------
     // OpenSwath_Scores_Usage
@@ -2478,48 +2428,6 @@ quantitative ConsensusMap prior to this step
         .def("infer", [](OpenMS::ProteinInference& self, OpenMS::ConsensusMap& consensus_map, unsigned int reference_map) { return self.infer(consensus_map, reference_map); }, "consensus_map"_a, "reference_map"_a)
         ;
 
-    // -----------------------------------------------------------------------
-    // Scores
-    // -----------------------------------------------------------------------
-    auto scores_class = nb::class_<OpenMS::Scores>(m, "Scores", 
-        R"doc(
-Utility class for score type handling in identification and quantification workflows.
-This class provides centralized handling of score types used in peptide/protein
-identification, quantification, and PTM localization. It defines the hierarchy of
-score types and provides utility methods for score type conversion, comparison, and lookup.
-)doc")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::Scores &>())
-        .def("__copy__", [](const OpenMS::Scores& self) { return OpenMS::Scores(self); })
-        .def("__deepcopy__", [](const OpenMS::Scores& self, nb::dict) { return OpenMS::Scores(self); }, "memo"_a)
-
-        .def_static("isScoreType", &OpenMS::Scores::isScoreType, "score_name"_a, "type"_a,
-            "Check if the given score name corresponds to a specific ID score type")
-
-        .def_static("parseIDType", &OpenMS::Scores::parseIDType, "score_type"_a,
-            "Convert a string representation of an ID score type to an IDType enum")
-
-        .def_static("isHigherBetter", &OpenMS::Scores::isHigherBetter, "type"_a,
-            "Determine whether a higher score is better for the given ID score type")
-
-        .def_static("getAllIDScoreNames", &OpenMS::Scores::getAllIDScoreNames,
-            "Get a vector of all ID score names used in OpenMS")
-
-        .def_static("normalizeScoreName", &OpenMS::Scores::normalizeScoreName, "score_name"_a,
-            "Normalize a score name by removing the '_score' suffix if present")
-
-        .def_static("isKnownScoreType", &OpenMS::Scores::isKnownScoreType, "score_name"_a,
-            "Check if a score name is a known score type after normalization")
-        ;
-    // IDType enum nested under Scores
-    nb::enum_<OpenMS::Scores::IDType>(scores_class, "IDType", "Enum for identification score types", nb::is_arithmetic())
-        .value("RAW", OpenMS::Scores::IDType::RAW)
-        .value("RAW_EVAL", OpenMS::Scores::IDType::RAW_EVAL)
-        .value("PP", OpenMS::Scores::IDType::PP)
-        .value("PEP", OpenMS::Scores::IDType::PEP)
-        .value("FDR", OpenMS::Scores::IDType::FDR)
-        .value("QVAL", OpenMS::Scores::IDType::QVAL)
-        ;
 
     // -----------------------------------------------------------------------
     // SelectorParameters

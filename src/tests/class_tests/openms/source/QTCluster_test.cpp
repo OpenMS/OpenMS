@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/DATASTRUCTURES/QTCluster.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/QTCluster.h>
 ///////////////////////////
 
 #include <OpenMS/METADATA/PeptideIdentification.h>

@@ -16,7 +16,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
-#include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
+#include <OpenMS/FORMAT/FASTAContainer.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>

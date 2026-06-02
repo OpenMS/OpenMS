@@ -23,6 +23,7 @@ MobilityPeak2D.h
 Mobilogram.h
 MRMFeature.h
 MRMTransitionGroup.h
+OpenSwathScores.h
 MSChromatogram.h
 MSExperiment.h
 MSSpectrum.h
