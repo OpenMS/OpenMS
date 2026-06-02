@@ -1358,7 +1358,7 @@ The enzymes are read from share/CHEMISTRY/Enzymes.xml.
         .def("getAllOMSSANames", [](const OpenMS::ProteaseDB& self) { std::vector<OpenMS::String> all_names; self.getAllOMSSANames(all_names); return all_names; }, "Returns all the enzyme names available for OMSSA")
         .def("getAllMSGFNames", [](const OpenMS::ProteaseDB& self) { std::vector<OpenMS::String> all_names; self.getAllMSGFNames(all_names); return all_names; }, "Returns all the enzyme names available for MSGFPlus")
 
-        .def_static("getInstance", []() -> OpenMS::ProteaseDB* { return OpenMS::ProteaseDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        .def_static("getInstance", []() -> const OpenMS::ProteaseDB* { return OpenMS::ProteaseDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
 
         .def("getAllNames", [](const OpenMS::ProteaseDB& self, nb::list output) {
             std::vector<OpenMS::String> all_names;
@@ -1526,7 +1526,7 @@ The enzymes are read from share/CHEMISTRY/Enzymes_RNA.xml.
             for (const auto& n : names) result.append(nb::str(n.c_str()));
             return result;
         }, "Get all enzyme names")
-        .def_static("getInstance", []() -> OpenMS::RNaseDB* { return OpenMS::RNaseDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        .def_static("getInstance", []() -> const OpenMS::RNaseDB* { return OpenMS::RNaseDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
         ;
 
     // -----------------------------------------------------------------------
@@ -1929,7 +1929,7 @@ Database of ribonucleotides (modified and unmodified). This is a singleton class
 The ribonucleotides are read from data/CHEMISTRY/Modomics.tsv and Custom_RNA_modifications.tsv.
 )doc")
 
-        .def_static("getInstance", []() -> OpenMS::RibonucleotideDB* { return OpenMS::RibonucleotideDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        .def_static("getInstance", []() -> const OpenMS::RibonucleotideDB* { return OpenMS::RibonucleotideDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
 
         .def("getRibonucleotide", [](OpenMS::RibonucleotideDB& self, const OpenMS::String& code) -> const OpenMS::Ribonucleotide* {
             return self.getRibonucleotide(code);
