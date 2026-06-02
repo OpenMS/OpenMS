@@ -304,6 +304,8 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   MobilogramParquetConsumer_test
   XICParquetFile_test
   XIMParquetFile_test
+  XIPMParquetConsumer_test
+  XIPMParquetFile_test
   ProteinIdentificationArrowIO_test
   FeatureMapArrowIO_test
   ConsensusMapArrowIO_test
@@ -665,6 +667,7 @@ if(NOT DISABLE_OPENSWATH)
     TransitionPQPFile_test
     ChromatogramExtractor_test
     ChromatogramExtractorAlgorithm_test
+    PeakMapExtractor_test
     OpenSwathHelper_test
     OpenSwathOSWWriter_test
     OpenSwathScoring_test
