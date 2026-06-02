@@ -12,7 +12,6 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/IONMOBILITY/IMTypes.h>
 // TODO remove needed here for transform
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
@@ -110,14 +109,7 @@ public:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input raw data file ");
-    setValidFormats_("in", {"mzML",
-#ifdef WITH_OPENTIMS
-      "d",
-#endif
-#ifdef WITH_THERMO_RAW
-      "raw",
-#endif
-    });
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output raw data file ");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
 
@@ -176,7 +168,7 @@ public:
     //-------------------------------------------------------------
     FileHandler mz_data_file;
     PeakMap exp;
-    mz_data_file.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
+    mz_data_file.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     if (exp.empty() && exp.getChromatograms().empty())
     {
@@ -184,20 +176,6 @@ public:
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }
-
-    // Warn about per-peak ion mobility data (NoiseFilterSGolay operates in m/z only)
-    for (const auto& spec : exp)
-    {
-      if (IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK)
-      {
-        OPENMS_LOG_WARN << "Warning: Input contains per-peak ion mobility data (IM_PEAK, "
-                        << imPeakTypeToString(spec.getIMPeakType())
-                        << "). NoiseFilterSGolay smooths in m/z only and will mix IM-separated signals, "
-                        << "producing incorrect results. Consider IonMobilityBinning or PeakPickerIM first." << std::endl;
-        break; // warn once
-      }
-    }
-
     //check for peak type (profile data required)
     if (!exp.empty() && exp[0].getType(true) == SpectrumSettings::SpectrumType::CENTROID)
     {

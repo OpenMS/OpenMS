@@ -10,7 +10,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -77,14 +76,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input raw data file ");
-    setValidFormats_("in", {"mzML",
-#ifdef WITH_OPENTIMS
-      "d",
-#endif
-#ifdef WITH_THERMO_RAW
-      "raw",
-#endif
-    });
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output raw data file ");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
     registerDoubleOption_("struc_elem_length", "<size>", 3, "Length of the structuring element (should be wider than maximal peak width - see documentation).", false);
@@ -107,7 +99,7 @@ protected:
     //-------------------------------------------------------------
 
     PeakMap ms_exp;
-    FileHandler().loadExperiment(in, ms_exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
+    FileHandler().loadExperiment(in, ms_exp, {FileTypes::MZML}, log_type_);
 
     if (ms_exp.empty())
     {
@@ -115,20 +107,6 @@ protected:
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }
-
-    // Warn about per-peak ion mobility data (BaselineFilter operates in m/z only)
-    for (const auto& spec : ms_exp)
-    {
-      if (IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK)
-      {
-        OPENMS_LOG_WARN << "Warning: Input contains per-peak ion mobility data (IM_PEAK, "
-                        << imPeakTypeToString(spec.getIMPeakType())
-                        << "). BaselineFilter operates in m/z only and will mix IM-separated signals, "
-                        << "producing incorrect results. Consider IonMobilityBinning or PeakPickerIM first." << std::endl;
-        break; // warn once
-      }
-    }
-
     // check for peak type (raw data required)
     if (ms_exp[0].getType(true) == SpectrumSettings::SpectrumType::CENTROID)
     {

@@ -13,7 +13,6 @@
 
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -146,14 +145,7 @@ protected:
   {
     // data
     registerInputFile_("in", "<file>", "", "Input peak file");
-    setValidFormats_("in", {"mzML",
-#ifdef WITH_OPENTIMS
-      "d",
-#endif
-#ifdef WITH_THERMO_RAW
-      "raw",
-#endif
-    });
+    setValidFormats_("in", {"mzML"});
     registerOutputFile_("out", "<file>", "", "Output file ");
     setValidFormats_("out", {"mzML"});
     registerInputFile_("rscript_executable", "<file>", "Rscript", "Path to the Rscript executable (default: 'Rscript').", false, false, {"is_executable"});
@@ -242,20 +234,7 @@ protected:
     // Raw data
     PeakMap exp;
     FileHandler mz_file;
-    mz_file.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
-
-    // Warn about per-peak ion mobility data (InternalCalibration operates in m/z only)
-    for (const auto& spec : exp)
-    {
-      if (IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK)
-      {
-        OPENMS_LOG_WARN << "Warning: Input contains per-peak ion mobility data (IM_PEAK, "
-                        << imPeakTypeToString(spec.getIMPeakType())
-                        << "). InternalCalibration detects calibrants in m/z only and will mix IM-separated signals, "
-                        << "producing incorrect results. Consider IonMobilityBinning or PeakPickerIM first." << std::endl;
-        break; // warn once
-      }
-    }
+    mz_file.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     InternalCalibration ic;
     ic.setLogType(log_type_);

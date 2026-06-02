@@ -140,9 +140,6 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", {"mzML",
-#ifdef WITH_OPENTIMS
-      "d",
-#endif
 #ifdef WITH_THERMO_RAW
       "raw",
 #endif
@@ -190,7 +187,7 @@ protected:
     f.getOptions() = options;
 
     PeakMap exp;
-    f.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
+    f.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
     exp.updateRanges();
 
     if (exp.getSpectra().empty())

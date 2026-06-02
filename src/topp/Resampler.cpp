@@ -68,14 +68,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", {"mzML",
-#ifdef WITH_OPENTIMS
-      "d",
-#endif
-#ifdef WITH_THERMO_RAW
-      "raw",
-#endif
-    });
+    setValidFormats_("in", {"mzML"});
     
     registerOutputFile_("out", "<file>", "", "output file in mzML format");
     setValidFormats_("out", {"mzML"});
@@ -106,7 +99,7 @@ protected:
     PeakMap exp;
     exp.updateRanges();
 
-    FileHandler().loadExperiment(in, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     // Check for unsupported per-peak ion mobility data
     for (const auto& spec : exp)

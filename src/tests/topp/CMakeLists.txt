@@ -94,10 +94,7 @@ endforeach()
 # one arbitrary TOPP tool)
 #------------------------------------------------------------------------------
 add_test("TOPPWRITEINI_OVERWRITE" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -write_ini "${TESTS_TEMP_DIR}/WRITE_INI.tmp.ini" -ini "${DATA_DIR_TOPP}/WRITE_INI_IN.ini")
-# 'supported_formats' whitelisted: it is build-conditional (WITH_OPENTIMS adds *.d,
-# WITH_THERMO_RAW adds *.raw) so it cannot be pinned in a static reference. This test
-# checks the -write_ini overwrite machinery, not a tool's registered format list.
-add_test("TOPPWRITEINI_OVERWRITE_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/WRITE_INI.tmp.ini -in2 "${DATA_DIR_TOPP}/WRITE_INI_OUT.ini" -whitelist "version" "supported_formats")
+add_test("TOPPWRITEINI_OVERWRITE_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/WRITE_INI.tmp.ini -in2 "${DATA_DIR_TOPP}/WRITE_INI_OUT.ini" -whitelist "version")
 set_tests_properties("TOPPWRITEINI_OVERWRITE_out" PROPERTIES DEPENDS "TOPPWRITEINI_OVERWRITE")
 ##
 ## Test if invalid arguments or values (from INI or CLI) lead to immediate exit
@@ -3011,8 +3008,8 @@ set_tests_properties("TOPP_MultiplexResolver_4_out3" PROPERTIES DEPENDS "TOPP_Mu
 # INIUpdater:
 if(WITH_GUI AND HAS_XSERVER)
   add_test("TOPP_INIUpdater_1" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas -out ${TESTS_TEMP_DIR}/INIUpdater_1_noupdate.tmp.toppas)
-  # 'supported_formats' whitelisted: build-conditional vendor formats (WITH_OPENTIMS=*.d,
-  # WITH_THERMO_RAW=*.raw) cannot be pinned statically; this checks INI-update machinery.
+  # 'supported_formats' whitelisted: FeatureFinderCentroided's list is build-conditional
+  # (WITH_THERMO_RAW adds *.raw) and cannot be pinned statically; this checks INI-update machinery.
   add_test("TOPP_INIUpdater_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/INIUpdater_1_noupdate.tmp.toppas -in2 ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas -whitelist "version" "supported_formats")
   set_tests_properties("TOPP_INIUpdater_1_out" PROPERTIES DEPENDS "TOPP_INIUpdater_1")
 
@@ -4046,7 +4043,7 @@ set_tests_properties("TOPP_MassTraceExtractor_2_out_flat_json" PROPERTIES DEPEND
 add_test("TOPP_MassTraceExtractor_3_flat_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_3.ini.flat.json -write_ini ${TESTS_TEMP_DIR}/MassTraceExtractor_3.ini)
 #add_test("TOPP_MassTraceExtractor_3_json_out" ${CMAKE_COMMAND} -E compare_files --ignore-eol ${DATA_DIR_TOPP}/MassTraceExtractor_3_expected.ini)
 # 'supported_formats' is whitelisted because the input format list is build-conditional
-# (WITH_OPENTIMS adds *.d, WITH_THERMO_RAW adds *.raw), so it cannot be pinned in a static
+# (WITH_THERMO_RAW adds *.raw), so it cannot be pinned in a static
 # reference. This test verifies JSON<->INI roundtrip serialization, not format registration.
 add_test("TOPP_MassTraceExtractor_3_flat_json_out" ${DIFF} -whitelist "Version of the tool that generated this parameters file." "supported_formats" -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_3.ini -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_3_expected.ini )
 set_tests_properties("TOPP_MassTraceExtractor_3_flat_json_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_3_flat_json")
