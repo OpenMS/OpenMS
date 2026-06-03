@@ -33,6 +33,8 @@ RUN apt-get update \
     zlib1g-dev \
     libzip4 \
     zlib1g \
+    # ICU is needed by the .NET SDK/runtime for the openms-thermo-bridge build (amd64)
+    libicu74 \
     libxerces-c-dev \
     libbz2-dev \
     libcurl4-openssl-dev \
@@ -76,6 +78,26 @@ RUN <<-EOF
     ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
     ln -s /opt/cmake/bin/ctest /usr/local/bin/ctest
     rm -rf /tmp/*
+EOF
+
+# Install the .NET 8 SDK for the openms-thermo-bridge build (WITH_THERMO_RAW).
+# The bridge's FindDotNetHost.cmake requires the nethost headers/library from
+# the official .NET SDK host pack under /usr/share/dotnet/packs/..., and runs
+# `dotnet publish` to build the managed Thermo wrapper. We use Microsoft's
+# dotnet-install.sh because Ubuntu's own dotnet-sdk-8.0 installs to /usr/lib/dotnet
+# and does not provide the host pack in the expected layout.
+# WITH_THERMO_RAW defaults OFF on linux/aarch64, so .NET is only needed for amd64.
+ENV DOTNET_ROOT=/usr/share/dotnet
+ENV PATH="${DOTNET_ROOT}:${PATH}"
+RUN <<-EOF
+    set -eux
+    if [ "${TARGETARCH}" = "amd64" ]; then
+        wget https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh
+        chmod +x /tmp/dotnet-install.sh
+        /tmp/dotnet-install.sh --channel 8.0 --install-dir "${DOTNET_ROOT}"
+        ln -s "${DOTNET_ROOT}/dotnet" /usr/local/bin/dotnet
+        rm -f /tmp/dotnet-install.sh
+    fi
 EOF
 
 # The main reason we're pulling this in is to make sure that the metadata
@@ -160,6 +182,7 @@ RUN make install/strip
 ### OpenMS library ###
 FROM ubuntu:24.04 AS library
 ARG INSTALL_DIR
+ARG TARGETARCH
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends --no-install-suggests \
@@ -181,14 +204,32 @@ RUN apt-get update \
     libboost-regex1.83.0 \
     libboost-math1.83.0 \
     libboost-random1.83.0 \
+    # ICU is required by the .NET runtime that hosts the openms-thermo-bridge (amd64)
+    libicu74 \
   && wget https://repo1.maven.org/maven2/org/apache/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \
   && apt-get install -y --no-install-recommends ./apache-arrow-apt-source-latest-noble.deb \
   && apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
     libarrow2300 \
     libparquet2300 \
   && rm apache-arrow-apt-source-latest-noble.deb \
+  # Install the .NET 8 runtime so the openms-thermo-bridge native library can host
+  # the managed Thermo RawFileReader at runtime (managed assemblies are shipped
+  # under ${INSTALL_DIR}/lib/openms_thermo_bridge/managed). amd64 only: WITH_THERMO_RAW
+  # is OFF on linux/aarch64. A runtime (not SDK) install is sufficient here.
+  && if [ "${TARGETARCH}" = "amd64" ]; then \
+       wget https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh \
+       && chmod +x /tmp/dotnet-install.sh \
+       && /tmp/dotnet-install.sh --channel 8.0 --runtime dotnet --install-dir /usr/share/dotnet \
+       && ln -s /usr/share/dotnet/dotnet /usr/local/bin/dotnet \
+       && rm -f /tmp/dotnet-install.sh ; \
+     fi \
   && apt-get purge -y wget && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/*
+
+# Make the .NET runtime discoverable by the bridge's nethost/hostfxr at runtime.
+# Propagates to the tools, tools-thirdparty and test stages (all derived from library).
+ENV DOTNET_ROOT=/usr/share/dotnet
+ENV PATH="${DOTNET_ROOT}:${PATH}"
 
 COPY --from=build ${INSTALL_DIR}/lib ${INSTALL_DIR}/lib
 COPY --from=build ${INSTALL_DIR}/include ${INSTALL_DIR}/include

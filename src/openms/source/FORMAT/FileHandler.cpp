@@ -206,12 +206,12 @@ namespace OpenMS
     }
 #endif
 
-#ifndef WITH_THERMO_RAW
-    if (type == FileTypes::RAW)
-    {
-      return FileTypes::UNKNOWN; // .raw format requires WITH_THERMO_RAW
-    }
-#endif
+    // Note: .raw is always recognized as FileTypes::RAW, even without WITH_THERMO_RAW.
+    // The in-process reader (loadExperiment below) is #ifdef WITH_THERMO_RAW guarded,
+    // but FileConverter can still convert .raw via the external ThermoRawFileParser
+    // (mono) path, which is available on all platforms. Callers that try to load a
+    // .raw in-process without WITH_THERMO_RAW get a clear "type is not supported"
+    // ParseError from loadExperiment's default case.
 
     if (type == FileTypes::UNKNOWN)
     {
