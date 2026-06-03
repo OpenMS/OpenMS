@@ -120,7 +120,7 @@ protected:
     std::set<const ResidueModification*> mods_cterm;
     
     ModificationsDB* mod_DB = ModificationsDB::getInstance();
-    ResidueDB* res_DB = ResidueDB::getInstance();
+    const ResidueDB* res_DB = ResidueDB::getInstance();
 
     if (s_mods.empty())
     {

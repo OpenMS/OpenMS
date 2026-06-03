@@ -480,13 +480,7 @@ The elements are initialized with data from IUPAC tables.
             return self.hasElement(atomic_number);
         }, "atomic_number"_a, "Check if element exists by atomic number")
 
-        .def("addElement", [](OpenMS::ElementDB& self, const std::string& name, const std::string& symbol,
-                unsigned int an, const std::map<unsigned int, double>& abundance,
-                const std::map<unsigned int, double>& mass, bool replace_existing) {
-            self.addElement(name, symbol, an, abundance, mass, replace_existing);
-        }, "name"_a, "symbol"_a, "atomic_number"_a, "abundance"_a, "mass"_a, "replace_existing"_a,
-        "Add a new element to the database")
-        .def_static("getInstance", []() -> OpenMS::ElementDB* { return OpenMS::ElementDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        .def_static("getInstance", []() -> const OpenMS::ElementDB* { return OpenMS::ElementDB::getInstance(); }, nb::rv_policy::reference, "Returns the (immutable) singleton instance")
         ;
 
     // -----------------------------------------------------------------------
@@ -1358,7 +1352,7 @@ The enzymes are read from share/CHEMISTRY/Enzymes.xml.
         .def("getAllOMSSANames", [](const OpenMS::ProteaseDB& self) { std::vector<OpenMS::String> all_names; self.getAllOMSSANames(all_names); return all_names; }, "Returns all the enzyme names available for OMSSA")
         .def("getAllMSGFNames", [](const OpenMS::ProteaseDB& self) { std::vector<OpenMS::String> all_names; self.getAllMSGFNames(all_names); return all_names; }, "Returns all the enzyme names available for MSGFPlus")
 
-        .def_static("getInstance", []() -> OpenMS::ProteaseDB* { return OpenMS::ProteaseDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        .def_static("getInstance", []() -> const OpenMS::ProteaseDB* { return OpenMS::ProteaseDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
 
         .def("getAllNames", [](const OpenMS::ProteaseDB& self, nb::list output) {
             std::vector<OpenMS::String> all_names;
@@ -1526,7 +1520,7 @@ The enzymes are read from share/CHEMISTRY/Enzymes_RNA.xml.
             for (const auto& n : names) result.append(nb::str(n.c_str()));
             return result;
         }, "Get all enzyme names")
-        .def_static("getInstance", []() -> OpenMS::RNaseDB* { return OpenMS::RNaseDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        .def_static("getInstance", []() -> const OpenMS::RNaseDB* { return OpenMS::RNaseDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
         ;
 
     // -----------------------------------------------------------------------
@@ -1767,14 +1761,14 @@ Modified residues get created and added if getModifiedResidue is called.
         .def("getNumberOfModifiedResidues", [](const OpenMS::ResidueDB& self) { return self.getNumberOfModifiedResidues(); }, "Returns the number of modified residues stored")
         .def("getResidue", [](const OpenMS::ResidueDB& self, const OpenMS::String& name) { return self.getResidue(name); }, "name"_a, nb::rv_policy::reference, "Returns a pointer to the residue with name, 3 letter code or 1 letter code name")
         .def("getResidue", [](const OpenMS::ResidueDB& self, const unsigned char& one_letter_code) { return self.getResidue(one_letter_code); }, "one_letter_code"_a, nb::rv_policy::reference, "Returns a pointer to the residue with name, 3 letter code or 1 letter code name")
-        .def("getModifiedResidue", [](OpenMS::ResidueDB& self, const OpenMS::String& name) { return self.getModifiedResidue(name); }, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a modification name")
-        .def("getModifiedResidue", [](OpenMS::ResidueDB& self, OpenMS::Residue * residue, const OpenMS::String& name) { return self.getModifiedResidue(residue, name); }, "residue"_a, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
-        .def("getModifiedResidue", [](OpenMS::ResidueDB& self, OpenMS::Residue * residue, OpenMS::ResidueModification * mod) { return self.getModifiedResidue(residue, mod); }, "residue"_a, "mod"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
+        .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, const OpenMS::String& name) { return self.getModifiedResidue(name); }, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a modification name")
+        .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, OpenMS::Residue * residue, const OpenMS::String& name) { return self.getModifiedResidue(residue, name); }, "residue"_a, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
+        .def("getModifiedResidue", [](const OpenMS::ResidueDB& self, OpenMS::Residue * residue, OpenMS::ResidueModification * mod) { return self.getModifiedResidue(residue, mod); }, "residue"_a, "mod"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
         .def("getResidues", [](const OpenMS::ResidueDB& self, const OpenMS::String& residue_set) { return self.getResidues(residue_set); }, "residue_set"_a = "All", nb::rv_policy::reference, "Returns a set of all residues stored in this residue db")
         .def("getResidueSets", [](const OpenMS::ResidueDB& self) { return self.getResidueSets(); }, "Returns all residue sets that are registered which this instance")
         .def("hasResidue", [](const OpenMS::ResidueDB& self, const OpenMS::String& name) { return self.hasResidue(name); }, "name"_a, "Returns True if the db contains a residue with the given name")
         .def("hasResidue", [](const OpenMS::ResidueDB& self, OpenMS::Residue * residue) { return self.hasResidue(residue); }, "residue"_a, "Returns True if the db contains a residue with the given name")
-        .def_static("getInstance", []() -> OpenMS::ResidueDB* { return OpenMS::ResidueDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        .def_static("getInstance", []() -> const OpenMS::ResidueDB* { return OpenMS::ResidueDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
         ;
 
     // -----------------------------------------------------------------------
@@ -1929,7 +1923,7 @@ Database of ribonucleotides (modified and unmodified). This is a singleton class
 The ribonucleotides are read from data/CHEMISTRY/Modomics.tsv and Custom_RNA_modifications.tsv.
 )doc")
 
-        .def_static("getInstance", []() -> OpenMS::RibonucleotideDB* { return OpenMS::RibonucleotideDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        .def_static("getInstance", []() -> const OpenMS::RibonucleotideDB* { return OpenMS::RibonucleotideDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
 
         .def("getRibonucleotide", [](OpenMS::RibonucleotideDB& self, const OpenMS::String& code) -> const OpenMS::Ribonucleotide* {
             return self.getRibonucleotide(code);

@@ -25,10 +25,10 @@ START_TEST(ProteaseDB, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-ProteaseDB* ptr = nullptr;
-ProteaseDB* nullPointer = nullptr;
+const ProteaseDB* ptr = nullptr;
+const ProteaseDB* nullPointer = nullptr;
 String RKP("(?<=[RX])(?!P)");
-START_SECTION(ProteaseDB* getInstance())
+START_SECTION(const ProteaseDB* getInstance())
     ptr = ProteaseDB::getInstance();
     TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION

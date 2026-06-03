@@ -69,7 +69,7 @@ function(openms_add_compiler_flags target_name)
   #------------------------------------------------------------------------------
   
   # Language standard
-  target_compile_features(${target_name} PUBLIC cxx_std_20)
+  target_compile_features(${target_name} PUBLIC cxx_std_23)
   
   # Position-independent code
   if(NOT WIN32 AND WITH_FPIC)
@@ -83,6 +83,17 @@ function(openms_add_compiler_flags target_name)
     )
   endif()
   
+  # C++23 <stdfloat> workaround for ARM: std::float16_t/float32_t/float64_t
+  # conflict with ARM NEON typedefs of the same name when 'using namespace std;'
+  # is active. Suppress only the three macros that conflict with NEON typedefs.
+  # Do NOT suppress __STDCPP_FLOAT128_T__ or __STDCPP_BFLOAT16_T__ as those
+  # have no NEON conflict and are needed by Boost.Math.
+  if(NOT MSVC AND CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
+    target_compile_options(${target_name} PUBLIC
+      -U__STDCPP_FLOAT16_T__ -U__STDCPP_FLOAT32_T__ -U__STDCPP_FLOAT64_T__
+    )
+  endif()
+
   # SIMD extensions (PUBLIC for binary compatibility)
   # MSVC x64 defaults to SSE2 (128-bit); do NOT use /arch:AVX here because
   # AVX's 256-bit reductions change Eigen's floating-point evaluation order

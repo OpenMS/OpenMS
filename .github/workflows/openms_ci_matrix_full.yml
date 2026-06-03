@@ -52,13 +52,13 @@ jobs:
             # VS 2019: 14.20-14.29 (corresponds to MSVC v142)
             compiler_ver: 14.44   # Specific toolset version for VS 2022 -- must (roughly) match Qt6 compiler (see below)
 
-          - os: macos-14
+          - os: macos-15
             # Since the appleclang version is dependent on the XCode versions that are installed
             #  on the GH runners, use this as the choice for a specific version
             # TODO currently unused but XCode/appleclang is the default
             compiler: xcode
             # TODO implement support for other versions
-            compiler_ver: "15.4"  # macos-14 runners ship with Xcode 15.4
+            compiler_ver: "16.4"  # macos-15 runners ship with Xcode 16.4 (AppleClang 17)
 
           # Make sure the compilers are available in that version on the GH runners
           # We are not installing anything.
@@ -75,7 +75,7 @@ jobs:
 
           - os: ubuntu-24.04
             compiler: clang++
-            compiler_ver: 17
+            compiler_ver: 18
     outputs:
       version_number: ${{ steps.create_changelog.outputs.version_number }}
 
@@ -277,7 +277,7 @@ jobs:
           # TODO allow actual choice of compiler instead of using default.
           #  Problem: not all compilers are always in the PATH.
           CMAKE_CXX_COMPILER: ${{ steps.set-vars.outputs.cxx_compiler }}
-          MACOSX_DEPLOYMENT_TARGET: ${{ startsWith(matrix.os, 'macos') && '14.0' || '' }}
+          MACOSX_DEPLOYMENT_TARGET: ${{ startsWith(matrix.os, 'macos') && '15.0' || '' }}
           PYOPENMS: "${{ startsWith(matrix.os, 'ubuntu') && matrix.compiler == 'g++' && 'ON' || 'OFF' }}"
           NO_DEPENDENCIES: "${{ startsWith(matrix.os, 'ubuntu') && matrix.compiler == 'g++' && 'OFF' || 'ON' }}"
           CMAKE_PREFIX_PATH: "${{ steps.deps.outputs.cmake_prefix }}"

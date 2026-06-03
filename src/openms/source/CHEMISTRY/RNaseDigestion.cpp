@@ -40,7 +40,7 @@ namespace OpenMS
     }
     
 
-    static RibonucleotideDB* ribo_db = RibonucleotideDB::getInstance();
+    static const RibonucleotideDB* ribo_db = RibonucleotideDB::getInstance();
     five_prime_gain_ = five_prime_code.empty() ?
                            nullptr :
                            ribo_db->getRibonucleotide(five_prime_code);

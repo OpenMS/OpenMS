@@ -31,7 +31,7 @@ START_TEST(NASequence, "$Id$")
 
 NASequence* ptr = nullptr;
 NASequence* null_ptr = nullptr;
-RibonucleotideDB* db = RibonucleotideDB::getInstance();
+const RibonucleotideDB* db = RibonucleotideDB::getInstance();
 
 START_SECTION((NASequence()=default))
 {

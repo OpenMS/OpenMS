@@ -31,7 +31,7 @@ namespace OpenMS
     clear_();
   }
 
-  ElementDB* ElementDB::getInstance()
+  const ElementDB* ElementDB::getInstance()
   {
     static ElementDB* db_ = new ElementDB;
     return db_;
@@ -85,20 +85,6 @@ namespace OpenMS
   bool ElementDB::hasElement(unsigned int atomic_number) const
   {
     return atomic_numbers_.find(atomic_number) != atomic_numbers_.end();
-  }
-
-  void ElementDB::addElement(const std::string& name,
-                             const std::string& symbol,
-                             const unsigned int an,
-                             const std::map<unsigned int, double>& abundance,
-                             const std::map<unsigned int, double>& mass,
-                             bool replace_existing)
-  {
-    if (hasElement(an) && !replace_existing)
-    {      
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Element with atomic number ") + an + " already exists");
-    }
-    buildElement_(name, symbol, an, abundance, mass);
   }
 
   double ElementDB::calculateAvgWeight_(const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
@@ -601,6 +587,9 @@ namespace OpenMS
     storeIsotopes_(name, symbol, an, mass, isotopes);
   }
 
+  // Build-time helper: overwrite an element in place so existing pointers stay valid.
+  // Only ever runs while the singleton is being constructed (storeElements_/storeIsotopes_),
+  // before getInstance() hands out the immutable instance.
   void overwrite(const Element* old, unique_ptr<const Element>& new_e)
   {
     if (old->getSymbol() != new_e->getSymbol())

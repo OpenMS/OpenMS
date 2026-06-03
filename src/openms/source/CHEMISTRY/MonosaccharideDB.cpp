@@ -24,7 +24,7 @@ namespace OpenMS
     loadFromJSON_();
   }
 
-  MonosaccharideDB* MonosaccharideDB::getInstance()
+  const MonosaccharideDB* MonosaccharideDB::getInstance()
   {
     // Meyers' singleton - thread safe in C++11 and later
     static MonosaccharideDB* instance_ = new MonosaccharideDB();
