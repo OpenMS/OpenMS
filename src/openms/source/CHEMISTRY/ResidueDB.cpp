@@ -24,7 +24,7 @@ namespace OpenMS
     initResidues_();
   }
 
-  ResidueDB* ResidueDB::getInstance()
+  const ResidueDB* ResidueDB::getInstance()
   {
     static ResidueDB* db_ = new ResidueDB(); // Meyers' singleton -> thread safe
     return db_;
@@ -112,19 +112,12 @@ namespace OpenMS
     buildResidues_();    
   }
 
-  void ResidueDB::addResidue_(Residue* r)
+  void ResidueDB::addModifiedResidue_(Residue* r) const
   {
-    if (!r->isModified())
-    { // add (unmodified) residue to residue_names, residues, and const_residues
-      const_residues_.insert(r);
-      addResidueNames_(r);
-    }
-    else
-    { // add modified residue to const_modified_residues_, and residue_mod_names_
-      const_modified_residues_.insert(r);
-      addModifiedResidueNames_(r);
-    }    
-    return;
+    OPENMS_PRECONDITION(r->isModified(), "addModifiedResidue_ must only be called with modified residues")
+    // add modified residue to const_modified_residues_, and residue_mod_names_
+    const_modified_residues_.insert(r);
+    addModifiedResidueNames_(r);
   }
 
   bool ResidueDB::hasResidue(const String& res_name) const
@@ -282,7 +275,7 @@ namespace OpenMS
     return rs;
   }
 
-  void ResidueDB::addModifiedResidueNames_(const Residue* r)
+  void ResidueDB::addModifiedResidueNames_(const Residue* r) const
   {
     // get all modification names
     vector<String> mod_names;
@@ -347,7 +340,7 @@ namespace OpenMS
     }
   }
 
-  const Residue* ResidueDB::getModifiedResidue(const String& modification)
+  const Residue* ResidueDB::getModifiedResidue(const String& modification) const
   {
     // throws if modification is not part of ModificationsDB
     const ResidueModification* mod = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::ANYWHERE);
@@ -355,7 +348,7 @@ namespace OpenMS
     return getModifiedResidue(r, mod->getFullId());
   }
 
-  const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const String& modification)
+  const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const String& modification) const
   {
     OPENMS_PRECONDITION(!modification.empty(), "Modification cannot be empty")
     // search if the mod already exists
@@ -437,7 +430,7 @@ namespace OpenMS
             // create and register this modified residue
             res = new Residue(*residue_names_.at(res_name));
             res->setModification(mod);
-            addResidue_(res);            
+            addModifiedResidue_(res);            
           }
         }
       }
@@ -456,7 +449,7 @@ namespace OpenMS
     return res;
   }
 
-  const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const ResidueModification* mod)
+  const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const ResidueModification* mod) const
   {
     OPENMS_PRECONDITION(mod != nullptr, "Mod cannot be nullptr")
     OPENMS_PRECONDITION(mod->getTermSpecificity() == ResidueModification::ANYWHERE, "Mod's term specificity needs to be ANYWHERE to attach it to Residues");
@@ -505,7 +498,7 @@ namespace OpenMS
             // create and register this modified residue
             res = new Residue(*residue_names_.at(res_name));
             res->setModification(mod);
-            addResidue_(res);            
+            addModifiedResidue_(res);            
           }
         }
       }

@@ -43,7 +43,7 @@ START_SECTION(~ResidueModification())
 END_SECTION
 
 ModificationsDB* mod_DB = ModificationsDB::getInstance();
-ResidueDB* res_DB = ResidueDB::getInstance();
+const ResidueDB* res_DB = ResidueDB::getInstance();
 
 ptr = new ResidueModification();
 

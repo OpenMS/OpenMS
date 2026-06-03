@@ -1328,7 +1328,7 @@ namespace OpenMS
     // track if last char denoted a terminus
     bool dot_terminal(false), dot_notation(false);
 
-    static ResidueDB* rdb = ResidueDB::getInstance();
+    static const ResidueDB* rdb = ResidueDB::getInstance();
 
     for (String::ConstIterator str_it = peptide.begin();
          str_it != peptide.end(); ++str_it)

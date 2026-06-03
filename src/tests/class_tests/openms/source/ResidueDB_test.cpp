@@ -24,9 +24,9 @@ START_TEST(ResidueDB, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-ResidueDB* ptr = nullptr;
-ResidueDB* nullPointer = nullptr;
-START_SECTION(ResidueDB* getInstance())
+const ResidueDB* ptr = nullptr;
+const ResidueDB* nullPointer = nullptr;
+START_SECTION(static const ResidueDB* getInstance())
 	ptr = ResidueDB::getInstance();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
