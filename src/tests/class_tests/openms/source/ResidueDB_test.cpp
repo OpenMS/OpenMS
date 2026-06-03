@@ -59,16 +59,20 @@ START_SECTION(Size getNumberOfResidues() const)
 	TEST_EQUAL(ptr->getNumberOfResidues() >= 20 , true);
 END_SECTION
 
-START_SECTION(const Residue* getModifiedResidue(const String& name))
+START_SECTION(const Residue* getModifiedResidue(const String& name) const)
 	const Residue* mod_res = ptr->getModifiedResidue("Oxidation (M)"); // ox methionine
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
 	TEST_STRING_EQUAL(mod_res->getModificationName(), "Oxidation")
+	// logical-const memoization: repeated lookups return the same cached pointer
+	TEST_EQUAL(ptr->getModifiedResidue("Oxidation (M)"), mod_res)
 END_SECTION
 
-START_SECTION(const Residue* getModifiedResidue(const Residue* residue, const String& name))
+START_SECTION(const Residue* getModifiedResidue(const Residue* residue, const String& name) const)
 	const Residue* mod_res = ptr->getModifiedResidue(ptr->getResidue("M"), "Oxidation (M)");
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
 	TEST_STRING_EQUAL(mod_res->getModificationName(), "Oxidation")
+	// logical-const memoization: repeated lookups return the same cached pointer
+	TEST_EQUAL(ptr->getModifiedResidue(ptr->getResidue("M"), "Oxidation (M)"), mod_res)
 
 	const Residue* nterm_mod_res = ptr->getModifiedResidue(ptr->getResidue("C"), "Pyro-carbamidomethyl (N-term C)"); // <umod:specificity hidden="0" site="C" position="Any N-term"
 	TEST_STRING_EQUAL(nterm_mod_res->getOneLetterCode(), "C")

@@ -19,6 +19,21 @@ immutable cheaply (logical-const), whereas genuine runtime registration cannot
 be removed without either dropping a feature or relocating the mutable state
 out of the global singleton.
 
+Three design options were considered for removing mutability, referenced
+throughout this document:
+
+* **Option A — logical const.** Keep the lazily-filled state but mark it
+  `mutable` behind synchronization, make the public interface (and
+  `getInstance()`) `const`. Only honest when the mutation is a transparent,
+  idempotent cache. Used for `ResidueDB`.
+* **Option B — build-then-freeze.** Populate everything at construction (e.g.
+  via a data provider), then freeze; no post-construction mutation at all.
+  Works only when nothing is discovered at runtime.
+* **Option C — reference DB + session registry.** Split an immutable global
+  reference DB from a mutable, caller-owned registry that holds whatever is
+  discovered at runtime. The correct fix when runtime registration is genuine
+  (`ModificationsDB`, `ElementDB`).
+
 ---
 
 ## 1. ResidueDB — done (logical-const)
