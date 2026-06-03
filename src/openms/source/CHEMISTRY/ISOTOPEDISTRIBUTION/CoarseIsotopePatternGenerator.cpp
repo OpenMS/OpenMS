@@ -183,6 +183,8 @@ namespace OpenMS
 
     // We need the solver to return atomic numbers to be compatible with calcFragmentIsotopeDist
     CoarseIsotopePatternGenerator solver(max_depth, false);
+    // honor any per-element isotope overrides set on this generator (e.g. isotope labeling)
+    for (const auto& ov : isotope_overrides_) { solver.setIsotopeOverride(ov.first, ov.second); }
 
     EmpiricalFormula ef_fragment;
     ef_fragment.estimateFromWeightAndCompAndS(average_weight_fragment, S_fragment, 4.9384, 7.7583, 1.3577, 1.4773, 0);
@@ -265,6 +267,8 @@ namespace OpenMS
 
     // We need the solver to return atomic numbers to be compatible with calcFragmentIsotopeDist
     CoarseIsotopePatternGenerator solver(max_depth, false);
+    // honor any per-element isotope overrides set on this generator (e.g. isotope labeling)
+    for (const auto& ov : isotope_overrides_) { solver.setIsotopeOverride(ov.first, ov.second); }
 
     EmpiricalFormula ef_fragment;
     ef_fragment.estimateFromWeightAndComp(average_weight_fragment, C, H, N, O, S, P);
