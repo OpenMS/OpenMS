@@ -394,6 +394,10 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
+    // FileFilter only processes mzML/featureXML/consensusXML; the input dispatch in main_()
+    // has no branch for vendor formats (Bruker .d / Thermo .raw) and they are not IM-aware
+    // pass-throughs (its m/z/intensity and S/N filters mutate peaks without updating the
+    // parallel ion-mobility array). Use FileConverter to convert vendor data to mzML first.
     std::vector<String> formats = ListUtils::create<String>("mzML,featureXML,consensusXML");
 
     registerInputFile_("in", "<file>", "", "Input file");

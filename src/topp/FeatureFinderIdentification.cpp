@@ -164,7 +164,14 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file: LC-MS raw data");
-    setValidFormats_("in", {"mzML"});
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
     registerInputFile_("id", "<file>", "", "Input file: Peptide identifications derived directly from 'in'");
     setValidFormats_("id", {"idXML", "idparquet"});
     registerInputFile_("id_ext", "<file>", "", "Input file: 'External' peptide identifications (e.g. from aligned runs)", false);
@@ -233,7 +240,7 @@ protected:
       PeakMap ms_data_full;
       FileHandler mzml;
       mzml.getOptions().addMSLevel(1);
-      mzml.loadExperiment(in, ms_data_full, {FileTypes::MZML}, log_type_);
+      mzml.loadExperiment(in, ms_data_full, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
 
       PeptideIdentificationList peptides, peptides_ext;
       vector<ProteinIdentification> proteins, proteins_ext;

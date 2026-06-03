@@ -434,23 +434,17 @@ Returns the "cuts before ..." regular expression
     // -----------------------------------------------------------------------
     // Element
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Element>(m, "Element", "Representation of an element")
+    nb::class_<OpenMS::Element>(m, "Element", "Representation of an element (read-only; construct via the full constructor)")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Element &>())
         .def("__copy__", [](const OpenMS::Element& self) { return OpenMS::Element(self); })
         .def("__deepcopy__", [](const OpenMS::Element& self, nb::dict) { return OpenMS::Element(self); }, "memo"_a)
         .def(nb::init<OpenMS::String, OpenMS::String, unsigned int, double, double, OpenMS::IsotopeDistribution>())
-        .def("setAtomicNumber", [](OpenMS::Element& self, unsigned int atomic_number) { return self.setAtomicNumber(atomic_number); }, "atomic_number"_a, "Sets unique atomic number")
         .def("getAtomicNumber", [](const OpenMS::Element& self) { return self.getAtomicNumber(); }, "Returns the unique atomic number")
-        .def("setAverageWeight", [](OpenMS::Element& self, double weight) { return self.setAverageWeight(weight); }, "weight"_a, "Sets the average weight of the element")
         .def("getAverageWeight", [](const OpenMS::Element& self) { return self.getAverageWeight(); }, "Returns the average weight of the element")
-        .def("setMonoWeight", [](OpenMS::Element& self, double weight) { return self.setMonoWeight(weight); }, "weight"_a, "Sets the mono isotopic weight of the element")
         .def("getMonoWeight", [](const OpenMS::Element& self) { return self.getMonoWeight(); }, "Returns the mono isotopic weight of the element")
-        .def("setIsotopeDistribution", [](OpenMS::Element& self, const OpenMS::IsotopeDistribution& isotopes) { return self.setIsotopeDistribution(isotopes); }, "isotopes"_a, "Sets the isotope distribution of the element")
         .def("getIsotopeDistribution", [](const OpenMS::Element& self) -> const OpenMS::IsotopeDistribution & { return self.getIsotopeDistribution(); }, nb::rv_policy::reference_internal, "Returns the isotope distribution of the element")
-        .def("setName", [](OpenMS::Element& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name of the element")
         .def("getName", [](const OpenMS::Element& self) { return self.getName(); }, "Returns the name of the element")
-        .def("setSymbol", [](OpenMS::Element& self, const OpenMS::String& symbol) { return self.setSymbol(symbol); }, "symbol"_a, "Sets symbol of the element")
         .def("getSymbol", [](const OpenMS::Element& self) { return self.getSymbol(); }, "Returns symbol of the element")
         .def("__hash__", [](const OpenMS::Element& self) { return std::hash<OpenMS::Element>{}(self); })
         ;
@@ -466,11 +460,11 @@ The elements are initialized with data from IUPAC tables.
 
         .def("getElement", [](const OpenMS::ElementDB& self, const std::string& name) -> const OpenMS::Element* {
             return self.getElement(name);
-        }, "name"_a, nb::rv_policy::reference, "Get element by name or symbol")
+        }, "name"_a, nb::rv_policy::reference, "Get element by name or symbol (read-only reference into the immutable database)")
 
         .def("getElement", [](const OpenMS::ElementDB& self, unsigned int atomic_number) -> const OpenMS::Element* {
             return self.getElement(atomic_number);
-        }, "atomic_number"_a, nb::rv_policy::reference, "Get element by atomic number")
+        }, "atomic_number"_a, nb::rv_policy::reference, "Get element by atomic number (read-only reference into the immutable database)")
 
         .def("hasElement", [](const OpenMS::ElementDB& self, const std::string& name) {
             return self.hasElement(name);

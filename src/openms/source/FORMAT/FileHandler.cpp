@@ -971,14 +971,9 @@ namespace OpenMS
         BrukerTimsFile f;
         f.setLogType(log);
         f.load(load_path, exp);
-        // Apply MS level filtering (BrukerTimsFile loads all levels)
-        if (options_.hasMSLevels())
-        {
-          exp.getSpectra().erase(
-            std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
-              [this](const MSSpectrum& s) { return !options_.containsMSLevel(s.getMSLevel()); }),
-            exp.getSpectra().end());
-        }
+
+        // BrukerTimsFile loads everything; apply PeakFileOptions filters post-load.
+        applyPostLoadOptions_(exp);
       }
       break;
 #endif
@@ -989,15 +984,9 @@ namespace OpenMS
         ThermoRawFile f;
         f.setLogType(log);
         f.load(filename, exp);
-        // Apply MS level filtering (ThermoRawFile loads all levels)
-        if (options_.hasMSLevels())
-        {
-          exp.getSpectra().erase(
-            std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
-              [this](const MSSpectrum& s) { return !options_.containsMSLevel(s.getMSLevel()); }),
-            exp.getSpectra().end());
-        }
-        exp.updateRanges();
+
+        // ThermoRawFile loads everything; apply PeakFileOptions filters post-load.
+        applyPostLoadOptions_(exp);
       }
       break;
 #endif
@@ -1045,6 +1034,86 @@ namespace OpenMS
       exp.getSourceFiles().clear();
       exp.getSourceFiles().push_back(src_file);
     }
+  }
+
+  void FileHandler::applyPostLoadOptions_(MSExperiment& exp) const
+  {
+    // Filter by MS level
+    if (options_.hasMSLevels())
+    {
+      exp.getSpectra().erase(
+        std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+          [this](const MSSpectrum& s) { return !options_.containsMSLevel(s.getMSLevel()); }),
+        exp.getSpectra().end());
+    }
+
+    // Filter by RT range
+    if (options_.hasRTRange())
+    {
+      const auto& rt_range = options_.getRTRange();
+      exp.getSpectra().erase(
+        std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+          [&rt_range](const MSSpectrum& s) { return !rt_range.encloses(DPosition<1>(s.getRT())); }),
+        exp.getSpectra().end());
+    }
+
+    // Filter by precursor m/z range (for MSn spectra)
+    if (options_.hasPrecursorMZRange())
+    {
+      const auto& prec_range = options_.getPrecursorMZRange();
+      exp.getSpectra().erase(
+        std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+          [&prec_range](const MSSpectrum& s)
+          {
+            if (s.getMSLevel() <= 1) { return false; } // keep MS1
+            if (s.getPrecursors().empty()) { return false; }
+            return !prec_range.encloses(DPosition<1>(s.getPrecursors()[0].getMZ()));
+          }),
+        exp.getSpectra().end());
+    }
+
+    // Filter peaks by m/z range and intensity range within each spectrum.
+    // Use MSSpectrum::select() rather than erase(): select() rebuilds the parallel data
+    // arrays so the per-peak ion-mobility FloatDataArray carried by Bruker .d frames (and any
+    // other float/string/integer array) stays aligned with the peaks. A raw erase() would
+    // shrink only the peak vector, leaving the IM array too long -> corrupt mzML output or a
+    // Precondition throw on the next sortByPosition()/select().
+    if (options_.hasMZRange() || options_.hasIntensityRange())
+    {
+      const bool filter_mz = options_.hasMZRange();
+      const bool filter_int = options_.hasIntensityRange();
+      const auto& mz_range = options_.getMZRange();
+      const auto& int_range = options_.getIntensityRange();
+
+      std::vector<Size> kept;
+      for (auto& spectrum : exp.getSpectra())
+      {
+        kept.clear();
+        kept.reserve(spectrum.size());
+        for (Size i = 0; i < spectrum.size(); ++i)
+        {
+          const Peak1D& p = spectrum[i];
+          if (filter_mz && !mz_range.encloses(DPosition<1>(p.getMZ()))) { continue; }
+          if (filter_int && !int_range.encloses(DPosition<1>(p.getIntensity()))) { continue; }
+          kept.push_back(i);
+        }
+        if (kept.size() != spectrum.size())
+        {
+          spectrum.select(kept);
+        }
+      }
+    }
+
+    // Metadata only: strip peak data
+    if (options_.getMetadataOnly())
+    {
+      for (auto& spectrum : exp.getSpectra())
+      {
+        spectrum.clear(false); // clear data but keep metadata
+      }
+    }
+
+    exp.updateRanges();
   }
 
   void FileHandler::storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)

@@ -409,6 +409,17 @@ public:
     static String computeFileHash(const String& filename);
 
 private:
+    /**
+      @brief Applies the current PeakFileOptions filters to an already-loaded experiment.
+
+      Used by vendor-format paths (Thermo .raw, Bruker .d) whose loaders read all
+      scans/peaks regardless of PeakFileOptions. Filters MS level, RT range, precursor
+      m/z range, per-peak m/z and intensity ranges, and strips peak data when
+      metadata-only is requested. Calls updateRanges() at the end. Until these filters
+      are pushed into the respective loader classes, both vendor paths share this.
+    */
+    void applyPostLoadOptions_(MSExperiment& exp) const;
+
     PeakFileOptions options_;
     FeatureFileOptions f_options_;
   };
