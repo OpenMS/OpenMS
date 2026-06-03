@@ -4,6 +4,7 @@ set(directory source/IMAGING)
 ### list all filenames of the directory here
 set(sources_list
 IonImage.cpp
+MSImagingRegion.cpp
 MSImagingGeometry.cpp
 MSImagingExperiment.cpp
 )

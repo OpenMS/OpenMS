@@ -651,6 +651,7 @@ set(ionmobility_executables_list
 
 set(imaging_executables_list
   IonImage_test
+  MSImagingRegion_test
   MSImagingGeometry_test
   MSImagingExperiment_test
 )
