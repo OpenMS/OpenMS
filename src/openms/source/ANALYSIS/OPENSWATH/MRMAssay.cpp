@@ -174,7 +174,7 @@ namespace OpenMS
     bool multi_mod_switch = false;
     bool skip_invalid_mod_seq = false;
 
-    OpenMS::ModificationsDB* ptr = ModificationsDB::getInstance();
+    const OpenMS::ModificationsDB* ptr = ModificationsDB::getInstance();
     std::set<const ResidueModification*> modifiable_nterm;
     ptr->searchModifications(modifiable_nterm, modification, "", ResidueModification::N_TERM);
     std::set<const ResidueModification*> modifiable_cterm;
@@ -245,7 +245,7 @@ namespace OpenMS
     std::map<OpenMS::String, size_t> mods;
     std::vector<OpenMS::AASequence> sequences = {AASequence::fromString(sequence.toUnmodifiedString())};
 
-    OpenMS::ModificationsDB* ptr = ModificationsDB::getInstance();
+    const OpenMS::ModificationsDB* ptr = ModificationsDB::getInstance();
 
     if (sequence.hasNTerminalModification())
     {
@@ -305,7 +305,7 @@ namespace OpenMS
     std::vector<OpenMS::AASequence> decoy_sequences;
     decoy_sequences.push_back(AASequence::fromString(decoy_sequence.toUnmodifiedString()));
 
-    OpenMS::ModificationsDB* ptr = ModificationsDB::getInstance();
+    const OpenMS::ModificationsDB* ptr = ModificationsDB::getInstance();
 
     if (sequence.hasNTerminalModification())
     {
@@ -1584,7 +1584,7 @@ namespace OpenMS
       }
 
       // Otherwise, apply modifications from the LightCompound (TraML case)
-      OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
+      const OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
 
       for (const auto& mod : compound.modifications)
       {

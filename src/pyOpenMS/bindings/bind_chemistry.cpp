@@ -969,20 +969,20 @@ The modifications are read from the unimod.xml file on construction.
             self.getAllSearchModifications(mods);
             return mods;
         }, "Returns all modifications that can be used for identification searches")
-        .def("getBestModificationByDiffMonoMass", [](OpenMS::ModificationsDB& self, double mass, double max_error, const OpenMS::String& residue, nb::object term_spec_obj) {
+        .def("getBestModificationByDiffMonoMass", [](const OpenMS::ModificationsDB& self, double mass, double max_error, const OpenMS::String& residue, nb::object term_spec_obj) {
             int term_spec = nb::cast<int>(nb::int_(term_spec_obj));
             return self.getBestModificationByDiffMonoMass(mass, max_error, residue, static_cast<OpenMS::ResidueModification::TermSpecificity>(term_spec));
         }, "mass"_a, "max_error"_a, "residue"_a = "", "term_spec"_a = nb::int_(static_cast<int>(OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY)), nb::rv_policy::reference, "Returns the best modification by diff mono mass")
-        .def("searchModificationsByDiffMonoMass", [](OpenMS::ModificationsDB& self, double mass, double max_error, const OpenMS::String& residue, nb::object term_spec_obj) {
+        .def("searchModificationsByDiffMonoMass", [](const OpenMS::ModificationsDB& self, double mass, double max_error, const OpenMS::String& residue, nb::object term_spec_obj) {
             int term_spec = nb::cast<int>(nb::int_(term_spec_obj));
             std::vector<OpenMS::String> mods;
             self.searchModificationsByDiffMonoMass(mods, mass, max_error, residue, static_cast<OpenMS::ResidueModification::TermSpecificity>(term_spec));
             return mods;
         }, "mass"_a, "max_error"_a, "residue"_a = "", "term_spec"_a = nb::int_(static_cast<int>(OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY)), "Search modifications by difference in mono mass (returns list of modification names)")
-        .def("addModification", [](OpenMS::ModificationsDB& self, const OpenMS::ResidueModification& new_mod) {
+        .def("addModification", [](const OpenMS::ModificationsDB& self, const OpenMS::ResidueModification& new_mod) {
             return self.addModification(new_mod);
-        }, "new_mod"_a, nb::rv_policy::reference, "Add a new modification to the database (makes a copy)")
-        .def_static("getInstance", []() -> OpenMS::ModificationsDB* { return OpenMS::ModificationsDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        }, "new_mod"_a, nb::rv_policy::reference, "Intern a modification into the database if not already present (idempotent); returns the canonical pointer")
+        .def_static("getInstance", []() -> const OpenMS::ModificationsDB* { return OpenMS::ModificationsDB::getInstance(); }, nb::rv_policy::reference, "Returns the (immutable) singleton instance")
         ;
 
     // -----------------------------------------------------------------------
@@ -993,7 +993,7 @@ The modifications are read from the unimod.xml file on construction.
 Database of cross-linker modifications. This is a singleton class that inherits from ModificationsDB.
 The cross-linker modifications are read from an OBO file.
 )doc")
-        .def_static("getInstance", []() -> OpenMS::CrossLinksDB* { return OpenMS::CrossLinksDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        .def_static("getInstance", []() -> const OpenMS::CrossLinksDB* { return OpenMS::CrossLinksDB::getInstance(); }, nb::rv_policy::reference, "Returns the (immutable) singleton instance")
         .def_static("isInstantiated", []() {
             // Access getInstance and check — CrossLinksDB doesn't override isInstantiated,
             // but we need to ensure the DB is loaded

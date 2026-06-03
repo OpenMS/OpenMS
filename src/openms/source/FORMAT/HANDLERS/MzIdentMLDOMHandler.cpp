@@ -2686,7 +2686,7 @@ namespace OpenMS::Internal
                     // e.g. <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>
 
                     // compare with String::ConstIterator AASequence::parseModSquareBrackets_
-                    ModificationsDB* mod_db = ModificationsDB::getInstance();
+                    const ModificationsDB* mod_db = ModificationsDB::getInstance();
                     if (index == 0)
                     {
                       // n-terminal

@@ -54,13 +54,13 @@ namespace OpenMS
 
   bool ModificationsDB::is_instantiated_ = false;
 
-  ModificationsDB* ModificationsDB::getInstance()
+  const ModificationsDB* ModificationsDB::getInstance()
   {
-    static ModificationsDB* db_ = ModificationsDB::initializeModificationsDB();
+    static const ModificationsDB* db_ = ModificationsDB::initializeModificationsDB();
     return db_;
   }
 
-  ModificationsDB* ModificationsDB::initializeModificationsDB(OpenMS::String unimod_file, OpenMS::String custommod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)
+  const ModificationsDB* ModificationsDB::initializeModificationsDB(OpenMS::String unimod_file, OpenMS::String custommod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)
   {
     std::vector<std::unique_ptr<ModificationDataProvider>> providers;
     if (!unimod_file.empty())
@@ -335,7 +335,7 @@ namespace OpenMS
     return index;
   }
 
-  void ModificationsDB::searchModificationsByDiffMonoMass(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
+  void ModificationsDB::searchModificationsByDiffMonoMass(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
     mods.clear();
     char res = '?'; // empty
@@ -355,7 +355,7 @@ namespace OpenMS
     }
   }
 
-  void ModificationsDB::searchModificationsByDiffMonoMass(vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
+  void ModificationsDB::searchModificationsByDiffMonoMass(vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
     mods.clear();
     char res = '?'; // empty
@@ -375,7 +375,7 @@ namespace OpenMS
     }
   }
 
-  void ModificationsDB::searchModificationsByDiffMonoMassSorted(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
+  void ModificationsDB::searchModificationsByDiffMonoMassSorted(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
     mods.clear();
     std::map<std::pair<double,Size>, const String&> diff_idx2mods;
@@ -403,7 +403,7 @@ namespace OpenMS
     }
   }
 
-  void ModificationsDB::searchModificationsByDiffMonoMassSorted(vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
+  void ModificationsDB::searchModificationsByDiffMonoMassSorted(vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
     mods.clear();
     std::map<std::pair<double,Size>, const ResidueModification*> diff_idx2mods;
@@ -432,7 +432,7 @@ namespace OpenMS
   }
 
 
-  const ResidueModification* ModificationsDB::getBestModificationByDiffMonoMass(double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
+  const ResidueModification* ModificationsDB::getBestModificationByDiffMonoMass(double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
     double min_error = max_error;
     const ResidueModification* mod = nullptr;
@@ -462,7 +462,7 @@ namespace OpenMS
     return mod;
   }
 
-  const ResidueModification* ModificationsDB::addModification(std::unique_ptr<ResidueModification> new_mod)
+  const ResidueModification* ModificationsDB::addModification(std::unique_ptr<ResidueModification> new_mod) const
   {
     const ResidueModification* ret;
     #pragma omp critical(OpenMS_ModificationsDB)
@@ -487,7 +487,7 @@ namespace OpenMS
     return ret;
   }
 
-  const ResidueModification* ModificationsDB::addModification(const ResidueModification& new_mod)
+  const ResidueModification* ModificationsDB::addModification(const ResidueModification& new_mod) const
   {
     const ResidueModification* ret = new ResidueModification(new_mod);
     #pragma omp critical(OpenMS_ModificationsDB)
@@ -511,7 +511,7 @@ namespace OpenMS
     return ret;
   }
 
-  const ResidueModification* ModificationsDB::addNewModification_(const ResidueModification& new_mod)
+  const ResidueModification* ModificationsDB::addNewModification_(const ResidueModification& new_mod) const
   {
     const ResidueModification* ret = new ResidueModification(new_mod);
     #pragma omp critical(OpenMS_ModificationsDB)
@@ -616,7 +616,7 @@ namespace OpenMS
     });
   }
 
-  void ModificationsDB::writeTSV(String const& filename)
+  void ModificationsDB::writeTSV(String const& filename) const
   {
     std::ofstream ofs(filename, std::ofstream::out);
     ofs << "FullId\tFullName\tUnimodAccession\tOrigin/AA\tTerminusSpecificity\tDiffMonoMass\n";

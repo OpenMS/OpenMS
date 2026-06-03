@@ -110,7 +110,7 @@ namespace OpenMS
 
     // Load modifications from the database
     std::vector<String> modification_names;
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
     mod_db->getAllSearchModifications(modification_names);
     
     for (const String& mod_name : modification_names)
@@ -915,7 +915,7 @@ namespace OpenMS
     std::map<double, String, FuzzyDoubleComparator> mass_to_mod; // uses default epsilon (1e-9)
 
     std::vector<String> modification_names;
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
     mod_db->getAllSearchModifications(modification_names);
 
     for (const String& mod_name : modification_names)
@@ -959,7 +959,7 @@ namespace OpenMS
     }
 
     std::vector<String> residues;
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
 
     for (const auto& part : parts)
     {
