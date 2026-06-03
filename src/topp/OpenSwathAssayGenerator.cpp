@@ -229,7 +229,7 @@ protected:
     {
       if (!ModificationsDB::isInstantiated()) // We need to ensure that ModificationsDB was not instantiated before!
       {
-        ModificationsDB* ptr = ModificationsDB::initializeModificationsDB(unimod_file, String(""), String(""));
+        const ModificationsDB* ptr = ModificationsDB::initializeModificationsDB(unimod_file, String(""), String(""));
         OPENMS_LOG_INFO << "Unimod XML: " << ptr->getNumberOfModifications() << " modification types and residue specificities imported from file: " << unimod_file << std::endl;
       }
       else

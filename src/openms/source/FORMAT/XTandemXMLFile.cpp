@@ -219,7 +219,7 @@ namespace OpenMS
         }
         else // no match? strange, let's try all possible modifications
         {
-          ModificationsDB* mod_db = ModificationsDB::getInstance();
+          const ModificationsDB* mod_db = ModificationsDB::getInstance();
           // try to find a mod that fits
           if (mod_pos <= 0) // can (!) be an N-terminal mod
           {

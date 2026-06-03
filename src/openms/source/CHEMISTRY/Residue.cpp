@@ -423,14 +423,14 @@ namespace OpenMS
 
   void Residue::setModification(const String& name)
   {
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
     const ResidueModification* mod = mod_db->getModification(name, one_letter_code_, ResidueModification::ANYWHERE);
     setModification(mod);
   }
 
   void Residue::setModification(const ResidueModification& mod)
   {
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
     //TODO think again. Most functions here or in ModificationsDB only check for fullID
     const ResidueModification* modindb = mod_db->searchModification(mod);
     if (modindb == nullptr)
@@ -442,7 +442,7 @@ namespace OpenMS
 
   void Residue::setModificationByDiffMonoMass(double diffMonoMass)
   {
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
     bool multimatch = false;
     // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
     String diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);

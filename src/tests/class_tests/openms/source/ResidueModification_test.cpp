@@ -42,7 +42,7 @@ START_SECTION(~ResidueModification())
 	delete ptr;
 END_SECTION
 
-ModificationsDB* mod_DB = ModificationsDB::getInstance();
+const ModificationsDB* mod_DB = ModificationsDB::getInstance();
 const ResidueDB* res_DB = ResidueDB::getInstance();
 
 ptr = new ResidueModification();
@@ -59,7 +59,7 @@ START_SECTION(ResidueModification& operator=(const ResidueModification& modifica
 END_SECTION
 
 START_SECTION(bool ResidueModification::operator<(const ResidueModification& rhs) const)
-  ModificationsDB* ptr = ModificationsDB::getInstance();
+  const ModificationsDB* ptr = ModificationsDB::getInstance();
   const ResidueModification* cm = ptr->getModification("Carboxymethyl (C)");
   const ResidueModification* pm = ptr->getModification("Phospho (S)");
   TEST_EQUAL(*cm < *pm, true);

@@ -632,7 +632,7 @@ namespace OpenMS::Internal
       }
       
       // format e.g. Phospho (ST)
-      ModificationsDB* mod_db = ModificationsDB::getInstance();
+      const ModificationsDB* mod_db = ModificationsDB::getInstance();
       String AAs = parts[1];
       AAs.remove(')');
       AAs.remove('(');

@@ -590,7 +590,7 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       // compound list
       //--------------------------------------------------------------------------------------------
-      ModificationsDB* mod_db = ModificationsDB::getInstance();
+      const ModificationsDB* mod_db = ModificationsDB::getInstance();
       if (exp.getCompounds().size()  + exp.getPeptides().size() > 0)
       {
         os << "  <CompoundList>" << "\n";

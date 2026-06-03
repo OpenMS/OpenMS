@@ -1842,7 +1842,7 @@ namespace OpenMS::Internal
           int i = hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1).toString().toInt();
           if (alpha_peptide)
           {
-            CrossLinksDB* xl_db = CrossLinksDB::getInstance();
+            const CrossLinksDB* xl_db = CrossLinksDB::getInstance();
             std::vector<String> mods;
             if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA) && hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA) == "N_TERM")
             {

@@ -1618,7 +1618,7 @@ namespace
     char residue = '\0',
     ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY)
   {
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
 
     return std::visit([&](auto&& arg) -> const ResidueModification* {
       using T = std::decay_t<decltype(arg)>;
