@@ -27,12 +27,20 @@ namespace OpenMS
       @brief OpenMS stores a central database of all residues in the ResidueDB.
       All (unmodified) residues are added to the database on construction.
       Modified residues get created and added if getModifiedResidue is called.
+
+      @note The database is immutable from a caller's perspective: @p getInstance()
+      returns a <tt>const</tt> pointer and every public accessor is @c const.
+      @p getModifiedResidue() does lazily create and cache modified residues, but
+      this is a transparent memoization (the same inputs always yield the same
+      result); the cache members are therefore declared @c mutable and the
+      mutation is internally synchronized (see the @c ResidueDB OpenMP critical
+      section). No public method changes the observable state of the singleton.
   */
   class OPENMS_DLLAPI ResidueDB
   {
 public:
     /// singleton
-    static ResidueDB* getInstance();
+    static const ResidueDB* getInstance();
 
     /** @name Constructors and Destructors
     */
@@ -61,8 +69,11 @@ public:
 
        The "base" residue is looked up in ModificationsDB using the modification name.
        The modified residue is added to the database if it doesn't exist yet.
+
+       @note Logically @c const: the lazily created modified residue is memoized
+       in the (mutable) cache; repeated calls return the same pointer.
     */
-    const Residue* getModifiedResidue(const String& name);
+    const Residue* getModifiedResidue(const String& name) const;
 
     /**
        @brief Returns a pointer to a modified residue given a residue and a modification name
@@ -72,7 +83,7 @@ public:
        @throw Exception::IllegalArgument if the residue was not found
        @throw Exception::InvalidValue if no matching modification was found (via ModificationsDB::getModification)
     */
-    const Residue* getModifiedResidue(const Residue* residue, const String& name);
+    const Residue* getModifiedResidue(const Residue* residue, const String& name) const;
 
     /**
        @brief Returns a pointer to a modified residue given a residue and a pointer to a modification from the ModificationsDB
@@ -82,7 +93,7 @@ public:
 
        @throw Exception::IllegalArgument if the residue was not found
     */
-    const Residue* getModifiedResidue(const Residue* residue, const ResidueModification* mod);
+    const Residue* getModifiedResidue(const Residue* residue, const ResidueModification* mod) const;
 
     /**
        @brief returns a set of all residues stored in this residue db
@@ -143,22 +154,24 @@ protected:
     /// creates and adds residues to a lookup table including the residue set
     void insertResidueAndAssociateWithResidueSet_(Residue* residue, const std::vector<String>& residue_sets);
 
-    /// add residue and add names to lookup
-    void addResidue_(Residue* residue);
+    /// lazily register a freshly created modified residue and its names in the cache
+    /// (logically const memoization; only the @c mutable cache members are touched)
+    void addModifiedResidue_(Residue* residue) const;
 
     /// adds names of single residue to the index
     void addResidueNames_(const Residue*);
 
     /// adds names of single modified residue to the index
-    void addModifiedResidueNames_(const Residue*);
-    
-    std::map<String, std::map<String, const Residue*> > residue_mod_names_;
+    void addModifiedResidueNames_(const Residue*) const;
+
+    /// cache of name -> modification-name -> modified residue (lazily filled by getModifiedResidue)
+    mutable std::map<String, std::map<String, const Residue*> > residue_mod_names_;
 
     /// all (unmodified) residues
     std::set<const Residue*> const_residues_;
 
-    /// all modified residues
-    std::set<const Residue*> const_modified_residues_;
+    /// all modified residues (lazily filled by getModifiedResidue)
+    mutable std::set<const Residue*> const_modified_residues_;
 
     std::set<String> residue_sets_;
 
