@@ -144,7 +144,14 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file: LC-MS raw data");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
     registerInputFile_("id", "<file>", "", "Input file: Metabolite identifications");
     setValidFormats_("id", ListUtils::create<String>("tsv"));
     registerOutputFile_("out", "<file>", "", "Output file: Features");
@@ -280,7 +287,7 @@ protected:
     PeakMap exp;
     FileHandler mzml;
     mzml.getOptions().addMSLevel(1);
-    mzml.loadExperiment(in, exp, {FileTypes::MZML});
+    mzml.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
     if (exp.empty() && !force)
     {
       OPENMS_LOG_ERROR << "Error: No MS1 scans in '"

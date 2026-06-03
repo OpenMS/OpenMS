@@ -134,7 +134,14 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file: spectra");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
 
     registerInputFile_("database", "<file>", "", "Input file: sequence database. Required unless 'digest' is set.", false);
     setValidFormats_("database", ListUtils::create<String>("fasta"));
@@ -984,7 +991,7 @@ protected:
     options.clearMSLevels();
     options.addMSLevel(2);
     f.setOptions(options);
-    f.loadExperiment(in_mzml, spectra, {FileTypes::MZML}, log_type_);
+    f.loadExperiment(in_mzml, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
     spectra.sortSpectra(true);
 
     // input file meta data:

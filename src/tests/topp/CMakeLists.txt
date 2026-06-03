@@ -3008,14 +3008,16 @@ set_tests_properties("TOPP_MultiplexResolver_4_out3" PROPERTIES DEPENDS "TOPP_Mu
 # INIUpdater:
 if(WITH_GUI AND HAS_XSERVER)
   add_test("TOPP_INIUpdater_1" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas -out ${TESTS_TEMP_DIR}/INIUpdater_1_noupdate.tmp.toppas)
-  add_test("TOPP_INIUpdater_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/INIUpdater_1_noupdate.tmp.toppas -in2 ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas -whitelist "version")
+  # 'supported_formats' whitelisted: FeatureFinderCentroided's list is build-conditional
+  # (WITH_THERMO_RAW adds *.raw) and cannot be pinned statically; this checks INI-update machinery.
+  add_test("TOPP_INIUpdater_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/INIUpdater_1_noupdate.tmp.toppas -in2 ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas -whitelist "version" "supported_formats")
   set_tests_properties("TOPP_INIUpdater_1_out" PROPERTIES DEPENDS "TOPP_INIUpdater_1")
 
   add_test("TOPP_INIUpdater_2" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_2_broken.toppas -out ${TESTS_TEMP_DIR}/INIUpdater_2_broken.tmp.toppas)
   set_tests_properties("TOPP_INIUpdater_2" PROPERTIES WILL_FAIL 1)
 
   add_test("TOPP_INIUpdater_3" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_3_old.toppas -out ${TESTS_TEMP_DIR}/INIUpdater_3_old.tmp.toppas)
-  add_test("TOPP_INIUpdater_3_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/INIUpdater_3_old.tmp.toppas -in2 ${DATA_DIR_TOPP}/INIUpdater_3_old_out.toppas -whitelist "version")
+  add_test("TOPP_INIUpdater_3_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/INIUpdater_3_old.tmp.toppas -in2 ${DATA_DIR_TOPP}/INIUpdater_3_old_out.toppas -whitelist "version" "supported_formats")
   set_tests_properties("TOPP_INIUpdater_3_out" PROPERTIES DEPENDS "TOPP_INIUpdater_3")
 endif()
 
@@ -4040,10 +4042,13 @@ set_tests_properties("TOPP_MassTraceExtractor_2_out_flat_json" PROPERTIES DEPEND
 # MassTraceExtractor test
 add_test("TOPP_MassTraceExtractor_3_flat_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_3.ini.flat.json -write_ini ${TESTS_TEMP_DIR}/MassTraceExtractor_3.ini)
 #add_test("TOPP_MassTraceExtractor_3_json_out" ${CMAKE_COMMAND} -E compare_files --ignore-eol ${DATA_DIR_TOPP}/MassTraceExtractor_3_expected.ini)
-add_test("TOPP_MassTraceExtractor_3_flat_json_out" ${DIFF} -whitelist "Version of the tool that generated this parameters file." -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_3.ini -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_3_expected.ini )
+# 'supported_formats' is whitelisted because the input format list is build-conditional
+# (WITH_THERMO_RAW adds *.raw), so it cannot be pinned in a static
+# reference. This test verifies JSON<->INI roundtrip serialization, not format registration.
+add_test("TOPP_MassTraceExtractor_3_flat_json_out" ${DIFF} -whitelist "Version of the tool that generated this parameters file." "supported_formats" -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_3.ini -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_3_expected.ini )
 set_tests_properties("TOPP_MassTraceExtractor_3_flat_json_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_3_flat_json")
 
 add_test("TOPP_MassTraceExtractor_3_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_3.ini.json -write_ini ${TESTS_TEMP_DIR}/MassTraceExtractor_3.ini)
 #add_test("TOPP_MassTraceExtractor_3_json_out" ${CMAKE_COMMAND} -E compare_files --ignore-eol ${DATA_DIR_TOPP}/MassTraceExtractor_3_expected.ini)
-add_test("TOPP_MassTraceExtractor_3_json_out" ${DIFF} -whitelist "Version of the tool that generated this parameters file." -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_3.ini -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_3_expected.ini )
+add_test("TOPP_MassTraceExtractor_3_json_out" ${DIFF} -whitelist "Version of the tool that generated this parameters file." "supported_formats" -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_3.ini -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_3_expected.ini )
 set_tests_properties("TOPP_MassTraceExtractor_3_json_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_3_json")

@@ -139,7 +139,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
     registerInputFile_("seeds", "<file>", "", "User specified seed list", false);
@@ -183,7 +187,7 @@ protected:
     f.getOptions() = options;
 
     PeakMap exp;
-    f.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
+    f.loadExperiment(in, exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
     exp.updateRanges();
 
     if (exp.getSpectra().empty())
