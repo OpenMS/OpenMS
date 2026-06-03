@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/IMAGING/IonImage.h>
 #include <OpenMS/IMAGING/MSImagingGeometry.h>
+#include <OpenMS/IMAGING/MSImagingRegion.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
@@ -139,6 +140,33 @@ namespace OpenMS
               the geometry's declared dimensions.
     */
     IonImage extractIonImage(double mz, double tolerance_ppm) const;
+
+    /**
+      @brief Extracts a bbox-cropped ion image for a single @p region.
+
+      Same windowing and per-pixel semantics as
+      extractIonImage(double, double), but restricted to the pixels that
+      belong to @p region (MSImagingRegion::contains) and returned in the
+      region's bounding-box frame: the result is getBBoxWidth() x
+      getBBoxHeight(), with region pixel (min_x, min_y) at local (0, 0).
+      Local placement uses MSImagingRegion::toLocalX / toLocalY.
+
+      Pixels of the region that have no acquired spectrum remain invalid;
+      region pixels with a spectrum but no peaks in the window are marked
+      valid with intensity 0. Pixels outside @p region are never written.
+
+      @param[in] mz             m/z center of the extraction window (>= 0).
+      @param[in] tolerance_ppm  Half-window width in ppm (>= 0).
+      @param[in] region         Region footprint to crop to.
+      @return Image sized to the region's bounding box.
+      @throws Exception::InvalidValue if @p mz or @p tolerance_ppm is
+              negative or non-finite, or if a region pixel references a
+              missing spectrum_index.
+      @throws Exception::IndexOverflow if a region pixel coordinate falls
+              outside the region's bounding box (cannot happen for pixels
+              returned by the membership test, but guarded for safety).
+    */
+    IonImage extractIonImage(double mz, double tolerance_ppm, const MSImagingRegion& region) const;
 
     /**
       @brief Validates that every pixel references an in-range spectrum_index.

@@ -14,6 +14,7 @@
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/IMAGING/MSImagingRegion.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -120,6 +121,45 @@ START_SECTION((const std::vector<Pixel>& getPixels() const))
   TEST_EQUAL(pixels[0].x, 2u); TEST_EQUAL(pixels[0].y, 0u); TEST_EQUAL(pixels[0].spectrum_index, 10u)
   TEST_EQUAL(pixels[1].x, 0u); TEST_EQUAL(pixels[1].y, 1u); TEST_EQUAL(pixels[1].spectrum_index, 20u)
   TEST_EQUAL(pixels[2].x, 1u); TEST_EQUAL(pixels[2].y, 1u); TEST_EQUAL(pixels[2].spectrum_index, 30u)
+}
+END_SECTION
+
+START_SECTION((std::vector<Pixel> getPixelsInRegion(const MSImagingRegion& region) const))
+{
+  // grid of pixels at various coordinates
+  MSImagingGeometry g;
+  g.addPixel(0, 0, 100);
+  g.addPixel(2, 1, 101);
+  g.addPixel(3, 1, 102);
+  g.addPixel(4, 4, 103);
+  g.addPixel(3, 3, 104);
+
+  // Rectangle region [2,4] x [1,3] should pick up (2,1), (3,1), (3,3) in insertion order.
+  MSImagingRegion rect = MSImagingRegion::rectangle(1, "rect", 2, 1, 4, 3);
+  std::vector<MSImagingGeometry::Pixel> in_rect = g.getPixelsInRegion(rect);
+  TEST_EQUAL(in_rect.size(), 3u)
+  TEST_EQUAL(in_rect[0].x, 2u); TEST_EQUAL(in_rect[0].y, 1u); TEST_EQUAL(in_rect[0].spectrum_index, 101u)
+  TEST_EQUAL(in_rect[1].x, 3u); TEST_EQUAL(in_rect[1].y, 1u); TEST_EQUAL(in_rect[1].spectrum_index, 102u)
+  TEST_EQUAL(in_rect[2].x, 3u); TEST_EQUAL(in_rect[2].y, 3u); TEST_EQUAL(in_rect[2].spectrum_index, 104u)
+
+  // Mask region: only the set cells count, even when a pixel sits on an unset cell.
+  //   3x3 mask, origin (2,1):
+  //     row 0 (y=1): 1 1 0  -> (2,1),(3,1) set; (4,1) unset
+  //     row 1 (y=2): 0 0 0
+  //     row 2 (y=3): 0 1 0  -> (3,3) set
+  std::vector<bool> mask = {true,  true,  false,
+                            false, false, false,
+                            false, true,  false};
+  MSImagingRegion mreg = MSImagingRegion::fromMask(2, "mask", 2, 1, 3, 3, mask);
+  std::vector<MSImagingGeometry::Pixel> in_mask = g.getPixelsInRegion(mreg);
+  TEST_EQUAL(in_mask.size(), 3u)
+  TEST_EQUAL(in_mask[0].spectrum_index, 101u) // (2,1)
+  TEST_EQUAL(in_mask[1].spectrum_index, 102u) // (3,1)
+  TEST_EQUAL(in_mask[2].spectrum_index, 104u) // (3,3)
+
+  // Region overlapping no pixels yields an empty result.
+  MSImagingRegion empty = MSImagingRegion::rectangle(3, "empty", 10, 10, 12, 12);
+  TEST_EQUAL(g.getPixelsInRegion(empty).empty(), true)
 }
 END_SECTION
 

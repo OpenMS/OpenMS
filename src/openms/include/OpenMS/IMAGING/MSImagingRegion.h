@@ -30,12 +30,14 @@ namespace OpenMS
       - @c Mask: an arbitrary bitmask. The bounding box is stored in global
         coordinates; the bitmask itself is stored row-major and
         @b bbox-local for compactness (mirrors the IonImage mask idiom).
-        Local coordinates are never exposed.
 
     Coordinates are zero-based and global throughout the public API
-    (contains() and the bounding-box accessors). Construct via the
-    rectangle() / fromMask() factories; the default constructor yields an
-    empty 0..0 Rectangle.
+    (contains() and the bounding-box accessors). For per-region processing
+    that works on a bbox-cropped buffer (e.g. a region-local IonImage), the
+    toLocalX() / toLocalY() / localIndex() helpers translate a global pixel
+    into the region's bbox-local frame. Construct via the rectangle() /
+    fromMask() factories; the default constructor yields an empty 0..0
+    Rectangle.
   */
   class OPENMS_DLLAPI MSImagingRegion final
   {
@@ -139,6 +141,36 @@ namespace OpenMS
       @return Rectangle: bbox_width * bbox_height. Mask: number of set bits.
     */
     Size area() const;
+
+    /**
+      @brief Translates a global column to the region's bbox-local frame.
+      @param[in] x Global column index (must lie within the bounding box).
+      @return @p x - min_x (local column, zero-based at the bbox left edge).
+      @throws Exception::IndexOverflow if @p x is outside [min_x, max_x].
+    */
+    UInt toLocalX(UInt x) const;
+
+    /**
+      @brief Translates a global row to the region's bbox-local frame.
+      @param[in] y Global row index (must lie within the bounding box).
+      @return @p y - min_y (local row, zero-based at the bbox top edge).
+      @throws Exception::IndexOverflow if @p y is outside [min_y, max_y].
+    */
+    UInt toLocalY(UInt y) const;
+
+    /**
+      @brief Row-major bbox-local index of the global pixel (@p x, @p y).
+
+      Matches the indexing used by getMask() and by a bbox-cropped IonImage:
+      index = toLocalY(y) * bbox_width + toLocalX(x). Membership in a Mask
+      region is @e not consulted; only the bounding box is checked.
+
+      @param[in] x Global column index (must lie within the bounding box).
+      @param[in] y Global row index (must lie within the bounding box).
+      @return Local linear index in [0, bbox_width * bbox_height).
+      @throws Exception::IndexOverflow if (@p x, @p y) is outside the bounding box.
+    */
+    Size localIndex(UInt x, UInt y) const;
 
   private:
     Shape shape_ = Shape::Rectangle;

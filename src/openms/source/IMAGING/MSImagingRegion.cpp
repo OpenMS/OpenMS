@@ -158,4 +158,30 @@ namespace OpenMS
     return count;
   }
 
+  UInt MSImagingRegion::toLocalX(UInt x) const
+  {
+    if (x < min_x_ || x > max_x_)
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, x, getBBoxWidth());
+    }
+    return x - min_x_;
+  }
+
+  UInt MSImagingRegion::toLocalY(UInt y) const
+  {
+    if (y < min_y_ || y > max_y_)
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, y, getBBoxHeight());
+    }
+    return y - min_y_;
+  }
+
+  Size MSImagingRegion::localIndex(UInt x, UInt y) const
+  {
+    // toLocalX / toLocalY perform the bounding-box checks.
+    const Size lx = toLocalX(x);
+    const Size ly = toLocalY(y);
+    return ly * static_cast<Size>(getBBoxWidth()) + lx;
+  }
+
 } // namespace OpenMS

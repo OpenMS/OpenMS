@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/IMAGING/MSImagingRegion.h>
 
 #include <unordered_map>
 #include <vector>
@@ -104,6 +105,19 @@ namespace OpenMS
     /// @brief Pixels in insertion order.
     /// @return Reference to the internal pixel list.
     const std::vector<Pixel>& getPixels() const;
+
+    /**
+      @brief Pixels whose coordinates fall inside @p region, in insertion order.
+
+      Applies the region's membership test (MSImagingRegion::contains) to the
+      pixel set. Each returned Pixel carries its spectrum_index, so this is
+      the entry point for per-region spectrum access and per-region
+      processing.
+
+      @param[in] region Region footprint to filter by.
+      @return Copy of the matching pixels (empty if none overlap the region).
+    */
+    std::vector<Pixel> getPixelsInRegion(const MSImagingRegion& region) const;
 
     /// @brief Total number of pixels with a bound spectrum.
     /// @return Size of the pixel list.

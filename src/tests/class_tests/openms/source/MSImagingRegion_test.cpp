@@ -202,5 +202,54 @@ START_SECTION((Size area() const))
 }
 END_SECTION
 
+START_SECTION((UInt toLocalX(UInt x) const))
+{
+  MSImagingRegion r = MSImagingRegion::rectangle(1, "r", 2, 3, 5, 8);
+  TEST_EQUAL(r.toLocalX(2), 0u)  // left edge
+  TEST_EQUAL(r.toLocalX(5), 3u)  // right edge
+  TEST_EQUAL(r.toLocalX(4), 2u)  // interior
+  // out of bbox in x rejected
+  TEST_EXCEPTION(Exception::IndexOverflow, r.toLocalX(1))
+  TEST_EXCEPTION(Exception::IndexOverflow, r.toLocalX(6))
+}
+END_SECTION
+
+START_SECTION((UInt toLocalY(UInt y) const))
+{
+  MSImagingRegion r = MSImagingRegion::rectangle(1, "r", 2, 3, 5, 8);
+  TEST_EQUAL(r.toLocalY(3), 0u)  // top edge
+  TEST_EQUAL(r.toLocalY(8), 5u)  // bottom edge
+  TEST_EQUAL(r.toLocalY(5), 2u)  // interior
+  // out of bbox in y rejected
+  TEST_EXCEPTION(Exception::IndexOverflow, r.toLocalY(2))
+  TEST_EXCEPTION(Exception::IndexOverflow, r.toLocalY(9))
+}
+END_SECTION
+
+START_SECTION((Size localIndex(UInt x, UInt y) const))
+{
+  // bbox 4 wide (x in [2,5]) x 6 tall (y in [3,8]); index = ly * 4 + lx
+  MSImagingRegion r = MSImagingRegion::rectangle(1, "r", 2, 3, 5, 8);
+  TEST_EQUAL(r.localIndex(2, 3), 0u)   // local (0,0)
+  TEST_EQUAL(r.localIndex(5, 3), 3u)   // local (3,0)
+  TEST_EQUAL(r.localIndex(2, 4), 4u)   // local (0,1)
+  TEST_EQUAL(r.localIndex(5, 8), 23u)  // local (3,5) -> 5*4+3
+  // index matches getMask() indexing for a Mask region
+  std::vector<bool> mask = {true, false, true,
+                            false, true, false};
+  MSImagingRegion m = MSImagingRegion::fromMask(2, "m", 10, 20, 3, 2, mask);
+  TEST_EQUAL(m.localIndex(10, 20), 0u)  // set bit
+  TEST_EQUAL(m.localIndex(12, 20), 2u)  // set bit
+  TEST_EQUAL(m.localIndex(11, 21), 4u)  // set bit (1*3+1)
+  TEST_EQUAL(m.getMask()[m.localIndex(11, 21)], true)
+  TEST_EQUAL(m.getMask()[m.localIndex(11, 20)], false)
+  // localIndex ignores membership: an unset Mask cell inside the bbox still maps
+  TEST_EQUAL(m.localIndex(10, 21), 3u)
+  // out of bbox rejected (either dimension)
+  TEST_EXCEPTION(Exception::IndexOverflow, m.localIndex(9, 20))
+  TEST_EXCEPTION(Exception::IndexOverflow, m.localIndex(10, 22))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 END_TEST

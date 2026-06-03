@@ -14,6 +14,7 @@
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/IMAGING/MSImagingRegion.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
@@ -242,6 +243,88 @@ START_SECTION((IonImage extractIonImage(double mz, double tolerance_ppm) const))
   TEST_EQUAL(empty_img.getHeight(), 0u)
   TEST_REAL_SIMILAR(empty_img.getMzRange().getMinMZ(), 499.95)
   TEST_REAL_SIMILAR(empty_img.getMzRange().getMaxMZ(), 500.05)
+}
+END_SECTION
+
+START_SECTION((IonImage extractIonImage(double mz, double tolerance_ppm, const MSImagingRegion& region) const))
+{
+  // Dedicated fixture with pixels at a non-zero offset to exercise local
+  // coordinate translation (region bbox origin at (2,3)).
+  MSExperiment exp;
+  exp.addSpectrum(makeSpec({{500.0, 100.0}})); // 0 -> (2,3)
+  exp.addSpectrum(makeSpec({{500.0, 50.0}}));  // 1 -> (3,3)
+  exp.addSpectrum(makeSpec({{500.0, 25.0}}));  // 2 -> (2,4)
+  exp.addSpectrum(makeSpec({{490.0, 5.0}}));   // 3 -> (4,4), outside any region below
+
+  MSImagingGeometry geom;
+  geom.setDimensions(6, 6);
+  geom.addPixel(2, 3, 0);
+  geom.addPixel(3, 3, 1);
+  geom.addPixel(2, 4, 2);
+  geom.addPixel(4, 4, 3);
+
+  MSImagingExperiment mie;
+  mie.setMSExperiment(std::move(exp));
+  mie.setGeometry(std::move(geom));
+
+  // Rectangle region [2,3] x [3,4]: bbox 2x2, origin (2,3).
+  MSImagingRegion rect = MSImagingRegion::rectangle(1, "rect", 2, 3, 3, 4);
+  IonImage img = mie.extractIonImage(500.0, 200.0, rect); // window [499.9, 500.1]
+
+  // image is cropped to the region's bounding box
+  TEST_EQUAL(img.getWidth(), 2u)
+  TEST_EQUAL(img.getHeight(), 2u)
+
+  // global (2,3) -> local (0,0)
+  TEST_EQUAL(img.hasPixel(0, 0), true)
+  TEST_REAL_SIMILAR(img.getIntensity(0, 0), 100.0)
+  // global (3,3) -> local (1,0)
+  TEST_EQUAL(img.hasPixel(1, 0), true)
+  TEST_REAL_SIMILAR(img.getIntensity(1, 0), 50.0)
+  // global (2,4) -> local (0,1)
+  TEST_EQUAL(img.hasPixel(0, 1), true)
+  TEST_REAL_SIMILAR(img.getIntensity(0, 1), 25.0)
+  // global (3,4) -> local (1,1): no pixel acquired there -> invalid
+  TEST_EQUAL(img.hasPixel(1, 1), false)
+
+  TEST_REAL_SIMILAR(img.getMzRange().getMinMZ(), 499.9)
+  TEST_REAL_SIMILAR(img.getMzRange().getMaxMZ(), 500.1)
+
+  // Mask region over the same bbox: drop (3,3) by leaving its cell unset.
+  //   row 0 (y=3): (2,3)=1 (3,3)=0
+  //   row 1 (y=4): (2,4)=1 (3,4)=1
+  std::vector<bool> mask = {true, false,
+                            true, true};
+  MSImagingRegion mreg = MSImagingRegion::fromMask(2, "mask", 2, 3, 2, 2, mask);
+  IonImage mimg = mie.extractIonImage(500.0, 200.0, mreg);
+  TEST_EQUAL(mimg.getWidth(), 2u)
+  TEST_EQUAL(mimg.getHeight(), 2u)
+  TEST_EQUAL(mimg.hasPixel(0, 0), true)              // (2,3) in mask
+  TEST_REAL_SIMILAR(mimg.getIntensity(0, 0), 100.0)
+  TEST_EQUAL(mimg.hasPixel(1, 0), false)             // (3,3) excluded by mask
+  TEST_EQUAL(mimg.hasPixel(0, 1), true)              // (2,4) in mask
+  TEST_REAL_SIMILAR(mimg.getIntensity(0, 1), 25.0)
+  TEST_EQUAL(mimg.hasPixel(1, 1), false)             // (3,4) in mask but no pixel acquired
+
+  // region pixel with a spectrum but no peaks in the window -> valid, intensity 0
+  MSImagingRegion far_rect = MSImagingRegion::rectangle(3, "far", 4, 4, 4, 4);
+  IonImage far = mie.extractIonImage(500.0, 200.0, far_rect);
+  TEST_EQUAL(far.getWidth(), 1u)
+  TEST_EQUAL(far.getHeight(), 1u)
+  TEST_EQUAL(far.hasPixel(0, 0), true)               // (4,4) present
+  TEST_REAL_SIMILAR(far.getIntensity(0, 0), 0.0)     // 490 outside window
+
+  // region overlapping no acquired pixels -> sized to bbox, all invalid
+  MSImagingRegion none = MSImagingRegion::rectangle(4, "none", 0, 0, 1, 1);
+  IonImage none_img = mie.extractIonImage(500.0, 200.0, none);
+  TEST_EQUAL(none_img.getWidth(), 2u)
+  TEST_EQUAL(none_img.getHeight(), 2u)
+  TEST_EQUAL(none_img.hasPixel(0, 0), false)
+
+  // invalid parameters rejected
+  TEST_EXCEPTION(Exception::InvalidValue, mie.extractIonImage(-1.0, 100.0, rect))
+  TEST_EXCEPTION(Exception::InvalidValue, mie.extractIonImage(500.0, -1.0, rect))
+  TEST_EXCEPTION(Exception::InvalidValue, mie.extractIonImage(std::nan(""), 100.0, rect))
 }
 END_SECTION
 

@@ -93,6 +93,19 @@ namespace OpenMS
     return pixels_;
   }
 
+  std::vector<MSImagingGeometry::Pixel> MSImagingGeometry::getPixelsInRegion(const MSImagingRegion& region) const
+  {
+    std::vector<Pixel> result;
+    for (const Pixel& p : pixels_)
+    {
+      if (region.contains(p.x, p.y))
+      {
+        result.push_back(p);
+      }
+    }
+    return result;
+  }
+
   Size MSImagingGeometry::getNumberOfPixels() const
   {
     return pixels_.size();
