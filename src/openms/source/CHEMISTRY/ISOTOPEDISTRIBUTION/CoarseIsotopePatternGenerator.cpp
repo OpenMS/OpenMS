@@ -56,6 +56,21 @@ namespace OpenMS
     return round_masses_;
   }
 
+  void CoarseIsotopePatternGenerator::setIsotopeOverride(const Element* element, const IsotopeDistribution& isotopes)
+  {
+    isotope_overrides_[element] = isotopes;
+  }
+
+  void CoarseIsotopePatternGenerator::clearIsotopeOverrides()
+  {
+    isotope_overrides_.clear();
+  }
+
+  const std::map<const Element*, IsotopeDistribution>& CoarseIsotopePatternGenerator::getIsotopeOverrides() const
+  {
+    return isotope_overrides_;
+  }
+
   IsotopeDistribution CoarseIsotopePatternGenerator::run(const EmpiricalFormula& formula) const
   {
     if (formula.getCharge() < 0)
@@ -64,18 +79,28 @@ namespace OpenMS
                                     "CoarseIsotopePatternGenerator does not support negative charges (formula: " + formula.toString() + ").");
     }
 
+    // Use a caller-supplied isotope distribution for an element if one was registered
+    // via setIsotopeOverride(), otherwise fall back to the element's natural distribution
+    // from the (immutable) ElementDB. This keeps labeled-pattern computations local and
+    // thread-safe instead of mutating the shared global element.
+    auto isotopesOf = [this](const Element* element) -> const IsotopeDistribution&
+    {
+      auto it = isotope_overrides_.find(element);
+      return it != isotope_overrides_.end() ? it->second : element->getIsotopeDistribution();
+    };
+
     IsotopeDistribution result;
 
     auto it = formula.begin();
     for (; it != formula.end(); ++it)
     {
-      IsotopeDistribution tmp = it->first->getIsotopeDistribution();
+      const IsotopeDistribution& tmp = isotopesOf(it->first);
       result.set(convolve(result.getContainer(),
                           convolvePow_(tmp.getContainer(), it->second)));
     }
-    
+
     // charged adducts are assumed to be H+, but are not part of the actual formula, yet are used in EmpiricalFormula::getMonoWeight();
-    auto proton_charge = ElementDB::getInstance()->getElement("H")->getIsotopeDistribution();
+    const IsotopeDistribution& proton_charge = isotopesOf(ElementDB::getInstance()->getElement("H"));
     result.set(convolve(result.getContainer(), convolvePow_(proton_charge.getContainer(), formula.getCharge())));
 
     // replace atomic numbers with masses.
