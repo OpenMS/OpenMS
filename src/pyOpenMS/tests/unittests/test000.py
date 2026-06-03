@@ -6492,11 +6492,11 @@ def testProteaseDB():
 
 @report
 def testElementDB():
-    edb = pyopenms.ElementDB()
+    edb = pyopenms.ElementDB.getInstance()
     del edb
 
-    # create a second instance of ElementDB without anything bad happening
-    edb = pyopenms.ElementDB()
+    # the singleton always hands back the same immutable instance
+    edb = pyopenms.ElementDB.getInstance()
 
     assert edb.hasElement(16)
     edb.hasElement("O")
@@ -6512,27 +6512,6 @@ def testElementDB():
     assert e2.getName() == "Oxygen"
     assert e2.getSymbol() == "O"
     assert e2.getIsotopeDistribution()
-
-    # assume we discovered a new element
-    e2 = edb.addElement(b"NewElement", b"NE", 300, {400 : 1.0}, {400 : 400.1}, False)
-    e2 = edb.getElement("NE")
-    assert e2.getName() == "NewElement"
-
-    # changing existing elements in tests might have side effects so we define a new element
-    # add first new element
-    e2 = edb.addElement(b"Kryptonite", b"@", 500, {999 : 0.7, 1000 : 0.3}, {999 : 999.01, 1000 : 1000.01}, False)
-    e2 = edb.getElement("@")
-    assert e2.getName() == "Kryptonite"
-    assert e2.getIsotopeDistribution()
-    assert len(e2.getIsotopeDistribution().getContainer()) == 2
-    assert abs(e2.getIsotopeDistribution().getContainer()[1].getIntensity() - 0.3) < 1e-5
-    # replace element
-    e2 = edb.addElement(b"Kryptonite", b"@", 500, {9999 : 1.0}, {9999 : 9999.1}, True)
-    e2 = edb.getElement("@")
-    assert e2.getName() == "Kryptonite"
-    assert e2.getIsotopeDistribution()
-    assert len(e2.getIsotopeDistribution().getContainer()) == 1
-    assert abs(e2.getIsotopeDistribution().getContainer()[0].getIntensity() - 1.0) < 1e-5
     # assert e == e2
 
     #  not yet implemented

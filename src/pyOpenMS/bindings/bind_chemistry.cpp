@@ -480,13 +480,7 @@ The elements are initialized with data from IUPAC tables.
             return self.hasElement(atomic_number);
         }, "atomic_number"_a, "Check if element exists by atomic number")
 
-        .def("addElement", [](OpenMS::ElementDB& self, const std::string& name, const std::string& symbol,
-                unsigned int an, const std::map<unsigned int, double>& abundance,
-                const std::map<unsigned int, double>& mass, bool replace_existing) {
-            self.addElement(name, symbol, an, abundance, mass, replace_existing);
-        }, "name"_a, "symbol"_a, "atomic_number"_a, "abundance"_a, "mass"_a, "replace_existing"_a,
-        "Add a new element to the database")
-        .def_static("getInstance", []() -> OpenMS::ElementDB* { return OpenMS::ElementDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        .def_static("getInstance", []() -> const OpenMS::ElementDB* { return OpenMS::ElementDB::getInstance(); }, nb::rv_policy::reference, "Returns the (immutable) singleton instance")
         ;
 
     // -----------------------------------------------------------------------
