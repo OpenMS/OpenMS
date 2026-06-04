@@ -805,6 +805,122 @@ START_SECTION(([EXTRA] TMT 32plex support)){
 }
 END_SECTION
 
+// SPS-MS3 MS-level / activation handling (see OpenMS issue #7165):
+// Build a synthetic SPS-MS3 TMT10 experiment where the reporter ions reside in the MS3 scan.
+//   MS1 -> MS2 (CID, no reporter ions) -> MS3 (HCD/beam-type CID, with TMT10 reporter ions)
+// The highest MS level present (MS3) must always be used for quantification. If the user selects an
+// activation method that only matches the MS2 scans (e.g. CID), the tool must fail loudly instead of
+// silently quantifying the MS2 scan (which would yield nonsense for SPS-MS3).
+START_SECTION(([EXTRA] SPS-MS3 activation/MS-level handling (issue #7165)))
+{
+  TMTTenPlexQuantitationMethod tmt10plex;
+
+  // MS1 precursor scan
+  MSSpectrum ms1;
+  ms1.setMSLevel(1);
+  ms1.setRT(100.0);
+  ms1.setNativeID("scan=1");
+  { Peak1D p; p.setMZ(500.0); p.setIntensity(1.0e6); ms1.push_back(p); }
+
+  // MS2 scan: trap-type CID, used only for identification, no reporter ions
+  MSSpectrum ms2;
+  ms2.setMSLevel(2);
+  ms2.setRT(100.1);
+  ms2.setNativeID("scan=2");
+  {
+    Precursor prec;
+    prec.setMZ(500.0);
+    prec.setCharge(2);
+    prec.setActivationMethods({Precursor::ActivationMethod::CID});
+    ms2.setPrecursors({prec});
+  }
+  { Peak1D p; p.setMZ(650.0); p.setIntensity(5000.0); ms2.push_back(p); }
+
+  // MS3 scan: beam-type CID (HCD), carries the TMT10 reporter ions
+  MSSpectrum ms3;
+  ms3.setMSLevel(3);
+  ms3.setRT(100.2);
+  ms3.setNativeID("scan=3");
+  {
+    Precursor prec;
+    prec.setMZ(650.0);
+    prec.setCharge(0); // skip purity computation
+    prec.setActivationMethods({Precursor::ActivationMethod::HCD});
+    ms3.setPrecursors({prec});
+  }
+  std::vector<double> ms3_intensities;
+  for (const auto& ch : tmt10plex.getChannelInformation())
+  {
+    Peak1D p;
+    p.setMZ(ch.center);
+    p.setIntensity(1000.0 * (ms3_intensities.size() + 1));
+    ms3.push_back(p);
+    ms3_intensities.push_back(p.getIntensity());
+  }
+  ms3.sortByPosition();
+
+  PeakMap exp;
+  exp.addSpectrum(ms1);
+  exp.addSpectrum(ms2);
+  exp.addSpectrum(ms3);
+  exp.sortSpectra(true);
+
+  // (1) Selecting CID matches only the MS2 scans, while the quantification level (MS3) has none ->
+  //     must throw instead of silently quantifying MS2.
+  {
+    IsobaricChannelExtractor ice(&tmt10plex);
+    Param p = ice.getParameters();
+    p.setValue("select_activation", "Collision-induced dissociation");
+    p.setValue("reporter_mass_shift", 0.003);
+    ice.setParameters(p);
+
+    ConsensusMap cm_out;
+    TEST_EXCEPTION(Exception::InvalidParameter, ice.extractChannels(exp, cm_out))
+  }
+
+  // (2) Selecting the matching activation (HCD) quantifies the MS3 scan correctly.
+  {
+    IsobaricChannelExtractor ice(&tmt10plex);
+    Param p = ice.getParameters();
+    p.setValue("select_activation", "beam-type collision-induced dissociation");
+    p.setValue("reporter_mass_shift", 0.003);
+    ice.setParameters(p);
+
+    ConsensusMap cm_out;
+    ice.extractChannels(exp, cm_out);
+
+    TEST_EQUAL(cm_out.size(), 1)
+    ABORT_IF(cm_out.size() != 1)
+    TEST_EQUAL(cm_out[0].getMetaValue("scan_id"), "scan=3")    // quantified on MS3
+    TEST_EQUAL(cm_out[0].getMetaValue("id_scan_id"), "scan=2") // identification from MS2
+    TEST_EQUAL(cm_out[0].size(), tmt10plex.getNumberOfChannels())
+    ABORT_IF(cm_out[0].size() != tmt10plex.getNumberOfChannels())
+    ConsensusFeature::iterator cf_it = cm_out[0].begin();
+    for (Size i = 0; i < ms3_intensities.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(cf_it->getIntensity(), ms3_intensities[i])
+      ++cf_it;
+    }
+  }
+
+  // (3) Disabling activation filtering ('any') also quantifies on the highest level present (MS3).
+  {
+    IsobaricChannelExtractor ice(&tmt10plex);
+    Param p = ice.getParameters();
+    p.setValue("select_activation", "any");
+    p.setValue("reporter_mass_shift", 0.003);
+    ice.setParameters(p);
+
+    ConsensusMap cm_out;
+    ice.extractChannels(exp, cm_out);
+
+    TEST_EQUAL(cm_out.size(), 1)
+    ABORT_IF(cm_out.size() != 1)
+    TEST_EQUAL(cm_out[0].getMetaValue("scan_id"), "scan=3")
+  }
+}
+END_SECTION
+
 delete q_method;
 
 /////////////////////////////////////////////////////////////

@@ -64,7 +64,10 @@ This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 1
 Note: TMT 32-plex and 35-plex default to an identity correction matrix (no isotope correction) until lot-specific values are provided via the correction_matrix parameter.
 It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
 in which each consensus feature represents one relevant MSn scan (e.g. HCD; see parameters @p select_activation and @p min_precursor_intensity).
-The MS level for quantification is chosen automatically, i.e. if MS3 is present, MS2 will be ignored.
+The MS level for quantification is chosen automatically, i.e. the highest MS level present is used (if MS3 is present, e.g. for SPS-MS3, MS2 will be ignored).
+The @p select_activation filter is only applied within that quantification level. If MS3 scans are present but none of them match @p select_activation
+(e.g. setting CID while the MS3 reporter scans are HCD/"beam-type CID"), the tool fails with an error instead of silently quantifying the MS2 scans.
+Set @p select_activation to "auto" (HCD/HCID) or "any" (disable filtering) if in doubt.
 For intensity, the closest non-zero m/z signal to the theoretical position is taken as reporter ion abundance.
 The position (RT, m/z) of the consensus centroid is the precursor position in MS1 (from the MS2 spectrum);
 the consensus sub-elements correspond to the theoretical channel m/z (with m/z values of 113-121 Th for iTRAQ and 126-131 Th for TMT, respectively).

@@ -85,8 +85,10 @@ using namespace std;
 
   This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, and 18-plex and higher labeling methods.
   It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
-  in which each consensus feature represents one relevant MSn scan (e.g. HCD; see parameters @p select_activation and @p min_precursor_intensity).
-  The MS level for quantification is chosen automatically, i.e. if MS3 is present, MS2 will be ignored.
+  in which each consensus feature represents one identified PSM together with its reporter ions.
+  The MS level for quantification is chosen automatically per PSM: if MS3 is present, the MS3 product spectrum of the identifying MS2 scan is used (SPS-MS3), otherwise the MS2 scan itself.
+  Unlike @ref TOPP_IsobaricAnalyzer, this tool does NOT filter quantification scans by activation method (@p extraction:select_activation is ignored),
+  because SPS-MS3 reporter scans are frequently labelled as plain CID rather than HCD; selection is therefore based on the MS-level structure alone.
   For intensity, the closest non-zero m/z signal to the theoretical position is taken as reporter ion abundance.
   The position (RT, m/z) of the consensus centroid is the precursor position in MS1 (from the MS2 spectrum);
   the consensus sub-elements correspond to the theoretical channel m/z (with m/z values of 113-121 Th for iTRAQ and 126-131 Th for TMT, respectively).
@@ -488,6 +490,23 @@ protected:
     IsobaricChannelExtractor channel_extractor(quant_method.get());
     channel_extractor.setParameters(extract_param);
     double min_reporter_intensity = channel_extractor.getParameters().getValue("min_reporter_intensity");
+
+    // IsobaricWorkflow selects the quantification spectrum per identified PSM purely by MS level
+    // (the MS3 product spectrum if MS3 is present, otherwise the identifying MS2 scan). It does NOT
+    // filter the quantification scans by activation method: for SPS-MS3 the MS3 reporter scans are
+    // frequently labelled as plain CID rather than HCD, so an activation filter would wrongly discard
+    // valid reporter scans. If the user explicitly requested a concrete activation method, warn that it
+    // is ignored here, so the behaviour is not silently different from IsobaricAnalyzer. See issue #7165.
+    {
+      const String sel_act = channel_extractor.getParameters().getValue("select_activation").toString();
+      if (!sel_act.empty() && sel_act != "any" && sel_act != "auto")
+      {
+        OPENMS_LOG_WARN << "Parameter 'extraction:select_activation' is set to '" << sel_act
+                        << "', but IsobaricWorkflow chooses the quantification spectrum automatically by MS level "
+                        << "(MS3 if present, otherwise MS2) and does not filter by activation method. "
+                        << "This setting will be ignored." << std::endl;
+      }
+    }
 
     // TODO since I am mostly using the internal classes IsobaricChannelCorrector and IsobaricNormalizer (if at all),
     //  I should only expose their parameters and only init their objects here.
