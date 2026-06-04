@@ -120,6 +120,12 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const)){
   for (Size i = 0; i < m.rows(); ++i) col0 += m(i, 0);
   TEST_REAL_SIMILAR(col0, 1.0)
 
+  // a deuterated channel (127D, index 3) uses its 14-column row directly: it loses
+  // 0.82 + 0.30 + 8.71 + 0.33 + 0.26 = 10.42% to impurities (self = 0.8958) and its
+  // +13C share (8.71%) leaks into 128CD (channel index 7).
+  TEST_REAL_SIMILAR(m(3,3), 0.8958)
+  TEST_REAL_SIMILAR(m(7,3), 0.0871)
+
   // the default is no longer an identity matrix
   Size off_diagonal_nonzero = 0;
   for (Size i = 0; i < m.rows(); ++i)
@@ -128,9 +134,10 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const)){
   TEST_EQUAL(off_diagonal_nonzero > 0, true)
 
   // a user-supplied all-NA correction matrix is honored and falls back to the identity
+  // (16 non-deuterated rows with 8 columns + 16 deuterated rows with 14 columns)
   Param p = quant_meth.getParameters();
-  std::vector<std::string> na_correction(32, "NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA");
-  p.setValue("correction_matrix", na_correction);
+  p.setValue("correction_matrix", std::vector<std::string>(16, "NA/NA/NA/NA/NA/NA/NA/NA"));
+  p.setValue("correction_matrix_deuterated", std::vector<std::string>(16, "NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA"));
   quant_meth.setParameters(p);
   Matrix<double> id = quant_meth.getIsotopeCorrectionMatrix();
   for (Size i = 0; i < id.rows(); ++i)
