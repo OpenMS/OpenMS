@@ -131,6 +131,16 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const)){
     for (Size j = 0; j < m.cols(); ++j)
       if (i != j && m(i, j) > 0.0) ++off_diagonal_nonzero;
   TEST_EQUAL(off_diagonal_nonzero > 0, true)
+
+  // a user-supplied all-NA correction matrix is honored and falls back to the identity
+  Param p = quant_meth.getParameters();
+  std::vector<std::string> na_correction(35, "NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA");
+  p.setValue("correction_matrix", na_correction);
+  quant_meth.setParameters(p);
+  Matrix<double> id = quant_meth.getIsotopeCorrectionMatrix();
+  for (Size i = 0; i < id.rows(); ++i)
+    for (Size j = 0; j < id.cols(); ++j)
+      TEST_REAL_SIMILAR(id(i,j), (i == j) ? 1.0 : 0.0)
 }
 END_SECTION
 

@@ -33,9 +33,9 @@ namespace OpenMS{
     // Channel adjacency topology: maps each channel to its neighbors in mass space
     // for isotope correction. Each row has 14 entries matching the 14-column correction
     // matrix format. Values are channel indices (-1 = no neighbor at that offset).
-    // With the default all-NA correction_matrix, no correction is applied regardless
-    // of these values. Users supplying calibrated correction percentages need this
-    // topology to route corrections to the correct target channels.
+    // This topology routes each channel's isotope-impurity shares to the correct target
+    // channels. The shipped default correction_matrix holds the CoA-derived percentages;
+    // supplying an all-NA correction_matrix falls back to the identity (no correction).
     static const std::array<std::array<int, 14>, 32> interaction_vector = {{
                                         {{ -1, -1, -1, -1, -1, -1, -1,  1,  2,  3,  4,  6,  5,  7 }},
                                         {{ -1, -1, -1, -1, -1, -1,  0, -1,  4,  6, -1, -1,  8, 10 }},
