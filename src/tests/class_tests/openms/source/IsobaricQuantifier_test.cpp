@@ -108,8 +108,9 @@ START_SECTION(([EXTRA] TMT 32plex isotope correction matrix in quantify))
 
     Param p = tmt32.getParameters();
     // a user-supplied all-NA correction matrix must be honored and yield the identity
-    std::vector<std::string> na_correction(32, "NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA");
-    p.setValue("correction_matrix", na_correction);
+    // (16 non-deuterated rows with 8 columns + 16 deuterated rows with 14 columns)
+    p.setValue("correction_matrix", std::vector<std::string>(16, "NA/NA/NA/NA/NA/NA/NA/NA"));
+    p.setValue("correction_matrix_deuterated", std::vector<std::string>(16, "NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA"));
     tmt32.setParameters(p);
 
     Matrix<double> m = tmt32.getIsotopeCorrectionMatrix();
