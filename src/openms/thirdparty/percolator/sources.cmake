@@ -1,5 +1,6 @@
 # src/openms/thirdparty/percolator/sources.cmake
-# Lists the .cpp files to be compiled as part of libOpenMS.
+# Lists the .cpp files compiled into the OpenMS_Percolator static library
+# (see CMakeLists.txt in this directory), which is linked PRIVATE into libOpenMS.
 
 set(OpenMS_percolator_sources
   BaseSpline.cpp
