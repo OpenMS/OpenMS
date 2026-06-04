@@ -70,7 +70,7 @@ namespace OpenMS
     new_name = "";
     // try with type (as some new tools for one type might have the exact same name as old ones with several types)
     TDE old_withtype(old_name, ListUtils::create<String>(tools_type));
-    if (map_.find(old_withtype) != map_.end())
+    if (map_.contains(old_withtype))
     {
       new_name = map_[old_withtype].name;
       return true;
@@ -78,7 +78,7 @@ namespace OpenMS
 
     // try without type
     TDE old_notype(old_name, StringList());
-    if (map_.find(old_notype) != map_.end())
+    if (map_.contains(old_notype))
     {
       new_name = map_[old_notype].name;
       return true;
@@ -86,7 +86,7 @@ namespace OpenMS
 
     // default to ToolHandler
     const auto& topp = ToolHandler::getTOPPToolList();
-    if (topp.find(old_name) != topp.end())
+    if (topp.contains(old_name))
     {
       new_name = old_name;
       return true;

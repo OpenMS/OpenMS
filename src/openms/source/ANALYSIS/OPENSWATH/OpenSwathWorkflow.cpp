@@ -600,7 +600,7 @@ namespace OpenMS
           std::set<std::string> matching_proteins;
           for (Size compound_idx = 0; compound_idx < transition_exp.compounds.size(); compound_idx++)
           {
-            if (matching_compounds.find(transition_exp.compounds[compound_idx].id) != matching_compounds.end())
+            if (matching_compounds.contains(transition_exp.compounds[compound_idx].id))
             {
               context.transition_exp_used_all.compounds.push_back(transition_exp.compounds[compound_idx]);
               for (Size protein_ref_idx = 0;
@@ -613,7 +613,7 @@ namespace OpenMS
           }
           for (Size protein_idx = 0; protein_idx < transition_exp.proteins.size(); protein_idx++)
           {
-            if (matching_proteins.find(transition_exp.proteins[protein_idx].id) != matching_proteins.end())
+            if (matching_proteins.contains(transition_exp.proteins[protein_idx].id))
             {
               context.transition_exp_used_all.proteins.push_back(transition_exp.proteins[protein_idx]);
             }
@@ -988,7 +988,7 @@ namespace OpenMS
           std::set<std::string> matching_proteins;
           for (Size i = 0; i < transition_exp.compounds.size(); i++)
           {
-            if (matching_compounds.find(transition_exp.compounds[i].id) != matching_compounds.end())
+            if (matching_compounds.contains(transition_exp.compounds[i].id))
             {
               transition_exp_used_all.compounds.push_back( transition_exp.compounds[i] );
               for (Size j = 0; j < transition_exp.compounds[i].protein_refs.size(); j++)
@@ -999,7 +999,7 @@ namespace OpenMS
           }
           for (Size i = 0; i < transition_exp.proteins.size(); i++)
           {
-            if (matching_proteins.find(transition_exp.proteins[i].id) != matching_proteins.end())
+            if (matching_proteins.contains(transition_exp.proteins[i].id))
             {
               transition_exp_used_all.proteins.push_back( transition_exp.proteins[i] );
             }
@@ -1336,7 +1336,7 @@ namespace OpenMS
         // the transitions)
         if (ms1only) {continue;}
 
-        if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
+        if (!chromatogram_map.contains(transition->getNativeID()))
         {
           if (mrm_) // in SRM/MRM mode, we can skip missing chromatograms, because it's unlikely that we will map all transitions to the already targeted extracted chromatograms
           {
@@ -1389,7 +1389,7 @@ namespace OpenMS
       for (int iso = 0; iso <= nr_ms1_isotopes; iso++)
       {
         String prec_id = OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), iso);
-        if (!ms1_chromatograms.empty() && ms1_chromatogram_map.find(prec_id) != ms1_chromatogram_map.end())
+        if (!ms1_chromatograms.empty() && ms1_chromatogram_map.contains(prec_id))
         {
           const MSChromatogram& chromatogram = ms1_chromatograms[ ms1_chromatogram_map[prec_id] ];
           transition_group.addPrecursorChromatogram(chromatogram, chromatogram.getNativeID());
@@ -1593,7 +1593,7 @@ namespace OpenMS
 
     for (Size i = 0; i < all_transitions.size(); i++)
     {
-      if (selected_compounds.find(all_transitions[i].peptide_ref) != selected_compounds.end())
+      if (selected_compounds.contains(all_transitions[i].peptide_ref))
       {
         output.push_back(all_transitions[i]);
       }

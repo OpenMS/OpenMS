@@ -275,10 +275,10 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
       if (*exp_pc_it == '+' || *exp_pc_it == '-') break;
 
       // count occurence of nucleotide
-      if (exp_pc_nucleotide_count.count(*exp_pc_it) == 0)
+      if (!exp_pc_nucleotide_count.contains(*exp_pc_it))
       {
         exp_pc_nucleotide_count[*exp_pc_it] = 1;
-        if (can_xl.count(*exp_pc_it)) { exp_pc_xl_nts.insert(*exp_pc_it); };
+        if (can_xl.contains(*exp_pc_it)) { exp_pc_xl_nts.insert(*exp_pc_it); };
       }
       else
       {
@@ -329,7 +329,7 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
       const set<NuXLFragmentAdductDefinition>& fragment_adducts = n2fa.second; // all potential fragment adducts that may arise from the unmodified nucleotide
 
       // check if nucleotide is cross-linkable and part of the precursor adduct
-      if (exp_pc_xl_nts.find(nucleotide) != exp_pc_xl_nts.end())
+      if (exp_pc_xl_nts.contains(nucleotide))
       {
         OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor RNA." << endl;
         OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fragment_adducts.size() << endl;
@@ -347,7 +347,7 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
     for (auto const & n2fa : nucleotide_to_fragment_adducts)
     {
       const char & nucleotide = n2fa.first; // the nucleotide without any associated loss
-      if (exp_pc_nucleotide_count.find(nucleotide) != exp_pc_nucleotide_count.end())
+      if (exp_pc_nucleotide_count.contains(nucleotide))
       { 
         marker_ion_set.insert(n2fa.second.begin(), n2fa.second.end()); 
       }
@@ -363,7 +363,7 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
       set<NuXLFragmentAdductDefinition> fas = n2fa.second; // all potential fragment adducts that may arise from NT assuming no loss on the precursor adduct
 
       // check if nucleotide is cross-linkable and part of the precursor adduct
-      if (exp_pc_xl_nts.find(nucleotide) != exp_pc_xl_nts.end())
+      if (exp_pc_xl_nts.contains(nucleotide))
       {
         OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor NA adduct." << endl;
         OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fas.size() << endl;

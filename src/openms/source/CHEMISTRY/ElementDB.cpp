@@ -79,12 +79,12 @@ namespace OpenMS
 
   bool ElementDB::hasElement(const string& name) const
   {
-    return (names_.find(name) != names_.end()) || (symbols_.find(name) != symbols_.end());
+    return (names_.contains(name)) || (symbols_.contains(name));
   }
 
   bool ElementDB::hasElement(unsigned int atomic_number) const
   {
-    return atomic_numbers_.find(atomic_number) != atomic_numbers_.end();
+    return atomic_numbers_.contains(atomic_number);
   }
 
   double ElementDB::calculateAvgWeight_(const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
@@ -614,7 +614,7 @@ namespace OpenMS
   {
     // overwrite existing element if it already exists
     // find() has to be protected here in a parallel context
-    if (atomic_numbers_.find(an) != atomic_numbers_.end())
+    if (atomic_numbers_.contains(an))
     {
       // in order to ensure that existing elements are still valid and memory
       // addresses do not change, we have to modify the Element in place

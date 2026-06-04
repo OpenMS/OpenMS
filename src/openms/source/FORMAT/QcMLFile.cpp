@@ -793,7 +793,7 @@ namespace OpenMS
       to_ignore.insert("binary"); // ...
     }
 
-    if (to_ignore.find(tag_) != to_ignore.end())
+    if (to_ignore.contains(tag_))
     {
       return;
     }
@@ -920,7 +920,7 @@ namespace OpenMS
     //close current tag
     open_tags_.pop_back();
 
-    if (to_ignore.find(tag_) != to_ignore.end())
+    if (to_ignore.contains(tag_))
     {
       return;
     }

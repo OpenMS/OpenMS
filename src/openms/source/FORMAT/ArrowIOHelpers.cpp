@@ -240,7 +240,7 @@ void readMetaValues(
   for (int64_t i = 0; i < struct_arr->length(); ++i)
   {
     std::string name = name_arr->GetString(i);
-    if (excluded_keys.count(name)) continue;
+    if (excluded_keys.contains(name)) continue;
 
     std::string value_str = value_arr->GetString(i);
     std::string type_str = type_arr->GetString(i);

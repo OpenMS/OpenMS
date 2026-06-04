@@ -145,7 +145,7 @@ namespace OpenMS
            it_file != consensus_map.getColumnHeaders().end();
            ++it_file)
       {
-        if (ratios.find(it_file->first) != ratios.end())
+        if (ratios.contains(it_file->first))
         {
           //sort intensity ratios for map #it_file->first
           std::sort(ratios[it_file->first].begin(), ratios[it_file->first].end());

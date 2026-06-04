@@ -146,7 +146,7 @@ public:
               ChromatogramPeak chr_p;
               chr_p.setRT(it->getRT());
               chr_p.setIntensity(p.getIntensity());
-              if (chroms_xic.find(mz) == chroms_xic.end())
+              if (!chroms_xic.contains(mz))
               {
                 // new chromatogram
                 chroms_xic[mz].getPrecursor().setMZ(mz);

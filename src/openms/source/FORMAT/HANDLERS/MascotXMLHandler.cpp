@@ -337,7 +337,7 @@ namespace OpenMS::Internal
         vector<String> parts;
 
         actual_title_ = title;
-        if (modified_peptides_.find(title) != modified_peptides_.end())
+        if (modified_peptides_.contains(title))
         {
           vector<AASequence>& temp_hits = modified_peptides_[title];
           vector<PeptideHit> temp_peptide_hits = id_data_[actual_query_ - 1].getHits();

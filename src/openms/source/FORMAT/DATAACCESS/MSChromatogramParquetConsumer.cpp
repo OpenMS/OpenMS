@@ -138,7 +138,7 @@ namespace OpenMS
       {
         // fall through to auto-assigned ID
       }
-      while (used_ids.count(next_id))
+      while (used_ids.contains(next_id))
       {
         ++next_id;
       }

@@ -301,7 +301,7 @@ namespace OpenMS
         String component_name = (String)unknowns[feature_it].getSubordinates()[sub_it].getMetaValue("native_id");
 
         // apply the calibration curve to components that are in the quant_method
-        if (quant_methods_.count(component_name)>0)
+        if (quant_methods_.contains(component_name))
         {
           double calculated_concentration = 0.0;
           std::map<String,AbsoluteQuantitationMethod>::iterator quant_methods_it = quant_methods_.find(component_name);

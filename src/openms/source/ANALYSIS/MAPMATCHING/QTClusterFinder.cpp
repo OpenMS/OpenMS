@@ -690,7 +690,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
 
             // Skip features that we have already used -> we cannot add them to
             // be neighbors any more
-            if (already_used_.find(neighbor_feature) != already_used_.end() )
+            if (already_used_.contains(neighbor_feature) )
             {
               continue;
             }

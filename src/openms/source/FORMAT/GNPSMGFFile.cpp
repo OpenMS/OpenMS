@@ -301,7 +301,7 @@ namespace OpenMS
         int map_index = pep.first;
 
         // open on-disc experiments
-        if (map_index2file_index.find(map_index) == map_index2file_index.end())
+        if (!map_index2file_index.contains(map_index))
         {
           specs_list[num_msmaps_cached].openFile(mzml_file_paths[map_index], false); // open on-disc experiment and load meta-data
           map_index2file_index[map_index] = num_msmaps_cached;

@@ -155,7 +155,7 @@ public:
         }
 
         // see if UID already present
-        while (uniqueid_to_index_.find(unique_id) != uniqueid_to_index_.end()) // double entry!
+        while (uniqueid_to_index_.contains(unique_id)) // double entry!
         {
           getBase_()[index].setUniqueId();
           unique_id = getBase_()[index].getUniqueId();

@@ -570,7 +570,7 @@ protected:
       writeDebug_("PSM identifier in pout file: " + spec_ref, 10);
 
       // retain only the best result in the unlikely case that a PSMId+peptide combination occurs multiple times
-      if (pep_map.find(spec_ref) == pep_map.end())
+      if (!pep_map.contains(spec_ref))
       {
         pep_map.insert( map<String, PercolatorResult>::value_type ( spec_ref, res ) );
       }
@@ -994,7 +994,7 @@ protected:
         StringList numeric_features;
         for (const String& f : feature_set)
         {
-          if (pin_metadata_not_feature.count(f)) continue;
+          if (pin_metadata_not_feature.contains(f)) continue;
           numeric_features.push_back(f);
         }
         if (all_peptide_ids.empty() || all_peptide_ids.front().getHits().empty()
@@ -1026,7 +1026,7 @@ protected:
           const auto& pid = all_peptide_ids[i];
           for (size_t j = 0; j < pid.getHits().size(); ++j)
           {
-            if (skipped.count({i, j})) continue;
+            if (skipped.contains({i, j})) continue;
             const PeptideHit& hit = pid.getHits()[j];
 
             // Build feature row from stamped meta values.

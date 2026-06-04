@@ -111,12 +111,12 @@ namespace OpenMS
 
     static inline bool hasSubstring(const String & this_s, const String& string)
     {
-      return this_s.find(string) != std::string::npos;
+      return this_s.contains(string);
     }
 
     static inline bool has(const String & this_s, Byte byte)
     {
-      return this_s.find(char(byte)) != std::string::npos;
+      return this_s.contains(char(byte));
     }
 
     static inline String prefix(const String & this_s, size_t length)
