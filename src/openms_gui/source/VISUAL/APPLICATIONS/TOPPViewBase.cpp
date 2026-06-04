@@ -1840,15 +1840,15 @@ namespace OpenMS
         auto l = getCurrentLayer();
         if (l)
         {
-          auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(topp_.file_name_in);
-          if (annotator.get() == nullptr)
-          { // no suitable annotator? open new layer/window
-            addDataFile(topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
-          }
-          else
-          { // we have an annotator ... let's annotate the current layer
+          auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(topp_.file_name_out);
+          // we have an annotator ... let's annotate the current layer
+          if (annotator != nullptr)
+          {
             annotator->annotateWithFilename(*l, *log_, topp_.file_name_out); // ID tabs are automatically enabled
           }
+          
+          // we add a new layer in any case (e.g. useful for mzML layer + idXML output)
+          addDataFile(topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
         }
       }
     }
